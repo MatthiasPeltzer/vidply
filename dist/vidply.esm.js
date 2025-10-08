@@ -502,6 +502,12 @@ var Icons = {
     <path d="M12 2C10.34 2 9 3.34 9 5v4c0 .34.07.66.18.96L7.5 8.29C7.19 8.1 6.85 8 6.5 8 5.12 8 4 9.12 4 10.5v3c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-3c0-.28.22-.5.5-.5s.5.22.5.5V14l2 2v-1c0-.55.45-1 1-1s1 .45 1 1v2c0 .55.45 1 1 1s1-.45 1-1V9c0-.55.45-1 1-1s1 .45 1 1v8c0 2.21-1.79 4-4 4s-4-1.79-4-4v-2.83l-2.93-2.93A3.93 3.93 0 0 1 4 8c0-1.66 1.34-3 3-3 .83 0 1.58.34 2.12.88L11 7.76V5c0-.55.45-1 1-1s1 .45 1 1v4c0 .55.45 1 1 1s1-.45 1-1V5c0-1.66-1.34-3-3-3z"/>
     <circle cx="19" cy="16" r="3" fill="#3b82f6"/>
     <path d="M18.5 17.5l1-1 1.5 1.5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`,
+  speaker: `<svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+  </svg>`,
+  music: `<svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7zm-1.5 16c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
   </svg>`
 };
 function getIcon(name) {
@@ -2808,6 +2814,7 @@ var TranscriptManager = class {
     this.loadTranscriptData();
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = "flex";
+      setTimeout(() => this.positionTranscript(), 0);
     }
     this.isVisible = true;
   }
@@ -2859,7 +2866,21 @@ var TranscriptManager = class {
     this.transcriptWindow.appendChild(this.transcriptHeader);
     this.transcriptWindow.appendChild(this.transcriptContent);
     this.player.container.appendChild(this.transcriptWindow);
+    this.positionTranscript();
     this.setupDragAndDrop();
+    window.addEventListener("resize", () => this.positionTranscript());
+  }
+  /**
+   * Position transcript window next to video
+   */
+  positionTranscript() {
+    if (!this.transcriptWindow || !this.player.videoWrapper) return;
+    const videoRect = this.player.videoWrapper.getBoundingClientRect();
+    const containerRect = this.player.container.getBoundingClientRect();
+    const leftOffset = videoRect.width + 8;
+    const height = videoRect.height;
+    this.transcriptWindow.style.left = `${leftOffset}px`;
+    this.transcriptWindow.style.height = `${height}px`;
   }
   /**
    * Load transcript data from caption/subtitle tracks
@@ -4566,6 +4587,9 @@ var PlaylistManager = class {
   loadPlaylist(tracks) {
     this.tracks = tracks;
     this.currentIndex = -1;
+    if (this.container) {
+      this.container.classList.add("vidply-has-playlist");
+    }
     if (this.playlistPanel) {
       this.renderPlaylist();
     }
@@ -4721,13 +4745,17 @@ var PlaylistManager = class {
     if (index === this.currentIndex) {
       item.classList.add("vidply-playlist-item-active");
     }
+    const thumbnail = DOMUtils.createElement("div", {
+      className: "vidply-playlist-thumbnail"
+    });
     if (track.poster) {
-      const thumbnail = DOMUtils.createElement("div", {
-        className: "vidply-playlist-thumbnail"
-      });
       thumbnail.style.backgroundImage = `url(${track.poster})`;
-      item.appendChild(thumbnail);
+    } else {
+      const icon = createIconElement("music");
+      icon.classList.add("vidply-playlist-thumbnail-icon");
+      thumbnail.appendChild(icon);
     }
+    item.appendChild(thumbnail);
     const info = DOMUtils.createElement("div", {
       className: "vidply-playlist-item-info"
     });

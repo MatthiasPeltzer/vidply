@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VidPly - Audio Playlist Demo</title>
-  <link rel="stylesheet" href="../dist/vidply.css?v=20241008-34">
+  <link rel="stylesheet" href="../dist/vidply.css?v=20241008-41">
   <style>
     * {
       box-sizing: border-box;
@@ -132,7 +132,7 @@
   </div>
 
   <script type="module">
-    import { Player, PlaylistManager } from '../dist/vidply.esm.js?v=20241008-34';
+    import { Player, PlaylistManager } from '../dist/vidply.esm.js?v=20241008-40';
 
     console.log('Starting audio player initialization...');
 
@@ -159,15 +159,13 @@
         src: 'media/everyday.mp3',
         type: 'audio/mp3',
         title: 'Everyday',
-        artist: 'Audio Demo Track',
-        poster: 'https://via.placeholder.com/300x300/667eea/ffffff?text=Track+1'
+        artist: 'Audio Demo Track'
       },
       {
         src: 'media/frenchsong.mp3',
         type: 'audio/mp3',
         title: 'French Song',
         artist: 'Demo Track 2',
-        poster: 'https://via.placeholder.com/300x300/764ba2/ffffff?text=Track+2',
         tracks: [
           { src: 'media/frenchsong_captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English Translation' },
           { src: 'media/frenchsong_captions_fr.vtt', kind: 'captions', srclang: 'fr', label: 'Français' },
@@ -179,7 +177,6 @@
         type: 'audio/mp3',
         title: 'Paul Allen Interview',
         artist: 'Interview Recording',
-        poster: 'https://via.placeholder.com/300x300/667eea/ffffff?text=Track+3',
         tracks: [
           { src: 'media/paulallen_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
           { src: 'media/paulallen_de.vtt', kind: 'captions', srclang: 'de', label: 'Deutsch' }
@@ -189,15 +186,13 @@
         src: 'media/php70alpha.mp3',
         type: 'audio/mp3',
         title: 'PHP 7.0 Alpha',
-        artist: 'Tech Talk',
-        poster: 'https://via.placeholder.com/300x300/764ba2/ffffff?text=Track+4'
+        artist: 'Tech Talk'
       },
       {
         src: 'media/smallf.mp3',
         type: 'audio/mp3',
         title: 'Small F',
-        artist: 'Audio Demo Track',
-        poster: 'https://via.placeholder.com/300x300/667eea/ffffff?text=Track+5'
+        artist: 'Audio Demo Track'
       }
     ];
 

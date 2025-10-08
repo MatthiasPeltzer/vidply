@@ -52,6 +52,11 @@ export class PlaylistManager {
     this.tracks = tracks;
     this.currentIndex = -1;
     
+    // Add playlist class to container
+    if (this.container) {
+      this.container.classList.add('vidply-has-playlist');
+    }
+    
     // Update UI
     if (this.playlistPanel) {
       this.renderPlaylist();
@@ -259,14 +264,21 @@ export class PlaylistManager {
       item.classList.add('vidply-playlist-item-active');
     }
     
-    // Thumbnail
+    // Thumbnail or icon
+    const thumbnail = DOMUtils.createElement('div', {
+      className: 'vidply-playlist-thumbnail'
+    });
+    
     if (track.poster) {
-      const thumbnail = DOMUtils.createElement('div', {
-        className: 'vidply-playlist-thumbnail'
-      });
       thumbnail.style.backgroundImage = `url(${track.poster})`;
-      item.appendChild(thumbnail);
+    } else {
+      // Show music/speaker icon for audio tracks
+      const icon = createIconElement('music');
+      icon.classList.add('vidply-playlist-thumbnail-icon');
+      thumbnail.appendChild(icon);
     }
+    
+    item.appendChild(thumbnail);
     
     // Info
     const info = DOMUtils.createElement('div', {
