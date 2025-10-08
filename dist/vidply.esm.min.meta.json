@@ -63,7 +63,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.js": {
-      "bytes": 6563,
+      "bytes": 6687,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -290,7 +290,7 @@
           "bytesInOutput": 30865
         },
         "src/controls/CaptionManager.js": {
-          "bytesInOutput": 3606
+          "bytesInOutput": 3634
         },
         "src/controls/KeyboardManager.js": {
           "bytesInOutput": 2973
@@ -320,7 +320,7 @@
           "bytesInOutput": 243
         }
       },
-      "bytes": 108954
+      "bytes": 108982
     }
   }
 }
