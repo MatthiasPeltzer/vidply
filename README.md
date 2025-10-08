@@ -118,7 +118,7 @@ const player = new Player('#my-video', {
 });
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Build the Player
 
@@ -174,7 +174,7 @@ That's it! The player auto-initializes.
 <video data-vidply src="https://example.com/stream.m3u8"></video>
 ```
 
-## ⚙️ Configuration Options
+## Configuration Options
 
 ```javascript
 const player = new Player('#video', {
@@ -244,7 +244,7 @@ const player = new Player('#video', {
 });
 ```
 
-## 🎹 Keyboard Shortcuts
+## Keyboard Shortcuts
 
 | Key | Action |
 |-----|--------|
@@ -258,7 +258,7 @@ const player = new Player('#video', {
 | <kbd><</kbd> / <kbd>></kbd> | Decrease/Increase Speed |
 | <kbd>S</kbd> | Open Settings |
 
-## 📚 API Reference
+## API Reference
 
 ### Playback Control
 
@@ -350,7 +350,7 @@ player.on('error', (error) => {})
 player.destroy()  // Remove player and cleanup
 ```
 
-## 🎨 Customization
+## Customization
 
 ### Custom Styling
 
@@ -407,11 +407,11 @@ npm run dev          # Start dev server
 ### Output Files
 
 - `dist/vidply.esm.js` - ES Module (development)
-- `dist/vidply.esm.min.js` - ES Module (production) ⭐
+- `dist/vidply.esm.min.js` - ES Module (production)
 - `dist/vidply.js` - IIFE (development)
-- `dist/vidply.min.js` - IIFE (production) ⭐
+- `dist/vidply.min.js` - IIFE (production)
 - `dist/vidply.css` - Styles (unminified)
-- `dist/vidply.min.css` - Styles (minified) ⭐
+- `dist/vidply.min.css` - Styles (minified)
 
 See [BUILD.md](BUILD.md) for detailed build documentation.
 
@@ -437,7 +437,7 @@ the Free Software Foundation; either version 2 of the License, or
 
 See [LICENSE](LICENSE) for full license text.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
