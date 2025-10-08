@@ -1,4 +1,4 @@
-# VidPly Playlist Feature
+# <img src="../favicon.svg" width="32" alt="VidPly" /> VidPly Playlist Feature
 
 The `PlaylistManager` allows you to create audio and video playlists with automatic track switching, navigation controls, and a visual playlist panel.
 

@@ -1,4 +1,4 @@
-# Getting Started with VidPly
+# <img src="../favicon.svg" width="32" alt="VidPly" /> Getting Started with VidPly
 
 Welcome! This guide will help you get VidPly up and running in 5 minutes.
 
