@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2024-10-08
 
-### 🎉 Initial Release
+### Initial Release
 
 VidPly v1.0.0 is here! A complete, production-ready video player built with vanilla ES6 JavaScript.
 
@@ -147,11 +147,11 @@ VidPly v1.0.0 is here! A complete, production-ready video player built with vani
 
 #### Output Files
 - `dist/vidply.esm.js` - ES Module (dev)
-- `dist/vidply.esm.min.js` - ES Module (prod) ⭐
+- `dist/vidply.esm.min.js` - ES Module (prod)
 - `dist/vidply.js` - IIFE bundle (dev)
-- `dist/vidply.min.js` - IIFE bundle (prod) ⭐
+- `dist/vidply.min.js` - IIFE bundle (prod)
 - `dist/vidply.css` - Styles (unminified)
-- `dist/vidply.min.css` - Styles (minified) ⭐
+- `dist/vidply.min.css` - Styles (minified)
 
 #### Source Files
 - `src/core/Player.js` - Main player class (~500 lines)
@@ -188,7 +188,7 @@ VidPly v1.0.0 is here! A complete, production-ready video player built with vani
 - `LICENSE` - GPL-2.0-or-later License
 - `package.json` - Package config with build scripts
 
-### 📊 Statistics
+### Statistics
 - **Total Lines of Code:** ~4,000+
 - **Minified Size (JS):** ~50 KB
 - **Minified Size (CSS):** ~12 KB
