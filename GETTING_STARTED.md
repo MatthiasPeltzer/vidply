@@ -2,13 +2,13 @@
 
 Welcome! This guide will help you get VidPly up and running in 5 minutes.
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Node.js 18+ installed
 - A text editor
 - A modern web browser
 
-## 🚀 Quick Setup
+## Quick Setup
 
 ### 1. Clone or Download
 
@@ -34,7 +34,7 @@ npm run dev
 
 Open http://localhost:3000/demo/ to see VidPly in action!
 
-## 🎬 Your First Video Player
+## Your First Video Player
 
 ### Create `index.html`
 
@@ -88,7 +88,7 @@ php -S localhost:3000
 
 Open http://localhost:3000 in your browser.
 
-## 🎵 Audio Player
+## Audio Player
 
 ```html
 <audio data-vidply>
@@ -106,7 +106,7 @@ Open http://localhost:3000 in your browser.
 ></video>
 ```
 
-## 🎨 Vimeo Video
+## Vimeo Video
 
 ```html
 <video 
@@ -115,7 +115,7 @@ Open http://localhost:3000 in your browser.
 ></video>
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 ### Via Data Attribute
 
@@ -155,7 +155,7 @@ Open http://localhost:3000 in your browser.
 </script>
 ```
 
-## 🎯 Common Use Cases
+## Common Use Cases
 
 ### Autoplay (Muted)
 
@@ -205,7 +205,7 @@ const player = new Player('#video', {
 });
 ```
 
-## 📝 Creating Captions (WebVTT)
+## Creating Captions (WebVTT)
 
 Create a file called `captions.vtt`:
 
@@ -222,7 +222,7 @@ This is how captions work.
 Pretty easy, right?
 ```
 
-## 🎮 Controlling the Player
+## Controlling the Player
 
 ```javascript
 const player = new Player('#video');
@@ -272,7 +272,7 @@ Once the player is focused:
 - <kbd><</kbd> / <kbd>></kbd> - Decrease/Increase Speed
 - <kbd>S</kbd> - Settings
 
-## 🎨 Customizing Styles
+## Customizing Styles
 
 ### Override CSS Variables
 
@@ -299,7 +299,7 @@ Once the player is focused:
 }
 ```
 
-## 🌐 Change Language
+## Change Language
 
 ```javascript
 const player = new Player('#video', {
@@ -309,7 +309,7 @@ const player = new Player('#video', {
 // Available: en, es, fr, de, ja
 ```
 
-## 🔧 Development Mode
+## Development Mode
 
 Enable debug logging:
 
@@ -321,7 +321,7 @@ const player = new Player('#video', {
 
 Check the browser console for detailed logs.
 
-## 📱 Mobile Optimization
+## Mobile Optimization
 
 VidPly is mobile-friendly by default. For best results:
 
@@ -337,7 +337,7 @@ const player = new Player('#video', {
 });
 ```
 
-## ♿ Accessibility
+## Accessibility
 
 VidPly is WCAG 2.1 AA compliant out of the box:
 
@@ -349,7 +349,7 @@ VidPly is WCAG 2.1 AA compliant out of the box:
 
 No extra configuration needed!
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Video Won't Play
 
@@ -375,14 +375,14 @@ npm install
 npm run build
 ```
 
-## 📚 Next Steps
+## Next Steps
 
 - Read [README.md](README.md) for full API documentation
 - See [USAGE.md](USAGE.md) for more examples
 - Check [demo/demo.html](demo/demo.html) for live demos
 - Read [BUILD.md](BUILD.md) for build customization
 
-## 💡 Tips
+## Tips
 
 1. **Always use a local server** - Don't open HTML files directly (file://)
 2. **Enable captions by default** for better accessibility
@@ -390,17 +390,17 @@ npm run build
 4. **Test keyboard shortcuts** to ensure accessibility
 5. **Check browser console** for helpful debug messages
 
-## 🎉 You're Ready!
+## You're Ready!
 
 That's it! You now know how to:
-- ✅ Build VidPly
-- ✅ Create video/audio players
-- ✅ Add captions
-- ✅ Configure options
-- ✅ Control playback
-- ✅ Customize styles
+- Build VidPly
+- Create video/audio players
+- Add captions
+- Configure options
+- Control playback
+- Customize styles
 
-Happy coding! 🎬
+Happy coding!
 
 ---
 
