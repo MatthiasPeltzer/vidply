@@ -1,4 +1,4 @@
-# VidPly Usage Guide
+# <img src="../favicon.svg" width="32" alt="VidPly" /> VidPly Usage Guide
 
 ## Getting Started
 

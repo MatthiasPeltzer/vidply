@@ -1,4 +1,4 @@
-# VidPly
+# <img src="favicon.svg" width="32" alt="VidPly" /> VidPly
 
 **Universal, Accessible Video Player**
 

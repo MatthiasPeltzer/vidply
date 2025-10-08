@@ -1,4 +1,4 @@
-# VidPly Build Guide
+# <img src="../favicon.svg" width="32" alt="VidPly" /> VidPly Build Guide
 
 This document explains how to build VidPly from source.
 
