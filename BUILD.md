@@ -307,5 +307,5 @@ For build issues, check:
 
 ---
 
-**Happy building!** 🔨
+**Happy building!**
 
