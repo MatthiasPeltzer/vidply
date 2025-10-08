@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VidPly - Audio Playlist Demo</title>
+  <link rel="stylesheet" href="../dist/vidply.css?v=20241008-26">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 2.5rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .player-wrapper {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .description {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .description h2 {
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .description p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .description ul {
+      margin-left: 20px;
+      color: #666;
+    }
+
+    .description li {
+      margin: 6px 0;
+    }
+
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="demo.html" class="back-link" style="display: inline-block; color: white; text-decoration: none; margin-bottom: 20px; padding: 8px 16px; background: rgba(255, 255, 255, 0.2); border-radius: 6px;">← Back to Main Demo</a>
+    
+    <h1>🎵 Audio Playlist Demo</h1>
+
+    <div style="text-align: center; margin-bottom: 20px;">
+      <a href="playlist-video.html" style="display: inline-block; background: rgba(255, 255, 255, 0.9); color: #667eea; padding: 10px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+        🎬 Try Video Playlist Demo
+      </a>
+    </div>
+
+    <div class="player-wrapper">
+      <div id="audio-player"></div>
+    </div>
+
+    <div class="description">
+      <h2>Features Demonstrated</h2>
+      <ul>
+        <li><strong>Previous/Next buttons</strong> - Navigate between tracks</li>
+        <li><strong>Auto-advance</strong> - Automatically plays the next track</li>
+        <li><strong>Track info display</strong> - Shows current track number, title, and artist</li>
+        <li><strong>Playlist panel</strong> - Click any track to play it</li>
+        <li><strong>Active track highlighting</strong> - Shows which track is currently playing</li>
+        <li><strong>Keyboard navigation</strong> - Use Tab and Enter to navigate the playlist</li>
+      </ul>
+
+      <h2 style="margin-top: 20px;">How to Use</h2>
+      <p>This demo shows how to create an audio playlist with VidPly:</p>
+      <ol style="margin-left: 20px; color: #666; line-height: 1.6;">
+        <li>Create a player instance with <code>new Player()</code></li>
+        <li>Create a playlist manager with <code>new PlaylistManager(player)</code></li>
+        <li>Load your tracks with <code>loadPlaylist()</code></li>
+        <li>The previous/next buttons and track info will appear automatically</li>
+      </ol>
+    </div>
+  </div>
+
+  <script type="module">
+    import { Player, PlaylistManager } from '../dist/vidply.esm.js?v=20241008-26';
+
+    console.log('Starting player initialization...');
+    console.log('Target element:', document.querySelector('#audio-player'));
+
+    // Create player instance
+    const player = new Player('#audio-player', {
+      autoplay: false,
+      controls: true,
+      preload: 'metadata',
+      mediaType: 'audio'
+    });
+
+    console.log('Player created:', player);
+    console.log('Player container:', player.container);
+    console.log('Player element:', player.element);
+
+    // Create playlist manager
+    const playlist = new PlaylistManager(player, {
+      autoAdvance: true,  // Automatically play next track
+      loop: false,        // Loop back to first track after last
+      showPanel: true     // Show playlist panel below player
+    });
+
+    // Load playlist tracks
+    const tracks = [
+      {
+        src: 'media/everyday.mp3',
+        type: 'audio/mp3',
+        title: 'Everyday',
+        artist: 'Audio Demo Track',
+        poster: 'https://via.placeholder.com/300x300/667eea/ffffff?text=Track+1'
+      },
+      {
+        src: 'media/frenchsong.mp3',
+        type: 'audio/mp3',
+        title: 'French Song',
+        artist: 'Audio Demo Track',
+        tracks: [
+          { src: 'media/frenchsong_captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
+          { src: 'media/frenchsong_captions_fr.vtt', kind: 'captions', srclang: 'fr', label: 'Français' },
+          { src: 'media/frenchsong_chapters_en.vtt', kind: 'chapters', srclang: 'en', label: 'English' }
+        ],
+        poster: 'https://via.placeholder.com/300x300/764ba2/ffffff?text=Track+2'
+      },
+      {
+        src: 'media/paulallen.mp3',
+        type: 'audio/mp3',
+        title: 'Paul Allen Interview',
+        artist: 'Audio Demo Track',
+        tracks: [
+          { src: 'media/paulallen_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
+          { src: 'media/paulallen_de.vtt', kind: 'captions', srclang: 'de', label: 'Deutsch' }
+        ],
+        poster: 'https://via.placeholder.com/300x300/f093fb/ffffff?text=Track+3'
+      },
+      {
+        src: 'media/php70alpha.mp3',
+        type: 'audio/mp3',
+        title: 'PHP 7.0 Alpha',
+        artist: 'Audio Demo Track',
+        poster: 'https://via.placeholder.com/300x300/4facfe/ffffff?text=Track+4'
+      },
+      {
+        src: 'media/smallf.mp3',
+        type: 'audio/mp3',
+        title: 'Small F',
+        artist: 'Audio Demo Track',
+        poster: 'https://via.placeholder.com/300x300/00f2fe/ffffff?text=Track+5'
+      }
+    ];
+
+    playlist.loadPlaylist(tracks);
+
+    // Optional: Listen for track changes
+    player.on('playlisttrackchange', (e) => {
+      console.log('Now playing:', e.item.title, 'by', e.item.artist);
+    });
+
+    // Optional: Add keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      switch(e.key) {
+        case 'ArrowLeft':
+          if (e.shiftKey) {
+            playlist.previous();
+            e.preventDefault();
+          }
+          break;
+        case 'ArrowRight':
+          if (e.shiftKey) {
+            playlist.next();
+            e.preventDefault();
+          }
+          break;
+      }
+    });
+  </script>
+</body>
+</html>

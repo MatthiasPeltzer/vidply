@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VidPly - Video Playlist Demo</title>
+  <link rel="stylesheet" href="../dist/vidply.css?v=20241008-26">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 2.5rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .player-wrapper {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .description {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .description h2 {
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .description p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .description ul {
+      margin-left: 20px;
+      color: #666;
+    }
+
+    .description li {
+      margin: 6px 0;
+    }
+
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: white;
+      text-decoration: none;
+      margin-bottom: 20px;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      transition: background 0.3s;
+    }
+
+    .back-link:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="demo.html" class="back-link">← Back to Main Demo</a>
+    
+    <h1>🎬 Video Playlist Demo</h1>
+
+    <div class="player-wrapper">
+      <div id="video-player"></div>
+    </div>
+
+    <div class="description">
+      <h2>Features Demonstrated</h2>
+      <ul>
+        <li><strong>Previous/Next buttons</strong> - Navigate between videos</li>
+        <li><strong>Auto-advance</strong> - Automatically plays the next video</li>
+        <li><strong>Episode info display</strong> - Shows current episode number and title</li>
+        <li><strong>Playlist panel</strong> - Click any video to play it</li>
+        <li><strong>Video thumbnails</strong> - Preview images for each video</li>
+        <li><strong>Per-video captions</strong> - Different captions for each video</li>
+        <li><strong>Active video highlighting</strong> - Shows which video is currently playing</li>
+        <li><strong>Keyboard navigation</strong> - Use Tab and Enter to navigate the playlist</li>
+      </ul>
+
+      <h2 style="margin-top: 20px;">Perfect For</h2>
+      <ul>
+        <li>📺 <strong>TV Series</strong> - Binge-watch episodes</li>
+        <li>🎓 <strong>Video Courses</strong> - Sequential lessons</li>
+        <li>🎥 <strong>Conference Talks</strong> - Multiple presentations</li>
+        <li>📹 <strong>Tutorial Series</strong> - Step-by-step guides</li>
+        <li>🎞️ <strong>Film Collections</strong> - Short film festivals</li>
+      </ul>
+    </div>
+  </div>
+
+  <script type="module">
+    import { Player, PlaylistManager } from '../dist/vidply.esm.js?v=20241008-26';
+
+    console.log('Starting video player initialization...');
+
+    // Create player instance
+    const player = new Player('#video-player', {
+      autoplay: false,
+      controls: true,
+      preload: 'metadata',
+      mediaType: 'video'
+    });
+
+    console.log('Video player created:', player);
+
+    // Create playlist manager
+    const playlist = new PlaylistManager(player, {
+      autoAdvance: true,  // Automatically play next video
+      loop: false,        // Don't loop back to first video
+      showPanel: true     // Show playlist panel below player
+    });
+
+    // Load video playlist
+    const videos = [
+      {
+        src: 'media/wwa.mp4',
+        type: 'video/mp4',
+        title: 'What We Ask - Episode 1',
+        artist: 'Demo Series',
+        poster: 'media/wwa_thumbnail.jpg',
+        tracks: [
+          { src: 'media/wwa_captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
+          { src: 'media/wwa_captions_es.vtt', kind: 'captions', srclang: 'es', label: 'Español' },
+          { src: 'media/wwa_captions_de.vtt', kind: 'captions', srclang: 'de', label: 'Deutsch' },
+          { src: 'media/wwa_chapters_en.vtt', kind: 'chapters', srclang: 'en', label: 'Chapters' }
+        ]
+      },
+      {
+        src: 'media/deadline.mp4',
+        type: 'video/mp4',
+        title: 'Deadline - Episode 2',
+        artist: 'Demo Series',
+        poster: 'media/deadline_thumbnail.jpg',
+        tracks: [
+          { src: 'media/deadline_captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
+          { src: 'media/deadline_captions_es.vtt', kind: 'captions', srclang: 'es', label: 'Español' },
+          { src: 'media/deadline_captions_it.vtt', kind: 'captions', srclang: 'it', label: 'Italiano' },
+          { src: 'media/deadline_captions_pt-br.vtt', kind: 'captions', srclang: 'pt-br', label: 'Português' }
+        ]
+      },
+      {
+        src: 'media/itaccess-excerpt.mp4',
+        type: 'video/mp4',
+        title: 'IT Access - Episode 3',
+        artist: 'Demo Series',
+        poster: 'media/itaccess.jpg',
+        tracks: [
+          { src: 'media/itaccess-excerpt-captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
+          { src: 'media/itaccess-excerpt-subtitles_es.vtt', kind: 'subtitles', srclang: 'es', label: 'Español' },
+          { src: 'media/itaccess-excerpt-chapters_en.vtt', kind: 'chapters', srclang: 'en', label: 'Chapters' }
+        ]
+      }
+    ];
+
+    playlist.loadPlaylist(videos);
+
+    // Listen for video changes
+    player.on('playlisttrackchange', (e) => {
+      console.log(`Now playing: ${e.item.title}`);
+      
+      // Optional: Update document title
+      document.title = `${e.item.title} - VidPly Video Playlist`;
+    });
+
+    // Optional: Add keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      switch(e.key) {
+        case 'N':
+        case 'n':
+          if (e.shiftKey) {
+            playlist.next();
+            e.preventDefault();
+          }
+          break;
+        case 'P':
+        case 'p':
+          if (e.shiftKey) {
+            playlist.previous();
+            e.preventDefault();
+          }
+          break;
+      }
+    });
+
+    console.log('Video playlist initialized with', videos.length, 'videos');
+  </script>
+</body>
+</html>
