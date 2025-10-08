@@ -245,11 +245,11 @@ Ensure CSS is loaded before the video element:
 
 ## Support
 
-- 📖 Documentation: See README.md
-- 🐛 Issues: Report on GitHub
-- 💬 Questions: GitHub Discussions
+- Documentation: See README.md
+- Issues: Report on GitHub
+- Questions: GitHub Discussions
 
 ---
 
-**Happy coding!** 🎬
+**Happy coding!**
 
