@@ -16,7 +16,7 @@
       "format": "esm"
     },
     "src/icons/Icons.js": {
-      "bytes": 10345,
+      "bytes": 10811,
       "imports": [],
       "format": "esm"
     },
@@ -105,7 +105,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 18020,
+      "bytes": 18918,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -223,7 +223,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 10477,
+      "bytes": 10839,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -278,7 +278,7 @@
           "bytesInOutput": 728
         },
         "src/icons/Icons.js": {
-          "bytesInOutput": 9787
+          "bytesInOutput": 10231
         },
         "src/i18n/translations.js": {
           "bytesInOutput": 5100
@@ -299,7 +299,7 @@
           "bytesInOutput": 7366
         },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 9463
+          "bytesInOutput": 9890
         },
         "src/core/Player.js": {
           "bytesInOutput": 13348
@@ -314,13 +314,13 @@
           "bytesInOutput": 4500
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 5363
+          "bytesInOutput": 5519
         },
         "src/index.js": {
           "bytesInOutput": 243
         }
       },
-      "bytes": 109605
+      "bytes": 110632
     }
   }
 }

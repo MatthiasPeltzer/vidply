@@ -68,6 +68,8 @@ export class TranscriptManager {
     // Show the window
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = 'flex';
+      // Re-position after showing (in case window was resized while hidden)
+      setTimeout(() => this.positionTranscript(), 0);
     }
     this.isVisible = true;
   }
@@ -132,8 +134,31 @@ export class TranscriptManager {
     // Append to player container
     this.player.container.appendChild(this.transcriptWindow);
     
+    // Position it next to the video wrapper
+    this.positionTranscript();
+    
     // Setup drag functionality
     this.setupDragAndDrop();
+    
+    // Re-position on window resize
+    window.addEventListener('resize', () => this.positionTranscript());
+  }
+  
+  /**
+   * Position transcript window next to video
+   */
+  positionTranscript() {
+    if (!this.transcriptWindow || !this.player.videoWrapper) return;
+    
+    const videoRect = this.player.videoWrapper.getBoundingClientRect();
+    const containerRect = this.player.container.getBoundingClientRect();
+    
+    // Calculate position relative to container
+    const leftOffset = videoRect.width + 8; // 8px gap
+    const height = videoRect.height;
+    
+    this.transcriptWindow.style.left = `${leftOffset}px`;
+    this.transcriptWindow.style.height = `${height}px`;
   }
 
   /**
