@@ -43,11 +43,11 @@ A modern, feature-rich video player built with vanilla ES6 JavaScript. Combines 
 
 ### Internationalization
 Built-in support for:
-- 🇬🇧 English
-- 🇪🇸 Spanish
-- 🇫🇷 French
-- 🇩🇪 German
-- 🇯🇵 Japanese
+- English
+- Spanish
+- French
+- German
+- Japanese
 - Easy to add more languages
 
 ## Installation
@@ -413,7 +413,7 @@ npm run dev          # Start dev server
 - `dist/vidply.css` - Styles (unminified)
 - `dist/vidply.min.css` - Styles (minified)
 
-See [BUILD.md](BUILD.md) for detailed build documentation.
+See [BUILD.md](docs/BUILD.md) for detailed build documentation.
 
 ## Browser Support
 
@@ -443,10 +443,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Support
 
-- Documentation: See [GETTING_STARTED.md](GETTING_STARTED.md)
-- Installation: See [INSTALL.md](INSTALL.md)
-- Usage Examples: See [USAGE.md](USAGE.md)
-- Build Guide: See [BUILD.md](BUILD.md)
+- Getting Started: See [GETTING_STARTED.md](docs/GETTING_STARTED.md)
+- Usage Examples: See [USAGE.md](docs/USAGE.md)
+- Playlist Guide: See [PLAYLIST.md](docs/PLAYLIST.md)
+- Build Guide: See [BUILD.md](docs/BUILD.md)
 - Issues: Report on GitHub
 - Discussions: GitHub Discussions
 
@@ -458,4 +458,4 @@ Inspired by:
 
 ---
 
-Made with ❤️ and Vanilla JavaScript by Matthias Peltzer
+Made with Vanilla JavaScript by Matthias Peltzer
