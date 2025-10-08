@@ -2778,6 +2778,7 @@ var TranscriptManager = class {
     this.dragOffsetY = 0;
     this.handlers = {
       timeupdate: () => this.updateActiveEntry(),
+      resize: null,
       mousemove: null,
       mouseup: null,
       touchmove: null,
@@ -2868,15 +2869,19 @@ var TranscriptManager = class {
     this.player.container.appendChild(this.transcriptWindow);
     this.positionTranscript();
     this.setupDragAndDrop();
-    window.addEventListener("resize", () => this.positionTranscript());
+    let resizeTimeout;
+    this.handlers.resize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => this.positionTranscript(), 100);
+    };
+    window.addEventListener("resize", this.handlers.resize);
   }
   /**
    * Position transcript window next to video
    */
   positionTranscript() {
-    if (!this.transcriptWindow || !this.player.videoWrapper) return;
+    if (!this.transcriptWindow || !this.player.videoWrapper || !this.isVisible) return;
     const videoRect = this.player.videoWrapper.getBoundingClientRect();
-    const containerRect = this.player.container.getBoundingClientRect();
     const leftOffset = videoRect.width + 8;
     const height = videoRect.height;
     this.transcriptWindow.style.left = `${leftOffset}px`;
@@ -3216,6 +3221,9 @@ var TranscriptManager = class {
     }
     if (this.handlers.touchend) {
       document.removeEventListener("touchend", this.handlers.touchend);
+    }
+    if (this.handlers.resize) {
+      window.removeEventListener("resize", this.handlers.resize);
     }
     this.handlers = null;
     if (this.transcriptWindow && this.transcriptWindow.parentNode) {
