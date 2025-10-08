@@ -1133,7 +1133,7 @@
 
 .vidply-playlist-item-active .vidply-playlist-item-icon {
   opacity: 1;
-  color: var(--vidply-primary);
+  color: #60a5fa;
 }
 
 /* Playlist Scrollbar */
