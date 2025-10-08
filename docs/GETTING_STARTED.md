@@ -8,25 +8,37 @@ Welcome! This guide will help you get VidPly up and running in 5 minutes.
 - A text editor
 - A modern web browser
 
-## Quick Setup
+## Quick Installation
 
-### 1. Clone or Download
+### 1. Get the Code
 
 ```bash
 git clone https://github.com/yourusername/vidply.git
 cd vidply
 ```
 
-### 2. Install & Build
+### 2. Install Dependencies
 
 ```bash
 npm install
+```
+
+This installs:
+- `esbuild` - Fast JavaScript bundler
+- `clean-css` - CSS minifier
+
+### 3. Build the Player
+
+```bash
 npm run build
 ```
 
-This creates optimized files in the `dist/` folder.
+This creates production-ready files in `dist/`:
+- `vidply.esm.min.js` - Minified ES Module (~50KB)
+- `vidply.min.js` - Minified IIFE bundle (~52KB)
+- `vidply.min.css` - Minified styles (~12KB)
 
-### 3. View the Demo
+### 4. View the Demo
 
 ```bash
 npm run dev
@@ -88,7 +100,55 @@ php -S localhost:3000
 
 Open http://localhost:3000 in your browser.
 
-## Audio Player
+## 3-Step Quick Start
+
+If you just want to use the source files directly without building:
+
+### Step 1: Include the CSS
+
+```html
+<link rel="stylesheet" href="src/styles/vidply.css">
+```
+
+### Step 2: Add Your Video
+
+```html
+<video data-vidply width="800" height="450">
+  <source src="your-video.mp4" type="video/mp4">
+</video>
+```
+
+### Step 3: Import the Player
+
+```html
+<script type="module">
+  import Player from './src/index.js';
+</script>
+```
+
+That's it!
+
+## Basic Examples
+
+### Example 1: Simple Video
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="src/styles/vidply.css">
+</head>
+<body>
+  <video data-vidply src="video.mp4" width="800" height="450"></video>
+  
+  <script type="module">
+    import Player from './src/index.js';
+  </script>
+</body>
+</html>
+```
+
+### Example 2: Audio Player
 
 ```html
 <audio data-vidply>
@@ -97,7 +157,7 @@ Open http://localhost:3000 in your browser.
 </audio>
 ```
 
-## 📺 YouTube Video
+### Example 3: YouTube Video
 
 ```html
 <video 
@@ -106,13 +166,45 @@ Open http://localhost:3000 in your browser.
 ></video>
 ```
 
-## Vimeo Video
+### Example 4: Vimeo Video
 
 ```html
 <video 
   data-vidply 
   src="https://vimeo.com/76979871"
 ></video>
+```
+
+### Example 5: With Options
+
+```html
+<video 
+  data-vidply 
+  data-vidply-options='{"autoplay": true, "loop": true, "muted": true}'
+  src="video.mp4"
+></video>
+```
+
+### Example 6: Manual Initialization
+
+```html
+<video id="my-video" src="video.mp4"></video>
+
+<script type="module">
+  import Player from './src/index.js';
+  
+  const player = new Player('#my-video', {
+    controls: true,
+    autoplay: false,
+    volume: 0.8,
+    language: 'en'
+  });
+  
+  // Control the player
+  player.on('ready', () => {
+    console.log('Player is ready!');
+  });
+</script>
 ```
 
 ## Configuration
@@ -134,47 +226,49 @@ Open http://localhost:3000 in your browser.
 
 ### Via JavaScript
 
-```html
-<video id="my-video" src="video.mp4"></video>
+```javascript
+const player = new Player('#my-video', {
+  controls: true,
+  autoplay: false,
+  loop: false,
+  volume: 0.8,
+  playbackSpeed: 1.0,
+  captions: true,
+  captionsDefault: true,
+  keyboard: true,
+  language: 'en',
+  responsive: true
+});
+```
 
-<script type="module">
-  import Player from './dist/vidply.esm.min.js';
+## Common Options
+
+```javascript
+{
+  // Playback
+  autoplay: false,      // Auto-start playback
+  loop: false,          // Loop video
+  muted: false,         // Start muted
+  volume: 0.8,          // Volume (0-1)
+  playbackSpeed: 1.0,   // Speed (0.25-2.0)
   
-  const player = new Player('#my-video', {
-    controls: true,
-    autoplay: false,
-    loop: false,
-    volume: 0.8,
-    playbackSpeed: 1.0,
-    captions: true,
-    captionsDefault: true,
-    keyboard: true,
-    language: 'en',
-    responsive: true
-  });
-</script>
+  // Display
+  responsive: true,     // Responsive sizing
+  controls: true,       // Show controls
+  
+  // Captions
+  captions: true,       // Enable captions
+  captionsDefault: false, // Show captions by default
+  
+  // Accessibility
+  keyboard: true,       // Keyboard shortcuts
+  
+  // Language
+  language: 'en'        // UI language (en, es, fr, de, ja)
+}
 ```
 
-## Common Use Cases
-
-### Autoplay (Muted)
-
-```javascript
-const player = new Player('#video', {
-  autoplay: true,
-  muted: true  // Required for autoplay to work
-});
-```
-
-### Start at Specific Time
-
-```javascript
-const player = new Player('#video', {
-  startTime: 30  // Start at 30 seconds
-});
-```
-
-### Multi-Language Captions
+## Multi-Language Captions
 
 ```html
 <video data-vidply src="video.mp4">
@@ -189,21 +283,7 @@ const player = new Player('#video', {
 - Click the CC button to open the caption menu
 - Select your preferred language
 - Or press <kbd>C</kbd> to open the menu (if multiple tracks available)
-- The active track is marked with a checkmark ✓
-
-### Custom Keyboard Shortcuts
-
-```javascript
-const player = new Player('#video', {
-  keyboardShortcuts: {
-    'play-pause': [' ', 'Enter'],
-    'seek-forward': ['d'],
-    'seek-backward': ['a'],
-    'volume-up': ['w'],
-    'volume-down': ['s']
-  }
-});
-```
+- The active track is marked with a checkmark
 
 ## Creating Captions (WebVTT)
 
@@ -258,7 +338,7 @@ player.on('timeupdate', (time) => {
 });
 ```
 
-## ⌨️ Keyboard Shortcuts
+## Keyboard Shortcuts
 
 Once the player is focused:
 
@@ -321,6 +401,37 @@ const player = new Player('#video', {
 
 Check the browser console for detailed logs.
 
+## Deployment Options
+
+### Option 1: ES Module (Modern Browsers)
+
+```html
+<link rel="stylesheet" href="dist/vidply.min.css">
+<script type="module">
+  import Player from './dist/vidply.esm.min.js';
+</script>
+```
+
+### Option 2: Traditional Script Tag (IIFE)
+
+```html
+<link rel="stylesheet" href="dist/vidply.min.css">
+<script src="dist/vidply.min.js"></script>
+<script>
+  const player = new VidPly.Player('#video');
+</script>
+```
+
+### Option 3: CDN (Future)
+
+```html
+<!-- Will be available after publishing to npm -->
+<link rel="stylesheet" href="https://cdn.example.com/vidply@1.0.0/vidply.min.css">
+<script type="module">
+  import Player from 'https://cdn.example.com/vidply@1.0.0/vidply.esm.min.js';
+</script>
+```
+
 ## Mobile Optimization
 
 VidPly is mobile-friendly by default. For best results:
@@ -375,11 +486,56 @@ npm install
 npm run build
 ```
 
+### Autoplay Not Working
+
+Browsers block autoplay with audio. Solution:
+
+```javascript
+const player = new Player('#video', {
+  autoplay: true,
+  muted: true  // Required for autoplay
+});
+```
+
+## Available Build Scripts
+
+```bash
+npm run build        # Build everything
+npm run build:js     # Build JS only
+npm run build:css    # Build CSS only
+npm run watch        # Watch mode for development
+npm run clean        # Clean dist/
+npm run dev          # Start dev server (port 3000)
+npm start            # Alias for npm run dev
+```
+
+## File Structure
+
+After building, you'll have:
+
+```
+vidply/
+├── dist/
+│   ├── vidply.esm.js       # ES Module (dev)
+│   ├── vidply.esm.min.js   # ES Module (prod)
+│   ├── vidply.js           # IIFE (dev)
+│   ├── vidply.min.js       # IIFE (prod)
+│   ├── vidply.css          # Styles (dev)
+│   └── vidply.min.css      # Styles (prod)
+└── ...
+```
+
+Only include in production:
+- `vidply.esm.min.js` (or `vidply.min.js`)
+- `vidply.min.css`
+
+Total: ~62KB uncompressed, ~18KB gzipped
+
 ## Next Steps
 
-- Read [README.md](README.md) for full API documentation
-- See [USAGE.md](USAGE.md) for more examples
-- Check [demo/demo.html](demo/demo.html) for live demos
+- Read [USAGE.md](USAGE.md) for more examples
+- Check [demo/demo.html](../demo/demo.html) for live demos
+- See [PLAYLIST.md](PLAYLIST.md) for playlist features
 - Read [BUILD.md](BUILD.md) for build customization
 
 ## Tips
@@ -393,7 +549,7 @@ npm run build
 ## You're Ready!
 
 That's it! You now know how to:
-- Build VidPly
+- Install and build VidPly
 - Create video/audio players
 - Add captions
 - Configure options
@@ -404,5 +560,4 @@ Happy coding!
 
 ---
 
-Need help? Check the [documentation](README.md) or [open an issue](https://github.com/yourusername/vidply/issues).
-
+Need help? Check the [README](../README.md) or [open an issue](https://github.com/yourusername/vidply/issues).

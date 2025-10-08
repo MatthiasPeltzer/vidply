@@ -1,7 +1,7 @@
 {
   "name": "vidply",
-  "version": "1.0.0",
-  "description": "Universal, accessible video player with ES6 modules",
+  "version": "0.0.1",
+  "description": "Universal, accessible video & audio player with ES6 modules",
   "type": "module",
   "main": "dist/vidply.js",
   "module": "dist/vidply.esm.js",
