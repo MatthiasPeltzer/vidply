@@ -39,12 +39,12 @@
   "license": "GPL-2.0-or-later",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/vidply.git"
+    "url": "https://github.com/MatthiasPeltzer/vidply.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/vidply/issues"
+    "url": "https://github.com/MatthiasPeltzer/vidply/issues"
   },
-  "homepage": "https://github.com/yourusername/vidply#readme",
+  "homepage": "https://github.com/MatthiasPeltzer/vidply#readme",
   "devDependencies": {
     "esbuild": "^0.25.10",
     "clean-css": "^5.3.3"
