@@ -66,8 +66,6 @@ export class PlaylistManager {
     if (tracks.length > 0) {
       this.play(0);
     }
-    
-    console.log('VidPly Playlist: Loaded', tracks.length, 'tracks');
   }
   
   /**
@@ -81,7 +79,6 @@ export class PlaylistManager {
     }
     
     const track = this.tracks[index];
-    console.log(`VidPly Playlist: Playing track ${index}`, track.title);
     
     // Update current index
     this.currentIndex = index;
@@ -121,7 +118,6 @@ export class PlaylistManager {
       if (this.options.loop) {
         nextIndex = 0;
       } else {
-        console.log('VidPly Playlist: End of playlist');
         return;
       }
     }
@@ -139,7 +135,6 @@ export class PlaylistManager {
       if (this.options.loop) {
         prevIndex = this.tracks.length - 1;
       } else {
-        console.log('VidPly Playlist: Start of playlist');
         return;
       }
     }
@@ -152,7 +147,6 @@ export class PlaylistManager {
    */
   handleTrackEnd() {
     if (this.options.autoAdvance) {
-      console.log('VidPly Playlist: Track ended, advancing...');
       this.next();
     }
   }
