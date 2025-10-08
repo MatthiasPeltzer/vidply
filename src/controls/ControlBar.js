@@ -39,9 +39,22 @@ export class ControlBar {
         if (!menu.contains(e.target) && !button.contains(e.target)) {
           menu.remove();
           document.removeEventListener('click', closeMenu);
+          document.removeEventListener('keydown', handleEscape);
         }
       };
+      
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          menu.remove();
+          document.removeEventListener('click', closeMenu);
+          document.removeEventListener('keydown', handleEscape);
+          // Return focus to button
+          button.focus();
+        }
+      };
+      
       document.addEventListener('click', closeMenu);
+      document.addEventListener('keydown', handleEscape);
     }, 100);
   }
 
@@ -176,15 +189,11 @@ export class ControlBar {
   // Helper methods to check for available features
   hasChapterTracks() {
     const textTracks = this.player.element.textTracks;
-    console.log('VidPly: Checking for chapter tracks, total textTracks:', textTracks.length);
     for (let i = 0; i < textTracks.length; i++) {
-      console.log(`VidPly: Track ${i}: kind=${textTracks[i].kind}, label=${textTracks[i].label}`);
       if (textTracks[i].kind === 'chapters') {
-        console.log('VidPly: Found chapter track!');
         return true;
       }
     }
-    console.log('VidPly: No chapter tracks found');
     return false;
   }
 
@@ -640,8 +649,6 @@ export class ControlBar {
       track => track.kind === 'chapters'
     );
 
-    console.log('VidPly: Chapter tracks found:', chapterTracks.length);
-
     if (chapterTracks.length === 0) {
       // No chapters available
       const noChaptersItem = DOMUtils.createElement('div', {
@@ -658,9 +665,6 @@ export class ControlBar {
         chapterTrack.mode = 'hidden';
       }
 
-      console.log('VidPly: Chapter track mode:', chapterTrack.mode);
-      console.log('VidPly: Chapter track cues:', chapterTrack.cues);
-
       if (!chapterTrack.cues || chapterTrack.cues.length === 0) {
         // Cues not loaded yet - wait for them to load
         const loadingItem = DOMUtils.createElement('div', {
@@ -672,7 +676,6 @@ export class ControlBar {
 
         // Listen for track load event
         const onTrackLoad = () => {
-          console.log('VidPly: Chapter track loaded, cues:', chapterTrack.cues ? chapterTrack.cues.length : 0);
           // Remove loading message and rebuild menu
           menu.remove();
           this.showChaptersMenu(button);
@@ -683,14 +686,12 @@ export class ControlBar {
         // Also try again after a short delay as fallback
         setTimeout(() => {
           if (chapterTrack.cues && chapterTrack.cues.length > 0 && document.contains(menu)) {
-            console.log('VidPly: Cues loaded via timeout, rebuilding menu');
             menu.remove();
             this.showChaptersMenu(button);
           }
         }, 500);
       } else {
         // Display chapters
-        console.log('VidPly: Displaying', chapterTrack.cues.length, 'chapters');
         const cues = chapterTrack.cues;
         for (let i = 0; i < cues.length; i++) {
           const cue = cues[i];

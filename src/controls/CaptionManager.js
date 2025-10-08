@@ -46,17 +46,8 @@ export class CaptionManager {
   loadTracks() {
     const textTracks = this.player.element.textTracks;
     
-    console.log('VidPly: Loading caption tracks, found', textTracks.length, 'text tracks');
-    
     for (let i = 0; i < textTracks.length; i++) {
       const track = textTracks[i];
-      
-      console.log(`VidPly: Track ${i}:`, {
-        kind: track.kind,
-        language: track.language,
-        label: track.label,
-        mode: track.mode
-      });
       
       if (track.kind === 'subtitles' || track.kind === 'captions') {
         this.tracks.push({
@@ -69,12 +60,8 @@ export class CaptionManager {
         
         // Disable all tracks initially
         track.mode = 'hidden';
-        
-        console.log('VidPly: Added caption/subtitle track:', track.label || track.language);
       }
     }
-    
-    console.log('VidPly: Total caption/subtitle tracks loaded:', this.tracks.length);
   }
 
   attachEvents() {
@@ -88,23 +75,17 @@ export class CaptionManager {
   }
 
   enable(trackIndex = 0) {
-    console.log('VidPly: enable() called with trackIndex:', trackIndex);
-    console.log('VidPly: Total tracks available:', this.tracks.length);
-    
     if (this.tracks.length === 0) {
-      console.log('VidPly: No tracks available, returning');
       return;
     }
 
     // Disable current track
     if (this.currentTrack) {
       this.currentTrack.track.mode = 'hidden';
-      console.log('VidPly: Disabled current track:', this.currentTrack.label);
     }
 
     // Enable selected track
     const selectedTrack = this.tracks[trackIndex];
-    console.log('VidPly: Selected track:', selectedTrack);
     
     if (selectedTrack) {
       // Set to 'hidden' not 'showing' to prevent browser from displaying native captions
@@ -113,10 +94,6 @@ export class CaptionManager {
       this.currentTrack = selectedTrack;
       this.player.state.captionsEnabled = true;
       
-      console.log('VidPly: Enabled track:', selectedTrack.label || selectedTrack.language);
-      console.log('VidPly: Track mode:', selectedTrack.track.mode);
-      console.log('VidPly: Setting caption element display to block');
-      
       // Remove any existing cuechange listener
       if (this.cueChangeHandler) {
         selectedTrack.track.removeEventListener('cuechange', this.cueChangeHandler);
@@ -124,13 +101,11 @@ export class CaptionManager {
       
       // Add event listener for cue changes
       this.cueChangeHandler = () => {
-        console.log('VidPly: Cue changed');
         this.updateCaptions();
       };
       selectedTrack.track.addEventListener('cuechange', this.cueChangeHandler);
       
       this.element.style.display = 'block';
-      console.log('VidPly: Caption element display set to:', this.element.style.display);
       
       this.player.emit('captionsenabled', selectedTrack);
     }
@@ -155,7 +130,6 @@ export class CaptionManager {
     }
     
     if (!this.currentTrack.track.activeCues) {
-      console.log('VidPly: No activeCues available yet for track:', this.currentTrack.label);
       return;
     }
 
@@ -168,8 +142,6 @@ export class CaptionManager {
       if (this.currentCue !== cue) {
         this.currentCue = cue;
         
-        console.log('VidPly: Displaying caption:', cue.text);
-        
         // Parse and display cue text
         let text = cue.text;
         
@@ -177,7 +149,6 @@ export class CaptionManager {
         text = this.parseVTTFormatting(text);
         
         this.element.innerHTML = DOMUtils.sanitizeHTML(text);
-        console.log('VidPly: Caption element innerHTML set to:', this.element.innerHTML);
         
         // Make sure it's visible when there's content
         this.element.style.display = 'block';
@@ -186,7 +157,6 @@ export class CaptionManager {
       }
     } else if (this.currentCue) {
       // Clear caption
-      console.log('VidPly: Clearing caption');
       this.element.innerHTML = '';
       this.element.style.display = 'none';
       this.currentCue = null;
