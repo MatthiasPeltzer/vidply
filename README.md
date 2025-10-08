@@ -1,4 +1,4 @@
-# 🎬 VidPly
+# VidPly
 
 **Universal, Accessible Video Player**
 
@@ -8,9 +8,9 @@ A modern, feature-rich video player built with vanilla ES6 JavaScript. Combines 
 ![ES6](https://img.shields.io/badge/ES6-Module-yellow.svg)
 ![WCAG](https://img.shields.io/badge/WCAG-2.1%20AA-green.svg)
 
-## ✨ Features
+## Features
 
-### 🎮 Core Media Support
+### Core Media Support
 - **Audio & Video Playback** - Native HTML5 support
 - **Multiple Formats** - MP3, OGG, WAV, MP4, WebM
 - **YouTube Integration** - Embed with unified controls
@@ -18,7 +18,7 @@ A modern, feature-rich video player built with vanilla ES6 JavaScript. Combines 
 - **HLS Streaming** - Adaptive bitrate streaming
 - **Playlists** - Audio/video playlist support
 
-### ♿ Accessibility Features
+### Accessibility Features
 - **Full Keyboard Navigation** - WCAG 2.1 compliant
 - **Screen Reader Support** - Complete ARIA labels
 - **Customizable Shortcuts** - User-definable hotkeys
@@ -26,14 +26,14 @@ A modern, feature-rich video player built with vanilla ES6 JavaScript. Combines 
 - **Focus Indicators** - Clear visual focus states
 - **Live Announcements** - Screen reader updates
 
-### 📝 Captions & Subtitles
+### Captions & Subtitles
 - **WebVTT Support** - Standard caption format
 - **Multiple Languages** - Multi-track support
 - **Customizable Display** - Font, size, color, opacity
 - **Caption Positioning** - Flexible placement
 - **Auto-generated Transcripts** - Interactive text
 
-### 🎨 Playback Features
+### Playback Features
 - **Adjustable Speed** - 0.25x to 2x playback
 - **Seek Controls** - Forward/backward navigation
 - **Volume Control** - 0-100% with mute
@@ -41,7 +41,7 @@ A modern, feature-rich video player built with vanilla ES6 JavaScript. Combines 
 - **Fullscreen Mode** - Native fullscreen API
 - **Picture-in-Picture** - PiP support
 
-### 🌍 Internationalization
+### Internationalization
 Built-in support for:
 - 🇬🇧 English
 - 🇪🇸 Spanish
@@ -50,7 +50,7 @@ Built-in support for:
 - 🇯🇵 Japanese
 - Easy to add more languages
 
-## 📦 Installation
+## Installation
 
 ### Build from Source
 
@@ -415,7 +415,7 @@ npm run dev          # Start dev server
 
 See [BUILD.md](BUILD.md) for detailed build documentation.
 
-## 🌐 Browser Support
+## Browser Support
 
 - Chrome 90+
 - Firefox 88+
@@ -424,7 +424,7 @@ See [BUILD.md](BUILD.md) for detailed build documentation.
 - iOS Safari 14+
 - Android Chrome 90+
 
-## 📄 License
+## License
 
 GNU General Public License v2.0 or later
 
@@ -441,16 +441,16 @@ See [LICENSE](LICENSE) for full license text.
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📞 Support
+## Support
 
-- 📖 Documentation: See [GETTING_STARTED.md](GETTING_STARTED.md)
-- 🔧 Installation: See [INSTALL.md](INSTALL.md)
-- 📝 Usage Examples: See [USAGE.md](USAGE.md)
-- 🏗️ Build Guide: See [BUILD.md](BUILD.md)
-- 🐛 Issues: Report on GitHub
-- 💬 Discussions: GitHub Discussions
+- Documentation: See [GETTING_STARTED.md](GETTING_STARTED.md)
+- Installation: See [INSTALL.md](INSTALL.md)
+- Usage Examples: See [USAGE.md](USAGE.md)
+- Build Guide: See [BUILD.md](BUILD.md)
+- Issues: Report on GitHub
+- Discussions: GitHub Discussions
 
-## 🙏 Credits
+## Credits
 
 Inspired by:
 - [AblePlayer](https://github.com/ableplayer/ableplayer) - Accessibility features
