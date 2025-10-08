@@ -40,7 +40,9 @@ export class CaptionManager {
     // Apply caption styles
     this.updateStyles();
     
-    this.player.container.appendChild(this.element);
+    // Append to videoWrapper if it exists, otherwise to container
+    const target = this.player.videoWrapper || this.player.container;
+    target.appendChild(this.element);
   }
 
   loadTracks() {

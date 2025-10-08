@@ -2134,7 +2134,8 @@ var CaptionManager = class {
       }
     });
     this.updateStyles();
-    this.player.container.appendChild(this.element);
+    const target = this.player.videoWrapper || this.player.container;
+    target.appendChild(this.element);
   }
   loadTracks() {
     const textTracks = this.player.element.textTracks;
