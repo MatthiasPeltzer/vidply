@@ -179,12 +179,11 @@ VidPly v1.0.0 is here! A complete, production-ready video player built with vani
 
 #### Documentation
 - `README.md` - Complete documentation (~500 lines)
-- `GETTING_STARTED.md` - Quick start guide
-- `INSTALL.md` - Installation guide
-- `USAGE.md` - Detailed usage examples
-- `QUICKSTART.md` - 3-step quick start
-- `BUILD.md` - Build system documentation
-- `CHANGELOG.md` - This file
+- `docs/GETTING_STARTED.md` - Getting started guide (installation + quick start)
+- `docs/USAGE.md` - Detailed usage examples
+- `docs/PLAYLIST.md` - Playlist feature documentation
+- `docs/BUILD.md` - Build system documentation
+- `docs/CHANGELOG.md` - This file
 - `LICENSE` - GPL-2.0-or-later License
 - `package.json` - Package config with build scripts
 

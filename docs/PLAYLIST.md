@@ -2,6 +2,58 @@
 
 The `PlaylistManager` allows you to create audio and video playlists with automatic track switching, navigation controls, and a visual playlist panel.
 
+## Quick Start
+
+### 1. Basic Audio Playlist (30 seconds)
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="vidply.css">
+</head>
+<body>
+  <div id="player"></div>
+
+  <script type="module">
+    import { Player, PlaylistManager } from 'vidply';
+
+    // 1. Create player
+    const player = new Player('#player');
+
+    // 2. Create playlist
+    const playlist = new PlaylistManager(player, {
+      autoAdvance: true,
+      showPanel: true
+    });
+
+    // 3. Load tracks
+    playlist.loadPlaylist([
+      { src: 'song1.mp3', type: 'audio/mp3', title: 'Song 1', artist: 'Artist 1' },
+      { src: 'song2.mp3', type: 'audio/mp3', title: 'Song 2', artist: 'Artist 2' },
+      { src: 'song3.mp3', type: 'audio/mp3', title: 'Song 3', artist: 'Artist 3' }
+    ]);
+  </script>
+</body>
+</html>
+```
+
+### 2. Complete Minimal Example
+
+```javascript
+import { Player, PlaylistManager } from 'vidply';
+
+const player = new Player('#player');
+const playlist = new PlaylistManager(player);
+
+playlist.loadPlaylist([
+  { src: 'a.mp3', type: 'audio/mp3', title: 'Track A' },
+  { src: 'b.mp3', type: 'audio/mp3', title: 'Track B' }
+]);
+```
+
+That's it!
+
 ## Features
 
 - **Previous/Next Track Navigation** - Skip between tracks with dedicated buttons
@@ -19,41 +71,6 @@ The `PlaylistManager` is included in the VidPly package:
 
 ```javascript
 import { Player, PlaylistManager } from 'vidply';
-```
-
-## Basic Usage
-
-```javascript
-// Create a player
-const player = new Player('#player-element', {
-  autoplay: false,
-  controls: true
-});
-
-// Create a playlist manager
-const playlist = new PlaylistManager(player, {
-  autoAdvance: true,  // Auto-play next track
-  loop: false,        // Loop playlist
-  showPanel: true     // Show playlist panel
-});
-
-// Load tracks
-const tracks = [
-  {
-    src: 'audio/track1.mp3',
-    type: 'audio/mp3',
-    title: 'Track 1',
-    artist: 'Artist Name'
-  },
-  {
-    src: 'audio/track2.mp3',
-    type: 'audio/mp3',
-    title: 'Track 2',
-    artist: 'Artist Name'
-  }
-];
-
-playlist.loadPlaylist(tracks);
 ```
 
 ## Configuration Options
@@ -166,6 +183,29 @@ Toggle playlist panel visibility.
 playlist.togglePanel();
 ```
 
+## Programmatic Control Examples
+
+```javascript
+// Navigate
+playlist.next();              // Go to next track
+playlist.previous();          // Go to previous track
+playlist.play(2);             // Play track at index 2
+
+// Check state
+if (playlist.hasNext()) {
+  console.log('Has next track');
+}
+
+// Get current
+const track = playlist.getCurrentTrack();
+console.log(track.title);
+
+// Listen to changes
+player.on('playlisttrackchange', (e) => {
+  console.log('Now playing:', e.item.title);
+});
+```
+
 ## Events
 
 Listen to playlist events through the player:
@@ -178,32 +218,92 @@ player.on('playlisttrackchange', (e) => {
 });
 ```
 
-## UI Components
+## Examples
 
-### Track Info Display
+### Playlist with Captions
 
-Appears above the controls, showing:
-- Track number (e.g., "3 / 10")
-- Track title
-- Artist name (if provided)
+```javascript
+const tracks = [
+  {
+    src: 'song.mp3',
+    type: 'audio/mp3',
+    title: 'My Song',
+    artist: 'My Artist',
+    tracks: [
+      { src: 'captions-en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
+      { src: 'captions-es.vtt', kind: 'captions', srclang: 'es', label: 'Español' }
+    ]
+  }
+];
 
-### Playlist Panel
+playlist.loadPlaylist(tracks);
+```
 
-A scrollable list below the player showing:
-- Track thumbnails (if provided)
-- Track numbers
-- Track titles and artists
-- Track duration (if provided)
-- Active track indicator
+### Dynamic Playlist
 
-### Navigation Buttons
+```javascript
+// Start with empty playlist
+const playlist = new PlaylistManager(player);
 
-When a playlist is active:
-- **Previous button** (⏮) - Replaces rewind button
-- **Next button** (⏭) - Replaces forward button
-- Buttons are disabled at playlist boundaries (unless loop is enabled)
+// Add tracks dynamically
+playlist.addItem({
+  src: 'new-song.mp3',
+  type: 'audio/mp3',
+  title: 'New Song'
+});
 
-## Complete Example
+// Or reload entire playlist
+playlist.loadPlaylist(newTracksArray);
+```
+
+### Video Playlist
+
+```javascript
+// Create video player (note: mediaType: 'video')
+const player = new Player('#video-player', {
+  mediaType: 'video'
+});
+
+const playlist = new PlaylistManager(player, {
+  autoAdvance: true,
+  showPanel: true
+});
+
+const videoTracks = [
+  {
+    src: 'video1.mp4',
+    type: 'video/mp4',
+    title: 'Episode 1',
+    poster: 'thumbnail1.jpg',
+    tracks: [
+      { src: 'video1-captions.vtt', kind: 'captions', srclang: 'en', label: 'English' },
+      { src: 'video1-chapters.vtt', kind: 'chapters', srclang: 'en', label: 'Chapters' }
+    ]
+  },
+  {
+    src: 'video2.mp4',
+    type: 'video/mp4',
+    title: 'Episode 2',
+    poster: 'thumbnail2.jpg'
+  }
+];
+
+playlist.loadPlaylist(videoTracks);
+```
+
+### Hide Playlist Panel
+
+```javascript
+// Create without panel
+const playlist = new PlaylistManager(player, {
+  showPanel: false
+});
+
+// Or toggle it
+playlist.togglePanel();
+```
+
+## Complete Example with All Features
 
 ```javascript
 import { Player, PlaylistManager } from 'vidply';
@@ -301,6 +401,31 @@ document.addEventListener('keydown', (e) => {
 });
 ```
 
+## UI Components
+
+### Track Info Display
+
+Appears above the controls, showing:
+- Track number (e.g., "3 / 10")
+- Track title
+- Artist name (if provided)
+
+### Playlist Panel
+
+A scrollable list below the player showing:
+- Track thumbnails (if provided)
+- Track numbers
+- Track titles and artists
+- Track duration (if provided)
+- Active track indicator
+
+### Navigation Buttons
+
+When a playlist is active:
+- **Previous button** - Replaces rewind button
+- **Next button** - Replaces forward button
+- Buttons are disabled at playlist boundaries (unless loop is enabled)
+
 ## Styling
 
 Customize the playlist appearance with CSS:
@@ -336,7 +461,92 @@ Customize the playlist appearance with CSS:
 .vidply-playlist-item:hover {
   background: rgba(255, 255, 255, 0.1);
 }
+
+/* Active playlist item */
+.vidply-playlist-item-active {
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-left-color: #fff;
+}
 ```
+
+## Keyboard Shortcuts
+
+```javascript
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' && e.shiftKey) {
+    playlist.next();
+  }
+  if (e.key === 'ArrowLeft' && e.shiftKey) {
+    playlist.previous();
+  }
+  if (e.key === 'p') {
+    playlist.togglePanel();
+  }
+});
+```
+
+## Common Use Cases
+
+### Music Player
+
+```javascript
+const musicPlayer = new PlaylistManager(player, {
+  autoAdvance: true,
+  loop: true,
+  showPanel: true
+});
+```
+
+Perfect for:
+- Album playback
+- Artist discography
+- Music compilations
+
+### Podcast Playlist
+
+```javascript
+const podcast = new PlaylistManager(player, {
+  autoAdvance: false,  // Manual navigation
+  loop: false,
+  showPanel: true
+});
+```
+
+Perfect for:
+- Podcast series
+- Episode collections
+- Interview playlists
+
+### Video Series (Netflix-style)
+
+```javascript
+const series = new PlaylistManager(player, {
+  autoAdvance: true,   // Binge watching
+  loop: false,
+  showPanel: true
+});
+```
+
+Perfect for:
+- TV series episodes
+- Video courses
+- Tutorial series
+- Conference talks
+
+### Audiobook Chapters
+
+```javascript
+const audiobook = new PlaylistManager(player, {
+  autoAdvance: true,
+  loop: false,
+  showPanel: true
+});
+```
+
+Perfect for:
+- Chapter navigation
+- Multi-part stories
+- Audio learning content
 
 ## Best Practices
 
@@ -347,20 +557,7 @@ Customize the playlist appearance with CSS:
 5. **Handle Loading States**: Listen to `loadstart` and `canplay` events for loading indicators
 6. **Accessibility**: Ensure track titles and artists are descriptive for screen readers
 
-## Browser Support
-
-The playlist feature works in all modern browsers that support:
-- ES6 Modules
-- HTML5 Media Elements
-- WebVTT (for captions/chapters)
-
-## Demos
-
-See the complete demos:
-- **Audio Playlist**: [demo/playlist-audio.html](../demo/playlist-audio.html)
-- **Video Playlist**: [demo/playlist-video.html](../demo/playlist-video.html)
-
-## Troubleshoads
+## Troubleshooting
 
 ### Tracks Don't Auto-Advance
 
@@ -377,3 +574,41 @@ Check that `showPanel: true` is set in the playlist options. The panel is insert
 ### Captions Don't Switch Between Tracks
 
 Ensure the `tracks` array is included in each playlist item that has captions. The tracks will be reloaded when switching between playlist items.
+
+## Browser Support
+
+The playlist feature works in all modern browsers that support:
+- ES6 Modules
+- HTML5 Media Elements
+- WebVTT (for captions/chapters)
+
+Tested in:
+- Chrome/Edge 90+
+- Firefox 88+
+- Safari 14+
+- Opera 76+
+
+## Demos
+
+See the complete demos:
+- **Audio Playlist**: [demo/playlist-audio.html](../demo/playlist-audio.html)
+- **Video Playlist**: [demo/playlist-video.html](../demo/playlist-video.html)
+
+## Implementation Details
+
+### Files Added
+
+- `src/features/PlaylistManager.js` - Core playlist functionality
+- `demo/playlist-audio.html` - Working audio playlist demo with 5 tracks
+- `demo/playlist-video.html` - Working video playlist demo with 3 videos
+
+### Files Modified
+
+- `src/controls/ControlBar.js` - Added previous/next buttons
+- `src/styles/vidply.css` - Added playlist styles
+- `src/index.js` - Exported PlaylistManager
+- `demo/demo.html` - Added links to playlist demos
+
+---
+
+**Built with Vanilla JavaScript**

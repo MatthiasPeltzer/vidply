@@ -471,5 +471,5 @@ player.state.playing;
 
 ---
 
-Happy coding! 🎬
+Happy coding!
 
