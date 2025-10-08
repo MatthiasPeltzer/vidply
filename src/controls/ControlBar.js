@@ -71,16 +71,30 @@ export class ControlBar {
       className: `${this.player.options.classPrefix}-controls-left`
     });
 
+    // Previous track button (if playlist)
+    if (this.player.playlistManager) {
+      leftButtons.appendChild(this.createPreviousButton());
+    }
+
     // Play/Pause button
     if (this.player.options.playPauseButton) {
       leftButtons.appendChild(this.createPlayPauseButton());
     }
 
-    // Rewind button
-    leftButtons.appendChild(this.createRewindButton());
+    // Next track button (if playlist)
+    if (this.player.playlistManager) {
+      leftButtons.appendChild(this.createNextButton());
+    }
 
-    // Forward button
-    leftButtons.appendChild(this.createForwardButton());
+    // Rewind button (not shown in playlist mode)
+    if (!this.player.playlistManager) {
+      leftButtons.appendChild(this.createRewindButton());
+    }
+
+    // Forward button (not shown in playlist mode)
+    if (!this.player.playlistManager) {
+      leftButtons.appendChild(this.createForwardButton());
+    }
 
     // Volume control
     if (this.player.options.volumeControl) {
@@ -338,6 +352,66 @@ export class ControlBar {
     });
 
     this.controls.playPause = button;
+    return button;
+  }
+
+  createPreviousButton() {
+    const button = DOMUtils.createElement('button', {
+      className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-previous`,
+      attributes: {
+        'type': 'button',
+        'aria-label': 'Previous track'
+      }
+    });
+
+    button.appendChild(createIconElement('skipPrevious'));
+    
+    button.addEventListener('click', () => {
+      if (this.player.playlistManager) {
+        this.player.playlistManager.previous();
+      }
+    });
+
+    // Update button state
+    const updateState = () => {
+      if (this.player.playlistManager) {
+        button.disabled = !this.player.playlistManager.hasPrevious() && !this.player.playlistManager.options.loop;
+      }
+    };
+    this.player.on('playlisttrackchange', updateState);
+    updateState();
+
+    this.controls.previous = button;
+    return button;
+  }
+
+  createNextButton() {
+    const button = DOMUtils.createElement('button', {
+      className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-next`,
+      attributes: {
+        'type': 'button',
+        'aria-label': 'Next track'
+      }
+    });
+
+    button.appendChild(createIconElement('skipNext'));
+    
+    button.addEventListener('click', () => {
+      if (this.player.playlistManager) {
+        this.player.playlistManager.next();
+      }
+    });
+
+    // Update button state
+    const updateState = () => {
+      if (this.player.playlistManager) {
+        button.disabled = !this.player.playlistManager.hasNext() && !this.player.playlistManager.options.loop;
+      }
+    };
+    this.player.on('playlisttrackchange', updateState);
+    updateState();
+
+    this.controls.next = button;
     return button;
   }
 

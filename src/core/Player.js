@@ -26,6 +26,32 @@ export class Player extends EventEmitter {
       throw new Error('VidPly: Element not found');
     }
 
+    // Auto-create media element if a non-media element is provided
+    if (this.element.tagName !== 'VIDEO' && this.element.tagName !== 'AUDIO') {
+      const mediaType = options.mediaType || 'video';
+      const mediaElement = document.createElement(mediaType);
+      
+      // Copy attributes from the div to the media element
+      Array.from(this.element.attributes).forEach(attr => {
+        if (attr.name !== 'id' && attr.name !== 'class' && !attr.name.startsWith('data-')) {
+          mediaElement.setAttribute(attr.name, attr.value);
+        }
+      });
+      
+      // Copy any track elements from the div
+      const tracks = this.element.querySelectorAll('track');
+      tracks.forEach(track => {
+        mediaElement.appendChild(track.cloneNode(true));
+      });
+      
+      // Clear the div and insert the media element
+      this.element.innerHTML = '';
+      this.element.appendChild(mediaElement);
+      
+      // Update element reference to the actual media element
+      this.element = mediaElement;
+    }
+
     // Default options
     this.options = {
       // Display
@@ -187,13 +213,18 @@ export class Player extends EventEmitter {
       // Create container
       this.createContainer();
       
-      // Detect and initialize renderer
-      await this.initializeRenderer();
+      // Detect and initialize renderer (only if source exists)
+      const src = this.element.src || this.element.querySelector('source')?.src;
+      if (src) {
+        await this.initializeRenderer();
+      } else {
+        this.log('No initial source - waiting for playlist or manual load');
+      }
       
       // Create controls
       if (this.options.controls) {
         this.controlBar = new ControlBar(this);
-        this.container.appendChild(this.controlBar.element);
+        this.videoWrapper.appendChild(this.controlBar.element);
       }
       
       // Initialize captions
@@ -268,9 +299,15 @@ export class Player extends EventEmitter {
       this.container.classList.add(`${this.options.classPrefix}-responsive`);
     }
 
+    // Create video wrapper (for proper positioning of controls)
+    this.videoWrapper = DOMUtils.createElement('div', {
+      className: `${this.options.classPrefix}-video-wrapper`
+    });
+
     // Wrap original element
     this.element.parentNode.insertBefore(this.container, this.element);
-    this.container.insertBefore(this.element, this.container.firstChild);
+    this.container.appendChild(this.videoWrapper);
+    this.videoWrapper.appendChild(this.element);
     
     // Hide original element
     this.element.style.width = '100%';
@@ -323,6 +360,109 @@ export class Player extends EventEmitter {
     this.log(`Using ${renderer.name} renderer`);
     this.renderer = new renderer(this);
     await this.renderer.init();
+  }
+
+  /**
+   * Load new media source (for playlists)
+   * @param {Object} config - Media configuration
+   * @param {string} config.src - Media source URL
+   * @param {string} config.type - Media MIME type
+   * @param {string} [config.poster] - Poster image URL
+   * @param {Array} [config.tracks] - Text tracks (captions, chapters, etc.)
+   */
+  async load(config) {
+    try {
+      this.log('Loading new media:', config.src);
+      
+      // Pause current playback
+      if (this.renderer) {
+        this.pause();
+      }
+      
+      // Clear existing text tracks
+      const existingTracks = this.element.querySelectorAll('track');
+      existingTracks.forEach(track => track.remove());
+      
+      // Update media element
+      this.element.src = config.src;
+      
+      if (config.type) {
+        this.element.type = config.type;
+      }
+      
+      if (config.poster && this.element.tagName === 'VIDEO') {
+        this.element.poster = config.poster;
+      }
+      
+      // Add new text tracks
+      if (config.tracks && config.tracks.length > 0) {
+        config.tracks.forEach(trackConfig => {
+          const track = document.createElement('track');
+          track.src = trackConfig.src;
+          track.kind = trackConfig.kind || 'captions';
+          track.srclang = trackConfig.srclang || 'en';
+          track.label = trackConfig.label || trackConfig.srclang;
+          
+          if (trackConfig.default) {
+            track.default = true;
+          }
+          
+          this.element.appendChild(track);
+        });
+      }
+      
+      // Check if we need to change renderer type
+      const shouldChangeRenderer = this.shouldChangeRenderer(config.src);
+      
+      // Destroy old renderer if changing types
+      if (shouldChangeRenderer && this.renderer) {
+        this.renderer.destroy();
+        this.renderer = null;
+      }
+      
+      // Initialize or reinitialize renderer
+      if (!this.renderer || shouldChangeRenderer) {
+        await this.initializeRenderer();
+      } else {
+        // Just reload the current renderer with the updated element
+        this.renderer.media = this.element; // Update media reference
+        this.element.load();
+      }
+      
+      // Reinitialize caption manager to pick up new tracks
+      if (this.captionManager) {
+        this.captionManager.destroy();
+        this.captionManager = new CaptionManager(this);
+      }
+      
+      this.emit('sourcechange', config);
+      this.log('Media loaded successfully');
+      
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  /**
+   * Check if we need to change renderer type
+   * @param {string} src - New source URL
+   * @returns {boolean}
+   */
+  shouldChangeRenderer(src) {
+    if (!this.renderer) return true;
+    
+    const isYouTube = src.includes('youtube.com') || src.includes('youtu.be');
+    const isVimeo = src.includes('vimeo.com');
+    const isHLS = src.includes('.m3u8');
+    
+    const currentRendererName = this.renderer.constructor.name;
+    
+    if (isYouTube && currentRendererName !== 'YouTubeRenderer') return true;
+    if (isVimeo && currentRendererName !== 'VimeoRenderer') return true;
+    if (isHLS && currentRendererName !== 'HLSRenderer') return true;
+    if (!isYouTube && !isVimeo && !isHLS && currentRendererName !== 'HTML5Renderer') return true;
+    
+    return false;
   }
 
   // Playback controls

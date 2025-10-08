@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VidPly - Video Playlist Demo</title>
-  <link rel="stylesheet" href="../dist/vidply.css?v=20241008-26">
+  <link rel="stylesheet" href="../dist/vidply.css?v=20241008-34">
   <style>
     * {
       box-sizing: border-box;
@@ -97,6 +97,12 @@
     
     <h1>🎬 Video Playlist Demo</h1>
 
+    <div style="text-align: center; margin-bottom: 20px;">
+      <a href="playlist-audio.html" style="display: inline-block; background: rgba(255, 255, 255, 0.9); color: #667eea; padding: 10px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+        🎵 Try Audio Playlist Demo
+      </a>
+    </div>
+
     <div class="player-wrapper">
       <div id="video-player"></div>
     </div>
@@ -126,7 +132,7 @@
   </div>
 
   <script type="module">
-    import { Player, PlaylistManager } from '../dist/vidply.esm.js?v=20241008-26';
+    import { Player, PlaylistManager } from '../dist/vidply.esm.js?v=20241008-34';
 
     console.log('Starting video player initialization...');
 
@@ -159,6 +165,8 @@
           { src: 'media/wwa_captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
           { src: 'media/wwa_captions_es.vtt', kind: 'captions', srclang: 'es', label: 'Español' },
           { src: 'media/wwa_captions_de.vtt', kind: 'captions', srclang: 'de', label: 'Deutsch' },
+          { src: 'media/wwa_captions_fr.vtt', kind: 'captions', srclang: 'fr', label: 'Français' },
+          { src: 'media/wwa_captions_ja.vtt', kind: 'captions', srclang: 'ja', label: '日本語' },
           { src: 'media/wwa_chapters_en.vtt', kind: 'chapters', srclang: 'en', label: 'Chapters' }
         ]
       },
@@ -172,7 +180,9 @@
           { src: 'media/deadline_captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
           { src: 'media/deadline_captions_es.vtt', kind: 'captions', srclang: 'es', label: 'Español' },
           { src: 'media/deadline_captions_it.vtt', kind: 'captions', srclang: 'it', label: 'Italiano' },
-          { src: 'media/deadline_captions_pt-br.vtt', kind: 'captions', srclang: 'pt-br', label: 'Português' }
+          { src: 'media/deadline_captions_pt-br.vtt', kind: 'captions', srclang: 'pt-br', label: 'Português' },
+          { src: 'media/deadline_captions_ar.vtt', kind: 'captions', srclang: 'ar', label: 'العربية' },
+          { src: 'media/deadline_captions_hi.vtt', kind: 'captions', srclang: 'hi', label: 'हिन्दी' }
         ]
       },
       {

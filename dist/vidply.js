@@ -184,6 +184,7 @@ var VidPly = (() => {
   var index_exports = {};
   __export(index_exports, {
     Player: () => Player,
+    PlaylistManager: () => PlaylistManager,
     default: () => index_default
   });
 
@@ -874,11 +875,21 @@ var VidPly = (() => {
       const leftButtons = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-controls-left`
       });
+      if (this.player.playlistManager) {
+        leftButtons.appendChild(this.createPreviousButton());
+      }
       if (this.player.options.playPauseButton) {
         leftButtons.appendChild(this.createPlayPauseButton());
       }
-      leftButtons.appendChild(this.createRewindButton());
-      leftButtons.appendChild(this.createForwardButton());
+      if (this.player.playlistManager) {
+        leftButtons.appendChild(this.createNextButton());
+      }
+      if (!this.player.playlistManager) {
+        leftButtons.appendChild(this.createRewindButton());
+      }
+      if (!this.player.playlistManager) {
+        leftButtons.appendChild(this.createForwardButton());
+      }
       if (this.player.options.volumeControl) {
         leftButtons.appendChild(this.createVolumeControl());
       }
@@ -1068,6 +1079,54 @@ var VidPly = (() => {
         this.player.toggle();
       });
       this.controls.playPause = button;
+      return button;
+    }
+    createPreviousButton() {
+      const button = DOMUtils.createElement("button", {
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-previous`,
+        attributes: {
+          "type": "button",
+          "aria-label": "Previous track"
+        }
+      });
+      button.appendChild(createIconElement("skipPrevious"));
+      button.addEventListener("click", () => {
+        if (this.player.playlistManager) {
+          this.player.playlistManager.previous();
+        }
+      });
+      const updateState = () => {
+        if (this.player.playlistManager) {
+          button.disabled = !this.player.playlistManager.hasPrevious() && !this.player.playlistManager.options.loop;
+        }
+      };
+      this.player.on("playlisttrackchange", updateState);
+      updateState();
+      this.controls.previous = button;
+      return button;
+    }
+    createNextButton() {
+      const button = DOMUtils.createElement("button", {
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-next`,
+        attributes: {
+          "type": "button",
+          "aria-label": "Next track"
+        }
+      });
+      button.appendChild(createIconElement("skipNext"));
+      button.addEventListener("click", () => {
+        if (this.player.playlistManager) {
+          this.player.playlistManager.next();
+        }
+      });
+      const updateState = () => {
+        if (this.player.playlistManager) {
+          button.disabled = !this.player.playlistManager.hasNext() && !this.player.playlistManager.options.loop;
+        }
+      };
+      this.player.on("playlisttrackchange", updateState);
+      updateState();
+      this.controls.next = button;
       return button;
     }
     createRewindButton() {
@@ -3798,6 +3857,22 @@ var VidPly = (() => {
       if (!this.element) {
         throw new Error("VidPly: Element not found");
       }
+      if (this.element.tagName !== "VIDEO" && this.element.tagName !== "AUDIO") {
+        const mediaType = options.mediaType || "video";
+        const mediaElement = document.createElement(mediaType);
+        Array.from(this.element.attributes).forEach((attr) => {
+          if (attr.name !== "id" && attr.name !== "class" && !attr.name.startsWith("data-")) {
+            mediaElement.setAttribute(attr.name, attr.value);
+          }
+        });
+        const tracks = this.element.querySelectorAll("track");
+        tracks.forEach((track) => {
+          mediaElement.appendChild(track.cloneNode(true));
+        });
+        this.element.innerHTML = "";
+        this.element.appendChild(mediaElement);
+        this.element = mediaElement;
+      }
       this.options = {
         // Display
         width: null,
@@ -3930,14 +4005,20 @@ var VidPly = (() => {
       this.init();
     }
     async init() {
+      var _a;
       try {
         this.log("Initializing VidPly player");
         i18n.setLanguage(this.options.language);
         this.createContainer();
-        await this.initializeRenderer();
+        const src = this.element.src || ((_a = this.element.querySelector("source")) == null ? void 0 : _a.src);
+        if (src) {
+          await this.initializeRenderer();
+        } else {
+          this.log("No initial source - waiting for playlist or manual load");
+        }
         if (this.options.controls) {
           this.controlBar = new ControlBar(this);
-          this.container.appendChild(this.controlBar.element);
+          this.videoWrapper.appendChild(this.controlBar.element);
         }
         if (this.options.captions) {
           this.captionManager = new CaptionManager(this);
@@ -3987,8 +4068,12 @@ var VidPly = (() => {
       if (this.options.responsive) {
         this.container.classList.add(`${this.options.classPrefix}-responsive`);
       }
+      this.videoWrapper = DOMUtils.createElement("div", {
+        className: `${this.options.classPrefix}-video-wrapper`
+      });
       this.element.parentNode.insertBefore(this.container, this.element);
-      this.container.insertBefore(this.element, this.container.firstChild);
+      this.container.appendChild(this.videoWrapper);
+      this.videoWrapper.appendChild(this.element);
       this.element.style.width = "100%";
       this.element.style.height = "100%";
       if (this.options.width) {
@@ -4023,6 +4108,80 @@ var VidPly = (() => {
       this.log(`Using ${renderer.name} renderer`);
       this.renderer = new renderer(this);
       await this.renderer.init();
+    }
+    /**
+     * Load new media source (for playlists)
+     * @param {Object} config - Media configuration
+     * @param {string} config.src - Media source URL
+     * @param {string} config.type - Media MIME type
+     * @param {string} [config.poster] - Poster image URL
+     * @param {Array} [config.tracks] - Text tracks (captions, chapters, etc.)
+     */
+    async load(config) {
+      try {
+        this.log("Loading new media:", config.src);
+        if (this.renderer) {
+          this.pause();
+        }
+        const existingTracks = this.element.querySelectorAll("track");
+        existingTracks.forEach((track) => track.remove());
+        this.element.src = config.src;
+        if (config.type) {
+          this.element.type = config.type;
+        }
+        if (config.poster && this.element.tagName === "VIDEO") {
+          this.element.poster = config.poster;
+        }
+        if (config.tracks && config.tracks.length > 0) {
+          config.tracks.forEach((trackConfig) => {
+            const track = document.createElement("track");
+            track.src = trackConfig.src;
+            track.kind = trackConfig.kind || "captions";
+            track.srclang = trackConfig.srclang || "en";
+            track.label = trackConfig.label || trackConfig.srclang;
+            if (trackConfig.default) {
+              track.default = true;
+            }
+            this.element.appendChild(track);
+          });
+        }
+        const shouldChangeRenderer = this.shouldChangeRenderer(config.src);
+        if (shouldChangeRenderer && this.renderer) {
+          this.renderer.destroy();
+          this.renderer = null;
+        }
+        if (!this.renderer || shouldChangeRenderer) {
+          await this.initializeRenderer();
+        } else {
+          this.renderer.media = this.element;
+          this.element.load();
+        }
+        if (this.captionManager) {
+          this.captionManager.destroy();
+          this.captionManager = new CaptionManager(this);
+        }
+        this.emit("sourcechange", config);
+        this.log("Media loaded successfully");
+      } catch (error) {
+        this.handleError(error);
+      }
+    }
+    /**
+     * Check if we need to change renderer type
+     * @param {string} src - New source URL
+     * @returns {boolean}
+     */
+    shouldChangeRenderer(src) {
+      if (!this.renderer) return true;
+      const isYouTube = src.includes("youtube.com") || src.includes("youtu.be");
+      const isVimeo = src.includes("vimeo.com");
+      const isHLS = src.includes(".m3u8");
+      const currentRendererName = this.renderer.constructor.name;
+      if (isYouTube && currentRendererName !== "YouTubeRenderer") return true;
+      if (isVimeo && currentRendererName !== "VimeoRenderer") return true;
+      if (isHLS && currentRendererName !== "HLSRenderer") return true;
+      if (!isYouTube && !isVimeo && !isHLS && currentRendererName !== "HTML5Renderer") return true;
+      return false;
     }
     // Playback controls
     play() {
@@ -4391,6 +4550,326 @@ var VidPly = (() => {
     }
   };
   Player.instances = [];
+
+  // src/features/PlaylistManager.js
+  var PlaylistManager = class {
+    constructor(player, options = {}) {
+      this.player = player;
+      this.tracks = [];
+      this.currentIndex = -1;
+      this.options = {
+        autoAdvance: options.autoAdvance !== false,
+        // Default true
+        loop: options.loop || false,
+        showPanel: options.showPanel !== false,
+        // Default true
+        ...options
+      };
+      this.container = null;
+      this.playlistPanel = null;
+      this.trackInfoElement = null;
+      this.handleTrackEnd = this.handleTrackEnd.bind(this);
+      this.handleTrackError = this.handleTrackError.bind(this);
+      this.init();
+    }
+    init() {
+      this.player.on("ended", this.handleTrackEnd);
+      this.player.on("error", this.handleTrackError);
+      if (this.options.showPanel) {
+        this.createUI();
+      }
+    }
+    /**
+     * Load a playlist
+     * @param {Array} tracks - Array of track objects
+     */
+    loadPlaylist(tracks) {
+      this.tracks = tracks;
+      this.currentIndex = -1;
+      if (this.playlistPanel) {
+        this.renderPlaylist();
+      }
+      if (tracks.length > 0) {
+        this.play(0);
+      }
+      console.log("VidPly Playlist: Loaded", tracks.length, "tracks");
+    }
+    /**
+     * Play a specific track
+     * @param {number} index - Track index
+     */
+    play(index) {
+      if (index < 0 || index >= this.tracks.length) {
+        console.warn("VidPly Playlist: Invalid track index", index);
+        return;
+      }
+      const track = this.tracks[index];
+      console.log(`VidPly Playlist: Playing track ${index}`, track.title);
+      this.currentIndex = index;
+      this.player.load({
+        src: track.src,
+        type: track.type,
+        poster: track.poster,
+        tracks: track.tracks || []
+      });
+      this.updateTrackInfo(track);
+      this.updatePlaylistUI();
+      this.player.emit("playlisttrackchange", {
+        index,
+        item: track,
+        total: this.tracks.length
+      });
+      setTimeout(() => {
+        this.player.play();
+      }, 100);
+    }
+    /**
+     * Play next track
+     */
+    next() {
+      let nextIndex = this.currentIndex + 1;
+      if (nextIndex >= this.tracks.length) {
+        if (this.options.loop) {
+          nextIndex = 0;
+        } else {
+          console.log("VidPly Playlist: End of playlist");
+          return;
+        }
+      }
+      this.play(nextIndex);
+    }
+    /**
+     * Play previous track
+     */
+    previous() {
+      let prevIndex = this.currentIndex - 1;
+      if (prevIndex < 0) {
+        if (this.options.loop) {
+          prevIndex = this.tracks.length - 1;
+        } else {
+          console.log("VidPly Playlist: Start of playlist");
+          return;
+        }
+      }
+      this.play(prevIndex);
+    }
+    /**
+     * Handle track end
+     */
+    handleTrackEnd() {
+      if (this.options.autoAdvance) {
+        console.log("VidPly Playlist: Track ended, advancing...");
+        this.next();
+      }
+    }
+    /**
+     * Handle track error
+     */
+    handleTrackError(e) {
+      console.error("VidPly Playlist: Track error", e);
+      if (this.options.autoAdvance) {
+        setTimeout(() => {
+          this.next();
+        }, 1e3);
+      }
+    }
+    /**
+     * Create playlist UI
+     */
+    createUI() {
+      this.container = this.player.container;
+      if (!this.container) {
+        console.warn("VidPly Playlist: No container found");
+        return;
+      }
+      this.trackInfoElement = DOMUtils.createElement("div", {
+        className: "vidply-track-info"
+      });
+      this.trackInfoElement.style.display = "none";
+      this.container.appendChild(this.trackInfoElement);
+      this.playlistPanel = DOMUtils.createElement("div", {
+        className: "vidply-playlist-panel"
+      });
+      this.playlistPanel.style.display = "none";
+      this.container.appendChild(this.playlistPanel);
+    }
+    /**
+     * Update track info display
+     */
+    updateTrackInfo(track) {
+      if (!this.trackInfoElement) return;
+      const trackNumber = this.currentIndex + 1;
+      const totalTracks = this.tracks.length;
+      this.trackInfoElement.innerHTML = `
+      <div class="vidply-track-number">Track ${trackNumber} of ${totalTracks}</div>
+      <div class="vidply-track-title">${DOMUtils.escapeHTML(track.title || "Untitled")}</div>
+      ${track.artist ? `<div class="vidply-track-artist">${DOMUtils.escapeHTML(track.artist)}</div>` : ""}
+    `;
+      this.trackInfoElement.style.display = "block";
+    }
+    /**
+     * Render playlist
+     */
+    renderPlaylist() {
+      if (!this.playlistPanel) return;
+      this.playlistPanel.innerHTML = "";
+      const header = DOMUtils.createElement("div", {
+        className: "vidply-playlist-header"
+      });
+      header.textContent = `Playlist (${this.tracks.length})`;
+      this.playlistPanel.appendChild(header);
+      const list = DOMUtils.createElement("div", {
+        className: "vidply-playlist-list"
+      });
+      this.tracks.forEach((track, index) => {
+        const item = this.createPlaylistItem(track, index);
+        list.appendChild(item);
+      });
+      this.playlistPanel.appendChild(list);
+      this.playlistPanel.style.display = "block";
+    }
+    /**
+     * Create playlist item element
+     */
+    createPlaylistItem(track, index) {
+      const item = DOMUtils.createElement("div", {
+        className: "vidply-playlist-item",
+        role: "button",
+        tabIndex: 0,
+        "aria-label": `Play ${track.title || "Track " + (index + 1)}`
+      });
+      if (index === this.currentIndex) {
+        item.classList.add("vidply-playlist-item-active");
+      }
+      if (track.poster) {
+        const thumbnail = DOMUtils.createElement("div", {
+          className: "vidply-playlist-thumbnail"
+        });
+        thumbnail.style.backgroundImage = `url(${track.poster})`;
+        item.appendChild(thumbnail);
+      }
+      const info = DOMUtils.createElement("div", {
+        className: "vidply-playlist-item-info"
+      });
+      const title = DOMUtils.createElement("div", {
+        className: "vidply-playlist-item-title"
+      });
+      title.textContent = track.title || `Track ${index + 1}`;
+      info.appendChild(title);
+      if (track.artist) {
+        const artist = DOMUtils.createElement("div", {
+          className: "vidply-playlist-item-artist"
+        });
+        artist.textContent = track.artist;
+        info.appendChild(artist);
+      }
+      item.appendChild(info);
+      const playIcon = createIconElement("play");
+      playIcon.classList.add("vidply-playlist-item-icon");
+      item.appendChild(playIcon);
+      item.addEventListener("click", () => {
+        this.play(index);
+      });
+      item.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          this.play(index);
+        }
+      });
+      return item;
+    }
+    /**
+     * Update playlist UI (highlight current track)
+     */
+    updatePlaylistUI() {
+      if (!this.playlistPanel) return;
+      const items = this.playlistPanel.querySelectorAll(".vidply-playlist-item");
+      items.forEach((item, index) => {
+        if (index === this.currentIndex) {
+          item.classList.add("vidply-playlist-item-active");
+          item.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        } else {
+          item.classList.remove("vidply-playlist-item-active");
+        }
+      });
+    }
+    /**
+     * Get current track
+     */
+    getCurrentTrack() {
+      return this.tracks[this.currentIndex] || null;
+    }
+    /**
+     * Get playlist info
+     */
+    getPlaylistInfo() {
+      return {
+        currentIndex: this.currentIndex,
+        totalTracks: this.tracks.length,
+        currentTrack: this.getCurrentTrack(),
+        hasNext: this.currentIndex < this.tracks.length - 1,
+        hasPrevious: this.currentIndex > 0
+      };
+    }
+    /**
+     * Add track to playlist
+     */
+    addTrack(track) {
+      this.tracks.push(track);
+      if (this.playlistPanel) {
+        this.renderPlaylist();
+      }
+    }
+    /**
+     * Remove track from playlist
+     */
+    removeTrack(index) {
+      if (index < 0 || index >= this.tracks.length) return;
+      this.tracks.splice(index, 1);
+      if (index < this.currentIndex) {
+        this.currentIndex--;
+      } else if (index === this.currentIndex) {
+        if (this.currentIndex >= this.tracks.length) {
+          this.currentIndex = this.tracks.length - 1;
+        }
+        if (this.currentIndex >= 0) {
+          this.play(this.currentIndex);
+        }
+      }
+      if (this.playlistPanel) {
+        this.renderPlaylist();
+      }
+    }
+    /**
+     * Clear playlist
+     */
+    clear() {
+      this.tracks = [];
+      this.currentIndex = -1;
+      if (this.playlistPanel) {
+        this.playlistPanel.innerHTML = "";
+        this.playlistPanel.style.display = "none";
+      }
+      if (this.trackInfoElement) {
+        this.trackInfoElement.innerHTML = "";
+        this.trackInfoElement.style.display = "none";
+      }
+    }
+    /**
+     * Destroy playlist manager
+     */
+    destroy() {
+      this.player.off("ended", this.handleTrackEnd);
+      this.player.off("error", this.handleTrackError);
+      if (this.trackInfoElement) {
+        this.trackInfoElement.remove();
+      }
+      if (this.playlistPanel) {
+        this.playlistPanel.remove();
+      }
+      this.clear();
+    }
+  };
 
   // src/index.js
   function initializePlayers() {

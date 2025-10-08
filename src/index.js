@@ -4,6 +4,7 @@
  */
 
 import { Player } from './core/Player.js';
+import { PlaylistManager } from './features/PlaylistManager.js';
 
 // Auto-initialize players
 function initializePlayers() {
@@ -28,6 +29,6 @@ if (document.readyState === 'loading') {
 }
 
 // Export for manual initialization
-export { Player };
+export { Player, PlaylistManager };
 export default Player;
 

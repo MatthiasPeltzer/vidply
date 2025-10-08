@@ -37,7 +37,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 51486,
+      "bytes": 53718,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -152,7 +152,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 20712,
+      "bytes": 25658,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -222,13 +222,34 @@
       ],
       "format": "esm"
     },
+    "src/features/PlaylistManager.js": {
+      "bytes": 10477,
+      "imports": [
+        {
+          "path": "src/utils/DOMUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/DOMUtils.js"
+        },
+        {
+          "path": "src/icons/Icons.js",
+          "kind": "import-statement",
+          "original": "../icons/Icons.js"
+        }
+      ],
+      "format": "esm"
+    },
     "src/index.js": {
-      "bytes": 784,
+      "bytes": 867,
       "imports": [
         {
           "path": "src/core/Player.js",
           "kind": "import-statement",
           "original": "./core/Player.js"
+        },
+        {
+          "path": "src/features/PlaylistManager.js",
+          "kind": "import-statement",
+          "original": "./features/PlaylistManager.js"
         }
       ],
       "format": "esm"
@@ -239,6 +260,7 @@
       "imports": [],
       "exports": [
         "Player",
+        "PlaylistManager",
         "default"
       ],
       "entryPoint": "src/index.js",
@@ -265,7 +287,7 @@
           "bytesInOutput": 720
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 29951
+          "bytesInOutput": 31251
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 4773
@@ -280,7 +302,7 @@
           "bytesInOutput": 9463
         },
         "src/core/Player.js": {
-          "bytesInOutput": 11453
+          "bytesInOutput": 13348
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -291,11 +313,14 @@
         "src/renderers/HLSRenderer.js": {
           "bytesInOutput": 4500
         },
+        "src/features/PlaylistManager.js": {
+          "bytesInOutput": 5363
+        },
         "src/index.js": {
           "bytesInOutput": 243
         }
       },
-      "bytes": 101026
+      "bytes": 109605
     }
   }
 }

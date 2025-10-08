@@ -1,375 +1,431 @@
 /**
- * Playlist Manager - Handles multiple media items in a playlist
+ * VidPly Playlist Manager
+ * Manages playlists for audio and video content
  */
 
 import { DOMUtils } from '../utils/DOMUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 
-export default class PlaylistManager {
+export class PlaylistManager {
   constructor(player, options = {}) {
     this.player = player;
+    this.tracks = [];
+    this.currentIndex = -1;
+    
+    // Options
     this.options = {
-      autoAdvance: true,
-      loop: false,
-      showPanel: true,
+      autoAdvance: options.autoAdvance !== false, // Default true
+      loop: options.loop || false,
+      showPanel: options.showPanel !== false, // Default true
       ...options
     };
-
-    this.playlist = [];
-    this.currentIndex = 0;
-    this.panel = null;
+    
+    // UI elements
+    this.container = null;
+    this.playlistPanel = null;
     this.trackInfoElement = null;
-
+    
+    // Bind methods
+    this.handleTrackEnd = this.handleTrackEnd.bind(this);
+    this.handleTrackError = this.handleTrackError.bind(this);
+    
+    // Initialize
     this.init();
   }
-
+  
   init() {
-    // Create playlist panel if needed
+    // Listen for track end
+    this.player.on('ended', this.handleTrackEnd);
+    this.player.on('error', this.handleTrackError);
+    
+    // Create UI if needed
     if (this.options.showPanel) {
-      this.createPlaylistPanel();
+      this.createUI();
     }
-
-    // Create track info display
-    this.createTrackInfo();
-
-    // Listen for media end events
-    this.player.on('ended', () => {
-      if (this.options.autoAdvance && this.hasNext()) {
-        this.next();
-      } else if (this.options.loop) {
-        this.play(0);
-      }
-    });
-
-    // Listen for track changes
-    this.player.on('loadedmetadata', () => {
-      this.updateTrackInfo();
-    });
   }
-
+  
   /**
    * Load a playlist
-   * @param {Array} items - Array of playlist items { src, type, title, artist, poster, captions }
+   * @param {Array} tracks - Array of track objects
    */
-  loadPlaylist(items) {
-    console.log('VidPly Playlist: Loading', items.length, 'items');
-    this.playlist = items;
-    this.currentIndex = 0;
-
-    if (this.panel) {
-      this.renderPlaylistPanel();
+  loadPlaylist(tracks) {
+    this.tracks = tracks;
+    this.currentIndex = -1;
+    
+    // Update UI
+    if (this.playlistPanel) {
+      this.renderPlaylist();
     }
-
-    // Load first track
-    if (items.length > 0) {
+    
+    // Auto-play first track
+    if (tracks.length > 0) {
       this.play(0);
     }
+    
+    console.log('VidPly Playlist: Loaded', tracks.length, 'tracks');
   }
-
+  
   /**
-   * Add an item to the playlist
-   * @param {Object} item - Playlist item
-   */
-  addItem(item) {
-    this.playlist.push(item);
-    if (this.panel) {
-      this.renderPlaylistPanel();
-    }
-  }
-
-  /**
-   * Play a specific track by index
+   * Play a specific track
    * @param {number} index - Track index
    */
   play(index) {
-    if (index < 0 || index >= this.playlist.length) {
+    if (index < 0 || index >= this.tracks.length) {
       console.warn('VidPly Playlist: Invalid track index', index);
       return;
     }
-
-    console.log('VidPly Playlist: Playing track', index, this.playlist[index].title);
+    
+    const track = this.tracks[index];
+    console.log(`VidPly Playlist: Playing track ${index}`, track.title);
+    
+    // Update current index
     this.currentIndex = index;
-    const item = this.playlist[index];
-
-    // Load the new source
+    
+    // Load track into player
     this.player.load({
-      src: item.src,
-      type: item.type,
-      poster: item.poster,
-      tracks: item.tracks || item.captions
+      src: track.src,
+      type: track.type,
+      poster: track.poster,
+      tracks: track.tracks || []
     });
-
+    
     // Update UI
-    this.updateTrackInfo();
-    this.updatePlaylistPanel();
-
+    this.updateTrackInfo(track);
+    this.updatePlaylistUI();
+    
     // Emit event
     this.player.emit('playlisttrackchange', {
-      index: this.currentIndex,
-      item: item
+      index: index,
+      item: track,
+      total: this.tracks.length
     });
-
+    
     // Auto-play
-    this.player.play();
+    setTimeout(() => {
+      this.player.play();
+    }, 100);
   }
-
+  
   /**
    * Play next track
    */
   next() {
-    if (this.hasNext()) {
-      this.play(this.currentIndex + 1);
-    } else if (this.options.loop) {
-      this.play(0);
+    let nextIndex = this.currentIndex + 1;
+    
+    if (nextIndex >= this.tracks.length) {
+      if (this.options.loop) {
+        nextIndex = 0;
+      } else {
+        console.log('VidPly Playlist: End of playlist');
+        return;
+      }
     }
+    
+    this.play(nextIndex);
   }
-
+  
   /**
    * Play previous track
    */
   previous() {
-    if (this.hasPrevious()) {
-      this.play(this.currentIndex - 1);
-    } else if (this.options.loop) {
-      this.play(this.playlist.length - 1);
+    let prevIndex = this.currentIndex - 1;
+    
+    if (prevIndex < 0) {
+      if (this.options.loop) {
+        prevIndex = this.tracks.length - 1;
+      } else {
+        console.log('VidPly Playlist: Start of playlist');
+        return;
+      }
+    }
+    
+    this.play(prevIndex);
+  }
+  
+  /**
+   * Handle track end
+   */
+  handleTrackEnd() {
+    if (this.options.autoAdvance) {
+      console.log('VidPly Playlist: Track ended, advancing...');
+      this.next();
     }
   }
-
+  
   /**
-   * Check if there's a next track
+   * Handle track error
    */
-  hasNext() {
-    return this.currentIndex < this.playlist.length - 1;
+  handleTrackError(e) {
+    console.error('VidPly Playlist: Track error', e);
+    
+    // Try next track
+    if (this.options.autoAdvance) {
+      setTimeout(() => {
+        this.next();
+      }, 1000);
+    }
   }
-
+  
   /**
-   * Check if there's a previous track
+   * Create playlist UI
    */
-  hasPrevious() {
-    return this.currentIndex > 0;
-  }
-
-  /**
-   * Get current track
-   */
-  getCurrentTrack() {
-    return this.playlist[this.currentIndex];
-  }
-
-  /**
-   * Create track info display
-   */
-  createTrackInfo() {
+  createUI() {
+    // Find player container
+    this.container = this.player.container;
+    
+    if (!this.container) {
+      console.warn('VidPly Playlist: No container found');
+      return;
+    }
+    
+    // Create track info element (shows current track)
     this.trackInfoElement = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-track-info`
+      className: 'vidply-track-info'
     });
-
-    // Insert before controls
-    const controls = this.player.container.querySelector(`.${this.player.options.classPrefix}-controls`);
-    if (controls) {
-      this.player.container.insertBefore(this.trackInfoElement, controls);
-    }
-
-    this.updateTrackInfo();
+    this.trackInfoElement.style.display = 'none';
+    
+    this.container.appendChild(this.trackInfoElement);
+    
+    // Create playlist panel
+    this.playlistPanel = DOMUtils.createElement('div', {
+      className: 'vidply-playlist-panel'
+    });
+    this.playlistPanel.style.display = 'none';
+    
+    this.container.appendChild(this.playlistPanel);
   }
-
+  
   /**
    * Update track info display
    */
-  updateTrackInfo() {
-    if (!this.trackInfoElement || this.playlist.length === 0) return;
-
-    const item = this.getCurrentTrack();
+  updateTrackInfo(track) {
+    if (!this.trackInfoElement) return;
+    
+    const trackNumber = this.currentIndex + 1;
+    const totalTracks = this.tracks.length;
+    
+    this.trackInfoElement.innerHTML = `
+      <div class="vidply-track-number">Track ${trackNumber} of ${totalTracks}</div>
+      <div class="vidply-track-title">${DOMUtils.escapeHTML(track.title || 'Untitled')}</div>
+      ${track.artist ? `<div class="vidply-track-artist">${DOMUtils.escapeHTML(track.artist)}</div>` : ''}
+    `;
+    
+    this.trackInfoElement.style.display = 'block';
+  }
+  
+  /**
+   * Render playlist
+   */
+  renderPlaylist() {
+    if (!this.playlistPanel) return;
+    
+    // Clear existing
+    this.playlistPanel.innerHTML = '';
+    
+    // Create header
+    const header = DOMUtils.createElement('div', {
+      className: 'vidply-playlist-header'
+    });
+    header.textContent = `Playlist (${this.tracks.length})`;
+    this.playlistPanel.appendChild(header);
+    
+    // Create list
+    const list = DOMUtils.createElement('div', {
+      className: 'vidply-playlist-list'
+    });
+    
+    this.tracks.forEach((track, index) => {
+      const item = this.createPlaylistItem(track, index);
+      list.appendChild(item);
+    });
+    
+    this.playlistPanel.appendChild(list);
+    this.playlistPanel.style.display = 'block';
+  }
+  
+  /**
+   * Create playlist item element
+   */
+  createPlaylistItem(track, index) {
+    const item = DOMUtils.createElement('div', {
+      className: 'vidply-playlist-item',
+      role: 'button',
+      tabIndex: 0,
+      'aria-label': `Play ${track.title || 'Track ' + (index + 1)}`
+    });
+    
+    // Add active class if current
+    if (index === this.currentIndex) {
+      item.classList.add('vidply-playlist-item-active');
+    }
+    
+    // Thumbnail
+    if (track.poster) {
+      const thumbnail = DOMUtils.createElement('div', {
+        className: 'vidply-playlist-thumbnail'
+      });
+      thumbnail.style.backgroundImage = `url(${track.poster})`;
+      item.appendChild(thumbnail);
+    }
+    
+    // Info
+    const info = DOMUtils.createElement('div', {
+      className: 'vidply-playlist-item-info'
+    });
     
     const title = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-track-title`,
-      textContent: item.title || `Track ${this.currentIndex + 1}`
+      className: 'vidply-playlist-item-title'
     });
-
-    const artist = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-track-artist`,
-      textContent: item.artist || ''
-    });
-
-    const trackNumber = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-track-number`,
-      textContent: `${this.currentIndex + 1} / ${this.playlist.length}`
-    });
-
-    this.trackInfoElement.innerHTML = '';
-    this.trackInfoElement.appendChild(trackNumber);
-    this.trackInfoElement.appendChild(title);
-    if (item.artist) {
-      this.trackInfoElement.appendChild(artist);
-    }
-  }
-
-  /**
-   * Create playlist panel
-   */
-  createPlaylistPanel() {
-    this.panel = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-playlist-panel`
-    });
-
-    // Insert after player
-    this.player.container.parentNode.insertBefore(
-      this.panel,
-      this.player.container.nextSibling
-    );
-  }
-
-  /**
-   * Render playlist items in panel
-   */
-  renderPlaylistPanel() {
-    if (!this.panel) return;
-
-    this.panel.innerHTML = '';
-
-    const header = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-playlist-header`,
-      textContent: `Playlist (${this.playlist.length} tracks)`
-    });
-    this.panel.appendChild(header);
-
-    const list = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-playlist-list`
-    });
-
-    this.playlist.forEach((item, index) => {
-      const listItem = this.createPlaylistItem(item, index);
-      list.appendChild(listItem);
-    });
-
-    this.panel.appendChild(list);
-    this.updatePlaylistPanel();
-  }
-
-  /**
-   * Create a playlist item element
-   */
-  createPlaylistItem(item, index) {
-    const itemEl = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-playlist-item`,
-      attributes: {
-        'data-index': index,
-        'role': 'button',
-        'tabindex': '0'
-      }
-    });
-
-    if (item.poster) {
-      const thumb = DOMUtils.createElement('img', {
-        className: `${this.player.options.classPrefix}-playlist-thumb`,
-        attributes: {
-          'src': item.poster,
-          'alt': item.title || `Track ${index + 1}`
-        }
-      });
-      itemEl.appendChild(thumb);
-    }
-
-    const info = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-playlist-item-info`
-    });
-
-    const number = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-playlist-item-number`,
-      textContent: `${index + 1}.`
-    });
-
-    const title = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-playlist-item-title`,
-      textContent: item.title || `Track ${index + 1}`
-    });
-
-    info.appendChild(number);
+    title.textContent = track.title || `Track ${index + 1}`;
     info.appendChild(title);
-
-    if (item.artist) {
+    
+    if (track.artist) {
       const artist = DOMUtils.createElement('div', {
-        className: `${this.player.options.classPrefix}-playlist-item-artist`,
-        textContent: item.artist
+        className: 'vidply-playlist-item-artist'
       });
+      artist.textContent = track.artist;
       info.appendChild(artist);
     }
-
-    if (item.duration) {
-      const duration = DOMUtils.createElement('div', {
-        className: `${this.player.options.classPrefix}-playlist-item-duration`,
-        textContent: this.formatTime(item.duration)
-      });
-      info.appendChild(duration);
-    }
-
-    itemEl.appendChild(info);
-
-    // Click to play
-    itemEl.addEventListener('click', () => {
+    
+    item.appendChild(info);
+    
+    // Play icon
+    const playIcon = createIconElement('play');
+    playIcon.classList.add('vidply-playlist-item-icon');
+    item.appendChild(playIcon);
+    
+    // Click handler
+    item.addEventListener('click', () => {
       this.play(index);
     });
-
-    // Keyboard support
-    itemEl.addEventListener('keydown', (e) => {
+    
+    // Keyboard handler
+    item.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         this.play(index);
       }
     });
-
-    return itemEl;
+    
+    return item;
   }
-
+  
   /**
-   * Update playlist panel to highlight current track
+   * Update playlist UI (highlight current track)
    */
-  updatePlaylistPanel() {
-    if (!this.panel) return;
-
-    const items = this.panel.querySelectorAll(`.${this.player.options.classPrefix}-playlist-item`);
+  updatePlaylistUI() {
+    if (!this.playlistPanel) return;
+    
+    const items = this.playlistPanel.querySelectorAll('.vidply-playlist-item');
+    
     items.forEach((item, index) => {
       if (index === this.currentIndex) {
-        item.classList.add(`${this.player.options.classPrefix}-playlist-item-active`);
-        item.setAttribute('aria-current', 'true');
+        item.classList.add('vidply-playlist-item-active');
+        
+        // Scroll into view
+        item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
-        item.classList.remove(`${this.player.options.classPrefix}-playlist-item-active`);
-        item.removeAttribute('aria-current');
+        item.classList.remove('vidply-playlist-item-active');
       }
     });
   }
-
+  
   /**
-   * Toggle playlist panel visibility
+   * Get current track
    */
-  togglePanel() {
-    if (!this.panel) return;
-
-    if (this.panel.style.display === 'none') {
-      this.panel.style.display = 'block';
-    } else {
-      this.panel.style.display = 'none';
+  getCurrentTrack() {
+    return this.tracks[this.currentIndex] || null;
+  }
+  
+  /**
+   * Get playlist info
+   */
+  getPlaylistInfo() {
+    return {
+      currentIndex: this.currentIndex,
+      totalTracks: this.tracks.length,
+      currentTrack: this.getCurrentTrack(),
+      hasNext: this.currentIndex < this.tracks.length - 1,
+      hasPrevious: this.currentIndex > 0
+    };
+  }
+  
+  /**
+   * Add track to playlist
+   */
+  addTrack(track) {
+    this.tracks.push(track);
+    
+    if (this.playlistPanel) {
+      this.renderPlaylist();
     }
   }
-
+  
   /**
-   * Format seconds to MM:SS
+   * Remove track from playlist
    */
-  formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  removeTrack(index) {
+    if (index < 0 || index >= this.tracks.length) return;
+    
+    this.tracks.splice(index, 1);
+    
+    // Adjust current index if needed
+    if (index < this.currentIndex) {
+      this.currentIndex--;
+    } else if (index === this.currentIndex) {
+      // Current track was removed, play next or stop
+      if (this.currentIndex >= this.tracks.length) {
+        this.currentIndex = this.tracks.length - 1;
+      }
+      
+      if (this.currentIndex >= 0) {
+        this.play(this.currentIndex);
+      }
+    }
+    
+    if (this.playlistPanel) {
+      this.renderPlaylist();
+    }
   }
-
+  
   /**
-   * Destroy the playlist manager
+   * Clear playlist
+   */
+  clear() {
+    this.tracks = [];
+    this.currentIndex = -1;
+    
+    if (this.playlistPanel) {
+      this.playlistPanel.innerHTML = '';
+      this.playlistPanel.style.display = 'none';
+    }
+    
+    if (this.trackInfoElement) {
+      this.trackInfoElement.innerHTML = '';
+      this.trackInfoElement.style.display = 'none';
+    }
+  }
+  
+  /**
+   * Destroy playlist manager
    */
   destroy() {
-    if (this.panel) {
-      this.panel.remove();
-    }
+    // Remove event listeners
+    this.player.off('ended', this.handleTrackEnd);
+    this.player.off('error', this.handleTrackError);
+    
+    // Remove UI
     if (this.trackInfoElement) {
       this.trackInfoElement.remove();
     }
+    
+    if (this.playlistPanel) {
+      this.playlistPanel.remove();
+    }
+    
+    // Clear data
+    this.clear();
   }
 }
+
+export default PlaylistManager;
