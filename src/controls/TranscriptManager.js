@@ -23,6 +23,7 @@ export class TranscriptManager {
     // Store event handlers for cleanup
     this.handlers = {
       timeupdate: () => this.updateActiveEntry(),
+      resize: null,
       mousemove: null,
       mouseup: null,
       touchmove: null,
@@ -140,18 +141,22 @@ export class TranscriptManager {
     // Setup drag functionality
     this.setupDragAndDrop();
     
-    // Re-position on window resize
-    window.addEventListener('resize', () => this.positionTranscript());
+    // Re-position on window resize (debounced)
+    let resizeTimeout;
+    this.handlers.resize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => this.positionTranscript(), 100);
+    };
+    window.addEventListener('resize', this.handlers.resize);
   }
   
   /**
    * Position transcript window next to video
    */
   positionTranscript() {
-    if (!this.transcriptWindow || !this.player.videoWrapper) return;
+    if (!this.transcriptWindow || !this.player.videoWrapper || !this.isVisible) return;
     
     const videoRect = this.player.videoWrapper.getBoundingClientRect();
-    const containerRect = this.player.container.getBoundingClientRect();
     
     // Calculate position relative to container
     const leftOffset = videoRect.width + 8; // 8px gap
@@ -608,6 +613,11 @@ export class TranscriptManager {
     }
     if (this.handlers.touchend) {
       document.removeEventListener('touchend', this.handlers.touchend);
+    }
+    
+    // Remove window-level listeners
+    if (this.handlers.resize) {
+      window.removeEventListener('resize', this.handlers.resize);
     }
 
     // Clear handlers
