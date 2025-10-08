@@ -1,4 +1,4 @@
-# 🚀 VidPly Quick Start
+# VidPly Quick Start
 
 Get started with VidPly in 3 simple steps!
 
@@ -156,10 +156,10 @@ Then visit: http://localhost:8000/demo.html
 
 ## Need More Help?
 
-- 📖 **Full Documentation**: See `README.md`
-- 🎯 **Usage Guide**: See `USAGE.md`
-- 🎬 **Live Demo**: Open `demo.html`
-- 💻 **Source Code**: Browse `src/` folder
+- **Full Documentation**: See `README.md`
+- **Usage Guide**: See `USAGE.md`
+- **Live Demo**: Open `demo.html`
+- **Source Code**: Browse `src/` folder
 
 ## Project Structure
 
@@ -182,5 +182,5 @@ vidply/
 
 ---
 
-**Happy coding!** 🎬✨
+**Happy coding!**
 
