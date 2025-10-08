@@ -1,0 +1,301 @@
+{
+  "inputs": {
+    "src/utils/EventEmitter.js": {
+      "bytes": 1002,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/utils/DOMUtils.js": {
+      "bytes": 3884,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/utils/TimeUtils.js": {
+      "bytes": 2022,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/icons/Icons.js": {
+      "bytes": 10345,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/i18n/translations.js": {
+      "bytes": 6642,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/i18n/i18n.js": {
+      "bytes": 1639,
+      "imports": [
+        {
+          "path": "src/i18n/translations.js",
+          "kind": "import-statement",
+          "original": "./translations.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/controls/ControlBar.js": {
+      "bytes": 51486,
+      "imports": [
+        {
+          "path": "src/utils/DOMUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/DOMUtils.js"
+        },
+        {
+          "path": "src/utils/TimeUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/TimeUtils.js"
+        },
+        {
+          "path": "src/icons/Icons.js",
+          "kind": "import-statement",
+          "original": "../icons/Icons.js"
+        },
+        {
+          "path": "src/i18n/i18n.js",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/controls/CaptionManager.js": {
+      "bytes": 8079,
+      "imports": [
+        {
+          "path": "src/utils/DOMUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/DOMUtils.js"
+        },
+        {
+          "path": "src/i18n/i18n.js",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/controls/KeyboardManager.js": {
+      "bytes": 5294,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/controls/SettingsDialog.js": {
+      "bytes": 12112,
+      "imports": [
+        {
+          "path": "src/utils/DOMUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/DOMUtils.js"
+        },
+        {
+          "path": "src/icons/Icons.js",
+          "kind": "import-statement",
+          "original": "../icons/Icons.js"
+        },
+        {
+          "path": "src/i18n/i18n.js",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/controls/TranscriptManager.js": {
+      "bytes": 18020,
+      "imports": [
+        {
+          "path": "src/utils/DOMUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/DOMUtils.js"
+        },
+        {
+          "path": "src/utils/TimeUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/TimeUtils.js"
+        },
+        {
+          "path": "src/icons/Icons.js",
+          "kind": "import-statement",
+          "original": "../icons/Icons.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/renderers/HTML5Renderer.js": {
+      "bytes": 5181,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/renderers/YouTubeRenderer.js": {
+      "bytes": 7186,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/renderers/VimeoRenderer.js": {
+      "bytes": 6699,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/renderers/HLSRenderer.js": {
+      "bytes": 7102,
+      "imports": [
+        {
+          "path": "src/renderers/HTML5Renderer.js",
+          "kind": "dynamic-import",
+          "original": "./HTML5Renderer.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/core/Player.js": {
+      "bytes": 20712,
+      "imports": [
+        {
+          "path": "src/utils/EventEmitter.js",
+          "kind": "import-statement",
+          "original": "../utils/EventEmitter.js"
+        },
+        {
+          "path": "src/utils/DOMUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/DOMUtils.js"
+        },
+        {
+          "path": "src/utils/TimeUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/TimeUtils.js"
+        },
+        {
+          "path": "src/controls/ControlBar.js",
+          "kind": "import-statement",
+          "original": "../controls/ControlBar.js"
+        },
+        {
+          "path": "src/controls/CaptionManager.js",
+          "kind": "import-statement",
+          "original": "../controls/CaptionManager.js"
+        },
+        {
+          "path": "src/controls/KeyboardManager.js",
+          "kind": "import-statement",
+          "original": "../controls/KeyboardManager.js"
+        },
+        {
+          "path": "src/controls/SettingsDialog.js",
+          "kind": "import-statement",
+          "original": "../controls/SettingsDialog.js"
+        },
+        {
+          "path": "src/controls/TranscriptManager.js",
+          "kind": "import-statement",
+          "original": "../controls/TranscriptManager.js"
+        },
+        {
+          "path": "src/renderers/HTML5Renderer.js",
+          "kind": "import-statement",
+          "original": "../renderers/HTML5Renderer.js"
+        },
+        {
+          "path": "src/renderers/YouTubeRenderer.js",
+          "kind": "import-statement",
+          "original": "../renderers/YouTubeRenderer.js"
+        },
+        {
+          "path": "src/renderers/VimeoRenderer.js",
+          "kind": "import-statement",
+          "original": "../renderers/VimeoRenderer.js"
+        },
+        {
+          "path": "src/renderers/HLSRenderer.js",
+          "kind": "import-statement",
+          "original": "../renderers/HLSRenderer.js"
+        },
+        {
+          "path": "src/i18n/i18n.js",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/index.js": {
+      "bytes": 784,
+      "imports": [
+        {
+          "path": "src/core/Player.js",
+          "kind": "import-statement",
+          "original": "./core/Player.js"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "dist/vidply.esm.min.js": {
+      "imports": [],
+      "exports": [
+        "Player",
+        "default"
+      ],
+      "entryPoint": "src/index.js",
+      "inputs": {
+        "src/renderers/HTML5Renderer.js": {
+          "bytesInOutput": 3313
+        },
+        "src/utils/EventEmitter.js": {
+          "bytesInOutput": 436
+        },
+        "src/utils/DOMUtils.js": {
+          "bytesInOutput": 1581
+        },
+        "src/utils/TimeUtils.js": {
+          "bytesInOutput": 728
+        },
+        "src/icons/Icons.js": {
+          "bytesInOutput": 9787
+        },
+        "src/i18n/translations.js": {
+          "bytesInOutput": 5100
+        },
+        "src/i18n/i18n.js": {
+          "bytesInOutput": 720
+        },
+        "src/controls/ControlBar.js": {
+          "bytesInOutput": 29951
+        },
+        "src/controls/CaptionManager.js": {
+          "bytesInOutput": 4773
+        },
+        "src/controls/KeyboardManager.js": {
+          "bytesInOutput": 2973
+        },
+        "src/controls/SettingsDialog.js": {
+          "bytesInOutput": 7366
+        },
+        "src/controls/TranscriptManager.js": {
+          "bytesInOutput": 9463
+        },
+        "src/core/Player.js": {
+          "bytesInOutput": 11453
+        },
+        "src/renderers/YouTubeRenderer.js": {
+          "bytesInOutput": 4140
+        },
+        "src/renderers/VimeoRenderer.js": {
+          "bytesInOutput": 4204
+        },
+        "src/renderers/HLSRenderer.js": {
+          "bytesInOutput": 4500
+        },
+        "src/index.js": {
+          "bytesInOutput": 243
+        }
+      },
+      "bytes": 101026
+    }
+  }
+}

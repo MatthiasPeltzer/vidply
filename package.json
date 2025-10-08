@@ -1,0 +1,53 @@
+{
+  "name": "vidply",
+  "version": "1.0.0",
+  "description": "Universal, accessible video player with ES6 modules",
+  "type": "module",
+  "main": "dist/vidply.js",
+  "module": "dist/vidply.esm.js",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "dev": "npx serve . -p 3000",
+    "start": "npm run dev",
+    "build": "npm run build:js && npm run build:css",
+    "build:js": "node build/build.js",
+    "build:css": "node build/build-css.js",
+    "watch": "node build/watch.js",
+    "clean": "node build/clean.js"
+  },
+  "keywords": [
+    "video",
+    "player",
+    "audio",
+    "accessible",
+    "wcag",
+    "a11y",
+    "html5",
+    "youtube",
+    "vimeo",
+    "hls",
+    "captions",
+    "subtitles",
+    "vanilla",
+    "es6",
+    "javascript"
+  ],
+  "author": "Matthias Peltzer",
+  "license": "GPL-2.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/vidply.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/vidply/issues"
+  },
+  "homepage": "https://github.com/yourusername/vidply#readme",
+  "devDependencies": {
+    "esbuild": "^0.25.10",
+    "clean-css": "^5.3.3"
+  },
+  "dependencies": {}
+}

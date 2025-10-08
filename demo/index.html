@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VidPly Demos</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 60px 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 56px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 24px;
+      color: #666;
+      margin-bottom: 40px;
+    }
+
+    .demo-links {
+      display: grid;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .demo-link {
+      display: block;
+      padding: 20px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .demo-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .demo-link:active {
+      transform: translateY(0);
+    }
+
+    .info {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 20px;
+      font-size: 12px;
+      color: #667eea;
+      margin: 5px;
+      font-weight: 600;
+    }
+
+    .features {
+      margin: 30px 0;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 40px 20px;
+      }
+
+      h1 {
+        font-size: 36px;
+      }
+
+      .subtitle {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎬 VidPly</h1>
+    <p class="subtitle">Universal, Accessible Video Player</p>
+
+    <div class="features">
+      <span class="badge">Vanilla ES6</span>
+      <span class="badge">WCAG Compliant</span>
+      <span class="badge">Responsive</span>
+      <span class="badge">Multi-Language</span>
+      <span class="badge">Captions</span>
+    </div>
+
+    <div class="demo-links">
+      <a href="demo.html" class="demo-link">
+        📺 Full Demo Page
+      </a>
+    </div>
+
+    <div class="info">
+      <p><strong>Features:</strong></p>
+      <p>✓ HTML5 Video & Audio Support</p>
+      <p>✓ Multiple Caption Languages</p>
+      <p>✓ Keyboard Accessible (WCAG 2.1)</p>
+      <p>✓ Screen Reader Compatible</p>
+      <p>✓ Customizable Styling</p>
+      <p>✓ YouTube & Vimeo Support</p>
+      <p>✓ HLS Streaming</p>
+      <p style="margin-top: 20px;">
+        <strong>Quick Start:</strong><br>
+        Add <code>data-vidply</code> attribute to any video or audio element
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+
