@@ -837,9 +837,19 @@ var ControlBar = class {
         if (!menu.contains(e.target) && !button.contains(e.target)) {
           menu.remove();
           document.removeEventListener("click", closeMenu);
+          document.removeEventListener("keydown", handleEscape);
+        }
+      };
+      const handleEscape = (e) => {
+        if (e.key === "Escape") {
+          menu.remove();
+          document.removeEventListener("click", closeMenu);
+          document.removeEventListener("keydown", handleEscape);
+          button.focus();
         }
       };
       document.addEventListener("click", closeMenu);
+      document.addEventListener("keydown", handleEscape);
     }, 100);
   }
   createElement() {
@@ -927,15 +937,11 @@ var ControlBar = class {
   // Helper methods to check for available features
   hasChapterTracks() {
     const textTracks = this.player.element.textTracks;
-    console.log("VidPly: Checking for chapter tracks, total textTracks:", textTracks.length);
     for (let i = 0; i < textTracks.length; i++) {
-      console.log(`VidPly: Track ${i}: kind=${textTracks[i].kind}, label=${textTracks[i].label}`);
       if (textTracks[i].kind === "chapters") {
-        console.log("VidPly: Found chapter track!");
         return true;
       }
     }
-    console.log("VidPly: No chapter tracks found");
     return false;
   }
   hasCaptionTracks() {
@@ -1286,7 +1292,6 @@ var ControlBar = class {
     const chapterTracks = Array.from(this.player.element.textTracks).filter(
       (track) => track.kind === "chapters"
     );
-    console.log("VidPly: Chapter tracks found:", chapterTracks.length);
     if (chapterTracks.length === 0) {
       const noChaptersItem = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-menu-item`,
@@ -1299,8 +1304,6 @@ var ControlBar = class {
       if (chapterTrack.mode === "disabled") {
         chapterTrack.mode = "hidden";
       }
-      console.log("VidPly: Chapter track mode:", chapterTrack.mode);
-      console.log("VidPly: Chapter track cues:", chapterTrack.cues);
       if (!chapterTrack.cues || chapterTrack.cues.length === 0) {
         const loadingItem = DOMUtils.createElement("div", {
           className: `${this.player.options.classPrefix}-menu-item`,
@@ -1309,20 +1312,17 @@ var ControlBar = class {
         });
         menu.appendChild(loadingItem);
         const onTrackLoad = () => {
-          console.log("VidPly: Chapter track loaded, cues:", chapterTrack.cues ? chapterTrack.cues.length : 0);
           menu.remove();
           this.showChaptersMenu(button);
         };
         chapterTrack.addEventListener("load", onTrackLoad, { once: true });
         setTimeout(() => {
           if (chapterTrack.cues && chapterTrack.cues.length > 0 && document.contains(menu)) {
-            console.log("VidPly: Cues loaded via timeout, rebuilding menu");
             menu.remove();
             this.showChaptersMenu(button);
           }
         }, 500);
       } else {
-        console.log("VidPly: Displaying", chapterTrack.cues.length, "chapters");
         const cues = chapterTrack.cues;
         for (let i = 0; i < cues.length; i++) {
           const cue = cues[i];
@@ -2138,15 +2138,8 @@ var CaptionManager = class {
   }
   loadTracks() {
     const textTracks = this.player.element.textTracks;
-    console.log("VidPly: Loading caption tracks, found", textTracks.length, "text tracks");
     for (let i = 0; i < textTracks.length; i++) {
       const track = textTracks[i];
-      console.log(`VidPly: Track ${i}:`, {
-        kind: track.kind,
-        language: track.language,
-        label: track.label,
-        mode: track.mode
-      });
       if (track.kind === "subtitles" || track.kind === "captions") {
         this.tracks.push({
           track,
@@ -2156,10 +2149,8 @@ var CaptionManager = class {
           index: i
         });
         track.mode = "hidden";
-        console.log("VidPly: Added caption/subtitle track:", track.label || track.language);
       }
     }
-    console.log("VidPly: Total caption/subtitle tracks loaded:", this.tracks.length);
   }
   attachEvents() {
     this.player.on("timeupdate", () => {
@@ -2170,35 +2161,25 @@ var CaptionManager = class {
     });
   }
   enable(trackIndex = 0) {
-    console.log("VidPly: enable() called with trackIndex:", trackIndex);
-    console.log("VidPly: Total tracks available:", this.tracks.length);
     if (this.tracks.length === 0) {
-      console.log("VidPly: No tracks available, returning");
       return;
     }
     if (this.currentTrack) {
       this.currentTrack.track.mode = "hidden";
-      console.log("VidPly: Disabled current track:", this.currentTrack.label);
     }
     const selectedTrack = this.tracks[trackIndex];
-    console.log("VidPly: Selected track:", selectedTrack);
     if (selectedTrack) {
       selectedTrack.track.mode = "hidden";
       this.currentTrack = selectedTrack;
       this.player.state.captionsEnabled = true;
-      console.log("VidPly: Enabled track:", selectedTrack.label || selectedTrack.language);
-      console.log("VidPly: Track mode:", selectedTrack.track.mode);
-      console.log("VidPly: Setting caption element display to block");
       if (this.cueChangeHandler) {
         selectedTrack.track.removeEventListener("cuechange", this.cueChangeHandler);
       }
       this.cueChangeHandler = () => {
-        console.log("VidPly: Cue changed");
         this.updateCaptions();
       };
       selectedTrack.track.addEventListener("cuechange", this.cueChangeHandler);
       this.element.style.display = "block";
-      console.log("VidPly: Caption element display set to:", this.element.style.display);
       this.player.emit("captionsenabled", selectedTrack);
     }
   }
@@ -2218,7 +2199,6 @@ var CaptionManager = class {
       return;
     }
     if (!this.currentTrack.track.activeCues) {
-      console.log("VidPly: No activeCues available yet for track:", this.currentTrack.label);
       return;
     }
     const activeCues = this.currentTrack.track.activeCues;
@@ -2226,16 +2206,13 @@ var CaptionManager = class {
       const cue = activeCues[0];
       if (this.currentCue !== cue) {
         this.currentCue = cue;
-        console.log("VidPly: Displaying caption:", cue.text);
         let text = cue.text;
         text = this.parseVTTFormatting(text);
         this.element.innerHTML = DOMUtils.sanitizeHTML(text);
-        console.log("VidPly: Caption element innerHTML set to:", this.element.innerHTML);
         this.element.style.display = "block";
         this.player.emit("captionchange", cue);
       }
     } else if (this.currentCue) {
-      console.log("VidPly: Clearing caption");
       this.element.innerHTML = "";
       this.element.style.display = "none";
       this.currentCue = null;
@@ -4604,7 +4581,6 @@ var PlaylistManager = class {
     if (tracks.length > 0) {
       this.play(0);
     }
-    console.log("VidPly Playlist: Loaded", tracks.length, "tracks");
   }
   /**
    * Play a specific track
@@ -4616,7 +4592,6 @@ var PlaylistManager = class {
       return;
     }
     const track = this.tracks[index];
-    console.log(`VidPly Playlist: Playing track ${index}`, track.title);
     this.currentIndex = index;
     this.player.load({
       src: track.src,
@@ -4644,7 +4619,6 @@ var PlaylistManager = class {
       if (this.options.loop) {
         nextIndex = 0;
       } else {
-        console.log("VidPly Playlist: End of playlist");
         return;
       }
     }
@@ -4659,7 +4633,6 @@ var PlaylistManager = class {
       if (this.options.loop) {
         prevIndex = this.tracks.length - 1;
       } else {
-        console.log("VidPly Playlist: Start of playlist");
         return;
       }
     }
@@ -4670,7 +4643,6 @@ var PlaylistManager = class {
    */
   handleTrackEnd() {
     if (this.options.autoAdvance) {
-      console.log("VidPly Playlist: Track ended, advancing...");
       this.next();
     }
   }
