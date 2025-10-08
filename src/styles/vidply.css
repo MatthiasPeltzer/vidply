@@ -8,6 +8,7 @@
   --vidply-primary: #0a406e;
   --vidply-primary-rgb: 10, 64, 110;
   --vidply-primary-dark: #083358;
+  --vidply-primary-light: #60a5fa;
   --vidply-primary-dark-rgb: 8, 51, 88;
   
   /* Primary Color Variations */
@@ -496,14 +497,14 @@
 }
 
 .vidply-menu-item-active {
-  color: #60a5fa;
+  color: var(--vidply-primary-light);
   background: var(--vidply-primary-15);
 }
 
 .vidply-menu-item-active .vidply-icon {
   width: 20px;
   height: 20px;
-  color: #60a5fa;
+  color: var(--vidply-primary-light);
 }
 
 .vidply-menu-item-with-value {
@@ -1086,7 +1087,7 @@
 }
 
 .vidply-playlist-item-active .vidply-playlist-thumbnail-icon {
-  color: #60a5fa;
+  color: var(--vidply-primary-light);
 }
 
 /* Playlist Item Info */
@@ -1106,7 +1107,7 @@
 }
 
 .vidply-playlist-item-active .vidply-playlist-item-title {
-  color: #60a5fa;
+  color: var(--vidply-primary-light);
 }
 
 .vidply-playlist-item-artist {
@@ -1133,7 +1134,7 @@
 
 .vidply-playlist-item-active .vidply-playlist-item-icon {
   opacity: 1;
-  color: #60a5fa;
+  color: var(--vidply-primary-light);
 }
 
 /* Playlist Scrollbar */
@@ -1255,7 +1256,7 @@
 
 .vidply-transcript-entry-active {
   background: var(--vidply-primary-15);
-  border-left-color: #60a5fa;
+  border-left-color: var(--vidply-primary-light);
 }
 
 .vidply-transcript-entry-time {
