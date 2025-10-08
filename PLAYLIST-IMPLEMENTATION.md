@@ -4,7 +4,7 @@
 
 I've implemented a complete **audio/video playlist system** for VidPly with the following features:
 
-### ✅ Core Features
+### Core Features
 
 1. **PlaylistManager Class** (`src/features/PlaylistManager.js`)
    - Load multiple audio/video tracks
@@ -38,7 +38,7 @@ I've implemented a complete **audio/video playlist system** for VidPly with the 
    - Custom scrollbars
    - Smooth transitions
 
-### 📁 New Files
+### New Files
 
 - `src/features/PlaylistManager.js` - Core playlist functionality
 - `demo/playlist-audio.html` - Working audio playlist demo with 5 tracks
@@ -46,7 +46,7 @@ I've implemented a complete **audio/video playlist system** for VidPly with the 
 - `docs/PLAYLIST.md` - Complete documentation
 - `docs/PLAYLIST-QUICKSTART.md` - Quick reference guide
 
-### 🔄 Modified Files
+### Modified Files
 
 - `src/controls/ControlBar.js` - Added previous/next buttons
 - `src/styles/vidply.css` - Added playlist styles
@@ -162,19 +162,19 @@ player.on('playlisttrackchange', (e) => {
 
 ## Features Demonstrated
 
-✅ Previous/Next track buttons  
-✅ Auto-advance to next track  
-✅ Track info display (number, title, artist)  
-✅ Visual playlist panel  
-✅ Active track highlighting  
-✅ Click any track to play  
-✅ Keyboard navigation (Tab + Enter)  
-✅ Per-track captions/chapters  
-✅ Thumbnails/poster support  
-✅ Loop mode  
-✅ Disabled button states  
-✅ Responsive design  
-✅ Custom styling support  
+Previous/Next track buttons  
+Auto-advance to next track  
+Track info display (number, title, artist)  
+Visual playlist panel  
+Active track highlighting  
+Click any track to play  
+Keyboard navigation (Tab + Enter)  
+Per-track captions/chapters  
+Thumbnails/poster support  
+Loop mode  
+Disabled button states  
+Responsive design  
+Custom styling support  
 
 ## Browser Support
 
@@ -209,14 +209,14 @@ Output:
 
 ## Example Use Cases
 
-### Audio Playlists 🎵
+### Audio Playlists
 1. **Music Player** - Album or artist discography
 2. **Podcast Series** - Multiple episodes
 3. **Audio Book** - Chapters
 4. **Language Learning** - Audio lessons
 5. **Conference Talks** - Audio presentations
 
-### Video Playlists 🎬
+### Video Playlists
 1. **TV Series** - Binge-watch episodes (Netflix-style)
 2. **Video Courses** - Sequential tutorials
 3. **Conference Videos** - Multiple presentations
@@ -224,4 +224,4 @@ Output:
 5. **Tutorial Series** - Step-by-step guides
 6. **Webinar Series** - Educational content
 
-Enjoy your new playlist feature! 🎵🎬
+Enjoy your new playlist feature!
