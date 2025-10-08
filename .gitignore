@@ -5,6 +5,13 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json
 
+# Build outputs
+dist/
+*.min.js
+*.min.css
+*.map
+*.meta.json
+
 # IDE
 .vscode/
 .idea/

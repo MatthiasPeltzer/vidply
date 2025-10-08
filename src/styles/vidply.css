@@ -14,6 +14,8 @@
   background: #000000;
   overflow: visible;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .vidply-player *,
@@ -61,6 +63,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+  order: 1; /* First in flex order */
 }
 
 /* Controls Container */
@@ -547,8 +550,8 @@
   transform: translateX(-50%);
   max-width: 90%;
   text-align: center;
-  padding: 0;
-  background: transparent;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.8);
   border-radius: 4px;
   font-size: 100%;
   font-family: sans-serif;
@@ -558,16 +561,8 @@
   display: none;
 }
 
-/* Only show background and padding when there's content */
-.vidply-captions:not(:empty) {
-  padding: 8px 16px;
-  background: rgba(0, 0, 0, 0.8);
-}
-
 .vidply-captions:empty {
   display: none;
-  padding: 0;
-  background: transparent;
 }
 
 /* Settings Dialog */
@@ -859,356 +854,211 @@
   }
 }
 
-/* Transcript Window */
-.vidply-transcript-window {
-  position: absolute;
-  top: 0;
-  left: 100%;
-  margin-left: 16px;
-  width: 400px;
-  height: 100%;
-  min-height: 400px;
-  background: rgba(20, 20, 20, 0.98);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
-  display: none;
-  flex-direction: column;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  z-index: 100;
-  overflow: hidden;
-  animation: vidply-transcript-slide-in 0.3s ease;
-}
+/* ============================================================================
+   Playlist Styles
+   ============================================================================ */
 
-@keyframes vidply-transcript-slide-in {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* When fullscreen, center it over the video */
-.vidply-player.vidply-fullscreen .vidply-transcript-window,
-.vidply-player:fullscreen .vidply-transcript-window {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  margin-left: 0;
-  width: 90%;
-  max-width: 700px;
-  height: 90%;
-  animation: vidply-transcript-slide-in-center 0.3s ease;
-}
-
-@keyframes vidply-transcript-slide-in-center {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -45%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
-}
-
-/* Transcript Header */
-.vidply-transcript-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* Track Info Display (below video, above playlist) */
+.vidply-track-info {
   padding: 16px 20px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  flex-shrink: 0;
-  cursor: grab;
-  user-select: none;
-  transition: background-color 0.2s ease;
+  position: relative;
+  z-index: 1;
+  order: 2; /* After video-wrapper */
 }
 
-.vidply-transcript-header:hover {
-  background: rgba(255, 255, 255, 0.05);
+.vidply-track-number {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
 }
 
-.vidply-transcript-header:active {
-  cursor: grabbing;
-}
-
-.vidply-transcript-header:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: -2px;
-  background: rgba(59, 130, 246, 0.1);
-}
-
-.vidply-transcript-header:focus::after {
-  content: 'Use arrow keys to move (Shift for larger steps, Home to center)';
-  position: absolute;
-  bottom: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.9);
-  color: #ffffff;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-size: 11px;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 1000;
-}
-
-.vidply-transcript-header h3 {
-  margin: 0;
-  font-size: 16px;
+.vidply-track-title {
+  font-size: 18px;
   font-weight: 600;
   color: #ffffff;
-  pointer-events: none;
+  margin-bottom: 4px;
 }
 
-.vidply-transcript-close {
-  padding: 4px;
-  min-width: 32px;
-  min-height: 32px;
-  cursor: pointer;
-  pointer-events: all;
+.vidply-track-artist {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.vidply-transcript-close .vidply-icon {
-  width: 20px;
-  height: 20px;
-}
-
-/* Dragging state */
-.vidply-transcript-dragging {
-  cursor: grabbing !important;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
-  transition: none !important;
-}
-
-.vidply-transcript-dragging .vidply-transcript-header {
-  cursor: grabbing !important;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-/* Transcript Content */
-.vidply-transcript-content {
-  flex: 1;
+/* Playlist Panel */
+.vidply-playlist-panel {
+  background: #1a1a1a;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: 400px;
   overflow-y: auto;
-  padding: 12px 0;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  position: relative;
+  z-index: 1;
+  order: 3; /* After track info */
 }
 
-.vidply-transcript-content::-webkit-scrollbar {
-  width: 8px;
+.vidply-playlist-header {
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.vidply-transcript-content::-webkit-scrollbar-track {
+.vidply-playlist-list {
+  padding: 4px 0;
+}
+
+/* Playlist Items */
+.vidply-playlist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
   background: transparent;
 }
 
-.vidply-transcript-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
+.vidply-playlist-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-left-color: rgba(102, 126, 234, 0.5);
+}
+
+.vidply-playlist-item:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-left-color: #667eea;
+}
+
+.vidply-playlist-item-active {
+  background: rgba(102, 126, 234, 0.15);
+  border-left-color: #667eea;
+}
+
+.vidply-playlist-item-active:hover {
+  background: rgba(102, 126, 234, 0.2);
+}
+
+/* Playlist Thumbnail */
+.vidply-playlist-thumbnail {
+  flex-shrink: 0;
+  width: 80px;
+  height: 45px;
+  background-color: rgba(255, 255, 255, 0.1);
+  background-size: cover;
+  background-position: center;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Playlist Item Info */
+.vidply-playlist-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.vidply-playlist-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vidply-playlist-item-active .vidply-playlist-item-title {
+  color: #667eea;
+}
+
+.vidply-playlist-item-artist {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Playlist Item Icon */
+.vidply-playlist-item-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.vidply-playlist-item:hover .vidply-playlist-item-icon,
+.vidply-playlist-item-active .vidply-playlist-item-icon {
+  opacity: 0.7;
+}
+
+.vidply-playlist-item-active .vidply-playlist-item-icon {
+  opacity: 1;
+  color: #667eea;
+}
+
+/* Playlist Scrollbar */
+.vidply-playlist-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.vidply-playlist-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.vidply-playlist-panel::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
 }
 
-.vidply-transcript-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.4);
+.vidply-playlist-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
-/* Transcript Entry */
-.vidply-transcript-entry {
+/* Audio Player with Playlist */
+.vidply-player.vidply-audio {
+  min-height: 200px;
   display: flex;
-  gap: 12px;
-  padding: 12px 20px;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-  border-left: 3px solid transparent;
+  flex-direction: column;
 }
 
-.vidply-transcript-entry:hover {
-  background: rgba(255, 255, 255, 0.05);
+.vidply-player.vidply-audio audio {
+  display: none;
 }
 
-.vidply-transcript-entry:focus {
-  outline: none;
-  background: rgba(59, 130, 246, 0.1);
-  border-left-color: #3b82f6;
+.vidply-audio .vidply-controls {
+  margin-top: auto;
 }
 
-.vidply-transcript-entry-active {
-  background: rgba(59, 130, 246, 0.15);
-  border-left-color: #3b82f6;
-}
-
-.vidply-transcript-entry-active .vidply-transcript-time {
-  color: #60a5fa;
-}
-
-.vidply-transcript-time {
-  flex-shrink: 0;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-  font-family: 'Courier New', Courier, monospace;
-  font-weight: 500;
-  min-width: 50px;
-}
-
-.vidply-transcript-text {
-  flex: 1;
-  font-size: 14px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.vidply-transcript-entry-active .vidply-transcript-text {
-  color: #ffffff;
-  font-weight: 500;
-}
-
-/* Transcript Loading/Empty States */
-.vidply-transcript-loading,
-.vidply-transcript-empty {
-  padding: 40px 20px;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
-}
-
-/* Responsive - On medium screens, overlay the video since there's no room beside it */
-@media (max-width: 1200px) {
-  .vidply-transcript-window {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    margin-left: 0;
-    width: 90%;
-    max-width: 500px;
-    height: 80%;
-    min-height: 350px;
-    max-height: 600px;
-    animation: vidply-transcript-slide-in-center 0.3s ease;
-  }
-}
-
-@media (max-width: 768px) {
-  .vidply-transcript-window {
-    width: 95%;
-    height: 85%;
-    min-height: 300px;
-    max-width: none;
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .vidply-playlist-thumbnail {
+    width: 60px;
+    height: 34px;
   }
   
-  .vidply-transcript-entry {
-    padding: 10px 16px;
+  .vidply-playlist-item {
+    padding: 10px 12px;
     gap: 10px;
   }
   
-  .vidply-transcript-time {
-    font-size: 11px;
-    min-width: 45px;
+  .vidply-track-info {
+    padding: 12px 16px;
   }
   
-  .vidply-transcript-text {
-    font-size: 13px;
-  }
-}
-
-@media (max-width: 480px) {
-  .vidply-transcript-window {
-    width: 100%;
-    height: 100%;
-    min-height: 250px;
-    max-height: none;
-    border-radius: 0;
-  }
-  
-  .vidply-transcript-header {
-    padding: 14px 16px;
-  }
-}
-
-/* ==================== Sign Language Video ==================== */
-
-.vidply-sign-language-video {
-  position: absolute;
-  width: 25%;
-  min-width: 200px;
-  max-width: 350px;
-  height: auto;
-  aspect-ratio: 16 / 9;
-  background: #000;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  z-index: 100;
-  pointer-events: auto;
-  cursor: default;
-}
-
-/* Position classes */
-.vidply-sign-position-bottom-right {
-  bottom: 80px;
-  right: 20px;
-}
-
-.vidply-sign-position-bottom-left {
-  bottom: 80px;
-  left: 20px;
-}
-
-.vidply-sign-position-top-right {
-  top: 20px;
-  right: 20px;
-}
-
-.vidply-sign-position-top-left {
-  top: 20px;
-  left: 20px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .vidply-sign-language-video {
-    width: 30%;
-    min-width: 150px;
-    max-width: 250px;
-  }
-  
-  .vidply-sign-position-bottom-right,
-  .vidply-sign-position-bottom-left {
-    bottom: 70px;
-  }
-  
-  .vidply-sign-position-bottom-right,
-  .vidply-sign-position-top-right {
-    right: 10px;
-  }
-  
-  .vidply-sign-position-bottom-left,
-  .vidply-sign-position-top-left {
-    left: 10px;
-  }
-  
-  .vidply-sign-position-top-right,
-  .vidply-sign-position-top-left {
-    top: 10px;
-  }
-}
-
-@media (max-width: 480px) {
-  .vidply-sign-language-video {
-    width: 35%;
-    min-width: 120px;
-    max-width: 180px;
-  }
-  
-  .vidply-sign-position-bottom-right,
-  .vidply-sign-position-bottom-left {
-    bottom: 60px;
+  .vidply-track-title {
+    font-size: 16px;
   }
 }
 
