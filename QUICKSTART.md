@@ -24,7 +24,7 @@ Get started with VidPly in 3 simple steps!
 </script>
 ```
 
-That's it! 🎉
+That's it!
 
 ## Test It Out
 
