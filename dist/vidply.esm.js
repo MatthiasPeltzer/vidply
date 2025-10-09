@@ -434,7 +434,6 @@ var Icons = {
   captionsOff: `<svg viewBox="0 0 24 24" fill="currentColor">
     <path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1z"/>
     <path d="M0 0h24v24H0z" fill="none"/>
-    <path d="M21 3L3 21" stroke="currentColor" stroke-width="2"/>
   </svg>`,
   pip: `<svg viewBox="0 0 24 24" fill="currentColor">
     <path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 1.98 2 1.98h18c1.1 0 2-.88 2-1.98V5c0-1.1-.9-2-2-2zm0 16.01H3V4.98h18v14.03z"/>
@@ -1516,23 +1515,6 @@ var ControlBar = class {
     menu.appendChild(bgColorGroup);
     const opacityGroup = this.createOpacityControl("Opacity", "captionsOpacity");
     menu.appendChild(opacityGroup);
-    const closeButton = DOMUtils.createElement("button", {
-      className: `${this.player.options.classPrefix}-menu-item`,
-      textContent: "Close",
-      style: {
-        marginTop: "8px",
-        borderTop: "1px solid rgba(255, 255, 255, 0.2)",
-        paddingTop: "12px"
-      },
-      attributes: {
-        "type": "button"
-      }
-    });
-    closeButton.addEventListener("click", (e) => {
-      e.stopPropagation();
-      menu.remove();
-    });
-    menu.appendChild(closeButton);
     menu.style.minWidth = "220px";
     button.appendChild(menu);
     this.attachMenuCloseHandler(menu, button, true);
@@ -2307,7 +2289,7 @@ var KeyboardManager = class {
     }
   }
   handleKeydown(e) {
-    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
       return;
     }
     const key = e.key;

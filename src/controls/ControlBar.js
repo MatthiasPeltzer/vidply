@@ -945,25 +945,6 @@ export class ControlBar {
         const opacityGroup = this.createOpacityControl('Opacity', 'captionsOpacity');
         menu.appendChild(opacityGroup);
 
-        // Add close button
-        const closeButton = DOMUtils.createElement('button', {
-            className: `${this.player.options.classPrefix}-menu-item`,
-            textContent: 'Close',
-            style: {
-                marginTop: '8px',
-                borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-                paddingTop: '12px'
-            },
-            attributes: {
-                'type': 'button'
-            }
-        });
-        closeButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menu.remove();
-        });
-        menu.appendChild(closeButton);
-
         // Set min-width for caption style menu
         menu.style.minWidth = '220px';
 
