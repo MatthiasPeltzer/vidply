@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "dev": "npx serve . -p 3000",
-    "start": "npm run dev",
+    "start": "npm run build:js && npm run build:css && npm run dev",
     "build": "npm run build:js && npm run build:css",
     "build:js": "node build/build.js",
     "build:css": "node build/build-css.js",
