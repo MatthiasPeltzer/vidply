@@ -28,7 +28,7 @@ export class KeyboardManager {
 
   handleKeydown(e) {
     // Don't handle if target is an input element
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
       return;
     }
 
