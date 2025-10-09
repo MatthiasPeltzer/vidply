@@ -35,7 +35,7 @@
     --vidply-border-hover: var(--vidply-white-30);
     --vidply-border-light: var(--vidply-white-10);
     --vidply-focus-outline: 2px solid var(--vidply-primary);
-    --vidply-focus-outline-white: 2px solid var(--vidply-white);
+    --vidply-focus-outline-white: 2px solid var(--vidply-primary-light);
     --vidply-hover-bg: var(--vidply-white-10);
     --vidply-primary: #0a406e;
     --vidply-primary-10: rgba(var(--vidply-primary-rgb), 0.1);
@@ -990,7 +990,7 @@
 }
 
 .vidply-player :focus-visible {
-    outline: var(--vidply-focus-outline);
+    outline: var(--vidply-focus-outline-white);
     outline-offset: 2px;
 }
 
