@@ -16,7 +16,7 @@
       "format": "esm"
     },
     "src/icons/Icons.js": {
-      "bytes": 10811,
+      "bytes": 10828,
       "imports": [],
       "format": "esm"
     },
@@ -37,7 +37,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 60789,
+      "bytes": 60152,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -79,7 +79,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.js": {
-      "bytes": 5294,
+      "bytes": 5327,
       "imports": [],
       "format": "esm"
     },
@@ -277,7 +277,7 @@
           "bytesInOutput": 728
         },
         "src/icons/Icons.js": {
-          "bytesInOutput": 10231
+          "bytesInOutput": 10165
         },
         "src/i18n/translations.js": {
           "bytesInOutput": 5100
@@ -286,13 +286,13 @@
           "bytesInOutput": 720
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 30879
+          "bytesInOutput": 30571
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 3634
         },
         "src/controls/KeyboardManager.js": {
-          "bytesInOutput": 2973
+          "bytesInOutput": 3002
         },
         "src/controls/SettingsDialog.js": {
           "bytesInOutput": 7366
@@ -316,7 +316,7 @@
           "bytesInOutput": 5245
         }
       },
-      "bytes": 109361
+      "bytes": 109016
     }
   }
 }
