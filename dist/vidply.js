@@ -1576,10 +1576,10 @@ var VidPly = (() => {
         style: {
           width: "100%",
           padding: "6px",
-          background: "rgba(255,255,255,0.1)",
-          border: "1px solid rgba(255,255,255,0.2)",
+          background: "var(--vidply-white)",
+          border: "1px solid var(--vidply-white-10)",
           borderRadius: "4px",
-          color: "#fff",
+          color: "var(--vidply-black)",
           fontSize: "13px"
         }
       });
