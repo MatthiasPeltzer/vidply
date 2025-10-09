@@ -497,6 +497,18 @@
     background: var(--vidply-primary-30);
 }
 
+.vidply-captions-menu .vidply-menu-item:hover,
+.vidply-captions-menu .vidply-menu-item:focus,
+.vidply-speed-menu .vidply-menu-item:hover,
+.vidply-speed-menu .vidply-menu-item:focus {
+    text-decoration: underline;
+}
+
+.vidply-menu-item:hover .vidply-chapter-title,
+.vidply-menu-item:focus .vidply-chapter-title {
+    text-decoration: underline;
+}
+
 .vidply-menu-item-active {
     background: var(--vidply-primary-15);
     color: var(--vidply-primary-light);
