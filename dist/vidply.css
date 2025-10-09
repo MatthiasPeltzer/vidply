@@ -174,7 +174,7 @@
 
 /* Controls Container */
 .vidply-controls {
-    background: linear-gradient(to top, var(--vidply-black-80) 0%, transparent 100%);
+    background: linear-gradient(to top, var(--vidply-black-90) 0%, var(--vidply-black-50) 100%);
     bottom: 0;
     left: 0;
     opacity: 0;
@@ -236,7 +236,7 @@
 }
 
 .vidply-progress-played {
-    background: var(--vidply-primary-80);
+    background: var(--vidply-primary-light);
     border-radius: 3px;
     height: 100%;
     left: 0;
