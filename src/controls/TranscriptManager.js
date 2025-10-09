@@ -39,6 +39,14 @@ export class TranscriptManager {
   init() {
     // Listen for time updates to highlight active transcript entry
     this.player.on('timeupdate', this.handlers.timeupdate);
+    
+    // Reposition transcript when entering/exiting fullscreen
+    this.player.on('fullscreenchange', () => {
+      if (this.isVisible) {
+        // Add a small delay to ensure DOM has updated after fullscreen transition
+        setTimeout(() => this.positionTranscript(), 100);
+      }
+    });
   }
 
   /**
@@ -158,12 +166,28 @@ export class TranscriptManager {
     
     const videoRect = this.player.videoWrapper.getBoundingClientRect();
     
-    // Calculate position relative to container
-    const leftOffset = videoRect.width + 8; // 8px gap
-    const height = videoRect.height;
+    // Check if player is in fullscreen mode
+    const isFullscreen = this.player.state.fullscreen;
     
-    this.transcriptWindow.style.left = `${leftOffset}px`;
-    this.transcriptWindow.style.height = `${height}px`;
+    if (isFullscreen) {
+      // In fullscreen: position in bottom right corner inside the video
+      this.transcriptWindow.style.position = 'fixed';
+      this.transcriptWindow.style.left = 'auto';
+      this.transcriptWindow.style.right = '20px';
+      this.transcriptWindow.style.bottom = '80px'; // Above controls
+      this.transcriptWindow.style.top = 'auto';
+      this.transcriptWindow.style.maxHeight = 'calc(100vh - 180px)'; // Leave space for controls
+      this.transcriptWindow.style.height = 'auto';
+    } else {
+      // Normal mode: position next to video
+      this.transcriptWindow.style.position = 'absolute';
+      this.transcriptWindow.style.left = `${videoRect.width + 8}px`;
+      this.transcriptWindow.style.right = 'auto';
+      this.transcriptWindow.style.bottom = 'auto';
+      this.transcriptWindow.style.top = '0';
+      this.transcriptWindow.style.height = `${videoRect.height}px`;
+      this.transcriptWindow.style.maxHeight = 'none';
+    }
   }
 
   /**

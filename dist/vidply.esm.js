@@ -2751,6 +2751,11 @@ var TranscriptManager = class {
   }
   init() {
     this.player.on("timeupdate", this.handlers.timeupdate);
+    this.player.on("fullscreenchange", () => {
+      if (this.isVisible) {
+        setTimeout(() => this.positionTranscript(), 100);
+      }
+    });
   }
   /**
    * Toggle transcript window visibility
@@ -2842,10 +2847,24 @@ var TranscriptManager = class {
   positionTranscript() {
     if (!this.transcriptWindow || !this.player.videoWrapper || !this.isVisible) return;
     const videoRect = this.player.videoWrapper.getBoundingClientRect();
-    const leftOffset = videoRect.width + 8;
-    const height = videoRect.height;
-    this.transcriptWindow.style.left = `${leftOffset}px`;
-    this.transcriptWindow.style.height = `${height}px`;
+    const isFullscreen = this.player.state.fullscreen;
+    if (isFullscreen) {
+      this.transcriptWindow.style.position = "fixed";
+      this.transcriptWindow.style.left = "auto";
+      this.transcriptWindow.style.right = "20px";
+      this.transcriptWindow.style.bottom = "80px";
+      this.transcriptWindow.style.top = "auto";
+      this.transcriptWindow.style.maxHeight = "calc(100vh - 180px)";
+      this.transcriptWindow.style.height = "auto";
+    } else {
+      this.transcriptWindow.style.position = "absolute";
+      this.transcriptWindow.style.left = `${videoRect.width + 8}px`;
+      this.transcriptWindow.style.right = "auto";
+      this.transcriptWindow.style.bottom = "auto";
+      this.transcriptWindow.style.top = "0";
+      this.transcriptWindow.style.height = `${videoRect.height}px`;
+      this.transcriptWindow.style.maxHeight = "none";
+    }
   }
   /**
    * Load transcript data from caption/subtitle tracks

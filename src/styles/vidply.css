@@ -851,6 +851,20 @@
     width: 100vw;
 }
 
+/* Transcript in Fullscreen */
+.vidply-player.vidply-fullscreen .vidply-transcript-window,
+.vidply-player:fullscreen .vidply-transcript-window {
+    bottom: 80px !important;
+    height: auto !important;
+    left: auto !important;
+    max-height: calc(100vh - 180px) !important;
+    max-width: 400px;
+    position: fixed !important;
+    right: 20px !important;
+    top: auto !important;
+    width: 400px;
+}
+
 /* Loading State */
 .vidply-loading {
     display: none;
