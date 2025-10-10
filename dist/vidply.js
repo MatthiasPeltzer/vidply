@@ -405,139 +405,53 @@ var VidPly = (() => {
   };
 
   // src/icons/Icons.js
-  var Icons = {
-    play: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M8 5v14l11-7z"/>
-  </svg>`,
-    pause: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-  </svg>`,
-    stop: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <rect x="6" y="6" width="12" height="12"/>
-  </svg>`,
-    rewind: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/>
-  </svg>`,
-    forward: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>
-  </svg>`,
-    skipPrevious: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M6 6h2v12H6V6zm3 6l8.5 6V6L9 12z"/>
-  </svg>`,
-    skipNext: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M16 6h2v12h-2V6zM6 6l8.5 6L6 18V6z"/>
-  </svg>`,
-    restart: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
-  </svg>`,
-    volumeHigh: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-  </svg>`,
-    volumeMedium: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
-  </svg>`,
-    volumeLow: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M7 9v6h4l5 5V4l-5 5H7z"/>
-  </svg>`,
-    volumeMuted: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
-  </svg>`,
-    fullscreen: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-  </svg>`,
-    fullscreenExit: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
-  </svg>`,
-    settings: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-  </svg>`,
-    captions: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1z"/>
-  </svg>`,
-    captionsOff: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1z"/>
-    <path d="M0 0h24v24H0z" fill="none"/>
-  </svg>`,
-    pip: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 1.98 2 1.98h18c1.1 0 2-.88 2-1.98V5c0-1.1-.9-2-2-2zm0 16.01H3V4.98h18v14.03z"/>
-  </svg>`,
-    speed: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M20.38 8.57l-1.23 1.85a8 8 0 0 1-.22 7.58H5.07A8 8 0 0 1 15.58 6.85l1.85-1.23A10 10 0 0 0 3.35 19a2 2 0 0 0 1.72 1h13.85a2 2 0 0 0 1.74-1 10 10 0 0 0-.27-10.44z"/>
-    <path d="M10.59 15.41a2 2 0 0 0 2.83 0l5.66-8.49-8.49 5.66a2 2 0 0 0 0 2.83z"/>
-  </svg>`,
-    close: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-  </svg>`,
-    check: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-  </svg>`,
-    arrowUp: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M7 14l5-5 5 5z"/>
-  </svg>`,
-    arrowDown: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M7 10l5 5 5-5z"/>
-  </svg>`,
-    arrowLeft: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-  </svg>`,
-    arrowRight: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-  </svg>`,
-    loading: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
-  </svg>`,
-    error: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-  </svg>`,
-    download: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-  </svg>`,
-    link: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
-  </svg>`,
-    playlist: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/>
-  </svg>`,
-    language: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/>
-  </svg>`,
-    hd: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm7-1c0 .55-.45 1-1 1h-.75v1.5h-1.5V15H14c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v4zm-3.5-.5h2v-3h-2v3z"/>
-  </svg>`,
-    transcript: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
-  </svg>`,
-    audioDescription: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/>
-    <path d="M10.5 19c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-  </svg>`,
-    audioDescriptionOn: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/>
-    <path d="M10.5 19c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-    <circle cx="19" cy="16" r="3" fill="#3b82f6"/>
-    <path d="M18.5 17.5l1-1 1.5 1.5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>`,
-    signLanguage: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2C10.34 2 9 3.34 9 5v4c0 .34.07.66.18.96L7.5 8.29C7.19 8.1 6.85 8 6.5 8 5.12 8 4 9.12 4 10.5v3c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-3c0-.28.22-.5.5-.5s.5.22.5.5V14l2 2v-1c0-.55.45-1 1-1s1 .45 1 1v2c0 .55.45 1 1 1s1-.45 1-1V9c0-.55.45-1 1-1s1 .45 1 1v8c0 2.21-1.79 4-4 4s-4-1.79-4-4v-2.83l-2.93-2.93A3.93 3.93 0 0 1 4 8c0-1.66 1.34-3 3-3 .83 0 1.58.34 2.12.88L11 7.76V5c0-.55.45-1 1-1s1 .45 1 1v4c0 .55.45 1 1 1s1-.45 1-1V5c0-1.66-1.34-3-3-3z"/>
-  </svg>`,
-    signLanguageOn: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2C10.34 2 9 3.34 9 5v4c0 .34.07.66.18.96L7.5 8.29C7.19 8.1 6.85 8 6.5 8 5.12 8 4 9.12 4 10.5v3c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-3c0-.28.22-.5.5-.5s.5.22.5.5V14l2 2v-1c0-.55.45-1 1-1s1 .45 1 1v2c0 .55.45 1 1 1s1-.45 1-1V9c0-.55.45-1 1-1s1 .45 1 1v8c0 2.21-1.79 4-4 4s-4-1.79-4-4v-2.83l-2.93-2.93A3.93 3.93 0 0 1 4 8c0-1.66 1.34-3 3-3 .83 0 1.58.34 2.12.88L11 7.76V5c0-.55.45-1 1-1s1 .45 1 1v4c0 .55.45 1 1 1s1-.45 1-1V5c0-1.66-1.34-3-3-3z"/>
-    <circle cx="19" cy="16" r="3" fill="#3b82f6"/>
-    <path d="M18.5 17.5l1-1 1.5 1.5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>`,
-    speaker: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
-  </svg>`,
-    music: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7zm-1.5 16c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-  </svg>`,
-    moreVertical: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-  </svg>`,
-    moreHorizontal: `<svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-  </svg>`
+  var iconPaths = {
+    play: `<path d="M8 5v14l11-7z"/>`,
+    pause: `<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>`,
+    stop: `<rect x="6" y="6" width="12" height="12"/>`,
+    rewind: `<path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/>`,
+    forward: `<path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>`,
+    skipPrevious: `<path d="M6 6h2v12H6V6zm3 6l8.5 6V6L9 12z"/>`,
+    skipNext: `<path d="M16 6h2v12h-2V6zM6 6l8.5 6L6 18V6z"/>`,
+    restart: `<path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>`,
+    volumeHigh: `<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>`,
+    volumeMedium: `<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>`,
+    volumeLow: `<path d="M7 9v6h4l5 5V4l-5 5H7z"/>`,
+    volumeMuted: `<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>`,
+    fullscreen: `<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>`,
+    fullscreenExit: `<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>`,
+    settings: `<path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>`,
+    captions: `<path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1z"/>`,
+    captionsOff: `<path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1z"/><path d="M0 0h24v24H0z" fill="none"/>`,
+    pip: `<path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 1.98 2 1.98h18c1.1 0 2-.88 2-1.98V5c0-1.1-.9-2-2-2zm0 16.01H3V4.98h18v14.03z"/>`,
+    speed: `<path d="M20.38 8.57l-1.23 1.85a8 8 0 0 1-.22 7.58H5.07A8 8 0 0 1 15.58 6.85l1.85-1.23A10 10 0 0 0 3.35 19a2 2 0 0 0 1.72 1h13.85a2 2 0 0 0 1.74-1 10 10 0 0 0-.27-10.44z"/><path d="M10.59 15.41a2 2 0 0 0 2.83 0l5.66-8.49-8.49 5.66a2 2 0 0 0 0 2.83z"/>`,
+    close: `<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>`,
+    check: `<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>`,
+    arrowUp: `<path d="M7 14l5-5 5 5z"/>`,
+    arrowDown: `<path d="M7 10l5 5 5-5z"/>`,
+    arrowLeft: `<path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>`,
+    arrowRight: `<path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>`,
+    loading: `<path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>`,
+    error: `<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>`,
+    download: `<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>`,
+    link: `<path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>`,
+    playlist: `<path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/>`,
+    language: `<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/>`,
+    hd: `<path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm7-1c0 .55-.45 1-1 1h-.75v1.5h-1.5V15H14c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v4zm-3.5-.5h2v-3h-2v3z"/>`,
+    transcript: `<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>`,
+    audioDescription: `<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/><path d="M10.5 19c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>`,
+    audioDescriptionOn: `<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/><path d="M10.5 19c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/><circle cx="19" cy="16" r="3" fill="#3b82f6"/><path d="M18.5 17.5l1-1 1.5 1.5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+    signLanguage: `<path d="M12 2C10.34 2 9 3.34 9 5v4c0 .34.07.66.18.96L7.5 8.29C7.19 8.1 6.85 8 6.5 8 5.12 8 4 9.12 4 10.5v3c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-3c0-.28.22-.5.5-.5s.5.22.5.5V14l2 2v-1c0-.55.45-1 1-1s1 .45 1 1v2c0 .55.45 1 1 1s1-.45 1-1V9c0-.55.45-1 1-1s1 .45 1 1v8c0 2.21-1.79 4-4 4s-4-1.79-4-4v-2.83l-2.93-2.93A3.93 3.93 0 0 1 4 8c0-1.66 1.34-3 3-3 .83 0 1.58.34 2.12.88L11 7.76V5c0-.55.45-1 1-1s1 .45 1 1v4c0 .55.45 1 1 1s1-.45 1-1V5c0-1.66-1.34-3-3-3z"/>`,
+    signLanguageOn: `<path d="M12 2C10.34 2 9 3.34 9 5v4c0 .34.07.66.18.96L7.5 8.29C7.19 8.1 6.85 8 6.5 8 5.12 8 4 9.12 4 10.5v3c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-3c0-.28.22-.5.5-.5s.5.22.5.5V14l2 2v-1c0-.55.45-1 1-1s1 .45 1 1v2c0 .55.45 1 1 1s1-.45 1-1V9c0-.55.45-1 1-1s1 .45 1 1v8c0 2.21-1.79 4-4 4s-4-1.79-4-4v-2.83l-2.93-2.93A3.93 3.93 0 0 1 4 8c0-1.66 1.34-3 3-3 .83 0 1.58.34 2.12.88L11 7.76V5c0-.55.45-1 1-1s1 .45 1 1v4c0 .55.45 1 1 1s1-.45 1-1V5c0-1.66-1.34-3-3-3z"/><circle cx="19" cy="16" r="3" fill="#3b82f6"/><path d="M18.5 17.5l1-1 1.5 1.5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+    speaker: `<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>`,
+    music: `<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7zm-1.5 16c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>`,
+    moreVertical: `<path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>`,
+    moreHorizontal: `<path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>`
   };
+  var svgWrapper = (paths) => `<svg viewBox="0 0 24 24" fill="currentColor">${paths}</svg>`;
+  var Icons = Object.fromEntries(
+    Object.entries(iconPaths).map(([key, value]) => [key, svgWrapper(value)])
+  );
   function getIcon(name) {
     return Icons[name] || Icons.play;
   }
@@ -557,14 +471,25 @@ var VidPly = (() => {
         play: "Play",
         pause: "Pause",
         stop: "Stop",
+        restart: "Restart from beginning",
         rewind: "Rewind",
         forward: "Forward",
+        rewindSeconds: "Rewind {seconds} seconds",
+        forwardSeconds: "Forward {seconds} seconds",
+        previous: "Previous track",
+        next: "Next track",
         volume: "Volume",
         mute: "Mute",
         unmute: "Unmute",
         fullscreen: "Fullscreen",
         exitFullscreen: "Exit Fullscreen",
         captions: "Captions",
+        chapters: "Chapters",
+        quality: "Quality",
+        captionStyling: "Caption styling",
+        transcript: "Toggle transcript",
+        audioDescription: "Audio description",
+        signLanguage: "Sign language video",
         settings: "Settings",
         speed: "Playback Speed",
         pip: "Picture in Picture",
@@ -576,9 +501,15 @@ var VidPly = (() => {
         volumeUp: "Volume up",
         volumeDown: "Volume down",
         loading: "Loading...",
+        loadingChapters: "Loading chapters...",
         error: "Error loading media",
         buffering: "Buffering...",
-        signLanguageVideo: "Sign Language Video"
+        signLanguageVideo: "Sign Language Video",
+        noChapters: "No chapters available",
+        noCaptions: "No captions available",
+        auto: "Auto",
+        autoQuality: "Auto (no quality selection available)",
+        noQuality: "Quality selection not available"
       },
       captions: {
         off: "Off",
@@ -615,24 +546,45 @@ var VidPly = (() => {
         play: "Abspielen",
         pause: "Pause",
         stop: "Stopp",
+        restart: "Von vorne beginnen",
         rewind: "Zur\xFCckspulen",
         forward: "Vorspulen",
+        rewindSeconds: "{seconds} Sekunden zur\xFCckspulen",
+        forwardSeconds: "{seconds} Sekunden vorspulen",
+        previous: "Vorheriger Titel",
+        next: "N\xE4chster Titel",
         volume: "Lautst\xE4rke",
         mute: "Stumm",
         unmute: "Ton ein",
         fullscreen: "Vollbild",
         exitFullscreen: "Vollbild beenden",
         captions: "Untertitel",
+        chapters: "Kapitel",
+        quality: "Qualit\xE4t",
+        captionStyling: "Untertitel-Stil",
+        transcript: "Transkript umschalten",
+        audioDescription: "Audiodeskription",
+        signLanguage: "Geb\xE4rdensprache-Video",
         settings: "Einstellungen",
         speed: "Wiedergabegeschwindigkeit",
         pip: "Bild-in-Bild",
         currentTime: "Aktuelle Zeit",
         duration: "Dauer",
         progress: "Fortschritt",
+        seekForward: "{seconds} Sekunden vorspulen",
+        seekBackward: "{seconds} Sekunden zur\xFCckspulen",
+        volumeUp: "Lauter",
+        volumeDown: "Leiser",
         loading: "L\xE4dt...",
+        loadingChapters: "Kapitel werden geladen...",
         error: "Fehler beim Laden",
         buffering: "Puffern...",
-        signLanguageVideo: "Geb\xE4rdensprache-Video"
+        signLanguageVideo: "Geb\xE4rdensprache-Video",
+        noChapters: "Keine Kapitel verf\xFCgbar",
+        noCaptions: "Keine Untertitel verf\xFCgbar",
+        auto: "Automatisch",
+        autoQuality: "Automatisch (keine Qualit\xE4tsauswahl verf\xFCgbar)",
+        noQuality: "Qualit\xE4tsauswahl nicht verf\xFCgbar"
       },
       captions: {
         off: "Aus",
@@ -651,6 +603,16 @@ var VidPly = (() => {
         language: "Sprache",
         reset: "Zur\xFCcksetzen",
         close: "Schlie\xDFen"
+      },
+      speeds: {
+        "0.25": "0,25x",
+        "0.5": "0,5x",
+        "0.75": "0,75x",
+        "1": "Normal",
+        "1.25": "1,25x",
+        "1.5": "1,5x",
+        "1.75": "1,75x",
+        "2": "2x"
       }
     },
     es: {
@@ -659,24 +621,45 @@ var VidPly = (() => {
         play: "Reproducir",
         pause: "Pausa",
         stop: "Detener",
+        restart: "Reiniciar desde el principio",
         rewind: "Retroceder",
         forward: "Avanzar",
+        rewindSeconds: "Retroceder {seconds} segundos",
+        forwardSeconds: "Avanzar {seconds} segundos",
+        previous: "Pista anterior",
+        next: "Siguiente pista",
         volume: "Volumen",
         mute: "Silenciar",
         unmute: "Activar sonido",
         fullscreen: "Pantalla completa",
         exitFullscreen: "Salir de pantalla completa",
         captions: "Subt\xEDtulos",
+        chapters: "Cap\xEDtulos",
+        quality: "Calidad",
+        captionStyling: "Estilo de subt\xEDtulos",
+        transcript: "Alternar transcripci\xF3n",
+        audioDescription: "Audiodescripci\xF3n",
+        signLanguage: "Video en lengua de se\xF1as",
         settings: "Configuraci\xF3n",
         speed: "Velocidad de reproducci\xF3n",
         pip: "Imagen en imagen",
         currentTime: "Tiempo actual",
         duration: "Duraci\xF3n",
         progress: "Progreso",
+        seekForward: "Avanzar {seconds} segundos",
+        seekBackward: "Retroceder {seconds} segundos",
+        volumeUp: "Subir volumen",
+        volumeDown: "Bajar volumen",
         loading: "Cargando...",
+        loadingChapters: "Cargando cap\xEDtulos...",
         error: "Error al cargar",
         buffering: "Almacenando en b\xFAfer...",
-        signLanguageVideo: "Video en Lengua de Se\xF1as"
+        signLanguageVideo: "Video en Lengua de Se\xF1as",
+        noChapters: "No hay cap\xEDtulos disponibles",
+        noCaptions: "No hay subt\xEDtulos disponibles",
+        auto: "Autom\xE1tico",
+        autoQuality: "Autom\xE1tico (selecci\xF3n de calidad no disponible)",
+        noQuality: "Selecci\xF3n de calidad no disponible"
       },
       captions: {
         off: "Desactivado",
@@ -695,6 +678,16 @@ var VidPly = (() => {
         language: "Idioma",
         reset: "Restablecer",
         close: "Cerrar"
+      },
+      speeds: {
+        "0.25": "0,25x",
+        "0.5": "0,5x",
+        "0.75": "0,75x",
+        "1": "Normal",
+        "1.25": "1,25x",
+        "1.5": "1,5x",
+        "1.75": "1,75x",
+        "2": "2x"
       }
     },
     fr: {
@@ -703,24 +696,45 @@ var VidPly = (() => {
         play: "Lecture",
         pause: "Pause",
         stop: "Arr\xEAt",
+        restart: "Red\xE9marrer du d\xE9but",
         rewind: "Reculer",
         forward: "Avancer",
+        rewindSeconds: "Reculer de {seconds} secondes",
+        forwardSeconds: "Avancer de {seconds} secondes",
+        previous: "Piste pr\xE9c\xE9dente",
+        next: "Piste suivante",
         volume: "Volume",
         mute: "Muet",
         unmute: "Activer le son",
         fullscreen: "Plein \xE9cran",
         exitFullscreen: "Quitter le plein \xE9cran",
         captions: "Sous-titres",
+        chapters: "Chapitres",
+        quality: "Qualit\xE9",
+        captionStyling: "Style des sous-titres",
+        transcript: "Activer/d\xE9sactiver la transcription",
+        audioDescription: "Audiodescription",
+        signLanguage: "Vid\xE9o en langue des signes",
         settings: "Param\xE8tres",
         speed: "Vitesse de lecture",
         pip: "Image dans l'image",
         currentTime: "Temps actuel",
         duration: "Dur\xE9e",
         progress: "Progression",
+        seekForward: "Avancer de {seconds} secondes",
+        seekBackward: "Reculer de {seconds} secondes",
+        volumeUp: "Augmenter le volume",
+        volumeDown: "Diminuer le volume",
         loading: "Chargement...",
+        loadingChapters: "Chargement des chapitres...",
         error: "Erreur de chargement",
         buffering: "Mise en m\xE9moire tampon...",
-        signLanguageVideo: "Vid\xE9o en Langue des Signes"
+        signLanguageVideo: "Vid\xE9o en Langue des Signes",
+        noChapters: "Aucun chapitre disponible",
+        noCaptions: "Aucun sous-titre disponible",
+        auto: "Automatique",
+        autoQuality: "Automatique (s\xE9lection de qualit\xE9 non disponible)",
+        noQuality: "S\xE9lection de qualit\xE9 non disponible"
       },
       captions: {
         off: "D\xE9sactiv\xE9",
@@ -739,6 +753,16 @@ var VidPly = (() => {
         language: "Langue",
         reset: "R\xE9initialiser",
         close: "Fermer"
+      },
+      speeds: {
+        "0.25": "0,25x",
+        "0.5": "0,5x",
+        "0.75": "0,75x",
+        "1": "Normal",
+        "1.25": "1,25x",
+        "1.5": "1,5x",
+        "1.75": "1,75x",
+        "2": "2x"
       }
     },
     ja: {
@@ -747,24 +771,45 @@ var VidPly = (() => {
         play: "\u518D\u751F",
         pause: "\u4E00\u6642\u505C\u6B62",
         stop: "\u505C\u6B62",
+        restart: "\u6700\u521D\u304B\u3089\u518D\u751F",
         rewind: "\u5DFB\u304D\u623B\u3057",
         forward: "\u65E9\u9001\u308A",
+        rewindSeconds: "{seconds}\u79D2\u623B\u3059",
+        forwardSeconds: "{seconds}\u79D2\u9032\u3081\u308B",
+        previous: "\u524D\u306E\u30C8\u30E9\u30C3\u30AF",
+        next: "\u6B21\u306E\u30C8\u30E9\u30C3\u30AF",
         volume: "\u97F3\u91CF",
         mute: "\u30DF\u30E5\u30FC\u30C8",
         unmute: "\u30DF\u30E5\u30FC\u30C8\u89E3\u9664",
         fullscreen: "\u5168\u753B\u9762\u8868\u793A",
         exitFullscreen: "\u5168\u753B\u9762\u8868\u793A\u3092\u7D42\u4E86",
         captions: "\u5B57\u5E55",
+        chapters: "\u30C1\u30E3\u30D7\u30BF\u30FC",
+        quality: "\u753B\u8CEA",
+        captionStyling: "\u5B57\u5E55\u30B9\u30BF\u30A4\u30EB",
+        transcript: "\u6587\u5B57\u8D77\u3053\u3057\u5207\u308A\u66FF\u3048",
+        audioDescription: "\u97F3\u58F0\u89E3\u8AAC",
+        signLanguage: "\u624B\u8A71\u52D5\u753B",
         settings: "\u8A2D\u5B9A",
         speed: "\u518D\u751F\u901F\u5EA6",
         pip: "\u30D4\u30AF\u30C1\u30E3\u30FC\u30A4\u30F3\u30D4\u30AF\u30C1\u30E3\u30FC",
         currentTime: "\u73FE\u5728\u306E\u6642\u9593",
         duration: "\u518D\u751F\u6642\u9593",
         progress: "\u9032\u884C\u72B6\u6CC1",
+        seekForward: "{seconds}\u79D2\u9032\u3081\u308B",
+        seekBackward: "{seconds}\u79D2\u623B\u3059",
+        volumeUp: "\u97F3\u91CF\u3092\u4E0A\u3052\u308B",
+        volumeDown: "\u97F3\u91CF\u3092\u4E0B\u3052\u308B",
         loading: "\u8AAD\u307F\u8FBC\u307F\u4E2D...",
+        loadingChapters: "\u30C1\u30E3\u30D7\u30BF\u30FC\u8AAD\u307F\u8FBC\u307F\u4E2D...",
         error: "\u8AAD\u307F\u8FBC\u307F\u30A8\u30E9\u30FC",
         buffering: "\u30D0\u30C3\u30D5\u30A1\u30EA\u30F3\u30B0\u4E2D...",
-        signLanguageVideo: "\u624B\u8A71\u52D5\u753B"
+        signLanguageVideo: "\u624B\u8A71\u52D5\u753B",
+        noChapters: "\u30C1\u30E3\u30D7\u30BF\u30FC\u304C\u3042\u308A\u307E\u305B\u3093",
+        noCaptions: "\u5B57\u5E55\u304C\u3042\u308A\u307E\u305B\u3093",
+        auto: "\u81EA\u52D5",
+        autoQuality: "\u81EA\u52D5\uFF08\u753B\u8CEA\u9078\u629E\u4E0D\u53EF\uFF09",
+        noQuality: "\u753B\u8CEA\u9078\u629E\u4E0D\u53EF"
       },
       captions: {
         off: "\u30AA\u30D5",
@@ -783,6 +828,16 @@ var VidPly = (() => {
         language: "\u8A00\u8A9E",
         reset: "\u30EA\u30BB\u30C3\u30C8",
         close: "\u9589\u3058\u308B"
+      },
+      speeds: {
+        "0.25": "0.25\u500D\u901F",
+        "0.5": "0.5\u500D\u901F",
+        "0.75": "0.75\u500D\u901F",
+        "1": "\u901A\u5E38",
+        "1.25": "1.25\u500D\u901F",
+        "1.5": "1.5\u500D\u901F",
+        "1.75": "1.75\u500D\u901F",
+        "2": "2\u500D\u901F"
       }
     }
   };
@@ -1142,7 +1197,7 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-restart`,
         attributes: {
           "type": "button",
-          "aria-label": "Restart from beginning"
+          "aria-label": i18n.t("player.restart")
         }
       });
       button.appendChild(createIconElement("restart"));
@@ -1157,7 +1212,7 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-previous`,
         attributes: {
           "type": "button",
-          "aria-label": "Previous track"
+          "aria-label": i18n.t("player.previous")
         }
       });
       button.appendChild(createIconElement("skipPrevious"));
@@ -1181,7 +1236,7 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-next`,
         attributes: {
           "type": "button",
-          "aria-label": "Next track"
+          "aria-label": i18n.t("player.next")
         }
       });
       button.appendChild(createIconElement("skipNext"));
@@ -1205,7 +1260,7 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-rewind`,
         attributes: {
           "type": "button",
-          "aria-label": "Rewind 15 seconds"
+          "aria-label": i18n.t("player.rewindSeconds", { seconds: 15 })
         }
       });
       button.appendChild(createIconElement("rewind"));
@@ -1219,7 +1274,7 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-forward`,
         attributes: {
           "type": "button",
-          "aria-label": "Forward 15 seconds"
+          "aria-label": i18n.t("player.forwardSeconds", { seconds: 15 })
         }
       });
       button.appendChild(createIconElement("forward"));
@@ -1344,7 +1399,7 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-chapters`,
         attributes: {
           "type": "button",
-          "aria-label": "Chapters",
+          "aria-label": i18n.t("player.chapters"),
           "aria-haspopup": "menu"
         }
       });
@@ -1365,7 +1420,7 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-chapters-menu ${this.player.options.classPrefix}-menu`,
         attributes: {
           "role": "menu",
-          "aria-label": "Chapters"
+          "aria-label": i18n.t("player.chapters")
         }
       });
       const chapterTracks = Array.from(this.player.element.textTracks).filter(
@@ -1374,7 +1429,7 @@ var VidPly = (() => {
       if (chapterTracks.length === 0) {
         const noChaptersItem = DOMUtils.createElement("div", {
           className: `${this.player.options.classPrefix}-menu-item`,
-          textContent: "No chapters available",
+          textContent: i18n.t("player.noChapters"),
           style: { opacity: "0.5", cursor: "default" }
         });
         menu.appendChild(noChaptersItem);
@@ -1386,7 +1441,7 @@ var VidPly = (() => {
         if (!chapterTrack.cues || chapterTrack.cues.length === 0) {
           const loadingItem = DOMUtils.createElement("div", {
             className: `${this.player.options.classPrefix}-menu-item`,
-            textContent: "Loading chapters...",
+            textContent: i18n.t("player.loadingChapters"),
             style: { opacity: "0.5", cursor: "default" }
           });
           menu.appendChild(loadingItem);
@@ -1439,7 +1494,7 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-quality`,
         attributes: {
           "type": "button",
-          "aria-label": "Quality",
+          "aria-label": i18n.t("player.quality"),
           "aria-haspopup": "menu"
         }
       });
@@ -1460,7 +1515,7 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-quality-menu ${this.player.options.classPrefix}-menu`,
         attributes: {
           "role": "menu",
-          "aria-label": "Quality"
+          "aria-label": i18n.t("player.quality")
         }
       });
       if (this.player.renderer && this.player.renderer.getQualities) {
@@ -1468,14 +1523,14 @@ var VidPly = (() => {
         if (qualities.length === 0) {
           const noQualityItem = DOMUtils.createElement("div", {
             className: `${this.player.options.classPrefix}-menu-item`,
-            textContent: "Auto (no quality selection available)",
+            textContent: i18n.t("player.autoQuality"),
             style: { opacity: "0.5", cursor: "default" }
           });
           menu.appendChild(noQualityItem);
         } else {
           const autoItem = DOMUtils.createElement("button", {
             className: `${this.player.options.classPrefix}-menu-item`,
-            textContent: "Auto",
+            textContent: i18n.t("player.auto"),
             attributes: {
               "type": "button",
               "role": "menuitem"
@@ -1509,7 +1564,7 @@ var VidPly = (() => {
       } else {
         const noSupportItem = DOMUtils.createElement("div", {
           className: `${this.player.options.classPrefix}-menu-item`,
-          textContent: "Quality selection not available",
+          textContent: i18n.t("player.noQuality"),
           style: { opacity: "0.5", cursor: "default" }
         });
         menu.appendChild(noSupportItem);
@@ -1522,9 +1577,9 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-caption-style`,
         attributes: {
           "type": "button",
-          "aria-label": "Caption styling",
+          "aria-label": i18n.t("player.captionStyling"),
           "aria-haspopup": "menu",
-          "title": "Caption styling"
+          "title": i18n.t("player.captionStyling")
         }
       });
       const textIcon = DOMUtils.createElement("span", {
@@ -1551,7 +1606,7 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-caption-style-menu ${this.player.options.classPrefix}-menu ${this.player.options.classPrefix}-settings-menu`,
         attributes: {
           "role": "menu",
-          "aria-label": "Caption styling"
+          "aria-label": i18n.t("player.captionStyling")
         }
       });
       menu.addEventListener("click", (e) => {
@@ -1560,7 +1615,7 @@ var VidPly = (() => {
       if (!this.player.captionManager || this.player.captionManager.tracks.length === 0) {
         const noTracksItem = DOMUtils.createElement("div", {
           className: `${this.player.options.classPrefix}-menu-item`,
-          textContent: "No captions available",
+          textContent: i18n.t("player.noCaptions"),
           style: { opacity: "0.5", cursor: "default", padding: "12px 16px" }
         });
         menu.appendChild(noTracksItem);
@@ -1855,7 +1910,7 @@ var VidPly = (() => {
       if (!this.player.captionManager || this.player.captionManager.tracks.length === 0) {
         const noTracksItem = DOMUtils.createElement("div", {
           className: `${this.player.options.classPrefix}-menu-item`,
-          textContent: "No captions available",
+          textContent: i18n.t("player.noCaptions"),
           style: { opacity: "0.5", cursor: "default" }
         });
         menu.appendChild(noTracksItem);
@@ -1918,7 +1973,7 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-transcript`,
         attributes: {
           "type": "button",
-          "aria-label": "Toggle transcript",
+          "aria-label": i18n.t("player.transcript"),
           "aria-pressed": "false"
         }
       });
@@ -1942,9 +1997,9 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-audio-description`,
         attributes: {
           "type": "button",
-          "aria-label": "Audio description",
+          "aria-label": i18n.t("player.audioDescription"),
           "aria-pressed": "false",
-          "title": "Toggle audio description"
+          "title": i18n.t("player.audioDescription")
         }
       });
       button.appendChild(createIconElement("audioDescription"));
@@ -1971,9 +2026,9 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-sign-language`,
         attributes: {
           "type": "button",
-          "aria-label": "Sign language video",
+          "aria-label": i18n.t("player.signLanguage"),
           "aria-pressed": "false",
-          "title": "Toggle sign language video"
+          "title": i18n.t("player.signLanguage")
         }
       });
       button.appendChild(createIconElement("signLanguage"));
