@@ -886,108 +886,23 @@ var VidPly = (() => {
         }
       }, 0);
     }
-    // Add backdrop for mobile menus
-    createBackdrop(menu) {
-      const backdrop = DOMUtils.createElement("div", {
-        className: `${this.player.options.classPrefix}-menu-backdrop visible`
-      });
-      backdrop.addEventListener("click", () => {
-        this.closeMenuWithBackdrop(menu, backdrop);
-      });
-      if (menu.parentNode) {
-        menu.parentNode.insertBefore(backdrop, menu);
-      } else {
-        this.player.container.appendChild(backdrop);
-      }
-      return backdrop;
-    }
-    // Close menu and remove backdrop
-    closeMenuWithBackdrop(menu, backdrop) {
-      if (menu && menu.parentNode) {
-        menu.remove();
-      }
-      if (backdrop && backdrop.parentNode) {
-        backdrop.remove();
-      }
-    }
-    // Add swipe-to-dismiss gesture for mobile
-    addSwipeGesture(menu) {
-      const isMobile = this.isMobile();
-      if (!isMobile) return;
-      let startY = 0;
-      let currentY = 0;
-      let isDragging = false;
-      const handleTouchStart = (e) => {
-        startY = e.touches[0].clientY;
-        isDragging = true;
-        menu.style.transition = "none";
-      };
-      const handleTouchMove = (e) => {
-        if (!isDragging) return;
-        currentY = e.touches[0].clientY;
-        const diff = currentY - startY;
-        if (diff > 0) {
-          menu.style.transform = `translateY(${diff}px)`;
-        }
-      };
-      const handleTouchEnd = () => {
-        if (!isDragging) return;
-        const diff = currentY - startY;
-        menu.style.transition = "transform 0.3s ease";
-        if (diff > 80) {
-          menu.style.transform = "translateY(100%)";
-          setTimeout(() => {
-            if (menu.parentNode) {
-              menu.remove();
-            }
-            const backdrop = document.querySelector(`.${this.player.options.classPrefix}-menu-backdrop`);
-            if (backdrop && backdrop.parentNode) {
-              backdrop.remove();
-            }
-          }, 300);
-        } else {
-          menu.style.transform = "";
-        }
-        isDragging = false;
-        startY = 0;
-        currentY = 0;
-      };
-      menu.addEventListener("touchstart", handleTouchStart, { passive: true });
-      menu.addEventListener("touchmove", handleTouchMove, { passive: true });
-      menu.addEventListener("touchend", handleTouchEnd);
-      menu._swipeHandlers = { handleTouchStart, handleTouchMove, handleTouchEnd };
-    }
     // Helper method to attach close-on-outside-click behavior to menus
     attachMenuCloseHandler(menu, button, preventCloseOnInteraction = false) {
       this.positionMenu(menu, button);
-      this.addSwipeGesture(menu);
-      const isMobile = this.isMobile();
-      let backdrop = null;
-      if (isMobile) {
-        backdrop = this.createBackdrop(menu);
-      }
       setTimeout(() => {
         const closeMenu = (e) => {
           if (preventCloseOnInteraction && menu.contains(e.target)) {
             return;
           }
           if (!menu.contains(e.target) && !button.contains(e.target)) {
-            if (backdrop) {
-              this.closeMenuWithBackdrop(menu, backdrop);
-            } else {
-              menu.remove();
-            }
+            menu.remove();
             document.removeEventListener("click", closeMenu);
             document.removeEventListener("keydown", handleEscape);
           }
         };
         const handleEscape = (e) => {
           if (e.key === "Escape") {
-            if (backdrop) {
-              this.closeMenuWithBackdrop(menu, backdrop);
-            } else {
-              menu.remove();
-            }
+            menu.remove();
             document.removeEventListener("click", closeMenu);
             document.removeEventListener("keydown", handleEscape);
             button.focus();
@@ -3009,6 +2924,7 @@ var VidPly = (() => {
         this.transcriptWindow.style.transform = "none";
         this.transcriptWindow.style.border = "none";
         this.transcriptWindow.style.borderTop = "1px solid var(--vidply-border-light)";
+        this.transcriptWindow.style.boxShadow = "none";
         if (this.transcriptHeader) {
           this.transcriptHeader.style.cursor = "default";
         }

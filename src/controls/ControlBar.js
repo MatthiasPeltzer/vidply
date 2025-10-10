@@ -73,115 +73,11 @@ export class ControlBar {
         }, 0);
     }
 
-    // Add backdrop for mobile menus
-    createBackdrop(menu) {
-        const backdrop = DOMUtils.createElement('div', {
-            className: `${this.player.options.classPrefix}-menu-backdrop visible`
-        });
-        
-        backdrop.addEventListener('click', () => {
-            this.closeMenuWithBackdrop(menu, backdrop);
-        });
-        
-        // Insert backdrop before menu in DOM
-        if (menu.parentNode) {
-            menu.parentNode.insertBefore(backdrop, menu);
-        } else {
-            this.player.container.appendChild(backdrop);
-        }
-        
-        return backdrop;
-    }
-
-    // Close menu and remove backdrop
-    closeMenuWithBackdrop(menu, backdrop) {
-        if (menu && menu.parentNode) {
-            menu.remove();
-        }
-        if (backdrop && backdrop.parentNode) {
-            backdrop.remove();
-        }
-    }
-
-    // Add swipe-to-dismiss gesture for mobile
-    addSwipeGesture(menu) {
-        const isMobile = this.isMobile();
-        
-        if (!isMobile) return;
-        
-        let startY = 0;
-        let currentY = 0;
-        let isDragging = false;
-        
-        const handleTouchStart = (e) => {
-            startY = e.touches[0].clientY;
-            isDragging = true;
-            menu.style.transition = 'none';
-        };
-        
-        const handleTouchMove = (e) => {
-            if (!isDragging) return;
-            
-            currentY = e.touches[0].clientY;
-            const diff = currentY - startY;
-            
-            if (diff > 0) {
-                // Dragging down
-                menu.style.transform = `translateY(${diff}px)`;
-            }
-        };
-        
-        const handleTouchEnd = () => {
-            if (!isDragging) return;
-            
-            const diff = currentY - startY;
-            menu.style.transition = 'transform 0.3s ease';
-            
-            if (diff > 80) {
-                // Swiped down enough, close menu
-                menu.style.transform = 'translateY(100%)';
-                setTimeout(() => {
-                    if (menu.parentNode) {
-                        menu.remove();
-                    }
-                    // Also remove backdrop if exists
-                    const backdrop = document.querySelector(`.${this.player.options.classPrefix}-menu-backdrop`);
-                    if (backdrop && backdrop.parentNode) {
-                        backdrop.remove();
-                    }
-                }, 300);
-            } else {
-                // Snap back
-                menu.style.transform = '';
-            }
-            
-            isDragging = false;
-            startY = 0;
-            currentY = 0;
-        };
-        
-        menu.addEventListener('touchstart', handleTouchStart, { passive: true });
-        menu.addEventListener('touchmove', handleTouchMove, { passive: true });
-        menu.addEventListener('touchend', handleTouchEnd);
-        
-        // Store handlers for potential cleanup
-        menu._swipeHandlers = { handleTouchStart, handleTouchMove, handleTouchEnd };
-    }
 
     // Helper method to attach close-on-outside-click behavior to menus
     attachMenuCloseHandler(menu, button, preventCloseOnInteraction = false) {
         // Position menu smartly
         this.positionMenu(menu, button);
-        
-        // Add swipe gesture for mobile
-        this.addSwipeGesture(menu);
-        
-        // Create backdrop for mobile
-        const isMobile = this.isMobile();
-        let backdrop = null;
-        if (isMobile) {
-            backdrop = this.createBackdrop(menu);
-        }
         
         setTimeout(() => {
             const closeMenu = (e) => {
@@ -192,11 +88,7 @@ export class ControlBar {
 
                 // Check if click is outside menu and button
                 if (!menu.contains(e.target) && !button.contains(e.target)) {
-                    if (backdrop) {
-                        this.closeMenuWithBackdrop(menu, backdrop);
-                    } else {
-                        menu.remove();
-                    }
+                    menu.remove();
                     document.removeEventListener('click', closeMenu);
                     document.removeEventListener('keydown', handleEscape);
                 }
@@ -204,11 +96,7 @@ export class ControlBar {
 
             const handleEscape = (e) => {
                 if (e.key === 'Escape') {
-                    if (backdrop) {
-                        this.closeMenuWithBackdrop(menu, backdrop);
-                    } else {
-                        menu.remove();
-                    }
+                    menu.remove();
                     document.removeEventListener('click', closeMenu);
                     document.removeEventListener('keydown', handleEscape);
                     // Return focus to button

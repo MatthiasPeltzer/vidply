@@ -37,7 +37,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 65844,
+      "bytes": 62083,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -105,7 +105,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 23280,
+      "bytes": 23346,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -286,7 +286,7 @@
           "bytesInOutput": 720
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 32364
+          "bytesInOutput": 31125
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 3634
@@ -298,7 +298,7 @@
           "bytesInOutput": 7366
         },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 12409
+          "bytesInOutput": 12454
         },
         "src/core/Player.js": {
           "bytesInOutput": 15014
@@ -316,7 +316,7 @@
           "bytesInOutput": 5245
         }
       },
-      "bytes": 115313
+      "bytes": 114119
     }
   }
 }
