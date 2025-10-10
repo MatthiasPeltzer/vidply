@@ -164,12 +164,37 @@ export class TranscriptManager {
   positionTranscript() {
     if (!this.transcriptWindow || !this.player.videoWrapper || !this.isVisible) return;
     
+    const isMobile = window.innerWidth < 640;
     const videoRect = this.player.videoWrapper.getBoundingClientRect();
     
     // Check if player is in fullscreen mode
     const isFullscreen = this.player.state.fullscreen;
     
-    if (isFullscreen) {
+    if (isMobile && !isFullscreen) {
+      // Mobile: Position underneath the video as part of the layout
+      this.transcriptWindow.style.position = 'relative';
+      this.transcriptWindow.style.left = '0';
+      this.transcriptWindow.style.right = '0';
+      this.transcriptWindow.style.bottom = 'auto';
+      this.transcriptWindow.style.top = 'auto';
+      this.transcriptWindow.style.width = '100%';
+      this.transcriptWindow.style.maxWidth = '100%';
+      this.transcriptWindow.style.maxHeight = '400px';
+      this.transcriptWindow.style.height = 'auto';
+      this.transcriptWindow.style.borderRadius = '0';
+      this.transcriptWindow.style.transform = 'none';
+      this.transcriptWindow.style.border = 'none';
+      this.transcriptWindow.style.borderTop = '1px solid var(--vidply-border-light)';
+      // Disable dragging on mobile
+      if (this.transcriptHeader) {
+        this.transcriptHeader.style.cursor = 'default';
+      }
+      
+      // Move transcript to be a sibling of video wrapper (underneath it)
+      if (this.transcriptWindow.parentNode !== this.player.container) {
+        this.player.container.appendChild(this.transcriptWindow);
+      }
+    } else if (isFullscreen) {
       // In fullscreen: position in bottom right corner inside the video
       this.transcriptWindow.style.position = 'fixed';
       this.transcriptWindow.style.left = 'auto';
@@ -178,8 +203,18 @@ export class TranscriptManager {
       this.transcriptWindow.style.top = 'auto';
       this.transcriptWindow.style.maxHeight = 'calc(100vh - 180px)'; // Leave space for controls
       this.transcriptWindow.style.height = 'auto';
+      this.transcriptWindow.style.width = '400px';
+      this.transcriptWindow.style.maxWidth = '400px';
+      this.transcriptWindow.style.borderRadius = '8px';
+      this.transcriptWindow.style.border = '1px solid var(--vidply-border)';
+      this.transcriptWindow.style.borderTop = '';
+      
+      // Move back to container for fullscreen
+      if (this.transcriptWindow.parentNode !== this.player.container) {
+        this.player.container.appendChild(this.transcriptWindow);
+      }
     } else {
-      // Normal mode: position next to video
+      // Desktop mode: position next to video
       this.transcriptWindow.style.position = 'absolute';
       this.transcriptWindow.style.left = `${videoRect.width + 8}px`;
       this.transcriptWindow.style.right = 'auto';
@@ -187,6 +222,20 @@ export class TranscriptManager {
       this.transcriptWindow.style.top = '0';
       this.transcriptWindow.style.height = `${videoRect.height}px`;
       this.transcriptWindow.style.maxHeight = 'none';
+      this.transcriptWindow.style.width = '400px';
+      this.transcriptWindow.style.maxWidth = '400px';
+      this.transcriptWindow.style.borderRadius = '8px';
+      this.transcriptWindow.style.border = '1px solid var(--vidply-border)';
+      this.transcriptWindow.style.borderTop = '';
+      // Enable dragging on desktop
+      if (this.transcriptHeader) {
+        this.transcriptHeader.style.cursor = 'move';
+      }
+      
+      // Move back to container for desktop
+      if (this.transcriptWindow.parentNode !== this.player.container) {
+        this.player.container.appendChild(this.transcriptWindow);
+      }
     }
   }
 
@@ -412,12 +461,28 @@ export class TranscriptManager {
         return;
       }
       
+      const isMobile = window.innerWidth < 640;
+      const isFullscreen = this.player.state.fullscreen;
       const touch = e.touches[0];
-      this.startDragging(touch.clientX, touch.clientY);
+      
+      if (isMobile && !isFullscreen) {
+        // Mobile (not fullscreen): No dragging/swiping, transcript is part of layout
+        return;
+      } else {
+        // Desktop or fullscreen: Normal dragging
+        this.startDragging(touch.clientX, touch.clientY);
+      }
     };
 
     this.handlers.touchmove = (e) => {
-      if (this.isDragging) {
+      const isMobile = window.innerWidth < 640;
+      const isFullscreen = this.player.state.fullscreen;
+      
+      if (isMobile && !isFullscreen) {
+        // Mobile (not fullscreen): No dragging/swiping
+        return;
+      } else if (this.isDragging) {
+        // Desktop or fullscreen: Normal drag
         const touch = e.touches[0];
         this.drag(touch.clientX, touch.clientY);
         e.preventDefault();
@@ -426,6 +491,7 @@ export class TranscriptManager {
 
     this.handlers.touchend = () => {
       if (this.isDragging) {
+        // Stop dragging
         this.stopDragging();
       }
     };
