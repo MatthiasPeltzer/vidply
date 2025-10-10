@@ -788,7 +788,7 @@
 /* Mobile: Adjust captions position since controls are underneath */
 @media (max-width: 640px) {
     .vidply-captions {
-        bottom: 20px;
+        bottom: 150px;
     }
 }
 
