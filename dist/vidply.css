@@ -425,7 +425,7 @@
 }
 
 .vidply-volume-fill {
-    background: var(--vidply-primary-80);
+    background: var(--vidply-primary-light);
     border-radius: 2px;
     bottom: 0;
     height: 80%;
