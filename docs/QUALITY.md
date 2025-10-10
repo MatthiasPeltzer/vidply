@@ -6,7 +6,7 @@ The quality button (HD icon) automatically appears in the video player control b
 ## When Does the Quality Button Appear?
 
 ### 1. HLS Streams (.m3u8) - AUTOMATIC ✅
-- **Trigger**: When HLS manifest is parsed and contains multiple quality levels
+- **Trigger**: When HLS manifest is parsed and contains multiple qualiy levels
 - **No special markup needed** - works automatically!
 - **Auto Mode**: HLS streams support automatic quality switching based on bandwidth
 
