@@ -4162,6 +4162,13 @@ var Player = class extends EventEmitter {
     var _a;
     try {
       this.log("Initializing VidPly player");
+      if (!this.options.language || this.options.language === "en") {
+        const htmlLang = this.detectHtmlLanguage();
+        if (htmlLang) {
+          this.options.language = htmlLang;
+          this.log(`Auto-detected language from HTML: ${htmlLang}`);
+        }
+      }
       i18n.setLanguage(this.options.language);
       this.createContainer();
       const src = this.element.src || ((_a = this.element.querySelector("source")) == null ? void 0 : _a.src);
@@ -4208,6 +4215,23 @@ var Player = class extends EventEmitter {
     } catch (error) {
       this.handleError(error);
     }
+  }
+  /**
+   * Detect language from HTML lang attribute
+   * @returns {string|null} Language code if available in translations, null otherwise
+   */
+  detectHtmlLanguage() {
+    const htmlLang = document.documentElement.lang || document.documentElement.getAttribute("lang");
+    if (!htmlLang) {
+      return null;
+    }
+    const normalizedLang = htmlLang.toLowerCase().split("-")[0];
+    const availableLanguages = ["en", "de", "es", "fr", "ja"];
+    if (availableLanguages.includes(normalizedLang)) {
+      return normalizedLang;
+    }
+    this.log(`Language "${htmlLang}" not available, using English as fallback`);
+    return "en";
   }
   createContainer() {
     this.container = DOMUtils.createElement("div", {
