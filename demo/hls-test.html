@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VidPly - HLS Streaming Test</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="stylesheet" href="../dist/vidply.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      color: #ffffff;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 36px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      opacity: 0.8;
+      margin-bottom: 20px;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin: 10px 5px;
+    }
+
+    .status.pending {
+      background: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+    }
+
+    .status.success {
+      background: rgba(76, 175, 80, 0.2);
+      color: #4caf50;
+    }
+
+    .status.error {
+      background: rgba(244, 67, 54, 0.2);
+      color: #f44336;
+    }
+
+    .test-section {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .test-section h2 {
+      font-size: 24px;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+
+    .test-section p {
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+
+    .player-container {
+      max-width: 900px;
+      margin: 0 auto 24px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .info-card {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .info-card h3 {
+      font-size: 14px;
+      color: #aaa;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-card .value {
+      font-size: 20px;
+      font-weight: 600;
+      color: #4caf50;
+    }
+
+    .log-container {
+      background: #000;
+      border-radius: 8px;
+      padding: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      margin-top: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .log-entry {
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-entry.success {
+      color: #4caf50;
+    }
+
+    .log-entry.error {
+      color: #f44336;
+    }
+
+    .log-entry.info {
+      color: #2196f3;
+    }
+
+    .log-entry.warn {
+      color: #ff9800;
+    }
+
+    .log-timestamp {
+      color: #666;
+      margin-right: 8px;
+    }
+
+    .controls-panel {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .controls-panel h3 {
+      margin-bottom: 16px;
+      font-size: 18px;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(33, 150, 243, 0.8);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+
+    .btn:hover {
+      background: rgba(33, 150, 243, 1);
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn.secondary {
+      background: rgba(156, 39, 176, 0.8);
+    }
+
+    .btn.secondary:hover {
+      background: rgba(156, 39, 176, 1);
+    }
+
+    .quality-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .quality-badge {
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      font-size: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quality-badge:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .quality-badge.active {
+      background: rgba(76, 175, 80, 0.3);
+      border-color: #4caf50;
+      color: #4caf50;
+    }
+
+    .stream-selector {
+      margin-bottom: 20px;
+    }
+
+    .stream-selector select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .back-link:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 28px;
+      }
+
+      .test-section {
+        padding: 20px;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="demo.html" class="back-link">← Back to Demo</a>
+
+    <header>
+      <h1>
+        <img src="../favicon.svg" width="32" alt="VidPly" />
+        HLS Streaming Test
+      </h1>
+      <p class="subtitle">Test HTTP Live Streaming (HLS) support with .m3u8 streams</p>
+      <div id="browser-status">
+        <span class="status pending" id="browser-info">Detecting browser...</span>
+        <span class="status pending" id="hls-status">Testing HLS support...</span>
+      </div>
+    </header>
+
+    <!-- Main Test Section -->
+    <section class="test-section">
+      <h2>HLS Test Stream</h2>
+      <p>Testing with Big Buck Bunny - Adaptive bitrate streaming</p>
+      
+      <div class="stream-selector">
+        <label for="stream-select" style="display: block; margin-bottom: 8px; font-size: 14px; color: #ccc;">
+          Select Test Stream:
+        </label>
+        <select id="stream-select">
+          <option value="https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8">Apple Test Stream (Best)</option>
+          <option value="https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8">Tears of Steel</option>
+          <option value="https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8">Big Buck Bunny (Bitmovin)</option>
+          <option value="https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8">Sintel</option>
+          <option value="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8">Big Buck Bunny (Mux)</option>
+        </select>
+      </div>
+
+      <div class="player-container">
+        <video 
+          id="hls-player"
+          width="900"
+          height="506"
+          preload="metadata"
+        >
+          <source src="https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8" type="application/x-mpegURL">
+          Your browser does not support HLS streaming.
+        </video>
+      </div>
+
+      <!-- Info Cards -->
+      <div class="info-grid">
+        <div class="info-card">
+          <h3>HLS Engine</h3>
+          <div class="value" id="hls-engine">Loading...</div>
+        </div>
+        <div class="info-card">
+          <h3>Quality Levels</h3>
+          <div class="value" id="quality-count">0</div>
+        </div>
+        <div class="info-card">
+          <h3>Current Quality</h3>
+          <div class="value" id="current-quality">-</div>
+        </div>
+        <div class="info-card">
+          <h3>Buffer Status</h3>
+          <div class="value" id="buffer-status">Ready</div>
+        </div>
+      </div>
+
+      <!-- Controls Panel -->
+      <div class="controls-panel">
+        <h3>Test Controls</h3>
+        <div class="button-group">
+          <button class="btn" id="btn-play">▶ Play</button>
+          <button class="btn" id="btn-pause">⏸ Pause</button>
+          <button class="btn secondary" id="btn-reload">🔄 Reload Stream</button>
+          <button class="btn secondary" id="btn-clear-log">🗑 Clear Log</button>
+        </div>
+
+        <div id="quality-selector" style="display: none;">
+          <h4 style="margin-bottom: 10px; font-size: 14px; color: #ccc;">Available Quality Levels:</h4>
+          <div class="quality-list" id="quality-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Event Log -->
+      <div class="log-container" id="event-log">
+        <div class="log-entry info">
+          <span class="log-timestamp">[00:00:00]</span>
+          <span>Initializing HLS test...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technical Info Section -->
+    <section class="test-section">
+      <h2>Technical Information</h2>
+      <p>How VidPly handles HLS streaming</p>
+
+      <div class="info-card">
+        <h3>HLS Support Matrix</h3>
+        <ul style="margin-top: 12px; line-height: 2;">
+          <li style="color: #ccc;">✅ Safari (macOS/iOS) - Native HLS support</li>
+          <li style="color: #ccc;">✅ Chrome/Edge/Firefox - Via hls.js library</li>
+          <li style="color: #ccc;">✅ Android - Via hls.js library</li>
+          <li style="color: #ccc;">✅ Adaptive bitrate switching</li>
+          <li style="color: #ccc;">✅ Error recovery and retry logic</li>
+        </ul>
+      </div>
+
+      <div class="info-card" style="margin-top: 16px;">
+        <h3>How It Works</h3>
+        <ol style="margin-top: 12px; line-height: 2; padding-left: 20px; color: #ccc;">
+          <li>VidPly detects the .m3u8 URL format</li>
+          <li>On Safari: Uses native HLS support (HTML5Renderer)</li>
+          <li>On other browsers: Loads hls.js from CDN</li>
+          <li>HLSRenderer manages stream playback</li>
+          <li>Quality levels are automatically detected</li>
+          <li>Adaptive bitrate adjusts based on network</li>
+        </ol>
+      </div>
+    </section>
+  </div>
+
+  <script type="module">
+    import Player from '../src/index.js';
+
+    // Detect browser and HLS support
+    function detectBrowser() {
+      const ua = navigator.userAgent;
+      let browser = 'Unknown';
+      
+      if (ua.includes('Safari') && !ua.includes('Chrome')) {
+        browser = 'Safari (Native HLS)';
+      } else if (ua.includes('Chrome')) {
+        browser = 'Chrome (hls.js)';
+      } else if (ua.includes('Firefox')) {
+        browser = 'Firefox (hls.js)';
+      } else if (ua.includes('Edge')) {
+        browser = 'Edge (hls.js)';
+      }
+      
+      return browser;
+    }
+
+    // Check native HLS support
+    function checkNativeHLS() {
+      const video = document.createElement('video');
+      const canPlay = video.canPlayType('application/vnd.apple.mpegurl');
+      return canPlay !== '';
+    }
+
+    // Update browser info
+    const browserInfo = document.getElementById('browser-info');
+    browserInfo.textContent = detectBrowser();
+    browserInfo.className = 'status success';
+
+    const hlsStatus = document.getElementById('hls-status');
+    const hasNativeHLS = checkNativeHLS();
+    hlsStatus.textContent = hasNativeHLS ? 'Native HLS Supported' : 'hls.js Required';
+    hlsStatus.className = 'status success';
+
+    // Logging utility
+    const eventLog = document.getElementById('event-log');
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span><span>${message}</span>`;
+      eventLog.appendChild(entry);
+      eventLog.scrollTop = eventLog.scrollHeight;
+      
+      // Also log to console with styling
+      const styles = {
+        success: 'color: #4caf50; font-weight: bold;',
+        error: 'color: #f44336; font-weight: bold;',
+        warn: 'color: #ff9800; font-weight: bold;',
+        info: 'color: #2196f3;'
+      };
+      console.log(`%c[${timestamp}] ${message}`, styles[type] || '');
+    }
+
+    // Clear log
+    document.getElementById('btn-clear-log').addEventListener('click', () => {
+      eventLog.innerHTML = '<div class="log-entry info"><span class="log-timestamp">[' + 
+        new Date().toLocaleTimeString() + ']</span><span>Log cleared</span></div>';
+    });
+
+    // Initialize player with debug mode
+    log('Creating player instance with debug mode enabled...', 'info');
+    
+    let player;
+    
+    try {
+      player = new Player('#hls-player', {
+        debug: true,
+        controls: true,
+        volume: 0.8,
+        autoplay: false
+      });
+      
+      log('✅ Player instance created successfully', 'success');
+      
+      // Store player reference globally for debugging
+      window.hlsPlayer = player;
+    } catch (error) {
+      log('❌ Failed to create player: ' + error.message, 'error');
+      console.error('Player initialization error:', error);
+    }
+
+    // Update HLS engine info
+    setTimeout(() => {
+      if (!player) {
+        log('❌ Player not initialized', 'error');
+        return;
+      }
+      
+      const engineEl = document.getElementById('hls-engine');
+      if (player.renderer) {
+        const isHLS = player.renderer.hls !== undefined;
+        const isNative = player.renderer.constructor.name === 'HTML5Renderer';
+        
+        log(`Renderer type: ${player.renderer.constructor.name}`, 'info');
+        
+        if (isHLS && player.renderer.hls) {
+          engineEl.textContent = 'hls.js v' + (window.Hls?.version || 'unknown');
+          log('✅ Using hls.js renderer', 'success');
+        } else if (isNative) {
+          engineEl.textContent = 'Native (Safari)';
+          log('✅ Using native HLS support', 'success');
+        } else {
+          engineEl.textContent = player.renderer.constructor.name;
+          log(`Using ${player.renderer.constructor.name}`, 'info');
+        }
+      } else {
+        log('⚠️ Renderer not yet initialized', 'warn');
+      }
+    }, 1000);
+
+    // Only set up event listeners if player was created successfully
+    if (player) {
+      // HLS-specific events
+      player.on('hlsmanifestparsed', (data) => {
+        log(`✅ HLS manifest parsed successfully!`, 'success');
+        log(`Found ${data.levels.length} quality levels`, 'success');
+      
+      // Update quality count
+      document.getElementById('quality-count').textContent = data.levels.length;
+      
+      // Display quality levels
+      const qualityList = document.getElementById('quality-list');
+      const qualitySelector = document.getElementById('quality-selector');
+      qualityList.innerHTML = '';
+      
+      data.levels.forEach((level, index) => {
+        const badge = document.createElement('div');
+        badge.className = 'quality-badge';
+        badge.textContent = `${level.height}p (${Math.round(level.bitrate / 1000)} kbps)`;
+        badge.dataset.index = index;
+        
+        badge.addEventListener('click', () => {
+          if (player.renderer && player.renderer.switchQuality) {
+            player.renderer.switchQuality(index);
+            log(`Switching to quality level ${index}: ${level.height}p`, 'info');
+          }
+        });
+        
+        qualityList.appendChild(badge);
+        log(`  Level ${index}: ${level.width}x${level.height} @ ${Math.round(level.bitrate / 1000)} kbps`, 'info');
+      });
+      
+      qualitySelector.style.display = 'block';
+    });
+
+    player.on('hlslevelswitched', (data) => {
+      log(`Quality level switched to: ${data.level}`, 'success');
+      document.getElementById('current-quality').textContent = `Level ${data.level}`;
+      
+      // Highlight active quality
+      document.querySelectorAll('.quality-badge').forEach((badge, idx) => {
+        badge.classList.toggle('active', idx === data.level);
+      });
+    });
+
+    // Standard player events
+    player.on('loadedmetadata', () => {
+      log('✅ Metadata loaded - Duration: ' + Math.round(player.getDuration()) + 's', 'success');
+    });
+
+    player.on('play', () => {
+      log('▶️ Playback started', 'success');
+      document.getElementById('buffer-status').textContent = 'Playing';
+    });
+
+    player.on('pause', () => {
+      log('⏸️ Playback paused', 'info');
+      document.getElementById('buffer-status').textContent = 'Paused';
+    });
+
+    player.on('waiting', () => {
+      log('⏳ Buffering...', 'warn');
+      document.getElementById('buffer-status').textContent = 'Buffering';
+      document.getElementById('buffer-status').style.color = '#ff9800';
+    });
+
+    player.on('canplay', () => {
+      log('✅ Ready to play', 'success');
+      document.getElementById('buffer-status').textContent = 'Ready';
+      document.getElementById('buffer-status').style.color = '#4caf50';
+    });
+
+    player.on('error', (error) => {
+      log('❌ Error: ' + error.message, 'error');
+      document.getElementById('buffer-status').textContent = 'Error';
+      document.getElementById('buffer-status').style.color = '#f44336';
+    });
+
+    player.on('ended', () => {
+      log('🏁 Playback ended', 'info');
+      document.getElementById('buffer-status').textContent = 'Ended';
+    });
+
+    // Control buttons
+    document.getElementById('btn-play').addEventListener('click', () => {
+      player.play();
+    });
+
+    document.getElementById('btn-pause').addEventListener('click', () => {
+      player.pause();
+    });
+
+    document.getElementById('btn-reload').addEventListener('click', () => {
+      log('🔄 Reloading stream...', 'info');
+      player.seek(0);
+      setTimeout(() => player.play(), 100);
+    });
+
+      // Stream selector
+      const streamSelect = document.getElementById('stream-select');
+      const videoElement = document.getElementById('hls-player');
+      
+      streamSelect.addEventListener('change', async (e) => {
+        const newUrl = e.target.value;
+        log(`🔄 Loading new stream: ${newUrl}`, 'info');
+        
+        try {
+          // Destroy current HLS instance if it exists
+          if (player.renderer && player.renderer.hls) {
+            log('Destroying current HLS instance...', 'info');
+            player.renderer.hls.destroy();
+          }
+          
+          // Update source
+          const source = videoElement.querySelector('source');
+          source.src = newUrl;
+          videoElement.src = newUrl;
+          
+          // Reset UI immediately
+          document.getElementById('quality-count').textContent = '0';
+          document.getElementById('current-quality').textContent = '-';
+          document.getElementById('quality-selector').style.display = 'none';
+          document.getElementById('buffer-status').textContent = 'Loading...';
+          
+          // Reinitialize the renderer
+          log('Reinitializing renderer...', 'info');
+          await player.initializeRenderer();
+          
+          log('✅ Stream switched successfully!', 'success');
+        } catch (error) {
+          log(`❌ Failed to switch stream: ${error.message}`, 'error');
+          console.error('Stream switch error:', error);
+        }
+      });
+
+      // Log ready state
+      player.on('ready', () => {
+        log('🎬 Player ready!', 'success');
+        log('You can now test HLS playback', 'info');
+        log('💡 Tip: Check the console for detailed hls.js logs (if using hls.js)', 'info');
+      });
+
+      // Initial log
+      log('Player initialized. Waiting for manifest...', 'info');
+      
+      // Check if running on local server
+      if (window.location.protocol === 'file:') {
+        log('⚠️ WARNING: You are using file:// protocol!', 'warn');
+        log('⚠️ HLS streams REQUIRE HTTP/HTTPS to work!', 'error');
+        log('💡 Solution: Run "npx serve -p 3000" in terminal', 'info');
+        log('💡 Then open: http://localhost:3000/demo/hls-test.html', 'info');
+        document.getElementById('buffer-status').textContent = 'Need Server';
+        document.getElementById('buffer-status').style.color = '#f44336';
+      } else {
+        log('✅ Running on HTTP server: ' + window.location.origin, 'success');
+      }
+      
+      // Console helper message
+      console.log('%c🎬 VidPly HLS Test', 'font-size: 20px; font-weight: bold; color: #2196f3;');
+      console.log('%cPlayer instance available as: window.hlsPlayer', 'color: #4caf50;');
+      console.log('%cTry: window.hlsPlayer.play(), window.hlsPlayer.pause(), window.hlsPlayer.seek(30)', 'color: #ccc;');
+    } else {
+      log('❌ Player initialization failed. Check console for errors.', 'error');
+    }
+  </script>
+</body>
+</html>
+
