@@ -145,6 +145,9 @@ export class ControlBar {
             leftButtons.appendChild(this.createPlayPauseButton());
         }
 
+        // Restart button (right beside play button)
+        leftButtons.appendChild(this.createRestartButton());
+
         // Next track button (if playlist)
         if (this.player.playlistManager) {
             leftButtons.appendChild(this.createNextButton());
@@ -412,6 +415,25 @@ export class ControlBar {
         });
 
         this.controls.playPause = button;
+        return button;
+    }
+
+    createRestartButton() {
+        const button = DOMUtils.createElement('button', {
+            className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-restart`,
+            attributes: {
+                'type': 'button',
+                'aria-label': 'Restart from beginning'
+            }
+        });
+
+        button.appendChild(createIconElement('restart'));
+
+        button.addEventListener('click', () => {
+            this.player.seek(0);
+            this.player.play();
+        });
+
         return button;
     }
 
