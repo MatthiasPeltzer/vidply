@@ -16,7 +16,7 @@
       "format": "esm"
     },
     "src/icons/Icons.js": {
-      "bytes": 11318,
+      "bytes": 11512,
       "imports": [],
       "format": "esm"
     },
@@ -37,7 +37,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 62083,
+      "bytes": 62775,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -126,7 +126,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.js": {
-      "bytes": 5181,
+      "bytes": 4994,
       "imports": [],
       "format": "esm"
     },
@@ -141,7 +141,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 7102,
+      "bytes": 6845,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -277,7 +277,7 @@
           "bytesInOutput": 728
         },
         "src/icons/Icons.js": {
-          "bytesInOutput": 10633
+          "bytesInOutput": 10816
         },
         "src/i18n/translations.js": {
           "bytesInOutput": 5100
@@ -286,7 +286,7 @@
           "bytesInOutput": 720
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 31125
+          "bytesInOutput": 31495
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 3634
@@ -316,7 +316,7 @@
           "bytesInOutput": 5245
         }
       },
-      "bytes": 114119
+      "bytes": 114672
     }
   }
 }
