@@ -171,7 +171,7 @@ export class TranscriptManager {
     const isFullscreen = this.player.state.fullscreen;
     
     if (isMobile && !isFullscreen) {
-      // Mobile: Position underneath the video as part of the layout
+      // Mobile: Position underneath the video and controls as part of the layout
       this.transcriptWindow.style.position = 'relative';
       this.transcriptWindow.style.left = '0';
       this.transcriptWindow.style.right = '0';
@@ -185,12 +185,13 @@ export class TranscriptManager {
       this.transcriptWindow.style.transform = 'none';
       this.transcriptWindow.style.border = 'none';
       this.transcriptWindow.style.borderTop = '1px solid var(--vidply-border-light)';
+      this.transcriptWindow.style.boxShadow = 'none';
       // Disable dragging on mobile
       if (this.transcriptHeader) {
         this.transcriptHeader.style.cursor = 'default';
       }
       
-      // Move transcript to be a sibling of video wrapper (underneath it)
+      // Ensure transcript is at the container level for proper stacking
       if (this.transcriptWindow.parentNode !== this.player.container) {
         this.player.container.appendChild(this.transcriptWindow);
       }
