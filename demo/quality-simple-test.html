@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VidPly - Simple Quality Test</title>
+  <link rel="stylesheet" href="../dist/vidply.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: white;
+    }
+    h1 {
+      color: #4caf50;
+    }
+    .info {
+      background: #2a2a2a;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 8px;
+      border-left: 4px solid #4caf50;
+    }
+    .player-wrapper {
+      margin: 30px 0;
+    }
+    .debug {
+      background: #000;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #0f0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎬 VidPly Quality Button Test</h1>
+  
+  <div class="info">
+    <strong>What to look for:</strong>
+    <ul>
+      <li>The HD button should appear in the control bar (before the speed button)</li>
+      <li>Click the HD button to see quality options</li>
+      <li>The button should show current quality (e.g., "720p")</li>
+    </ul>
+  </div>
+
+  <h2>Test 1: HLS Stream (Auto Quality Detection)</h2>
+  <div class="player-wrapper">
+    <video 
+      id="hls-test"
+      width="800"
+      height="450"
+      preload="metadata"
+    >
+      <source src="https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8" type="application/x-mpegURL">
+    </video>
+  </div>
+  <div class="debug" id="hls-debug">Loading HLS player...</div>
+
+  <h2>Test 2: Multiple HTML5 Sources</h2>
+  <div class="player-wrapper">
+    <video 
+      id="multi-source-test"
+      width="800"
+      height="450"
+      preload="metadata"
+    >
+      <source 
+        src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
+        type="video/mp4"
+        data-quality="720p"
+        data-height="720"
+        label="720p HD">
+      <source 
+        src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" 
+        type="video/mp4"
+        data-quality="480p"
+        data-height="480"
+        label="480p">
+      <source 
+        src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        type="video/mp4"
+        data-quality="360p"
+        data-height="360"
+        label="360p">
+    </video>
+  </div>
+  <div class="debug" id="multi-debug">Loading multi-source player...</div>
+
+  <script type="module">
+    import Player from '../src/index.js';
+
+    const hlsDebug = document.getElementById('hls-debug');
+    const multiDebug = document.getElementById('multi-debug');
+
+    function log(element, message, color = '#0f0') {
+      const line = document.createElement('div');
+      line.style.color = color;
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      element.appendChild(line);
+      console.log(message);
+    }
+
+    // Test 1: HLS
+    log(hlsDebug, 'Creating HLS player...');
+    const hlsPlayer = new Player('#hls-test', {
+      debug: true,
+      controls: true
+    });
+
+    hlsPlayer.on('ready', () => {
+      log(hlsDebug, '✓ HLS Player ready');
+      
+      setTimeout(() => {
+        const hasQualities = hlsPlayer.renderer && hlsPlayer.renderer.getQualities;
+        log(hlsDebug, `Has getQualities method: ${!!hasQualities}`);
+        
+        if (hasQualities) {
+          const qualities = hlsPlayer.renderer.getQualities();
+          log(hlsDebug, `Quality levels found: ${qualities.length}`);
+          qualities.forEach(q => {
+            log(hlsDebug, `  - ${q.name} (${q.width}x${q.height})`);
+          });
+        }
+        
+        const hasButton = document.querySelector('#hls-test').closest('.vidply-player').querySelector('.vidply-quality');
+        log(hlsDebug, `Quality button exists: ${!!hasButton}`, hasButton ? '#0f0' : '#f00');
+        
+        if (!hasButton) {
+          log(hlsDebug, '❌ Quality button NOT found! Check if hasQualityLevels() returns true', '#f00');
+        } else {
+          log(hlsDebug, '✓ Quality button found!', '#0f0');
+        }
+      }, 2000);
+    });
+
+    hlsPlayer.on('hlsmanifestparsed', (data) => {
+      log(hlsDebug, `✓ HLS manifest parsed: ${data.levels.length} levels`);
+    });
+
+    // Test 2: Multiple Sources
+    log(multiDebug, 'Creating multi-source player...');
+    const multiPlayer = new Player('#multi-source-test', {
+      debug: true,
+      controls: true
+    });
+
+    multiPlayer.on('ready', () => {
+      log(multiDebug, '✓ Multi-source player ready');
+      
+      setTimeout(() => {
+        const hasQualities = multiPlayer.renderer && multiPlayer.renderer.getQualities;
+        log(multiDebug, `Has getQualities method: ${!!hasQualities}`);
+        
+        if (hasQualities) {
+          const qualities = multiPlayer.renderer.getQualities();
+          log(multiDebug, `Quality levels found: ${qualities.length}`);
+          qualities.forEach(q => {
+            log(multiDebug, `  - ${q.name} (${q.width}x${q.height})`);
+          });
+        }
+        
+        const hasButton = document.querySelector('#multi-source-test').closest('.vidply-player').querySelector('.vidply-quality');
+        log(multiDebug, `Quality button exists: ${!!hasButton}`, hasButton ? '#0f0' : '#f00');
+        
+        if (!hasButton) {
+          log(multiDebug, '❌ Quality button NOT found!', '#f00');
+          
+          // Debug info
+          const sources = document.querySelectorAll('#multi-source-test source');
+          log(multiDebug, `Number of source elements: ${sources.length}`, '#ff0');
+          sources.forEach((src, i) => {
+            log(multiDebug, `  Source ${i}: height=${src.getAttribute('data-height')}, label=${src.getAttribute('label')}`, '#ff0');
+          });
+        } else {
+          log(multiDebug, '✓ Quality button found!', '#0f0');
+        }
+      }, 2000);
+    });
+
+    multiPlayer.on('loadedmetadata', () => {
+      log(multiDebug, '✓ Metadata loaded');
+    });
+
+    // Make players available globally for debugging
+    window.hlsPlayer = hlsPlayer;
+    window.multiPlayer = multiPlayer;
+    
+    console.log('Players available as window.hlsPlayer and window.multiPlayer');
+    console.log('Try: window.multiPlayer.renderer.getQualities()');
+  </script>
+</body>
+</html>
+
+

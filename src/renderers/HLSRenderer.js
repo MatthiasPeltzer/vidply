@@ -50,19 +50,51 @@ export class HLSRenderer {
       throw new Error('HLS is not supported in this browser');
     }
 
-    // Create hls.js instance
+    // Create hls.js instance with better error recovery
     this.hls = new window.Hls({
       debug: this.player.options.debug,
       enableWorker: true,
       lowLatencyMode: false,
-      backBufferLength: 90
+      backBufferLength: 90,
+      maxBufferLength: 30,
+      maxMaxBufferLength: 600,
+      maxBufferSize: 60 * 1000 * 1000,
+      maxBufferHole: 0.5,
+      // Network retry settings
+      manifestLoadingTimeOut: 10000,
+      manifestLoadingMaxRetry: 4,
+      manifestLoadingRetryDelay: 1000,
+      manifestLoadingMaxRetryTimeout: 64000,
+      levelLoadingTimeOut: 10000,
+      levelLoadingMaxRetry: 4,
+      levelLoadingRetryDelay: 1000,
+      levelLoadingMaxRetryTimeout: 64000,
+      fragLoadingTimeOut: 20000,
+      fragLoadingMaxRetry: 6,
+      fragLoadingRetryDelay: 1000,
+      fragLoadingMaxRetryTimeout: 64000
     });
 
     // Attach media element
     this.hls.attachMedia(this.media);
 
-    // Load source
-    const src = this.player.element.src || this.player.element.querySelector('source')?.src;
+    // Load source - Get from attribute to avoid blob URL conversion
+    let src;
+    const sourceElement = this.player.element.querySelector('source');
+    if (sourceElement) {
+      // Use getAttribute to get the original URL, not the blob-converted one
+      src = sourceElement.getAttribute('src');
+    } else {
+      // Fallback to element's src attribute
+      src = this.player.element.getAttribute('src') || this.player.element.src;
+    }
+    
+    this.player.log(`Loading HLS source: ${src}`, 'log');
+    
+    if (!src) {
+      throw new Error('No HLS source found');
+    }
+    
     this.hls.loadSource(src);
 
     // Attach events
@@ -175,11 +207,20 @@ export class HLSRenderer {
   }
 
   handleHlsError(data) {
+    // Log detailed error info
+    this.player.log(`HLS Error - Type: ${data.type}, Details: ${data.details}, Fatal: ${data.fatal}`, 'warn');
+    if (data.response) {
+      this.player.log(`Response code: ${data.response.code}, URL: ${data.response.url}`, 'warn');
+    }
+    
     if (data.fatal) {
       switch (data.type) {
         case window.Hls.ErrorTypes.NETWORK_ERROR:
           this.player.log('Fatal network error, trying to recover...', 'error');
-          this.hls.startLoad();
+          this.player.log(`Network error details: ${data.details}`, 'error');
+          setTimeout(() => {
+            this.hls.startLoad();
+          }, 1000);
           break;
           
         case window.Hls.ErrorTypes.MEDIA_ERROR:

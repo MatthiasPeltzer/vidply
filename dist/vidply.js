@@ -168,6 +168,85 @@ var VidPly = (() => {
         setPlaybackSpeed(speed) {
           this.media.playbackRate = speed;
         }
+        /**
+         * Get available quality levels from source elements
+         * @returns {Array} Array of quality objects with index, height, width, and src
+         */
+        getQualities() {
+          const sources = Array.from(this.media.querySelectorAll("source"));
+          if (sources.length <= 1) {
+            return [];
+          }
+          return sources.map((source, index) => {
+            const label = source.getAttribute("data-quality") || source.getAttribute("label") || "";
+            const height = source.getAttribute("data-height") || this.extractHeightFromLabel(label);
+            const width = source.getAttribute("data-width") || "";
+            return {
+              index,
+              height: height ? parseInt(height) : 0,
+              width: width ? parseInt(width) : 0,
+              src: source.src,
+              type: source.type,
+              name: label || (height ? `${height}p` : `Quality ${index + 1}`)
+            };
+          }).filter((q) => q.height > 0);
+        }
+        /**
+         * Extract height from quality label (e.g., "1080p" -> 1080)
+         * @param {string} label 
+         * @returns {number}
+         */
+        extractHeightFromLabel(label) {
+          const match = label.match(/(\d+)p/i);
+          return match ? parseInt(match[1]) : 0;
+        }
+        /**
+         * Switch to a specific quality level
+         * @param {number} qualityIndex - Index of the quality level (-1 for auto, not applicable for HTML5)
+         */
+        switchQuality(qualityIndex) {
+          const qualities = this.getQualities();
+          if (qualityIndex < 0 || qualityIndex >= qualities.length) {
+            this.player.log("Invalid quality index", "warn");
+            return;
+          }
+          const quality = qualities[qualityIndex];
+          const currentTime = this.media.currentTime;
+          const wasPlaying = !this.media.paused;
+          const currentSrc = this.media.currentSrc;
+          if (currentSrc === quality.src) {
+            this.player.log("Already at this quality level", "info");
+            return;
+          }
+          this.player.log(`Switching to quality: ${quality.name}`, "info");
+          this.media.src = quality.src;
+          const onLoadedMetadata = () => {
+            this.media.removeEventListener("loadedmetadata", onLoadedMetadata);
+            this.media.currentTime = currentTime;
+            if (wasPlaying) {
+              this.media.play().catch((err) => {
+                this.player.log("Failed to resume playback after quality switch", "warn");
+              });
+            }
+            this.player.emit("qualitychange", { quality: quality.name, index: qualityIndex });
+          };
+          this.media.addEventListener("loadedmetadata", onLoadedMetadata);
+          this.media.load();
+        }
+        /**
+         * Get current quality index
+         * @returns {number}
+         */
+        getCurrentQuality() {
+          const qualities = this.getQualities();
+          const currentSrc = this.media.currentSrc;
+          for (let i = 0; i < qualities.length; i++) {
+            if (qualities[i].src === currentSrc) {
+              return i;
+            }
+          }
+          return 0;
+        }
         destroy() {
           this.media.removeEventListener("loadedmetadata", () => {
           });
@@ -1011,7 +1090,7 @@ var VidPly = (() => {
       if (this.player.options.currentTime || this.player.options.duration) {
         leftButtons.appendChild(this.createTimeDisplay());
       }
-      const rightButtons = DOMUtils.createElement("div", {
+      this.rightButtons = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-controls-right`
       });
       const hasChapters = this.hasChapterTracks();
@@ -1019,38 +1098,38 @@ var VidPly = (() => {
       const hasQualityLevels = this.hasQualityLevels();
       const hasAudioDescription = this.hasAudioDescription();
       if (this.player.options.chaptersButton && hasChapters) {
-        rightButtons.appendChild(this.createChaptersButton());
+        this.rightButtons.appendChild(this.createChaptersButton());
       }
       if (this.player.options.qualityButton && hasQualityLevels) {
-        rightButtons.appendChild(this.createQualityButton());
+        this.rightButtons.appendChild(this.createQualityButton());
       }
       if (this.player.options.captionStyleButton && hasCaptions) {
-        rightButtons.appendChild(this.createCaptionStyleButton());
+        this.rightButtons.appendChild(this.createCaptionStyleButton());
       }
       if (this.player.options.speedButton) {
-        rightButtons.appendChild(this.createSpeedButton());
+        this.rightButtons.appendChild(this.createSpeedButton());
       }
       if (this.player.options.captionsButton && hasCaptions) {
-        rightButtons.appendChild(this.createCaptionsButton());
+        this.rightButtons.appendChild(this.createCaptionsButton());
       }
       if (this.player.options.transcriptButton && hasCaptions) {
-        rightButtons.appendChild(this.createTranscriptButton());
+        this.rightButtons.appendChild(this.createTranscriptButton());
       }
       if (this.player.options.audioDescriptionButton && hasAudioDescription) {
-        rightButtons.appendChild(this.createAudioDescriptionButton());
+        this.rightButtons.appendChild(this.createAudioDescriptionButton());
       }
       const hasSignLanguage = this.hasSignLanguage();
       if (this.player.options.signLanguageButton && hasSignLanguage) {
-        rightButtons.appendChild(this.createSignLanguageButton());
+        this.rightButtons.appendChild(this.createSignLanguageButton());
       }
       if (this.player.options.pipButton && "pictureInPictureEnabled" in document) {
-        rightButtons.appendChild(this.createPipButton());
+        this.rightButtons.appendChild(this.createPipButton());
       }
       if (this.player.options.fullscreenButton) {
-        rightButtons.appendChild(this.createFullscreenButton());
+        this.rightButtons.appendChild(this.createFullscreenButton());
       }
       buttonContainer.appendChild(leftButtons);
-      buttonContainer.appendChild(rightButtons);
+      buttonContainer.appendChild(this.rightButtons);
       this.element.appendChild(buttonContainer);
     }
     // Helper methods to check for available features
@@ -1073,9 +1152,9 @@ var VidPly = (() => {
       return false;
     }
     hasQualityLevels() {
-      if (this.player.renderer && this.player.renderer.hls) {
-        const levels = this.player.renderer.hls.levels;
-        return levels && levels.length > 1;
+      if (this.player.renderer && this.player.renderer.getQualities) {
+        const qualities = this.player.renderer.getQualities();
+        return qualities && qualities.length > 1;
       }
       return false;
     }
@@ -1499,10 +1578,17 @@ var VidPly = (() => {
         }
       });
       button.appendChild(createIconElement("hd"));
+      const qualityText = DOMUtils.createElement("span", {
+        className: `${this.player.options.classPrefix}-quality-text`,
+        textContent: ""
+      });
+      button.appendChild(qualityText);
       button.addEventListener("click", () => {
         this.showQualityMenu(button);
       });
       this.controls.quality = button;
+      this.controls.qualityText = qualityText;
+      setTimeout(() => this.updateQualityIndicator(), 500);
       return button;
     }
     showQualityMenu(button) {
@@ -1520,6 +1606,8 @@ var VidPly = (() => {
       });
       if (this.player.renderer && this.player.renderer.getQualities) {
         const qualities = this.player.renderer.getQualities();
+        const currentQuality = this.player.renderer.getCurrentQuality ? this.player.renderer.getCurrentQuality() : -1;
+        const isHLS = this.player.renderer.hls !== void 0;
         if (qualities.length === 0) {
           const noQualityItem = DOMUtils.createElement("div", {
             className: `${this.player.options.classPrefix}-menu-item`,
@@ -1528,21 +1616,28 @@ var VidPly = (() => {
           });
           menu.appendChild(noQualityItem);
         } else {
-          const autoItem = DOMUtils.createElement("button", {
-            className: `${this.player.options.classPrefix}-menu-item`,
-            textContent: i18n.t("player.auto"),
-            attributes: {
-              "type": "button",
-              "role": "menuitem"
+          if (isHLS) {
+            const autoItem = DOMUtils.createElement("button", {
+              className: `${this.player.options.classPrefix}-menu-item`,
+              textContent: i18n.t("player.auto"),
+              attributes: {
+                "type": "button",
+                "role": "menuitem"
+              }
+            });
+            const isAuto = this.player.renderer.hls && this.player.renderer.hls.currentLevel === -1;
+            if (isAuto) {
+              autoItem.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
+              autoItem.appendChild(createIconElement("check"));
             }
-          });
-          autoItem.addEventListener("click", () => {
-            if (this.player.renderer.switchQuality) {
-              this.player.renderer.switchQuality(-1);
-            }
-            menu.remove();
-          });
-          menu.appendChild(autoItem);
+            autoItem.addEventListener("click", () => {
+              if (this.player.renderer.switchQuality) {
+                this.player.renderer.switchQuality(-1);
+              }
+              menu.remove();
+            });
+            menu.appendChild(autoItem);
+          }
           qualities.forEach((quality) => {
             const item = DOMUtils.createElement("button", {
               className: `${this.player.options.classPrefix}-menu-item`,
@@ -1552,6 +1647,10 @@ var VidPly = (() => {
                 "role": "menuitem"
               }
             });
+            if (quality.index === currentQuality) {
+              item.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
+              item.appendChild(createIconElement("check"));
+            }
             item.addEventListener("click", () => {
               if (this.player.renderer.switchQuality) {
                 this.player.renderer.switchQuality(quality.index);
@@ -2097,7 +2196,11 @@ var VidPly = (() => {
       this.player.on("play", () => this.updatePlayPauseButton());
       this.player.on("pause", () => this.updatePlayPauseButton());
       this.player.on("timeupdate", () => this.updateProgress());
-      this.player.on("loadedmetadata", () => this.updateDuration());
+      this.player.on("loadedmetadata", () => {
+        this.updateDuration();
+        this.ensureQualityButton();
+        this.updateQualityIndicator();
+      });
       this.player.on("volumechange", () => this.updateVolumeDisplay());
       this.player.on("progress", () => this.updateBuffered());
       this.player.on("playbackspeedchange", () => this.updateSpeedDisplay());
@@ -2108,6 +2211,12 @@ var VidPly = (() => {
       this.player.on("audiodescriptiondisabled", () => this.updateAudioDescriptionButton());
       this.player.on("signlanguageenabled", () => this.updateSignLanguageButton());
       this.player.on("signlanguagedisabled", () => this.updateSignLanguageButton());
+      this.player.on("qualitychange", () => this.updateQualityIndicator());
+      this.player.on("hlslevelswitched", () => this.updateQualityIndicator());
+      this.player.on("hlsmanifestparsed", () => {
+        this.ensureQualityButton();
+        this.updateQualityIndicator();
+      });
     }
     updatePlayPauseButton() {
       if (!this.controls.playPause) return;
@@ -2179,6 +2288,45 @@ var VidPly = (() => {
         "aria-label",
         isFullscreen ? i18n.t("player.exitFullscreen") : i18n.t("player.fullscreen")
       );
+    }
+    /**
+     * Ensure quality button exists if qualities are available
+     * This is called after renderer initialization to dynamically add the button
+     */
+    ensureQualityButton() {
+      if (!this.player.options.qualityButton) return;
+      if (this.controls.quality) return;
+      if (!this.hasQualityLevels()) return;
+      const qualityButton = this.createQualityButton();
+      const speedButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-speed`);
+      const captionStyleButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-caption-style`);
+      const insertBefore = captionStyleButton || speedButton;
+      if (insertBefore) {
+        this.rightButtons.insertBefore(qualityButton, insertBefore);
+      } else {
+        this.rightButtons.insertBefore(qualityButton, this.rightButtons.firstChild);
+      }
+      this.player.log("Quality button added dynamically", "info");
+    }
+    updateQualityIndicator() {
+      if (!this.controls.qualityText) return;
+      if (!this.player.renderer || !this.player.renderer.getQualities) return;
+      const qualities = this.player.renderer.getQualities();
+      if (qualities.length === 0) {
+        this.controls.qualityText.textContent = "";
+        return;
+      }
+      let currentQualityText = "";
+      if (this.player.renderer.hls && this.player.renderer.hls.currentLevel === -1) {
+        currentQualityText = "Auto";
+      } else if (this.player.renderer.getCurrentQuality) {
+        const currentIndex = this.player.renderer.getCurrentQuality();
+        const currentQuality = qualities.find((q) => q.index === currentIndex);
+        if (currentQuality) {
+          currentQualityText = currentQuality.height ? `${currentQuality.height}p` : "";
+        }
+      }
+      this.controls.qualityText.textContent = currentQualityText;
     }
     setupAutoHide() {
       if (this.player.element.tagName !== "VIDEO") return;
@@ -3851,7 +3999,6 @@ var VidPly = (() => {
       });
     }
     async initHlsJs() {
-      var _a;
       if (!window.Hls) {
         await this.loadHlsJs();
       }
@@ -3862,10 +4009,37 @@ var VidPly = (() => {
         debug: this.player.options.debug,
         enableWorker: true,
         lowLatencyMode: false,
-        backBufferLength: 90
+        backBufferLength: 90,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 600,
+        maxBufferSize: 60 * 1e3 * 1e3,
+        maxBufferHole: 0.5,
+        // Network retry settings
+        manifestLoadingTimeOut: 1e4,
+        manifestLoadingMaxRetry: 4,
+        manifestLoadingRetryDelay: 1e3,
+        manifestLoadingMaxRetryTimeout: 64e3,
+        levelLoadingTimeOut: 1e4,
+        levelLoadingMaxRetry: 4,
+        levelLoadingRetryDelay: 1e3,
+        levelLoadingMaxRetryTimeout: 64e3,
+        fragLoadingTimeOut: 2e4,
+        fragLoadingMaxRetry: 6,
+        fragLoadingRetryDelay: 1e3,
+        fragLoadingMaxRetryTimeout: 64e3
       });
       this.hls.attachMedia(this.media);
-      const src = this.player.element.src || ((_a = this.player.element.querySelector("source")) == null ? void 0 : _a.src);
+      let src;
+      const sourceElement = this.player.element.querySelector("source");
+      if (sourceElement) {
+        src = sourceElement.getAttribute("src");
+      } else {
+        src = this.player.element.getAttribute("src") || this.player.element.src;
+      }
+      this.player.log(`Loading HLS source: ${src}`, "log");
+      if (!src) {
+        throw new Error("No HLS source found");
+      }
       this.hls.loadSource(src);
       this.attachHlsEvents();
       this.attachMediaEvents();
@@ -3955,11 +4129,18 @@ var VidPly = (() => {
       });
     }
     handleHlsError(data) {
+      this.player.log(`HLS Error - Type: ${data.type}, Details: ${data.details}, Fatal: ${data.fatal}`, "warn");
+      if (data.response) {
+        this.player.log(`Response code: ${data.response.code}, URL: ${data.response.url}`, "warn");
+      }
       if (data.fatal) {
         switch (data.type) {
           case window.Hls.ErrorTypes.NETWORK_ERROR:
             this.player.log("Fatal network error, trying to recover...", "error");
-            this.hls.startLoad();
+            this.player.log(`Network error details: ${data.details}`, "error");
+            setTimeout(() => {
+              this.hls.startLoad();
+            }, 1e3);
             break;
           case window.Hls.ErrorTypes.MEDIA_ERROR:
             this.player.log("Fatal media error, trying to recover...", "error");

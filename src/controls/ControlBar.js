@@ -174,7 +174,7 @@ export class ControlBar {
         }
 
         // Right buttons
-        const rightButtons = DOMUtils.createElement('div', {
+        this.rightButtons = DOMUtils.createElement('div', {
             className: `${this.player.options.classPrefix}-controls-right`
         });
 
@@ -186,57 +186,57 @@ export class ControlBar {
 
         // Chapters button - only show if chapters are available
         if (this.player.options.chaptersButton && hasChapters) {
-            rightButtons.appendChild(this.createChaptersButton());
+            this.rightButtons.appendChild(this.createChaptersButton());
         }
 
         // Quality button - only show if quality levels are available
         if (this.player.options.qualityButton && hasQualityLevels) {
-            rightButtons.appendChild(this.createQualityButton());
+            this.rightButtons.appendChild(this.createQualityButton());
         }
 
         // Caption styling button (font, size, color) - only show if captions are available
         if (this.player.options.captionStyleButton && hasCaptions) {
-            rightButtons.appendChild(this.createCaptionStyleButton());
+            this.rightButtons.appendChild(this.createCaptionStyleButton());
         }
 
         // Speed button - always available
         if (this.player.options.speedButton) {
-            rightButtons.appendChild(this.createSpeedButton());
+            this.rightButtons.appendChild(this.createSpeedButton());
         }
 
         // Captions language selector button - only show if captions are available
         if (this.player.options.captionsButton && hasCaptions) {
-            rightButtons.appendChild(this.createCaptionsButton());
+            this.rightButtons.appendChild(this.createCaptionsButton());
         }
 
         // Transcript button - only show if captions/subtitles are available
         if (this.player.options.transcriptButton && hasCaptions) {
-            rightButtons.appendChild(this.createTranscriptButton());
+            this.rightButtons.appendChild(this.createTranscriptButton());
         }
 
         // Audio Description button - only show if audio description source is available
         if (this.player.options.audioDescriptionButton && hasAudioDescription) {
-            rightButtons.appendChild(this.createAudioDescriptionButton());
+            this.rightButtons.appendChild(this.createAudioDescriptionButton());
         }
 
         // Sign Language button - only show if sign language source is available
         const hasSignLanguage = this.hasSignLanguage();
         if (this.player.options.signLanguageButton && hasSignLanguage) {
-            rightButtons.appendChild(this.createSignLanguageButton());
+            this.rightButtons.appendChild(this.createSignLanguageButton());
         }
 
         // PiP button
         if (this.player.options.pipButton && 'pictureInPictureEnabled' in document) {
-            rightButtons.appendChild(this.createPipButton());
+            this.rightButtons.appendChild(this.createPipButton());
         }
 
         // Fullscreen button
         if (this.player.options.fullscreenButton) {
-            rightButtons.appendChild(this.createFullscreenButton());
+            this.rightButtons.appendChild(this.createFullscreenButton());
         }
 
         buttonContainer.appendChild(leftButtons);
-        buttonContainer.appendChild(rightButtons);
+        buttonContainer.appendChild(this.rightButtons);
         this.element.appendChild(buttonContainer);
     }
 
@@ -262,12 +262,11 @@ export class ControlBar {
     }
 
     hasQualityLevels() {
-        // Check if using HLS with multiple quality levels
-        if (this.player.renderer && this.player.renderer.hls) {
-            const levels = this.player.renderer.hls.levels;
-            return levels && levels.length > 1;
+        // Check if renderer supports quality selection
+        if (this.player.renderer && this.player.renderer.getQualities) {
+            const qualities = this.player.renderer.getQualities();
+            return qualities && qualities.length > 1;
         }
-        // For non-HLS, quality switching is not available
         return false;
     }
 
@@ -819,11 +818,23 @@ export class ControlBar {
 
         button.appendChild(createIconElement('hd'));
 
+        // Add quality indicator text
+        const qualityText = DOMUtils.createElement('span', {
+            className: `${this.player.options.classPrefix}-quality-text`,
+            textContent: ''
+        });
+        button.appendChild(qualityText);
+
         button.addEventListener('click', () => {
             this.showQualityMenu(button);
         });
 
         this.controls.quality = button;
+        this.controls.qualityText = qualityText;
+        
+        // Update quality indicator after a short delay to ensure renderer is ready
+        setTimeout(() => this.updateQualityIndicator(), 500);
+        
         return button;
     }
 
@@ -846,6 +857,8 @@ export class ControlBar {
         // Check if renderer supports quality selection
         if (this.player.renderer && this.player.renderer.getQualities) {
             const qualities = this.player.renderer.getQualities();
+            const currentQuality = this.player.renderer.getCurrentQuality ? this.player.renderer.getCurrentQuality() : -1;
+            const isHLS = this.player.renderer.hls !== undefined;
 
             if (qualities.length === 0) {
                 // No qualities available
@@ -856,24 +869,33 @@ export class ControlBar {
                 });
                 menu.appendChild(noQualityItem);
             } else {
-                // Auto quality option
-                const autoItem = DOMUtils.createElement('button', {
-                    className: `${this.player.options.classPrefix}-menu-item`,
-                    textContent: i18n.t('player.auto'),
-                    attributes: {
-                        'type': 'button',
-                        'role': 'menuitem'
-                    }
-                });
+                // Auto quality option (only for HLS)
+                if (isHLS) {
+                    const autoItem = DOMUtils.createElement('button', {
+                        className: `${this.player.options.classPrefix}-menu-item`,
+                        textContent: i18n.t('player.auto'),
+                        attributes: {
+                            'type': 'button',
+                            'role': 'menuitem'
+                        }
+                    });
 
-                autoItem.addEventListener('click', () => {
-                    if (this.player.renderer.switchQuality) {
-                        this.player.renderer.switchQuality(-1); // -1 for auto
+                    // Check if auto is currently selected
+                    const isAuto = this.player.renderer.hls && this.player.renderer.hls.currentLevel === -1;
+                    if (isAuto) {
+                        autoItem.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
+                        autoItem.appendChild(createIconElement('check'));
                     }
-                    menu.remove();
-                });
 
-                menu.appendChild(autoItem);
+                    autoItem.addEventListener('click', () => {
+                        if (this.player.renderer.switchQuality) {
+                            this.player.renderer.switchQuality(-1); // -1 for auto
+                        }
+                        menu.remove();
+                    });
+
+                    menu.appendChild(autoItem);
+                }
 
                 // Quality options
                 qualities.forEach(quality => {
@@ -885,6 +907,12 @@ export class ControlBar {
                             'role': 'menuitem'
                         }
                     });
+
+                    // Highlight current quality
+                    if (quality.index === currentQuality) {
+                        item.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
+                        item.appendChild(createIconElement('check'));
+                    }
 
                     item.addEventListener('click', () => {
                         if (this.player.renderer.switchQuality) {
@@ -1589,7 +1617,11 @@ export class ControlBar {
         this.player.on('play', () => this.updatePlayPauseButton());
         this.player.on('pause', () => this.updatePlayPauseButton());
         this.player.on('timeupdate', () => this.updateProgress());
-        this.player.on('loadedmetadata', () => this.updateDuration());
+        this.player.on('loadedmetadata', () => {
+            this.updateDuration();
+            this.ensureQualityButton();
+            this.updateQualityIndicator();
+        });
         this.player.on('volumechange', () => this.updateVolumeDisplay());
         this.player.on('progress', () => this.updateBuffered());
         this.player.on('playbackspeedchange', () => this.updateSpeedDisplay());
@@ -1600,6 +1632,12 @@ export class ControlBar {
         this.player.on('audiodescriptiondisabled', () => this.updateAudioDescriptionButton());
         this.player.on('signlanguageenabled', () => this.updateSignLanguageButton());
         this.player.on('signlanguagedisabled', () => this.updateSignLanguageButton());
+        this.player.on('qualitychange', () => this.updateQualityIndicator());
+        this.player.on('hlslevelswitched', () => this.updateQualityIndicator());
+        this.player.on('hlsmanifestparsed', () => {
+            this.ensureQualityButton();
+            this.updateQualityIndicator();
+        });
     }
 
     updatePlayPauseButton() {
@@ -1695,6 +1733,65 @@ export class ControlBar {
         this.controls.fullscreen.setAttribute('aria-label',
             isFullscreen ? i18n.t('player.exitFullscreen') : i18n.t('player.fullscreen')
         );
+    }
+
+    /**
+     * Ensure quality button exists if qualities are available
+     * This is called after renderer initialization to dynamically add the button
+     */
+    ensureQualityButton() {
+        // Skip if quality button is disabled
+        if (!this.player.options.qualityButton) return;
+        
+        // Skip if button already exists
+        if (this.controls.quality) return;
+        
+        // Check if qualities are now available
+        if (!this.hasQualityLevels()) return;
+        
+        // Create and insert the quality button before the speed button
+        const qualityButton = this.createQualityButton();
+        
+        // Find the speed button or caption style button to insert before
+        const speedButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-speed`);
+        const captionStyleButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-caption-style`);
+        const insertBefore = captionStyleButton || speedButton;
+        
+        if (insertBefore) {
+            this.rightButtons.insertBefore(qualityButton, insertBefore);
+        } else {
+            // If no reference button, add it at the beginning of right buttons
+            this.rightButtons.insertBefore(qualityButton, this.rightButtons.firstChild);
+        }
+        
+        this.player.log('Quality button added dynamically', 'info');
+    }
+
+    updateQualityIndicator() {
+        if (!this.controls.qualityText) return;
+        if (!this.player.renderer || !this.player.renderer.getQualities) return;
+
+        const qualities = this.player.renderer.getQualities();
+        if (qualities.length === 0) {
+            this.controls.qualityText.textContent = '';
+            return;
+        }
+
+        // Get current quality
+        let currentQualityText = '';
+        
+        // Check if it's HLS with auto mode
+        if (this.player.renderer.hls && this.player.renderer.hls.currentLevel === -1) {
+            currentQualityText = 'Auto';
+        } else if (this.player.renderer.getCurrentQuality) {
+            const currentIndex = this.player.renderer.getCurrentQuality();
+            const currentQuality = qualities.find(q => q.index === currentIndex);
+            if (currentQuality) {
+                currentQualityText = currentQuality.height ? `${currentQuality.height}p` : '';
+            }
+        }
+
+        this.controls.qualityText.textContent = currentQualityText;
     }
 
     setupAutoHide() {

@@ -176,6 +176,113 @@ export class HTML5Renderer {
     this.media.playbackRate = speed;
   }
 
+  /**
+   * Get available quality levels from source elements
+   * @returns {Array} Array of quality objects with index, height, width, and src
+   */
+  getQualities() {
+    const sources = Array.from(this.media.querySelectorAll('source'));
+    
+    if (sources.length <= 1) {
+      return [];
+    }
+
+    return sources.map((source, index) => {
+      // Try to extract quality from data attributes or label
+      const label = source.getAttribute('data-quality') || source.getAttribute('label') || '';
+      const height = source.getAttribute('data-height') || this.extractHeightFromLabel(label);
+      const width = source.getAttribute('data-width') || '';
+      
+      return {
+        index,
+        height: height ? parseInt(height) : 0,
+        width: width ? parseInt(width) : 0,
+        src: source.src,
+        type: source.type,
+        name: label || (height ? `${height}p` : `Quality ${index + 1}`)
+      };
+    }).filter(q => q.height > 0); // Only return qualities with valid height
+  }
+
+  /**
+   * Extract height from quality label (e.g., "1080p" -> 1080)
+   * @param {string} label 
+   * @returns {number}
+   */
+  extractHeightFromLabel(label) {
+    const match = label.match(/(\d+)p/i);
+    return match ? parseInt(match[1]) : 0;
+  }
+
+  /**
+   * Switch to a specific quality level
+   * @param {number} qualityIndex - Index of the quality level (-1 for auto, not applicable for HTML5)
+   */
+  switchQuality(qualityIndex) {
+    const qualities = this.getQualities();
+    
+    if (qualityIndex < 0 || qualityIndex >= qualities.length) {
+      this.player.log('Invalid quality index', 'warn');
+      return;
+    }
+
+    const quality = qualities[qualityIndex];
+    const currentTime = this.media.currentTime;
+    const wasPlaying = !this.media.paused;
+
+    // Store the current source for comparison
+    const currentSrc = this.media.currentSrc;
+    
+    // Don't switch if already at this quality
+    if (currentSrc === quality.src) {
+      this.player.log('Already at this quality level', 'info');
+      return;
+    }
+
+    this.player.log(`Switching to quality: ${quality.name}`, 'info');
+
+    // Update the src
+    this.media.src = quality.src;
+    
+    // Wait for the new source to load, then restore playback state
+    const onLoadedMetadata = () => {
+      this.media.removeEventListener('loadedmetadata', onLoadedMetadata);
+      
+      // Restore playback position
+      this.media.currentTime = currentTime;
+      
+      // Resume playback if it was playing
+      if (wasPlaying) {
+        this.media.play().catch(err => {
+          this.player.log('Failed to resume playback after quality switch', 'warn');
+        });
+      }
+      
+      // Emit quality change event
+      this.player.emit('qualitychange', { quality: quality.name, index: qualityIndex });
+    };
+
+    this.media.addEventListener('loadedmetadata', onLoadedMetadata);
+    this.media.load();
+  }
+
+  /**
+   * Get current quality index
+   * @returns {number}
+   */
+  getCurrentQuality() {
+    const qualities = this.getQualities();
+    const currentSrc = this.media.currentSrc;
+    
+    for (let i = 0; i < qualities.length; i++) {
+      if (qualities[i].src === currentSrc) {
+        return i;
+      }
+    }
+    
+    return 0; // Default to first quality if not found
+  }
+
   destroy() {
     // Remove event listeners
     this.media.removeEventListener('loadedmetadata', () => {});
