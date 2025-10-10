@@ -423,7 +423,7 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-restart`,
             attributes: {
                 'type': 'button',
-                'aria-label': 'Restart from beginning'
+                'aria-label': i18n.t('player.restart')
             }
         });
 
@@ -442,7 +442,7 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-previous`,
             attributes: {
                 'type': 'button',
-                'aria-label': 'Previous track'
+                'aria-label': i18n.t('player.previous')
             }
         });
 
@@ -472,7 +472,7 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-next`,
             attributes: {
                 'type': 'button',
-                'aria-label': 'Next track'
+                'aria-label': i18n.t('player.next')
             }
         });
 
@@ -502,7 +502,7 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-rewind`,
             attributes: {
                 'type': 'button',
-                'aria-label': 'Rewind 15 seconds'
+                'aria-label': i18n.t('player.rewindSeconds', { seconds: 15 })
             }
         });
 
@@ -520,7 +520,7 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-forward`,
             attributes: {
                 'type': 'button',
-                'aria-label': 'Forward 15 seconds'
+                'aria-label': i18n.t('player.forwardSeconds', { seconds: 15 })
             }
         });
 
@@ -686,7 +686,7 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-chapters`,
             attributes: {
                 'type': 'button',
-                'aria-label': 'Chapters',
+                'aria-label': i18n.t('player.chapters'),
                 'aria-haspopup': 'menu'
             }
         });
@@ -713,7 +713,7 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-chapters-menu ${this.player.options.classPrefix}-menu`,
             attributes: {
                 'role': 'menu',
-                'aria-label': 'Chapters'
+                'aria-label': i18n.t('player.chapters')
             }
         });
 
@@ -726,7 +726,7 @@ export class ControlBar {
             // No chapters available
             const noChaptersItem = DOMUtils.createElement('div', {
                 className: `${this.player.options.classPrefix}-menu-item`,
-                textContent: 'No chapters available',
+                textContent: i18n.t('player.noChapters'),
                 style: {opacity: '0.5', cursor: 'default'}
             });
             menu.appendChild(noChaptersItem);
@@ -742,7 +742,7 @@ export class ControlBar {
                 // Cues not loaded yet - wait for them to load
                 const loadingItem = DOMUtils.createElement('div', {
                     className: `${this.player.options.classPrefix}-menu-item`,
-                    textContent: 'Loading chapters...',
+                    textContent: i18n.t('player.loadingChapters'),
                     style: {opacity: '0.5', cursor: 'default'}
                 });
                 menu.appendChild(loadingItem);
@@ -812,7 +812,7 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-quality`,
             attributes: {
                 'type': 'button',
-                'aria-label': 'Quality',
+                'aria-label': i18n.t('player.quality'),
                 'aria-haspopup': 'menu'
             }
         });
@@ -839,7 +839,7 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-quality-menu ${this.player.options.classPrefix}-menu`,
             attributes: {
                 'role': 'menu',
-                'aria-label': 'Quality'
+                'aria-label': i18n.t('player.quality')
             }
         });
 
@@ -851,7 +851,7 @@ export class ControlBar {
                 // No qualities available
                 const noQualityItem = DOMUtils.createElement('div', {
                     className: `${this.player.options.classPrefix}-menu-item`,
-                    textContent: 'Auto (no quality selection available)',
+                    textContent: i18n.t('player.autoQuality'),
                     style: {opacity: '0.5', cursor: 'default'}
                 });
                 menu.appendChild(noQualityItem);
@@ -859,7 +859,7 @@ export class ControlBar {
                 // Auto quality option
                 const autoItem = DOMUtils.createElement('button', {
                     className: `${this.player.options.classPrefix}-menu-item`,
-                    textContent: 'Auto',
+                    textContent: i18n.t('player.auto'),
                     attributes: {
                         'type': 'button',
                         'role': 'menuitem'
@@ -900,7 +900,7 @@ export class ControlBar {
             // No quality support
             const noSupportItem = DOMUtils.createElement('div', {
                 className: `${this.player.options.classPrefix}-menu-item`,
-                textContent: 'Quality selection not available',
+                textContent: i18n.t('player.noQuality'),
                 style: {opacity: '0.5', cursor: 'default'}
             });
             menu.appendChild(noSupportItem);
@@ -918,9 +918,9 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-caption-style`,
             attributes: {
                 'type': 'button',
-                'aria-label': 'Caption styling',
+                'aria-label': i18n.t('player.captionStyling'),
                 'aria-haspopup': 'menu',
-                'title': 'Caption styling'
+                'title': i18n.t('player.captionStyling')
             }
         });
 
@@ -954,7 +954,7 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-caption-style-menu ${this.player.options.classPrefix}-menu ${this.player.options.classPrefix}-settings-menu`,
             attributes: {
                 'role': 'menu',
-                'aria-label': 'Caption styling'
+                'aria-label': i18n.t('player.captionStyling')
             }
         });
 
@@ -968,7 +968,7 @@ export class ControlBar {
             // Show "No captions available" message
             const noTracksItem = DOMUtils.createElement('div', {
                 className: `${this.player.options.classPrefix}-menu-item`,
-                textContent: 'No captions available',
+                textContent: i18n.t('player.noCaptions'),
                 style: {opacity: '0.5', cursor: 'default', padding: '12px 16px'}
             });
             menu.appendChild(noTracksItem);
@@ -1338,7 +1338,7 @@ export class ControlBar {
             // Show "No captions available" message
             const noTracksItem = DOMUtils.createElement('div', {
                 className: `${this.player.options.classPrefix}-menu-item`,
-                textContent: 'No captions available',
+                textContent: i18n.t('player.noCaptions'),
                 style: {opacity: '0.5', cursor: 'default'}
             });
             menu.appendChild(noTracksItem);
@@ -1428,7 +1428,7 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-transcript`,
             attributes: {
                 'type': 'button',
-                'aria-label': 'Toggle transcript',
+                'aria-label': i18n.t('player.transcript'),
                 'aria-pressed': 'false'
             }
         });
@@ -1458,9 +1458,9 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-audio-description`,
             attributes: {
                 'type': 'button',
-                'aria-label': 'Audio description',
+                'aria-label': i18n.t('player.audioDescription'),
                 'aria-pressed': 'false',
-                'title': 'Toggle audio description'
+                'title': i18n.t('player.audioDescription')
             }
         });
 
@@ -1496,9 +1496,9 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-sign-language`,
             attributes: {
                 'type': 'button',
-                'aria-label': 'Sign language video',
+                'aria-label': i18n.t('player.signLanguage'),
                 'aria-pressed': 'false',
-                'title': 'Toggle sign language video'
+                'title': i18n.t('player.signLanguage')
             }
         });
 
