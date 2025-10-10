@@ -247,6 +247,9 @@ export class Player extends EventEmitter {
         this.settingsDialog = new SettingsDialog(this);
       }
       
+      // Setup responsive handlers
+      this.setupResponsiveHandlers();
+      
       // Set initial state
       if (this.options.startTime > 0) {
         this.seek(this.options.startTime);
@@ -886,6 +889,67 @@ export class Player extends EventEmitter {
     }
   }
 
+  // Setup responsive handlers
+  setupResponsiveHandlers() {
+    // Use ResizeObserver for efficient resize tracking
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const width = entry.contentRect.width;
+          
+          // Update control bar for viewport
+          if (this.controlBar && typeof this.controlBar.updateControlsForViewport === 'function') {
+            this.controlBar.updateControlsForViewport(width);
+          }
+          
+          // Update transcript positioning
+          if (this.transcriptManager && this.transcriptManager.isVisible) {
+            this.transcriptManager.positionTranscript();
+          }
+        }
+      });
+      
+      this.resizeObserver.observe(this.container);
+    } else {
+      // Fallback to window resize event
+      this.resizeHandler = () => {
+        const width = this.container.clientWidth;
+        
+        if (this.controlBar && typeof this.controlBar.updateControlsForViewport === 'function') {
+          this.controlBar.updateControlsForViewport(width);
+        }
+        
+        if (this.transcriptManager && this.transcriptManager.isVisible) {
+          this.transcriptManager.positionTranscript();
+        }
+      };
+      
+      window.addEventListener('resize', this.resizeHandler);
+    }
+    
+    // Also listen for orientation changes on mobile
+    if (window.matchMedia) {
+      this.orientationHandler = (e) => {
+        // Wait for layout to settle
+        setTimeout(() => {
+          if (this.transcriptManager && this.transcriptManager.isVisible) {
+            this.transcriptManager.positionTranscript();
+          }
+        }, 100);
+      };
+      
+      const orientationQuery = window.matchMedia('(orientation: portrait)');
+      if (orientationQuery.addEventListener) {
+        orientationQuery.addEventListener('change', this.orientationHandler);
+      } else if (orientationQuery.addListener) {
+        // Fallback for older browsers
+        orientationQuery.addListener(this.orientationHandler);
+      }
+      
+      this.orientationQuery = orientationQuery;
+    }
+  }
+
   // Cleanup
   destroy() {
     this.log('Destroying player');
@@ -916,6 +980,29 @@ export class Player extends EventEmitter {
     
     // Cleanup sign language video and listeners
     this.cleanupSignLanguage();
+    
+    // Cleanup resize observer
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+    
+    // Cleanup window resize handler
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+      this.resizeHandler = null;
+    }
+    
+    // Cleanup orientation change handler
+    if (this.orientationQuery && this.orientationHandler) {
+      if (this.orientationQuery.removeEventListener) {
+        this.orientationQuery.removeEventListener('change', this.orientationHandler);
+      } else if (this.orientationQuery.removeListener) {
+        this.orientationQuery.removeListener(this.orientationHandler);
+      }
+      this.orientationQuery = null;
+      this.orientationHandler = null;
+    }
     
     // Remove container
     if (this.container && this.container.parentNode) {

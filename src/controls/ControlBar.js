@@ -26,8 +26,163 @@ export class ControlBar {
         this.setupAutoHide();
     }
 
+    // Helper method to check if we're on a mobile device
+    isMobile() {
+        return window.innerWidth < 640;
+    }
+
+    // Smart menu positioning to avoid overflow
+    positionMenu(menu, button) {
+        const isMobile = this.isMobile();
+        
+        if (isMobile) {
+            // Use bottom sheet on mobile - already styled via CSS
+            return;
+        }
+
+        // Desktop: Smart positioning
+        setTimeout(() => {
+            const buttonRect = button.getBoundingClientRect();
+            const menuRect = menu.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            const spaceAbove = buttonRect.top;
+            const spaceBelow = viewportHeight - buttonRect.bottom;
+            
+            // Prefer above, but switch to below if not enough space
+            if (spaceAbove < menuRect.height + 20 && spaceBelow > spaceAbove) {
+                menu.style.bottom = 'auto';
+                menu.style.top = 'calc(100% + 8px)';
+                menu.classList.add('vidply-menu-below');
+            }
+            
+            // Check horizontal overflow
+            const menuLeft = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
+            if (menuLeft < 10) {
+                // Too far left, align to left edge
+                menu.style.right = 'auto';
+                menu.style.left = '0';
+                menu.style.transform = 'translateX(0)';
+            } else if (menuLeft + menuRect.width > viewportWidth - 10) {
+                // Too far right, align to right edge
+                menu.style.left = 'auto';
+                menu.style.right = '0';
+                menu.style.transform = 'translateX(0)';
+            }
+        }, 0);
+    }
+
+    // Add backdrop for mobile menus
+    createBackdrop(menu) {
+        const backdrop = DOMUtils.createElement('div', {
+            className: `${this.player.options.classPrefix}-menu-backdrop visible`
+        });
+        
+        backdrop.addEventListener('click', () => {
+            this.closeMenuWithBackdrop(menu, backdrop);
+        });
+        
+        // Insert backdrop before menu in DOM
+        if (menu.parentNode) {
+            menu.parentNode.insertBefore(backdrop, menu);
+        } else {
+            this.player.container.appendChild(backdrop);
+        }
+        
+        return backdrop;
+    }
+
+    // Close menu and remove backdrop
+    closeMenuWithBackdrop(menu, backdrop) {
+        if (menu && menu.parentNode) {
+            menu.remove();
+        }
+        if (backdrop && backdrop.parentNode) {
+            backdrop.remove();
+        }
+    }
+
+    // Add swipe-to-dismiss gesture for mobile
+    addSwipeGesture(menu) {
+        const isMobile = this.isMobile();
+        
+        if (!isMobile) return;
+        
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+        
+        const handleTouchStart = (e) => {
+            startY = e.touches[0].clientY;
+            isDragging = true;
+            menu.style.transition = 'none';
+        };
+        
+        const handleTouchMove = (e) => {
+            if (!isDragging) return;
+            
+            currentY = e.touches[0].clientY;
+            const diff = currentY - startY;
+            
+            if (diff > 0) {
+                // Dragging down
+                menu.style.transform = `translateY(${diff}px)`;
+            }
+        };
+        
+        const handleTouchEnd = () => {
+            if (!isDragging) return;
+            
+            const diff = currentY - startY;
+            menu.style.transition = 'transform 0.3s ease';
+            
+            if (diff > 80) {
+                // Swiped down enough, close menu
+                menu.style.transform = 'translateY(100%)';
+                setTimeout(() => {
+                    if (menu.parentNode) {
+                        menu.remove();
+                    }
+                    // Also remove backdrop if exists
+                    const backdrop = document.querySelector(`.${this.player.options.classPrefix}-menu-backdrop`);
+                    if (backdrop && backdrop.parentNode) {
+                        backdrop.remove();
+                    }
+                }, 300);
+            } else {
+                // Snap back
+                menu.style.transform = '';
+            }
+            
+            isDragging = false;
+            startY = 0;
+            currentY = 0;
+        };
+        
+        menu.addEventListener('touchstart', handleTouchStart, { passive: true });
+        menu.addEventListener('touchmove', handleTouchMove, { passive: true });
+        menu.addEventListener('touchend', handleTouchEnd);
+        
+        // Store handlers for potential cleanup
+        menu._swipeHandlers = { handleTouchStart, handleTouchMove, handleTouchEnd };
+    }
+
     // Helper method to attach close-on-outside-click behavior to menus
     attachMenuCloseHandler(menu, button, preventCloseOnInteraction = false) {
+        // Position menu smartly
+        this.positionMenu(menu, button);
+        
+        // Add swipe gesture for mobile
+        this.addSwipeGesture(menu);
+        
+        // Create backdrop for mobile
+        const isMobile = this.isMobile();
+        let backdrop = null;
+        if (isMobile) {
+            backdrop = this.createBackdrop(menu);
+        }
+        
         setTimeout(() => {
             const closeMenu = (e) => {
                 // If this menu has form controls, don't close when clicking inside
@@ -37,7 +192,11 @@ export class ControlBar {
 
                 // Check if click is outside menu and button
                 if (!menu.contains(e.target) && !button.contains(e.target)) {
-                    menu.remove();
+                    if (backdrop) {
+                        this.closeMenuWithBackdrop(menu, backdrop);
+                    } else {
+                        menu.remove();
+                    }
                     document.removeEventListener('click', closeMenu);
                     document.removeEventListener('keydown', handleEscape);
                 }
@@ -45,7 +204,11 @@ export class ControlBar {
 
             const handleEscape = (e) => {
                 if (e.key === 'Escape') {
-                    menu.remove();
+                    if (backdrop) {
+                        this.closeMenuWithBackdrop(menu, backdrop);
+                    } else {
+                        menu.remove();
+                    }
                     document.removeEventListener('click', closeMenu);
                     document.removeEventListener('keydown', handleEscape);
                     // Return focus to button

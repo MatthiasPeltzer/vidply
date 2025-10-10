@@ -527,6 +527,12 @@ var VidPly = (() => {
   </svg>`,
     music: `<svg viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7zm-1.5 16c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+  </svg>`,
+    moreVertical: `<svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+  </svg>`,
+    moreHorizontal: `<svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
   </svg>`
   };
   function getIcon(name) {
@@ -846,22 +852,142 @@ var VidPly = (() => {
       this.attachEvents();
       this.setupAutoHide();
     }
+    // Helper method to check if we're on a mobile device
+    isMobile() {
+      return window.innerWidth < 640;
+    }
+    // Smart menu positioning to avoid overflow
+    positionMenu(menu, button) {
+      const isMobile = this.isMobile();
+      if (isMobile) {
+        return;
+      }
+      setTimeout(() => {
+        const buttonRect = button.getBoundingClientRect();
+        const menuRect = menu.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const spaceAbove = buttonRect.top;
+        const spaceBelow = viewportHeight - buttonRect.bottom;
+        if (spaceAbove < menuRect.height + 20 && spaceBelow > spaceAbove) {
+          menu.style.bottom = "auto";
+          menu.style.top = "calc(100% + 8px)";
+          menu.classList.add("vidply-menu-below");
+        }
+        const menuLeft = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
+        if (menuLeft < 10) {
+          menu.style.right = "auto";
+          menu.style.left = "0";
+          menu.style.transform = "translateX(0)";
+        } else if (menuLeft + menuRect.width > viewportWidth - 10) {
+          menu.style.left = "auto";
+          menu.style.right = "0";
+          menu.style.transform = "translateX(0)";
+        }
+      }, 0);
+    }
+    // Add backdrop for mobile menus
+    createBackdrop(menu) {
+      const backdrop = DOMUtils.createElement("div", {
+        className: `${this.player.options.classPrefix}-menu-backdrop visible`
+      });
+      backdrop.addEventListener("click", () => {
+        this.closeMenuWithBackdrop(menu, backdrop);
+      });
+      if (menu.parentNode) {
+        menu.parentNode.insertBefore(backdrop, menu);
+      } else {
+        this.player.container.appendChild(backdrop);
+      }
+      return backdrop;
+    }
+    // Close menu and remove backdrop
+    closeMenuWithBackdrop(menu, backdrop) {
+      if (menu && menu.parentNode) {
+        menu.remove();
+      }
+      if (backdrop && backdrop.parentNode) {
+        backdrop.remove();
+      }
+    }
+    // Add swipe-to-dismiss gesture for mobile
+    addSwipeGesture(menu) {
+      const isMobile = this.isMobile();
+      if (!isMobile) return;
+      let startY = 0;
+      let currentY = 0;
+      let isDragging = false;
+      const handleTouchStart = (e) => {
+        startY = e.touches[0].clientY;
+        isDragging = true;
+        menu.style.transition = "none";
+      };
+      const handleTouchMove = (e) => {
+        if (!isDragging) return;
+        currentY = e.touches[0].clientY;
+        const diff = currentY - startY;
+        if (diff > 0) {
+          menu.style.transform = `translateY(${diff}px)`;
+        }
+      };
+      const handleTouchEnd = () => {
+        if (!isDragging) return;
+        const diff = currentY - startY;
+        menu.style.transition = "transform 0.3s ease";
+        if (diff > 80) {
+          menu.style.transform = "translateY(100%)";
+          setTimeout(() => {
+            if (menu.parentNode) {
+              menu.remove();
+            }
+            const backdrop = document.querySelector(`.${this.player.options.classPrefix}-menu-backdrop`);
+            if (backdrop && backdrop.parentNode) {
+              backdrop.remove();
+            }
+          }, 300);
+        } else {
+          menu.style.transform = "";
+        }
+        isDragging = false;
+        startY = 0;
+        currentY = 0;
+      };
+      menu.addEventListener("touchstart", handleTouchStart, { passive: true });
+      menu.addEventListener("touchmove", handleTouchMove, { passive: true });
+      menu.addEventListener("touchend", handleTouchEnd);
+      menu._swipeHandlers = { handleTouchStart, handleTouchMove, handleTouchEnd };
+    }
     // Helper method to attach close-on-outside-click behavior to menus
     attachMenuCloseHandler(menu, button, preventCloseOnInteraction = false) {
+      this.positionMenu(menu, button);
+      this.addSwipeGesture(menu);
+      const isMobile = this.isMobile();
+      let backdrop = null;
+      if (isMobile) {
+        backdrop = this.createBackdrop(menu);
+      }
       setTimeout(() => {
         const closeMenu = (e) => {
           if (preventCloseOnInteraction && menu.contains(e.target)) {
             return;
           }
           if (!menu.contains(e.target) && !button.contains(e.target)) {
-            menu.remove();
+            if (backdrop) {
+              this.closeMenuWithBackdrop(menu, backdrop);
+            } else {
+              menu.remove();
+            }
             document.removeEventListener("click", closeMenu);
             document.removeEventListener("keydown", handleEscape);
           }
         };
         const handleEscape = (e) => {
           if (e.key === "Escape") {
-            menu.remove();
+            if (backdrop) {
+              this.closeMenuWithBackdrop(menu, backdrop);
+            } else {
+              menu.remove();
+            }
             document.removeEventListener("click", closeMenu);
             document.removeEventListener("keydown", handleEscape);
             button.focus();
@@ -2866,9 +2992,30 @@ var VidPly = (() => {
      */
     positionTranscript() {
       if (!this.transcriptWindow || !this.player.videoWrapper || !this.isVisible) return;
+      const isMobile = window.innerWidth < 640;
       const videoRect = this.player.videoWrapper.getBoundingClientRect();
       const isFullscreen = this.player.state.fullscreen;
-      if (isFullscreen) {
+      if (isMobile && !isFullscreen) {
+        this.transcriptWindow.style.position = "relative";
+        this.transcriptWindow.style.left = "0";
+        this.transcriptWindow.style.right = "0";
+        this.transcriptWindow.style.bottom = "auto";
+        this.transcriptWindow.style.top = "auto";
+        this.transcriptWindow.style.width = "100%";
+        this.transcriptWindow.style.maxWidth = "100%";
+        this.transcriptWindow.style.maxHeight = "400px";
+        this.transcriptWindow.style.height = "auto";
+        this.transcriptWindow.style.borderRadius = "0";
+        this.transcriptWindow.style.transform = "none";
+        this.transcriptWindow.style.border = "none";
+        this.transcriptWindow.style.borderTop = "1px solid var(--vidply-border-light)";
+        if (this.transcriptHeader) {
+          this.transcriptHeader.style.cursor = "default";
+        }
+        if (this.transcriptWindow.parentNode !== this.player.container) {
+          this.player.container.appendChild(this.transcriptWindow);
+        }
+      } else if (isFullscreen) {
         this.transcriptWindow.style.position = "fixed";
         this.transcriptWindow.style.left = "auto";
         this.transcriptWindow.style.right = "20px";
@@ -2876,6 +3023,14 @@ var VidPly = (() => {
         this.transcriptWindow.style.top = "auto";
         this.transcriptWindow.style.maxHeight = "calc(100vh - 180px)";
         this.transcriptWindow.style.height = "auto";
+        this.transcriptWindow.style.width = "400px";
+        this.transcriptWindow.style.maxWidth = "400px";
+        this.transcriptWindow.style.borderRadius = "8px";
+        this.transcriptWindow.style.border = "1px solid var(--vidply-border)";
+        this.transcriptWindow.style.borderTop = "";
+        if (this.transcriptWindow.parentNode !== this.player.container) {
+          this.player.container.appendChild(this.transcriptWindow);
+        }
       } else {
         this.transcriptWindow.style.position = "absolute";
         this.transcriptWindow.style.left = `${videoRect.width + 8}px`;
@@ -2884,6 +3039,17 @@ var VidPly = (() => {
         this.transcriptWindow.style.top = "0";
         this.transcriptWindow.style.height = `${videoRect.height}px`;
         this.transcriptWindow.style.maxHeight = "none";
+        this.transcriptWindow.style.width = "400px";
+        this.transcriptWindow.style.maxWidth = "400px";
+        this.transcriptWindow.style.borderRadius = "8px";
+        this.transcriptWindow.style.border = "1px solid var(--vidply-border)";
+        this.transcriptWindow.style.borderTop = "";
+        if (this.transcriptHeader) {
+          this.transcriptHeader.style.cursor = "move";
+        }
+        if (this.transcriptWindow.parentNode !== this.player.container) {
+          this.player.container.appendChild(this.transcriptWindow);
+        }
       }
     }
     /**
@@ -3054,11 +3220,21 @@ var VidPly = (() => {
         if (e.target.closest(`.${this.player.options.classPrefix}-transcript-close`)) {
           return;
         }
+        const isMobile = window.innerWidth < 640;
+        const isFullscreen = this.player.state.fullscreen;
         const touch = e.touches[0];
-        this.startDragging(touch.clientX, touch.clientY);
+        if (isMobile && !isFullscreen) {
+          return;
+        } else {
+          this.startDragging(touch.clientX, touch.clientY);
+        }
       };
       this.handlers.touchmove = (e) => {
-        if (this.isDragging) {
+        const isMobile = window.innerWidth < 640;
+        const isFullscreen = this.player.state.fullscreen;
+        if (isMobile && !isFullscreen) {
+          return;
+        } else if (this.isDragging) {
           const touch = e.touches[0];
           this.drag(touch.clientX, touch.clientY);
           e.preventDefault();
@@ -4040,6 +4216,7 @@ var VidPly = (() => {
         if (this.options.settingsButton) {
           this.settingsDialog = new SettingsDialog(this);
         }
+        this.setupResponsiveHandlers();
         if (this.options.startTime > 0) {
           this.seek(this.options.startTime);
         }
@@ -4528,6 +4705,50 @@ var VidPly = (() => {
         console[type](`[VidPly]`, message);
       }
     }
+    // Setup responsive handlers
+    setupResponsiveHandlers() {
+      if (typeof ResizeObserver !== "undefined") {
+        this.resizeObserver = new ResizeObserver((entries) => {
+          for (const entry of entries) {
+            const width = entry.contentRect.width;
+            if (this.controlBar && typeof this.controlBar.updateControlsForViewport === "function") {
+              this.controlBar.updateControlsForViewport(width);
+            }
+            if (this.transcriptManager && this.transcriptManager.isVisible) {
+              this.transcriptManager.positionTranscript();
+            }
+          }
+        });
+        this.resizeObserver.observe(this.container);
+      } else {
+        this.resizeHandler = () => {
+          const width = this.container.clientWidth;
+          if (this.controlBar && typeof this.controlBar.updateControlsForViewport === "function") {
+            this.controlBar.updateControlsForViewport(width);
+          }
+          if (this.transcriptManager && this.transcriptManager.isVisible) {
+            this.transcriptManager.positionTranscript();
+          }
+        };
+        window.addEventListener("resize", this.resizeHandler);
+      }
+      if (window.matchMedia) {
+        this.orientationHandler = (e) => {
+          setTimeout(() => {
+            if (this.transcriptManager && this.transcriptManager.isVisible) {
+              this.transcriptManager.positionTranscript();
+            }
+          }, 100);
+        };
+        const orientationQuery = window.matchMedia("(orientation: portrait)");
+        if (orientationQuery.addEventListener) {
+          orientationQuery.addEventListener("change", this.orientationHandler);
+        } else if (orientationQuery.addListener) {
+          orientationQuery.addListener(this.orientationHandler);
+        }
+        this.orientationQuery = orientationQuery;
+      }
+    }
     // Cleanup
     destroy() {
       this.log("Destroying player");
@@ -4550,6 +4771,23 @@ var VidPly = (() => {
         this.transcriptManager.destroy();
       }
       this.cleanupSignLanguage();
+      if (this.resizeObserver) {
+        this.resizeObserver.disconnect();
+        this.resizeObserver = null;
+      }
+      if (this.resizeHandler) {
+        window.removeEventListener("resize", this.resizeHandler);
+        this.resizeHandler = null;
+      }
+      if (this.orientationQuery && this.orientationHandler) {
+        if (this.orientationQuery.removeEventListener) {
+          this.orientationQuery.removeEventListener("change", this.orientationHandler);
+        } else if (this.orientationQuery.removeListener) {
+          this.orientationQuery.removeListener(this.orientationHandler);
+        }
+        this.orientationQuery = null;
+        this.orientationHandler = null;
+      }
       if (this.container && this.container.parentNode) {
         this.container.parentNode.insertBefore(this.element, this.container);
         this.container.parentNode.removeChild(this.container);
