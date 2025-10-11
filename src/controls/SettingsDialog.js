@@ -112,6 +112,21 @@ export class SettingsDialog {
     });
   }
 
+  formatSpeedLabel(speed) {
+    // Special case: 1x is "Normal" (translated)
+    if (speed === 1) {
+      return i18n.t('speeds.normal');
+    }
+    
+    // For other speeds, format with locale-specific decimal separator
+    const speedStr = speed.toLocaleString(i18n.getLanguage(), {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
+    
+    return `${speedStr}×`;
+  }
+
   createSpeedSettings() {
     const section = DOMUtils.createElement('div', {
       className: `${this.player.options.classPrefix}-settings-section`
@@ -135,7 +150,7 @@ export class SettingsDialog {
     
     speeds.forEach(speed => {
       const option = DOMUtils.createElement('option', {
-        textContent: i18n.t(`speeds.${speed}`) || `${speed}x`,
+        textContent: this.formatSpeedLabel(speed),
         attributes: {
           'value': String(speed)
         }
@@ -215,17 +230,17 @@ export class SettingsDialog {
 
     // Font size
     section.appendChild(this.createCaptionStyleControl('fontSize', i18n.t('captions.fontSize'), [
-      { label: 'Small', value: '80%' },
-      { label: 'Medium', value: '100%' },
-      { label: 'Large', value: '120%' },
-      { label: 'X-Large', value: '150%' }
+      { label: i18n.t('fontSizes.small'), value: '80%' },
+      { label: i18n.t('fontSizes.medium'), value: '100%' },
+      { label: i18n.t('fontSizes.large'), value: '120%' },
+      { label: i18n.t('fontSizes.xlarge'), value: '150%' }
     ]));
 
     // Font family
     section.appendChild(this.createCaptionStyleControl('fontFamily', i18n.t('captions.fontFamily'), [
-      { label: 'Sans-serif', value: 'sans-serif' },
-      { label: 'Serif', value: 'serif' },
-      { label: 'Monospace', value: 'monospace' }
+      { label: i18n.t('fontFamilies.sansSerif'), value: 'sans-serif' },
+      { label: i18n.t('fontFamilies.serif'), value: 'serif' },
+      { label: i18n.t('fontFamilies.monospace'), value: 'monospace' }
     ]));
 
     // Color controls
