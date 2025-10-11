@@ -389,32 +389,72 @@ export class Player extends EventEmitter {
   }
 
   createPlayButtonOverlay() {
-    // Create overlay button
-    this.playButtonOverlay = DOMUtils.createElement('button', {
-      className: `${this.options.classPrefix}-play-overlay`,
-      attributes: {
-        'type': 'button',
-        'aria-hidden': 'true',
-        'tabindex': '-1'
-      }
-    });
-    
-    // Create icon (play icon)
-    const playIcon = DOMUtils.createElement('span', {
-      className: `${this.options.classPrefix}-play-overlay-icon`
-    });
-    
-    // Create SVG play icon
+    // Create complete SVG play button
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 24 24');
-    svg.setAttribute('fill', 'currentColor');
+    svg.setAttribute('class', `${this.options.classPrefix}-play-overlay`);
+    svg.setAttribute('viewBox', '0 0 80 80');
+    svg.setAttribute('width', '80');
+    svg.setAttribute('height', '80');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('role', 'presentation');
+    svg.style.cursor = 'pointer';
     
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', 'M8 5v14l11-7z');
+    // Create filter for drop shadow
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    filter.setAttribute('id', `vidply-play-shadow-${Math.random().toString(36).substr(2, 9)}`);
+    filter.setAttribute('x', '-50%');
+    filter.setAttribute('y', '-50%');
+    filter.setAttribute('width', '200%');
+    filter.setAttribute('height', '200%');
     
-    svg.appendChild(path);
-    playIcon.appendChild(svg);
-    this.playButtonOverlay.appendChild(playIcon);
+    const feGaussianBlur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+    feGaussianBlur.setAttribute('in', 'SourceAlpha');
+    feGaussianBlur.setAttribute('stdDeviation', '3');
+    
+    const feOffset = document.createElementNS('http://www.w3.org/2000/svg', 'feOffset');
+    feOffset.setAttribute('dx', '0');
+    feOffset.setAttribute('dy', '2');
+    feOffset.setAttribute('result', 'offsetblur');
+    
+    const feComponentTransfer = document.createElementNS('http://www.w3.org/2000/svg', 'feComponentTransfer');
+    const feFuncA = document.createElementNS('http://www.w3.org/2000/svg', 'feFuncA');
+    feFuncA.setAttribute('type', 'linear');
+    feFuncA.setAttribute('slope', '0.3');
+    feComponentTransfer.appendChild(feFuncA);
+    
+    const feMerge = document.createElementNS('http://www.w3.org/2000/svg', 'feMerge');
+    const feMergeNode1 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+    const feMergeNode2 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+    feMergeNode2.setAttribute('in', 'SourceGraphic');
+    feMerge.appendChild(feMergeNode1);
+    feMerge.appendChild(feMergeNode2);
+    
+    filter.appendChild(feGaussianBlur);
+    filter.appendChild(feOffset);
+    filter.appendChild(feComponentTransfer);
+    filter.appendChild(feMerge);
+    defs.appendChild(filter);
+    svg.appendChild(defs);
+    
+    // White circle background
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', '40');
+    circle.setAttribute('cy', '40');
+    circle.setAttribute('r', '40');
+    circle.setAttribute('fill', 'rgba(255, 255, 255, 0.95)');
+    circle.setAttribute('filter', `url(#${filter.id})`);
+    circle.setAttribute('class', `${this.options.classPrefix}-play-overlay-bg`);
+    svg.appendChild(circle);
+    
+    // Play icon triangle (centered with optical adjustment)
+    const playTriangle = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    playTriangle.setAttribute('points', '32,28 32,52 54,40');
+    playTriangle.setAttribute('fill', '#0a406e');
+    playTriangle.setAttribute('class', `${this.options.classPrefix}-play-overlay-icon`);
+    svg.appendChild(playTriangle);
+    
+    this.playButtonOverlay = svg;
     
     // Add click handler
     this.playButtonOverlay.addEventListener('click', () => {
