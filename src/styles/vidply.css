@@ -380,7 +380,6 @@
 .vidply-controls-left,
 .vidply-controls-right {
     position: relative;
-    z-index: 1;
     display: flex;
     overflow: visible;
     align-items: center;
