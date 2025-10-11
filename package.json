@@ -39,7 +39,7 @@
   "license": "GPL-2.0-or-later",
   "repository": {
     "type": "git",
-    "url": "https://github.com/MatthiasPeltzer/vidply.git"
+    "url": "git+https://github.com/MatthiasPeltzer/vidply.git"
   },
   "bugs": {
     "url": "https://github.com/MatthiasPeltzer/vidply/issues",
