@@ -4444,7 +4444,7 @@ var VidPly = (() => {
         attributes: {
           "role": "region",
           "aria-label": i18n.t("player.label"),
-          "tabindex": "-1"
+          "tabindex": "0"
         }
       });
       const mediaType = this.element.tagName.toLowerCase();
@@ -4460,6 +4460,7 @@ var VidPly = (() => {
       this.videoWrapper.appendChild(this.element);
       this.element.controls = false;
       this.element.removeAttribute("controls");
+      this.element.setAttribute("tabindex", "-1");
       this.element.style.width = "100%";
       this.element.style.height = "100%";
       if (this.options.width) {
@@ -4471,6 +4472,52 @@ var VidPly = (() => {
       if (this.options.poster && this.element.tagName === "VIDEO") {
         this.element.poster = this.options.poster;
       }
+      if (this.element.tagName === "VIDEO") {
+        this.createPlayButtonOverlay();
+      }
+      this.element.style.cursor = "pointer";
+      this.element.addEventListener("click", (e) => {
+        if (e.target === this.element) {
+          this.toggle();
+        }
+      });
+    }
+    createPlayButtonOverlay() {
+      this.playButtonOverlay = DOMUtils.createElement("button", {
+        className: `${this.options.classPrefix}-play-overlay`,
+        attributes: {
+          "type": "button",
+          "aria-hidden": "true",
+          "tabindex": "-1"
+        }
+      });
+      const playIcon = DOMUtils.createElement("span", {
+        className: `${this.options.classPrefix}-play-overlay-icon`
+      });
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.setAttribute("fill", "currentColor");
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", "M8 5v14l11-7z");
+      svg.appendChild(path);
+      playIcon.appendChild(svg);
+      this.playButtonOverlay.appendChild(playIcon);
+      this.playButtonOverlay.addEventListener("click", () => {
+        this.toggle();
+      });
+      this.videoWrapper.appendChild(this.playButtonOverlay);
+      this.on("play", () => {
+        this.playButtonOverlay.style.opacity = "0";
+        this.playButtonOverlay.style.pointerEvents = "none";
+      });
+      this.on("pause", () => {
+        this.playButtonOverlay.style.opacity = "1";
+        this.playButtonOverlay.style.pointerEvents = "auto";
+      });
+      this.on("ended", () => {
+        this.playButtonOverlay.style.opacity = "1";
+        this.playButtonOverlay.style.pointerEvents = "auto";
+      });
     }
     async initializeRenderer() {
       var _a;
@@ -4972,6 +5019,10 @@ var VidPly = (() => {
         this.transcriptManager.destroy();
       }
       this.cleanupSignLanguage();
+      if (this.playButtonOverlay && this.playButtonOverlay.parentNode) {
+        this.playButtonOverlay.remove();
+        this.playButtonOverlay = null;
+      }
       if (this.resizeObserver) {
         this.resizeObserver.disconnect();
         this.resizeObserver = null;
