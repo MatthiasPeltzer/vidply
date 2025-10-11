@@ -1,6 +1,6 @@
 {
   "name": "vidply",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Universal, accessible video & audio player with ES6 modules",
   "type": "module",
   "main": "dist/vidply.js",
@@ -42,7 +42,8 @@
     "url": "https://github.com/MatthiasPeltzer/vidply.git"
   },
   "bugs": {
-    "url": "https://github.com/MatthiasPeltzer/vidply/issues"
+    "url": "https://github.com/MatthiasPeltzer/vidply/issues",
+    "email": "vidply@mpeltzer.de"
   },
   "homepage": "https://github.com/MatthiasPeltzer/vidply#readme",
   "devDependencies": {
