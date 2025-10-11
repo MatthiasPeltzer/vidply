@@ -7,28 +7,28 @@
     /* Primary Brand Colors */
     --vidply-active-bg: var(--vidply-white-05);
     --vidply-bg-caption: var(--vidply-black-80);
-    --vidply-bg-controls: linear-gradient(180deg, rgba(var(--vidply-black-rgb), 0) 0%, rgba(var(--vidply-black-rgb), 0.9) 100%);
-    --vidply-bg-dialog: rgba(20, 20, 20, 0.98);
-    --vidply-bg-dialog-dark: rgba(18, 18, 18, 0.98);
+    --vidply-bg-controls: linear-gradient(180deg, rgb(var(--vidply-black-rgb), 0) 0%, rgb(var(--vidply-black-rgb), 0.9) 100%);
+    --vidply-bg-dialog: rgb(20 20 20 / 98%);
+    --vidply-bg-dialog-dark: rgb(18 18 18 / 98%);
 
     /* Primary Color Variations */
-    --vidply-bg-menu: rgba(20, 20, 20, 0.98);
+    --vidply-bg-menu: rgb(20 20 20 / 98%);
     --vidply-bg-menu-rgb: 20, 20, 20;
     --vidply-bg-overlay: var(--vidply-black-80);
     --vidply-bg-playlist: #1a1a1a;
     --vidply-bg-playlist-header: var(--vidply-black-40);
     --vidply-bg-track-info: linear-gradient(180deg, var(--vidply-black-80) 0%, var(--vidply-black-60) 100%);
-    --vidply-bg-transcript: rgba(30, 30, 30, 0.98);
-    --vidply-black: #000000;
-    --vidply-black-30: rgba(var(--vidply-black-rgb), 0.3);
-    --vidply-black-40: rgba(var(--vidply-black-rgb), 0.4);
+    --vidply-bg-transcript: rgb(30 30 30 / 98%);
+    --vidply-black: #000;
+    --vidply-black-30: rgb(var(--vidply-black-rgb), 0.3);
+    --vidply-black-40: rgb(var(--vidply-black-rgb), 0.4);
 
     /* White Color Variations */
-    --vidply-black-50: rgba(var(--vidply-black-rgb), 0.5);
-    --vidply-black-60: rgba(var(--vidply-black-rgb), 0.6);
-    --vidply-black-80: rgba(var(--vidply-black-rgb), 0.8);
-    --vidply-black-90: rgba(var(--vidply-black-rgb), 0.9);
-    --vidply-black-98: rgba(var(--vidply-black-rgb), 0.98);
+    --vidply-black-50: rgb(var(--vidply-black-rgb), 0.5);
+    --vidply-black-60: rgb(var(--vidply-black-rgb), 0.6);
+    --vidply-black-80: rgb(var(--vidply-black-rgb), 0.8);
+    --vidply-black-90: rgb(var(--vidply-black-rgb), 0.9);
+    --vidply-black-98: rgb(var(--vidply-black-rgb), 0.98);
     --vidply-black-rgb: 0, 0, 0;
     --vidply-border: var(--vidply-white-15);
     --vidply-border-focus: var(--vidply-primary);
@@ -38,18 +38,18 @@
     --vidply-focus-outline-white: 2px solid var(--vidply-primary-light);
     --vidply-hover-bg: var(--vidply-white-10);
     --vidply-primary: #0a406e;
-    --vidply-primary-10: rgba(var(--vidply-primary-rgb), 0.1);
-    --vidply-primary-15: rgba(var(--vidply-primary-rgb), 0.15);
+    --vidply-primary-10: rgb(var(--vidply-primary-rgb), 0.1);
+    --vidply-primary-15: rgb(var(--vidply-primary-rgb), 0.15);
 
     /* Black Color Variations */
-    --vidply-primary-20: rgba(var(--vidply-primary-rgb), 0.2);
-    --vidply-primary-25: rgba(var(--vidply-primary-rgb), 0.25);
-    --vidply-primary-30: rgba(var(--vidply-primary-rgb), 0.3);
-    --vidply-primary-40: rgba(var(--vidply-primary-rgb), 0.4);
-    --vidply-primary-50: rgba(var(--vidply-primary-rgb), 0.5);
-    --vidply-primary-60: rgba(var(--vidply-primary-rgb), 0.6);
-    --vidply-primary-70: rgba(var(--vidply-primary-rgb), 0.7);
-    --vidply-primary-80: rgba(var(--vidply-primary-rgb), 0.8);
+    --vidply-primary-20: rgb(var(--vidply-primary-rgb), 0.2);
+    --vidply-primary-25: rgb(var(--vidply-primary-rgb), 0.25);
+    --vidply-primary-30: rgb(var(--vidply-primary-rgb), 0.3);
+    --vidply-primary-40: rgb(var(--vidply-primary-rgb), 0.4);
+    --vidply-primary-50: rgb(var(--vidply-primary-rgb), 0.5);
+    --vidply-primary-60: rgb(var(--vidply-primary-rgb), 0.6);
+    --vidply-primary-70: rgb(var(--vidply-primary-rgb), 0.7);
+    --vidply-primary-80: rgb(var(--vidply-primary-rgb), 0.8);
     --vidply-primary-dark: #083358;
 
     /* UI Background Colors */
@@ -66,46 +66,46 @@
     --vidply-text-subtle: var(--vidply-white-50);
 
     /* Border Colors */
-    --vidply-white: #ffffff;
-    --vidply-white-05: rgba(var(--vidply-white-rgb), 0.05);
-    --vidply-white-08: rgba(var(--vidply-white-rgb), 0.08);
-    --vidply-white-10: rgba(var(--vidply-white-rgb), 0.1);
+    --vidply-white: #fff;
+    --vidply-white-05: rgb(var(--vidply-white-rgb), 0.05);
+    --vidply-white-08: rgb(var(--vidply-white-rgb), 0.08);
+    --vidply-white-10: rgb(var(--vidply-white-rgb), 0.1);
 
     /* Shadow Colors */
-    --vidply-white-15: rgba(var(--vidply-white-rgb), 0.15);
-    --vidply-white-20: rgba(var(--vidply-white-rgb), 0.2);
-    --vidply-white-25: rgba(var(--vidply-white-rgb), 0.25);
+    --vidply-white-15: rgb(var(--vidply-white-rgb), 0.15);
+    --vidply-white-20: rgb(var(--vidply-white-rgb), 0.2);
+    --vidply-white-25: rgb(var(--vidply-white-rgb), 0.25);
 
     /* Text Colors */
-    --vidply-white-30: rgba(var(--vidply-white-rgb), 0.3);
-    --vidply-white-40: rgba(var(--vidply-white-rgb), 0.4);
-    --vidply-white-50: rgba(var(--vidply-white-rgb), 0.5);
-    --vidply-white-60: rgba(var(--vidply-white-rgb), 0.6);
-    --vidply-white-70: rgba(var(--vidply-white-rgb), 0.7);
+    --vidply-white-30: rgb(var(--vidply-white-rgb), 0.3);
+    --vidply-white-40: rgb(var(--vidply-white-rgb), 0.4);
+    --vidply-white-50: rgb(var(--vidply-white-rgb), 0.5);
+    --vidply-white-60: rgb(var(--vidply-white-rgb), 0.6);
+    --vidply-white-70: rgb(var(--vidply-white-rgb), 0.7);
 
     /* State Colors */
-    --vidply-white-80: rgba(var(--vidply-white-rgb), 0.8);
-    --vidply-white-90: rgba(var(--vidply-white-rgb), 0.9);
-    --vidply-white-95: rgba(var(--vidply-white-rgb), 0.95);
+    --vidply-white-80: rgb(var(--vidply-white-rgb), 0.8);
+    --vidply-white-90: rgb(var(--vidply-white-rgb), 0.9);
+    --vidply-white-95: rgb(var(--vidply-white-rgb), 0.95);
     --vidply-white-rgb: 255, 255, 255;
 }
 
 /* Reset and Base Styles */
 .vidply-player {
+    background: var(--vidply-black);
+    box-sizing: border-box;
+    color: var(--vidply-text-primary);
+    contain: layout style;
+    display: flex;
+    flex-direction: column;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-size: 14px;
     line-height: 1.5;
-    position: relative;
-    display: flex;
-    overflow: visible;
-    flex-direction: column;
-    box-sizing: border-box;
-    width: 100%;
     max-width: 100%;
-    color: var(--vidply-text-primary);
-    background: var(--vidply-black);
-    contain: layout style;
-    -webkit-text-size-adjust: 100%;
+    overflow: visible;
+    position: relative;
+    text-size-adjust: 100%;
+    width: 100%;
 }
 
 /* Player Focus Outline */
@@ -124,10 +124,10 @@
 }
 
 /* Mobile: Ensure player contains all elements properly */
-@media (max-width: 640px) {
+@media (width <= 640px) {
     .vidply-player {
-        overflow: visible; /* Allow menus to overflow but within bounds */
         isolation: isolate; /* Create stacking context */
+        overflow: visible; /* Allow menus to overflow but within bounds */
     }
 }
 
@@ -140,27 +140,27 @@
 /* Responsive container */
 
 .vidply-player.vidply-audio {
-    height: auto;
-    background: linear-gradient(135deg, var(--vidply-primary-20) 0%, rgba(var(--vidply-primary-dark-rgb), 0.2) 100%);
     aspect-ratio: auto;
+    background: linear-gradient(135deg, var(--vidply-primary-20) 0%, rgb(var(--vidply-primary-dark-rgb), 0.2) 100%);
+    height: auto;
 }
 
 /* Video/Audio Element */
 .vidply-player video,
 .vidply-player audio {
     display: block;
-    width: 100%;
     height: 100%;
     object-fit: contain;
+    width: 100%;
 }
 
 /* Mobile: Video element order and sizing */
-@media (max-width: 640px) {
+@media (width <= 640px) {
     .vidply-player video,
     .vidply-player audio {
         flex: 0 0 auto; /* Don't grow or shrink */
-        order: 1; /* Before controls */
         height: auto;
+        order: 1; /* Before controls */
     }
 }
 
@@ -179,21 +179,21 @@
 
 /* Video wrapper for proper clipping */
 .vidply-video-wrapper {
-    position: relative;
-    z-index: 10; /* Above track-info and playlist siblings */
-    overflow: hidden;
-    order: 1; /* First in flex order */
-    width: 100%;
-    height: 100%;
     background: linear-gradient(135deg, var(--vidply-black) 0%, #2a2a2a 100%);
+    height: 100%;
+    order: 1; /* First in flex order */
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    z-index: 10; /* Above track-info and playlist siblings */
 }
 
 /* Mobile: Simplify video wrapper */
-@media (max-width: 640px) {
+@media (width <= 640px) {
     .vidply-video-wrapper {
         display: block;
-        overflow: visible;
         height: auto;
+        overflow: visible;
     }
 }
 
@@ -209,23 +209,23 @@
 
 /* Centered Play Button Overlay */
 .vidply-play-overlay {
+    cursor: pointer;
+    filter: drop-shadow(0 8px 32px rgb(0 0 0 / 30%));
+    left: 50%;
     position: absolute;
     top: 50%;
-    left: 50%;
-    z-index: 15;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     transform: translate(-50%, -50%);
-    filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.3));
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 15;
 }
 
 .vidply-play-overlay:hover {
+    filter: drop-shadow(0 12px 48px rgb(0 0 0 / 40%));
     transform: translate(-50%, -50%) scale(1.1);
-    filter: drop-shadow(0 12px 48px rgba(0, 0, 0, 0.4));
 }
 
 .vidply-play-overlay:hover .vidply-play-overlay-bg {
-    fill: rgba(255, 255, 255, 1);
+    fill: rgb(255 255 255 / 100%);
 }
 
 .vidply-play-overlay:active {
@@ -239,49 +239,49 @@
 
 /* Controls Container */
 .vidply-controls {
-    position: absolute;
-    z-index: 10;
-    right: 0;
+    background: linear-gradient(to top, var(--vidply-black-90) 0%, var(--vidply-black-50) 100%);
     bottom: 0;
     left: 0;
+    opacity: 0;
     overflow: visible;
     padding: 20px 16px 16px;
-    transition: opacity 0.3s ease;
     pointer-events: none;
-    opacity: 0;
-    background: linear-gradient(to top, var(--vidply-black-90) 0%, var(--vidply-black-50) 100%);
+    position: absolute;
+    right: 0;
+    transition: opacity 0.3s ease;
+    z-index: 10;
 }
 
 .vidply-controls.vidply-controls-visible,
 .vidply-player:hover .vidply-controls,
 .vidply-player.vidply-paused .vidply-controls {
-    pointer-events: auto;
     opacity: 1;
+    pointer-events: auto;
 }
 
 /* For audio players, always show controls */
 .vidply-audio .vidply-controls {
-    position: relative;
-    pointer-events: auto;
-    opacity: 1;
     background: var(--vidply-black-50);
+    opacity: 1;
+    pointer-events: auto;
+    position: relative;
 }
 
 /* Mobile: Controls underneath video */
-@media (max-width: 640px) {
+@media (width <= 640px) {
     .vidply-controls {
-        position: relative;
-        z-index: 100;
-        right: 0;
+        background: var(--vidply-black-90);
+        border-top: 1px solid var(--vidply-border-light);
         bottom: auto;
         left: 0;
+        opacity: 1;
         order: 2; /* After video-wrapper (1) */
-        width: 100%;
         padding: 12px;
         pointer-events: auto;
-        opacity: 1;
-        border-top: 1px solid var(--vidply-border-light);
-        background: var(--vidply-black-90);
+        position: relative;
+        right: 0;
+        width: 100%;
+        z-index: 100;
     }
 
     /* Allow menus to position within controls */
@@ -294,14 +294,14 @@
 
 /* Progress Bar */
 .vidply-progress-container {
-    position: relative;
-    width: 100%;
+    background: var(--vidply-white-20);
+    border-radius: 3px;
+    cursor: pointer;
     height: 5px;
     margin-bottom: 12px;
-    cursor: pointer;
+    position: relative;
     transition: height 0.2s ease;
-    border-radius: 3px;
-    background: var(--vidply-white-20);
+    width: 100%;
 }
 
 .vidply-progress-container:hover,
@@ -315,39 +315,39 @@
 }
 
 .vidply-progress-buffered {
+    background: var(--vidply-white-40);
+    border-radius: 3px;
+    height: 100%;
+    left: 0;
     position: absolute;
     top: 0;
-    left: 0;
-    width: 0;
-    height: 100%;
     transition: width 0.2s ease;
-    border-radius: 3px;
-    background: var(--vidply-white-40);
+    width: 0;
 }
 
 .vidply-progress-played {
+    background: var(--vidply-primary-light);
+    border-radius: 3px;
+    height: 100%;
+    left: 0;
     position: absolute;
     top: 0;
-    left: 0;
-    width: 0;
-    height: 100%;
     transition: width 0.1s linear;
-    border-radius: 3px;
-    background: var(--vidply-primary-light);
+    width: 0;
 }
 
 .vidply-progress-handle {
-    position: absolute;
-    top: 50%;
-    right: -6px;
-    width: 12px;
-    height: 12px;
-    transition: opacity 0.2s ease;
-    transform: translateY(-50%);
-    opacity: 0;
-    border-radius: 50%;
     background: var(--vidply-white);
+    border-radius: 50%;
     box-shadow: var(--vidply-shadow-sm);
+    height: 12px;
+    opacity: 0;
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: opacity 0.2s ease;
+    width: 12px;
 }
 
 .vidply-progress-container:hover .vidply-progress-handle,
@@ -356,52 +356,52 @@
 }
 
 .vidply-progress-tooltip {
-    font-size: 12px;
-    position: absolute;
+    background: var(--vidply-black-90);
+    border-radius: 4px;
     bottom: 12px;
+    color: var(--vidply-white);
     display: none;
+    font-size: 12px;
     padding: 4px 8px;
+    pointer-events: none;
+    position: absolute;
     transform: translateX(-50%);
     white-space: nowrap;
-    pointer-events: none;
-    color: var(--vidply-white);
-    border-radius: 4px;
-    background: var(--vidply-black-90);
 }
 
 /* Button Container */
 .vidply-controls-buttons {
-    display: flex;
     align-items: center;
-    justify-content: space-between;
+    display: flex;
     gap: 8px;
+    justify-content: space-between;
 }
 
 .vidply-controls-left,
 .vidply-controls-right {
-    position: relative;
-    display: flex;
-    overflow: visible;
     align-items: center;
+    display: flex;
     gap: 8px;
+    overflow: visible;
+    position: relative;
 }
 
 
 /* Buttons */
 .vidply-button {
-    position: relative;
-    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    min-width: 32px;
-    min-height: 32px;
-    padding: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    color: var(--vidply-white);
+    background: transparent;
     border: none;
     border-radius: 4px;
-    background: transparent;
+    color: var(--vidply-white);
+    cursor: pointer;
+    display: inline-flex;
+    justify-content: center;
+    min-height: 32px;
+    min-width: 32px;
+    padding: 6px;
+    position: relative;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .vidply-button:hover {
@@ -429,26 +429,26 @@
 /* Icons */
 .vidply-icon {
     display: inline-block;
-    width: 26px;
+    fill: currentcolor;
     height: 26px;
-    fill: currentColor;
+    width: 26px;
 }
 
 .vidply-icon svg {
     display: block;
-    width: 100%;
     height: 100%;
+    width: 100%;
 }
 
 /* Volume Control */
 .vidply-volume-slider {
-    position: relative;
-    width: 6px;
+    background: var(--vidply-white-20);
+    border-radius: 3px;
+    cursor: pointer;
     height: 100px;
     margin: 0 auto;
-    cursor: pointer;
-    border-radius: 3px;
-    background: var(--vidply-white-20);
+    position: relative;
+    width: 6px;
 }
 
 .vidply-volume-slider:focus {
@@ -457,44 +457,44 @@
 }
 
 .vidply-volume-track {
+    height: 100%;
     position: relative;
     width: 100%;
-    height: 100%;
 }
 
 .vidply-volume-fill {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 80%;
-    transition: height 0.1s ease;
-    border-radius: 2px;
     background: var(--vidply-primary-light);
+    border-radius: 2px;
+    bottom: 0;
+    height: 80%;
+    left: 0;
+    position: absolute;
+    transition: height 0.1s ease;
+    width: 100%;
 }
 
 .vidply-volume-handle {
+    background: var(--vidply-white);
+    border-radius: 50%;
+    box-shadow: var(--vidply-shadow-sm);
+    height: 10px;
+    left: 50%;
     position: absolute;
     top: -4px;
-    left: 50%;
-    width: 10px;
-    height: 10px;
     transform: translateX(-50%);
-    border-radius: 50%;
-    background: var(--vidply-white);
-    box-shadow: var(--vidply-shadow-sm);
+    width: 10px;
 }
 
 /* Time Display */
 .vidply-time {
-    font-size: 13px;
-    display: flex;
     align-items: center;
-    padding: 0 4px;
-    user-select: none;
-    color: #ffffff;
+    color: #fff;
+    display: flex;
+    font-size: 13px;
     font-variant-numeric: tabular-nums;
     gap: 4px;
+    padding: 0 4px;
+    user-select: none;
 }
 
 /* Speed Button */
@@ -510,15 +510,15 @@
 
 /* Menu Backdrop (for mobile) */
 .vidply-menu-backdrop {
-    position: fixed;
-    z-index: 999;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    display: none;
     animation: fadeIn 0.2s ease;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgb(0 0 0 / 50%);
+    bottom: 0;
+    display: none;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 999;
 }
 
 .vidply-menu-backdrop.visible {
@@ -526,7 +526,7 @@
 }
 
 /* Mobile: Don't use backdrop, menus position above buttons */
-@media (max-width: 640px) {
+@media (width <= 640px) {
     .vidply-menu-backdrop {
         display: none !important;
     }
@@ -536,6 +536,7 @@
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -543,95 +544,97 @@
 
 /* Menus */
 .vidply-menu {
-    position: absolute;
-    z-index: 1000;
-    right: 50%;
-    bottom: calc(100% + 8px);
-    overflow-y: auto;
-    min-width: 200px;
-    max-height: 250px;
-    padding: 8px 0;
-    transform: translateX(50%);
+    backdrop-filter: blur(10px);
+    background: var(--vidply-bg-menu);
     border: 1px solid var(--vidply-border);
     border-radius: 8px;
-    background: var(--vidply-bg-menu);
+    bottom: calc(100% + 8px);
     box-shadow: var(--vidply-shadow-lg), 0 0 0 1px var(--vidply-white-10);
-    backdrop-filter: blur(10px);
-    /* iOS momentum scrolling */
+    max-height: 250px;
+    min-width: 200px;
     -webkit-overflow-scrolling: touch;
-    /* Ensure touch events work on iOS */
+    overflow-y: auto;
+    padding: 8px 0;
+    position: absolute;
+    right: 50%;
     touch-action: pan-y;
+
+    /* iOS momentum scrolling */
+    transform: translateX(50%);
+
+    /* Ensure touch events work on iOS */
+    z-index: 1000;
 }
 
 /* Menu positioned below button */
 .vidply-menu.vidply-menu-below::after {
-    top: -6px;
-    bottom: auto;
-    border-top: none;
     border-bottom: 6px solid var(--vidply-bg-menu);
+    border-top: none;
+    bottom: auto;
+    top: -6px;
 }
 
 /* Arrow pointing to button */
 .vidply-menu::after {
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--vidply-bg-menu);
+    bottom: -6px;
+    content: '';
+    height: 0;
     position: absolute;
     right: 50%;
-    bottom: -6px;
-    width: 0;
-    height: 0;
-    content: '';
     transform: translateX(50%);
-    border-top: 6px solid var(--vidply-bg-menu);
-    border-right: 6px solid transparent;
-    border-left: 6px solid transparent;
+    width: 0;
 }
 
 /* Volume menu popup */
 .vidply-volume-menu {
-    overflow-y: hidden;
-    width: 50px;
     min-width: 50px;
+    overflow-y: hidden;
     padding: 16px 12px;
+    width: 50px;
 }
 
 /* For audio players, show menus below buttons */
 .vidply-player.vidply-audio .vidply-menu {
-    top: calc(100% + 8px);
     bottom: auto;
+    top: calc(100% + 8px);
 }
 
 .vidply-player.vidply-audio .vidply-menu::after {
-    top: -6px;
-    bottom: auto;
-    border-top: none;
     border-bottom: 6px solid var(--vidply-bg-menu);
+    border-top: none;
+    bottom: auto;
+    top: -6px;
 }
 
 .vidply-menu-item {
+    align-items: center;
+    background: transparent;
+    border: none;
+    color: var(--vidply-white);
+    cursor: pointer;
+    display: flex;
     font-size: 14px;
     font-weight: 400;
-    display: flex;
-    align-items: center;
     justify-content: space-between;
-    width: 100%;
     padding: 12px 16px;
-    cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease;
     text-align: left;
+    transition: background-color 0.15s ease, color 0.15s ease;
     white-space: nowrap;
-    color: var(--vidply-white);
-    border: none;
-    background: transparent;
+    width: 100%;
 }
 
 .vidply-menu-item:hover {
-    color: var(--vidply-white);
     background: var(--vidply-primary-20);
+    color: var(--vidply-white);
 }
 
 .vidply-menu-item:focus {
+    background: var(--vidply-primary-25);
     color: var(--vidply-white);
     outline: none;
-    background: var(--vidply-primary-25);
 }
 
 .vidply-menu-item:active {
@@ -651,66 +654,66 @@
 }
 
 .vidply-menu-item-active {
-    color: var(--vidply-primary-light);
     background: var(--vidply-primary-15);
+    color: var(--vidply-primary-light);
 }
 
 .vidply-menu-item-active .vidply-icon {
-    width: 20px;
-    height: 20px;
     color: var(--vidply-primary-light);
+    height: 20px;
+    width: 20px;
 }
 
 .vidply-menu-item-with-value {
-    display: flex;
     align-items: center;
-    justify-content: space-between;
+    display: flex;
     gap: 20px;
+    justify-content: space-between;
 }
 
 .vidply-menu-item-label {
-    display: flex;
     align-items: center;
+    display: flex;
     flex: 1;
     gap: 10px;
 }
 
 .vidply-menu-item-label .vidply-icon {
-    width: 24px;
     height: 24px;
     opacity: 0.9;
+    width: 24px;
 }
 
 .vidply-menu-item-value {
+    background: var(--vidply-white-10);
+    border-radius: 4px;
+    color: var(--vidply-text-muted);
     font-size: 13px;
     font-weight: 500;
     padding: 2px 8px;
     white-space: nowrap;
-    color: var(--vidply-text-muted);
-    border-radius: 4px;
-    background: var(--vidply-white-10);
 }
 
 /* Chapter menu specific */
 .vidply-chapter-time {
+    color: var(--vidply-text-muted);
+    display: inline-block;
     font-family: 'Courier New', monospace;
     font-size: 13px;
     font-weight: 500;
-    display: inline-block;
-    min-width: 60px;
     margin-right: 12px;
-    color: var(--vidply-text-muted);
+    min-width: 60px;
 }
 
 .vidply-chapter-title {
-    flex: 1;
     color: var(--vidply-white-95);
+    flex: 1;
 }
 
 /* Caption style menu */
 .vidply-caption-style-menu.vidply-settings-menu {
-    padding: 16px;
     background: var(--vidply-bg-menu);
+    padding: 16px;
 }
 
 .vidply-style-group {
@@ -734,23 +737,23 @@
 }
 
 .vidply-style-select {
-    transition: border-color 0.2s ease, background 0.2s ease;
     outline: none;
+    transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .vidply-style-select:hover {
-    border-color: var(--vidply-border-hover);
     background: var(--vidply-white-15);
+    border-color: var(--vidply-border-hover);
 }
 
 .vidply-style-select:focus {
-    border-color: var(--vidply-border-focus);
     background: var(--vidply-white-15);
+    border-color: var(--vidply-border-focus);
 }
 
 .vidply-style-group input[type="color"] {
-    transition: border-color 0.2s ease;
     outline: none;
+    transition: border-color 0.2s ease;
 }
 
 .vidply-style-group input[type="color"]:hover {
@@ -762,123 +765,133 @@
 }
 
 .vidply-style-group input[type="range"]::-webkit-slider-thumb {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    transition: transform 0.15s ease, background 0.15s ease;
-    border: 2px solid var(--vidply-white);
-    border-radius: 50%;
-    background: var(--vidply-primary);
-    box-shadow: var(--vidply-shadow-sm);
     -webkit-appearance: none;
     appearance: none;
+    background: var(--vidply-primary);
+    border: 2px solid var(--vidply-white);
+    border-radius: 50%;
+    box-shadow: var(--vidply-shadow-sm);
+    cursor: pointer;
+    height: 16px;
+    transition: transform 0.15s ease, background 0.15s ease;
+    width: 16px;
 }
 
 .vidply-style-group input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.15);
     background: var(--vidply-primary-80);
+    transform: scale(1.15);
 }
 
 .vidply-style-group input[type="range"]::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    transition: transform 0.15s ease, background 0.15s ease;
+    background: var(--vidply-primary);
     border: 2px solid var(--vidply-white);
     border-radius: 50%;
-    background: var(--vidply-primary);
     box-shadow: var(--vidply-shadow-sm);
+    cursor: pointer;
+    height: 16px;
+    transition: transform 0.15s ease, background 0.15s ease;
+    width: 16px;
 }
 
 .vidply-style-group input[type="range"]::-moz-range-thumb:hover {
-    transform: scale(1.15);
     background: var(--vidply-primary-80);
+    transform: scale(1.15);
 }
 
 .vidply-style-group input[type="range"]::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 6px;
-    border-radius: 3px;
     background: var(--vidply-white-20);
+    border-radius: 3px;
+    height: 6px;
+    width: 100%;
 }
 
 .vidply-style-group input[type="range"]::-moz-range-track {
-    width: 100%;
-    height: 6px;
-    border-radius: 3px;
     background: var(--vidply-white-20);
+    border-radius: 3px;
+    height: 6px;
+    width: 100%;
 }
 
 /* Captions */
 .vidply-captions {
+    background: var(--vidply-bg-caption);
+    border-radius: 4px;
+    bottom: 16px;
+    color: var(--vidply-white);
+    display: none;
     font-family: sans-serif;
     font-size: 100%;
-    line-height: 1.4;
-    position: absolute;
-    z-index: 5;
-    bottom: 80px;
     left: 50%;
-    display: none;
+    line-height: 1.4;
     max-width: 90%;
     padding: 8px 16px;
-    transform: translateX(-50%);
-    text-align: center;
     pointer-events: none;
-    color: var(--vidply-white);
-    border-radius: 4px;
-    background: var(--vidply-bg-caption);
+    position: absolute;
+    text-align: center;
+    transform: translateX(-50%);
+    transition: bottom 0.3s ease;
+    z-index: 5;
 }
 
 .vidply-captions:empty {
     display: none;
 }
 
-/* Mobile: Adjust captions position since controls are underneath */
-@media (max-width: 640px) {
+/* Desktop only: Move captions up when controls are visible */
+@media (width >= 641px) {
+    .vidply-controls-visible .vidply-captions {
+        bottom: 96px;
+    }
+}
+
+/* Mobile: Always at 121px */
+@media (width <= 640px) {
     .vidply-captions {
-        bottom: 150px;
+        bottom: 122px;
     }
 }
 
 /* Settings Dialog */
 .vidply-settings-overlay {
-    position: absolute;
-    z-index: 2000;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    display: flex;
     align-items: center;
-    justify-content: center;
     animation: vidply-fade-in 0.2s ease;
-    background: var(--vidply-bg-overlay);
     backdrop-filter: blur(8px);
+    background: var(--vidply-bg-overlay);
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 2000;
 }
 
 @keyframes vidply-fade-in {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
 }
 
 .vidply-settings-dialog {
-    overflow-y: auto;
-    width: 90%;
-    max-width: 500px;
-    max-height: 80%;
-    padding: 24px;
     animation: vidply-slide-up 0.3s ease;
+    background: var(--vidply-bg-dialog);
     border: 1px solid var(--vidply-border);
     border-radius: 12px;
-    background: var(--vidply-bg-dialog);
     box-shadow: var(--vidply-shadow-lg);
-    /* iOS momentum scrolling */
+    max-height: 80%;
+    max-width: 500px;
     -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    padding: 24px;
+
+    /* iOS momentum scrolling */
     touch-action: pan-y;
+    width: 90%;
 }
 
 @keyframes vidply-slide-up {
@@ -886,6 +899,7 @@
         transform: translateY(20px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -893,22 +907,22 @@
 }
 
 .vidply-settings-header {
-    display: flex;
     align-items: center;
+    display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
 }
 
 .vidply-settings-header h2 {
+    color: var(--vidply-white);
     font-size: 20px;
     font-weight: 600;
     margin: 0;
-    color: var(--vidply-white);
 }
 
 .vidply-settings-close {
-    min-width: auto;
     min-height: auto;
+    min-width: auto;
     padding: 4px;
 }
 
@@ -925,52 +939,52 @@
 }
 
 .vidply-settings-section h3 {
+    color: var(--vidply-white);
     font-size: 16px;
     font-weight: 600;
     margin: 0;
-    color: var(--vidply-white);
 }
 
 .vidply-settings-section label {
-    font-size: 14px;
-    display: block;
-    margin-bottom: 4px;
     color: var(--vidply-white-90);
+    display: block;
+    font-size: 14px;
+    margin-bottom: 4px;
 }
 
 .vidply-settings-select,
 .vidply-settings-color,
 .vidply-settings-range {
-    font-size: 14px;
-    width: 100%;
-    padding: 8px 12px;
-    transition: border-color 0.2s ease, background 0.2s ease;
-    color: var(--vidply-white);
+    background: var(--vidply-white-10);
     border: 1px solid var(--vidply-white-20);
     border-radius: 6px;
-    background: var(--vidply-white-10);
+    color: var(--vidply-white);
+    font-size: 14px;
+    padding: 8px 12px;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    width: 100%;
 }
 
 /* Fix select option colors - black text on white background */
 .vidply-settings-select option {
-    color: #000000;
-    background: #ffffff;
+    background: #fff;
+    color: #000;
 }
 
 .vidply-settings-select:hover,
 .vidply-settings-color:hover,
 .vidply-settings-range:hover {
-    border-color: var(--vidply-border-hover);
     background: var(--vidply-white-15);
+    border-color: var(--vidply-border-hover);
 }
 
 .vidply-settings-select:focus,
 .vidply-settings-color:focus,
 .vidply-settings-range:focus {
-    border-color: var(--vidply-border-focus);
-    outline: none;
     background: var(--vidply-white-15);
+    border-color: var(--vidply-border-focus);
     box-shadow: 0 0 0 3px var(--vidply-primary-20);
+    outline: none;
 }
 
 .vidply-settings-control {
@@ -980,26 +994,26 @@
 }
 
 .vidply-settings-value {
-    font-size: 13px;
+    color: var(--vidply-text-muted);
     display: inline-block;
+    font-size: 13px;
     min-width: 40px;
     text-align: right;
-    color: var(--vidply-text-muted);
 }
 
 .vidply-settings-footer {
+    border-top: 1px solid var(--vidply-white-10);
     display: flex;
     justify-content: flex-end;
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 1px solid var(--vidply-white-10);
 }
 
 .vidply-settings-footer .vidply-button {
+    background: var(--vidply-white-10);
+    border-radius: 6px;
     min-width: auto;
     padding: 10px 20px;
-    border-radius: 6px;
-    background: var(--vidply-white-10);
 }
 
 .vidply-settings-footer .vidply-button:hover {
@@ -1009,34 +1023,34 @@
 /* Fullscreen Styles */
 .vidply-player.vidply-fullscreen,
 .vidply-player:fullscreen {
-    width: 100vw;
-    max-width: none;
     height: 100vh;
+    max-width: none;
+    width: 100vw;
 }
 
 /* Transcript in Fullscreen */
 .vidply-player.vidply-fullscreen .vidply-transcript-window,
 .vidply-player:fullscreen .vidply-transcript-window {
-    position: fixed !important;
-    top: auto !important;
-    right: 20px !important;
     bottom: 80px !important;
-    left: auto !important;
-    width: 400px;
-    max-width: 400px;
     height: auto !important;
+    left: auto !important;
     max-height: calc(100vh - 180px) !important;
+    max-width: 400px;
+    position: fixed !important;
+    right: 20px !important;
+    top: auto !important;
+    width: 400px;
 }
 
 /* Loading State */
 .vidply-loading {
+    display: none;
+    height: 50px;
+    left: 50%;
     position: absolute;
     top: 50%;
-    left: 50%;
-    display: none;
-    width: 50px;
-    height: 50px;
     transform: translate(-50%, -50%);
+    width: 50px;
 }
 
 .vidply-player.vidply-buffering .vidply-loading {
@@ -1044,14 +1058,14 @@
 }
 
 .vidply-loading::after {
-    display: block;
-    width: 100%;
-    height: 100%;
-    content: '';
     animation: vidply-spin 0.8s linear infinite;
     border: 4px solid var(--vidply-white-20);
-    border-top-color: var(--vidply-white);
     border-radius: 50%;
+    border-top-color: var(--vidply-white);
+    content: '';
+    display: block;
+    height: 100%;
+    width: 100%;
 }
 
 @keyframes vidply-spin {
@@ -1062,11 +1076,11 @@
 
 /* Screen Reader Only */
 .vidply-sr-only {
-    position: absolute;
+    height: 1px;
     left: -10000px;
     overflow: hidden;
+    position: absolute;
     width: 1px;
-    height: 1px;
 }
 
 /* High Contrast Mode Support */
@@ -1080,7 +1094,7 @@
     }
 
     .vidply-progress-played {
-        background: currentColor;
+        background: currentcolor;
     }
 }
 
@@ -1089,9 +1103,9 @@
     .vidply-player *,
     .vidply-player *::before,
     .vidply-player *::after {
-        transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
 
@@ -1105,8 +1119,8 @@
 /* Touch Device Optimizations */
 @media (hover: none) and (pointer: coarse) {
     .vidply-button {
-        min-width: 48px;
         min-height: 48px;
+        min-width: 48px;
     }
 
     .vidply-progress-container {
@@ -1120,7 +1134,7 @@
 }
 
 /* Responsive Breakpoints */
-@media (max-width: 640px) {
+@media (width <= 640px) {
     .vidply-controls {
         padding: 16px 12px 12px;
     }
@@ -1134,16 +1148,16 @@
     }
 
     .vidply-settings-dialog {
-        position: fixed;
-        top: auto;
-        bottom: 0;
-        width: 100%;
-        max-width: 100%;
-        max-height: 90vh;
-        margin: 0;
-        padding: 20px;
         animation: slideUpFromBottom 0.3s ease;
         border-radius: 16px 16px 0 0;
+        bottom: 0;
+        margin: 0;
+        max-height: 90vh;
+        max-width: 100%;
+        padding: 20px;
+        position: fixed;
+        top: auto;
+        width: 100%;
     }
 
     .vidply-settings-overlay {
@@ -1152,31 +1166,31 @@
 
     /* Bottom sheet style for menus - positioned within controls */
     .vidply-menu {
-        position: absolute;
-        z-index: 200;
-        top: auto;
-        right: auto;
+        border-radius: 8px;
         bottom: calc(100% + 4px);
         left: 50%;
-        width: auto;
-        min-width: 200px;
         max-height: 250px;
+        min-width: 200px;
+        position: absolute;
+        right: auto;
+        top: auto;
         transform: translateX(-50%);
-        border-radius: 8px;
+        width: auto;
+        z-index: 200;
     }
 
     .vidply-menu::after {
-        position: absolute;
-        bottom: -6px;
-        left: 50%;
-        width: 0;
-        height: 0;
-        content: '';
-        transform: translateX(-50%);
-        border-top: none;
-        border-right: 6px solid transparent;
         border-bottom: 6px solid var(--vidply-bg-menu);
         border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: none;
+        bottom: -6px;
+        content: '';
+        height: 0;
+        left: 50%;
+        position: absolute;
+        transform: translateX(-50%);
+        width: 0;
     }
 
     /* Remove the drag handle on mobile menus */
@@ -1187,11 +1201,11 @@
     /* Caption style menu - narrower on mobile */
     .vidply-caption-style-menu.vidply-settings-menu {
         left: 50%;
-        width: auto;
-        min-width: 280px;
         max-width: calc(100vw - 40px);
+        min-width: 280px;
         padding: 16px;
         transform: translateX(-50%);
+        width: auto;
     }
 
     .vidply-style-group {
@@ -1212,8 +1226,8 @@
     /* Stack controls vertically on mobile */
     .vidply-controls-buttons {
         flex-direction: column;
-        width: 100%;
         gap: 8px;
+        width: 100%;
     }
 
     .vidply-controls-left,
@@ -1225,14 +1239,14 @@
 
     /* Smaller buttons and icons */
     .vidply-button {
-        min-width: 36px;
         min-height: 36px;
+        min-width: 36px;
         padding: 5px;
     }
 
     .vidply-icon {
-        width: 22px;
         height: 22px;
+        width: 22px;
     }
 
     /* Reduce gaps */
@@ -1247,6 +1261,7 @@
         transform: translateY(100%);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -1254,7 +1269,7 @@
 }
 
 /* Landscape mobile optimization */
-@media (max-width: 896px) and (orientation: landscape) {
+@media (width <= 896px) and (orientation: landscape) {
     .vidply-menu {
         max-height: 50vh;
     }
@@ -1269,20 +1284,20 @@
 }
 
 /* Extra small screens */
-@media (max-width: 480px) {
+@media (width <= 480px) {
     .vidply-speed-text {
         display: none;
     }
 
     .vidply-button {
-        min-width: 32px;
         min-height: 32px;
+        min-width: 32px;
         padding: 4px;
     }
 
     .vidply-icon {
-        width: 20px;
         height: 20px;
+        width: 20px;
     }
 }
 
@@ -1309,56 +1324,57 @@
 
 /* Track Info Display (below video, above playlist) */
 .vidply-track-info {
+    background: var(--vidply-bg-track-info);
+    border-bottom: 1px solid var(--vidply-border-light);
     order: 2; /* After video-wrapper */
     padding: 16px 20px;
-    border-bottom: 1px solid var(--vidply-border-light);
-    background: var(--vidply-bg-track-info);
 }
 
 .vidply-track-number {
-    font-size: 12px;
-    margin-bottom: 4px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
     color: var(--vidply-text-muted);
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
 }
 
 .vidply-track-title {
+    color: var(--vidply-white);
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 4px;
-    color: var(--vidply-white);
 }
 
 .vidply-track-artist {
-    font-size: 14px;
     color: var(--vidply-white-80);
+    font-size: 14px;
 }
 
 /* Playlist Panel */
 .vidply-playlist-panel {
-    overflow-y: auto;
-    order: 3; /* After track info */
-    max-height: 400px;
-    border-top: 1px solid var(--vidply-border-light);
     background: var(--vidply-bg-playlist);
-    /* iOS momentum scrolling */
+    border-top: 1px solid var(--vidply-border-light);
+    max-height: 400px;
+    order: 3; /* After track info */
     -webkit-overflow-scrolling: touch;
+
+    /* iOS momentum scrolling */
+    overflow-y: auto;
     touch-action: pan-y;
 }
 
 .vidply-playlist-header {
+    background: var(--vidply-bg-playlist-header);
+    border-bottom: 1px solid var(--vidply-border-light);
+    color: var(--vidply-white-90);
     font-size: 13px;
     font-weight: 600;
-    position: sticky;
-    z-index: 10;
-    top: 0;
-    padding: 12px 16px;
     letter-spacing: 0.5px;
+    padding: 12px 16px;
+    position: sticky;
     text-transform: uppercase;
-    color: var(--vidply-white-90);
-    border-bottom: 1px solid var(--vidply-border-light);
-    background: var(--vidply-bg-playlist-header);
+    top: 0;
+    z-index: 10;
 }
 
 .vidply-playlist-list {
@@ -1367,30 +1383,30 @@
 
 /* Playlist Items */
 .vidply-playlist-item {
-    display: flex;
     align-items: center;
-    padding: 12px 16px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border-left: 3px solid transparent;
     background: transparent;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    display: flex;
     gap: 12px;
+    padding: 12px 16px;
+    transition: all 0.2s ease;
 }
 
 .vidply-playlist-item:hover {
-    border-left-color: var(--vidply-primary-50);
     background: var(--vidply-active-bg);
+    border-left-color: var(--vidply-primary-50);
 }
 
 .vidply-playlist-item:focus {
+    background: var(--vidply-white-08);
     border-left-color: var(--vidply-primary);
     outline: none;
-    background: var(--vidply-white-08);
 }
 
 .vidply-playlist-item-active {
-    border-left-color: var(--vidply-primary);
     background: var(--vidply-primary-15);
+    border-left-color: var(--vidply-primary);
 }
 
 .vidply-playlist-item-active:hover {
@@ -1399,29 +1415,29 @@
 
 /* Playlist Thumbnail */
 .vidply-playlist-thumbnail {
-    display: flex;
-    overflow: hidden;
     align-items: center;
-    flex-shrink: 0;
-    justify-content: center;
-    width: 80px;
-    height: 45px;
-    border-radius: 4px;
     background-color: var(--vidply-white-10);
     background-position: center;
     background-size: cover;
+    border-radius: 4px;
+    display: flex;
+    flex-shrink: 0;
+    height: 45px;
+    justify-content: center;
+    overflow: hidden;
+    width: 80px;
 }
 
 .vidply-playlist-thumbnail-icon {
-    width: 32px;
+    color: var(--vidply-text-subtle);
     height: 32px;
     transition: all 0.2s ease;
-    color: var(--vidply-text-subtle);
+    width: 32px;
 }
 
 .vidply-playlist-item:hover .vidply-playlist-thumbnail-icon {
-    transform: scale(1.1);
     color: var(--vidply-text-muted);
+    transform: scale(1.1);
 }
 
 .vidply-playlist-item-active .vidply-playlist-thumbnail-icon {
@@ -1435,13 +1451,13 @@
 }
 
 .vidply-playlist-item-title {
+    color: var(--vidply-white);
     font-size: 14px;
     font-weight: 500;
-    overflow: hidden;
     margin-bottom: 4px;
-    white-space: nowrap;
+    overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--vidply-white);
+    white-space: nowrap;
 }
 
 .vidply-playlist-item-active .vidply-playlist-item-title {
@@ -1449,20 +1465,20 @@
 }
 
 .vidply-playlist-item-artist {
+    color: var(--vidply-text-disabled);
     font-size: 12px;
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
-    color: var(--vidply-text-disabled);
+    white-space: nowrap;
 }
 
 /* Playlist Item Icon */
 .vidply-playlist-item-icon {
     flex-shrink: 0;
-    width: 20px;
     height: 20px;
-    transition: opacity 0.2s ease;
     opacity: 0;
+    transition: opacity 0.2s ease;
+    width: 20px;
 }
 
 .vidply-playlist-item:hover .vidply-playlist-item-icon,
@@ -1471,8 +1487,8 @@
 }
 
 .vidply-playlist-item-active .vidply-playlist-item-icon {
-    opacity: 1;
     color: var(--vidply-primary-light);
+    opacity: 1;
 }
 
 /* Playlist Scrollbar */
@@ -1485,8 +1501,8 @@
 }
 
 .vidply-playlist-panel::-webkit-scrollbar-thumb {
-    border-radius: 4px;
     background: var(--vidply-white-20);
+    border-radius: 4px;
 }
 
 .vidply-playlist-panel::-webkit-scrollbar-thumb:hover {
@@ -1512,19 +1528,19 @@
 
 /* Transcript Window */
 .vidply-transcript-window {
-    position: absolute;
-    z-index: 100;
-    top: 0;
-    display: none;
-    flex-direction: column;
-    order: 4; /* After video-wrapper (1), track-info (2), and playlist-panel (3) */
-    width: 400px;
-    max-width: 400px;
+    backdrop-filter: blur(10px);
+    background: var(--vidply-bg-transcript);
     border: 1px solid var(--vidply-border);
     border-radius: 8px;
-    background: var(--vidply-bg-transcript);
     box-shadow: 0 10px 40px var(--vidply-black-60);
-    backdrop-filter: blur(10px);
+    display: none;
+    flex-direction: column;
+    max-width: 400px;
+    order: 4; /* After video-wrapper (1), track-info (2), and playlist-panel (3) */
+    position: absolute;
+    top: 0;
+    width: 400px;
+    z-index: 100;
 }
 
 /* Minimum height for audio player transcript */
@@ -1533,63 +1549,64 @@
 }
 
 .vidply-transcript-header {
-    display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    cursor: move;
-    user-select: none;
+    background: var(--vidply-active-bg);
     border-bottom: 1px solid var(--vidply-border-light);
     border-radius: 8px 8px 0 0;
-    background: var(--vidply-active-bg);
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 20px;
+    user-select: none;
 }
 
 .vidply-transcript-header h3 {
+    color: var(--vidply-white);
     font-size: 16px;
     font-weight: 600;
     margin: 0;
-    color: var(--vidply-white);
 }
 
 .vidply-transcript-close {
-    display: flex;
     align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: var(--vidply-text-muted);
+    background: transparent;
     border: none;
     border-radius: 4px;
-    background: transparent;
+    color: var(--vidply-text-muted);
+    cursor: pointer;
+    display: flex;
+    height: 28px;
+    justify-content: center;
+    padding: 4px;
+    transition: all 0.2s ease;
+    width: 28px;
 }
 
 .vidply-transcript-close:hover {
-    color: var(--vidply-white);
     background: var(--vidply-white-10);
+    color: var(--vidply-white);
 }
 
 .vidply-transcript-close .vidply-icon {
-    width: 18px;
     height: 18px;
+    width: 18px;
 }
 
 .vidply-transcript-content {
-    overflow-y: auto;
     flex: 1;
-    padding: 12px 0;
-    /* iOS momentum scrolling */
     -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+
+    /* iOS momentum scrolling */
+    padding: 12px 0;
     touch-action: pan-y;
 }
 
 .vidply-transcript-entry {
-    padding: 12px 20px;
-    cursor: pointer;
-    transition: background 0.2s ease;
     border-left: 3px solid transparent;
+    cursor: pointer;
+    padding: 12px 20px;
+    transition: background 0.2s ease;
 }
 
 .vidply-transcript-entry:hover,
@@ -1598,28 +1615,28 @@
 }
 
 .vidply-transcript-entry-active {
-    border-left-color: var(--vidply-primary-light);
     background: var(--vidply-primary-15);
+    border-left-color: var(--vidply-primary-light);
 }
 
 .vidply-transcript-time {
+    color: var(--vidply-primary-light);
     font-family: 'Courier New', monospace;
     font-size: 14px;
     font-weight: 600;
-    margin-right: 8px;
     margin-bottom: 4px;
-    color: var(--vidply-primary-light);
+    margin-right: 8px;
 }
 
 .vidply-transcript-text {
+    color: var(--vidply-white-90);
     font-size: 14px;
     line-height: 1.6;
-    color: var(--vidply-white-90);
 }
 
 .vidply-transcript-entry-active .vidply-transcript-text {
-    text-decoration: underline;
     color: var(--vidply-white);
+    text-decoration: underline;
 }
 
 .vidply-transcript-entry:hover .vidply-transcript-text,
@@ -1637,8 +1654,8 @@
 }
 
 .vidply-transcript-content::-webkit-scrollbar-thumb {
-    border-radius: 4px;
     background: var(--vidply-white-20);
+    border-radius: 4px;
 }
 
 .vidply-transcript-content::-webkit-scrollbar-thumb:hover {
@@ -1646,15 +1663,15 @@
 }
 
 /* Responsive Adjustments */
-@media (max-width: 640px) {
+@media (width <= 640px) {
     .vidply-playlist-thumbnail {
-        width: 60px;
         height: 34px;
+        width: 60px;
     }
 
     .vidply-playlist-item {
-        padding: 10px 12px;
         gap: 10px;
+        padding: 10px 12px;
     }
 
     .vidply-track-info {
@@ -1667,19 +1684,19 @@
 
     /* Mobile transcript underneath video and controls */
     .vidply-transcript-window {
-        position: relative;
-        z-index: 50;
-        order: 3; /* After controls (which are order: 2) */
-        width: 100%;
         border: none;
-        border-top: 1px solid var(--vidply-border-light);
         border-radius: 0;
+        border-top: 1px solid var(--vidply-border-light);
         box-shadow: none;
+        order: 3; /* After controls (which are order: 2) */
+        position: relative;
+        width: 100%;
+        z-index: 50;
     }
 
     .vidply-transcript-header {
-        padding: 12px 16px;
         border-radius: 0;
+        padding: 12px 16px;
     }
 
     .vidply-transcript-content {
