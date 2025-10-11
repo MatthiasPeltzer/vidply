@@ -45,7 +45,7 @@
     "url": "https://github.com/MatthiasPeltzer/vidply/issues",
     "email": "vidply@mpeltzer.de"
   },
-  "homepage": "https://github.com/MatthiasPeltzer/vidply#readme",
+  "homepage": "https://matthiaspeltzer.github.io/vidply/",
   "devDependencies": {
     "esbuild": "^0.25.10",
     "clean-css": "^5.3.3"
