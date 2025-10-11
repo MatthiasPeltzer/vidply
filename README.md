@@ -1,6 +1,6 @@
 # <img src="favicon.svg" width="32" alt="VidPly" /> VidPly
 
-**Universal, Accessible Video Player**
+**Universal, Accessible Video & Audio Player**
 
 A modern, feature-rich video player built with vanilla ES6 JavaScript. Combines the best accessibility features from AblePlayer with the streaming capabilities of MediaElement.js.
 
