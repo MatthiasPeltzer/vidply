@@ -2525,11 +2525,13 @@ var VidPly = (() => {
       if (this.player.element.tagName !== "VIDEO") return;
       const showControls = () => {
         this.element.classList.add(`${this.player.options.classPrefix}-controls-visible`);
+        this.player.container.classList.add(`${this.player.options.classPrefix}-controls-visible`);
         this.player.state.controlsVisible = true;
         clearTimeout(this.hideTimeout);
         if (this.player.state.playing) {
           this.hideTimeout = setTimeout(() => {
             this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+            this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
             this.player.state.controlsVisible = false;
           }, this.player.options.hideControlsDelay);
         }
