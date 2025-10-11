@@ -564,6 +564,10 @@
     background: var(--vidply-bg-menu);
     box-shadow: var(--vidply-shadow-lg), 0 0 0 1px var(--vidply-white-10);
     backdrop-filter: blur(10px);
+    /* iOS momentum scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Ensure touch events work on iOS */
+    touch-action: pan-y;
 }
 
 /* Menu positioned below button */
@@ -879,6 +883,9 @@
     border-radius: 12px;
     background: var(--vidply-bg-dialog);
     box-shadow: var(--vidply-shadow-lg);
+    /* iOS momentum scrolling */
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
 }
 
 @keyframes vidply-slide-up {
@@ -1342,6 +1349,9 @@
     max-height: 400px;
     border-top: 1px solid var(--vidply-border-light);
     background: var(--vidply-bg-playlist);
+    /* iOS momentum scrolling */
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
 }
 
 .vidply-playlist-header {
@@ -1577,6 +1587,9 @@
     overflow-y: auto;
     flex: 1;
     padding: 12px 0;
+    /* iOS momentum scrolling */
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
 }
 
 .vidply-transcript-entry {
