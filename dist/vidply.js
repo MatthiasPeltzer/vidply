@@ -40,6 +40,8 @@ var VidPly = (() => {
           this.media = player.element;
         }
         async init() {
+          this.media.controls = false;
+          this.media.removeAttribute("controls");
           this.attachEvents();
           this.media.preload = this.player.options.preload;
           this.media.load();
@@ -3999,6 +4001,8 @@ var VidPly = (() => {
       });
     }
     async initHlsJs() {
+      this.media.controls = false;
+      this.media.removeAttribute("controls");
       if (!window.Hls) {
         await this.loadHlsJs();
       }
@@ -4454,6 +4458,8 @@ var VidPly = (() => {
       this.element.parentNode.insertBefore(this.container, this.element);
       this.container.appendChild(this.videoWrapper);
       this.videoWrapper.appendChild(this.element);
+      this.element.controls = false;
+      this.element.removeAttribute("controls");
       this.element.style.width = "100%";
       this.element.style.height = "100%";
       if (this.options.width) {
