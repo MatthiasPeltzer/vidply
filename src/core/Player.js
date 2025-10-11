@@ -348,7 +348,9 @@ export class Player extends EventEmitter {
     this.container.appendChild(this.videoWrapper);
     this.videoWrapper.appendChild(this.element);
     
-    // Hide original element
+    // Hide native controls and set dimensions
+    this.element.controls = false;
+    this.element.removeAttribute('controls');
     this.element.style.width = '100%';
     this.element.style.height = '100%';
     

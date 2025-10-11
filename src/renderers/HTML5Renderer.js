@@ -9,6 +9,10 @@ export class HTML5Renderer {
   }
 
   async init() {
+    // Hide native controls
+    this.media.controls = false;
+    this.media.removeAttribute('controls');
+    
     this.attachEvents();
     
     // Set preload
