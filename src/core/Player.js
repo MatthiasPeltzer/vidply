@@ -325,7 +325,7 @@ export class Player extends EventEmitter {
       attributes: {
         'role': 'region',
         'aria-label': i18n.t('player.label'),
-        'tabindex': '-1'
+        'tabindex': '0'
       }
     });
 
@@ -351,6 +351,7 @@ export class Player extends EventEmitter {
     // Hide native controls and set dimensions
     this.element.controls = false;
     this.element.removeAttribute('controls');
+    this.element.setAttribute('tabindex', '-1'); // Remove from tab order
     this.element.style.width = '100%';
     this.element.style.height = '100%';
     
@@ -371,6 +372,73 @@ export class Player extends EventEmitter {
     if (this.options.poster && this.element.tagName === 'VIDEO') {
       this.element.poster = this.options.poster;
     }
+    
+    // Create centered play button overlay (only for video)
+    if (this.element.tagName === 'VIDEO') {
+      this.createPlayButtonOverlay();
+    }
+    
+    // Make video/audio element clickable to toggle play/pause
+    this.element.style.cursor = 'pointer';
+    this.element.addEventListener('click', (e) => {
+      // Prevent if clicking on native controls (shouldn't happen but just in case)
+      if (e.target === this.element) {
+        this.toggle();
+      }
+    });
+  }
+
+  createPlayButtonOverlay() {
+    // Create overlay button
+    this.playButtonOverlay = DOMUtils.createElement('button', {
+      className: `${this.options.classPrefix}-play-overlay`,
+      attributes: {
+        'type': 'button',
+        'aria-hidden': 'true',
+        'tabindex': '-1'
+      }
+    });
+    
+    // Create icon (play icon)
+    const playIcon = DOMUtils.createElement('span', {
+      className: `${this.options.classPrefix}-play-overlay-icon`
+    });
+    
+    // Create SVG play icon
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'currentColor');
+    
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M8 5v14l11-7z');
+    
+    svg.appendChild(path);
+    playIcon.appendChild(svg);
+    this.playButtonOverlay.appendChild(playIcon);
+    
+    // Add click handler
+    this.playButtonOverlay.addEventListener('click', () => {
+      this.toggle();
+    });
+    
+    // Add to video wrapper
+    this.videoWrapper.appendChild(this.playButtonOverlay);
+    
+    // Show/hide based on play state
+    this.on('play', () => {
+      this.playButtonOverlay.style.opacity = '0';
+      this.playButtonOverlay.style.pointerEvents = 'none';
+    });
+    
+    this.on('pause', () => {
+      this.playButtonOverlay.style.opacity = '1';
+      this.playButtonOverlay.style.pointerEvents = 'auto';
+    });
+    
+    this.on('ended', () => {
+      this.playButtonOverlay.style.opacity = '1';
+      this.playButtonOverlay.style.pointerEvents = 'auto';
+    });
   }
 
   async initializeRenderer() {
@@ -1018,6 +1086,12 @@ export class Player extends EventEmitter {
     
     // Cleanup sign language video and listeners
     this.cleanupSignLanguage();
+    
+    // Cleanup play overlay button
+    if (this.playButtonOverlay && this.playButtonOverlay.parentNode) {
+      this.playButtonOverlay.remove();
+      this.playButtonOverlay = null;
+    }
     
     // Cleanup resize observer
     if (this.resizeObserver) {
