@@ -6,6 +6,7 @@
 import { DOMUtils } from '../utils/DOMUtils.js';
 import { TimeUtils } from '../utils/TimeUtils.js';
 import { createIconElement } from '../icons/Icons.js';
+import { i18n } from '../i18n/i18n.js';
 
 export class TranscriptManager {
   constructor(player) {
@@ -116,14 +117,14 @@ export class TranscriptManager {
     });
 
     const title = DOMUtils.createElement('h3', {
-      textContent: 'Transcript'
+      textContent: i18n.t('transcript.title')
     });
 
     const closeButton = DOMUtils.createElement('button', {
       className: `${this.player.options.classPrefix}-transcript-close`,
       attributes: {
         'type': 'button',
-        'aria-label': 'Close transcript'
+        'aria-label': i18n.t('transcript.close')
       }
     });
     closeButton.appendChild(createIconElement('close'));
@@ -267,7 +268,7 @@ export class TranscriptManager {
       // Wait for cues to load
       const loadingMessage = DOMUtils.createElement('div', {
         className: `${this.player.options.classPrefix}-transcript-loading`,
-        textContent: 'Loading transcript...'
+        textContent: i18n.t('transcript.loading')
       });
       this.transcriptContent.appendChild(loadingMessage);
 
@@ -364,7 +365,7 @@ export class TranscriptManager {
   showNoTranscriptMessage() {
     const message = DOMUtils.createElement('div', {
       className: `${this.player.options.classPrefix}-transcript-empty`,
-      textContent: 'No transcript available for this video.'
+      textContent: i18n.t('transcript.noTranscript')
     });
     this.transcriptContent.appendChild(message);
   }

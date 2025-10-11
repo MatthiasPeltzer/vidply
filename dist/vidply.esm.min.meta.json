@@ -21,7 +21,7 @@
       "format": "esm"
     },
     "src/i18n/translations.js": {
-      "bytes": 11562,
+      "bytes": 15062,
       "imports": [],
       "format": "esm"
     },
@@ -37,7 +37,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 65600,
+      "bytes": 66286,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -84,7 +84,7 @@
       "format": "esm"
     },
     "src/controls/SettingsDialog.js": {
-      "bytes": 11710,
+      "bytes": 12224,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -105,7 +105,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 23346,
+      "bytes": 23405,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -121,6 +121,11 @@
           "path": "src/icons/Icons.js",
           "kind": "import-statement",
           "original": "../icons/Icons.js"
+        },
+        {
+          "path": "src/i18n/i18n.js",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
         }
       ],
       "format": "esm"
@@ -286,13 +291,13 @@
           "bytesInOutput": 10596
         },
         "src/i18n/translations.js": {
-          "bytesInOutput": 9620
+          "bytesInOutput": 12646
         },
         "src/i18n/i18n.js": {
           "bytesInOutput": 720
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 33747
+          "bytesInOutput": 34090
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 3634
@@ -301,10 +306,10 @@
           "bytesInOutput": 3002
         },
         "src/controls/SettingsDialog.js": {
-          "bytesInOutput": 7366
+          "bytesInOutput": 7622
         },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 12454
+          "bytesInOutput": 12461
         },
         "src/core/Player.js": {
           "bytesInOutput": 16392
@@ -325,7 +330,7 @@
           "bytesInOutput": 243
         }
       },
-      "bytes": 124480
+      "bytes": 128112
     }
   }
 }

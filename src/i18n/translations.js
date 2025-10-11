@@ -58,6 +58,38 @@ export const translations = {
       backgroundColor: 'Background Color',
       opacity: 'Opacity'
     },
+    fontSizes: {
+      small: 'Small',
+      medium: 'Medium',
+      large: 'Large',
+      xlarge: 'X-Large'
+    },
+    fontFamilies: {
+      sansSerif: 'Sans-serif',
+      serif: 'Serif',
+      monospace: 'Monospace'
+    },
+    styleLabels: {
+      textColor: 'Text Color',
+      background: 'Background',
+      font: 'Font',
+      fontSize: 'Font Size',
+      opacity: 'Opacity'
+    },
+    audioDescription: {
+      enable: 'Enable audio description',
+      disable: 'Disable audio description'
+    },
+    signLanguage: {
+      show: 'Show sign language video',
+      hide: 'Hide sign language video'
+    },
+    transcript: {
+      title: 'Transcript',
+      close: 'Close transcript',
+      loading: 'Loading transcript...',
+      noTranscript: 'No transcript available for this video.'
+    },
     settings: {
       title: 'Settings',
       quality: 'Quality',
@@ -68,14 +100,7 @@ export const translations = {
       close: 'Close'
     },
     speeds: {
-      '0.25': '0.25x',
-      '0.5': '0.5x',
-      '0.75': '0.75x',
-      '1': 'Normal',
-      '1.25': '1.25x',
-      '1.5': '1.5x',
-      '1.75': '1.75x',
-      '2': '2x'
+      normal: 'Normal'
     }
   },
   
@@ -134,6 +159,38 @@ export const translations = {
       backgroundColor: 'Hintergrundfarbe',
       opacity: 'Deckkraft'
     },
+    fontSizes: {
+      small: 'Klein',
+      medium: 'Mittel',
+      large: 'Groß',
+      xlarge: 'Sehr groß'
+    },
+    fontFamilies: {
+      sansSerif: 'Sans-serif',
+      serif: 'Serif',
+      monospace: 'Monospace'
+    },
+    styleLabels: {
+      textColor: 'Textfarbe',
+      background: 'Hintergrund',
+      font: 'Schrift',
+      fontSize: 'Schriftgröße',
+      opacity: 'Deckkraft'
+    },
+    audioDescription: {
+      enable: 'Audiodeskription aktivieren',
+      disable: 'Audiodeskription deaktivieren'
+    },
+    signLanguage: {
+      show: 'Gebärdensprache-Video anzeigen',
+      hide: 'Gebärdensprache-Video ausblenden'
+    },
+    transcript: {
+      title: 'Transkript',
+      close: 'Transkript schließen',
+      loading: 'Transkript wird geladen...',
+      noTranscript: 'Kein Transkript für dieses Video verfügbar.'
+    },
     settings: {
       title: 'Einstellungen',
       quality: 'Qualität',
@@ -144,14 +201,7 @@ export const translations = {
       close: 'Schließen'
     },
     speeds: {
-      '0.25': '0,25x',
-      '0.5': '0,5x',
-      '0.75': '0,75x',
-      '1': 'Normal',
-      '1.25': '1,25x',
-      '1.5': '1,5x',
-      '1.75': '1,75x',
-      '2': '2x'
+      normal: 'Normal'
     }
   },
 
@@ -210,6 +260,38 @@ export const translations = {
       backgroundColor: 'Color de fondo',
       opacity: 'Opacidad'
     },
+    fontSizes: {
+      small: 'Pequeño',
+      medium: 'Mediano',
+      large: 'Grande',
+      xlarge: 'Muy grande'
+    },
+    fontFamilies: {
+      sansSerif: 'Sans-serif',
+      serif: 'Serif',
+      monospace: 'Monospace'
+    },
+    styleLabels: {
+      textColor: 'Color de texto',
+      background: 'Fondo',
+      font: 'Fuente',
+      fontSize: 'Tamaño de fuente',
+      opacity: 'Opacidad'
+    },
+    audioDescription: {
+      enable: 'Activar audiodescripción',
+      disable: 'Desactivar audiodescripción'
+    },
+    signLanguage: {
+      show: 'Mostrar video en lengua de señas',
+      hide: 'Ocultar video en lengua de señas'
+    },
+    transcript: {
+      title: 'Transcripción',
+      close: 'Cerrar transcripción',
+      loading: 'Cargando transcripción...',
+      noTranscript: 'No hay transcripción disponible para este video.'
+    },
     settings: {
       title: 'Configuración',
       quality: 'Calidad',
@@ -220,14 +302,7 @@ export const translations = {
       close: 'Cerrar'
     },
     speeds: {
-      '0.25': '0,25x',
-      '0.5': '0,5x',
-      '0.75': '0,75x',
-      '1': 'Normal',
-      '1.25': '1,25x',
-      '1.5': '1,5x',
-      '1.75': '1,75x',
-      '2': '2x'
+      normal: 'Normal'
     }
   },
 
@@ -286,6 +361,38 @@ export const translations = {
       backgroundColor: 'Couleur de fond',
       opacity: 'Opacité'
     },
+    fontSizes: {
+      small: 'Petit',
+      medium: 'Moyen',
+      large: 'Grand',
+      xlarge: 'Très grand'
+    },
+    fontFamilies: {
+      sansSerif: 'Sans-serif',
+      serif: 'Serif',
+      monospace: 'Monospace'
+    },
+    styleLabels: {
+      textColor: 'Couleur du texte',
+      background: 'Arrière-plan',
+      font: 'Police',
+      fontSize: 'Taille de police',
+      opacity: 'Opacité'
+    },
+    audioDescription: {
+      enable: 'Activer l\'audiodescription',
+      disable: 'Désactiver l\'audiodescription'
+    },
+    signLanguage: {
+      show: 'Afficher la vidéo en langue des signes',
+      hide: 'Masquer la vidéo en langue des signes'
+    },
+    transcript: {
+      title: 'Transcription',
+      close: 'Fermer la transcription',
+      loading: 'Chargement de la transcription...',
+      noTranscript: 'Aucune transcription disponible pour cette vidéo.'
+    },
     settings: {
       title: 'Paramètres',
       quality: 'Qualité',
@@ -296,14 +403,7 @@ export const translations = {
       close: 'Fermer'
     },
     speeds: {
-      '0.25': '0,25x',
-      '0.5': '0,5x',
-      '0.75': '0,75x',
-      '1': 'Normal',
-      '1.25': '1,25x',
-      '1.5': '1,5x',
-      '1.75': '1,75x',
-      '2': '2x'
+      normal: 'Normal'
     }
   },
 
@@ -362,6 +462,38 @@ export const translations = {
       backgroundColor: '背景色',
       opacity: '不透明度'
     },
+    fontSizes: {
+      small: '小',
+      medium: '中',
+      large: '大',
+      xlarge: '特大'
+    },
+    fontFamilies: {
+      sansSerif: 'サンセリフ',
+      serif: 'セリフ',
+      monospace: '等幅'
+    },
+    styleLabels: {
+      textColor: 'テキストの色',
+      background: '背景',
+      font: 'フォント',
+      fontSize: 'フォントサイズ',
+      opacity: '不透明度'
+    },
+    audioDescription: {
+      enable: '音声解説を有効にする',
+      disable: '音声解説を無効にする'
+    },
+    signLanguage: {
+      show: '手話動画を表示',
+      hide: '手話動画を非表示'
+    },
+    transcript: {
+      title: '文字起こし',
+      close: '文字起こしを閉じる',
+      loading: '文字起こしを読み込み中...',
+      noTranscript: 'このビデオの文字起こしはありません。'
+    },
     settings: {
       title: '設定',
       quality: '画質',
@@ -372,14 +504,7 @@ export const translations = {
       close: '閉じる'
     },
     speeds: {
-      '0.25': '0.25倍速',
-      '0.5': '0.5倍速',
-      '0.75': '0.75倍速',
-      '1': '通常',
-      '1.25': '1.25倍速',
-      '1.5': '1.5倍速',
-      '1.75': '1.75倍速',
-      '2': '2倍速'
+      normal: '通常'
     }
   }
 };

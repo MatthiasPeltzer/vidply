@@ -657,6 +657,38 @@ var VidPly = (() => {
         backgroundColor: "Background Color",
         opacity: "Opacity"
       },
+      fontSizes: {
+        small: "Small",
+        medium: "Medium",
+        large: "Large",
+        xlarge: "X-Large"
+      },
+      fontFamilies: {
+        sansSerif: "Sans-serif",
+        serif: "Serif",
+        monospace: "Monospace"
+      },
+      styleLabels: {
+        textColor: "Text Color",
+        background: "Background",
+        font: "Font",
+        fontSize: "Font Size",
+        opacity: "Opacity"
+      },
+      audioDescription: {
+        enable: "Enable audio description",
+        disable: "Disable audio description"
+      },
+      signLanguage: {
+        show: "Show sign language video",
+        hide: "Hide sign language video"
+      },
+      transcript: {
+        title: "Transcript",
+        close: "Close transcript",
+        loading: "Loading transcript...",
+        noTranscript: "No transcript available for this video."
+      },
       settings: {
         title: "Settings",
         quality: "Quality",
@@ -667,14 +699,7 @@ var VidPly = (() => {
         close: "Close"
       },
       speeds: {
-        "0.25": "0.25x",
-        "0.5": "0.5x",
-        "0.75": "0.75x",
-        "1": "Normal",
-        "1.25": "1.25x",
-        "1.5": "1.5x",
-        "1.75": "1.75x",
-        "2": "2x"
+        normal: "Normal"
       }
     },
     de: {
@@ -732,6 +757,38 @@ var VidPly = (() => {
         backgroundColor: "Hintergrundfarbe",
         opacity: "Deckkraft"
       },
+      fontSizes: {
+        small: "Klein",
+        medium: "Mittel",
+        large: "Gro\xDF",
+        xlarge: "Sehr gro\xDF"
+      },
+      fontFamilies: {
+        sansSerif: "Sans-serif",
+        serif: "Serif",
+        monospace: "Monospace"
+      },
+      styleLabels: {
+        textColor: "Textfarbe",
+        background: "Hintergrund",
+        font: "Schrift",
+        fontSize: "Schriftgr\xF6\xDFe",
+        opacity: "Deckkraft"
+      },
+      audioDescription: {
+        enable: "Audiodeskription aktivieren",
+        disable: "Audiodeskription deaktivieren"
+      },
+      signLanguage: {
+        show: "Geb\xE4rdensprache-Video anzeigen",
+        hide: "Geb\xE4rdensprache-Video ausblenden"
+      },
+      transcript: {
+        title: "Transkript",
+        close: "Transkript schlie\xDFen",
+        loading: "Transkript wird geladen...",
+        noTranscript: "Kein Transkript f\xFCr dieses Video verf\xFCgbar."
+      },
       settings: {
         title: "Einstellungen",
         quality: "Qualit\xE4t",
@@ -742,14 +799,7 @@ var VidPly = (() => {
         close: "Schlie\xDFen"
       },
       speeds: {
-        "0.25": "0,25x",
-        "0.5": "0,5x",
-        "0.75": "0,75x",
-        "1": "Normal",
-        "1.25": "1,25x",
-        "1.5": "1,5x",
-        "1.75": "1,75x",
-        "2": "2x"
+        normal: "Normal"
       }
     },
     es: {
@@ -807,6 +857,38 @@ var VidPly = (() => {
         backgroundColor: "Color de fondo",
         opacity: "Opacidad"
       },
+      fontSizes: {
+        small: "Peque\xF1o",
+        medium: "Mediano",
+        large: "Grande",
+        xlarge: "Muy grande"
+      },
+      fontFamilies: {
+        sansSerif: "Sans-serif",
+        serif: "Serif",
+        monospace: "Monospace"
+      },
+      styleLabels: {
+        textColor: "Color de texto",
+        background: "Fondo",
+        font: "Fuente",
+        fontSize: "Tama\xF1o de fuente",
+        opacity: "Opacidad"
+      },
+      audioDescription: {
+        enable: "Activar audiodescripci\xF3n",
+        disable: "Desactivar audiodescripci\xF3n"
+      },
+      signLanguage: {
+        show: "Mostrar video en lengua de se\xF1as",
+        hide: "Ocultar video en lengua de se\xF1as"
+      },
+      transcript: {
+        title: "Transcripci\xF3n",
+        close: "Cerrar transcripci\xF3n",
+        loading: "Cargando transcripci\xF3n...",
+        noTranscript: "No hay transcripci\xF3n disponible para este video."
+      },
       settings: {
         title: "Configuraci\xF3n",
         quality: "Calidad",
@@ -817,14 +899,7 @@ var VidPly = (() => {
         close: "Cerrar"
       },
       speeds: {
-        "0.25": "0,25x",
-        "0.5": "0,5x",
-        "0.75": "0,75x",
-        "1": "Normal",
-        "1.25": "1,25x",
-        "1.5": "1,5x",
-        "1.75": "1,75x",
-        "2": "2x"
+        normal: "Normal"
       }
     },
     fr: {
@@ -882,6 +957,38 @@ var VidPly = (() => {
         backgroundColor: "Couleur de fond",
         opacity: "Opacit\xE9"
       },
+      fontSizes: {
+        small: "Petit",
+        medium: "Moyen",
+        large: "Grand",
+        xlarge: "Tr\xE8s grand"
+      },
+      fontFamilies: {
+        sansSerif: "Sans-serif",
+        serif: "Serif",
+        monospace: "Monospace"
+      },
+      styleLabels: {
+        textColor: "Couleur du texte",
+        background: "Arri\xE8re-plan",
+        font: "Police",
+        fontSize: "Taille de police",
+        opacity: "Opacit\xE9"
+      },
+      audioDescription: {
+        enable: "Activer l'audiodescription",
+        disable: "D\xE9sactiver l'audiodescription"
+      },
+      signLanguage: {
+        show: "Afficher la vid\xE9o en langue des signes",
+        hide: "Masquer la vid\xE9o en langue des signes"
+      },
+      transcript: {
+        title: "Transcription",
+        close: "Fermer la transcription",
+        loading: "Chargement de la transcription...",
+        noTranscript: "Aucune transcription disponible pour cette vid\xE9o."
+      },
       settings: {
         title: "Param\xE8tres",
         quality: "Qualit\xE9",
@@ -892,14 +999,7 @@ var VidPly = (() => {
         close: "Fermer"
       },
       speeds: {
-        "0.25": "0,25x",
-        "0.5": "0,5x",
-        "0.75": "0,75x",
-        "1": "Normal",
-        "1.25": "1,25x",
-        "1.5": "1,5x",
-        "1.75": "1,75x",
-        "2": "2x"
+        normal: "Normal"
       }
     },
     ja: {
@@ -957,6 +1057,38 @@ var VidPly = (() => {
         backgroundColor: "\u80CC\u666F\u8272",
         opacity: "\u4E0D\u900F\u660E\u5EA6"
       },
+      fontSizes: {
+        small: "\u5C0F",
+        medium: "\u4E2D",
+        large: "\u5927",
+        xlarge: "\u7279\u5927"
+      },
+      fontFamilies: {
+        sansSerif: "\u30B5\u30F3\u30BB\u30EA\u30D5",
+        serif: "\u30BB\u30EA\u30D5",
+        monospace: "\u7B49\u5E45"
+      },
+      styleLabels: {
+        textColor: "\u30C6\u30AD\u30B9\u30C8\u306E\u8272",
+        background: "\u80CC\u666F",
+        font: "\u30D5\u30A9\u30F3\u30C8",
+        fontSize: "\u30D5\u30A9\u30F3\u30C8\u30B5\u30A4\u30BA",
+        opacity: "\u4E0D\u900F\u660E\u5EA6"
+      },
+      audioDescription: {
+        enable: "\u97F3\u58F0\u89E3\u8AAC\u3092\u6709\u52B9\u306B\u3059\u308B",
+        disable: "\u97F3\u58F0\u89E3\u8AAC\u3092\u7121\u52B9\u306B\u3059\u308B"
+      },
+      signLanguage: {
+        show: "\u624B\u8A71\u52D5\u753B\u3092\u8868\u793A",
+        hide: "\u624B\u8A71\u52D5\u753B\u3092\u975E\u8868\u793A"
+      },
+      transcript: {
+        title: "\u6587\u5B57\u8D77\u3053\u3057",
+        close: "\u6587\u5B57\u8D77\u3053\u3057\u3092\u9589\u3058\u308B",
+        loading: "\u6587\u5B57\u8D77\u3053\u3057\u3092\u8AAD\u307F\u8FBC\u307F\u4E2D...",
+        noTranscript: "\u3053\u306E\u30D3\u30C7\u30AA\u306E\u6587\u5B57\u8D77\u3053\u3057\u306F\u3042\u308A\u307E\u305B\u3093\u3002"
+      },
       settings: {
         title: "\u8A2D\u5B9A",
         quality: "\u753B\u8CEA",
@@ -967,14 +1099,7 @@ var VidPly = (() => {
         close: "\u9589\u3058\u308B"
       },
       speeds: {
-        "0.25": "0.25\u500D\u901F",
-        "0.5": "0.5\u500D\u901F",
-        "0.75": "0.75\u500D\u901F",
-        "1": "\u901A\u5E38",
-        "1.25": "1.25\u500D\u901F",
-        "1.5": "1.5\u500D\u901F",
-        "1.75": "1.75\u500D\u901F",
-        "2": "2\u500D\u901F"
+        normal: "\u901A\u5E38"
       }
     }
   };
@@ -1781,31 +1906,31 @@ var VidPly = (() => {
         return;
       }
       const fontSizeGroup = this.createStyleControl(
-        "Font Size",
+        i18n.t("styleLabels.fontSize"),
         "captionsFontSize",
         [
-          { label: "Small", value: "80%" },
-          { label: "Medium", value: "100%" },
-          { label: "Large", value: "120%" },
-          { label: "X-Large", value: "150%" }
+          { label: i18n.t("fontSizes.small"), value: "80%" },
+          { label: i18n.t("fontSizes.medium"), value: "100%" },
+          { label: i18n.t("fontSizes.large"), value: "120%" },
+          { label: i18n.t("fontSizes.xlarge"), value: "150%" }
         ]
       );
       menu.appendChild(fontSizeGroup);
       const fontFamilyGroup = this.createStyleControl(
-        "Font",
+        i18n.t("styleLabels.font"),
         "captionsFontFamily",
         [
-          { label: "Sans-serif", value: "sans-serif" },
-          { label: "Serif", value: "serif" },
-          { label: "Monospace", value: "monospace" }
+          { label: i18n.t("fontFamilies.sansSerif"), value: "sans-serif" },
+          { label: i18n.t("fontFamilies.serif"), value: "serif" },
+          { label: i18n.t("fontFamilies.monospace"), value: "monospace" }
         ]
       );
       menu.appendChild(fontFamilyGroup);
-      const colorGroup = this.createColorControl("Text Color", "captionsColor");
+      const colorGroup = this.createColorControl(i18n.t("styleLabels.textColor"), "captionsColor");
       menu.appendChild(colorGroup);
-      const bgColorGroup = this.createColorControl("Background", "captionsBackgroundColor");
+      const bgColorGroup = this.createColorControl(i18n.t("styleLabels.background"), "captionsBackgroundColor");
       menu.appendChild(bgColorGroup);
-      const opacityGroup = this.createOpacityControl("Opacity", "captionsOpacity");
+      const opacityGroup = this.createOpacityControl(i18n.t("styleLabels.opacity"), "captionsOpacity");
       menu.appendChild(opacityGroup);
       menu.style.minWidth = "220px";
       button.appendChild(menu);
@@ -1999,6 +2124,16 @@ var VidPly = (() => {
       this.controls.speedText = speedText;
       return button;
     }
+    formatSpeedLabel(speed) {
+      if (speed === 1) {
+        return i18n.t("speeds.normal");
+      }
+      const speedStr = speed.toLocaleString(i18n.getLanguage(), {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      });
+      return `${speedStr}\xD7`;
+    }
     showSpeedMenu(button) {
       const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-speed-menu`);
       if (existingMenu) {
@@ -2015,7 +2150,7 @@ var VidPly = (() => {
       speeds.forEach((speed) => {
         const item = DOMUtils.createElement("button", {
           className: `${this.player.options.classPrefix}-menu-item`,
-          textContent: i18n.t(`speeds.${speed}`) || `${speed}x`,
+          textContent: this.formatSpeedLabel(speed),
           attributes: {
             "type": "button",
             "role": "menuitem"
@@ -2175,7 +2310,7 @@ var VidPly = (() => {
       this.controls.audioDescription.setAttribute("aria-pressed", isEnabled ? "true" : "false");
       this.controls.audioDescription.setAttribute(
         "aria-label",
-        isEnabled ? "Disable audio description" : "Enable audio description"
+        isEnabled ? i18n.t("audioDescription.disable") : i18n.t("audioDescription.enable")
       );
     }
     createSignLanguageButton() {
@@ -2204,7 +2339,7 @@ var VidPly = (() => {
       this.controls.signLanguage.setAttribute("aria-pressed", isEnabled ? "true" : "false");
       this.controls.signLanguage.setAttribute(
         "aria-label",
-        isEnabled ? "Hide sign language video" : "Show sign language video"
+        isEnabled ? i18n.t("signLanguage.hide") : i18n.t("signLanguage.show")
       );
     }
     createSettingsButton() {
@@ -2844,6 +2979,16 @@ var VidPly = (() => {
         }
       });
     }
+    formatSpeedLabel(speed) {
+      if (speed === 1) {
+        return i18n.t("speeds.normal");
+      }
+      const speedStr = speed.toLocaleString(i18n.getLanguage(), {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      });
+      return `${speedStr}\xD7`;
+    }
     createSpeedSettings() {
       const section = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-settings-section`
@@ -2863,7 +3008,7 @@ var VidPly = (() => {
       const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
       speeds.forEach((speed) => {
         const option = DOMUtils.createElement("option", {
-          textContent: i18n.t(`speeds.${speed}`) || `${speed}x`,
+          textContent: this.formatSpeedLabel(speed),
           attributes: {
             "value": String(speed)
           }
@@ -2924,15 +3069,15 @@ var VidPly = (() => {
       section.appendChild(trackLabel);
       section.appendChild(trackSelect);
       section.appendChild(this.createCaptionStyleControl("fontSize", i18n.t("captions.fontSize"), [
-        { label: "Small", value: "80%" },
-        { label: "Medium", value: "100%" },
-        { label: "Large", value: "120%" },
-        { label: "X-Large", value: "150%" }
+        { label: i18n.t("fontSizes.small"), value: "80%" },
+        { label: i18n.t("fontSizes.medium"), value: "100%" },
+        { label: i18n.t("fontSizes.large"), value: "120%" },
+        { label: i18n.t("fontSizes.xlarge"), value: "150%" }
       ]));
       section.appendChild(this.createCaptionStyleControl("fontFamily", i18n.t("captions.fontFamily"), [
-        { label: "Sans-serif", value: "sans-serif" },
-        { label: "Serif", value: "serif" },
-        { label: "Monospace", value: "monospace" }
+        { label: i18n.t("fontFamilies.sansSerif"), value: "sans-serif" },
+        { label: i18n.t("fontFamilies.serif"), value: "serif" },
+        { label: i18n.t("fontFamilies.monospace"), value: "monospace" }
       ]));
       section.appendChild(this.createColorControl("color", i18n.t("captions.color")));
       section.appendChild(this.createColorControl("backgroundColor", i18n.t("captions.backgroundColor")));
@@ -3154,13 +3299,13 @@ var VidPly = (() => {
         }
       });
       const title = DOMUtils.createElement("h3", {
-        textContent: "Transcript"
+        textContent: i18n.t("transcript.title")
       });
       const closeButton = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-transcript-close`,
         attributes: {
           "type": "button",
-          "aria-label": "Close transcript"
+          "aria-label": i18n.t("transcript.close")
         }
       });
       closeButton.appendChild(createIconElement("close"));
@@ -3268,7 +3413,7 @@ var VidPly = (() => {
       if (!transcriptTrack.cues || transcriptTrack.cues.length === 0) {
         const loadingMessage = DOMUtils.createElement("div", {
           className: `${this.player.options.classPrefix}-transcript-loading`,
-          textContent: "Loading transcript..."
+          textContent: i18n.t("transcript.loading")
         });
         this.transcriptContent.appendChild(loadingMessage);
         const onLoad = () => {
@@ -3344,7 +3489,7 @@ var VidPly = (() => {
     showNoTranscriptMessage() {
       const message = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-transcript-empty`,
-        textContent: "No transcript available for this video."
+        textContent: i18n.t("transcript.noTranscript")
       });
       this.transcriptContent.appendChild(message);
     }

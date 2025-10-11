@@ -1011,39 +1011,39 @@ export class ControlBar {
 
         // Font Size
         const fontSizeGroup = this.createStyleControl(
-            'Font Size',
+            i18n.t('styleLabels.fontSize'),
             'captionsFontSize',
             [
-                {label: 'Small', value: '80%'},
-                {label: 'Medium', value: '100%'},
-                {label: 'Large', value: '120%'},
-                {label: 'X-Large', value: '150%'}
+                {label: i18n.t('fontSizes.small'), value: '80%'},
+                {label: i18n.t('fontSizes.medium'), value: '100%'},
+                {label: i18n.t('fontSizes.large'), value: '120%'},
+                {label: i18n.t('fontSizes.xlarge'), value: '150%'}
             ]
         );
         menu.appendChild(fontSizeGroup);
 
         // Font Family
         const fontFamilyGroup = this.createStyleControl(
-            'Font',
+            i18n.t('styleLabels.font'),
             'captionsFontFamily',
             [
-                {label: 'Sans-serif', value: 'sans-serif'},
-                {label: 'Serif', value: 'serif'},
-                {label: 'Monospace', value: 'monospace'}
+                {label: i18n.t('fontFamilies.sansSerif'), value: 'sans-serif'},
+                {label: i18n.t('fontFamilies.serif'), value: 'serif'},
+                {label: i18n.t('fontFamilies.monospace'), value: 'monospace'}
             ]
         );
         menu.appendChild(fontFamilyGroup);
 
         // Text Color
-        const colorGroup = this.createColorControl('Text Color', 'captionsColor');
+        const colorGroup = this.createColorControl(i18n.t('styleLabels.textColor'), 'captionsColor');
         menu.appendChild(colorGroup);
 
         // Background Color
-        const bgColorGroup = this.createColorControl('Background', 'captionsBackgroundColor');
+        const bgColorGroup = this.createColorControl(i18n.t('styleLabels.background'), 'captionsBackgroundColor');
         menu.appendChild(bgColorGroup);
 
         // Opacity
-        const opacityGroup = this.createOpacityControl('Opacity', 'captionsOpacity');
+        const opacityGroup = this.createOpacityControl(i18n.t('styleLabels.opacity'), 'captionsOpacity');
         menu.appendChild(opacityGroup);
 
         // Set min-width for caption style menu
@@ -1277,6 +1277,21 @@ export class ControlBar {
         return button;
     }
 
+    formatSpeedLabel(speed) {
+        // Special case: 1x is "Normal" (translated)
+        if (speed === 1) {
+            return i18n.t('speeds.normal');
+        }
+        
+        // For other speeds, format with locale-specific decimal separator
+        const speedStr = speed.toLocaleString(i18n.getLanguage(), {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        });
+        
+        return `${speedStr}×`;
+    }
+
     showSpeedMenu(button) {
         // Remove existing menu if any
         const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-speed-menu`);
@@ -1297,7 +1312,7 @@ export class ControlBar {
         speeds.forEach(speed => {
             const item = DOMUtils.createElement('button', {
                 className: `${this.player.options.classPrefix}-menu-item`,
-                textContent: i18n.t(`speeds.${speed}`) || `${speed}x`,
+                textContent: this.formatSpeedLabel(speed),
                 attributes: {
                     'type': 'button',
                     'role': 'menuitem'
@@ -1515,7 +1530,7 @@ export class ControlBar {
 
         this.controls.audioDescription.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
         this.controls.audioDescription.setAttribute('aria-label',
-            isEnabled ? 'Disable audio description' : 'Enable audio description'
+            isEnabled ? i18n.t('audioDescription.disable') : i18n.t('audioDescription.enable')
         );
     }
 
@@ -1553,7 +1568,7 @@ export class ControlBar {
 
         this.controls.signLanguage.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
         this.controls.signLanguage.setAttribute('aria-label',
-            isEnabled ? 'Hide sign language video' : 'Show sign language video'
+            isEnabled ? i18n.t('signLanguage.hide') : i18n.t('signLanguage.show')
         );
     }
 
