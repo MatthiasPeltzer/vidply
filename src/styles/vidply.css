@@ -185,7 +185,7 @@
     overflow: hidden;
     position: relative;
     width: 100%;
-    z-index: 10; /* Above track-info and playlist siblings */
+    z-index: 1; /* Base video layer */
 }
 
 /* Mobile: Simplify video wrapper */
@@ -216,7 +216,7 @@
     top: 50%;
     transform: translate(-50%, -50%);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 15;
+    z-index: 2;
 }
 
 .vidply-play-overlay:hover {
@@ -281,7 +281,7 @@
         position: relative;
         right: 0;
         width: 100%;
-        z-index: 100;
+        z-index: 10;
     }
 
     /* Allow menus to position within controls */
@@ -518,7 +518,7 @@
     position: fixed;
     right: 0;
     top: 0;
-    z-index: 999;
+    z-index: 19;
 }
 
 .vidply-menu-backdrop.visible {
@@ -562,8 +562,8 @@
     /* iOS momentum scrolling */
     transform: translateX(50%);
 
-    /* Ensure touch events work on iOS */
-    z-index: 1000;
+    /* Ensure menus appear above all player content including overlays */
+    z-index: 20;
 }
 
 /* Menu positioned below button */
@@ -830,7 +830,7 @@
     text-align: center;
     transform: translateX(-50%);
     transition: bottom 0.3s ease;
-    z-index: 5;
+    z-index: 4;
 }
 
 .vidply-captions:empty {
@@ -864,7 +864,7 @@
     position: absolute;
     right: 0;
     top: 0;
-    z-index: 2000;
+    z-index: 20;
 }
 
 @keyframes vidply-fade-in {
@@ -1176,7 +1176,7 @@
         top: auto;
         transform: translateX(-50%);
         width: auto;
-        z-index: 200;
+        z-index: 15;
     }
 
     .vidply-menu::after {
@@ -1374,7 +1374,7 @@
     position: sticky;
     text-transform: uppercase;
     top: 0;
-    z-index: 10;
+    z-index: 2;
 }
 
 .vidply-playlist-list {
@@ -1540,7 +1540,7 @@
     position: absolute;
     top: 0;
     width: 400px;
-    z-index: 100;
+    z-index: 5;
 }
 
 /* Minimum height for audio player transcript */
@@ -1674,7 +1674,7 @@
     position: absolute;
     transition: opacity 0.3s ease;
     width: 35% !important;
-    z-index: 100;
+    z-index: 3;
 }
 
 .vidply-fullscreen .vidply-sign-language-video {
@@ -1744,7 +1744,7 @@
         order: 3; /* After controls (which are order: 2) */
         position: relative;
         width: 100%;
-        z-index: 50;
+        z-index: 5;
     }
 
     .vidply-transcript-header {

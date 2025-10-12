@@ -5032,7 +5032,7 @@ var VidPly = (() => {
       if (!this.state.paused) {
         this.signLanguageVideo.play();
       }
-      this.container.appendChild(this.signLanguageVideo);
+      this.videoWrapper.appendChild(this.signLanguageVideo);
       this.signLanguageHandlers = {
         play: () => {
           if (this.signLanguageVideo) {
