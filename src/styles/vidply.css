@@ -1683,13 +1683,23 @@
 
 /* Sign Language Video Positions */
 .vidply-sign-position-bottom-right {
-    bottom: 80px; /* Above controls */
+    bottom: 16px; /* Above controls */
     right: 16px;
 }
 
+.vidply-controls-visible + .vidply-sign-position-bottom-right,
+.vidply-controls-visible + .vidply-captions + .vidply-sign-position-bottom-right {
+    bottom: 95px; /* Above controls */
+}
+
 .vidply-sign-position-bottom-left {
-    bottom: 80px; /* Above controls */
+    bottom: 16px; /* Above controls */
     left: 16px;
+}
+
+.vidply-controls-visible + .vidply-sign-position-bottom-left,
+.vidply-controls-visible + .vidply-captions + .vidply-sign-position-bottom-left {
+    bottom: 95px; /* Above controls */
 }
 
 .vidply-sign-position-top-right {
@@ -1706,12 +1716,12 @@
 @media (width <= 640px) {
     .vidply-sign-language-video {
         min-width: 120px;
-        width: 30%;
+        width: 35%;
     }
     
     .vidply-sign-position-bottom-right,
     .vidply-sign-position-bottom-left {
-        bottom: 70px; /* Adjust for smaller controls */
+        bottom: 126px !important; /* Adjust for smaller controls */
     }
 }
 
