@@ -16,7 +16,7 @@
       "format": "esm"
     },
     "src/icons/Icons.js": {
-      "bytes": 12559,
+      "bytes": 12356,
       "imports": [],
       "format": "esm"
     },
@@ -287,7 +287,7 @@
           "bytesInOutput": 728
         },
         "src/icons/Icons.js": {
-          "bytesInOutput": 10574
+          "bytesInOutput": 10407
         },
         "src/i18n/translations.js": {
           "bytesInOutput": 12646
@@ -326,7 +326,7 @@
           "bytesInOutput": 5245
         }
       },
-      "bytes": 129394
+      "bytes": 129227
     }
   }
 }
