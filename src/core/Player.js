@@ -841,8 +841,8 @@ export class Player extends EventEmitter {
       this.signLanguageVideo.play();
     }
 
-    // Add to container
-    this.container.appendChild(this.signLanguageVideo);
+    // Add to video wrapper (so it overlays the video, not the entire container)
+    this.videoWrapper.appendChild(this.signLanguageVideo);
 
     // Create bound handlers to store references for cleanup
     this.signLanguageHandlers = {
