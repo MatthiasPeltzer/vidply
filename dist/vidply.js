@@ -522,8 +522,8 @@ var VidPly = (() => {
     transcript: `<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>`,
     audioDescription: `<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/><path d="M10.5 19c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>`,
     audioDescriptionOn: `<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/><path d="M10.5 19c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/><circle cx="19" cy="16" r="3" fill="#3b82f6"/><path d="M18.5 17.5l1-1 1.5 1.5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
-    signLanguage: `<path d="M12 2C10.34 2 9 3.34 9 5v4c0 .34.07.66.18.96L7.5 8.29C7.19 8.1 6.85 8 6.5 8 5.12 8 4 9.12 4 10.5v3c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-3c0-.28.22-.5.5-.5s.5.22.5.5V14l2 2v-1c0-.55.45-1 1-1s1 .45 1 1v2c0 .55.45 1 1 1s1-.45 1-1V9c0-.55.45-1 1-1s1 .45 1 1v8c0 2.21-1.79 4-4 4s-4-1.79-4-4v-2.83l-2.93-2.93A3.93 3.93 0 0 1 4 8c0-1.66 1.34-3 3-3 .83 0 1.58.34 2.12.88L11 7.76V5c0-.55.45-1 1-1s1 .45 1 1v4c0 .55.45 1 1 1s1-.45 1-1V5c0-1.66-1.34-3-3-3z"/>`,
-    signLanguageOn: `<path d="M12 2C10.34 2 9 3.34 9 5v4c0 .34.07.66.18.96L7.5 8.29C7.19 8.1 6.85 8 6.5 8 5.12 8 4 9.12 4 10.5v3c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-3c0-.28.22-.5.5-.5s.5.22.5.5V14l2 2v-1c0-.55.45-1 1-1s1 .45 1 1v2c0 .55.45 1 1 1s1-.45 1-1V9c0-.55.45-1 1-1s1 .45 1 1v8c0 2.21-1.79 4-4 4s-4-1.79-4-4v-2.83l-2.93-2.93A3.93 3.93 0 0 1 4 8c0-1.66 1.34-3 3-3 .83 0 1.58.34 2.12.88L11 7.76V5c0-.55.45-1 1-1s1 .45 1 1v4c0 .55.45 1 1 1s1-.45 1-1V5c0-1.66-1.34-3-3-3z"/><circle cx="19" cy="16" r="3" fill="#3b82f6"/><path d="M18.5 17.5l1-1 1.5 1.5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+    signLanguage: `<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>`,
+    signLanguageOn: `<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g><circle cx="19" cy="19" r="3" fill="#3b82f6"/><path d="M17.5 19l1 1 2-2" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
     speaker: `<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>`,
     music: `<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7zm-1.5 16c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>`,
     moreVertical: `<path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>`,
@@ -5024,7 +5024,7 @@ var VidPly = (() => {
       this.signLanguageVideo = document.createElement("video");
       this.signLanguageVideo.className = "vidply-sign-language-video";
       this.signLanguageVideo.src = this.signLanguageSrc;
-      this.signLanguageVideo.setAttribute("aria-label", this.i18n.t("signLanguageVideo"));
+      this.signLanguageVideo.setAttribute("aria-label", i18n.t("player.signLanguage"));
       const position = this.options.signLanguagePosition || "bottom-right";
       this.signLanguageVideo.classList.add(`vidply-sign-position-${position}`);
       this.signLanguageVideo.muted = true;
@@ -5561,8 +5561,55 @@ var VidPly = (() => {
     const elements = document.querySelectorAll("[data-vidply]");
     elements.forEach((element) => {
       const options = element.dataset.vidplyOptions ? JSON.parse(element.dataset.vidplyOptions) : {};
-      new Player(element, options);
+      const dataOptions = parseDataAttributes(element.dataset);
+      const mergedOptions = { ...dataOptions, ...options };
+      new Player(element, mergedOptions);
     });
+  }
+  function parseDataAttributes(dataset) {
+    const options = {};
+    const attributeMap = {
+      // Sign Language
+      "signLanguageSrc": "signLanguageSrc",
+      "signLanguageButton": "signLanguageButton",
+      "signLanguagePosition": "signLanguagePosition",
+      // Audio Description
+      "audioDescriptionSrc": "audioDescriptionSrc",
+      "audioDescriptionButton": "audioDescriptionButton",
+      // Other common options
+      "autoplay": "autoplay",
+      "loop": "loop",
+      "muted": "muted",
+      "controls": "controls",
+      "poster": "poster",
+      "width": "width",
+      "height": "height",
+      "language": "language",
+      "captions": "captions",
+      "captionsDefault": "captionsDefault",
+      "transcript": "transcript",
+      "transcriptButton": "transcriptButton",
+      "keyboard": "keyboard",
+      "responsive": "responsive",
+      "pipButton": "pipButton",
+      "fullscreenButton": "fullscreenButton"
+    };
+    Object.keys(attributeMap).forEach((dataKey) => {
+      const optionKey = attributeMap[dataKey];
+      const value = dataset[dataKey];
+      if (value !== void 0) {
+        if (value === "true") {
+          options[optionKey] = true;
+        } else if (value === "false") {
+          options[optionKey] = false;
+        } else if (!isNaN(value) && value !== "") {
+          options[optionKey] = Number(value);
+        } else {
+          options[optionKey] = value;
+        }
+      }
+    });
+    return options;
   }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initializePlayers);
