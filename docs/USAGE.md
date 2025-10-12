@@ -210,6 +210,172 @@ if (frenchTrack) {
 }
 ```
 
+### Interactive Transcript
+
+Display a clickable, scrolling transcript alongside your video:
+
+```html
+<video 
+  data-vidply
+  data-transcript="true"
+  data-transcript-button="true"
+  src="video.mp4"
+>
+  <track kind="captions" src="captions.vtt" srclang="en" label="English">
+</video>
+```
+
+```javascript
+const player = new Player('#video', {
+  transcript: true,
+  transcriptButton: true
+});
+
+// Control programmatically
+player.transcriptManager.showTranscript();
+player.transcriptManager.hideTranscript();
+player.transcriptManager.toggleTranscript();
+
+// Check visibility
+if (player.transcriptManager.isVisible) {
+  console.log('Transcript is showing');
+}
+```
+
+See [TRANSCRIPT.md](TRANSCRIPT.md) for complete documentation.
+
+### Sign Language Video Overlay
+
+Overlay a sign language interpreter video synchronized with the main video:
+
+```html
+<video 
+  data-vidply
+  src="main-video.mp4"
+  data-sign-language-src="sign-language-video.mp4"
+  data-sign-language-position="bottom-right"
+>
+</video>
+```
+
+```javascript
+const player = new Player('#video', {
+  signLanguageSrc: 'path/to/sign-language-video.mp4',
+  signLanguageButton: true,
+  signLanguagePosition: 'bottom-right' // Options: 'bottom-right', 'bottom-left', 'top-right', 'top-left'
+});
+
+// Control programmatically
+player.enableSignLanguage();   // Show sign language video
+player.disableSignLanguage();  // Hide sign language video
+player.toggleSignLanguage();   // Toggle visibility
+
+// Check state
+if (player.state.signLanguageEnabled) {
+  console.log('Sign language is enabled');
+}
+```
+
+The sign language video:
+- Automatically syncs with main video playback
+- Adjusts playback speed to match main video
+- Muted by default (main video audio is used)
+- Positioned as overlay on main video
+
+### Audio Description
+
+Switch to an audio-described version of your video:
+
+```html
+<video 
+  data-vidply
+  src="regular-version.mp4"
+  data-audio-description-src="described-version.mp4"
+  data-audio-description-button="true"
+>
+</video>
+```
+
+```javascript
+const player = new Player('#video', {
+  audioDescriptionSrc: 'path/to/described-version.mp4',
+  audioDescriptionButton: true
+});
+
+// Control programmatically
+await player.enableAudioDescription();   // Switch to described version
+await player.disableAudioDescription();  // Switch back to original
+await player.toggleAudioDescription();   // Toggle between versions
+
+// Check state
+if (player.state.audioDescriptionEnabled) {
+  console.log('Audio description is active');
+}
+
+// Listen for events
+player.on('audiodescriptionenabled', () => {
+  console.log('Switched to described version');
+});
+
+player.on('audiodescriptiondisabled', () => {
+  console.log('Switched back to original');
+});
+```
+
+Note: Playback position is preserved when switching between versions.
+
+### Chapter Navigation
+
+Jump to video chapters when chapter tracks are available:
+
+```html
+<video data-vidply src="video.mp4">
+  <track kind="chapters" src="chapters.vtt" srclang="en" label="Chapters">
+</video>
+```
+
+Chapters VTT format:
+
+```
+WEBVTT
+
+00:00:00.000 --> 00:01:30.000
+Introduction
+
+00:01:30.000 --> 00:05:00.000
+Getting Started
+
+00:05:00.000 --> 00:10:00.000
+Advanced Features
+
+00:10:00.000 --> 00:15:00.000
+Conclusion
+```
+
+The chapters button automatically appears in the control bar when chapter tracks are detected. Users can click to see a menu and jump to any chapter.
+
+### Caption Styling
+
+VidPly has TWO caption-related buttons:
+
+1. **CC Button** - Select caption language/track
+2. **Aa Button** - Customize caption appearance (font, size, color)
+
+```javascript
+const player = new Player('#video', {
+  captions: true,
+  captionsButton: true,      // Shows CC button for track selection
+  captionStyleButton: true   // Shows Aa button for styling
+});
+
+// Programmatically set caption styles
+player.captionManager.setCaptionStyle('fontSize', '120%');
+player.captionManager.setCaptionStyle('fontFamily', 'serif');
+player.captionManager.setCaptionStyle('color', '#FFFF00');
+player.captionManager.setCaptionStyle('backgroundColor', '#000000');
+player.captionManager.setCaptionStyle('opacity', 0.9);
+```
+
 ### Multiple Players on Same Page
 
 ```html
@@ -462,10 +628,65 @@ player.state.duration;
 player.state.playing;
 ```
 
+## Complete Accessibility Example
+
+Here's a video with all accessibility features enabled:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fully Accessible Video</title>
+  <link rel="stylesheet" href="dist/vidply.min.css">
+</head>
+<body>
+  <video 
+    id="accessible-video"
+    data-vidply
+    src="main-video.mp4"
+    data-audio-description-src="described-version.mp4"
+    data-sign-language-src="sign-language-video.mp4"
+    data-sign-language-position="bottom-right"
+    data-transcript="true"
+    data-transcript-button="true"
+  >
+    <!-- Multiple caption languages -->
+    <track kind="captions" src="captions-en.vtt" srclang="en" label="English" default>
+    <track kind="captions" src="captions-es.vtt" srclang="es" label="Español">
+    <track kind="captions" src="captions-fr.vtt" srclang="fr" label="Français">
+    
+    <!-- Chapters for navigation -->
+    <track kind="chapters" src="chapters-en.vtt" srclang="en" label="Chapters">
+    
+    <!-- Audio descriptions (if not using alternate video) -->
+    <track kind="descriptions" src="descriptions-en.vtt" srclang="en" label="Descriptions">
+  </video>
+
+  <script type="module">
+    import Player from './dist/vidply.esm.min.js';
+    
+    // Player auto-initializes with all features enabled
+  </script>
+</body>
+</html>
+```
+
+This provides:
+- Multiple caption languages with easy switching
+- Interactive transcript for reading and navigation
+- Sign language video overlay
+- Audio description alternate track
+- Chapter navigation
+- Full keyboard accessibility
+- Screen reader support
+
 ## Next Steps
 
 - Explore `demo.html` for live examples
 - Read API documentation in `README.md`
+- Check [TRANSCRIPT.md](TRANSCRIPT.md) for transcript features
+- Check [PLAYLIST.md](PLAYLIST.md) for playlist features
 - Check source code in `src/` for customization
 - Join community discussions
 

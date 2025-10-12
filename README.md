@@ -21,6 +21,9 @@ A modern, feature-rich video player built with vanilla ES6 JavaScript. Combines 
 ### Accessibility Features
 - **Full Keyboard Navigation** - WCAG 2.1 compliant
 - **Screen Reader Support** - Complete ARIA labels
+- **Interactive Transcripts** - Click-to-seek transcript window
+- **Sign Language Overlay** - Picture-in-picture sign language video
+- **Audio Description** - Alternate audio track with descriptions
 - **Customizable Shortcuts** - User-definable hotkeys
 - **High Contrast Mode** - Windows HCM support
 - **Focus Indicators** - Clear visual focus states
@@ -29,9 +32,10 @@ A modern, feature-rich video player built with vanilla ES6 JavaScript. Combines 
 ### Captions & Subtitles
 - **WebVTT Support** - Standard caption format
 - **Multiple Languages** - Multi-track support
-- **Customizable Display** - Font, size, color, opacity
-- **Caption Positioning** - Flexible placement
-- **Auto-generated Transcripts** - Interactive text
+- **Caption Selector** - Easy track switching with CC button
+- **Caption Styling** - Dedicated styling menu (font, size, color, opacity)
+- **Chapter Navigation** - Jump to video chapters
+- **Interactive Transcripts** - Full-text searchable transcript panel
 
 ### Playback Features
 - **Adjustable Speed** - 0.25x to 2x playback
@@ -198,8 +202,14 @@ const player = new Player('#video', {
   playPauseButton: true,
   progressBar: true,
   volumeControl: true,
+  chaptersButton: true,
+  qualityButton: true,
+  captionStyleButton: true,
   speedButton: true,
   captionsButton: true,
+  transcriptButton: true,
+  audioDescriptionButton: true,
+  signLanguageButton: true,
   fullscreenButton: true,
   pipButton: true,
   
@@ -211,6 +221,23 @@ const player = new Player('#video', {
   captionsColor: '#FFFFFF',
   captionsBackgroundColor: '#000000',
   captionsOpacity: 0.8,
+  
+  // Audio Description
+  audioDescription: true,
+  audioDescriptionSrc: null, // URL to audio-described version
+  audioDescriptionButton: true,
+  
+  // Sign Language
+  signLanguage: true,
+  signLanguageSrc: null, // URL to sign language video
+  signLanguageButton: true,
+  signLanguagePosition: 'bottom-right', // 'bottom-right', 'bottom-left', 'top-right', 'top-left'
+  
+  // Transcripts
+  transcript: false,
+  transcriptButton: true,
+  transcriptPosition: 'external',
+  transcriptContainer: null,
   
   // Keyboard
   keyboard: true,
@@ -254,9 +281,10 @@ const player = new Player('#video', {
 | <kbd>↑</kbd> / <kbd>↓</kbd> | Volume Up/Down |
 | <kbd>←</kbd> / <kbd>→</kbd> | Seek -10s / +10s |
 | <kbd>J</kbd> / <kbd>L</kbd> | Seek -30s / +30s |
-| <kbd>C</kbd> | Toggle Captions |
+| <kbd>C</kbd> | Toggle Captions (or open menu if multiple) |
 | <kbd><</kbd> / <kbd>></kbd> | Decrease/Increase Speed |
 | <kbd>S</kbd> | Open Settings |
+| <kbd>R</kbd> | Restart Video |
 
 ## API Reference
 
@@ -307,6 +335,30 @@ player.toggleCaptions()   // Toggle captions
 // Switch between caption tracks
 player.captionManager.switchTrack(0)  // Switch to first track
 player.captionManager.getAvailableTracks()  // Get all tracks
+```
+
+### Transcript
+
+```javascript
+player.transcriptManager.showTranscript()  // Show transcript window
+player.transcriptManager.hideTranscript()  // Hide transcript window
+player.transcriptManager.toggleTranscript() // Toggle transcript
+```
+
+### Audio Description
+
+```javascript
+player.enableAudioDescription()   // Switch to described version
+player.disableAudioDescription()  // Switch back to original
+player.toggleAudioDescription()   // Toggle audio description
+```
+
+### Sign Language
+
+```javascript
+player.enableSignLanguage()   // Show sign language overlay
+player.disableSignLanguage()  // Hide sign language overlay
+player.toggleSignLanguage()   // Toggle sign language
 ```
 
 ### Settings
@@ -446,7 +498,9 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - Getting Started: See [GETTING_STARTED.md](docs/GETTING_STARTED.md)
 - Usage Examples: See [USAGE.md](docs/USAGE.md)
 - Playlist Guide: See [PLAYLIST.md](docs/PLAYLIST.md)
+- Transcript Guide: See [TRANSCRIPT.md](docs/TRANSCRIPT.md)
 - Build Guide: See [BUILD.md](docs/BUILD.md)
+- Changelog: See [CHANGELOG.md](docs/CHANGELOG.md)
 - Issues: Report on GitHub
 - Discussions: GitHub Discussions
 
