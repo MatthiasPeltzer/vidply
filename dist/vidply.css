@@ -1668,6 +1668,59 @@
     background: var(--vidply-border-hover);
 }
 
+/* Sign Language Video */
+.vidply-sign-language-video {
+    background: var(--vidply-black);
+    border: 2px solid var(--vidply-white-30);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px var(--vidply-black-60);
+    height: auto !important;
+    max-width: 400px;
+    min-width: 150px;
+    position: absolute;
+    transition: opacity 0.3s ease;
+    width: 35% !important;
+    z-index: 100;
+}
+
+.vidply-fullscreen .vidply-sign-language-video {
+    max-width: 600px;
+}
+
+/* Sign Language Video Positions */
+.vidply-sign-position-bottom-right {
+    bottom: 80px; /* Above controls */
+    right: 16px;
+}
+
+.vidply-sign-position-bottom-left {
+    bottom: 80px; /* Above controls */
+    left: 16px;
+}
+
+.vidply-sign-position-top-right {
+    right: 16px;
+    top: 16px;
+}
+
+.vidply-sign-position-top-left {
+    left: 16px;
+    top: 16px;
+}
+
+/* Responsive Sign Language Video */
+@media (width <= 640px) {
+    .vidply-sign-language-video {
+        min-width: 120px;
+        width: 30%;
+    }
+    
+    .vidply-sign-position-bottom-right,
+    .vidply-sign-position-bottom-left {
+        bottom: 70px; /* Adjust for smaller controls */
+    }
+}
+
 /* Responsive Adjustments */
 @media (width <= 640px) {
     .vidply-playlist-thumbnail {

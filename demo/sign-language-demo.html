@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VidPly - Sign Language Video Demo</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="stylesheet" href="../dist/vidply.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      padding: 40px 20px;
+      color: #ffffff;
+      background: linear-gradient(135deg, #000000 0%, #444444 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 60px;
+      text-align: center;
+      color: #ffffff;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .subtitle {
+      font-size: 20px;
+      margin-bottom: 24px;
+      opacity: 0.9;
+    }
+
+    .info-box {
+      background: rgba(76, 175, 80, 0.2);
+      border-left: 4px solid #4CAF50;
+      padding: 20px;
+      margin-bottom: 32px;
+      border-radius: 8px;
+      color: #ffffff;
+    }
+
+    .info-box h3 {
+      margin-bottom: 12px;
+      font-size: 20px;
+    }
+
+    .info-box p {
+      margin-bottom: 8px;
+      line-height: 1.8;
+    }
+
+    .info-box strong {
+      color: #4CAF50;
+    }
+
+    .demo-section {
+      margin-bottom: 48px;
+      padding: 32px;
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .demo-section h2 {
+      font-size: 28px;
+      margin-bottom: 16px;
+      color: #1a1a1a;
+    }
+
+    .demo-section p {
+      margin-bottom: 24px;
+      color: #666;
+      font-size: 16px;
+    }
+
+    .player-container {
+      max-width: 900px;
+      margin: 0 auto 24px;
+    }
+
+    .code-block {
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      margin-top: 24px;
+      padding: 20px;
+      color: #f8f8f2;
+      border-radius: 8px;
+      background: #282a36;
+      line-height: 1.5;
+    }
+
+    .code-block .keyword {
+      color: #ff79c6;
+    }
+
+    .code-block .string {
+      color: #f1fa8c;
+    }
+
+    .code-block .comment {
+      color: #6272a4;
+      font-style: italic;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .feature-card {
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      border: 2px solid #e9ecef;
+    }
+
+    .feature-card h4 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #495057;
+    }
+
+    .feature-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-card li {
+      padding: 6px 0;
+      color: #6c757d;
+      font-size: 14px;
+    }
+
+    .feature-card li::before {
+      content: "✓ ";
+      color: #28a745;
+      font-weight: bold;
+      margin-right: 6px;
+    }
+
+    .control-panel {
+      background: #f8f9fa;
+      padding: 24px;
+      border-radius: 12px;
+      margin-top: 24px;
+      border: 2px solid #dee2e6;
+    }
+
+    .control-panel h4 {
+      margin-bottom: 16px;
+      color: #495057;
+      font-size: 18px;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .btn-primary {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0056b3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .back-link:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 32px;
+      }
+
+      .demo-section {
+        padding: 20px;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="demo.html" class="back-link">← Back to All Demos</a>
+
+    <header>
+      <h1>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="48" height="48" fill="currentColor" style="vertical-align: middle; margin-right: 12px;">
+          <path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/>
+        </svg>
+        Sign Language Video Demo
+      </h1>
+      <p class="subtitle">Accessibility Feature for Deaf Users</p>
+    </header>
+
+    <!-- Explanation Box -->
+    <div class="info-box">
+      <h3>What is Sign Language Video?</h3>
+      <p><strong>Sign Language Video</strong> overlays a secondary video (showing a sign language interpreter) on top of your main video. This is different from <strong>Picture-in-Picture (PiP)</strong> which pops the video out of the browser.</p>
+      <p><strong>Key Features:</strong></p>
+      <ul style="list-style: none; padding-left: 20px;">
+        <li>✓ Automatically syncs playback with the main video</li>
+        <li>✓ Syncs seeking, play/pause, and playback speed</li>
+        <li>✓ Users can toggle it on/off with a button</li>
+        <li>✓ Can be positioned in any corner (bottom-right is default)</li>
+        <li>✓ Interpreter video is muted (main audio plays)</li>
+      </ul>
+    </div>
+
+    <!-- Demo 1: Data Attributes Only -->
+    <section class="demo-section">
+      <h2>Demo 1: Using Data Attributes Only (Pure HTML)</h2>
+      <p>This video is initialized <strong>only with data attributes</strong> - no JavaScript required! Click the sign language button in the controls.</p>
+      
+      <div class="player-container">
+        <video 
+          id="data-attr-video"
+          data-vidply
+          data-sign-language-src="media/wwa_sign.mp4"
+          data-sign-language-button="true"
+          data-sign-language-position="bottom-right"
+          data-controls="true"
+          data-captions="true"
+          data-transcript="true"
+          width="900"
+          height="506"
+          poster="media/wwa_thumbnail.jpg"
+        >
+          <source src="media/wwa.mp4" type="video/mp4">
+          <source src="media/wwa.webm" type="video/webm">
+          <track kind="captions" src="media/wwa_captions_en.vtt" srclang="en" label="English" default>
+          <track kind="captions" src="media/wwa_captions_es.vtt" srclang="es" label="Español">
+          <track kind="chapters" src="media/wwa_chapters_en.vtt" srclang="en" label="Chapters">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <div class="code-block">
+<span class="comment">&lt;!-- This is the actual code used above --&gt;</span>
+<span class="keyword">&lt;video</span> 
+  <span class="string">data-vidply</span>
+  <span class="string">data-sign-language-src</span>=<span class="string">"media/wwa_sign.mp4"</span>
+  <span class="string">data-sign-language-button</span>=<span class="string">"true"</span>
+  <span class="string">data-sign-language-position</span>=<span class="string">"bottom-right"</span>
+  <span class="string">data-controls</span>=<span class="string">"true"</span>
+  <span class="string">data-captions</span>=<span class="string">"true"</span>
+  poster=<span class="string">"media/wwa_thumbnail.jpg"</span>
+<span class="keyword">&gt;</span>
+  <span class="keyword">&lt;source</span> src=<span class="string">"media/wwa.mp4"</span> type=<span class="string">"video/mp4"</span><span class="keyword">&gt;</span>
+  <span class="keyword">&lt;track</span> kind=<span class="string">"captions"</span> src=<span class="string">"captions_en.vtt"</span> srclang=<span class="string">"en"</span><span class="keyword">&gt;</span>
+<span class="keyword">&lt;/video&gt;</span>
+
+<span class="comment">&lt;!-- Include VidPly (auto-initializes) --&gt;</span>
+<span class="keyword">&lt;script</span> type=<span class="string">"module"</span> src=<span class="string">"dist/vidply.esm.min.js"</span><span class="keyword">&gt;&lt;/script&gt;</span>
+      </div>
+    </section>
+
+    <!-- Demo 2: JavaScript Initialization -->
+    <section class="demo-section">
+      <h2>Demo 2: JavaScript Initialization</h2>
+      <p>This video uses <strong>JavaScript initialization</strong> for more control. Click the sign language button in the controls.</p>
+      
+      <div class="player-container">
+        <video 
+          id="wwa-sign-video"
+          width="900"
+          height="506"
+          poster="media/wwa_thumbnail.jpg"
+        >
+          <source src="media/wwa.mp4" type="video/mp4">
+          <source src="media/wwa.webm" type="video/webm">
+          <track kind="captions" src="media/wwa_captions_en.vtt" srclang="en" label="English" default>
+          <track kind="captions" src="media/wwa_captions_es.vtt" srclang="es" label="Español">
+          <track kind="captions" src="media/wwa_captions_fr.vtt" srclang="fr" label="Français">
+          <track kind="captions" src="media/wwa_captions_de.vtt" srclang="de" label="Deutsch">
+          <track kind="chapters" src="media/wwa_chapters_en.vtt" srclang="en" label="Chapters">
+          <track kind="descriptions" src="media/wwa_description_en.vtt" srclang="en" label="Descriptions">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <!-- Control Panel -->
+      <div class="control-panel">
+        <h4>JavaScript Controls (Try these!)</h4>
+        <div class="button-group">
+          <button class="btn btn-success" onclick="window.wwaPlayer.enableSignLanguage()">
+            Enable Sign Language
+          </button>
+          <button class="btn btn-danger" onclick="window.wwaPlayer.disableSignLanguage()">
+            Disable Sign Language
+          </button>
+          <button class="btn btn-primary" onclick="window.wwaPlayer.toggleSignLanguage()">
+            Toggle Sign Language
+          </button>
+        </div>
+      </div>
+
+      <div class="code-block">
+<span class="comment">// HTML Setup</span>
+<span class="keyword">&lt;video</span> id=<span class="string">"my-video"</span> src=<span class="string">"main-video.mp4"</span><span class="keyword">&gt;&lt;/video&gt;</span>
+
+<span class="comment">// JavaScript Initialization</span>
+<span class="keyword">import</span> Player <span class="keyword">from</span> <span class="string">'./dist/vidply.esm.js'</span>;
+
+<span class="keyword">const</span> player = <span class="keyword">new</span> Player(<span class="string">'#my-video'</span>, {
+  <span class="comment">// Enable sign language video</span>
+  signLanguageSrc: <span class="string">'path/to/sign-language-video.mp4'</span>,
+  signLanguageButton: <span class="keyword">true</span>,
+  signLanguagePosition: <span class="string">'bottom-right'</span>
+});
+
+<span class="comment">// Control via JavaScript</span>
+player.enableSignLanguage();   <span class="comment">// Show interpreter</span>
+player.disableSignLanguage();  <span class="comment">// Hide interpreter</span>
+player.toggleSignLanguage();   <span class="comment">// Toggle on/off</span>
+
+<span class="comment">// Listen to events</span>
+player.on(<span class="string">'signlanguageenabled'</span>, () => {
+  console.log(<span class="string">'Sign language video is now visible'</span>);
+});
+      </div>
+    </section>
+
+    <!-- Demo 2: Different Positions -->
+    <section class="demo-section">
+      <h2>Position Options</h2>
+      <p>You can place the sign language video in any corner of the main video.</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <h4>Bottom Right (Default)</h4>
+          <ul>
+            <li>Most common position</li>
+            <li>Doesn't cover important UI</li>
+            <li>Natural reading flow</li>
+          </ul>
+          <div class="code-block" style="margin-top: 12px; padding: 12px;">
+signLanguagePosition: <span class="string">'bottom-right'</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h4>Bottom Left</h4>
+          <ul>
+            <li>Alternative position</li>
+            <li>Good for RTL languages</li>
+            <li>Avoids controls overlap</li>
+          </ul>
+          <div class="code-block" style="margin-top: 12px; padding: 12px;">
+signLanguagePosition: <span class="string">'bottom-left'</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h4>Top Right</h4>
+          <ul>
+            <li>Keeps bottom clear</li>
+            <li>Good for subtitle space</li>
+            <li>Less common</li>
+          </ul>
+          <div class="code-block" style="margin-top: 12px; padding: 12px;">
+signLanguagePosition: <span class="string">'top-right'</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h4>Top Left</h4>
+          <ul>
+            <li>Maximum subtitle space</li>
+            <li>RTL language option</li>
+            <li>Less common</li>
+          </ul>
+          <div class="code-block" style="margin-top: 12px; padding: 12px;">
+signLanguagePosition: <span class="string">'top-left'</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Configuration Examples -->
+    <section class="demo-section">
+      <h2>Complete Configuration Examples</h2>
+      
+      <h3 style="color: #495057; margin-top: 24px; margin-bottom: 12px;">Example 1: Using Data Attributes (Easy!)</h3>
+      <p style="color: #666; margin-bottom: 16px;">The simplest way - just add data attributes to your video element:</p>
+      <div class="code-block">
+<span class="comment">&lt;!-- HTML with data attributes --&gt;</span>
+<span class="keyword">&lt;video</span> 
+  <span class="string">data-vidply</span>
+  <span class="string">data-sign-language-src</span>=<span class="string">"media/interpreter.mp4"</span>
+  <span class="string">data-sign-language-button</span>=<span class="string">"true"</span>
+  <span class="string">data-sign-language-position</span>=<span class="string">"bottom-right"</span>
+  src=<span class="string">"media/main-video.mp4"</span>
+<span class="keyword">&gt;&lt;/video&gt;</span>
+
+<span class="comment">&lt;!-- Include VidPly --&gt;</span>
+<span class="keyword">&lt;script</span> type=<span class="string">"module"</span> src=<span class="string">"dist/vidply.esm.min.js"</span><span class="keyword">&gt;&lt;/script&gt;</span>
+      </div>
+
+      <h3 style="color: #495057; margin-top: 24px; margin-bottom: 12px;">Example 2: JavaScript Initialization</h3>
+      <p style="color: #666; margin-bottom: 16px;">For more control, initialize via JavaScript:</p>
+      <div class="code-block">
+<span class="keyword">const</span> player = <span class="keyword">new</span> Player(<span class="string">'#video'</span>, {
+  signLanguageSrc: <span class="string">'interpreter.mp4'</span>,
+  signLanguageButton: <span class="keyword">true</span>,
+  signLanguagePosition: <span class="string">'bottom-right'</span>
+});
+      </div>
+
+      <h3 style="color: #495057; margin-top: 24px; margin-bottom: 12px;">Example 3: With Multiple Accessibility Features</h3>
+      <div class="code-block">
+<span class="keyword">const</span> player = <span class="keyword">new</span> Player(<span class="string">'#video'</span>, {
+  <span class="comment">// Basic settings</span>
+  controls: <span class="keyword">true</span>,
+  captions: <span class="keyword">true</span>,
+  captionsDefault: <span class="keyword">true</span>,
+  
+  <span class="comment">// Sign language video</span>
+  signLanguageSrc: <span class="string">'videos/interpreter.mp4'</span>,
+  signLanguageButton: <span class="keyword">true</span>,
+  signLanguagePosition: <span class="string">'bottom-right'</span>,
+  
+  <span class="comment">// Audio description (alternative audio track)</span>
+  audioDescriptionSrc: <span class="string">'videos/described-version.mp4'</span>,
+  audioDescriptionButton: <span class="keyword">true</span>,
+  
+  <span class="comment">// Transcript</span>
+  transcript: <span class="keyword">true</span>,
+  transcriptButton: <span class="keyword">true</span>,
+  
+  <span class="comment">// Keyboard shortcuts</span>
+  keyboard: <span class="keyword">true</span>
+});
+      </div>
+
+      <h3 style="color: #495057; margin-top: 24px; margin-bottom: 12px;">Example 4: Programmatic Control</h3>
+      <div class="code-block">
+<span class="comment">// Enable sign language after 5 seconds</span>
+setTimeout(() => {
+  player.enableSignLanguage();
+}, <span class="string">5000</span>);
+
+<span class="comment">// Check current state</span>
+<span class="keyword">if</span> (player.state.signLanguageEnabled) {
+  console.log(<span class="string">'Sign language is currently visible'</span>);
+}
+
+<span class="comment">// Listen for user toggling it</span>
+player.on(<span class="string">'signlanguageenabled'</span>, () => {
+  analytics.track(<span class="string">'sign_language_enabled'</span>);
+});
+
+player.on(<span class="string">'signlanguagedisabled'</span>, () => {
+  analytics.track(<span class="string">'sign_language_disabled'</span>);
+});
+      </div>
+    </section>
+
+    <!-- Available Data Attributes -->
+    <section class="demo-section">
+      <h2>Available Data Attributes</h2>
+      <p>All sign language options can be configured via data attributes:</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <h4>data-sign-language-src</h4>
+          <ul style="list-style: disc; padding-left: 20px;">
+            <li>Path to interpreter video</li>
+            <li>Required for sign language</li>
+            <li>Example: "interpreter.mp4"</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <h4>data-sign-language-button</h4>
+          <ul style="list-style: disc; padding-left: 20px;">
+            <li>Show toggle button</li>
+            <li>Values: "true" or "false"</li>
+            <li>Default: true</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <h4>data-sign-language-position</h4>
+          <ul style="list-style: disc; padding-left: 20px;">
+            <li>Corner placement</li>
+            <li>Values: "bottom-right", "bottom-left", "top-right", "top-left"</li>
+            <li>Default: "bottom-right"</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <h4>Other Data Attributes</h4>
+          <ul style="list-style: disc; padding-left: 20px;">
+            <li>data-autoplay</li>
+            <li>data-loop</li>
+            <li>data-muted</li>
+            <li>data-controls</li>
+            <li>data-captions</li>
+            <li>data-transcript</li>
+            <li>And more...</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="code-block" style="margin-top: 24px;">
+<span class="comment">&lt;!-- Complete example with multiple data attributes --&gt;</span>
+<span class="keyword">&lt;video</span> 
+  <span class="string">data-vidply</span>
+  <span class="string">data-sign-language-src</span>=<span class="string">"interpreter.mp4"</span>
+  <span class="string">data-sign-language-button</span>=<span class="string">"true"</span>
+  <span class="string">data-sign-language-position</span>=<span class="string">"bottom-right"</span>
+  <span class="string">data-audio-description-src</span>=<span class="string">"described.mp4"</span>
+  <span class="string">data-captions</span>=<span class="string">"true"</span>
+  <span class="string">data-transcript</span>=<span class="string">"true"</span>
+  src=<span class="string">"video.mp4"</span>
+<span class="keyword">&gt;</span>
+  <span class="keyword">&lt;track</span> kind=<span class="string">"captions"</span> src=<span class="string">"captions.vtt"</span> srclang=<span class="string">"en"</span><span class="keyword">&gt;</span>
+<span class="keyword">&lt;/video&gt;</span>
+      </div>
+    </section>
+
+    <!-- Key Differences -->
+    <section class="demo-section">
+      <h2>Sign Language Video vs. Picture-in-Picture</h2>
+      <p>Understanding the difference between these two features:</p>
+
+      <div class="features-grid">
+        <div class="feature-card" style="background: #e3f2fd; border-color: #1976d2;">
+          <h4 style="color: #1976d2;">📺 Sign Language Video</h4>
+          <ul style="color: #333;">
+            <li>Overlays interpreter on main video</li>
+            <li>Stays within the player</li>
+            <li>Syncs automatically</li>
+            <li>For deaf accessibility</li>
+            <li>User can toggle on/off</li>
+            <li>Positioned in corner</li>
+          </ul>
+        </div>
+
+        <div class="feature-card" style="background: #f3e5f5; border-color: #7b1fa2;">
+          <h4 style="color: #7b1fa2;">🎬 Picture-in-Picture (PiP)</h4>
+          <ul style="color: #333;">
+            <li>Pops video out of browser</li>
+            <li>Floats on desktop/screen</li>
+            <li>For multitasking</li>
+            <li>Watch while working</li>
+            <li>Browser feature</li>
+            <li>User can move anywhere</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="code-block">
+<span class="comment">// Sign Language Video - For accessibility</span>
+player.enableSignLanguage();  <span class="comment">// Shows interpreter overlay</span>
+
+<span class="comment">// Picture-in-Picture - For multitasking</span>
+player.enterPiP();            <span class="comment">// Pops video out of browser</span>
+      </div>
+    </section>
+
+    <!-- Browser Support -->
+    <section class="demo-section">
+      <h2>Browser Support</h2>
+      <p>Sign Language Video works in all modern browsers that support HTML5 video:</p>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <h4>✅ Chrome 90+</h4>
+          <ul>
+            <li>Full support</li>
+            <li>Excellent performance</li>
+          </ul>
+        </div>
+        
+        <div class="feature-card">
+          <h4>✅ Firefox 88+</h4>
+          <ul>
+            <li>Full support</li>
+            <li>Good performance</li>
+          </ul>
+        </div>
+        
+        <div class="feature-card">
+          <h4>✅ Safari 14+</h4>
+          <ul>
+            <li>Full support</li>
+            <li>iOS compatible</li>
+          </ul>
+        </div>
+        
+        <div class="feature-card">
+          <h4>✅ Edge 90+</h4>
+          <ul>
+            <li>Full support</li>
+            <li>Native performance</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="margin-top: 60px; text-align: center; opacity: 0.8; color: #ffffff;">
+      <p>&copy; 2024 VidPly - Accessible Video Player</p>
+      <p>Making web video accessible to everyone</p>
+    </footer>
+  </div>
+
+  <script type="module">
+    import Player from '../dist/vidply.esm.js';
+
+    // Note: The first video (data-attr-video) auto-initializes via data attributes!
+    // No JavaScript initialization needed for it.
+
+    // Initialize the second demo player (JavaScript method) with sign language support
+    window.wwaPlayer = new Player('#wwa-sign-video', {
+      controls: true,
+      captions: true,
+      captionsDefault: true,
+      
+      // Sign language video configuration
+      signLanguageSrc: 'media/wwa_sign.mp4',
+      signLanguageButton: true,
+      signLanguagePosition: 'bottom-right',
+      
+      // Other features
+      keyboard: true,
+      transcript: true,
+      transcriptButton: true,
+      
+      // Debug mode
+      debug: true
+    });
+
+    // Log sign language events
+    window.wwaPlayer.on('signlanguageenabled', () => {
+      console.log('✅ Sign language video enabled');
+    });
+
+    window.wwaPlayer.on('signlanguagedisabled', () => {
+      console.log('❌ Sign language video disabled');
+    });
+
+    // Log when player is ready
+    window.wwaPlayer.on('ready', () => {
+      console.log('🎬 Player ready!');
+      console.log('Sign language source:', window.wwaPlayer.signLanguageSrc);
+    });
+  </script>
+</body>
+</html>
+

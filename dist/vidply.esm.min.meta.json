@@ -16,7 +16,7 @@
       "format": "esm"
     },
     "src/icons/Icons.js": {
-      "bytes": 12581,
+      "bytes": 12559,
       "imports": [],
       "format": "esm"
     },
@@ -157,7 +157,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 30756,
+      "bytes": 30753,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -249,7 +249,7 @@
       "format": "esm"
     },
     "src/index.js": {
-      "bytes": 833,
+      "bytes": 2706,
       "imports": [
         {
           "path": "src/core/Player.js",
@@ -288,7 +288,7 @@
           "bytesInOutput": 728
         },
         "src/icons/Icons.js": {
-          "bytesInOutput": 10596
+          "bytesInOutput": 10574
         },
         "src/i18n/translations.js": {
           "bytesInOutput": 12646
@@ -312,7 +312,7 @@
           "bytesInOutput": 12461
         },
         "src/core/Player.js": {
-          "bytesInOutput": 16392
+          "bytesInOutput": 16386
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -327,10 +327,10 @@
           "bytesInOutput": 5245
         },
         "src/index.js": {
-          "bytesInOutput": 243
+          "bytesInOutput": 1000
         }
       },
-      "bytes": 128297
+      "bytes": 129026
     }
   }
 }

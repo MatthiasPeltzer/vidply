@@ -828,7 +828,7 @@ export class Player extends EventEmitter {
     this.signLanguageVideo = document.createElement('video');
     this.signLanguageVideo.className = 'vidply-sign-language-video';
     this.signLanguageVideo.src = this.signLanguageSrc;
-    this.signLanguageVideo.setAttribute('aria-label', this.i18n.t('signLanguageVideo'));
+    this.signLanguageVideo.setAttribute('aria-label', i18n.t('player.signLanguage'));
     
     // Set position based on options
     const position = this.options.signLanguagePosition || 'bottom-right';
