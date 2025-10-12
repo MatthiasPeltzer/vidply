@@ -13,37 +13,37 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: linear-gradient(135deg, #000000 0%, #444444 100%);
-      min-height: 100vh;
-      display: flex;
       align-items: center;
+      background: linear-gradient(135deg, #000000 0%, #444444 100%);
+      display: flex;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       justify-content: center;
+      min-height: 100vh;
       padding: 40px 20px;
     }
 
     .container {
-      max-width: 800px;
-      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 20px;
-      padding: 60px 40px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 800px;
+      padding: 60px 40px;
       text-align: center;
     }
 
     h1 {
-      font-size: 56px;
-      margin-bottom: 20px;
       background: linear-gradient(135deg, #0a406e 0%, #1a5a8e 100%);
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
       background-clip: text;
+      font-size: 56px;
+      margin-bottom: 20px;
+      -webkit-text-fill-color: transparent;
     }
 
     .subtitle {
-      font-size: 24px;
       color: #666;
+      font-size: 24px;
       margin-bottom: 40px;
     }
 
@@ -54,21 +54,21 @@
     }
 
     .demo-link {
-      display: block;
-      padding: 20px 30px;
       background: linear-gradient(135deg, #0a406e 0%, #1a5a8e 100%);
-      color: white;
-      text-decoration: none;
       border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      color: white;
+      display: block;
       font-size: 18px;
       font-weight: 600;
+      padding: 20px 30px;
+      text-decoration: none;
       transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
 
     .demo-link:hover {
-      transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      transform: translateY(-2px);
     }
 
     .demo-link:active {
@@ -82,14 +82,14 @@
     }
 
     .badge {
-      display: inline-block;
-      padding: 6px 12px;
       background: rgba(10, 64, 110, 0.1);
       border-radius: 20px;
-      font-size: 12px;
       color: #0a406e;
-      margin: 5px;
+      display: inline-block;
+      font-size: 12px;
       font-weight: 600;
+      margin: 5px;
+      padding: 6px 12px;
     }
 
     .features {
@@ -113,7 +113,7 @@
 </head>
 <body>
   <div class="container">
-    <h1><img src="../favicon.svg" width="48" alt="VidPly" style="vertical-align: middle; margin-right: 12px;" /> VidPly</h1>
+    <h1><img src="../favicon.svg" width="48" alt="" style="vertical-align: middle; margin-right: 12px;" aria-hidden="true" /> VidPly</h1>
     <p class="subtitle">Universal, Accessible Video & Audio Player</p>
 
     <div class="features">
@@ -128,10 +128,7 @@
       <a href="demo.html" class="demo-link">
         Full Demo Page
       </a>
-      <a href="sign-language-demo.html" class="demo-link" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="20" height="20" fill="currentColor" style="vertical-align: middle; margin-right: 8px;">
-          <path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/>
-        </svg>
+      <a href="sign-language-demo.html" class="demo-link">
         Sign Language Video Demo
       </a>
       <a href="playlist-audio.html" class="demo-link">
@@ -146,19 +143,29 @@
     </div>
 
     <div class="info">
-      <p><strong>Features:</strong></p>
-      <p>✓ HTML5 Video & Audio Support</p>
-      <p>✓ Sign Language Video & Audio Descriptions</p>
-      <p>✓ Multiple Caption Languages</p>
-      <p>✓ Keyboard Accessible (WCAG 2.1)</p>
-      <p>✓ Screen Reader Compatible</p>
-      <p>✓ Customizable Styling</p>
-      <p>✓ YouTube & Vimeo Support</p>
-      <p>✓ HLS Streaming</p>
-      <p style="margin-top: 20px;">
-        <strong>Quick Start:</strong><br>
-        Add <code>data-vidply</code> attribute to any video or audio element
-      </p>
+      <h2>Features:</h2>
+        <ul style="list-style-type: none;">
+          <li>Lightweight (No Dependencies)</li>
+          <li>Easy to Integrate</li>
+          <li>Responsive Design</li>
+          <li>Video & Audio Playlists</li>
+          <li>Auto-Play, Loop, Mute Options</li>
+          <li>Customizable Playback Speed</li>
+          <li>Volume Control with Mute Toggle</li>
+          <li>Progress Bar with Seek Functionality</li>
+          <li>Full-Screen Mode</li>
+          <li>Picture-in-Picture Mode</li>
+          <li>Captions/Subtitles Support</li>
+          <li>Sign Language Video Support</li>
+          <li>Multiple Language Support</li>
+          <li>Keyboard Navigation</li>
+          <li>Screen Reader Compatibility</li>
+          <li>Customizable Styling via CSS Variables</li>
+          <li>YouTube & Vimeo Integration</li>
+          <li>HLS Streaming Support</li>
+        </ul>
+        <h2 style="margin-top: 20px;">Quick Start:</h2>
+        <p>Add <code>data-vidply</code> attribute to any video or audio element</p>
     </div>
   </div>
 </body>
