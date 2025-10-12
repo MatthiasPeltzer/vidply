@@ -151,6 +151,10 @@
     height: auto;
 }
 
+.vidply-player.vidply-audio .vidply-menu {
+    max-height: 150px;
+}
+
 /* Video/Audio Element */
 .vidply-player video,
 .vidply-player audio {
@@ -837,6 +841,11 @@
     transform: translateX(-50%);
     transition: bottom 0.3s ease;
     z-index: 4;
+}
+
+.vidply-audio .vidply-captions {
+    bottom: auto;
+    top: -42px;
 }
 
 .vidply-captions:empty {
