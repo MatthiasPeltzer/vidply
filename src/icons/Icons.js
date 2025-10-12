@@ -77,7 +77,7 @@ const iconPaths = {
 
     signLanguage: `<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>`,
 
-    signLanguageOn: `<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g><circle cx="19" cy="19" r="3" fill="#3b82f6"/><path d="M17.5 19l1 1 2-2" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+    signLanguageOn: `<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>`,
 
     speaker: `<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>`,
 
@@ -121,7 +121,7 @@ export function createPlayOverlay() {
     svg.setAttribute('aria-hidden', 'true');
     svg.setAttribute('role', 'presentation');
     svg.style.cursor = 'pointer';
-    
+
     // Create filter for drop shadow
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     const filterId = `vidply-play-shadow-${Math.random().toString(36).substr(2, 9)}`;
@@ -131,36 +131,36 @@ export function createPlayOverlay() {
     filter.setAttribute('y', '-50%');
     filter.setAttribute('width', '200%');
     filter.setAttribute('height', '200%');
-    
+
     const feGaussianBlur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
     feGaussianBlur.setAttribute('in', 'SourceAlpha');
     feGaussianBlur.setAttribute('stdDeviation', '3');
-    
+
     const feOffset = document.createElementNS('http://www.w3.org/2000/svg', 'feOffset');
     feOffset.setAttribute('dx', '0');
     feOffset.setAttribute('dy', '2');
     feOffset.setAttribute('result', 'offsetblur');
-    
+
     const feComponentTransfer = document.createElementNS('http://www.w3.org/2000/svg', 'feComponentTransfer');
     const feFuncA = document.createElementNS('http://www.w3.org/2000/svg', 'feFuncA');
     feFuncA.setAttribute('type', 'linear');
     feFuncA.setAttribute('slope', '0.3');
     feComponentTransfer.appendChild(feFuncA);
-    
+
     const feMerge = document.createElementNS('http://www.w3.org/2000/svg', 'feMerge');
     const feMergeNode1 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
     const feMergeNode2 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
     feMergeNode2.setAttribute('in', 'SourceGraphic');
     feMerge.appendChild(feMergeNode1);
     feMerge.appendChild(feMergeNode2);
-    
+
     filter.appendChild(feGaussianBlur);
     filter.appendChild(feOffset);
     filter.appendChild(feComponentTransfer);
     filter.appendChild(feMerge);
     defs.appendChild(filter);
     svg.appendChild(defs);
-    
+
     // White circle background
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('cx', '40');
@@ -170,14 +170,14 @@ export function createPlayOverlay() {
     circle.setAttribute('filter', `url(#${filterId})`);
     circle.setAttribute('class', 'vidply-play-overlay-bg');
     svg.appendChild(circle);
-    
+
     // Play icon triangle (centered with optical adjustment)
     const playTriangle = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     playTriangle.setAttribute('points', '32,28 32,52 54,40');
     playTriangle.setAttribute('fill', '#0a406e');
     playTriangle.setAttribute('class', 'vidply-play-overlay-icon');
     svg.appendChild(playTriangle);
-    
+
     return svg;
 }
 
