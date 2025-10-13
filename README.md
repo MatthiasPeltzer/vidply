@@ -275,16 +275,18 @@ const player = new Player('#video', {
 
 | Key | Action |
 |-----|--------|
-| <kbd>Space</kbd> / <kbd>K</kbd> | Play/Pause |
+| <kbd>Space</kbd> / <kbd>P</kbd> / <kbd>K</kbd> | Play/Pause |
 | <kbd>F</kbd> | Toggle Fullscreen |
 | <kbd>M</kbd> | Mute/Unmute |
 | <kbd>↑</kbd> / <kbd>↓</kbd> | Volume Up/Down |
 | <kbd>←</kbd> / <kbd>→</kbd> | Seek -10s / +10s |
-| <kbd>J</kbd> / <kbd>L</kbd> | Seek -30s / +30s |
 | <kbd>C</kbd> | Toggle Captions (or open menu if multiple) |
+| <kbd>A</kbd> | Open Caption Style Menu |
 | <kbd><</kbd> / <kbd>></kbd> | Decrease/Increase Speed |
-| <kbd>S</kbd> | Open Settings |
-| <kbd>R</kbd> | Restart Video |
+| <kbd>S</kbd> | Open Speed Menu |
+| <kbd>Q</kbd> | Open Quality Menu |
+| <kbd>J</kbd> | Open Chapters Menu |
+| <kbd>T</kbd> | Toggle Transcript |
 
 ## API Reference
 

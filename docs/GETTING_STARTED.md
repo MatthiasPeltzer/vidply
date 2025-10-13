@@ -342,15 +342,18 @@ player.on('timeupdate', (time) => {
 
 Once the player is focused:
 
-- <kbd>Space</kbd> or <kbd>K</kbd> - Play/Pause
+- <kbd>Space</kbd> / <kbd>P</kbd> / <kbd>K</kbd> - Play/Pause
 - <kbd>F</kbd> - Fullscreen
-- <kbd>M</kbd> - Mute
+- <kbd>M</kbd> - Mute/Unmute
 - <kbd>↑</kbd> / <kbd>↓</kbd> - Volume Up/Down
 - <kbd>←</kbd> / <kbd>→</kbd> - Seek -10s / +10s
-- <kbd>J</kbd> / <kbd>L</kbd> - Seek -30s / +30s
 - <kbd>C</kbd> - Toggle Captions
+- <kbd>A</kbd> - Open Caption Style Menu
 - <kbd><</kbd> / <kbd>></kbd> - Decrease/Increase Speed
-- <kbd>S</kbd> - Settings
+- <kbd>S</kbd> - Open Speed Menu
+- <kbd>Q</kbd> - Open Quality Menu
+- <kbd>J</kbd> - Open Chapters Menu
+- <kbd>T</kbd> - Toggle Transcript
 
 ## Customizing Styles
 

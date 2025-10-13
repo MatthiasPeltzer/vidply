@@ -37,7 +37,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 66505,
+      "bytes": 70888,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -79,29 +79,8 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.js": {
-      "bytes": 5131,
+      "bytes": 6553,
       "imports": [],
-      "format": "esm"
-    },
-    "src/controls/SettingsDialog.js": {
-      "bytes": 12224,
-      "imports": [
-        {
-          "path": "src/utils/DOMUtils.js",
-          "kind": "import-statement",
-          "original": "../utils/DOMUtils.js"
-        },
-        {
-          "path": "src/icons/Icons.js",
-          "kind": "import-statement",
-          "original": "../icons/Icons.js"
-        },
-        {
-          "path": "src/i18n/i18n.js",
-          "kind": "import-statement",
-          "original": "../i18n/i18n.js"
-        }
-      ],
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
@@ -157,7 +136,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 30813,
+      "bytes": 30830,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -188,11 +167,6 @@
           "path": "src/controls/KeyboardManager.js",
           "kind": "import-statement",
           "original": "../controls/KeyboardManager.js"
-        },
-        {
-          "path": "src/controls/SettingsDialog.js",
-          "kind": "import-statement",
-          "original": "../controls/SettingsDialog.js"
         },
         {
           "path": "src/controls/TranscriptManager.js",
@@ -297,22 +271,19 @@
           "bytesInOutput": 720
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 34275
+          "bytesInOutput": 35686
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 3634
         },
         "src/controls/KeyboardManager.js": {
-          "bytesInOutput": 3002
-        },
-        "src/controls/SettingsDialog.js": {
-          "bytesInOutput": 7622
+          "bytesInOutput": 3738
         },
         "src/controls/TranscriptManager.js": {
           "bytesInOutput": 12461
         },
         "src/core/Player.js": {
-          "bytesInOutput": 16389
+          "bytesInOutput": 16383
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -330,7 +301,7 @@
           "bytesInOutput": 1000
         }
       },
-      "bytes": 128862
+      "bytes": 123381
     }
   }
 }
