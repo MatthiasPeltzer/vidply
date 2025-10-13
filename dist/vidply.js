@@ -2727,7 +2727,6 @@ var VidPly = (() => {
           this.updateCaptions();
         };
         selectedTrack.track.addEventListener("cuechange", this.cueChangeHandler);
-        this.element.style.display = "block";
         this.player.emit("captionsenabled", selectedTrack);
       }
     }
