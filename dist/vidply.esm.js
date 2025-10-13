@@ -1212,6 +1212,42 @@ var ControlBar = class {
       document.addEventListener("keydown", handleEscape);
     }, 100);
   }
+  // Helper method to add keyboard navigation to menus (arrow keys)
+  attachMenuKeyboardNavigation(menu) {
+    const menuItems = Array.from(menu.querySelectorAll(`.${this.player.options.classPrefix}-menu-item`));
+    if (menuItems.length === 0) return;
+    const handleKeyDown = (e) => {
+      const currentIndex = menuItems.indexOf(document.activeElement);
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          const nextIndex = (currentIndex + 1) % menuItems.length;
+          menuItems[nextIndex].focus();
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
+          menuItems[prevIndex].focus();
+          break;
+        case "Home":
+          e.preventDefault();
+          menuItems[0].focus();
+          break;
+        case "End":
+          e.preventDefault();
+          menuItems[menuItems.length - 1].focus();
+          break;
+        case "Enter":
+        case " ":
+          e.preventDefault();
+          if (document.activeElement && menuItems.includes(document.activeElement)) {
+            document.activeElement.click();
+          }
+          break;
+      }
+    };
+    menu.addEventListener("keydown", handleKeyDown);
+  }
   createElement() {
     this.element = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-controls`,
@@ -1706,7 +1742,8 @@ var ControlBar = class {
             className: `${this.player.options.classPrefix}-menu-item`,
             attributes: {
               "type": "button",
-              "role": "menuitem"
+              "role": "menuitem",
+              "tabindex": "-1"
             }
           });
           const timeLabel = DOMUtils.createElement("span", {
@@ -1726,6 +1763,13 @@ var ControlBar = class {
           });
           menu.appendChild(item);
         }
+        this.attachMenuKeyboardNavigation(menu);
+        setTimeout(() => {
+          const firstItem = menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+          if (firstItem) {
+            firstItem.focus();
+          }
+        }, 0);
       }
     }
     button.appendChild(menu);
@@ -1779,19 +1823,22 @@ var ControlBar = class {
         });
         menu.appendChild(noQualityItem);
       } else {
+        let activeItem = null;
         if (isHLS) {
           const autoItem = DOMUtils.createElement("button", {
             className: `${this.player.options.classPrefix}-menu-item`,
             textContent: i18n.t("player.auto"),
             attributes: {
               "type": "button",
-              "role": "menuitem"
+              "role": "menuitem",
+              "tabindex": "-1"
             }
           });
           const isAuto = this.player.renderer.hls && this.player.renderer.hls.currentLevel === -1;
           if (isAuto) {
             autoItem.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
             autoItem.appendChild(createIconElement("check"));
+            activeItem = autoItem;
           }
           autoItem.addEventListener("click", () => {
             if (this.player.renderer.switchQuality) {
@@ -1807,12 +1854,14 @@ var ControlBar = class {
             textContent: quality.name || `${quality.height}p`,
             attributes: {
               "type": "button",
-              "role": "menuitem"
+              "role": "menuitem",
+              "tabindex": "-1"
             }
           });
           if (quality.index === currentQuality) {
             item.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
             item.appendChild(createIconElement("check"));
+            activeItem = item;
           }
           item.addEventListener("click", () => {
             if (this.player.renderer.switchQuality) {
@@ -1822,6 +1871,13 @@ var ControlBar = class {
           });
           menu.appendChild(item);
         });
+        this.attachMenuKeyboardNavigation(menu);
+        setTimeout(() => {
+          const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+          if (focusTarget) {
+            focusTarget.focus();
+          }
+        }, 0);
       }
     } else {
       const noSupportItem = DOMUtils.createElement("div", {
@@ -1915,6 +1971,12 @@ var ControlBar = class {
     menu.style.minWidth = "220px";
     button.appendChild(menu);
     this.attachMenuCloseHandler(menu, button, true);
+    setTimeout(() => {
+      const firstSelect = menu.querySelector("select");
+      if (firstSelect) {
+        firstSelect.focus();
+      }
+    }, 0);
   }
   createStyleControl(label, property, options) {
     const group = DOMUtils.createElement("div", {
@@ -2127,18 +2189,21 @@ var ControlBar = class {
       }
     });
     const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+    let activeItem = null;
     speeds.forEach((speed) => {
       const item = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-menu-item`,
         textContent: this.formatSpeedLabel(speed),
         attributes: {
           "type": "button",
-          "role": "menuitem"
+          "role": "menuitem",
+          "tabindex": "-1"
         }
       });
       if (speed === this.player.state.playbackSpeed) {
         item.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
         item.appendChild(createIconElement("check"));
+        activeItem = item;
       }
       item.addEventListener("click", () => {
         this.player.setPlaybackSpeed(speed);
@@ -2147,7 +2212,14 @@ var ControlBar = class {
       menu.appendChild(item);
     });
     button.appendChild(menu);
+    this.attachMenuKeyboardNavigation(menu);
     this.attachMenuCloseHandler(menu, button);
+    setTimeout(() => {
+      const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+      if (focusTarget) {
+        focusTarget.focus();
+      }
+    }, 0);
   }
   createCaptionsButton() {
     const button = DOMUtils.createElement("button", {
@@ -2190,17 +2262,20 @@ var ControlBar = class {
       this.attachMenuCloseHandler(menu, button);
       return;
     }
+    let activeItem = null;
     const offItem = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-menu-item`,
       textContent: i18n.t("captions.off"),
       attributes: {
         "type": "button",
-        "role": "menuitem"
+        "role": "menuitem",
+        "tabindex": "-1"
       }
     });
     if (!this.player.state.captionsEnabled) {
       offItem.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
       offItem.appendChild(createIconElement("check"));
+      activeItem = offItem;
     }
     offItem.addEventListener("click", () => {
       this.player.disableCaptions();
@@ -2216,12 +2291,14 @@ var ControlBar = class {
         attributes: {
           "type": "button",
           "role": "menuitem",
-          "lang": track.language
+          "lang": track.language,
+          "tabindex": "-1"
         }
       });
       if (this.player.state.captionsEnabled && this.player.captionManager.currentTrack === this.player.captionManager.tracks[track.index]) {
         item.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
         item.appendChild(createIconElement("check"));
+        activeItem = item;
       }
       item.addEventListener("click", () => {
         this.player.captionManager.switchTrack(track.index);
@@ -2231,7 +2308,14 @@ var ControlBar = class {
       menu.appendChild(item);
     });
     button.appendChild(menu);
+    this.attachMenuKeyboardNavigation(menu);
     this.attachMenuCloseHandler(menu, button);
+    setTimeout(() => {
+      const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+      if (focusTarget) {
+        focusTarget.focus();
+      }
+    }, 0);
   }
   updateCaptionsButton() {
     if (!this.controls.captions) return;
@@ -2416,26 +2500,29 @@ var ControlBar = class {
     }
   }
   updateVolumeDisplay() {
-    if (!this.controls.volumeFill) return;
     const percent = this.player.state.volume * 100;
-    this.controls.volumeFill.style.height = `${percent}%`;
+    if (this.controls.volumeFill) {
+      this.controls.volumeFill.style.height = `${percent}%`;
+    }
     if (this.controls.mute) {
       const icon = this.controls.mute.querySelector(".vidply-icon");
-      let iconName;
-      if (this.player.state.muted || this.player.state.volume === 0) {
-        iconName = "volumeMuted";
-      } else if (this.player.state.volume < 0.3) {
-        iconName = "volumeLow";
-      } else if (this.player.state.volume < 0.7) {
-        iconName = "volumeMedium";
-      } else {
-        iconName = "volumeHigh";
+      if (icon) {
+        let iconName;
+        if (this.player.state.muted || this.player.state.volume === 0) {
+          iconName = "volumeMuted";
+        } else if (this.player.state.volume < 0.3) {
+          iconName = "volumeLow";
+        } else if (this.player.state.volume < 0.7) {
+          iconName = "volumeMedium";
+        } else {
+          iconName = "volumeHigh";
+        }
+        icon.innerHTML = createIconElement(iconName).innerHTML;
+        this.controls.mute.setAttribute(
+          "aria-label",
+          this.player.state.muted ? i18n.t("player.unmute") : i18n.t("player.mute")
+        );
       }
-      icon.innerHTML = createIconElement(iconName).innerHTML;
-      this.controls.mute.setAttribute(
-        "aria-label",
-        this.player.state.muted ? i18n.t("player.unmute") : i18n.t("player.mute")
-      );
     }
     if (this.controls.volumeSlider) {
       this.controls.volumeSlider.setAttribute("aria-valuenow", String(Math.round(percent)));
@@ -2763,6 +2850,9 @@ var KeyboardManager = class {
         }
       }
     }
+    if (!handled && this.player.options.debug) {
+      console.log("[VidPly] Unhandled key:", e.key, "code:", e.code, "shiftKey:", e.shiftKey);
+    }
   }
   executeAction(action, event) {
     switch (action) {
@@ -2781,12 +2871,6 @@ var KeyboardManager = class {
       case "seek-backward":
         this.player.seekBackward();
         return true;
-      case "seek-forward-large":
-        this.player.seekForward(this.player.options.seekIntervalLarge);
-        return true;
-      case "seek-backward-large":
-        this.player.seekBackward(this.player.options.seekIntervalLarge);
-        return true;
       case "mute":
         this.player.toggleMute();
         return true;
@@ -2795,14 +2879,22 @@ var KeyboardManager = class {
         return true;
       case "captions":
         if (this.player.captionManager && this.player.captionManager.tracks.length > 1) {
-          const captionsButton = document.querySelector(".vidply-captions");
-          if (captionsButton && this.player.controlBar) {
+          const captionsButton = this.player.controlBar && this.player.controlBar.controls.captions;
+          if (captionsButton) {
             this.player.controlBar.showCaptionsMenu(captionsButton);
+          } else {
+            this.player.toggleCaptions();
           }
         } else {
           this.player.toggleCaptions();
         }
         return true;
+      case "caption-style-menu":
+        if (this.player.controlBar && this.player.controlBar.controls.captionStyle) {
+          this.player.controlBar.showCaptionStyleMenu(this.player.controlBar.controls.captionStyle);
+          return true;
+        }
+        return false;
       case "speed-up":
         this.player.setPlaybackSpeed(
           Math.min(2, this.player.state.playbackSpeed + 0.25)
@@ -2813,9 +2905,30 @@ var KeyboardManager = class {
           Math.max(0.25, this.player.state.playbackSpeed - 0.25)
         );
         return true;
-      case "settings":
-        this.player.showSettings();
-        return true;
+      case "speed-menu":
+        if (this.player.controlBar && this.player.controlBar.controls.speed) {
+          this.player.controlBar.showSpeedMenu(this.player.controlBar.controls.speed);
+          return true;
+        }
+        return false;
+      case "quality-menu":
+        if (this.player.controlBar && this.player.controlBar.controls.quality) {
+          this.player.controlBar.showQualityMenu(this.player.controlBar.controls.quality);
+          return true;
+        }
+        return false;
+      case "chapters-menu":
+        if (this.player.controlBar && this.player.controlBar.controls.chapters) {
+          this.player.controlBar.showChaptersMenu(this.player.controlBar.controls.chapters);
+          return true;
+        }
+        return false;
+      case "transcript-toggle":
+        if (this.player.transcriptManager) {
+          this.player.transcriptManager.toggleTranscript();
+          return true;
+        }
+        return false;
       default:
         return false;
     }
@@ -2879,317 +2992,6 @@ var KeyboardManager = class {
     }
   }
   destroy() {
-  }
-};
-
-// src/controls/SettingsDialog.js
-var SettingsDialog = class {
-  constructor(player) {
-    this.player = player;
-    this.element = null;
-    this.isOpen = false;
-    this.init();
-  }
-  init() {
-    this.createElement();
-  }
-  createElement() {
-    this.overlay = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-settings-overlay`,
-      attributes: {
-        "role": "dialog",
-        "aria-modal": "true",
-        "aria-label": i18n.t("settings.title")
-      }
-    });
-    this.overlay.style.display = "none";
-    this.element = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-settings-dialog`
-    });
-    const header = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-settings-header`
-    });
-    const title = DOMUtils.createElement("h2", {
-      textContent: i18n.t("settings.title"),
-      attributes: {
-        "id": `${this.player.options.classPrefix}-settings-title`
-      }
-    });
-    const closeButton = DOMUtils.createElement("button", {
-      className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-settings-close`,
-      attributes: {
-        "type": "button",
-        "aria-label": i18n.t("settings.close")
-      }
-    });
-    closeButton.appendChild(createIconElement("close"));
-    closeButton.addEventListener("click", () => this.hide());
-    header.appendChild(title);
-    header.appendChild(closeButton);
-    const content = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-settings-content`
-    });
-    content.appendChild(this.createSpeedSettings());
-    if (this.player.captionManager && this.player.captionManager.tracks.length > 0) {
-      content.appendChild(this.createCaptionSettings());
-    }
-    const footer = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-settings-footer`
-    });
-    const resetButton = DOMUtils.createElement("button", {
-      className: `${this.player.options.classPrefix}-button`,
-      textContent: i18n.t("settings.reset"),
-      attributes: {
-        "type": "button"
-      }
-    });
-    resetButton.addEventListener("click", () => this.resetSettings());
-    footer.appendChild(resetButton);
-    this.element.appendChild(header);
-    this.element.appendChild(content);
-    this.element.appendChild(footer);
-    this.overlay.appendChild(this.element);
-    this.player.container.appendChild(this.overlay);
-    this.overlay.addEventListener("click", (e) => {
-      if (e.target === this.overlay) {
-        this.hide();
-      }
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && this.isOpen) {
-        this.hide();
-      }
-    });
-  }
-  formatSpeedLabel(speed) {
-    if (speed === 1) {
-      return i18n.t("speeds.normal");
-    }
-    const speedStr = speed.toLocaleString(i18n.getLanguage(), {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    });
-    return `${speedStr}\xD7`;
-  }
-  createSpeedSettings() {
-    const section = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-settings-section`
-    });
-    const label = DOMUtils.createElement("label", {
-      textContent: i18n.t("settings.speed"),
-      attributes: {
-        "for": `${this.player.options.classPrefix}-speed-select`
-      }
-    });
-    const select = DOMUtils.createElement("select", {
-      className: `${this.player.options.classPrefix}-settings-select`,
-      attributes: {
-        "id": `${this.player.options.classPrefix}-speed-select`
-      }
-    });
-    const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
-    speeds.forEach((speed) => {
-      const option = DOMUtils.createElement("option", {
-        textContent: this.formatSpeedLabel(speed),
-        attributes: {
-          "value": String(speed)
-        }
-      });
-      if (speed === this.player.state.playbackSpeed) {
-        option.selected = true;
-      }
-      select.appendChild(option);
-    });
-    select.addEventListener("change", (e) => {
-      this.player.setPlaybackSpeed(parseFloat(e.target.value));
-    });
-    section.appendChild(label);
-    section.appendChild(select);
-    return section;
-  }
-  createCaptionSettings() {
-    const section = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-settings-section`
-    });
-    const heading = DOMUtils.createElement("h3", {
-      textContent: i18n.t("settings.captions")
-    });
-    section.appendChild(heading);
-    const trackLabel = DOMUtils.createElement("label", {
-      textContent: i18n.t("captions.select"),
-      attributes: {
-        "for": `${this.player.options.classPrefix}-caption-track-select`
-      }
-    });
-    const trackSelect = DOMUtils.createElement("select", {
-      className: `${this.player.options.classPrefix}-settings-select`,
-      attributes: {
-        "id": `${this.player.options.classPrefix}-caption-track-select`
-      }
-    });
-    const offOption = DOMUtils.createElement("option", {
-      textContent: i18n.t("captions.off"),
-      attributes: { "value": "-1" }
-    });
-    trackSelect.appendChild(offOption);
-    const tracks = this.player.captionManager.getAvailableTracks();
-    tracks.forEach((track) => {
-      const option = DOMUtils.createElement("option", {
-        textContent: track.label,
-        attributes: { "value": String(track.index) }
-      });
-      trackSelect.appendChild(option);
-    });
-    trackSelect.addEventListener("change", (e) => {
-      const index = parseInt(e.target.value);
-      if (index === -1) {
-        this.player.disableCaptions();
-      } else {
-        this.player.captionManager.switchTrack(index);
-      }
-    });
-    section.appendChild(trackLabel);
-    section.appendChild(trackSelect);
-    section.appendChild(this.createCaptionStyleControl("fontSize", i18n.t("captions.fontSize"), [
-      { label: i18n.t("fontSizes.small"), value: "80%" },
-      { label: i18n.t("fontSizes.medium"), value: "100%" },
-      { label: i18n.t("fontSizes.large"), value: "120%" },
-      { label: i18n.t("fontSizes.xlarge"), value: "150%" }
-    ]));
-    section.appendChild(this.createCaptionStyleControl("fontFamily", i18n.t("captions.fontFamily"), [
-      { label: i18n.t("fontFamilies.sansSerif"), value: "sans-serif" },
-      { label: i18n.t("fontFamilies.serif"), value: "serif" },
-      { label: i18n.t("fontFamilies.monospace"), value: "monospace" }
-    ]));
-    section.appendChild(this.createColorControl("color", i18n.t("captions.color")));
-    section.appendChild(this.createColorControl("backgroundColor", i18n.t("captions.backgroundColor")));
-    section.appendChild(this.createRangeControl("opacity", i18n.t("captions.opacity"), 0, 1, 0.1));
-    return section;
-  }
-  createCaptionStyleControl(property, label, options) {
-    const wrapper = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-settings-control`
-    });
-    const labelEl = DOMUtils.createElement("label", {
-      textContent: label,
-      attributes: {
-        "for": `${this.player.options.classPrefix}-caption-${property}`
-      }
-    });
-    const select = DOMUtils.createElement("select", {
-      className: `${this.player.options.classPrefix}-settings-select`,
-      attributes: {
-        "id": `${this.player.options.classPrefix}-caption-${property}`
-      }
-    });
-    options.forEach((opt) => {
-      const option = DOMUtils.createElement("option", {
-        textContent: opt.label,
-        attributes: { "value": opt.value }
-      });
-      if (opt.value === this.player.options[`captions${property.charAt(0).toUpperCase() + property.slice(1)}`]) {
-        option.selected = true;
-      }
-      select.appendChild(option);
-    });
-    select.addEventListener("change", (e) => {
-      this.player.captionManager.setCaptionStyle(property, e.target.value);
-    });
-    wrapper.appendChild(labelEl);
-    wrapper.appendChild(select);
-    return wrapper;
-  }
-  createColorControl(property, label) {
-    const wrapper = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-settings-control`
-    });
-    const labelEl = DOMUtils.createElement("label", {
-      textContent: label,
-      attributes: {
-        "for": `${this.player.options.classPrefix}-caption-${property}`
-      }
-    });
-    const input = DOMUtils.createElement("input", {
-      className: `${this.player.options.classPrefix}-settings-color`,
-      attributes: {
-        "type": "color",
-        "id": `${this.player.options.classPrefix}-caption-${property}`,
-        "value": this.player.options[`captions${property.charAt(0).toUpperCase() + property.slice(1)}`]
-      }
-    });
-    input.addEventListener("change", (e) => {
-      this.player.captionManager.setCaptionStyle(property, e.target.value);
-    });
-    wrapper.appendChild(labelEl);
-    wrapper.appendChild(input);
-    return wrapper;
-  }
-  createRangeControl(property, label, min, max, step) {
-    const wrapper = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-settings-control`
-    });
-    const labelEl = DOMUtils.createElement("label", {
-      textContent: label,
-      attributes: {
-        "for": `${this.player.options.classPrefix}-caption-${property}`
-      }
-    });
-    const input = DOMUtils.createElement("input", {
-      className: `${this.player.options.classPrefix}-settings-range`,
-      attributes: {
-        "type": "range",
-        "id": `${this.player.options.classPrefix}-caption-${property}`,
-        "min": String(min),
-        "max": String(max),
-        "step": String(step),
-        "value": String(this.player.options[`captions${property.charAt(0).toUpperCase() + property.slice(1)}`])
-      }
-    });
-    const valueDisplay = DOMUtils.createElement("span", {
-      className: `${this.player.options.classPrefix}-settings-value`,
-      textContent: String(this.player.options[`captions${property.charAt(0).toUpperCase() + property.slice(1)}`])
-    });
-    input.addEventListener("input", (e) => {
-      const value = parseFloat(e.target.value);
-      valueDisplay.textContent = value.toFixed(1);
-      this.player.captionManager.setCaptionStyle(property, value);
-    });
-    wrapper.appendChild(labelEl);
-    wrapper.appendChild(input);
-    wrapper.appendChild(valueDisplay);
-    return wrapper;
-  }
-  resetSettings() {
-    this.player.setPlaybackSpeed(1);
-    if (this.player.captionManager) {
-      this.player.captionManager.setCaptionStyle("fontSize", "100%");
-      this.player.captionManager.setCaptionStyle("fontFamily", "sans-serif");
-      this.player.captionManager.setCaptionStyle("color", "#FFFFFF");
-      this.player.captionManager.setCaptionStyle("backgroundColor", "#000000");
-      this.player.captionManager.setCaptionStyle("opacity", 0.8);
-    }
-    this.hide();
-    setTimeout(() => this.show(), 100);
-  }
-  show() {
-    this.overlay.style.display = "flex";
-    this.isOpen = true;
-    const closeButton = this.element.querySelector(`.${this.player.options.classPrefix}-settings-close`);
-    if (closeButton) {
-      closeButton.focus();
-    }
-    this.player.emit("settingsopen");
-  }
-  hide() {
-    this.overlay.style.display = "none";
-    this.isOpen = false;
-    this.player.container.focus();
-    this.player.emit("settingsclose");
-  }
-  destroy() {
-    if (this.overlay && this.overlay.parentNode) {
-      this.overlay.parentNode.removeChild(this.overlay);
-    }
   }
 };
 
@@ -4480,16 +4282,18 @@ var Player = class extends EventEmitter {
         "play-pause": [" ", "p", "k"],
         "volume-up": ["ArrowUp"],
         "volume-down": ["ArrowDown"],
-        "seek-forward": ["ArrowRight", "f"],
-        "seek-backward": ["ArrowLeft", "r"],
-        "seek-forward-large": ["l"],
-        "seek-backward-large": ["j"],
+        "seek-forward": ["ArrowRight"],
+        "seek-backward": ["ArrowLeft"],
         "mute": ["m"],
         "fullscreen": ["f"],
         "captions": ["c"],
+        "caption-style-menu": ["a"],
         "speed-up": [">"],
         "speed-down": ["<"],
-        "settings": ["s"]
+        "speed-menu": ["s"],
+        "quality-menu": ["q"],
+        "chapters-menu": ["j"],
+        "transcript-toggle": ["t"]
       },
       // Accessibility
       ariaLabels: {},
@@ -4577,9 +4381,6 @@ var Player = class extends EventEmitter {
       }
       if (this.options.keyboard) {
         this.keyboardManager = new KeyboardManager(this);
-      }
-      if (this.options.settingsButton) {
-        this.settingsDialog = new SettingsDialog(this);
       }
       this.setupResponsiveHandlers();
       if (this.options.startTime > 0) {
@@ -4833,12 +4634,14 @@ var Player = class extends EventEmitter {
       this.renderer.setMuted(true);
     }
     this.state.muted = true;
+    this.emit("volumechange");
   }
   unmute() {
     if (this.renderer) {
       this.renderer.setMuted(false);
     }
     this.state.muted = false;
+    this.emit("volumechange");
   }
   toggleMute() {
     if (this.state.muted) {
@@ -5072,15 +4875,11 @@ var Player = class extends EventEmitter {
     }
   }
   // Settings
+  // Settings dialog removed - using individual control buttons instead
   showSettings() {
-    if (this.settingsDialog) {
-      this.settingsDialog.show();
-    }
+    console.warn("[VidPly] Settings dialog has been removed. Use individual control buttons (speed, captions, etc.)");
   }
   hideSettings() {
-    if (this.settingsDialog) {
-      this.settingsDialog.hide();
-    }
   }
   // Utility methods
   getCurrentTime() {
@@ -5176,9 +4975,6 @@ var Player = class extends EventEmitter {
     }
     if (this.keyboardManager) {
       this.keyboardManager.destroy();
-    }
-    if (this.settingsDialog) {
-      this.settingsDialog.destroy();
     }
     if (this.transcriptManager) {
       this.transcriptManager.destroy();

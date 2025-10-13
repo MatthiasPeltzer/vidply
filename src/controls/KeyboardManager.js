@@ -47,6 +47,11 @@ export class KeyboardManager {
         }
       }
     }
+    
+    // Log unhandled keys for debugging (in development)
+    if (!handled && this.player.options.debug) {
+      console.log('[VidPly] Unhandled key:', e.key, 'code:', e.code, 'shiftKey:', e.shiftKey);
+    }
   }
 
   executeAction(action, event) {
@@ -71,14 +76,6 @@ export class KeyboardManager {
         this.player.seekBackward();
         return true;
 
-      case 'seek-forward-large':
-        this.player.seekForward(this.player.options.seekIntervalLarge);
-        return true;
-
-      case 'seek-backward-large':
-        this.player.seekBackward(this.player.options.seekIntervalLarge);
-        return true;
-
       case 'mute':
         this.player.toggleMute();
         return true;
@@ -91,14 +88,26 @@ export class KeyboardManager {
         // If only one caption track, toggle on/off
         // If multiple tracks, open caption menu
         if (this.player.captionManager && this.player.captionManager.tracks.length > 1) {
-          const captionsButton = document.querySelector('.vidply-captions');
-          if (captionsButton && this.player.controlBar) {
+          // Get captions button from control bar
+          const captionsButton = this.player.controlBar && this.player.controlBar.controls.captions;
+          if (captionsButton) {
             this.player.controlBar.showCaptionsMenu(captionsButton);
+          } else {
+            // Fallback to toggle if button doesn't exist
+            this.player.toggleCaptions();
           }
         } else {
           this.player.toggleCaptions();
         }
         return true;
+
+      case 'caption-style-menu':
+        // Open caption style menu
+        if (this.player.controlBar && this.player.controlBar.controls.captionStyle) {
+          this.player.controlBar.showCaptionStyleMenu(this.player.controlBar.controls.captionStyle);
+          return true;
+        }
+        return false;
 
       case 'speed-up':
         this.player.setPlaybackSpeed(
@@ -112,9 +121,37 @@ export class KeyboardManager {
         );
         return true;
 
-      case 'settings':
-        this.player.showSettings();
-        return true;
+      case 'speed-menu':
+        // Open speed menu
+        if (this.player.controlBar && this.player.controlBar.controls.speed) {
+          this.player.controlBar.showSpeedMenu(this.player.controlBar.controls.speed);
+          return true;
+        }
+        return false;
+
+      case 'quality-menu':
+        // Open quality menu
+        if (this.player.controlBar && this.player.controlBar.controls.quality) {
+          this.player.controlBar.showQualityMenu(this.player.controlBar.controls.quality);
+          return true;
+        }
+        return false;
+
+      case 'chapters-menu':
+        // Open chapters menu
+        if (this.player.controlBar && this.player.controlBar.controls.chapters) {
+          this.player.controlBar.showChaptersMenu(this.player.controlBar.controls.chapters);
+          return true;
+        }
+        return false;
+
+      case 'transcript-toggle':
+        // Toggle transcript
+        if (this.player.transcriptManager) {
+          this.player.transcriptManager.toggleTranscript();
+          return true;
+        }
+        return false;
 
       default:
         return false;

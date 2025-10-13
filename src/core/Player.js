@@ -9,7 +9,7 @@ import { TimeUtils } from '../utils/TimeUtils.js';
 import { ControlBar } from '../controls/ControlBar.js';
 import { CaptionManager } from '../controls/CaptionManager.js';
 import { KeyboardManager } from '../controls/KeyboardManager.js';
-import { SettingsDialog } from '../controls/SettingsDialog.js';
+// import { SettingsDialog } from '../controls/SettingsDialog.js'; // Removed - using individual buttons
 import { TranscriptManager } from '../controls/TranscriptManager.js';
 import { HTML5Renderer } from '../renderers/HTML5Renderer.js';
 import { YouTubeRenderer } from '../renderers/YouTubeRenderer.js';
@@ -124,16 +124,18 @@ export class Player extends EventEmitter {
         'play-pause': [' ', 'p', 'k'],
         'volume-up': ['ArrowUp'],
         'volume-down': ['ArrowDown'],
-        'seek-forward': ['ArrowRight', 'f'],
-        'seek-backward': ['ArrowLeft', 'r'],
-        'seek-forward-large': ['l'],
-        'seek-backward-large': ['j'],
+        'seek-forward': ['ArrowRight'],
+        'seek-backward': ['ArrowLeft'],
         'mute': ['m'],
         'fullscreen': ['f'],
         'captions': ['c'],
+        'caption-style-menu': ['a'],
         'speed-up': ['>'],
         'speed-down': ['<'],
-        'settings': ['s']
+        'speed-menu': ['s'],
+        'quality-menu': ['q'],
+        'chapters-menu': ['j'],
+        'transcript-toggle': ['t']
       },
       
       // Accessibility
@@ -250,11 +252,6 @@ export class Player extends EventEmitter {
       // Initialize keyboard controls
       if (this.options.keyboard) {
         this.keyboardManager = new KeyboardManager(this);
-      }
-      
-      // Initialize settings dialog
-      if (this.options.settingsButton) {
-        this.settingsDialog = new SettingsDialog(this);
       }
       
       // Setup responsive handlers
@@ -613,6 +610,7 @@ export class Player extends EventEmitter {
       this.renderer.setMuted(true);
     }
     this.state.muted = true;
+    this.emit('volumechange');
   }
 
   unmute() {
@@ -620,6 +618,7 @@ export class Player extends EventEmitter {
       this.renderer.setMuted(false);
     }
     this.state.muted = false;
+    this.emit('volumechange');
   }
 
   toggleMute() {
@@ -914,16 +913,13 @@ export class Player extends EventEmitter {
   }
 
   // Settings
+  // Settings dialog removed - using individual control buttons instead
   showSettings() {
-    if (this.settingsDialog) {
-      this.settingsDialog.show();
-    }
+    console.warn('[VidPly] Settings dialog has been removed. Use individual control buttons (speed, captions, etc.)');
   }
 
   hideSettings() {
-    if (this.settingsDialog) {
-      this.settingsDialog.hide();
-    }
+    // No-op - settings dialog removed
   }
 
   // Utility methods
@@ -1051,10 +1047,6 @@ export class Player extends EventEmitter {
     
     if (this.keyboardManager) {
       this.keyboardManager.destroy();
-    }
-    
-    if (this.settingsDialog) {
-      this.settingsDialog.destroy();
     }
     
     if (this.transcriptManager) {

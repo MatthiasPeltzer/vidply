@@ -109,6 +109,51 @@ export class ControlBar {
         }, 100);
     }
 
+    // Helper method to add keyboard navigation to menus (arrow keys)
+    attachMenuKeyboardNavigation(menu) {
+        const menuItems = Array.from(menu.querySelectorAll(`.${this.player.options.classPrefix}-menu-item`));
+        
+        if (menuItems.length === 0) return;
+
+        const handleKeyDown = (e) => {
+            const currentIndex = menuItems.indexOf(document.activeElement);
+            
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    const nextIndex = (currentIndex + 1) % menuItems.length;
+                    menuItems[nextIndex].focus();
+                    break;
+                
+                case 'ArrowUp':
+                    e.preventDefault();
+                    const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
+                    menuItems[prevIndex].focus();
+                    break;
+                
+                case 'Home':
+                    e.preventDefault();
+                    menuItems[0].focus();
+                    break;
+                
+                case 'End':
+                    e.preventDefault();
+                    menuItems[menuItems.length - 1].focus();
+                    break;
+                
+                case 'Enter':
+                case ' ':
+                    e.preventDefault();
+                    if (document.activeElement && menuItems.includes(document.activeElement)) {
+                        document.activeElement.click();
+                    }
+                    break;
+            }
+        };
+
+        menu.addEventListener('keydown', handleKeyDown);
+    }
+
     createElement() {
         this.element = DOMUtils.createElement('div', {
             className: `${this.player.options.classPrefix}-controls`,
@@ -771,7 +816,8 @@ export class ControlBar {
                         className: `${this.player.options.classPrefix}-menu-item`,
                         attributes: {
                             'type': 'button',
-                            'role': 'menuitem'
+                            'role': 'menuitem',
+                            'tabindex': '-1'
                         }
                     });
 
@@ -796,6 +842,17 @@ export class ControlBar {
 
                     menu.appendChild(item);
                 }
+                
+                // Add keyboard navigation
+                this.attachMenuKeyboardNavigation(menu);
+                
+                // Focus first item
+                setTimeout(() => {
+                    const firstItem = menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+                    if (firstItem) {
+                        firstItem.focus();
+                    }
+                }, 0);
             }
         }
 
@@ -869,6 +926,8 @@ export class ControlBar {
                 });
                 menu.appendChild(noQualityItem);
             } else {
+                let activeItem = null;
+                
                 // Auto quality option (only for HLS)
                 if (isHLS) {
                     const autoItem = DOMUtils.createElement('button', {
@@ -876,7 +935,8 @@ export class ControlBar {
                         textContent: i18n.t('player.auto'),
                         attributes: {
                             'type': 'button',
-                            'role': 'menuitem'
+                            'role': 'menuitem',
+                            'tabindex': '-1'
                         }
                     });
 
@@ -885,6 +945,7 @@ export class ControlBar {
                     if (isAuto) {
                         autoItem.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
                         autoItem.appendChild(createIconElement('check'));
+                        activeItem = autoItem;
                     }
 
                     autoItem.addEventListener('click', () => {
@@ -904,7 +965,8 @@ export class ControlBar {
                         textContent: quality.name || `${quality.height}p`,
                         attributes: {
                             'type': 'button',
-                            'role': 'menuitem'
+                            'role': 'menuitem',
+                            'tabindex': '-1'
                         }
                     });
 
@@ -912,6 +974,7 @@ export class ControlBar {
                     if (quality.index === currentQuality) {
                         item.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
                         item.appendChild(createIconElement('check'));
+                        activeItem = item;
                     }
 
                     item.addEventListener('click', () => {
@@ -923,6 +986,17 @@ export class ControlBar {
 
                     menu.appendChild(item);
                 });
+                
+                // Add keyboard navigation
+                this.attachMenuKeyboardNavigation(menu);
+                
+                // Focus active item or first item
+                setTimeout(() => {
+                    const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+                    if (focusTarget) {
+                        focusTarget.focus();
+                    }
+                }, 0);
             }
         } else {
             // No quality support
@@ -1054,6 +1128,14 @@ export class ControlBar {
 
         // Close menu on outside click (but not when interacting with controls)
         this.attachMenuCloseHandler(menu, button, true);
+
+        // Auto-focus the first select element
+        setTimeout(() => {
+            const firstSelect = menu.querySelector('select');
+            if (firstSelect) {
+                firstSelect.focus();
+            }
+        }, 0);
     }
 
     createStyleControl(label, property, options) {
@@ -1308,6 +1390,7 @@ export class ControlBar {
         });
 
         const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+        let activeItem = null;
 
         speeds.forEach(speed => {
             const item = DOMUtils.createElement('button', {
@@ -1315,13 +1398,15 @@ export class ControlBar {
                 textContent: this.formatSpeedLabel(speed),
                 attributes: {
                     'type': 'button',
-                    'role': 'menuitem'
+                    'role': 'menuitem',
+                    'tabindex': '-1'
                 }
             });
 
             if (speed === this.player.state.playbackSpeed) {
                 item.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
                 item.appendChild(createIconElement('check'));
+                activeItem = item;
             }
 
             item.addEventListener('click', () => {
@@ -1335,8 +1420,19 @@ export class ControlBar {
         // Append menu directly to button for proper positioning
         button.appendChild(menu);
 
+        // Add keyboard navigation
+        this.attachMenuKeyboardNavigation(menu);
+
         // Close menu on outside click
         this.attachMenuCloseHandler(menu, button);
+
+        // Focus the active item or first item
+        setTimeout(() => {
+            const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+            if (focusTarget) {
+                focusTarget.focus();
+            }
+        }, 0);
     }
 
     createCaptionsButton() {
@@ -1394,19 +1490,23 @@ export class ControlBar {
             return;
         }
 
+        let activeItem = null;
+
         // Off option
         const offItem = DOMUtils.createElement('button', {
             className: `${this.player.options.classPrefix}-menu-item`,
             textContent: i18n.t('captions.off'),
             attributes: {
                 'type': 'button',
-                'role': 'menuitem'
+                'role': 'menuitem',
+                'tabindex': '-1'
             }
         });
 
         if (!this.player.state.captionsEnabled) {
             offItem.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
             offItem.appendChild(createIconElement('check'));
+            activeItem = offItem;
         }
 
         offItem.addEventListener('click', () => {
@@ -1426,7 +1526,8 @@ export class ControlBar {
                 attributes: {
                     'type': 'button',
                     'role': 'menuitem',
-                    'lang': track.language
+                    'lang': track.language,
+                    'tabindex': '-1'
                 }
             });
 
@@ -1435,6 +1536,7 @@ export class ControlBar {
                 this.player.captionManager.currentTrack === this.player.captionManager.tracks[track.index]) {
                 item.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
                 item.appendChild(createIconElement('check'));
+                activeItem = item;
             }
 
             item.addEventListener('click', () => {
@@ -1449,8 +1551,19 @@ export class ControlBar {
         // Append menu directly to button for proper positioning
         button.appendChild(menu);
 
-        // Close menu on outside click
+        // Add keyboard navigation for the menu
+        this.attachMenuKeyboardNavigation(menu);
+
+        // Close menu on outside click and Escape key
         this.attachMenuCloseHandler(menu, button);
+
+        // Focus the active item or the first item
+        setTimeout(() => {
+            const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+            if (focusTarget) {
+                focusTarget.focus();
+            }
+        }, 0);
     }
 
     updateCaptionsButton() {
@@ -1689,33 +1802,38 @@ export class ControlBar {
     }
 
     updateVolumeDisplay() {
-        if (!this.controls.volumeFill) return;
-
         const percent = this.player.state.volume * 100;
-        this.controls.volumeFill.style.height = `${percent}%`;
 
-        // Update mute button icon
-        if (this.controls.mute) {
-            const icon = this.controls.mute.querySelector('.vidply-icon');
-            let iconName;
-
-            if (this.player.state.muted || this.player.state.volume === 0) {
-                iconName = 'volumeMuted';
-            } else if (this.player.state.volume < 0.3) {
-                iconName = 'volumeLow';
-            } else if (this.player.state.volume < 0.7) {
-                iconName = 'volumeMedium';
-            } else {
-                iconName = 'volumeHigh';
-            }
-
-            icon.innerHTML = createIconElement(iconName).innerHTML;
-
-            this.controls.mute.setAttribute('aria-label',
-                this.player.state.muted ? i18n.t('player.unmute') : i18n.t('player.mute')
-            );
+        // Update volume fill bar if it exists
+        if (this.controls.volumeFill) {
+            this.controls.volumeFill.style.height = `${percent}%`;
         }
 
+        // Update mute button icon (should always work even if slider not shown)
+        if (this.controls.mute) {
+            const icon = this.controls.mute.querySelector('.vidply-icon');
+            if (icon) {
+                let iconName;
+
+                if (this.player.state.muted || this.player.state.volume === 0) {
+                    iconName = 'volumeMuted';
+                } else if (this.player.state.volume < 0.3) {
+                    iconName = 'volumeLow';
+                } else if (this.player.state.volume < 0.7) {
+                    iconName = 'volumeMedium';
+                } else {
+                    iconName = 'volumeHigh';
+                }
+
+                icon.innerHTML = createIconElement(iconName).innerHTML;
+
+                this.controls.mute.setAttribute('aria-label',
+                    this.player.state.muted ? i18n.t('player.unmute') : i18n.t('player.mute')
+                );
+            }
+        }
+
+        // Update volume slider attribute if it exists
         if (this.controls.volumeSlider) {
             this.controls.volumeSlider.setAttribute('aria-valuenow', String(Math.round(percent)));
         }
