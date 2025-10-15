@@ -10,18 +10,8 @@
       "imports": [],
       "format": "esm"
     },
-    "src/utils/TimeUtils.js": {
-      "bytes": 1940,
-      "imports": [],
-      "format": "esm"
-    },
-    "src/icons/Icons.js": {
-      "bytes": 12356,
-      "imports": [],
-      "format": "esm"
-    },
     "src/i18n/translations.js": {
-      "bytes": 15062,
+      "bytes": 16450,
       "imports": [],
       "format": "esm"
     },
@@ -36,8 +26,24 @@
       ],
       "format": "esm"
     },
+    "src/utils/TimeUtils.js": {
+      "bytes": 2155,
+      "imports": [
+        {
+          "path": "src/i18n/i18n.js",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/icons/Icons.js": {
+      "bytes": 12356,
+      "imports": [],
+      "format": "esm"
+    },
     "src/controls/ControlBar.js": {
-      "bytes": 74623,
+      "bytes": 74720,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -253,20 +259,20 @@
         "src/utils/DOMUtils.js": {
           "bytesInOutput": 1581
         },
-        "src/utils/TimeUtils.js": {
-          "bytesInOutput": 728
-        },
-        "src/icons/Icons.js": {
-          "bytesInOutput": 10407
-        },
         "src/i18n/translations.js": {
-          "bytesInOutput": 12646
+          "bytesInOutput": 13713
         },
         "src/i18n/i18n.js": {
           "bytesInOutput": 720
         },
+        "src/utils/TimeUtils.js": {
+          "bytesInOutput": 839
+        },
+        "src/icons/Icons.js": {
+          "bytesInOutput": 10407
+        },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 36302
+          "bytesInOutput": 36374
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 3599
@@ -296,7 +302,7 @@
           "bytesInOutput": 1000
         }
       },
-      "bytes": 127180
+      "bytes": 128430
     }
   }
 }

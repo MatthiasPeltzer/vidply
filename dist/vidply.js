@@ -422,6 +422,611 @@ var VidPly = (() => {
     }
   };
 
+  // src/i18n/translations.js
+  var translations = {
+    en: {
+      player: {
+        label: "Video Player",
+        play: "Play",
+        pause: "Pause",
+        stop: "Stop",
+        restart: "Restart from beginning",
+        rewind: "Rewind",
+        forward: "Forward",
+        rewindSeconds: "Rewind {seconds} seconds",
+        forwardSeconds: "Forward {seconds} seconds",
+        previous: "Previous track",
+        next: "Next track",
+        volume: "Volume",
+        mute: "Mute",
+        unmute: "Unmute",
+        fullscreen: "Fullscreen",
+        exitFullscreen: "Exit Fullscreen",
+        captions: "Captions",
+        chapters: "Chapters",
+        quality: "Quality",
+        captionStyling: "Caption styling",
+        transcript: "Toggle transcript",
+        audioDescription: "Audio description",
+        signLanguage: "Sign language video",
+        settings: "Settings",
+        speed: "Playback Speed",
+        pip: "Picture in Picture",
+        currentTime: "Current time",
+        duration: "Duration",
+        progress: "Progress",
+        seekForward: "Seek forward {seconds} seconds",
+        seekBackward: "Seek backward {seconds} seconds",
+        volumeUp: "Volume up",
+        volumeDown: "Volume down",
+        loading: "Loading...",
+        loadingChapters: "Loading chapters...",
+        error: "Error loading media",
+        buffering: "Buffering...",
+        signLanguageVideo: "Sign Language Video",
+        noChapters: "No chapters available",
+        noCaptions: "No captions available",
+        auto: "Auto",
+        autoQuality: "Auto (no quality selection available)",
+        noQuality: "Quality selection not available"
+      },
+      captions: {
+        off: "Off",
+        select: "Select captions",
+        fontSize: "Font Size",
+        fontFamily: "Font Family",
+        color: "Text Color",
+        backgroundColor: "Background Color",
+        opacity: "Opacity"
+      },
+      fontSizes: {
+        small: "Small",
+        medium: "Medium",
+        large: "Large",
+        xlarge: "X-Large"
+      },
+      fontFamilies: {
+        sansSerif: "Sans-serif",
+        serif: "Serif",
+        monospace: "Monospace"
+      },
+      styleLabels: {
+        textColor: "Text Color",
+        background: "Background",
+        font: "Font",
+        fontSize: "Font Size",
+        opacity: "Opacity"
+      },
+      audioDescription: {
+        enable: "Enable audio description",
+        disable: "Disable audio description"
+      },
+      signLanguage: {
+        show: "Show sign language video",
+        hide: "Hide sign language video"
+      },
+      transcript: {
+        title: "Transcript",
+        close: "Close transcript",
+        loading: "Loading transcript...",
+        noTranscript: "No transcript available for this video."
+      },
+      settings: {
+        title: "Settings",
+        quality: "Quality",
+        speed: "Speed",
+        captions: "Captions",
+        language: "Language",
+        reset: "Reset to defaults",
+        close: "Close"
+      },
+      speeds: {
+        normal: "Normal"
+      },
+      time: {
+        display: "Time display",
+        durationPrefix: "Duration: ",
+        hour: "{count} hour",
+        hours: "{count} hours",
+        minute: "{count} minute",
+        minutes: "{count} minutes",
+        second: "{count} second",
+        seconds: "{count} seconds"
+      }
+    },
+    de: {
+      player: {
+        label: "Videoplayer",
+        play: "Abspielen",
+        pause: "Pause",
+        stop: "Stopp",
+        restart: "Von vorne beginnen",
+        rewind: "Zur\xFCckspulen",
+        forward: "Vorspulen",
+        rewindSeconds: "{seconds} Sekunden zur\xFCckspulen",
+        forwardSeconds: "{seconds} Sekunden vorspulen",
+        previous: "Vorheriger Titel",
+        next: "N\xE4chster Titel",
+        volume: "Lautst\xE4rke",
+        mute: "Stumm",
+        unmute: "Ton ein",
+        fullscreen: "Vollbild",
+        exitFullscreen: "Vollbild beenden",
+        captions: "Untertitel",
+        chapters: "Kapitel",
+        quality: "Qualit\xE4t",
+        captionStyling: "Untertitel-Stil",
+        transcript: "Transkript umschalten",
+        audioDescription: "Audiodeskription",
+        signLanguage: "Geb\xE4rdensprache-Video",
+        settings: "Einstellungen",
+        speed: "Wiedergabegeschwindigkeit",
+        pip: "Bild-in-Bild",
+        currentTime: "Aktuelle Zeit",
+        duration: "Dauer",
+        progress: "Fortschritt",
+        seekForward: "{seconds} Sekunden vorspulen",
+        seekBackward: "{seconds} Sekunden zur\xFCckspulen",
+        volumeUp: "Lauter",
+        volumeDown: "Leiser",
+        loading: "L\xE4dt...",
+        loadingChapters: "Kapitel werden geladen...",
+        error: "Fehler beim Laden",
+        buffering: "Puffern...",
+        signLanguageVideo: "Geb\xE4rdensprache-Video",
+        noChapters: "Keine Kapitel verf\xFCgbar",
+        noCaptions: "Keine Untertitel verf\xFCgbar",
+        auto: "Automatisch",
+        autoQuality: "Automatisch (keine Qualit\xE4tsauswahl verf\xFCgbar)",
+        noQuality: "Qualit\xE4tsauswahl nicht verf\xFCgbar"
+      },
+      captions: {
+        off: "Aus",
+        select: "Untertitel ausw\xE4hlen",
+        fontSize: "Schriftgr\xF6\xDFe",
+        fontFamily: "Schriftart",
+        color: "Textfarbe",
+        backgroundColor: "Hintergrundfarbe",
+        opacity: "Deckkraft"
+      },
+      fontSizes: {
+        small: "Klein",
+        medium: "Mittel",
+        large: "Gro\xDF",
+        xlarge: "Sehr gro\xDF"
+      },
+      fontFamilies: {
+        sansSerif: "Sans-serif",
+        serif: "Serif",
+        monospace: "Monospace"
+      },
+      styleLabels: {
+        textColor: "Textfarbe",
+        background: "Hintergrund",
+        font: "Schrift",
+        fontSize: "Schriftgr\xF6\xDFe",
+        opacity: "Deckkraft"
+      },
+      audioDescription: {
+        enable: "Audiodeskription aktivieren",
+        disable: "Audiodeskription deaktivieren"
+      },
+      signLanguage: {
+        show: "Geb\xE4rdensprache-Video anzeigen",
+        hide: "Geb\xE4rdensprache-Video ausblenden"
+      },
+      transcript: {
+        title: "Transkript",
+        close: "Transkript schlie\xDFen",
+        loading: "Transkript wird geladen...",
+        noTranscript: "Kein Transkript f\xFCr dieses Video verf\xFCgbar."
+      },
+      settings: {
+        title: "Einstellungen",
+        quality: "Qualit\xE4t",
+        speed: "Geschwindigkeit",
+        captions: "Untertitel",
+        language: "Sprache",
+        reset: "Zur\xFCcksetzen",
+        close: "Schlie\xDFen"
+      },
+      speeds: {
+        normal: "Normal"
+      },
+      time: {
+        display: "Zeitanzeige",
+        durationPrefix: "Dauer: ",
+        hour: "{count} Stunde",
+        hours: "{count} Stunden",
+        minute: "{count} Minute",
+        minutes: "{count} Minuten",
+        second: "{count} Sekunde",
+        seconds: "{count} Sekunden"
+      }
+    },
+    es: {
+      player: {
+        label: "Reproductor de video",
+        play: "Reproducir",
+        pause: "Pausa",
+        stop: "Detener",
+        restart: "Reiniciar desde el principio",
+        rewind: "Retroceder",
+        forward: "Avanzar",
+        rewindSeconds: "Retroceder {seconds} segundos",
+        forwardSeconds: "Avanzar {seconds} segundos",
+        previous: "Pista anterior",
+        next: "Siguiente pista",
+        volume: "Volumen",
+        mute: "Silenciar",
+        unmute: "Activar sonido",
+        fullscreen: "Pantalla completa",
+        exitFullscreen: "Salir de pantalla completa",
+        captions: "Subt\xEDtulos",
+        chapters: "Cap\xEDtulos",
+        quality: "Calidad",
+        captionStyling: "Estilo de subt\xEDtulos",
+        transcript: "Alternar transcripci\xF3n",
+        audioDescription: "Audiodescripci\xF3n",
+        signLanguage: "Video en lengua de se\xF1as",
+        settings: "Configuraci\xF3n",
+        speed: "Velocidad de reproducci\xF3n",
+        pip: "Imagen en imagen",
+        currentTime: "Tiempo actual",
+        duration: "Duraci\xF3n",
+        progress: "Progreso",
+        seekForward: "Avanzar {seconds} segundos",
+        seekBackward: "Retroceder {seconds} segundos",
+        volumeUp: "Subir volumen",
+        volumeDown: "Bajar volumen",
+        loading: "Cargando...",
+        loadingChapters: "Cargando cap\xEDtulos...",
+        error: "Error al cargar",
+        buffering: "Almacenando en b\xFAfer...",
+        signLanguageVideo: "Video en Lengua de Se\xF1as",
+        noChapters: "No hay cap\xEDtulos disponibles",
+        noCaptions: "No hay subt\xEDtulos disponibles",
+        auto: "Autom\xE1tico",
+        autoQuality: "Autom\xE1tico (selecci\xF3n de calidad no disponible)",
+        noQuality: "Selecci\xF3n de calidad no disponible"
+      },
+      captions: {
+        off: "Desactivado",
+        select: "Seleccionar subt\xEDtulos",
+        fontSize: "Tama\xF1o de fuente",
+        fontFamily: "Familia de fuente",
+        color: "Color de texto",
+        backgroundColor: "Color de fondo",
+        opacity: "Opacidad"
+      },
+      fontSizes: {
+        small: "Peque\xF1o",
+        medium: "Mediano",
+        large: "Grande",
+        xlarge: "Muy grande"
+      },
+      fontFamilies: {
+        sansSerif: "Sans-serif",
+        serif: "Serif",
+        monospace: "Monospace"
+      },
+      styleLabels: {
+        textColor: "Color de texto",
+        background: "Fondo",
+        font: "Fuente",
+        fontSize: "Tama\xF1o de fuente",
+        opacity: "Opacidad"
+      },
+      audioDescription: {
+        enable: "Activar audiodescripci\xF3n",
+        disable: "Desactivar audiodescripci\xF3n"
+      },
+      signLanguage: {
+        show: "Mostrar video en lengua de se\xF1as",
+        hide: "Ocultar video en lengua de se\xF1as"
+      },
+      transcript: {
+        title: "Transcripci\xF3n",
+        close: "Cerrar transcripci\xF3n",
+        loading: "Cargando transcripci\xF3n...",
+        noTranscript: "No hay transcripci\xF3n disponible para este video."
+      },
+      settings: {
+        title: "Configuraci\xF3n",
+        quality: "Calidad",
+        speed: "Velocidad",
+        captions: "Subt\xEDtulos",
+        language: "Idioma",
+        reset: "Restablecer",
+        close: "Cerrar"
+      },
+      speeds: {
+        normal: "Normal"
+      },
+      time: {
+        display: "Visualizaci\xF3n de tiempo",
+        durationPrefix: "Duraci\xF3n: ",
+        hour: "{count} hora",
+        hours: "{count} horas",
+        minute: "{count} minuto",
+        minutes: "{count} minutos",
+        second: "{count} segundo",
+        seconds: "{count} segundos"
+      }
+    },
+    fr: {
+      player: {
+        label: "Lecteur vid\xE9o",
+        play: "Lecture",
+        pause: "Pause",
+        stop: "Arr\xEAt",
+        restart: "Red\xE9marrer du d\xE9but",
+        rewind: "Reculer",
+        forward: "Avancer",
+        rewindSeconds: "Reculer de {seconds} secondes",
+        forwardSeconds: "Avancer de {seconds} secondes",
+        previous: "Piste pr\xE9c\xE9dente",
+        next: "Piste suivante",
+        volume: "Volume",
+        mute: "Muet",
+        unmute: "Activer le son",
+        fullscreen: "Plein \xE9cran",
+        exitFullscreen: "Quitter le plein \xE9cran",
+        captions: "Sous-titres",
+        chapters: "Chapitres",
+        quality: "Qualit\xE9",
+        captionStyling: "Style des sous-titres",
+        transcript: "Activer/d\xE9sactiver la transcription",
+        audioDescription: "Audiodescription",
+        signLanguage: "Vid\xE9o en langue des signes",
+        settings: "Param\xE8tres",
+        speed: "Vitesse de lecture",
+        pip: "Image dans l'image",
+        currentTime: "Temps actuel",
+        duration: "Dur\xE9e",
+        progress: "Progression",
+        seekForward: "Avancer de {seconds} secondes",
+        seekBackward: "Reculer de {seconds} secondes",
+        volumeUp: "Augmenter le volume",
+        volumeDown: "Diminuer le volume",
+        loading: "Chargement...",
+        loadingChapters: "Chargement des chapitres...",
+        error: "Erreur de chargement",
+        buffering: "Mise en m\xE9moire tampon...",
+        signLanguageVideo: "Vid\xE9o en Langue des Signes",
+        noChapters: "Aucun chapitre disponible",
+        noCaptions: "Aucun sous-titre disponible",
+        auto: "Automatique",
+        autoQuality: "Automatique (s\xE9lection de qualit\xE9 non disponible)",
+        noQuality: "S\xE9lection de qualit\xE9 non disponible"
+      },
+      captions: {
+        off: "D\xE9sactiv\xE9",
+        select: "S\xE9lectionner les sous-titres",
+        fontSize: "Taille de police",
+        fontFamily: "Police",
+        color: "Couleur du texte",
+        backgroundColor: "Couleur de fond",
+        opacity: "Opacit\xE9"
+      },
+      fontSizes: {
+        small: "Petit",
+        medium: "Moyen",
+        large: "Grand",
+        xlarge: "Tr\xE8s grand"
+      },
+      fontFamilies: {
+        sansSerif: "Sans-serif",
+        serif: "Serif",
+        monospace: "Monospace"
+      },
+      styleLabels: {
+        textColor: "Couleur du texte",
+        background: "Arri\xE8re-plan",
+        font: "Police",
+        fontSize: "Taille de police",
+        opacity: "Opacit\xE9"
+      },
+      audioDescription: {
+        enable: "Activer l'audiodescription",
+        disable: "D\xE9sactiver l'audiodescription"
+      },
+      signLanguage: {
+        show: "Afficher la vid\xE9o en langue des signes",
+        hide: "Masquer la vid\xE9o en langue des signes"
+      },
+      transcript: {
+        title: "Transcription",
+        close: "Fermer la transcription",
+        loading: "Chargement de la transcription...",
+        noTranscript: "Aucune transcription disponible pour cette vid\xE9o."
+      },
+      settings: {
+        title: "Param\xE8tres",
+        quality: "Qualit\xE9",
+        speed: "Vitesse",
+        captions: "Sous-titres",
+        language: "Langue",
+        reset: "R\xE9initialiser",
+        close: "Fermer"
+      },
+      speeds: {
+        normal: "Normal"
+      },
+      time: {
+        display: "Affichage du temps",
+        durationPrefix: "Dur\xE9e : ",
+        hour: "{count} heure",
+        hours: "{count} heures",
+        minute: "{count} minute",
+        minutes: "{count} minutes",
+        second: "{count} seconde",
+        seconds: "{count} secondes"
+      }
+    },
+    ja: {
+      player: {
+        label: "\u30D3\u30C7\u30AA\u30D7\u30EC\u30FC\u30E4\u30FC",
+        play: "\u518D\u751F",
+        pause: "\u4E00\u6642\u505C\u6B62",
+        stop: "\u505C\u6B62",
+        restart: "\u6700\u521D\u304B\u3089\u518D\u751F",
+        rewind: "\u5DFB\u304D\u623B\u3057",
+        forward: "\u65E9\u9001\u308A",
+        rewindSeconds: "{seconds}\u79D2\u623B\u3059",
+        forwardSeconds: "{seconds}\u79D2\u9032\u3081\u308B",
+        previous: "\u524D\u306E\u30C8\u30E9\u30C3\u30AF",
+        next: "\u6B21\u306E\u30C8\u30E9\u30C3\u30AF",
+        volume: "\u97F3\u91CF",
+        mute: "\u30DF\u30E5\u30FC\u30C8",
+        unmute: "\u30DF\u30E5\u30FC\u30C8\u89E3\u9664",
+        fullscreen: "\u5168\u753B\u9762\u8868\u793A",
+        exitFullscreen: "\u5168\u753B\u9762\u8868\u793A\u3092\u7D42\u4E86",
+        captions: "\u5B57\u5E55",
+        chapters: "\u30C1\u30E3\u30D7\u30BF\u30FC",
+        quality: "\u753B\u8CEA",
+        captionStyling: "\u5B57\u5E55\u30B9\u30BF\u30A4\u30EB",
+        transcript: "\u6587\u5B57\u8D77\u3053\u3057\u5207\u308A\u66FF\u3048",
+        audioDescription: "\u97F3\u58F0\u89E3\u8AAC",
+        signLanguage: "\u624B\u8A71\u52D5\u753B",
+        settings: "\u8A2D\u5B9A",
+        speed: "\u518D\u751F\u901F\u5EA6",
+        pip: "\u30D4\u30AF\u30C1\u30E3\u30FC\u30A4\u30F3\u30D4\u30AF\u30C1\u30E3\u30FC",
+        currentTime: "\u73FE\u5728\u306E\u6642\u9593",
+        duration: "\u518D\u751F\u6642\u9593",
+        progress: "\u9032\u884C\u72B6\u6CC1",
+        seekForward: "{seconds}\u79D2\u9032\u3081\u308B",
+        seekBackward: "{seconds}\u79D2\u623B\u3059",
+        volumeUp: "\u97F3\u91CF\u3092\u4E0A\u3052\u308B",
+        volumeDown: "\u97F3\u91CF\u3092\u4E0B\u3052\u308B",
+        loading: "\u8AAD\u307F\u8FBC\u307F\u4E2D...",
+        loadingChapters: "\u30C1\u30E3\u30D7\u30BF\u30FC\u8AAD\u307F\u8FBC\u307F\u4E2D...",
+        error: "\u8AAD\u307F\u8FBC\u307F\u30A8\u30E9\u30FC",
+        buffering: "\u30D0\u30C3\u30D5\u30A1\u30EA\u30F3\u30B0\u4E2D...",
+        signLanguageVideo: "\u624B\u8A71\u52D5\u753B",
+        noChapters: "\u30C1\u30E3\u30D7\u30BF\u30FC\u304C\u3042\u308A\u307E\u305B\u3093",
+        noCaptions: "\u5B57\u5E55\u304C\u3042\u308A\u307E\u305B\u3093",
+        auto: "\u81EA\u52D5",
+        autoQuality: "\u81EA\u52D5\uFF08\u753B\u8CEA\u9078\u629E\u4E0D\u53EF\uFF09",
+        noQuality: "\u753B\u8CEA\u9078\u629E\u4E0D\u53EF"
+      },
+      captions: {
+        off: "\u30AA\u30D5",
+        select: "\u5B57\u5E55\u3092\u9078\u629E",
+        fontSize: "\u30D5\u30A9\u30F3\u30C8\u30B5\u30A4\u30BA",
+        fontFamily: "\u30D5\u30A9\u30F3\u30C8",
+        color: "\u30C6\u30AD\u30B9\u30C8\u306E\u8272",
+        backgroundColor: "\u80CC\u666F\u8272",
+        opacity: "\u4E0D\u900F\u660E\u5EA6"
+      },
+      fontSizes: {
+        small: "\u5C0F",
+        medium: "\u4E2D",
+        large: "\u5927",
+        xlarge: "\u7279\u5927"
+      },
+      fontFamilies: {
+        sansSerif: "\u30B5\u30F3\u30BB\u30EA\u30D5",
+        serif: "\u30BB\u30EA\u30D5",
+        monospace: "\u7B49\u5E45"
+      },
+      styleLabels: {
+        textColor: "\u30C6\u30AD\u30B9\u30C8\u306E\u8272",
+        background: "\u80CC\u666F",
+        font: "\u30D5\u30A9\u30F3\u30C8",
+        fontSize: "\u30D5\u30A9\u30F3\u30C8\u30B5\u30A4\u30BA",
+        opacity: "\u4E0D\u900F\u660E\u5EA6"
+      },
+      audioDescription: {
+        enable: "\u97F3\u58F0\u89E3\u8AAC\u3092\u6709\u52B9\u306B\u3059\u308B",
+        disable: "\u97F3\u58F0\u89E3\u8AAC\u3092\u7121\u52B9\u306B\u3059\u308B"
+      },
+      signLanguage: {
+        show: "\u624B\u8A71\u52D5\u753B\u3092\u8868\u793A",
+        hide: "\u624B\u8A71\u52D5\u753B\u3092\u975E\u8868\u793A"
+      },
+      transcript: {
+        title: "\u6587\u5B57\u8D77\u3053\u3057",
+        close: "\u6587\u5B57\u8D77\u3053\u3057\u3092\u9589\u3058\u308B",
+        loading: "\u6587\u5B57\u8D77\u3053\u3057\u3092\u8AAD\u307F\u8FBC\u307F\u4E2D...",
+        noTranscript: "\u3053\u306E\u30D3\u30C7\u30AA\u306E\u6587\u5B57\u8D77\u3053\u3057\u306F\u3042\u308A\u307E\u305B\u3093\u3002"
+      },
+      settings: {
+        title: "\u8A2D\u5B9A",
+        quality: "\u753B\u8CEA",
+        speed: "\u901F\u5EA6",
+        captions: "\u5B57\u5E55",
+        language: "\u8A00\u8A9E",
+        reset: "\u30EA\u30BB\u30C3\u30C8",
+        close: "\u9589\u3058\u308B"
+      },
+      speeds: {
+        normal: "\u901A\u5E38"
+      },
+      time: {
+        display: "\u6642\u9593\u8868\u793A",
+        durationPrefix: "\u518D\u751F\u6642\u9593: ",
+        hour: "{count}\u6642\u9593",
+        hours: "{count}\u6642\u9593",
+        minute: "{count}\u5206",
+        minutes: "{count}\u5206",
+        second: "{count}\u79D2",
+        seconds: "{count}\u79D2"
+      }
+    }
+  };
+
+  // src/i18n/i18n.js
+  var I18n = class {
+    constructor() {
+      this.currentLanguage = "en";
+      this.translations = translations;
+    }
+    setLanguage(lang) {
+      if (this.translations[lang]) {
+        this.currentLanguage = lang;
+      } else {
+        console.warn(`Language "${lang}" not found, falling back to English`);
+        this.currentLanguage = "en";
+      }
+    }
+    getLanguage() {
+      return this.currentLanguage;
+    }
+    t(key, replacements = {}) {
+      const keys = key.split(".");
+      let value = this.translations[this.currentLanguage];
+      for (const k of keys) {
+        if (value && typeof value === "object" && k in value) {
+          value = value[k];
+        } else {
+          value = this.translations.en;
+          for (const fallbackKey of keys) {
+            if (value && typeof value === "object" && fallbackKey in value) {
+              value = value[fallbackKey];
+            } else {
+              return key;
+            }
+          }
+          break;
+        }
+      }
+      if (typeof value === "string") {
+        Object.entries(replacements).forEach(([placeholder, replacement]) => {
+          value = value.replace(new RegExp(`{${placeholder}}`, "g"), replacement);
+        });
+      }
+      return value;
+    }
+    addTranslation(lang, translations2) {
+      if (!this.translations[lang]) {
+        this.translations[lang] = {};
+      }
+      Object.assign(this.translations[lang], translations2);
+    }
+  };
+  var i18n = new I18n();
+
   // src/utils/TimeUtils.js
   var TimeUtils = {
     /**
@@ -459,20 +1064,23 @@ var VidPly = (() => {
      */
     formatDuration(seconds) {
       if (!isFinite(seconds) || seconds < 0) {
-        return "0 seconds";
+        return i18n.t("time.seconds", { count: 0 });
       }
       const hours = Math.floor(seconds / 3600);
       const minutes = Math.floor(seconds % 3600 / 60);
       const secs = Math.floor(seconds % 60);
       const parts = [];
       if (hours > 0) {
-        parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
+        const key = hours === 1 ? "time.hour" : "time.hours";
+        parts.push(i18n.t(key, { count: hours }));
       }
       if (minutes > 0) {
-        parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
+        const key = minutes === 1 ? "time.minute" : "time.minutes";
+        parts.push(i18n.t(key, { count: minutes }));
       }
       if (secs > 0 || parts.length === 0) {
-        parts.push(`${secs} second${secs !== 1 ? "s" : ""}`);
+        const key = secs === 1 ? "time.second" : "time.seconds";
+        parts.push(i18n.t(key, { count: secs }));
       }
       return parts.join(", ");
     },
@@ -599,561 +1207,6 @@ var VidPly = (() => {
     svg.appendChild(playTriangle);
     return svg;
   }
-
-  // src/i18n/translations.js
-  var translations = {
-    en: {
-      player: {
-        label: "Video Player",
-        play: "Play",
-        pause: "Pause",
-        stop: "Stop",
-        restart: "Restart from beginning",
-        rewind: "Rewind",
-        forward: "Forward",
-        rewindSeconds: "Rewind {seconds} seconds",
-        forwardSeconds: "Forward {seconds} seconds",
-        previous: "Previous track",
-        next: "Next track",
-        volume: "Volume",
-        mute: "Mute",
-        unmute: "Unmute",
-        fullscreen: "Fullscreen",
-        exitFullscreen: "Exit Fullscreen",
-        captions: "Captions",
-        chapters: "Chapters",
-        quality: "Quality",
-        captionStyling: "Caption styling",
-        transcript: "Toggle transcript",
-        audioDescription: "Audio description",
-        signLanguage: "Sign language video",
-        settings: "Settings",
-        speed: "Playback Speed",
-        pip: "Picture in Picture",
-        currentTime: "Current time",
-        duration: "Duration",
-        progress: "Progress",
-        seekForward: "Seek forward {seconds} seconds",
-        seekBackward: "Seek backward {seconds} seconds",
-        volumeUp: "Volume up",
-        volumeDown: "Volume down",
-        loading: "Loading...",
-        loadingChapters: "Loading chapters...",
-        error: "Error loading media",
-        buffering: "Buffering...",
-        signLanguageVideo: "Sign Language Video",
-        noChapters: "No chapters available",
-        noCaptions: "No captions available",
-        auto: "Auto",
-        autoQuality: "Auto (no quality selection available)",
-        noQuality: "Quality selection not available"
-      },
-      captions: {
-        off: "Off",
-        select: "Select captions",
-        fontSize: "Font Size",
-        fontFamily: "Font Family",
-        color: "Text Color",
-        backgroundColor: "Background Color",
-        opacity: "Opacity"
-      },
-      fontSizes: {
-        small: "Small",
-        medium: "Medium",
-        large: "Large",
-        xlarge: "X-Large"
-      },
-      fontFamilies: {
-        sansSerif: "Sans-serif",
-        serif: "Serif",
-        monospace: "Monospace"
-      },
-      styleLabels: {
-        textColor: "Text Color",
-        background: "Background",
-        font: "Font",
-        fontSize: "Font Size",
-        opacity: "Opacity"
-      },
-      audioDescription: {
-        enable: "Enable audio description",
-        disable: "Disable audio description"
-      },
-      signLanguage: {
-        show: "Show sign language video",
-        hide: "Hide sign language video"
-      },
-      transcript: {
-        title: "Transcript",
-        close: "Close transcript",
-        loading: "Loading transcript...",
-        noTranscript: "No transcript available for this video."
-      },
-      settings: {
-        title: "Settings",
-        quality: "Quality",
-        speed: "Speed",
-        captions: "Captions",
-        language: "Language",
-        reset: "Reset to defaults",
-        close: "Close"
-      },
-      speeds: {
-        normal: "Normal"
-      }
-    },
-    de: {
-      player: {
-        label: "Videoplayer",
-        play: "Abspielen",
-        pause: "Pause",
-        stop: "Stopp",
-        restart: "Von vorne beginnen",
-        rewind: "Zur\xFCckspulen",
-        forward: "Vorspulen",
-        rewindSeconds: "{seconds} Sekunden zur\xFCckspulen",
-        forwardSeconds: "{seconds} Sekunden vorspulen",
-        previous: "Vorheriger Titel",
-        next: "N\xE4chster Titel",
-        volume: "Lautst\xE4rke",
-        mute: "Stumm",
-        unmute: "Ton ein",
-        fullscreen: "Vollbild",
-        exitFullscreen: "Vollbild beenden",
-        captions: "Untertitel",
-        chapters: "Kapitel",
-        quality: "Qualit\xE4t",
-        captionStyling: "Untertitel-Stil",
-        transcript: "Transkript umschalten",
-        audioDescription: "Audiodeskription",
-        signLanguage: "Geb\xE4rdensprache-Video",
-        settings: "Einstellungen",
-        speed: "Wiedergabegeschwindigkeit",
-        pip: "Bild-in-Bild",
-        currentTime: "Aktuelle Zeit",
-        duration: "Dauer",
-        progress: "Fortschritt",
-        seekForward: "{seconds} Sekunden vorspulen",
-        seekBackward: "{seconds} Sekunden zur\xFCckspulen",
-        volumeUp: "Lauter",
-        volumeDown: "Leiser",
-        loading: "L\xE4dt...",
-        loadingChapters: "Kapitel werden geladen...",
-        error: "Fehler beim Laden",
-        buffering: "Puffern...",
-        signLanguageVideo: "Geb\xE4rdensprache-Video",
-        noChapters: "Keine Kapitel verf\xFCgbar",
-        noCaptions: "Keine Untertitel verf\xFCgbar",
-        auto: "Automatisch",
-        autoQuality: "Automatisch (keine Qualit\xE4tsauswahl verf\xFCgbar)",
-        noQuality: "Qualit\xE4tsauswahl nicht verf\xFCgbar"
-      },
-      captions: {
-        off: "Aus",
-        select: "Untertitel ausw\xE4hlen",
-        fontSize: "Schriftgr\xF6\xDFe",
-        fontFamily: "Schriftart",
-        color: "Textfarbe",
-        backgroundColor: "Hintergrundfarbe",
-        opacity: "Deckkraft"
-      },
-      fontSizes: {
-        small: "Klein",
-        medium: "Mittel",
-        large: "Gro\xDF",
-        xlarge: "Sehr gro\xDF"
-      },
-      fontFamilies: {
-        sansSerif: "Sans-serif",
-        serif: "Serif",
-        monospace: "Monospace"
-      },
-      styleLabels: {
-        textColor: "Textfarbe",
-        background: "Hintergrund",
-        font: "Schrift",
-        fontSize: "Schriftgr\xF6\xDFe",
-        opacity: "Deckkraft"
-      },
-      audioDescription: {
-        enable: "Audiodeskription aktivieren",
-        disable: "Audiodeskription deaktivieren"
-      },
-      signLanguage: {
-        show: "Geb\xE4rdensprache-Video anzeigen",
-        hide: "Geb\xE4rdensprache-Video ausblenden"
-      },
-      transcript: {
-        title: "Transkript",
-        close: "Transkript schlie\xDFen",
-        loading: "Transkript wird geladen...",
-        noTranscript: "Kein Transkript f\xFCr dieses Video verf\xFCgbar."
-      },
-      settings: {
-        title: "Einstellungen",
-        quality: "Qualit\xE4t",
-        speed: "Geschwindigkeit",
-        captions: "Untertitel",
-        language: "Sprache",
-        reset: "Zur\xFCcksetzen",
-        close: "Schlie\xDFen"
-      },
-      speeds: {
-        normal: "Normal"
-      }
-    },
-    es: {
-      player: {
-        label: "Reproductor de video",
-        play: "Reproducir",
-        pause: "Pausa",
-        stop: "Detener",
-        restart: "Reiniciar desde el principio",
-        rewind: "Retroceder",
-        forward: "Avanzar",
-        rewindSeconds: "Retroceder {seconds} segundos",
-        forwardSeconds: "Avanzar {seconds} segundos",
-        previous: "Pista anterior",
-        next: "Siguiente pista",
-        volume: "Volumen",
-        mute: "Silenciar",
-        unmute: "Activar sonido",
-        fullscreen: "Pantalla completa",
-        exitFullscreen: "Salir de pantalla completa",
-        captions: "Subt\xEDtulos",
-        chapters: "Cap\xEDtulos",
-        quality: "Calidad",
-        captionStyling: "Estilo de subt\xEDtulos",
-        transcript: "Alternar transcripci\xF3n",
-        audioDescription: "Audiodescripci\xF3n",
-        signLanguage: "Video en lengua de se\xF1as",
-        settings: "Configuraci\xF3n",
-        speed: "Velocidad de reproducci\xF3n",
-        pip: "Imagen en imagen",
-        currentTime: "Tiempo actual",
-        duration: "Duraci\xF3n",
-        progress: "Progreso",
-        seekForward: "Avanzar {seconds} segundos",
-        seekBackward: "Retroceder {seconds} segundos",
-        volumeUp: "Subir volumen",
-        volumeDown: "Bajar volumen",
-        loading: "Cargando...",
-        loadingChapters: "Cargando cap\xEDtulos...",
-        error: "Error al cargar",
-        buffering: "Almacenando en b\xFAfer...",
-        signLanguageVideo: "Video en Lengua de Se\xF1as",
-        noChapters: "No hay cap\xEDtulos disponibles",
-        noCaptions: "No hay subt\xEDtulos disponibles",
-        auto: "Autom\xE1tico",
-        autoQuality: "Autom\xE1tico (selecci\xF3n de calidad no disponible)",
-        noQuality: "Selecci\xF3n de calidad no disponible"
-      },
-      captions: {
-        off: "Desactivado",
-        select: "Seleccionar subt\xEDtulos",
-        fontSize: "Tama\xF1o de fuente",
-        fontFamily: "Familia de fuente",
-        color: "Color de texto",
-        backgroundColor: "Color de fondo",
-        opacity: "Opacidad"
-      },
-      fontSizes: {
-        small: "Peque\xF1o",
-        medium: "Mediano",
-        large: "Grande",
-        xlarge: "Muy grande"
-      },
-      fontFamilies: {
-        sansSerif: "Sans-serif",
-        serif: "Serif",
-        monospace: "Monospace"
-      },
-      styleLabels: {
-        textColor: "Color de texto",
-        background: "Fondo",
-        font: "Fuente",
-        fontSize: "Tama\xF1o de fuente",
-        opacity: "Opacidad"
-      },
-      audioDescription: {
-        enable: "Activar audiodescripci\xF3n",
-        disable: "Desactivar audiodescripci\xF3n"
-      },
-      signLanguage: {
-        show: "Mostrar video en lengua de se\xF1as",
-        hide: "Ocultar video en lengua de se\xF1as"
-      },
-      transcript: {
-        title: "Transcripci\xF3n",
-        close: "Cerrar transcripci\xF3n",
-        loading: "Cargando transcripci\xF3n...",
-        noTranscript: "No hay transcripci\xF3n disponible para este video."
-      },
-      settings: {
-        title: "Configuraci\xF3n",
-        quality: "Calidad",
-        speed: "Velocidad",
-        captions: "Subt\xEDtulos",
-        language: "Idioma",
-        reset: "Restablecer",
-        close: "Cerrar"
-      },
-      speeds: {
-        normal: "Normal"
-      }
-    },
-    fr: {
-      player: {
-        label: "Lecteur vid\xE9o",
-        play: "Lecture",
-        pause: "Pause",
-        stop: "Arr\xEAt",
-        restart: "Red\xE9marrer du d\xE9but",
-        rewind: "Reculer",
-        forward: "Avancer",
-        rewindSeconds: "Reculer de {seconds} secondes",
-        forwardSeconds: "Avancer de {seconds} secondes",
-        previous: "Piste pr\xE9c\xE9dente",
-        next: "Piste suivante",
-        volume: "Volume",
-        mute: "Muet",
-        unmute: "Activer le son",
-        fullscreen: "Plein \xE9cran",
-        exitFullscreen: "Quitter le plein \xE9cran",
-        captions: "Sous-titres",
-        chapters: "Chapitres",
-        quality: "Qualit\xE9",
-        captionStyling: "Style des sous-titres",
-        transcript: "Activer/d\xE9sactiver la transcription",
-        audioDescription: "Audiodescription",
-        signLanguage: "Vid\xE9o en langue des signes",
-        settings: "Param\xE8tres",
-        speed: "Vitesse de lecture",
-        pip: "Image dans l'image",
-        currentTime: "Temps actuel",
-        duration: "Dur\xE9e",
-        progress: "Progression",
-        seekForward: "Avancer de {seconds} secondes",
-        seekBackward: "Reculer de {seconds} secondes",
-        volumeUp: "Augmenter le volume",
-        volumeDown: "Diminuer le volume",
-        loading: "Chargement...",
-        loadingChapters: "Chargement des chapitres...",
-        error: "Erreur de chargement",
-        buffering: "Mise en m\xE9moire tampon...",
-        signLanguageVideo: "Vid\xE9o en Langue des Signes",
-        noChapters: "Aucun chapitre disponible",
-        noCaptions: "Aucun sous-titre disponible",
-        auto: "Automatique",
-        autoQuality: "Automatique (s\xE9lection de qualit\xE9 non disponible)",
-        noQuality: "S\xE9lection de qualit\xE9 non disponible"
-      },
-      captions: {
-        off: "D\xE9sactiv\xE9",
-        select: "S\xE9lectionner les sous-titres",
-        fontSize: "Taille de police",
-        fontFamily: "Police",
-        color: "Couleur du texte",
-        backgroundColor: "Couleur de fond",
-        opacity: "Opacit\xE9"
-      },
-      fontSizes: {
-        small: "Petit",
-        medium: "Moyen",
-        large: "Grand",
-        xlarge: "Tr\xE8s grand"
-      },
-      fontFamilies: {
-        sansSerif: "Sans-serif",
-        serif: "Serif",
-        monospace: "Monospace"
-      },
-      styleLabels: {
-        textColor: "Couleur du texte",
-        background: "Arri\xE8re-plan",
-        font: "Police",
-        fontSize: "Taille de police",
-        opacity: "Opacit\xE9"
-      },
-      audioDescription: {
-        enable: "Activer l'audiodescription",
-        disable: "D\xE9sactiver l'audiodescription"
-      },
-      signLanguage: {
-        show: "Afficher la vid\xE9o en langue des signes",
-        hide: "Masquer la vid\xE9o en langue des signes"
-      },
-      transcript: {
-        title: "Transcription",
-        close: "Fermer la transcription",
-        loading: "Chargement de la transcription...",
-        noTranscript: "Aucune transcription disponible pour cette vid\xE9o."
-      },
-      settings: {
-        title: "Param\xE8tres",
-        quality: "Qualit\xE9",
-        speed: "Vitesse",
-        captions: "Sous-titres",
-        language: "Langue",
-        reset: "R\xE9initialiser",
-        close: "Fermer"
-      },
-      speeds: {
-        normal: "Normal"
-      }
-    },
-    ja: {
-      player: {
-        label: "\u30D3\u30C7\u30AA\u30D7\u30EC\u30FC\u30E4\u30FC",
-        play: "\u518D\u751F",
-        pause: "\u4E00\u6642\u505C\u6B62",
-        stop: "\u505C\u6B62",
-        restart: "\u6700\u521D\u304B\u3089\u518D\u751F",
-        rewind: "\u5DFB\u304D\u623B\u3057",
-        forward: "\u65E9\u9001\u308A",
-        rewindSeconds: "{seconds}\u79D2\u623B\u3059",
-        forwardSeconds: "{seconds}\u79D2\u9032\u3081\u308B",
-        previous: "\u524D\u306E\u30C8\u30E9\u30C3\u30AF",
-        next: "\u6B21\u306E\u30C8\u30E9\u30C3\u30AF",
-        volume: "\u97F3\u91CF",
-        mute: "\u30DF\u30E5\u30FC\u30C8",
-        unmute: "\u30DF\u30E5\u30FC\u30C8\u89E3\u9664",
-        fullscreen: "\u5168\u753B\u9762\u8868\u793A",
-        exitFullscreen: "\u5168\u753B\u9762\u8868\u793A\u3092\u7D42\u4E86",
-        captions: "\u5B57\u5E55",
-        chapters: "\u30C1\u30E3\u30D7\u30BF\u30FC",
-        quality: "\u753B\u8CEA",
-        captionStyling: "\u5B57\u5E55\u30B9\u30BF\u30A4\u30EB",
-        transcript: "\u6587\u5B57\u8D77\u3053\u3057\u5207\u308A\u66FF\u3048",
-        audioDescription: "\u97F3\u58F0\u89E3\u8AAC",
-        signLanguage: "\u624B\u8A71\u52D5\u753B",
-        settings: "\u8A2D\u5B9A",
-        speed: "\u518D\u751F\u901F\u5EA6",
-        pip: "\u30D4\u30AF\u30C1\u30E3\u30FC\u30A4\u30F3\u30D4\u30AF\u30C1\u30E3\u30FC",
-        currentTime: "\u73FE\u5728\u306E\u6642\u9593",
-        duration: "\u518D\u751F\u6642\u9593",
-        progress: "\u9032\u884C\u72B6\u6CC1",
-        seekForward: "{seconds}\u79D2\u9032\u3081\u308B",
-        seekBackward: "{seconds}\u79D2\u623B\u3059",
-        volumeUp: "\u97F3\u91CF\u3092\u4E0A\u3052\u308B",
-        volumeDown: "\u97F3\u91CF\u3092\u4E0B\u3052\u308B",
-        loading: "\u8AAD\u307F\u8FBC\u307F\u4E2D...",
-        loadingChapters: "\u30C1\u30E3\u30D7\u30BF\u30FC\u8AAD\u307F\u8FBC\u307F\u4E2D...",
-        error: "\u8AAD\u307F\u8FBC\u307F\u30A8\u30E9\u30FC",
-        buffering: "\u30D0\u30C3\u30D5\u30A1\u30EA\u30F3\u30B0\u4E2D...",
-        signLanguageVideo: "\u624B\u8A71\u52D5\u753B",
-        noChapters: "\u30C1\u30E3\u30D7\u30BF\u30FC\u304C\u3042\u308A\u307E\u305B\u3093",
-        noCaptions: "\u5B57\u5E55\u304C\u3042\u308A\u307E\u305B\u3093",
-        auto: "\u81EA\u52D5",
-        autoQuality: "\u81EA\u52D5\uFF08\u753B\u8CEA\u9078\u629E\u4E0D\u53EF\uFF09",
-        noQuality: "\u753B\u8CEA\u9078\u629E\u4E0D\u53EF"
-      },
-      captions: {
-        off: "\u30AA\u30D5",
-        select: "\u5B57\u5E55\u3092\u9078\u629E",
-        fontSize: "\u30D5\u30A9\u30F3\u30C8\u30B5\u30A4\u30BA",
-        fontFamily: "\u30D5\u30A9\u30F3\u30C8",
-        color: "\u30C6\u30AD\u30B9\u30C8\u306E\u8272",
-        backgroundColor: "\u80CC\u666F\u8272",
-        opacity: "\u4E0D\u900F\u660E\u5EA6"
-      },
-      fontSizes: {
-        small: "\u5C0F",
-        medium: "\u4E2D",
-        large: "\u5927",
-        xlarge: "\u7279\u5927"
-      },
-      fontFamilies: {
-        sansSerif: "\u30B5\u30F3\u30BB\u30EA\u30D5",
-        serif: "\u30BB\u30EA\u30D5",
-        monospace: "\u7B49\u5E45"
-      },
-      styleLabels: {
-        textColor: "\u30C6\u30AD\u30B9\u30C8\u306E\u8272",
-        background: "\u80CC\u666F",
-        font: "\u30D5\u30A9\u30F3\u30C8",
-        fontSize: "\u30D5\u30A9\u30F3\u30C8\u30B5\u30A4\u30BA",
-        opacity: "\u4E0D\u900F\u660E\u5EA6"
-      },
-      audioDescription: {
-        enable: "\u97F3\u58F0\u89E3\u8AAC\u3092\u6709\u52B9\u306B\u3059\u308B",
-        disable: "\u97F3\u58F0\u89E3\u8AAC\u3092\u7121\u52B9\u306B\u3059\u308B"
-      },
-      signLanguage: {
-        show: "\u624B\u8A71\u52D5\u753B\u3092\u8868\u793A",
-        hide: "\u624B\u8A71\u52D5\u753B\u3092\u975E\u8868\u793A"
-      },
-      transcript: {
-        title: "\u6587\u5B57\u8D77\u3053\u3057",
-        close: "\u6587\u5B57\u8D77\u3053\u3057\u3092\u9589\u3058\u308B",
-        loading: "\u6587\u5B57\u8D77\u3053\u3057\u3092\u8AAD\u307F\u8FBC\u307F\u4E2D...",
-        noTranscript: "\u3053\u306E\u30D3\u30C7\u30AA\u306E\u6587\u5B57\u8D77\u3053\u3057\u306F\u3042\u308A\u307E\u305B\u3093\u3002"
-      },
-      settings: {
-        title: "\u8A2D\u5B9A",
-        quality: "\u753B\u8CEA",
-        speed: "\u901F\u5EA6",
-        captions: "\u5B57\u5E55",
-        language: "\u8A00\u8A9E",
-        reset: "\u30EA\u30BB\u30C3\u30C8",
-        close: "\u9589\u3058\u308B"
-      },
-      speeds: {
-        normal: "\u901A\u5E38"
-      }
-    }
-  };
-
-  // src/i18n/i18n.js
-  var I18n = class {
-    constructor() {
-      this.currentLanguage = "en";
-      this.translations = translations;
-    }
-    setLanguage(lang) {
-      if (this.translations[lang]) {
-        this.currentLanguage = lang;
-      } else {
-        console.warn(`Language "${lang}" not found, falling back to English`);
-        this.currentLanguage = "en";
-      }
-    }
-    getLanguage() {
-      return this.currentLanguage;
-    }
-    t(key, replacements = {}) {
-      const keys = key.split(".");
-      let value = this.translations[this.currentLanguage];
-      for (const k of keys) {
-        if (value && typeof value === "object" && k in value) {
-          value = value[k];
-        } else {
-          value = this.translations.en;
-          for (const fallbackKey of keys) {
-            if (value && typeof value === "object" && fallbackKey in value) {
-              value = value[fallbackKey];
-            } else {
-              return key;
-            }
-          }
-          break;
-        }
-      }
-      if (typeof value === "string") {
-        Object.entries(replacements).forEach(([placeholder, replacement]) => {
-          value = value.replace(new RegExp(`{${placeholder}}`, "g"), replacement);
-        });
-      }
-      return value;
-    }
-    addTranslation(lang, translations2) {
-      if (!this.translations[lang]) {
-        this.translations[lang] = {};
-      }
-      Object.assign(this.translations[lang], translations2);
-    }
-  };
-  var i18n = new I18n();
 
   // src/controls/ControlBar.js
   var ControlBar = class {
@@ -1674,13 +1727,13 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-time`,
         attributes: {
           "role": "group",
-          "aria-label": "Time display"
+          "aria-label": i18n.t("time.display")
         }
       });
       this.controls.currentTimeDisplay = DOMUtils.createElement("span", {
         className: `${this.player.options.classPrefix}-current-time`,
         attributes: {
-          "aria-label": "0 seconds"
+          "aria-label": i18n.t("time.seconds", { count: 0 })
         }
       });
       const currentTimeVisual = DOMUtils.createElement("span", {
@@ -1700,7 +1753,7 @@ var VidPly = (() => {
       this.controls.durationDisplay = DOMUtils.createElement("span", {
         className: `${this.player.options.classPrefix}-duration`,
         attributes: {
-          "aria-label": "Duration: 0 seconds"
+          "aria-label": i18n.t("time.durationPrefix") + i18n.t("time.seconds", { count: 0 })
         }
       });
       const durationVisual = DOMUtils.createElement("span", {
@@ -2544,7 +2597,7 @@ var VidPly = (() => {
       if (this.controls.durationVisual) {
         const duration = this.player.state.duration;
         this.controls.durationVisual.textContent = TimeUtils.formatTime(duration);
-        this.controls.durationDisplay.setAttribute("aria-label", "Duration: " + TimeUtils.formatDuration(duration));
+        this.controls.durationDisplay.setAttribute("aria-label", i18n.t("time.durationPrefix") + TimeUtils.formatDuration(duration));
       }
     }
     updateVolumeDisplay() {

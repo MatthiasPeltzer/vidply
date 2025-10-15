@@ -701,7 +701,7 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-time`,
             attributes: {
                 'role': 'group',
-                'aria-label': 'Time display'
+                'aria-label': i18n.t('time.display')
             }
         });
 
@@ -709,7 +709,7 @@ export class ControlBar {
         this.controls.currentTimeDisplay = DOMUtils.createElement('span', {
             className: `${this.player.options.classPrefix}-current-time`,
             attributes: {
-                'aria-label': '0 seconds'
+                'aria-label': i18n.t('time.seconds', { count: 0 })
             }
         });
         
@@ -734,7 +734,7 @@ export class ControlBar {
         this.controls.durationDisplay = DOMUtils.createElement('span', {
             className: `${this.player.options.classPrefix}-duration`,
             attributes: {
-                'aria-label': 'Duration: 0 seconds'
+                'aria-label': i18n.t('time.durationPrefix') + i18n.t('time.seconds', { count: 0 })
             }
         });
         
@@ -1835,7 +1835,7 @@ export class ControlBar {
             // Update visual text (hidden from screen readers)
             this.controls.durationVisual.textContent = TimeUtils.formatTime(duration);
             // Update aria-label with human-readable format
-            this.controls.durationDisplay.setAttribute('aria-label', 'Duration: ' + TimeUtils.formatDuration(duration));
+            this.controls.durationDisplay.setAttribute('aria-label', i18n.t('time.durationPrefix') + TimeUtils.formatDuration(duration));
         }
     }
 

@@ -2,6 +2,8 @@
  * Time formatting and conversion utilities
  */
 
+import {i18n} from '../i18n/i18n.js';
+
 export const TimeUtils = {
   /**
    * Format seconds to time string (HH:MM:SS or MM:SS)
@@ -49,7 +51,7 @@ export const TimeUtils = {
    */
   formatDuration(seconds) {
     if (!isFinite(seconds) || seconds < 0) {
-      return '0 seconds';
+      return i18n.t('time.seconds', { count: 0 });
     }
     
     const hours = Math.floor(seconds / 3600);
@@ -59,13 +61,16 @@ export const TimeUtils = {
     const parts = [];
     
     if (hours > 0) {
-      parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+      const key = hours === 1 ? 'time.hour' : 'time.hours';
+      parts.push(i18n.t(key, { count: hours }));
     }
     if (minutes > 0) {
-      parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+      const key = minutes === 1 ? 'time.minute' : 'time.minutes';
+      parts.push(i18n.t(key, { count: minutes }));
     }
     if (secs > 0 || parts.length === 0) {
-      parts.push(`${secs} second${secs !== 1 ? 's' : ''}`);
+      const key = secs === 1 ? 'time.second' : 'time.seconds';
+      parts.push(i18n.t(key, { count: secs }));
     }
     
     return parts.join(', ');
