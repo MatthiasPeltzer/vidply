@@ -5,6 +5,50 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2024-10-15
+
+### Added
+- Previous/Next track navigation buttons in playlist mode
+- Dynamic control button visibility based on available features (captions, chapters, transcript)
+- Focus management - returns focus to player after playlist item activation
+- Semantic HTML structure with proper `<ul>` and `<li>` elements for playlists
+- Comprehensive ARIA attributes for playlist items (`aria-posinset`, `aria-setsize`, `aria-current`)
+- ARIA live regions for announcing track changes to screen readers
+- ARIA landmarks (`role="region"`) for playlist panel
+- Visually hidden keyboard instructions for screen reader users
+- Track position context ("Track X of Y") in playlist item labels
+- Human-readable time announcements for screen readers (e.g., "3 minutes, 23 seconds" instead of "03:23")
+- Screen reader-only status indicators for currently playing tracks
+
+### Changed
+- Playlist items now use semantic `<li>` elements instead of `<div>` elements
+- Control bar dynamically updates when media tracks change
+- Transcript content now updates automatically when switching between playlist items
+- Time displays now use `aria-hidden` on visual format and `aria-label` for natural language
+- Improved heading structure with proper `<h2>` elements in playlist
+
+### Improved
+- **Keyboard Navigation**
+  - Roving tabindex pattern for efficient playlist navigation (only one item in tab order)
+  - Arrow key navigation (↑/↓) through playlist items
+  - Home/End keys to jump to first/last track
+  - Enter/Space to play selected track
+- **Accessibility**
+  - WCAG 2.1 Level AA compliant playlist navigation
+  - Enhanced focus states with visible outlines (2px solid)
+  - Better screen reader context with position, status, and action instructions
+  - Intelligent time format announcements (adapts based on duration length)
+- **User Experience**
+  - Seamless keyboard workflow from playlist to playback controls
+  - Smart button appearance (show only when features are available per track)
+  - Playlist stays open during track changes with updated transcript content
+
+### Fixed
+- Screen readers no longer read time formats character by character (colons, individual digits)
+- Transcript now properly updates when navigating between tracks with different captions
+- Control buttons (captions, chapters, transcript) now appear/disappear correctly per track
+- Focus state properly maintained throughout playlist interactions
+
 ## [1.0.1] - 2024-10-12
 
 ### Added
