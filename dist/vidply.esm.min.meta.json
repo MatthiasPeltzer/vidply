@@ -37,7 +37,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 70888,
+      "bytes": 72876,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -136,7 +136,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 34580,
+      "bytes": 35845,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -202,7 +202,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 10068,
+      "bytes": 16835,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -278,7 +278,7 @@
           "bytesInOutput": 12461
         },
         "src/core/Player.js": {
-          "bytesInOutput": 16383
+          "bytesInOutput": 16746
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -290,13 +290,13 @@
           "bytesInOutput": 5386
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 5245
+          "bytesInOutput": 8086
         },
         "src/index.js": {
           "bytesInOutput": 1000
         }
       },
-      "bytes": 123346
+      "bytes": 126550
     }
   }
 }

@@ -515,6 +515,23 @@ export class Player extends EventEmitter {
                 this.captionManager.destroy();
                 this.captionManager = new CaptionManager(this);
             }
+            
+            // Reinitialize transcript manager to pick up new tracks
+            if (this.transcriptManager) {
+                const wasVisible = this.transcriptManager.isVisible;
+                this.transcriptManager.destroy();
+                this.transcriptManager = new TranscriptManager(this);
+                
+                // Restore visibility state if transcript was open
+                if (wasVisible) {
+                    this.transcriptManager.showTranscript();
+                }
+            }
+            
+            // Update control bar to show/hide feature buttons based on new tracks
+            if (this.controlBar) {
+                this.updateControlBar();
+            }
 
             this.emit('sourcechange', config);
             this.log('Media loaded successfully');
@@ -529,6 +546,25 @@ export class Player extends EventEmitter {
      * @param {string} src - New source URL
      * @returns {boolean}
      */
+    /**
+     * Update control bar to refresh button visibility based on available features
+     */
+    updateControlBar() {
+        if (!this.controlBar) return;
+        
+        const controlBar = this.controlBar;
+        
+        // Clear existing controls content
+        controlBar.element.innerHTML = '';
+        
+        // Recreate controls with updated feature detection
+        controlBar.createControls();
+        
+        // Reattach events for the new controls
+        controlBar.attachEvents();
+        controlBar.setupAutoHide();
+    }
+    
     shouldChangeRenderer(src) {
         if (!this.renderer) return true;
 
