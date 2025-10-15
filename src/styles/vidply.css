@@ -1387,6 +1387,8 @@
 }
 
 .vidply-playlist-list {
+    list-style: none;
+    margin: 0;
     padding: 4px 0;
 }
 
@@ -1399,6 +1401,7 @@
     display: flex;
     gap: 12px;
     padding: 12px 16px;
+    position: relative;
     transition: all 0.2s ease;
 }
 
@@ -1410,7 +1413,21 @@
 .vidply-playlist-item:focus {
     background: var(--vidply-white-08);
     border-left-color: var(--vidply-primary);
+    outline: 2px solid var(--vidply-primary-light);
+    outline-offset: -2px;
+    z-index: 1;
+}
+
+.vidply-playlist-item:focus:not(:focus-visible) {
     outline: none;
+}
+
+.vidply-playlist-item:focus-visible {
+    background: var(--vidply-white-08);
+    border-left-color: var(--vidply-primary);
+    outline: 2px solid var(--vidply-primary-light);
+    outline-offset: -2px;
+    z-index: 1;
 }
 
 .vidply-playlist-item-active {
@@ -1420,6 +1437,13 @@
 
 .vidply-playlist-item-active:hover {
     background: var(--vidply-primary-20);
+}
+
+.vidply-playlist-item-active:focus,
+.vidply-playlist-item-active:focus-visible {
+    background: var(--vidply-primary-20);
+    outline: 2px solid var(--vidply-primary-light);
+    outline-offset: -2px;
 }
 
 /* Playlist Thumbnail */
