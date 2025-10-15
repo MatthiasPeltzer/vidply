@@ -101,6 +101,16 @@ export const translations = {
     },
     speeds: {
       normal: 'Normal'
+    },
+    time: {
+      display: 'Time display',
+      durationPrefix: 'Duration: ',
+      hour: '{count} hour',
+      hours: '{count} hours',
+      minute: '{count} minute',
+      minutes: '{count} minutes',
+      second: '{count} second',
+      seconds: '{count} seconds'
     }
   },
   
@@ -202,6 +212,16 @@ export const translations = {
     },
     speeds: {
       normal: 'Normal'
+    },
+    time: {
+      display: 'Zeitanzeige',
+      durationPrefix: 'Dauer: ',
+      hour: '{count} Stunde',
+      hours: '{count} Stunden',
+      minute: '{count} Minute',
+      minutes: '{count} Minuten',
+      second: '{count} Sekunde',
+      seconds: '{count} Sekunden'
     }
   },
 
@@ -303,6 +323,16 @@ export const translations = {
     },
     speeds: {
       normal: 'Normal'
+    },
+    time: {
+      display: 'Visualización de tiempo',
+      durationPrefix: 'Duración: ',
+      hour: '{count} hora',
+      hours: '{count} horas',
+      minute: '{count} minuto',
+      minutes: '{count} minutos',
+      second: '{count} segundo',
+      seconds: '{count} segundos'
     }
   },
 
@@ -404,6 +434,16 @@ export const translations = {
     },
     speeds: {
       normal: 'Normal'
+    },
+    time: {
+      display: 'Affichage du temps',
+      durationPrefix: 'Durée : ',
+      hour: '{count} heure',
+      hours: '{count} heures',
+      minute: '{count} minute',
+      minutes: '{count} minutes',
+      second: '{count} seconde',
+      seconds: '{count} secondes'
     }
   },
 
@@ -505,6 +545,16 @@ export const translations = {
     },
     speeds: {
       normal: '通常'
+    },
+    time: {
+      display: '時間表示',
+      durationPrefix: '再生時間: ',
+      hour: '{count}時間',
+      hours: '{count}時間',
+      minute: '{count}分',
+      minutes: '{count}分',
+      second: '{count}秒',
+      seconds: '{count}秒'
     }
   }
 };
