@@ -2,21 +2,44 @@
 
 **Universal, Accessible Video & Audio Player**
 
-A modern, feature-rich video player built with vanilla ES6 JavaScript. Combines the best accessibility features from AblePlayer with the streaming capabilities of MediaElement.js.
+A modern, feature-rich media player built with vanilla ES6 JavaScript. Combines the best accessibility features from AblePlayer with the streaming capabilities of MediaElement.js. Fully internationalized with support for 5 languages and complete WCAG 2.1 AA compliance.
 
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)
 ![ES6](https://img.shields.io/badge/ES6-Module-yellow.svg)
 ![WCAG](https://img.shields.io/badge/WCAG-2.1%20AA-green.svg)
+![Version](https://img.shields.io/badge/version-1.0.4-brightgreen.svg)
+
+## Live Demos
+
+Try VidPly in action:
+- **[Main Demo](https://matthiaspeltzer.github.io/vidply/demo/demo.html)** - Full-featured video player showcase
+- **[Audio Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-audio.html)** - Audio player with playlist support
+- **[Video Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-video.html)** - Video playlist with thumbnails
+- **[HLS Streaming](https://matthiaspeltzer.github.io/vidply/demo/hls-test.html)** - Adaptive bitrate streaming demo
+- **[Sign Language](https://matthiaspeltzer.github.io/vidply/demo/sign-language-demo.html)** - Sign language overlay demo
+
+## Why VidPly?
+
+- **Zero Dependencies** - Pure vanilla JavaScript, no frameworks required
+- **Accessibility First** - WCAG 2.1 AA compliant with full keyboard and screen reader support
+- **Multilingual** - Built-in translations for 5 languages with easy extensibility
+- **Fully Customizable** - CSS variables and comprehensive API
+- **Modern Build** - ES6 modules with tree-shaking support
+- **Production Ready** - Thoroughly tested with real-world media content
 
 ## Features
 
 ### Core Media Support
-- **Audio & Video Playback** - Native HTML5 support
-- **Multiple Formats** - MP3, OGG, WAV, MP4, WebM
-- **YouTube Integration** - Embed with unified controls
-- **Vimeo Integration** - Seamless Vimeo support
-- **HLS Streaming** - Adaptive bitrate streaming
-- **Playlists** - Audio/video playlist support
+- **Audio & Video Playback** - Native HTML5 support for both media types
+- **Multiple Formats** - MP3, OGG, WAV (audio) / MP4, WebM (video)
+- **YouTube Integration** - Embed YouTube videos with unified controls
+- **Vimeo Integration** - Seamless Vimeo player integration
+- **HLS Streaming** - Adaptive bitrate streaming with quality selection
+- **Playlists** - Full playlist support with auto-advance and navigation
+  - Audio playlists with track info
+  - Video playlists with thumbnails
+  - Previous/Next controls
+  - Visual playlist panel
 
 ### Accessibility Features
 - **Full Keyboard Navigation** - WCAG 2.1 compliant
@@ -46,13 +69,21 @@ A modern, feature-rich video player built with vanilla ES6 JavaScript. Combines 
 - **Picture-in-Picture** - PiP support
 
 ### Internationalization
-Built-in support for:
-- English
-- Spanish
-- French
-- German
-- Japanese
-- Easy to add more languages
+Built-in support for 5 languages:
+- 🇬🇧 English
+- 🇪🇸 Spanish (Español)
+- 🇫🇷 French (Français)
+- 🇩🇪 German (Deutsch)
+- 🇯🇵 Japanese (日本語)
+
+All UI elements are fully translated, including:
+- Control buttons and menus
+- Time display and duration formatting
+- Keyboard shortcuts
+- Error messages and notifications
+- ARIA labels for screen readers
+
+Easy to add more languages via the i18n system
 
 ## Installation
 
@@ -363,6 +394,52 @@ player.disableSignLanguage()  // Hide sign language overlay
 player.toggleSignLanguage()   // Toggle sign language
 ```
 
+### Playlists
+
+```javascript
+import { Player, PlaylistManager } from './dist/vidply.esm.js';
+
+// Create player
+const player = new Player('#my-player');
+
+// Create playlist manager
+const playlist = new PlaylistManager(player, {
+  autoAdvance: true,   // Auto-play next track
+  loop: false,         // Loop back to start
+  showPanel: true      // Show playlist UI
+});
+
+// Load tracks
+playlist.loadPlaylist([
+  {
+    src: 'track1.mp3',
+    title: 'Track 1',
+    artist: 'Artist Name',
+    poster: 'thumb1.jpg'
+  },
+  {
+    src: 'track2.mp3',
+    title: 'Track 2',
+    artist: 'Artist Name',
+    tracks: [
+      { src: 'captions.vtt', kind: 'captions', srclang: 'en' }
+    ]
+  }
+]);
+
+// Control playlist
+playlist.next()         // Go to next track
+playlist.previous()     // Go to previous track
+playlist.goToTrack(2)   // Jump to specific track
+playlist.hasNext()      // Check if next track exists
+playlist.hasPrevious()  // Check if previous track exists
+
+// Listen for track changes
+player.on('playlisttrackchange', (e) => {
+  console.log('Now playing:', e.item.title);
+});
+```
+
 ### Settings
 
 ```javascript
@@ -482,7 +559,7 @@ See [BUILD.md](docs/BUILD.md) for detailed build documentation.
 
 GNU General Public License v2.0 or later
 
-Copyright (C) 2024 Matthias Peltzer
+Copyright (C) 2025 Matthias Peltzer
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -495,16 +572,15 @@ See [LICENSE](LICENSE) for full license text.
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Support
+## Documentation
 
-- Getting Started: See [GETTING_STARTED.md](docs/GETTING_STARTED.md)
-- Usage Examples: See [USAGE.md](docs/USAGE.md)
-- Playlist Guide: See [PLAYLIST.md](docs/PLAYLIST.md)
-- Transcript Guide: See [TRANSCRIPT.md](docs/TRANSCRIPT.md)
-- Build Guide: See [BUILD.md](docs/BUILD.md)
-- Changelog: See [CHANGELOG.md](docs/CHANGELOG.md)
-- Issues: Report on GitHub
-- Discussions: GitHub Discussions
+- [Getting Started Guide](docs/GETTING_STARTED.md) - Basic setup and usage
+- [Usage Guide](docs/USAGE.md) - Detailed usage examples
+- [Playlist Guide](docs/PLAYLIST.md) - Audio/video playlists
+- [Transcript Guide](docs/TRANSCRIPT.md) - Interactive transcripts
+- [Keyboard Shortcuts](docs/KEYBOARD.md) - Complete keyboard reference
+- [Build Guide](docs/BUILD.md) - Build system and development
+- [Changelog](docs/CHANGELOG.md) - Version history and updates
 
 ## Credits
 
