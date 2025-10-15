@@ -698,13 +698,30 @@ export class ControlBar {
 
     createTimeDisplay() {
         const container = DOMUtils.createElement('div', {
-            className: `${this.player.options.classPrefix}-time`
+            className: `${this.player.options.classPrefix}-time`,
+            attributes: {
+                'role': 'group',
+                'aria-label': 'Time display'
+            }
         });
 
+        // Current time - visual text hidden, only aria-label announced
         this.controls.currentTimeDisplay = DOMUtils.createElement('span', {
             className: `${this.player.options.classPrefix}-current-time`,
-            textContent: '00:00'
+            attributes: {
+                'aria-label': '0 seconds'
+            }
         });
+        
+        // Create visual text inside, hidden from screen readers
+        const currentTimeVisual = DOMUtils.createElement('span', {
+            textContent: '00:00',
+            attributes: {
+                'aria-hidden': 'true'
+            }
+        });
+        this.controls.currentTimeDisplay.appendChild(currentTimeVisual);
+        this.controls.currentTimeVisual = currentTimeVisual;
 
         const separator = DOMUtils.createElement('span', {
             textContent: ' / ',
@@ -713,10 +730,23 @@ export class ControlBar {
             }
         });
 
+        // Duration - visual text hidden, only aria-label announced
         this.controls.durationDisplay = DOMUtils.createElement('span', {
             className: `${this.player.options.classPrefix}-duration`,
-            textContent: '00:00'
+            attributes: {
+                'aria-label': 'Duration: 0 seconds'
+            }
         });
+        
+        // Create visual text inside, hidden from screen readers
+        const durationVisual = DOMUtils.createElement('span', {
+            textContent: '00:00',
+            attributes: {
+                'aria-hidden': 'true'
+            }
+        });
+        this.controls.durationDisplay.appendChild(durationVisual);
+        this.controls.durationVisual = durationVisual;
 
         container.appendChild(this.controls.currentTimeDisplay);
         container.appendChild(separator);
@@ -1790,14 +1820,22 @@ export class ControlBar {
         this.controls.played.style.width = `${percent}%`;
         this.controls.progress.setAttribute('aria-valuenow', String(Math.round(percent)));
 
-        if (this.controls.currentTimeDisplay) {
-            this.controls.currentTimeDisplay.textContent = TimeUtils.formatTime(this.player.state.currentTime);
+        if (this.controls.currentTimeVisual) {
+            const currentTime = this.player.state.currentTime;
+            // Update visual text (hidden from screen readers)
+            this.controls.currentTimeVisual.textContent = TimeUtils.formatTime(currentTime);
+            // Update aria-label with human-readable format
+            this.controls.currentTimeDisplay.setAttribute('aria-label', TimeUtils.formatDuration(currentTime));
         }
     }
 
     updateDuration() {
-        if (this.controls.durationDisplay) {
-            this.controls.durationDisplay.textContent = TimeUtils.formatTime(this.player.state.duration);
+        if (this.controls.durationVisual) {
+            const duration = this.player.state.duration;
+            // Update visual text (hidden from screen readers)
+            this.controls.durationVisual.textContent = TimeUtils.formatTime(duration);
+            // Update aria-label with human-readable format
+            this.controls.durationDisplay.setAttribute('aria-label', 'Duration: ' + TimeUtils.formatDuration(duration));
         }
     }
 

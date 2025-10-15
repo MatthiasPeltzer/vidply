@@ -1671,12 +1671,26 @@ var VidPly = (() => {
     }
     createTimeDisplay() {
       const container = DOMUtils.createElement("div", {
-        className: `${this.player.options.classPrefix}-time`
+        className: `${this.player.options.classPrefix}-time`,
+        attributes: {
+          "role": "group",
+          "aria-label": "Time display"
+        }
       });
       this.controls.currentTimeDisplay = DOMUtils.createElement("span", {
         className: `${this.player.options.classPrefix}-current-time`,
-        textContent: "00:00"
+        attributes: {
+          "aria-label": "0 seconds"
+        }
       });
+      const currentTimeVisual = DOMUtils.createElement("span", {
+        textContent: "00:00",
+        attributes: {
+          "aria-hidden": "true"
+        }
+      });
+      this.controls.currentTimeDisplay.appendChild(currentTimeVisual);
+      this.controls.currentTimeVisual = currentTimeVisual;
       const separator = DOMUtils.createElement("span", {
         textContent: " / ",
         attributes: {
@@ -1685,8 +1699,18 @@ var VidPly = (() => {
       });
       this.controls.durationDisplay = DOMUtils.createElement("span", {
         className: `${this.player.options.classPrefix}-duration`,
-        textContent: "00:00"
+        attributes: {
+          "aria-label": "Duration: 0 seconds"
+        }
       });
+      const durationVisual = DOMUtils.createElement("span", {
+        textContent: "00:00",
+        attributes: {
+          "aria-hidden": "true"
+        }
+      });
+      this.controls.durationDisplay.appendChild(durationVisual);
+      this.controls.durationVisual = durationVisual;
       container.appendChild(this.controls.currentTimeDisplay);
       container.appendChild(separator);
       container.appendChild(this.controls.durationDisplay);
@@ -2510,13 +2534,17 @@ var VidPly = (() => {
       const percent = this.player.state.currentTime / this.player.state.duration * 100;
       this.controls.played.style.width = `${percent}%`;
       this.controls.progress.setAttribute("aria-valuenow", String(Math.round(percent)));
-      if (this.controls.currentTimeDisplay) {
-        this.controls.currentTimeDisplay.textContent = TimeUtils.formatTime(this.player.state.currentTime);
+      if (this.controls.currentTimeVisual) {
+        const currentTime = this.player.state.currentTime;
+        this.controls.currentTimeVisual.textContent = TimeUtils.formatTime(currentTime);
+        this.controls.currentTimeDisplay.setAttribute("aria-label", TimeUtils.formatDuration(currentTime));
       }
     }
     updateDuration() {
-      if (this.controls.durationDisplay) {
-        this.controls.durationDisplay.textContent = TimeUtils.formatTime(this.player.state.duration);
+      if (this.controls.durationVisual) {
+        const duration = this.player.state.duration;
+        this.controls.durationVisual.textContent = TimeUtils.formatTime(duration);
+        this.controls.durationDisplay.setAttribute("aria-label", "Duration: " + TimeUtils.formatDuration(duration));
       }
     }
     updateVolumeDisplay() {
