@@ -5120,8 +5120,9 @@ var PlaylistManager = class {
   /**
    * Play a specific track
    * @param {number} index - Track index
+   * @param {boolean} userInitiated - Whether this was triggered by user action (default: false)
    */
-  play(index) {
+  play(index, userInitiated = false) {
     if (index < 0 || index >= this.tracks.length) {
       console.warn("VidPly Playlist: Invalid track index", index);
       return;
@@ -5141,7 +5142,7 @@ var PlaylistManager = class {
       item: track,
       total: this.tracks.length
     });
-    if (this.player.container) {
+    if (userInitiated && this.player.container) {
       this.player.container.focus();
     }
     setTimeout(() => {
@@ -5346,7 +5347,7 @@ var PlaylistManager = class {
     playIcon.setAttribute("aria-hidden", "true");
     item.appendChild(playIcon);
     item.addEventListener("click", () => {
-      this.play(index);
+      this.play(index, true);
     });
     item.addEventListener("keydown", (e) => {
       this.handlePlaylistItemKeydown(e, index);
@@ -5363,7 +5364,7 @@ var PlaylistManager = class {
       case "Enter":
       case " ":
         e.preventDefault();
-        this.play(index);
+        this.play(index, true);
         break;
       case "ArrowDown":
         e.preventDefault();

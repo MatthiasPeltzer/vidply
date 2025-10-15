@@ -96,8 +96,9 @@ export class PlaylistManager {
   /**
    * Play a specific track
    * @param {number} index - Track index
+   * @param {boolean} userInitiated - Whether this was triggered by user action (default: false)
    */
-  play(index) {
+  play(index, userInitiated = false) {
     if (index < 0 || index >= this.tracks.length) {
       console.warn('VidPly Playlist: Invalid track index', index);
       return;
@@ -127,8 +128,8 @@ export class PlaylistManager {
       total: this.tracks.length
     });
     
-    // Return focus to player for keyboard navigation
-    if (this.player.container) {
+    // Return focus to player for keyboard navigation (only on user action)
+    if (userInitiated && this.player.container) {
       this.player.container.focus();
     }
     
@@ -394,7 +395,7 @@ export class PlaylistManager {
     
     // Click handler
     item.addEventListener('click', () => {
-      this.play(index);
+      this.play(index, true); // User-initiated
     });
     
     // Keyboard handler
@@ -416,7 +417,7 @@ export class PlaylistManager {
       case 'Enter':
       case ' ':
         e.preventDefault();
-        this.play(index);
+        this.play(index, true); // User-initiated
         break;
         
       case 'ArrowDown':
