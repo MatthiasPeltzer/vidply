@@ -5,7 +5,34 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.4] - 2024-10-15
+## [1.0.5] - 2025-10-16
+
+### Added
+- Full internationalization for time display and duration formatting
+- Translation strings for all time units (hours, minutes, seconds) in all 5 supported languages
+- Proper pluralization support for time units across languages
+- i18n support for "Time display" aria-label and "Duration:" prefix
+
+### Changed
+- `TimeUtils.formatDuration()` now uses i18n system instead of hardcoded English strings
+- Time display aria-labels now translate based on player's language setting
+- Screen reader announcements for time and duration now properly localized
+
+### Improved
+- **Internationalization**
+  - All UI elements including time displays are now fully translated
+  - Time formatting respects language-specific conventions
+  - Proper singular/plural forms for all supported languages (en, de, es, fr, ja)
+  - Enhanced accessibility with translated aria-labels for screen readers
+
+### Documentation
+- Updated README.md with comprehensive feature descriptions
+- Added live demo links for GitHub Pages
+- Enhanced API documentation with playlist examples
+- Improved contribution guidelines
+- Updated copyright year to 2025
+
+## [1.0.4] - 2025-10-16
 
 ### Added
 - Previous/Next track navigation buttons in playlist mode
@@ -49,7 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Control buttons (captions, chapters, transcript) now appear/disappear correctly per track
 - Focus state properly maintained throughout playlist interactions
 
-## [1.0.1] - 2024-10-12
+## [1.0.1] - 2025-10-12
 
 ### Added
 - Caption track selector menu - Click CC button to switch between available caption languages
@@ -57,7 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keyboard shortcut (<kbd>C</kbd>) now opens caption menu when multiple tracks available
 - Automatic icon update when captions are enabled/disabled
 
-## [1.0.0] - 2024-10-08
+## [1.0.0] - 2025-10-11
 
 ### Initial Release
 
