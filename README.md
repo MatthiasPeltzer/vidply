@@ -7,7 +7,7 @@ A modern, feature-rich media player built with vanilla ES6 JavaScript. Combines 
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)
 ![ES6](https://img.shields.io/badge/ES6-Module-yellow.svg)
 ![WCAG](https://img.shields.io/badge/WCAG-2.1%20AA-green.svg)
-![Version](https://img.shields.io/badge/version-1.0.4-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.0.5-brightgreen.svg)
 
 ## Live Demos
 
