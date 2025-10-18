@@ -50,7 +50,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "esbuild": "^0.25.10",
+    "esbuild": "^0.25.11",
     "clean-css": "^5.3.3"
   },
   "dependencies": {}
