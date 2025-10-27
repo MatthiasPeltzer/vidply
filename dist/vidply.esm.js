@@ -4312,6 +4312,8 @@ var Player = class extends EventEmitter {
       playbackSpeed: 1,
       preload: "metadata",
       startTime: 0,
+      playsInline: true,
+      // Enable inline playback on iOS (prevents native fullscreen)
       // Controls
       controls: true,
       hideControlsDelay: 3e3,
@@ -4527,6 +4529,11 @@ var Player = class extends EventEmitter {
     this.element.setAttribute("tabindex", "-1");
     this.element.style.width = "100%";
     this.element.style.height = "100%";
+    if (this.element.tagName === "VIDEO" && this.options.playsInline) {
+      this.element.setAttribute("playsinline", "");
+      this.element.setAttribute("webkit-playsinline", "");
+      this.element.playsInline = true;
+    }
     if (this.options.width) {
       this.container.style.width = typeof this.options.width === "number" ? `${this.options.width}px` : this.options.width;
     }
