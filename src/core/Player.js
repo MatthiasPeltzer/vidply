@@ -68,6 +68,7 @@ export class Player extends EventEmitter {
             playbackSpeed: 1.0,
             preload: 'metadata',
             startTime: 0,
+            playsInline: true, // Enable inline playback on iOS (prevents native fullscreen)
 
             // Controls
             controls: true,
@@ -350,6 +351,14 @@ export class Player extends EventEmitter {
         this.element.setAttribute('tabindex', '-1'); // Remove from tab order
         this.element.style.width = '100%';
         this.element.style.height = '100%';
+
+        // Enable inline playback on iOS (prevents native fullscreen)
+        // This allows custom controls to work on iOS devices
+        if (this.element.tagName === 'VIDEO' && this.options.playsInline) {
+            this.element.setAttribute('playsinline', '');
+            this.element.setAttribute('webkit-playsinline', ''); // For older iOS versions
+            this.element.playsInline = true; // Property version
+        }
 
         // Set dimensions
         if (this.options.width) {
