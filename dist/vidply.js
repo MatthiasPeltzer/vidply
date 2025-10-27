@@ -5082,6 +5082,25 @@ var VidPly = (() => {
         }
         this.orientationQuery = orientationQuery;
       }
+      this.fullscreenChangeHandler = () => {
+        const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+        if (this.state.fullscreen !== isFullscreen) {
+          this.state.fullscreen = isFullscreen;
+          if (isFullscreen) {
+            this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
+          } else {
+            this.container.classList.remove(`${this.options.classPrefix}-fullscreen`);
+          }
+          this.emit("fullscreenchange", isFullscreen);
+          if (this.controlBar) {
+            this.controlBar.updateFullscreenButton();
+          }
+        }
+      };
+      document.addEventListener("fullscreenchange", this.fullscreenChangeHandler);
+      document.addEventListener("webkitfullscreenchange", this.fullscreenChangeHandler);
+      document.addEventListener("mozfullscreenchange", this.fullscreenChangeHandler);
+      document.addEventListener("MSFullscreenChange", this.fullscreenChangeHandler);
     }
     // Cleanup
     destroy() {
@@ -5122,6 +5141,13 @@ var VidPly = (() => {
         }
         this.orientationQuery = null;
         this.orientationHandler = null;
+      }
+      if (this.fullscreenChangeHandler) {
+        document.removeEventListener("fullscreenchange", this.fullscreenChangeHandler);
+        document.removeEventListener("webkitfullscreenchange", this.fullscreenChangeHandler);
+        document.removeEventListener("mozfullscreenchange", this.fullscreenChangeHandler);
+        document.removeEventListener("MSFullscreenChange", this.fullscreenChangeHandler);
+        this.fullscreenChangeHandler = null;
       }
       if (this.container && this.container.parentNode) {
         this.container.parentNode.insertBefore(this.element, this.container);

@@ -1061,6 +1061,40 @@ export class Player extends EventEmitter {
 
             this.orientationQuery = orientationQuery;
         }
+
+        // Listen for native fullscreen change events (e.g., when user presses ESC)
+        this.fullscreenChangeHandler = () => {
+            const isFullscreen = !!(
+                document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.msFullscreenElement
+            );
+
+            // Only update if state has changed
+            if (this.state.fullscreen !== isFullscreen) {
+                this.state.fullscreen = isFullscreen;
+                
+                if (isFullscreen) {
+                    this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
+                } else {
+                    this.container.classList.remove(`${this.options.classPrefix}-fullscreen`);
+                }
+                
+                this.emit('fullscreenchange', isFullscreen);
+                
+                // Update fullscreen button icon
+                if (this.controlBar) {
+                    this.controlBar.updateFullscreenButton();
+                }
+            }
+        };
+
+        // Add listeners for all vendor-prefixed fullscreenchange events
+        document.addEventListener('fullscreenchange', this.fullscreenChangeHandler);
+        document.addEventListener('webkitfullscreenchange', this.fullscreenChangeHandler);
+        document.addEventListener('mozfullscreenchange', this.fullscreenChangeHandler);
+        document.addEventListener('MSFullscreenChange', this.fullscreenChangeHandler);
     }
 
     // Cleanup
@@ -1117,6 +1151,15 @@ export class Player extends EventEmitter {
             }
             this.orientationQuery = null;
             this.orientationHandler = null;
+        }
+
+        // Cleanup fullscreen change handler
+        if (this.fullscreenChangeHandler) {
+            document.removeEventListener('fullscreenchange', this.fullscreenChangeHandler);
+            document.removeEventListener('webkitfullscreenchange', this.fullscreenChangeHandler);
+            document.removeEventListener('mozfullscreenchange', this.fullscreenChangeHandler);
+            document.removeEventListener('MSFullscreenChange', this.fullscreenChangeHandler);
+            this.fullscreenChangeHandler = null;
         }
 
         // Remove container
