@@ -142,7 +142,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 36979,
+      "bytes": 39083,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -284,7 +284,7 @@
           "bytesInOutput": 12461
         },
         "src/core/Player.js": {
-          "bytesInOutput": 16746
+          "bytesInOutput": 17902
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -302,7 +302,7 @@
           "bytesInOutput": 1000
         }
       },
-      "bytes": 128430
+      "bytes": 129586
     }
   }
 }
