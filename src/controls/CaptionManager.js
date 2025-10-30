@@ -4,6 +4,7 @@
 
 import {DOMUtils} from '../utils/DOMUtils.js';
 import {i18n} from '../i18n/i18n.js';
+import {StorageManager} from '../utils/StorageManager.js';
 
 export class CaptionManager {
     constructor(player) {
@@ -12,8 +13,36 @@ export class CaptionManager {
         this.tracks = [];
         this.currentTrack = null;
         this.currentCue = null;
+        
+        // Storage manager
+        this.storage = new StorageManager('vidply');
+        
+        // Load saved preferences
+        this.loadSavedPreferences();
 
         this.init();
+    }
+    
+    loadSavedPreferences() {
+        const saved = this.storage.getCaptionPreferences();
+        if (saved) {
+            // Override player options with saved preferences
+            if (saved.fontSize) this.player.options.captionsFontSize = saved.fontSize;
+            if (saved.fontFamily) this.player.options.captionsFontFamily = saved.fontFamily;
+            if (saved.color) this.player.options.captionsColor = saved.color;
+            if (saved.backgroundColor) this.player.options.captionsBackgroundColor = saved.backgroundColor;
+            if (saved.opacity !== undefined) this.player.options.captionsOpacity = saved.opacity;
+        }
+    }
+    
+    saveCaptionPreferences() {
+        this.storage.saveCaptionPreferences({
+            fontSize: this.player.options.captionsFontSize,
+            fontFamily: this.player.options.captionsFontFamily,
+            color: this.player.options.captionsColor,
+            backgroundColor: this.player.options.captionsBackgroundColor,
+            opacity: this.player.options.captionsOpacity
+        });
     }
 
     init() {
@@ -218,6 +247,7 @@ export class CaptionManager {
         }
 
         this.updateStyles();
+        this.saveCaptionPreferences();
         this.player.emit('captionschange');
     }
 

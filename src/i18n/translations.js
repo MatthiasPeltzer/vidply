@@ -47,7 +47,11 @@ export const translations = {
       noCaptions: 'No captions available',
       auto: 'Auto',
       autoQuality: 'Auto (no quality selection available)',
-      noQuality: 'Quality selection not available'
+      noQuality: 'Quality selection not available',
+      signLanguageDragResize: 'Sign Language Video - Press D to drag with keyboard, R to resize',
+      signLanguageDragActive: 'Sign Language Video - Drag mode active. Use arrow keys to move, Escape to exit.',
+      signLanguageResizeActive: 'Sign Language Video - Resize mode active. Use left/right arrow keys to resize, Escape to exit.',
+      resizeHandle: 'Resize {direction} corner'
     },
     captions: {
       off: 'Off',
@@ -60,7 +64,7 @@ export const translations = {
     },
     fontSizes: {
       small: 'Small',
-      medium: 'Medium',
+      normal: 'Normal',
       large: 'Large',
       xlarge: 'X-Large'
     },
@@ -88,7 +92,14 @@ export const translations = {
       title: 'Transcript',
       close: 'Close transcript',
       loading: 'Loading transcript...',
-      noTranscript: 'No transcript available for this video.'
+      noTranscript: 'No transcript available for this video.',
+      settings: 'Transcript settings. Press Enter to open menu, or D to enable drag mode',
+      keyboardDragMode: 'Toggle keyboard drag mode with arrow keys. Shortcut: D key',
+      keyboardDragActive: '⌨️ Keyboard Drag Mode Active (Arrow keys to move, Shift+Arrows for large steps, D or ESC to exit)',
+      resizeWindow: 'Resize Window',
+      styleTranscript: 'Open transcript style settings',
+      closeMenu: 'Close Menu',
+      styleTitle: 'Transcript Style'
     },
     settings: {
       title: 'Settings',
@@ -158,7 +169,11 @@ export const translations = {
       noCaptions: 'Keine Untertitel verfügbar',
       auto: 'Automatisch',
       autoQuality: 'Automatisch (keine Qualitätsauswahl verfügbar)',
-      noQuality: 'Qualitätsauswahl nicht verfügbar'
+      noQuality: 'Qualitätsauswahl nicht verfügbar',
+      signLanguageDragResize: 'Gebärdensprache-Video - Drücken Sie D zum Verschieben per Tastatur, R zum Ändern der Größe',
+      signLanguageDragActive: 'Gebärdensprache-Video - Verschiebemodus aktiv. Pfeiltasten zum Bewegen, Escape zum Beenden.',
+      signLanguageResizeActive: 'Gebärdensprache-Video - Größenänderungsmodus aktiv. Links-/Rechts-Pfeiltasten zum Ändern der Größe, Escape zum Beenden.',
+      resizeHandle: 'Größenänderung {direction}-Ecke'
     },
     captions: {
       off: 'Aus',
@@ -171,7 +186,7 @@ export const translations = {
     },
     fontSizes: {
       small: 'Klein',
-      medium: 'Mittel',
+      normal: 'Normal',
       large: 'Groß',
       xlarge: 'Sehr groß'
     },
@@ -199,7 +214,14 @@ export const translations = {
       title: 'Transkript',
       close: 'Transkript schließen',
       loading: 'Transkript wird geladen...',
-      noTranscript: 'Kein Transkript für dieses Video verfügbar.'
+      noTranscript: 'Kein Transkript für dieses Video verfügbar.',
+      settings: 'Transkript-Einstellungen. Eingabetaste zum Öffnen des Menüs drücken oder D zum Aktivieren des Verschiebemodus',
+      keyboardDragMode: 'Tastatur-Verschiebemodus mit Pfeiltasten umschalten. Tastenkombination: D-Taste',
+      keyboardDragActive: '⌨️ Tastatur-Verschiebemodus aktiv (Pfeiltasten zum Bewegen, Umschalt+Pfeiltasten für große Schritte, D oder ESC zum Beenden)',
+      resizeWindow: 'Fenster vergrößern/verkleinern',
+      styleTranscript: 'Transkript-Stileinstellungen öffnen',
+      closeMenu: 'Menü schließen',
+      styleTitle: 'Transkript-Stil'
     },
     settings: {
       title: 'Einstellungen',
@@ -269,7 +291,11 @@ export const translations = {
       noCaptions: 'No hay subtítulos disponibles',
       auto: 'Automático',
       autoQuality: 'Automático (selección de calidad no disponible)',
-      noQuality: 'Selección de calidad no disponible'
+      noQuality: 'Selección de calidad no disponible',
+      signLanguageDragResize: 'Video en Lengua de Señas - Presione D para arrastrar con el teclado, R para cambiar el tamaño',
+      signLanguageDragActive: 'Video en Lengua de Señas - Modo de arrastre activo. Use las teclas de flecha para mover, Escape para salir.',
+      signLanguageResizeActive: 'Video en Lengua de Señas - Modo de cambio de tamaño activo. Use las teclas de flecha izquierda/derecha para cambiar el tamaño, Escape para salir.',
+      resizeHandle: 'Cambiar tamaño esquina {direction}'
     },
     captions: {
       off: 'Desactivado',
@@ -282,7 +308,7 @@ export const translations = {
     },
     fontSizes: {
       small: 'Pequeño',
-      medium: 'Mediano',
+      normal: 'Normal',
       large: 'Grande',
       xlarge: 'Muy grande'
     },
@@ -310,7 +336,14 @@ export const translations = {
       title: 'Transcripción',
       close: 'Cerrar transcripción',
       loading: 'Cargando transcripción...',
-      noTranscript: 'No hay transcripción disponible para este video.'
+      noTranscript: 'No hay transcripción disponible para este video.',
+      settings: 'Configuración de transcripción. Presione Enter para abrir el menú o D para activar el modo de arrastre',
+      keyboardDragMode: 'Alternar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D',
+      keyboardDragActive: '⌨️ Modo de Arrastre con Teclado Activo (Teclas de flecha para mover, Mayús+Flechas para pasos grandes, D o ESC para salir)',
+      resizeWindow: 'Cambiar tamaño de ventana',
+      styleTranscript: 'Abrir configuración de estilo de transcripción',
+      closeMenu: 'Cerrar menú',
+      styleTitle: 'Estilo de Transcripción'
     },
     settings: {
       title: 'Configuración',
@@ -380,7 +413,11 @@ export const translations = {
       noCaptions: 'Aucun sous-titre disponible',
       auto: 'Automatique',
       autoQuality: 'Automatique (sélection de qualité non disponible)',
-      noQuality: 'Sélection de qualité non disponible'
+      noQuality: 'Sélection de qualité non disponible',
+      signLanguageDragResize: 'Vidéo en Langue des Signes - Appuyez sur D pour déplacer avec le clavier, R pour redimensionner',
+      signLanguageDragActive: 'Vidéo en Langue des Signes - Mode glissement actif. Utilisez les touches fléchées pour déplacer, Échap pour quitter.',
+      signLanguageResizeActive: 'Vidéo en Langue des Signes - Mode redimensionnement actif. Utilisez les touches fléchées gauche/droite pour redimensionner, Échap pour quitter.',
+      resizeHandle: 'Redimensionner coin {direction}'
     },
     captions: {
       off: 'Désactivé',
@@ -393,7 +430,7 @@ export const translations = {
     },
     fontSizes: {
       small: 'Petit',
-      medium: 'Moyen',
+      normal: 'Normal',
       large: 'Grand',
       xlarge: 'Très grand'
     },
@@ -421,7 +458,14 @@ export const translations = {
       title: 'Transcription',
       close: 'Fermer la transcription',
       loading: 'Chargement de la transcription...',
-      noTranscript: 'Aucune transcription disponible pour cette vidéo.'
+      noTranscript: 'Aucune transcription disponible pour cette vidéo.',
+      settings: 'Paramètres de transcription. Appuyez sur Entrée pour ouvrir le menu ou D pour activer le mode glissement',
+      keyboardDragMode: 'Basculer le mode glissement avec les touches fléchées. Raccourci: touche D',
+      keyboardDragActive: '⌨️ Mode Glissement Clavier Actif (Touches fléchées pour déplacer, Maj+Fléchées pour grands pas, D ou Échap pour quitter)',
+      resizeWindow: 'Redimensionner la fenêtre',
+      styleTranscript: 'Ouvrir les paramètres de style de transcription',
+      closeMenu: 'Fermer le menu',
+      styleTitle: 'Style de Transcription'
     },
     settings: {
       title: 'Paramètres',
@@ -491,7 +535,11 @@ export const translations = {
       noCaptions: '字幕がありません',
       auto: '自動',
       autoQuality: '自動（画質選択不可）',
-      noQuality: '画質選択不可'
+      noQuality: '画質選択不可',
+      signLanguageDragResize: '手話動画 - キーボードでドラッグするにはDキーを、サイズ変更するにはRキーを押してください',
+      signLanguageDragActive: '手話動画 - ドラッグモードが有効です。矢印キーで移動、Escapeで終了します。',
+      signLanguageResizeActive: '手話動画 - サイズ変更モードが有効です。左右の矢印キーでサイズ変更、Escapeで終了します。',
+      resizeHandle: '{direction}コーナーのサイズ変更'
     },
     captions: {
       off: 'オフ',
@@ -504,7 +552,7 @@ export const translations = {
     },
     fontSizes: {
       small: '小',
-      medium: '中',
+      normal: '標準',
       large: '大',
       xlarge: '特大'
     },
@@ -532,7 +580,14 @@ export const translations = {
       title: '文字起こし',
       close: '文字起こしを閉じる',
       loading: '文字起こしを読み込み中...',
-      noTranscript: 'このビデオの文字起こしはありません。'
+      noTranscript: 'このビデオの文字起こしはありません。',
+      settings: '文字起こし設定。Enterキーでメニューを開く、またはDキーでドラッグモードを有効にする',
+      keyboardDragMode: '矢印キーでキーボードドラッグモードを切り替え。ショートカット：Dキー',
+      keyboardDragActive: '⌨️ キーボードドラッグモード有効（矢印キーで移動、Shift+矢印キーで大きく移動、DまたはESCで終了）',
+      resizeWindow: 'ウィンドウのサイズ変更',
+      styleTranscript: '文字起こしスタイル設定を開く',
+      closeMenu: 'メニューを閉じる',
+      styleTitle: '文字起こしスタイル'
     },
     settings: {
       title: '設定',

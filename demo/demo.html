@@ -175,9 +175,6 @@
         <span class="feature-badge">Descriptions</span>
       </div>
       <div style="margin-top: 24px; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-        <a href="sign-language-demo.html" style="display: inline-block; background: rgba(40, 167, 69, 0.95); color: #ffffff; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s;">
-          Sign Language Demo
-        </a>
         <a href="playlist-audio.html" style="display: inline-block; background: rgba(40, 167, 69, 0.95); color: #ffffff; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s;">
           Audio Playlist Demo
         </a>
@@ -229,12 +226,15 @@
     <!-- Video Demo 2: Working with Accessibility (WWA) -->
     <section class="demo-section">
       <h2>HTML5 Video - Full Accessibility Suite</h2>
-      <p>Video with captions, chapters, and descriptions in multiple languages (EN, ES, FR, DE, JA).</p>
+      <p>Video with captions, chapters, descriptions, sign language interpreter, and metadata in multiple languages (EN, ES, FR, DE, JA).</p>
       
       <div class="player-container">
         <video 
           id="wwa-video"
           data-vidply
+          data-sign-language-src="media/wwa_sign.mp4"
+          data-sign-language-button="true"
+          data-sign-language-position="bottom-right"
           width="800"
           height="450"
           poster="media/wwa_thumbnail.jpg"
@@ -249,17 +249,25 @@
           <track kind="captions" src="media/wwa_captions_ja.vtt" srclang="ja" label="日本語">
           <track kind="chapters" src="media/wwa_chapters_en.vtt" srclang="en" label="English Chapters">
           <track kind="descriptions" src="media/wwa_description_en.vtt" srclang="en" label="English Descriptions">
+          <track kind="metadata" src="media/wwa_meta.vtt" srclang="en">
           Your browser does not support the video tag.
         </video>
       </div>
 
       <div class="code-block">
-&lt;video data-vidply poster="media/wwa_thumbnail.jpg"&gt;
+&lt;video 
+  data-vidply 
+  data-sign-language-src="media/interpreter.mp4"
+  data-sign-language-button="true"
+  data-sign-language-position="bottom-right"
+  poster="media/wwa_thumbnail.jpg"
+&gt;
   &lt;source src="media/wwa.mp4" type="video/mp4"&gt;
   &lt;source src="media/wwa.webm" type="video/webm"&gt;
   &lt;track kind="captions" src="captions_en.vtt" srclang="en" label="English"&gt;
   &lt;track kind="chapters" src="chapters_en.vtt" srclang="en"&gt;
   &lt;track kind="descriptions" src="descriptions_en.vtt" srclang="en"&gt;
+  &lt;track kind="metadata" src="wwa_meta.vtt" srclang="en"&gt;
 &lt;/video&gt;
       </div>
     </section>
