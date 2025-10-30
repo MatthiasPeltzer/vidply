@@ -230,9 +230,9 @@ export class SettingsDialog {
 
     // Font size
     section.appendChild(this.createCaptionStyleControl('fontSize', i18n.t('captions.fontSize'), [
-      { label: i18n.t('fontSizes.small'), value: '80%' },
-      { label: i18n.t('fontSizes.medium'), value: '100%' },
-      { label: i18n.t('fontSizes.large'), value: '120%' },
+      { label: i18n.t('fontSizes.small'), value: '87.5%' },
+      { label: i18n.t('fontSizes.normal'), value: '100%' },
+      { label: i18n.t('fontSizes.large'), value: '125%' },
       { label: i18n.t('fontSizes.xlarge'), value: '150%' }
     ]));
 

@@ -44,7 +44,7 @@ Try VidPly in action:
 ### Accessibility Features
 - **Full Keyboard Navigation** - WCAG 2.1 compliant
 - **Screen Reader Support** - Complete ARIA labels
-- **Interactive Transcripts** - Click-to-seek transcript window
+- **Interactive Transcripts** - Click-to-seek transcript window with move and resize controls
 - **Sign Language Overlay** - Picture-in-picture sign language video
 - **Audio Description** - Alternate audio track with descriptions
 - **Customizable Shortcuts** - User-definable hotkeys
@@ -318,6 +318,8 @@ const player = new Player('#video', {
 | <kbd>Q</kbd> | Open Quality Menu |
 | <kbd>J</kbd> | Open Chapters Menu |
 | <kbd>T</kbd> | Toggle Transcript |
+| <kbd>D</kbd> | Toggle Keyboard Drag Mode (when transcript focused) |
+| <kbd>R</kbd> | Toggle Resize Mode (when transcript focused) |
 
 ## API Reference
 
@@ -373,9 +375,22 @@ player.captionManager.getAvailableTracks()  // Get all tracks
 ### Transcript
 
 ```javascript
-player.transcriptManager.showTranscript()  // Show transcript window
-player.transcriptManager.hideTranscript()  // Hide transcript window
-player.transcriptManager.toggleTranscript() // Toggle transcript
+player.transcriptManager.showTranscript()     // Show transcript window
+player.transcriptManager.hideTranscript()     // Hide transcript window
+player.transcriptManager.toggleTranscript()   // Toggle transcript
+
+// Settings & Move/Resize Controls
+player.transcriptManager.showSettingsMenu()   // Show settings dropdown
+player.transcriptManager.hideSettingsMenu()   // Hide settings dropdown
+player.transcriptManager.enableMoveMode()     // Show move mode feedback
+player.transcriptManager.toggleResizeMode()   // Toggle resize handles
+player.transcriptManager.enableResizeHandles() // Enable window resizing
+player.transcriptManager.disableResizeHandles() // Disable window resizing
+
+// NEW: Full Keyboard Support
+player.transcriptManager.enableKeyboardDragMode()  // Enable arrow key dragging
+player.transcriptManager.disableKeyboardDragMode() // Disable arrow key dragging
+player.transcriptManager.toggleKeyboardDragMode()  // Toggle keyboard drag mode
 ```
 
 ### Audio Description

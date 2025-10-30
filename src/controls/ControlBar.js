@@ -316,7 +316,14 @@ export class ControlBar {
     }
 
     hasAudioDescription() {
-        return this.player.audioDescriptionSrc && this.player.audioDescriptionSrc.length > 0;
+        // Check for audio-described video source OR description tracks
+        if (this.player.audioDescriptionSrc && this.player.audioDescriptionSrc.length > 0) {
+            return true;
+        }
+        
+        // Check for description tracks
+        const textTracks = Array.from(this.player.element.textTracks || []);
+        return textTracks.some(track => track.kind === 'descriptions');
     }
 
     hasSignLanguage() {
@@ -1118,9 +1125,9 @@ export class ControlBar {
             i18n.t('styleLabels.fontSize'),
             'captionsFontSize',
             [
-                {label: i18n.t('fontSizes.small'), value: '80%'},
-                {label: i18n.t('fontSizes.medium'), value: '100%'},
-                {label: i18n.t('fontSizes.large'), value: '120%'},
+                {label: i18n.t('fontSizes.small'), value: '87.5%'},
+                {label: i18n.t('fontSizes.normal'), value: '100%'},
+                {label: i18n.t('fontSizes.large'), value: '125%'},
                 {label: i18n.t('fontSizes.xlarge'), value: '150%'}
             ]
         );

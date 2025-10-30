@@ -99,7 +99,7 @@
     display: flex;
     flex-direction: column;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.5;
     max-width: 100%;
     overflow: visible;
@@ -1655,7 +1655,7 @@
 .vidply-transcript-time {
     color: var(--vidply-primary-light);
     font-family: 'Courier New', monospace;
-    font-size: 14px;
+    font-size: 100%;
     font-weight: 600;
     margin-bottom: 4px;
     margin-right: 8px;
@@ -1663,7 +1663,7 @@
 
 .vidply-transcript-text {
     color: var(--vidply-white-90);
-    font-size: 14px;
+    font-size: 100%;
     line-height: 1.6;
 }
 
@@ -1675,6 +1675,42 @@
 .vidply-transcript-entry:hover .vidply-transcript-text,
 .vidply-transcript-entry:focus .vidply-transcript-text {
     text-decoration: underline;
+}
+
+/* Transcript entry types */
+.vidply-transcript-description {
+    background: rgba(100, 149, 237, 0.08); /* Subtle blue tint for descriptions */
+    border-left: 3px solid rgba(100, 149, 237, 0.6);
+}
+
+.vidply-transcript-description .vidply-transcript-text {
+    color: rgba(135, 206, 250, 0.95); /* Light sky blue for description text */
+    font-style: italic;
+    opacity: 0.9;
+}
+
+.vidply-transcript-description .vidply-transcript-time {
+    color: rgba(100, 149, 237, 0.8); /* Matching blue for timestamp */
+}
+
+.vidply-transcript-description:hover,
+.vidply-transcript-description:focus {
+    background: rgba(100, 149, 237, 0.14);
+}
+
+.vidply-transcript-description:hover .vidply-transcript-text,
+.vidply-transcript-description:focus .vidply-transcript-text {
+    opacity: 1;
+}
+
+.vidply-transcript-description.vidply-transcript-entry-active {
+    background: rgba(100, 149, 237, 0.18);
+    border-left-color: #6495ed;
+}
+
+.vidply-transcript-description.vidply-transcript-entry-active .vidply-transcript-text {
+    color: rgb(135, 206, 250); /* Brighter on active */
+    opacity: 1;
 }
 
 /* Transcript Scrollbar */
@@ -1695,44 +1731,621 @@
     background: var(--vidply-border-hover);
 }
 
+/* Transcript Header Left Side (Settings Button + Title) */
+.vidply-transcript-header-left {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    position: relative;
+}
+
+/* Transcript Settings Button */
+.vidply-transcript-settings {
+    align-items: center;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--vidply-text-muted);
+    cursor: pointer;
+    display: flex;
+    height: 28px;
+    justify-content: center;
+    padding: 4px;
+    position: relative;
+    transition: all 0.2s ease;
+    width: 28px;
+}
+
+.vidply-transcript-settings:hover {
+    background: var(--vidply-white-10);
+    color: var(--vidply-white);
+}
+
+.vidply-transcript-settings:focus {
+    outline: 2px solid var(--vidply-primary-light);
+    outline-offset: 2px;
+}
+
+.vidply-transcript-settings .vidply-icon {
+    height: 18px;
+    width: 18px;
+}
+
+/* Transcript Settings Menu */
+.vidply-transcript-settings-menu {
+    background: var(--vidply-bg-menu);
+    border: 1px solid var(--vidply-border);
+    border-radius: 6px;
+    box-shadow: var(--vidply-shadow-lg);
+    display: none;
+    left: 0;
+    min-width: 240px;
+    padding: 6px;
+    position: absolute;
+    top: calc(100% + 4px);
+    z-index: 100;
+}
+
+.vidply-transcript-settings-menu::after {
+    border-bottom: 6px solid var(--vidply-bg-menu);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    bottom: 100%;
+    content: '';
+    height: 0;
+    left: 14px;
+    position: absolute;
+    width: 0;
+}
+
+/* Transcript Settings Menu Items */
+.vidply-transcript-settings-item {
+    align-items: flex-start;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--vidply-white);
+    cursor: pointer;
+    display: flex;
+    font-size: 13px;
+    gap: 8px;
+    padding: 8px 10px;
+    text-align: left;
+    transition: all 0.15s ease;
+    width: 100%;
+}
+
+.vidply-transcript-settings-item:hover {
+    background: var(--vidply-primary-20);
+}
+
+.vidply-transcript-settings-item:hover span {
+    text-decoration: underline;
+}
+
+.vidply-transcript-settings-item:focus {
+    background: var(--vidply-primary-25);
+    outline: none;
+}
+
+.vidply-transcript-settings-item:focus span {
+    text-decoration: underline;
+}
+
+.vidply-transcript-settings-item:active span {
+    text-decoration: underline;
+}
+
+.vidply-transcript-settings-item .vidply-icon {
+    flex-grow: 0.2;
+    height: 20px;
+    opacity: 0.9;
+    width: 20px;
+}
+
+.vidply-transcript-settings-item span {
+    flex: 1;
+}
+
+/* Move Mode Visual Feedback */
+.vidply-transcript-move-mode {
+    animation: transcriptPulse 0.5s ease-in-out 2;
+    box-shadow: 0 0 0 3px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+}
+
+@keyframes transcriptPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 3px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+    }
+    50% {
+        box-shadow: 0 0 0 6px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+    }
+}
+
+/* Resize Handles */
+.vidply-transcript-resize-handle {
+    position: absolute;
+    z-index: 10;
+}
+
+/* Corner handles - larger hit area */
+.vidply-transcript-resize-ne,
+.vidply-transcript-resize-nw,
+.vidply-transcript-resize-se,
+.vidply-transcript-resize-sw {
+    height: 16px;
+    width: 16px;
+}
+
+/* Edge handles */
+.vidply-transcript-resize-n,
+.vidply-transcript-resize-s {
+    cursor: ns-resize;
+    height: 8px;
+    left: 16px;
+    right: 16px;
+}
+
+.vidply-transcript-resize-e,
+.vidply-transcript-resize-w {
+    bottom: 16px;
+    cursor: ew-resize;
+    top: 16px;
+    width: 8px;
+}
+
+/* Position each handle */
+.vidply-transcript-resize-n {
+    top: -4px;
+}
+
+.vidply-transcript-resize-s {
+    bottom: -4px;
+}
+
+.vidply-transcript-resize-e {
+    right: -4px;
+}
+
+.vidply-transcript-resize-w {
+    left: -4px;
+}
+
+.vidply-transcript-resize-ne {
+    cursor: nesw-resize;
+    right: -8px;
+    top: -8px;
+}
+
+.vidply-transcript-resize-nw {
+    cursor: nwse-resize;
+    left: -8px;
+    top: -8px;
+}
+
+.vidply-transcript-resize-se {
+    bottom: -8px;
+    cursor: nwse-resize;
+    right: -8px;
+}
+
+.vidply-transcript-resize-sw {
+    bottom: -8px;
+    cursor: nesw-resize;
+    left: -8px;
+}
+
+/* Visual indicator for resize handles when active */
+.vidply-transcript-resizable .vidply-transcript-resize-handle::after {
+    background: var(--vidply-primary-light);
+    border-radius: 50%;
+    content: '';
+    height: 6px;
+    left: 50%;
+    opacity: 0;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.2s ease;
+    width: 6px;
+}
+
+.vidply-transcript-resizable:hover .vidply-transcript-resize-handle::after {
+    opacity: 0.8;
+}
+
+.vidply-transcript-resizable .vidply-transcript-resize-handle:hover::after {
+    opacity: 1;
+}
+
+/* Resizing State */
+.vidply-transcript-resizing {
+    box-shadow: 0 0 0 2px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+    transition: none !important;
+}
+
+.vidply-transcript-resizing .vidply-transcript-content {
+    pointer-events: none;
+}
+
+/* Keyboard Drag Mode */
+.vidply-transcript-keyboard-drag {
+    box-shadow: 0 0 0 3px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+}
+
+.vidply-transcript-drag-indicator {
+    background: linear-gradient(135deg, var(--vidply-primary) 0%, var(--vidply-primary-light) 100%);
+    border-radius: 0 0 6px 6px;
+    color: var(--vidply-white);
+    font-size: 12px;
+    font-weight: 600;
+    left: 0;
+    padding: 8px 12px;
+    position: absolute;
+    right: 0;
+    text-align: center;
+    top: 100%;
+    z-index: 1000;
+}
+
+/* Move Mode Tooltip */
+.vidply-transcript-move-tooltip {
+    animation: fadeInDown 0.3s ease;
+    background: var(--vidply-black-90);
+    border-radius: 4px;
+    color: var(--vidply-white);
+    font-size: 12px;
+    left: 50%;
+    padding: 6px 12px;
+    position: absolute;
+    text-align: center;
+    top: 100%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 1000;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Transcript Style Dialog - Dropdown Menu Style */
+.vidply-transcript-style-dialog {
+    background: var(--vidply-bg-menu);
+    border: 1px solid var(--vidply-border);
+    border-radius: 8px;
+    box-shadow: var(--vidply-shadow-lg);
+    display: none;
+    left: 0;
+    max-height: 500px;
+    min-width: 280px;
+    overflow-y: auto;
+    padding: 12px;
+    position: absolute;
+    top: 100%;
+    width: auto;
+    z-index: 100;
+}
+
+/* Arrow pointing up to settings button */
+.vidply-transcript-style-dialog::after {
+    border-color: transparent transparent var(--vidply-bg-menu) transparent;
+    border-style: solid;
+    border-width: 0 8px 8px 8px;
+    content: '';
+    height: 0;
+    left: 12px;
+    position: absolute;
+    top: -8px;
+    width: 0;
+}
+
+.vidply-transcript-style-title {
+    color: var(--vidply-white);
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--vidply-border);
+}
+
+.vidply-transcript-style-group {
+    margin-bottom: 12px;
+}
+
+.vidply-transcript-style-group:last-child {
+    margin-bottom: 0;
+}
+
+.vidply-transcript-style-group label {
+    color: var(--vidply-white-90);
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+/* Style Select */
+.vidply-transcript-style-select {
+    background: var(--vidply-white-10);
+    border: 1px solid var(--vidply-border);
+    border-radius: 4px;
+    color: var(--vidply-white);
+    cursor: pointer;
+    font-size: 13px;
+    outline: none;
+    padding: 6px 10px;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.vidply-transcript-style-select:hover {
+    background: var(--vidply-white-15);
+    border-color: var(--vidply-border-hover);
+}
+
+.vidply-transcript-style-select:focus {
+    background: var(--vidply-white-15);
+    border-color: var(--vidply-primary-light);
+    box-shadow: 0 0 0 2px var(--vidply-primary-20);
+}
+
+.vidply-transcript-style-select option {
+    background: #1a1a1a;
+    color: #ffffff;
+}
+
+/* Style Color Input */
+.vidply-transcript-style-color {
+    border: 1px solid var(--vidply-border);
+    border-radius: 4px;
+    cursor: pointer;
+    height: 32px;
+    outline: none;
+    padding: 4px;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.vidply-transcript-style-color:hover {
+    border-color: var(--vidply-border-hover);
+}
+
+.vidply-transcript-style-color:focus {
+    border-color: var(--vidply-primary-light);
+    box-shadow: 0 0 0 2px var(--vidply-primary-20);
+}
+
+/* Style Range Slider */
+.vidply-transcript-style-range-container {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+}
+
+.vidply-transcript-style-range {
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--vidply-white-20);
+    border-radius: 3px;
+    cursor: pointer;
+    flex: 1;
+    height: 6px;
+    outline: none;
+}
+
+.vidply-transcript-style-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--vidply-primary-light);
+    border: 2px solid var(--vidply-white);
+    border-radius: 50%;
+    box-shadow: var(--vidply-shadow-sm);
+    cursor: pointer;
+    height: 16px;
+    transition: all 0.15s ease;
+    width: 16px;
+}
+
+.vidply-transcript-style-range::-webkit-slider-thumb:hover {
+    background: var(--vidply-primary);
+    transform: scale(1.15);
+}
+
+.vidply-transcript-style-range::-moz-range-thumb {
+    background: var(--vidply-primary-light);
+    border: 2px solid var(--vidply-white);
+    border-radius: 50%;
+    box-shadow: var(--vidply-shadow-sm);
+    cursor: pointer;
+    height: 16px;
+    transition: all 0.15s ease;
+    width: 16px;
+}
+
+.vidply-transcript-style-range::-moz-range-thumb:hover {
+    background: var(--vidply-primary);
+    transform: scale(1.15);
+}
+
+.vidply-transcript-style-value {
+    color: var(--vidply-text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* Style Close Button */
+.vidply-transcript-style-close {
+    background: var(--vidply-primary);
+    border: none;
+    border-radius: 4px;
+    color: var(--vidply-white);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 12px;
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.vidply-transcript-style-close:hover {
+    background: var(--vidply-primary-light);
+    transform: translateY(-1px);
+}
+
+.vidply-transcript-style-close:active {
+    transform: translateY(0);
+}
+
+.vidply-transcript-style-close:focus {
+    box-shadow: 0 0 0 3px var(--vidply-primary-20);
+    outline: none;
+}
+
+/* Sign Language Video Wrapper */
+.vidply-sign-language-wrapper {
+    background: transparent;
+    height: auto;
+    max-width: 400px;
+    min-height: 100px;
+    min-width: 150px;
+    position: absolute;
+    transition: opacity 0.3s ease;
+    width: 280px;
+    z-index: 3;
+}
+
+.vidply-fullscreen .vidply-sign-language-wrapper {
+    max-width: 600px;
+}
+
+.vidply-sign-language-wrapper:focus {
+    outline: 2px solid var(--vidply-primary);
+    outline-offset: 2px;
+}
+
 /* Sign Language Video */
 .vidply-sign-language-video {
     background: var(--vidply-black);
     border: 2px solid var(--vidply-white-30);
     border-radius: 4px;
     box-shadow: 0 4px 12px var(--vidply-black-60);
-    height: auto !important;
-    max-width: 400px;
-    min-width: 150px;
-    position: absolute;
-    transition: opacity 0.3s ease;
-    width: 35% !important;
-    z-index: 3;
+    cursor: move;
+    display: block;
+    height: auto;
+    pointer-events: auto;
+    width: 100%;
 }
 
-.vidply-fullscreen .vidply-sign-language-video {
-    max-width: 600px;
+/* Dragging and Resizing States */
+.vidply-sign-dragging .vidply-sign-language-video {
+    cursor: grabbing !important;
+    opacity: 0.9;
+}
+
+.vidply-sign-resizing .vidply-sign-language-video {
+    cursor: nwse-resize !important;
+}
+
+/* Keyboard Drag/Resize Modes */
+.vidply-sign-keyboard-drag,
+.vidply-sign-keyboard-resize {
+    box-shadow: 0 0 0 3px var(--vidply-primary), 0 4px 12px var(--vidply-black-60);
+}
+
+.vidply-sign-keyboard-drag::after,
+.vidply-sign-keyboard-resize::after {
+    align-items: center;
+    background: var(--vidply-primary);
+    border-radius: 4px;
+    color: var(--vidply-white);
+    display: flex;
+    font-size: 12px;
+    font-weight: 600;
+    justify-content: center;
+    left: 50%;
+    padding: 4px 8px;
+    pointer-events: none;
+    position: absolute;
+    top: -28px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.vidply-sign-keyboard-drag::after {
+    content: 'DRAG MODE (Arrow keys to move, ESC to exit)';
+}
+
+.vidply-sign-keyboard-resize::after {
+    content: 'RESIZE MODE (Arrow keys to resize, ESC to exit)';
+}
+
+/* Resize Handles */
+.vidply-sign-resize-handle {
+    background: var(--vidply-white);
+    border: 1px solid var(--vidply-black-30);
+    border-radius: 50%;
+    height: 12px;
+    opacity: 0;
+    position: absolute;
+    transition: opacity 0.2s ease, background 0.2s ease;
+    width: 12px;
+    z-index: 10;
+}
+
+.vidply-sign-language-wrapper:hover .vidply-sign-resize-handle,
+.vidply-sign-language-wrapper:focus .vidply-sign-resize-handle {
+    opacity: 1;
+}
+
+.vidply-sign-resize-handle:hover {
+    background: var(--vidply-primary);
+}
+
+.vidply-sign-resize-nw {
+    cursor: nwse-resize;
+    left: -6px;
+    top: -6px;
+}
+
+.vidply-sign-resize-ne {
+    cursor: nesw-resize;
+    right: -6px;
+    top: -6px;
+}
+
+.vidply-sign-resize-sw {
+    bottom: -6px;
+    cursor: nesw-resize;
+    left: -6px;
+}
+
+.vidply-sign-resize-se {
+    bottom: -6px;
+    cursor: nwse-resize;
+    right: -6px;
 }
 
 /* Sign Language Video Positions */
 .vidply-sign-position-bottom-right {
-    bottom: 16px; /* Above controls */
+    bottom: 95px; /* Above controls */
     right: 16px;
 }
 
-.vidply-controls-visible + .vidply-sign-position-bottom-right,
-.vidply-controls-visible + .vidply-captions + .vidply-sign-position-bottom-right {
-    bottom: 95px; /* Above controls */
-}
-
 .vidply-sign-position-bottom-left {
-    bottom: 16px; /* Above controls */
-    left: 16px;
-}
-
-.vidply-controls-visible + .vidply-sign-position-bottom-left,
-.vidply-controls-visible + .vidply-captions + .vidply-sign-position-bottom-left {
     bottom: 95px; /* Above controls */
+    left: 16px;
 }
 
 .vidply-sign-position-top-right {
@@ -1747,7 +2360,7 @@
 
 /* Responsive Sign Language Video */
 @media (width <= 640px) {
-    .vidply-sign-language-video {
+    .vidply-sign-language-wrapper {
         min-width: 120px;
         width: 35%;
     }

@@ -468,7 +468,11 @@ var VidPly = (() => {
         noCaptions: "No captions available",
         auto: "Auto",
         autoQuality: "Auto (no quality selection available)",
-        noQuality: "Quality selection not available"
+        noQuality: "Quality selection not available",
+        signLanguageDragResize: "Sign Language Video - Press D to drag with keyboard, R to resize",
+        signLanguageDragActive: "Sign Language Video - Drag mode active. Use arrow keys to move, Escape to exit.",
+        signLanguageResizeActive: "Sign Language Video - Resize mode active. Use left/right arrow keys to resize, Escape to exit.",
+        resizeHandle: "Resize {direction} corner"
       },
       captions: {
         off: "Off",
@@ -481,7 +485,7 @@ var VidPly = (() => {
       },
       fontSizes: {
         small: "Small",
-        medium: "Medium",
+        normal: "Normal",
         large: "Large",
         xlarge: "X-Large"
       },
@@ -509,7 +513,14 @@ var VidPly = (() => {
         title: "Transcript",
         close: "Close transcript",
         loading: "Loading transcript...",
-        noTranscript: "No transcript available for this video."
+        noTranscript: "No transcript available for this video.",
+        settings: "Transcript settings. Press Enter to open menu, or D to enable drag mode",
+        keyboardDragMode: "Toggle keyboard drag mode with arrow keys. Shortcut: D key",
+        keyboardDragActive: "\u2328\uFE0F Keyboard Drag Mode Active (Arrow keys to move, Shift+Arrows for large steps, D or ESC to exit)",
+        resizeWindow: "Resize Window",
+        styleTranscript: "Open transcript style settings",
+        closeMenu: "Close Menu",
+        styleTitle: "Transcript Style"
       },
       settings: {
         title: "Settings",
@@ -578,7 +589,11 @@ var VidPly = (() => {
         noCaptions: "Keine Untertitel verf\xFCgbar",
         auto: "Automatisch",
         autoQuality: "Automatisch (keine Qualit\xE4tsauswahl verf\xFCgbar)",
-        noQuality: "Qualit\xE4tsauswahl nicht verf\xFCgbar"
+        noQuality: "Qualit\xE4tsauswahl nicht verf\xFCgbar",
+        signLanguageDragResize: "Geb\xE4rdensprache-Video - Dr\xFCcken Sie D zum Verschieben per Tastatur, R zum \xC4ndern der Gr\xF6\xDFe",
+        signLanguageDragActive: "Geb\xE4rdensprache-Video - Verschiebemodus aktiv. Pfeiltasten zum Bewegen, Escape zum Beenden.",
+        signLanguageResizeActive: "Geb\xE4rdensprache-Video - Gr\xF6\xDFen\xE4nderungsmodus aktiv. Links-/Rechts-Pfeiltasten zum \xC4ndern der Gr\xF6\xDFe, Escape zum Beenden.",
+        resizeHandle: "Gr\xF6\xDFen\xE4nderung {direction}-Ecke"
       },
       captions: {
         off: "Aus",
@@ -591,7 +606,7 @@ var VidPly = (() => {
       },
       fontSizes: {
         small: "Klein",
-        medium: "Mittel",
+        normal: "Normal",
         large: "Gro\xDF",
         xlarge: "Sehr gro\xDF"
       },
@@ -619,7 +634,14 @@ var VidPly = (() => {
         title: "Transkript",
         close: "Transkript schlie\xDFen",
         loading: "Transkript wird geladen...",
-        noTranscript: "Kein Transkript f\xFCr dieses Video verf\xFCgbar."
+        noTranscript: "Kein Transkript f\xFCr dieses Video verf\xFCgbar.",
+        settings: "Transkript-Einstellungen. Eingabetaste zum \xD6ffnen des Men\xFCs dr\xFCcken oder D zum Aktivieren des Verschiebemodus",
+        keyboardDragMode: "Tastatur-Verschiebemodus mit Pfeiltasten umschalten. Tastenkombination: D-Taste",
+        keyboardDragActive: "\u2328\uFE0F Tastatur-Verschiebemodus aktiv (Pfeiltasten zum Bewegen, Umschalt+Pfeiltasten f\xFCr gro\xDFe Schritte, D oder ESC zum Beenden)",
+        resizeWindow: "Fenster vergr\xF6\xDFern/verkleinern",
+        styleTranscript: "Transkript-Stileinstellungen \xF6ffnen",
+        closeMenu: "Men\xFC schlie\xDFen",
+        styleTitle: "Transkript-Stil"
       },
       settings: {
         title: "Einstellungen",
@@ -688,7 +710,11 @@ var VidPly = (() => {
         noCaptions: "No hay subt\xEDtulos disponibles",
         auto: "Autom\xE1tico",
         autoQuality: "Autom\xE1tico (selecci\xF3n de calidad no disponible)",
-        noQuality: "Selecci\xF3n de calidad no disponible"
+        noQuality: "Selecci\xF3n de calidad no disponible",
+        signLanguageDragResize: "Video en Lengua de Se\xF1as - Presione D para arrastrar con el teclado, R para cambiar el tama\xF1o",
+        signLanguageDragActive: "Video en Lengua de Se\xF1as - Modo de arrastre activo. Use las teclas de flecha para mover, Escape para salir.",
+        signLanguageResizeActive: "Video en Lengua de Se\xF1as - Modo de cambio de tama\xF1o activo. Use las teclas de flecha izquierda/derecha para cambiar el tama\xF1o, Escape para salir.",
+        resizeHandle: "Cambiar tama\xF1o esquina {direction}"
       },
       captions: {
         off: "Desactivado",
@@ -701,7 +727,7 @@ var VidPly = (() => {
       },
       fontSizes: {
         small: "Peque\xF1o",
-        medium: "Mediano",
+        normal: "Normal",
         large: "Grande",
         xlarge: "Muy grande"
       },
@@ -729,7 +755,14 @@ var VidPly = (() => {
         title: "Transcripci\xF3n",
         close: "Cerrar transcripci\xF3n",
         loading: "Cargando transcripci\xF3n...",
-        noTranscript: "No hay transcripci\xF3n disponible para este video."
+        noTranscript: "No hay transcripci\xF3n disponible para este video.",
+        settings: "Configuraci\xF3n de transcripci\xF3n. Presione Enter para abrir el men\xFA o D para activar el modo de arrastre",
+        keyboardDragMode: "Alternar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D",
+        keyboardDragActive: "\u2328\uFE0F Modo de Arrastre con Teclado Activo (Teclas de flecha para mover, May\xFAs+Flechas para pasos grandes, D o ESC para salir)",
+        resizeWindow: "Cambiar tama\xF1o de ventana",
+        styleTranscript: "Abrir configuraci\xF3n de estilo de transcripci\xF3n",
+        closeMenu: "Cerrar men\xFA",
+        styleTitle: "Estilo de Transcripci\xF3n"
       },
       settings: {
         title: "Configuraci\xF3n",
@@ -798,7 +831,11 @@ var VidPly = (() => {
         noCaptions: "Aucun sous-titre disponible",
         auto: "Automatique",
         autoQuality: "Automatique (s\xE9lection de qualit\xE9 non disponible)",
-        noQuality: "S\xE9lection de qualit\xE9 non disponible"
+        noQuality: "S\xE9lection de qualit\xE9 non disponible",
+        signLanguageDragResize: "Vid\xE9o en Langue des Signes - Appuyez sur D pour d\xE9placer avec le clavier, R pour redimensionner",
+        signLanguageDragActive: "Vid\xE9o en Langue des Signes - Mode glissement actif. Utilisez les touches fl\xE9ch\xE9es pour d\xE9placer, \xC9chap pour quitter.",
+        signLanguageResizeActive: "Vid\xE9o en Langue des Signes - Mode redimensionnement actif. Utilisez les touches fl\xE9ch\xE9es gauche/droite pour redimensionner, \xC9chap pour quitter.",
+        resizeHandle: "Redimensionner coin {direction}"
       },
       captions: {
         off: "D\xE9sactiv\xE9",
@@ -811,7 +848,7 @@ var VidPly = (() => {
       },
       fontSizes: {
         small: "Petit",
-        medium: "Moyen",
+        normal: "Normal",
         large: "Grand",
         xlarge: "Tr\xE8s grand"
       },
@@ -839,7 +876,14 @@ var VidPly = (() => {
         title: "Transcription",
         close: "Fermer la transcription",
         loading: "Chargement de la transcription...",
-        noTranscript: "Aucune transcription disponible pour cette vid\xE9o."
+        noTranscript: "Aucune transcription disponible pour cette vid\xE9o.",
+        settings: "Param\xE8tres de transcription. Appuyez sur Entr\xE9e pour ouvrir le menu ou D pour activer le mode glissement",
+        keyboardDragMode: "Basculer le mode glissement avec les touches fl\xE9ch\xE9es. Raccourci: touche D",
+        keyboardDragActive: "\u2328\uFE0F Mode Glissement Clavier Actif (Touches fl\xE9ch\xE9es pour d\xE9placer, Maj+Fl\xE9ch\xE9es pour grands pas, D ou \xC9chap pour quitter)",
+        resizeWindow: "Redimensionner la fen\xEAtre",
+        styleTranscript: "Ouvrir les param\xE8tres de style de transcription",
+        closeMenu: "Fermer le menu",
+        styleTitle: "Style de Transcription"
       },
       settings: {
         title: "Param\xE8tres",
@@ -908,7 +952,11 @@ var VidPly = (() => {
         noCaptions: "\u5B57\u5E55\u304C\u3042\u308A\u307E\u305B\u3093",
         auto: "\u81EA\u52D5",
         autoQuality: "\u81EA\u52D5\uFF08\u753B\u8CEA\u9078\u629E\u4E0D\u53EF\uFF09",
-        noQuality: "\u753B\u8CEA\u9078\u629E\u4E0D\u53EF"
+        noQuality: "\u753B\u8CEA\u9078\u629E\u4E0D\u53EF",
+        signLanguageDragResize: "\u624B\u8A71\u52D5\u753B - \u30AD\u30FC\u30DC\u30FC\u30C9\u3067\u30C9\u30E9\u30C3\u30B0\u3059\u308B\u306B\u306FD\u30AD\u30FC\u3092\u3001\u30B5\u30A4\u30BA\u5909\u66F4\u3059\u308B\u306B\u306FR\u30AD\u30FC\u3092\u62BC\u3057\u3066\u304F\u3060\u3055\u3044",
+        signLanguageDragActive: "\u624B\u8A71\u52D5\u753B - \u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u304C\u6709\u52B9\u3067\u3059\u3002\u77E2\u5370\u30AD\u30FC\u3067\u79FB\u52D5\u3001Escape\u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
+        signLanguageResizeActive: "\u624B\u8A71\u52D5\u753B - \u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u304C\u6709\u52B9\u3067\u3059\u3002\u5DE6\u53F3\u306E\u77E2\u5370\u30AD\u30FC\u3067\u30B5\u30A4\u30BA\u5909\u66F4\u3001Escape\u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
+        resizeHandle: "{direction}\u30B3\u30FC\u30CA\u30FC\u306E\u30B5\u30A4\u30BA\u5909\u66F4"
       },
       captions: {
         off: "\u30AA\u30D5",
@@ -921,7 +969,7 @@ var VidPly = (() => {
       },
       fontSizes: {
         small: "\u5C0F",
-        medium: "\u4E2D",
+        normal: "\u6A19\u6E96",
         large: "\u5927",
         xlarge: "\u7279\u5927"
       },
@@ -949,7 +997,14 @@ var VidPly = (() => {
         title: "\u6587\u5B57\u8D77\u3053\u3057",
         close: "\u6587\u5B57\u8D77\u3053\u3057\u3092\u9589\u3058\u308B",
         loading: "\u6587\u5B57\u8D77\u3053\u3057\u3092\u8AAD\u307F\u8FBC\u307F\u4E2D...",
-        noTranscript: "\u3053\u306E\u30D3\u30C7\u30AA\u306E\u6587\u5B57\u8D77\u3053\u3057\u306F\u3042\u308A\u307E\u305B\u3093\u3002"
+        noTranscript: "\u3053\u306E\u30D3\u30C7\u30AA\u306E\u6587\u5B57\u8D77\u3053\u3057\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+        settings: "\u6587\u5B57\u8D77\u3053\u3057\u8A2D\u5B9A\u3002Enter\u30AD\u30FC\u3067\u30E1\u30CB\u30E5\u30FC\u3092\u958B\u304F\u3001\u307E\u305F\u306FD\u30AD\u30FC\u3067\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3059\u308B",
+        keyboardDragMode: "\u77E2\u5370\u30AD\u30FC\u3067\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u5207\u308A\u66FF\u3048\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AD\u30AD\u30FC",
+        keyboardDragActive: "\u2328\uFE0F \u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u6709\u52B9\uFF08\u77E2\u5370\u30AD\u30FC\u3067\u79FB\u52D5\u3001Shift+\u77E2\u5370\u30AD\u30FC\u3067\u5927\u304D\u304F\u79FB\u52D5\u3001D\u307E\u305F\u306FESC\u3067\u7D42\u4E86\uFF09",
+        resizeWindow: "\u30A6\u30A3\u30F3\u30C9\u30A6\u306E\u30B5\u30A4\u30BA\u5909\u66F4",
+        styleTranscript: "\u6587\u5B57\u8D77\u3053\u3057\u30B9\u30BF\u30A4\u30EB\u8A2D\u5B9A\u3092\u958B\u304F",
+        closeMenu: "\u30E1\u30CB\u30E5\u30FC\u3092\u9589\u3058\u308B",
+        styleTitle: "\u6587\u5B57\u8D77\u3053\u3057\u30B9\u30BF\u30A4\u30EB"
       },
       settings: {
         title: "\u8A2D\u5B9A",
@@ -1128,14 +1183,16 @@ var VidPly = (() => {
     language: `<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/>`,
     hd: `<path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm7-1c0 .55-.45 1-1 1h-.75v1.5h-1.5V15H14c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v4zm-3.5-.5h2v-3h-2v3z"/>`,
     transcript: `<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>`,
-    audioDescription: `<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/><path d="M10.5 19c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>`,
-    audioDescriptionOn: `<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/><path d="M10.5 19c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/><circle cx="19" cy="16" r="3" fill="#3b82f6"/><path d="M18.5 17.5l1-1 1.5 1.5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+    audioDescription: `<rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><text x="12" y="16" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="currentColor">AD</text>`,
+    audioDescriptionOn: `<rect x="2" y="5" width="20" height="14" rx="2" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="2"/><text x="12" y="16" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">AD</text>`,
     signLanguage: `<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>`,
     signLanguageOn: `<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>`,
     speaker: `<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>`,
     music: `<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7zm-1.5 16c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>`,
     moreVertical: `<path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>`,
-    moreHorizontal: `<path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>`
+    moreHorizontal: `<path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>`,
+    move: `<path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/>`,
+    resize: `<path d="M21.71 11.29l-9-9c-.39-.39-1.02-.39-1.41 0l-9 9c-.39.39-.39 1.02 0 1.41l9 9c.39.39 1.02.39 1.41 0l9-9c.39-.38.39-1.01 0-1.41zM14 14.5V12h-4v2.5L7 11l3-3.5V10h4V7.5l3 3.5-3 3.5z"/>`
   };
   var svgWrapper = (paths) => `<svg viewBox="0 0 24 24" fill="currentColor">${paths}</svg>`;
   var Icons = Object.fromEntries(
@@ -1431,7 +1488,11 @@ var VidPly = (() => {
       return false;
     }
     hasAudioDescription() {
-      return this.player.audioDescriptionSrc && this.player.audioDescriptionSrc.length > 0;
+      if (this.player.audioDescriptionSrc && this.player.audioDescriptionSrc.length > 0) {
+        return true;
+      }
+      const textTracks = Array.from(this.player.element.textTracks || []);
+      return textTracks.some((track) => track.kind === "descriptions");
     }
     hasSignLanguage() {
       return this.player.signLanguageSrc && this.player.signLanguageSrc.length > 0;
@@ -2042,9 +2103,9 @@ var VidPly = (() => {
         i18n.t("styleLabels.fontSize"),
         "captionsFontSize",
         [
-          { label: i18n.t("fontSizes.small"), value: "80%" },
-          { label: i18n.t("fontSizes.medium"), value: "100%" },
-          { label: i18n.t("fontSizes.large"), value: "120%" },
+          { label: i18n.t("fontSizes.small"), value: "87.5%" },
+          { label: i18n.t("fontSizes.normal"), value: "100%" },
+          { label: i18n.t("fontSizes.large"), value: "125%" },
           { label: i18n.t("fontSizes.xlarge"), value: "150%" }
         ]
       );
@@ -2733,6 +2794,141 @@ var VidPly = (() => {
     }
   };
 
+  // src/utils/StorageManager.js
+  var StorageManager = class {
+    constructor(namespace = "vidply") {
+      this.namespace = namespace;
+      this.storage = this.isStorageAvailable() ? localStorage : null;
+    }
+    /**
+     * Check if localStorage is available
+     */
+    isStorageAvailable() {
+      try {
+        const test = "__storage_test__";
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+    /**
+     * Get a namespaced key
+     */
+    getKey(key) {
+      return `${this.namespace}_${key}`;
+    }
+    /**
+     * Save a value to storage
+     */
+    set(key, value) {
+      if (!this.storage) return false;
+      try {
+        const namespacedKey = this.getKey(key);
+        this.storage.setItem(namespacedKey, JSON.stringify(value));
+        return true;
+      } catch (e) {
+        console.warn("Failed to save to localStorage:", e);
+        return false;
+      }
+    }
+    /**
+     * Get a value from storage
+     */
+    get(key, defaultValue = null) {
+      if (!this.storage) return defaultValue;
+      try {
+        const namespacedKey = this.getKey(key);
+        const value = this.storage.getItem(namespacedKey);
+        return value ? JSON.parse(value) : defaultValue;
+      } catch (e) {
+        console.warn("Failed to read from localStorage:", e);
+        return defaultValue;
+      }
+    }
+    /**
+     * Remove a value from storage
+     */
+    remove(key) {
+      if (!this.storage) return false;
+      try {
+        const namespacedKey = this.getKey(key);
+        this.storage.removeItem(namespacedKey);
+        return true;
+      } catch (e) {
+        console.warn("Failed to remove from localStorage:", e);
+        return false;
+      }
+    }
+    /**
+     * Clear all namespaced values
+     */
+    clear() {
+      if (!this.storage) return false;
+      try {
+        const keys = Object.keys(this.storage);
+        keys.forEach((key) => {
+          if (key.startsWith(this.namespace)) {
+            this.storage.removeItem(key);
+          }
+        });
+        return true;
+      } catch (e) {
+        console.warn("Failed to clear localStorage:", e);
+        return false;
+      }
+    }
+    /**
+     * Save transcript preferences
+     */
+    saveTranscriptPreferences(preferences) {
+      return this.set("transcript_preferences", preferences);
+    }
+    /**
+     * Get transcript preferences
+     */
+    getTranscriptPreferences() {
+      return this.get("transcript_preferences", null);
+    }
+    /**
+     * Save caption preferences
+     */
+    saveCaptionPreferences(preferences) {
+      return this.set("caption_preferences", preferences);
+    }
+    /**
+     * Get caption preferences
+     */
+    getCaptionPreferences() {
+      return this.get("caption_preferences", null);
+    }
+    /**
+     * Save player preferences (volume, speed, etc.)
+     */
+    savePlayerPreferences(preferences) {
+      return this.set("player_preferences", preferences);
+    }
+    /**
+     * Get player preferences
+     */
+    getPlayerPreferences() {
+      return this.get("player_preferences", null);
+    }
+    /**
+     * Save sign language preferences (position and size)
+     */
+    saveSignLanguagePreferences(preferences) {
+      return this.set("sign_language_preferences", preferences);
+    }
+    /**
+     * Get sign language preferences
+     */
+    getSignLanguagePreferences() {
+      return this.get("sign_language_preferences", null);
+    }
+  };
+
   // src/controls/CaptionManager.js
   var CaptionManager = class {
     constructor(player) {
@@ -2741,7 +2937,28 @@ var VidPly = (() => {
       this.tracks = [];
       this.currentTrack = null;
       this.currentCue = null;
+      this.storage = new StorageManager("vidply");
+      this.loadSavedPreferences();
       this.init();
+    }
+    loadSavedPreferences() {
+      const saved = this.storage.getCaptionPreferences();
+      if (saved) {
+        if (saved.fontSize) this.player.options.captionsFontSize = saved.fontSize;
+        if (saved.fontFamily) this.player.options.captionsFontFamily = saved.fontFamily;
+        if (saved.color) this.player.options.captionsColor = saved.color;
+        if (saved.backgroundColor) this.player.options.captionsBackgroundColor = saved.backgroundColor;
+        if (saved.opacity !== void 0) this.player.options.captionsOpacity = saved.opacity;
+      }
+    }
+    saveCaptionPreferences() {
+      this.storage.saveCaptionPreferences({
+        fontSize: this.player.options.captionsFontSize,
+        fontFamily: this.player.options.captionsFontFamily,
+        color: this.player.options.captionsColor,
+        backgroundColor: this.player.options.captionsBackgroundColor,
+        opacity: this.player.options.captionsOpacity
+      });
     }
     init() {
       this.createElement();
@@ -2891,6 +3108,7 @@ var VidPly = (() => {
           break;
       }
       this.updateStyles();
+      this.saveCaptionPreferences();
       this.player.emit("captionschange");
     }
     getAvailableTracks() {
@@ -3101,11 +3319,36 @@ var VidPly = (() => {
       this.player = player;
       this.transcriptWindow = null;
       this.transcriptEntries = [];
+      this.metadataCues = [];
       this.currentActiveEntry = null;
       this.isVisible = false;
+      this.storage = new StorageManager("vidply");
       this.isDragging = false;
       this.dragOffsetX = 0;
       this.dragOffsetY = 0;
+      this.isResizing = false;
+      this.resizeDirection = null;
+      this.resizeStartX = 0;
+      this.resizeStartY = 0;
+      this.resizeStartWidth = 0;
+      this.resizeStartHeight = 0;
+      this.resizeEnabled = false;
+      this.settingsMenuVisible = false;
+      this.settingsMenu = null;
+      this.settingsButton = null;
+      this.settingsMenuJustOpened = false;
+      this.keyboardDragMode = false;
+      this.styleDialog = null;
+      this.styleDialogVisible = false;
+      this.styleDialogJustOpened = false;
+      const savedPreferences = this.storage.getTranscriptPreferences();
+      this.transcriptStyle = {
+        fontSize: (savedPreferences == null ? void 0 : savedPreferences.fontSize) || this.player.options.transcriptFontSize || "100%",
+        fontFamily: (savedPreferences == null ? void 0 : savedPreferences.fontFamily) || this.player.options.transcriptFontFamily || "sans-serif",
+        color: (savedPreferences == null ? void 0 : savedPreferences.color) || this.player.options.transcriptColor || "#ffffff",
+        backgroundColor: (savedPreferences == null ? void 0 : savedPreferences.backgroundColor) || this.player.options.transcriptBackgroundColor || "#1e1e1e",
+        opacity: (savedPreferences == null ? void 0 : savedPreferences.opacity) ?? this.player.options.transcriptOpacity ?? 0.98
+      };
       this.handlers = {
         timeupdate: () => this.updateActiveEntry(),
         resize: null,
@@ -3115,7 +3358,11 @@ var VidPly = (() => {
         touchend: null,
         mousedown: null,
         touchstart: null,
-        keydown: null
+        keydown: null,
+        settingsClick: null,
+        settingsKeydown: null,
+        documentClick: null,
+        styleDialogKeydown: null
       };
       this.init();
     }
@@ -3144,6 +3391,11 @@ var VidPly = (() => {
       if (this.transcriptWindow) {
         this.transcriptWindow.style.display = "flex";
         this.isVisible = true;
+        setTimeout(() => {
+          if (this.settingsButton) {
+            this.settingsButton.focus();
+          }
+        }, 150);
         return;
       }
       this.createTranscriptWindow();
@@ -3151,6 +3403,11 @@ var VidPly = (() => {
       if (this.transcriptWindow) {
         this.transcriptWindow.style.display = "flex";
         setTimeout(() => this.positionTranscript(), 0);
+        setTimeout(() => {
+          if (this.settingsButton) {
+            this.settingsButton.focus();
+          }
+        }, 150);
       }
       this.isVisible = true;
     }
@@ -3182,9 +3439,49 @@ var VidPly = (() => {
           "tabindex": "0"
         }
       });
+      this.headerLeft = DOMUtils.createElement("div", {
+        className: `${this.player.options.classPrefix}-transcript-header-left`
+      });
+      this.settingsButton = DOMUtils.createElement("button", {
+        className: `${this.player.options.classPrefix}-transcript-settings`,
+        attributes: {
+          "type": "button",
+          "aria-label": i18n.t("transcript.settings"),
+          "aria-expanded": "false"
+        }
+      });
+      this.settingsButton.appendChild(createIconElement("settings"));
+      this.handlers.settingsClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.settingsMenuVisible) {
+          this.hideSettingsMenu();
+        } else {
+          this.showSettingsMenu();
+        }
+      };
+      this.settingsButton.addEventListener("click", this.handlers.settingsClick);
+      this.handlers.settingsKeydown = (e) => {
+        if (e.key === "d" || e.key === "D") {
+          e.preventDefault();
+          e.stopPropagation();
+          this.toggleKeyboardDragMode();
+        } else if (e.key === "r" || e.key === "R") {
+          e.preventDefault();
+          e.stopPropagation();
+          this.toggleResizeMode();
+        } else if (e.key === "Escape" && this.settingsMenuVisible) {
+          e.preventDefault();
+          e.stopPropagation();
+          this.hideSettingsMenu();
+        }
+      };
+      this.settingsButton.addEventListener("keydown", this.handlers.settingsKeydown);
       const title = DOMUtils.createElement("h3", {
         textContent: i18n.t("transcript.title")
       });
+      this.headerLeft.appendChild(this.settingsButton);
+      this.headerLeft.appendChild(title);
       const closeButton = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-transcript-close`,
         attributes: {
@@ -3194,7 +3491,7 @@ var VidPly = (() => {
       });
       closeButton.appendChild(createIconElement("close"));
       closeButton.addEventListener("click", () => this.hideTranscript());
-      this.transcriptHeader.appendChild(title);
+      this.transcriptHeader.appendChild(this.headerLeft);
       this.transcriptHeader.appendChild(closeButton);
       this.transcriptContent = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-transcript-content`
@@ -3204,6 +3501,27 @@ var VidPly = (() => {
       this.player.container.appendChild(this.transcriptWindow);
       this.positionTranscript();
       this.setupDragAndDrop();
+      this.handlers.documentClick = (e) => {
+        if (this.settingsMenuJustOpened) {
+          return;
+        }
+        if (this.styleDialogJustOpened) {
+          return;
+        }
+        if (this.settingsButton && this.settingsButton.contains(e.target)) {
+          return;
+        }
+        if (this.settingsMenu && this.settingsMenu.contains(e.target)) {
+          return;
+        }
+        if (this.settingsMenuVisible) {
+          this.hideSettingsMenu();
+        }
+        if (this.styleDialogVisible && this.styleDialog && !this.styleDialog.contains(e.target)) {
+          this.hideStyleDialog();
+        }
+      };
+      this.documentClickHandlerAdded = false;
       let resizeTimeout;
       this.handlers.resize = () => {
         clearTimeout(resizeTimeout);
@@ -3284,54 +3602,133 @@ var VidPly = (() => {
       this.transcriptEntries = [];
       this.transcriptContent.innerHTML = "";
       const textTracks = Array.from(this.player.element.textTracks);
-      const transcriptTrack = textTracks.find(
+      const captionTrack = textTracks.find(
         (track) => track.kind === "captions" || track.kind === "subtitles"
       );
-      if (!transcriptTrack) {
+      const descriptionTrack = textTracks.find((track) => track.kind === "descriptions");
+      const metadataTrack = textTracks.find((track) => track.kind === "metadata");
+      if (!captionTrack && !descriptionTrack && !metadataTrack) {
         this.showNoTranscriptMessage();
         return;
       }
-      if (transcriptTrack.mode === "disabled") {
-        transcriptTrack.mode = "hidden";
-      }
-      if (!transcriptTrack.cues || transcriptTrack.cues.length === 0) {
+      const tracksToLoad = [captionTrack, descriptionTrack, metadataTrack].filter(Boolean);
+      tracksToLoad.forEach((track) => {
+        if (track.mode === "disabled") {
+          track.mode = "hidden";
+        }
+      });
+      const needsLoading = tracksToLoad.some((track) => !track.cues || track.cues.length === 0);
+      if (needsLoading) {
         const loadingMessage = DOMUtils.createElement("div", {
           className: `${this.player.options.classPrefix}-transcript-loading`,
           textContent: i18n.t("transcript.loading")
         });
         this.transcriptContent.appendChild(loadingMessage);
+        let loaded = 0;
         const onLoad = () => {
-          this.loadTranscriptData();
-        };
-        transcriptTrack.addEventListener("load", onLoad, { once: true });
-        setTimeout(() => {
-          if (transcriptTrack.cues && transcriptTrack.cues.length > 0) {
+          loaded++;
+          if (loaded >= tracksToLoad.length) {
             this.loadTranscriptData();
           }
+        };
+        tracksToLoad.forEach((track) => {
+          track.addEventListener("load", onLoad, { once: true });
+        });
+        setTimeout(() => {
+          this.loadTranscriptData();
         }, 500);
         return;
       }
-      const cues = Array.from(transcriptTrack.cues);
-      cues.forEach((cue, index) => {
-        const entry = this.createTranscriptEntry(cue, index);
+      const allCues = [];
+      if (captionTrack && captionTrack.cues) {
+        Array.from(captionTrack.cues).forEach((cue) => {
+          allCues.push({ cue, type: "caption" });
+        });
+      }
+      if (descriptionTrack && descriptionTrack.cues) {
+        Array.from(descriptionTrack.cues).forEach((cue) => {
+          allCues.push({ cue, type: "description" });
+        });
+      }
+      if (metadataTrack && metadataTrack.cues) {
+        this.metadataCues = Array.from(metadataTrack.cues);
+        this.setupMetadataHandling();
+      }
+      allCues.sort((a, b) => a.cue.startTime - b.cue.startTime);
+      allCues.forEach((item, index) => {
+        const entry = this.createTranscriptEntry(item.cue, index, item.type);
         this.transcriptEntries.push({
           element: entry,
-          cue,
-          startTime: cue.startTime,
-          endTime: cue.endTime
+          cue: item.cue,
+          type: item.type,
+          startTime: item.cue.startTime,
+          endTime: item.cue.endTime
         });
         this.transcriptContent.appendChild(entry);
       });
+      this.applyTranscriptStyles();
+    }
+    /**
+     * Setup metadata handling
+     * Metadata cues are not displayed but can be used programmatically
+     */
+    setupMetadataHandling() {
+      if (!this.metadataCues || this.metadataCues.length === 0) {
+        return;
+      }
+      const textTracks = Array.from(this.player.element.textTracks);
+      const metadataTrack = textTracks.find((track) => track.kind === "metadata");
+      if (metadataTrack) {
+        metadataTrack.addEventListener("cuechange", () => {
+          const activeCues = Array.from(metadataTrack.activeCues || []);
+          activeCues.forEach((cue) => {
+            this.handleMetadataCue(cue);
+          });
+        });
+      }
+    }
+    /**
+     * Handle individual metadata cues
+     * Parses metadata text and emits events or triggers actions
+     */
+    handleMetadataCue(cue) {
+      const text = cue.text.trim();
+      this.player.emit("metadata", {
+        time: cue.startTime,
+        endTime: cue.endTime,
+        text,
+        cue
+      });
+      if (text.includes("PAUSE")) {
+        this.player.emit("metadata:pause", { time: cue.startTime, text });
+      }
+      const focusMatch = text.match(/FOCUS:([\w#-]+)/);
+      if (focusMatch) {
+        this.player.emit("metadata:focus", {
+          time: cue.startTime,
+          target: focusMatch[1],
+          text
+        });
+      }
+      const hashtags = text.match(/#[\w-]+/g);
+      if (hashtags) {
+        this.player.emit("metadata:hashtags", {
+          time: cue.startTime,
+          hashtags,
+          text
+        });
+      }
     }
     /**
      * Create a single transcript entry element
      */
-    createTranscriptEntry(cue, index) {
+    createTranscriptEntry(cue, index, type = "caption") {
       const entry = DOMUtils.createElement("div", {
-        className: `${this.player.options.classPrefix}-transcript-entry`,
+        className: `${this.player.options.classPrefix}-transcript-entry ${this.player.options.classPrefix}-transcript-${type}`,
         attributes: {
           "data-start": String(cue.startTime),
           "data-end": String(cue.endTime),
+          "data-type": type,
           "role": "button",
           "tabindex": "0"
         }
@@ -3428,6 +3825,15 @@ var VidPly = (() => {
         if (e.target.closest(`.${this.player.options.classPrefix}-transcript-close`)) {
           return;
         }
+        if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings`)) {
+          return;
+        }
+        if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings-menu`)) {
+          return;
+        }
+        if (e.target.closest(`.${this.player.options.classPrefix}-transcript-style-dialog`)) {
+          return;
+        }
         this.startDragging(e.clientX, e.clientY);
         e.preventDefault();
       };
@@ -3443,6 +3849,15 @@ var VidPly = (() => {
       };
       this.handlers.touchstart = (e) => {
         if (e.target.closest(`.${this.player.options.classPrefix}-transcript-close`)) {
+          return;
+        }
+        if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings`)) {
+          return;
+        }
+        if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings-menu`)) {
+          return;
+        }
+        if (e.target.closest(`.${this.player.options.classPrefix}-transcript-style-dialog`)) {
           return;
         }
         const isMobile = window.innerWidth < 640;
@@ -3471,49 +3886,64 @@ var VidPly = (() => {
         }
       };
       this.handlers.keydown = (e) => {
-        if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "Escape"].includes(e.key)) {
+        if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+          if (!this.keyboardDragMode) {
+            return;
+          }
+          e.preventDefault();
+          e.stopPropagation();
+          const step = e.shiftKey ? 50 : 10;
+          let currentLeft = parseFloat(this.transcriptWindow.style.left) || 0;
+          let currentTop = parseFloat(this.transcriptWindow.style.top) || 0;
+          const computedStyle = window.getComputedStyle(this.transcriptWindow);
+          if (computedStyle.transform !== "none") {
+            const rect = this.transcriptWindow.getBoundingClientRect();
+            currentLeft = rect.left;
+            currentTop = rect.top;
+            this.transcriptWindow.style.transform = "none";
+            this.transcriptWindow.style.left = `${currentLeft}px`;
+            this.transcriptWindow.style.top = `${currentTop}px`;
+          }
+          let newX = currentLeft;
+          let newY = currentTop;
+          switch (e.key) {
+            case "ArrowLeft":
+              newX -= step;
+              break;
+            case "ArrowRight":
+              newX += step;
+              break;
+            case "ArrowUp":
+              newY -= step;
+              break;
+            case "ArrowDown":
+              newY += step;
+              break;
+          }
+          this.transcriptWindow.style.left = `${newX}px`;
+          this.transcriptWindow.style.top = `${newY}px`;
           return;
         }
-        e.preventDefault();
-        e.stopPropagation();
         if (e.key === "Home") {
+          e.preventDefault();
+          e.stopPropagation();
           this.resetPosition();
           return;
         }
         if (e.key === "Escape") {
-          this.hideTranscript();
+          e.preventDefault();
+          e.stopPropagation();
+          if (this.styleDialogVisible) {
+            this.hideStyleDialog();
+          } else if (this.keyboardDragMode) {
+            this.disableKeyboardDragMode();
+          } else if (this.settingsMenuVisible) {
+            this.hideSettingsMenu();
+          } else {
+            this.hideTranscript();
+          }
           return;
         }
-        const step = e.shiftKey ? 50 : 10;
-        let currentLeft = parseFloat(this.transcriptWindow.style.left) || 0;
-        let currentTop = parseFloat(this.transcriptWindow.style.top) || 0;
-        const computedStyle = window.getComputedStyle(this.transcriptWindow);
-        if (computedStyle.transform !== "none") {
-          const rect = this.transcriptWindow.getBoundingClientRect();
-          currentLeft = rect.left;
-          currentTop = rect.top;
-          this.transcriptWindow.style.transform = "none";
-          this.transcriptWindow.style.left = `${currentLeft}px`;
-          this.transcriptWindow.style.top = `${currentTop}px`;
-        }
-        let newX = currentLeft;
-        let newY = currentTop;
-        switch (e.key) {
-          case "ArrowLeft":
-            newX -= step;
-            break;
-          case "ArrowRight":
-            newX += step;
-            break;
-          case "ArrowUp":
-            newY -= step;
-            break;
-          case "ArrowDown":
-            newY += step;
-            break;
-        }
-        this.transcriptWindow.style.left = `${newX}px`;
-        this.transcriptWindow.style.top = `${newY}px`;
       };
       this.transcriptHeader.addEventListener("mousedown", this.handlers.mousedown);
       document.addEventListener("mousemove", this.handlers.mousemove);
@@ -3593,9 +4023,601 @@ var VidPly = (() => {
       this.transcriptWindow.style.transform = "translate(-50%, -50%)";
     }
     /**
+     * Toggle keyboard drag mode
+     */
+    toggleKeyboardDragMode() {
+      if (this.keyboardDragMode) {
+        this.disableKeyboardDragMode();
+      } else {
+        this.enableKeyboardDragMode();
+      }
+    }
+    /**
+     * Enable keyboard drag mode
+     */
+    enableKeyboardDragMode() {
+      this.keyboardDragMode = true;
+      this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-keyboard-drag`);
+      if (this.settingsButton) {
+        this.settingsButton.setAttribute("aria-label", "Keyboard drag mode active. Use arrow keys to move window. Press D or Escape to exit.");
+      }
+      const indicator = DOMUtils.createElement("div", {
+        className: `${this.player.options.classPrefix}-transcript-drag-indicator`,
+        textContent: i18n.t("transcript.keyboardDragActive")
+      });
+      this.transcriptHeader.appendChild(indicator);
+      if (this.settingsMenuVisible) {
+        this.hideSettingsMenu();
+      }
+      this.transcriptHeader.focus();
+    }
+    /**
+     * Disable keyboard drag mode
+     */
+    disableKeyboardDragMode() {
+      this.keyboardDragMode = false;
+      this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-keyboard-drag`);
+      if (this.settingsButton) {
+        this.settingsButton.setAttribute("aria-label", "Transcript settings. Press Enter to open menu, or D to enable drag mode");
+      }
+      const indicator = this.transcriptHeader.querySelector(`.${this.player.options.classPrefix}-transcript-drag-indicator`);
+      if (indicator) {
+        indicator.remove();
+      }
+      if (this.settingsButton) {
+        this.settingsButton.focus();
+      }
+    }
+    /**
+     * Toggle settings menu visibility
+     */
+    toggleSettingsMenu() {
+      if (this.settingsMenuVisible) {
+        this.hideSettingsMenu();
+      } else {
+        this.showSettingsMenu();
+      }
+    }
+    /**
+     * Show settings menu
+     */
+    showSettingsMenu() {
+      this.settingsMenuJustOpened = true;
+      setTimeout(() => {
+        this.settingsMenuJustOpened = false;
+      }, 350);
+      if (!this.documentClickHandlerAdded) {
+        setTimeout(() => {
+          document.addEventListener("click", this.handlers.documentClick);
+          this.documentClickHandlerAdded = true;
+        }, 300);
+      }
+      if (this.settingsMenu) {
+        this.settingsMenu.style.display = "block";
+        this.settingsMenuVisible = true;
+        return;
+      }
+      this.settingsMenu = DOMUtils.createElement("div", {
+        className: `${this.player.options.classPrefix}-transcript-settings-menu`
+      });
+      const keyboardDragOption = DOMUtils.createElement("button", {
+        className: `${this.player.options.classPrefix}-transcript-settings-item`,
+        attributes: {
+          "type": "button",
+          "aria-label": i18n.t("transcript.keyboardDragMode")
+        }
+      });
+      const keyboardIcon = createIconElement("move");
+      const keyboardText = DOMUtils.createElement("span", {
+        textContent: i18n.t("transcript.keyboardDragMode")
+      });
+      keyboardDragOption.appendChild(keyboardIcon);
+      keyboardDragOption.appendChild(keyboardText);
+      keyboardDragOption.addEventListener("click", () => {
+        this.toggleKeyboardDragMode();
+        this.hideSettingsMenu();
+      });
+      const styleOption = DOMUtils.createElement("button", {
+        className: `${this.player.options.classPrefix}-transcript-settings-item`,
+        attributes: {
+          "type": "button",
+          "aria-label": i18n.t("transcript.styleTranscript")
+        }
+      });
+      const styleIcon = createIconElement("settings");
+      const styleText = DOMUtils.createElement("span", {
+        textContent: i18n.t("transcript.styleTranscript")
+      });
+      styleOption.appendChild(styleIcon);
+      styleOption.appendChild(styleText);
+      styleOption.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.hideSettingsMenu();
+        setTimeout(() => {
+          this.showStyleDialog();
+        }, 50);
+      });
+      const resizeOption = DOMUtils.createElement("button", {
+        className: `${this.player.options.classPrefix}-transcript-settings-item`,
+        attributes: {
+          "type": "button",
+          "aria-label": i18n.t("transcript.resizeWindow")
+        }
+      });
+      const resizeIcon = createIconElement("resize");
+      const resizeText = DOMUtils.createElement("span", {
+        textContent: i18n.t("transcript.resizeWindow")
+      });
+      resizeOption.appendChild(resizeIcon);
+      resizeOption.appendChild(resizeText);
+      resizeOption.addEventListener("click", () => {
+        this.toggleResizeMode();
+        this.hideSettingsMenu();
+      });
+      const closeOption = DOMUtils.createElement("button", {
+        className: `${this.player.options.classPrefix}-transcript-settings-item`,
+        attributes: {
+          "type": "button",
+          "aria-label": i18n.t("transcript.closeMenu")
+        }
+      });
+      const closeIcon = createIconElement("close");
+      const closeText = DOMUtils.createElement("span", {
+        textContent: i18n.t("transcript.closeMenu")
+      });
+      closeOption.appendChild(closeIcon);
+      closeOption.appendChild(closeText);
+      closeOption.addEventListener("click", () => {
+        this.hideSettingsMenu();
+      });
+      this.settingsMenu.appendChild(keyboardDragOption);
+      this.settingsMenu.appendChild(resizeOption);
+      this.settingsMenu.appendChild(styleOption);
+      this.settingsMenu.appendChild(closeOption);
+      if (this.headerLeft) {
+        this.headerLeft.appendChild(this.settingsMenu);
+      } else {
+        this.transcriptHeader.appendChild(this.settingsMenu);
+      }
+      this.settingsMenuVisible = true;
+      this.settingsMenu.style.display = "block";
+      if (this.settingsButton) {
+        this.settingsButton.setAttribute("aria-expanded", "true");
+      }
+      setTimeout(() => {
+        const firstItem = this.settingsMenu.querySelector(`.${this.player.options.classPrefix}-transcript-settings-item`);
+        if (firstItem) {
+          firstItem.focus();
+        }
+      }, 0);
+    }
+    /**
+     * Hide settings menu
+     */
+    hideSettingsMenu() {
+      if (this.settingsMenu) {
+        this.settingsMenu.style.display = "none";
+        this.settingsMenuVisible = false;
+        this.settingsMenuJustOpened = false;
+        if (this.settingsButton) {
+          this.settingsButton.setAttribute("aria-expanded", "false");
+          this.settingsButton.focus();
+        }
+      }
+    }
+    /**
+     * Enable move mode (gives visual feedback)
+     */
+    enableMoveMode() {
+      this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-move-mode`);
+      const tooltip = DOMUtils.createElement("div", {
+        className: `${this.player.options.classPrefix}-transcript-move-tooltip`,
+        textContent: "Drag with mouse or press D for keyboard drag mode"
+      });
+      this.transcriptHeader.appendChild(tooltip);
+      setTimeout(() => {
+        this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-move-mode`);
+        if (tooltip.parentNode) {
+          tooltip.remove();
+        }
+      }, 2e3);
+    }
+    /**
+     * Toggle resize mode
+     */
+    toggleResizeMode() {
+      this.resizeEnabled = !this.resizeEnabled;
+      if (this.resizeEnabled) {
+        this.enableResizeHandles();
+      } else {
+        this.disableResizeHandles();
+      }
+    }
+    /**
+     * Enable resize handles
+     */
+    enableResizeHandles() {
+      if (!this.transcriptWindow) return;
+      const directions = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
+      directions.forEach((direction) => {
+        const handle = DOMUtils.createElement("div", {
+          className: `${this.player.options.classPrefix}-transcript-resize-handle ${this.player.options.classPrefix}-transcript-resize-${direction}`,
+          attributes: {
+            "data-direction": direction
+          }
+        });
+        handle.addEventListener("mousedown", (e) => this.startResize(e, direction));
+        handle.addEventListener("touchstart", (e) => this.startResize(e.touches[0], direction));
+        this.transcriptWindow.appendChild(handle);
+      });
+      this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-resizable`);
+      this.handlers.resizeMove = (e) => {
+        if (this.isResizing) {
+          this.performResize(e.clientX, e.clientY);
+        }
+      };
+      this.handlers.resizeEnd = () => {
+        if (this.isResizing) {
+          this.stopResize();
+        }
+      };
+      this.handlers.resizeTouchMove = (e) => {
+        if (this.isResizing) {
+          this.performResize(e.touches[0].clientX, e.touches[0].clientY);
+          e.preventDefault();
+        }
+      };
+      document.addEventListener("mousemove", this.handlers.resizeMove);
+      document.addEventListener("mouseup", this.handlers.resizeEnd);
+      document.addEventListener("touchmove", this.handlers.resizeTouchMove);
+      document.addEventListener("touchend", this.handlers.resizeEnd);
+    }
+    /**
+     * Disable resize handles
+     */
+    disableResizeHandles() {
+      if (!this.transcriptWindow) return;
+      const handles = this.transcriptWindow.querySelectorAll(`.${this.player.options.classPrefix}-transcript-resize-handle`);
+      handles.forEach((handle) => handle.remove());
+      this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-resizable`);
+      if (this.handlers.resizeMove) {
+        document.removeEventListener("mousemove", this.handlers.resizeMove);
+      }
+      if (this.handlers.resizeEnd) {
+        document.removeEventListener("mouseup", this.handlers.resizeEnd);
+      }
+      if (this.handlers.resizeTouchMove) {
+        document.removeEventListener("touchmove", this.handlers.resizeTouchMove);
+      }
+      document.removeEventListener("touchend", this.handlers.resizeEnd);
+    }
+    /**
+     * Start resizing
+     */
+    startResize(e, direction) {
+      e.stopPropagation();
+      e.preventDefault();
+      this.isResizing = true;
+      this.resizeDirection = direction;
+      this.resizeStartX = e.clientX;
+      this.resizeStartY = e.clientY;
+      const rect = this.transcriptWindow.getBoundingClientRect();
+      this.resizeStartWidth = rect.width;
+      this.resizeStartHeight = rect.height;
+      this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-resizing`);
+      document.body.style.cursor = this.getResizeCursor(direction);
+      document.body.style.userSelect = "none";
+    }
+    /**
+     * Perform resize
+     */
+    performResize(clientX, clientY) {
+      if (!this.isResizing) return;
+      const deltaX = clientX - this.resizeStartX;
+      const deltaY = clientY - this.resizeStartY;
+      let newWidth = this.resizeStartWidth;
+      let newHeight = this.resizeStartHeight;
+      const direction = this.resizeDirection;
+      if (direction.includes("e")) {
+        newWidth = this.resizeStartWidth + deltaX;
+      }
+      if (direction.includes("w")) {
+        newWidth = this.resizeStartWidth - deltaX;
+      }
+      if (direction.includes("s")) {
+        newHeight = this.resizeStartHeight + deltaY;
+      }
+      if (direction.includes("n")) {
+        newHeight = this.resizeStartHeight - deltaY;
+      }
+      const minWidth = 300;
+      const minHeight = 200;
+      const maxWidth = window.innerWidth - 40;
+      const maxHeight = window.innerHeight - 40;
+      newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+      newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
+      this.transcriptWindow.style.width = `${newWidth}px`;
+      this.transcriptWindow.style.height = `${newHeight}px`;
+      this.transcriptWindow.style.maxWidth = `${newWidth}px`;
+      this.transcriptWindow.style.maxHeight = `${newHeight}px`;
+      if (direction.includes("w")) {
+        const currentLeft = parseFloat(this.transcriptWindow.style.left) || 0;
+        this.transcriptWindow.style.left = `${currentLeft + (this.resizeStartWidth - newWidth)}px`;
+      }
+      if (direction.includes("n")) {
+        const currentTop = parseFloat(this.transcriptWindow.style.top) || 0;
+        this.transcriptWindow.style.top = `${currentTop + (this.resizeStartHeight - newHeight)}px`;
+      }
+    }
+    /**
+     * Stop resizing
+     */
+    stopResize() {
+      this.isResizing = false;
+      this.resizeDirection = null;
+      this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-resizing`);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    }
+    /**
+     * Get cursor style for resize direction
+     */
+    getResizeCursor(direction) {
+      const cursors = {
+        "n": "ns-resize",
+        "s": "ns-resize",
+        "e": "ew-resize",
+        "w": "ew-resize",
+        "ne": "nesw-resize",
+        "nw": "nwse-resize",
+        "se": "nwse-resize",
+        "sw": "nesw-resize"
+      };
+      return cursors[direction] || "default";
+    }
+    /**
+     * Show style dialog
+     */
+    showStyleDialog() {
+      if (this.styleDialog) {
+        this.styleDialog.style.display = "block";
+        this.styleDialogVisible = true;
+        this.styleDialogJustOpened = true;
+        setTimeout(() => {
+          this.styleDialogJustOpened = false;
+        }, 350);
+        setTimeout(() => {
+          const firstSelect = this.styleDialog.querySelector("select, input");
+          if (firstSelect) {
+            firstSelect.focus();
+          }
+        }, 0);
+        return;
+      }
+      this.styleDialog = DOMUtils.createElement("div", {
+        className: `${this.player.options.classPrefix}-transcript-style-dialog`
+      });
+      const title = DOMUtils.createElement("h4", {
+        textContent: i18n.t("transcript.styleTitle"),
+        className: `${this.player.options.classPrefix}-transcript-style-title`
+      });
+      this.styleDialog.appendChild(title);
+      const fontSizeControl = this.createStyleSelectControl(
+        i18n.t("captions.fontSize"),
+        "fontSize",
+        [
+          { label: i18n.t("fontSizes.small"), value: "87.5%" },
+          { label: i18n.t("fontSizes.normal"), value: "100%" },
+          { label: i18n.t("fontSizes.large"), value: "125%" },
+          { label: i18n.t("fontSizes.xlarge"), value: "150%" }
+        ]
+      );
+      this.styleDialog.appendChild(fontSizeControl);
+      const fontFamilyControl = this.createStyleSelectControl(
+        i18n.t("captions.fontFamily"),
+        "fontFamily",
+        [
+          { label: i18n.t("fontFamilies.sansSerif"), value: "sans-serif" },
+          { label: i18n.t("fontFamilies.serif"), value: "serif" },
+          { label: i18n.t("fontFamilies.monospace"), value: "monospace" }
+        ]
+      );
+      this.styleDialog.appendChild(fontFamilyControl);
+      const colorControl = this.createStyleColorControl(i18n.t("captions.color"), "color");
+      this.styleDialog.appendChild(colorControl);
+      const bgColorControl = this.createStyleColorControl(i18n.t("captions.backgroundColor"), "backgroundColor");
+      this.styleDialog.appendChild(bgColorControl);
+      const opacityControl = this.createStyleOpacityControl(i18n.t("captions.opacity"), "opacity");
+      this.styleDialog.appendChild(opacityControl);
+      const closeBtn = DOMUtils.createElement("button", {
+        className: `${this.player.options.classPrefix}-transcript-style-close`,
+        textContent: i18n.t("settings.close"),
+        attributes: {
+          "type": "button"
+        }
+      });
+      closeBtn.addEventListener("click", () => this.hideStyleDialog());
+      this.styleDialog.appendChild(closeBtn);
+      this.handlers.styleDialogKeydown = (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          this.hideStyleDialog();
+        }
+      };
+      this.styleDialog.addEventListener("keydown", this.handlers.styleDialogKeydown);
+      if (this.headerLeft) {
+        this.headerLeft.appendChild(this.styleDialog);
+      } else {
+        this.transcriptHeader.appendChild(this.styleDialog);
+      }
+      this.applyTranscriptStyles();
+      this.styleDialogVisible = true;
+      this.styleDialog.style.display = "block";
+      this.styleDialogJustOpened = true;
+      setTimeout(() => {
+        this.styleDialogJustOpened = false;
+      }, 350);
+      setTimeout(() => {
+        const firstSelect = this.styleDialog.querySelector("select, input");
+        if (firstSelect) {
+          firstSelect.focus();
+        }
+      }, 0);
+    }
+    /**
+     * Hide style dialog
+     */
+    hideStyleDialog() {
+      if (this.styleDialog) {
+        this.styleDialog.style.display = "none";
+        this.styleDialogVisible = false;
+        if (this.settingsButton) {
+          this.settingsButton.focus();
+        }
+      }
+    }
+    /**
+     * Create style select control
+     */
+    createStyleSelectControl(label, property, options) {
+      const group = DOMUtils.createElement("div", {
+        className: `${this.player.options.classPrefix}-transcript-style-group`
+      });
+      const labelEl = DOMUtils.createElement("label", {
+        textContent: label
+      });
+      group.appendChild(labelEl);
+      const select = DOMUtils.createElement("select", {
+        className: `${this.player.options.classPrefix}-transcript-style-select`
+      });
+      options.forEach((opt) => {
+        const option = DOMUtils.createElement("option", {
+          textContent: opt.label,
+          attributes: {
+            "value": opt.value
+          }
+        });
+        if (this.transcriptStyle[property] === opt.value) {
+          option.selected = true;
+        }
+        select.appendChild(option);
+      });
+      select.addEventListener("change", (e) => {
+        this.transcriptStyle[property] = e.target.value;
+        this.applyTranscriptStyles();
+        this.savePreferences();
+      });
+      group.appendChild(select);
+      return group;
+    }
+    /**
+     * Create style color control
+     */
+    createStyleColorControl(label, property) {
+      const group = DOMUtils.createElement("div", {
+        className: `${this.player.options.classPrefix}-transcript-style-group`
+      });
+      const labelEl = DOMUtils.createElement("label", {
+        textContent: label
+      });
+      group.appendChild(labelEl);
+      const input = DOMUtils.createElement("input", {
+        attributes: {
+          "type": "color",
+          "value": this.transcriptStyle[property]
+        },
+        className: `${this.player.options.classPrefix}-transcript-style-color`
+      });
+      input.addEventListener("input", (e) => {
+        this.transcriptStyle[property] = e.target.value;
+        this.applyTranscriptStyles();
+        this.savePreferences();
+      });
+      group.appendChild(input);
+      return group;
+    }
+    /**
+     * Create style opacity control
+     */
+    createStyleOpacityControl(label, property) {
+      const group = DOMUtils.createElement("div", {
+        className: `${this.player.options.classPrefix}-transcript-style-group`
+      });
+      const labelEl = DOMUtils.createElement("label", {
+        textContent: label
+      });
+      group.appendChild(labelEl);
+      const valueDisplay = DOMUtils.createElement("span", {
+        textContent: Math.round(this.transcriptStyle[property] * 100) + "%",
+        className: `${this.player.options.classPrefix}-transcript-style-value`
+      });
+      const input = DOMUtils.createElement("input", {
+        attributes: {
+          "type": "range",
+          "min": "0",
+          "max": "1",
+          "step": "0.1",
+          "value": String(this.transcriptStyle[property])
+        },
+        className: `${this.player.options.classPrefix}-transcript-style-range`
+      });
+      input.addEventListener("input", (e) => {
+        const value = parseFloat(e.target.value);
+        this.transcriptStyle[property] = value;
+        valueDisplay.textContent = Math.round(value * 100) + "%";
+        this.applyTranscriptStyles();
+        this.savePreferences();
+      });
+      const inputContainer = DOMUtils.createElement("div", {
+        className: `${this.player.options.classPrefix}-transcript-style-range-container`
+      });
+      inputContainer.appendChild(input);
+      inputContainer.appendChild(valueDisplay);
+      group.appendChild(labelEl);
+      group.appendChild(inputContainer);
+      return group;
+    }
+    /**
+     * Save transcript preferences to localStorage
+     */
+    savePreferences() {
+      this.storage.saveTranscriptPreferences(this.transcriptStyle);
+    }
+    /**
+     * Apply transcript styles
+     */
+    applyTranscriptStyles() {
+      if (!this.transcriptWindow) return;
+      this.transcriptWindow.style.backgroundColor = this.transcriptStyle.backgroundColor;
+      this.transcriptWindow.style.opacity = String(this.transcriptStyle.opacity);
+      if (this.transcriptContent) {
+        this.transcriptContent.style.fontSize = this.transcriptStyle.fontSize;
+        this.transcriptContent.style.fontFamily = this.transcriptStyle.fontFamily;
+        this.transcriptContent.style.color = this.transcriptStyle.color;
+      }
+      const textEntries = this.transcriptWindow.querySelectorAll(`.${this.player.options.classPrefix}-transcript-text`);
+      textEntries.forEach((entry) => {
+        entry.style.fontSize = this.transcriptStyle.fontSize;
+        entry.style.fontFamily = this.transcriptStyle.fontFamily;
+        entry.style.color = this.transcriptStyle.color;
+      });
+      const timeEntries = this.transcriptWindow.querySelectorAll(`.${this.player.options.classPrefix}-transcript-time`);
+      timeEntries.forEach((entry) => {
+        entry.style.fontFamily = this.transcriptStyle.fontFamily;
+      });
+    }
+    /**
      * Cleanup
      */
     destroy() {
+      if (this.resizeEnabled) {
+        this.disableResizeHandles();
+      }
+      if (this.keyboardDragMode) {
+        this.disableKeyboardDragMode();
+      }
       if (this.handlers.timeupdate) {
         this.player.off("timeupdate", this.handlers.timeupdate);
       }
@@ -3610,6 +4632,17 @@ var VidPly = (() => {
           this.transcriptHeader.removeEventListener("keydown", this.handlers.keydown);
         }
       }
+      if (this.settingsButton) {
+        if (this.handlers.settingsClick) {
+          this.settingsButton.removeEventListener("click", this.handlers.settingsClick);
+        }
+        if (this.handlers.settingsKeydown) {
+          this.settingsButton.removeEventListener("keydown", this.handlers.settingsKeydown);
+        }
+      }
+      if (this.styleDialog && this.handlers.styleDialogKeydown) {
+        this.styleDialog.removeEventListener("keydown", this.handlers.styleDialogKeydown);
+      }
       if (this.handlers.mousemove) {
         document.removeEventListener("mousemove", this.handlers.mousemove);
       }
@@ -3622,6 +4655,9 @@ var VidPly = (() => {
       if (this.handlers.touchend) {
         document.removeEventListener("touchend", this.handlers.touchend);
       }
+      if (this.handlers.documentClick) {
+        document.removeEventListener("click", this.handlers.documentClick);
+      }
       if (this.handlers.resize) {
         window.removeEventListener("resize", this.handlers.resize);
       }
@@ -3633,6 +4669,8 @@ var VidPly = (() => {
       this.transcriptHeader = null;
       this.transcriptContent = null;
       this.transcriptEntries = [];
+      this.settingsMenu = null;
+      this.styleDialog = null;
     }
   };
 
@@ -4350,7 +5388,7 @@ var VidPly = (() => {
         captionsButton: true,
         transcriptButton: true,
         fullscreenButton: true,
-        pipButton: true,
+        pipButton: false,
         // Seeking
         seekInterval: 10,
         seekIntervalLarge: 30,
@@ -4420,6 +5458,13 @@ var VidPly = (() => {
         onError: null,
         ...options
       };
+      this.storage = new StorageManager("vidply");
+      const savedPrefs = this.storage.getPlayerPreferences();
+      if (savedPrefs) {
+        if (savedPrefs.volume !== void 0) this.options.volume = savedPrefs.volume;
+        if (savedPrefs.playbackSpeed !== void 0) this.options.playbackSpeed = savedPrefs.playbackSpeed;
+        if (savedPrefs.muted !== void 0) this.options.muted = savedPrefs.muted;
+      }
       this.state = {
         ready: false,
         playing: false,
@@ -4754,6 +5799,7 @@ var VidPly = (() => {
       if (newVolume > 0 && this.state.muted) {
         this.state.muted = false;
       }
+      this.savePlayerPreferences();
     }
     getVolume() {
       return this.state.volume;
@@ -4763,6 +5809,7 @@ var VidPly = (() => {
         this.renderer.setMuted(true);
       }
       this.state.muted = true;
+      this.savePlayerPreferences();
       this.emit("volumechange");
     }
     unmute() {
@@ -4770,6 +5817,7 @@ var VidPly = (() => {
         this.renderer.setMuted(false);
       }
       this.state.muted = false;
+      this.savePlayerPreferences();
       this.emit("volumechange");
     }
     toggleMute() {
@@ -4786,10 +5834,19 @@ var VidPly = (() => {
         this.renderer.setPlaybackSpeed(newSpeed);
       }
       this.state.playbackSpeed = newSpeed;
+      this.savePlayerPreferences();
       this.emit("playbackspeedchange", newSpeed);
     }
     getPlaybackSpeed() {
       return this.state.playbackSpeed;
+    }
+    // Save player preferences to localStorage
+    savePlayerPreferences() {
+      this.storage.savePlayerPreferences({
+        volume: this.state.volume,
+        muted: this.state.muted,
+        playbackSpeed: this.state.playbackSpeed
+      });
     }
     // Fullscreen
     enterFullscreen() {
@@ -4915,10 +5972,24 @@ var VidPly = (() => {
       this.emit("audiodescriptiondisabled");
     }
     async toggleAudioDescription() {
-      if (this.state.audioDescriptionEnabled) {
-        await this.disableAudioDescription();
-      } else {
-        await this.enableAudioDescription();
+      const textTracks = Array.from(this.element.textTracks || []);
+      const descriptionTrack = textTracks.find((track) => track.kind === "descriptions");
+      if (descriptionTrack) {
+        if (descriptionTrack.mode === "showing") {
+          descriptionTrack.mode = "hidden";
+          this.state.audioDescriptionEnabled = false;
+          this.emit("audiodescriptiondisabled");
+        } else {
+          descriptionTrack.mode = "showing";
+          this.state.audioDescriptionEnabled = true;
+          this.emit("audiodescriptionenabled");
+        }
+      } else if (this.audioDescriptionSrc) {
+        if (this.state.audioDescriptionEnabled) {
+          await this.disableAudioDescription();
+        } else {
+          await this.enableAudioDescription();
+        }
       }
     }
     // Sign Language
@@ -4927,24 +5998,47 @@ var VidPly = (() => {
         console.warn("No sign language video source provided");
         return;
       }
-      if (this.signLanguageVideo) {
-        this.signLanguageVideo.style.display = "block";
+      if (this.signLanguageWrapper) {
+        this.signLanguageWrapper.style.display = "block";
         this.state.signLanguageEnabled = true;
         this.emit("signlanguageenabled");
         return;
       }
+      this.signLanguageWrapper = document.createElement("div");
+      this.signLanguageWrapper.className = "vidply-sign-language-wrapper";
+      this.signLanguageWrapper.setAttribute("tabindex", "0");
+      this.signLanguageWrapper.setAttribute("aria-label", "Sign Language Video - Press D to drag with keyboard, R to resize");
       this.signLanguageVideo = document.createElement("video");
       this.signLanguageVideo.className = "vidply-sign-language-video";
       this.signLanguageVideo.src = this.signLanguageSrc;
       this.signLanguageVideo.setAttribute("aria-label", i18n.t("player.signLanguage"));
-      const position = this.options.signLanguagePosition || "bottom-right";
-      this.signLanguageVideo.classList.add(`vidply-sign-position-${position}`);
       this.signLanguageVideo.muted = true;
+      const resizeHandles = ["nw", "ne", "sw", "se"].map((dir) => {
+        const handle = document.createElement("div");
+        handle.className = `vidply-sign-resize-handle vidply-sign-resize-${dir}`;
+        handle.setAttribute("data-direction", dir);
+        handle.setAttribute("aria-label", `Resize ${dir.toUpperCase()}`);
+        return handle;
+      });
+      this.signLanguageWrapper.appendChild(this.signLanguageVideo);
+      resizeHandles.forEach((handle) => this.signLanguageWrapper.appendChild(handle));
+      const saved = this.storage.getSignLanguagePreferences();
+      if (saved && saved.size && saved.size.width) {
+        this.signLanguageWrapper.style.width = saved.size.width;
+      } else {
+        this.signLanguageWrapper.style.width = "280px";
+      }
+      this.signLanguageWrapper.style.height = "auto";
+      this.signLanguageDesiredPosition = this.options.signLanguagePosition || "bottom-right";
+      this.container.appendChild(this.signLanguageWrapper);
+      requestAnimationFrame(() => {
+        this.constrainSignLanguagePosition();
+      });
       this.signLanguageVideo.currentTime = this.state.currentTime;
       if (!this.state.paused) {
         this.signLanguageVideo.play();
       }
-      this.videoWrapper.appendChild(this.signLanguageVideo);
+      this.setupSignLanguageInteraction();
       this.signLanguageHandlers = {
         play: () => {
           if (this.signLanguageVideo) {
@@ -4975,8 +6069,8 @@ var VidPly = (() => {
       this.emit("signlanguageenabled");
     }
     disableSignLanguage() {
-      if (this.signLanguageVideo) {
-        this.signLanguageVideo.style.display = "none";
+      if (this.signLanguageWrapper) {
+        this.signLanguageWrapper.style.display = "none";
       }
       this.state.signLanguageEnabled = false;
       this.emit("signlanguagedisabled");
@@ -4988,6 +6082,237 @@ var VidPly = (() => {
         this.enableSignLanguage();
       }
     }
+    setupSignLanguageInteraction() {
+      if (!this.signLanguageWrapper) return;
+      let isDragging = false;
+      let isResizing = false;
+      let resizeDirection = null;
+      let startX = 0;
+      let startY = 0;
+      let startLeft = 0;
+      let startTop = 0;
+      let startWidth = 0;
+      let startHeight = 0;
+      let dragMode = false;
+      let resizeMode = false;
+      const onMouseDownVideo = (e) => {
+        if (e.target !== this.signLanguageVideo) return;
+        e.preventDefault();
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        const rect = this.signLanguageWrapper.getBoundingClientRect();
+        startLeft = rect.left;
+        startTop = rect.top;
+        this.signLanguageWrapper.classList.add("vidply-sign-dragging");
+      };
+      const onMouseDownHandle = (e) => {
+        if (!e.target.classList.contains("vidply-sign-resize-handle")) return;
+        e.preventDefault();
+        e.stopPropagation();
+        isResizing = true;
+        resizeDirection = e.target.getAttribute("data-direction");
+        startX = e.clientX;
+        startY = e.clientY;
+        const rect = this.signLanguageWrapper.getBoundingClientRect();
+        startLeft = rect.left;
+        startTop = rect.top;
+        startWidth = rect.width;
+        startHeight = rect.height;
+        this.signLanguageWrapper.classList.add("vidply-sign-resizing");
+      };
+      const onMouseMove = (e) => {
+        if (isDragging) {
+          const deltaX = e.clientX - startX;
+          const deltaY = e.clientY - startY;
+          const videoWrapperRect = this.videoWrapper.getBoundingClientRect();
+          const containerRect = this.container.getBoundingClientRect();
+          const wrapperRect = this.signLanguageWrapper.getBoundingClientRect();
+          const videoWrapperLeft = videoWrapperRect.left - containerRect.left;
+          const videoWrapperTop = videoWrapperRect.top - containerRect.top;
+          let newLeft = startLeft + deltaX - containerRect.left;
+          let newTop = startTop + deltaY - containerRect.top;
+          const controlsHeight = 95;
+          newLeft = Math.max(videoWrapperLeft, Math.min(newLeft, videoWrapperLeft + videoWrapperRect.width - wrapperRect.width));
+          newTop = Math.max(videoWrapperTop, Math.min(newTop, videoWrapperTop + videoWrapperRect.height - wrapperRect.height - controlsHeight));
+          this.signLanguageWrapper.style.left = `${newLeft}px`;
+          this.signLanguageWrapper.style.top = `${newTop}px`;
+          this.signLanguageWrapper.style.right = "auto";
+          this.signLanguageWrapper.style.bottom = "auto";
+          this.signLanguageWrapper.classList.remove(...Array.from(this.signLanguageWrapper.classList).filter((c) => c.startsWith("vidply-sign-position-")));
+        } else if (isResizing) {
+          const deltaX = e.clientX - startX;
+          const videoWrapperRect = this.videoWrapper.getBoundingClientRect();
+          const containerRect = this.container.getBoundingClientRect();
+          let newWidth = startWidth;
+          let newLeft = startLeft - containerRect.left;
+          if (resizeDirection.includes("e")) {
+            newWidth = Math.max(150, startWidth + deltaX);
+            const maxWidth = videoWrapperRect.right - startLeft;
+            newWidth = Math.min(newWidth, maxWidth);
+          }
+          if (resizeDirection.includes("w")) {
+            const proposedWidth = Math.max(150, startWidth - deltaX);
+            const proposedLeft = startLeft + (startWidth - proposedWidth) - containerRect.left;
+            const videoWrapperLeft = videoWrapperRect.left - containerRect.left;
+            if (proposedLeft >= videoWrapperLeft) {
+              newWidth = proposedWidth;
+              newLeft = proposedLeft;
+            }
+          }
+          this.signLanguageWrapper.style.width = `${newWidth}px`;
+          this.signLanguageWrapper.style.height = "auto";
+          if (resizeDirection.includes("w")) {
+            this.signLanguageWrapper.style.left = `${newLeft}px`;
+          }
+          this.signLanguageWrapper.style.right = "auto";
+          this.signLanguageWrapper.style.bottom = "auto";
+          this.signLanguageWrapper.classList.remove(...Array.from(this.signLanguageWrapper.classList).filter((c) => c.startsWith("vidply-sign-position-")));
+        }
+      };
+      const onMouseUp = () => {
+        if (isDragging || isResizing) {
+          this.saveSignLanguagePreferences();
+        }
+        isDragging = false;
+        isResizing = false;
+        resizeDirection = null;
+        this.signLanguageWrapper.classList.remove("vidply-sign-dragging", "vidply-sign-resizing");
+      };
+      const onKeyDown = (e) => {
+        if (e.key === "d" || e.key === "D") {
+          dragMode = !dragMode;
+          resizeMode = false;
+          this.signLanguageWrapper.classList.toggle("vidply-sign-keyboard-drag", dragMode);
+          this.signLanguageWrapper.classList.remove("vidply-sign-keyboard-resize");
+          e.preventDefault();
+          return;
+        }
+        if (e.key === "r" || e.key === "R") {
+          resizeMode = !resizeMode;
+          dragMode = false;
+          this.signLanguageWrapper.classList.toggle("vidply-sign-keyboard-resize", resizeMode);
+          this.signLanguageWrapper.classList.remove("vidply-sign-keyboard-drag");
+          e.preventDefault();
+          return;
+        }
+        if (e.key === "Escape") {
+          dragMode = false;
+          resizeMode = false;
+          this.signLanguageWrapper.classList.remove("vidply-sign-keyboard-drag", "vidply-sign-keyboard-resize");
+          e.preventDefault();
+          return;
+        }
+        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+          const step = e.shiftKey ? 10 : 5;
+          const rect = this.signLanguageWrapper.getBoundingClientRect();
+          const videoWrapperRect = this.videoWrapper.getBoundingClientRect();
+          const containerRect = this.container.getBoundingClientRect();
+          const videoWrapperLeft = videoWrapperRect.left - containerRect.left;
+          const videoWrapperTop = videoWrapperRect.top - containerRect.top;
+          if (dragMode) {
+            let left = rect.left - containerRect.left;
+            let top = rect.top - containerRect.top;
+            if (e.key === "ArrowLeft") left -= step;
+            if (e.key === "ArrowRight") left += step;
+            if (e.key === "ArrowUp") top -= step;
+            if (e.key === "ArrowDown") top += step;
+            const controlsHeight = 95;
+            left = Math.max(videoWrapperLeft, Math.min(left, videoWrapperLeft + videoWrapperRect.width - rect.width));
+            top = Math.max(videoWrapperTop, Math.min(top, videoWrapperTop + videoWrapperRect.height - rect.height - controlsHeight));
+            this.signLanguageWrapper.style.left = `${left}px`;
+            this.signLanguageWrapper.style.top = `${top}px`;
+            this.signLanguageWrapper.style.right = "auto";
+            this.signLanguageWrapper.style.bottom = "auto";
+            this.signLanguageWrapper.classList.remove(...Array.from(this.signLanguageWrapper.classList).filter((c) => c.startsWith("vidply-sign-position-")));
+            this.saveSignLanguagePreferences();
+            e.preventDefault();
+          } else if (resizeMode) {
+            let width = rect.width;
+            if (e.key === "ArrowLeft") width -= step;
+            if (e.key === "ArrowRight") width += step;
+            if (e.key === "ArrowUp") width += step;
+            if (e.key === "ArrowDown") width -= step;
+            width = Math.max(150, width);
+            width = Math.min(width, videoWrapperRect.width);
+            this.signLanguageWrapper.style.width = `${width}px`;
+            this.signLanguageWrapper.style.height = "auto";
+            this.saveSignLanguagePreferences();
+            e.preventDefault();
+          }
+        }
+      };
+      this.signLanguageVideo.addEventListener("mousedown", onMouseDownVideo);
+      const handles = this.signLanguageWrapper.querySelectorAll(".vidply-sign-resize-handle");
+      handles.forEach((handle) => handle.addEventListener("mousedown", onMouseDownHandle));
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+      this.signLanguageWrapper.addEventListener("keydown", onKeyDown);
+      this.signLanguageInteractionHandlers = {
+        mouseDownVideo: onMouseDownVideo,
+        mouseDownHandle: onMouseDownHandle,
+        mouseMove: onMouseMove,
+        mouseUp: onMouseUp,
+        keyDown: onKeyDown,
+        handles
+      };
+    }
+    constrainSignLanguagePosition() {
+      if (!this.signLanguageWrapper || !this.videoWrapper) return;
+      if (!this.signLanguageWrapper.style.width || this.signLanguageWrapper.style.width === "") {
+        this.signLanguageWrapper.style.width = "280px";
+      }
+      const videoWrapperRect = this.videoWrapper.getBoundingClientRect();
+      const containerRect = this.container.getBoundingClientRect();
+      const wrapperRect = this.signLanguageWrapper.getBoundingClientRect();
+      const videoWrapperLeft = videoWrapperRect.left - containerRect.left;
+      const videoWrapperTop = videoWrapperRect.top - containerRect.top;
+      const videoWrapperWidth = videoWrapperRect.width;
+      const videoWrapperHeight = videoWrapperRect.height;
+      let wrapperWidth = wrapperRect.width || 280;
+      let wrapperHeight = wrapperRect.height || 280 * 9 / 16;
+      let left, top;
+      const margin = 16;
+      const controlsHeight = 95;
+      const position = this.signLanguageDesiredPosition || "bottom-right";
+      switch (position) {
+        case "bottom-right":
+          left = videoWrapperLeft + videoWrapperWidth - wrapperWidth - margin;
+          top = videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight;
+          break;
+        case "bottom-left":
+          left = videoWrapperLeft + margin;
+          top = videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight;
+          break;
+        case "top-right":
+          left = videoWrapperLeft + videoWrapperWidth - wrapperWidth - margin;
+          top = videoWrapperTop + margin;
+          break;
+        case "top-left":
+          left = videoWrapperLeft + margin;
+          top = videoWrapperTop + margin;
+          break;
+        default:
+          left = videoWrapperLeft + videoWrapperWidth - wrapperWidth - margin;
+          top = videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight;
+      }
+      left = Math.max(videoWrapperLeft, Math.min(left, videoWrapperLeft + videoWrapperWidth - wrapperWidth));
+      top = Math.max(videoWrapperTop, Math.min(top, videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight));
+      this.signLanguageWrapper.style.left = `${left}px`;
+      this.signLanguageWrapper.style.top = `${top}px`;
+      this.signLanguageWrapper.style.right = "auto";
+      this.signLanguageWrapper.style.bottom = "auto";
+      this.signLanguageWrapper.classList.remove(...Array.from(this.signLanguageWrapper.classList).filter((c) => c.startsWith("vidply-sign-position-")));
+    }
+    saveSignLanguagePreferences() {
+      if (!this.signLanguageWrapper) return;
+      this.storage.saveSignLanguagePreferences({
+        size: {
+          width: this.signLanguageWrapper.style.width
+          // Height is auto - maintained by aspect ratio
+        }
+      });
+    }
     cleanupSignLanguage() {
       if (this.signLanguageHandlers) {
         this.off("play", this.signLanguageHandlers.play);
@@ -4996,10 +6321,29 @@ var VidPly = (() => {
         this.off("ratechange", this.signLanguageHandlers.ratechange);
         this.signLanguageHandlers = null;
       }
-      if (this.signLanguageVideo && this.signLanguageVideo.parentNode) {
-        this.signLanguageVideo.pause();
-        this.signLanguageVideo.src = "";
-        this.signLanguageVideo.parentNode.removeChild(this.signLanguageVideo);
+      if (this.signLanguageInteractionHandlers) {
+        if (this.signLanguageVideo) {
+          this.signLanguageVideo.removeEventListener("mousedown", this.signLanguageInteractionHandlers.mouseDownVideo);
+        }
+        if (this.signLanguageInteractionHandlers.handles) {
+          this.signLanguageInteractionHandlers.handles.forEach((handle) => {
+            handle.removeEventListener("mousedown", this.signLanguageInteractionHandlers.mouseDownHandle);
+          });
+        }
+        document.removeEventListener("mousemove", this.signLanguageInteractionHandlers.mouseMove);
+        document.removeEventListener("mouseup", this.signLanguageInteractionHandlers.mouseUp);
+        if (this.signLanguageWrapper) {
+          this.signLanguageWrapper.removeEventListener("keydown", this.signLanguageInteractionHandlers.keyDown);
+        }
+        this.signLanguageInteractionHandlers = null;
+      }
+      if (this.signLanguageWrapper && this.signLanguageWrapper.parentNode) {
+        if (this.signLanguageVideo) {
+          this.signLanguageVideo.pause();
+          this.signLanguageVideo.src = "";
+        }
+        this.signLanguageWrapper.parentNode.removeChild(this.signLanguageWrapper);
+        this.signLanguageWrapper = null;
         this.signLanguageVideo = null;
       }
     }
@@ -5101,6 +6445,16 @@ var VidPly = (() => {
           this.emit("fullscreenchange", isFullscreen);
           if (this.controlBar) {
             this.controlBar.updateFullscreenButton();
+          }
+          if (this.signLanguageWrapper && this.signLanguageWrapper.style.display !== "none") {
+            setTimeout(() => {
+              requestAnimationFrame(() => {
+                this.storage.saveSignLanguagePreferences({ size: null });
+                this.signLanguageDesiredPosition = "bottom-right";
+                this.signLanguageWrapper.style.width = isFullscreen ? "400px" : "280px";
+                this.constrainSignLanguagePosition();
+              });
+            }, 500);
           }
         }
       };
