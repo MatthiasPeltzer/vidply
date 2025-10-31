@@ -62,7 +62,7 @@
 
     .status.success {
       background: rgba(76, 175, 80, 0.2);
-      color: #4caf50;
+      color: #b3d1b4;
     }
 
     .status.error {
@@ -110,7 +110,7 @@
     }
 
     .info-card h3 {
-      color: #aaa;
+      color: #fff;
       font-size: 16px;
       letter-spacing: 0.5px;
       margin-bottom: 8px;
@@ -118,7 +118,7 @@
     }
 
     .info-card .value {
-      color: #4caf50;
+      color: #b3d1b4;
       font-size: 20px;
       font-weight: 600;
     }
@@ -145,7 +145,7 @@
     }
 
     .log-entry.success {
-      color: #4caf50;
+      color: #b3d1b4;
     }
 
     .log-entry.error {
@@ -153,7 +153,7 @@
     }
 
     .log-entry.info {
-      color: #2196f3;
+      color: #259af7;
     }
 
     .log-entry.warn {
@@ -237,8 +237,8 @@
 
     .quality-badge.active {
       background: rgba(76, 175, 80, 0.3);
-      border-color: #4caf50;
-      color: #4caf50;
+      border-color: #b3d1b4;
+      color: #b3d1b4;
     }
 
     .stream-selector {
@@ -463,10 +463,10 @@
       
       // Also log to console with styling
       const styles = {
-        success: 'color: #4caf50; font-weight: bold;',
+        success: 'color: #b3d1b4; font-weight: bold;',
         error: 'color: #f44336; font-weight: bold;',
         warn: 'color: #ff9800; font-weight: bold;',
-        info: 'color: #2196f3;'
+        info: 'color: #259af7;'
       };
       console.log(`%c[${timestamp}] ${message}`, styles[type] || '');
     }
@@ -597,7 +597,7 @@
     player.on('canplay', () => {
       log('✅ Ready to play', 'success');
       document.getElementById('buffer-status').textContent = 'Ready';
-      document.getElementById('buffer-status').style.color = '#4caf50';
+      document.getElementById('buffer-status').style.color = '#b3d1b4';
     });
 
     player.on('error', (error) => {
@@ -686,8 +686,8 @@
       }
       
       // Console helper message
-      console.log('%c🎬 VidPly HLS Test', 'font-size: 20px; font-weight: bold; color: #2196f3;');
-      console.log('%cPlayer instance available as: window.hlsPlayer', 'color: #4caf50;');
+      console.log('%c🎬 VidPly HLS Test', 'font-size: 20px; font-weight: bold; color: #259af7;');
+      console.log('%cPlayer instance available as: window.hlsPlayer', 'color: #b3d1b4;');
       console.log('%cTry: window.hlsPlayer.play(), window.hlsPlayer.pause(), window.hlsPlayer.seek(30)', 'color: #ccc;');
     } else {
       log('❌ Player initialization failed. Check console for errors.', 'error');
