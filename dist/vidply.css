@@ -60,7 +60,7 @@
 
     /* UI Background Colors */
     --vidply-primary-dark-rgb: 8, 51, 88;
-    --vidply-primary-light: #60a5fa;
+    --vidply-primary-light: #71b7e2;
     --vidply-primary-rgb: 10, 64, 110;
     --vidply-shadow-lg: 0 12px 48px var(--vidply-black-80);
     --vidply-shadow-md: 0 4px 12px var(--vidply-black-40);
@@ -1685,23 +1685,23 @@
 
 /* Transcript entry types */
 .vidply-transcript-description {
-    background: rgba(100, 149, 237, 0.08); /* Subtle blue tint for descriptions */
-    border-left: 3px solid rgba(100, 149, 237, 0.6);
+    background: rgb(100 149 237 / 8%); /* Subtle blue tint for descriptions */
+    border-left: 3px solid rgb(100 149 237 / 60%);
 }
 
 .vidply-transcript-description .vidply-transcript-text {
-    color: rgba(135, 206, 250, 0.95); /* Light sky blue for description text */
+    color: rgb(135 206 250 / 95%); /* Light sky blue for description text */
     font-style: italic;
     opacity: 0.9;
 }
 
 .vidply-transcript-description .vidply-transcript-time {
-    color: rgba(100, 149, 237, 0.8); /* Matching blue for timestamp */
+    color: rgb(100 149 237 / 80%); /* Matching blue for timestamp */
 }
 
 .vidply-transcript-description:hover,
 .vidply-transcript-description:focus {
-    background: rgba(100, 149, 237, 0.14);
+    background: rgb(100 149 237 / 14%);
 }
 
 .vidply-transcript-description:hover .vidply-transcript-text,
@@ -1710,12 +1710,12 @@
 }
 
 .vidply-transcript-description.vidply-transcript-entry-active {
-    background: rgba(100, 149, 237, 0.18);
+    background: rgb(100 149 237 / 18%);
     border-left-color: #6495ed;
 }
 
 .vidply-transcript-description.vidply-transcript-entry-active .vidply-transcript-text {
-    color: rgb(135, 206, 250); /* Brighter on active */
+    color: rgb(135 206 250); /* Brighter on active */
     opacity: 1;
 }
 
@@ -1863,6 +1863,7 @@
     0%, 100% {
         box-shadow: 0 0 0 3px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
     }
+
     50% {
         box-shadow: 0 0 0 6px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
     }
@@ -2016,6 +2017,7 @@
         opacity: 0;
         transform: translateX(-50%) translateY(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
@@ -2044,7 +2046,7 @@
 .vidply-transcript-style-dialog::after {
     border-color: transparent transparent var(--vidply-bg-menu) transparent;
     border-style: solid;
-    border-width: 0 8px 8px 8px;
+    border-width: 0 8px 8px;
     content: '';
     height: 0;
     left: 12px;
@@ -2054,12 +2056,12 @@
 }
 
 .vidply-transcript-style-title {
+    border-bottom: 1px solid var(--vidply-border);
     color: var(--vidply-white);
     font-size: 14px;
     font-weight: 600;
-    margin: 0 0 12px 0;
+    margin: 0 0 12px;
     padding-bottom: 8px;
-    border-bottom: 1px solid var(--vidply-border);
 }
 
 .vidply-transcript-style-group {
@@ -2105,7 +2107,7 @@
 
 .vidply-transcript-style-select option {
     background: #1a1a1a;
-    color: #ffffff;
+    color: #fff;
 }
 
 /* Style Color Input */
