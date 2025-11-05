@@ -204,6 +204,11 @@ export class Player extends EventEmitter {
         this.audioDescriptionSrc = this.options.audioDescriptionSrc;
         this.signLanguageSrc = this.options.signLanguageSrc;
         this.signLanguageVideo = null;
+        // Store references to source elements with audio description attributes
+        this.audioDescriptionSourceElement = null;
+        this.originalAudioDescriptionSource = null;
+        // Store caption tracks that should be swapped for audio description
+        this.audioDescriptionCaptionTracks = [];
 
         // Components
         this.container = null;
@@ -441,7 +446,77 @@ export class Player extends EventEmitter {
             throw new Error('No media source found');
         }
 
-        // Store original source for audio description toggling
+        // Check for source elements with audio description attributes
+        const sourceElements = this.element.querySelectorAll('source');
+        for (const sourceEl of sourceElements) {
+            const descSrc = sourceEl.getAttribute('data-desc-src');
+            const origSrc = sourceEl.getAttribute('data-orig-src');
+            
+            if (descSrc || origSrc) {
+                // Found a source element with audio description attributes
+                // Store the first one as reference, but we'll search all of them when toggling
+                if (!this.audioDescriptionSourceElement) {
+                    this.audioDescriptionSourceElement = sourceEl;
+                }
+                
+                if (origSrc) {
+                    // Store the original src from the attribute for this source
+                    if (!this.originalAudioDescriptionSource) {
+                        this.originalAudioDescriptionSource = origSrc;
+                    }
+                    // Store the original src from the first source element that has data-orig-src
+                    if (!this.originalSrc) {
+                        this.originalSrc = origSrc;
+                    }
+                } else {
+                    // If data-orig-src is not set, use the current src attribute
+                    const currentSrcAttr = sourceEl.getAttribute('src');
+                    if (!this.originalAudioDescriptionSource && currentSrcAttr) {
+                        this.originalAudioDescriptionSource = currentSrcAttr;
+                    }
+                    if (!this.originalSrc && currentSrcAttr) {
+                        this.originalSrc = currentSrcAttr;
+                    }
+                }
+                
+                // Store audio description source from data-desc-src (use first one found)
+                if (descSrc && !this.audioDescriptionSrc) {
+                    this.audioDescriptionSrc = descSrc;
+                }
+                // Continue checking all source elements to ensure we capture all audio description sources
+            }
+        }
+
+        // Check for caption/subtitle tracks with audio description versions
+        // Only tracks with explicit data-desc-src attribute are swapped (no auto-detection to avoid 404 errors)
+        // Description tracks (kind="descriptions") are NOT swapped - they're for transcripts
+        const trackElements = this.element.querySelectorAll('track');
+        trackElements.forEach(trackEl => {
+            const trackKind = trackEl.getAttribute('kind');
+            const trackDescSrc = trackEl.getAttribute('data-desc-src');
+            
+            // Only handle caption/subtitle tracks (not description tracks)
+            // Description tracks stay as-is since they're for transcripts
+            // Include captions, subtitles, and chapters tracks that can be swapped for audio description
+            if (trackKind === 'captions' || trackKind === 'subtitles' || trackKind === 'chapters') {
+                if (trackDescSrc) {
+                    // Found a track with explicit data-desc-src - this is the described version
+                    this.audioDescriptionCaptionTracks.push({
+                        trackElement: trackEl,
+                        originalSrc: trackEl.getAttribute('src'),
+                        describedSrc: trackDescSrc,
+                        originalTrackSrc: trackEl.getAttribute('data-orig-src') || trackEl.getAttribute('src'),
+                        explicit: true // Explicitly defined, so we should validate it
+                    });
+                    this.log(`Found explicit described ${trackKind} track: ${trackEl.getAttribute('src')} -> ${trackDescSrc}`);
+                }
+                // Note: Auto-detection disabled to avoid 404 console errors
+                // If you want described tracks, add data-desc-src attribute to the track element
+            }
+            // Description tracks (kind="descriptions") are ignored - they remain unchanged for transcripts
+         });
+
+         // Store original source for audio description toggling (fallback if not set above)
         if (!this.originalSrc) {
             this.originalSrc = src;
         }
@@ -803,10 +878,28 @@ export class Player extends EventEmitter {
         }
     }
 
+    /**
+     * Check if a track file exists
+     * @param {string} url - Track file URL
+     * @returns {Promise<boolean>} - True if file exists
+     */
+    async validateTrackExists(url) {
+        try {
+            const response = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
+            return response.ok;
+        } catch (error) {
+            return false;
+        }
+    }
+
     // Audio Description
     async enableAudioDescription() {
-        if (!this.audioDescriptionSrc) {
-            console.warn('VidPly: No audio description source provided');
+        // Check if we have source elements with data-desc-src (even if audioDescriptionSrc is not set)
+        const hasSourceElementsWithDesc = Array.from(this.element.querySelectorAll('source')).some(el => el.getAttribute('data-desc-src'));
+        const hasTracksWithDesc = this.audioDescriptionCaptionTracks.length > 0;
+        
+        if (!this.audioDescriptionSrc && !hasSourceElementsWithDesc && !hasTracksWithDesc) {
+            console.warn('VidPly: No audio description source, source elements, or tracks provided');
             return;
         }
 
@@ -814,8 +907,537 @@ export class Player extends EventEmitter {
         const currentTime = this.state.currentTime;
         const wasPlaying = this.state.playing;
 
+        // Store swapped tracks for transcript reload (declare at function scope)
+        let swappedTracksForTranscript = [];
+
         // Switch to audio-described version
-        this.element.src = this.audioDescriptionSrc;
+        // If we have a source element with audio description attributes, update that instead
+        if (this.audioDescriptionSourceElement) {
+            const currentSrc = this.element.currentSrc || this.element.src;
+            
+            // Find the source element that matches the currently active source
+            const sourceElements = Array.from(this.element.querySelectorAll('source'));
+            let sourceElementToUpdate = null;
+            let descSrc = this.audioDescriptionSrc;
+            
+            for (const sourceEl of sourceElements) {
+                const sourceSrc = sourceEl.getAttribute('src');
+                const descSrcAttr = sourceEl.getAttribute('data-desc-src');
+                
+                // Check if this source matches the current source (by filename)
+                // Match by full path or just filename
+                const sourceFilename = sourceSrc ? sourceSrc.split('/').pop() : '';
+                const currentFilename = currentSrc ? currentSrc.split('/').pop() : '';
+                
+                if (currentSrc && (currentSrc === sourceSrc || 
+                    currentSrc.includes(sourceSrc) || 
+                    currentSrc.includes(sourceFilename) ||
+                    (sourceFilename && currentFilename === sourceFilename))) {
+                    sourceElementToUpdate = sourceEl;
+                    if (descSrcAttr) {
+                        descSrc = descSrcAttr;
+                    } else if (sourceSrc) {
+                        // If no data-desc-src, try to construct it from the source
+                        // But prefer the stored audioDescriptionSrc if available
+                        descSrc = this.audioDescriptionSrc || descSrc;
+                    }
+                    break;
+                }
+            }
+            
+            // If we didn't find a match, use the stored source element
+            if (!sourceElementToUpdate) {
+                sourceElementToUpdate = this.audioDescriptionSourceElement;
+                // Ensure we have the correct descSrc from the stored element
+                const storedDescSrc = sourceElementToUpdate.getAttribute('data-desc-src');
+                if (storedDescSrc) {
+                    descSrc = storedDescSrc;
+                }
+            }
+            
+            // Swap caption tracks to described versions BEFORE loading
+            if (this.audioDescriptionCaptionTracks.length > 0) {
+                // Swap tracks: validate explicit tracks, but try auto-detected tracks without validation
+                // This avoids 404 errors while still allowing auto-detection to work
+                const validationPromises = this.audioDescriptionCaptionTracks.map(async (trackInfo) => {
+                    if (trackInfo.trackElement && trackInfo.describedSrc) {
+                        // Only validate explicitly defined tracks (to confirm they exist)
+                        // Auto-detected tracks are used without validation (browser will handle missing files gracefully)
+                        if (trackInfo.explicit === true) {
+                            try {
+                                const exists = await this.validateTrackExists(trackInfo.describedSrc);
+                                return { trackInfo, exists };
+                            } catch (error) {
+                                // Silently handle validation errors
+                                return { trackInfo, exists: false };
+                            }
+                        } else {
+                            // This shouldn't happen since auto-detection is disabled
+                            // But if it does, don't validate to avoid 404s
+                            return { trackInfo, exists: false };
+                        }
+                    }
+                    return { trackInfo, exists: false };
+                });
+                
+                const validationResults = await Promise.all(validationPromises);
+                const tracksToSwap = validationResults.filter(result => result.exists);
+                
+                if (tracksToSwap.length > 0) {
+                    // Store original track modes before removing tracks
+                    const trackModes = new Map();
+                    tracksToSwap.forEach(({ trackInfo }) => {
+                        const textTrack = trackInfo.trackElement.track;
+                        if (textTrack) {
+                            trackModes.set(trackInfo, {
+                                wasShowing: textTrack.mode === 'showing',
+                                wasHidden: textTrack.mode === 'hidden'
+                            });
+                        } else {
+                            trackModes.set(trackInfo, {
+                                wasShowing: false,
+                                wasHidden: false
+                            });
+                        }
+                    });
+                    
+                    // Store all track information before removing
+                    const tracksToReadd = tracksToSwap.map(({ trackInfo }) => {
+                        const oldSrc = trackInfo.trackElement.getAttribute('src');
+                        const parent = trackInfo.trackElement.parentNode;
+                        const nextSibling = trackInfo.trackElement.nextSibling;
+                        
+                        // Store all attributes from the old track
+                        const attributes = {};
+                        Array.from(trackInfo.trackElement.attributes).forEach(attr => {
+                            attributes[attr.name] = attr.value;
+                        });
+                        
+                        return {
+                            trackInfo,
+                            oldSrc,
+                            parent,
+                            nextSibling,
+                            attributes
+                        };
+                    });
+                    
+                    // Remove ALL old tracks first to force browser to clear TextTrack objects
+                    tracksToReadd.forEach(({ trackInfo }) => {
+                        trackInfo.trackElement.remove();
+                    });
+                    
+                    // Force browser to process the removal by calling load()
+                    this.element.load();
+                    
+                    // Wait for browser to process the removal, then add new tracks
+                    setTimeout(() => {
+                        tracksToReadd.forEach(({ trackInfo, oldSrc, parent, nextSibling, attributes }) => {
+                            swappedTracksForTranscript.push(trackInfo);
+                            
+                            // Create a completely new track element (not a clone) to force browser to create new TextTrack
+                            const newTrackElement = document.createElement('track');
+                            newTrackElement.setAttribute('src', trackInfo.describedSrc);
+                            
+                            // Copy all attributes except src and data-desc-src
+                            Object.keys(attributes).forEach(attrName => {
+                                if (attrName !== 'src' && attrName !== 'data-desc-src') {
+                                    newTrackElement.setAttribute(attrName, attributes[attrName]);
+                                }
+                            });
+                            
+                            // Insert new track element
+                            if (nextSibling && nextSibling.parentNode) {
+                                parent.insertBefore(newTrackElement, nextSibling);
+                            } else {
+                                parent.appendChild(newTrackElement);
+                            }
+                            
+                            // Update reference to the new track element
+                            trackInfo.trackElement = newTrackElement;
+                        });
+                        
+                        // After all new tracks are added, force browser to reload media element again
+                        // This ensures new track elements are processed and new TextTrack objects are created
+                        this.element.load();
+                        
+                        // Wait for loadedmetadata event before accessing new TextTrack objects
+                        const setupNewTracks = () => {
+                            // Wait a bit more for browser to fully process the new track elements
+                            setTimeout(() => {
+                                swappedTracksForTranscript.forEach((trackInfo) => {
+                                    const trackElement = trackInfo.trackElement;
+                                    const newTextTrack = trackElement.track;
+                                    
+                                    if (newTextTrack) {
+                                        // Get original mode from stored map
+                                        const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
+                                        
+                                        // Set mode to load the new track
+                                        newTextTrack.mode = 'hidden'; // Use hidden to load cues without showing
+                                        
+                                        // Restore original mode after track loads
+                                        // Note: CaptionManager will handle enabling captions separately
+                                        const restoreMode = () => {
+                                            if (modeInfo.wasShowing) {
+                                                // Set to hidden - CaptionManager will set it to showing when it enables
+                                                newTextTrack.mode = 'hidden';
+                                            } else if (modeInfo.wasHidden) {
+                                                newTextTrack.mode = 'hidden';
+                                            } else {
+                                                newTextTrack.mode = 'disabled';
+                                            }
+                                        };
+                                        
+                                        // Wait for track to load
+                                        if (newTextTrack.readyState >= 2) { // LOADED
+                                            restoreMode();
+                                        } else {
+                                            newTextTrack.addEventListener('load', restoreMode, { once: true });
+                                            newTextTrack.addEventListener('error', restoreMode, { once: true });
+                                        }
+                                    }
+                                });
+                            }, 300); // Additional wait for browser to process track elements
+                        };
+                        
+                        // Wait for loadedmetadata event which fires when browser processes track elements
+                        if (this.element.readyState >= 1) { // HAVE_METADATA
+                            // Already loaded, wait a bit and setup
+                            setTimeout(setupNewTracks, 200);
+                        } else {
+                            this.element.addEventListener('loadedmetadata', setupNewTracks, { once: true });
+                            // Fallback timeout
+                            setTimeout(setupNewTracks, 2000);
+                        }
+                    }, 100); // Wait 100ms after first load() before adding new tracks
+                    
+                    const skippedCount = validationResults.length - tracksToSwap.length;
+                }
+            }
+            
+            // Update all source elements that have data-desc-src to their described versions
+            // Force browser to pick up changes by removing and re-adding source elements
+            // Get source elements (may have been defined in if block above, but get fresh list here)
+            const allSourceElements = Array.from(this.element.querySelectorAll('source'));
+            const sourcesToUpdate = [];
+            
+            allSourceElements.forEach((sourceEl) => {
+                const descSrcAttr = sourceEl.getAttribute('data-desc-src');
+                const currentSrc = sourceEl.getAttribute('src');
+                
+                if (descSrcAttr) {
+                    const type = sourceEl.getAttribute('type');
+                    let origSrc = sourceEl.getAttribute('data-orig-src');
+                    
+                    // Store current src as data-orig-src if not already set
+                    if (!origSrc) {
+                        origSrc = currentSrc;
+                    }
+                    
+                    // Store info for re-adding with described src
+                    sourcesToUpdate.push({
+                        src: descSrcAttr,  // Use described version
+                        type: type,
+                        origSrc: origSrc,
+                        descSrc: descSrcAttr
+                    });
+                } else {
+                    // Source element without data-desc-src - keep as-is
+                    const type = sourceEl.getAttribute('type');
+                    const src = sourceEl.getAttribute('src');
+                    sourcesToUpdate.push({
+                        src: src,
+                        type: type,
+                        origSrc: null,
+                        descSrc: null
+                    });
+                }
+            });
+            
+            // Remove all source elements
+            allSourceElements.forEach(sourceEl => {
+                sourceEl.remove();
+            });
+            
+            // Re-add them with updated src attributes (described versions)
+            sourcesToUpdate.forEach(sourceInfo => {
+                const newSource = document.createElement('source');
+                newSource.setAttribute('src', sourceInfo.src);
+                if (sourceInfo.type) {
+                    newSource.setAttribute('type', sourceInfo.type);
+                }
+                if (sourceInfo.origSrc) {
+                    newSource.setAttribute('data-orig-src', sourceInfo.origSrc);
+                }
+                if (sourceInfo.descSrc) {
+                    newSource.setAttribute('data-desc-src', sourceInfo.descSrc);
+                }
+                this.element.appendChild(newSource);
+            });
+            
+            // Force reload by calling load() on the element
+            // This should pick up the new src attributes from the re-added source elements
+            // and also reload the track elements
+            this.element.load();
+            
+            // Wait for new source to load
+            await new Promise((resolve) => {
+                const onLoadedMetadata = () => {
+                    this.element.removeEventListener('loadedmetadata', onLoadedMetadata);
+                    resolve();
+                };
+                this.element.addEventListener('loadedmetadata', onLoadedMetadata);
+            });
+            
+            // Wait a bit more for tracks to be recognized and loaded after video metadata loads
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Hide poster if video hasn't started yet (poster should hide when we seek or play)
+            if (this.element.tagName === 'VIDEO' && currentTime === 0 && !wasPlaying) {
+                // Force poster to hide by doing a minimal seek or loading first frame
+                // Setting readyState check or seeking to 0.001 seconds will hide the poster
+                if (this.element.readyState >= 1) { // HAVE_METADATA
+                    // Seek to a tiny fraction to trigger poster hiding without actually moving
+                    this.element.currentTime = 0.001;
+                    // Then seek back to 0 after a brief moment to ensure poster stays hidden
+                    setTimeout(() => {
+                        this.element.currentTime = 0;
+                    }, 10);
+                }
+            }
+
+            // Restore playback position
+            this.seek(currentTime);
+
+            if (wasPlaying) {
+                this.play();
+            }
+
+            // Update state and emit event
+            this.state.audioDescriptionEnabled = true;
+            this.emit('audiodescriptionenabled');
+        } else {
+            // Fallback to updating element src directly
+            // Swap caption tracks to described versions BEFORE loading
+            if (this.audioDescriptionCaptionTracks.length > 0) {
+                // Swap tracks: validate explicit tracks, but try auto-detected tracks without validation
+                const validationPromises = this.audioDescriptionCaptionTracks.map(async (trackInfo) => {
+                    if (trackInfo.trackElement && trackInfo.describedSrc) {
+                        // Only validate explicitly defined tracks
+                        // Auto-detected tracks are used without validation (no 404s)
+                        if (trackInfo.explicit === true) {
+                            try {
+                                const exists = await this.validateTrackExists(trackInfo.describedSrc);
+                                return { trackInfo, exists };
+                            } catch (error) {
+                                return { trackInfo, exists: false };
+                            }
+                        } else {
+                            // This shouldn't happen since auto-detection is disabled
+                            return { trackInfo, exists: false };
+                        }
+                    }
+                    return { trackInfo, exists: false };
+                });
+                
+                const validationResults = await Promise.all(validationPromises);
+                const tracksToSwap = validationResults.filter(result => result.exists);
+                
+                if (tracksToSwap.length > 0) {
+                    // Store original track modes before removing tracks
+                    const trackModes = new Map();
+                    tracksToSwap.forEach(({ trackInfo }) => {
+                        const textTrack = trackInfo.trackElement.track;
+                        if (textTrack) {
+                            trackModes.set(trackInfo, {
+                                wasShowing: textTrack.mode === 'showing',
+                                wasHidden: textTrack.mode === 'hidden'
+                            });
+                        } else {
+                            trackModes.set(trackInfo, {
+                                wasShowing: false,
+                                wasHidden: false
+                            });
+                        }
+                    });
+                    
+                    // Store all track information before removing
+                    const tracksToReadd = tracksToSwap.map(({ trackInfo }) => {
+                        const oldSrc = trackInfo.trackElement.getAttribute('src');
+                        const parent = trackInfo.trackElement.parentNode;
+                        const nextSibling = trackInfo.trackElement.nextSibling;
+                        
+                        // Store all attributes from the old track
+                        const attributes = {};
+                        Array.from(trackInfo.trackElement.attributes).forEach(attr => {
+                            attributes[attr.name] = attr.value;
+                        });
+                        
+                        return {
+                            trackInfo,
+                            oldSrc,
+                            parent,
+                            nextSibling,
+                            attributes
+                        };
+                    });
+                    
+                    // Remove ALL old tracks first to force browser to clear TextTrack objects
+                    tracksToReadd.forEach(({ trackInfo }) => {
+                        trackInfo.trackElement.remove();
+                    });
+                    
+                    // Force browser to process the removal by calling load()
+                    this.element.load();
+                    
+                    // Wait for browser to process the removal, then add new tracks
+                    setTimeout(() => {
+                        tracksToReadd.forEach(({ trackInfo, oldSrc, parent, nextSibling, attributes }) => {
+                            swappedTracksForTranscript.push(trackInfo);
+                            
+                            // Create a completely new track element (not a clone) to force browser to create new TextTrack
+                            const newTrackElement = document.createElement('track');
+                            newTrackElement.setAttribute('src', trackInfo.describedSrc);
+                            
+                            // Copy all attributes except src and data-desc-src
+                            Object.keys(attributes).forEach(attrName => {
+                                if (attrName !== 'src' && attrName !== 'data-desc-src') {
+                                    newTrackElement.setAttribute(attrName, attributes[attrName]);
+                                }
+                            });
+                            
+                            // Insert new track element
+                            if (nextSibling && nextSibling.parentNode) {
+                                parent.insertBefore(newTrackElement, nextSibling);
+                            } else {
+                                parent.appendChild(newTrackElement);
+                            }
+                            
+                            // Update reference to the new track element
+                            trackInfo.trackElement = newTrackElement;
+                        });
+                        
+                        // After all new tracks are added, force browser to reload media element again
+                        this.element.load();
+                        
+                        // Wait for loadedmetadata event before accessing new TextTrack objects
+                        const setupNewTracks = () => {
+                            // Wait a bit more for browser to fully process the new track elements
+                            setTimeout(() => {
+                                swappedTracksForTranscript.forEach((trackInfo) => {
+                                    const trackElement = trackInfo.trackElement;
+                                    const newTextTrack = trackElement.track;
+                                    
+                                    if (newTextTrack) {
+                                        // Get original mode from stored map
+                                        const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
+                                        
+                                        // Set mode to load the new track
+                                        newTextTrack.mode = 'hidden'; // Use hidden to load cues without showing
+                                        
+                                        // Restore original mode after track loads
+                                        const restoreMode = () => {
+                                            if (modeInfo.wasShowing) {
+                                                // Set to hidden - CaptionManager will set it to showing when it enables
+                                                newTextTrack.mode = 'hidden';
+                                            } else if (modeInfo.wasHidden) {
+                                                newTextTrack.mode = 'hidden';
+                                            } else {
+                                                newTextTrack.mode = 'disabled';
+                                            }
+                                        };
+                                        
+                                        // Wait for track to load
+                                        if (newTextTrack.readyState >= 2) { // LOADED
+                                            restoreMode();
+                                        } else {
+                                            newTextTrack.addEventListener('load', restoreMode, { once: true });
+                                            newTextTrack.addEventListener('error', restoreMode, { once: true });
+                                        }
+                                    }
+                                });
+                            }, 300); // Additional wait for browser to process track elements
+                        };
+                        
+                        // Wait for loadedmetadata event which fires when browser processes track elements
+                        if (this.element.readyState >= 1) { // HAVE_METADATA
+                            // Already loaded, wait a bit and setup
+                            setTimeout(setupNewTracks, 200);
+                        } else {
+                            this.element.addEventListener('loadedmetadata', setupNewTracks, { once: true });
+                            // Fallback timeout
+                            setTimeout(setupNewTracks, 2000);
+                        }
+                    }, 100); // Wait 100ms after first load() before adding new tracks
+                }
+            }
+            
+            // Check if we have source elements with data-desc-src (fallback method)
+            const fallbackSourceElements = Array.from(this.element.querySelectorAll('source'));
+            const hasSourceElementsWithDesc = fallbackSourceElements.some(el => el.getAttribute('data-desc-src'));
+            
+            if (hasSourceElementsWithDesc) {
+                const fallbackSourcesToUpdate = [];
+                
+                fallbackSourceElements.forEach((sourceEl) => {
+                    const descSrcAttr = sourceEl.getAttribute('data-desc-src');
+                    const currentSrc = sourceEl.getAttribute('src');
+                    
+                    if (descSrcAttr) {
+                        const type = sourceEl.getAttribute('type');
+                        let origSrc = sourceEl.getAttribute('data-orig-src');
+                        
+                        if (!origSrc) {
+                            origSrc = currentSrc;
+                        }
+                        
+                        fallbackSourcesToUpdate.push({
+                            src: descSrcAttr,
+                            type: type,
+                            origSrc: origSrc,
+                            descSrc: descSrcAttr
+                        });
+                    } else {
+                        const type = sourceEl.getAttribute('type');
+                        const src = sourceEl.getAttribute('src');
+                        fallbackSourcesToUpdate.push({
+                            src: src,
+                            type: type,
+                            origSrc: null,
+                            descSrc: null
+                        });
+                    }
+                });
+                
+                // Remove all source elements
+                fallbackSourceElements.forEach(sourceEl => {
+                    sourceEl.remove();
+                });
+                
+                // Re-add them with updated src attributes
+                fallbackSourcesToUpdate.forEach(sourceInfo => {
+                    const newSource = document.createElement('source');
+                    newSource.setAttribute('src', sourceInfo.src);
+                    if (sourceInfo.type) {
+                        newSource.setAttribute('type', sourceInfo.type);
+                    }
+                    if (sourceInfo.origSrc) {
+                        newSource.setAttribute('data-orig-src', sourceInfo.origSrc);
+                    }
+                    if (sourceInfo.descSrc) {
+                        newSource.setAttribute('data-desc-src', sourceInfo.descSrc);
+                    }
+                    this.element.appendChild(newSource);
+                });
+                
+                // Force reload
+                this.element.load();
+            } else {
+                // Fallback to updating element src directly (for videos without source elements)
+                this.element.src = this.audioDescriptionSrc;
+            }
+        }
 
         // Wait for new source to load
         await new Promise((resolve) => {
@@ -826,11 +1448,271 @@ export class Player extends EventEmitter {
             this.element.addEventListener('loadedmetadata', onLoadedMetadata);
         });
 
+        // Hide poster if video hasn't started yet (poster should hide when we seek or play)
+        if (this.element.tagName === 'VIDEO' && currentTime === 0 && !wasPlaying) {
+            // Force poster to hide by doing a minimal seek or loading first frame
+            // Setting readyState check or seeking to 0.001 seconds will hide the poster
+            if (this.element.readyState >= 1) { // HAVE_METADATA
+                // Seek to a tiny fraction to trigger poster hiding without actually moving
+                this.element.currentTime = 0.001;
+                // Then seek back to 0 after a brief moment to ensure poster stays hidden
+                setTimeout(() => {
+                    this.element.currentTime = 0;
+                }, 10);
+            }
+        }
+
         // Restore playback position
         this.seek(currentTime);
 
         if (wasPlaying) {
             this.play();
+        }
+
+        // Reload CaptionManager tracks if tracks were swapped (so it has fresh references)
+        if (swappedTracksForTranscript.length > 0 && this.captionManager) {
+            // Store if captions were enabled and which track
+            const wasCaptionsEnabled = this.state.captionsEnabled;
+            let currentTrackInfo = null;
+            if (this.captionManager.currentTrack) {
+                const currentTrackIndex = this.captionManager.tracks.findIndex(t => t.track === this.captionManager.currentTrack.track);
+                if (currentTrackIndex >= 0) {
+                    currentTrackInfo = {
+                        language: this.captionManager.tracks[currentTrackIndex].language,
+                        kind: this.captionManager.tracks[currentTrackIndex].kind
+                    };
+                }
+            }
+            
+            // Wait a bit for new tracks to be available, then reload
+            setTimeout(() => {
+                // Reload tracks to get fresh references to new TextTrack objects
+                this.captionManager.tracks = [];
+                this.captionManager.loadTracks();
+                
+                // Re-enable captions if they were enabled before
+                if (wasCaptionsEnabled && currentTrackInfo && this.captionManager.tracks.length > 0) {
+                    // Find the track by language and kind to match the swapped track
+                    const matchingTrackIndex = this.captionManager.tracks.findIndex(t => 
+                        t.language === currentTrackInfo.language && t.kind === currentTrackInfo.kind
+                    );
+                    
+                    if (matchingTrackIndex >= 0) {
+                        this.captionManager.enable(matchingTrackIndex);
+                    } else if (this.captionManager.tracks.length > 0) {
+                        // Fallback: enable first track
+                        this.captionManager.enable(0);
+                    }
+                }
+            }, 600); // Wait for tracks to be processed
+        }
+
+        // Reload transcript if visible (after video metadata loaded, tracks should be available)
+        // Reload regardless of whether caption tracks were swapped, in case tracks changed
+        if (this.transcriptManager && this.transcriptManager.isVisible) {
+            // Wait for tracks to load after source swap
+            // If tracks were swapped, wait for them to load; otherwise wait a bit for any track changes
+            const swappedTracks = typeof swappedTracksForTranscript !== 'undefined' ? swappedTracksForTranscript : [];
+            
+            if (swappedTracks.length > 0) {
+                // Wait for swapped tracks to load their new cues
+                // Since we re-added track elements and called load(), wait for loadedmetadata event
+                // which is when the browser processes track elements
+                const onMetadataLoaded = () => {
+                    // Get fresh track references from the video element's textTracks collection
+                    // This ensures we get the actual textTrack objects that the browser created
+                    const allTextTracks = Array.from(this.element.textTracks);
+                    
+                    // Find the tracks that match our swapped tracks by language and kind
+                    // Match by checking the track element's src attribute
+                    const freshTracks = swappedTracks.map((trackInfo) => {
+                        const trackEl = trackInfo.trackElement;
+                        const expectedSrc = trackEl.getAttribute('src');
+                        const srclang = trackEl.getAttribute('srclang');
+                        const kind = trackEl.getAttribute('kind');
+                        
+                        // Find matching track in textTracks collection
+                        // First try to match by the track element reference
+                        let foundTrack = allTextTracks.find(track => trackEl.track === track);
+                        
+                        // If not found, try matching by language and kind, but verify src
+                        if (!foundTrack) {
+                            foundTrack = allTextTracks.find(track => {
+                                if (track.language === srclang && 
+                                    (track.kind === kind || (kind === 'captions' && track.kind === 'subtitles'))) {
+                                    // Verify the src matches
+                                    const trackElementForTrack = Array.from(this.element.querySelectorAll('track')).find(
+                                        el => el.track === track
+                                    );
+                                    if (trackElementForTrack) {
+                                        const actualSrc = trackElementForTrack.getAttribute('src');
+                                        if (actualSrc === expectedSrc) {
+                                            return true;
+                                        }
+                                    }
+                                }
+                                return false;
+                            });
+                        }
+                        
+                        // Verify the track element's src matches what we expect
+                        if (foundTrack) {
+                            const trackElement = Array.from(this.element.querySelectorAll('track')).find(
+                                el => el.track === foundTrack
+                            );
+                            if (trackElement && trackElement.getAttribute('src') !== expectedSrc) {
+                                return null;
+                            }
+                        }
+                        
+                        return foundTrack;
+                    }).filter(Boolean);
+                    
+                    if (freshTracks.length === 0) {
+                        // Fallback: just reload after delay - transcript manager will find tracks itself
+                        setTimeout(() => {
+                            if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
+                                this.transcriptManager.loadTranscriptData();
+                            }
+                        }, 1000);
+                        return;
+                    }
+                    
+                    // Ensure tracks are in hidden mode to load cues for transcript
+                    freshTracks.forEach(track => {
+                        if (track.mode === 'disabled') {
+                            track.mode = 'hidden';
+                        }
+                    });
+                    
+                    let loadedCount = 0;
+                    const checkLoaded = () => {
+                        loadedCount++;
+                        if (loadedCount >= freshTracks.length) {
+                            // Give a bit more time for cues to be fully parsed
+                            // Also ensure we're getting the latest TextTrack references
+                            setTimeout(() => {
+                                if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
+                                    // Force transcript manager to get fresh track references
+                                    // Clear any cached track references by forcing a fresh read
+                                    // The transcript manager will find tracks from this.element.textTracks
+                                    // which should now have the new TextTrack objects with the described captions
+                                    
+                                    // Verify the tracks have the correct src before reloading transcript
+                                    const allTextTracks = Array.from(this.element.textTracks);
+                                    const swappedTrackSrcs = swappedTracks.map(t => t.describedSrc);
+                                    const hasCorrectTracks = freshTracks.some(track => {
+                                        const trackEl = Array.from(this.element.querySelectorAll('track')).find(
+                                            el => el.track === track
+                                        );
+                                        return trackEl && swappedTrackSrcs.includes(trackEl.getAttribute('src'));
+                                    });
+                                    
+                                    if (hasCorrectTracks || freshTracks.length > 0) {
+                                        this.transcriptManager.loadTranscriptData();
+                                    }
+                                }
+                            }, 800); // Increased wait time to ensure cues are fully loaded
+                        }
+                    };
+                    
+                    freshTracks.forEach(track => {
+                        // Ensure track is in hidden mode to load cues (required for transcript)
+                        if (track.mode === 'disabled') {
+                            track.mode = 'hidden';
+                        }
+                        
+                        // Check if track has cues loaded
+                        // Verify the track element's src matches the expected described src
+                        const trackElementForTrack = Array.from(this.element.querySelectorAll('track')).find(
+                            el => el.track === track
+                        );
+                        const actualSrc = trackElementForTrack ? trackElementForTrack.getAttribute('src') : null;
+                        
+                        // Find the expected src from swappedTracks
+                        const expectedTrackInfo = swappedTracks.find(t => {
+                            const tEl = t.trackElement;
+                            return tEl && (tEl.track === track || 
+                                (tEl.getAttribute('srclang') === track.language && 
+                                 tEl.getAttribute('kind') === track.kind));
+                        });
+                        const expectedSrc = expectedTrackInfo ? expectedTrackInfo.describedSrc : null;
+                        
+                        // Only proceed if the src matches (or we can't verify)
+                        if (expectedSrc && actualSrc && actualSrc !== expectedSrc) {
+                            // Wrong track, skip it
+                            checkLoaded(); // Count it as loaded to not block
+                            return;
+                        }
+                        
+                        if (track.readyState >= 2 && track.cues && track.cues.length > 0) { // LOADED with cues
+                            // Track already loaded with cues
+                            checkLoaded();
+                        } else {
+                            // Force track to load by setting mode
+                            if (track.mode === 'disabled') {
+                                track.mode = 'hidden';
+                            }
+                            
+                            // Wait for track to load
+                            const onTrackLoad = () => {
+                                // Wait a bit for cues to be fully parsed
+                                setTimeout(checkLoaded, 300);
+                            };
+                            
+                            if (track.readyState >= 2) {
+                                // Already loaded, but might not have cues yet
+                                // Wait a bit and check again
+                                setTimeout(() => {
+                                    if (track.cues && track.cues.length > 0) {
+                                        checkLoaded();
+                                    } else {
+                                        // Still no cues, wait for load event
+                                        track.addEventListener('load', onTrackLoad, { once: true });
+                                    }
+                                }, 100);
+                            } else {
+                                track.addEventListener('load', onTrackLoad, { once: true });
+                                track.addEventListener('error', () => {
+                                    // Even on error, try to reload transcript
+                                    checkLoaded();
+                                }, { once: true });
+                            }
+                        }
+                    });
+                };
+                
+                // Wait for loadedmetadata event which fires when browser processes track elements
+                // Also wait for the tracks to be fully processed after the second load()
+                const waitForTracks = () => {
+                    // Wait a bit more to ensure new TextTrack objects are created
+                    setTimeout(() => {
+                        if (this.element.readyState >= 1) { // HAVE_METADATA
+                            onMetadataLoaded();
+                        } else {
+                            this.element.addEventListener('loadedmetadata', onMetadataLoaded, { once: true });
+                            // Fallback timeout
+                            setTimeout(onMetadataLoaded, 2000);
+                        }
+                    }, 500); // Wait 500ms after second load() for tracks to be processed
+                };
+                
+                waitForTracks();
+                
+                // Fallback timeout - longer to ensure tracks are loaded
+                setTimeout(() => {
+                    if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
+                        this.transcriptManager.loadTranscriptData();
+                    }
+                }, 5000);
+            } else {
+                // No tracks swapped, just wait a bit and reload
+                setTimeout(() => {
+                    if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
+                        this.transcriptManager.loadTranscriptData();
+                    }
+                }, 800);
+            }
         }
 
         this.state.audioDescriptionEnabled = true;
@@ -846,8 +1728,78 @@ export class Player extends EventEmitter {
         const currentTime = this.state.currentTime;
         const wasPlaying = this.state.playing;
 
-        // Switch back to original version
-        this.element.src = this.originalSrc;
+        // Swap caption/chapter tracks back to original versions BEFORE loading
+        if (this.audioDescriptionCaptionTracks.length > 0) {
+            this.audioDescriptionCaptionTracks.forEach(trackInfo => {
+                if (trackInfo.trackElement && trackInfo.originalTrackSrc) {
+                    trackInfo.trackElement.setAttribute('src', trackInfo.originalTrackSrc);
+                }
+            });
+        }
+        
+        // Swap source elements back to original versions
+        // Check if we have source elements with data-orig-src
+        const allSourceElements = Array.from(this.element.querySelectorAll('source'));
+        const hasSourceElementsToSwap = allSourceElements.some(el => el.getAttribute('data-orig-src'));
+        
+        if (hasSourceElementsToSwap) {
+            const sourcesToRestore = [];
+            
+            allSourceElements.forEach((sourceEl) => {
+                const origSrcAttr = sourceEl.getAttribute('data-orig-src');
+                const descSrcAttr = sourceEl.getAttribute('data-desc-src');
+                
+                if (origSrcAttr) {
+                    // Swap back to original src
+                    const type = sourceEl.getAttribute('type');
+                    sourcesToRestore.push({
+                        src: origSrcAttr,  // Use original version
+                        type: type,
+                        origSrc: origSrcAttr,
+                        descSrc: descSrcAttr  // Keep data-desc-src for future swaps
+                    });
+                } else {
+                    // Keep as-is (no data-orig-src means it wasn't swapped)
+                    const type = sourceEl.getAttribute('type');
+                    const src = sourceEl.getAttribute('src');
+                    sourcesToRestore.push({
+                        src: src,
+                        type: type,
+                        origSrc: null,
+                        descSrc: descSrcAttr
+                    });
+                }
+            });
+            
+            // Remove all source elements
+            allSourceElements.forEach(sourceEl => {
+                sourceEl.remove();
+            });
+            
+            // Re-add them with original src attributes
+            sourcesToRestore.forEach(sourceInfo => {
+                const newSource = document.createElement('source');
+                newSource.setAttribute('src', sourceInfo.src);
+                if (sourceInfo.type) {
+                    newSource.setAttribute('type', sourceInfo.type);
+                }
+                if (sourceInfo.origSrc) {
+                    newSource.setAttribute('data-orig-src', sourceInfo.origSrc);
+                }
+                if (sourceInfo.descSrc) {
+                    newSource.setAttribute('data-desc-src', sourceInfo.descSrc);
+                }
+                this.element.appendChild(newSource);
+            });
+            
+            // Force reload
+            this.element.load();
+        } else {
+            // Fallback to updating element src directly (for videos without source elements)
+            const originalSrcToUse = this.originalAudioDescriptionSource || this.originalSrc;
+            this.element.src = originalSrcToUse;
+            this.element.load();
+        }
 
         // Wait for new source to load
         await new Promise((resolve) => {
@@ -865,6 +1817,17 @@ export class Player extends EventEmitter {
             this.play();
         }
 
+        // Reload transcript if visible (after video metadata loaded, tracks should be available)
+        // Reload regardless of whether caption tracks were swapped, in case tracks changed
+        if (this.transcriptManager && this.transcriptManager.isVisible) {
+            // Wait for tracks to load after source swap
+            setTimeout(() => {
+                if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
+                    this.transcriptManager.loadTranscriptData();
+                }
+            }, 500);
+        }
+
         this.state.audioDescriptionEnabled = false;
         this.emit('audiodescriptiondisabled');
     }
@@ -874,7 +1837,23 @@ export class Player extends EventEmitter {
         const textTracks = Array.from(this.element.textTracks || []);
         const descriptionTrack = textTracks.find(track => track.kind === 'descriptions');
         
-        if (descriptionTrack) {
+        // Check if we have audio-described video source (either from options or source elements with data-desc-src)
+        const hasAudioDescriptionSrc = this.audioDescriptionSrc || 
+            Array.from(this.element.querySelectorAll('source')).some(el => el.getAttribute('data-desc-src'));
+        
+        if (descriptionTrack && hasAudioDescriptionSrc) {
+            // We have both: toggle description track AND swap caption tracks/sources
+            if (this.state.audioDescriptionEnabled) {
+                // Disable: toggle description track off and swap captions/sources back
+                descriptionTrack.mode = 'hidden';
+                await this.disableAudioDescription();
+            } else {
+                // Enable: swap caption tracks/sources and toggle description track on
+                await this.enableAudioDescription();
+                descriptionTrack.mode = 'showing';
+            }
+        } else if (descriptionTrack) {
+            // Only description track, no audio-described video source to swap
             // Toggle description track
             if (descriptionTrack.mode === 'showing') {
                 descriptionTrack.mode = 'hidden';
@@ -885,8 +1864,8 @@ export class Player extends EventEmitter {
                 this.state.audioDescriptionEnabled = true;
                 this.emit('audiodescriptionenabled');
             }
-        } else if (this.audioDescriptionSrc) {
-            // Use audio-described video source
+        } else if (hasAudioDescriptionSrc) {
+            // Use audio-described video source (no description track)
             if (this.state.audioDescriptionEnabled) {
                 await this.disableAudioDescription();
             } else {
