@@ -5489,6 +5489,9 @@ var VidPly = (() => {
       this.audioDescriptionSrc = this.options.audioDescriptionSrc;
       this.signLanguageSrc = this.options.signLanguageSrc;
       this.signLanguageVideo = null;
+      this.audioDescriptionSourceElement = null;
+      this.originalAudioDescriptionSource = null;
+      this.audioDescriptionCaptionTracks = [];
       this.container = null;
       this.renderer = null;
       this.controlBar = null;
@@ -5643,6 +5646,53 @@ var VidPly = (() => {
       if (!src) {
         throw new Error("No media source found");
       }
+      const sourceElements = this.element.querySelectorAll("source");
+      for (const sourceEl of sourceElements) {
+        const descSrc = sourceEl.getAttribute("data-desc-src");
+        const origSrc = sourceEl.getAttribute("data-orig-src");
+        if (descSrc || origSrc) {
+          if (!this.audioDescriptionSourceElement) {
+            this.audioDescriptionSourceElement = sourceEl;
+          }
+          if (origSrc) {
+            if (!this.originalAudioDescriptionSource) {
+              this.originalAudioDescriptionSource = origSrc;
+            }
+            if (!this.originalSrc) {
+              this.originalSrc = origSrc;
+            }
+          } else {
+            const currentSrcAttr = sourceEl.getAttribute("src");
+            if (!this.originalAudioDescriptionSource && currentSrcAttr) {
+              this.originalAudioDescriptionSource = currentSrcAttr;
+            }
+            if (!this.originalSrc && currentSrcAttr) {
+              this.originalSrc = currentSrcAttr;
+            }
+          }
+          if (descSrc && !this.audioDescriptionSrc) {
+            this.audioDescriptionSrc = descSrc;
+          }
+        }
+      }
+      const trackElements = this.element.querySelectorAll("track");
+      trackElements.forEach((trackEl) => {
+        const trackKind = trackEl.getAttribute("kind");
+        const trackDescSrc = trackEl.getAttribute("data-desc-src");
+        if (trackKind === "captions" || trackKind === "subtitles" || trackKind === "chapters") {
+          if (trackDescSrc) {
+            this.audioDescriptionCaptionTracks.push({
+              trackElement: trackEl,
+              originalSrc: trackEl.getAttribute("src"),
+              describedSrc: trackDescSrc,
+              originalTrackSrc: trackEl.getAttribute("data-orig-src") || trackEl.getAttribute("src"),
+              explicit: true
+              // Explicitly defined, so we should validate it
+            });
+            this.log(`Found explicit described ${trackKind} track: ${trackEl.getAttribute("src")} -> ${trackDescSrc}`);
+          }
+        }
+      });
       if (!this.originalSrc) {
         this.originalSrc = src;
       }
@@ -5927,15 +5977,396 @@ var VidPly = (() => {
         this.enableCaptions();
       }
     }
+    /**
+     * Check if a track file exists
+     * @param {string} url - Track file URL
+     * @returns {Promise<boolean>} - True if file exists
+     */
+    async validateTrackExists(url) {
+      try {
+        const response = await fetch(url, { method: "HEAD", cache: "no-cache" });
+        return response.ok;
+      } catch (error) {
+        return false;
+      }
+    }
     // Audio Description
     async enableAudioDescription() {
-      if (!this.audioDescriptionSrc) {
-        console.warn("VidPly: No audio description source provided");
+      const hasSourceElementsWithDesc = Array.from(this.element.querySelectorAll("source")).some((el) => el.getAttribute("data-desc-src"));
+      const hasTracksWithDesc = this.audioDescriptionCaptionTracks.length > 0;
+      if (!this.audioDescriptionSrc && !hasSourceElementsWithDesc && !hasTracksWithDesc) {
+        console.warn("VidPly: No audio description source, source elements, or tracks provided");
         return;
       }
       const currentTime = this.state.currentTime;
       const wasPlaying = this.state.playing;
-      this.element.src = this.audioDescriptionSrc;
+      let swappedTracksForTranscript = [];
+      if (this.audioDescriptionSourceElement) {
+        const currentSrc = this.element.currentSrc || this.element.src;
+        const sourceElements = Array.from(this.element.querySelectorAll("source"));
+        let sourceElementToUpdate = null;
+        let descSrc = this.audioDescriptionSrc;
+        for (const sourceEl of sourceElements) {
+          const sourceSrc = sourceEl.getAttribute("src");
+          const descSrcAttr = sourceEl.getAttribute("data-desc-src");
+          const sourceFilename = sourceSrc ? sourceSrc.split("/").pop() : "";
+          const currentFilename = currentSrc ? currentSrc.split("/").pop() : "";
+          if (currentSrc && (currentSrc === sourceSrc || currentSrc.includes(sourceSrc) || currentSrc.includes(sourceFilename) || sourceFilename && currentFilename === sourceFilename)) {
+            sourceElementToUpdate = sourceEl;
+            if (descSrcAttr) {
+              descSrc = descSrcAttr;
+            } else if (sourceSrc) {
+              descSrc = this.audioDescriptionSrc || descSrc;
+            }
+            break;
+          }
+        }
+        if (!sourceElementToUpdate) {
+          sourceElementToUpdate = this.audioDescriptionSourceElement;
+          const storedDescSrc = sourceElementToUpdate.getAttribute("data-desc-src");
+          if (storedDescSrc) {
+            descSrc = storedDescSrc;
+          }
+        }
+        if (this.audioDescriptionCaptionTracks.length > 0) {
+          const validationPromises = this.audioDescriptionCaptionTracks.map(async (trackInfo) => {
+            if (trackInfo.trackElement && trackInfo.describedSrc) {
+              if (trackInfo.explicit === true) {
+                try {
+                  const exists = await this.validateTrackExists(trackInfo.describedSrc);
+                  return { trackInfo, exists };
+                } catch (error) {
+                  return { trackInfo, exists: false };
+                }
+              } else {
+                return { trackInfo, exists: false };
+              }
+            }
+            return { trackInfo, exists: false };
+          });
+          const validationResults = await Promise.all(validationPromises);
+          const tracksToSwap = validationResults.filter((result) => result.exists);
+          if (tracksToSwap.length > 0) {
+            const trackModes = /* @__PURE__ */ new Map();
+            tracksToSwap.forEach(({ trackInfo }) => {
+              const textTrack = trackInfo.trackElement.track;
+              if (textTrack) {
+                trackModes.set(trackInfo, {
+                  wasShowing: textTrack.mode === "showing",
+                  wasHidden: textTrack.mode === "hidden"
+                });
+              } else {
+                trackModes.set(trackInfo, {
+                  wasShowing: false,
+                  wasHidden: false
+                });
+              }
+            });
+            const tracksToReadd = tracksToSwap.map(({ trackInfo }) => {
+              const oldSrc = trackInfo.trackElement.getAttribute("src");
+              const parent = trackInfo.trackElement.parentNode;
+              const nextSibling = trackInfo.trackElement.nextSibling;
+              const attributes = {};
+              Array.from(trackInfo.trackElement.attributes).forEach((attr) => {
+                attributes[attr.name] = attr.value;
+              });
+              return {
+                trackInfo,
+                oldSrc,
+                parent,
+                nextSibling,
+                attributes
+              };
+            });
+            tracksToReadd.forEach(({ trackInfo }) => {
+              trackInfo.trackElement.remove();
+            });
+            this.element.load();
+            setTimeout(() => {
+              tracksToReadd.forEach(({ trackInfo, oldSrc, parent, nextSibling, attributes }) => {
+                swappedTracksForTranscript.push(trackInfo);
+                const newTrackElement = document.createElement("track");
+                newTrackElement.setAttribute("src", trackInfo.describedSrc);
+                Object.keys(attributes).forEach((attrName) => {
+                  if (attrName !== "src" && attrName !== "data-desc-src") {
+                    newTrackElement.setAttribute(attrName, attributes[attrName]);
+                  }
+                });
+                if (nextSibling && nextSibling.parentNode) {
+                  parent.insertBefore(newTrackElement, nextSibling);
+                } else {
+                  parent.appendChild(newTrackElement);
+                }
+                trackInfo.trackElement = newTrackElement;
+              });
+              this.element.load();
+              const setupNewTracks = () => {
+                setTimeout(() => {
+                  swappedTracksForTranscript.forEach((trackInfo) => {
+                    const trackElement = trackInfo.trackElement;
+                    const newTextTrack = trackElement.track;
+                    if (newTextTrack) {
+                      const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
+                      newTextTrack.mode = "hidden";
+                      const restoreMode = () => {
+                        if (modeInfo.wasShowing) {
+                          newTextTrack.mode = "hidden";
+                        } else if (modeInfo.wasHidden) {
+                          newTextTrack.mode = "hidden";
+                        } else {
+                          newTextTrack.mode = "disabled";
+                        }
+                      };
+                      if (newTextTrack.readyState >= 2) {
+                        restoreMode();
+                      } else {
+                        newTextTrack.addEventListener("load", restoreMode, { once: true });
+                        newTextTrack.addEventListener("error", restoreMode, { once: true });
+                      }
+                    }
+                  });
+                }, 300);
+              };
+              if (this.element.readyState >= 1) {
+                setTimeout(setupNewTracks, 200);
+              } else {
+                this.element.addEventListener("loadedmetadata", setupNewTracks, { once: true });
+                setTimeout(setupNewTracks, 2e3);
+              }
+            }, 100);
+            const skippedCount = validationResults.length - tracksToSwap.length;
+          }
+        }
+        const allSourceElements = Array.from(this.element.querySelectorAll("source"));
+        const sourcesToUpdate = [];
+        allSourceElements.forEach((sourceEl) => {
+          const descSrcAttr = sourceEl.getAttribute("data-desc-src");
+          const currentSrc2 = sourceEl.getAttribute("src");
+          if (descSrcAttr) {
+            const type = sourceEl.getAttribute("type");
+            let origSrc = sourceEl.getAttribute("data-orig-src");
+            if (!origSrc) {
+              origSrc = currentSrc2;
+            }
+            sourcesToUpdate.push({
+              src: descSrcAttr,
+              // Use described version
+              type,
+              origSrc,
+              descSrc: descSrcAttr
+            });
+          } else {
+            const type = sourceEl.getAttribute("type");
+            const src = sourceEl.getAttribute("src");
+            sourcesToUpdate.push({
+              src,
+              type,
+              origSrc: null,
+              descSrc: null
+            });
+          }
+        });
+        allSourceElements.forEach((sourceEl) => {
+          sourceEl.remove();
+        });
+        sourcesToUpdate.forEach((sourceInfo) => {
+          const newSource = document.createElement("source");
+          newSource.setAttribute("src", sourceInfo.src);
+          if (sourceInfo.type) {
+            newSource.setAttribute("type", sourceInfo.type);
+          }
+          if (sourceInfo.origSrc) {
+            newSource.setAttribute("data-orig-src", sourceInfo.origSrc);
+          }
+          if (sourceInfo.descSrc) {
+            newSource.setAttribute("data-desc-src", sourceInfo.descSrc);
+          }
+          this.element.appendChild(newSource);
+        });
+        this.element.load();
+        await new Promise((resolve) => {
+          const onLoadedMetadata = () => {
+            this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
+            resolve();
+          };
+          this.element.addEventListener("loadedmetadata", onLoadedMetadata);
+        });
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        if (this.element.tagName === "VIDEO" && currentTime === 0 && !wasPlaying) {
+          if (this.element.readyState >= 1) {
+            this.element.currentTime = 1e-3;
+            setTimeout(() => {
+              this.element.currentTime = 0;
+            }, 10);
+          }
+        }
+        this.seek(currentTime);
+        if (wasPlaying) {
+          this.play();
+        }
+        this.state.audioDescriptionEnabled = true;
+        this.emit("audiodescriptionenabled");
+      } else {
+        if (this.audioDescriptionCaptionTracks.length > 0) {
+          const validationPromises = this.audioDescriptionCaptionTracks.map(async (trackInfo) => {
+            if (trackInfo.trackElement && trackInfo.describedSrc) {
+              if (trackInfo.explicit === true) {
+                try {
+                  const exists = await this.validateTrackExists(trackInfo.describedSrc);
+                  return { trackInfo, exists };
+                } catch (error) {
+                  return { trackInfo, exists: false };
+                }
+              } else {
+                return { trackInfo, exists: false };
+              }
+            }
+            return { trackInfo, exists: false };
+          });
+          const validationResults = await Promise.all(validationPromises);
+          const tracksToSwap = validationResults.filter((result) => result.exists);
+          if (tracksToSwap.length > 0) {
+            const trackModes = /* @__PURE__ */ new Map();
+            tracksToSwap.forEach(({ trackInfo }) => {
+              const textTrack = trackInfo.trackElement.track;
+              if (textTrack) {
+                trackModes.set(trackInfo, {
+                  wasShowing: textTrack.mode === "showing",
+                  wasHidden: textTrack.mode === "hidden"
+                });
+              } else {
+                trackModes.set(trackInfo, {
+                  wasShowing: false,
+                  wasHidden: false
+                });
+              }
+            });
+            const tracksToReadd = tracksToSwap.map(({ trackInfo }) => {
+              const oldSrc = trackInfo.trackElement.getAttribute("src");
+              const parent = trackInfo.trackElement.parentNode;
+              const nextSibling = trackInfo.trackElement.nextSibling;
+              const attributes = {};
+              Array.from(trackInfo.trackElement.attributes).forEach((attr) => {
+                attributes[attr.name] = attr.value;
+              });
+              return {
+                trackInfo,
+                oldSrc,
+                parent,
+                nextSibling,
+                attributes
+              };
+            });
+            tracksToReadd.forEach(({ trackInfo }) => {
+              trackInfo.trackElement.remove();
+            });
+            this.element.load();
+            setTimeout(() => {
+              tracksToReadd.forEach(({ trackInfo, oldSrc, parent, nextSibling, attributes }) => {
+                swappedTracksForTranscript.push(trackInfo);
+                const newTrackElement = document.createElement("track");
+                newTrackElement.setAttribute("src", trackInfo.describedSrc);
+                Object.keys(attributes).forEach((attrName) => {
+                  if (attrName !== "src" && attrName !== "data-desc-src") {
+                    newTrackElement.setAttribute(attrName, attributes[attrName]);
+                  }
+                });
+                if (nextSibling && nextSibling.parentNode) {
+                  parent.insertBefore(newTrackElement, nextSibling);
+                } else {
+                  parent.appendChild(newTrackElement);
+                }
+                trackInfo.trackElement = newTrackElement;
+              });
+              this.element.load();
+              const setupNewTracks = () => {
+                setTimeout(() => {
+                  swappedTracksForTranscript.forEach((trackInfo) => {
+                    const trackElement = trackInfo.trackElement;
+                    const newTextTrack = trackElement.track;
+                    if (newTextTrack) {
+                      const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
+                      newTextTrack.mode = "hidden";
+                      const restoreMode = () => {
+                        if (modeInfo.wasShowing) {
+                          newTextTrack.mode = "hidden";
+                        } else if (modeInfo.wasHidden) {
+                          newTextTrack.mode = "hidden";
+                        } else {
+                          newTextTrack.mode = "disabled";
+                        }
+                      };
+                      if (newTextTrack.readyState >= 2) {
+                        restoreMode();
+                      } else {
+                        newTextTrack.addEventListener("load", restoreMode, { once: true });
+                        newTextTrack.addEventListener("error", restoreMode, { once: true });
+                      }
+                    }
+                  });
+                }, 300);
+              };
+              if (this.element.readyState >= 1) {
+                setTimeout(setupNewTracks, 200);
+              } else {
+                this.element.addEventListener("loadedmetadata", setupNewTracks, { once: true });
+                setTimeout(setupNewTracks, 2e3);
+              }
+            }, 100);
+          }
+        }
+        const fallbackSourceElements = Array.from(this.element.querySelectorAll("source"));
+        const hasSourceElementsWithDesc2 = fallbackSourceElements.some((el) => el.getAttribute("data-desc-src"));
+        if (hasSourceElementsWithDesc2) {
+          const fallbackSourcesToUpdate = [];
+          fallbackSourceElements.forEach((sourceEl) => {
+            const descSrcAttr = sourceEl.getAttribute("data-desc-src");
+            const currentSrc = sourceEl.getAttribute("src");
+            if (descSrcAttr) {
+              const type = sourceEl.getAttribute("type");
+              let origSrc = sourceEl.getAttribute("data-orig-src");
+              if (!origSrc) {
+                origSrc = currentSrc;
+              }
+              fallbackSourcesToUpdate.push({
+                src: descSrcAttr,
+                type,
+                origSrc,
+                descSrc: descSrcAttr
+              });
+            } else {
+              const type = sourceEl.getAttribute("type");
+              const src = sourceEl.getAttribute("src");
+              fallbackSourcesToUpdate.push({
+                src,
+                type,
+                origSrc: null,
+                descSrc: null
+              });
+            }
+          });
+          fallbackSourceElements.forEach((sourceEl) => {
+            sourceEl.remove();
+          });
+          fallbackSourcesToUpdate.forEach((sourceInfo) => {
+            const newSource = document.createElement("source");
+            newSource.setAttribute("src", sourceInfo.src);
+            if (sourceInfo.type) {
+              newSource.setAttribute("type", sourceInfo.type);
+            }
+            if (sourceInfo.origSrc) {
+              newSource.setAttribute("data-orig-src", sourceInfo.origSrc);
+            }
+            if (sourceInfo.descSrc) {
+              newSource.setAttribute("data-desc-src", sourceInfo.descSrc);
+            }
+            this.element.appendChild(newSource);
+          });
+          this.element.load();
+        } else {
+          this.element.src = this.audioDescriptionSrc;
+        }
+      }
       await new Promise((resolve) => {
         const onLoadedMetadata = () => {
           this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
@@ -5943,9 +6374,182 @@ var VidPly = (() => {
         };
         this.element.addEventListener("loadedmetadata", onLoadedMetadata);
       });
+      if (this.element.tagName === "VIDEO" && currentTime === 0 && !wasPlaying) {
+        if (this.element.readyState >= 1) {
+          this.element.currentTime = 1e-3;
+          setTimeout(() => {
+            this.element.currentTime = 0;
+          }, 10);
+        }
+      }
       this.seek(currentTime);
       if (wasPlaying) {
         this.play();
+      }
+      if (swappedTracksForTranscript.length > 0 && this.captionManager) {
+        const wasCaptionsEnabled = this.state.captionsEnabled;
+        let currentTrackInfo = null;
+        if (this.captionManager.currentTrack) {
+          const currentTrackIndex = this.captionManager.tracks.findIndex((t) => t.track === this.captionManager.currentTrack.track);
+          if (currentTrackIndex >= 0) {
+            currentTrackInfo = {
+              language: this.captionManager.tracks[currentTrackIndex].language,
+              kind: this.captionManager.tracks[currentTrackIndex].kind
+            };
+          }
+        }
+        setTimeout(() => {
+          this.captionManager.tracks = [];
+          this.captionManager.loadTracks();
+          if (wasCaptionsEnabled && currentTrackInfo && this.captionManager.tracks.length > 0) {
+            const matchingTrackIndex = this.captionManager.tracks.findIndex(
+              (t) => t.language === currentTrackInfo.language && t.kind === currentTrackInfo.kind
+            );
+            if (matchingTrackIndex >= 0) {
+              this.captionManager.enable(matchingTrackIndex);
+            } else if (this.captionManager.tracks.length > 0) {
+              this.captionManager.enable(0);
+            }
+          }
+        }, 600);
+      }
+      if (this.transcriptManager && this.transcriptManager.isVisible) {
+        const swappedTracks = typeof swappedTracksForTranscript !== "undefined" ? swappedTracksForTranscript : [];
+        if (swappedTracks.length > 0) {
+          const onMetadataLoaded = () => {
+            const allTextTracks = Array.from(this.element.textTracks);
+            const freshTracks = swappedTracks.map((trackInfo) => {
+              const trackEl = trackInfo.trackElement;
+              const expectedSrc = trackEl.getAttribute("src");
+              const srclang = trackEl.getAttribute("srclang");
+              const kind = trackEl.getAttribute("kind");
+              let foundTrack = allTextTracks.find((track) => trackEl.track === track);
+              if (!foundTrack) {
+                foundTrack = allTextTracks.find((track) => {
+                  if (track.language === srclang && (track.kind === kind || kind === "captions" && track.kind === "subtitles")) {
+                    const trackElementForTrack = Array.from(this.element.querySelectorAll("track")).find(
+                      (el) => el.track === track
+                    );
+                    if (trackElementForTrack) {
+                      const actualSrc = trackElementForTrack.getAttribute("src");
+                      if (actualSrc === expectedSrc) {
+                        return true;
+                      }
+                    }
+                  }
+                  return false;
+                });
+              }
+              if (foundTrack) {
+                const trackElement = Array.from(this.element.querySelectorAll("track")).find(
+                  (el) => el.track === foundTrack
+                );
+                if (trackElement && trackElement.getAttribute("src") !== expectedSrc) {
+                  return null;
+                }
+              }
+              return foundTrack;
+            }).filter(Boolean);
+            if (freshTracks.length === 0) {
+              setTimeout(() => {
+                if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
+                  this.transcriptManager.loadTranscriptData();
+                }
+              }, 1e3);
+              return;
+            }
+            freshTracks.forEach((track) => {
+              if (track.mode === "disabled") {
+                track.mode = "hidden";
+              }
+            });
+            let loadedCount = 0;
+            const checkLoaded = () => {
+              loadedCount++;
+              if (loadedCount >= freshTracks.length) {
+                setTimeout(() => {
+                  if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
+                    const allTextTracks2 = Array.from(this.element.textTracks);
+                    const swappedTrackSrcs = swappedTracks.map((t) => t.describedSrc);
+                    const hasCorrectTracks = freshTracks.some((track) => {
+                      const trackEl = Array.from(this.element.querySelectorAll("track")).find(
+                        (el) => el.track === track
+                      );
+                      return trackEl && swappedTrackSrcs.includes(trackEl.getAttribute("src"));
+                    });
+                    if (hasCorrectTracks || freshTracks.length > 0) {
+                      this.transcriptManager.loadTranscriptData();
+                    }
+                  }
+                }, 800);
+              }
+            };
+            freshTracks.forEach((track) => {
+              if (track.mode === "disabled") {
+                track.mode = "hidden";
+              }
+              const trackElementForTrack = Array.from(this.element.querySelectorAll("track")).find(
+                (el) => el.track === track
+              );
+              const actualSrc = trackElementForTrack ? trackElementForTrack.getAttribute("src") : null;
+              const expectedTrackInfo = swappedTracks.find((t) => {
+                const tEl = t.trackElement;
+                return tEl && (tEl.track === track || tEl.getAttribute("srclang") === track.language && tEl.getAttribute("kind") === track.kind);
+              });
+              const expectedSrc = expectedTrackInfo ? expectedTrackInfo.describedSrc : null;
+              if (expectedSrc && actualSrc && actualSrc !== expectedSrc) {
+                checkLoaded();
+                return;
+              }
+              if (track.readyState >= 2 && track.cues && track.cues.length > 0) {
+                checkLoaded();
+              } else {
+                if (track.mode === "disabled") {
+                  track.mode = "hidden";
+                }
+                const onTrackLoad = () => {
+                  setTimeout(checkLoaded, 300);
+                };
+                if (track.readyState >= 2) {
+                  setTimeout(() => {
+                    if (track.cues && track.cues.length > 0) {
+                      checkLoaded();
+                    } else {
+                      track.addEventListener("load", onTrackLoad, { once: true });
+                    }
+                  }, 100);
+                } else {
+                  track.addEventListener("load", onTrackLoad, { once: true });
+                  track.addEventListener("error", () => {
+                    checkLoaded();
+                  }, { once: true });
+                }
+              }
+            });
+          };
+          const waitForTracks = () => {
+            setTimeout(() => {
+              if (this.element.readyState >= 1) {
+                onMetadataLoaded();
+              } else {
+                this.element.addEventListener("loadedmetadata", onMetadataLoaded, { once: true });
+                setTimeout(onMetadataLoaded, 2e3);
+              }
+            }, 500);
+          };
+          waitForTracks();
+          setTimeout(() => {
+            if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
+              this.transcriptManager.loadTranscriptData();
+            }
+          }, 5e3);
+        } else {
+          setTimeout(() => {
+            if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
+              this.transcriptManager.loadTranscriptData();
+            }
+          }, 800);
+        }
       }
       this.state.audioDescriptionEnabled = true;
       this.emit("audiodescriptionenabled");
@@ -5956,7 +6560,64 @@ var VidPly = (() => {
       }
       const currentTime = this.state.currentTime;
       const wasPlaying = this.state.playing;
-      this.element.src = this.originalSrc;
+      if (this.audioDescriptionCaptionTracks.length > 0) {
+        this.audioDescriptionCaptionTracks.forEach((trackInfo) => {
+          if (trackInfo.trackElement && trackInfo.originalTrackSrc) {
+            trackInfo.trackElement.setAttribute("src", trackInfo.originalTrackSrc);
+          }
+        });
+      }
+      const allSourceElements = Array.from(this.element.querySelectorAll("source"));
+      const hasSourceElementsToSwap = allSourceElements.some((el) => el.getAttribute("data-orig-src"));
+      if (hasSourceElementsToSwap) {
+        const sourcesToRestore = [];
+        allSourceElements.forEach((sourceEl) => {
+          const origSrcAttr = sourceEl.getAttribute("data-orig-src");
+          const descSrcAttr = sourceEl.getAttribute("data-desc-src");
+          if (origSrcAttr) {
+            const type = sourceEl.getAttribute("type");
+            sourcesToRestore.push({
+              src: origSrcAttr,
+              // Use original version
+              type,
+              origSrc: origSrcAttr,
+              descSrc: descSrcAttr
+              // Keep data-desc-src for future swaps
+            });
+          } else {
+            const type = sourceEl.getAttribute("type");
+            const src = sourceEl.getAttribute("src");
+            sourcesToRestore.push({
+              src,
+              type,
+              origSrc: null,
+              descSrc: descSrcAttr
+            });
+          }
+        });
+        allSourceElements.forEach((sourceEl) => {
+          sourceEl.remove();
+        });
+        sourcesToRestore.forEach((sourceInfo) => {
+          const newSource = document.createElement("source");
+          newSource.setAttribute("src", sourceInfo.src);
+          if (sourceInfo.type) {
+            newSource.setAttribute("type", sourceInfo.type);
+          }
+          if (sourceInfo.origSrc) {
+            newSource.setAttribute("data-orig-src", sourceInfo.origSrc);
+          }
+          if (sourceInfo.descSrc) {
+            newSource.setAttribute("data-desc-src", sourceInfo.descSrc);
+          }
+          this.element.appendChild(newSource);
+        });
+        this.element.load();
+      } else {
+        const originalSrcToUse = this.originalAudioDescriptionSource || this.originalSrc;
+        this.element.src = originalSrcToUse;
+        this.element.load();
+      }
       await new Promise((resolve) => {
         const onLoadedMetadata = () => {
           this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
@@ -5968,13 +6629,29 @@ var VidPly = (() => {
       if (wasPlaying) {
         this.play();
       }
+      if (this.transcriptManager && this.transcriptManager.isVisible) {
+        setTimeout(() => {
+          if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
+            this.transcriptManager.loadTranscriptData();
+          }
+        }, 500);
+      }
       this.state.audioDescriptionEnabled = false;
       this.emit("audiodescriptiondisabled");
     }
     async toggleAudioDescription() {
       const textTracks = Array.from(this.element.textTracks || []);
       const descriptionTrack = textTracks.find((track) => track.kind === "descriptions");
-      if (descriptionTrack) {
+      const hasAudioDescriptionSrc = this.audioDescriptionSrc || Array.from(this.element.querySelectorAll("source")).some((el) => el.getAttribute("data-desc-src"));
+      if (descriptionTrack && hasAudioDescriptionSrc) {
+        if (this.state.audioDescriptionEnabled) {
+          descriptionTrack.mode = "hidden";
+          await this.disableAudioDescription();
+        } else {
+          await this.enableAudioDescription();
+          descriptionTrack.mode = "showing";
+        }
+      } else if (descriptionTrack) {
         if (descriptionTrack.mode === "showing") {
           descriptionTrack.mode = "hidden";
           this.state.audioDescriptionEnabled = false;
@@ -5984,7 +6661,7 @@ var VidPly = (() => {
           this.state.audioDescriptionEnabled = true;
           this.emit("audiodescriptionenabled");
         }
-      } else if (this.audioDescriptionSrc) {
+      } else if (hasAudioDescriptionSrc) {
         if (this.state.audioDescriptionEnabled) {
           await this.disableAudioDescription();
         } else {
