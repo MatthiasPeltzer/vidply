@@ -2,31 +2,31 @@ WEBVTT
 kind: captions
 lang: ja
 
-NOTE This VTT file includes a few extras:
-- Meta data at the top (lines 2 and 3)
-- The current comment block, identified with NOTE and surrounded by spaces
-- cue settings at the end of the first timestamp
-- A cue span at the start of the second cue payload
-- (in this case, a "voice span" <v> identifying the speaker)
-- A WebVTT cue settings list after the timestamp at 39.132
-- Currently AblePlayer does not support these extra features
-- but the parser needs to be able to filter them out
+NOTE このVTTファイルにはいくつかの追加機能が含まれています：
+- 上部のメタデータ（2行目と3行目）
+- 現在のコメントブロック、NOTEで識別され、スペースで囲まれています
+- 最初のタイムスタンプの最後にあるキュー設定
+- 2番目のキュー ペイロードの開始時のキュー スパン
+- （この場合、話者を識別する「音声スパン」<v>）
+- 39.132のタイムスタンプの後のWebVTTキュー設定リスト
+- 現在、AblePlayerはこれらの追加機能をサポートしていません
+- しかし、パーサーはそれらを除外できる必要があります
 -
-- Added on April 1, 2015 for testing purposes (these are both valid):
-- A cue block with no content
-- Multiple line breaks between some cue blocks
+- 2015年4月1日にテスト目的で追加（両方とも有効）：
+- コンテンツのないキュー ブロック
+- 一部のキュー ブロック間の複数の改行
 -
-- More info in the WebVTT spec (still evolving):
+- WebVTT仕様の詳細（まだ進化中）：
 - http://dev.w3.org/html5/webvtt
 
 00:00:00.429 --> 00:00:09.165
 [ 音楽 ]
 
 00:00:09.165 --> 00:00:10.792
-<v ナレーター> あなたはWebサイトのビジターを<i>必要</i>としています。
+<v ナレーター> あなたはこれらの人々を<i>必要</i>としています。
 
 00:00:10.792 --> 00:00:13.759
-ビジターはあなたの製品を<b>購入し</b>、
+彼らはあなたの製品を<b>注文</b>し、
 あなたのサービスに<b>サインアップ</b>し、
 
 00:00:13.759 --> 00:00:16.627
@@ -36,38 +36,40 @@ NOTE This VTT file includes a few extras:
 00:00:16.627 --> 00:00:18.561
 あなたのビデオを<b>見ます</b>。
 
-
 00:00:18.561 --> 00:00:24.165
-あなたはビジターを見ることはないでしょう、
-しかしビジターはあなたのWebサイトを通じてあなたを知っています。
+あなたは彼らを見ることはないでしょうが、彼らはあなたを知っています-
+あなたのウェブサイトを通じて。
 
 00:00:24.165 --> 00:00:25.891
 あるいは知らないかもしれません。
 
 00:00:25.891 --> 00:00:30.396
-<c.quotable>あなたのWebサイトのビジターは、均質にマウスをクリックする
-無名の大衆ではありません。</c>
+<c.quotable>あなたのウェブサイトの訪問者は
+均質なマウスクリッカーの無名の大衆ではありません</c>
 
 00:00:30.396 --> 00:00:32.363
-多様な経験、スタイル、才能を持った
+多様な好み、
+スタイル、能力を持つ
 
 00:00:32.363 --> 00:00:35.297
-活発な個性の集団なのです。
+活気のある
+個人のコミュニティです。
 
 00:00:35.297 --> 00:00:36.900
-これには障がいを持つ方々も含まれます。
+これには障害を持つ人々も含まれます。
 
 00:00:39.132 --> 00:00:41.000 position:10%,start align:start size:35%
-<v テリル> WebデザイナーやWeb開発者にとって、 
+<v テリル> ウェブデザイナーと開発者にとって
+重要なことです
 
 00:00:41.000 --> 00:00:45.500
-今自分が見ているコンピューター、解像度、
+現在コンピューターで見ているものが、
 
 00:00:45.500 --> 00:00:49.264
-ブラウザー、オペレーティングシステムは、
+解像度、ブラウザ、
+オペレーティングシステムによって
 
 00:00:49.264 --> 00:00:52.000
-他のすべての人と必ずしも同じではないと理解することは
-重要なことです。
-
+必ずしも他のすべての人が見るものと
+同じではないことを認識することです。
 

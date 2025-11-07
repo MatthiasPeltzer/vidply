@@ -4,7 +4,7 @@ lang: fr
 
 NOTE Ce fichier VTT comprend quelques extras :
 - Métadonnées en haut (lignes 2 et 3)
-- Le bloc de commentaires actuel, identifié par NOTE et encadré par des espaces.
+- Le bloc de commentaires actuel, identifié par NOTE et encadré par des espaces
 - Des paramètres de repère à la fin du premier horodatage
 - Une plage d'indications au début du chargement du deuxième repère
 - (dans ce cas, un "repère vocal" <v> identifie le locuteur)
@@ -20,40 +20,40 @@ NOTE Ce fichier VTT comprend quelques extras :
 - http://dev.w3.org/html5/webvtt
 
 00:00:00.429 --> 00:00:09.165
-[Musique]
+[ musique ]
 
 00:00:09.165 --> 00:00:10.792
-<v Narrateur> Vous <i> voulez </i> ces gens.
+<v Narrateur> Vous <i>voulez</i> ces gens.
 
 00:00:10.792 --> 00:00:13.759
-Ils <b> commandent </b> vos produits,
-ils <b> demandent </b> vos services,
+Ils <b>commandent</b> vos produits,
+<b>s'inscrivent</b> à vos services,
 
 00:00:13.759 --> 00:00:16.627
-ils <b> s'inscrivent </b> à vos cours,
-ils <b> lisent </b> vos opinions,
+<b>s'inscrivent</b> à vos cours,
+<b>lisent</b> vos opinions,
 
 00:00:16.627 --> 00:00:18.561
-et ils <b> regardent </b> vos vidéos.
+et <b>regardent</b> vos vidéos.
 
 00:00:18.561 --> 00:00:24.165
-Vous ne les verrez jamais, mais ils vous connaissent
-via votre site Web,
+Vous ne les verrez jamais, mais ils vous connaissent-
+par votre site Web.
 
 00:00:24.165 --> 00:00:25.891
-ou peut être pas.
+Ou peut-être pas.
 
 00:00:25.891 --> 00:00:30.396
-<c.quotable> Les visiteurs de votre site Web ne sont pas
-une masse sans visage de clics de souris identiques </c>
+<c.quotable>Les visiteurs de votre site Web ne sont pas une
+masse sans visage de clics de souris identiques</c>
 
 00:00:30.396 --> 00:00:32.363
 mais une vibrante
 communauté d'individus
 
 00:00:32.363 --> 00:00:35.297
-avec des goûts, des styles
-et des capacités variés.
+avec des goûts,
+styles, et capacités variés.
 
 00:00:35.297 --> 00:00:36.900
 Cela inclut les personnes handicapées.
@@ -73,3 +73,4 @@ et leur système d'exploitation
 00:00:49.264 --> 00:00:52.000
 ne va pas être nécessairement
 la même chose que tout le monde voit.
+
