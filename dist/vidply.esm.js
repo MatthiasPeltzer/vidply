@@ -500,7 +500,8 @@ var translations = {
       resizeWindow: "Resize Window",
       styleTranscript: "Open transcript style settings",
       closeMenu: "Close Menu",
-      styleTitle: "Transcript Style"
+      styleTitle: "Transcript Style",
+      autoscroll: "Autoscroll"
     },
     settings: {
       title: "Settings",
@@ -621,7 +622,8 @@ var translations = {
       resizeWindow: "Fenster vergr\xF6\xDFern/verkleinern",
       styleTranscript: "Transkript-Stileinstellungen \xF6ffnen",
       closeMenu: "Men\xFC schlie\xDFen",
-      styleTitle: "Transkript-Stil"
+      styleTitle: "Transkript-Stil",
+      autoscroll: "Automatisches Scrollen"
     },
     settings: {
       title: "Einstellungen",
@@ -742,7 +744,8 @@ var translations = {
       resizeWindow: "Cambiar tama\xF1o de ventana",
       styleTranscript: "Abrir configuraci\xF3n de estilo de transcripci\xF3n",
       closeMenu: "Cerrar men\xFA",
-      styleTitle: "Estilo de Transcripci\xF3n"
+      styleTitle: "Estilo de Transcripci\xF3n",
+      autoscroll: "Desplazamiento autom\xE1tico"
     },
     settings: {
       title: "Configuraci\xF3n",
@@ -863,7 +866,8 @@ var translations = {
       resizeWindow: "Redimensionner la fen\xEAtre",
       styleTranscript: "Ouvrir les param\xE8tres de style de transcription",
       closeMenu: "Fermer le menu",
-      styleTitle: "Style de Transcription"
+      styleTitle: "Style de Transcription",
+      autoscroll: "D\xE9filement automatique"
     },
     settings: {
       title: "Param\xE8tres",
@@ -984,7 +988,8 @@ var translations = {
       resizeWindow: "\u30A6\u30A3\u30F3\u30C9\u30A6\u306E\u30B5\u30A4\u30BA\u5909\u66F4",
       styleTranscript: "\u6587\u5B57\u8D77\u3053\u3057\u30B9\u30BF\u30A4\u30EB\u8A2D\u5B9A\u3092\u958B\u304F",
       closeMenu: "\u30E1\u30CB\u30E5\u30FC\u3092\u9589\u3058\u308B",
-      styleTitle: "\u6587\u5B57\u8D77\u3053\u3057\u30B9\u30BF\u30A4\u30EB"
+      styleTitle: "\u6587\u5B57\u8D77\u3053\u3057\u30B9\u30BF\u30A4\u30EB",
+      autoscroll: "\u81EA\u52D5\u30B9\u30AF\u30ED\u30FC\u30EB"
     },
     settings: {
       title: "\u8A2D\u5B9A",
@@ -1163,8 +1168,8 @@ var iconPaths = {
   language: `<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/>`,
   hd: `<path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm7-1c0 .55-.45 1-1 1h-.75v1.5h-1.5V15H14c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v4zm-3.5-.5h2v-3h-2v3z"/>`,
   transcript: `<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>`,
-  audioDescription: `<rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><text x="12" y="16" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="currentColor">AD</text>`,
-  audioDescriptionOn: `<rect x="2" y="5" width="20" height="14" rx="2" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="2"/><text x="12" y="16" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">AD</text>`,
+  audioDescription: `<rect x="2" y="5" width="20" height="14" rx="2" fill="#ffffff" stroke="#ffffff" stroke-width="2"/><text x="12" y="16" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#1a1a1a">AD</text>`,
+  audioDescriptionOn: `<rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><text x="12" y="16" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="currentColor">AD</text>`,
   signLanguage: `<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>`,
   signLanguageOn: `<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>`,
   speaker: `<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>`,
@@ -3321,7 +3326,12 @@ var TranscriptManager = class {
     this.styleDialog = null;
     this.styleDialogVisible = false;
     this.styleDialogJustOpened = false;
+    this.languageSelector = null;
+    this.currentTranscriptLanguage = null;
+    this.availableTranscriptLanguages = [];
+    this.languageSelectorHandler = null;
     const savedPreferences = this.storage.getTranscriptPreferences();
+    this.autoscrollEnabled = (savedPreferences == null ? void 0 : savedPreferences.autoscroll) !== void 0 ? savedPreferences.autoscroll : true;
     this.transcriptStyle = {
       fontSize: (savedPreferences == null ? void 0 : savedPreferences.fontSize) || this.player.options.transcriptFontSize || "100%",
       fontFamily: (savedPreferences == null ? void 0 : savedPreferences.fontFamily) || this.player.options.transcriptFontFamily || "sans-serif",
@@ -3460,8 +3470,41 @@ var TranscriptManager = class {
     const title = DOMUtils.createElement("h3", {
       textContent: i18n.t("transcript.title")
     });
+    const autoscrollLabel = DOMUtils.createElement("label", {
+      className: `${this.player.options.classPrefix}-transcript-autoscroll-label`,
+      attributes: {
+        "title": i18n.t("transcript.autoscroll")
+      }
+    });
+    this.autoscrollCheckbox = DOMUtils.createElement("input", {
+      attributes: {
+        "type": "checkbox",
+        "checked": this.autoscrollEnabled,
+        "aria-label": i18n.t("transcript.autoscroll")
+      }
+    });
+    const autoscrollText = DOMUtils.createElement("span", {
+      textContent: i18n.t("transcript.autoscroll"),
+      className: `${this.player.options.classPrefix}-transcript-autoscroll-text`
+    });
+    autoscrollLabel.appendChild(this.autoscrollCheckbox);
+    autoscrollLabel.appendChild(autoscrollText);
+    this.autoscrollCheckbox.addEventListener("change", (e) => {
+      this.autoscrollEnabled = e.target.checked;
+      this.saveAutoscrollPreference();
+    });
     this.headerLeft.appendChild(this.settingsButton);
     this.headerLeft.appendChild(title);
+    this.headerLeft.appendChild(autoscrollLabel);
+    this.languageSelector = DOMUtils.createElement("select", {
+      className: `${this.player.options.classPrefix}-transcript-language-select`,
+      attributes: {
+        "aria-label": i18n.t("settings.language") || "Language",
+        "style": "display: none;"
+        // Hidden until we detect multiple languages
+      }
+    });
+    this.headerLeft.appendChild(this.languageSelector);
     const closeButton = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-transcript-close`,
       attributes: {
@@ -3576,16 +3619,93 @@ var TranscriptManager = class {
     }
   }
   /**
+   * Get available transcript languages from tracks
+   */
+  getAvailableTranscriptLanguages() {
+    const textTracks = Array.from(this.player.element.textTracks);
+    const languages = /* @__PURE__ */ new Map();
+    textTracks.forEach((track) => {
+      if ((track.kind === "captions" || track.kind === "subtitles") && track.language) {
+        if (!languages.has(track.language)) {
+          languages.set(track.language, {
+            language: track.language,
+            label: track.label || track.language,
+            track
+          });
+        }
+      }
+    });
+    return Array.from(languages.values());
+  }
+  /**
+   * Update language selector dropdown
+   */
+  updateLanguageSelector() {
+    if (!this.languageSelector) return;
+    this.availableTranscriptLanguages = this.getAvailableTranscriptLanguages();
+    this.languageSelector.innerHTML = "";
+    if (this.availableTranscriptLanguages.length < 2) {
+      this.languageSelector.style.display = "none";
+      return;
+    }
+    this.languageSelector.style.display = "block";
+    this.availableTranscriptLanguages.forEach((langInfo, index) => {
+      const option = DOMUtils.createElement("option", {
+        textContent: langInfo.label,
+        attributes: {
+          "value": langInfo.language
+        }
+      });
+      this.languageSelector.appendChild(option);
+    });
+    if (this.currentTranscriptLanguage) {
+      this.languageSelector.value = this.currentTranscriptLanguage;
+    } else if (this.availableTranscriptLanguages.length > 0) {
+      const activeTrack = Array.from(this.player.element.textTracks).find(
+        (track) => (track.kind === "captions" || track.kind === "subtitles") && track.mode === "showing"
+      );
+      this.currentTranscriptLanguage = activeTrack ? activeTrack.language : this.availableTranscriptLanguages[0].language;
+      this.languageSelector.value = this.currentTranscriptLanguage;
+    }
+    if (this.languageSelectorHandler) {
+      this.languageSelector.removeEventListener("change", this.languageSelectorHandler);
+    }
+    this.languageSelectorHandler = (e) => {
+      this.currentTranscriptLanguage = e.target.value;
+      this.loadTranscriptData();
+    };
+    this.languageSelector.addEventListener("change", this.languageSelectorHandler);
+  }
+  /**
    * Load transcript data from caption/subtitle tracks
    */
   loadTranscriptData() {
     this.transcriptEntries = [];
     this.transcriptContent.innerHTML = "";
     const textTracks = Array.from(this.player.element.textTracks);
-    const captionTrack = textTracks.find(
-      (track) => track.kind === "captions" || track.kind === "subtitles"
-    );
-    const descriptionTrack = textTracks.find((track) => track.kind === "descriptions");
+    let captionTrack = null;
+    if (this.currentTranscriptLanguage) {
+      captionTrack = textTracks.find(
+        (track) => (track.kind === "captions" || track.kind === "subtitles") && track.language === this.currentTranscriptLanguage
+      );
+    }
+    if (!captionTrack) {
+      captionTrack = textTracks.find(
+        (track) => track.kind === "captions" || track.kind === "subtitles"
+      );
+      if (captionTrack) {
+        this.currentTranscriptLanguage = captionTrack.language;
+      }
+    }
+    let descriptionTrack = null;
+    if (this.currentTranscriptLanguage) {
+      descriptionTrack = textTracks.find(
+        (track) => track.kind === "descriptions" && track.language === this.currentTranscriptLanguage
+      );
+    }
+    if (!descriptionTrack) {
+      descriptionTrack = textTracks.find((track) => track.kind === "descriptions");
+    }
     const metadataTrack = textTracks.find((track) => track.kind === "metadata");
     if (!captionTrack && !descriptionTrack && !metadataTrack) {
       this.showNoTranscriptMessage();
@@ -3647,6 +3767,7 @@ var TranscriptManager = class {
       this.transcriptContent.appendChild(entry);
     });
     this.applyTranscriptStyles();
+    this.updateLanguageSelector();
   }
   /**
    * Setup metadata handling
@@ -3785,7 +3906,7 @@ var TranscriptManager = class {
    * Scroll transcript window to show active entry
    */
   scrollToEntry(entryElement) {
-    if (!this.transcriptContent) return;
+    if (!this.transcriptContent || !this.autoscrollEnabled) return;
     const contentRect = this.transcriptContent.getBoundingClientRect();
     const entryRect = entryElement.getBoundingClientRect();
     if (entryRect.top < contentRect.top || entryRect.bottom > contentRect.bottom) {
@@ -3797,6 +3918,14 @@ var TranscriptManager = class {
     }
   }
   /**
+   * Save autoscroll preference to localStorage
+   */
+  saveAutoscrollPreference() {
+    const savedPreferences = this.storage.getTranscriptPreferences() || {};
+    savedPreferences.autoscroll = this.autoscrollEnabled;
+    this.storage.saveTranscriptPreferences(savedPreferences);
+  }
+  /**
    * Setup drag and drop functionality
    */
   setupDragAndDrop() {
@@ -3806,6 +3935,9 @@ var TranscriptManager = class {
         return;
       }
       if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings`)) {
+        return;
+      }
+      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-language-select`)) {
         return;
       }
       if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings-menu`)) {
@@ -3832,6 +3964,9 @@ var TranscriptManager = class {
         return;
       }
       if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings`)) {
+        return;
+      }
+      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-language-select`)) {
         return;
       }
       if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings-menu`)) {
@@ -6629,7 +6764,29 @@ var Player = class extends EventEmitter {
         await this.disableAudioDescription();
       } else {
         await this.enableAudioDescription();
-        descriptionTrack.mode = "showing";
+        const enableDescriptionTrack = () => {
+          const textTracks2 = Array.from(this.element.textTracks || []);
+          const descTrack = textTracks2.find((track) => track.kind === "descriptions");
+          if (descTrack) {
+            if (descTrack.mode === "disabled") {
+              descTrack.mode = "hidden";
+              setTimeout(() => {
+                descTrack.mode = "showing";
+              }, 50);
+            } else {
+              descTrack.mode = "showing";
+            }
+          } else if (this.element.readyState < 2) {
+            setTimeout(enableDescriptionTrack, 100);
+          }
+        };
+        if (this.element.readyState >= 1) {
+          setTimeout(enableDescriptionTrack, 200);
+        } else {
+          this.element.addEventListener("loadedmetadata", () => {
+            setTimeout(enableDescriptionTrack, 200);
+          }, { once: true });
+        }
       }
     } else if (descriptionTrack) {
       if (descriptionTrack.mode === "showing") {

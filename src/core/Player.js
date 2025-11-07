@@ -1850,7 +1850,35 @@ export class Player extends EventEmitter {
             } else {
                 // Enable: swap caption tracks/sources and toggle description track on
                 await this.enableAudioDescription();
-                descriptionTrack.mode = 'showing';
+                // Wait for tracks to be ready after source swap, then enable description track
+                // Use a longer timeout to ensure tracks are loaded after source swap
+                const enableDescriptionTrack = () => {
+                    const textTracks = Array.from(this.element.textTracks || []);
+                    const descTrack = textTracks.find(track => track.kind === 'descriptions');
+                    if (descTrack) {
+                        // Set to 'hidden' first if it's in 'disabled' mode, then to 'showing'
+                        if (descTrack.mode === 'disabled') {
+                            descTrack.mode = 'hidden';
+                            // Use setTimeout to ensure the browser processes the mode change
+                            setTimeout(() => {
+                                descTrack.mode = 'showing';
+                            }, 50);
+                        } else {
+                            descTrack.mode = 'showing';
+                        }
+                    } else if (this.element.readyState < 2) {
+                        // Tracks not ready yet, wait a bit more
+                        setTimeout(enableDescriptionTrack, 100);
+                    }
+                };
+                // Wait for metadata to load first
+                if (this.element.readyState >= 1) {
+                    setTimeout(enableDescriptionTrack, 200);
+                } else {
+                    this.element.addEventListener('loadedmetadata', () => {
+                        setTimeout(enableDescriptionTrack, 200);
+                    }, { once: true });
+                }
             }
         } else if (descriptionTrack) {
             // Only description track, no audio-described video source to swap
