@@ -49,8 +49,17 @@ export class TranscriptManager {
     this.styleDialogVisible = false;
     this.styleDialogJustOpened = false;
     
+    // Language selector state
+    this.languageSelector = null;
+    this.currentTranscriptLanguage = null;
+    this.availableTranscriptLanguages = [];
+    this.languageSelectorHandler = null;
+    
     // Load saved preferences from localStorage
     const savedPreferences = this.storage.getTranscriptPreferences();
+    
+    // Autoscroll state (default: true)
+    this.autoscrollEnabled = savedPreferences?.autoscroll !== undefined ? savedPreferences.autoscroll : true;
     
     // Transcript styling options (with defaults, then player options, then saved preferences)
     this.transcriptStyle = {
@@ -227,8 +236,49 @@ export class TranscriptManager {
       textContent: i18n.t('transcript.title')
     });
 
+    // Autoscroll checkbox
+    const autoscrollLabel = DOMUtils.createElement('label', {
+      className: `${this.player.options.classPrefix}-transcript-autoscroll-label`,
+      attributes: {
+        'title': i18n.t('transcript.autoscroll')
+      }
+    });
+    
+    this.autoscrollCheckbox = DOMUtils.createElement('input', {
+      attributes: {
+        'type': 'checkbox',
+        'checked': this.autoscrollEnabled,
+        'aria-label': i18n.t('transcript.autoscroll')
+      }
+    });
+    
+    const autoscrollText = DOMUtils.createElement('span', {
+      textContent: i18n.t('transcript.autoscroll'),
+      className: `${this.player.options.classPrefix}-transcript-autoscroll-text`
+    });
+    
+    autoscrollLabel.appendChild(this.autoscrollCheckbox);
+    autoscrollLabel.appendChild(autoscrollText);
+    
+    // Handle autoscroll checkbox change
+    this.autoscrollCheckbox.addEventListener('change', (e) => {
+      this.autoscrollEnabled = e.target.checked;
+      this.saveAutoscrollPreference();
+    });
+
     this.headerLeft.appendChild(this.settingsButton);
     this.headerLeft.appendChild(title);
+    this.headerLeft.appendChild(autoscrollLabel);
+    
+    // Language selector (will be populated after tracks are loaded)
+    this.languageSelector = DOMUtils.createElement('select', {
+      className: `${this.player.options.classPrefix}-transcript-language-select`,
+      attributes: {
+        'aria-label': i18n.t('settings.language') || 'Language',
+        'style': 'display: none;' // Hidden until we detect multiple languages
+      }
+    });
+    this.headerLeft.appendChild(this.languageSelector);
 
     const closeButton = DOMUtils.createElement('button', {
       className: `${this.player.options.classPrefix}-transcript-close`,
@@ -389,6 +439,84 @@ export class TranscriptManager {
   }
 
   /**
+   * Get available transcript languages from tracks
+   */
+  getAvailableTranscriptLanguages() {
+    const textTracks = Array.from(this.player.element.textTracks);
+    const languages = new Map();
+    
+    // Collect all caption/subtitle tracks with their languages
+    textTracks.forEach(track => {
+      if ((track.kind === 'captions' || track.kind === 'subtitles') && track.language) {
+        if (!languages.has(track.language)) {
+          languages.set(track.language, {
+            language: track.language,
+            label: track.label || track.language,
+            track: track
+          });
+        }
+      }
+    });
+    
+    return Array.from(languages.values());
+  }
+
+  /**
+   * Update language selector dropdown
+   */
+  updateLanguageSelector() {
+    if (!this.languageSelector) return;
+    
+    this.availableTranscriptLanguages = this.getAvailableTranscriptLanguages();
+    
+    // Clear existing options
+    this.languageSelector.innerHTML = '';
+    
+    // Only show selector if there are 2+ languages
+    if (this.availableTranscriptLanguages.length < 2) {
+      this.languageSelector.style.display = 'none';
+      return;
+    }
+    
+    // Show selector and populate options
+    this.languageSelector.style.display = 'block';
+    
+    this.availableTranscriptLanguages.forEach((langInfo, index) => {
+      const option = DOMUtils.createElement('option', {
+        textContent: langInfo.label,
+        attributes: {
+          'value': langInfo.language
+        }
+      });
+      this.languageSelector.appendChild(option);
+    });
+    
+    // Set current selection
+    if (this.currentTranscriptLanguage) {
+      this.languageSelector.value = this.currentTranscriptLanguage;
+    } else if (this.availableTranscriptLanguages.length > 0) {
+      // Default to first language or active track
+      const activeTrack = Array.from(this.player.element.textTracks).find(
+        track => (track.kind === 'captions' || track.kind === 'subtitles') && track.mode === 'showing'
+      );
+      this.currentTranscriptLanguage = activeTrack ? activeTrack.language : this.availableTranscriptLanguages[0].language;
+      this.languageSelector.value = this.currentTranscriptLanguage;
+    }
+    
+    // Remove existing change listener if any
+    if (this.languageSelectorHandler) {
+      this.languageSelector.removeEventListener('change', this.languageSelectorHandler);
+    }
+    
+    // Handle language change
+    this.languageSelectorHandler = (e) => {
+      this.currentTranscriptLanguage = e.target.value;
+      this.loadTranscriptData();
+    };
+    this.languageSelector.addEventListener('change', this.languageSelectorHandler);
+  }
+
+  /**
    * Load transcript data from caption/subtitle tracks
    */
   loadTranscriptData() {
@@ -398,11 +526,37 @@ export class TranscriptManager {
     // Get all text tracks
     const textTracks = Array.from(this.player.element.textTracks);
     
-    // Find different track types
-    const captionTrack = textTracks.find(
-      track => track.kind === 'captions' || track.kind === 'subtitles'
-    );
-    const descriptionTrack = textTracks.find(track => track.kind === 'descriptions');
+    // Find track for selected language, or default to first available
+    let captionTrack = null;
+    if (this.currentTranscriptLanguage) {
+      captionTrack = textTracks.find(
+        track => (track.kind === 'captions' || track.kind === 'subtitles') && 
+                 track.language === this.currentTranscriptLanguage
+      );
+    }
+    
+    // Fallback to first available caption/subtitle track
+    if (!captionTrack) {
+      captionTrack = textTracks.find(
+        track => track.kind === 'captions' || track.kind === 'subtitles'
+      );
+      if (captionTrack) {
+        this.currentTranscriptLanguage = captionTrack.language;
+      }
+    }
+    
+    // Find description track matching the selected language
+    let descriptionTrack = null;
+    if (this.currentTranscriptLanguage) {
+      descriptionTrack = textTracks.find(
+        track => track.kind === 'descriptions' && track.language === this.currentTranscriptLanguage
+      );
+    }
+    // Fallback to first available description track if no match found
+    if (!descriptionTrack) {
+      descriptionTrack = textTracks.find(track => track.kind === 'descriptions');
+    }
+    
     const metadataTrack = textTracks.find(track => track.kind === 'metadata');
 
     // We need at least one track type
@@ -489,6 +643,9 @@ export class TranscriptManager {
     
     // Apply current styles to newly loaded entries
     this.applyTranscriptStyles();
+    
+    // Update language selector after loading
+    this.updateLanguageSelector();
   }
 
   /**
@@ -668,7 +825,7 @@ export class TranscriptManager {
    * Scroll transcript window to show active entry
    */
   scrollToEntry(entryElement) {
-    if (!this.transcriptContent) return;
+    if (!this.transcriptContent || !this.autoscrollEnabled) return;
 
     const contentRect = this.transcriptContent.getBoundingClientRect();
     const entryRect = entryElement.getBoundingClientRect();
@@ -682,6 +839,15 @@ export class TranscriptManager {
         behavior: 'smooth'
       });
     }
+  }
+  
+  /**
+   * Save autoscroll preference to localStorage
+   */
+  saveAutoscrollPreference() {
+    const savedPreferences = this.storage.getTranscriptPreferences() || {};
+    savedPreferences.autoscroll = this.autoscrollEnabled;
+    this.storage.saveTranscriptPreferences(savedPreferences);
   }
 
   /**
@@ -699,6 +865,11 @@ export class TranscriptManager {
       
       // Don't drag if clicking on settings button
       if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings`)) {
+        return;
+      }
+      
+      // Don't drag if clicking on language selector
+      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-language-select`)) {
         return;
       }
       
@@ -735,6 +906,11 @@ export class TranscriptManager {
       
       // Don't drag if touching settings button
       if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings`)) {
+        return;
+      }
+      
+      // Don't drag if touching language selector
+      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-language-select`)) {
         return;
       }
       

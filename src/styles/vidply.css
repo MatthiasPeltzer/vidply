@@ -36,7 +36,13 @@
     --vidply-border-light: var(--vidply-white-10);
     --vidply-focus-outline: 2px solid var(--vidply-primary);
     --vidply-focus-outline-white: 2px solid var(--vidply-primary-light);
+    --vidply-focus-outline-player: 3px solid var(--vidply-primary-light);
     --vidply-hover-bg: var(--vidply-white-10);
+    --vidply-scrollbar-thumb: var(--vidply-white);
+    --vidply-scrollbar-thumb-hover: var(--vidply-white-90);
+    --vidply-scrollbar-track: #404040;
+    --vidply-scrollbar-track-transcript: #555555;
+    --vidply-transition-default: all 0.2s ease;
     --vidply-primary: #0a406e;
     --vidply-primary-10: rgb(var(--vidply-primary-rgb), 0.1);
     --vidply-primary-15: rgb(var(--vidply-primary-rgb), 0.15);
@@ -110,16 +116,11 @@
 
 /* Player Focus Outline */
 .vidply-player:focus {
-    outline: 3px solid var(--vidply-primary-light);
-    outline-offset: 4px;
-}
-
-.vidply-player:focus:not(:focus-visible) {
     outline: none;
 }
 
 .vidply-player:focus-visible {
-    outline: 3px solid var(--vidply-primary-light);
+    outline: var(--vidply-focus-outline-player);
     outline-offset: 4px;
 }
 
@@ -311,9 +312,6 @@
 .vidply-progress-container:hover,
 .vidply-progress-container:focus {
     height: 8px;
-}
-
-.vidply-progress-container:focus {
     outline: var(--vidply-focus-outline-white);
     outline-offset: 2px;
 }
@@ -419,10 +417,6 @@
 .vidply-button:focus {
     outline: var(--vidply-focus-outline-white);
     outline-offset: 2px;
-}
-
-.vidply-button:focus:not(:focus-visible) {
-    outline: none;
 }
 
 .vidply-button:disabled {
@@ -1310,12 +1304,16 @@
     }
 }
 
-/* Focus Visible Polyfill */
-.vidply-player :focus:not(:focus-visible) {
-    outline: none;
-}
-
-.vidply-player :focus-visible {
+/* Focus Visible */
+.vidply-player :focus-visible,
+.vidply-player button:hover,
+.vidply-player a:hover,
+.vidply-player input:hover,
+.vidply-player select:hover,
+.vidply-player textarea:hover,
+.vidply-player [role="button"]:hover,
+.vidply-player [role="link"]:hover,
+.vidply-player [tabindex]:not([tabindex="-1"]):hover {
     outline: var(--vidply-focus-outline-white);
     outline-offset: 2px;
 }
@@ -1402,7 +1400,7 @@
     gap: 12px;
     padding: 12px 16px;
     position: relative;
-    transition: all 0.2s ease;
+    transition: var(--vidply-transition-default);
 }
 
 .vidply-playlist-item:hover {
@@ -1413,19 +1411,14 @@
 .vidply-playlist-item:focus {
     background: var(--vidply-white-08);
     border-left-color: var(--vidply-primary);
-    outline: 2px solid var(--vidply-primary-light);
-    outline-offset: -2px;
-    z-index: 1;
-}
-
-.vidply-playlist-item:focus:not(:focus-visible) {
     outline: none;
+    z-index: 1;
 }
 
 .vidply-playlist-item:focus-visible {
     background: var(--vidply-white-08);
     border-left-color: var(--vidply-primary);
-    outline: 2px solid var(--vidply-primary-light);
+    outline: var(--vidply-focus-outline-white);
     outline-offset: -2px;
     z-index: 1;
 }
@@ -1439,10 +1432,14 @@
     background: var(--vidply-primary-20);
 }
 
-.vidply-playlist-item-active:focus,
+.vidply-playlist-item-active:focus {
+    background: var(--vidply-primary-20);
+    outline: none;
+}
+
 .vidply-playlist-item-active:focus-visible {
     background: var(--vidply-primary-20);
-    outline: 2px solid var(--vidply-primary-light);
+    outline: var(--vidply-focus-outline-white);
     outline-offset: -2px;
 }
 
@@ -1464,7 +1461,7 @@
 .vidply-playlist-thumbnail-icon {
     color: var(--vidply-text-subtle);
     height: 32px;
-    transition: all 0.2s ease;
+    transition: var(--vidply-transition-default);
     width: 32px;
 }
 
@@ -1525,21 +1522,26 @@
 }
 
 /* Playlist Scrollbar */
+.vidply-playlist-panel {
+    scrollbar-color: var(--vidply-scrollbar-thumb) var(--vidply-scrollbar-track);
+    scrollbar-width: thin;
+}
+
 .vidply-playlist-panel::-webkit-scrollbar {
     width: 8px;
 }
 
 .vidply-playlist-panel::-webkit-scrollbar-track {
-    background: var(--vidply-black-30);
+    background: var(--vidply-scrollbar-track);
 }
 
 .vidply-playlist-panel::-webkit-scrollbar-thumb {
-    background: var(--vidply-white-20);
+    background: var(--vidply-scrollbar-thumb);
     border-radius: 4px;
 }
 
 .vidply-playlist-panel::-webkit-scrollbar-thumb:hover {
-    background: var(--vidply-border-hover);
+    background: var(--vidply-scrollbar-thumb-hover);
 }
 
 /* Audio Player with Playlist */
@@ -1583,7 +1585,7 @@
 
 .vidply-transcript-header {
     align-items: center;
-    background: var(--vidply-active-bg);
+    background: #282828;
     border-bottom: 1px solid var(--vidply-border-light);
     border-radius: 8px 8px 0 0;
     cursor: move;
@@ -1594,10 +1596,16 @@
 }
 
 .vidply-transcript-header h3 {
+    /* Visually hidden but accessible to screen readers */
     color: var(--vidply-white);
     font-size: 16px;
     font-weight: 600;
+    height: 1px;
+    left: -10000px;
     margin: 0;
+    overflow: hidden;
+    position: absolute;
+    width: 1px;
 }
 
 .vidply-transcript-close {
@@ -1611,7 +1619,7 @@
     height: 28px;
     justify-content: center;
     padding: 4px;
-    transition: all 0.2s ease;
+    transition: var(--vidply-transition-default);
     width: 28px;
 }
 
@@ -1714,29 +1722,90 @@
 }
 
 /* Transcript Scrollbar */
+.vidply-transcript-content {
+    scrollbar-color: var(--vidply-scrollbar-thumb) var(--vidply-scrollbar-track-transcript);
+    scrollbar-width: thin;
+}
+
 .vidply-transcript-content::-webkit-scrollbar {
     width: 8px;
 }
 
 .vidply-transcript-content::-webkit-scrollbar-track {
-    background: var(--vidply-black-30);
+    background: var(--vidply-scrollbar-track-transcript);
 }
 
 .vidply-transcript-content::-webkit-scrollbar-thumb {
-    background: var(--vidply-white-20);
+    background: var(--vidply-scrollbar-thumb);
     border-radius: 4px;
 }
 
 .vidply-transcript-content::-webkit-scrollbar-thumb:hover {
-    background: var(--vidply-border-hover);
+    background: var(--vidply-scrollbar-thumb-hover);
 }
 
 /* Transcript Header Left Side (Settings Button + Title) */
 .vidply-transcript-header-left {
     align-items: center;
     display: flex;
-    gap: 8px;
+    gap: 16px;
     position: relative;
+}
+
+/* Transcript Autoscroll Checkbox */
+.vidply-transcript-autoscroll-label {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    gap: 6px;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.vidply-transcript-autoscroll-label input[type="checkbox"] {
+    cursor: pointer;
+    height: 16px;
+    margin: 0;
+    width: 16px;
+}
+
+.vidply-transcript-autoscroll-text {
+    color: var(--vidply-text-muted);
+    font-size: 13px;
+    transition: color 0.2s ease;
+}
+
+.vidply-transcript-autoscroll-label:hover .vidply-transcript-autoscroll-text {
+    color: var(--vidply-white);
+}
+
+/* Transcript Language Selector */
+.vidply-transcript-language-select {
+    background: var(--vidply-white-10);
+    border: 1px solid var(--vidply-white-20);
+    border-radius: 4px;
+    color: var(--vidply-white);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px 8px;
+    transition: var(--vidply-transition-default);
+}
+
+.vidply-transcript-language-select:hover {
+    background: var(--vidply-white-15);
+    border-color: var(--vidply-border-hover);
+}
+
+.vidply-transcript-language-select:focus {
+    background: var(--vidply-white-15);
+    border-color: var(--vidply-border-focus);
+    box-shadow: 0 0 0 3px var(--vidply-primary-20);
+    outline: none;
+}
+
+.vidply-transcript-language-select option {
+    background: #1a1a1a;
+    color: var(--vidply-white);
 }
 
 /* Transcript Settings Button */
@@ -1752,7 +1821,7 @@
     justify-content: center;
     padding: 4px;
     position: relative;
-    transition: all 0.2s ease;
+    transition: var(--vidply-transition-default);
     width: 28px;
 }
 
@@ -1762,7 +1831,7 @@
 }
 
 .vidply-transcript-settings:focus {
-    outline: 2px solid var(--vidply-primary-light);
+    outline: var(--vidply-focus-outline-white);
     outline-offset: 2px;
 }
 
@@ -2084,7 +2153,7 @@
     font-size: 13px;
     outline: none;
     padding: 6px 10px;
-    transition: all 0.2s ease;
+    transition: var(--vidply-transition-default);
     width: 100%;
 }
 
@@ -2112,7 +2181,7 @@
     height: 32px;
     outline: none;
     padding: 4px;
-    transition: all 0.2s ease;
+    transition: var(--vidply-transition-default);
     width: 100%;
 }
 
@@ -2196,7 +2265,7 @@
     font-weight: 600;
     margin-top: 12px;
     padding: 8px 16px;
-    transition: all 0.2s ease;
+    transition: var(--vidply-transition-default);
     width: 100%;
 }
 

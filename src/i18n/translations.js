@@ -99,7 +99,8 @@ export const translations = {
       resizeWindow: 'Resize Window',
       styleTranscript: 'Open transcript style settings',
       closeMenu: 'Close Menu',
-      styleTitle: 'Transcript Style'
+      styleTitle: 'Transcript Style',
+      autoscroll: 'Autoscroll'
     },
     settings: {
       title: 'Settings',
@@ -221,7 +222,8 @@ export const translations = {
       resizeWindow: 'Fenster vergrößern/verkleinern',
       styleTranscript: 'Transkript-Stileinstellungen öffnen',
       closeMenu: 'Menü schließen',
-      styleTitle: 'Transkript-Stil'
+      styleTitle: 'Transkript-Stil',
+      autoscroll: 'Automatisches Scrollen'
     },
     settings: {
       title: 'Einstellungen',
@@ -343,7 +345,8 @@ export const translations = {
       resizeWindow: 'Cambiar tamaño de ventana',
       styleTranscript: 'Abrir configuración de estilo de transcripción',
       closeMenu: 'Cerrar menú',
-      styleTitle: 'Estilo de Transcripción'
+      styleTitle: 'Estilo de Transcripción',
+      autoscroll: 'Desplazamiento automático'
     },
     settings: {
       title: 'Configuración',
@@ -465,7 +468,8 @@ export const translations = {
       resizeWindow: 'Redimensionner la fenêtre',
       styleTranscript: 'Ouvrir les paramètres de style de transcription',
       closeMenu: 'Fermer le menu',
-      styleTitle: 'Style de Transcription'
+      styleTitle: 'Style de Transcription',
+      autoscroll: 'Défilement automatique'
     },
     settings: {
       title: 'Paramètres',
@@ -587,7 +591,8 @@ export const translations = {
       resizeWindow: 'ウィンドウのサイズ変更',
       styleTranscript: '文字起こしスタイル設定を開く',
       closeMenu: 'メニューを閉じる',
-      styleTitle: '文字起こしスタイル'
+      styleTitle: '文字起こしスタイル',
+      autoscroll: '自動スクロール'
     },
     settings: {
       title: '設定',
