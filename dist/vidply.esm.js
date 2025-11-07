@@ -3354,13 +3354,15 @@ var TranscriptManager = class {
       documentClick: null,
       styleDialogKeydown: null
     };
+    this.timeouts = /* @__PURE__ */ new Set();
     this.init();
   }
   init() {
+    this.setupMetadataHandlingOnLoad();
     this.player.on("timeupdate", this.handlers.timeupdate);
     this.player.on("fullscreenchange", () => {
       if (this.isVisible) {
-        setTimeout(() => this.positionTranscript(), 100);
+        this.setManagedTimeout(() => this.positionTranscript(), 100);
       }
     });
   }
@@ -3381,7 +3383,7 @@ var TranscriptManager = class {
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = "flex";
       this.isVisible = true;
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         if (this.settingsButton) {
           this.settingsButton.focus();
         }
@@ -3392,8 +3394,8 @@ var TranscriptManager = class {
     this.loadTranscriptData();
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = "flex";
-      setTimeout(() => this.positionTranscript(), 0);
-      setTimeout(() => {
+      this.setManagedTimeout(() => this.positionTranscript(), 0);
+      this.setManagedTimeout(() => {
         if (this.settingsButton) {
           this.settingsButton.focus();
         }
@@ -3547,8 +3549,10 @@ var TranscriptManager = class {
     this.documentClickHandlerAdded = false;
     let resizeTimeout;
     this.handlers.resize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => this.positionTranscript(), 100);
+      if (resizeTimeout) {
+        this.clearManagedTimeout(resizeTimeout);
+      }
+      resizeTimeout = this.setManagedTimeout(() => this.positionTranscript(), 100);
     };
     window.addEventListener("resize", this.handlers.resize);
   }
@@ -3622,7 +3626,7 @@ var TranscriptManager = class {
    * Get available transcript languages from tracks
    */
   getAvailableTranscriptLanguages() {
-    const textTracks = Array.from(this.player.element.textTracks);
+    const textTracks = this.player.textTracks;
     const languages = /* @__PURE__ */ new Map();
     textTracks.forEach((track) => {
       if ((track.kind === "captions" || track.kind === "subtitles") && track.language) {
@@ -3661,7 +3665,7 @@ var TranscriptManager = class {
     if (this.currentTranscriptLanguage) {
       this.languageSelector.value = this.currentTranscriptLanguage;
     } else if (this.availableTranscriptLanguages.length > 0) {
-      const activeTrack = Array.from(this.player.element.textTracks).find(
+      const activeTrack = this.player.textTracks.find(
         (track) => (track.kind === "captions" || track.kind === "subtitles") && track.mode === "showing"
       );
       this.currentTranscriptLanguage = activeTrack ? activeTrack.language : this.availableTranscriptLanguages[0].language;
@@ -3682,7 +3686,7 @@ var TranscriptManager = class {
   loadTranscriptData() {
     this.transcriptEntries = [];
     this.transcriptContent.innerHTML = "";
-    const textTracks = Array.from(this.player.element.textTracks);
+    const textTracks = this.player.textTracks;
     let captionTrack = null;
     if (this.currentTranscriptLanguage) {
       captionTrack = textTracks.find(
@@ -3734,7 +3738,7 @@ var TranscriptManager = class {
       tracksToLoad.forEach((track) => {
         track.addEventListener("load", onLoad, { once: true });
       });
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         this.loadTranscriptData();
       }, 500);
       return;
@@ -3770,22 +3774,58 @@ var TranscriptManager = class {
     this.updateLanguageSelector();
   }
   /**
+   * Setup metadata handling on player load
+   * This runs independently of transcript loading
+   */
+  setupMetadataHandlingOnLoad() {
+    const setupMetadata = () => {
+      const textTracks = this.player.textTracks;
+      const metadataTrack = textTracks.find((track) => track.kind === "metadata");
+      if (metadataTrack) {
+        if (metadataTrack.mode === "disabled") {
+          metadataTrack.mode = "hidden";
+        }
+        if (this.metadataCueChangeHandler) {
+          metadataTrack.removeEventListener("cuechange", this.metadataCueChangeHandler);
+        }
+        this.metadataCueChangeHandler = () => {
+          const activeCues = Array.from(metadataTrack.activeCues || []);
+          if (activeCues.length > 0) {
+            if (this.player.options.debug) {
+              console.log("[VidPly Metadata] Active cues:", activeCues.map((c) => ({
+                start: c.startTime,
+                end: c.endTime,
+                text: c.text
+              })));
+            }
+          }
+          activeCues.forEach((cue) => {
+            this.handleMetadataCue(cue);
+          });
+        };
+        metadataTrack.addEventListener("cuechange", this.metadataCueChangeHandler);
+        if (this.player.options.debug) {
+          const cueCount = metadataTrack.cues ? metadataTrack.cues.length : 0;
+          console.log("[VidPly Metadata] Track enabled,", cueCount, "cues available");
+        }
+      } else if (this.player.options.debug) {
+        console.warn("[VidPly Metadata] No metadata track found");
+      }
+    };
+    setupMetadata();
+    this.player.on("loadedmetadata", setupMetadata);
+  }
+  /**
    * Setup metadata handling
    * Metadata cues are not displayed but can be used programmatically
+   * This is called when transcript data is loaded (for storing cues)
    */
   setupMetadataHandling() {
     if (!this.metadataCues || this.metadataCues.length === 0) {
       return;
     }
-    const textTracks = Array.from(this.player.element.textTracks);
-    const metadataTrack = textTracks.find((track) => track.kind === "metadata");
-    if (metadataTrack) {
-      metadataTrack.addEventListener("cuechange", () => {
-        const activeCues = Array.from(metadataTrack.activeCues || []);
-        activeCues.forEach((cue) => {
-          this.handleMetadataCue(cue);
-        });
-      });
+    if (this.player.options.debug) {
+      console.log("[VidPly Metadata]", this.metadataCues.length, "cues stored from transcript load");
     }
   }
   /**
@@ -3794,6 +3834,12 @@ var TranscriptManager = class {
    */
   handleMetadataCue(cue) {
     const text = cue.text.trim();
+    if (this.player.options.debug) {
+      console.log("[VidPly Metadata] Processing cue:", {
+        time: cue.startTime,
+        text
+      });
+    }
     this.player.emit("metadata", {
       time: cue.startTime,
       endTime: cue.endTime,
@@ -3801,18 +3847,40 @@ var TranscriptManager = class {
       cue
     });
     if (text.includes("PAUSE")) {
+      if (!this.player.state.paused) {
+        if (this.player.options.debug) {
+          console.log("[VidPly Metadata] Pausing video at", cue.startTime);
+        }
+        this.player.pause();
+      }
       this.player.emit("metadata:pause", { time: cue.startTime, text });
     }
     const focusMatch = text.match(/FOCUS:([\w#-]+)/);
     if (focusMatch) {
+      const targetSelector = focusMatch[1];
+      const targetElement = document.querySelector(targetSelector);
+      if (targetElement) {
+        if (this.player.options.debug) {
+          console.log("[VidPly Metadata] Focusing element:", targetSelector);
+        }
+        this.setManagedTimeout(() => {
+          targetElement.focus();
+        }, 10);
+      } else if (this.player.options.debug) {
+        console.warn("[VidPly Metadata] Element not found:", targetSelector);
+      }
       this.player.emit("metadata:focus", {
         time: cue.startTime,
-        target: focusMatch[1],
+        target: targetSelector,
+        element: targetElement,
         text
       });
     }
     const hashtags = text.match(/#[\w-]+/g);
     if (hashtags) {
+      if (this.player.options.debug) {
+        console.log("[VidPly Metadata] Hashtags found:", hashtags);
+      }
       this.player.emit("metadata:hashtags", {
         time: cue.startTime,
         hashtags,
@@ -4724,6 +4792,30 @@ var TranscriptManager = class {
     });
   }
   /**
+   * Set a managed timeout that will be cleaned up on destroy
+   * @param {Function} callback - Callback function
+   * @param {number} delay - Delay in milliseconds
+   * @returns {number} Timeout ID
+   */
+  setManagedTimeout(callback, delay) {
+    const timeoutId = setTimeout(() => {
+      this.timeouts.delete(timeoutId);
+      callback();
+    }, delay);
+    this.timeouts.add(timeoutId);
+    return timeoutId;
+  }
+  /**
+   * Clear a managed timeout
+   * @param {number} timeoutId - Timeout ID to clear
+   */
+  clearManagedTimeout(timeoutId) {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.timeouts.delete(timeoutId);
+    }
+  }
+  /**
    * Cleanup
    */
   destroy() {
@@ -4776,6 +4868,8 @@ var TranscriptManager = class {
     if (this.handlers.resize) {
       window.removeEventListener("resize", this.handlers.resize);
     }
+    this.timeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+    this.timeouts.clear();
     this.handlers = null;
     if (this.transcriptWindow && this.transcriptWindow.parentNode) {
       this.transcriptWindow.parentNode.removeChild(this.transcriptWindow);
@@ -5447,7 +5541,7 @@ var HLSRenderer = class {
 };
 
 // src/core/Player.js
-var Player = class extends EventEmitter {
+var Player = class _Player extends EventEmitter {
   constructor(element, options = {}) {
     super();
     this.element = typeof element === "string" ? document.querySelector(element) : element;
@@ -5555,6 +5649,8 @@ var Player = class extends EventEmitter {
       screenReaderAnnouncements: true,
       highContrast: false,
       focusHighlight: true,
+      metadataAlerts: {},
+      metadataHashtags: {},
       // Languages
       language: "en",
       languages: ["en"],
@@ -5573,6 +5669,8 @@ var Player = class extends EventEmitter {
       onError: null,
       ...options
     };
+    this.options.metadataAlerts = this.options.metadataAlerts || {};
+    this.options.metadataHashtags = this.options.metadataHashtags || {};
     this.storage = new StorageManager("vidply");
     const savedPrefs = this.storage.getPlayerPreferences();
     if (savedPrefs) {
@@ -5607,12 +5705,21 @@ var Player = class extends EventEmitter {
     this.audioDescriptionSourceElement = null;
     this.originalAudioDescriptionSource = null;
     this.audioDescriptionCaptionTracks = [];
+    this._textTracksCache = null;
+    this._textTracksDirty = true;
+    this._sourceElementsCache = null;
+    this._sourceElementsDirty = true;
+    this._trackElementsCache = null;
+    this._trackElementsDirty = true;
+    this.timeouts = /* @__PURE__ */ new Set();
     this.container = null;
     this.renderer = null;
     this.controlBar = null;
     this.captionManager = null;
     this.keyboardManager = null;
     this.settingsDialog = null;
+    this.metadataCueChangeHandler = null;
+    this.metadataAlertHandlers = /* @__PURE__ */ new Map();
     this.init();
   }
   async init() {
@@ -5644,6 +5751,7 @@ var Player = class extends EventEmitter {
       if (this.options.transcript || this.options.transcriptButton) {
         this.transcriptManager = new TranscriptManager(this);
       }
+      this.setupMetadataHandling();
       if (this.options.keyboard) {
         this.keyboardManager = new KeyboardManager(this);
       }
@@ -5729,6 +5837,8 @@ var Player = class extends EventEmitter {
     if (this.element.tagName === "VIDEO") {
       this.createPlayButtonOverlay();
     }
+    this.element.vidply = this;
+    _Player.instances.push(this);
     this.element.style.cursor = "pointer";
     this.element.addEventListener("click", (e) => {
       if (e.target === this.element) {
@@ -5761,7 +5871,7 @@ var Player = class extends EventEmitter {
     if (!src) {
       throw new Error("No media source found");
     }
-    const sourceElements = this.element.querySelectorAll("source");
+    const sourceElements = this.sourceElements;
     for (const sourceEl of sourceElements) {
       const descSrc = sourceEl.getAttribute("data-desc-src");
       const origSrc = sourceEl.getAttribute("data-orig-src");
@@ -5790,7 +5900,7 @@ var Player = class extends EventEmitter {
         }
       }
     }
-    const trackElements = this.element.querySelectorAll("track");
+    const trackElements = this.trackElements;
     trackElements.forEach((trackEl) => {
       const trackKind = trackEl.getAttribute("kind");
       const trackDescSrc = trackEl.getAttribute("data-desc-src");
@@ -5824,6 +5934,106 @@ var Player = class extends EventEmitter {
     this.log(`Using ${renderer.name} renderer`);
     this.renderer = new renderer(this);
     await this.renderer.init();
+    this.invalidateTrackCache();
+  }
+  /**
+   * Get cached text tracks array
+   * @returns {Array} Array of text tracks
+   */
+  get textTracks() {
+    if (!this._textTracksCache || this._textTracksDirty) {
+      this._textTracksCache = Array.from(this.element.textTracks || []);
+      this._textTracksDirty = false;
+    }
+    return this._textTracksCache;
+  }
+  /**
+   * Get cached source elements array
+   * @returns {Array} Array of source elements
+   */
+  get sourceElements() {
+    if (!this._sourceElementsCache || this._sourceElementsDirty) {
+      this._sourceElementsCache = Array.from(this.element.querySelectorAll("source"));
+      this._sourceElementsDirty = false;
+    }
+    return this._sourceElementsCache;
+  }
+  /**
+   * Get cached track elements array
+   * @returns {Array} Array of track elements
+   */
+  get trackElements() {
+    if (!this._trackElementsCache || this._trackElementsDirty) {
+      this._trackElementsCache = Array.from(this.element.querySelectorAll("track"));
+      this._trackElementsDirty = false;
+    }
+    return this._trackElementsCache;
+  }
+  /**
+   * Invalidate DOM query cache (call when tracks/sources change)
+   */
+  invalidateTrackCache() {
+    this._textTracksDirty = true;
+    this._trackElementsDirty = true;
+    this._sourceElementsDirty = true;
+  }
+  /**
+   * Find a text track by kind and optionally language
+   * @param {string} kind - Track kind (captions, subtitles, descriptions, chapters, metadata)
+   * @param {string} [language] - Optional language code
+   * @returns {TextTrack|null} Found track or null
+   */
+  findTextTrack(kind, language = null) {
+    const tracks = this.textTracks;
+    if (language) {
+      return tracks.find((t) => t.kind === kind && t.language === language);
+    }
+    return tracks.find((t) => t.kind === kind);
+  }
+  /**
+   * Find a source element by attribute
+   * @param {string} attribute - Attribute name (e.g., 'data-desc-src')
+   * @param {string} [value] - Optional attribute value
+   * @returns {Element|null} Found source element or null
+   */
+  findSourceElement(attribute, value = null) {
+    const sources = this.sourceElements;
+    if (value) {
+      return sources.find((el) => el.getAttribute(attribute) === value);
+    }
+    return sources.find((el) => el.hasAttribute(attribute));
+  }
+  /**
+   * Find a track element by its associated TextTrack
+   * @param {TextTrack} track - The TextTrack object
+   * @returns {Element|null} Found track element or null
+   */
+  findTrackElement(track) {
+    return this.trackElements.find((el) => el.track === track);
+  }
+  /**
+   * Set a managed timeout that will be cleaned up on destroy
+   * @param {Function} callback - Callback function
+   * @param {number} delay - Delay in milliseconds
+   * @returns {number} Timeout ID
+   */
+  setManagedTimeout(callback, delay) {
+    const timeoutId = setTimeout(() => {
+      this.timeouts.delete(timeoutId);
+      callback();
+    }, delay);
+    this.timeouts.add(timeoutId);
+    return timeoutId;
+  }
+  /**
+   * Clear a managed timeout
+   * @param {number} timeoutId - Timeout ID to clear
+   */
+  clearManagedTimeout(timeoutId) {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.timeouts.delete(timeoutId);
+    }
   }
   /**
    * Load new media source (for playlists)
@@ -5839,8 +6049,9 @@ var Player = class extends EventEmitter {
       if (this.renderer) {
         this.pause();
       }
-      const existingTracks = this.element.querySelectorAll("track");
+      const existingTracks = this.trackElements;
       existingTracks.forEach((track) => track.remove());
+      this.invalidateTrackCache();
       this.element.src = config.src;
       if (config.type) {
         this.element.type = config.type;
@@ -5860,6 +6071,7 @@ var Player = class extends EventEmitter {
           }
           this.element.appendChild(track);
         });
+        this.invalidateTrackCache();
       }
       const shouldChangeRenderer = this.shouldChangeRenderer(config.src);
       if (shouldChangeRenderer && this.renderer) {
@@ -6107,7 +6319,7 @@ var Player = class extends EventEmitter {
   }
   // Audio Description
   async enableAudioDescription() {
-    const hasSourceElementsWithDesc = Array.from(this.element.querySelectorAll("source")).some((el) => el.getAttribute("data-desc-src"));
+    const hasSourceElementsWithDesc = this.sourceElements.some((el) => el.getAttribute("data-desc-src"));
     const hasTracksWithDesc = this.audioDescriptionCaptionTracks.length > 0;
     if (!this.audioDescriptionSrc && !hasSourceElementsWithDesc && !hasTracksWithDesc) {
       console.warn("VidPly: No audio description source, source elements, or tracks provided");
@@ -6118,7 +6330,7 @@ var Player = class extends EventEmitter {
     let swappedTracksForTranscript = [];
     if (this.audioDescriptionSourceElement) {
       const currentSrc = this.element.currentSrc || this.element.src;
-      const sourceElements = Array.from(this.element.querySelectorAll("source"));
+      const sourceElements = this.sourceElements;
       let sourceElementToUpdate = null;
       let descSrc = this.audioDescriptionSrc;
       for (const sourceEl of sourceElements) {
@@ -6215,8 +6427,9 @@ var Player = class extends EventEmitter {
               trackInfo.trackElement = newTrackElement;
             });
             this.element.load();
+            this.invalidateTrackCache();
             const setupNewTracks = () => {
-              setTimeout(() => {
+              this.setManagedTimeout(() => {
                 swappedTracksForTranscript.forEach((trackInfo) => {
                   const trackElement = trackInfo.trackElement;
                   const newTextTrack = trackElement.track;
@@ -6252,7 +6465,7 @@ var Player = class extends EventEmitter {
           const skippedCount = validationResults.length - tracksToSwap.length;
         }
       }
-      const allSourceElements = Array.from(this.element.querySelectorAll("source"));
+      const allSourceElements = this.sourceElements;
       const sourcesToUpdate = [];
       allSourceElements.forEach((sourceEl) => {
         const descSrcAttr = sourceEl.getAttribute("data-desc-src");
@@ -6430,7 +6643,7 @@ var Player = class extends EventEmitter {
           }, 100);
         }
       }
-      const fallbackSourceElements = Array.from(this.element.querySelectorAll("source"));
+      const fallbackSourceElements = this.sourceElements;
       const hasSourceElementsWithDesc2 = fallbackSourceElements.some((el) => el.getAttribute("data-desc-src"));
       if (hasSourceElementsWithDesc2) {
         const fallbackSourcesToUpdate = [];
@@ -6478,6 +6691,7 @@ var Player = class extends EventEmitter {
           this.element.appendChild(newSource);
         });
         this.element.load();
+        this.invalidateTrackCache();
       } else {
         this.element.src = this.audioDescriptionSrc;
       }
@@ -6492,7 +6706,7 @@ var Player = class extends EventEmitter {
     if (this.element.tagName === "VIDEO" && currentTime === 0 && !wasPlaying) {
       if (this.element.readyState >= 1) {
         this.element.currentTime = 1e-3;
-        setTimeout(() => {
+        this.setManagedTimeout(() => {
           this.element.currentTime = 0;
         }, 10);
       }
@@ -6532,7 +6746,8 @@ var Player = class extends EventEmitter {
       const swappedTracks = typeof swappedTracksForTranscript !== "undefined" ? swappedTracksForTranscript : [];
       if (swappedTracks.length > 0) {
         const onMetadataLoaded = () => {
-          const allTextTracks = Array.from(this.element.textTracks);
+          this.invalidateTrackCache();
+          const allTextTracks = this.textTracks;
           const freshTracks = swappedTracks.map((trackInfo) => {
             const trackEl = trackInfo.trackElement;
             const expectedSrc = trackEl.getAttribute("src");
@@ -6542,9 +6757,7 @@ var Player = class extends EventEmitter {
             if (!foundTrack) {
               foundTrack = allTextTracks.find((track) => {
                 if (track.language === srclang && (track.kind === kind || kind === "captions" && track.kind === "subtitles")) {
-                  const trackElementForTrack = Array.from(this.element.querySelectorAll("track")).find(
-                    (el) => el.track === track
-                  );
+                  const trackElementForTrack = this.findTrackElement(track);
                   if (trackElementForTrack) {
                     const actualSrc = trackElementForTrack.getAttribute("src");
                     if (actualSrc === expectedSrc) {
@@ -6556,9 +6769,7 @@ var Player = class extends EventEmitter {
               });
             }
             if (foundTrack) {
-              const trackElement = Array.from(this.element.querySelectorAll("track")).find(
-                (el) => el.track === foundTrack
-              );
+              const trackElement = this.findTrackElement(foundTrack);
               if (trackElement && trackElement.getAttribute("src") !== expectedSrc) {
                 return null;
               }
@@ -6566,7 +6777,7 @@ var Player = class extends EventEmitter {
             return foundTrack;
           }).filter(Boolean);
           if (freshTracks.length === 0) {
-            setTimeout(() => {
+            this.setManagedTimeout(() => {
               if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
                 this.transcriptManager.loadTranscriptData();
               }
@@ -6582,14 +6793,13 @@ var Player = class extends EventEmitter {
           const checkLoaded = () => {
             loadedCount++;
             if (loadedCount >= freshTracks.length) {
-              setTimeout(() => {
+              this.setManagedTimeout(() => {
                 if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
-                  const allTextTracks2 = Array.from(this.element.textTracks);
+                  this.invalidateTrackCache();
+                  const allTextTracks2 = this.textTracks;
                   const swappedTrackSrcs = swappedTracks.map((t) => t.describedSrc);
                   const hasCorrectTracks = freshTracks.some((track) => {
-                    const trackEl = Array.from(this.element.querySelectorAll("track")).find(
-                      (el) => el.track === track
-                    );
+                    const trackEl = this.findTrackElement(track);
                     return trackEl && swappedTrackSrcs.includes(trackEl.getAttribute("src"));
                   });
                   if (hasCorrectTracks || freshTracks.length > 0) {
@@ -6603,9 +6813,7 @@ var Player = class extends EventEmitter {
             if (track.mode === "disabled") {
               track.mode = "hidden";
             }
-            const trackElementForTrack = Array.from(this.element.querySelectorAll("track")).find(
-              (el) => el.track === track
-            );
+            const trackElementForTrack = this.findTrackElement(track);
             const actualSrc = trackElementForTrack ? trackElementForTrack.getAttribute("src") : null;
             const expectedTrackInfo = swappedTracks.find((t) => {
               const tEl = t.trackElement;
@@ -6623,10 +6831,10 @@ var Player = class extends EventEmitter {
                 track.mode = "hidden";
               }
               const onTrackLoad = () => {
-                setTimeout(checkLoaded, 300);
+                this.setManagedTimeout(checkLoaded, 300);
               };
               if (track.readyState >= 2) {
-                setTimeout(() => {
+                this.setManagedTimeout(() => {
                   if (track.cues && track.cues.length > 0) {
                     checkLoaded();
                   } else {
@@ -6643,12 +6851,12 @@ var Player = class extends EventEmitter {
           });
         };
         const waitForTracks = () => {
-          setTimeout(() => {
+          this.setManagedTimeout(() => {
             if (this.element.readyState >= 1) {
               onMetadataLoaded();
             } else {
               this.element.addEventListener("loadedmetadata", onMetadataLoaded, { once: true });
-              setTimeout(onMetadataLoaded, 2e3);
+              this.setManagedTimeout(onMetadataLoaded, 2e3);
             }
           }, 500);
         };
@@ -6682,7 +6890,7 @@ var Player = class extends EventEmitter {
         }
       });
     }
-    const allSourceElements = Array.from(this.element.querySelectorAll("source"));
+    const allSourceElements = this.sourceElements;
     const hasSourceElementsToSwap = allSourceElements.some((el) => el.getAttribute("data-orig-src"));
     if (hasSourceElementsToSwap) {
       const sourcesToRestore = [];
@@ -6745,7 +6953,7 @@ var Player = class extends EventEmitter {
       this.play();
     }
     if (this.transcriptManager && this.transcriptManager.isVisible) {
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
           this.transcriptManager.loadTranscriptData();
         }
@@ -6755,9 +6963,8 @@ var Player = class extends EventEmitter {
     this.emit("audiodescriptiondisabled");
   }
   async toggleAudioDescription() {
-    const textTracks = Array.from(this.element.textTracks || []);
-    const descriptionTrack = textTracks.find((track) => track.kind === "descriptions");
-    const hasAudioDescriptionSrc = this.audioDescriptionSrc || Array.from(this.element.querySelectorAll("source")).some((el) => el.getAttribute("data-desc-src"));
+    const descriptionTrack = this.findTextTrack("descriptions");
+    const hasAudioDescriptionSrc = this.audioDescriptionSrc || this.sourceElements.some((el) => el.getAttribute("data-desc-src"));
     if (descriptionTrack && hasAudioDescriptionSrc) {
       if (this.state.audioDescriptionEnabled) {
         descriptionTrack.mode = "hidden";
@@ -6765,26 +6972,26 @@ var Player = class extends EventEmitter {
       } else {
         await this.enableAudioDescription();
         const enableDescriptionTrack = () => {
-          const textTracks2 = Array.from(this.element.textTracks || []);
-          const descTrack = textTracks2.find((track) => track.kind === "descriptions");
+          this.invalidateTrackCache();
+          const descTrack = this.findTextTrack("descriptions");
           if (descTrack) {
             if (descTrack.mode === "disabled") {
               descTrack.mode = "hidden";
-              setTimeout(() => {
+              this.setManagedTimeout(() => {
                 descTrack.mode = "showing";
               }, 50);
             } else {
               descTrack.mode = "showing";
             }
           } else if (this.element.readyState < 2) {
-            setTimeout(enableDescriptionTrack, 100);
+            this.setManagedTimeout(enableDescriptionTrack, 100);
           }
         };
         if (this.element.readyState >= 1) {
-          setTimeout(enableDescriptionTrack, 200);
+          this.setManagedTimeout(enableDescriptionTrack, 200);
         } else {
           this.element.addEventListener("loadedmetadata", () => {
-            setTimeout(enableDescriptionTrack, 200);
+            this.setManagedTimeout(enableDescriptionTrack, 200);
           }, { once: true });
         }
       }
@@ -7199,9 +7406,25 @@ var Player = class extends EventEmitter {
     }
   }
   // Logging
-  log(message, type = "log") {
-    if (this.options.debug) {
-      console[type](`[VidPly]`, message);
+  log(...messages) {
+    if (!this.options.debug) {
+      return;
+    }
+    let type = "log";
+    if (messages.length > 0) {
+      const potentialType = messages[messages.length - 1];
+      if (typeof potentialType === "string" && console[potentialType]) {
+        type = potentialType;
+        messages = messages.slice(0, -1);
+      }
+    }
+    if (messages.length === 0) {
+      messages = [""];
+    }
+    if (typeof console[type] === "function") {
+      console[type]("[VidPly]", ...messages);
+    } else {
+      console.log("[VidPly]", ...messages);
     }
   }
   // Setup responsive handlers
@@ -7261,7 +7484,7 @@ var Player = class extends EventEmitter {
           this.controlBar.updateFullscreenButton();
         }
         if (this.signLanguageWrapper && this.signLanguageWrapper.style.display !== "none") {
-          setTimeout(() => {
+          this.setManagedTimeout(() => {
             requestAnimationFrame(() => {
               this.storage.saveSignLanguagePreferences({ size: null });
               this.signLanguageDesiredPosition = "bottom-right";
@@ -7324,11 +7547,367 @@ var Player = class extends EventEmitter {
       document.removeEventListener("MSFullscreenChange", this.fullscreenChangeHandler);
       this.fullscreenChangeHandler = null;
     }
+    this.timeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+    this.timeouts.clear();
+    if (this.metadataCueChangeHandler) {
+      const textTracks = this.textTracks;
+      const metadataTrack = textTracks.find((track) => track.kind === "metadata");
+      if (metadataTrack) {
+        metadataTrack.removeEventListener("cuechange", this.metadataCueChangeHandler);
+      }
+      this.metadataCueChangeHandler = null;
+    }
+    if (this.metadataAlertHandlers && this.metadataAlertHandlers.size > 0) {
+      this.metadataAlertHandlers.forEach(({ button, handler }) => {
+        if (button && handler) {
+          button.removeEventListener("click", handler);
+        }
+      });
+      this.metadataAlertHandlers.clear();
+    }
     if (this.container && this.container.parentNode) {
       this.container.parentNode.insertBefore(this.element, this.container);
       this.container.parentNode.removeChild(this.container);
     }
     this.removeAllListeners();
+  }
+  /**
+   * Setup metadata track handling
+   * This enables metadata tracks and listens for cue changes to trigger actions
+   */
+  setupMetadataHandling() {
+    const setupMetadata = () => {
+      const textTracks = this.textTracks;
+      const metadataTrack = textTracks.find((track) => track.kind === "metadata");
+      if (metadataTrack) {
+        if (metadataTrack.mode === "disabled") {
+          metadataTrack.mode = "hidden";
+        }
+        if (this.metadataCueChangeHandler) {
+          metadataTrack.removeEventListener("cuechange", this.metadataCueChangeHandler);
+        }
+        this.metadataCueChangeHandler = () => {
+          const activeCues = Array.from(metadataTrack.activeCues || []);
+          if (activeCues.length > 0) {
+            if (this.options.debug) {
+              this.log("[Metadata] Active cues:", activeCues.map((c) => ({
+                start: c.startTime,
+                end: c.endTime,
+                text: c.text
+              })));
+            }
+          }
+          activeCues.forEach((cue) => {
+            this.handleMetadataCue(cue);
+          });
+        };
+        metadataTrack.addEventListener("cuechange", this.metadataCueChangeHandler);
+        if (this.options.debug) {
+          const cueCount = metadataTrack.cues ? metadataTrack.cues.length : 0;
+          this.log("[Metadata] Track enabled,", cueCount, "cues available");
+        }
+      } else if (this.options.debug) {
+        this.log("[Metadata] No metadata track found");
+      }
+    };
+    setupMetadata();
+    this.on("loadedmetadata", setupMetadata);
+  }
+  normalizeMetadataSelector(selector) {
+    if (!selector) {
+      return null;
+    }
+    const trimmed = selector.trim();
+    if (!trimmed) {
+      return null;
+    }
+    if (trimmed.startsWith("#") || trimmed.startsWith(".") || trimmed.startsWith("[")) {
+      return trimmed;
+    }
+    return `#${trimmed}`;
+  }
+  resolveMetadataConfig(map, key) {
+    if (!map || !key) {
+      return null;
+    }
+    if (Object.prototype.hasOwnProperty.call(map, key)) {
+      return map[key];
+    }
+    const withoutHash = key.replace(/^#/, "");
+    if (Object.prototype.hasOwnProperty.call(map, withoutHash)) {
+      return map[withoutHash];
+    }
+    return null;
+  }
+  cacheMetadataAlertContent(element, config = {}) {
+    if (!element) {
+      return;
+    }
+    const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
+    const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
+    const titleEl = element.querySelector(titleSelector);
+    if (titleEl && !titleEl.dataset.vidplyAlertTitleOriginal) {
+      titleEl.dataset.vidplyAlertTitleOriginal = titleEl.textContent.trim();
+    }
+    const messageEl = element.querySelector(messageSelector);
+    if (messageEl && !messageEl.dataset.vidplyAlertMessageOriginal) {
+      messageEl.dataset.vidplyAlertMessageOriginal = messageEl.textContent.trim();
+    }
+  }
+  restoreMetadataAlertContent(element, config = {}) {
+    if (!element) {
+      return;
+    }
+    const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
+    const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
+    const titleEl = element.querySelector(titleSelector);
+    if (titleEl && titleEl.dataset.vidplyAlertTitleOriginal) {
+      titleEl.textContent = titleEl.dataset.vidplyAlertTitleOriginal;
+    }
+    const messageEl = element.querySelector(messageSelector);
+    if (messageEl && messageEl.dataset.vidplyAlertMessageOriginal) {
+      messageEl.textContent = messageEl.dataset.vidplyAlertMessageOriginal;
+    }
+  }
+  focusMetadataTarget(target, fallbackElement = null) {
+    var _a, _b;
+    if (!target || target === "none") {
+      return;
+    }
+    if (target === "alert" && fallbackElement) {
+      fallbackElement.focus();
+      return;
+    }
+    if (target === "player") {
+      if (this.container) {
+        this.container.focus();
+      }
+      return;
+    }
+    if (target === "media") {
+      this.element.focus();
+      return;
+    }
+    if (target === "playButton") {
+      const playButton = (_b = (_a = this.controlBar) == null ? void 0 : _a.controls) == null ? void 0 : _b.playPause;
+      if (playButton) {
+        playButton.focus();
+      }
+      return;
+    }
+    if (typeof target === "string") {
+      const targetElement = document.querySelector(target);
+      if (targetElement) {
+        if (targetElement.tabIndex === -1 && !targetElement.hasAttribute("tabindex")) {
+          targetElement.setAttribute("tabindex", "-1");
+        }
+        targetElement.focus();
+      }
+    }
+  }
+  handleMetadataAlert(selector, options = {}) {
+    if (!selector) {
+      return;
+    }
+    const config = this.resolveMetadataConfig(this.options.metadataAlerts, selector) || {};
+    const element = options.element || document.querySelector(selector);
+    if (!element) {
+      if (this.options.debug) {
+        this.log("[Metadata] Alert element not found:", selector);
+      }
+      return;
+    }
+    if (this.options.debug) {
+      this.log("[Metadata] Handling alert", selector, { reason: options.reason, config });
+    }
+    this.cacheMetadataAlertContent(element, config);
+    if (!element.dataset.vidplyAlertOriginalDisplay) {
+      element.dataset.vidplyAlertOriginalDisplay = element.style.display || "";
+    }
+    if (!element.dataset.vidplyAlertDisplay) {
+      element.dataset.vidplyAlertDisplay = config.display || "block";
+    }
+    const shouldShow = options.show !== void 0 ? options.show : config.show !== false;
+    if (shouldShow) {
+      const displayValue = config.display || element.dataset.vidplyAlertDisplay || "block";
+      element.style.display = displayValue;
+      element.hidden = false;
+      element.removeAttribute("hidden");
+      element.setAttribute("aria-hidden", "false");
+      element.setAttribute("data-vidply-alert-active", "true");
+    }
+    const shouldReset = config.resetContent !== false && options.reason === "focus";
+    if (shouldReset) {
+      this.restoreMetadataAlertContent(element, config);
+    }
+    const shouldFocus = options.focus !== void 0 ? options.focus : config.focusOnShow ?? options.reason !== "focus";
+    if (shouldShow && shouldFocus) {
+      if (element.tabIndex === -1 && !element.hasAttribute("tabindex")) {
+        element.setAttribute("tabindex", "-1");
+      }
+      element.focus();
+    }
+    if (shouldShow && config.autoScroll !== false && options.autoScroll !== false) {
+      element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    const continueSelector = config.continueButton;
+    if (continueSelector) {
+      let continueButton = null;
+      if (continueSelector === "self") {
+        continueButton = element;
+      } else if (element.matches(continueSelector)) {
+        continueButton = element;
+      } else {
+        continueButton = element.querySelector(continueSelector) || document.querySelector(continueSelector);
+      }
+      if (continueButton && !this.metadataAlertHandlers.has(selector)) {
+        const handler = () => {
+          const hideOnContinue = config.hideOnContinue !== false;
+          if (hideOnContinue) {
+            const originalDisplay = element.dataset.vidplyAlertOriginalDisplay || "";
+            element.style.display = config.hideDisplay || originalDisplay || "none";
+            element.setAttribute("aria-hidden", "true");
+            element.removeAttribute("data-vidply-alert-active");
+          }
+          if (config.resume !== false && this.state.paused) {
+            this.play();
+          }
+          const focusTarget = config.focusTarget || "playButton";
+          this.setManagedTimeout(() => {
+            this.focusMetadataTarget(focusTarget, element);
+          }, config.focusDelay ?? 100);
+        };
+        continueButton.addEventListener("click", handler);
+        this.metadataAlertHandlers.set(selector, { button: continueButton, handler });
+      }
+    }
+    return element;
+  }
+  handleMetadataHashtags(hashtags) {
+    if (!Array.isArray(hashtags) || hashtags.length === 0) {
+      return;
+    }
+    const configMap = this.options.metadataHashtags;
+    if (!configMap) {
+      return;
+    }
+    hashtags.forEach((tag) => {
+      const config = this.resolveMetadataConfig(configMap, tag);
+      if (!config) {
+        return;
+      }
+      const selector = this.normalizeMetadataSelector(config.alert || config.selector || config.target);
+      if (!selector) {
+        return;
+      }
+      const element = document.querySelector(selector);
+      if (!element) {
+        if (this.options.debug) {
+          this.log("[Metadata] Hashtag target not found:", selector);
+        }
+        return;
+      }
+      if (this.options.debug) {
+        this.log("[Metadata] Handling hashtag", tag, { selector, config });
+      }
+      this.cacheMetadataAlertContent(element, config);
+      if (config.title) {
+        const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
+        const titleEl = element.querySelector(titleSelector);
+        if (titleEl) {
+          titleEl.textContent = config.title;
+        }
+      }
+      if (config.message) {
+        const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
+        const messageEl = element.querySelector(messageSelector);
+        if (messageEl) {
+          messageEl.textContent = config.message;
+        }
+      }
+      const show = config.show !== false;
+      const focus = config.focus !== void 0 ? config.focus : false;
+      this.handleMetadataAlert(selector, {
+        element,
+        show,
+        focus,
+        autoScroll: config.autoScroll,
+        reason: "hashtag"
+      });
+    });
+  }
+  /**
+   * Handle individual metadata cues
+   * Parses metadata text and emits events or triggers actions
+   */
+  handleMetadataCue(cue) {
+    const text = cue.text.trim();
+    if (this.options.debug) {
+      this.log("[Metadata] Processing cue:", {
+        time: cue.startTime,
+        text
+      });
+    }
+    this.emit("metadata", {
+      time: cue.startTime,
+      endTime: cue.endTime,
+      text,
+      cue
+    });
+    if (text.includes("PAUSE")) {
+      if (!this.state.paused) {
+        if (this.options.debug) {
+          this.log("[Metadata] Pausing video at", cue.startTime);
+        }
+        this.pause();
+      }
+      this.emit("metadata:pause", { time: cue.startTime, text });
+    }
+    const focusMatch = text.match(/FOCUS:([\w#-]+)/);
+    if (focusMatch) {
+      const targetSelector = focusMatch[1];
+      const normalizedSelector = this.normalizeMetadataSelector(targetSelector);
+      const targetElement = normalizedSelector ? document.querySelector(normalizedSelector) : null;
+      if (targetElement) {
+        if (this.options.debug) {
+          this.log("[Metadata] Focusing element:", normalizedSelector);
+        }
+        if (targetElement.tabIndex === -1 && !targetElement.hasAttribute("tabindex")) {
+          targetElement.setAttribute("tabindex", "-1");
+        }
+        this.setManagedTimeout(() => {
+          targetElement.focus();
+          targetElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 10);
+      } else if (this.options.debug) {
+        this.log("[Metadata] Element not found:", normalizedSelector || targetSelector);
+      }
+      this.emit("metadata:focus", {
+        time: cue.startTime,
+        target: targetSelector,
+        selector: normalizedSelector,
+        element: targetElement,
+        text
+      });
+      if (normalizedSelector) {
+        this.handleMetadataAlert(normalizedSelector, {
+          element: targetElement,
+          reason: "focus"
+        });
+      }
+    }
+    const hashtags = text.match(/#[\w-]+/g);
+    if (hashtags) {
+      if (this.options.debug) {
+        this.log("[Metadata] Hashtags found:", hashtags);
+      }
+      this.emit("metadata:hashtags", {
+        time: cue.startTime,
+        hashtags,
+        text
+      });
+      this.handleMetadataHashtags(hashtags);
+    }
   }
 };
 Player.instances = [];

@@ -143,6 +143,8 @@ export class Player extends EventEmitter {
             screenReaderAnnouncements: true,
             highContrast: false,
             focusHighlight: true,
+            metadataAlerts: {},
+            metadataHashtags: {},
 
             // Languages
             language: 'en',
@@ -165,6 +167,9 @@ export class Player extends EventEmitter {
 
             ...options
         };
+
+        this.options.metadataAlerts = this.options.metadataAlerts || {};
+        this.options.metadataHashtags = this.options.metadataHashtags || {};
 
         // Storage manager
         this.storage = new StorageManager('vidply');
@@ -210,6 +215,17 @@ export class Player extends EventEmitter {
         // Store caption tracks that should be swapped for audio description
         this.audioDescriptionCaptionTracks = [];
 
+        // DOM query cache (for performance optimization)
+        this._textTracksCache = null;
+        this._textTracksDirty = true;
+        this._sourceElementsCache = null;
+        this._sourceElementsDirty = true;
+        this._trackElementsCache = null;
+        this._trackElementsDirty = true;
+
+        // Timeout management (for cleanup)
+        this.timeouts = new Set();
+
         // Components
         this.container = null;
         this.renderer = null;
@@ -217,6 +233,10 @@ export class Player extends EventEmitter {
         this.captionManager = null;
         this.keyboardManager = null;
         this.settingsDialog = null;
+        
+        // Metadata handling
+        this.metadataCueChangeHandler = null;
+        this.metadataAlertHandlers = new Map();
 
         // Initialize
         this.init();
@@ -264,6 +284,9 @@ export class Player extends EventEmitter {
             if (this.options.transcript || this.options.transcriptButton) {
                 this.transcriptManager = new TranscriptManager(this);
             }
+            
+            // Always set up metadata track handling (independent of transcript)
+            this.setupMetadataHandling();
 
             // Initialize keyboard controls
             if (this.options.keyboard) {
@@ -399,6 +422,12 @@ export class Player extends EventEmitter {
         if (this.element.tagName === 'VIDEO') {
             this.createPlayButtonOverlay();
         }
+        
+        // Store reference to player on element for easy access
+        this.element.vidply = this;
+        
+        // Add to static instances array
+        Player.instances.push(this);
 
         // Make video/audio element clickable to toggle play/pause
         this.element.style.cursor = 'pointer';
@@ -447,7 +476,7 @@ export class Player extends EventEmitter {
         }
 
         // Check for source elements with audio description attributes
-        const sourceElements = this.element.querySelectorAll('source');
+        const sourceElements = this.sourceElements;
         for (const sourceEl of sourceElements) {
             const descSrc = sourceEl.getAttribute('data-desc-src');
             const origSrc = sourceEl.getAttribute('data-orig-src');
@@ -490,7 +519,7 @@ export class Player extends EventEmitter {
         // Check for caption/subtitle tracks with audio description versions
         // Only tracks with explicit data-desc-src attribute are swapped (no auto-detection to avoid 404 errors)
         // Description tracks (kind="descriptions") are NOT swapped - they're for transcripts
-        const trackElements = this.element.querySelectorAll('track');
+        const trackElements = this.trackElements;
         trackElements.forEach(trackEl => {
             const trackKind = trackEl.getAttribute('kind');
             const trackDescSrc = trackEl.getAttribute('data-desc-src');
@@ -537,6 +566,117 @@ export class Player extends EventEmitter {
         this.log(`Using ${renderer.name} renderer`);
         this.renderer = new renderer(this);
         await this.renderer.init();
+        
+        // Invalidate cache after renderer initialization (tracks may have changed)
+        this.invalidateTrackCache();
+    }
+
+    /**
+     * Get cached text tracks array
+     * @returns {Array} Array of text tracks
+     */
+    get textTracks() {
+        if (!this._textTracksCache || this._textTracksDirty) {
+            this._textTracksCache = Array.from(this.element.textTracks || []);
+            this._textTracksDirty = false;
+        }
+        return this._textTracksCache;
+    }
+
+    /**
+     * Get cached source elements array
+     * @returns {Array} Array of source elements
+     */
+    get sourceElements() {
+        if (!this._sourceElementsCache || this._sourceElementsDirty) {
+            this._sourceElementsCache = Array.from(this.element.querySelectorAll('source'));
+            this._sourceElementsDirty = false;
+        }
+        return this._sourceElementsCache;
+    }
+
+    /**
+     * Get cached track elements array
+     * @returns {Array} Array of track elements
+     */
+    get trackElements() {
+        if (!this._trackElementsCache || this._trackElementsDirty) {
+            this._trackElementsCache = Array.from(this.element.querySelectorAll('track'));
+            this._trackElementsDirty = false;
+        }
+        return this._trackElementsCache;
+    }
+
+    /**
+     * Invalidate DOM query cache (call when tracks/sources change)
+     */
+    invalidateTrackCache() {
+        this._textTracksDirty = true;
+        this._trackElementsDirty = true;
+        this._sourceElementsDirty = true;
+    }
+
+    /**
+     * Find a text track by kind and optionally language
+     * @param {string} kind - Track kind (captions, subtitles, descriptions, chapters, metadata)
+     * @param {string} [language] - Optional language code
+     * @returns {TextTrack|null} Found track or null
+     */
+    findTextTrack(kind, language = null) {
+        const tracks = this.textTracks;
+        if (language) {
+            return tracks.find(t => t.kind === kind && t.language === language);
+        }
+        return tracks.find(t => t.kind === kind);
+    }
+
+    /**
+     * Find a source element by attribute
+     * @param {string} attribute - Attribute name (e.g., 'data-desc-src')
+     * @param {string} [value] - Optional attribute value
+     * @returns {Element|null} Found source element or null
+     */
+    findSourceElement(attribute, value = null) {
+        const sources = this.sourceElements;
+        if (value) {
+            return sources.find(el => el.getAttribute(attribute) === value);
+        }
+        return sources.find(el => el.hasAttribute(attribute));
+    }
+
+    /**
+     * Find a track element by its associated TextTrack
+     * @param {TextTrack} track - The TextTrack object
+     * @returns {Element|null} Found track element or null
+     */
+    findTrackElement(track) {
+        return this.trackElements.find(el => el.track === track);
+    }
+
+    /**
+     * Set a managed timeout that will be cleaned up on destroy
+     * @param {Function} callback - Callback function
+     * @param {number} delay - Delay in milliseconds
+     * @returns {number} Timeout ID
+     */
+    setManagedTimeout(callback, delay) {
+        const timeoutId = setTimeout(() => {
+            this.timeouts.delete(timeoutId);
+            callback();
+        }, delay);
+        this.timeouts.add(timeoutId);
+        return timeoutId;
+    }
+
+    /**
+     * Clear a managed timeout
+     * @param {number} timeoutId - Timeout ID to clear
+     */
+    clearManagedTimeout(timeoutId) {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+            this.timeouts.delete(timeoutId);
+        }
     }
 
     /**
@@ -557,8 +697,9 @@ export class Player extends EventEmitter {
             }
 
             // Clear existing text tracks
-            const existingTracks = this.element.querySelectorAll('track');
+            const existingTracks = this.trackElements;
             existingTracks.forEach(track => track.remove());
+            this.invalidateTrackCache();
 
             // Update media element
             this.element.src = config.src;
@@ -586,6 +727,7 @@ export class Player extends EventEmitter {
 
                     this.element.appendChild(track);
                 });
+                this.invalidateTrackCache();
             }
 
             // Check if we need to change renderer type
@@ -895,7 +1037,7 @@ export class Player extends EventEmitter {
     // Audio Description
     async enableAudioDescription() {
         // Check if we have source elements with data-desc-src (even if audioDescriptionSrc is not set)
-        const hasSourceElementsWithDesc = Array.from(this.element.querySelectorAll('source')).some(el => el.getAttribute('data-desc-src'));
+        const hasSourceElementsWithDesc = this.sourceElements.some(el => el.getAttribute('data-desc-src'));
         const hasTracksWithDesc = this.audioDescriptionCaptionTracks.length > 0;
         
         if (!this.audioDescriptionSrc && !hasSourceElementsWithDesc && !hasTracksWithDesc) {
@@ -916,7 +1058,7 @@ export class Player extends EventEmitter {
             const currentSrc = this.element.currentSrc || this.element.src;
             
             // Find the source element that matches the currently active source
-            const sourceElements = Array.from(this.element.querySelectorAll('source'));
+            const sourceElements = this.sourceElements;
             let sourceElementToUpdate = null;
             let descSrc = this.audioDescriptionSrc;
             
@@ -1060,11 +1202,12 @@ export class Player extends EventEmitter {
                         // After all new tracks are added, force browser to reload media element again
                         // This ensures new track elements are processed and new TextTrack objects are created
                         this.element.load();
+                        this.invalidateTrackCache();
                         
                         // Wait for loadedmetadata event before accessing new TextTrack objects
                         const setupNewTracks = () => {
                             // Wait a bit more for browser to fully process the new track elements
-                            setTimeout(() => {
+                            this.setManagedTimeout(() => {
                                 swappedTracksForTranscript.forEach((trackInfo) => {
                                     const trackElement = trackInfo.trackElement;
                                     const newTextTrack = trackElement.track;
@@ -1119,7 +1262,7 @@ export class Player extends EventEmitter {
             // Update all source elements that have data-desc-src to their described versions
             // Force browser to pick up changes by removing and re-adding source elements
             // Get source elements (may have been defined in if block above, but get fresh list here)
-            const allSourceElements = Array.from(this.element.querySelectorAll('source'));
+            const allSourceElements = this.sourceElements;
             const sourcesToUpdate = [];
             
             allSourceElements.forEach((sourceEl) => {
@@ -1374,7 +1517,7 @@ export class Player extends EventEmitter {
             }
             
             // Check if we have source elements with data-desc-src (fallback method)
-            const fallbackSourceElements = Array.from(this.element.querySelectorAll('source'));
+            const fallbackSourceElements = this.sourceElements;
             const hasSourceElementsWithDesc = fallbackSourceElements.some(el => el.getAttribute('data-desc-src'));
             
             if (hasSourceElementsWithDesc) {
@@ -1433,6 +1576,7 @@ export class Player extends EventEmitter {
                 
                 // Force reload
                 this.element.load();
+                this.invalidateTrackCache();
             } else {
                 // Fallback to updating element src directly (for videos without source elements)
                 this.element.src = this.audioDescriptionSrc;
@@ -1456,7 +1600,7 @@ export class Player extends EventEmitter {
                 // Seek to a tiny fraction to trigger poster hiding without actually moving
                 this.element.currentTime = 0.001;
                 // Then seek back to 0 after a brief moment to ensure poster stays hidden
-                setTimeout(() => {
+                this.setManagedTimeout(() => {
                     this.element.currentTime = 0;
                 }, 10);
             }
@@ -1521,7 +1665,9 @@ export class Player extends EventEmitter {
                 const onMetadataLoaded = () => {
                     // Get fresh track references from the video element's textTracks collection
                     // This ensures we get the actual textTrack objects that the browser created
-                    const allTextTracks = Array.from(this.element.textTracks);
+                    // Invalidate cache first to get fresh tracks after swap
+                    this.invalidateTrackCache();
+                    const allTextTracks = this.textTracks;
                     
                     // Find the tracks that match our swapped tracks by language and kind
                     // Match by checking the track element's src attribute
@@ -1541,9 +1687,7 @@ export class Player extends EventEmitter {
                                 if (track.language === srclang && 
                                     (track.kind === kind || (kind === 'captions' && track.kind === 'subtitles'))) {
                                     // Verify the src matches
-                                    const trackElementForTrack = Array.from(this.element.querySelectorAll('track')).find(
-                                        el => el.track === track
-                                    );
+                                    const trackElementForTrack = this.findTrackElement(track);
                                     if (trackElementForTrack) {
                                         const actualSrc = trackElementForTrack.getAttribute('src');
                                         if (actualSrc === expectedSrc) {
@@ -1557,9 +1701,7 @@ export class Player extends EventEmitter {
                         
                         // Verify the track element's src matches what we expect
                         if (foundTrack) {
-                            const trackElement = Array.from(this.element.querySelectorAll('track')).find(
-                                el => el.track === foundTrack
-                            );
+                            const trackElement = this.findTrackElement(foundTrack);
                             if (trackElement && trackElement.getAttribute('src') !== expectedSrc) {
                                 return null;
                             }
@@ -1570,7 +1712,7 @@ export class Player extends EventEmitter {
                     
                     if (freshTracks.length === 0) {
                         // Fallback: just reload after delay - transcript manager will find tracks itself
-                        setTimeout(() => {
+                        this.setManagedTimeout(() => {
                             if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
                                 this.transcriptManager.loadTranscriptData();
                             }
@@ -1591,7 +1733,7 @@ export class Player extends EventEmitter {
                         if (loadedCount >= freshTracks.length) {
                             // Give a bit more time for cues to be fully parsed
                             // Also ensure we're getting the latest TextTrack references
-                            setTimeout(() => {
+                            this.setManagedTimeout(() => {
                                 if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
                                     // Force transcript manager to get fresh track references
                                     // Clear any cached track references by forcing a fresh read
@@ -1599,12 +1741,11 @@ export class Player extends EventEmitter {
                                     // which should now have the new TextTrack objects with the described captions
                                     
                                     // Verify the tracks have the correct src before reloading transcript
-                                    const allTextTracks = Array.from(this.element.textTracks);
+                                    this.invalidateTrackCache();
+                                    const allTextTracks = this.textTracks;
                                     const swappedTrackSrcs = swappedTracks.map(t => t.describedSrc);
                                     const hasCorrectTracks = freshTracks.some(track => {
-                                        const trackEl = Array.from(this.element.querySelectorAll('track')).find(
-                                            el => el.track === track
-                                        );
+                                        const trackEl = this.findTrackElement(track);
                                         return trackEl && swappedTrackSrcs.includes(trackEl.getAttribute('src'));
                                     });
                                     
@@ -1624,9 +1765,7 @@ export class Player extends EventEmitter {
                         
                         // Check if track has cues loaded
                         // Verify the track element's src matches the expected described src
-                        const trackElementForTrack = Array.from(this.element.querySelectorAll('track')).find(
-                            el => el.track === track
-                        );
+                        const trackElementForTrack = this.findTrackElement(track);
                         const actualSrc = trackElementForTrack ? trackElementForTrack.getAttribute('src') : null;
                         
                         // Find the expected src from swappedTracks
@@ -1657,13 +1796,13 @@ export class Player extends EventEmitter {
                             // Wait for track to load
                             const onTrackLoad = () => {
                                 // Wait a bit for cues to be fully parsed
-                                setTimeout(checkLoaded, 300);
+                                this.setManagedTimeout(checkLoaded, 300);
                             };
                             
                             if (track.readyState >= 2) {
                                 // Already loaded, but might not have cues yet
                                 // Wait a bit and check again
-                                setTimeout(() => {
+                                this.setManagedTimeout(() => {
                                     if (track.cues && track.cues.length > 0) {
                                         checkLoaded();
                                     } else {
@@ -1685,16 +1824,16 @@ export class Player extends EventEmitter {
                 // Wait for loadedmetadata event which fires when browser processes track elements
                 // Also wait for the tracks to be fully processed after the second load()
                 const waitForTracks = () => {
-                    // Wait a bit more to ensure new TextTrack objects are created
-                    setTimeout(() => {
-                        if (this.element.readyState >= 1) { // HAVE_METADATA
-                            onMetadataLoaded();
-                        } else {
-                            this.element.addEventListener('loadedmetadata', onMetadataLoaded, { once: true });
-                            // Fallback timeout
-                            setTimeout(onMetadataLoaded, 2000);
-                        }
-                    }, 500); // Wait 500ms after second load() for tracks to be processed
+                        // Wait a bit more to ensure new TextTrack objects are created
+                        this.setManagedTimeout(() => {
+                            if (this.element.readyState >= 1) { // HAVE_METADATA
+                                onMetadataLoaded();
+                            } else {
+                                this.element.addEventListener('loadedmetadata', onMetadataLoaded, { once: true });
+                                // Fallback timeout
+                                this.setManagedTimeout(onMetadataLoaded, 2000);
+                            }
+                        }, 500); // Wait 500ms after second load() for tracks to be processed
                 };
                 
                 waitForTracks();
@@ -1739,7 +1878,7 @@ export class Player extends EventEmitter {
         
         // Swap source elements back to original versions
         // Check if we have source elements with data-orig-src
-        const allSourceElements = Array.from(this.element.querySelectorAll('source'));
+        const allSourceElements = this.sourceElements;
         const hasSourceElementsToSwap = allSourceElements.some(el => el.getAttribute('data-orig-src'));
         
         if (hasSourceElementsToSwap) {
@@ -1817,16 +1956,16 @@ export class Player extends EventEmitter {
             this.play();
         }
 
-        // Reload transcript if visible (after video metadata loaded, tracks should be available)
-        // Reload regardless of whether caption tracks were swapped, in case tracks changed
-        if (this.transcriptManager && this.transcriptManager.isVisible) {
-            // Wait for tracks to load after source swap
-            setTimeout(() => {
-                if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
-                    this.transcriptManager.loadTranscriptData();
-                }
-            }, 500);
-        }
+            // Reload transcript if visible (after video metadata loaded, tracks should be available)
+            // Reload regardless of whether caption tracks were swapped, in case tracks changed
+            if (this.transcriptManager && this.transcriptManager.isVisible) {
+                // Wait for tracks to load after source swap
+                this.setManagedTimeout(() => {
+                    if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
+                        this.transcriptManager.loadTranscriptData();
+                    }
+                }, 500);
+            }
 
         this.state.audioDescriptionEnabled = false;
         this.emit('audiodescriptiondisabled');
@@ -1834,12 +1973,11 @@ export class Player extends EventEmitter {
 
     async toggleAudioDescription() {
         // Check if we have description tracks or audio-described video
-        const textTracks = Array.from(this.element.textTracks || []);
-        const descriptionTrack = textTracks.find(track => track.kind === 'descriptions');
+        const descriptionTrack = this.findTextTrack('descriptions');
         
         // Check if we have audio-described video source (either from options or source elements with data-desc-src)
         const hasAudioDescriptionSrc = this.audioDescriptionSrc || 
-            Array.from(this.element.querySelectorAll('source')).some(el => el.getAttribute('data-desc-src'));
+            this.sourceElements.some(el => el.getAttribute('data-desc-src'));
         
         if (descriptionTrack && hasAudioDescriptionSrc) {
             // We have both: toggle description track AND swap caption tracks/sources
@@ -1853,14 +1991,14 @@ export class Player extends EventEmitter {
                 // Wait for tracks to be ready after source swap, then enable description track
                 // Use a longer timeout to ensure tracks are loaded after source swap
                 const enableDescriptionTrack = () => {
-                    const textTracks = Array.from(this.element.textTracks || []);
-                    const descTrack = textTracks.find(track => track.kind === 'descriptions');
+                    this.invalidateTrackCache();
+                    const descTrack = this.findTextTrack('descriptions');
                     if (descTrack) {
                         // Set to 'hidden' first if it's in 'disabled' mode, then to 'showing'
                         if (descTrack.mode === 'disabled') {
                             descTrack.mode = 'hidden';
                             // Use setTimeout to ensure the browser processes the mode change
-                            setTimeout(() => {
+                            this.setManagedTimeout(() => {
                                 descTrack.mode = 'showing';
                             }, 50);
                         } else {
@@ -1868,15 +2006,15 @@ export class Player extends EventEmitter {
                         }
                     } else if (this.element.readyState < 2) {
                         // Tracks not ready yet, wait a bit more
-                        setTimeout(enableDescriptionTrack, 100);
+                        this.setManagedTimeout(enableDescriptionTrack, 100);
                     }
                 };
                 // Wait for metadata to load first
                 if (this.element.readyState >= 1) {
-                    setTimeout(enableDescriptionTrack, 200);
+                    this.setManagedTimeout(enableDescriptionTrack, 200);
                 } else {
                     this.element.addEventListener('loadedmetadata', () => {
-                        setTimeout(enableDescriptionTrack, 200);
+                        this.setManagedTimeout(enableDescriptionTrack, 200);
                     }, { once: true });
                 }
             }
@@ -2425,9 +2563,28 @@ export class Player extends EventEmitter {
     }
 
     // Logging
-    log(message, type = 'log') {
-        if (this.options.debug) {
-            console[type](`[VidPly]`, message);
+    log(...messages) {
+        if (!this.options.debug) {
+            return;
+        }
+
+        let type = 'log';
+        if (messages.length > 0) {
+            const potentialType = messages[messages.length - 1];
+            if (typeof potentialType === 'string' && console[potentialType]) {
+                type = potentialType;
+                messages = messages.slice(0, -1);
+            }
+        }
+
+        if (messages.length === 0) {
+            messages = [''];
+        }
+
+        if (typeof console[type] === 'function') {
+            console[type]('[VidPly]', ...messages);
+        } else {
+            console.log('[VidPly]', ...messages);
         }
     }
 
@@ -2521,7 +2678,7 @@ export class Player extends EventEmitter {
                 if (this.signLanguageWrapper && this.signLanguageWrapper.style.display !== 'none') {
                     // Use setTimeout to ensure layout has updated after fullscreen transition
                     // Longer delay to account for CSS transition animations and layout recalculation
-                    setTimeout(() => {
+                    this.setManagedTimeout(() => {
                         // Use requestAnimationFrame to ensure the browser has fully rendered the layout
                         requestAnimationFrame(() => {
                             // Clear saved size and reset to default for the new container size
@@ -2608,6 +2765,29 @@ export class Player extends EventEmitter {
             this.fullscreenChangeHandler = null;
         }
 
+        // Cleanup all managed timeouts
+        this.timeouts.forEach(timeoutId => clearTimeout(timeoutId));
+        this.timeouts.clear();
+
+        // Cleanup metadata handling
+        if (this.metadataCueChangeHandler) {
+            const textTracks = this.textTracks;
+            const metadataTrack = textTracks.find(track => track.kind === 'metadata');
+            if (metadataTrack) {
+                metadataTrack.removeEventListener('cuechange', this.metadataCueChangeHandler);
+            }
+            this.metadataCueChangeHandler = null;
+        }
+
+        if (this.metadataAlertHandlers && this.metadataAlertHandlers.size > 0) {
+            this.metadataAlertHandlers.forEach(({ button, handler }) => {
+                if (button && handler) {
+                    button.removeEventListener('click', handler);
+                }
+            });
+            this.metadataAlertHandlers.clear();
+        }
+
         // Remove container
         if (this.container && this.container.parentNode) {
             this.container.parentNode.insertBefore(this.element, this.container);
@@ -2615,6 +2795,424 @@ export class Player extends EventEmitter {
         }
 
         this.removeAllListeners();
+    }
+
+    /**
+     * Setup metadata track handling
+     * This enables metadata tracks and listens for cue changes to trigger actions
+     */
+    setupMetadataHandling() {
+        const setupMetadata = () => {
+            const textTracks = this.textTracks;
+            const metadataTrack = textTracks.find(track => track.kind === 'metadata');
+            
+            if (metadataTrack) {
+                // Enable the metadata track so cuechange events fire
+                // Use 'hidden' mode so it doesn't display anything, but events still work
+                if (metadataTrack.mode === 'disabled') {
+                    metadataTrack.mode = 'hidden';
+                }
+                
+                // Remove existing listener if any
+                if (this.metadataCueChangeHandler) {
+                    metadataTrack.removeEventListener('cuechange', this.metadataCueChangeHandler);
+                }
+                
+                // Add event listener for cue changes
+                this.metadataCueChangeHandler = () => {
+                    const activeCues = Array.from(metadataTrack.activeCues || []);
+                    if (activeCues.length > 0) {
+                        // Debug logging
+                        if (this.options.debug) {
+                            this.log('[Metadata] Active cues:', activeCues.map(c => ({
+                                start: c.startTime,
+                                end: c.endTime,
+                                text: c.text
+                            })));
+                        }
+                    }
+                    activeCues.forEach(cue => {
+                        this.handleMetadataCue(cue);
+                    });
+                };
+                
+                metadataTrack.addEventListener('cuechange', this.metadataCueChangeHandler);
+                
+                // Debug: Log metadata track setup
+                if (this.options.debug) {
+                    const cueCount = metadataTrack.cues ? metadataTrack.cues.length : 0;
+                    this.log('[Metadata] Track enabled,', cueCount, 'cues available');
+                }
+            } else if (this.options.debug) {
+                this.log('[Metadata] No metadata track found');
+            }
+        };
+        
+        // Try immediately
+        setupMetadata();
+        
+        // Also try after loadedmetadata event (tracks might not be ready yet)
+        this.on('loadedmetadata', setupMetadata);
+    }
+
+    normalizeMetadataSelector(selector) {
+        if (!selector) {
+            return null;
+        }
+        const trimmed = selector.trim();
+        if (!trimmed) {
+            return null;
+        }
+        if (trimmed.startsWith('#') || trimmed.startsWith('.') || trimmed.startsWith('[')) {
+            return trimmed;
+        }
+        return `#${trimmed}`;
+    }
+
+    resolveMetadataConfig(map, key) {
+        if (!map || !key) {
+            return null;
+        }
+        if (Object.prototype.hasOwnProperty.call(map, key)) {
+            return map[key];
+        }
+        const withoutHash = key.replace(/^#/, '');
+        if (Object.prototype.hasOwnProperty.call(map, withoutHash)) {
+            return map[withoutHash];
+        }
+        return null;
+    }
+
+    cacheMetadataAlertContent(element, config = {}) {
+        if (!element) {
+            return;
+        }
+        const titleSelector = config.titleSelector || '[data-vidply-alert-title], h3, header';
+        const messageSelector = config.messageSelector || '[data-vidply-alert-message], p';
+
+        const titleEl = element.querySelector(titleSelector);
+        if (titleEl && !titleEl.dataset.vidplyAlertTitleOriginal) {
+            titleEl.dataset.vidplyAlertTitleOriginal = titleEl.textContent.trim();
+        }
+
+        const messageEl = element.querySelector(messageSelector);
+        if (messageEl && !messageEl.dataset.vidplyAlertMessageOriginal) {
+            messageEl.dataset.vidplyAlertMessageOriginal = messageEl.textContent.trim();
+        }
+    }
+
+    restoreMetadataAlertContent(element, config = {}) {
+        if (!element) {
+            return;
+        }
+        const titleSelector = config.titleSelector || '[data-vidply-alert-title], h3, header';
+        const messageSelector = config.messageSelector || '[data-vidply-alert-message], p';
+
+        const titleEl = element.querySelector(titleSelector);
+        if (titleEl && titleEl.dataset.vidplyAlertTitleOriginal) {
+            titleEl.textContent = titleEl.dataset.vidplyAlertTitleOriginal;
+        }
+
+        const messageEl = element.querySelector(messageSelector);
+        if (messageEl && messageEl.dataset.vidplyAlertMessageOriginal) {
+            messageEl.textContent = messageEl.dataset.vidplyAlertMessageOriginal;
+        }
+    }
+
+    focusMetadataTarget(target, fallbackElement = null) {
+        if (!target || target === 'none') {
+            return;
+        }
+
+        if (target === 'alert' && fallbackElement) {
+            fallbackElement.focus();
+            return;
+        }
+
+        if (target === 'player') {
+            if (this.container) {
+                this.container.focus();
+            }
+            return;
+        }
+
+        if (target === 'media') {
+            this.element.focus();
+            return;
+        }
+
+        if (target === 'playButton') {
+            const playButton = this.controlBar?.controls?.playPause;
+            if (playButton) {
+                playButton.focus();
+            }
+            return;
+        }
+
+        if (typeof target === 'string') {
+            const targetElement = document.querySelector(target);
+            if (targetElement) {
+                if (targetElement.tabIndex === -1 && !targetElement.hasAttribute('tabindex')) {
+                    targetElement.setAttribute('tabindex', '-1');
+                }
+                targetElement.focus();
+            }
+        }
+    }
+
+    handleMetadataAlert(selector, options = {}) {
+        if (!selector) {
+            return;
+        }
+
+        const config = this.resolveMetadataConfig(this.options.metadataAlerts, selector) || {};
+        const element = options.element || document.querySelector(selector);
+
+        if (!element) {
+            if (this.options.debug) {
+                this.log('[Metadata] Alert element not found:', selector);
+            }
+            return;
+        }
+
+        if (this.options.debug) {
+            this.log('[Metadata] Handling alert', selector, { reason: options.reason, config });
+        }
+
+        this.cacheMetadataAlertContent(element, config);
+
+        if (!element.dataset.vidplyAlertOriginalDisplay) {
+            element.dataset.vidplyAlertOriginalDisplay = element.style.display || '';
+        }
+
+        if (!element.dataset.vidplyAlertDisplay) {
+            element.dataset.vidplyAlertDisplay = config.display || 'block';
+        }
+
+        const shouldShow = options.show !== undefined ? options.show : (config.show !== false);
+        if (shouldShow) {
+            const displayValue = config.display || element.dataset.vidplyAlertDisplay || 'block';
+            element.style.display = displayValue;
+            element.hidden = false;
+            element.removeAttribute('hidden');
+            element.setAttribute('aria-hidden', 'false');
+            element.setAttribute('data-vidply-alert-active', 'true');
+        }
+
+        const shouldReset = config.resetContent !== false && options.reason === 'focus';
+        if (shouldReset) {
+            this.restoreMetadataAlertContent(element, config);
+        }
+
+        const shouldFocus = options.focus !== undefined
+            ? options.focus
+            : (config.focusOnShow ?? (options.reason !== 'focus'));
+
+        if (shouldShow && shouldFocus) {
+            if (element.tabIndex === -1 && !element.hasAttribute('tabindex')) {
+                element.setAttribute('tabindex', '-1');
+            }
+            element.focus();
+        }
+
+        if (shouldShow && config.autoScroll !== false && options.autoScroll !== false) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        const continueSelector = config.continueButton;
+        if (continueSelector) {
+            let continueButton = null;
+            if (continueSelector === 'self') {
+                continueButton = element;
+            } else if (element.matches(continueSelector)) {
+                continueButton = element;
+            } else {
+                continueButton = element.querySelector(continueSelector) || document.querySelector(continueSelector);
+            }
+
+            if (continueButton && !this.metadataAlertHandlers.has(selector)) {
+                const handler = () => {
+                    const hideOnContinue = config.hideOnContinue !== false;
+                    if (hideOnContinue) {
+                        const originalDisplay = element.dataset.vidplyAlertOriginalDisplay || '';
+                        element.style.display = config.hideDisplay || originalDisplay || 'none';
+                        element.setAttribute('aria-hidden', 'true');
+                        element.removeAttribute('data-vidply-alert-active');
+                    }
+
+                    if (config.resume !== false && this.state.paused) {
+                        this.play();
+                    }
+
+                    const focusTarget = config.focusTarget || 'playButton';
+                    this.setManagedTimeout(() => {
+                        this.focusMetadataTarget(focusTarget, element);
+                    }, config.focusDelay ?? 100);
+                };
+
+                continueButton.addEventListener('click', handler);
+                this.metadataAlertHandlers.set(selector, { button: continueButton, handler });
+            }
+        }
+
+        return element;
+    }
+
+    handleMetadataHashtags(hashtags) {
+        if (!Array.isArray(hashtags) || hashtags.length === 0) {
+            return;
+        }
+
+        const configMap = this.options.metadataHashtags;
+        if (!configMap) {
+            return;
+        }
+
+        hashtags.forEach(tag => {
+            const config = this.resolveMetadataConfig(configMap, tag);
+            if (!config) {
+                return;
+            }
+
+            const selector = this.normalizeMetadataSelector(config.alert || config.selector || config.target);
+            if (!selector) {
+                return;
+            }
+
+            const element = document.querySelector(selector);
+            if (!element) {
+                if (this.options.debug) {
+                    this.log('[Metadata] Hashtag target not found:', selector);
+                }
+                return;
+            }
+
+        if (this.options.debug) {
+            this.log('[Metadata] Handling hashtag', tag, { selector, config });
+        }
+
+            this.cacheMetadataAlertContent(element, config);
+
+            if (config.title) {
+                const titleSelector = config.titleSelector || '[data-vidply-alert-title], h3, header';
+                const titleEl = element.querySelector(titleSelector);
+                if (titleEl) {
+                    titleEl.textContent = config.title;
+                }
+            }
+
+            if (config.message) {
+                const messageSelector = config.messageSelector || '[data-vidply-alert-message], p';
+                const messageEl = element.querySelector(messageSelector);
+                if (messageEl) {
+                    messageEl.textContent = config.message;
+                }
+            }
+
+            const show = config.show !== false;
+            const focus = config.focus !== undefined ? config.focus : false;
+
+            this.handleMetadataAlert(selector, {
+                element,
+                show,
+                focus,
+                autoScroll: config.autoScroll,
+                reason: 'hashtag'
+            });
+        });
+    }
+
+    /**
+     * Handle individual metadata cues
+     * Parses metadata text and emits events or triggers actions
+     */
+    handleMetadataCue(cue) {
+        const text = cue.text.trim();
+        
+        // Debug logging
+        if (this.options.debug) {
+            this.log('[Metadata] Processing cue:', {
+                time: cue.startTime,
+                text: text
+            });
+        }
+        
+        // Emit a generic metadata event that developers can listen to
+        this.emit('metadata', {
+            time: cue.startTime,
+            endTime: cue.endTime,
+            text: text,
+            cue: cue
+        });
+
+        // Parse for specific commands (examples based on wwa_meta.vtt format)
+        if (text.includes('PAUSE')) {
+            // Automatically pause the video
+            if (!this.state.paused) {
+                if (this.options.debug) {
+                    this.log('[Metadata] Pausing video at', cue.startTime);
+                }
+                this.pause();
+            }
+            // Also emit event for developers who want to listen
+            this.emit('metadata:pause', { time: cue.startTime, text: text });
+        }
+
+        // Parse for focus directives
+        const focusMatch = text.match(/FOCUS:([\w#-]+)/);
+        if (focusMatch) {
+            const targetSelector = focusMatch[1];
+            const normalizedSelector = this.normalizeMetadataSelector(targetSelector);
+            // Automatically focus the target element
+            const targetElement = normalizedSelector ? document.querySelector(normalizedSelector) : null;
+            if (targetElement) {
+                if (this.options.debug) {
+                    this.log('[Metadata] Focusing element:', normalizedSelector);
+                }
+                // Make element focusable if it isn't already
+                if (targetElement.tabIndex === -1 && !targetElement.hasAttribute('tabindex')) {
+                    targetElement.setAttribute('tabindex', '-1');
+                }
+                // Use setTimeout to ensure DOM is ready
+                this.setManagedTimeout(() => {
+                    targetElement.focus();
+                    // Scroll element into view if needed
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 10);
+            } else if (this.options.debug) {
+                this.log('[Metadata] Element not found:', normalizedSelector || targetSelector);
+            }
+            // Also emit event for developers who want to listen
+            this.emit('metadata:focus', { 
+                time: cue.startTime, 
+                target: targetSelector,
+                selector: normalizedSelector,
+                element: targetElement,
+                text: text 
+            });
+
+            if (normalizedSelector) {
+                this.handleMetadataAlert(normalizedSelector, {
+                    element: targetElement,
+                    reason: 'focus'
+                });
+            }
+        }
+
+        // Parse for hashtag references
+        const hashtags = text.match(/#[\w-]+/g);
+        if (hashtags) {
+            if (this.options.debug) {
+                this.log('[Metadata] Hashtags found:', hashtags);
+            }
+            this.emit('metadata:hashtags', {
+                time: cue.startTime,
+                hashtags: hashtags,
+                text: text
+            });
+
+            this.handleMetadataHashtags(hashtags);
+        }
     }
 }
 

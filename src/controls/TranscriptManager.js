@@ -87,10 +87,16 @@ export class TranscriptManager {
       styleDialogKeydown: null
     };
     
+    // Timeout management (for cleanup)
+    this.timeouts = new Set();
+    
     this.init();
   }
 
   init() {
+    // Set up metadata handling immediately (independent of transcript display)
+    this.setupMetadataHandlingOnLoad();
+    
     // Listen for time updates to highlight active transcript entry
     this.player.on('timeupdate', this.handlers.timeupdate);
     
@@ -98,7 +104,7 @@ export class TranscriptManager {
     this.player.on('fullscreenchange', () => {
       if (this.isVisible) {
         // Add a small delay to ensure DOM has updated after fullscreen transition
-        setTimeout(() => this.positionTranscript(), 100);
+        this.setManagedTimeout(() => this.positionTranscript(), 100);
       }
     });
   }
@@ -123,7 +129,7 @@ export class TranscriptManager {
       this.isVisible = true;
       
       // Focus the settings button for keyboard accessibility
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         if (this.settingsButton) {
           this.settingsButton.focus();
         }
@@ -139,10 +145,10 @@ export class TranscriptManager {
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = 'flex';
       // Re-position after showing (in case window was resized while hidden)
-      setTimeout(() => this.positionTranscript(), 0);
+      this.setManagedTimeout(() => this.positionTranscript(), 0);
       
       // Focus the settings button for keyboard accessibility
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         if (this.settingsButton) {
           this.settingsButton.focus();
         }
@@ -350,8 +356,10 @@ export class TranscriptManager {
     // Re-position on window resize (debounced)
     let resizeTimeout;
     this.handlers.resize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => this.positionTranscript(), 100);
+      if (resizeTimeout) {
+        this.clearManagedTimeout(resizeTimeout);
+      }
+      resizeTimeout = this.setManagedTimeout(() => this.positionTranscript(), 100);
     };
     window.addEventListener('resize', this.handlers.resize);
   }
@@ -442,7 +450,7 @@ export class TranscriptManager {
    * Get available transcript languages from tracks
    */
   getAvailableTranscriptLanguages() {
-    const textTracks = Array.from(this.player.element.textTracks);
+    const textTracks = this.player.textTracks;
     const languages = new Map();
     
     // Collect all caption/subtitle tracks with their languages
@@ -496,7 +504,7 @@ export class TranscriptManager {
       this.languageSelector.value = this.currentTranscriptLanguage;
     } else if (this.availableTranscriptLanguages.length > 0) {
       // Default to first language or active track
-      const activeTrack = Array.from(this.player.element.textTracks).find(
+      const activeTrack = this.player.textTracks.find(
         track => (track.kind === 'captions' || track.kind === 'subtitles') && track.mode === 'showing'
       );
       this.currentTranscriptLanguage = activeTrack ? activeTrack.language : this.availableTranscriptLanguages[0].language;
@@ -524,7 +532,7 @@ export class TranscriptManager {
     this.transcriptContent.innerHTML = '';
 
     // Get all text tracks
-    const textTracks = Array.from(this.player.element.textTracks);
+    const textTracks = this.player.textTracks;
     
     // Find track for selected language, or default to first available
     let captionTrack = null;
@@ -597,7 +605,7 @@ export class TranscriptManager {
       });
 
       // Fallback timeout
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         this.loadTranscriptData();
       }, 500);
       
@@ -649,25 +657,78 @@ export class TranscriptManager {
   }
 
   /**
+   * Setup metadata handling on player load
+   * This runs independently of transcript loading
+   */
+  setupMetadataHandlingOnLoad() {
+    // Wait for metadata to be loaded
+    const setupMetadata = () => {
+      const textTracks = this.player.textTracks;
+      const metadataTrack = textTracks.find(track => track.kind === 'metadata');
+      
+      if (metadataTrack) {
+        // Enable the metadata track so cuechange events fire
+        // Use 'hidden' mode so it doesn't display anything, but events still work
+        if (metadataTrack.mode === 'disabled') {
+          metadataTrack.mode = 'hidden';
+        }
+        
+        // Check if we already added the listener
+        if (this.metadataCueChangeHandler) {
+          metadataTrack.removeEventListener('cuechange', this.metadataCueChangeHandler);
+        }
+        
+        // Add event listener for cue changes
+        this.metadataCueChangeHandler = () => {
+          const activeCues = Array.from(metadataTrack.activeCues || []);
+          if (activeCues.length > 0) {
+            // Debug logging (can be removed in production)
+            if (this.player.options.debug) {
+              console.log('[VidPly Metadata] Active cues:', activeCues.map(c => ({
+                start: c.startTime,
+                end: c.endTime,
+                text: c.text
+              })));
+            }
+          }
+          activeCues.forEach(cue => {
+            this.handleMetadataCue(cue);
+          });
+        };
+        
+        metadataTrack.addEventListener('cuechange', this.metadataCueChangeHandler);
+        
+        // Debug: Log metadata track setup
+        if (this.player.options.debug) {
+          const cueCount = metadataTrack.cues ? metadataTrack.cues.length : 0;
+          console.log('[VidPly Metadata] Track enabled,', cueCount, 'cues available');
+        }
+      } else if (this.player.options.debug) {
+        console.warn('[VidPly Metadata] No metadata track found');
+      }
+    };
+    
+    // Try immediately
+    setupMetadata();
+    
+    // Also try after loadedmetadata event
+    this.player.on('loadedmetadata', setupMetadata);
+  }
+
+  /**
    * Setup metadata handling
    * Metadata cues are not displayed but can be used programmatically
+   * This is called when transcript data is loaded (for storing cues)
    */
   setupMetadataHandling() {
     if (!this.metadataCues || this.metadataCues.length === 0) {
       return;
     }
 
-    // Listen for cuechange events on the metadata track to trigger custom actions
-    const textTracks = Array.from(this.player.element.textTracks);
-    const metadataTrack = textTracks.find(track => track.kind === 'metadata');
-    
-    if (metadataTrack) {
-      metadataTrack.addEventListener('cuechange', () => {
-        const activeCues = Array.from(metadataTrack.activeCues || []);
-        activeCues.forEach(cue => {
-          this.handleMetadataCue(cue);
-        });
-      });
+    // The actual event handling is set up in setupMetadataHandlingOnLoad()
+    // This method just stores the cues for reference
+    if (this.player.options.debug) {
+      console.log('[VidPly Metadata]', this.metadataCues.length, 'cues stored from transcript load');
     }
   }
 
@@ -677,6 +738,14 @@ export class TranscriptManager {
    */
   handleMetadataCue(cue) {
     const text = cue.text.trim();
+    
+    // Debug logging
+    if (this.player.options.debug) {
+      console.log('[VidPly Metadata] Processing cue:', {
+        time: cue.startTime,
+        text: text
+      });
+    }
     
     // Emit a generic metadata event that developers can listen to
     this.player.emit('metadata', {
@@ -688,16 +757,39 @@ export class TranscriptManager {
 
     // Parse for specific commands (examples based on wwa_meta.vtt format)
     if (text.includes('PAUSE')) {
-      // Emit pause suggestion event (don't auto-pause, let developer decide)
+      // Automatically pause the video
+      if (!this.player.state.paused) {
+        if (this.player.options.debug) {
+          console.log('[VidPly Metadata] Pausing video at', cue.startTime);
+        }
+        this.player.pause();
+      }
+      // Also emit event for developers who want to listen
       this.player.emit('metadata:pause', { time: cue.startTime, text: text });
     }
 
     // Parse for focus directives
     const focusMatch = text.match(/FOCUS:([\w#-]+)/);
     if (focusMatch) {
+      const targetSelector = focusMatch[1];
+      // Automatically focus the target element
+      const targetElement = document.querySelector(targetSelector);
+      if (targetElement) {
+        if (this.player.options.debug) {
+          console.log('[VidPly Metadata] Focusing element:', targetSelector);
+        }
+        // Use setTimeout to ensure DOM is ready
+        this.setManagedTimeout(() => {
+          targetElement.focus();
+        }, 10);
+      } else if (this.player.options.debug) {
+        console.warn('[VidPly Metadata] Element not found:', targetSelector);
+      }
+      // Also emit event for developers who want to listen
       this.player.emit('metadata:focus', { 
         time: cue.startTime, 
-        target: focusMatch[1],
+        target: targetSelector,
+        element: targetElement,
         text: text 
       });
     }
@@ -705,6 +797,9 @@ export class TranscriptManager {
     // Parse for hashtag references
     const hashtags = text.match(/#[\w-]+/g);
     if (hashtags) {
+      if (this.player.options.debug) {
+        console.log('[VidPly Metadata] Hashtags found:', hashtags);
+      }
       this.player.emit('metadata:hashtags', {
         time: cue.startTime,
         hashtags: hashtags,
@@ -1895,6 +1990,32 @@ export class TranscriptManager {
   }
 
   /**
+   * Set a managed timeout that will be cleaned up on destroy
+   * @param {Function} callback - Callback function
+   * @param {number} delay - Delay in milliseconds
+   * @returns {number} Timeout ID
+   */
+  setManagedTimeout(callback, delay) {
+    const timeoutId = setTimeout(() => {
+      this.timeouts.delete(timeoutId);
+      callback();
+    }, delay);
+    this.timeouts.add(timeoutId);
+    return timeoutId;
+  }
+
+  /**
+   * Clear a managed timeout
+   * @param {number} timeoutId - Timeout ID to clear
+   */
+  clearManagedTimeout(timeoutId) {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.timeouts.delete(timeoutId);
+    }
+  }
+
+  /**
    * Cleanup
    */
   destroy() {
@@ -1960,6 +2081,10 @@ export class TranscriptManager {
     if (this.handlers.resize) {
       window.removeEventListener('resize', this.handlers.resize);
     }
+
+    // Cleanup all managed timeouts
+    this.timeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    this.timeouts.clear();
 
     // Clear handlers
     this.handlers = null;
