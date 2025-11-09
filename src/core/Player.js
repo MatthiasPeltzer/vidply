@@ -16,6 +16,7 @@ import {HLSRenderer} from '../renderers/HLSRenderer.js';
 import {createPlayOverlay} from '../icons/Icons.js';
 import {i18n} from '../i18n/i18n.js';
 import {StorageManager} from '../utils/StorageManager.js';
+import {DraggableResizable} from '../utils/DraggableResizable.js';
 
 export class Player extends EventEmitter {
     constructor(element, options = {}) {
@@ -214,6 +215,7 @@ export class Player extends EventEmitter {
         this.originalAudioDescriptionSource = null;
         // Store caption tracks that should be swapped for audio description
         this.audioDescriptionCaptionTracks = [];
+        this._audioDescriptionDesiredState = false;
 
         // DOM query cache (for performance optimization)
         this._textTracksCache = null;
@@ -396,7 +398,6 @@ export class Player extends EventEmitter {
         // This allows custom controls to work on iOS devices
         if (this.element.tagName === 'VIDEO' && this.options.playsInline) {
             this.element.setAttribute('playsinline', '');
-            this.element.setAttribute('webkit-playsinline', ''); // For older iOS versions
             this.element.playsInline = true; // Property version
         }
 
@@ -435,6 +436,16 @@ export class Player extends EventEmitter {
             // Prevent if clicking on native controls (shouldn't happen but just in case)
             if (e.target === this.element) {
                 this.toggle();
+            }
+        });
+
+        this.on('play', () => {
+            this.hidePosterOverlay();
+        });
+
+        this.on('timeupdate', () => {
+            if (this.state.currentTime > 0) {
+                this.hidePosterOverlay();
             }
         });
     }
@@ -651,6 +662,33 @@ export class Player extends EventEmitter {
      */
     findTrackElement(track) {
         return this.trackElements.find(el => el.track === track);
+    }
+
+    showPosterOverlay() {
+        if (!this.videoWrapper || this.element.tagName !== 'VIDEO') {
+            return;
+        }
+
+        const poster =
+            this.element.getAttribute('poster') ||
+            this.element.poster ||
+            this.options.poster;
+
+        if (!poster) {
+            return;
+        }
+
+        this.videoWrapper.style.setProperty('--vidply-poster-image', `url("${poster}")`);
+        this.videoWrapper.classList.add('vidply-forced-poster');
+    }
+
+    hidePosterOverlay() {
+        if (!this.videoWrapper) {
+            return;
+        }
+
+        this.videoWrapper.classList.remove('vidply-forced-poster');
+        this.videoWrapper.style.removeProperty('--vidply-poster-image');
     }
 
     /**
@@ -1048,6 +1086,11 @@ export class Player extends EventEmitter {
         // Store current playback state
         const currentTime = this.state.currentTime;
         const wasPlaying = this.state.playing;
+        const shouldKeepPoster = !wasPlaying && currentTime === 0;
+
+        if (shouldKeepPoster) {
+            this.showPosterOverlay();
+        }
 
         // Store swapped tracks for transcript reload (declare at function scope)
         let swappedTracksForTranscript = [];
@@ -1316,8 +1359,17 @@ export class Player extends EventEmitter {
                 if (sourceInfo.descSrc) {
                     newSource.setAttribute('data-desc-src', sourceInfo.descSrc);
                 }
-                this.element.appendChild(newSource);
+                const firstTrack = this.element.querySelector('track');
+                if (firstTrack) {
+                    this.element.insertBefore(newSource, firstTrack);
+                } else {
+                    this.element.appendChild(newSource);
+                }
             });
+
+            // Ensure cached source references are refreshed after rebuilding the list
+            this._sourceElementsDirty = true;
+            this._sourceElementsCache = null;
             
             // Force reload by calling load() on the element
             // This should pick up the new src attributes from the re-added source elements
@@ -1336,28 +1388,23 @@ export class Player extends EventEmitter {
             // Wait a bit more for tracks to be recognized and loaded after video metadata loads
             await new Promise(resolve => setTimeout(resolve, 300));
 
-            // Hide poster if video hasn't started yet (poster should hide when we seek or play)
-            if (this.element.tagName === 'VIDEO' && currentTime === 0 && !wasPlaying) {
-                // Force poster to hide by doing a minimal seek or loading first frame
-                // Setting readyState check or seeking to 0.001 seconds will hide the poster
-                if (this.element.readyState >= 1) { // HAVE_METADATA
-                    // Seek to a tiny fraction to trigger poster hiding without actually moving
-                    this.element.currentTime = 0.001;
-                    // Then seek back to 0 after a brief moment to ensure poster stays hidden
-                    setTimeout(() => {
-                        this.element.currentTime = 0;
-                    }, 10);
-                }
+            // Restore playback position (avoid forcing first frame if still at start)
+            if (currentTime > 0) {
+                this.seek(currentTime);
             }
-
-            // Restore playback position
-            this.seek(currentTime);
 
             if (wasPlaying) {
                 this.play();
             }
 
+            if (!shouldKeepPoster) {
+                this.hidePosterOverlay();
+            }
+
             // Update state and emit event
+            if (!this._audioDescriptionDesiredState) {
+                return;
+            }
             this.state.audioDescriptionEnabled = true;
             this.emit('audiodescriptionenabled');
         } else {
@@ -1606,8 +1653,10 @@ export class Player extends EventEmitter {
             }
         }
 
-        // Restore playback position
-        this.seek(currentTime);
+        // Restore playback position (avoid forcing first frame if still at start)
+        if (currentTime > 0) {
+            this.seek(currentTime);
+        }
 
         if (wasPlaying) {
             this.play();
@@ -1854,6 +1903,14 @@ export class Player extends EventEmitter {
             }
         }
 
+        if (!shouldKeepPoster) {
+            this.hidePosterOverlay();
+        }
+
+        if (!this._audioDescriptionDesiredState) {
+            return;
+        }
+
         this.state.audioDescriptionEnabled = true;
         this.emit('audiodescriptionenabled');
     }
@@ -1928,8 +1985,17 @@ export class Player extends EventEmitter {
                 if (sourceInfo.descSrc) {
                     newSource.setAttribute('data-desc-src', sourceInfo.descSrc);
                 }
-                this.element.appendChild(newSource);
+                const firstTrack = this.element.querySelector('track');
+                if (firstTrack) {
+                    this.element.insertBefore(newSource, firstTrack);
+                } else {
+                    this.element.appendChild(newSource);
+                }
             });
+
+            // Ensure cached source references are refreshed after rebuilding the list
+            this._sourceElementsDirty = true;
+            this._sourceElementsCache = null;
             
             // Force reload
             this.element.load();
@@ -1940,20 +2006,29 @@ export class Player extends EventEmitter {
             this.element.load();
         }
 
-        // Wait for new source to load
-        await new Promise((resolve) => {
-            const onLoadedMetadata = () => {
-                this.element.removeEventListener('loadedmetadata', onLoadedMetadata);
-                resolve();
-            };
-            this.element.addEventListener('loadedmetadata', onLoadedMetadata);
-        });
+        if (currentTime > 0 || wasPlaying) {
+            // Wait for new source to load
+            await new Promise((resolve) => {
+                const onLoadedMetadata = () => {
+                    this.element.removeEventListener('loadedmetadata', onLoadedMetadata);
+                    resolve();
+                };
+                this.element.addEventListener('loadedmetadata', onLoadedMetadata);
+            });
 
-        // Restore playback position
-        this.seek(currentTime);
+            if (currentTime > 0) {
+                this.seek(currentTime);
+            }
 
-        if (wasPlaying) {
-            this.play();
+            if (wasPlaying) {
+                this.play();
+            }
+        }
+
+        if (!wasPlaying && currentTime === 0) {
+            this.showPosterOverlay();
+        } else {
+            this.hidePosterOverlay();
         }
 
             // Reload transcript if visible (after video metadata loaded, tracks should be available)
@@ -1966,6 +2041,10 @@ export class Player extends EventEmitter {
                     }
                 }, 500);
             }
+
+        if (this._audioDescriptionDesiredState) {
+            return;
+        }
 
         this.state.audioDescriptionEnabled = false;
         this.emit('audiodescriptiondisabled');
@@ -1982,10 +2061,12 @@ export class Player extends EventEmitter {
         if (descriptionTrack && hasAudioDescriptionSrc) {
             // We have both: toggle description track AND swap caption tracks/sources
             if (this.state.audioDescriptionEnabled) {
+                this._audioDescriptionDesiredState = false;
                 // Disable: toggle description track off and swap captions/sources back
                 descriptionTrack.mode = 'hidden';
                 await this.disableAudioDescription();
             } else {
+                this._audioDescriptionDesiredState = true;
                 // Enable: swap caption tracks/sources and toggle description track on
                 await this.enableAudioDescription();
                 // Wait for tracks to be ready after source swap, then enable description track
@@ -2022,10 +2103,12 @@ export class Player extends EventEmitter {
             // Only description track, no audio-described video source to swap
             // Toggle description track
             if (descriptionTrack.mode === 'showing') {
+                this._audioDescriptionDesiredState = false;
                 descriptionTrack.mode = 'hidden';
                 this.state.audioDescriptionEnabled = false;
                 this.emit('audiodescriptiondisabled');
             } else {
+                this._audioDescriptionDesiredState = true;
                 descriptionTrack.mode = 'showing';
                 this.state.audioDescriptionEnabled = true;
                 this.emit('audiodescriptionenabled');
@@ -2033,8 +2116,10 @@ export class Player extends EventEmitter {
         } else if (hasAudioDescriptionSrc) {
             // Use audio-described video source (no description track)
             if (this.state.audioDescriptionEnabled) {
+                this._audioDescriptionDesiredState = false;
                 await this.disableAudioDescription();
             } else {
+                this._audioDescriptionDesiredState = true;
                 await this.enableAudioDescription();
             }
         }
@@ -2164,235 +2249,27 @@ export class Player extends EventEmitter {
     setupSignLanguageInteraction() {
         if (!this.signLanguageWrapper) return;
 
-        let isDragging = false;
-        let isResizing = false;
-        let resizeDirection = null;
-        let startX = 0;
-        let startY = 0;
-        let startLeft = 0;
-        let startTop = 0;
-        let startWidth = 0;
-        let startHeight = 0;
-        let dragMode = false;
-        let resizeMode = false;
+        // Get resize handles
+        const resizeHandles = Array.from(this.signLanguageWrapper.querySelectorAll('.vidply-sign-resize-handle'));
 
-        // Mouse drag on video element
-        const onMouseDownVideo = (e) => {
-            if (e.target !== this.signLanguageVideo) return;
-            e.preventDefault();
-            isDragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            const rect = this.signLanguageWrapper.getBoundingClientRect();
-            startLeft = rect.left;
-            startTop = rect.top;
-            this.signLanguageWrapper.classList.add('vidply-sign-dragging');
-        };
-
-        // Mouse resize on handles
-        const onMouseDownHandle = (e) => {
-            if (!e.target.classList.contains('vidply-sign-resize-handle')) return;
-            e.preventDefault();
-            e.stopPropagation();
-            isResizing = true;
-            resizeDirection = e.target.getAttribute('data-direction');
-            startX = e.clientX;
-            startY = e.clientY;
-            const rect = this.signLanguageWrapper.getBoundingClientRect();
-            startLeft = rect.left;
-            startTop = rect.top;
-            startWidth = rect.width;
-            startHeight = rect.height;
-            this.signLanguageWrapper.classList.add('vidply-sign-resizing');
-        };
-
-        const onMouseMove = (e) => {
-            if (isDragging) {
-                const deltaX = e.clientX - startX;
-                const deltaY = e.clientY - startY;
-                
-                // Get videoWrapper and container dimensions
-                const videoWrapperRect = this.videoWrapper.getBoundingClientRect();
-                const containerRect = this.container.getBoundingClientRect();
-                const wrapperRect = this.signLanguageWrapper.getBoundingClientRect();
-                
-                // Calculate videoWrapper position relative to container
-                const videoWrapperLeft = videoWrapperRect.left - containerRect.left;
-                const videoWrapperTop = videoWrapperRect.top - containerRect.top;
-                
-                // Calculate new position (in client coordinates)
-                let newLeft = startLeft + deltaX - containerRect.left;
-                let newTop = startTop + deltaY - containerRect.top;
-                
-                const controlsHeight = 95; // Height of controls when visible
-                
-                // Constrain to videoWrapper bounds (ensuring it stays above controls)
-                newLeft = Math.max(videoWrapperLeft, Math.min(newLeft, videoWrapperLeft + videoWrapperRect.width - wrapperRect.width));
-                newTop = Math.max(videoWrapperTop, Math.min(newTop, videoWrapperTop + videoWrapperRect.height - wrapperRect.height - controlsHeight));
-                
-                this.signLanguageWrapper.style.left = `${newLeft}px`;
-                this.signLanguageWrapper.style.top = `${newTop}px`;
-                this.signLanguageWrapper.style.right = 'auto';
-                this.signLanguageWrapper.style.bottom = 'auto';
-                // Remove position classes
-                this.signLanguageWrapper.classList.remove(...Array.from(this.signLanguageWrapper.classList).filter(c => c.startsWith('vidply-sign-position-')));
-            } else if (isResizing) {
-                const deltaX = e.clientX - startX;
-                
-                // Get videoWrapper and container dimensions
-                const videoWrapperRect = this.videoWrapper.getBoundingClientRect();
-                const containerRect = this.container.getBoundingClientRect();
-                
-                let newWidth = startWidth;
-                let newLeft = startLeft - containerRect.left;
-
-                // Only resize width, let height auto-adjust to maintain aspect ratio
-                if (resizeDirection.includes('e')) {
-                    newWidth = Math.max(150, startWidth + deltaX);
-                    // Constrain width to not exceed videoWrapper right edge
-                    const maxWidth = (videoWrapperRect.right - startLeft);
-                    newWidth = Math.min(newWidth, maxWidth);
-                }
-                if (resizeDirection.includes('w')) {
-                    const proposedWidth = Math.max(150, startWidth - deltaX);
-                    const proposedLeft = startLeft + (startWidth - proposedWidth) - containerRect.left;
-                    // Constrain to not go beyond videoWrapper left edge
-                    const videoWrapperLeft = videoWrapperRect.left - containerRect.left;
-                    if (proposedLeft >= videoWrapperLeft) {
-                        newWidth = proposedWidth;
-                        newLeft = proposedLeft;
-                    }
-                }
-
-                this.signLanguageWrapper.style.width = `${newWidth}px`;
-                this.signLanguageWrapper.style.height = 'auto'; // Let video maintain aspect ratio
-                if (resizeDirection.includes('w')) {
-                    this.signLanguageWrapper.style.left = `${newLeft}px`;
-                }
-                this.signLanguageWrapper.style.right = 'auto';
-                this.signLanguageWrapper.style.bottom = 'auto';
-                // Remove position classes
-                this.signLanguageWrapper.classList.remove(...Array.from(this.signLanguageWrapper.classList).filter(c => c.startsWith('vidply-sign-position-')));
-            }
-        };
-
-        const onMouseUp = () => {
-            if (isDragging || isResizing) {
-                this.saveSignLanguagePreferences();
-            }
-            isDragging = false;
-            isResizing = false;
-            resizeDirection = null;
-            this.signLanguageWrapper.classList.remove('vidply-sign-dragging', 'vidply-sign-resizing');
-        };
-
-        // Keyboard controls
-        const onKeyDown = (e) => {
-            // Toggle drag mode with D key
-            if (e.key === 'd' || e.key === 'D') {
-                dragMode = !dragMode;
-                resizeMode = false;
-                this.signLanguageWrapper.classList.toggle('vidply-sign-keyboard-drag', dragMode);
-                this.signLanguageWrapper.classList.remove('vidply-sign-keyboard-resize');
-                e.preventDefault();
-                return;
-            }
-
-            // Toggle resize mode with R key
-            if (e.key === 'r' || e.key === 'R') {
-                resizeMode = !resizeMode;
-                dragMode = false;
-                this.signLanguageWrapper.classList.toggle('vidply-sign-keyboard-resize', resizeMode);
-                this.signLanguageWrapper.classList.remove('vidply-sign-keyboard-drag');
-                e.preventDefault();
-                return;
-            }
-
-            // Escape to exit modes
-            if (e.key === 'Escape') {
-                dragMode = false;
-                resizeMode = false;
-                this.signLanguageWrapper.classList.remove('vidply-sign-keyboard-drag', 'vidply-sign-keyboard-resize');
-                e.preventDefault();
-                return;
-            }
-
-            // Arrow keys for drag/resize
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                const step = e.shiftKey ? 10 : 5;
-                const rect = this.signLanguageWrapper.getBoundingClientRect();
-                
-                // Get videoWrapper and container bounds
-                const videoWrapperRect = this.videoWrapper.getBoundingClientRect();
-                const containerRect = this.container.getBoundingClientRect();
-                
-                // Calculate videoWrapper position relative to container
-                const videoWrapperLeft = videoWrapperRect.left - containerRect.left;
-                const videoWrapperTop = videoWrapperRect.top - containerRect.top;
-
-                if (dragMode) {
-                    // Get current position relative to container
-                    let left = rect.left - containerRect.left;
-                    let top = rect.top - containerRect.top;
-
-                    if (e.key === 'ArrowLeft') left -= step;
-                    if (e.key === 'ArrowRight') left += step;
-                    if (e.key === 'ArrowUp') top -= step;
-                    if (e.key === 'ArrowDown') top += step;
-
-                    const controlsHeight = 95; // Height of controls when visible
-                    
-                    // Constrain to videoWrapper bounds (ensuring it stays above controls)
-                    left = Math.max(videoWrapperLeft, Math.min(left, videoWrapperLeft + videoWrapperRect.width - rect.width));
-                    top = Math.max(videoWrapperTop, Math.min(top, videoWrapperTop + videoWrapperRect.height - rect.height - controlsHeight));
-
-                    this.signLanguageWrapper.style.left = `${left}px`;
-                    this.signLanguageWrapper.style.top = `${top}px`;
-                    this.signLanguageWrapper.style.right = 'auto';
-                    this.signLanguageWrapper.style.bottom = 'auto';
-                    // Remove position classes
-                    this.signLanguageWrapper.classList.remove(...Array.from(this.signLanguageWrapper.classList).filter(c => c.startsWith('vidply-sign-position-')));
-                    this.saveSignLanguagePreferences();
-                    e.preventDefault();
-                } else if (resizeMode) {
-                    let width = rect.width;
-
-                    // Only adjust width, height will auto-adjust to maintain aspect ratio
-                    if (e.key === 'ArrowLeft') width -= step;
-                    if (e.key === 'ArrowRight') width += step;
-                    // Up/Down also adjusts width for simplicity
-                    if (e.key === 'ArrowUp') width += step;
-                    if (e.key === 'ArrowDown') width -= step;
-
-                    // Constrain width
-                    width = Math.max(150, width);
-                    // Don't let it exceed videoWrapper width
-                    width = Math.min(width, videoWrapperRect.width);
-
-                    this.signLanguageWrapper.style.width = `${width}px`;
-                    this.signLanguageWrapper.style.height = 'auto';
-                    this.saveSignLanguagePreferences();
-                    e.preventDefault();
-                }
-            }
-        };
-
-        // Attach event listeners
-        this.signLanguageVideo.addEventListener('mousedown', onMouseDownVideo);
-        const handles = this.signLanguageWrapper.querySelectorAll('.vidply-sign-resize-handle');
-        handles.forEach(handle => handle.addEventListener('mousedown', onMouseDownHandle));
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-        this.signLanguageWrapper.addEventListener('keydown', onKeyDown);
+        // Create DraggableResizable utility
+        this.signLanguageDraggable = new DraggableResizable(this.signLanguageWrapper, {
+            dragHandle: this.signLanguageVideo,
+            resizeHandles: resizeHandles,
+            constrainToViewport: true,
+            maintainAspectRatio: true,
+            minWidth: 150,
+            minHeight: 100,
+            classPrefix: 'vidply-sign',
+            keyboardDragKey: 'd',
+            keyboardResizeKey: 'r',
+            keyboardStep: 5,
+            keyboardStepLarge: 10
+        });
 
         // Store for cleanup
         this.signLanguageInteractionHandlers = {
-            mouseDownVideo: onMouseDownVideo,
-            mouseDownHandle: onMouseDownHandle,
-            mouseMove: onMouseMove,
-            mouseUp: onMouseUp,
-            keyDown: onKeyDown,
-            handles
+            draggable: this.signLanguageDraggable
         };
     }
 
@@ -2483,23 +2360,14 @@ export class Player extends EventEmitter {
             this.signLanguageHandlers = null;
         }
 
-        // Remove interaction handlers
-        if (this.signLanguageInteractionHandlers) {
-            if (this.signLanguageVideo) {
-                this.signLanguageVideo.removeEventListener('mousedown', this.signLanguageInteractionHandlers.mouseDownVideo);
-            }
-            if (this.signLanguageInteractionHandlers.handles) {
-                this.signLanguageInteractionHandlers.handles.forEach(handle => {
-                    handle.removeEventListener('mousedown', this.signLanguageInteractionHandlers.mouseDownHandle);
-                });
-            }
-            document.removeEventListener('mousemove', this.signLanguageInteractionHandlers.mouseMove);
-            document.removeEventListener('mouseup', this.signLanguageInteractionHandlers.mouseUp);
-            if (this.signLanguageWrapper) {
-                this.signLanguageWrapper.removeEventListener('keydown', this.signLanguageInteractionHandlers.keyDown);
-            }
-            this.signLanguageInteractionHandlers = null;
+        // Destroy draggable utility
+        if (this.signLanguageDraggable) {
+            this.signLanguageDraggable.destroy();
+            this.signLanguageDraggable = null;
         }
+        
+        // Clear interaction handlers reference
+        this.signLanguageInteractionHandlers = null;
 
         // Remove video and wrapper elements
         if (this.signLanguageWrapper && this.signLanguageWrapper.parentNode) {
@@ -2619,7 +2487,10 @@ export class Player extends EventEmitter {
                 }
 
                 if (this.transcriptManager && this.transcriptManager.isVisible) {
-                    this.transcriptManager.positionTranscript();
+                    // Only auto-position if user hasn't manually moved it
+                    if (!this.transcriptManager.draggableResizable || !this.transcriptManager.draggableResizable.manuallyPositioned) {
+                        this.transcriptManager.positionTranscript();
+                    }
                 }
             };
 
@@ -2632,7 +2503,10 @@ export class Player extends EventEmitter {
                 // Wait for layout to settle
                 setTimeout(() => {
                     if (this.transcriptManager && this.transcriptManager.isVisible) {
-                        this.transcriptManager.positionTranscript();
+                        // Only auto-position if user hasn't manually moved it
+                        if (!this.transcriptManager.draggableResizable || !this.transcriptManager.draggableResizable.manuallyPositioned) {
+                            this.transcriptManager.positionTranscript();
+                        }
                     }
                 }, 100);
             };

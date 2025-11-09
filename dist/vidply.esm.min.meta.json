@@ -11,7 +11,7 @@
       "format": "esm"
     },
     "src/i18n/translations.js": {
-      "bytes": 22623,
+      "bytes": 26879,
       "imports": [],
       "format": "esm"
     },
@@ -43,7 +43,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 75033,
+      "bytes": 75511,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -99,8 +99,13 @@
       "imports": [],
       "format": "esm"
     },
+    "src/utils/DraggableResizable.js": {
+      "bytes": 24698,
+      "imports": [],
+      "format": "esm"
+    },
     "src/controls/TranscriptManager.js": {
-      "bytes": 69891,
+      "bytes": 63077,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -126,6 +131,11 @@
           "path": "src/utils/StorageManager.js",
           "kind": "import-statement",
           "original": "../utils/StorageManager.js"
+        },
+        {
+          "path": "src/utils/DraggableResizable.js",
+          "kind": "import-statement",
+          "original": "../utils/DraggableResizable.js"
         }
       ],
       "format": "esm"
@@ -157,7 +167,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 139352,
+      "bytes": 130878,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -223,6 +233,11 @@
           "path": "src/utils/StorageManager.js",
           "kind": "import-statement",
           "original": "../utils/StorageManager.js"
+        },
+        {
+          "path": "src/utils/DraggableResizable.js",
+          "kind": "import-statement",
+          "original": "../utils/DraggableResizable.js"
         }
       ],
       "format": "esm"
@@ -271,7 +286,7 @@
       "entryPoint": "src/index.js",
       "inputs": {
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 4672
+          "bytesInOutput": 4670
         },
         "src/utils/EventEmitter.js": {
           "bytesInOutput": 436
@@ -280,7 +295,7 @@
           "bytesInOutput": 1581
         },
         "src/i18n/translations.js": {
-          "bytesInOutput": 19801
+          "bytesInOutput": 24492
         },
         "src/i18n/i18n.js": {
           "bytesInOutput": 720
@@ -292,7 +307,7 @@
           "bytesInOutput": 10590
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 36459
+          "bytesInOutput": 36758
         },
         "src/utils/StorageManager.js": {
           "bytesInOutput": 1606
@@ -303,11 +318,14 @@
         "src/controls/KeyboardManager.js": {
           "bytesInOutput": 3738
         },
+        "src/utils/DraggableResizable.js": {
+          "bytesInOutput": 13781
+        },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 36165
+          "bytesInOutput": 33381
         },
         "src/core/Player.js": {
-          "bytesInOutput": 47001
+          "bytesInOutput": 43999
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -325,7 +343,7 @@
           "bytesInOutput": 1002
         }
       },
-      "bytes": 191153
+      "bytes": 204134
     }
   }
 }

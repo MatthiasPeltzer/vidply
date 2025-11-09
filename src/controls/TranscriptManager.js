@@ -8,6 +8,7 @@ import { TimeUtils } from '../utils/TimeUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 import { StorageManager } from '../utils/StorageManager.js';
+import { DraggableResizable } from '../utils/DraggableResizable.js';
 
 export class TranscriptManager {
   constructor(player) {
@@ -21,19 +22,8 @@ export class TranscriptManager {
     // Storage manager
     this.storage = new StorageManager('vidply');
     
-    // Dragging state
-    this.isDragging = false;
-    this.dragOffsetX = 0;
-    this.dragOffsetY = 0;
-    
-    // Resizing state
-    this.isResizing = false;
-    this.resizeDirection = null;
-    this.resizeStartX = 0;
-    this.resizeStartY = 0;
-    this.resizeStartWidth = 0;
-    this.resizeStartHeight = 0;
-    this.resizeEnabled = false;
+    // Draggable/Resizable utility
+    this.draggableResizable = null;
     
     // Settings menu state
     this.settingsMenuVisible = false;
@@ -41,8 +31,13 @@ export class TranscriptManager {
     this.settingsButton = null;
     this.settingsMenuJustOpened = false;
     
-    // Keyboard drag mode
-    this.keyboardDragMode = false;
+    // Resize mode state
+    this.resizeOptionButton = null;
+    this.resizeOptionText = null;
+    this.resizeModeIndicator = null;
+    this.resizeModeIndicatorTimeout = null;
+    this.transcriptResizeHandles = [];
+    this.liveRegion = null;
     
     // Style dialog state
     this.styleDialog = null;
@@ -74,13 +69,6 @@ export class TranscriptManager {
     this.handlers = {
       timeupdate: () => this.updateActiveEntry(),
       resize: null,
-      mousemove: null,
-      mouseup: null,
-      touchmove: null,
-      touchend: null,
-      mousedown: null,
-      touchstart: null,
-      keydown: null,
       settingsClick: null,
       settingsKeydown: null,
       documentClick: null,
@@ -103,8 +91,11 @@ export class TranscriptManager {
     // Reposition transcript when entering/exiting fullscreen
     this.player.on('fullscreenchange', () => {
       if (this.isVisible) {
-        // Add a small delay to ensure DOM has updated after fullscreen transition
-        this.setManagedTimeout(() => this.positionTranscript(), 100);
+        // Only auto-position if user hasn't manually positioned it
+        if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
+          // Add a small delay to ensure DOM has updated after fullscreen transition
+          this.setManagedTimeout(() => this.positionTranscript(), 100);
+        }
       }
     });
   }
@@ -127,11 +118,15 @@ export class TranscriptManager {
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = 'flex';
       this.isVisible = true;
+
+      if (this.player.controlBar && typeof this.player.controlBar.updateTranscriptButton === 'function') {
+        this.player.controlBar.updateTranscriptButton();
+      }
       
-      // Focus the settings button for keyboard accessibility
+      // Focus the header for keyboard accessibility
       this.setManagedTimeout(() => {
-        if (this.settingsButton) {
-          this.settingsButton.focus();
+        if (this.transcriptHeader) {
+          this.transcriptHeader.focus();
         }
       }, 150);
       return;
@@ -144,13 +139,17 @@ export class TranscriptManager {
     // Show the window
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = 'flex';
-      // Re-position after showing (in case window was resized while hidden)
-      this.setManagedTimeout(() => this.positionTranscript(), 0);
       
-      // Focus the settings button for keyboard accessibility
+      // Only auto-position if user hasn't manually positioned it
+      // This prevents overwriting saved positions from localStorage
+      if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
+        this.setManagedTimeout(() => this.positionTranscript(), 0);
+      }
+      
+      // Focus the header for keyboard accessibility
       this.setManagedTimeout(() => {
-        if (this.settingsButton) {
-          this.settingsButton.focus();
+        if (this.transcriptHeader) {
+          this.transcriptHeader.focus();
         }
       }, 150);
     }
@@ -160,10 +159,28 @@ export class TranscriptManager {
   /**
    * Hide transcript window
    */
-  hideTranscript() {
+  hideTranscript({ focusButton = false } = {}) {
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = 'none';
       this.isVisible = false;
+    }
+    if (this.draggableResizable && this.draggableResizable.pointerResizeMode) {
+      this.draggableResizable.disablePointerResizeMode();
+      this.updateResizeOptionState();
+    }
+    this.hideResizeModeIndicator();
+    this.announceLive('');
+
+    // Update transcript button state in control bar
+    if (this.player.controlBar && typeof this.player.controlBar.updateTranscriptButton === 'function') {
+      this.player.controlBar.updateTranscriptButton();
+    }
+
+    if (focusButton) {
+      const transcriptButton = this.player.controlBar?.controls?.transcript;
+      if (transcriptButton && typeof transcriptButton.focus === 'function') {
+        transcriptButton.focus();
+      }
     }
   }
 
@@ -184,7 +201,6 @@ export class TranscriptManager {
     this.transcriptHeader = DOMUtils.createElement('div', {
       className: `${this.player.options.classPrefix}-transcript-header`,
       attributes: {
-        'aria-label': 'Drag to reposition transcript. Use arrow keys to move, Home to reset position, Escape to close.',
         'tabindex': '0'
       }
     });
@@ -199,7 +215,7 @@ export class TranscriptManager {
       className: `${this.player.options.classPrefix}-transcript-settings`,
       attributes: {
         'type': 'button',
-        'aria-label': i18n.t('transcript.settings'),
+        'aria-label': i18n.t('transcript.settingsMenu'),
         'aria-expanded': 'false'
       }
     });
@@ -239,7 +255,7 @@ export class TranscriptManager {
     this.settingsButton.addEventListener('keydown', this.handlers.settingsKeydown);
 
     const title = DOMUtils.createElement('h3', {
-      textContent: i18n.t('transcript.title')
+      textContent: `${i18n.t('transcript.title')}. ${i18n.t('transcript.dragResizePrompt')}`
     });
 
     // Autoscroll checkbox
@@ -272,8 +288,8 @@ export class TranscriptManager {
       this.saveAutoscrollPreference();
     });
 
+    this.transcriptHeader.appendChild(title);
     this.headerLeft.appendChild(this.settingsButton);
-    this.headerLeft.appendChild(title);
     this.headerLeft.appendChild(autoscrollLabel);
     
     // Language selector (will be populated after tracks are loaded)
@@ -294,7 +310,7 @@ export class TranscriptManager {
       }
     });
     closeButton.appendChild(createIconElement('close'));
-    closeButton.addEventListener('click', () => this.hideTranscript());
+    closeButton.addEventListener('click', () => this.hideTranscript({ focusButton: true }));
 
     this.transcriptHeader.appendChild(this.headerLeft);
     this.transcriptHeader.appendChild(closeButton);
@@ -307,14 +323,29 @@ export class TranscriptManager {
     this.transcriptWindow.appendChild(this.transcriptHeader);
     this.transcriptWindow.appendChild(this.transcriptContent);
 
+    this.createResizeHandles();
+
+    // Live region for announcements (screen reader feedback)
+    this.liveRegion = DOMUtils.createElement('div', {
+      className: 'vidply-sr-only',
+      attributes: {
+        'aria-live': 'polite',
+        'aria-atomic': 'true'
+      }
+    });
+    this.transcriptWindow.appendChild(this.liveRegion);
+
     // Append to player container
     this.player.container.appendChild(this.transcriptWindow);
     
-    // Position it next to the video wrapper
-    this.positionTranscript();
-    
-    // Setup drag functionality
+    // Setup drag functionality FIRST (this will restore saved position if it exists)
     this.setupDragAndDrop();
+    
+    // Then position it next to the video wrapper ONLY if user hasn't manually positioned it
+    // This ensures we don't overwrite saved positions from localStorage
+    if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
+      this.positionTranscript();
+    }
     
     // Setup document click handler to close settings menu and style dialog
     // DON'T add it yet - it will be added when the menu is first opened
@@ -353,22 +384,52 @@ export class TranscriptManager {
     // Store flag to track if handler has been added
     this.documentClickHandlerAdded = false;
     
-    // Re-position on window resize (debounced)
+    // Re-position on window resize (debounced) - but only if not manually positioned
     let resizeTimeout;
     this.handlers.resize = () => {
       if (resizeTimeout) {
         this.clearManagedTimeout(resizeTimeout);
       }
-      resizeTimeout = this.setManagedTimeout(() => this.positionTranscript(), 100);
+      resizeTimeout = this.setManagedTimeout(() => {
+        // Only auto-position if user hasn't manually moved it
+        if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
+          this.positionTranscript();
+        }
+      }, 100);
     };
     window.addEventListener('resize', this.handlers.resize);
   }
   
+  createResizeHandles() {
+    if (!this.transcriptWindow) return;
+
+    const directions = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
+    this.transcriptResizeHandles = directions.map(direction => {
+      const handle = DOMUtils.createElement('div', {
+        className: `${this.player.options.classPrefix}-transcript-resize-handle ${this.player.options.classPrefix}-transcript-resize-${direction}`,
+        attributes: {
+          'data-direction': direction,
+          'data-vidply-managed-resize': 'true',
+          'aria-hidden': 'true'
+        }
+      });
+
+      handle.style.display = 'none';
+      this.transcriptWindow.appendChild(handle);
+      return handle;
+    });
+  }
+
   /**
    * Position transcript window next to video
    */
   positionTranscript() {
     if (!this.transcriptWindow || !this.player.videoWrapper || !this.isVisible) return;
+    
+    // Don't auto-position if user has manually positioned it
+    if (this.draggableResizable && this.draggableResizable.manuallyPositioned) {
+      return;
+    }
     
     const isMobile = window.innerWidth < 640;
     const videoRect = this.player.videoWrapper.getBoundingClientRect();
@@ -410,8 +471,12 @@ export class TranscriptManager {
       this.transcriptWindow.style.top = 'auto';
       this.transcriptWindow.style.maxHeight = 'calc(100vh - 180px)'; // Leave space for controls
       this.transcriptWindow.style.height = 'auto';
-      this.transcriptWindow.style.width = '400px';
-      this.transcriptWindow.style.maxWidth = '400px';
+      const fullscreenMinWidth = 260;
+      const fullscreenAvailable = Math.max(fullscreenMinWidth, window.innerWidth - 40);
+      const fullscreenDesired = parseFloat(this.transcriptWindow.style.width) || 400;
+      const fullscreenWidth = Math.max(fullscreenMinWidth, Math.min(fullscreenDesired, fullscreenAvailable));
+      this.transcriptWindow.style.width = `${fullscreenWidth}px`;
+      this.transcriptWindow.style.maxWidth = 'none';
       this.transcriptWindow.style.borderRadius = '8px';
       this.transcriptWindow.style.border = '1px solid var(--vidply-border)';
       this.transcriptWindow.style.borderTop = '';
@@ -421,16 +486,35 @@ export class TranscriptManager {
         this.player.container.appendChild(this.transcriptWindow);
       }
     } else {
-      // Desktop mode: position next to video
+      // Desktop mode: position in right side of viewport
+      const transcriptWidth = parseFloat(this.transcriptWindow.style.width) || 400;
+      const padding = 20;
+      const minWidth = 260;
+      const containerRect = this.player.container.getBoundingClientRect();
+
+      const ensureContainerPositioned = () => {
+        const computed = window.getComputedStyle(this.player.container);
+        if (computed.position === 'static') {
+          this.player.container.style.position = 'relative';
+        }
+      };
+
+      ensureContainerPositioned();
+
+      const left = (videoRect.right - containerRect.left) + padding;
+      const availableWidth = window.innerWidth - videoRect.right - padding;
+      const appliedWidth = Math.max(minWidth, Math.min(transcriptWidth, availableWidth));
+      const appliedHeight = videoRect.height;
+
       this.transcriptWindow.style.position = 'absolute';
-      this.transcriptWindow.style.left = `${videoRect.width + 8}px`;
+      this.transcriptWindow.style.left = `${left}px`;
       this.transcriptWindow.style.right = 'auto';
       this.transcriptWindow.style.bottom = 'auto';
       this.transcriptWindow.style.top = '0';
-      this.transcriptWindow.style.height = `${videoRect.height}px`;
+      this.transcriptWindow.style.height = `${appliedHeight}px`;
       this.transcriptWindow.style.maxHeight = 'none';
-      this.transcriptWindow.style.width = '400px';
-      this.transcriptWindow.style.maxWidth = '400px';
+      this.transcriptWindow.style.width = `${appliedWidth}px`;
+      this.transcriptWindow.style.maxWidth = 'none';
       this.transcriptWindow.style.borderRadius = '8px';
       this.transcriptWindow.style.border = '1px solid var(--vidply-border)';
       this.transcriptWindow.style.borderTop = '';
@@ -951,362 +1035,127 @@ export class TranscriptManager {
   setupDragAndDrop() {
     if (!this.transcriptHeader || !this.transcriptWindow) return;
 
-    // Create and store handler functions
-    this.handlers.mousedown = (e) => {
-      // Don't drag if clicking on close button
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-close`)) {
-        return;
-      }
-      
-      // Don't drag if clicking on settings button
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings`)) {
-        return;
-      }
-      
-      // Don't drag if clicking on language selector
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-language-select`)) {
-        return;
-      }
-      
-      // Don't drag if clicking on settings menu
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings-menu`)) {
-        return;
-      }
-      
-      // Don't drag if clicking on style dialog
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-style-dialog`)) {
-        return;
-      }
-      
-      this.startDragging(e.clientX, e.clientY);
-      e.preventDefault();
-    };
+    // Check if we're on mobile and not in fullscreen (no dragging in this case)
+    const isMobile = window.innerWidth < 640;
+    const isFullscreen = this.player.state.fullscreen;
+    
+    if (isMobile && !isFullscreen) {
+      return; // No drag/resize on mobile (not fullscreen)
+    }
 
-    this.handlers.mousemove = (e) => {
-      if (this.isDragging) {
-        this.drag(e.clientX, e.clientY);
+    // Create DraggableResizable utility
+    this.draggableResizable = new DraggableResizable(this.transcriptWindow, {
+      dragHandle: this.transcriptHeader,
+      resizeHandles: this.transcriptResizeHandles,
+      constrainToViewport: true,
+      classPrefix: `${this.player.options.classPrefix}-transcript`,
+      keyboardDragKey: 'd',
+      keyboardResizeKey: 'r',
+      keyboardStep: 10,
+      keyboardStepLarge: 50,
+      minWidth: 300,
+      minHeight: 200,
+      maxWidth: () => Math.max(320, window.innerWidth - 40),
+      maxHeight: () => Math.max(200, window.innerHeight - 120),
+      pointerResizeIndicatorText: i18n.t('transcript.resizeModeHint'),
+      onPointerResizeToggle: (enabled) => this.onPointerResizeModeChange(enabled),
+      onDragStart: (e) => {
+        // Don't drag if clicking on certain elements
+        const ignoreSelectors = [
+          `.${this.player.options.classPrefix}-transcript-close`,
+          `.${this.player.options.classPrefix}-transcript-settings`,
+          `.${this.player.options.classPrefix}-transcript-language-select`,
+          `.${this.player.options.classPrefix}-transcript-settings-menu`,
+          `.${this.player.options.classPrefix}-transcript-style-dialog`
+        ];
+        
+        for (const selector of ignoreSelectors) {
+          if (e.target.closest(selector)) {
+            return false; // Prevent drag
+          }
+        }
+        
+        return true; // Allow drag
       }
-    };
+    });
 
-    this.handlers.mouseup = () => {
-      if (this.isDragging) {
-        this.stopDragging();
-      }
-    };
+    // Add custom keyboard handler for special keys (Escape, Home)
+    this.customKeyHandler = (e) => {
+      const key = e.key.toLowerCase();
+      const alreadyPrevented = e.defaultPrevented;
 
-    this.handlers.touchstart = (e) => {
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-close`)) {
-        return;
-      }
-      
-      // Don't drag if touching settings button
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings`)) {
-        return;
-      }
-      
-      // Don't drag if touching language selector
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-language-select`)) {
-        return;
-      }
-      
-      // Don't drag if touching settings menu
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings-menu`)) {
-        return;
-      }
-      
-      // Don't drag if touching style dialog
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-style-dialog`)) {
-        return;
-      }
-      
-      const isMobile = window.innerWidth < 640;
-      const isFullscreen = this.player.state.fullscreen;
-      const touch = e.touches[0];
-      
-      if (isMobile && !isFullscreen) {
-        // Mobile (not fullscreen): No dragging/swiping, transcript is part of layout
-        return;
-      } else {
-        // Desktop or fullscreen: Normal dragging
-        this.startDragging(touch.clientX, touch.clientY);
-      }
-    };
-
-    this.handlers.touchmove = (e) => {
-      const isMobile = window.innerWidth < 640;
-      const isFullscreen = this.player.state.fullscreen;
-      
-      if (isMobile && !isFullscreen) {
-        // Mobile (not fullscreen): No dragging/swiping
-        return;
-      } else if (this.isDragging) {
-        // Desktop or fullscreen: Normal drag
-        const touch = e.touches[0];
-        this.drag(touch.clientX, touch.clientY);
+      if (key === 'home') {
         e.preventDefault();
+        e.stopPropagation();
+        if (this.draggableResizable) {
+          if (this.draggableResizable.pointerResizeMode) {
+            this.draggableResizable.disablePointerResizeMode();
+          }
+          this.draggableResizable.manuallyPositioned = false;
+          this.positionTranscript();
+          this.updateResizeOptionState();
+          this.announceLive(i18n.t('transcript.positionReset'));
+        }
+        return;
       }
-    };
-
-    this.handlers.touchend = () => {
-      if (this.isDragging) {
-        // Stop dragging
-        this.stopDragging();
-      }
-    };
-
-    this.handlers.keydown = (e) => {
-      // Handle arrow keys only in keyboard drag mode
-      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
-        if (!this.keyboardDragMode) {
-          // Not in drag mode, let other handlers deal with it
+      
+      if (key === 'r') {
+        if (alreadyPrevented) {
           return;
         }
-        
-        // In drag mode - move the window
         e.preventDefault();
         e.stopPropagation();
-        
-        const step = e.shiftKey ? 50 : 10; // Larger steps with Shift key
-        
-        // Get current position
-        let currentLeft = parseFloat(this.transcriptWindow.style.left) || 0;
-        let currentTop = parseFloat(this.transcriptWindow.style.top) || 0;
-        
-        // If window is still centered with transform, convert to absolute position first
-        const computedStyle = window.getComputedStyle(this.transcriptWindow);
-        if (computedStyle.transform !== 'none') {
-          const rect = this.transcriptWindow.getBoundingClientRect();
-          currentLeft = rect.left;
-          currentTop = rect.top;
-          this.transcriptWindow.style.transform = 'none';
-          this.transcriptWindow.style.left = `${currentLeft}px`;
-          this.transcriptWindow.style.top = `${currentTop}px`;
+        const enabled = this.toggleResizeMode();
+        if (enabled) {
+          this.transcriptWindow.focus();
         }
-        
-        // Calculate new position based on arrow key
-        let newX = currentLeft;
-        let newY = currentTop;
-
-        switch(e.key) {
-          case 'ArrowLeft':
-            newX -= step;
-            break;
-          case 'ArrowRight':
-            newX += step;
-            break;
-          case 'ArrowUp':
-            newY -= step;
-            break;
-          case 'ArrowDown':
-            newY += step;
-            break;
-        }
-
-        // Set new position directly
-        this.transcriptWindow.style.left = `${newX}px`;
-        this.transcriptWindow.style.top = `${newY}px`;
         return;
       }
       
-      // Handle other special keys
-      if (e.key === 'Home') {
+      if (key === 'escape') {
         e.preventDefault();
         e.stopPropagation();
-        this.resetPosition();
-        return;
-      }
-      
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
+        if (this.draggableResizable && this.draggableResizable.pointerResizeMode) {
+          this.draggableResizable.disablePointerResizeMode();
+          return;
+        }
         if (this.styleDialogVisible) {
-          // Close style dialog first
           this.hideStyleDialog();
-        } else if (this.keyboardDragMode) {
-          // Exit drag mode
-          this.disableKeyboardDragMode();
+        } else if (this.draggableResizable && this.draggableResizable.keyboardDragMode) {
+          this.draggableResizable.disableKeyboardDragMode();
+          this.announceLive(i18n.t('transcript.dragModeDisabled'));
         } else if (this.settingsMenuVisible) {
-          // Close settings menu
           this.hideSettingsMenu();
         } else {
-          // Close transcript
-          this.hideTranscript();
+          this.hideTranscript({ focusButton: true });
         }
         return;
       }
     };
-
-    // Add event listeners using stored handlers
-    this.transcriptHeader.addEventListener('mousedown', this.handlers.mousedown);
-    document.addEventListener('mousemove', this.handlers.mousemove);
-    document.addEventListener('mouseup', this.handlers.mouseup);
     
-    this.transcriptHeader.addEventListener('touchstart', this.handlers.touchstart);
-    document.addEventListener('touchmove', this.handlers.touchmove);
-    document.addEventListener('touchend', this.handlers.touchend);
-    
-    this.transcriptHeader.addEventListener('keydown', this.handlers.keydown);
+    this.transcriptWindow.addEventListener('keydown', this.customKeyHandler);
   }
 
-  /**
-   * Start dragging
-   */
-  startDragging(clientX, clientY) {
-    // Get current rendered position (this is where it actually appears on screen)
-    const rect = this.transcriptWindow.getBoundingClientRect();
-    
-    // Get the parent container position (player container)
-    const containerRect = this.player.container.getBoundingClientRect();
-    
-    // Calculate position RELATIVE to container (not viewport)
-    const relativeLeft = rect.left - containerRect.left;
-    const relativeTop = rect.top - containerRect.top;
-    
-    // If window is centered with transform, convert to absolute position
-    const computedStyle = window.getComputedStyle(this.transcriptWindow);
-    if (computedStyle.transform !== 'none') {
-      // Remove transform and set position relative to container
-      this.transcriptWindow.style.transform = 'none';
-      this.transcriptWindow.style.left = `${relativeLeft}px`;
-      this.transcriptWindow.style.top = `${relativeTop}px`;
-    }
-    
-    // Calculate offset based on viewport coordinates (where user clicked)
-    this.dragOffsetX = clientX - rect.left;
-    this.dragOffsetY = clientY - rect.top;
-    
-    this.isDragging = true;
-    this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-dragging`);
-    document.body.style.cursor = 'grabbing';
-    document.body.style.userSelect = 'none';
-  }
-
-  /**
-   * Perform drag
-   */
-  drag(clientX, clientY) {
-    if (!this.isDragging) return;
-
-    // Calculate new viewport position based on mouse position minus the offset
-    const newViewportX = clientX - this.dragOffsetX;
-    const newViewportY = clientY - this.dragOffsetY;
-    
-    // Convert to position relative to container
-    const containerRect = this.player.container.getBoundingClientRect();
-    const newX = newViewportX - containerRect.left;
-    const newY = newViewportY - containerRect.top;
-    
-    // During drag, set position relative to container
-    this.transcriptWindow.style.left = `${newX}px`;
-    this.transcriptWindow.style.top = `${newY}px`;
-  }
-
-  /**
-   * Stop dragging
-   */
-  stopDragging() {
-    this.isDragging = false;
-    this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-dragging`);
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-  }
-
-  /**
-   * Set window position with boundary constraints
-   */
-  setPosition(x, y) {
-    const rect = this.transcriptWindow.getBoundingClientRect();
-    
-    // Use document dimensions for fixed positioning
-    const viewportWidth = document.documentElement.clientWidth;
-    const viewportHeight = document.documentElement.clientHeight;
-    
-    // Very relaxed boundaries - allow window to go mostly off-screen
-    // Just keep a small part visible so user can always drag it back
-    const minVisible = 100; // Keep at least 100px visible
-    const minX = -(rect.width - minVisible);  // Can go way off-screen to the left
-    const minY = -(rect.height - minVisible); // Can go way off-screen to the top
-    const maxX = viewportWidth - minVisible;  // Can go way off-screen to the right
-    const maxY = viewportHeight - minVisible; // Can go way off-screen to the bottom
-    
-    // Clamp position to boundaries (very loose)
-    x = Math.max(minX, Math.min(x, maxX));
-    y = Math.max(minY, Math.min(y, maxY));
-    
-    this.transcriptWindow.style.left = `${x}px`;
-    this.transcriptWindow.style.top = `${y}px`;
-    this.transcriptWindow.style.transform = 'none';
-  }
-
-  /**
-   * Reset position to center
-   */
-  resetPosition() {
-    this.transcriptWindow.style.left = '50%';
-    this.transcriptWindow.style.top = '50%';
-    this.transcriptWindow.style.transform = 'translate(-50%, -50%)';
-  }
 
   /**
    * Toggle keyboard drag mode
    */
   toggleKeyboardDragMode() {
-    if (this.keyboardDragMode) {
-      this.disableKeyboardDragMode();
-    } else {
-      this.enableKeyboardDragMode();
-    }
-  }
-
-  /**
-   * Enable keyboard drag mode
-   */
-  enableKeyboardDragMode() {
-    this.keyboardDragMode = true;
-    this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-keyboard-drag`);
-    
-    // Update settings button aria label
-    if (this.settingsButton) {
-      this.settingsButton.setAttribute('aria-label', 'Keyboard drag mode active. Use arrow keys to move window. Press D or Escape to exit.');
-    }
-    
-    // Add visual indicator
-    const indicator = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-transcript-drag-indicator`,
-      textContent: i18n.t('transcript.keyboardDragActive')
-    });
-    this.transcriptHeader.appendChild(indicator);
-    
-    // Hide settings menu if open
-    if (this.settingsMenuVisible) {
-      this.hideSettingsMenu();
-    }
-    
-    // Focus the header for keyboard navigation
-    this.transcriptHeader.focus();
-  }
-
-  /**
-   * Disable keyboard drag mode
-   */
-  disableKeyboardDragMode() {
-    this.keyboardDragMode = false;
-    this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-keyboard-drag`);
-    
-    // Update settings button aria label
-    if (this.settingsButton) {
-      this.settingsButton.setAttribute('aria-label', 'Transcript settings. Press Enter to open menu, or D to enable drag mode');
-    }
-    
-    // Remove visual indicator
-    const indicator = this.transcriptHeader.querySelector(`.${this.player.options.classPrefix}-transcript-drag-indicator`);
-    if (indicator) {
-      indicator.remove();
-    }
-    
-    // Focus back to settings button
-    if (this.settingsButton) {
-      this.settingsButton.focus();
+    if (this.draggableResizable) {
+      const wasEnabled = this.draggableResizable.keyboardDragMode;
+      this.draggableResizable.toggleKeyboardDragMode();
+      const isEnabled = this.draggableResizable.keyboardDragMode;
+      if (!wasEnabled && isEnabled) {
+        this.enableMoveMode();
+      }
+      
+      // Hide settings menu if open
+      if (this.settingsMenuVisible) {
+        this.hideSettingsMenu();
+      }
+      
+      // Focus the window for keyboard navigation
+      this.transcriptWindow.focus();
     }
   }
 
@@ -1342,6 +1191,16 @@ export class TranscriptManager {
     if (this.settingsMenu) {
       this.settingsMenu.style.display = 'block';
       this.settingsMenuVisible = true;
+      if (this.settingsButton) {
+        this.settingsButton.setAttribute('aria-expanded', 'true');
+      }
+      this.updateResizeOptionState();
+      setTimeout(() => {
+        const firstItem = this.settingsMenu.querySelector(`.${this.player.options.classPrefix}-transcript-settings-item`);
+        if (firstItem) {
+          firstItem.focus();
+        }
+      }, 0);
       return;
     }
     // Create settings menu
@@ -1397,19 +1256,38 @@ export class TranscriptManager {
       className: `${this.player.options.classPrefix}-transcript-settings-item`,
       attributes: {
         'type': 'button',
-        'aria-label': i18n.t('transcript.resizeWindow')
+        'aria-label': i18n.t('transcript.resizeWindow'),
+        'aria-pressed': 'false'
       }
     });
     const resizeIcon = createIconElement('resize');
     const resizeText = DOMUtils.createElement('span', {
+      className: `${this.player.options.classPrefix}-transcript-settings-text`,
       textContent: i18n.t('transcript.resizeWindow')
     });
     resizeOption.appendChild(resizeIcon);
     resizeOption.appendChild(resizeText);
-    resizeOption.addEventListener('click', () => {
-      this.toggleResizeMode();
-      this.hideSettingsMenu();
+    resizeOption.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const enabled = this.toggleResizeMode({ focus: false });
+      
+      if (enabled) {
+        this.hideSettingsMenu({ focusButton: false });
+        // Focus transcript window after handles appear
+        this.setManagedTimeout(() => {
+          if (this.transcriptWindow) {
+            this.transcriptWindow.focus();
+          }
+        }, 20);
+      } else {
+        this.hideSettingsMenu({ focusButton: true });
+      }
     });
+    this.resizeOptionButton = resizeOption;
+    this.resizeOptionText = resizeText;
+    this.updateResizeOptionState();
 
     // Close option
     const closeOption = DOMUtils.createElement('button', {
@@ -1449,6 +1327,7 @@ export class TranscriptManager {
     if (this.settingsButton) {
       this.settingsButton.setAttribute('aria-expanded', 'true');
     }
+    this.updateResizeOptionState();
     
     // Focus first menu item
     setTimeout(() => {
@@ -1462,7 +1341,7 @@ export class TranscriptManager {
   /**
    * Hide settings menu
    */
-  hideSettingsMenu() {
+  hideSettingsMenu({ focusButton = true } = {}) {
     if (this.settingsMenu) {
       this.settingsMenu.style.display = 'none';
       this.settingsMenuVisible = false;
@@ -1471,8 +1350,10 @@ export class TranscriptManager {
       // Update aria-expanded
       if (this.settingsButton) {
         this.settingsButton.setAttribute('aria-expanded', 'false');
-        // Return focus to settings button
-        this.settingsButton.focus();
+        if (focusButton) {
+          // Return focus to settings button
+          this.settingsButton.focus();
+        }
       }
     }
   }
@@ -1481,6 +1362,8 @@ export class TranscriptManager {
    * Enable move mode (gives visual feedback)
    */
   enableMoveMode() {
+    this.hideResizeModeIndicator();
+
     // Add visual feedback for move mode
     this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-move-mode`);
     
@@ -1503,193 +1386,82 @@ export class TranscriptManager {
   /**
    * Toggle resize mode
    */
-  toggleResizeMode() {
-    this.resizeEnabled = !this.resizeEnabled;
+  toggleResizeMode({ focus = true } = {}) {
+    if (!this.draggableResizable) {
+      return false;
+    }
+
+    if (this.draggableResizable.pointerResizeMode) {
+      this.draggableResizable.disablePointerResizeMode({ focus });
+      return false;
+    }
+
+    this.draggableResizable.enablePointerResizeMode({ focus });
+    return true;
+  }
+
+  updateResizeOptionState() {
+    if (!this.resizeOptionButton) {
+      return;
+    }
     
-    if (this.resizeEnabled) {
-      this.enableResizeHandles();
-    } else {
-      this.disableResizeHandles();
+    const isEnabled = !!(this.draggableResizable && this.draggableResizable.pointerResizeMode);
+    const label = isEnabled
+      ? (i18n.t('transcript.disableResizeWindow') || 'Disable Resize Mode')
+      : i18n.t('transcript.resizeWindow');
+
+    this.resizeOptionButton.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
+    this.resizeOptionButton.setAttribute('aria-label', label);
+    this.resizeOptionButton.setAttribute('title', label);
+
+    if (this.resizeOptionText) {
+      this.resizeOptionText.textContent = label;
     }
   }
 
-  /**
-   * Enable resize handles
-   */
-  enableResizeHandles() {
-    if (!this.transcriptWindow) return;
+  showResizeModeIndicator() {
+    if (!this.transcriptHeader) {
+      return;
+    }
 
-    // Add resize handles if they don't exist
-    const directions = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
-    
-    directions.forEach(direction => {
-      const handle = DOMUtils.createElement('div', {
-        className: `${this.player.options.classPrefix}-transcript-resize-handle ${this.player.options.classPrefix}-transcript-resize-${direction}`,
-        attributes: {
-          'data-direction': direction
-        }
-      });
+    this.hideResizeModeIndicator();
 
-      handle.addEventListener('mousedown', (e) => this.startResize(e, direction));
-      handle.addEventListener('touchstart', (e) => this.startResize(e.touches[0], direction));
-
-      this.transcriptWindow.appendChild(handle);
+    const indicator = DOMUtils.createElement('div', {
+      className: `${this.player.options.classPrefix}-transcript-resize-tooltip`,
+      textContent: i18n.t('transcript.resizeModeHint') || 'Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit.'
     });
 
-    this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-resizable`);
+    this.transcriptHeader.appendChild(indicator);
+    this.resizeModeIndicator = indicator;
 
-    // Setup resize event handlers
-    this.handlers.resizeMove = (e) => {
-      if (this.isResizing) {
-        this.performResize(e.clientX, e.clientY);
-      }
-    };
-
-    this.handlers.resizeEnd = () => {
-      if (this.isResizing) {
-        this.stopResize();
-      }
-    };
-
-    this.handlers.resizeTouchMove = (e) => {
-      if (this.isResizing) {
-        this.performResize(e.touches[0].clientX, e.touches[0].clientY);
-        e.preventDefault();
-      }
-    };
-
-    document.addEventListener('mousemove', this.handlers.resizeMove);
-    document.addEventListener('mouseup', this.handlers.resizeEnd);
-    document.addEventListener('touchmove', this.handlers.resizeTouchMove);
-    document.addEventListener('touchend', this.handlers.resizeEnd);
+    this.resizeModeIndicatorTimeout = this.setManagedTimeout(() => {
+      this.hideResizeModeIndicator();
+    }, 3000);
   }
 
-  /**
-   * Disable resize handles
-   */
-  disableResizeHandles() {
-    if (!this.transcriptWindow) return;
-
-    // Remove all resize handles
-    const handles = this.transcriptWindow.querySelectorAll(`.${this.player.options.classPrefix}-transcript-resize-handle`);
-    handles.forEach(handle => handle.remove());
-
-    this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-resizable`);
-
-    // Remove resize event handlers
-    if (this.handlers.resizeMove) {
-      document.removeEventListener('mousemove', this.handlers.resizeMove);
+  hideResizeModeIndicator() {
+    if (this.resizeModeIndicatorTimeout) {
+      this.clearManagedTimeout(this.resizeModeIndicatorTimeout);
+      this.resizeModeIndicatorTimeout = null;
     }
-    if (this.handlers.resizeEnd) {
-      document.removeEventListener('mouseup', this.handlers.resizeEnd);
+
+    if (this.resizeModeIndicator && this.resizeModeIndicator.parentNode) {
+      this.resizeModeIndicator.remove();
     }
-    if (this.handlers.resizeTouchMove) {
-      document.removeEventListener('touchmove', this.handlers.resizeTouchMove);
-    }
-    document.removeEventListener('touchend', this.handlers.resizeEnd);
+
+    this.resizeModeIndicator = null;
   }
 
-  /**
-   * Start resizing
-   */
-  startResize(e, direction) {
-    e.stopPropagation();
-    e.preventDefault();
+  onPointerResizeModeChange(enabled) {
+    this.updateResizeOptionState();
 
-    this.isResizing = true;
-    this.resizeDirection = direction;
-    this.resizeStartX = e.clientX;
-    this.resizeStartY = e.clientY;
-
-    const rect = this.transcriptWindow.getBoundingClientRect();
-    this.resizeStartWidth = rect.width;
-    this.resizeStartHeight = rect.height;
-
-    this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-resizing`);
-    document.body.style.cursor = this.getResizeCursor(direction);
-    document.body.style.userSelect = 'none';
-  }
-
-  /**
-   * Perform resize
-   */
-  performResize(clientX, clientY) {
-    if (!this.isResizing) return;
-
-    const deltaX = clientX - this.resizeStartX;
-    const deltaY = clientY - this.resizeStartY;
-
-    let newWidth = this.resizeStartWidth;
-    let newHeight = this.resizeStartHeight;
-
-    const direction = this.resizeDirection;
-
-    // Calculate new dimensions based on direction
-    if (direction.includes('e')) {
-      newWidth = this.resizeStartWidth + deltaX;
+    if (enabled) {
+      this.showResizeModeIndicator();
+      this.announceLive(i18n.t('transcript.resizeModeEnabled'));
+    } else {
+      this.hideResizeModeIndicator();
+      this.announceLive(i18n.t('transcript.resizeModeDisabled'));
     }
-    if (direction.includes('w')) {
-      newWidth = this.resizeStartWidth - deltaX;
-    }
-    if (direction.includes('s')) {
-      newHeight = this.resizeStartHeight + deltaY;
-    }
-    if (direction.includes('n')) {
-      newHeight = this.resizeStartHeight - deltaY;
-    }
-
-    // Apply minimum and maximum constraints
-    const minWidth = 300;
-    const minHeight = 200;
-    const maxWidth = window.innerWidth - 40;
-    const maxHeight = window.innerHeight - 40;
-
-    newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
-    newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
-
-    // Apply new dimensions
-    this.transcriptWindow.style.width = `${newWidth}px`;
-    this.transcriptWindow.style.height = `${newHeight}px`;
-    this.transcriptWindow.style.maxWidth = `${newWidth}px`;
-    this.transcriptWindow.style.maxHeight = `${newHeight}px`;
-
-    // Adjust position if resizing from top or left
-    if (direction.includes('w')) {
-      const currentLeft = parseFloat(this.transcriptWindow.style.left) || 0;
-      this.transcriptWindow.style.left = `${currentLeft + (this.resizeStartWidth - newWidth)}px`;
-    }
-    if (direction.includes('n')) {
-      const currentTop = parseFloat(this.transcriptWindow.style.top) || 0;
-      this.transcriptWindow.style.top = `${currentTop + (this.resizeStartHeight - newHeight)}px`;
-    }
-  }
-
-  /**
-   * Stop resizing
-   */
-  stopResize() {
-    this.isResizing = false;
-    this.resizeDirection = null;
-    this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-resizing`);
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-  }
-
-  /**
-   * Get cursor style for resize direction
-   */
-  getResizeCursor(direction) {
-    const cursors = {
-      'n': 'ns-resize',
-      's': 'ns-resize',
-      'e': 'ew-resize',
-      'w': 'ew-resize',
-      'ne': 'nesw-resize',
-      'nw': 'nwse-resize',
-      'se': 'nwse-resize',
-      'sw': 'nesw-resize'
-    };
-    return cursors[direction] || 'default';
   }
 
   /**
@@ -2019,30 +1791,27 @@ export class TranscriptManager {
    * Cleanup
    */
   destroy() {
-    // Disable modes if active
-    if (this.resizeEnabled) {
-      this.disableResizeHandles();
+    this.hideResizeModeIndicator();
+    
+    // Destroy draggableResizable utility
+    if (this.draggableResizable) {
+      if (this.draggableResizable.pointerResizeMode) {
+        this.draggableResizable.disablePointerResizeMode();
+        this.updateResizeOptionState();
+      }
+      this.draggableResizable.destroy();
+      this.draggableResizable = null;
     }
-    if (this.keyboardDragMode) {
-      this.disableKeyboardDragMode();
+    
+    // Remove custom key handler
+    if (this.transcriptWindow && this.customKeyHandler) {
+      this.transcriptWindow.removeEventListener('keydown', this.customKeyHandler);
+      this.customKeyHandler = null;
     }
 
     // Remove timeupdate listener from player
     if (this.handlers.timeupdate) {
       this.player.off('timeupdate', this.handlers.timeupdate);
-    }
-
-    // Remove drag event listeners
-    if (this.transcriptHeader) {
-      if (this.handlers.mousedown) {
-        this.transcriptHeader.removeEventListener('mousedown', this.handlers.mousedown);
-      }
-      if (this.handlers.touchstart) {
-        this.transcriptHeader.removeEventListener('touchstart', this.handlers.touchstart);
-      }
-      if (this.handlers.keydown) {
-        this.transcriptHeader.removeEventListener('keydown', this.handlers.keydown);
-      }
     }
     
     // Remove settings button event listeners
@@ -2060,19 +1829,7 @@ export class TranscriptManager {
       this.styleDialog.removeEventListener('keydown', this.handlers.styleDialogKeydown);
     }
 
-    // Remove document-level listeners
-    if (this.handlers.mousemove) {
-      document.removeEventListener('mousemove', this.handlers.mousemove);
-    }
-    if (this.handlers.mouseup) {
-      document.removeEventListener('mouseup', this.handlers.mouseup);
-    }
-    if (this.handlers.touchmove) {
-      document.removeEventListener('touchmove', this.handlers.touchmove);
-    }
-    if (this.handlers.touchend) {
-      document.removeEventListener('touchend', this.handlers.touchend);
-    }
+    // Remove document click listener
     if (this.handlers.documentClick) {
       document.removeEventListener('click', this.handlers.documentClick);
     }
@@ -2100,5 +1857,14 @@ export class TranscriptManager {
     this.transcriptEntries = [];
     this.settingsMenu = null;
     this.styleDialog = null;
+    this.transcriptResizeHandles = [];
+    this.resizeOptionButton = null;
+    this.resizeOptionText = null;
+    this.liveRegion = null;
+  }
+
+  announceLive(message) {
+    if (!this.liveRegion) return;
+    this.liveRegion.textContent = message || '';
   }
 }
