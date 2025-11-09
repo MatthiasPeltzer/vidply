@@ -35,33 +35,32 @@
     --vidply-border-hover: var(--vidply-white-30);
     --vidply-border-light: var(--vidply-white-10);
     --vidply-focus-outline: 2px solid var(--vidply-primary);
-    --vidply-focus-outline-white: 2px solid var(--vidply-primary-light);
     --vidply-focus-outline-player: 3px solid var(--vidply-primary-light);
+    --vidply-focus-outline-white: 2px solid var(--vidply-primary-light);
     --vidply-hover-bg: var(--vidply-white-10);
-    --vidply-scrollbar-thumb: var(--vidply-white);
-    --vidply-scrollbar-thumb-hover: var(--vidply-white-90);
-    --vidply-scrollbar-track: #404040;
-    --vidply-scrollbar-track-transcript: #555555;
-    --vidply-transition-default: all 0.2s ease;
     --vidply-primary: #0a406e;
     --vidply-primary-10: rgb(var(--vidply-primary-rgb), 0.1);
     --vidply-primary-15: rgb(var(--vidply-primary-rgb), 0.15);
-
-    /* Black Color Variations */
     --vidply-primary-20: rgb(var(--vidply-primary-rgb), 0.2);
     --vidply-primary-25: rgb(var(--vidply-primary-rgb), 0.25);
     --vidply-primary-30: rgb(var(--vidply-primary-rgb), 0.3);
     --vidply-primary-40: rgb(var(--vidply-primary-rgb), 0.4);
     --vidply-primary-50: rgb(var(--vidply-primary-rgb), 0.5);
+
+    /* Black Color Variations */
     --vidply-primary-60: rgb(var(--vidply-primary-rgb), 0.6);
     --vidply-primary-70: rgb(var(--vidply-primary-rgb), 0.7);
     --vidply-primary-80: rgb(var(--vidply-primary-rgb), 0.8);
     --vidply-primary-dark: #083358;
-
-    /* UI Background Colors */
     --vidply-primary-dark-rgb: 8, 51, 88;
     --vidply-primary-light: #71b7e2;
     --vidply-primary-rgb: 10, 64, 110;
+    --vidply-scrollbar-thumb: var(--vidply-white);
+    --vidply-scrollbar-thumb-hover: var(--vidply-white-90);
+
+    /* UI Background Colors */
+    --vidply-scrollbar-track: #404040;
+    --vidply-scrollbar-track-transcript: #555;
     --vidply-shadow-lg: 0 12px 48px var(--vidply-black-80);
     --vidply-shadow-md: 0 4px 12px var(--vidply-black-40);
     --vidply-shadow-sm: 0 2px 4px var(--vidply-black-30);
@@ -70,6 +69,7 @@
     --vidply-text-primary: var(--vidply-white);
     --vidply-text-secondary: var(--vidply-white-90);
     --vidply-text-subtle: var(--vidply-white-50);
+    --vidply-transition-default: all 0.2s ease;
 
     /* Border Colors */
     --vidply-white: #fff;
@@ -191,6 +191,17 @@
     position: relative;
     width: 100%;
     z-index: 1; /* Base video layer */
+}
+
+.vidply-video-wrapper.vidply-forced-poster {
+    background-image: var(--vidply-poster-image);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.vidply-video-wrapper.vidply-forced-poster > video {
+    opacity: 0;
 }
 
 /* Mobile: Simplify video wrapper */
@@ -1572,7 +1583,7 @@
     flex-direction: column;
     max-width: 400px;
     order: 4; /* After video-wrapper (1), track-info (2), and playlist-panel (3) */
-    position: absolute;
+    position: fixed;
     top: 0;
     width: 400px;
     z-index: 5;
@@ -1593,6 +1604,13 @@
     justify-content: space-between;
     padding: 16px 20px;
     user-select: none;
+}
+
+.vidply-transcript-header:focus,
+.vidply-transcript-header:focus-visible {
+    box-shadow: 0 0 0 4px rgb(91 144 255 / 35%);
+    outline: 3px solid var(--vidply-primary-light);
+    outline-offset: 2px;
 }
 
 .vidply-transcript-header h3 {
@@ -2075,6 +2093,22 @@
     z-index: 1000;
 }
 
+.vidply-transcript-resize-tooltip {
+    animation: fadeInDown 0.3s ease;
+    background: var(--vidply-primary);
+    border-radius: 4px;
+    color: var(--vidply-white);
+    font-size: 12px;
+    left: 50%;
+    padding: 6px 12px;
+    position: absolute;
+    text-align: center;
+    top: 100%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 1000;
+}
+
 @keyframes fadeInDown {
     from {
         opacity: 0;
@@ -2287,9 +2321,8 @@
 .vidply-sign-language-wrapper {
     background: transparent;
     height: auto;
-    max-width: 400px;
+    max-width: none;
     min-height: 100px;
-    min-width: 150px;
     position: absolute;
     transition: opacity 0.3s ease;
     width: 280px;
@@ -2297,7 +2330,7 @@
 }
 
 .vidply-fullscreen .vidply-sign-language-wrapper {
-    max-width: 600px;
+    max-width: none;
 }
 
 .vidply-sign-language-wrapper:focus {

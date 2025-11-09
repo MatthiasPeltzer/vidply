@@ -712,12 +712,9 @@ export class ControlBar {
             }
         });
 
-        // Current time - visual text hidden, only aria-label announced
+        // Current time - visual text hidden, accessible text provided via sr-only span
         this.controls.currentTimeDisplay = DOMUtils.createElement('span', {
-            className: `${this.player.options.classPrefix}-current-time`,
-            attributes: {
-                'aria-label': i18n.t('time.seconds', { count: 0 })
-            }
+            className: `${this.player.options.classPrefix}-current-time`
         });
         
         // Create visual text inside, hidden from screen readers
@@ -727,8 +724,15 @@ export class ControlBar {
                 'aria-hidden': 'true'
             }
         });
+        const currentTimeAccessible = DOMUtils.createElement('span', {
+            className: 'vidply-sr-only',
+            textContent: i18n.t('time.seconds', { count: 0 })
+        });
+
         this.controls.currentTimeDisplay.appendChild(currentTimeVisual);
+        this.controls.currentTimeDisplay.appendChild(currentTimeAccessible);
         this.controls.currentTimeVisual = currentTimeVisual;
+        this.controls.currentTimeAccessible = currentTimeAccessible;
 
         const separator = DOMUtils.createElement('span', {
             textContent: ' / ',
@@ -737,12 +741,9 @@ export class ControlBar {
             }
         });
 
-        // Duration - visual text hidden, only aria-label announced
+        // Duration - visual text hidden, accessible text provided via sr-only span
         this.controls.durationDisplay = DOMUtils.createElement('span', {
-            className: `${this.player.options.classPrefix}-duration`,
-            attributes: {
-                'aria-label': i18n.t('time.durationPrefix') + i18n.t('time.seconds', { count: 0 })
-            }
+            className: `${this.player.options.classPrefix}-duration`
         });
         
         // Create visual text inside, hidden from screen readers
@@ -752,8 +753,15 @@ export class ControlBar {
                 'aria-hidden': 'true'
             }
         });
+        const durationAccessible = DOMUtils.createElement('span', {
+            className: 'vidply-sr-only',
+            textContent: i18n.t('time.durationPrefix') + i18n.t('time.seconds', { count: 0 })
+        });
+
         this.controls.durationDisplay.appendChild(durationVisual);
+        this.controls.durationDisplay.appendChild(durationAccessible);
         this.controls.durationVisual = durationVisual;
+        this.controls.durationAccessible = durationAccessible;
 
         container.appendChild(this.controls.currentTimeDisplay);
         container.appendChild(separator);
@@ -1831,8 +1839,9 @@ export class ControlBar {
             const currentTime = this.player.state.currentTime;
             // Update visual text (hidden from screen readers)
             this.controls.currentTimeVisual.textContent = TimeUtils.formatTime(currentTime);
-            // Update aria-label with human-readable format
-            this.controls.currentTimeDisplay.setAttribute('aria-label', TimeUtils.formatDuration(currentTime));
+            if (this.controls.currentTimeAccessible) {
+                this.controls.currentTimeAccessible.textContent = TimeUtils.formatDuration(currentTime);
+            }
         }
     }
 
@@ -1841,8 +1850,9 @@ export class ControlBar {
             const duration = this.player.state.duration;
             // Update visual text (hidden from screen readers)
             this.controls.durationVisual.textContent = TimeUtils.formatTime(duration);
-            // Update aria-label with human-readable format
-            this.controls.durationDisplay.setAttribute('aria-label', i18n.t('time.durationPrefix') + TimeUtils.formatDuration(duration));
+            if (this.controls.durationAccessible) {
+                this.controls.durationAccessible.textContent = i18n.t('time.durationPrefix') + TimeUtils.formatDuration(duration);
+            }
         }
     }
 

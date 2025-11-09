@@ -497,11 +497,20 @@ var translations = {
       settings: "Transcript settings. Press Enter to open menu, or D to enable drag mode",
       keyboardDragMode: "Toggle keyboard drag mode with arrow keys. Shortcut: D key",
       keyboardDragActive: "\u2328\uFE0F Keyboard Drag Mode Active (Arrow keys to move, Shift+Arrows for large steps, D or ESC to exit)",
+      dragResizePrompt: "Press D to drag or R to resize. Use Home to reset position, Esc to close.",
+      dragModeEnabled: "Keyboard drag mode enabled. Use arrow keys to move, Shift+Arrow for larger steps. Press D or Esc to exit.",
+      dragModeDisabled: "Keyboard drag mode disabled.",
       resizeWindow: "Resize Window",
+      disableResizeWindow: "Disable Resize Mode",
+      resizeModeHint: "Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit.",
+      resizeModeEnabled: "Resize mode enabled. Drag edges or corners to adjust. Press Esc or R to exit.",
+      resizeModeDisabled: "Resize mode disabled.",
+      positionReset: "Transcript position reset.",
       styleTranscript: "Open transcript style settings",
       closeMenu: "Close Menu",
       styleTitle: "Transcript Style",
-      autoscroll: "Autoscroll"
+      autoscroll: "Autoscroll",
+      settingsMenu: "Settings menu"
     },
     settings: {
       title: "Settings",
@@ -619,11 +628,20 @@ var translations = {
       settings: "Transkript-Einstellungen. Eingabetaste zum \xD6ffnen des Men\xFCs dr\xFCcken oder D zum Aktivieren des Verschiebemodus",
       keyboardDragMode: "Tastatur-Verschiebemodus mit Pfeiltasten umschalten. Tastenkombination: D-Taste",
       keyboardDragActive: "\u2328\uFE0F Tastatur-Verschiebemodus aktiv (Pfeiltasten zum Bewegen, Umschalt+Pfeiltasten f\xFCr gro\xDFe Schritte, D oder ESC zum Beenden)",
+      dragResizePrompt: "Dr\xFCcken Sie D zum Verschieben oder R zur Gr\xF6\xDFen\xE4nderung. Home setzt die Position zur\xFCck, Esc schlie\xDFt.",
+      dragModeEnabled: "Tastatur-Verschiebemodus aktiviert. Pfeiltasten zum Bewegen, Umschalt+Pfeiltasten f\xFCr gr\xF6\xDFere Schritte. D oder Esc zum Beenden.",
+      dragModeDisabled: "Tastatur-Verschiebemodus deaktiviert.",
       resizeWindow: "Fenster vergr\xF6\xDFern/verkleinern",
+      disableResizeWindow: "Resize-Modus deaktivieren",
+      resizeModeHint: "Griffe aktiviert. Ziehen Sie Kanten oder Ecken zum Anpassen. Esc oder R zum Beenden.",
+      resizeModeEnabled: "Resize-Modus aktiviert. Kanten oder Ecken ziehen; Esc oder R beendet.",
+      resizeModeDisabled: "Resize-Modus deaktiviert.",
+      positionReset: "Transkriptposition zur\xFCckgesetzt.",
       styleTranscript: "Transkript-Stileinstellungen \xF6ffnen",
       closeMenu: "Men\xFC schlie\xDFen",
       styleTitle: "Transkript-Stil",
-      autoscroll: "Automatisches Scrollen"
+      autoscroll: "Automatisches Scrollen",
+      settingsMenu: "Einstellungsmen\xFC"
     },
     settings: {
       title: "Einstellungen",
@@ -741,11 +759,20 @@ var translations = {
       settings: "Configuraci\xF3n de transcripci\xF3n. Presione Enter para abrir el men\xFA o D para activar el modo de arrastre",
       keyboardDragMode: "Alternar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D",
       keyboardDragActive: "\u2328\uFE0F Modo de Arrastre con Teclado Activo (Teclas de flecha para mover, May\xFAs+Flechas para pasos grandes, D o ESC para salir)",
+      dragResizePrompt: "Pulsa D para mover o R para cambiar el tama\xF1o. Home restablece la posici\xF3n; Esc cierra.",
+      dragModeEnabled: "Modo de arrastre con teclado activado. Usa flechas para mover, May\xFAs+Flechas para pasos grandes. Pulsa D o Esc para salir.",
+      dragModeDisabled: "Modo de arrastre con teclado desactivado.",
       resizeWindow: "Cambiar tama\xF1o de ventana",
+      disableResizeWindow: "Desactivar modo de cambio de tama\xF1o",
+      resizeModeHint: "Controladores habilitados. Arrastra bordes o esquinas para ajustar. Pulsa Esc o R para salir.",
+      resizeModeEnabled: "Modo de cambio de tama\xF1o activado. Arrastra bordes o esquinas. Pulsa Esc o R para salir.",
+      resizeModeDisabled: "Modo de cambio de tama\xF1o desactivado.",
+      positionReset: "Posici\xF3n de la transcripci\xF3n restablecida.",
       styleTranscript: "Abrir configuraci\xF3n de estilo de transcripci\xF3n",
       closeMenu: "Cerrar men\xFA",
       styleTitle: "Estilo de Transcripci\xF3n",
-      autoscroll: "Desplazamiento autom\xE1tico"
+      autoscroll: "Desplazamiento autom\xE1tico",
+      settingsMenu: "Men\xFA de configuraci\xF3n"
     },
     settings: {
       title: "Configuraci\xF3n",
@@ -863,11 +890,20 @@ var translations = {
       settings: "Param\xE8tres de transcription. Appuyez sur Entr\xE9e pour ouvrir le menu ou D pour activer le mode glissement",
       keyboardDragMode: "Basculer le mode glissement avec les touches fl\xE9ch\xE9es. Raccourci: touche D",
       keyboardDragActive: "\u2328\uFE0F Mode Glissement Clavier Actif (Touches fl\xE9ch\xE9es pour d\xE9placer, Maj+Fl\xE9ch\xE9es pour grands pas, D ou \xC9chap pour quitter)",
+      dragResizePrompt: "Appuyez sur D pour d\xE9placer ou R pour redimensionner. Home r\xE9initialise la position, \xC9chap ferme.",
+      dragModeEnabled: "Mode glissement clavier activ\xE9. Utilisez les fl\xE8ches pour d\xE9placer, Maj+Fl\xE8ches pour de grands pas. Appuyez sur D ou \xC9chap pour quitter.",
+      dragModeDisabled: "Mode glissement clavier d\xE9sactiv\xE9.",
       resizeWindow: "Redimensionner la fen\xEAtre",
+      disableResizeWindow: "D\xE9sactiver le mode de redimensionnement",
+      resizeModeHint: "Poign\xE9es activ\xE9es. Faites glisser les bords ou les coins pour ajuster. Appuyez sur \xC9chap ou R pour quitter.",
+      resizeModeEnabled: "Mode redimensionnement activ\xE9. Faites glisser les bords ou coins. Appuyez sur \xC9chap ou R pour quitter.",
+      resizeModeDisabled: "Mode redimensionnement d\xE9sactiv\xE9.",
+      positionReset: "Position de la transcription r\xE9initialis\xE9e.",
       styleTranscript: "Ouvrir les param\xE8tres de style de transcription",
       closeMenu: "Fermer le menu",
       styleTitle: "Style de Transcription",
-      autoscroll: "D\xE9filement automatique"
+      autoscroll: "D\xE9filement automatique",
+      settingsMenu: "Menu des param\xE8tres"
     },
     settings: {
       title: "Param\xE8tres",
@@ -985,11 +1021,20 @@ var translations = {
       settings: "\u6587\u5B57\u8D77\u3053\u3057\u8A2D\u5B9A\u3002Enter\u30AD\u30FC\u3067\u30E1\u30CB\u30E5\u30FC\u3092\u958B\u304F\u3001\u307E\u305F\u306FD\u30AD\u30FC\u3067\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3059\u308B",
       keyboardDragMode: "\u77E2\u5370\u30AD\u30FC\u3067\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u5207\u308A\u66FF\u3048\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AD\u30AD\u30FC",
       keyboardDragActive: "\u2328\uFE0F \u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u6709\u52B9\uFF08\u77E2\u5370\u30AD\u30FC\u3067\u79FB\u52D5\u3001Shift+\u77E2\u5370\u30AD\u30FC\u3067\u5927\u304D\u304F\u79FB\u52D5\u3001D\u307E\u305F\u306FESC\u3067\u7D42\u4E86\uFF09",
+      dragResizePrompt: "D\u30AD\u30FC\u3067\u79FB\u52D5\u3001R\u30AD\u30FC\u3067\u30B5\u30A4\u30BA\u5909\u66F4\u3002Home\u3067\u4F4D\u7F6E\u3092\u30EA\u30BB\u30C3\u30C8\u3001Esc\u3067\u9589\u3058\u307E\u3059\u3002",
+      dragModeEnabled: "\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3057\u307E\u3057\u305F\u3002\u77E2\u5370\u30AD\u30FC\u3067\u79FB\u52D5\u3001Shift+\u77E2\u5370\u30AD\u30FC\u3067\u5927\u304D\u304F\u79FB\u52D5\u3067\u304D\u307E\u3059\u3002\u7D42\u4E86\u3059\u308B\u306B\u306F D \u307E\u305F\u306F Esc \u3092\u62BC\u3057\u307E\u3059\u3002",
+      dragModeDisabled: "\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3057\u307E\u3057\u305F\u3002",
       resizeWindow: "\u30A6\u30A3\u30F3\u30C9\u30A6\u306E\u30B5\u30A4\u30BA\u5909\u66F4",
+      disableResizeWindow: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3059\u308B",
+      resizeModeHint: "\u30EA\u30B5\u30A4\u30BA\u30CF\u30F3\u30C9\u30EB\u304C\u6709\u52B9\u306B\u306A\u308A\u307E\u3057\u305F\u3002\u8FBA\u3084\u89D2\u3092\u30C9\u30E9\u30C3\u30B0\u3057\u3066\u8ABF\u6574\u3057\u307E\u3059\u3002Esc \u307E\u305F\u306F R \u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
+      resizeModeEnabled: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3057\u307E\u3057\u305F\u3002\u8FBA\u3084\u89D2\u3092\u30C9\u30E9\u30C3\u30B0\u3057\u3066\u8ABF\u6574\u3057\u307E\u3059\u3002Esc \u307E\u305F\u306F R \u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
+      resizeModeDisabled: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3057\u307E\u3057\u305F\u3002",
+      positionReset: "\u6587\u5B57\u8D77\u3053\u3057\u306E\u4F4D\u7F6E\u3092\u30EA\u30BB\u30C3\u30C8\u3057\u307E\u3057\u305F\u3002",
       styleTranscript: "\u6587\u5B57\u8D77\u3053\u3057\u30B9\u30BF\u30A4\u30EB\u8A2D\u5B9A\u3092\u958B\u304F",
       closeMenu: "\u30E1\u30CB\u30E5\u30FC\u3092\u9589\u3058\u308B",
       styleTitle: "\u6587\u5B57\u8D77\u3053\u3057\u30B9\u30BF\u30A4\u30EB",
-      autoscroll: "\u81EA\u52D5\u30B9\u30AF\u30ED\u30FC\u30EB"
+      autoscroll: "\u81EA\u52D5\u30B9\u30AF\u30ED\u30FC\u30EB",
+      settingsMenu: "\u8A2D\u5B9A\u30E1\u30CB\u30E5\u30FC"
     },
     settings: {
       title: "\u8A2D\u5B9A",
@@ -1777,10 +1822,7 @@ var ControlBar = class {
       }
     });
     this.controls.currentTimeDisplay = DOMUtils.createElement("span", {
-      className: `${this.player.options.classPrefix}-current-time`,
-      attributes: {
-        "aria-label": i18n.t("time.seconds", { count: 0 })
-      }
+      className: `${this.player.options.classPrefix}-current-time`
     });
     const currentTimeVisual = DOMUtils.createElement("span", {
       textContent: "00:00",
@@ -1788,8 +1830,14 @@ var ControlBar = class {
         "aria-hidden": "true"
       }
     });
+    const currentTimeAccessible = DOMUtils.createElement("span", {
+      className: "vidply-sr-only",
+      textContent: i18n.t("time.seconds", { count: 0 })
+    });
     this.controls.currentTimeDisplay.appendChild(currentTimeVisual);
+    this.controls.currentTimeDisplay.appendChild(currentTimeAccessible);
     this.controls.currentTimeVisual = currentTimeVisual;
+    this.controls.currentTimeAccessible = currentTimeAccessible;
     const separator = DOMUtils.createElement("span", {
       textContent: " / ",
       attributes: {
@@ -1797,10 +1845,7 @@ var ControlBar = class {
       }
     });
     this.controls.durationDisplay = DOMUtils.createElement("span", {
-      className: `${this.player.options.classPrefix}-duration`,
-      attributes: {
-        "aria-label": i18n.t("time.durationPrefix") + i18n.t("time.seconds", { count: 0 })
-      }
+      className: `${this.player.options.classPrefix}-duration`
     });
     const durationVisual = DOMUtils.createElement("span", {
       textContent: "00:00",
@@ -1808,8 +1853,14 @@ var ControlBar = class {
         "aria-hidden": "true"
       }
     });
+    const durationAccessible = DOMUtils.createElement("span", {
+      className: "vidply-sr-only",
+      textContent: i18n.t("time.durationPrefix") + i18n.t("time.seconds", { count: 0 })
+    });
     this.controls.durationDisplay.appendChild(durationVisual);
+    this.controls.durationDisplay.appendChild(durationAccessible);
     this.controls.durationVisual = durationVisual;
+    this.controls.durationAccessible = durationAccessible;
     container.appendChild(this.controls.currentTimeDisplay);
     container.appendChild(separator);
     container.appendChild(this.controls.durationDisplay);
@@ -2636,14 +2687,18 @@ var ControlBar = class {
     if (this.controls.currentTimeVisual) {
       const currentTime = this.player.state.currentTime;
       this.controls.currentTimeVisual.textContent = TimeUtils.formatTime(currentTime);
-      this.controls.currentTimeDisplay.setAttribute("aria-label", TimeUtils.formatDuration(currentTime));
+      if (this.controls.currentTimeAccessible) {
+        this.controls.currentTimeAccessible.textContent = TimeUtils.formatDuration(currentTime);
+      }
     }
   }
   updateDuration() {
     if (this.controls.durationVisual) {
       const duration = this.player.state.duration;
       this.controls.durationVisual.textContent = TimeUtils.formatTime(duration);
-      this.controls.durationDisplay.setAttribute("aria-label", i18n.t("time.durationPrefix") + TimeUtils.formatDuration(duration));
+      if (this.controls.durationAccessible) {
+        this.controls.durationAccessible.textContent = i18n.t("time.durationPrefix") + TimeUtils.formatDuration(duration);
+      }
     }
   }
   updateVolumeDisplay() {
@@ -3298,6 +3353,596 @@ var KeyboardManager = class {
   }
 };
 
+// src/utils/DraggableResizable.js
+var DraggableResizable = class {
+  constructor(element, options = {}) {
+    this.element = element;
+    this.options = {
+      dragHandle: null,
+      // Element to use as drag handle (defaults to element itself)
+      resizeHandles: [],
+      // Array of resize handle elements
+      onDragStart: null,
+      onDrag: null,
+      onDragEnd: null,
+      onResizeStart: null,
+      onResize: null,
+      onResizeEnd: null,
+      constrainToViewport: true,
+      // Allow movement outside viewport?
+      minWidth: 150,
+      minHeight: 100,
+      maintainAspectRatio: false,
+      keyboardDragKey: "d",
+      keyboardResizeKey: "r",
+      keyboardStep: 5,
+      keyboardStepLarge: 10,
+      maxWidth: null,
+      maxHeight: null,
+      pointerResizeIndicatorText: null,
+      onPointerResizeToggle: null,
+      classPrefix: "draggable",
+      storage: null,
+      // StorageManager instance for saving position/size
+      storageKey: null,
+      // Key for localStorage (if storage is provided)
+      ...options
+    };
+    this.isDragging = false;
+    this.isResizing = false;
+    this.resizeDirection = null;
+    this.dragOffsetX = 0;
+    this.dragOffsetY = 0;
+    this.positionOffsetX = 0;
+    this.positionOffsetY = 0;
+    this.initialMouseX = 0;
+    this.initialMouseY = 0;
+    this.needsPositionConversion = false;
+    this.resizeStartX = 0;
+    this.resizeStartY = 0;
+    this.resizeStartWidth = 0;
+    this.resizeStartHeight = 0;
+    this.resizeStartLeft = 0;
+    this.resizeStartTop = 0;
+    this.keyboardDragMode = false;
+    this.keyboardResizeMode = false;
+    this.pointerResizeMode = false;
+    this.manuallyPositioned = false;
+    this.resizeHandlesManaged = /* @__PURE__ */ new Map();
+    this.resizeIndicatorElement = null;
+    this.handlers = {
+      mousedown: this.onMouseDown.bind(this),
+      mousemove: this.onMouseMove.bind(this),
+      mouseup: this.onMouseUp.bind(this),
+      touchstart: this.onTouchStart.bind(this),
+      touchmove: this.onTouchMove.bind(this),
+      touchend: this.onTouchEnd.bind(this),
+      keydown: this.onKeyDown.bind(this),
+      resizeHandleMousedown: this.onResizeHandleMouseDown.bind(this)
+    };
+    this.init();
+  }
+  hasManagedResizeHandles() {
+    return Array.from(this.resizeHandlesManaged.values()).some(Boolean);
+  }
+  storeOriginalHandleDisplay(handle) {
+    if (!handle.dataset.originalDisplay) {
+      handle.dataset.originalDisplay = handle.style.display || "";
+    }
+  }
+  hideResizeHandle(handle) {
+    handle.style.display = "none";
+    handle.setAttribute("aria-hidden", "true");
+  }
+  showResizeHandle(handle) {
+    const original = handle.dataset.originalDisplay !== void 0 ? handle.dataset.originalDisplay : "";
+    handle.style.display = original;
+    handle.removeAttribute("aria-hidden");
+  }
+  setManagedHandlesVisible(visible) {
+    if (!this.options.resizeHandles || this.options.resizeHandles.length === 0) {
+      return;
+    }
+    this.options.resizeHandles.forEach((handle) => {
+      if (!this.resizeHandlesManaged.get(handle)) {
+        return;
+      }
+      if (visible) {
+        this.showResizeHandle(handle);
+      } else {
+        this.hideResizeHandle(handle);
+      }
+    });
+  }
+  init() {
+    const dragHandle = this.options.dragHandle || this.element;
+    dragHandle.addEventListener("mousedown", this.handlers.mousedown);
+    dragHandle.addEventListener("touchstart", this.handlers.touchstart);
+    document.addEventListener("mousemove", this.handlers.mousemove);
+    document.addEventListener("mouseup", this.handlers.mouseup);
+    document.addEventListener("touchmove", this.handlers.touchmove, { passive: false });
+    document.addEventListener("touchend", this.handlers.touchend);
+    this.element.addEventListener("keydown", this.handlers.keydown);
+    if (this.options.resizeHandles && this.options.resizeHandles.length > 0) {
+      this.options.resizeHandles.forEach((handle) => {
+        handle.addEventListener("mousedown", this.handlers.resizeHandleMousedown);
+        handle.addEventListener("touchstart", this.handlers.resizeHandleMousedown);
+        const managed = handle.dataset.vidplyManagedResize === "true";
+        this.resizeHandlesManaged.set(handle, managed);
+        if (managed) {
+          this.storeOriginalHandleDisplay(handle);
+          this.hideResizeHandle(handle);
+        }
+      });
+    }
+  }
+  onMouseDown(e) {
+    if (e.target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
+      return;
+    }
+    if (this.options.onDragStart && !this.options.onDragStart(e)) {
+      return;
+    }
+    this.startDragging(e.clientX, e.clientY);
+    e.preventDefault();
+  }
+  onTouchStart(e) {
+    if (e.target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
+      return;
+    }
+    if (this.options.onDragStart && !this.options.onDragStart(e)) {
+      return;
+    }
+    const touch = e.touches[0];
+    this.startDragging(touch.clientX, touch.clientY);
+  }
+  onResizeHandleMouseDown(e) {
+    var _a, _b, _c, _d;
+    e.preventDefault();
+    e.stopPropagation();
+    const handle = e.target;
+    this.resizeDirection = handle.getAttribute("data-direction");
+    const clientX = e.clientX || ((_b = (_a = e.touches) == null ? void 0 : _a[0]) == null ? void 0 : _b.clientX);
+    const clientY = e.clientY || ((_d = (_c = e.touches) == null ? void 0 : _c[0]) == null ? void 0 : _d.clientY);
+    this.startResizing(clientX, clientY);
+  }
+  onMouseMove(e) {
+    if (this.isDragging) {
+      this.drag(e.clientX, e.clientY);
+      e.preventDefault();
+    } else if (this.isResizing) {
+      this.resize(e.clientX, e.clientY);
+      e.preventDefault();
+    }
+  }
+  onTouchMove(e) {
+    if (this.isDragging || this.isResizing) {
+      const touch = e.touches[0];
+      if (this.isDragging) {
+        this.drag(touch.clientX, touch.clientY);
+      } else {
+        this.resize(touch.clientX, touch.clientY);
+      }
+      e.preventDefault();
+    }
+  }
+  onMouseUp() {
+    if (this.isDragging) {
+      this.stopDragging();
+    } else if (this.isResizing) {
+      this.stopResizing();
+    }
+  }
+  onTouchEnd() {
+    if (this.isDragging) {
+      this.stopDragging();
+    } else if (this.isResizing) {
+      this.stopResizing();
+    }
+  }
+  onKeyDown(e) {
+    if (e.key.toLowerCase() === this.options.keyboardDragKey.toLowerCase()) {
+      e.preventDefault();
+      this.toggleKeyboardDragMode();
+      return;
+    }
+    if (e.key.toLowerCase() === this.options.keyboardResizeKey.toLowerCase()) {
+      e.preventDefault();
+      if (this.hasManagedResizeHandles()) {
+        this.togglePointerResizeMode();
+      } else {
+        this.toggleKeyboardResizeMode();
+      }
+      return;
+    }
+    if (e.key === "Escape") {
+      if (this.pointerResizeMode) {
+        e.preventDefault();
+        this.disablePointerResizeMode();
+        return;
+      }
+      if (this.keyboardDragMode || this.keyboardResizeMode) {
+        e.preventDefault();
+        this.disableKeyboardDragMode();
+        this.disableKeyboardResizeMode();
+        return;
+      }
+    }
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+      if (this.keyboardDragMode) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.keyboardDrag(e.key, e.shiftKey);
+      } else if (this.keyboardResizeMode) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.keyboardResize(e.key, e.shiftKey);
+      }
+    }
+    if (e.key === "Home" && (this.keyboardDragMode || this.keyboardResizeMode)) {
+      e.preventDefault();
+      this.resetPosition();
+    }
+  }
+  startDragging(clientX, clientY) {
+    const rect = this.element.getBoundingClientRect();
+    const computedStyle = window.getComputedStyle(this.element);
+    const needsConversion = computedStyle.right !== "auto" || computedStyle.bottom !== "auto" || computedStyle.transform !== "none";
+    this.positionOffsetX = 0;
+    this.positionOffsetY = 0;
+    if (needsConversion) {
+      let targetLeft, targetTop;
+      if (computedStyle.position === "absolute") {
+        const offsetParent = this.element.offsetParent || document.body;
+        const parentRect = offsetParent.getBoundingClientRect();
+        targetLeft = rect.left - parentRect.left;
+        targetTop = rect.top - parentRect.top;
+        this.positionOffsetX = parentRect.left;
+        this.positionOffsetY = parentRect.top;
+      } else if (computedStyle.position === "fixed") {
+        const parsedLeft = parseFloat(computedStyle.left);
+        const parsedTop = parseFloat(computedStyle.top);
+        const hasLeft = Number.isFinite(parsedLeft);
+        const hasTop = Number.isFinite(parsedTop);
+        targetLeft = hasLeft ? parsedLeft : rect.left;
+        targetTop = hasTop ? parsedTop : rect.top;
+        this.positionOffsetX = rect.left - targetLeft;
+        this.positionOffsetY = rect.top - targetTop;
+      } else {
+        targetLeft = rect.left;
+        targetTop = rect.top;
+        this.positionOffsetX = rect.left - targetLeft;
+        this.positionOffsetY = rect.top - targetTop;
+      }
+      const currentCssText = this.element.style.cssText;
+      let newCssText = currentCssText.split(";").filter((rule) => {
+        const trimmed = rule.trim();
+        return trimmed && !trimmed.startsWith("right:") && !trimmed.startsWith("bottom:") && !trimmed.startsWith("transform:") && !trimmed.startsWith("left:") && !trimmed.startsWith("top:") && !trimmed.startsWith("inset:");
+      }).join("; ");
+      if (newCssText) newCssText += "; ";
+      newCssText += `left: ${targetLeft}px; top: ${targetTop}px; right: auto; bottom: auto; transform: none`;
+      this.element.style.cssText = newCssText;
+    }
+    const finalRect = this.element.getBoundingClientRect();
+    this.dragOffsetX = clientX - finalRect.left;
+    this.dragOffsetY = clientY - finalRect.top;
+    this.isDragging = true;
+    this.element.classList.add(`${this.options.classPrefix}-dragging`);
+    document.body.style.cursor = "grabbing";
+    document.body.style.userSelect = "none";
+  }
+  drag(clientX, clientY) {
+    if (!this.isDragging) return;
+    let newX = clientX - this.dragOffsetX - this.positionOffsetX;
+    let newY = clientY - this.dragOffsetY - this.positionOffsetY;
+    if (this.options.constrainToViewport) {
+      const rect = this.element.getBoundingClientRect();
+      const viewportWidth = document.documentElement.clientWidth;
+      const viewportHeight = document.documentElement.clientHeight;
+      const minVisible = 100;
+      const minX = -(rect.width - minVisible);
+      const minY = -(rect.height - minVisible);
+      const maxX = viewportWidth - minVisible;
+      const maxY = viewportHeight - minVisible;
+      newX = Math.max(minX, Math.min(newX, maxX));
+      newY = Math.max(minY, Math.min(newY, maxY));
+    }
+    this.element.style.left = `${newX}px`;
+    this.element.style.top = `${newY}px`;
+    if (this.options.onDrag) {
+      this.options.onDrag({ x: newX, y: newY });
+    }
+  }
+  stopDragging() {
+    this.isDragging = false;
+    this.element.classList.remove(`${this.options.classPrefix}-dragging`);
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+    this.manuallyPositioned = true;
+    if (this.options.onDragEnd) {
+      this.options.onDragEnd();
+    }
+  }
+  startResizing(clientX, clientY) {
+    this.isResizing = true;
+    this.resizeStartX = clientX;
+    this.resizeStartY = clientY;
+    const rect = this.element.getBoundingClientRect();
+    this.resizeStartWidth = rect.width;
+    this.resizeStartHeight = rect.height;
+    this.resizeStartLeft = rect.left;
+    this.resizeStartTop = rect.top;
+    this.element.classList.add(`${this.options.classPrefix}-resizing`);
+    document.body.style.userSelect = "none";
+    if (this.options.onResizeStart) {
+      this.options.onResizeStart();
+    }
+  }
+  resize(clientX, clientY) {
+    if (!this.isResizing) return;
+    const deltaX = clientX - this.resizeStartX;
+    const deltaY = clientY - this.resizeStartY;
+    let newWidth = this.resizeStartWidth;
+    let newHeight = this.resizeStartHeight;
+    let newLeft = this.resizeStartLeft;
+    let newTop = this.resizeStartTop;
+    if (this.resizeDirection.includes("e")) {
+      newWidth = Math.max(this.options.minWidth, this.resizeStartWidth + deltaX);
+    }
+    if (this.resizeDirection.includes("w")) {
+      const proposedWidth = Math.max(this.options.minWidth, this.resizeStartWidth - deltaX);
+      newLeft = this.resizeStartLeft + (this.resizeStartWidth - proposedWidth);
+      newWidth = proposedWidth;
+    }
+    const maxWidthOption = typeof this.options.maxWidth === "function" ? this.options.maxWidth() : this.options.maxWidth;
+    if (Number.isFinite(maxWidthOption)) {
+      const clampedWidth = Math.min(newWidth, maxWidthOption);
+      if (clampedWidth !== newWidth && this.resizeDirection.includes("w")) {
+        newLeft += newWidth - clampedWidth;
+      }
+      newWidth = clampedWidth;
+    }
+    if (!this.options.maintainAspectRatio) {
+      if (this.resizeDirection.includes("s")) {
+        newHeight = Math.max(this.options.minHeight, this.resizeStartHeight + deltaY);
+      }
+      if (this.resizeDirection.includes("n")) {
+        const proposedHeight = Math.max(this.options.minHeight, this.resizeStartHeight - deltaY);
+        newTop = this.resizeStartTop + (this.resizeStartHeight - proposedHeight);
+        newHeight = proposedHeight;
+      }
+      const maxHeightOption = typeof this.options.maxHeight === "function" ? this.options.maxHeight() : this.options.maxHeight;
+      if (Number.isFinite(maxHeightOption)) {
+        const clampedHeight = Math.min(newHeight, maxHeightOption);
+        if (clampedHeight !== newHeight && this.resizeDirection.includes("n")) {
+          newTop += newHeight - clampedHeight;
+        }
+        newHeight = clampedHeight;
+      }
+    }
+    this.element.style.width = `${newWidth}px`;
+    if (!this.options.maintainAspectRatio) {
+      this.element.style.height = `${newHeight}px`;
+    } else {
+      this.element.style.height = "auto";
+    }
+    if (this.resizeDirection.includes("w")) {
+      this.element.style.left = `${newLeft}px`;
+    }
+    if (this.resizeDirection.includes("n") && !this.options.maintainAspectRatio) {
+      this.element.style.top = `${newTop}px`;
+    }
+    if (this.options.onResize) {
+      this.options.onResize({ width: newWidth, height: newHeight, left: newLeft, top: newTop });
+    }
+  }
+  stopResizing() {
+    this.isResizing = false;
+    this.resizeDirection = null;
+    this.element.classList.remove(`${this.options.classPrefix}-resizing`);
+    document.body.style.userSelect = "";
+    this.manuallyPositioned = true;
+    if (this.options.onResizeEnd) {
+      this.options.onResizeEnd();
+    }
+  }
+  toggleKeyboardDragMode() {
+    if (this.keyboardDragMode) {
+      this.disableKeyboardDragMode();
+    } else {
+      this.enableKeyboardDragMode();
+    }
+  }
+  enableKeyboardDragMode() {
+    this.keyboardDragMode = true;
+    this.keyboardResizeMode = false;
+    this.element.classList.add(`${this.options.classPrefix}-keyboard-drag`);
+    this.element.classList.remove(`${this.options.classPrefix}-keyboard-resize`);
+    this.focusElement();
+  }
+  disableKeyboardDragMode() {
+    this.keyboardDragMode = false;
+    this.element.classList.remove(`${this.options.classPrefix}-keyboard-drag`);
+  }
+  toggleKeyboardResizeMode() {
+    if (this.keyboardResizeMode) {
+      this.disableKeyboardResizeMode();
+    } else {
+      this.enableKeyboardResizeMode();
+    }
+  }
+  enableKeyboardResizeMode() {
+    this.keyboardResizeMode = true;
+    this.keyboardDragMode = false;
+    this.element.classList.add(`${this.options.classPrefix}-keyboard-resize`);
+    this.element.classList.remove(`${this.options.classPrefix}-keyboard-drag`);
+    this.focusElement();
+  }
+  disableKeyboardResizeMode() {
+    this.keyboardResizeMode = false;
+    this.element.classList.remove(`${this.options.classPrefix}-keyboard-resize`);
+  }
+  enablePointerResizeMode({ focus = true } = {}) {
+    if (!this.hasManagedResizeHandles()) {
+      this.enableKeyboardResizeMode();
+      return;
+    }
+    if (this.pointerResizeMode) {
+      return;
+    }
+    this.pointerResizeMode = true;
+    this.setManagedHandlesVisible(true);
+    this.element.classList.add(`${this.options.classPrefix}-resizable`);
+    this.enableKeyboardResizeMode();
+    if (focus) {
+      this.focusElement();
+    }
+    if (typeof this.options.onPointerResizeToggle === "function") {
+      this.options.onPointerResizeToggle(true);
+    }
+  }
+  disablePointerResizeMode({ focus = false } = {}) {
+    if (!this.pointerResizeMode) {
+      return;
+    }
+    this.pointerResizeMode = false;
+    this.setManagedHandlesVisible(false);
+    this.element.classList.remove(`${this.options.classPrefix}-resizable`);
+    this.disableKeyboardResizeMode();
+    if (focus) {
+      this.focusElement();
+    }
+    if (typeof this.options.onPointerResizeToggle === "function") {
+      this.options.onPointerResizeToggle(false);
+    }
+  }
+  togglePointerResizeMode() {
+    if (this.pointerResizeMode) {
+      this.disablePointerResizeMode();
+    } else {
+      this.enablePointerResizeMode();
+    }
+    return this.pointerResizeMode;
+  }
+  focusElement() {
+    if (typeof this.element.focus === "function") {
+      try {
+        this.element.focus({ preventScroll: true });
+      } catch (e) {
+        this.element.focus();
+      }
+    }
+  }
+  keyboardDrag(key, shiftKey) {
+    const step = shiftKey ? this.options.keyboardStepLarge : this.options.keyboardStep;
+    let currentLeft = parseFloat(this.element.style.left) || 0;
+    let currentTop = parseFloat(this.element.style.top) || 0;
+    const computedStyle = window.getComputedStyle(this.element);
+    if (computedStyle.transform !== "none") {
+      const rect = this.element.getBoundingClientRect();
+      currentLeft = rect.left;
+      currentTop = rect.top;
+      this.element.style.transform = "none";
+      this.element.style.left = `${currentLeft}px`;
+      this.element.style.top = `${currentTop}px`;
+    }
+    let newX = currentLeft;
+    let newY = currentTop;
+    switch (key) {
+      case "ArrowLeft":
+        newX -= step;
+        break;
+      case "ArrowRight":
+        newX += step;
+        break;
+      case "ArrowUp":
+        newY -= step;
+        break;
+      case "ArrowDown":
+        newY += step;
+        break;
+    }
+    this.element.style.left = `${newX}px`;
+    this.element.style.top = `${newY}px`;
+    if (this.options.onDrag) {
+      this.options.onDrag({ x: newX, y: newY });
+    }
+  }
+  keyboardResize(key, shiftKey) {
+    const step = shiftKey ? this.options.keyboardStepLarge : this.options.keyboardStep;
+    const rect = this.element.getBoundingClientRect();
+    let width = rect.width;
+    let height = rect.height;
+    switch (key) {
+      case "ArrowLeft":
+        width -= step;
+        break;
+      case "ArrowRight":
+        width += step;
+        break;
+      case "ArrowUp":
+        if (this.options.maintainAspectRatio) {
+          width += step;
+        } else {
+          height -= step;
+        }
+        break;
+      case "ArrowDown":
+        if (this.options.maintainAspectRatio) {
+          width -= step;
+        } else {
+          height += step;
+        }
+        break;
+    }
+    width = Math.max(this.options.minWidth, width);
+    height = Math.max(this.options.minHeight, height);
+    this.element.style.width = `${width}px`;
+    if (!this.options.maintainAspectRatio) {
+      this.element.style.height = `${height}px`;
+    } else {
+      this.element.style.height = "auto";
+    }
+    if (this.options.onResize) {
+      this.options.onResize({ width, height });
+    }
+  }
+  resetPosition() {
+    this.element.style.left = "50%";
+    this.element.style.top = "50%";
+    this.element.style.transform = "translate(-50%, -50%)";
+    this.element.style.right = "";
+    this.element.style.bottom = "";
+    this.manuallyPositioned = false;
+    if (this.options.onDrag) {
+      this.options.onDrag({ centered: true });
+    }
+  }
+  destroy() {
+    const dragHandle = this.options.dragHandle || this.element;
+    this.disablePointerResizeMode();
+    dragHandle.removeEventListener("mousedown", this.handlers.mousedown);
+    dragHandle.removeEventListener("touchstart", this.handlers.touchstart);
+    document.removeEventListener("mousemove", this.handlers.mousemove);
+    document.removeEventListener("mouseup", this.handlers.mouseup);
+    document.removeEventListener("touchmove", this.handlers.touchmove);
+    document.removeEventListener("touchend", this.handlers.touchend);
+    this.element.removeEventListener("keydown", this.handlers.keydown);
+    if (this.options.resizeHandles && this.options.resizeHandles.length > 0) {
+      this.options.resizeHandles.forEach((handle) => {
+        handle.removeEventListener("mousedown", this.handlers.resizeHandleMousedown);
+        handle.removeEventListener("touchstart", this.handlers.resizeHandleMousedown);
+      });
+    }
+    this.element.classList.remove(
+      `${this.options.classPrefix}-dragging`,
+      `${this.options.classPrefix}-resizing`,
+      `${this.options.classPrefix}-keyboard-drag`,
+      `${this.options.classPrefix}-keyboard-resize`
+    );
+  }
+};
+
 // src/controls/TranscriptManager.js
 var TranscriptManager = class {
   constructor(player) {
@@ -3308,21 +3953,17 @@ var TranscriptManager = class {
     this.currentActiveEntry = null;
     this.isVisible = false;
     this.storage = new StorageManager("vidply");
-    this.isDragging = false;
-    this.dragOffsetX = 0;
-    this.dragOffsetY = 0;
-    this.isResizing = false;
-    this.resizeDirection = null;
-    this.resizeStartX = 0;
-    this.resizeStartY = 0;
-    this.resizeStartWidth = 0;
-    this.resizeStartHeight = 0;
-    this.resizeEnabled = false;
+    this.draggableResizable = null;
     this.settingsMenuVisible = false;
     this.settingsMenu = null;
     this.settingsButton = null;
     this.settingsMenuJustOpened = false;
-    this.keyboardDragMode = false;
+    this.resizeOptionButton = null;
+    this.resizeOptionText = null;
+    this.resizeModeIndicator = null;
+    this.resizeModeIndicatorTimeout = null;
+    this.transcriptResizeHandles = [];
+    this.liveRegion = null;
     this.styleDialog = null;
     this.styleDialogVisible = false;
     this.styleDialogJustOpened = false;
@@ -3342,13 +3983,6 @@ var TranscriptManager = class {
     this.handlers = {
       timeupdate: () => this.updateActiveEntry(),
       resize: null,
-      mousemove: null,
-      mouseup: null,
-      touchmove: null,
-      touchend: null,
-      mousedown: null,
-      touchstart: null,
-      keydown: null,
       settingsClick: null,
       settingsKeydown: null,
       documentClick: null,
@@ -3362,7 +3996,9 @@ var TranscriptManager = class {
     this.player.on("timeupdate", this.handlers.timeupdate);
     this.player.on("fullscreenchange", () => {
       if (this.isVisible) {
-        this.setManagedTimeout(() => this.positionTranscript(), 100);
+        if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
+          this.setManagedTimeout(() => this.positionTranscript(), 100);
+        }
       }
     });
   }
@@ -3383,9 +4019,12 @@ var TranscriptManager = class {
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = "flex";
       this.isVisible = true;
+      if (this.player.controlBar && typeof this.player.controlBar.updateTranscriptButton === "function") {
+        this.player.controlBar.updateTranscriptButton();
+      }
       this.setManagedTimeout(() => {
-        if (this.settingsButton) {
-          this.settingsButton.focus();
+        if (this.transcriptHeader) {
+          this.transcriptHeader.focus();
         }
       }, 150);
       return;
@@ -3394,10 +4033,12 @@ var TranscriptManager = class {
     this.loadTranscriptData();
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = "flex";
-      this.setManagedTimeout(() => this.positionTranscript(), 0);
+      if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
+        this.setManagedTimeout(() => this.positionTranscript(), 0);
+      }
       this.setManagedTimeout(() => {
-        if (this.settingsButton) {
-          this.settingsButton.focus();
+        if (this.transcriptHeader) {
+          this.transcriptHeader.focus();
         }
       }, 150);
     }
@@ -3406,10 +4047,26 @@ var TranscriptManager = class {
   /**
    * Hide transcript window
    */
-  hideTranscript() {
+  hideTranscript({ focusButton = false } = {}) {
+    var _a, _b;
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = "none";
       this.isVisible = false;
+    }
+    if (this.draggableResizable && this.draggableResizable.pointerResizeMode) {
+      this.draggableResizable.disablePointerResizeMode();
+      this.updateResizeOptionState();
+    }
+    this.hideResizeModeIndicator();
+    this.announceLive("");
+    if (this.player.controlBar && typeof this.player.controlBar.updateTranscriptButton === "function") {
+      this.player.controlBar.updateTranscriptButton();
+    }
+    if (focusButton) {
+      const transcriptButton = (_b = (_a = this.player.controlBar) == null ? void 0 : _a.controls) == null ? void 0 : _b.transcript;
+      if (transcriptButton && typeof transcriptButton.focus === "function") {
+        transcriptButton.focus();
+      }
     }
   }
   /**
@@ -3427,7 +4084,6 @@ var TranscriptManager = class {
     this.transcriptHeader = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-transcript-header`,
       attributes: {
-        "aria-label": "Drag to reposition transcript. Use arrow keys to move, Home to reset position, Escape to close.",
         "tabindex": "0"
       }
     });
@@ -3438,7 +4094,7 @@ var TranscriptManager = class {
       className: `${this.player.options.classPrefix}-transcript-settings`,
       attributes: {
         "type": "button",
-        "aria-label": i18n.t("transcript.settings"),
+        "aria-label": i18n.t("transcript.settingsMenu"),
         "aria-expanded": "false"
       }
     });
@@ -3470,7 +4126,7 @@ var TranscriptManager = class {
     };
     this.settingsButton.addEventListener("keydown", this.handlers.settingsKeydown);
     const title = DOMUtils.createElement("h3", {
-      textContent: i18n.t("transcript.title")
+      textContent: `${i18n.t("transcript.title")}. ${i18n.t("transcript.dragResizePrompt")}`
     });
     const autoscrollLabel = DOMUtils.createElement("label", {
       className: `${this.player.options.classPrefix}-transcript-autoscroll-label`,
@@ -3495,8 +4151,8 @@ var TranscriptManager = class {
       this.autoscrollEnabled = e.target.checked;
       this.saveAutoscrollPreference();
     });
+    this.transcriptHeader.appendChild(title);
     this.headerLeft.appendChild(this.settingsButton);
-    this.headerLeft.appendChild(title);
     this.headerLeft.appendChild(autoscrollLabel);
     this.languageSelector = DOMUtils.createElement("select", {
       className: `${this.player.options.classPrefix}-transcript-language-select`,
@@ -3515,7 +4171,7 @@ var TranscriptManager = class {
       }
     });
     closeButton.appendChild(createIconElement("close"));
-    closeButton.addEventListener("click", () => this.hideTranscript());
+    closeButton.addEventListener("click", () => this.hideTranscript({ focusButton: true }));
     this.transcriptHeader.appendChild(this.headerLeft);
     this.transcriptHeader.appendChild(closeButton);
     this.transcriptContent = DOMUtils.createElement("div", {
@@ -3523,9 +4179,20 @@ var TranscriptManager = class {
     });
     this.transcriptWindow.appendChild(this.transcriptHeader);
     this.transcriptWindow.appendChild(this.transcriptContent);
+    this.createResizeHandles();
+    this.liveRegion = DOMUtils.createElement("div", {
+      className: "vidply-sr-only",
+      attributes: {
+        "aria-live": "polite",
+        "aria-atomic": "true"
+      }
+    });
+    this.transcriptWindow.appendChild(this.liveRegion);
     this.player.container.appendChild(this.transcriptWindow);
-    this.positionTranscript();
     this.setupDragAndDrop();
+    if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
+      this.positionTranscript();
+    }
     this.handlers.documentClick = (e) => {
       if (this.settingsMenuJustOpened) {
         return;
@@ -3552,15 +4219,39 @@ var TranscriptManager = class {
       if (resizeTimeout) {
         this.clearManagedTimeout(resizeTimeout);
       }
-      resizeTimeout = this.setManagedTimeout(() => this.positionTranscript(), 100);
+      resizeTimeout = this.setManagedTimeout(() => {
+        if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
+          this.positionTranscript();
+        }
+      }, 100);
     };
     window.addEventListener("resize", this.handlers.resize);
+  }
+  createResizeHandles() {
+    if (!this.transcriptWindow) return;
+    const directions = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
+    this.transcriptResizeHandles = directions.map((direction) => {
+      const handle = DOMUtils.createElement("div", {
+        className: `${this.player.options.classPrefix}-transcript-resize-handle ${this.player.options.classPrefix}-transcript-resize-${direction}`,
+        attributes: {
+          "data-direction": direction,
+          "data-vidply-managed-resize": "true",
+          "aria-hidden": "true"
+        }
+      });
+      handle.style.display = "none";
+      this.transcriptWindow.appendChild(handle);
+      return handle;
+    });
   }
   /**
    * Position transcript window next to video
    */
   positionTranscript() {
     if (!this.transcriptWindow || !this.player.videoWrapper || !this.isVisible) return;
+    if (this.draggableResizable && this.draggableResizable.manuallyPositioned) {
+      return;
+    }
     const isMobile = window.innerWidth < 640;
     const videoRect = this.player.videoWrapper.getBoundingClientRect();
     const isFullscreen = this.player.state.fullscreen;
@@ -3593,8 +4284,12 @@ var TranscriptManager = class {
       this.transcriptWindow.style.top = "auto";
       this.transcriptWindow.style.maxHeight = "calc(100vh - 180px)";
       this.transcriptWindow.style.height = "auto";
-      this.transcriptWindow.style.width = "400px";
-      this.transcriptWindow.style.maxWidth = "400px";
+      const fullscreenMinWidth = 260;
+      const fullscreenAvailable = Math.max(fullscreenMinWidth, window.innerWidth - 40);
+      const fullscreenDesired = parseFloat(this.transcriptWindow.style.width) || 400;
+      const fullscreenWidth = Math.max(fullscreenMinWidth, Math.min(fullscreenDesired, fullscreenAvailable));
+      this.transcriptWindow.style.width = `${fullscreenWidth}px`;
+      this.transcriptWindow.style.maxWidth = "none";
       this.transcriptWindow.style.borderRadius = "8px";
       this.transcriptWindow.style.border = "1px solid var(--vidply-border)";
       this.transcriptWindow.style.borderTop = "";
@@ -3602,15 +4297,30 @@ var TranscriptManager = class {
         this.player.container.appendChild(this.transcriptWindow);
       }
     } else {
+      const transcriptWidth = parseFloat(this.transcriptWindow.style.width) || 400;
+      const padding = 20;
+      const minWidth = 260;
+      const containerRect = this.player.container.getBoundingClientRect();
+      const ensureContainerPositioned = () => {
+        const computed = window.getComputedStyle(this.player.container);
+        if (computed.position === "static") {
+          this.player.container.style.position = "relative";
+        }
+      };
+      ensureContainerPositioned();
+      const left = videoRect.right - containerRect.left + padding;
+      const availableWidth = window.innerWidth - videoRect.right - padding;
+      const appliedWidth = Math.max(minWidth, Math.min(transcriptWidth, availableWidth));
+      const appliedHeight = videoRect.height;
       this.transcriptWindow.style.position = "absolute";
-      this.transcriptWindow.style.left = `${videoRect.width + 8}px`;
+      this.transcriptWindow.style.left = `${left}px`;
       this.transcriptWindow.style.right = "auto";
       this.transcriptWindow.style.bottom = "auto";
       this.transcriptWindow.style.top = "0";
-      this.transcriptWindow.style.height = `${videoRect.height}px`;
+      this.transcriptWindow.style.height = `${appliedHeight}px`;
       this.transcriptWindow.style.maxHeight = "none";
-      this.transcriptWindow.style.width = "400px";
-      this.transcriptWindow.style.maxWidth = "400px";
+      this.transcriptWindow.style.width = `${appliedWidth}px`;
+      this.transcriptWindow.style.maxWidth = "none";
       this.transcriptWindow.style.borderRadius = "8px";
       this.transcriptWindow.style.border = "1px solid var(--vidply-border)";
       this.transcriptWindow.style.borderTop = "";
@@ -3998,257 +4708,108 @@ var TranscriptManager = class {
    */
   setupDragAndDrop() {
     if (!this.transcriptHeader || !this.transcriptWindow) return;
-    this.handlers.mousedown = (e) => {
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-close`)) {
-        return;
+    const isMobile = window.innerWidth < 640;
+    const isFullscreen = this.player.state.fullscreen;
+    if (isMobile && !isFullscreen) {
+      return;
+    }
+    this.draggableResizable = new DraggableResizable(this.transcriptWindow, {
+      dragHandle: this.transcriptHeader,
+      resizeHandles: this.transcriptResizeHandles,
+      constrainToViewport: true,
+      classPrefix: `${this.player.options.classPrefix}-transcript`,
+      keyboardDragKey: "d",
+      keyboardResizeKey: "r",
+      keyboardStep: 10,
+      keyboardStepLarge: 50,
+      minWidth: 300,
+      minHeight: 200,
+      maxWidth: () => Math.max(320, window.innerWidth - 40),
+      maxHeight: () => Math.max(200, window.innerHeight - 120),
+      pointerResizeIndicatorText: i18n.t("transcript.resizeModeHint"),
+      onPointerResizeToggle: (enabled) => this.onPointerResizeModeChange(enabled),
+      onDragStart: (e) => {
+        const ignoreSelectors = [
+          `.${this.player.options.classPrefix}-transcript-close`,
+          `.${this.player.options.classPrefix}-transcript-settings`,
+          `.${this.player.options.classPrefix}-transcript-language-select`,
+          `.${this.player.options.classPrefix}-transcript-settings-menu`,
+          `.${this.player.options.classPrefix}-transcript-style-dialog`
+        ];
+        for (const selector of ignoreSelectors) {
+          if (e.target.closest(selector)) {
+            return false;
+          }
+        }
+        return true;
       }
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings`)) {
-        return;
-      }
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-language-select`)) {
-        return;
-      }
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings-menu`)) {
-        return;
-      }
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-style-dialog`)) {
-        return;
-      }
-      this.startDragging(e.clientX, e.clientY);
-      e.preventDefault();
-    };
-    this.handlers.mousemove = (e) => {
-      if (this.isDragging) {
-        this.drag(e.clientX, e.clientY);
-      }
-    };
-    this.handlers.mouseup = () => {
-      if (this.isDragging) {
-        this.stopDragging();
-      }
-    };
-    this.handlers.touchstart = (e) => {
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-close`)) {
-        return;
-      }
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings`)) {
-        return;
-      }
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-language-select`)) {
-        return;
-      }
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-settings-menu`)) {
-        return;
-      }
-      if (e.target.closest(`.${this.player.options.classPrefix}-transcript-style-dialog`)) {
-        return;
-      }
-      const isMobile = window.innerWidth < 640;
-      const isFullscreen = this.player.state.fullscreen;
-      const touch = e.touches[0];
-      if (isMobile && !isFullscreen) {
-        return;
-      } else {
-        this.startDragging(touch.clientX, touch.clientY);
-      }
-    };
-    this.handlers.touchmove = (e) => {
-      const isMobile = window.innerWidth < 640;
-      const isFullscreen = this.player.state.fullscreen;
-      if (isMobile && !isFullscreen) {
-        return;
-      } else if (this.isDragging) {
-        const touch = e.touches[0];
-        this.drag(touch.clientX, touch.clientY);
+    });
+    this.customKeyHandler = (e) => {
+      const key = e.key.toLowerCase();
+      const alreadyPrevented = e.defaultPrevented;
+      if (key === "home") {
         e.preventDefault();
+        e.stopPropagation();
+        if (this.draggableResizable) {
+          if (this.draggableResizable.pointerResizeMode) {
+            this.draggableResizable.disablePointerResizeMode();
+          }
+          this.draggableResizable.manuallyPositioned = false;
+          this.positionTranscript();
+          this.updateResizeOptionState();
+          this.announceLive(i18n.t("transcript.positionReset"));
+        }
+        return;
       }
-    };
-    this.handlers.touchend = () => {
-      if (this.isDragging) {
-        this.stopDragging();
-      }
-    };
-    this.handlers.keydown = (e) => {
-      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
-        if (!this.keyboardDragMode) {
+      if (key === "r") {
+        if (alreadyPrevented) {
           return;
         }
         e.preventDefault();
         e.stopPropagation();
-        const step = e.shiftKey ? 50 : 10;
-        let currentLeft = parseFloat(this.transcriptWindow.style.left) || 0;
-        let currentTop = parseFloat(this.transcriptWindow.style.top) || 0;
-        const computedStyle = window.getComputedStyle(this.transcriptWindow);
-        if (computedStyle.transform !== "none") {
-          const rect = this.transcriptWindow.getBoundingClientRect();
-          currentLeft = rect.left;
-          currentTop = rect.top;
-          this.transcriptWindow.style.transform = "none";
-          this.transcriptWindow.style.left = `${currentLeft}px`;
-          this.transcriptWindow.style.top = `${currentTop}px`;
+        const enabled = this.toggleResizeMode();
+        if (enabled) {
+          this.transcriptWindow.focus();
         }
-        let newX = currentLeft;
-        let newY = currentTop;
-        switch (e.key) {
-          case "ArrowLeft":
-            newX -= step;
-            break;
-          case "ArrowRight":
-            newX += step;
-            break;
-          case "ArrowUp":
-            newY -= step;
-            break;
-          case "ArrowDown":
-            newY += step;
-            break;
-        }
-        this.transcriptWindow.style.left = `${newX}px`;
-        this.transcriptWindow.style.top = `${newY}px`;
         return;
       }
-      if (e.key === "Home") {
+      if (key === "escape") {
         e.preventDefault();
         e.stopPropagation();
-        this.resetPosition();
-        return;
-      }
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
+        if (this.draggableResizable && this.draggableResizable.pointerResizeMode) {
+          this.draggableResizable.disablePointerResizeMode();
+          return;
+        }
         if (this.styleDialogVisible) {
           this.hideStyleDialog();
-        } else if (this.keyboardDragMode) {
-          this.disableKeyboardDragMode();
+        } else if (this.draggableResizable && this.draggableResizable.keyboardDragMode) {
+          this.draggableResizable.disableKeyboardDragMode();
+          this.announceLive(i18n.t("transcript.dragModeDisabled"));
         } else if (this.settingsMenuVisible) {
           this.hideSettingsMenu();
         } else {
-          this.hideTranscript();
+          this.hideTranscript({ focusButton: true });
         }
         return;
       }
     };
-    this.transcriptHeader.addEventListener("mousedown", this.handlers.mousedown);
-    document.addEventListener("mousemove", this.handlers.mousemove);
-    document.addEventListener("mouseup", this.handlers.mouseup);
-    this.transcriptHeader.addEventListener("touchstart", this.handlers.touchstart);
-    document.addEventListener("touchmove", this.handlers.touchmove);
-    document.addEventListener("touchend", this.handlers.touchend);
-    this.transcriptHeader.addEventListener("keydown", this.handlers.keydown);
-  }
-  /**
-   * Start dragging
-   */
-  startDragging(clientX, clientY) {
-    const rect = this.transcriptWindow.getBoundingClientRect();
-    const containerRect = this.player.container.getBoundingClientRect();
-    const relativeLeft = rect.left - containerRect.left;
-    const relativeTop = rect.top - containerRect.top;
-    const computedStyle = window.getComputedStyle(this.transcriptWindow);
-    if (computedStyle.transform !== "none") {
-      this.transcriptWindow.style.transform = "none";
-      this.transcriptWindow.style.left = `${relativeLeft}px`;
-      this.transcriptWindow.style.top = `${relativeTop}px`;
-    }
-    this.dragOffsetX = clientX - rect.left;
-    this.dragOffsetY = clientY - rect.top;
-    this.isDragging = true;
-    this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-dragging`);
-    document.body.style.cursor = "grabbing";
-    document.body.style.userSelect = "none";
-  }
-  /**
-   * Perform drag
-   */
-  drag(clientX, clientY) {
-    if (!this.isDragging) return;
-    const newViewportX = clientX - this.dragOffsetX;
-    const newViewportY = clientY - this.dragOffsetY;
-    const containerRect = this.player.container.getBoundingClientRect();
-    const newX = newViewportX - containerRect.left;
-    const newY = newViewportY - containerRect.top;
-    this.transcriptWindow.style.left = `${newX}px`;
-    this.transcriptWindow.style.top = `${newY}px`;
-  }
-  /**
-   * Stop dragging
-   */
-  stopDragging() {
-    this.isDragging = false;
-    this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-dragging`);
-    document.body.style.cursor = "";
-    document.body.style.userSelect = "";
-  }
-  /**
-   * Set window position with boundary constraints
-   */
-  setPosition(x, y) {
-    const rect = this.transcriptWindow.getBoundingClientRect();
-    const viewportWidth = document.documentElement.clientWidth;
-    const viewportHeight = document.documentElement.clientHeight;
-    const minVisible = 100;
-    const minX = -(rect.width - minVisible);
-    const minY = -(rect.height - minVisible);
-    const maxX = viewportWidth - minVisible;
-    const maxY = viewportHeight - minVisible;
-    x = Math.max(minX, Math.min(x, maxX));
-    y = Math.max(minY, Math.min(y, maxY));
-    this.transcriptWindow.style.left = `${x}px`;
-    this.transcriptWindow.style.top = `${y}px`;
-    this.transcriptWindow.style.transform = "none";
-  }
-  /**
-   * Reset position to center
-   */
-  resetPosition() {
-    this.transcriptWindow.style.left = "50%";
-    this.transcriptWindow.style.top = "50%";
-    this.transcriptWindow.style.transform = "translate(-50%, -50%)";
+    this.transcriptWindow.addEventListener("keydown", this.customKeyHandler);
   }
   /**
    * Toggle keyboard drag mode
    */
   toggleKeyboardDragMode() {
-    if (this.keyboardDragMode) {
-      this.disableKeyboardDragMode();
-    } else {
-      this.enableKeyboardDragMode();
-    }
-  }
-  /**
-   * Enable keyboard drag mode
-   */
-  enableKeyboardDragMode() {
-    this.keyboardDragMode = true;
-    this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-keyboard-drag`);
-    if (this.settingsButton) {
-      this.settingsButton.setAttribute("aria-label", "Keyboard drag mode active. Use arrow keys to move window. Press D or Escape to exit.");
-    }
-    const indicator = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-transcript-drag-indicator`,
-      textContent: i18n.t("transcript.keyboardDragActive")
-    });
-    this.transcriptHeader.appendChild(indicator);
-    if (this.settingsMenuVisible) {
-      this.hideSettingsMenu();
-    }
-    this.transcriptHeader.focus();
-  }
-  /**
-   * Disable keyboard drag mode
-   */
-  disableKeyboardDragMode() {
-    this.keyboardDragMode = false;
-    this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-keyboard-drag`);
-    if (this.settingsButton) {
-      this.settingsButton.setAttribute("aria-label", "Transcript settings. Press Enter to open menu, or D to enable drag mode");
-    }
-    const indicator = this.transcriptHeader.querySelector(`.${this.player.options.classPrefix}-transcript-drag-indicator`);
-    if (indicator) {
-      indicator.remove();
-    }
-    if (this.settingsButton) {
-      this.settingsButton.focus();
+    if (this.draggableResizable) {
+      const wasEnabled = this.draggableResizable.keyboardDragMode;
+      this.draggableResizable.toggleKeyboardDragMode();
+      const isEnabled = this.draggableResizable.keyboardDragMode;
+      if (!wasEnabled && isEnabled) {
+        this.enableMoveMode();
+      }
+      if (this.settingsMenuVisible) {
+        this.hideSettingsMenu();
+      }
+      this.transcriptWindow.focus();
     }
   }
   /**
@@ -4278,6 +4839,16 @@ var TranscriptManager = class {
     if (this.settingsMenu) {
       this.settingsMenu.style.display = "block";
       this.settingsMenuVisible = true;
+      if (this.settingsButton) {
+        this.settingsButton.setAttribute("aria-expanded", "true");
+      }
+      this.updateResizeOptionState();
+      setTimeout(() => {
+        const firstItem = this.settingsMenu.querySelector(`.${this.player.options.classPrefix}-transcript-settings-item`);
+        if (firstItem) {
+          firstItem.focus();
+        }
+      }, 0);
       return;
     }
     this.settingsMenu = DOMUtils.createElement("div", {
@@ -4325,19 +4896,35 @@ var TranscriptManager = class {
       className: `${this.player.options.classPrefix}-transcript-settings-item`,
       attributes: {
         "type": "button",
-        "aria-label": i18n.t("transcript.resizeWindow")
+        "aria-label": i18n.t("transcript.resizeWindow"),
+        "aria-pressed": "false"
       }
     });
     const resizeIcon = createIconElement("resize");
     const resizeText = DOMUtils.createElement("span", {
+      className: `${this.player.options.classPrefix}-transcript-settings-text`,
       textContent: i18n.t("transcript.resizeWindow")
     });
     resizeOption.appendChild(resizeIcon);
     resizeOption.appendChild(resizeText);
-    resizeOption.addEventListener("click", () => {
-      this.toggleResizeMode();
-      this.hideSettingsMenu();
+    resizeOption.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const enabled = this.toggleResizeMode({ focus: false });
+      if (enabled) {
+        this.hideSettingsMenu({ focusButton: false });
+        this.setManagedTimeout(() => {
+          if (this.transcriptWindow) {
+            this.transcriptWindow.focus();
+          }
+        }, 20);
+      } else {
+        this.hideSettingsMenu({ focusButton: true });
+      }
     });
+    this.resizeOptionButton = resizeOption;
+    this.resizeOptionText = resizeText;
+    this.updateResizeOptionState();
     const closeOption = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-transcript-settings-item`,
       attributes: {
@@ -4368,6 +4955,7 @@ var TranscriptManager = class {
     if (this.settingsButton) {
       this.settingsButton.setAttribute("aria-expanded", "true");
     }
+    this.updateResizeOptionState();
     setTimeout(() => {
       const firstItem = this.settingsMenu.querySelector(`.${this.player.options.classPrefix}-transcript-settings-item`);
       if (firstItem) {
@@ -4378,14 +4966,16 @@ var TranscriptManager = class {
   /**
    * Hide settings menu
    */
-  hideSettingsMenu() {
+  hideSettingsMenu({ focusButton = true } = {}) {
     if (this.settingsMenu) {
       this.settingsMenu.style.display = "none";
       this.settingsMenuVisible = false;
       this.settingsMenuJustOpened = false;
       if (this.settingsButton) {
         this.settingsButton.setAttribute("aria-expanded", "false");
-        this.settingsButton.focus();
+        if (focusButton) {
+          this.settingsButton.focus();
+        }
       }
     }
   }
@@ -4393,6 +4983,7 @@ var TranscriptManager = class {
    * Enable move mode (gives visual feedback)
    */
   enableMoveMode() {
+    this.hideResizeModeIndicator();
     this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-move-mode`);
     const tooltip = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-transcript-move-tooltip`,
@@ -4409,155 +5000,64 @@ var TranscriptManager = class {
   /**
    * Toggle resize mode
    */
-  toggleResizeMode() {
-    this.resizeEnabled = !this.resizeEnabled;
-    if (this.resizeEnabled) {
-      this.enableResizeHandles();
-    } else {
-      this.disableResizeHandles();
+  toggleResizeMode({ focus = true } = {}) {
+    if (!this.draggableResizable) {
+      return false;
+    }
+    if (this.draggableResizable.pointerResizeMode) {
+      this.draggableResizable.disablePointerResizeMode({ focus });
+      return false;
+    }
+    this.draggableResizable.enablePointerResizeMode({ focus });
+    return true;
+  }
+  updateResizeOptionState() {
+    if (!this.resizeOptionButton) {
+      return;
+    }
+    const isEnabled = !!(this.draggableResizable && this.draggableResizable.pointerResizeMode);
+    const label = isEnabled ? i18n.t("transcript.disableResizeWindow") || "Disable Resize Mode" : i18n.t("transcript.resizeWindow");
+    this.resizeOptionButton.setAttribute("aria-pressed", isEnabled ? "true" : "false");
+    this.resizeOptionButton.setAttribute("aria-label", label);
+    this.resizeOptionButton.setAttribute("title", label);
+    if (this.resizeOptionText) {
+      this.resizeOptionText.textContent = label;
     }
   }
-  /**
-   * Enable resize handles
-   */
-  enableResizeHandles() {
-    if (!this.transcriptWindow) return;
-    const directions = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
-    directions.forEach((direction) => {
-      const handle = DOMUtils.createElement("div", {
-        className: `${this.player.options.classPrefix}-transcript-resize-handle ${this.player.options.classPrefix}-transcript-resize-${direction}`,
-        attributes: {
-          "data-direction": direction
-        }
-      });
-      handle.addEventListener("mousedown", (e) => this.startResize(e, direction));
-      handle.addEventListener("touchstart", (e) => this.startResize(e.touches[0], direction));
-      this.transcriptWindow.appendChild(handle);
+  showResizeModeIndicator() {
+    if (!this.transcriptHeader) {
+      return;
+    }
+    this.hideResizeModeIndicator();
+    const indicator = DOMUtils.createElement("div", {
+      className: `${this.player.options.classPrefix}-transcript-resize-tooltip`,
+      textContent: i18n.t("transcript.resizeModeHint") || "Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit."
     });
-    this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-resizable`);
-    this.handlers.resizeMove = (e) => {
-      if (this.isResizing) {
-        this.performResize(e.clientX, e.clientY);
-      }
-    };
-    this.handlers.resizeEnd = () => {
-      if (this.isResizing) {
-        this.stopResize();
-      }
-    };
-    this.handlers.resizeTouchMove = (e) => {
-      if (this.isResizing) {
-        this.performResize(e.touches[0].clientX, e.touches[0].clientY);
-        e.preventDefault();
-      }
-    };
-    document.addEventListener("mousemove", this.handlers.resizeMove);
-    document.addEventListener("mouseup", this.handlers.resizeEnd);
-    document.addEventListener("touchmove", this.handlers.resizeTouchMove);
-    document.addEventListener("touchend", this.handlers.resizeEnd);
+    this.transcriptHeader.appendChild(indicator);
+    this.resizeModeIndicator = indicator;
+    this.resizeModeIndicatorTimeout = this.setManagedTimeout(() => {
+      this.hideResizeModeIndicator();
+    }, 3e3);
   }
-  /**
-   * Disable resize handles
-   */
-  disableResizeHandles() {
-    if (!this.transcriptWindow) return;
-    const handles = this.transcriptWindow.querySelectorAll(`.${this.player.options.classPrefix}-transcript-resize-handle`);
-    handles.forEach((handle) => handle.remove());
-    this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-resizable`);
-    if (this.handlers.resizeMove) {
-      document.removeEventListener("mousemove", this.handlers.resizeMove);
+  hideResizeModeIndicator() {
+    if (this.resizeModeIndicatorTimeout) {
+      this.clearManagedTimeout(this.resizeModeIndicatorTimeout);
+      this.resizeModeIndicatorTimeout = null;
     }
-    if (this.handlers.resizeEnd) {
-      document.removeEventListener("mouseup", this.handlers.resizeEnd);
+    if (this.resizeModeIndicator && this.resizeModeIndicator.parentNode) {
+      this.resizeModeIndicator.remove();
     }
-    if (this.handlers.resizeTouchMove) {
-      document.removeEventListener("touchmove", this.handlers.resizeTouchMove);
-    }
-    document.removeEventListener("touchend", this.handlers.resizeEnd);
+    this.resizeModeIndicator = null;
   }
-  /**
-   * Start resizing
-   */
-  startResize(e, direction) {
-    e.stopPropagation();
-    e.preventDefault();
-    this.isResizing = true;
-    this.resizeDirection = direction;
-    this.resizeStartX = e.clientX;
-    this.resizeStartY = e.clientY;
-    const rect = this.transcriptWindow.getBoundingClientRect();
-    this.resizeStartWidth = rect.width;
-    this.resizeStartHeight = rect.height;
-    this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-resizing`);
-    document.body.style.cursor = this.getResizeCursor(direction);
-    document.body.style.userSelect = "none";
-  }
-  /**
-   * Perform resize
-   */
-  performResize(clientX, clientY) {
-    if (!this.isResizing) return;
-    const deltaX = clientX - this.resizeStartX;
-    const deltaY = clientY - this.resizeStartY;
-    let newWidth = this.resizeStartWidth;
-    let newHeight = this.resizeStartHeight;
-    const direction = this.resizeDirection;
-    if (direction.includes("e")) {
-      newWidth = this.resizeStartWidth + deltaX;
+  onPointerResizeModeChange(enabled) {
+    this.updateResizeOptionState();
+    if (enabled) {
+      this.showResizeModeIndicator();
+      this.announceLive(i18n.t("transcript.resizeModeEnabled"));
+    } else {
+      this.hideResizeModeIndicator();
+      this.announceLive(i18n.t("transcript.resizeModeDisabled"));
     }
-    if (direction.includes("w")) {
-      newWidth = this.resizeStartWidth - deltaX;
-    }
-    if (direction.includes("s")) {
-      newHeight = this.resizeStartHeight + deltaY;
-    }
-    if (direction.includes("n")) {
-      newHeight = this.resizeStartHeight - deltaY;
-    }
-    const minWidth = 300;
-    const minHeight = 200;
-    const maxWidth = window.innerWidth - 40;
-    const maxHeight = window.innerHeight - 40;
-    newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
-    newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
-    this.transcriptWindow.style.width = `${newWidth}px`;
-    this.transcriptWindow.style.height = `${newHeight}px`;
-    this.transcriptWindow.style.maxWidth = `${newWidth}px`;
-    this.transcriptWindow.style.maxHeight = `${newHeight}px`;
-    if (direction.includes("w")) {
-      const currentLeft = parseFloat(this.transcriptWindow.style.left) || 0;
-      this.transcriptWindow.style.left = `${currentLeft + (this.resizeStartWidth - newWidth)}px`;
-    }
-    if (direction.includes("n")) {
-      const currentTop = parseFloat(this.transcriptWindow.style.top) || 0;
-      this.transcriptWindow.style.top = `${currentTop + (this.resizeStartHeight - newHeight)}px`;
-    }
-  }
-  /**
-   * Stop resizing
-   */
-  stopResize() {
-    this.isResizing = false;
-    this.resizeDirection = null;
-    this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-resizing`);
-    document.body.style.cursor = "";
-    document.body.style.userSelect = "";
-  }
-  /**
-   * Get cursor style for resize direction
-   */
-  getResizeCursor(direction) {
-    const cursors = {
-      "n": "ns-resize",
-      "s": "ns-resize",
-      "e": "ew-resize",
-      "w": "ew-resize",
-      "ne": "nesw-resize",
-      "nw": "nwse-resize",
-      "se": "nwse-resize",
-      "sw": "nesw-resize"
-    };
-    return cursors[direction] || "default";
   }
   /**
    * Show style dialog
@@ -4819,25 +5319,21 @@ var TranscriptManager = class {
    * Cleanup
    */
   destroy() {
-    if (this.resizeEnabled) {
-      this.disableResizeHandles();
+    this.hideResizeModeIndicator();
+    if (this.draggableResizable) {
+      if (this.draggableResizable.pointerResizeMode) {
+        this.draggableResizable.disablePointerResizeMode();
+        this.updateResizeOptionState();
+      }
+      this.draggableResizable.destroy();
+      this.draggableResizable = null;
     }
-    if (this.keyboardDragMode) {
-      this.disableKeyboardDragMode();
+    if (this.transcriptWindow && this.customKeyHandler) {
+      this.transcriptWindow.removeEventListener("keydown", this.customKeyHandler);
+      this.customKeyHandler = null;
     }
     if (this.handlers.timeupdate) {
       this.player.off("timeupdate", this.handlers.timeupdate);
-    }
-    if (this.transcriptHeader) {
-      if (this.handlers.mousedown) {
-        this.transcriptHeader.removeEventListener("mousedown", this.handlers.mousedown);
-      }
-      if (this.handlers.touchstart) {
-        this.transcriptHeader.removeEventListener("touchstart", this.handlers.touchstart);
-      }
-      if (this.handlers.keydown) {
-        this.transcriptHeader.removeEventListener("keydown", this.handlers.keydown);
-      }
     }
     if (this.settingsButton) {
       if (this.handlers.settingsClick) {
@@ -4849,18 +5345,6 @@ var TranscriptManager = class {
     }
     if (this.styleDialog && this.handlers.styleDialogKeydown) {
       this.styleDialog.removeEventListener("keydown", this.handlers.styleDialogKeydown);
-    }
-    if (this.handlers.mousemove) {
-      document.removeEventListener("mousemove", this.handlers.mousemove);
-    }
-    if (this.handlers.mouseup) {
-      document.removeEventListener("mouseup", this.handlers.mouseup);
-    }
-    if (this.handlers.touchmove) {
-      document.removeEventListener("touchmove", this.handlers.touchmove);
-    }
-    if (this.handlers.touchend) {
-      document.removeEventListener("touchend", this.handlers.touchend);
     }
     if (this.handlers.documentClick) {
       document.removeEventListener("click", this.handlers.documentClick);
@@ -4880,6 +5364,14 @@ var TranscriptManager = class {
     this.transcriptEntries = [];
     this.settingsMenu = null;
     this.styleDialog = null;
+    this.transcriptResizeHandles = [];
+    this.resizeOptionButton = null;
+    this.resizeOptionText = null;
+    this.liveRegion = null;
+  }
+  announceLive(message) {
+    if (!this.liveRegion) return;
+    this.liveRegion.textContent = message || "";
   }
 };
 
@@ -5705,6 +6197,7 @@ var Player = class _Player extends EventEmitter {
     this.audioDescriptionSourceElement = null;
     this.originalAudioDescriptionSource = null;
     this.audioDescriptionCaptionTracks = [];
+    this._audioDescriptionDesiredState = false;
     this._textTracksCache = null;
     this._textTracksDirty = true;
     this._sourceElementsCache = null;
@@ -5822,7 +6315,6 @@ var Player = class _Player extends EventEmitter {
     this.element.style.height = "100%";
     if (this.element.tagName === "VIDEO" && this.options.playsInline) {
       this.element.setAttribute("playsinline", "");
-      this.element.setAttribute("webkit-playsinline", "");
       this.element.playsInline = true;
     }
     if (this.options.width) {
@@ -5843,6 +6335,14 @@ var Player = class _Player extends EventEmitter {
     this.element.addEventListener("click", (e) => {
       if (e.target === this.element) {
         this.toggle();
+      }
+    });
+    this.on("play", () => {
+      this.hidePosterOverlay();
+    });
+    this.on("timeupdate", () => {
+      if (this.state.currentTime > 0) {
+        this.hidePosterOverlay();
       }
     });
   }
@@ -6010,6 +6510,24 @@ var Player = class _Player extends EventEmitter {
    */
   findTrackElement(track) {
     return this.trackElements.find((el) => el.track === track);
+  }
+  showPosterOverlay() {
+    if (!this.videoWrapper || this.element.tagName !== "VIDEO") {
+      return;
+    }
+    const poster = this.element.getAttribute("poster") || this.element.poster || this.options.poster;
+    if (!poster) {
+      return;
+    }
+    this.videoWrapper.style.setProperty("--vidply-poster-image", `url("${poster}")`);
+    this.videoWrapper.classList.add("vidply-forced-poster");
+  }
+  hidePosterOverlay() {
+    if (!this.videoWrapper) {
+      return;
+    }
+    this.videoWrapper.classList.remove("vidply-forced-poster");
+    this.videoWrapper.style.removeProperty("--vidply-poster-image");
   }
   /**
    * Set a managed timeout that will be cleaned up on destroy
@@ -6327,6 +6845,10 @@ var Player = class _Player extends EventEmitter {
     }
     const currentTime = this.state.currentTime;
     const wasPlaying = this.state.playing;
+    const shouldKeepPoster = !wasPlaying && currentTime === 0;
+    if (shouldKeepPoster) {
+      this.showPosterOverlay();
+    }
     let swappedTracksForTranscript = [];
     if (this.audioDescriptionSourceElement) {
       const currentSrc = this.element.currentSrc || this.element.src;
@@ -6509,8 +7031,15 @@ var Player = class _Player extends EventEmitter {
         if (sourceInfo.descSrc) {
           newSource.setAttribute("data-desc-src", sourceInfo.descSrc);
         }
-        this.element.appendChild(newSource);
+        const firstTrack = this.element.querySelector("track");
+        if (firstTrack) {
+          this.element.insertBefore(newSource, firstTrack);
+        } else {
+          this.element.appendChild(newSource);
+        }
       });
+      this._sourceElementsDirty = true;
+      this._sourceElementsCache = null;
       this.element.load();
       await new Promise((resolve) => {
         const onLoadedMetadata = () => {
@@ -6520,17 +7049,17 @@ var Player = class _Player extends EventEmitter {
         this.element.addEventListener("loadedmetadata", onLoadedMetadata);
       });
       await new Promise((resolve) => setTimeout(resolve, 300));
-      if (this.element.tagName === "VIDEO" && currentTime === 0 && !wasPlaying) {
-        if (this.element.readyState >= 1) {
-          this.element.currentTime = 1e-3;
-          setTimeout(() => {
-            this.element.currentTime = 0;
-          }, 10);
-        }
+      if (currentTime > 0) {
+        this.seek(currentTime);
       }
-      this.seek(currentTime);
       if (wasPlaying) {
         this.play();
+      }
+      if (!shouldKeepPoster) {
+        this.hidePosterOverlay();
+      }
+      if (!this._audioDescriptionDesiredState) {
+        return;
       }
       this.state.audioDescriptionEnabled = true;
       this.emit("audiodescriptionenabled");
@@ -6711,7 +7240,9 @@ var Player = class _Player extends EventEmitter {
         }, 10);
       }
     }
-    this.seek(currentTime);
+    if (currentTime > 0) {
+      this.seek(currentTime);
+    }
     if (wasPlaying) {
       this.play();
     }
@@ -6874,6 +7405,12 @@ var Player = class _Player extends EventEmitter {
         }, 800);
       }
     }
+    if (!shouldKeepPoster) {
+      this.hidePosterOverlay();
+    }
+    if (!this._audioDescriptionDesiredState) {
+      return;
+    }
     this.state.audioDescriptionEnabled = true;
     this.emit("audiodescriptionenabled");
   }
@@ -6933,24 +7470,40 @@ var Player = class _Player extends EventEmitter {
         if (sourceInfo.descSrc) {
           newSource.setAttribute("data-desc-src", sourceInfo.descSrc);
         }
-        this.element.appendChild(newSource);
+        const firstTrack = this.element.querySelector("track");
+        if (firstTrack) {
+          this.element.insertBefore(newSource, firstTrack);
+        } else {
+          this.element.appendChild(newSource);
+        }
       });
+      this._sourceElementsDirty = true;
+      this._sourceElementsCache = null;
       this.element.load();
     } else {
       const originalSrcToUse = this.originalAudioDescriptionSource || this.originalSrc;
       this.element.src = originalSrcToUse;
       this.element.load();
     }
-    await new Promise((resolve) => {
-      const onLoadedMetadata = () => {
-        this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
-        resolve();
-      };
-      this.element.addEventListener("loadedmetadata", onLoadedMetadata);
-    });
-    this.seek(currentTime);
-    if (wasPlaying) {
-      this.play();
+    if (currentTime > 0 || wasPlaying) {
+      await new Promise((resolve) => {
+        const onLoadedMetadata = () => {
+          this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
+          resolve();
+        };
+        this.element.addEventListener("loadedmetadata", onLoadedMetadata);
+      });
+      if (currentTime > 0) {
+        this.seek(currentTime);
+      }
+      if (wasPlaying) {
+        this.play();
+      }
+    }
+    if (!wasPlaying && currentTime === 0) {
+      this.showPosterOverlay();
+    } else {
+      this.hidePosterOverlay();
     }
     if (this.transcriptManager && this.transcriptManager.isVisible) {
       this.setManagedTimeout(() => {
@@ -6958,6 +7511,9 @@ var Player = class _Player extends EventEmitter {
           this.transcriptManager.loadTranscriptData();
         }
       }, 500);
+    }
+    if (this._audioDescriptionDesiredState) {
+      return;
     }
     this.state.audioDescriptionEnabled = false;
     this.emit("audiodescriptiondisabled");
@@ -6967,9 +7523,11 @@ var Player = class _Player extends EventEmitter {
     const hasAudioDescriptionSrc = this.audioDescriptionSrc || this.sourceElements.some((el) => el.getAttribute("data-desc-src"));
     if (descriptionTrack && hasAudioDescriptionSrc) {
       if (this.state.audioDescriptionEnabled) {
+        this._audioDescriptionDesiredState = false;
         descriptionTrack.mode = "hidden";
         await this.disableAudioDescription();
       } else {
+        this._audioDescriptionDesiredState = true;
         await this.enableAudioDescription();
         const enableDescriptionTrack = () => {
           this.invalidateTrackCache();
@@ -6997,18 +7555,22 @@ var Player = class _Player extends EventEmitter {
       }
     } else if (descriptionTrack) {
       if (descriptionTrack.mode === "showing") {
+        this._audioDescriptionDesiredState = false;
         descriptionTrack.mode = "hidden";
         this.state.audioDescriptionEnabled = false;
         this.emit("audiodescriptiondisabled");
       } else {
+        this._audioDescriptionDesiredState = true;
         descriptionTrack.mode = "showing";
         this.state.audioDescriptionEnabled = true;
         this.emit("audiodescriptionenabled");
       }
     } else if (hasAudioDescriptionSrc) {
       if (this.state.audioDescriptionEnabled) {
+        this._audioDescriptionDesiredState = false;
         await this.disableAudioDescription();
       } else {
+        this._audioDescriptionDesiredState = true;
         await this.enableAudioDescription();
       }
     }
@@ -7105,177 +7667,22 @@ var Player = class _Player extends EventEmitter {
   }
   setupSignLanguageInteraction() {
     if (!this.signLanguageWrapper) return;
-    let isDragging = false;
-    let isResizing = false;
-    let resizeDirection = null;
-    let startX = 0;
-    let startY = 0;
-    let startLeft = 0;
-    let startTop = 0;
-    let startWidth = 0;
-    let startHeight = 0;
-    let dragMode = false;
-    let resizeMode = false;
-    const onMouseDownVideo = (e) => {
-      if (e.target !== this.signLanguageVideo) return;
-      e.preventDefault();
-      isDragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      const rect = this.signLanguageWrapper.getBoundingClientRect();
-      startLeft = rect.left;
-      startTop = rect.top;
-      this.signLanguageWrapper.classList.add("vidply-sign-dragging");
-    };
-    const onMouseDownHandle = (e) => {
-      if (!e.target.classList.contains("vidply-sign-resize-handle")) return;
-      e.preventDefault();
-      e.stopPropagation();
-      isResizing = true;
-      resizeDirection = e.target.getAttribute("data-direction");
-      startX = e.clientX;
-      startY = e.clientY;
-      const rect = this.signLanguageWrapper.getBoundingClientRect();
-      startLeft = rect.left;
-      startTop = rect.top;
-      startWidth = rect.width;
-      startHeight = rect.height;
-      this.signLanguageWrapper.classList.add("vidply-sign-resizing");
-    };
-    const onMouseMove = (e) => {
-      if (isDragging) {
-        const deltaX = e.clientX - startX;
-        const deltaY = e.clientY - startY;
-        const videoWrapperRect = this.videoWrapper.getBoundingClientRect();
-        const containerRect = this.container.getBoundingClientRect();
-        const wrapperRect = this.signLanguageWrapper.getBoundingClientRect();
-        const videoWrapperLeft = videoWrapperRect.left - containerRect.left;
-        const videoWrapperTop = videoWrapperRect.top - containerRect.top;
-        let newLeft = startLeft + deltaX - containerRect.left;
-        let newTop = startTop + deltaY - containerRect.top;
-        const controlsHeight = 95;
-        newLeft = Math.max(videoWrapperLeft, Math.min(newLeft, videoWrapperLeft + videoWrapperRect.width - wrapperRect.width));
-        newTop = Math.max(videoWrapperTop, Math.min(newTop, videoWrapperTop + videoWrapperRect.height - wrapperRect.height - controlsHeight));
-        this.signLanguageWrapper.style.left = `${newLeft}px`;
-        this.signLanguageWrapper.style.top = `${newTop}px`;
-        this.signLanguageWrapper.style.right = "auto";
-        this.signLanguageWrapper.style.bottom = "auto";
-        this.signLanguageWrapper.classList.remove(...Array.from(this.signLanguageWrapper.classList).filter((c) => c.startsWith("vidply-sign-position-")));
-      } else if (isResizing) {
-        const deltaX = e.clientX - startX;
-        const videoWrapperRect = this.videoWrapper.getBoundingClientRect();
-        const containerRect = this.container.getBoundingClientRect();
-        let newWidth = startWidth;
-        let newLeft = startLeft - containerRect.left;
-        if (resizeDirection.includes("e")) {
-          newWidth = Math.max(150, startWidth + deltaX);
-          const maxWidth = videoWrapperRect.right - startLeft;
-          newWidth = Math.min(newWidth, maxWidth);
-        }
-        if (resizeDirection.includes("w")) {
-          const proposedWidth = Math.max(150, startWidth - deltaX);
-          const proposedLeft = startLeft + (startWidth - proposedWidth) - containerRect.left;
-          const videoWrapperLeft = videoWrapperRect.left - containerRect.left;
-          if (proposedLeft >= videoWrapperLeft) {
-            newWidth = proposedWidth;
-            newLeft = proposedLeft;
-          }
-        }
-        this.signLanguageWrapper.style.width = `${newWidth}px`;
-        this.signLanguageWrapper.style.height = "auto";
-        if (resizeDirection.includes("w")) {
-          this.signLanguageWrapper.style.left = `${newLeft}px`;
-        }
-        this.signLanguageWrapper.style.right = "auto";
-        this.signLanguageWrapper.style.bottom = "auto";
-        this.signLanguageWrapper.classList.remove(...Array.from(this.signLanguageWrapper.classList).filter((c) => c.startsWith("vidply-sign-position-")));
-      }
-    };
-    const onMouseUp = () => {
-      if (isDragging || isResizing) {
-        this.saveSignLanguagePreferences();
-      }
-      isDragging = false;
-      isResizing = false;
-      resizeDirection = null;
-      this.signLanguageWrapper.classList.remove("vidply-sign-dragging", "vidply-sign-resizing");
-    };
-    const onKeyDown = (e) => {
-      if (e.key === "d" || e.key === "D") {
-        dragMode = !dragMode;
-        resizeMode = false;
-        this.signLanguageWrapper.classList.toggle("vidply-sign-keyboard-drag", dragMode);
-        this.signLanguageWrapper.classList.remove("vidply-sign-keyboard-resize");
-        e.preventDefault();
-        return;
-      }
-      if (e.key === "r" || e.key === "R") {
-        resizeMode = !resizeMode;
-        dragMode = false;
-        this.signLanguageWrapper.classList.toggle("vidply-sign-keyboard-resize", resizeMode);
-        this.signLanguageWrapper.classList.remove("vidply-sign-keyboard-drag");
-        e.preventDefault();
-        return;
-      }
-      if (e.key === "Escape") {
-        dragMode = false;
-        resizeMode = false;
-        this.signLanguageWrapper.classList.remove("vidply-sign-keyboard-drag", "vidply-sign-keyboard-resize");
-        e.preventDefault();
-        return;
-      }
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-        const step = e.shiftKey ? 10 : 5;
-        const rect = this.signLanguageWrapper.getBoundingClientRect();
-        const videoWrapperRect = this.videoWrapper.getBoundingClientRect();
-        const containerRect = this.container.getBoundingClientRect();
-        const videoWrapperLeft = videoWrapperRect.left - containerRect.left;
-        const videoWrapperTop = videoWrapperRect.top - containerRect.top;
-        if (dragMode) {
-          let left = rect.left - containerRect.left;
-          let top = rect.top - containerRect.top;
-          if (e.key === "ArrowLeft") left -= step;
-          if (e.key === "ArrowRight") left += step;
-          if (e.key === "ArrowUp") top -= step;
-          if (e.key === "ArrowDown") top += step;
-          const controlsHeight = 95;
-          left = Math.max(videoWrapperLeft, Math.min(left, videoWrapperLeft + videoWrapperRect.width - rect.width));
-          top = Math.max(videoWrapperTop, Math.min(top, videoWrapperTop + videoWrapperRect.height - rect.height - controlsHeight));
-          this.signLanguageWrapper.style.left = `${left}px`;
-          this.signLanguageWrapper.style.top = `${top}px`;
-          this.signLanguageWrapper.style.right = "auto";
-          this.signLanguageWrapper.style.bottom = "auto";
-          this.signLanguageWrapper.classList.remove(...Array.from(this.signLanguageWrapper.classList).filter((c) => c.startsWith("vidply-sign-position-")));
-          this.saveSignLanguagePreferences();
-          e.preventDefault();
-        } else if (resizeMode) {
-          let width = rect.width;
-          if (e.key === "ArrowLeft") width -= step;
-          if (e.key === "ArrowRight") width += step;
-          if (e.key === "ArrowUp") width += step;
-          if (e.key === "ArrowDown") width -= step;
-          width = Math.max(150, width);
-          width = Math.min(width, videoWrapperRect.width);
-          this.signLanguageWrapper.style.width = `${width}px`;
-          this.signLanguageWrapper.style.height = "auto";
-          this.saveSignLanguagePreferences();
-          e.preventDefault();
-        }
-      }
-    };
-    this.signLanguageVideo.addEventListener("mousedown", onMouseDownVideo);
-    const handles = this.signLanguageWrapper.querySelectorAll(".vidply-sign-resize-handle");
-    handles.forEach((handle) => handle.addEventListener("mousedown", onMouseDownHandle));
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-    this.signLanguageWrapper.addEventListener("keydown", onKeyDown);
+    const resizeHandles = Array.from(this.signLanguageWrapper.querySelectorAll(".vidply-sign-resize-handle"));
+    this.signLanguageDraggable = new DraggableResizable(this.signLanguageWrapper, {
+      dragHandle: this.signLanguageVideo,
+      resizeHandles,
+      constrainToViewport: true,
+      maintainAspectRatio: true,
+      minWidth: 150,
+      minHeight: 100,
+      classPrefix: "vidply-sign",
+      keyboardDragKey: "d",
+      keyboardResizeKey: "r",
+      keyboardStep: 5,
+      keyboardStepLarge: 10
+    });
     this.signLanguageInteractionHandlers = {
-      mouseDownVideo: onMouseDownVideo,
-      mouseDownHandle: onMouseDownHandle,
-      mouseMove: onMouseMove,
-      mouseUp: onMouseUp,
-      keyDown: onKeyDown,
-      handles
+      draggable: this.signLanguageDraggable
     };
   }
   constrainSignLanguagePosition() {
@@ -7342,22 +7749,11 @@ var Player = class _Player extends EventEmitter {
       this.off("ratechange", this.signLanguageHandlers.ratechange);
       this.signLanguageHandlers = null;
     }
-    if (this.signLanguageInteractionHandlers) {
-      if (this.signLanguageVideo) {
-        this.signLanguageVideo.removeEventListener("mousedown", this.signLanguageInteractionHandlers.mouseDownVideo);
-      }
-      if (this.signLanguageInteractionHandlers.handles) {
-        this.signLanguageInteractionHandlers.handles.forEach((handle) => {
-          handle.removeEventListener("mousedown", this.signLanguageInteractionHandlers.mouseDownHandle);
-        });
-      }
-      document.removeEventListener("mousemove", this.signLanguageInteractionHandlers.mouseMove);
-      document.removeEventListener("mouseup", this.signLanguageInteractionHandlers.mouseUp);
-      if (this.signLanguageWrapper) {
-        this.signLanguageWrapper.removeEventListener("keydown", this.signLanguageInteractionHandlers.keyDown);
-      }
-      this.signLanguageInteractionHandlers = null;
+    if (this.signLanguageDraggable) {
+      this.signLanguageDraggable.destroy();
+      this.signLanguageDraggable = null;
     }
+    this.signLanguageInteractionHandlers = null;
     if (this.signLanguageWrapper && this.signLanguageWrapper.parentNode) {
       if (this.signLanguageVideo) {
         this.signLanguageVideo.pause();
@@ -7449,7 +7845,9 @@ var Player = class _Player extends EventEmitter {
           this.controlBar.updateControlsForViewport(width);
         }
         if (this.transcriptManager && this.transcriptManager.isVisible) {
-          this.transcriptManager.positionTranscript();
+          if (!this.transcriptManager.draggableResizable || !this.transcriptManager.draggableResizable.manuallyPositioned) {
+            this.transcriptManager.positionTranscript();
+          }
         }
       };
       window.addEventListener("resize", this.resizeHandler);
@@ -7458,7 +7856,9 @@ var Player = class _Player extends EventEmitter {
       this.orientationHandler = (e) => {
         setTimeout(() => {
           if (this.transcriptManager && this.transcriptManager.isVisible) {
-            this.transcriptManager.positionTranscript();
+            if (!this.transcriptManager.draggableResizable || !this.transcriptManager.draggableResizable.manuallyPositioned) {
+              this.transcriptManager.positionTranscript();
+            }
           }
         }, 100);
       };
