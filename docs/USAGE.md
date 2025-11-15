@@ -286,6 +286,8 @@ See [TRANSCRIPT.md](TRANSCRIPT.md) for complete documentation.
 
 Overlay a sign language interpreter video synchronized with the main video:
 
+#### Single Sign Language Video
+
 ```html
 <video 
   data-vidply
@@ -314,11 +316,57 @@ if (player.state.signLanguageEnabled) {
 }
 ```
 
+#### Multiple Sign Language Videos (Language Switching)
+
+You can provide multiple sign language videos for different languages. The player will automatically show a language selector when multiple sources are available:
+
+```html
+<video 
+  data-vidply
+  src="main-video.mp4"
+  data-sign-language-src-en="sign-language-en.mp4"
+  data-sign-language-src-de="sign-language-de.mp4"
+  data-sign-language-src-es="sign-language-es.mp4"
+  data-sign-language-position="bottom-right"
+>
+</video>
+```
+
+```javascript
+const player = new Player('#video', {
+  signLanguageSources: {
+    en: 'path/to/sign-language-en.mp4',
+    de: 'path/to/sign-language-de.mp4',
+    es: 'path/to/sign-language-es.mp4'
+  },
+  signLanguageButton: true,
+  signLanguagePosition: 'bottom-right'
+});
+
+// Switch sign language programmatically
+player.switchSignLanguage('de'); // Switch to German sign language
+```
+
+When multiple sign language sources are available:
+- A language selector appears in the sign language video header
+- The sign language video automatically switches when captions change (if language codes match)
+- Users can manually switch languages using the selector
+
+#### Sign Language Settings Menu
+
+The sign language video includes a settings menu with the following options:
+- **Keyboard Drag Mode** - Toggle keyboard drag mode (Shortcut: D key)
+- **Resize Window** - Toggle resize mode to adjust video size (Shortcut: R key)
+- **Close Menu** - Close the settings menu
+
 The sign language video:
 - Automatically syncs with main video playback
 - Adjusts playback speed to match main video
 - Muted by default (main video audio is used)
 - Positioned as overlay on main video
+- Can be dragged and resized (similar to transcript window)
+- Supports keyboard navigation (D for drag, R for resize, Escape to exit modes, Home to reset position)
+- Includes a settings menu for drag, resize, and close options
 
 ### Audio Description
 

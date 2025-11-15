@@ -45,7 +45,7 @@ Try VidPly in action:
 - **Full Keyboard Navigation** - WCAG 2.1 compliant
 - **Screen Reader Support** - Complete ARIA labels
 - **Interactive Transcripts** - Click-to-seek transcript window with move and resize controls
-- **Sign Language Overlay** - Picture-in-picture sign language video
+- **Sign Language Overlay** - Picture-in-picture sign language video with drag/resize controls and language switching
 - **Audio Description** - Alternate audio track with descriptions
 - **Customizable Shortcuts** - User-definable hotkeys
 - **High Contrast Mode** - Windows HCM support
