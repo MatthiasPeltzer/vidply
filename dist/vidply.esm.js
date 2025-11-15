@@ -1695,7 +1695,9 @@ var ControlBar = class {
     return textTracks.some((track) => track.kind === "descriptions");
   }
   hasSignLanguage() {
-    return this.player.signLanguageSrc && this.player.signLanguageSrc.length > 0;
+    const hasSingleSource = this.player.signLanguageSrc && this.player.signLanguageSrc.length > 0;
+    const hasMultipleSources = this.player.signLanguageSources && Object.keys(this.player.signLanguageSources).length > 0;
+    return hasSingleSource || hasMultipleSources;
   }
   createProgressBar() {
     const progressContainer = DOMUtils.createElement("div", {
@@ -8011,6 +8013,44 @@ var Player = class _Player extends EventEmitter {
     const title = DOMUtils.createElement("h3", {
       textContent: i18n.t("player.signLanguageVideo")
     });
+    this.signLanguageSettingsButton = DOMUtils.createElement("button", {
+      className: `${this.options.classPrefix}-sign-language-settings`,
+      attributes: {
+        "type": "button",
+        "aria-label": i18n.t("transcript.settingsMenu") || "Sign language settings",
+        "aria-expanded": "false"
+      }
+    });
+    this.signLanguageSettingsButton.appendChild(createIconElement("settings"));
+    this.signLanguageSettingsHandlers = {
+      settingsClick: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.signLanguageSettingsMenuVisible) {
+          this.hideSignLanguageSettingsMenu();
+        } else {
+          this.showSignLanguageSettingsMenu();
+        }
+      },
+      settingsKeydown: (e) => {
+        if (e.key === "d" || e.key === "D") {
+          e.preventDefault();
+          e.stopPropagation();
+          this.toggleSignLanguageKeyboardDragMode();
+        } else if (e.key === "r" || e.key === "R") {
+          e.preventDefault();
+          e.stopPropagation();
+          this.toggleSignLanguageResizeMode();
+        } else if (e.key === "Escape" && this.signLanguageSettingsMenuVisible) {
+          e.preventDefault();
+          e.stopPropagation();
+          this.hideSignLanguageSettingsMenu();
+        }
+      }
+    };
+    this.signLanguageSettingsButton.addEventListener("click", this.signLanguageSettingsHandlers.settingsClick);
+    this.signLanguageSettingsButton.addEventListener("keydown", this.signLanguageSettingsHandlers.settingsKeydown);
+    headerLeft.appendChild(this.signLanguageSettingsButton);
     this.signLanguageSelector = null;
     if (hasMultipleSources) {
       this.signLanguageSelector = DOMUtils.createElement("select", {
@@ -8033,8 +8073,15 @@ var Player = class _Player extends EventEmitter {
         this.signLanguageSelector.appendChild(option);
       });
       this.signLanguageSelector.addEventListener("change", (e) => {
+        e.stopPropagation();
         const selectedLang = e.target.value;
         this.switchSignLanguage(selectedLang);
+      });
+      this.signLanguageSelector.addEventListener("mousedown", (e) => {
+        e.stopPropagation();
+      });
+      this.signLanguageSelector.addEventListener("click", (e) => {
+        e.stopPropagation();
       });
       headerLeft.appendChild(this.signLanguageSelector);
     }
@@ -8057,6 +8104,13 @@ var Player = class _Player extends EventEmitter {
     });
     this.signLanguageHeader.appendChild(headerLeft);
     this.signLanguageHeader.appendChild(closeButton);
+    this.signLanguageSettingsMenuVisible = false;
+    this.signLanguageSettingsMenu = null;
+    this.signLanguageSettingsMenuJustOpened = false;
+    this.signLanguageResizeOptionButton = null;
+    this.signLanguageResizeOptionText = null;
+    this.signLanguageDocumentClickHandler = null;
+    this.signLanguageDocumentClickHandlerAdded = false;
     this.signLanguageVideo = document.createElement("video");
     this.signLanguageVideo.className = "vidply-sign-language-video";
     this.signLanguageVideo.src = initialSrc;
@@ -8137,6 +8191,9 @@ var Player = class _Player extends EventEmitter {
     this.emit("signlanguageenabled");
   }
   disableSignLanguage() {
+    if (this.signLanguageSettingsMenuVisible) {
+      this.hideSignLanguageSettingsMenu({ focusButton: false });
+    }
     if (this.signLanguageWrapper) {
       this.signLanguageWrapper.style.display = "none";
     }
@@ -8171,7 +8228,7 @@ var Player = class _Player extends EventEmitter {
         });
       },
       onDragStart: (e) => {
-        if (e.target.closest(`.${this.options.classPrefix}-sign-language-close`)) {
+        if (e.target.closest(`.${this.options.classPrefix}-sign-language-close`) || e.target.closest(`.${this.options.classPrefix}-sign-language-settings`) || e.target.closest(`.${this.options.classPrefix}-sign-language-select`) || e.target.closest(`.${this.options.classPrefix}-sign-language-settings-menu`)) {
           return false;
         }
         return true;
@@ -8179,6 +8236,9 @@ var Player = class _Player extends EventEmitter {
     });
     this.signLanguageCustomKeyHandler = (e) => {
       const key = e.key.toLowerCase();
+      if (this.signLanguageSettingsMenuVisible) {
+        return;
+      }
       if (key === "home") {
         e.preventDefault();
         e.stopPropagation();
@@ -8211,12 +8271,6 @@ var Player = class _Player extends EventEmitter {
           this.signLanguageDraggable.disableKeyboardDragMode();
           return;
         }
-        this.disableSignLanguage();
-        if (this.controlBar && this.controlBar.controls && this.controlBar.controls.signLanguage) {
-          setTimeout(() => {
-            this.controlBar.controls.signLanguage.focus();
-          }, 0);
-        }
         return;
       }
     };
@@ -8239,6 +8293,7 @@ var Player = class _Player extends EventEmitter {
   }
   enableSignLanguageMoveMode() {
     this.signLanguageWrapper.classList.add(`${this.options.classPrefix}-sign-move-mode`);
+    this.updateSignLanguageResizeOptionState();
     setTimeout(() => {
       this.signLanguageWrapper.classList.remove(`${this.options.classPrefix}-sign-move-mode`);
     }, 2e3);
@@ -8249,9 +8304,11 @@ var Player = class _Player extends EventEmitter {
     }
     if (this.signLanguageDraggable.pointerResizeMode) {
       this.signLanguageDraggable.disablePointerResizeMode({ focus });
+      this.updateSignLanguageResizeOptionState();
       return false;
     }
     this.signLanguageDraggable.enablePointerResizeMode({ focus });
+    this.updateSignLanguageResizeOptionState();
     return true;
   }
   getSignLanguageLabel(langCode) {
@@ -8282,6 +8339,298 @@ var Player = class _Player extends EventEmitter {
       });
     }
     this.emit("signlanguagelanguagechanged", langCode);
+  }
+  showSignLanguageSettingsMenu() {
+    this.signLanguageSettingsMenuJustOpened = true;
+    setTimeout(() => {
+      this.signLanguageSettingsMenuJustOpened = false;
+    }, 350);
+    if (!this.signLanguageDocumentClickHandlerAdded) {
+      this.signLanguageDocumentClickHandler = (e) => {
+        if (this.signLanguageSettingsMenuJustOpened) {
+          return;
+        }
+        if (this.signLanguageSettingsButton && this.signLanguageSettingsButton.contains(e.target)) {
+          return;
+        }
+        if (this.signLanguageSettingsMenu && this.signLanguageSettingsMenu.contains(e.target)) {
+          return;
+        }
+        if (this.signLanguageSettingsMenuVisible) {
+          this.hideSignLanguageSettingsMenu();
+        }
+      };
+      setTimeout(() => {
+        document.addEventListener("click", this.signLanguageDocumentClickHandler);
+        this.signLanguageDocumentClickHandlerAdded = true;
+      }, 300);
+    }
+    if (this.signLanguageSettingsMenu) {
+      this.signLanguageSettingsMenu.style.display = "block";
+      this.signLanguageSettingsMenuVisible = true;
+      if (this.signLanguageSettingsButton) {
+        this.signLanguageSettingsButton.setAttribute("aria-expanded", "true");
+      }
+      this.positionSignLanguageSettingsMenu();
+      this.updateSignLanguageResizeOptionState();
+      setTimeout(() => {
+        const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
+        if (menuItems.length > 0) {
+          menuItems.forEach((item, index) => {
+            item.setAttribute("tabindex", index === 0 ? "0" : "-1");
+          });
+          menuItems[0].focus();
+        }
+      }, 0);
+      return;
+    }
+    this.signLanguageSettingsMenu = DOMUtils.createElement("div", {
+      className: `${this.options.classPrefix}-sign-language-settings-menu`
+    });
+    const keyboardDragOption = DOMUtils.createElement("button", {
+      className: `${this.options.classPrefix}-sign-language-settings-item`,
+      attributes: {
+        "type": "button",
+        "aria-label": i18n.t("transcript.keyboardDragMode") || "Toggle keyboard drag mode",
+        "tabindex": "-1"
+      }
+    });
+    const keyboardIcon = createIconElement("move");
+    const keyboardText = DOMUtils.createElement("span", {
+      textContent: i18n.t("transcript.keyboardDragMode") || "Toggle keyboard drag mode"
+    });
+    keyboardDragOption.appendChild(keyboardIcon);
+    keyboardDragOption.appendChild(keyboardText);
+    keyboardDragOption.addEventListener("click", () => {
+      this.toggleSignLanguageKeyboardDragMode();
+      this.hideSignLanguageSettingsMenu();
+    });
+    const resizeOption = DOMUtils.createElement("button", {
+      className: `${this.options.classPrefix}-sign-language-settings-item`,
+      attributes: {
+        "type": "button",
+        "aria-label": i18n.t("transcript.resizeWindow") || "Resize window",
+        "aria-pressed": "false",
+        "tabindex": "-1"
+      }
+    });
+    const resizeIcon = createIconElement("resize");
+    const resizeText = DOMUtils.createElement("span", {
+      className: `${this.options.classPrefix}-sign-language-settings-text`,
+      textContent: i18n.t("transcript.resizeWindow") || "Resize window"
+    });
+    resizeOption.appendChild(resizeIcon);
+    resizeOption.appendChild(resizeText);
+    resizeOption.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const enabled = this.toggleSignLanguageResizeMode({ focus: false });
+      if (enabled) {
+        this.hideSignLanguageSettingsMenu({ focusButton: false });
+        setTimeout(() => {
+          if (this.signLanguageWrapper) {
+            this.signLanguageWrapper.focus();
+          }
+        }, 20);
+      } else {
+        this.hideSignLanguageSettingsMenu({ focusButton: true });
+      }
+    });
+    this.signLanguageResizeOptionButton = resizeOption;
+    this.signLanguageResizeOptionText = resizeText;
+    this.updateSignLanguageResizeOptionState();
+    const closeOption = DOMUtils.createElement("button", {
+      className: `${this.options.classPrefix}-sign-language-settings-item`,
+      attributes: {
+        "type": "button",
+        "aria-label": i18n.t("transcript.closeMenu") || "Close",
+        "tabindex": "-1"
+      }
+    });
+    const closeIcon = createIconElement("close");
+    const closeText = DOMUtils.createElement("span", {
+      textContent: i18n.t("transcript.closeMenu") || "Close"
+    });
+    closeOption.appendChild(closeIcon);
+    closeOption.appendChild(closeText);
+    closeOption.addEventListener("click", () => {
+      this.hideSignLanguageSettingsMenu();
+    });
+    this.signLanguageSettingsMenu.appendChild(keyboardDragOption);
+    this.signLanguageSettingsMenu.appendChild(resizeOption);
+    this.signLanguageSettingsMenu.appendChild(closeOption);
+    if (this.signLanguageWrapper) {
+      this.signLanguageWrapper.appendChild(this.signLanguageSettingsMenu);
+    } else if (this.signLanguageSettingsButton && this.signLanguageSettingsButton.parentNode) {
+      this.signLanguageSettingsButton.insertAdjacentElement("afterend", this.signLanguageSettingsMenu);
+    }
+    this.positionSignLanguageSettingsMenu();
+    this.attachSignLanguageSettingsMenuKeyboardNavigation();
+    this.signLanguageSettingsMenuVisible = true;
+    this.signLanguageSettingsMenu.style.display = "block";
+    if (this.signLanguageSettingsButton) {
+      this.signLanguageSettingsButton.setAttribute("aria-expanded", "true");
+    }
+    this.updateSignLanguageResizeOptionState();
+    setTimeout(() => {
+      const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
+      if (menuItems.length > 0) {
+        menuItems.forEach((item, index) => {
+          item.setAttribute("tabindex", index === 0 ? "0" : "-1");
+        });
+        menuItems[0].focus();
+      }
+    }, 0);
+  }
+  hideSignLanguageSettingsMenu({ focusButton = true } = {}) {
+    if (this.signLanguageSettingsMenu) {
+      this.signLanguageSettingsMenu.style.display = "none";
+      this.signLanguageSettingsMenuVisible = false;
+      this.signLanguageSettingsMenuJustOpened = false;
+      if (this.signLanguageSettingsMenuKeyHandler) {
+        this.signLanguageSettingsMenu.removeEventListener("keydown", this.signLanguageSettingsMenuKeyHandler);
+        this.signLanguageSettingsMenuKeyHandler = null;
+      }
+      const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
+      menuItems.forEach((item) => {
+        item.setAttribute("tabindex", "-1");
+      });
+      if (this.signLanguageSettingsButton) {
+        this.signLanguageSettingsButton.setAttribute("aria-expanded", "false");
+        if (focusButton) {
+          this.signLanguageSettingsButton.focus();
+        }
+      }
+    }
+  }
+  positionSignLanguageSettingsMenu() {
+    if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton || !this.signLanguageWrapper) return;
+    setTimeout(() => {
+      const buttonRect = this.signLanguageSettingsButton.getBoundingClientRect();
+      const menuRect = this.signLanguageSettingsMenu.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const wrapperRect = this.signLanguageWrapper.getBoundingClientRect();
+      const buttonRight = buttonRect.right - wrapperRect.left;
+      const buttonLeft = buttonRect.left - wrapperRect.left;
+      const buttonTop = buttonRect.top - wrapperRect.top;
+      const buttonBottom = buttonRect.bottom - wrapperRect.top;
+      const spaceAbove = buttonRect.top;
+      const spaceBelow = viewportHeight - buttonRect.bottom;
+      let menuTop = buttonBottom + 8;
+      let menuBottom = null;
+      if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
+        menuTop = null;
+        const wrapperHeight = wrapperRect.bottom - wrapperRect.top;
+        menuBottom = wrapperHeight - buttonTop + 8;
+        this.signLanguageSettingsMenu.classList.add("vidply-menu-above");
+      } else {
+        this.signLanguageSettingsMenu.classList.remove("vidply-menu-above");
+      }
+      let menuRight = wrapperRect.right - buttonRect.right;
+      let menuLeft = "auto";
+      const menuLeftAbsolute = buttonRect.right - menuRect.width;
+      if (menuLeftAbsolute < 10) {
+        menuRight = "auto";
+        menuLeft = buttonLeft;
+      } else if (buttonRect.right > viewportWidth - 10) {
+        menuRight = wrapperRect.right - viewportWidth + 10;
+        menuLeft = "auto";
+      }
+      if (menuTop !== null) {
+        this.signLanguageSettingsMenu.style.top = `${menuTop}px`;
+        this.signLanguageSettingsMenu.style.bottom = "auto";
+      } else if (menuBottom !== null) {
+        this.signLanguageSettingsMenu.style.top = "auto";
+        this.signLanguageSettingsMenu.style.bottom = `${menuBottom}px`;
+      }
+      if (menuLeft !== "auto") {
+        this.signLanguageSettingsMenu.style.left = `${menuLeft}px`;
+        this.signLanguageSettingsMenu.style.right = "auto";
+      } else {
+        this.signLanguageSettingsMenu.style.left = "auto";
+        this.signLanguageSettingsMenu.style.right = `${menuRight}px`;
+      }
+    }, 0);
+  }
+  attachSignLanguageSettingsMenuKeyboardNavigation() {
+    if (!this.signLanguageSettingsMenu) return;
+    const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
+    if (menuItems.length === 0) return;
+    const handleKeyDown = (e) => {
+      const currentIndex = menuItems.indexOf(document.activeElement);
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          e.stopPropagation();
+          const nextIndex = (currentIndex + 1) % menuItems.length;
+          menuItems.forEach((item, idx) => {
+            item.setAttribute("tabindex", idx === nextIndex ? "0" : "-1");
+          });
+          menuItems[nextIndex].focus();
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          e.stopPropagation();
+          const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
+          menuItems.forEach((item, idx) => {
+            item.setAttribute("tabindex", idx === prevIndex ? "0" : "-1");
+          });
+          menuItems[prevIndex].focus();
+          break;
+        case "Home":
+          e.preventDefault();
+          e.stopPropagation();
+          menuItems.forEach((item, idx) => {
+            item.setAttribute("tabindex", idx === 0 ? "0" : "-1");
+          });
+          menuItems[0].focus();
+          break;
+        case "End":
+          e.preventDefault();
+          e.stopPropagation();
+          const lastIndex = menuItems.length - 1;
+          menuItems.forEach((item, idx) => {
+            item.setAttribute("tabindex", idx === lastIndex ? "0" : "-1");
+          });
+          menuItems[lastIndex].focus();
+          break;
+        case "Enter":
+        case " ":
+          e.preventDefault();
+          e.stopPropagation();
+          if (document.activeElement && menuItems.includes(document.activeElement)) {
+            document.activeElement.click();
+            setTimeout(() => {
+              if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
+                this.signLanguageSettingsButton.focus();
+              }
+            }, 0);
+          }
+          break;
+        case "Escape":
+          e.preventDefault();
+          e.stopPropagation();
+          this.hideSignLanguageSettingsMenu({ focusButton: true });
+          break;
+      }
+    };
+    if (this.signLanguageSettingsMenuKeyHandler) {
+      this.signLanguageSettingsMenu.removeEventListener("keydown", this.signLanguageSettingsMenuKeyHandler);
+    }
+    this.signLanguageSettingsMenuKeyHandler = handleKeyDown;
+    this.signLanguageSettingsMenu.addEventListener("keydown", this.signLanguageSettingsMenuKeyHandler);
+  }
+  updateSignLanguageResizeOptionState() {
+    if (!this.signLanguageResizeOptionButton) {
+      return;
+    }
+    const isEnabled = !!(this.signLanguageDraggable && this.signLanguageDraggable.pointerResizeMode);
+    const label = isEnabled ? i18n.t("transcript.disableResizeWindow") || "Disable Resize Mode" : i18n.t("transcript.resizeWindow") || "Resize Window";
+    this.signLanguageResizeOptionButton.setAttribute("aria-pressed", isEnabled ? "true" : "false");
+    if (this.signLanguageResizeOptionText) {
+      this.signLanguageResizeOptionText.textContent = label;
+    }
   }
   constrainSignLanguagePosition() {
     if (!this.signLanguageWrapper || !this.videoWrapper) return;
@@ -8343,6 +8692,21 @@ var Player = class _Player extends EventEmitter {
     });
   }
   cleanupSignLanguage() {
+    if (this.signLanguageSettingsMenuVisible) {
+      this.hideSignLanguageSettingsMenu({ focusButton: false });
+    }
+    if (this.signLanguageDocumentClickHandler && this.signLanguageDocumentClickHandlerAdded) {
+      document.removeEventListener("click", this.signLanguageDocumentClickHandler);
+      this.signLanguageDocumentClickHandlerAdded = false;
+      this.signLanguageDocumentClickHandler = null;
+    }
+    if (this.signLanguageSettingsHandlers) {
+      if (this.signLanguageSettingsButton) {
+        this.signLanguageSettingsButton.removeEventListener("click", this.signLanguageSettingsHandlers.settingsClick);
+        this.signLanguageSettingsButton.removeEventListener("keydown", this.signLanguageSettingsHandlers.settingsKeydown);
+      }
+      this.signLanguageSettingsHandlers = null;
+    }
     if (this.signLanguageHandlers) {
       this.off("play", this.signLanguageHandlers.play);
       this.off("pause", this.signLanguageHandlers.pause);
@@ -8375,9 +8739,11 @@ var Player = class _Player extends EventEmitter {
         this.signLanguageVideo.src = "";
       }
       this.signLanguageWrapper.parentNode.removeChild(this.signLanguageWrapper);
-      this.signLanguageWrapper = null;
-      this.signLanguageVideo = null;
     }
+    this.signLanguageWrapper = null;
+    this.signLanguageVideo = null;
+    this.signLanguageSettingsButton = null;
+    this.signLanguageSettingsMenu = null;
   }
   // Settings
   // Settings dialog removed - using individual control buttons instead

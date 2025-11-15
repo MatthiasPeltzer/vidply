@@ -2226,6 +2226,51 @@ export class Player extends EventEmitter {
             textContent: i18n.t('player.signLanguageVideo')
         });
 
+        // Settings button (before language selector)
+        this.signLanguageSettingsButton = DOMUtils.createElement('button', {
+            className: `${this.options.classPrefix}-sign-language-settings`,
+            attributes: {
+                'type': 'button',
+                'aria-label': i18n.t('transcript.settingsMenu') || 'Sign language settings',
+                'aria-expanded': 'false'
+            }
+        });
+        this.signLanguageSettingsButton.appendChild(createIconElement('settings'));
+        this.signLanguageSettingsHandlers = {
+            settingsClick: (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (this.signLanguageSettingsMenuVisible) {
+                    this.hideSignLanguageSettingsMenu();
+                } else {
+                    this.showSignLanguageSettingsMenu();
+                }
+            },
+            settingsKeydown: (e) => {
+                // D key to toggle keyboard drag mode
+                if (e.key === 'd' || e.key === 'D') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.toggleSignLanguageKeyboardDragMode();
+                }
+                // R key to toggle resize mode
+                else if (e.key === 'r' || e.key === 'R') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.toggleSignLanguageResizeMode();
+                }
+                // Escape to close menu if open
+                else if (e.key === 'Escape' && this.signLanguageSettingsMenuVisible) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.hideSignLanguageSettingsMenu();
+                }
+            }
+        };
+        this.signLanguageSettingsButton.addEventListener('click', this.signLanguageSettingsHandlers.settingsClick);
+        this.signLanguageSettingsButton.addEventListener('keydown', this.signLanguageSettingsHandlers.settingsKeydown);
+        headerLeft.appendChild(this.signLanguageSettingsButton);
+
         // Language selector (if multiple sources available)
         this.signLanguageSelector = null;
         if (hasMultipleSources) {
@@ -2293,6 +2338,15 @@ export class Player extends EventEmitter {
 
         this.signLanguageHeader.appendChild(headerLeft);
         this.signLanguageHeader.appendChild(closeButton);
+        
+        // Initialize settings menu state
+        this.signLanguageSettingsMenuVisible = false;
+        this.signLanguageSettingsMenu = null;
+        this.signLanguageSettingsMenuJustOpened = false;
+        this.signLanguageResizeOptionButton = null;
+        this.signLanguageResizeOptionText = null;
+        this.signLanguageDocumentClickHandler = null;
+        this.signLanguageDocumentClickHandlerAdded = false;
 
         // Create sign language video element
         this.signLanguageVideo = document.createElement('video');
@@ -2401,6 +2455,11 @@ export class Player extends EventEmitter {
     }
 
     disableSignLanguage() {
+        // Hide settings menu if open
+        if (this.signLanguageSettingsMenuVisible) {
+            this.hideSignLanguageSettingsMenu({ focusButton: false });
+        }
+        
         if (this.signLanguageWrapper) {
             this.signLanguageWrapper.style.display = 'none';
         }
@@ -2441,9 +2500,11 @@ export class Player extends EventEmitter {
                 });
             },
             onDragStart: (e) => {
-                // Don't drag if clicking on close button or language selector
+                // Don't drag if clicking on close button, settings button, language selector, or settings menu
                 if (e.target.closest(`.${this.options.classPrefix}-sign-language-close`) ||
-                    e.target.closest(`.${this.options.classPrefix}-sign-language-select`)) {
+                    e.target.closest(`.${this.options.classPrefix}-sign-language-settings`) ||
+                    e.target.closest(`.${this.options.classPrefix}-sign-language-select`) ||
+                    e.target.closest(`.${this.options.classPrefix}-sign-language-settings-menu`)) {
                     return false; // Prevent drag
                 }
                 return true; // Allow drag
@@ -2453,6 +2514,11 @@ export class Player extends EventEmitter {
         // Add custom keyboard handler for special keys (Escape, Home)
         this.signLanguageCustomKeyHandler = (e) => {
             const key = e.key.toLowerCase();
+            
+            // Don't handle keys if settings menu is open (let menu handle them)
+            if (this.signLanguageSettingsMenuVisible) {
+                return;
+            }
             
             if (key === 'home') {
                 e.preventDefault();
@@ -2480,21 +2546,18 @@ export class Player extends EventEmitter {
             if (key === 'escape') {
                 e.preventDefault();
                 e.stopPropagation();
+                // Exit resize mode if active
                 if (this.signLanguageDraggable && this.signLanguageDraggable.pointerResizeMode) {
                     this.signLanguageDraggable.disablePointerResizeMode();
                     return;
                 }
+                // Exit keyboard drag mode if active
                 if (this.signLanguageDraggable && this.signLanguageDraggable.keyboardDragMode) {
                     this.signLanguageDraggable.disableKeyboardDragMode();
                     return;
                 }
-                this.disableSignLanguage();
-                // Return focus to sign language button if available
-                if (this.controlBar && this.controlBar.controls && this.controlBar.controls.signLanguage) {
-                    setTimeout(() => {
-                        this.controlBar.controls.signLanguage.focus();
-                    }, 0);
-                }
+                // Don't close video on Escape - only exit modes
+                // User should use the close button to close the video
                 return;
             }
         };
@@ -2524,6 +2587,9 @@ export class Player extends EventEmitter {
         // Add visual feedback for move mode
         this.signLanguageWrapper.classList.add(`${this.options.classPrefix}-sign-move-mode`);
         
+        // Update resize option state in case menu is open
+        this.updateSignLanguageResizeOptionState();
+        
         // Remove after 2 seconds
         setTimeout(() => {
             this.signLanguageWrapper.classList.remove(`${this.options.classPrefix}-sign-move-mode`);
@@ -2537,10 +2603,12 @@ export class Player extends EventEmitter {
 
         if (this.signLanguageDraggable.pointerResizeMode) {
             this.signLanguageDraggable.disablePointerResizeMode({ focus });
+            this.updateSignLanguageResizeOptionState();
             return false;
         }
 
         this.signLanguageDraggable.enablePointerResizeMode({ focus });
+        this.updateSignLanguageResizeOptionState();
         return true;
     }
 
@@ -2580,6 +2648,380 @@ export class Player extends EventEmitter {
         }
         
         this.emit('signlanguagelanguagechanged', langCode);
+    }
+
+    showSignLanguageSettingsMenu() {
+        // Set flag to prevent immediate closing
+        this.signLanguageSettingsMenuJustOpened = true;
+        setTimeout(() => {
+            this.signLanguageSettingsMenuJustOpened = false;
+        }, 350);
+        
+        // Add document click handler on FIRST menu open (not at window creation)
+        if (!this.signLanguageDocumentClickHandlerAdded) {
+            this.signLanguageDocumentClickHandler = (e) => {
+                // Ignore if menu was just opened (prevents immediate closing)
+                if (this.signLanguageSettingsMenuJustOpened) {
+                    return;
+                }
+                
+                // Ignore clicks on the settings button itself
+                if (this.signLanguageSettingsButton && this.signLanguageSettingsButton.contains(e.target)) {
+                    return;
+                }
+                
+                // Ignore clicks on the settings menu items
+                if (this.signLanguageSettingsMenu && this.signLanguageSettingsMenu.contains(e.target)) {
+                    return;
+                }
+                
+                // Close menu if clicking outside
+                if (this.signLanguageSettingsMenuVisible) {
+                    this.hideSignLanguageSettingsMenu();
+                }
+            };
+            setTimeout(() => {
+                document.addEventListener('click', this.signLanguageDocumentClickHandler);
+                this.signLanguageDocumentClickHandlerAdded = true;
+            }, 300);
+        }
+        
+        if (this.signLanguageSettingsMenu) {
+            this.signLanguageSettingsMenu.style.display = 'block';
+            this.signLanguageSettingsMenuVisible = true;
+            if (this.signLanguageSettingsButton) {
+                this.signLanguageSettingsButton.setAttribute('aria-expanded', 'true');
+            }
+            // Reposition menu in case window was moved
+            this.positionSignLanguageSettingsMenu();
+            this.updateSignLanguageResizeOptionState();
+            setTimeout(() => {
+                const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
+                if (menuItems.length > 0) {
+                    menuItems.forEach((item, index) => {
+                        item.setAttribute('tabindex', index === 0 ? '0' : '-1');
+                    });
+                    menuItems[0].focus();
+                }
+            }, 0);
+            return;
+        }
+        
+        // Create settings menu
+        this.signLanguageSettingsMenu = DOMUtils.createElement('div', {
+            className: `${this.options.classPrefix}-sign-language-settings-menu`
+        });
+
+        // Keyboard drag option
+        const keyboardDragOption = DOMUtils.createElement('button', {
+            className: `${this.options.classPrefix}-sign-language-settings-item`,
+            attributes: {
+                'type': 'button',
+                'aria-label': i18n.t('transcript.keyboardDragMode') || 'Toggle keyboard drag mode',
+                'tabindex': '-1'
+            }
+        });
+        const keyboardIcon = createIconElement('move');
+        const keyboardText = DOMUtils.createElement('span', {
+            textContent: i18n.t('transcript.keyboardDragMode') || 'Toggle keyboard drag mode'
+        });
+        keyboardDragOption.appendChild(keyboardIcon);
+        keyboardDragOption.appendChild(keyboardText);
+        keyboardDragOption.addEventListener('click', () => {
+            this.toggleSignLanguageKeyboardDragMode();
+            this.hideSignLanguageSettingsMenu();
+        });
+
+        // Resize option
+        const resizeOption = DOMUtils.createElement('button', {
+            className: `${this.options.classPrefix}-sign-language-settings-item`,
+            attributes: {
+                'type': 'button',
+                'aria-label': i18n.t('transcript.resizeWindow') || 'Resize window',
+                'aria-pressed': 'false',
+                'tabindex': '-1'
+            }
+        });
+        const resizeIcon = createIconElement('resize');
+        const resizeText = DOMUtils.createElement('span', {
+            className: `${this.options.classPrefix}-sign-language-settings-text`,
+            textContent: i18n.t('transcript.resizeWindow') || 'Resize window'
+        });
+        resizeOption.appendChild(resizeIcon);
+        resizeOption.appendChild(resizeText);
+        resizeOption.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const enabled = this.toggleSignLanguageResizeMode({ focus: false });
+            
+            if (enabled) {
+                this.hideSignLanguageSettingsMenu({ focusButton: false });
+                // Focus sign language wrapper after handles appear
+                setTimeout(() => {
+                    if (this.signLanguageWrapper) {
+                        this.signLanguageWrapper.focus();
+                    }
+                }, 20);
+            } else {
+                this.hideSignLanguageSettingsMenu({ focusButton: true });
+            }
+        });
+        this.signLanguageResizeOptionButton = resizeOption;
+        this.signLanguageResizeOptionText = resizeText;
+        this.updateSignLanguageResizeOptionState();
+
+        // Close option
+        const closeOption = DOMUtils.createElement('button', {
+            className: `${this.options.classPrefix}-sign-language-settings-item`,
+            attributes: {
+                'type': 'button',
+                'aria-label': i18n.t('transcript.closeMenu') || 'Close',
+                'tabindex': '-1'
+            }
+        });
+        const closeIcon = createIconElement('close');
+        const closeText = DOMUtils.createElement('span', {
+            textContent: i18n.t('transcript.closeMenu') || 'Close'
+        });
+        closeOption.appendChild(closeIcon);
+        closeOption.appendChild(closeText);
+        closeOption.addEventListener('click', () => {
+            this.hideSignLanguageSettingsMenu();
+        });
+
+        this.signLanguageSettingsMenu.appendChild(keyboardDragOption);
+        this.signLanguageSettingsMenu.appendChild(resizeOption);
+        this.signLanguageSettingsMenu.appendChild(closeOption);
+
+        // Append menu to sign language wrapper for proper positioning (like transcript menu)
+        if (this.signLanguageWrapper) {
+            this.signLanguageWrapper.appendChild(this.signLanguageSettingsMenu);
+        } else if (this.signLanguageSettingsButton && this.signLanguageSettingsButton.parentNode) {
+            this.signLanguageSettingsButton.insertAdjacentElement('afterend', this.signLanguageSettingsMenu);
+        }
+        
+        // Position the menu relative to the settings button
+        this.positionSignLanguageSettingsMenu();
+        
+        // Add keyboard navigation
+        this.attachSignLanguageSettingsMenuKeyboardNavigation();
+        
+        // Set the menu as visible and display it
+        this.signLanguageSettingsMenuVisible = true;
+        this.signLanguageSettingsMenu.style.display = 'block';
+        
+        // Update aria-expanded
+        if (this.signLanguageSettingsButton) {
+            this.signLanguageSettingsButton.setAttribute('aria-expanded', 'true');
+        }
+        this.updateSignLanguageResizeOptionState();
+        
+        // Focus first menu item and set tabindex
+        setTimeout(() => {
+            const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
+            if (menuItems.length > 0) {
+                menuItems.forEach((item, index) => {
+                    item.setAttribute('tabindex', index === 0 ? '0' : '-1');
+                });
+                menuItems[0].focus();
+            }
+        }, 0);
+    }
+
+    hideSignLanguageSettingsMenu({ focusButton = true } = {}) {
+        if (this.signLanguageSettingsMenu) {
+            this.signLanguageSettingsMenu.style.display = 'none';
+            this.signLanguageSettingsMenuVisible = false;
+            this.signLanguageSettingsMenuJustOpened = false;
+            
+            // Remove keyboard handler
+            if (this.signLanguageSettingsMenuKeyHandler) {
+                this.signLanguageSettingsMenu.removeEventListener('keydown', this.signLanguageSettingsMenuKeyHandler);
+                this.signLanguageSettingsMenuKeyHandler = null;
+            }
+            
+            // Reset tabindex on menu items
+            const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
+            menuItems.forEach(item => {
+                item.setAttribute('tabindex', '-1');
+            });
+            
+            // Update aria-expanded
+            if (this.signLanguageSettingsButton) {
+                this.signLanguageSettingsButton.setAttribute('aria-expanded', 'false');
+                if (focusButton) {
+                    // Return focus to settings button
+                    this.signLanguageSettingsButton.focus();
+                }
+            }
+        }
+    }
+
+    positionSignLanguageSettingsMenu() {
+        if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton || !this.signLanguageWrapper) return;
+        
+        setTimeout(() => {
+            const buttonRect = this.signLanguageSettingsButton.getBoundingClientRect();
+            const menuRect = this.signLanguageSettingsMenu.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            // Get the wrapper as the positioning container (like transcript uses transcriptWindow)
+            const wrapperRect = this.signLanguageWrapper.getBoundingClientRect();
+            
+            // Calculate position relative to wrapper
+            const buttonRight = buttonRect.right - wrapperRect.left;
+            const buttonLeft = buttonRect.left - wrapperRect.left;
+            const buttonTop = buttonRect.top - wrapperRect.top;
+            const buttonBottom = buttonRect.bottom - wrapperRect.top;
+            
+            const spaceAbove = buttonRect.top;
+            const spaceBelow = viewportHeight - buttonRect.bottom;
+            
+            // Position menu below button by default (right-aligned with button)
+            let menuTop = buttonBottom + 8;
+            let menuBottom = null;
+            
+            // Prefer below, but switch to above if not enough space
+            if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
+                menuTop = null;
+                const wrapperHeight = wrapperRect.bottom - wrapperRect.top;
+                menuBottom = wrapperHeight - buttonTop + 8;
+                this.signLanguageSettingsMenu.classList.add('vidply-menu-above');
+            } else {
+                this.signLanguageSettingsMenu.classList.remove('vidply-menu-above');
+            }
+            
+            // Calculate horizontal position (right-align with button)
+            let menuRight = wrapperRect.right - buttonRect.right;
+            let menuLeft = 'auto';
+            
+            // Check horizontal overflow
+            const menuLeftAbsolute = buttonRect.right - menuRect.width;
+            if (menuLeftAbsolute < 10) {
+                menuRight = 'auto';
+                menuLeft = buttonLeft;
+            } else if (buttonRect.right > viewportWidth - 10) {
+                menuRight = wrapperRect.right - viewportWidth + 10;
+                menuLeft = 'auto';
+            }
+            
+            // Apply calculated positions
+            if (menuTop !== null) {
+                this.signLanguageSettingsMenu.style.top = `${menuTop}px`;
+                this.signLanguageSettingsMenu.style.bottom = 'auto';
+            } else if (menuBottom !== null) {
+                this.signLanguageSettingsMenu.style.top = 'auto';
+                this.signLanguageSettingsMenu.style.bottom = `${menuBottom}px`;
+            }
+            
+            if (menuLeft !== 'auto') {
+                this.signLanguageSettingsMenu.style.left = `${menuLeft}px`;
+                this.signLanguageSettingsMenu.style.right = 'auto';
+            } else {
+                this.signLanguageSettingsMenu.style.left = 'auto';
+                this.signLanguageSettingsMenu.style.right = `${menuRight}px`;
+            }
+        }, 0);
+    }
+
+    attachSignLanguageSettingsMenuKeyboardNavigation() {
+        if (!this.signLanguageSettingsMenu) return;
+        
+        const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
+        
+        if (menuItems.length === 0) return;
+
+        const handleKeyDown = (e) => {
+            const currentIndex = menuItems.indexOf(document.activeElement);
+            
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const nextIndex = (currentIndex + 1) % menuItems.length;
+                    menuItems.forEach((item, idx) => {
+                        item.setAttribute('tabindex', idx === nextIndex ? '0' : '-1');
+                    });
+                    menuItems[nextIndex].focus();
+                    break;
+                
+                case 'ArrowUp':
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
+                    menuItems.forEach((item, idx) => {
+                        item.setAttribute('tabindex', idx === prevIndex ? '0' : '-1');
+                    });
+                    menuItems[prevIndex].focus();
+                    break;
+                
+                case 'Home':
+                    e.preventDefault();
+                    e.stopPropagation();
+                    menuItems.forEach((item, idx) => {
+                        item.setAttribute('tabindex', idx === 0 ? '0' : '-1');
+                    });
+                    menuItems[0].focus();
+                    break;
+                
+                case 'End':
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const lastIndex = menuItems.length - 1;
+                    menuItems.forEach((item, idx) => {
+                        item.setAttribute('tabindex', idx === lastIndex ? '0' : '-1');
+                    });
+                    menuItems[lastIndex].focus();
+                    break;
+                
+                case 'Enter':
+                case ' ':
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (document.activeElement && menuItems.includes(document.activeElement)) {
+                        document.activeElement.click();
+                        // Menu will be closed by the click handler, but ensure focus returns
+                        setTimeout(() => {
+                            if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
+                                this.signLanguageSettingsButton.focus();
+                            }
+                        }, 0);
+                    }
+                    break;
+                
+                case 'Escape':
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.hideSignLanguageSettingsMenu({ focusButton: true });
+                    break;
+            }
+        };
+
+        // Remove existing handler if any
+        if (this.signLanguageSettingsMenuKeyHandler) {
+            this.signLanguageSettingsMenu.removeEventListener('keydown', this.signLanguageSettingsMenuKeyHandler);
+        }
+        
+        this.signLanguageSettingsMenuKeyHandler = handleKeyDown;
+        this.signLanguageSettingsMenu.addEventListener('keydown', this.signLanguageSettingsMenuKeyHandler);
+    }
+
+    updateSignLanguageResizeOptionState() {
+        if (!this.signLanguageResizeOptionButton) {
+            return;
+        }
+        
+        const isEnabled = !!(this.signLanguageDraggable && this.signLanguageDraggable.pointerResizeMode);
+        const label = isEnabled
+            ? (i18n.t('transcript.disableResizeWindow') || 'Disable Resize Mode')
+            : i18n.t('transcript.resizeWindow') || 'Resize Window';
+
+        this.signLanguageResizeOptionButton.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
+        if (this.signLanguageResizeOptionText) {
+            this.signLanguageResizeOptionText.textContent = label;
+        }
     }
 
     constrainSignLanguagePosition() {
@@ -2665,6 +3107,27 @@ export class Player extends EventEmitter {
     }
 
     cleanupSignLanguage() {
+        // Hide settings menu if open
+        if (this.signLanguageSettingsMenuVisible) {
+            this.hideSignLanguageSettingsMenu({ focusButton: false });
+        }
+        
+        // Remove document click handler
+        if (this.signLanguageDocumentClickHandler && this.signLanguageDocumentClickHandlerAdded) {
+            document.removeEventListener('click', this.signLanguageDocumentClickHandler);
+            this.signLanguageDocumentClickHandlerAdded = false;
+            this.signLanguageDocumentClickHandler = null;
+        }
+        
+        // Remove settings menu event listeners
+        if (this.signLanguageSettingsHandlers) {
+            if (this.signLanguageSettingsButton) {
+                this.signLanguageSettingsButton.removeEventListener('click', this.signLanguageSettingsHandlers.settingsClick);
+                this.signLanguageSettingsButton.removeEventListener('keydown', this.signLanguageSettingsHandlers.settingsKeydown);
+            }
+            this.signLanguageSettingsHandlers = null;
+        }
+        
         // Remove event listeners
         if (this.signLanguageHandlers) {
             this.off('play', this.signLanguageHandlers.play);
@@ -2706,9 +3169,11 @@ export class Player extends EventEmitter {
                 this.signLanguageVideo.src = '';
             }
             this.signLanguageWrapper.parentNode.removeChild(this.signLanguageWrapper);
-            this.signLanguageWrapper = null;
-            this.signLanguageVideo = null;
         }
+        this.signLanguageWrapper = null;
+        this.signLanguageVideo = null;
+        this.signLanguageSettingsButton = null;
+        this.signLanguageSettingsMenu = null;
     }
 
     // Settings

@@ -2339,7 +2339,7 @@
     height: auto;
     max-width: none;
     min-height: 100px;
-    overflow: hidden;
+    overflow: visible; /* Allow menu to overflow */
     position: absolute;
     transition: opacity 0.3s ease;
     width: 280px;
@@ -2365,6 +2365,7 @@
     display: flex;
     justify-content: space-between;
     padding: 16px 20px;
+    position: relative; /* Needed for menu positioning */
     user-select: none;
 }
 
@@ -2379,7 +2380,7 @@
     align-items: center;
     display: flex;
     gap: 16px;
-    position: relative;
+    position: relative; /* Needed for menu positioning */
 }
 
 .vidply-sign-language-select {
@@ -2394,6 +2395,123 @@
 .vidply-sign-language-select:focus {
     outline: var(--vidply-focus-outline);
     outline-offset: 2px;
+}
+
+/* Sign Language Settings Button */
+.vidply-sign-language-settings {
+    align-items: center;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--vidply-text-muted);
+    cursor: pointer;
+    display: flex;
+    height: 28px;
+    justify-content: center;
+    padding: 4px;
+    transition: var(--vidply-transition-default);
+    width: 28px;
+}
+
+.vidply-sign-language-settings:hover {
+    background: var(--vidply-white-10);
+    color: var(--vidply-white);
+}
+
+.vidply-sign-language-settings:focus {
+    outline: var(--vidply-focus-outline-white);
+    outline-offset: 2px;
+}
+
+.vidply-sign-language-settings .vidply-icon {
+    height: 18px;
+    width: 18px;
+}
+
+/* Sign Language Settings Menu */
+.vidply-sign-language-settings-menu {
+    background: var(--vidply-bg-menu);
+    border: 1px solid var(--vidply-border);
+    border-radius: 6px;
+    box-shadow: var(--vidply-shadow-lg);
+    display: none;
+    min-width: 240px;
+    padding: 6px;
+    position: absolute;
+    z-index: 100;
+}
+
+.vidply-sign-language-settings-menu::after {
+    border-bottom: 6px solid var(--vidply-bg-menu);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    bottom: 100%;
+    content: '';
+    height: 0;
+    position: absolute;
+    right: 8px;
+    width: 0;
+}
+
+/* Menu positioned above button */
+.vidply-sign-language-settings-menu.vidply-menu-above::after {
+    border-bottom: none;
+    border-top: 6px solid var(--vidply-bg-menu);
+    bottom: auto;
+    top: 100%;
+}
+
+/* Sign Language Settings Menu Items */
+.vidply-sign-language-settings-item {
+    align-items: flex-start;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--vidply-white);
+    cursor: pointer;
+    display: flex;
+    font-size: 13px;
+    gap: 8px;
+    padding: 8px 10px;
+    text-align: left;
+    transition: all 0.15s ease;
+    width: 100%;
+}
+
+.vidply-sign-language-settings-item:hover {
+    background: var(--vidply-primary-20);
+}
+
+.vidply-sign-language-settings-item:hover span {
+    text-decoration: underline;
+}
+
+.vidply-sign-language-settings-item:focus {
+    background: var(--vidply-primary-25);
+    outline: none;
+}
+
+.vidply-sign-language-settings-item:focus span {
+    text-decoration: underline;
+}
+
+.vidply-sign-language-settings-item:active span {
+    text-decoration: underline;
+}
+
+.vidply-sign-language-settings-item .vidply-icon {
+    flex-grow: 0.2;
+    height: 20px;
+    opacity: 0.9;
+    width: 20px;
+}
+
+.vidply-sign-language-settings-item span {
+    flex: 1;
+}
+
+.vidply-sign-language-settings-text {
+    flex: 1;
 }
 
 .vidply-sign-language-header h3 {
@@ -2449,6 +2567,7 @@
     cursor: default;
     display: block;
     height: auto;
+    overflow: hidden; /* Clip video content to rounded corners */
     pointer-events: auto;
     width: 100%;
 }
