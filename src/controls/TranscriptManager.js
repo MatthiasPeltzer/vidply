@@ -123,10 +123,10 @@ export class TranscriptManager {
         this.player.controlBar.updateTranscriptButton();
       }
       
-      // Focus the header for keyboard accessibility
+      // Focus the settings button for keyboard accessibility
       this.setManagedTimeout(() => {
-        if (this.transcriptHeader) {
-          this.transcriptHeader.focus();
+        if (this.settingsButton) {
+          this.settingsButton.focus();
         }
       }, 150);
       return;
@@ -146,10 +146,10 @@ export class TranscriptManager {
         this.setManagedTimeout(() => this.positionTranscript(), 0);
       }
       
-      // Focus the header for keyboard accessibility
+      // Focus the settings button for keyboard accessibility
       this.setManagedTimeout(() => {
-        if (this.transcriptHeader) {
-          this.transcriptHeader.focus();
+        if (this.settingsButton) {
+          this.settingsButton.focus();
         }
       }, 150);
     }
@@ -1230,6 +1230,8 @@ export class TranscriptManager {
       if (this.settingsButton) {
         this.settingsButton.setAttribute('aria-expanded', 'true');
       }
+      // Reposition menu in case window was moved
+      this.positionSettingsMenu();
       this.updateResizeOptionState();
       setTimeout(() => {
         const firstItem = this.settingsMenu.querySelector(`.${this.player.options.classPrefix}-transcript-settings-item`);
@@ -1249,7 +1251,8 @@ export class TranscriptManager {
       className: `${this.player.options.classPrefix}-transcript-settings-item`,
       attributes: {
         'type': 'button',
-        'aria-label': i18n.t('transcript.keyboardDragMode')
+        'aria-label': i18n.t('transcript.keyboardDragMode'),
+        'tabindex': '-1'
       }
     });
     const keyboardIcon = createIconElement('move');
@@ -1268,7 +1271,8 @@ export class TranscriptManager {
       className: `${this.player.options.classPrefix}-transcript-settings-item`,
       attributes: {
         'type': 'button',
-        'aria-label': i18n.t('transcript.styleTranscript')
+        'aria-label': i18n.t('transcript.styleTranscript'),
+        'tabindex': '-1'
       }
     });
     const styleIcon = createIconElement('settings');
@@ -1293,7 +1297,8 @@ export class TranscriptManager {
       attributes: {
         'type': 'button',
         'aria-label': i18n.t('transcript.resizeWindow'),
-        'aria-pressed': 'false'
+        'aria-pressed': 'false',
+        'tabindex': '-1'
       }
     });
     const resizeIcon = createIconElement('resize');
@@ -1330,7 +1335,8 @@ export class TranscriptManager {
       className: `${this.player.options.classPrefix}-transcript-settings-item`,
       attributes: {
         'type': 'button',
-        'aria-label': i18n.t('transcript.closeMenu')
+        'aria-label': i18n.t('transcript.closeMenu'),
+        'tabindex': '-1'
       }
     });
     const closeIcon = createIconElement('close');
@@ -1348,12 +1354,22 @@ export class TranscriptManager {
     this.settingsMenu.appendChild(styleOption);
     this.settingsMenu.appendChild(closeOption);
 
-    // Append menu to header left container for proper positioning
-    if (this.headerLeft) {
+    // Append menu to transcript window for proper positioning
+    if (this.transcriptWindow) {
+      this.transcriptWindow.appendChild(this.settingsMenu);
+    } else if (this.settingsButton && this.settingsButton.parentNode) {
+      this.settingsButton.insertAdjacentElement('afterend', this.settingsMenu);
+    } else if (this.headerLeft) {
       this.headerLeft.appendChild(this.settingsMenu);
     } else {
       this.transcriptHeader.appendChild(this.settingsMenu);
     }
+    
+    // Position the menu relative to the settings button
+    this.positionSettingsMenu();
+    
+    // Add keyboard navigation
+    this.attachSettingsMenuKeyboardNavigation();
     
     // Set the menu as visible and display it
     this.settingsMenuVisible = true;
@@ -1365,13 +1381,172 @@ export class TranscriptManager {
     }
     this.updateResizeOptionState();
     
-    // Focus first menu item
+    // Focus first menu item and set tabindex
     setTimeout(() => {
-      const firstItem = this.settingsMenu.querySelector(`.${this.player.options.classPrefix}-transcript-settings-item`);
-      if (firstItem) {
-        firstItem.focus();
+      const menuItems = Array.from(this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`));
+      if (menuItems.length > 0) {
+        menuItems.forEach((item, index) => {
+          item.setAttribute('tabindex', index === 0 ? '0' : '-1');
+        });
+        menuItems[0].focus();
       }
     }, 0);
+  }
+
+  /**
+   * Position settings menu relative to settings button
+   */
+  positionSettingsMenu() {
+    if (!this.settingsMenu || !this.settingsButton || !this.transcriptWindow) return;
+    
+    setTimeout(() => {
+      const buttonRect = this.settingsButton.getBoundingClientRect();
+      const menuRect = this.settingsMenu.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Get the transcript window as the positioning container
+      const windowRect = this.transcriptWindow.getBoundingClientRect();
+      
+      // Calculate position relative to transcript window
+      const buttonRight = buttonRect.right - windowRect.left;
+      const buttonLeft = buttonRect.left - windowRect.left;
+      const buttonTop = buttonRect.top - windowRect.top;
+      const buttonBottom = buttonRect.bottom - windowRect.top;
+      
+      const spaceAbove = buttonRect.top;
+      const spaceBelow = viewportHeight - buttonRect.bottom;
+      
+      // Position menu below button by default (right-aligned with button)
+      let menuTop = buttonBottom + 8;
+      let menuBottom = null;
+      
+      // Prefer below, but switch to above if not enough space
+      if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
+        menuTop = null;
+        const windowHeight = windowRect.bottom - windowRect.top;
+        menuBottom = windowHeight - buttonTop + 8;
+        this.settingsMenu.classList.add('vidply-menu-above');
+      } else {
+        this.settingsMenu.classList.remove('vidply-menu-above');
+      }
+      
+      // Calculate horizontal position (right-align with button)
+      let menuRight = windowRect.right - buttonRect.right;
+      let menuLeft = 'auto';
+      
+      // Check horizontal overflow
+      const menuLeftAbsolute = buttonRect.right - menuRect.width;
+      if (menuLeftAbsolute < 10) {
+        menuRight = 'auto';
+        menuLeft = buttonLeft;
+      } else if (buttonRect.right > viewportWidth - 10) {
+        menuRight = windowRect.right - viewportWidth + 10;
+        menuLeft = 'auto';
+      }
+      
+      // Apply calculated positions
+      if (menuTop !== null) {
+        this.settingsMenu.style.top = `${menuTop}px`;
+        this.settingsMenu.style.bottom = 'auto';
+      } else if (menuBottom !== null) {
+        this.settingsMenu.style.top = 'auto';
+        this.settingsMenu.style.bottom = `${menuBottom}px`;
+      }
+      
+      if (menuLeft !== 'auto') {
+        this.settingsMenu.style.left = `${menuLeft}px`;
+        this.settingsMenu.style.right = 'auto';
+      } else {
+        this.settingsMenu.style.left = 'auto';
+        this.settingsMenu.style.right = `${menuRight}px`;
+      }
+    }, 0);
+  }
+
+  /**
+   * Attach keyboard navigation to settings menu
+   */
+  attachSettingsMenuKeyboardNavigation() {
+    if (!this.settingsMenu) return;
+    
+    const menuItems = Array.from(this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`));
+    
+    if (menuItems.length === 0) return;
+
+    const handleKeyDown = (e) => {
+      const currentIndex = menuItems.indexOf(document.activeElement);
+      
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          e.stopPropagation();
+          const nextIndex = (currentIndex + 1) % menuItems.length;
+          menuItems.forEach((item, idx) => {
+            item.setAttribute('tabindex', idx === nextIndex ? '0' : '-1');
+          });
+          menuItems[nextIndex].focus();
+          break;
+        
+        case 'ArrowUp':
+          e.preventDefault();
+          e.stopPropagation();
+          const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
+          menuItems.forEach((item, idx) => {
+            item.setAttribute('tabindex', idx === prevIndex ? '0' : '-1');
+          });
+          menuItems[prevIndex].focus();
+          break;
+        
+        case 'Home':
+          e.preventDefault();
+          e.stopPropagation();
+          menuItems.forEach((item, idx) => {
+            item.setAttribute('tabindex', idx === 0 ? '0' : '-1');
+          });
+          menuItems[0].focus();
+          break;
+        
+        case 'End':
+          e.preventDefault();
+          e.stopPropagation();
+          const lastIndex = menuItems.length - 1;
+          menuItems.forEach((item, idx) => {
+            item.setAttribute('tabindex', idx === lastIndex ? '0' : '-1');
+          });
+          menuItems[lastIndex].focus();
+          break;
+        
+        case 'Enter':
+        case ' ':
+          e.preventDefault();
+          e.stopPropagation();
+          if (document.activeElement && menuItems.includes(document.activeElement)) {
+            document.activeElement.click();
+            // Menu will be closed by the click handler, but ensure focus returns
+            setTimeout(() => {
+              if (this.settingsButton && document.contains(this.settingsButton)) {
+                this.settingsButton.focus();
+              }
+            }, 0);
+          }
+          break;
+        
+        case 'Escape':
+          e.preventDefault();
+          e.stopPropagation();
+          this.hideSettingsMenu({ focusButton: true });
+          break;
+      }
+    };
+
+    // Remove existing handler if any
+    if (this.settingsMenuKeyHandler) {
+      this.settingsMenu.removeEventListener('keydown', this.settingsMenuKeyHandler);
+    }
+    
+    this.settingsMenuKeyHandler = handleKeyDown;
+    this.settingsMenu.addEventListener('keydown', this.settingsMenuKeyHandler);
   }
 
   /**

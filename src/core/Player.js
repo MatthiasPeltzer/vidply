@@ -13,7 +13,7 @@ import {HTML5Renderer} from '../renderers/HTML5Renderer.js';
 import {YouTubeRenderer} from '../renderers/YouTubeRenderer.js';
 import {VimeoRenderer} from '../renderers/VimeoRenderer.js';
 import {HLSRenderer} from '../renderers/HLSRenderer.js';
-import {createPlayOverlay} from '../icons/Icons.js';
+import {createPlayOverlay, createIconElement} from '../icons/Icons.js';
 import {i18n} from '../i18n/i18n.js';
 import {StorageManager} from '../utils/StorageManager.js';
 import {DraggableResizable} from '../utils/DraggableResizable.js';
@@ -209,6 +209,8 @@ export class Player extends EventEmitter {
         this.originalSrc = null;
         this.audioDescriptionSrc = this.options.audioDescriptionSrc;
         this.signLanguageSrc = this.options.signLanguageSrc;
+        this.signLanguageSources = this.options.signLanguageSources || {}; // Map of lang codes to video URLs
+        this.currentSignLanguage = null; // Current selected sign language code
         this.signLanguageVideo = null;
         // Store references to source elements with audio description attributes
         this.audioDescriptionSourceElement = null;
@@ -2149,7 +2151,11 @@ export class Player extends EventEmitter {
 
     // Sign Language
     enableSignLanguage() {
-        if (!this.signLanguageSrc) {
+        // Determine available sign language sources
+        const hasMultipleSources = Object.keys(this.signLanguageSources).length > 0;
+        const hasSingleSource = !!this.signLanguageSrc;
+        
+        if (!hasMultipleSources && !hasSingleSource) {
             console.warn('No sign language video source provided');
             return;
         }
@@ -2161,34 +2167,158 @@ export class Player extends EventEmitter {
             this.emit('signlanguageenabled');
             return;
         }
+        
+        // Determine initial sign language
+        let initialLang = null;
+        let initialSrc = null;
+        
+        if (hasMultipleSources) {
+            // Try to sync with current caption language
+            if (this.captionManager && this.captionManager.currentTrack) {
+                const captionLang = this.captionManager.currentTrack.language?.toLowerCase().split('-')[0];
+                if (captionLang && this.signLanguageSources[captionLang]) {
+                    initialLang = captionLang;
+                    initialSrc = this.signLanguageSources[captionLang];
+                }
+            }
+            
+            // If no match, try player language
+            if (!initialLang && this.options.language) {
+                const playerLang = this.options.language.toLowerCase().split('-')[0];
+                if (this.signLanguageSources[playerLang]) {
+                    initialLang = playerLang;
+                    initialSrc = this.signLanguageSources[playerLang];
+                }
+            }
+            
+            // If still no match, use first available
+            if (!initialLang) {
+                initialLang = Object.keys(this.signLanguageSources)[0];
+                initialSrc = this.signLanguageSources[initialLang];
+            }
+            
+            this.currentSignLanguage = initialLang;
+        } else {
+            // Single source fallback
+            initialSrc = this.signLanguageSrc;
+        }
 
         // Create wrapper container
         this.signLanguageWrapper = document.createElement('div');
         this.signLanguageWrapper.className = 'vidply-sign-language-wrapper';
         this.signLanguageWrapper.setAttribute('tabindex', '0');
-        this.signLanguageWrapper.setAttribute('aria-label', 'Sign Language Video - Press D to drag with keyboard, R to resize');
+        this.signLanguageWrapper.setAttribute('aria-label', i18n.t('player.signLanguageDragResize'));
+
+        // Create header (draggable)
+        this.signLanguageHeader = DOMUtils.createElement('div', {
+            className: `${this.options.classPrefix}-sign-language-header`,
+            attributes: {
+                'tabindex': '0'
+            }
+        });
+
+        // Header left side (title)
+        const headerLeft = DOMUtils.createElement('div', {
+            className: `${this.options.classPrefix}-sign-language-header-left`
+        });
+
+        const title = DOMUtils.createElement('h3', {
+            textContent: i18n.t('player.signLanguageVideo')
+        });
+
+        // Language selector (if multiple sources available)
+        this.signLanguageSelector = null;
+        if (hasMultipleSources) {
+            this.signLanguageSelector = DOMUtils.createElement('select', {
+                className: `${this.options.classPrefix}-sign-language-select`,
+                attributes: {
+                    'aria-label': i18n.t('settings.language') || 'Sign Language',
+                    'style': 'display: block;'
+                }
+            });
+            
+            // Populate language options
+            Object.keys(this.signLanguageSources).forEach(langCode => {
+                const option = DOMUtils.createElement('option', {
+                    textContent: this.getSignLanguageLabel(langCode),
+                    attributes: {
+                        'value': langCode
+                    }
+                });
+                if (langCode === initialLang) {
+                    option.setAttribute('selected', 'selected');
+                }
+                this.signLanguageSelector.appendChild(option);
+            });
+            
+            // Handle language change
+            this.signLanguageSelector.addEventListener('change', (e) => {
+                e.stopPropagation(); // Prevent event from bubbling
+                const selectedLang = e.target.value;
+                this.switchSignLanguage(selectedLang);
+            });
+            
+            // Prevent clicks on selector from triggering drag
+            this.signLanguageSelector.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
+            
+            this.signLanguageSelector.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+            
+            headerLeft.appendChild(this.signLanguageSelector);
+        }
+
+        headerLeft.appendChild(title);
+        
+        // Close button
+        const closeButton = DOMUtils.createElement('button', {
+            className: `${this.options.classPrefix}-sign-language-close`,
+            attributes: {
+                'type': 'button',
+                'aria-label': i18n.t('transcript.close') || 'Close sign language video'
+            }
+        });
+        closeButton.appendChild(createIconElement('close'));
+        closeButton.addEventListener('click', () => {
+            this.disableSignLanguage();
+            // Return focus to sign language button if available
+            if (this.controlBar && this.controlBar.controls && this.controlBar.controls.signLanguage) {
+                setTimeout(() => {
+                    this.controlBar.controls.signLanguage.focus();
+                }, 0);
+            }
+        });
+
+        this.signLanguageHeader.appendChild(headerLeft);
+        this.signLanguageHeader.appendChild(closeButton);
 
         // Create sign language video element
         this.signLanguageVideo = document.createElement('video');
         this.signLanguageVideo.className = 'vidply-sign-language-video';
-        this.signLanguageVideo.src = this.signLanguageSrc;
+        this.signLanguageVideo.src = initialSrc;
         this.signLanguageVideo.setAttribute('aria-label', i18n.t('player.signLanguage'));
         this.signLanguageVideo.muted = true; // Sign language video should be muted
 
-        // Create resize handles
-        const resizeHandles = ['nw', 'ne', 'sw', 'se'].map(dir => {
-            const handle = document.createElement('div');
-            handle.className = `vidply-sign-resize-handle vidply-sign-resize-${dir}`;
-            handle.setAttribute('data-direction', dir);
-            handle.setAttribute('role', 'button');
-            handle.setAttribute('aria-label', `Resize ${dir.toUpperCase()}`);
-            handle.setAttribute('tabindex', '0');
+        // Create resize handles (8 directions like transcript)
+        this.signLanguageResizeHandles = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].map(dir => {
+            const handle = DOMUtils.createElement('div', {
+                className: `${this.options.classPrefix}-sign-resize-handle ${this.options.classPrefix}-sign-resize-${dir}`,
+                attributes: {
+                    'data-direction': dir,
+                    'data-vidply-managed-resize': 'true',
+                    'aria-hidden': 'true'
+                }
+            });
+            handle.style.display = 'none';
             return handle;
         });
 
-        // Append video and handles to wrapper
+        // Append header, video and handles to wrapper
+        this.signLanguageWrapper.appendChild(this.signLanguageHeader);
         this.signLanguageWrapper.appendChild(this.signLanguageVideo);
-        resizeHandles.forEach(handle => this.signLanguageWrapper.appendChild(handle));
+        this.signLanguageResizeHandles.forEach(handle => this.signLanguageWrapper.appendChild(handle));
 
         // Set width FIRST to ensure proper dimensions
         const saved = this.storage.getSignLanguagePreferences();
@@ -2249,6 +2379,22 @@ export class Player extends EventEmitter {
         this.on('pause', this.signLanguageHandlers.pause);
         this.on('timeupdate', this.signLanguageHandlers.timeupdate);
         this.on('ratechange', this.signLanguageHandlers.ratechange);
+        
+        // Sync sign language when captions change (if multiple sources available)
+        if (hasMultipleSources) {
+            this.signLanguageHandlers.captionChange = () => {
+                if (this.captionManager && this.captionManager.currentTrack && this.signLanguageSelector) {
+                    const captionLang = this.captionManager.currentTrack.language?.toLowerCase().split('-')[0];
+                    if (captionLang && this.signLanguageSources[captionLang] && this.currentSignLanguage !== captionLang) {
+                        this.switchSignLanguage(captionLang);
+                        // Update selector
+                        this.signLanguageSelector.value = captionLang;
+                    }
+                }
+            };
+            // Listen to captionsenabled which fires when a track is enabled (including when switching)
+            this.on('captionsenabled', this.signLanguageHandlers.captionChange);
+        }
 
         this.state.signLanguageEnabled = true;
         this.emit('signlanguageenabled');
@@ -2273,32 +2419,176 @@ export class Player extends EventEmitter {
     setupSignLanguageInteraction() {
         if (!this.signLanguageWrapper) return;
 
-        // Get resize handles
-        const resizeHandles = Array.from(this.signLanguageWrapper.querySelectorAll('.vidply-sign-resize-handle'));
-
         // Create DraggableResizable utility
+        // Use header as drag handle instead of video
         this.signLanguageDraggable = new DraggableResizable(this.signLanguageWrapper, {
-            dragHandle: this.signLanguageVideo,
-            resizeHandles: resizeHandles,
+            dragHandle: this.signLanguageHeader,
+            resizeHandles: this.signLanguageResizeHandles,
             constrainToViewport: true,
             maintainAspectRatio: true,
             minWidth: 150,
             minHeight: 100,
-            classPrefix: 'vidply-sign',
+            classPrefix: `${this.options.classPrefix}-sign`,
             keyboardDragKey: 'd',
             keyboardResizeKey: 'r',
-            keyboardStep: 5,
-            keyboardStepLarge: 10
+            keyboardStep: 10,
+            keyboardStepLarge: 50,
+            pointerResizeIndicatorText: i18n.t('player.signLanguageResizeActive'),
+            onPointerResizeToggle: (enabled) => {
+                // Update resize handles visibility
+                this.signLanguageResizeHandles.forEach(handle => {
+                    handle.style.display = enabled ? 'block' : 'none';
+                });
+            },
+            onDragStart: (e) => {
+                // Don't drag if clicking on close button or language selector
+                if (e.target.closest(`.${this.options.classPrefix}-sign-language-close`) ||
+                    e.target.closest(`.${this.options.classPrefix}-sign-language-select`)) {
+                    return false; // Prevent drag
+                }
+                return true; // Allow drag
+            }
         });
+
+        // Add custom keyboard handler for special keys (Escape, Home)
+        this.signLanguageCustomKeyHandler = (e) => {
+            const key = e.key.toLowerCase();
+            
+            if (key === 'home') {
+                e.preventDefault();
+                e.stopPropagation();
+                if (this.signLanguageDraggable) {
+                    if (this.signLanguageDraggable.pointerResizeMode) {
+                        this.signLanguageDraggable.disablePointerResizeMode();
+                    }
+                    this.signLanguageDraggable.manuallyPositioned = false;
+                    this.constrainSignLanguagePosition();
+                }
+                return;
+            }
+            
+            if (key === 'r') {
+                e.preventDefault();
+                e.stopPropagation();
+                const enabled = this.toggleSignLanguageResizeMode();
+                if (enabled) {
+                    this.signLanguageWrapper.focus();
+                }
+                return;
+            }
+            
+            if (key === 'escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                if (this.signLanguageDraggable && this.signLanguageDraggable.pointerResizeMode) {
+                    this.signLanguageDraggable.disablePointerResizeMode();
+                    return;
+                }
+                if (this.signLanguageDraggable && this.signLanguageDraggable.keyboardDragMode) {
+                    this.signLanguageDraggable.disableKeyboardDragMode();
+                    return;
+                }
+                this.disableSignLanguage();
+                // Return focus to sign language button if available
+                if (this.controlBar && this.controlBar.controls && this.controlBar.controls.signLanguage) {
+                    setTimeout(() => {
+                        this.controlBar.controls.signLanguage.focus();
+                    }, 0);
+                }
+                return;
+            }
+        };
+        
+        this.signLanguageWrapper.addEventListener('keydown', this.signLanguageCustomKeyHandler);
 
         // Store for cleanup
         this.signLanguageInteractionHandlers = {
-            draggable: this.signLanguageDraggable
+            draggable: this.signLanguageDraggable,
+            headerKeyHandler: this.signLanguageHeaderKeyHandler,
+            customKeyHandler: this.signLanguageCustomKeyHandler
         };
+    }
+
+    toggleSignLanguageKeyboardDragMode() {
+        if (this.signLanguageDraggable) {
+            const wasEnabled = this.signLanguageDraggable.keyboardDragMode;
+            this.signLanguageDraggable.toggleKeyboardDragMode();
+            const isEnabled = this.signLanguageDraggable.keyboardDragMode;
+            if (!wasEnabled && isEnabled) {
+                this.enableSignLanguageMoveMode();
+            }
+        }
+    }
+
+    enableSignLanguageMoveMode() {
+        // Add visual feedback for move mode
+        this.signLanguageWrapper.classList.add(`${this.options.classPrefix}-sign-move-mode`);
+        
+        // Remove after 2 seconds
+        setTimeout(() => {
+            this.signLanguageWrapper.classList.remove(`${this.options.classPrefix}-sign-move-mode`);
+        }, 2000);
+    }
+
+    toggleSignLanguageResizeMode({ focus = true } = {}) {
+        if (!this.signLanguageDraggable) {
+            return false;
+        }
+
+        if (this.signLanguageDraggable.pointerResizeMode) {
+            this.signLanguageDraggable.disablePointerResizeMode({ focus });
+            return false;
+        }
+
+        this.signLanguageDraggable.enablePointerResizeMode({ focus });
+        return true;
+    }
+
+    getSignLanguageLabel(langCode) {
+        // Get language label from i18n or use language code
+        const langNames = {
+            'en': 'English',
+            'de': 'Deutsch',
+            'es': 'Español',
+            'fr': 'Français',
+            'it': 'Italiano',
+            'ja': '日本語',
+            'pt': 'Português',
+            'ar': 'العربية',
+            'hi': 'हिन्दी'
+        };
+        return langNames[langCode] || langCode.toUpperCase();
+    }
+
+    switchSignLanguage(langCode) {
+        if (!this.signLanguageSources[langCode] || !this.signLanguageVideo) {
+            return;
+        }
+        
+        const currentTime = this.signLanguageVideo.currentTime;
+        const wasPlaying = !this.signLanguageVideo.paused;
+        
+        this.signLanguageVideo.src = this.signLanguageSources[langCode];
+        this.currentSignLanguage = langCode;
+        
+        // Restore playback state
+        this.signLanguageVideo.currentTime = currentTime;
+        if (wasPlaying) {
+            this.signLanguageVideo.play().catch(() => {
+                // Ignore play errors
+            });
+        }
+        
+        this.emit('signlanguagelanguagechanged', langCode);
     }
 
     constrainSignLanguagePosition() {
         if (!this.signLanguageWrapper || !this.videoWrapper) return;
+        
+        // Don't auto-position if user has manually positioned it
+        if (this.signLanguageDraggable && this.signLanguageDraggable.manuallyPositioned) {
+            return;
+        }
         
         // Ensure width is set
         if (!this.signLanguageWrapper.style.width || this.signLanguageWrapper.style.width === '') {
@@ -2381,11 +2671,27 @@ export class Player extends EventEmitter {
             this.off('pause', this.signLanguageHandlers.pause);
             this.off('timeupdate', this.signLanguageHandlers.timeupdate);
             this.off('ratechange', this.signLanguageHandlers.ratechange);
+            if (this.signLanguageHandlers.captionChange) {
+                this.off('captionsenabled', this.signLanguageHandlers.captionChange);
+            }
             this.signLanguageHandlers = null;
+        }
+
+        // Remove event listeners
+        if (this.signLanguageInteractionHandlers) {
+            if (this.signLanguageHeader && this.signLanguageInteractionHandlers.headerKeyHandler) {
+                this.signLanguageHeader.removeEventListener('keydown', this.signLanguageInteractionHandlers.headerKeyHandler);
+            }
+            if (this.signLanguageWrapper && this.signLanguageInteractionHandlers.customKeyHandler) {
+                this.signLanguageWrapper.removeEventListener('keydown', this.signLanguageInteractionHandlers.customKeyHandler);
+            }
         }
 
         // Destroy draggable utility
         if (this.signLanguageDraggable) {
+            if (this.signLanguageDraggable.pointerResizeMode) {
+                this.signLanguageDraggable.disablePointerResizeMode();
+            }
             this.signLanguageDraggable.destroy();
             this.signLanguageDraggable = null;
         }

@@ -94,7 +94,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 78621,
+      "bytes": 82316,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -125,7 +125,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.js": {
-      "bytes": 8830,
+      "bytes": 8750,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -146,17 +146,17 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.js": {
-      "bytes": 6786,
+      "bytes": 7127,
       "imports": [],
       "format": "esm"
     },
     "src/utils/DraggableResizable.js": {
-      "bytes": 24698,
+      "bytes": 25328,
       "imports": [],
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 63077,
+      "bytes": 72090,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -218,7 +218,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 132020,
+      "bytes": 144784,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -310,7 +310,7 @@
       "format": "esm"
     },
     "src/index.js": {
-      "bytes": 4240,
+      "bytes": 5317,
       "imports": [
         {
           "path": "src/core/Player.js",
@@ -336,7 +336,7 @@
           "bytesInOutput": 4673
         },
         "src/index.js": {
-          "bytesInOutput": 1621
+          "bytesInOutput": 1937
         },
         "src/utils/EventEmitter.js": {
           "bytesInOutput": 436
@@ -372,25 +372,25 @@
           "bytesInOutput": 10594
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 37767
+          "bytesInOutput": 38660
         },
         "src/utils/StorageManager.js": {
           "bytesInOutput": 1606
         },
         "src/controls/CaptionManager.js": {
-          "bytesInOutput": 4395
+          "bytesInOutput": 4353
         },
         "src/controls/KeyboardManager.js": {
-          "bytesInOutput": 3738
+          "bytesInOutput": 3821
         },
         "src/utils/DraggableResizable.js": {
-          "bytesInOutput": 13781
+          "bytesInOutput": 13861
         },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 33381
+          "bytesInOutput": 38012
         },
         "src/core/Player.js": {
-          "bytesInOutput": 44497
+          "bytesInOutput": 50660
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -405,7 +405,7 @@
           "bytesInOutput": 8100
         }
       },
-      "bytes": 207749
+      "bytes": 219873
     }
   }
 }

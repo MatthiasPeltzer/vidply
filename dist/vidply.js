@@ -1424,23 +1424,54 @@ var VidPly = (() => {
         const menuRect = menu.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
+        const parentContainer = button.parentElement;
+        if (!parentContainer) return;
+        const parentRect = parentContainer.getBoundingClientRect();
+        const buttonCenterX = buttonRect.left + buttonRect.width / 2 - parentRect.left;
+        const buttonBottom = buttonRect.bottom - parentRect.top;
+        const buttonTop = buttonRect.top - parentRect.top;
         const spaceAbove = buttonRect.top;
         const spaceBelow = viewportHeight - buttonRect.bottom;
+        let menuTop = buttonTop - menuRect.height - 8;
+        let menuBottom = null;
         if (spaceAbove < menuRect.height + 20 && spaceBelow > spaceAbove) {
-          menu.style.bottom = "auto";
-          menu.style.top = "calc(100% + 8px)";
+          menuTop = null;
+          const parentHeight = parentRect.bottom - parentRect.top;
+          menuBottom = parentHeight - buttonBottom + 8;
           menu.classList.add("vidply-menu-below");
+        } else {
+          menu.classList.remove("vidply-menu-below");
         }
-        const menuLeft = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
-        if (menuLeft < 10) {
+        let menuLeft = buttonCenterX - menuRect.width / 2;
+        let menuRight = "auto";
+        let transformX = "translateX(0)";
+        const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
+        if (menuLeftAbsolute < 10) {
+          menuLeft = 0;
+          transformX = "translateX(0)";
+        } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
+          menuLeft = "auto";
+          menuRight = 0;
+          transformX = "translateX(0)";
+        } else {
+          menuLeft = buttonCenterX;
+          transformX = "translateX(-50%)";
+        }
+        if (menuTop !== null) {
+          menu.style.top = `${menuTop}px`;
+          menu.style.bottom = "auto";
+        } else if (menuBottom !== null) {
+          menu.style.top = "auto";
+          menu.style.bottom = `${menuBottom}px`;
+        }
+        if (menuLeft !== "auto") {
+          menu.style.left = `${menuLeft}px`;
           menu.style.right = "auto";
-          menu.style.left = "0";
-          menu.style.transform = "translateX(0)";
-        } else if (menuLeft + menuRect.width > viewportWidth - 10) {
+        } else {
           menu.style.left = "auto";
-          menu.style.right = "0";
-          menu.style.transform = "translateX(0)";
+          menu.style.right = `${menuRight}px`;
         }
+        menu.style.transform = transformX;
       }, 0);
     }
     // Helper method to attach close-on-outside-click behavior to menus
@@ -1504,25 +1535,35 @@ var VidPly = (() => {
         switch (e.key) {
           case "ArrowDown":
             e.preventDefault();
+            e.stopPropagation();
             const nextIndex = (currentIndex + 1) % menuItems.length;
             menuItems[nextIndex].focus();
             break;
           case "ArrowUp":
             e.preventDefault();
+            e.stopPropagation();
             const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
             menuItems[prevIndex].focus();
             break;
+          case "ArrowLeft":
+          case "ArrowRight":
+            e.preventDefault();
+            e.stopPropagation();
+            break;
           case "Home":
             e.preventDefault();
+            e.stopPropagation();
             menuItems[0].focus();
             break;
           case "End":
             e.preventDefault();
+            e.stopPropagation();
             menuItems[menuItems.length - 1].focus();
             break;
           case "Enter":
           case " ":
             e.preventDefault();
+            e.stopPropagation();
             if (document.activeElement && menuItems.includes(document.activeElement)) {
               document.activeElement.click();
               setTimeout(() => {
@@ -1534,6 +1575,7 @@ var VidPly = (() => {
             break;
           case "Escape":
             e.preventDefault();
+            e.stopPropagation();
             this.closeMenuAndReturnFocus(menu, button);
             break;
         }
@@ -1920,6 +1962,8 @@ var VidPly = (() => {
       const volumeFill = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-volume-fill`
       });
+      const initialVolumePercent = this.player.state.volume * 100;
+      volumeFill.style.height = `${initialVolumePercent}%`;
       const volumeHandle = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-volume-handle`
       });
@@ -1957,7 +2001,7 @@ var VidPly = (() => {
       volumeMenu.addEventListener("click", (e) => {
         e.stopPropagation();
       });
-      button.appendChild(volumeMenu);
+      button.insertAdjacentElement("afterend", volumeMenu);
       this.controls.volumeSlider = volumeSlider;
       this.controls.volumeFill = volumeFill;
       this.attachMenuCloseHandler(volumeMenu, button, true);
@@ -2116,7 +2160,7 @@ var VidPly = (() => {
           }, 0);
         }
       }
-      button.appendChild(menu);
+      button.insertAdjacentElement("afterend", menu);
       this.attachMenuCloseHandler(menu, button);
     }
     createQualityButton() {
@@ -2232,7 +2276,7 @@ var VidPly = (() => {
         });
         menu.appendChild(noSupportItem);
       }
-      button.appendChild(menu);
+      button.insertAdjacentElement("afterend", menu);
       this.attachMenuCloseHandler(menu, button);
     }
     createCaptionStyleButton() {
@@ -2283,7 +2327,7 @@ var VidPly = (() => {
           style: { opacity: "0.5", cursor: "default", padding: "12px 16px" }
         });
         menu.appendChild(noTracksItem);
-        button.appendChild(menu);
+        button.insertAdjacentElement("afterend", menu);
         this.attachMenuCloseHandler(menu, button, true);
         return;
       }
@@ -2315,7 +2359,7 @@ var VidPly = (() => {
       const opacityGroup = this.createOpacityControl(i18n.t("styleLabels.opacity"), "captionsOpacity");
       menu.appendChild(opacityGroup);
       menu.style.minWidth = "220px";
-      button.appendChild(menu);
+      button.insertAdjacentElement("afterend", menu);
       this.attachMenuCloseHandler(menu, button, true);
       setTimeout(() => {
         const firstSelect = menu.querySelector("select");
@@ -2558,7 +2602,7 @@ var VidPly = (() => {
         });
         menu.appendChild(item);
       });
-      button.appendChild(menu);
+      button.insertAdjacentElement("afterend", menu);
       this.attachMenuKeyboardNavigation(menu, button);
       this.attachMenuCloseHandler(menu, button);
       setTimeout(() => {
@@ -2605,7 +2649,7 @@ var VidPly = (() => {
           style: { opacity: "0.5", cursor: "default" }
         });
         menu.appendChild(noTracksItem);
-        button.appendChild(menu);
+        button.insertAdjacentElement("afterend", menu);
         this.attachMenuCloseHandler(menu, button);
         return;
       }
@@ -2654,7 +2698,7 @@ var VidPly = (() => {
         });
         menu.appendChild(item);
       });
-      button.appendChild(menu);
+      button.insertAdjacentElement("afterend", menu);
       this.attachMenuKeyboardNavigation(menu, button);
       this.attachMenuCloseHandler(menu, button);
       setTimeout(() => {
@@ -2856,6 +2900,9 @@ var VidPly = (() => {
       const percent = this.player.state.volume * 100;
       if (this.controls.volumeFill) {
         this.controls.volumeFill.style.height = `${percent}%`;
+      }
+      if (this.controls.volumeSlider) {
+        this.controls.volumeSlider.setAttribute("aria-valuenow", String(Math.round(percent)));
       }
       if (this.controls.mute) {
         const icon = this.controls.mute.querySelector(".vidply-icon");
@@ -3162,8 +3209,6 @@ var VidPly = (() => {
       this.element = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-captions`,
         attributes: {
-          "aria-live": "polite",
-          "aria-atomic": "true",
           "role": "region",
           "aria-label": i18n.t("player.captions")
         }
@@ -3344,6 +3389,13 @@ var VidPly = (() => {
     handleKeydown(e) {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
         return;
+      }
+      const activeElement = document.activeElement;
+      if (activeElement) {
+        const menu = activeElement.closest('.vidply-menu, [role="menu"]');
+        if (menu) {
+          return;
+        }
       }
       const key = e.key;
       let handled = false;
@@ -3767,7 +3819,19 @@ var VidPly = (() => {
         const currentCssText = this.element.style.cssText;
         let newCssText = currentCssText.split(";").filter((rule) => {
           const trimmed = rule.trim();
-          return trimmed && !trimmed.startsWith("right:") && !trimmed.startsWith("bottom:") && !trimmed.startsWith("transform:") && !trimmed.startsWith("left:") && !trimmed.startsWith("top:") && !trimmed.startsWith("inset:");
+          if (!trimmed) return false;
+          const colonIndex = trimmed.indexOf(":");
+          if (colonIndex === -1) return false;
+          const property = trimmed.substring(0, colonIndex).trim();
+          const value = trimmed.substring(colonIndex + 1).trim();
+          if (!value || value === "") return false;
+          if (property === "right" || property === "bottom" || property === "transform" || property === "left" || property === "top" || property === "inset") {
+            return false;
+          }
+          if (property.startsWith("border-image")) {
+            return false;
+          }
+          return true;
         }).join("; ");
         if (newCssText) newCssText += "; ";
         newCssText += `left: ${targetLeft}px; top: ${targetTop}px; right: auto; bottom: auto; transform: none`;
@@ -4173,8 +4237,8 @@ var VidPly = (() => {
           this.player.controlBar.updateTranscriptButton();
         }
         this.setManagedTimeout(() => {
-          if (this.transcriptHeader) {
-            this.transcriptHeader.focus();
+          if (this.settingsButton) {
+            this.settingsButton.focus();
           }
         }, 150);
         return;
@@ -4187,8 +4251,8 @@ var VidPly = (() => {
           this.setManagedTimeout(() => this.positionTranscript(), 0);
         }
         this.setManagedTimeout(() => {
-          if (this.transcriptHeader) {
-            this.transcriptHeader.focus();
+          if (this.settingsButton) {
+            this.settingsButton.focus();
           }
         }, 150);
       }
@@ -4287,10 +4351,12 @@ var VidPly = (() => {
       this.autoscrollCheckbox = DOMUtils.createElement("input", {
         attributes: {
           "type": "checkbox",
-          "checked": this.autoscrollEnabled,
           "aria-label": i18n.t("transcript.autoscroll")
         }
       });
+      if (this.autoscrollEnabled) {
+        this.autoscrollCheckbox.checked = true;
+      }
       const autoscrollText = DOMUtils.createElement("span", {
         textContent: i18n.t("transcript.autoscroll"),
         className: `${this.player.options.classPrefix}-transcript-autoscroll-text`
@@ -4419,6 +4485,15 @@ var VidPly = (() => {
         this.transcriptWindow.style.transform = "none";
         this.transcriptWindow.style.border = "none";
         this.transcriptWindow.style.borderTop = "1px solid var(--vidply-border-light)";
+        this.transcriptWindow.style.removeProperty("border-right");
+        this.transcriptWindow.style.removeProperty("border-bottom");
+        this.transcriptWindow.style.removeProperty("border-left");
+        this.transcriptWindow.style.removeProperty("border-image");
+        this.transcriptWindow.style.removeProperty("border-image-source");
+        this.transcriptWindow.style.removeProperty("border-image-slice");
+        this.transcriptWindow.style.removeProperty("border-image-width");
+        this.transcriptWindow.style.removeProperty("border-image-outset");
+        this.transcriptWindow.style.removeProperty("border-image-repeat");
         this.transcriptWindow.style.boxShadow = "none";
         if (this.transcriptHeader) {
           this.transcriptHeader.style.cursor = "default";
@@ -4442,7 +4517,16 @@ var VidPly = (() => {
         this.transcriptWindow.style.maxWidth = "none";
         this.transcriptWindow.style.borderRadius = "8px";
         this.transcriptWindow.style.border = "1px solid var(--vidply-border)";
-        this.transcriptWindow.style.borderTop = "";
+        this.transcriptWindow.style.removeProperty("border-top");
+        this.transcriptWindow.style.removeProperty("border-right");
+        this.transcriptWindow.style.removeProperty("border-bottom");
+        this.transcriptWindow.style.removeProperty("border-left");
+        this.transcriptWindow.style.removeProperty("border-image");
+        this.transcriptWindow.style.removeProperty("border-image-source");
+        this.transcriptWindow.style.removeProperty("border-image-slice");
+        this.transcriptWindow.style.removeProperty("border-image-width");
+        this.transcriptWindow.style.removeProperty("border-image-outset");
+        this.transcriptWindow.style.removeProperty("border-image-repeat");
         if (this.transcriptWindow.parentNode !== this.player.container) {
           this.player.container.appendChild(this.transcriptWindow);
         }
@@ -4473,7 +4557,16 @@ var VidPly = (() => {
         this.transcriptWindow.style.maxWidth = "none";
         this.transcriptWindow.style.borderRadius = "8px";
         this.transcriptWindow.style.border = "1px solid var(--vidply-border)";
-        this.transcriptWindow.style.borderTop = "";
+        this.transcriptWindow.style.removeProperty("border-top");
+        this.transcriptWindow.style.removeProperty("border-right");
+        this.transcriptWindow.style.removeProperty("border-bottom");
+        this.transcriptWindow.style.removeProperty("border-left");
+        this.transcriptWindow.style.removeProperty("border-image");
+        this.transcriptWindow.style.removeProperty("border-image-source");
+        this.transcriptWindow.style.removeProperty("border-image-slice");
+        this.transcriptWindow.style.removeProperty("border-image-width");
+        this.transcriptWindow.style.removeProperty("border-image-outset");
+        this.transcriptWindow.style.removeProperty("border-image-repeat");
         if (this.transcriptHeader) {
           this.transcriptHeader.style.cursor = "move";
         }
@@ -4992,6 +5085,7 @@ var VidPly = (() => {
         if (this.settingsButton) {
           this.settingsButton.setAttribute("aria-expanded", "true");
         }
+        this.positionSettingsMenu();
         this.updateResizeOptionState();
         setTimeout(() => {
           const firstItem = this.settingsMenu.querySelector(`.${this.player.options.classPrefix}-transcript-settings-item`);
@@ -5008,7 +5102,8 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-transcript-settings-item`,
         attributes: {
           "type": "button",
-          "aria-label": i18n.t("transcript.keyboardDragMode")
+          "aria-label": i18n.t("transcript.keyboardDragMode"),
+          "tabindex": "-1"
         }
       });
       const keyboardIcon = createIconElement("move");
@@ -5025,7 +5120,8 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-transcript-settings-item`,
         attributes: {
           "type": "button",
-          "aria-label": i18n.t("transcript.styleTranscript")
+          "aria-label": i18n.t("transcript.styleTranscript"),
+          "tabindex": "-1"
         }
       });
       const styleIcon = createIconElement("settings");
@@ -5047,7 +5143,8 @@ var VidPly = (() => {
         attributes: {
           "type": "button",
           "aria-label": i18n.t("transcript.resizeWindow"),
-          "aria-pressed": "false"
+          "aria-pressed": "false",
+          "tabindex": "-1"
         }
       });
       const resizeIcon = createIconElement("resize");
@@ -5079,7 +5176,8 @@ var VidPly = (() => {
         className: `${this.player.options.classPrefix}-transcript-settings-item`,
         attributes: {
           "type": "button",
-          "aria-label": i18n.t("transcript.closeMenu")
+          "aria-label": i18n.t("transcript.closeMenu"),
+          "tabindex": "-1"
         }
       });
       const closeIcon = createIconElement("close");
@@ -5095,11 +5193,17 @@ var VidPly = (() => {
       this.settingsMenu.appendChild(resizeOption);
       this.settingsMenu.appendChild(styleOption);
       this.settingsMenu.appendChild(closeOption);
-      if (this.headerLeft) {
+      if (this.transcriptWindow) {
+        this.transcriptWindow.appendChild(this.settingsMenu);
+      } else if (this.settingsButton && this.settingsButton.parentNode) {
+        this.settingsButton.insertAdjacentElement("afterend", this.settingsMenu);
+      } else if (this.headerLeft) {
         this.headerLeft.appendChild(this.settingsMenu);
       } else {
         this.transcriptHeader.appendChild(this.settingsMenu);
       }
+      this.positionSettingsMenu();
+      this.attachSettingsMenuKeyboardNavigation();
       this.settingsMenuVisible = true;
       this.settingsMenu.style.display = "block";
       if (this.settingsButton) {
@@ -5107,11 +5211,138 @@ var VidPly = (() => {
       }
       this.updateResizeOptionState();
       setTimeout(() => {
-        const firstItem = this.settingsMenu.querySelector(`.${this.player.options.classPrefix}-transcript-settings-item`);
-        if (firstItem) {
-          firstItem.focus();
+        const menuItems = Array.from(this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`));
+        if (menuItems.length > 0) {
+          menuItems.forEach((item, index) => {
+            item.setAttribute("tabindex", index === 0 ? "0" : "-1");
+          });
+          menuItems[0].focus();
         }
       }, 0);
+    }
+    /**
+     * Position settings menu relative to settings button
+     */
+    positionSettingsMenu() {
+      if (!this.settingsMenu || !this.settingsButton || !this.transcriptWindow) return;
+      setTimeout(() => {
+        const buttonRect = this.settingsButton.getBoundingClientRect();
+        const menuRect = this.settingsMenu.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const windowRect = this.transcriptWindow.getBoundingClientRect();
+        const buttonRight = buttonRect.right - windowRect.left;
+        const buttonLeft = buttonRect.left - windowRect.left;
+        const buttonTop = buttonRect.top - windowRect.top;
+        const buttonBottom = buttonRect.bottom - windowRect.top;
+        const spaceAbove = buttonRect.top;
+        const spaceBelow = viewportHeight - buttonRect.bottom;
+        let menuTop = buttonBottom + 8;
+        let menuBottom = null;
+        if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
+          menuTop = null;
+          const windowHeight = windowRect.bottom - windowRect.top;
+          menuBottom = windowHeight - buttonTop + 8;
+          this.settingsMenu.classList.add("vidply-menu-above");
+        } else {
+          this.settingsMenu.classList.remove("vidply-menu-above");
+        }
+        let menuRight = windowRect.right - buttonRect.right;
+        let menuLeft = "auto";
+        const menuLeftAbsolute = buttonRect.right - menuRect.width;
+        if (menuLeftAbsolute < 10) {
+          menuRight = "auto";
+          menuLeft = buttonLeft;
+        } else if (buttonRect.right > viewportWidth - 10) {
+          menuRight = windowRect.right - viewportWidth + 10;
+          menuLeft = "auto";
+        }
+        if (menuTop !== null) {
+          this.settingsMenu.style.top = `${menuTop}px`;
+          this.settingsMenu.style.bottom = "auto";
+        } else if (menuBottom !== null) {
+          this.settingsMenu.style.top = "auto";
+          this.settingsMenu.style.bottom = `${menuBottom}px`;
+        }
+        if (menuLeft !== "auto") {
+          this.settingsMenu.style.left = `${menuLeft}px`;
+          this.settingsMenu.style.right = "auto";
+        } else {
+          this.settingsMenu.style.left = "auto";
+          this.settingsMenu.style.right = `${menuRight}px`;
+        }
+      }, 0);
+    }
+    /**
+     * Attach keyboard navigation to settings menu
+     */
+    attachSettingsMenuKeyboardNavigation() {
+      if (!this.settingsMenu) return;
+      const menuItems = Array.from(this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`));
+      if (menuItems.length === 0) return;
+      const handleKeyDown = (e) => {
+        const currentIndex = menuItems.indexOf(document.activeElement);
+        switch (e.key) {
+          case "ArrowDown":
+            e.preventDefault();
+            e.stopPropagation();
+            const nextIndex = (currentIndex + 1) % menuItems.length;
+            menuItems.forEach((item, idx) => {
+              item.setAttribute("tabindex", idx === nextIndex ? "0" : "-1");
+            });
+            menuItems[nextIndex].focus();
+            break;
+          case "ArrowUp":
+            e.preventDefault();
+            e.stopPropagation();
+            const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
+            menuItems.forEach((item, idx) => {
+              item.setAttribute("tabindex", idx === prevIndex ? "0" : "-1");
+            });
+            menuItems[prevIndex].focus();
+            break;
+          case "Home":
+            e.preventDefault();
+            e.stopPropagation();
+            menuItems.forEach((item, idx) => {
+              item.setAttribute("tabindex", idx === 0 ? "0" : "-1");
+            });
+            menuItems[0].focus();
+            break;
+          case "End":
+            e.preventDefault();
+            e.stopPropagation();
+            const lastIndex = menuItems.length - 1;
+            menuItems.forEach((item, idx) => {
+              item.setAttribute("tabindex", idx === lastIndex ? "0" : "-1");
+            });
+            menuItems[lastIndex].focus();
+            break;
+          case "Enter":
+          case " ":
+            e.preventDefault();
+            e.stopPropagation();
+            if (document.activeElement && menuItems.includes(document.activeElement)) {
+              document.activeElement.click();
+              setTimeout(() => {
+                if (this.settingsButton && document.contains(this.settingsButton)) {
+                  this.settingsButton.focus();
+                }
+              }, 0);
+            }
+            break;
+          case "Escape":
+            e.preventDefault();
+            e.stopPropagation();
+            this.hideSettingsMenu({ focusButton: true });
+            break;
+        }
+      };
+      if (this.settingsMenuKeyHandler) {
+        this.settingsMenu.removeEventListener("keydown", this.settingsMenuKeyHandler);
+      }
+      this.settingsMenuKeyHandler = handleKeyDown;
+      this.settingsMenu.addEventListener("keydown", this.settingsMenuKeyHandler);
     }
     /**
      * Hide settings menu
@@ -6343,6 +6574,8 @@ var VidPly = (() => {
       this.originalSrc = null;
       this.audioDescriptionSrc = this.options.audioDescriptionSrc;
       this.signLanguageSrc = this.options.signLanguageSrc;
+      this.signLanguageSources = this.options.signLanguageSources || {};
+      this.currentSignLanguage = null;
       this.signLanguageVideo = null;
       this.audioDescriptionSourceElement = null;
       this.originalAudioDescriptionSource = null;
@@ -7744,7 +7977,10 @@ var VidPly = (() => {
     }
     // Sign Language
     enableSignLanguage() {
-      if (!this.signLanguageSrc) {
+      var _a;
+      const hasMultipleSources = Object.keys(this.signLanguageSources).length > 0;
+      const hasSingleSource = !!this.signLanguageSrc;
+      if (!hasMultipleSources && !hasSingleSource) {
         console.warn("No sign language video source provided");
         return;
       }
@@ -7754,24 +7990,113 @@ var VidPly = (() => {
         this.emit("signlanguageenabled");
         return;
       }
+      let initialLang = null;
+      let initialSrc = null;
+      if (hasMultipleSources) {
+        if (this.captionManager && this.captionManager.currentTrack) {
+          const captionLang = (_a = this.captionManager.currentTrack.language) == null ? void 0 : _a.toLowerCase().split("-")[0];
+          if (captionLang && this.signLanguageSources[captionLang]) {
+            initialLang = captionLang;
+            initialSrc = this.signLanguageSources[captionLang];
+          }
+        }
+        if (!initialLang && this.options.language) {
+          const playerLang = this.options.language.toLowerCase().split("-")[0];
+          if (this.signLanguageSources[playerLang]) {
+            initialLang = playerLang;
+            initialSrc = this.signLanguageSources[playerLang];
+          }
+        }
+        if (!initialLang) {
+          initialLang = Object.keys(this.signLanguageSources)[0];
+          initialSrc = this.signLanguageSources[initialLang];
+        }
+        this.currentSignLanguage = initialLang;
+      } else {
+        initialSrc = this.signLanguageSrc;
+      }
       this.signLanguageWrapper = document.createElement("div");
       this.signLanguageWrapper.className = "vidply-sign-language-wrapper";
       this.signLanguageWrapper.setAttribute("tabindex", "0");
-      this.signLanguageWrapper.setAttribute("aria-label", "Sign Language Video - Press D to drag with keyboard, R to resize");
+      this.signLanguageWrapper.setAttribute("aria-label", i18n.t("player.signLanguageDragResize"));
+      this.signLanguageHeader = DOMUtils.createElement("div", {
+        className: `${this.options.classPrefix}-sign-language-header`,
+        attributes: {
+          "tabindex": "0"
+        }
+      });
+      const headerLeft = DOMUtils.createElement("div", {
+        className: `${this.options.classPrefix}-sign-language-header-left`
+      });
+      const title = DOMUtils.createElement("h3", {
+        textContent: i18n.t("player.signLanguageVideo")
+      });
+      this.signLanguageSelector = null;
+      if (hasMultipleSources) {
+        this.signLanguageSelector = DOMUtils.createElement("select", {
+          className: `${this.options.classPrefix}-sign-language-select`,
+          attributes: {
+            "aria-label": i18n.t("settings.language") || "Sign Language",
+            "style": "display: block;"
+          }
+        });
+        Object.keys(this.signLanguageSources).forEach((langCode) => {
+          const option = DOMUtils.createElement("option", {
+            textContent: this.getSignLanguageLabel(langCode),
+            attributes: {
+              "value": langCode
+            }
+          });
+          if (langCode === initialLang) {
+            option.setAttribute("selected", "selected");
+          }
+          this.signLanguageSelector.appendChild(option);
+        });
+        this.signLanguageSelector.addEventListener("change", (e) => {
+          const selectedLang = e.target.value;
+          this.switchSignLanguage(selectedLang);
+        });
+        headerLeft.appendChild(this.signLanguageSelector);
+      }
+      headerLeft.appendChild(title);
+      const closeButton = DOMUtils.createElement("button", {
+        className: `${this.options.classPrefix}-sign-language-close`,
+        attributes: {
+          "type": "button",
+          "aria-label": i18n.t("transcript.close") || "Close sign language video"
+        }
+      });
+      closeButton.appendChild(createIconElement("close"));
+      closeButton.addEventListener("click", () => {
+        this.disableSignLanguage();
+        if (this.controlBar && this.controlBar.controls && this.controlBar.controls.signLanguage) {
+          setTimeout(() => {
+            this.controlBar.controls.signLanguage.focus();
+          }, 0);
+        }
+      });
+      this.signLanguageHeader.appendChild(headerLeft);
+      this.signLanguageHeader.appendChild(closeButton);
       this.signLanguageVideo = document.createElement("video");
       this.signLanguageVideo.className = "vidply-sign-language-video";
-      this.signLanguageVideo.src = this.signLanguageSrc;
+      this.signLanguageVideo.src = initialSrc;
       this.signLanguageVideo.setAttribute("aria-label", i18n.t("player.signLanguage"));
       this.signLanguageVideo.muted = true;
-      const resizeHandles = ["nw", "ne", "sw", "se"].map((dir) => {
-        const handle = document.createElement("div");
-        handle.className = `vidply-sign-resize-handle vidply-sign-resize-${dir}`;
-        handle.setAttribute("data-direction", dir);
-        handle.setAttribute("aria-label", `Resize ${dir.toUpperCase()}`);
+      this.signLanguageResizeHandles = ["n", "s", "e", "w", "ne", "nw", "se", "sw"].map((dir) => {
+        const handle = DOMUtils.createElement("div", {
+          className: `${this.options.classPrefix}-sign-resize-handle ${this.options.classPrefix}-sign-resize-${dir}`,
+          attributes: {
+            "data-direction": dir,
+            "data-vidply-managed-resize": "true",
+            "aria-hidden": "true"
+          }
+        });
+        handle.style.display = "none";
         return handle;
       });
+      this.signLanguageWrapper.appendChild(this.signLanguageHeader);
       this.signLanguageWrapper.appendChild(this.signLanguageVideo);
-      resizeHandles.forEach((handle) => this.signLanguageWrapper.appendChild(handle));
+      this.signLanguageResizeHandles.forEach((handle) => this.signLanguageWrapper.appendChild(handle));
       const saved = this.storage.getSignLanguagePreferences();
       if (saved && saved.size && saved.size.width) {
         this.signLanguageWrapper.style.width = saved.size.width;
@@ -7815,6 +8140,19 @@ var VidPly = (() => {
       this.on("pause", this.signLanguageHandlers.pause);
       this.on("timeupdate", this.signLanguageHandlers.timeupdate);
       this.on("ratechange", this.signLanguageHandlers.ratechange);
+      if (hasMultipleSources) {
+        this.signLanguageHandlers.captionChange = () => {
+          var _a2;
+          if (this.captionManager && this.captionManager.currentTrack && this.signLanguageSelector) {
+            const captionLang = (_a2 = this.captionManager.currentTrack.language) == null ? void 0 : _a2.toLowerCase().split("-")[0];
+            if (captionLang && this.signLanguageSources[captionLang] && this.currentSignLanguage !== captionLang) {
+              this.switchSignLanguage(captionLang);
+              this.signLanguageSelector.value = captionLang;
+            }
+          }
+        };
+        this.on("captionsenabled", this.signLanguageHandlers.captionChange);
+      }
       this.state.signLanguageEnabled = true;
       this.emit("signlanguageenabled");
     }
@@ -7834,26 +8172,142 @@ var VidPly = (() => {
     }
     setupSignLanguageInteraction() {
       if (!this.signLanguageWrapper) return;
-      const resizeHandles = Array.from(this.signLanguageWrapper.querySelectorAll(".vidply-sign-resize-handle"));
       this.signLanguageDraggable = new DraggableResizable(this.signLanguageWrapper, {
-        dragHandle: this.signLanguageVideo,
-        resizeHandles,
+        dragHandle: this.signLanguageHeader,
+        resizeHandles: this.signLanguageResizeHandles,
         constrainToViewport: true,
         maintainAspectRatio: true,
         minWidth: 150,
         minHeight: 100,
-        classPrefix: "vidply-sign",
+        classPrefix: `${this.options.classPrefix}-sign`,
         keyboardDragKey: "d",
         keyboardResizeKey: "r",
-        keyboardStep: 5,
-        keyboardStepLarge: 10
+        keyboardStep: 10,
+        keyboardStepLarge: 50,
+        pointerResizeIndicatorText: i18n.t("player.signLanguageResizeActive"),
+        onPointerResizeToggle: (enabled) => {
+          this.signLanguageResizeHandles.forEach((handle) => {
+            handle.style.display = enabled ? "block" : "none";
+          });
+        },
+        onDragStart: (e) => {
+          if (e.target.closest(`.${this.options.classPrefix}-sign-language-close`)) {
+            return false;
+          }
+          return true;
+        }
       });
-      this.signLanguageInteractionHandlers = {
-        draggable: this.signLanguageDraggable
+      this.signLanguageCustomKeyHandler = (e) => {
+        const key = e.key.toLowerCase();
+        if (key === "home") {
+          e.preventDefault();
+          e.stopPropagation();
+          if (this.signLanguageDraggable) {
+            if (this.signLanguageDraggable.pointerResizeMode) {
+              this.signLanguageDraggable.disablePointerResizeMode();
+            }
+            this.signLanguageDraggable.manuallyPositioned = false;
+            this.constrainSignLanguagePosition();
+          }
+          return;
+        }
+        if (key === "r") {
+          e.preventDefault();
+          e.stopPropagation();
+          const enabled = this.toggleSignLanguageResizeMode();
+          if (enabled) {
+            this.signLanguageWrapper.focus();
+          }
+          return;
+        }
+        if (key === "escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          if (this.signLanguageDraggable && this.signLanguageDraggable.pointerResizeMode) {
+            this.signLanguageDraggable.disablePointerResizeMode();
+            return;
+          }
+          if (this.signLanguageDraggable && this.signLanguageDraggable.keyboardDragMode) {
+            this.signLanguageDraggable.disableKeyboardDragMode();
+            return;
+          }
+          this.disableSignLanguage();
+          if (this.controlBar && this.controlBar.controls && this.controlBar.controls.signLanguage) {
+            setTimeout(() => {
+              this.controlBar.controls.signLanguage.focus();
+            }, 0);
+          }
+          return;
+        }
       };
+      this.signLanguageWrapper.addEventListener("keydown", this.signLanguageCustomKeyHandler);
+      this.signLanguageInteractionHandlers = {
+        draggable: this.signLanguageDraggable,
+        headerKeyHandler: this.signLanguageHeaderKeyHandler,
+        customKeyHandler: this.signLanguageCustomKeyHandler
+      };
+    }
+    toggleSignLanguageKeyboardDragMode() {
+      if (this.signLanguageDraggable) {
+        const wasEnabled = this.signLanguageDraggable.keyboardDragMode;
+        this.signLanguageDraggable.toggleKeyboardDragMode();
+        const isEnabled = this.signLanguageDraggable.keyboardDragMode;
+        if (!wasEnabled && isEnabled) {
+          this.enableSignLanguageMoveMode();
+        }
+      }
+    }
+    enableSignLanguageMoveMode() {
+      this.signLanguageWrapper.classList.add(`${this.options.classPrefix}-sign-move-mode`);
+      setTimeout(() => {
+        this.signLanguageWrapper.classList.remove(`${this.options.classPrefix}-sign-move-mode`);
+      }, 2e3);
+    }
+    toggleSignLanguageResizeMode({ focus = true } = {}) {
+      if (!this.signLanguageDraggable) {
+        return false;
+      }
+      if (this.signLanguageDraggable.pointerResizeMode) {
+        this.signLanguageDraggable.disablePointerResizeMode({ focus });
+        return false;
+      }
+      this.signLanguageDraggable.enablePointerResizeMode({ focus });
+      return true;
+    }
+    getSignLanguageLabel(langCode) {
+      const langNames = {
+        "en": "English",
+        "de": "Deutsch",
+        "es": "Espa\xF1ol",
+        "fr": "Fran\xE7ais",
+        "it": "Italiano",
+        "ja": "\u65E5\u672C\u8A9E",
+        "pt": "Portugu\xEAs",
+        "ar": "\u0627\u0644\u0639\u0631\u0628\u064A\u0629",
+        "hi": "\u0939\u093F\u0928\u094D\u0926\u0940"
+      };
+      return langNames[langCode] || langCode.toUpperCase();
+    }
+    switchSignLanguage(langCode) {
+      if (!this.signLanguageSources[langCode] || !this.signLanguageVideo) {
+        return;
+      }
+      const currentTime = this.signLanguageVideo.currentTime;
+      const wasPlaying = !this.signLanguageVideo.paused;
+      this.signLanguageVideo.src = this.signLanguageSources[langCode];
+      this.currentSignLanguage = langCode;
+      this.signLanguageVideo.currentTime = currentTime;
+      if (wasPlaying) {
+        this.signLanguageVideo.play().catch(() => {
+        });
+      }
+      this.emit("signlanguagelanguagechanged", langCode);
     }
     constrainSignLanguagePosition() {
       if (!this.signLanguageWrapper || !this.videoWrapper) return;
+      if (this.signLanguageDraggable && this.signLanguageDraggable.manuallyPositioned) {
+        return;
+      }
       if (!this.signLanguageWrapper.style.width || this.signLanguageWrapper.style.width === "") {
         this.signLanguageWrapper.style.width = "280px";
       }
@@ -7914,9 +8368,23 @@ var VidPly = (() => {
         this.off("pause", this.signLanguageHandlers.pause);
         this.off("timeupdate", this.signLanguageHandlers.timeupdate);
         this.off("ratechange", this.signLanguageHandlers.ratechange);
+        if (this.signLanguageHandlers.captionChange) {
+          this.off("captionsenabled", this.signLanguageHandlers.captionChange);
+        }
         this.signLanguageHandlers = null;
       }
+      if (this.signLanguageInteractionHandlers) {
+        if (this.signLanguageHeader && this.signLanguageInteractionHandlers.headerKeyHandler) {
+          this.signLanguageHeader.removeEventListener("keydown", this.signLanguageInteractionHandlers.headerKeyHandler);
+        }
+        if (this.signLanguageWrapper && this.signLanguageInteractionHandlers.customKeyHandler) {
+          this.signLanguageWrapper.removeEventListener("keydown", this.signLanguageInteractionHandlers.customKeyHandler);
+        }
+      }
       if (this.signLanguageDraggable) {
+        if (this.signLanguageDraggable.pointerResizeMode) {
+          this.signLanguageDraggable.disablePointerResizeMode();
+        }
         this.signLanguageDraggable.destroy();
         this.signLanguageDraggable = null;
       }
@@ -8987,6 +9455,22 @@ var VidPly = (() => {
         }
       }
     });
+    const signLanguageSources = {};
+    Object.keys(dataset).forEach((key) => {
+      if (key.startsWith("signLanguageSrc") && key !== "signLanguageSrc") {
+        const langMatch = key.match(/^signLanguageSrc([A-Z][a-z]*)$/);
+        if (langMatch) {
+          const langCode = langMatch[1].toLowerCase();
+          signLanguageSources[langCode] = dataset[key];
+        }
+      }
+    });
+    if (Object.keys(signLanguageSources).length > 0) {
+      options.signLanguageSources = signLanguageSources;
+      if (dataset.signLanguageSrc && !options.signLanguageSrc) {
+        options.signLanguageSrc = dataset.signLanguageSrc;
+      }
+    }
     if (dataset.vidplyLanguageFiles) {
       try {
         options.languageFiles = JSON.parse(dataset.vidplyLanguageFiles);

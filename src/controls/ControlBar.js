@@ -453,7 +453,10 @@ export class ControlBar {
     }
 
     hasSignLanguage() {
-        return this.player.signLanguageSrc && this.player.signLanguageSrc.length > 0;
+        // Check for single source or multiple sources
+        const hasSingleSource = this.player.signLanguageSrc && this.player.signLanguageSrc.length > 0;
+        const hasMultipleSources = this.player.signLanguageSources && Object.keys(this.player.signLanguageSources).length > 0;
+        return hasSingleSource || hasMultipleSources;
     }
 
     createProgressBar() {
