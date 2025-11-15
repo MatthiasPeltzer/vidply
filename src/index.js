@@ -79,6 +79,29 @@ function parseDataAttributes(dataset) {
     }
   });
   
+  // Parse sign language sources with language codes (e.g., data-sign-language-src-en, data-sign-language-src-de)
+  // In dataset, hyphens become camelCase: data-sign-language-src-en -> signLanguageSrcEn
+  const signLanguageSources = {};
+  Object.keys(dataset).forEach(key => {
+    if (key.startsWith('signLanguageSrc') && key !== 'signLanguageSrc') {
+      // Extract language code from key (e.g., 'signLanguageSrcEn' -> 'en', 'signLanguageSrcDe' -> 'de')
+      // Handle both single and multi-word language codes
+      const langMatch = key.match(/^signLanguageSrc([A-Z][a-z]*)$/);
+      if (langMatch) {
+        const langCode = langMatch[1].toLowerCase();
+        signLanguageSources[langCode] = dataset[key];
+      }
+    }
+  });
+  
+  if (Object.keys(signLanguageSources).length > 0) {
+    options.signLanguageSources = signLanguageSources;
+    // If there's also a single signLanguageSrc, use it as default/fallback
+    if (dataset.signLanguageSrc && !options.signLanguageSrc) {
+      options.signLanguageSrc = dataset.signLanguageSrc;
+    }
+  }
+  
   // Handle language file attributes
   // Support for multiple language files: data-vidply-language-files='{"pt": "path/to/pt.json", "it": "path/to/it.json"}'
   if (dataset.vidplyLanguageFiles) {

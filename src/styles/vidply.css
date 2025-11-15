@@ -1592,6 +1592,8 @@
     z-index: 5;
 }
 
+/* Ensure transcript window is a positioning context for menus (fixed also creates positioning context) */
+
 /* Minimum height for audio player transcript */
 .vidply-player.vidply-audio .vidply-transcript-window {
     min-height: 200px;
@@ -1773,6 +1775,10 @@
     position: relative;
 }
 
+.vidply-transcript-header {
+    position: relative;
+}
+
 /* Transcript Autoscroll Checkbox */
 .vidply-transcript-autoscroll-label {
     align-items: center;
@@ -1868,11 +1874,9 @@
     border-radius: 6px;
     box-shadow: var(--vidply-shadow-lg);
     display: none;
-    left: 0;
     min-width: 240px;
     padding: 6px;
     position: absolute;
-    top: calc(100% + 4px);
     z-index: 100;
 }
 
@@ -1883,9 +1887,17 @@
     bottom: 100%;
     content: '';
     height: 0;
-    left: 14px;
     position: absolute;
+    right: 8px;
     width: 0;
+}
+
+/* Menu positioned above button */
+.vidply-transcript-settings-menu.vidply-menu-above::after {
+    border-bottom: none;
+    border-top: 6px solid var(--vidply-bg-menu);
+    bottom: auto;
+    top: 100%;
 }
 
 /* Transcript Settings Menu Items */
@@ -2323,9 +2335,11 @@
 /* Sign Language Video Wrapper */
 .vidply-sign-language-wrapper {
     background: transparent;
+    border-radius: 8px;
     height: auto;
     max-width: none;
     min-height: 100px;
+    overflow: hidden;
     position: absolute;
     transition: opacity 0.3s ease;
     width: 280px;
@@ -2341,27 +2355,238 @@
     outline-offset: 2px;
 }
 
+/* Sign Language Header */
+.vidply-sign-language-header {
+    align-items: center;
+    background: #282828;
+    border-bottom: 1px solid var(--vidply-border-light);
+    border-radius: 8px 8px 0 0;
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 20px;
+    user-select: none;
+}
+
+.vidply-sign-language-header:focus,
+.vidply-sign-language-header:focus-visible {
+    box-shadow: 0 0 0 4px rgb(91 144 255 / 35%);
+    outline: 3px solid var(--vidply-primary-light);
+    outline-offset: 2px;
+}
+
+.vidply-sign-language-header-left {
+    align-items: center;
+    display: flex;
+    gap: 16px;
+    position: relative;
+}
+
+.vidply-sign-language-select {
+    background: var(--vidply-bg-menu);
+    border: 1px solid var(--vidply-border);
+    border-radius: 4px;
+    color: var(--vidply-text);
+    font-size: 14px;
+    padding: 4px 8px;
+}
+
+.vidply-sign-language-select:focus {
+    outline: var(--vidply-focus-outline);
+    outline-offset: 2px;
+}
+
+.vidply-sign-language-header h3 {
+    /* Visually hidden but accessible to screen readers */
+    color: var(--vidply-white);
+    font-size: 16px;
+    font-weight: 600;
+    height: 1px;
+    left: -10000px;
+    margin: 0;
+    overflow: hidden;
+    position: absolute;
+    width: 1px;
+}
+
+.vidply-sign-language-close {
+    align-items: center;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--vidply-text-muted);
+    cursor: pointer;
+    display: flex;
+    height: 28px;
+    justify-content: center;
+    padding: 4px;
+    transition: var(--vidply-transition-default);
+    width: 28px;
+}
+
+.vidply-sign-language-close:hover {
+    background: var(--vidply-white-10);
+    color: var(--vidply-white);
+}
+
+.vidply-sign-language-close:focus {
+    outline: var(--vidply-focus-outline-white);
+    outline-offset: 2px;
+}
+
+.vidply-sign-language-close .vidply-icon {
+    height: 18px;
+    width: 18px;
+}
+
 /* Sign Language Video */
 .vidply-sign-language-video {
     background: var(--vidply-black);
     border: 2px solid var(--vidply-white-30);
-    border-radius: 4px;
+    border-radius: 0 0 8px 8px;
+    border-top: none;
     box-shadow: 0 4px 12px var(--vidply-black-60);
-    cursor: move;
+    cursor: default;
     display: block;
     height: auto;
     pointer-events: auto;
     width: 100%;
 }
 
+/* Sign Language Resize Handles */
+.vidply-sign-resize-handle {
+    background: var(--vidply-white);
+    border: 1px solid var(--vidply-black-30);
+    border-radius: 50%;
+    height: 12px;
+    opacity: 0;
+    position: absolute;
+    transition: opacity 0.2s ease, background 0.2s ease;
+    width: 12px;
+    z-index: 10;
+}
+
+/* Only show resize handles when resize mode is active */
+.vidply-sign-resizable .vidply-sign-resize-handle {
+    opacity: 1;
+}
+
+.vidply-sign-resize-handle:hover {
+    background: var(--vidply-primary);
+}
+
+/* Corner handles - larger hit area */
+.vidply-sign-resize-ne,
+.vidply-sign-resize-nw,
+.vidply-sign-resize-se,
+.vidply-sign-resize-sw {
+    height: 16px;
+    width: 16px;
+}
+
+/* Edge handles */
+.vidply-sign-resize-n,
+.vidply-sign-resize-s {
+    cursor: ns-resize;
+    height: 8px;
+    left: 16px;
+    right: 16px;
+}
+
+.vidply-sign-resize-e,
+.vidply-sign-resize-w {
+    bottom: 16px;
+    cursor: ew-resize;
+    top: 16px;
+    width: 8px;
+}
+
+/* Position each handle */
+.vidply-sign-resize-n {
+    top: -4px;
+}
+
+.vidply-sign-resize-s {
+    bottom: -4px;
+}
+
+.vidply-sign-resize-e {
+    right: -4px;
+}
+
+.vidply-sign-resize-w {
+    left: -4px;
+}
+
+.vidply-sign-resize-ne {
+    cursor: nesw-resize;
+    right: -8px;
+    top: -8px;
+}
+
+.vidply-sign-resize-nw {
+    cursor: nwse-resize;
+    left: -8px;
+    top: -8px;
+}
+
+.vidply-sign-resize-se {
+    bottom: -8px;
+    cursor: nwse-resize;
+    right: -8px;
+}
+
+.vidply-sign-resize-sw {
+    bottom: -8px;
+    cursor: nesw-resize;
+    left: -8px;
+}
+
+/* Visual indicator for resize handles when active */
+.vidply-sign-resizable .vidply-sign-resize-handle::after {
+    background: var(--vidply-primary-light);
+    border-radius: 50%;
+    content: '';
+    height: 6px;
+    left: 50%;
+    opacity: 0;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.2s ease;
+    width: 6px;
+}
+
+.vidply-sign-resizable:hover .vidply-sign-resize-handle::after {
+    opacity: 0.8;
+}
+
+.vidply-sign-resizable .vidply-sign-resize-handle:hover::after {
+    opacity: 1;
+}
+
 /* Dragging and Resizing States */
-.vidply-sign-dragging .vidply-sign-language-video {
+.vidply-sign-dragging .vidply-sign-language-header {
     cursor: grabbing !important;
+}
+
+.vidply-sign-dragging .vidply-sign-language-video {
     opacity: 0.9;
 }
 
 .vidply-sign-resizing .vidply-sign-language-video {
     cursor: nwse-resize !important;
+}
+
+/* Move Mode */
+.vidply-sign-move-mode {
+    box-shadow: 0 0 0 2px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+}
+
+/* Resizing State */
+.vidply-sign-resizing {
+    box-shadow: 0 0 0 2px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+    transition: none !important;
 }
 
 /* Keyboard Drag/Resize Modes */
@@ -2396,52 +2621,6 @@
 
 .vidply-sign-keyboard-resize::after {
     content: 'RESIZE MODE (Arrow keys to resize, ESC to exit)';
-}
-
-/* Resize Handles */
-.vidply-sign-resize-handle {
-    background: var(--vidply-white);
-    border: 1px solid var(--vidply-black-30);
-    border-radius: 50%;
-    height: 12px;
-    opacity: 0;
-    position: absolute;
-    transition: opacity 0.2s ease, background 0.2s ease;
-    width: 12px;
-    z-index: 10;
-}
-
-.vidply-sign-language-wrapper:hover .vidply-sign-resize-handle,
-.vidply-sign-language-wrapper:focus .vidply-sign-resize-handle {
-    opacity: 1;
-}
-
-.vidply-sign-resize-handle:hover {
-    background: var(--vidply-primary);
-}
-
-.vidply-sign-resize-nw {
-    cursor: nwse-resize;
-    left: -6px;
-    top: -6px;
-}
-
-.vidply-sign-resize-ne {
-    cursor: nesw-resize;
-    right: -6px;
-    top: -6px;
-}
-
-.vidply-sign-resize-sw {
-    bottom: -6px;
-    cursor: nesw-resize;
-    left: -6px;
-}
-
-.vidply-sign-resize-se {
-    bottom: -6px;
-    cursor: nwse-resize;
-    right: -6px;
 }
 
 /* Sign Language Video Positions */
