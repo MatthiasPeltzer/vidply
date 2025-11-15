@@ -17,6 +17,7 @@ import {createPlayOverlay, createIconElement} from '../icons/Icons.js';
 import {i18n} from '../i18n/i18n.js';
 import {StorageManager} from '../utils/StorageManager.js';
 import {DraggableResizable} from '../utils/DraggableResizable.js';
+import {createMenuItem, attachMenuKeyboardNavigation, focusFirstMenuItem} from '../utils/MenuUtils.js';
 
 export class Player extends EventEmitter {
     constructor(element, options = {}) {
@@ -2248,6 +2249,15 @@ export class Player extends EventEmitter {
             settingsClick: (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                // Stop the document click handler from interfering
+                if (this.signLanguageDocumentClickHandler) {
+                    // Temporarily disable document click handler
+                    const wasJustOpened = this.signLanguageSettingsMenuJustOpened;
+                    this.signLanguageSettingsMenuJustOpened = true;
+                    setTimeout(() => {
+                        this.signLanguageSettingsMenuJustOpened = wasJustOpened;
+                    }, 100);
+                }
                 if (this.signLanguageSettingsMenuVisible) {
                     this.hideSignLanguageSettingsMenu();
                 } else {
@@ -2687,8 +2697,9 @@ export class Player extends EventEmitter {
                     return;
                 }
                 
-                // Ignore clicks on the settings button itself
-                if (this.signLanguageSettingsButton && this.signLanguageSettingsButton.contains(e.target)) {
+                // Ignore clicks on the settings button itself or its children
+                if (this.signLanguageSettingsButton && 
+                    (this.signLanguageSettingsButton === e.target || this.signLanguageSettingsButton.contains(e.target))) {
                     return;
                 }
                 
@@ -2703,7 +2714,7 @@ export class Player extends EventEmitter {
                 }
             };
             setTimeout(() => {
-                document.addEventListener('click', this.signLanguageDocumentClickHandler);
+                document.addEventListener('mousedown', this.signLanguageDocumentClickHandler, true); // Use mousedown in capture phase
                 this.signLanguageDocumentClickHandlerAdded = true;
             }, 300);
         }
@@ -2713,6 +2724,15 @@ export class Player extends EventEmitter {
             this.signLanguageSettingsMenuVisible = true;
             if (this.signLanguageSettingsButton) {
                 this.signLanguageSettingsButton.setAttribute('aria-expanded', 'true');
+            }
+            // Ensure keyboard navigation is attached
+            if (!this.signLanguageSettingsMenuKeyHandler) {
+                this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
+                    this.signLanguageSettingsMenu,
+                    this.signLanguageSettingsButton,
+                    `.${this.options.classPrefix}-sign-language-settings-item`,
+                    () => this.hideSignLanguageSettingsMenu({ focusButton: true })
+                );
             }
             // Reposition menu in case window was moved (async for repositioning)
             this.positionSignLanguageSettingsMenu();
@@ -2766,7 +2786,7 @@ export class Player extends EventEmitter {
         });
         resizeOption.setAttribute('aria-pressed', 'false');
         this.signLanguageResizeOptionButton = resizeOption;
-        this.signLanguageResizeOptionText = resizeOption.querySelector('span');
+        this.signLanguageResizeOptionText = resizeOption.querySelector(`.${this.options.classPrefix}-settings-text`);
         this.updateSignLanguageResizeOptionState();
 
         // Close option
@@ -2789,11 +2809,12 @@ export class Player extends EventEmitter {
         this.signLanguageSettingsMenu.style.visibility = 'hidden';
         this.signLanguageSettingsMenu.style.display = 'block';
         
-        // Append menu to sign language wrapper for proper positioning (like transcript menu)
-        if (this.signLanguageWrapper) {
-            this.signLanguageWrapper.appendChild(this.signLanguageSettingsMenu);
-        } else if (this.signLanguageSettingsButton && this.signLanguageSettingsButton.parentNode) {
+        // Insert menu right after the button in the DOM (like control bar menus)
+        if (this.signLanguageSettingsButton && this.signLanguageSettingsButton.parentNode) {
             this.signLanguageSettingsButton.insertAdjacentElement('afterend', this.signLanguageSettingsMenu);
+        } else if (this.signLanguageWrapper) {
+            // Fallback: append to wrapper if button parent not available
+            this.signLanguageWrapper.appendChild(this.signLanguageSettingsMenu);
         }
         
         // Position the menu relative to the settings button (immediately while hidden)
@@ -2816,7 +2837,7 @@ export class Player extends EventEmitter {
         
         // Set the menu as visible and display it
         this.signLanguageSettingsMenuVisible = true;
-        this.signLanguageSettingsMenu.style.display = 'block';
+        // this.signLanguageSettingsMenu.style.display = 'block'; // Already set above
         
         // Update aria-expanded
         if (this.signLanguageSettingsButton) {
@@ -2858,7 +2879,7 @@ export class Player extends EventEmitter {
     }
 
     positionSignLanguageSettingsMenuImmediate() {
-        if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton || !this.signLanguageWrapper) return;
+        if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton) return;
         
         // Position immediately (synchronously) - used when menu is first shown
         const buttonRect = this.signLanguageSettingsButton.getBoundingClientRect();
@@ -2866,44 +2887,50 @@ export class Player extends EventEmitter {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
         
-        // Get the wrapper as the positioning container (like transcript uses transcriptWindow)
-        const wrapperRect = this.signLanguageWrapper.getBoundingClientRect();
+        // Get the parent container (headerLeft) as the positioning container (like control bar menus)
+        const parentContainer = this.signLanguageSettingsButton.parentElement;
+        if (!parentContainer) return;
         
-        // Calculate position relative to wrapper
-        const buttonRight = buttonRect.right - wrapperRect.left;
-        const buttonLeft = buttonRect.left - wrapperRect.left;
-        const buttonTop = buttonRect.top - wrapperRect.top;
-        const buttonBottom = buttonRect.bottom - wrapperRect.top;
+        const parentRect = parentContainer.getBoundingClientRect();
+        
+        // Calculate position relative to parent container
+        const buttonCenterX = buttonRect.left + buttonRect.width / 2 - parentRect.left;
+        const buttonBottom = buttonRect.bottom - parentRect.top;
+        const buttonTop = buttonRect.top - parentRect.top;
         
         const spaceAbove = buttonRect.top;
         const spaceBelow = viewportHeight - buttonRect.bottom;
         
-        // Position menu below button by default (right-aligned with button)
+        // Position menu below button by default
         let menuTop = buttonBottom + 8;
         let menuBottom = null;
         
         // Prefer below, but switch to above if not enough space
         if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
             menuTop = null;
-            const wrapperHeight = wrapperRect.bottom - wrapperRect.top;
-            menuBottom = wrapperHeight - buttonTop + 8;
+            const parentHeight = parentRect.bottom - parentRect.top;
+            menuBottom = parentHeight - buttonTop + 8;
             this.signLanguageSettingsMenu.classList.add('vidply-menu-above');
         } else {
             this.signLanguageSettingsMenu.classList.remove('vidply-menu-above');
         }
         
-        // Calculate horizontal position (right-align with button)
-        let menuRight = wrapperRect.right - buttonRect.right;
-        let menuLeft = 'auto';
+        // Calculate horizontal position (center on button)
+        let menuLeft = buttonCenterX - menuRect.width / 2;
+        let menuRight = 'auto';
+        let transformX = 'translateX(0)';
         
-        // Check horizontal overflow
-        const menuLeftAbsolute = buttonRect.right - menuRect.width;
+        const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
         if (menuLeftAbsolute < 10) {
-            menuRight = 'auto';
-            menuLeft = buttonLeft;
-        } else if (buttonRect.right > viewportWidth - 10) {
-            menuRight = wrapperRect.right - viewportWidth + 10;
+            menuLeft = 0;
+            transformX = 'translateX(0)';
+        } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
             menuLeft = 'auto';
+            menuRight = 0;
+            transformX = 'translateX(0)';
+        } else {
+            menuLeft = buttonCenterX;
+            transformX = 'translateX(-50%)';
         }
         
         // Apply calculated positions
@@ -2922,6 +2949,8 @@ export class Player extends EventEmitter {
             this.signLanguageSettingsMenu.style.left = 'auto';
             this.signLanguageSettingsMenu.style.right = `${menuRight}px`;
         }
+        
+        this.signLanguageSettingsMenu.style.transform = transformX;
     }
     
     positionSignLanguageSettingsMenu() {
@@ -3057,7 +3086,7 @@ export class Player extends EventEmitter {
         
         // Remove document click handler
         if (this.signLanguageDocumentClickHandler && this.signLanguageDocumentClickHandlerAdded) {
-            document.removeEventListener('click', this.signLanguageDocumentClickHandler);
+            document.removeEventListener('mousedown', this.signLanguageDocumentClickHandler, true);
             this.signLanguageDocumentClickHandlerAdded = false;
             this.signLanguageDocumentClickHandler = null;
         }

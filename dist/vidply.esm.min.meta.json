@@ -192,7 +192,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 69206,
+      "bytes": 69251,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -264,7 +264,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 164242,
+      "bytes": 165906,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -335,6 +335,11 @@
           "path": "src/utils/DraggableResizable.js",
           "kind": "import-statement",
           "original": "../utils/DraggableResizable.js"
+        },
+        {
+          "path": "src/utils/MenuUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/MenuUtils.js"
         }
       ],
       "format": "esm"
@@ -440,10 +445,10 @@
           "bytesInOutput": 13861
         },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 36441
+          "bytesInOutput": 36486
         },
         "src/core/Player.js": {
-          "bytesInOutput": 60496
+          "bytesInOutput": 61002
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -461,7 +466,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 233313
+      "bytes": 233864
     }
   }
 }

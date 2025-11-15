@@ -1292,7 +1292,7 @@ export class TranscriptManager {
     });
     resizeOption.setAttribute('aria-pressed', 'false');
     this.resizeOptionButton = resizeOption;
-    this.resizeOptionText = resizeOption.querySelector('span');
+    this.resizeOptionText = resizeOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
     this.updateResizeOptionState();
 
     // Close option
