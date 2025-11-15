@@ -2167,14 +2167,12 @@ export class Player extends EventEmitter {
             this.emit('signlanguageenabled');
             
             // Focus the settings button after wrapper is shown
-            // Use requestAnimationFrame to ensure DOM is fully updated
-            requestAnimationFrame(() => {
-                this.setManagedTimeout(() => {
-                    if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
-                        this.signLanguageSettingsButton.focus({ preventScroll: true });
-                    }
-                }, 150);
-            });
+            // Use setManagedTimeout to ensure it's properly scheduled
+            this.setManagedTimeout(() => {
+                if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
+                    this.signLanguageSettingsButton.focus({ preventScroll: true });
+                }
+            }, 150);
             return;
         }
         
@@ -2464,14 +2462,12 @@ export class Player extends EventEmitter {
         this.emit('signlanguageenabled');
         
         // Focus the settings button after wrapper is appended to DOM
-        // Use requestAnimationFrame to ensure DOM is fully updated
-        requestAnimationFrame(() => {
-            this.setManagedTimeout(() => {
-                if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
-                    this.signLanguageSettingsButton.focus({ preventScroll: true });
-                }
-            }, 150);
-        });
+        // Use setManagedTimeout to ensure it's properly scheduled
+        this.setManagedTimeout(() => {
+            if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
+                this.signLanguageSettingsButton.focus({ preventScroll: true });
+            }
+        }, 150);
     }
 
     disableSignLanguage() {
@@ -2718,18 +2714,10 @@ export class Player extends EventEmitter {
             if (this.signLanguageSettingsButton) {
                 this.signLanguageSettingsButton.setAttribute('aria-expanded', 'true');
             }
-            // Reposition menu in case window was moved
+            // Reposition menu in case window was moved (async for repositioning)
             this.positionSignLanguageSettingsMenu();
             this.updateSignLanguageResizeOptionState();
-            setTimeout(() => {
-                const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
-                if (menuItems.length > 0) {
-                    menuItems.forEach((item, index) => {
-                        item.setAttribute('tabindex', index === 0 ? '0' : '-1');
-                    });
-                    menuItems[0].focus();
-                }
-            }, 0);
+            focusFirstMenuItem(this.signLanguageSettingsMenu, `.${this.options.classPrefix}-sign-language-settings-item`);
             return;
         }
         
@@ -2739,87 +2727,68 @@ export class Player extends EventEmitter {
         });
 
         // Keyboard drag option
-        const keyboardDragOption = DOMUtils.createElement('button', {
-            className: `${this.options.classPrefix}-sign-language-settings-item`,
-            attributes: {
-                'type': 'button',
-                'aria-label': i18n.t('transcript.keyboardDragMode') || 'Toggle keyboard drag mode',
-                'tabindex': '-1'
+        const keyboardDragOption = createMenuItem({
+            classPrefix: this.options.classPrefix,
+            itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
+            icon: 'move',
+            label: 'transcript.keyboardDragMode',
+            onClick: () => {
+                this.toggleSignLanguageKeyboardDragMode();
+                this.hideSignLanguageSettingsMenu();
             }
-        });
-        const keyboardIcon = createIconElement('move');
-        const keyboardText = DOMUtils.createElement('span', {
-            textContent: i18n.t('transcript.keyboardDragMode') || 'Toggle keyboard drag mode'
-        });
-        keyboardDragOption.appendChild(keyboardIcon);
-        keyboardDragOption.appendChild(keyboardText);
-        keyboardDragOption.addEventListener('click', () => {
-            this.toggleSignLanguageKeyboardDragMode();
-            this.hideSignLanguageSettingsMenu();
         });
 
         // Resize option
-        const resizeOption = DOMUtils.createElement('button', {
-            className: `${this.options.classPrefix}-sign-language-settings-item`,
-            attributes: {
-                'type': 'button',
-                'aria-label': i18n.t('transcript.resizeWindow') || 'Resize window',
-                'aria-pressed': 'false',
-                'tabindex': '-1'
+        const resizeOption = createMenuItem({
+            classPrefix: this.options.classPrefix,
+            itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
+            icon: 'resize',
+            label: 'transcript.resizeWindow',
+            hasTextClass: true,
+            onClick: (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const enabled = this.toggleSignLanguageResizeMode({ focus: false });
+                
+                if (enabled) {
+                    this.hideSignLanguageSettingsMenu({ focusButton: false });
+                    // Focus sign language wrapper after handles appear
+                    setTimeout(() => {
+                        if (this.signLanguageWrapper) {
+                            this.signLanguageWrapper.focus();
+                        }
+                    }, 20);
+                } else {
+                    this.hideSignLanguageSettingsMenu({ focusButton: true });
+                }
             }
         });
-        const resizeIcon = createIconElement('resize');
-        const resizeText = DOMUtils.createElement('span', {
-            className: `${this.options.classPrefix}-sign-language-settings-text`,
-            textContent: i18n.t('transcript.resizeWindow') || 'Resize window'
-        });
-        resizeOption.appendChild(resizeIcon);
-        resizeOption.appendChild(resizeText);
-        resizeOption.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            
-            const enabled = this.toggleSignLanguageResizeMode({ focus: false });
-            
-            if (enabled) {
-                this.hideSignLanguageSettingsMenu({ focusButton: false });
-                // Focus sign language wrapper after handles appear
-                setTimeout(() => {
-                    if (this.signLanguageWrapper) {
-                        this.signLanguageWrapper.focus();
-                    }
-                }, 20);
-            } else {
-                this.hideSignLanguageSettingsMenu({ focusButton: true });
-            }
-        });
+        resizeOption.setAttribute('aria-pressed', 'false');
         this.signLanguageResizeOptionButton = resizeOption;
-        this.signLanguageResizeOptionText = resizeText;
+        this.signLanguageResizeOptionText = resizeOption.querySelector('span');
         this.updateSignLanguageResizeOptionState();
 
         // Close option
-        const closeOption = DOMUtils.createElement('button', {
-            className: `${this.options.classPrefix}-sign-language-settings-item`,
-            attributes: {
-                'type': 'button',
-                'aria-label': i18n.t('transcript.closeMenu') || 'Close',
-                'tabindex': '-1'
+        const closeOption = createMenuItem({
+            classPrefix: this.options.classPrefix,
+            itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
+            icon: 'close',
+            label: 'transcript.closeMenu',
+            onClick: () => {
+                this.hideSignLanguageSettingsMenu();
             }
-        });
-        const closeIcon = createIconElement('close');
-        const closeText = DOMUtils.createElement('span', {
-            textContent: i18n.t('transcript.closeMenu') || 'Close'
-        });
-        closeOption.appendChild(closeIcon);
-        closeOption.appendChild(closeText);
-        closeOption.addEventListener('click', () => {
-            this.hideSignLanguageSettingsMenu();
         });
 
         this.signLanguageSettingsMenu.appendChild(keyboardDragOption);
         this.signLanguageSettingsMenu.appendChild(resizeOption);
         this.signLanguageSettingsMenu.appendChild(closeOption);
 
+        // Position menu first (before it's visible) to prevent jumping
+        // Set menu to invisible temporarily
+        this.signLanguageSettingsMenu.style.visibility = 'hidden';
+        this.signLanguageSettingsMenu.style.display = 'block';
+        
         // Append menu to sign language wrapper for proper positioning (like transcript menu)
         if (this.signLanguageWrapper) {
             this.signLanguageWrapper.appendChild(this.signLanguageSettingsMenu);
@@ -2827,11 +2796,23 @@ export class Player extends EventEmitter {
             this.signLanguageSettingsButton.insertAdjacentElement('afterend', this.signLanguageSettingsMenu);
         }
         
-        // Position the menu relative to the settings button
-        this.positionSignLanguageSettingsMenu();
+        // Position the menu relative to the settings button (immediately while hidden)
+        this.positionSignLanguageSettingsMenuImmediate();
+        
+        // Make menu visible after positioning
+        requestAnimationFrame(() => {
+            if (this.signLanguageSettingsMenu) {
+                this.signLanguageSettingsMenu.style.visibility = 'visible';
+            }
+        });
         
         // Add keyboard navigation
-        this.attachSignLanguageSettingsMenuKeyboardNavigation();
+        this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
+            this.signLanguageSettingsMenu,
+            this.signLanguageSettingsButton,
+            `.${this.options.classPrefix}-sign-language-settings-item`,
+            () => this.hideSignLanguageSettingsMenu({ focusButton: true })
+        );
         
         // Set the menu as visible and display it
         this.signLanguageSettingsMenuVisible = true;
@@ -2843,16 +2824,8 @@ export class Player extends EventEmitter {
         }
         this.updateSignLanguageResizeOptionState();
         
-        // Focus first menu item and set tabindex
-        setTimeout(() => {
-            const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
-            if (menuItems.length > 0) {
-                menuItems.forEach((item, index) => {
-                    item.setAttribute('tabindex', index === 0 ? '0' : '-1');
-                });
-                menuItems[0].focus();
-            }
-        }, 0);
+        // Focus first menu item
+        focusFirstMenuItem(this.signLanguageSettingsMenu, `.${this.options.classPrefix}-sign-language-settings-item`);
     }
 
     hideSignLanguageSettingsMenu({ focusButton = true } = {}) {
@@ -2884,154 +2857,98 @@ export class Player extends EventEmitter {
         }
     }
 
+    positionSignLanguageSettingsMenuImmediate() {
+        if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton || !this.signLanguageWrapper) return;
+        
+        // Position immediately (synchronously) - used when menu is first shown
+        const buttonRect = this.signLanguageSettingsButton.getBoundingClientRect();
+        const menuRect = this.signLanguageSettingsMenu.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        // Get the wrapper as the positioning container (like transcript uses transcriptWindow)
+        const wrapperRect = this.signLanguageWrapper.getBoundingClientRect();
+        
+        // Calculate position relative to wrapper
+        const buttonRight = buttonRect.right - wrapperRect.left;
+        const buttonLeft = buttonRect.left - wrapperRect.left;
+        const buttonTop = buttonRect.top - wrapperRect.top;
+        const buttonBottom = buttonRect.bottom - wrapperRect.top;
+        
+        const spaceAbove = buttonRect.top;
+        const spaceBelow = viewportHeight - buttonRect.bottom;
+        
+        // Position menu below button by default (right-aligned with button)
+        let menuTop = buttonBottom + 8;
+        let menuBottom = null;
+        
+        // Prefer below, but switch to above if not enough space
+        if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
+            menuTop = null;
+            const wrapperHeight = wrapperRect.bottom - wrapperRect.top;
+            menuBottom = wrapperHeight - buttonTop + 8;
+            this.signLanguageSettingsMenu.classList.add('vidply-menu-above');
+        } else {
+            this.signLanguageSettingsMenu.classList.remove('vidply-menu-above');
+        }
+        
+        // Calculate horizontal position (right-align with button)
+        let menuRight = wrapperRect.right - buttonRect.right;
+        let menuLeft = 'auto';
+        
+        // Check horizontal overflow
+        const menuLeftAbsolute = buttonRect.right - menuRect.width;
+        if (menuLeftAbsolute < 10) {
+            menuRight = 'auto';
+            menuLeft = buttonLeft;
+        } else if (buttonRect.right > viewportWidth - 10) {
+            menuRight = wrapperRect.right - viewportWidth + 10;
+            menuLeft = 'auto';
+        }
+        
+        // Apply calculated positions
+        if (menuTop !== null) {
+            this.signLanguageSettingsMenu.style.top = `${menuTop}px`;
+            this.signLanguageSettingsMenu.style.bottom = 'auto';
+        } else if (menuBottom !== null) {
+            this.signLanguageSettingsMenu.style.top = 'auto';
+            this.signLanguageSettingsMenu.style.bottom = `${menuBottom}px`;
+        }
+        
+        if (menuLeft !== 'auto') {
+            this.signLanguageSettingsMenu.style.left = `${menuLeft}px`;
+            this.signLanguageSettingsMenu.style.right = 'auto';
+        } else {
+            this.signLanguageSettingsMenu.style.left = 'auto';
+            this.signLanguageSettingsMenu.style.right = `${menuRight}px`;
+        }
+    }
+    
     positionSignLanguageSettingsMenu() {
         if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton || !this.signLanguageWrapper) return;
         
-        setTimeout(() => {
-            const buttonRect = this.signLanguageSettingsButton.getBoundingClientRect();
-            const menuRect = this.signLanguageSettingsMenu.getBoundingClientRect();
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-            
-            // Get the wrapper as the positioning container (like transcript uses transcriptWindow)
-            const wrapperRect = this.signLanguageWrapper.getBoundingClientRect();
-            
-            // Calculate position relative to wrapper
-            const buttonRight = buttonRect.right - wrapperRect.left;
-            const buttonLeft = buttonRect.left - wrapperRect.left;
-            const buttonTop = buttonRect.top - wrapperRect.top;
-            const buttonBottom = buttonRect.bottom - wrapperRect.top;
-            
-            const spaceAbove = buttonRect.top;
-            const spaceBelow = viewportHeight - buttonRect.bottom;
-            
-            // Position menu below button by default (right-aligned with button)
-            let menuTop = buttonBottom + 8;
-            let menuBottom = null;
-            
-            // Prefer below, but switch to above if not enough space
-            if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
-                menuTop = null;
-                const wrapperHeight = wrapperRect.bottom - wrapperRect.top;
-                menuBottom = wrapperHeight - buttonTop + 8;
-                this.signLanguageSettingsMenu.classList.add('vidply-menu-above');
-            } else {
-                this.signLanguageSettingsMenu.classList.remove('vidply-menu-above');
-            }
-            
-            // Calculate horizontal position (right-align with button)
-            let menuRight = wrapperRect.right - buttonRect.right;
-            let menuLeft = 'auto';
-            
-            // Check horizontal overflow
-            const menuLeftAbsolute = buttonRect.right - menuRect.width;
-            if (menuLeftAbsolute < 10) {
-                menuRight = 'auto';
-                menuLeft = buttonLeft;
-            } else if (buttonRect.right > viewportWidth - 10) {
-                menuRight = wrapperRect.right - viewportWidth + 10;
-                menuLeft = 'auto';
-            }
-            
-            // Apply calculated positions
-            if (menuTop !== null) {
-                this.signLanguageSettingsMenu.style.top = `${menuTop}px`;
-                this.signLanguageSettingsMenu.style.bottom = 'auto';
-            } else if (menuBottom !== null) {
-                this.signLanguageSettingsMenu.style.top = 'auto';
-                this.signLanguageSettingsMenu.style.bottom = `${menuBottom}px`;
-            }
-            
-            if (menuLeft !== 'auto') {
-                this.signLanguageSettingsMenu.style.left = `${menuLeft}px`;
-                this.signLanguageSettingsMenu.style.right = 'auto';
-            } else {
-                this.signLanguageSettingsMenu.style.left = 'auto';
-                this.signLanguageSettingsMenu.style.right = `${menuRight}px`;
-            }
-        }, 0);
+        // Use requestAnimationFrame to ensure layout is stable before positioning (for repositioning)
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                this.positionSignLanguageSettingsMenuImmediate();
+            }, 10); // Small delay to ensure layout is stable
+        });
     }
 
     attachSignLanguageSettingsMenuKeyboardNavigation() {
         if (!this.signLanguageSettingsMenu) return;
         
-        const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
-        
-        if (menuItems.length === 0) return;
-
-        const handleKeyDown = (e) => {
-            const currentIndex = menuItems.indexOf(document.activeElement);
-            
-            switch (e.key) {
-                case 'ArrowDown':
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const nextIndex = (currentIndex + 1) % menuItems.length;
-                    menuItems.forEach((item, idx) => {
-                        item.setAttribute('tabindex', idx === nextIndex ? '0' : '-1');
-                    });
-                    menuItems[nextIndex].focus();
-                    break;
-                
-                case 'ArrowUp':
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
-                    menuItems.forEach((item, idx) => {
-                        item.setAttribute('tabindex', idx === prevIndex ? '0' : '-1');
-                    });
-                    menuItems[prevIndex].focus();
-                    break;
-                
-                case 'Home':
-                    e.preventDefault();
-                    e.stopPropagation();
-                    menuItems.forEach((item, idx) => {
-                        item.setAttribute('tabindex', idx === 0 ? '0' : '-1');
-                    });
-                    menuItems[0].focus();
-                    break;
-                
-                case 'End':
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const lastIndex = menuItems.length - 1;
-                    menuItems.forEach((item, idx) => {
-                        item.setAttribute('tabindex', idx === lastIndex ? '0' : '-1');
-                    });
-                    menuItems[lastIndex].focus();
-                    break;
-                
-                case 'Enter':
-                case ' ':
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (document.activeElement && menuItems.includes(document.activeElement)) {
-                        document.activeElement.click();
-                        // Menu will be closed by the click handler, but ensure focus returns
-                        setTimeout(() => {
-                            if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
-                                this.signLanguageSettingsButton.focus();
-                            }
-                        }, 0);
-                    }
-                    break;
-                
-                case 'Escape':
-                    e.preventDefault();
-                    e.stopPropagation();
-                    this.hideSignLanguageSettingsMenu({ focusButton: true });
-                    break;
-            }
-        };
-
         // Remove existing handler if any
         if (this.signLanguageSettingsMenuKeyHandler) {
             this.signLanguageSettingsMenu.removeEventListener('keydown', this.signLanguageSettingsMenuKeyHandler);
         }
         
-        this.signLanguageSettingsMenuKeyHandler = handleKeyDown;
-        this.signLanguageSettingsMenu.addEventListener('keydown', this.signLanguageSettingsMenuKeyHandler);
+        this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
+            this.signLanguageSettingsMenu,
+            this.signLanguageSettingsButton,
+            `.${this.options.classPrefix}-sign-language-settings-item`,
+            () => this.hideSignLanguageSettingsMenu({ focusButton: true })
+        );
     }
 
     updateSignLanguageResizeOptionState() {

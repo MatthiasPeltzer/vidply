@@ -20,11 +20,15 @@ import { focusElement } from './FocusUtils.js';
  * @returns {HTMLElement} Menu item button
  */
 export function createMenuItem({ classPrefix, itemClass, icon, label, ariaLabel, onClick, hasTextClass = false }) {
+    // Check if label is an i18n key for aria-label
+    const isI18nKeyForAria = typeof label === 'string' && (label.startsWith('transcript.') || label.startsWith('player.') || label.startsWith('settings.'));
+    const ariaLabelText = ariaLabel || (isI18nKeyForAria ? (i18n.t(label) || label) : label);
+    
     const button = DOMUtils.createElement('button', {
         className: itemClass,
         attributes: {
             'type': 'button',
-            'aria-label': ariaLabel || label,
+            'aria-label': ariaLabelText,
             'tabindex': '-1'
         }
     });
@@ -33,10 +37,12 @@ export function createMenuItem({ classPrefix, itemClass, icon, label, ariaLabel,
         button.appendChild(createIconElement(icon));
     }
     
+    // Check if label is an i18n key (starts with common prefixes)
+    const isI18nKey = typeof label === 'string' && (label.startsWith('transcript.') || label.startsWith('player.') || label.startsWith('settings.'));
+    const textContent = isI18nKey ? (i18n.t(label) || label) : label;
+    
     const text = DOMUtils.createElement('span', {
-        textContent: typeof label === 'string' && label.startsWith('transcript.') || label.startsWith('player.') 
-            ? i18n.t(label) || label 
-            : label,
+        textContent: textContent,
         className: hasTextClass ? `${classPrefix}-settings-text` : undefined
     });
     button.appendChild(text);

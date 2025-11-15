@@ -93,8 +93,13 @@
       "imports": [],
       "format": "esm"
     },
+    "src/utils/FocusUtils.js": {
+      "bytes": 1131,
+      "imports": [],
+      "format": "esm"
+    },
     "src/controls/ControlBar.js": {
-      "bytes": 82876,
+      "bytes": 94905,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -115,6 +120,11 @@
           "path": "src/i18n/i18n.js",
           "kind": "import-statement",
           "original": "../i18n/i18n.js"
+        },
+        {
+          "path": "src/utils/FocusUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/FocusUtils.js"
         }
       ],
       "format": "esm"
@@ -150,13 +160,39 @@
       "imports": [],
       "format": "esm"
     },
+    "src/utils/MenuUtils.js": {
+      "bytes": 6077,
+      "imports": [
+        {
+          "path": "src/utils/DOMUtils.js",
+          "kind": "import-statement",
+          "original": "./DOMUtils.js"
+        },
+        {
+          "path": "src/icons/Icons.js",
+          "kind": "import-statement",
+          "original": "../icons/Icons.js"
+        },
+        {
+          "path": "src/i18n/i18n.js",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        },
+        {
+          "path": "src/utils/FocusUtils.js",
+          "kind": "import-statement",
+          "original": "./FocusUtils.js"
+        }
+      ],
+      "format": "esm"
+    },
     "src/utils/DraggableResizable.js": {
       "bytes": 25328,
       "imports": [],
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 72090,
+      "bytes": 69206,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -182,6 +218,16 @@
           "path": "src/utils/StorageManager.js",
           "kind": "import-statement",
           "original": "../utils/StorageManager.js"
+        },
+        {
+          "path": "src/utils/FocusUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/FocusUtils.js"
+        },
+        {
+          "path": "src/utils/MenuUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/MenuUtils.js"
         },
         {
           "path": "src/utils/DraggableResizable.js",
@@ -218,7 +264,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 168112,
+      "bytes": 164242,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -348,19 +394,19 @@
           "bytesInOutput": 3690
         },
         "src/i18n/languages/de.js": {
-          "bytesInOutput": 4291
+          "bytesInOutput": 4292
         },
         "src/i18n/languages/es.js": {
-          "bytesInOutput": 4492
+          "bytesInOutput": 4493
         },
         "src/i18n/languages/fr.js": {
-          "bytesInOutput": 4615
+          "bytesInOutput": 4616
         },
         "src/i18n/languages/ja.js": {
-          "bytesInOutput": 7411
+          "bytesInOutput": 7412
         },
         "src/i18n/translations.js": {
-          "bytesInOutput": 57
+          "bytesInOutput": 61
         },
         "src/i18n/i18n.js": {
           "bytesInOutput": 1824
@@ -371,8 +417,11 @@
         "src/icons/Icons.js": {
           "bytesInOutput": 10594
         },
+        "src/utils/FocusUtils.js": {
+          "bytesInOutput": 222
+        },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 38902
+          "bytesInOutput": 42123
         },
         "src/utils/StorageManager.js": {
           "bytesInOutput": 1606
@@ -383,14 +432,17 @@
         "src/controls/KeyboardManager.js": {
           "bytesInOutput": 3821
         },
+        "src/utils/MenuUtils.js": {
+          "bytesInOutput": 1862
+        },
         "src/utils/DraggableResizable.js": {
           "bytesInOutput": 13861
         },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 38012
+          "bytesInOutput": 36441
         },
         "src/core/Player.js": {
-          "bytesInOutput": 61861
+          "bytesInOutput": 60496
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -405,7 +457,7 @@
           "bytesInOutput": 8100
         }
       },
-      "bytes": 231316
+      "bytes": 233693
     }
   }
 }
