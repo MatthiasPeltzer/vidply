@@ -41,35 +41,85 @@ export class ControlBar {
         }
 
         // Desktop: Smart positioning
+        // Menu is now a sibling of the button, within controls-left or controls-right container
+        // These containers have position: relative, so menus position relative to them
         setTimeout(() => {
             const buttonRect = button.getBoundingClientRect();
             const menuRect = menu.getBoundingClientRect();
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
             
+            // Get the button's parent container (controls-left or controls-right)
+            const parentContainer = button.parentElement;
+            if (!parentContainer) return;
+            
+            const parentRect = parentContainer.getBoundingClientRect();
+            
+            // Calculate position relative to parent container
+            const buttonCenterX = buttonRect.left + buttonRect.width / 2 - parentRect.left;
+            const buttonBottom = buttonRect.bottom - parentRect.top;
+            const buttonTop = buttonRect.top - parentRect.top;
+            
             const spaceAbove = buttonRect.top;
             const spaceBelow = viewportHeight - buttonRect.bottom;
             
+            // Position menu above button by default
+            let menuTop = buttonTop - menuRect.height - 8;
+            let menuBottom = null;
+            
             // Prefer above, but switch to below if not enough space
             if (spaceAbove < menuRect.height + 20 && spaceBelow > spaceAbove) {
-                menu.style.bottom = 'auto';
-                menu.style.top = 'calc(100% + 8px)';
+                menuTop = null;
+                // Calculate bottom position relative to parent container
+                // bottom: X means X pixels from the bottom of the positioned parent
+                // We want the menu to be 8px below the button
+                const parentHeight = parentRect.bottom - parentRect.top;
+                menuBottom = parentHeight - buttonBottom + 8;
                 menu.classList.add('vidply-menu-below');
+            } else {
+                menu.classList.remove('vidply-menu-below');
             }
             
+            // Calculate horizontal position (center on button by default)
+            let menuLeft = buttonCenterX - menuRect.width / 2;
+            let menuRight = 'auto';
+            let transformX = 'translateX(0)';
+            
             // Check horizontal overflow
-            const menuLeft = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
-            if (menuLeft < 10) {
-                // Too far left, align to left edge
-                menu.style.right = 'auto';
-                menu.style.left = '0';
-                menu.style.transform = 'translateX(0)';
-            } else if (menuLeft + menuRect.width > viewportWidth - 10) {
-                // Too far right, align to right edge
-                menu.style.left = 'auto';
-                menu.style.right = '0';
-                menu.style.transform = 'translateX(0)';
+            const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
+            if (menuLeftAbsolute < 10) {
+                // Too far left, align to left edge of parent
+                menuLeft = 0;
+                transformX = 'translateX(0)';
+            } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
+                // Too far right, align to right edge of parent
+                menuLeft = 'auto';
+                menuRight = 0;
+                transformX = 'translateX(0)';
+            } else {
+                // Center on button
+                menuLeft = buttonCenterX;
+                transformX = 'translateX(-50%)';
             }
+            
+            // Apply calculated positions
+            if (menuTop !== null) {
+                menu.style.top = `${menuTop}px`;
+                menu.style.bottom = 'auto';
+            } else if (menuBottom !== null) {
+                menu.style.top = 'auto';
+                menu.style.bottom = `${menuBottom}px`;
+            }
+            
+            if (menuLeft !== 'auto') {
+                menu.style.left = `${menuLeft}px`;
+                menu.style.right = 'auto';
+            } else {
+                menu.style.left = 'auto';
+                menu.style.right = `${menuRight}px`;
+            }
+            
+            menu.style.transform = transformX;
         }, 0);
     }
 
@@ -154,29 +204,41 @@ export class ControlBar {
             switch (e.key) {
                 case 'ArrowDown':
                     e.preventDefault();
+                    e.stopPropagation(); // Prevent volume/seek actions
                     const nextIndex = (currentIndex + 1) % menuItems.length;
                     menuItems[nextIndex].focus();
                     break;
                 
                 case 'ArrowUp':
                     e.preventDefault();
+                    e.stopPropagation(); // Prevent volume/seek actions
                     const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
                     menuItems[prevIndex].focus();
                     break;
                 
+                case 'ArrowLeft':
+                case 'ArrowRight':
+                    // Prevent seeking when in menu (but allow menu to handle if needed)
+                    e.preventDefault();
+                    e.stopPropagation();
+                    break;
+                
                 case 'Home':
                     e.preventDefault();
+                    e.stopPropagation();
                     menuItems[0].focus();
                     break;
                 
                 case 'End':
                     e.preventDefault();
+                    e.stopPropagation();
                     menuItems[menuItems.length - 1].focus();
                     break;
                 
                 case 'Enter':
                 case ' ':
                     e.preventDefault();
+                    e.stopPropagation(); // Prevent event from reaching KeyboardManager
                     if (document.activeElement && menuItems.includes(document.activeElement)) {
                         document.activeElement.click();
                         // Menu will be closed by the click handler, but ensure focus returns
@@ -190,6 +252,7 @@ export class ControlBar {
                 
                 case 'Escape':
                     e.preventDefault();
+                    e.stopPropagation(); // Prevent event from reaching KeyboardManager
                     this.closeMenuAndReturnFocus(menu, button);
                     break;
             }
@@ -761,8 +824,8 @@ export class ControlBar {
             e.stopPropagation();
         });
 
-        // Append menu to button
-        button.appendChild(volumeMenu);
+        // Insert menu right after the button in the DOM
+        button.insertAdjacentElement('afterend', volumeMenu);
 
         this.controls.volumeSlider = volumeSlider;
         this.controls.volumeFill = volumeFill;
@@ -970,8 +1033,8 @@ export class ControlBar {
             }
         }
 
-        // Append menu directly to button for proper positioning
-        button.appendChild(menu);
+        // Insert menu right after the button in the DOM
+        button.insertAdjacentElement('afterend', menu);
 
         // Close menu on outside click
         this.attachMenuCloseHandler(menu, button);
@@ -1123,8 +1186,8 @@ export class ControlBar {
             menu.appendChild(noSupportItem);
         }
 
-        // Append menu directly to button for proper positioning
-        button.appendChild(menu);
+        // Insert menu right after the button in the DOM
+        button.insertAdjacentElement('afterend', menu);
 
         // Close menu on outside click
         this.attachMenuCloseHandler(menu, button);
@@ -1191,8 +1254,8 @@ export class ControlBar {
             });
             menu.appendChild(noTracksItem);
 
-            // Append menu to button
-            button.appendChild(menu);
+            // Insert menu right after the button in the DOM
+            button.insertAdjacentElement('afterend', menu);
 
             // Close menu on outside click
             this.attachMenuCloseHandler(menu, button, true);
@@ -1239,8 +1302,8 @@ export class ControlBar {
         // Set min-width for caption style menu
         menu.style.minWidth = '220px';
 
-        // Append menu directly to button for proper positioning
-        button.appendChild(menu);
+        // Insert menu right after the button in the DOM
+        button.insertAdjacentElement('afterend', menu);
 
         // Close menu on outside click (but not when interacting with controls)
         this.attachMenuCloseHandler(menu, button, true);
@@ -1534,8 +1597,8 @@ export class ControlBar {
             menu.appendChild(item);
         });
 
-        // Append menu directly to button for proper positioning
-        button.appendChild(menu);
+        // Insert menu right after the button in the DOM
+        button.insertAdjacentElement('afterend', menu);
 
         // Add keyboard navigation
         this.attachMenuKeyboardNavigation(menu, button);
@@ -1599,8 +1662,8 @@ export class ControlBar {
             });
             menu.appendChild(noTracksItem);
 
-            // Append menu to button
-            button.appendChild(menu);
+            // Insert menu right after the button in the DOM
+            button.insertAdjacentElement('afterend', menu);
 
             // Close menu on outside click
             this.attachMenuCloseHandler(menu, button);
@@ -1665,8 +1728,8 @@ export class ControlBar {
             menu.appendChild(item);
         });
 
-        // Append menu directly to button for proper positioning
-        button.appendChild(menu);
+        // Insert menu right after the button in the DOM
+        button.insertAdjacentElement('afterend', menu);
 
         // Add keyboard navigation for the menu
         this.attachMenuKeyboardNavigation(menu, button);

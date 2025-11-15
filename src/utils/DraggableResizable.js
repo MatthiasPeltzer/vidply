@@ -327,13 +327,30 @@ export class DraggableResizable {
         .split(';')
         .filter(rule => {
           const trimmed = rule.trim();
-          return trimmed && 
-                 !trimmed.startsWith('right:') && 
-                 !trimmed.startsWith('bottom:') && 
-                 !trimmed.startsWith('transform:') &&
-                 !trimmed.startsWith('left:') &&
-                 !trimmed.startsWith('top:') &&
-                 !trimmed.startsWith('inset:');  // CRITICAL: Clear inset shorthand!
+          // Filter out empty rules
+          if (!trimmed) return false;
+          
+          const colonIndex = trimmed.indexOf(':');
+          if (colonIndex === -1) return false;
+          
+          const property = trimmed.substring(0, colonIndex).trim();
+          const value = trimmed.substring(colonIndex + 1).trim();
+          
+          // Skip if value is empty or just whitespace (this catches empty border properties)
+          if (!value || value === '') return false;
+          
+          // Skip positioning properties
+          if (property === 'right' || property === 'bottom' || property === 'transform' ||
+              property === 'left' || property === 'top' || property === 'inset') {
+            return false;
+          }
+          
+          // Skip border-image properties (these can have empty values that cause parse errors)
+          if (property.startsWith('border-image')) {
+            return false;
+          }
+          
+          return true;
         })
         .join('; ');
       

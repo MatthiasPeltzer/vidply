@@ -59,8 +59,6 @@ export class CaptionManager {
         this.element = DOMUtils.createElement('div', {
             className: `${this.player.options.classPrefix}-captions`,
             attributes: {
-                'aria-live': 'polite',
-                'aria-atomic': 'true',
                 'role': 'region',
                 'aria-label': i18n.t('player.captions')
             }

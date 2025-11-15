@@ -269,10 +269,13 @@ export class TranscriptManager {
     this.autoscrollCheckbox = DOMUtils.createElement('input', {
       attributes: {
         'type': 'checkbox',
-        'checked': this.autoscrollEnabled,
         'aria-label': i18n.t('transcript.autoscroll')
       }
     });
+    // Set checked property directly (boolean attribute, not "true" string)
+    if (this.autoscrollEnabled) {
+      this.autoscrollCheckbox.checked = true;
+    }
     
     const autoscrollText = DOMUtils.createElement('span', {
       textContent: i18n.t('transcript.autoscroll'),
@@ -452,6 +455,17 @@ export class TranscriptManager {
       this.transcriptWindow.style.transform = 'none';
       this.transcriptWindow.style.border = 'none';
       this.transcriptWindow.style.borderTop = '1px solid var(--vidply-border-light)';
+      // Remove any empty border properties that might have been set
+      this.transcriptWindow.style.removeProperty('border-right');
+      this.transcriptWindow.style.removeProperty('border-bottom');
+      this.transcriptWindow.style.removeProperty('border-left');
+      // Remove border-image properties that can cause parse errors
+      this.transcriptWindow.style.removeProperty('border-image');
+      this.transcriptWindow.style.removeProperty('border-image-source');
+      this.transcriptWindow.style.removeProperty('border-image-slice');
+      this.transcriptWindow.style.removeProperty('border-image-width');
+      this.transcriptWindow.style.removeProperty('border-image-outset');
+      this.transcriptWindow.style.removeProperty('border-image-repeat');
       this.transcriptWindow.style.boxShadow = 'none';
       // Disable dragging on mobile
       if (this.transcriptHeader) {
@@ -479,7 +493,18 @@ export class TranscriptManager {
       this.transcriptWindow.style.maxWidth = 'none';
       this.transcriptWindow.style.borderRadius = '8px';
       this.transcriptWindow.style.border = '1px solid var(--vidply-border)';
-      this.transcriptWindow.style.borderTop = '';
+      // Remove borderTop and any other individual border properties to avoid empty values
+      this.transcriptWindow.style.removeProperty('border-top');
+      this.transcriptWindow.style.removeProperty('border-right');
+      this.transcriptWindow.style.removeProperty('border-bottom');
+      this.transcriptWindow.style.removeProperty('border-left');
+      // Remove border-image properties that can cause parse errors
+      this.transcriptWindow.style.removeProperty('border-image');
+      this.transcriptWindow.style.removeProperty('border-image-source');
+      this.transcriptWindow.style.removeProperty('border-image-slice');
+      this.transcriptWindow.style.removeProperty('border-image-width');
+      this.transcriptWindow.style.removeProperty('border-image-outset');
+      this.transcriptWindow.style.removeProperty('border-image-repeat');
       
       // Move back to container for fullscreen
       if (this.transcriptWindow.parentNode !== this.player.container) {
@@ -517,7 +542,18 @@ export class TranscriptManager {
       this.transcriptWindow.style.maxWidth = 'none';
       this.transcriptWindow.style.borderRadius = '8px';
       this.transcriptWindow.style.border = '1px solid var(--vidply-border)';
-      this.transcriptWindow.style.borderTop = '';
+      // Remove borderTop and any other individual border properties to avoid empty values
+      this.transcriptWindow.style.removeProperty('border-top');
+      this.transcriptWindow.style.removeProperty('border-right');
+      this.transcriptWindow.style.removeProperty('border-bottom');
+      this.transcriptWindow.style.removeProperty('border-left');
+      // Remove border-image properties that can cause parse errors
+      this.transcriptWindow.style.removeProperty('border-image');
+      this.transcriptWindow.style.removeProperty('border-image-source');
+      this.transcriptWindow.style.removeProperty('border-image-slice');
+      this.transcriptWindow.style.removeProperty('border-image-width');
+      this.transcriptWindow.style.removeProperty('border-image-outset');
+      this.transcriptWindow.style.removeProperty('border-image-repeat');
       // Enable dragging on desktop
       if (this.transcriptHeader) {
         this.transcriptHeader.style.cursor = 'move';
