@@ -283,6 +283,25 @@ export class ControlBar {
         buttonContainer.appendChild(leftButtons);
         buttonContainer.appendChild(this.rightButtons);
         this.element.appendChild(buttonContainer);
+        
+        // Ensure all buttons have title attributes
+        this.ensureButtonTitles(buttonContainer);
+    }
+    
+    /**
+     * Ensure all buttons in the controls have title attributes
+     * Uses aria-label as title if title is not present
+     */
+    ensureButtonTitles(container) {
+        const buttons = container.querySelectorAll('button');
+        buttons.forEach(button => {
+            if (!button.hasAttribute('title')) {
+                const ariaLabel = button.getAttribute('aria-label');
+                if (ariaLabel) {
+                    button.setAttribute('title', ariaLabel);
+                }
+            }
+        });
     }
 
     // Helper methods to check for available features
@@ -1823,9 +1842,10 @@ export class ControlBar {
             createIconElement('pause').innerHTML :
             createIconElement('play').innerHTML;
 
-        this.controls.playPause.setAttribute('aria-label',
-            isPlaying ? i18n.t('player.pause') : i18n.t('player.play')
-        );
+        const newAriaLabel = isPlaying ? i18n.t('player.pause') : i18n.t('player.play');
+        this.controls.playPause.setAttribute('aria-label', newAriaLabel);
+        // Update title to match aria-label
+        this.controls.playPause.setAttribute('title', newAriaLabel);
     }
 
     updateProgress() {
@@ -1882,9 +1902,11 @@ export class ControlBar {
 
                 icon.innerHTML = createIconElement(iconName).innerHTML;
 
-                this.controls.mute.setAttribute('aria-label',
-                    this.player.state.muted ? i18n.t('player.unmute') : i18n.t('player.mute')
-                );
+                const newMuteAriaLabel =
+                    this.player.state.muted ? i18n.t('player.unmute') : i18n.t('player.mute');
+                this.controls.mute.setAttribute('aria-label', newMuteAriaLabel);
+                // Update title to match aria-label
+                this.controls.mute.setAttribute('title', newMuteAriaLabel);
             }
         }
 

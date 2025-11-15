@@ -10,13 +10,64 @@
       "imports": [],
       "format": "esm"
     },
-    "src/i18n/translations.js": {
-      "bytes": 26879,
+    "src/i18n/languages/en.js": {
+      "bytes": 4598,
       "imports": [],
       "format": "esm"
     },
+    "src/i18n/languages/de.js": {
+      "bytes": 5064,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/i18n/languages/es.js": {
+      "bytes": 5278,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/i18n/languages/fr.js": {
+      "bytes": 5367,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/i18n/languages/ja.js": {
+      "bytes": 5488,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/i18n/translations.js": {
+      "bytes": 702,
+      "imports": [
+        {
+          "path": "src/i18n/languages/en.js",
+          "kind": "import-statement",
+          "original": "./languages/en.js"
+        },
+        {
+          "path": "src/i18n/languages/de.js",
+          "kind": "import-statement",
+          "original": "./languages/de.js"
+        },
+        {
+          "path": "src/i18n/languages/es.js",
+          "kind": "import-statement",
+          "original": "./languages/es.js"
+        },
+        {
+          "path": "src/i18n/languages/fr.js",
+          "kind": "import-statement",
+          "original": "./languages/fr.js"
+        },
+        {
+          "path": "src/i18n/languages/ja.js",
+          "kind": "import-statement",
+          "original": "./languages/ja.js"
+        }
+      ],
+      "format": "esm"
+    },
     "src/i18n/i18n.js": {
-      "bytes": 1639,
+      "bytes": 4579,
       "imports": [
         {
           "path": "src/i18n/translations.js",
@@ -167,7 +218,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 130878,
+      "bytes": 132020,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -259,7 +310,7 @@
       "format": "esm"
     },
     "src/index.js": {
-      "bytes": 2801,
+      "bytes": 4240,
       "imports": [
         {
           "path": "src/core/Player.js",
@@ -282,10 +333,10 @@
       "entryPoint": "src/index.js",
       "inputs": {
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 4671
+          "bytesInOutput": 4673
         },
         "src/index.js": {
-          "bytesInOutput": 1070
+          "bytesInOutput": 1621
         },
         "src/utils/EventEmitter.js": {
           "bytesInOutput": 436
@@ -293,17 +344,32 @@
         "src/utils/DOMUtils.js": {
           "bytesInOutput": 1581
         },
+        "src/i18n/languages/en.js": {
+          "bytesInOutput": 3690
+        },
+        "src/i18n/languages/de.js": {
+          "bytesInOutput": 4291
+        },
+        "src/i18n/languages/es.js": {
+          "bytesInOutput": 4492
+        },
+        "src/i18n/languages/fr.js": {
+          "bytesInOutput": 4615
+        },
+        "src/i18n/languages/ja.js": {
+          "bytesInOutput": 7411
+        },
         "src/i18n/translations.js": {
-          "bytesInOutput": 24492
+          "bytesInOutput": 57
         },
         "src/i18n/i18n.js": {
-          "bytesInOutput": 720
+          "bytesInOutput": 1824
         },
         "src/utils/TimeUtils.js": {
           "bytesInOutput": 839
         },
         "src/icons/Icons.js": {
-          "bytesInOutput": 10590
+          "bytesInOutput": 10594
         },
         "src/controls/ControlBar.js": {
           "bytesInOutput": 36758
@@ -324,7 +390,7 @@
           "bytesInOutput": 33381
         },
         "src/core/Player.js": {
-          "bytesInOutput": 43999
+          "bytesInOutput": 44497
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -333,13 +399,13 @@
           "bytesInOutput": 4204
         },
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 5386
+          "bytesInOutput": 5387
         },
         "src/features/PlaylistManager.js": {
           "bytesInOutput": 8100
         }
       },
-      "bytes": 204514
+      "bytes": 206740
     }
   }
 }

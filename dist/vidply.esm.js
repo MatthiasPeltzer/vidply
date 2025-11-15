@@ -402,670 +402,689 @@ var DOMUtils = {
   }
 };
 
-// src/i18n/translations.js
-var translations = {
-  en: {
-    player: {
-      label: "Video Player",
-      play: "Play",
-      pause: "Pause",
-      stop: "Stop",
-      restart: "Restart from beginning",
-      rewind: "Rewind",
-      forward: "Forward",
-      rewindSeconds: "Rewind {seconds} seconds",
-      forwardSeconds: "Forward {seconds} seconds",
-      previous: "Previous track",
-      next: "Next track",
-      volume: "Volume",
-      mute: "Mute",
-      unmute: "Unmute",
-      fullscreen: "Fullscreen",
-      exitFullscreen: "Exit Fullscreen",
-      captions: "Captions",
-      chapters: "Chapters",
-      quality: "Quality",
-      captionStyling: "Caption styling",
-      transcript: "Toggle transcript",
-      audioDescription: "Audio description",
-      signLanguage: "Sign language video",
-      settings: "Settings",
-      speed: "Playback Speed",
-      pip: "Picture in Picture",
-      currentTime: "Current time",
-      duration: "Duration",
-      progress: "Progress",
-      seekForward: "Seek forward {seconds} seconds",
-      seekBackward: "Seek backward {seconds} seconds",
-      volumeUp: "Volume up",
-      volumeDown: "Volume down",
-      loading: "Loading...",
-      loadingChapters: "Loading chapters...",
-      error: "Error loading media",
-      buffering: "Buffering...",
-      signLanguageVideo: "Sign Language Video",
-      noChapters: "No chapters available",
-      noCaptions: "No captions available",
-      auto: "Auto",
-      autoQuality: "Auto (no quality selection available)",
-      noQuality: "Quality selection not available",
-      signLanguageDragResize: "Sign Language Video - Press D to drag with keyboard, R to resize",
-      signLanguageDragActive: "Sign Language Video - Drag mode active. Use arrow keys to move, Escape to exit.",
-      signLanguageResizeActive: "Sign Language Video - Resize mode active. Use left/right arrow keys to resize, Escape to exit.",
-      resizeHandle: "Resize {direction} corner"
-    },
-    captions: {
-      off: "Off",
-      select: "Select captions",
-      fontSize: "Font Size",
-      fontFamily: "Font Family",
-      color: "Text Color",
-      backgroundColor: "Background Color",
-      opacity: "Opacity"
-    },
-    fontSizes: {
-      small: "Small",
-      normal: "Normal",
-      large: "Large",
-      xlarge: "X-Large"
-    },
-    fontFamilies: {
-      sansSerif: "Sans-serif",
-      serif: "Serif",
-      monospace: "Monospace"
-    },
-    styleLabels: {
-      textColor: "Text Color",
-      background: "Background",
-      font: "Font",
-      fontSize: "Font Size",
-      opacity: "Opacity"
-    },
-    audioDescription: {
-      enable: "Enable audio description",
-      disable: "Disable audio description"
-    },
-    signLanguage: {
-      show: "Show sign language video",
-      hide: "Hide sign language video"
-    },
-    transcript: {
-      title: "Transcript",
-      close: "Close transcript",
-      loading: "Loading transcript...",
-      noTranscript: "No transcript available for this video.",
-      settings: "Transcript settings. Press Enter to open menu, or D to enable drag mode",
-      keyboardDragMode: "Toggle keyboard drag mode with arrow keys. Shortcut: D key",
-      keyboardDragActive: "\u2328\uFE0F Keyboard Drag Mode Active (Arrow keys to move, Shift+Arrows for large steps, D or ESC to exit)",
-      dragResizePrompt: "Press D to drag or R to resize. Use Home to reset position, Esc to close.",
-      dragModeEnabled: "Keyboard drag mode enabled. Use arrow keys to move, Shift+Arrow for larger steps. Press D or Esc to exit.",
-      dragModeDisabled: "Keyboard drag mode disabled.",
-      resizeWindow: "Resize Window",
-      disableResizeWindow: "Disable Resize Mode",
-      resizeModeHint: "Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit.",
-      resizeModeEnabled: "Resize mode enabled. Drag edges or corners to adjust. Press Esc or R to exit.",
-      resizeModeDisabled: "Resize mode disabled.",
-      positionReset: "Transcript position reset.",
-      styleTranscript: "Open transcript style settings",
-      closeMenu: "Close Menu",
-      styleTitle: "Transcript Style",
-      autoscroll: "Autoscroll",
-      settingsMenu: "Settings menu"
-    },
-    settings: {
-      title: "Settings",
-      quality: "Quality",
-      speed: "Speed",
-      captions: "Captions",
-      language: "Language",
-      reset: "Reset to defaults",
-      close: "Close"
-    },
-    speeds: {
-      normal: "Normal"
-    },
-    time: {
-      display: "Time display",
-      durationPrefix: "Duration: ",
-      hour: "{count} hour",
-      hours: "{count} hours",
-      minute: "{count} minute",
-      minutes: "{count} minutes",
-      second: "{count} second",
-      seconds: "{count} seconds"
-    }
+// src/i18n/languages/en.js
+var en = {
+  player: {
+    label: "Video Player",
+    play: "Play",
+    pause: "Pause",
+    stop: "Stop",
+    restart: "Restart from beginning",
+    rewind: "Rewind",
+    forward: "Forward",
+    rewindSeconds: "Rewind {seconds} seconds",
+    forwardSeconds: "Forward {seconds} seconds",
+    previous: "Previous track",
+    next: "Next track",
+    volume: "Volume",
+    mute: "Mute",
+    unmute: "Unmute",
+    fullscreen: "Fullscreen",
+    exitFullscreen: "Exit Fullscreen",
+    captions: "Captions",
+    chapters: "Chapters",
+    quality: "Quality",
+    captionStyling: "Caption styling",
+    transcript: "Toggle transcript",
+    audioDescription: "Audio description",
+    signLanguage: "Sign language video",
+    settings: "Settings",
+    speed: "Playback Speed",
+    pip: "Picture in Picture",
+    currentTime: "Current time",
+    duration: "Duration",
+    progress: "Progress",
+    seekForward: "Seek forward {seconds} seconds",
+    seekBackward: "Seek backward {seconds} seconds",
+    volumeUp: "Volume up",
+    volumeDown: "Volume down",
+    loading: "Loading...",
+    loadingChapters: "Loading chapters...",
+    error: "Error loading media",
+    buffering: "Buffering...",
+    signLanguageVideo: "Sign Language Video",
+    noChapters: "No chapters available",
+    noCaptions: "No captions available",
+    auto: "Auto",
+    autoQuality: "Auto (no quality selection available)",
+    noQuality: "Quality selection not available",
+    signLanguageDragResize: "Sign Language Video - Press D to drag with keyboard, R to resize",
+    signLanguageDragActive: "Sign Language Video - Drag mode active. Use arrow keys to move, Escape to exit.",
+    signLanguageResizeActive: "Sign Language Video - Resize mode active. Use left/right arrow keys to resize, Escape to exit.",
+    resizeHandle: "Resize {direction} corner"
   },
-  de: {
-    player: {
-      label: "Videoplayer",
-      play: "Abspielen",
-      pause: "Pause",
-      stop: "Stopp",
-      restart: "Von vorne beginnen",
-      rewind: "Zur\xFCckspulen",
-      forward: "Vorspulen",
-      rewindSeconds: "{seconds} Sekunden zur\xFCckspulen",
-      forwardSeconds: "{seconds} Sekunden vorspulen",
-      previous: "Vorheriger Titel",
-      next: "N\xE4chster Titel",
-      volume: "Lautst\xE4rke",
-      mute: "Stumm",
-      unmute: "Ton ein",
-      fullscreen: "Vollbild",
-      exitFullscreen: "Vollbild beenden",
-      captions: "Untertitel",
-      chapters: "Kapitel",
-      quality: "Qualit\xE4t",
-      captionStyling: "Untertitel-Stil",
-      transcript: "Transkript umschalten",
-      audioDescription: "Audiodeskription",
-      signLanguage: "Geb\xE4rdensprache-Video",
-      settings: "Einstellungen",
-      speed: "Wiedergabegeschwindigkeit",
-      pip: "Bild-in-Bild",
-      currentTime: "Aktuelle Zeit",
-      duration: "Dauer",
-      progress: "Fortschritt",
-      seekForward: "{seconds} Sekunden vorspulen",
-      seekBackward: "{seconds} Sekunden zur\xFCckspulen",
-      volumeUp: "Lauter",
-      volumeDown: "Leiser",
-      loading: "L\xE4dt...",
-      loadingChapters: "Kapitel werden geladen...",
-      error: "Fehler beim Laden",
-      buffering: "Puffern...",
-      signLanguageVideo: "Geb\xE4rdensprache-Video",
-      noChapters: "Keine Kapitel verf\xFCgbar",
-      noCaptions: "Keine Untertitel verf\xFCgbar",
-      auto: "Automatisch",
-      autoQuality: "Automatisch (keine Qualit\xE4tsauswahl verf\xFCgbar)",
-      noQuality: "Qualit\xE4tsauswahl nicht verf\xFCgbar",
-      signLanguageDragResize: "Geb\xE4rdensprache-Video - Dr\xFCcken Sie D zum Verschieben per Tastatur, R zum \xC4ndern der Gr\xF6\xDFe",
-      signLanguageDragActive: "Geb\xE4rdensprache-Video - Verschiebemodus aktiv. Pfeiltasten zum Bewegen, Escape zum Beenden.",
-      signLanguageResizeActive: "Geb\xE4rdensprache-Video - Gr\xF6\xDFen\xE4nderungsmodus aktiv. Links-/Rechts-Pfeiltasten zum \xC4ndern der Gr\xF6\xDFe, Escape zum Beenden.",
-      resizeHandle: "Gr\xF6\xDFen\xE4nderung {direction}-Ecke"
-    },
-    captions: {
-      off: "Aus",
-      select: "Untertitel ausw\xE4hlen",
-      fontSize: "Schriftgr\xF6\xDFe",
-      fontFamily: "Schriftart",
-      color: "Textfarbe",
-      backgroundColor: "Hintergrundfarbe",
-      opacity: "Deckkraft"
-    },
-    fontSizes: {
-      small: "Klein",
-      normal: "Normal",
-      large: "Gro\xDF",
-      xlarge: "Sehr gro\xDF"
-    },
-    fontFamilies: {
-      sansSerif: "Sans-serif",
-      serif: "Serif",
-      monospace: "Monospace"
-    },
-    styleLabels: {
-      textColor: "Textfarbe",
-      background: "Hintergrund",
-      font: "Schrift",
-      fontSize: "Schriftgr\xF6\xDFe",
-      opacity: "Deckkraft"
-    },
-    audioDescription: {
-      enable: "Audiodeskription aktivieren",
-      disable: "Audiodeskription deaktivieren"
-    },
-    signLanguage: {
-      show: "Geb\xE4rdensprache-Video anzeigen",
-      hide: "Geb\xE4rdensprache-Video ausblenden"
-    },
-    transcript: {
-      title: "Transkript",
-      close: "Transkript schlie\xDFen",
-      loading: "Transkript wird geladen...",
-      noTranscript: "Kein Transkript f\xFCr dieses Video verf\xFCgbar.",
-      settings: "Transkript-Einstellungen. Eingabetaste zum \xD6ffnen des Men\xFCs dr\xFCcken oder D zum Aktivieren des Verschiebemodus",
-      keyboardDragMode: "Tastatur-Verschiebemodus mit Pfeiltasten umschalten. Tastenkombination: D-Taste",
-      keyboardDragActive: "\u2328\uFE0F Tastatur-Verschiebemodus aktiv (Pfeiltasten zum Bewegen, Umschalt+Pfeiltasten f\xFCr gro\xDFe Schritte, D oder ESC zum Beenden)",
-      dragResizePrompt: "Dr\xFCcken Sie D zum Verschieben oder R zur Gr\xF6\xDFen\xE4nderung. Home setzt die Position zur\xFCck, Esc schlie\xDFt.",
-      dragModeEnabled: "Tastatur-Verschiebemodus aktiviert. Pfeiltasten zum Bewegen, Umschalt+Pfeiltasten f\xFCr gr\xF6\xDFere Schritte. D oder Esc zum Beenden.",
-      dragModeDisabled: "Tastatur-Verschiebemodus deaktiviert.",
-      resizeWindow: "Fenster vergr\xF6\xDFern/verkleinern",
-      disableResizeWindow: "Resize-Modus deaktivieren",
-      resizeModeHint: "Griffe aktiviert. Ziehen Sie Kanten oder Ecken zum Anpassen. Esc oder R zum Beenden.",
-      resizeModeEnabled: "Resize-Modus aktiviert. Kanten oder Ecken ziehen; Esc oder R beendet.",
-      resizeModeDisabled: "Resize-Modus deaktiviert.",
-      positionReset: "Transkriptposition zur\xFCckgesetzt.",
-      styleTranscript: "Transkript-Stileinstellungen \xF6ffnen",
-      closeMenu: "Men\xFC schlie\xDFen",
-      styleTitle: "Transkript-Stil",
-      autoscroll: "Automatisches Scrollen",
-      settingsMenu: "Einstellungsmen\xFC"
-    },
-    settings: {
-      title: "Einstellungen",
-      quality: "Qualit\xE4t",
-      speed: "Geschwindigkeit",
-      captions: "Untertitel",
-      language: "Sprache",
-      reset: "Zur\xFCcksetzen",
-      close: "Schlie\xDFen"
-    },
-    speeds: {
-      normal: "Normal"
-    },
-    time: {
-      display: "Zeitanzeige",
-      durationPrefix: "Dauer: ",
-      hour: "{count} Stunde",
-      hours: "{count} Stunden",
-      minute: "{count} Minute",
-      minutes: "{count} Minuten",
-      second: "{count} Sekunde",
-      seconds: "{count} Sekunden"
-    }
+  captions: {
+    off: "Off",
+    select: "Select captions",
+    fontSize: "Font Size",
+    fontFamily: "Font Family",
+    color: "Text Color",
+    backgroundColor: "Background Color",
+    opacity: "Opacity"
   },
-  es: {
-    player: {
-      label: "Reproductor de video",
-      play: "Reproducir",
-      pause: "Pausa",
-      stop: "Detener",
-      restart: "Reiniciar desde el principio",
-      rewind: "Retroceder",
-      forward: "Avanzar",
-      rewindSeconds: "Retroceder {seconds} segundos",
-      forwardSeconds: "Avanzar {seconds} segundos",
-      previous: "Pista anterior",
-      next: "Siguiente pista",
-      volume: "Volumen",
-      mute: "Silenciar",
-      unmute: "Activar sonido",
-      fullscreen: "Pantalla completa",
-      exitFullscreen: "Salir de pantalla completa",
-      captions: "Subt\xEDtulos",
-      chapters: "Cap\xEDtulos",
-      quality: "Calidad",
-      captionStyling: "Estilo de subt\xEDtulos",
-      transcript: "Alternar transcripci\xF3n",
-      audioDescription: "Audiodescripci\xF3n",
-      signLanguage: "Video en lengua de se\xF1as",
-      settings: "Configuraci\xF3n",
-      speed: "Velocidad de reproducci\xF3n",
-      pip: "Imagen en imagen",
-      currentTime: "Tiempo actual",
-      duration: "Duraci\xF3n",
-      progress: "Progreso",
-      seekForward: "Avanzar {seconds} segundos",
-      seekBackward: "Retroceder {seconds} segundos",
-      volumeUp: "Subir volumen",
-      volumeDown: "Bajar volumen",
-      loading: "Cargando...",
-      loadingChapters: "Cargando cap\xEDtulos...",
-      error: "Error al cargar",
-      buffering: "Almacenando en b\xFAfer...",
-      signLanguageVideo: "Video en Lengua de Se\xF1as",
-      noChapters: "No hay cap\xEDtulos disponibles",
-      noCaptions: "No hay subt\xEDtulos disponibles",
-      auto: "Autom\xE1tico",
-      autoQuality: "Autom\xE1tico (selecci\xF3n de calidad no disponible)",
-      noQuality: "Selecci\xF3n de calidad no disponible",
-      signLanguageDragResize: "Video en Lengua de Se\xF1as - Presione D para arrastrar con el teclado, R para cambiar el tama\xF1o",
-      signLanguageDragActive: "Video en Lengua de Se\xF1as - Modo de arrastre activo. Use las teclas de flecha para mover, Escape para salir.",
-      signLanguageResizeActive: "Video en Lengua de Se\xF1as - Modo de cambio de tama\xF1o activo. Use las teclas de flecha izquierda/derecha para cambiar el tama\xF1o, Escape para salir.",
-      resizeHandle: "Cambiar tama\xF1o esquina {direction}"
-    },
-    captions: {
-      off: "Desactivado",
-      select: "Seleccionar subt\xEDtulos",
-      fontSize: "Tama\xF1o de fuente",
-      fontFamily: "Familia de fuente",
-      color: "Color de texto",
-      backgroundColor: "Color de fondo",
-      opacity: "Opacidad"
-    },
-    fontSizes: {
-      small: "Peque\xF1o",
-      normal: "Normal",
-      large: "Grande",
-      xlarge: "Muy grande"
-    },
-    fontFamilies: {
-      sansSerif: "Sans-serif",
-      serif: "Serif",
-      monospace: "Monospace"
-    },
-    styleLabels: {
-      textColor: "Color de texto",
-      background: "Fondo",
-      font: "Fuente",
-      fontSize: "Tama\xF1o de fuente",
-      opacity: "Opacidad"
-    },
-    audioDescription: {
-      enable: "Activar audiodescripci\xF3n",
-      disable: "Desactivar audiodescripci\xF3n"
-    },
-    signLanguage: {
-      show: "Mostrar video en lengua de se\xF1as",
-      hide: "Ocultar video en lengua de se\xF1as"
-    },
-    transcript: {
-      title: "Transcripci\xF3n",
-      close: "Cerrar transcripci\xF3n",
-      loading: "Cargando transcripci\xF3n...",
-      noTranscript: "No hay transcripci\xF3n disponible para este video.",
-      settings: "Configuraci\xF3n de transcripci\xF3n. Presione Enter para abrir el men\xFA o D para activar el modo de arrastre",
-      keyboardDragMode: "Alternar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D",
-      keyboardDragActive: "\u2328\uFE0F Modo de Arrastre con Teclado Activo (Teclas de flecha para mover, May\xFAs+Flechas para pasos grandes, D o ESC para salir)",
-      dragResizePrompt: "Pulsa D para mover o R para cambiar el tama\xF1o. Home restablece la posici\xF3n; Esc cierra.",
-      dragModeEnabled: "Modo de arrastre con teclado activado. Usa flechas para mover, May\xFAs+Flechas para pasos grandes. Pulsa D o Esc para salir.",
-      dragModeDisabled: "Modo de arrastre con teclado desactivado.",
-      resizeWindow: "Cambiar tama\xF1o de ventana",
-      disableResizeWindow: "Desactivar modo de cambio de tama\xF1o",
-      resizeModeHint: "Controladores habilitados. Arrastra bordes o esquinas para ajustar. Pulsa Esc o R para salir.",
-      resizeModeEnabled: "Modo de cambio de tama\xF1o activado. Arrastra bordes o esquinas. Pulsa Esc o R para salir.",
-      resizeModeDisabled: "Modo de cambio de tama\xF1o desactivado.",
-      positionReset: "Posici\xF3n de la transcripci\xF3n restablecida.",
-      styleTranscript: "Abrir configuraci\xF3n de estilo de transcripci\xF3n",
-      closeMenu: "Cerrar men\xFA",
-      styleTitle: "Estilo de Transcripci\xF3n",
-      autoscroll: "Desplazamiento autom\xE1tico",
-      settingsMenu: "Men\xFA de configuraci\xF3n"
-    },
-    settings: {
-      title: "Configuraci\xF3n",
-      quality: "Calidad",
-      speed: "Velocidad",
-      captions: "Subt\xEDtulos",
-      language: "Idioma",
-      reset: "Restablecer",
-      close: "Cerrar"
-    },
-    speeds: {
-      normal: "Normal"
-    },
-    time: {
-      display: "Visualizaci\xF3n de tiempo",
-      durationPrefix: "Duraci\xF3n: ",
-      hour: "{count} hora",
-      hours: "{count} horas",
-      minute: "{count} minuto",
-      minutes: "{count} minutos",
-      second: "{count} segundo",
-      seconds: "{count} segundos"
-    }
+  fontSizes: {
+    small: "Small",
+    normal: "Normal",
+    large: "Large",
+    xlarge: "X-Large"
   },
-  fr: {
-    player: {
-      label: "Lecteur vid\xE9o",
-      play: "Lecture",
-      pause: "Pause",
-      stop: "Arr\xEAt",
-      restart: "Red\xE9marrer du d\xE9but",
-      rewind: "Reculer",
-      forward: "Avancer",
-      rewindSeconds: "Reculer de {seconds} secondes",
-      forwardSeconds: "Avancer de {seconds} secondes",
-      previous: "Piste pr\xE9c\xE9dente",
-      next: "Piste suivante",
-      volume: "Volume",
-      mute: "Muet",
-      unmute: "Activer le son",
-      fullscreen: "Plein \xE9cran",
-      exitFullscreen: "Quitter le plein \xE9cran",
-      captions: "Sous-titres",
-      chapters: "Chapitres",
-      quality: "Qualit\xE9",
-      captionStyling: "Style des sous-titres",
-      transcript: "Activer/d\xE9sactiver la transcription",
-      audioDescription: "Audiodescription",
-      signLanguage: "Vid\xE9o en langue des signes",
-      settings: "Param\xE8tres",
-      speed: "Vitesse de lecture",
-      pip: "Image dans l'image",
-      currentTime: "Temps actuel",
-      duration: "Dur\xE9e",
-      progress: "Progression",
-      seekForward: "Avancer de {seconds} secondes",
-      seekBackward: "Reculer de {seconds} secondes",
-      volumeUp: "Augmenter le volume",
-      volumeDown: "Diminuer le volume",
-      loading: "Chargement...",
-      loadingChapters: "Chargement des chapitres...",
-      error: "Erreur de chargement",
-      buffering: "Mise en m\xE9moire tampon...",
-      signLanguageVideo: "Vid\xE9o en Langue des Signes",
-      noChapters: "Aucun chapitre disponible",
-      noCaptions: "Aucun sous-titre disponible",
-      auto: "Automatique",
-      autoQuality: "Automatique (s\xE9lection de qualit\xE9 non disponible)",
-      noQuality: "S\xE9lection de qualit\xE9 non disponible",
-      signLanguageDragResize: "Vid\xE9o en Langue des Signes - Appuyez sur D pour d\xE9placer avec le clavier, R pour redimensionner",
-      signLanguageDragActive: "Vid\xE9o en Langue des Signes - Mode glissement actif. Utilisez les touches fl\xE9ch\xE9es pour d\xE9placer, \xC9chap pour quitter.",
-      signLanguageResizeActive: "Vid\xE9o en Langue des Signes - Mode redimensionnement actif. Utilisez les touches fl\xE9ch\xE9es gauche/droite pour redimensionner, \xC9chap pour quitter.",
-      resizeHandle: "Redimensionner coin {direction}"
-    },
-    captions: {
-      off: "D\xE9sactiv\xE9",
-      select: "S\xE9lectionner les sous-titres",
-      fontSize: "Taille de police",
-      fontFamily: "Police",
-      color: "Couleur du texte",
-      backgroundColor: "Couleur de fond",
-      opacity: "Opacit\xE9"
-    },
-    fontSizes: {
-      small: "Petit",
-      normal: "Normal",
-      large: "Grand",
-      xlarge: "Tr\xE8s grand"
-    },
-    fontFamilies: {
-      sansSerif: "Sans-serif",
-      serif: "Serif",
-      monospace: "Monospace"
-    },
-    styleLabels: {
-      textColor: "Couleur du texte",
-      background: "Arri\xE8re-plan",
-      font: "Police",
-      fontSize: "Taille de police",
-      opacity: "Opacit\xE9"
-    },
-    audioDescription: {
-      enable: "Activer l'audiodescription",
-      disable: "D\xE9sactiver l'audiodescription"
-    },
-    signLanguage: {
-      show: "Afficher la vid\xE9o en langue des signes",
-      hide: "Masquer la vid\xE9o en langue des signes"
-    },
-    transcript: {
-      title: "Transcription",
-      close: "Fermer la transcription",
-      loading: "Chargement de la transcription...",
-      noTranscript: "Aucune transcription disponible pour cette vid\xE9o.",
-      settings: "Param\xE8tres de transcription. Appuyez sur Entr\xE9e pour ouvrir le menu ou D pour activer le mode glissement",
-      keyboardDragMode: "Basculer le mode glissement avec les touches fl\xE9ch\xE9es. Raccourci: touche D",
-      keyboardDragActive: "\u2328\uFE0F Mode Glissement Clavier Actif (Touches fl\xE9ch\xE9es pour d\xE9placer, Maj+Fl\xE9ch\xE9es pour grands pas, D ou \xC9chap pour quitter)",
-      dragResizePrompt: "Appuyez sur D pour d\xE9placer ou R pour redimensionner. Home r\xE9initialise la position, \xC9chap ferme.",
-      dragModeEnabled: "Mode glissement clavier activ\xE9. Utilisez les fl\xE8ches pour d\xE9placer, Maj+Fl\xE8ches pour de grands pas. Appuyez sur D ou \xC9chap pour quitter.",
-      dragModeDisabled: "Mode glissement clavier d\xE9sactiv\xE9.",
-      resizeWindow: "Redimensionner la fen\xEAtre",
-      disableResizeWindow: "D\xE9sactiver le mode de redimensionnement",
-      resizeModeHint: "Poign\xE9es activ\xE9es. Faites glisser les bords ou les coins pour ajuster. Appuyez sur \xC9chap ou R pour quitter.",
-      resizeModeEnabled: "Mode redimensionnement activ\xE9. Faites glisser les bords ou coins. Appuyez sur \xC9chap ou R pour quitter.",
-      resizeModeDisabled: "Mode redimensionnement d\xE9sactiv\xE9.",
-      positionReset: "Position de la transcription r\xE9initialis\xE9e.",
-      styleTranscript: "Ouvrir les param\xE8tres de style de transcription",
-      closeMenu: "Fermer le menu",
-      styleTitle: "Style de Transcription",
-      autoscroll: "D\xE9filement automatique",
-      settingsMenu: "Menu des param\xE8tres"
-    },
-    settings: {
-      title: "Param\xE8tres",
-      quality: "Qualit\xE9",
-      speed: "Vitesse",
-      captions: "Sous-titres",
-      language: "Langue",
-      reset: "R\xE9initialiser",
-      close: "Fermer"
-    },
-    speeds: {
-      normal: "Normal"
-    },
-    time: {
-      display: "Affichage du temps",
-      durationPrefix: "Dur\xE9e : ",
-      hour: "{count} heure",
-      hours: "{count} heures",
-      minute: "{count} minute",
-      minutes: "{count} minutes",
-      second: "{count} seconde",
-      seconds: "{count} secondes"
-    }
+  fontFamilies: {
+    sansSerif: "Sans-serif",
+    serif: "Serif",
+    monospace: "Monospace"
   },
-  ja: {
-    player: {
-      label: "\u30D3\u30C7\u30AA\u30D7\u30EC\u30FC\u30E4\u30FC",
-      play: "\u518D\u751F",
-      pause: "\u4E00\u6642\u505C\u6B62",
-      stop: "\u505C\u6B62",
-      restart: "\u6700\u521D\u304B\u3089\u518D\u751F",
-      rewind: "\u5DFB\u304D\u623B\u3057",
-      forward: "\u65E9\u9001\u308A",
-      rewindSeconds: "{seconds}\u79D2\u623B\u3059",
-      forwardSeconds: "{seconds}\u79D2\u9032\u3081\u308B",
-      previous: "\u524D\u306E\u30C8\u30E9\u30C3\u30AF",
-      next: "\u6B21\u306E\u30C8\u30E9\u30C3\u30AF",
-      volume: "\u97F3\u91CF",
-      mute: "\u30DF\u30E5\u30FC\u30C8",
-      unmute: "\u30DF\u30E5\u30FC\u30C8\u89E3\u9664",
-      fullscreen: "\u5168\u753B\u9762\u8868\u793A",
-      exitFullscreen: "\u5168\u753B\u9762\u8868\u793A\u3092\u7D42\u4E86",
-      captions: "\u5B57\u5E55",
-      chapters: "\u30C1\u30E3\u30D7\u30BF\u30FC",
-      quality: "\u753B\u8CEA",
-      captionStyling: "\u5B57\u5E55\u30B9\u30BF\u30A4\u30EB",
-      transcript: "\u6587\u5B57\u8D77\u3053\u3057\u5207\u308A\u66FF\u3048",
-      audioDescription: "\u97F3\u58F0\u89E3\u8AAC",
-      signLanguage: "\u624B\u8A71\u52D5\u753B",
-      settings: "\u8A2D\u5B9A",
-      speed: "\u518D\u751F\u901F\u5EA6",
-      pip: "\u30D4\u30AF\u30C1\u30E3\u30FC\u30A4\u30F3\u30D4\u30AF\u30C1\u30E3\u30FC",
-      currentTime: "\u73FE\u5728\u306E\u6642\u9593",
-      duration: "\u518D\u751F\u6642\u9593",
-      progress: "\u9032\u884C\u72B6\u6CC1",
-      seekForward: "{seconds}\u79D2\u9032\u3081\u308B",
-      seekBackward: "{seconds}\u79D2\u623B\u3059",
-      volumeUp: "\u97F3\u91CF\u3092\u4E0A\u3052\u308B",
-      volumeDown: "\u97F3\u91CF\u3092\u4E0B\u3052\u308B",
-      loading: "\u8AAD\u307F\u8FBC\u307F\u4E2D...",
-      loadingChapters: "\u30C1\u30E3\u30D7\u30BF\u30FC\u8AAD\u307F\u8FBC\u307F\u4E2D...",
-      error: "\u8AAD\u307F\u8FBC\u307F\u30A8\u30E9\u30FC",
-      buffering: "\u30D0\u30C3\u30D5\u30A1\u30EA\u30F3\u30B0\u4E2D...",
-      signLanguageVideo: "\u624B\u8A71\u52D5\u753B",
-      noChapters: "\u30C1\u30E3\u30D7\u30BF\u30FC\u304C\u3042\u308A\u307E\u305B\u3093",
-      noCaptions: "\u5B57\u5E55\u304C\u3042\u308A\u307E\u305B\u3093",
-      auto: "\u81EA\u52D5",
-      autoQuality: "\u81EA\u52D5\uFF08\u753B\u8CEA\u9078\u629E\u4E0D\u53EF\uFF09",
-      noQuality: "\u753B\u8CEA\u9078\u629E\u4E0D\u53EF",
-      signLanguageDragResize: "\u624B\u8A71\u52D5\u753B - \u30AD\u30FC\u30DC\u30FC\u30C9\u3067\u30C9\u30E9\u30C3\u30B0\u3059\u308B\u306B\u306FD\u30AD\u30FC\u3092\u3001\u30B5\u30A4\u30BA\u5909\u66F4\u3059\u308B\u306B\u306FR\u30AD\u30FC\u3092\u62BC\u3057\u3066\u304F\u3060\u3055\u3044",
-      signLanguageDragActive: "\u624B\u8A71\u52D5\u753B - \u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u304C\u6709\u52B9\u3067\u3059\u3002\u77E2\u5370\u30AD\u30FC\u3067\u79FB\u52D5\u3001Escape\u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
-      signLanguageResizeActive: "\u624B\u8A71\u52D5\u753B - \u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u304C\u6709\u52B9\u3067\u3059\u3002\u5DE6\u53F3\u306E\u77E2\u5370\u30AD\u30FC\u3067\u30B5\u30A4\u30BA\u5909\u66F4\u3001Escape\u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
-      resizeHandle: "{direction}\u30B3\u30FC\u30CA\u30FC\u306E\u30B5\u30A4\u30BA\u5909\u66F4"
-    },
-    captions: {
-      off: "\u30AA\u30D5",
-      select: "\u5B57\u5E55\u3092\u9078\u629E",
-      fontSize: "\u30D5\u30A9\u30F3\u30C8\u30B5\u30A4\u30BA",
-      fontFamily: "\u30D5\u30A9\u30F3\u30C8",
-      color: "\u30C6\u30AD\u30B9\u30C8\u306E\u8272",
-      backgroundColor: "\u80CC\u666F\u8272",
-      opacity: "\u4E0D\u900F\u660E\u5EA6"
-    },
-    fontSizes: {
-      small: "\u5C0F",
-      normal: "\u6A19\u6E96",
-      large: "\u5927",
-      xlarge: "\u7279\u5927"
-    },
-    fontFamilies: {
-      sansSerif: "\u30B5\u30F3\u30BB\u30EA\u30D5",
-      serif: "\u30BB\u30EA\u30D5",
-      monospace: "\u7B49\u5E45"
-    },
-    styleLabels: {
-      textColor: "\u30C6\u30AD\u30B9\u30C8\u306E\u8272",
-      background: "\u80CC\u666F",
-      font: "\u30D5\u30A9\u30F3\u30C8",
-      fontSize: "\u30D5\u30A9\u30F3\u30C8\u30B5\u30A4\u30BA",
-      opacity: "\u4E0D\u900F\u660E\u5EA6"
-    },
-    audioDescription: {
-      enable: "\u97F3\u58F0\u89E3\u8AAC\u3092\u6709\u52B9\u306B\u3059\u308B",
-      disable: "\u97F3\u58F0\u89E3\u8AAC\u3092\u7121\u52B9\u306B\u3059\u308B"
-    },
-    signLanguage: {
-      show: "\u624B\u8A71\u52D5\u753B\u3092\u8868\u793A",
-      hide: "\u624B\u8A71\u52D5\u753B\u3092\u975E\u8868\u793A"
-    },
-    transcript: {
-      title: "\u6587\u5B57\u8D77\u3053\u3057",
-      close: "\u6587\u5B57\u8D77\u3053\u3057\u3092\u9589\u3058\u308B",
-      loading: "\u6587\u5B57\u8D77\u3053\u3057\u3092\u8AAD\u307F\u8FBC\u307F\u4E2D...",
-      noTranscript: "\u3053\u306E\u30D3\u30C7\u30AA\u306E\u6587\u5B57\u8D77\u3053\u3057\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
-      settings: "\u6587\u5B57\u8D77\u3053\u3057\u8A2D\u5B9A\u3002Enter\u30AD\u30FC\u3067\u30E1\u30CB\u30E5\u30FC\u3092\u958B\u304F\u3001\u307E\u305F\u306FD\u30AD\u30FC\u3067\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3059\u308B",
-      keyboardDragMode: "\u77E2\u5370\u30AD\u30FC\u3067\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u5207\u308A\u66FF\u3048\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AD\u30AD\u30FC",
-      keyboardDragActive: "\u2328\uFE0F \u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u6709\u52B9\uFF08\u77E2\u5370\u30AD\u30FC\u3067\u79FB\u52D5\u3001Shift+\u77E2\u5370\u30AD\u30FC\u3067\u5927\u304D\u304F\u79FB\u52D5\u3001D\u307E\u305F\u306FESC\u3067\u7D42\u4E86\uFF09",
-      dragResizePrompt: "D\u30AD\u30FC\u3067\u79FB\u52D5\u3001R\u30AD\u30FC\u3067\u30B5\u30A4\u30BA\u5909\u66F4\u3002Home\u3067\u4F4D\u7F6E\u3092\u30EA\u30BB\u30C3\u30C8\u3001Esc\u3067\u9589\u3058\u307E\u3059\u3002",
-      dragModeEnabled: "\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3057\u307E\u3057\u305F\u3002\u77E2\u5370\u30AD\u30FC\u3067\u79FB\u52D5\u3001Shift+\u77E2\u5370\u30AD\u30FC\u3067\u5927\u304D\u304F\u79FB\u52D5\u3067\u304D\u307E\u3059\u3002\u7D42\u4E86\u3059\u308B\u306B\u306F D \u307E\u305F\u306F Esc \u3092\u62BC\u3057\u307E\u3059\u3002",
-      dragModeDisabled: "\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3057\u307E\u3057\u305F\u3002",
-      resizeWindow: "\u30A6\u30A3\u30F3\u30C9\u30A6\u306E\u30B5\u30A4\u30BA\u5909\u66F4",
-      disableResizeWindow: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3059\u308B",
-      resizeModeHint: "\u30EA\u30B5\u30A4\u30BA\u30CF\u30F3\u30C9\u30EB\u304C\u6709\u52B9\u306B\u306A\u308A\u307E\u3057\u305F\u3002\u8FBA\u3084\u89D2\u3092\u30C9\u30E9\u30C3\u30B0\u3057\u3066\u8ABF\u6574\u3057\u307E\u3059\u3002Esc \u307E\u305F\u306F R \u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
-      resizeModeEnabled: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3057\u307E\u3057\u305F\u3002\u8FBA\u3084\u89D2\u3092\u30C9\u30E9\u30C3\u30B0\u3057\u3066\u8ABF\u6574\u3057\u307E\u3059\u3002Esc \u307E\u305F\u306F R \u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
-      resizeModeDisabled: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3057\u307E\u3057\u305F\u3002",
-      positionReset: "\u6587\u5B57\u8D77\u3053\u3057\u306E\u4F4D\u7F6E\u3092\u30EA\u30BB\u30C3\u30C8\u3057\u307E\u3057\u305F\u3002",
-      styleTranscript: "\u6587\u5B57\u8D77\u3053\u3057\u30B9\u30BF\u30A4\u30EB\u8A2D\u5B9A\u3092\u958B\u304F",
-      closeMenu: "\u30E1\u30CB\u30E5\u30FC\u3092\u9589\u3058\u308B",
-      styleTitle: "\u6587\u5B57\u8D77\u3053\u3057\u30B9\u30BF\u30A4\u30EB",
-      autoscroll: "\u81EA\u52D5\u30B9\u30AF\u30ED\u30FC\u30EB",
-      settingsMenu: "\u8A2D\u5B9A\u30E1\u30CB\u30E5\u30FC"
-    },
-    settings: {
-      title: "\u8A2D\u5B9A",
-      quality: "\u753B\u8CEA",
-      speed: "\u901F\u5EA6",
-      captions: "\u5B57\u5E55",
-      language: "\u8A00\u8A9E",
-      reset: "\u30EA\u30BB\u30C3\u30C8",
-      close: "\u9589\u3058\u308B"
-    },
-    speeds: {
-      normal: "\u901A\u5E38"
-    },
-    time: {
-      display: "\u6642\u9593\u8868\u793A",
-      durationPrefix: "\u518D\u751F\u6642\u9593: ",
-      hour: "{count}\u6642\u9593",
-      hours: "{count}\u6642\u9593",
-      minute: "{count}\u5206",
-      minutes: "{count}\u5206",
-      second: "{count}\u79D2",
-      seconds: "{count}\u79D2"
-    }
+  styleLabels: {
+    textColor: "Text Color",
+    background: "Background",
+    font: "Font",
+    fontSize: "Font Size",
+    opacity: "Opacity"
+  },
+  audioDescription: {
+    enable: "Enable audio description",
+    disable: "Disable audio description"
+  },
+  signLanguage: {
+    show: "Show sign language video",
+    hide: "Hide sign language video"
+  },
+  transcript: {
+    title: "Transcript",
+    close: "Close transcript",
+    loading: "Loading transcript...",
+    noTranscript: "No transcript available for this video.",
+    settings: "Transcript settings. Press Enter to open menu, or D to enable drag mode",
+    keyboardDragMode: "Toggle keyboard drag mode with arrow keys. Shortcut: D key",
+    keyboardDragActive: "\u2328\uFE0F Keyboard Drag Mode Active (Arrow keys to move, Shift+Arrows for large steps, D or ESC to exit)",
+    dragResizePrompt: "Press D to drag or R to resize. Use Home to reset position, Esc to close.",
+    dragModeEnabled: "Keyboard drag mode enabled. Use arrow keys to move, Shift+Arrow for larger steps. Press D or Esc to exit.",
+    dragModeDisabled: "Keyboard drag mode disabled.",
+    resizeWindow: "Resize Window",
+    disableResizeWindow: "Disable Resize Mode",
+    resizeModeHint: "Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit.",
+    resizeModeEnabled: "Resize mode enabled. Drag edges or corners to adjust. Press Esc or R to exit.",
+    resizeModeDisabled: "Resize mode disabled.",
+    positionReset: "Transcript position reset.",
+    styleTranscript: "Open transcript style settings",
+    closeMenu: "Close Menu",
+    styleTitle: "Transcript Style",
+    autoscroll: "Autoscroll",
+    settingsMenu: "Settings menu"
+  },
+  settings: {
+    title: "Settings",
+    quality: "Quality",
+    speed: "Speed",
+    captions: "Captions",
+    language: "Language",
+    reset: "Reset to defaults",
+    close: "Close"
+  },
+  speeds: {
+    normal: "Normal"
+  },
+  time: {
+    display: "Time display",
+    durationPrefix: "Duration: ",
+    hour: "{count} hour",
+    hours: "{count} hours",
+    minute: "{count} minute",
+    minutes: "{count} minutes",
+    second: "{count} second",
+    seconds: "{count} seconds"
   }
 };
+
+// src/i18n/languages/de.js
+var de = {
+  player: {
+    label: "Videoplayer",
+    play: "Abspielen",
+    pause: "Pause",
+    stop: "Stopp",
+    restart: "Von vorne beginnen",
+    rewind: "Zur\xFCckspulen",
+    forward: "Vorspulen",
+    rewindSeconds: "{seconds} Sekunden zur\xFCckspulen",
+    forwardSeconds: "{seconds} Sekunden vorspulen",
+    previous: "Vorheriger Titel",
+    next: "N\xE4chster Titel",
+    volume: "Lautst\xE4rke",
+    mute: "Stumm",
+    unmute: "Ton ein",
+    fullscreen: "Vollbild",
+    exitFullscreen: "Vollbild beenden",
+    captions: "Untertitel",
+    chapters: "Kapitel",
+    quality: "Qualit\xE4t",
+    captionStyling: "Untertitel-Stil",
+    transcript: "Transkript umschalten",
+    audioDescription: "Audiodeskription",
+    signLanguage: "Geb\xE4rdensprache-Video",
+    settings: "Einstellungen",
+    speed: "Wiedergabegeschwindigkeit",
+    pip: "Bild-in-Bild",
+    currentTime: "Aktuelle Zeit",
+    duration: "Dauer",
+    progress: "Fortschritt",
+    seekForward: "{seconds} Sekunden vorspulen",
+    seekBackward: "{seconds} Sekunden zur\xFCckspulen",
+    volumeUp: "Lauter",
+    volumeDown: "Leiser",
+    loading: "L\xE4dt...",
+    loadingChapters: "Kapitel werden geladen...",
+    error: "Fehler beim Laden",
+    buffering: "Puffern...",
+    signLanguageVideo: "Geb\xE4rdensprache-Video",
+    noChapters: "Keine Kapitel verf\xFCgbar",
+    noCaptions: "Keine Untertitel verf\xFCgbar",
+    auto: "Automatisch",
+    autoQuality: "Automatisch (keine Qualit\xE4tsauswahl verf\xFCgbar)",
+    noQuality: "Qualit\xE4tsauswahl nicht verf\xFCgbar",
+    signLanguageDragResize: "Geb\xE4rdensprache-Video - Dr\xFCcken Sie D zum Verschieben per Tastatur, R zum \xC4ndern der Gr\xF6\xDFe",
+    signLanguageDragActive: "Geb\xE4rdensprache-Video - Verschiebemodus aktiv. Pfeiltasten zum Bewegen, Escape zum Beenden.",
+    signLanguageResizeActive: "Geb\xE4rdensprache-Video - Gr\xF6\xDFen\xE4nderungsmodus aktiv. Links-/Rechts-Pfeiltasten zum \xC4ndern der Gr\xF6\xDFe, Escape zum Beenden.",
+    resizeHandle: "Gr\xF6\xDFen\xE4nderung {direction}-Ecke"
+  },
+  captions: {
+    off: "Aus",
+    select: "Untertitel ausw\xE4hlen",
+    fontSize: "Schriftgr\xF6\xDFe",
+    fontFamily: "Schriftart",
+    color: "Textfarbe",
+    backgroundColor: "Hintergrundfarbe",
+    opacity: "Deckkraft"
+  },
+  fontSizes: {
+    small: "Klein",
+    normal: "Normal",
+    large: "Gro\xDF",
+    xlarge: "Sehr gro\xDF"
+  },
+  fontFamilies: {
+    sansSerif: "Sans-serif",
+    serif: "Serif",
+    monospace: "Monospace"
+  },
+  styleLabels: {
+    textColor: "Textfarbe",
+    background: "Hintergrund",
+    font: "Schrift",
+    fontSize: "Schriftgr\xF6\xDFe",
+    opacity: "Deckkraft"
+  },
+  audioDescription: {
+    enable: "Audiodeskription aktivieren",
+    disable: "Audiodeskription deaktivieren"
+  },
+  signLanguage: {
+    show: "Geb\xE4rdensprache-Video anzeigen",
+    hide: "Geb\xE4rdensprache-Video ausblenden"
+  },
+  transcript: {
+    title: "Transkript",
+    close: "Transkript schlie\xDFen",
+    loading: "Transkript wird geladen...",
+    noTranscript: "Kein Transkript f\xFCr dieses Video verf\xFCgbar.",
+    settings: "Transkript-Einstellungen. Eingabetaste zum \xD6ffnen des Men\xFCs dr\xFCcken oder D zum Aktivieren des Verschiebemodus",
+    keyboardDragMode: "Tastatur-Verschiebemodus mit Pfeiltasten umschalten. Tastenkombination: D-Taste",
+    keyboardDragActive: "\u2328\uFE0F Tastatur-Verschiebemodus aktiv (Pfeiltasten zum Bewegen, Umschalt+Pfeiltasten f\xFCr gro\xDFe Schritte, D oder ESC zum Beenden)",
+    dragResizePrompt: "Dr\xFCcken Sie D zum Verschieben oder R zur Gr\xF6\xDFen\xE4nderung. Home setzt die Position zur\xFCck, Esc schlie\xDFt.",
+    dragModeEnabled: "Tastatur-Verschiebemodus aktiviert. Pfeiltasten zum Bewegen, Umschalt+Pfeiltasten f\xFCr gr\xF6\xDFere Schritte. D oder Esc zum Beenden.",
+    dragModeDisabled: "Tastatur-Verschiebemodus deaktiviert.",
+    resizeWindow: "Fenster vergr\xF6\xDFern/verkleinern",
+    disableResizeWindow: "Resize-Modus deaktivieren",
+    resizeModeHint: "Griffe aktiviert. Ziehen Sie Kanten oder Ecken zum Anpassen. Esc oder R zum Beenden.",
+    resizeModeEnabled: "Resize-Modus aktiviert. Kanten oder Ecken ziehen; Esc oder R beendet.",
+    resizeModeDisabled: "Resize-Modus deaktiviert.",
+    positionReset: "Transkriptposition zur\xFCckgesetzt.",
+    styleTranscript: "Transkript-Stileinstellungen \xF6ffnen",
+    closeMenu: "Men\xFC schlie\xDFen",
+    styleTitle: "Transkript-Stil",
+    autoscroll: "Automatisches Scrollen",
+    settingsMenu: "Einstellungsmen\xFC"
+  },
+  settings: {
+    title: "Einstellungen",
+    quality: "Qualit\xE4t",
+    speed: "Geschwindigkeit",
+    captions: "Untertitel",
+    language: "Sprache",
+    reset: "Zur\xFCcksetzen",
+    close: "Schlie\xDFen"
+  },
+  speeds: {
+    normal: "Normal"
+  },
+  time: {
+    display: "Zeitanzeige",
+    durationPrefix: "Dauer: ",
+    hour: "{count} Stunde",
+    hours: "{count} Stunden",
+    minute: "{count} Minute",
+    minutes: "{count} Minuten",
+    second: "{count} Sekunde",
+    seconds: "{count} Sekunden"
+  }
+};
+
+// src/i18n/languages/es.js
+var es = {
+  player: {
+    label: "Reproductor de video",
+    play: "Reproducir",
+    pause: "Pausa",
+    stop: "Detener",
+    restart: "Reiniciar desde el principio",
+    rewind: "Retroceder",
+    forward: "Avanzar",
+    rewindSeconds: "Retroceder {seconds} segundos",
+    forwardSeconds: "Avanzar {seconds} segundos",
+    previous: "Pista anterior",
+    next: "Siguiente pista",
+    volume: "Volumen",
+    mute: "Silenciar",
+    unmute: "Activar sonido",
+    fullscreen: "Pantalla completa",
+    exitFullscreen: "Salir de pantalla completa",
+    captions: "Subt\xEDtulos",
+    chapters: "Cap\xEDtulos",
+    quality: "Calidad",
+    captionStyling: "Estilo de subt\xEDtulos",
+    transcript: "Alternar transcripci\xF3n",
+    audioDescription: "Audiodescripci\xF3n",
+    signLanguage: "Video en lengua de se\xF1as",
+    settings: "Configuraci\xF3n",
+    speed: "Velocidad de reproducci\xF3n",
+    pip: "Imagen en imagen",
+    currentTime: "Tiempo actual",
+    duration: "Duraci\xF3n",
+    progress: "Progreso",
+    seekForward: "Avanzar {seconds} segundos",
+    seekBackward: "Retroceder {seconds} segundos",
+    volumeUp: "Subir volumen",
+    volumeDown: "Bajar volumen",
+    loading: "Cargando...",
+    loadingChapters: "Cargando cap\xEDtulos...",
+    error: "Error al cargar",
+    buffering: "Almacenando en b\xFAfer...",
+    signLanguageVideo: "Video en Lengua de Se\xF1as",
+    noChapters: "No hay cap\xEDtulos disponibles",
+    noCaptions: "No hay subt\xEDtulos disponibles",
+    auto: "Autom\xE1tico",
+    autoQuality: "Autom\xE1tico (selecci\xF3n de calidad no disponible)",
+    noQuality: "Selecci\xF3n de calidad no disponible",
+    signLanguageDragResize: "Video en Lengua de Se\xF1as - Presione D para arrastrar con el teclado, R para cambiar el tama\xF1o",
+    signLanguageDragActive: "Video en Lengua de Se\xF1as - Modo de arrastre activo. Use las teclas de flecha para mover, Escape para salir.",
+    signLanguageResizeActive: "Video en Lengua de Se\xF1as - Modo de cambio de tama\xF1o activo. Use las teclas de flecha izquierda/derecha para cambiar el tama\xF1o, Escape para salir.",
+    resizeHandle: "Cambiar tama\xF1o esquina {direction}"
+  },
+  captions: {
+    off: "Desactivado",
+    select: "Seleccionar subt\xEDtulos",
+    fontSize: "Tama\xF1o de fuente",
+    fontFamily: "Familia de fuente",
+    color: "Color de texto",
+    backgroundColor: "Color de fondo",
+    opacity: "Opacidad"
+  },
+  fontSizes: {
+    small: "Peque\xF1o",
+    normal: "Normal",
+    large: "Grande",
+    xlarge: "Muy grande"
+  },
+  fontFamilies: {
+    sansSerif: "Sans-serif",
+    serif: "Serif",
+    monospace: "Monospace"
+  },
+  styleLabels: {
+    textColor: "Color de texto",
+    background: "Fondo",
+    font: "Fuente",
+    fontSize: "Tama\xF1o de fuente",
+    opacity: "Opacidad"
+  },
+  audioDescription: {
+    enable: "Activar audiodescripci\xF3n",
+    disable: "Desactivar audiodescripci\xF3n"
+  },
+  signLanguage: {
+    show: "Mostrar video en lengua de se\xF1as",
+    hide: "Ocultar video en lengua de se\xF1as"
+  },
+  transcript: {
+    title: "Transcripci\xF3n",
+    close: "Cerrar transcripci\xF3n",
+    loading: "Cargando transcripci\xF3n...",
+    noTranscript: "No hay transcripci\xF3n disponible para este video.",
+    settings: "Configuraci\xF3n de transcripci\xF3n. Presione Enter para abrir el men\xFA o D para activar el modo de arrastre",
+    keyboardDragMode: "Alternar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D",
+    keyboardDragActive: "\u2328\uFE0F Modo de Arrastre con Teclado Activo (Teclas de flecha para mover, May\xFAs+Flechas para pasos grandes, D o ESC para salir)",
+    dragResizePrompt: "Pulsa D para mover o R para cambiar el tama\xF1o. Home restablece la posici\xF3n; Esc cierra.",
+    dragModeEnabled: "Modo de arrastre con teclado activado. Usa flechas para mover, May\xFAs+Flechas para pasos grandes. Pulsa D o Esc para salir.",
+    dragModeDisabled: "Modo de arrastre con teclado desactivado.",
+    resizeWindow: "Cambiar tama\xF1o de ventana",
+    disableResizeWindow: "Desactivar modo de cambio de tama\xF1o",
+    resizeModeHint: "Controladores habilitados. Arrastra bordes o esquinas para ajustar. Pulsa Esc o R para salir.",
+    resizeModeEnabled: "Modo de cambio de tama\xF1o activado. Arrastra bordes o esquinas. Pulsa Esc o R para salir.",
+    resizeModeDisabled: "Modo de cambio de tama\xF1o desactivado.",
+    positionReset: "Posici\xF3n de la transcripci\xF3n restablecida.",
+    styleTranscript: "Abrir configuraci\xF3n de estilo de transcripci\xF3n",
+    closeMenu: "Cerrar men\xFA",
+    styleTitle: "Estilo de Transcripci\xF3n",
+    autoscroll: "Desplazamiento autom\xE1tico",
+    settingsMenu: "Men\xFA de configuraci\xF3n"
+  },
+  settings: {
+    title: "Configuraci\xF3n",
+    quality: "Calidad",
+    speed: "Velocidad",
+    captions: "Subt\xEDtulos",
+    language: "Idioma",
+    reset: "Restablecer",
+    close: "Cerrar"
+  },
+  speeds: {
+    normal: "Normal"
+  },
+  time: {
+    display: "Visualizaci\xF3n de tiempo",
+    durationPrefix: "Duraci\xF3n: ",
+    hour: "{count} hora",
+    hours: "{count} horas",
+    minute: "{count} minuto",
+    minutes: "{count} minutos",
+    second: "{count} segundo",
+    seconds: "{count} segundos"
+  }
+};
+
+// src/i18n/languages/fr.js
+var fr = {
+  player: {
+    label: "Lecteur vid\xE9o",
+    play: "Lecture",
+    pause: "Pause",
+    stop: "Arr\xEAt",
+    restart: "Red\xE9marrer du d\xE9but",
+    rewind: "Reculer",
+    forward: "Avancer",
+    rewindSeconds: "Reculer de {seconds} secondes",
+    forwardSeconds: "Avancer de {seconds} secondes",
+    previous: "Piste pr\xE9c\xE9dente",
+    next: "Piste suivante",
+    volume: "Volume",
+    mute: "Muet",
+    unmute: "Activer le son",
+    fullscreen: "Plein \xE9cran",
+    exitFullscreen: "Quitter le plein \xE9cran",
+    captions: "Sous-titres",
+    chapters: "Chapitres",
+    quality: "Qualit\xE9",
+    captionStyling: "Style des sous-titres",
+    transcript: "Activer/d\xE9sactiver la transcription",
+    audioDescription: "Audiodescription",
+    signLanguage: "Vid\xE9o en langue des signes",
+    settings: "Param\xE8tres",
+    speed: "Vitesse de lecture",
+    pip: "Image dans l'image",
+    currentTime: "Temps actuel",
+    duration: "Dur\xE9e",
+    progress: "Progression",
+    seekForward: "Avancer de {seconds} secondes",
+    seekBackward: "Reculer de {seconds} secondes",
+    volumeUp: "Augmenter le volume",
+    volumeDown: "Diminuer le volume",
+    loading: "Chargement...",
+    loadingChapters: "Chargement des chapitres...",
+    error: "Erreur de chargement",
+    buffering: "Mise en m\xE9moire tampon...",
+    signLanguageVideo: "Vid\xE9o en Langue des Signes",
+    noChapters: "Aucun chapitre disponible",
+    noCaptions: "Aucun sous-titre disponible",
+    auto: "Automatique",
+    autoQuality: "Automatique (s\xE9lection de qualit\xE9 non disponible)",
+    noQuality: "S\xE9lection de qualit\xE9 non disponible",
+    signLanguageDragResize: "Vid\xE9o en Langue des Signes - Appuyez sur D pour d\xE9placer avec le clavier, R pour redimensionner",
+    signLanguageDragActive: "Vid\xE9o en Langue des Signes - Mode glissement actif. Utilisez les touches fl\xE9ch\xE9es pour d\xE9placer, \xC9chap pour quitter.",
+    signLanguageResizeActive: "Vid\xE9o en Langue des Signes - Mode redimensionnement actif. Utilisez les touches fl\xE9ch\xE9es gauche/droite pour redimensionner, \xC9chap pour quitter.",
+    resizeHandle: "Redimensionner coin {direction}"
+  },
+  captions: {
+    off: "D\xE9sactiv\xE9",
+    select: "S\xE9lectionner les sous-titres",
+    fontSize: "Taille de police",
+    fontFamily: "Police",
+    color: "Couleur du texte",
+    backgroundColor: "Couleur de fond",
+    opacity: "Opacit\xE9"
+  },
+  fontSizes: {
+    small: "Petit",
+    normal: "Normal",
+    large: "Grand",
+    xlarge: "Tr\xE8s grand"
+  },
+  fontFamilies: {
+    sansSerif: "Sans-serif",
+    serif: "Serif",
+    monospace: "Monospace"
+  },
+  styleLabels: {
+    textColor: "Couleur du texte",
+    background: "Arri\xE8re-plan",
+    font: "Police",
+    fontSize: "Taille de police",
+    opacity: "Opacit\xE9"
+  },
+  audioDescription: {
+    enable: "Activer l'audiodescription",
+    disable: "D\xE9sactiver l'audiodescription"
+  },
+  signLanguage: {
+    show: "Afficher la vid\xE9o en langue des signes",
+    hide: "Masquer la vid\xE9o en langue des signes"
+  },
+  transcript: {
+    title: "Transcription",
+    close: "Fermer la transcription",
+    loading: "Chargement de la transcription...",
+    noTranscript: "Aucune transcription disponible pour cette vid\xE9o.",
+    settings: "Param\xE8tres de transcription. Appuyez sur Entr\xE9e pour ouvrir le menu ou D pour activer le mode glissement",
+    keyboardDragMode: "Basculer le mode glissement avec les touches fl\xE9ch\xE9es. Raccourci: touche D",
+    keyboardDragActive: "\u2328\uFE0F Mode Glissement Clavier Actif (Touches fl\xE9ch\xE9es pour d\xE9placer, Maj+Fl\xE9ch\xE9es pour grands pas, D ou \xC9chap pour quitter)",
+    dragResizePrompt: "Appuyez sur D pour d\xE9placer ou R pour redimensionner. Home r\xE9initialise la position, \xC9chap ferme.",
+    dragModeEnabled: "Mode glissement clavier activ\xE9. Utilisez les fl\xE8ches pour d\xE9placer, Maj+Fl\xE8ches pour de grands pas. Appuyez sur D ou \xC9chap pour quitter.",
+    dragModeDisabled: "Mode glissement clavier d\xE9sactiv\xE9.",
+    resizeWindow: "Redimensionner la fen\xEAtre",
+    disableResizeWindow: "D\xE9sactiver le mode de redimensionnement",
+    resizeModeHint: "Poign\xE9es activ\xE9es. Faites glisser les bords ou les coins pour ajuster. Appuyez sur \xC9chap ou R pour quitter.",
+    resizeModeEnabled: "Mode redimensionnement activ\xE9. Faites glisser les bords ou coins. Appuyez sur \xC9chap ou R pour quitter.",
+    resizeModeDisabled: "Mode redimensionnement d\xE9sactiv\xE9.",
+    positionReset: "Position de la transcription r\xE9initialis\xE9e.",
+    styleTranscript: "Ouvrir les param\xE8tres de style de transcription",
+    closeMenu: "Fermer le menu",
+    styleTitle: "Style de Transcription",
+    autoscroll: "D\xE9filement automatique",
+    settingsMenu: "Menu des param\xE8tres"
+  },
+  settings: {
+    title: "Param\xE8tres",
+    quality: "Qualit\xE9",
+    speed: "Vitesse",
+    captions: "Sous-titres",
+    language: "Langue",
+    reset: "R\xE9initialiser",
+    close: "Fermer"
+  },
+  speeds: {
+    normal: "Normal"
+  },
+  time: {
+    display: "Affichage du temps",
+    durationPrefix: "Dur\xE9e : ",
+    hour: "{count} heure",
+    hours: "{count} heures",
+    minute: "{count} minute",
+    minutes: "{count} minutes",
+    second: "{count} seconde",
+    seconds: "{count} secondes"
+  }
+};
+
+// src/i18n/languages/ja.js
+var ja = {
+  player: {
+    label: "\u30D3\u30C7\u30AA\u30D7\u30EC\u30FC\u30E4\u30FC",
+    play: "\u518D\u751F",
+    pause: "\u4E00\u6642\u505C\u6B62",
+    stop: "\u505C\u6B62",
+    restart: "\u6700\u521D\u304B\u3089\u518D\u751F",
+    rewind: "\u5DFB\u304D\u623B\u3057",
+    forward: "\u65E9\u9001\u308A",
+    rewindSeconds: "{seconds}\u79D2\u623B\u3059",
+    forwardSeconds: "{seconds}\u79D2\u9032\u3081\u308B",
+    previous: "\u524D\u306E\u30C8\u30E9\u30C3\u30AF",
+    next: "\u6B21\u306E\u30C8\u30E9\u30C3\u30AF",
+    volume: "\u97F3\u91CF",
+    mute: "\u30DF\u30E5\u30FC\u30C8",
+    unmute: "\u30DF\u30E5\u30FC\u30C8\u89E3\u9664",
+    fullscreen: "\u5168\u753B\u9762\u8868\u793A",
+    exitFullscreen: "\u5168\u753B\u9762\u8868\u793A\u3092\u7D42\u4E86",
+    captions: "\u5B57\u5E55",
+    chapters: "\u30C1\u30E3\u30D7\u30BF\u30FC",
+    quality: "\u753B\u8CEA",
+    captionStyling: "\u5B57\u5E55\u30B9\u30BF\u30A4\u30EB",
+    transcript: "\u6587\u5B57\u8D77\u3053\u3057\u5207\u308A\u66FF\u3048",
+    audioDescription: "\u97F3\u58F0\u89E3\u8AAC",
+    signLanguage: "\u624B\u8A71\u52D5\u753B",
+    settings: "\u8A2D\u5B9A",
+    speed: "\u518D\u751F\u901F\u5EA6",
+    pip: "\u30D4\u30AF\u30C1\u30E3\u30FC\u30A4\u30F3\u30D4\u30AF\u30C1\u30E3\u30FC",
+    currentTime: "\u73FE\u5728\u306E\u6642\u9593",
+    duration: "\u518D\u751F\u6642\u9593",
+    progress: "\u9032\u884C\u72B6\u6CC1",
+    seekForward: "{seconds}\u79D2\u9032\u3081\u308B",
+    seekBackward: "{seconds}\u79D2\u623B\u3059",
+    volumeUp: "\u97F3\u91CF\u3092\u4E0A\u3052\u308B",
+    volumeDown: "\u97F3\u91CF\u3092\u4E0B\u3052\u308B",
+    loading: "\u8AAD\u307F\u8FBC\u307F\u4E2D...",
+    loadingChapters: "\u30C1\u30E3\u30D7\u30BF\u30FC\u8AAD\u307F\u8FBC\u307F\u4E2D...",
+    error: "\u8AAD\u307F\u8FBC\u307F\u30A8\u30E9\u30FC",
+    buffering: "\u30D0\u30C3\u30D5\u30A1\u30EA\u30F3\u30B0\u4E2D...",
+    signLanguageVideo: "\u624B\u8A71\u52D5\u753B",
+    noChapters: "\u30C1\u30E3\u30D7\u30BF\u30FC\u304C\u3042\u308A\u307E\u305B\u3093",
+    noCaptions: "\u5B57\u5E55\u304C\u3042\u308A\u307E\u305B\u3093",
+    auto: "\u81EA\u52D5",
+    autoQuality: "\u81EA\u52D5\uFF08\u753B\u8CEA\u9078\u629E\u4E0D\u53EF\uFF09",
+    noQuality: "\u753B\u8CEA\u9078\u629E\u4E0D\u53EF",
+    signLanguageDragResize: "\u624B\u8A71\u52D5\u753B - \u30AD\u30FC\u30DC\u30FC\u30C9\u3067\u30C9\u30E9\u30C3\u30B0\u3059\u308B\u306B\u306FD\u30AD\u30FC\u3092\u3001\u30B5\u30A4\u30BA\u5909\u66F4\u3059\u308B\u306B\u306FR\u30AD\u30FC\u3092\u62BC\u3057\u3066\u304F\u3060\u3055\u3044",
+    signLanguageDragActive: "\u624B\u8A71\u52D5\u753B - \u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u304C\u6709\u52B9\u3067\u3059\u3002\u77E2\u5370\u30AD\u30FC\u3067\u79FB\u52D5\u3001Escape\u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
+    signLanguageResizeActive: "\u624B\u8A71\u52D5\u753B - \u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u304C\u6709\u52B9\u3067\u3059\u3002\u5DE6\u53F3\u306E\u77E2\u5370\u30AD\u30FC\u3067\u30B5\u30A4\u30BA\u5909\u66F4\u3001Escape\u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
+    resizeHandle: "{direction}\u30B3\u30FC\u30CA\u30FC\u306E\u30B5\u30A4\u30BA\u5909\u66F4"
+  },
+  captions: {
+    off: "\u30AA\u30D5",
+    select: "\u5B57\u5E55\u3092\u9078\u629E",
+    fontSize: "\u30D5\u30A9\u30F3\u30C8\u30B5\u30A4\u30BA",
+    fontFamily: "\u30D5\u30A9\u30F3\u30C8",
+    color: "\u30C6\u30AD\u30B9\u30C8\u306E\u8272",
+    backgroundColor: "\u80CC\u666F\u8272",
+    opacity: "\u4E0D\u900F\u660E\u5EA6"
+  },
+  fontSizes: {
+    small: "\u5C0F",
+    normal: "\u6A19\u6E96",
+    large: "\u5927",
+    xlarge: "\u7279\u5927"
+  },
+  fontFamilies: {
+    sansSerif: "\u30B5\u30F3\u30BB\u30EA\u30D5",
+    serif: "\u30BB\u30EA\u30D5",
+    monospace: "\u7B49\u5E45"
+  },
+  styleLabels: {
+    textColor: "\u30C6\u30AD\u30B9\u30C8\u306E\u8272",
+    background: "\u80CC\u666F",
+    font: "\u30D5\u30A9\u30F3\u30C8",
+    fontSize: "\u30D5\u30A9\u30F3\u30C8\u30B5\u30A4\u30BA",
+    opacity: "\u4E0D\u900F\u660E\u5EA6"
+  },
+  audioDescription: {
+    enable: "\u97F3\u58F0\u89E3\u8AAC\u3092\u6709\u52B9\u306B\u3059\u308B",
+    disable: "\u97F3\u58F0\u89E3\u8AAC\u3092\u7121\u52B9\u306B\u3059\u308B"
+  },
+  signLanguage: {
+    show: "\u624B\u8A71\u52D5\u753B\u3092\u8868\u793A",
+    hide: "\u624B\u8A71\u52D5\u753B\u3092\u975E\u8868\u793A"
+  },
+  transcript: {
+    title: "\u6587\u5B57\u8D77\u3053\u3057",
+    close: "\u6587\u5B57\u8D77\u3053\u3057\u3092\u9589\u3058\u308B",
+    loading: "\u6587\u5B57\u8D77\u3053\u3057\u3092\u8AAD\u307F\u8FBC\u307F\u4E2D...",
+    noTranscript: "\u3053\u306E\u30D3\u30C7\u30AA\u306E\u6587\u5B57\u8D77\u3053\u3057\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+    settings: "\u6587\u5B57\u8D77\u3053\u3057\u8A2D\u5B9A\u3002Enter\u30AD\u30FC\u3067\u30E1\u30CB\u30E5\u30FC\u3092\u958B\u304F\u3001\u307E\u305F\u306FD\u30AD\u30FC\u3067\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3059\u308B",
+    keyboardDragMode: "\u77E2\u5370\u30AD\u30FC\u3067\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u5207\u308A\u66FF\u3048\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AD\u30AD\u30FC",
+    keyboardDragActive: "\u2328\uFE0F \u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u6709\u52B9\uFF08\u77E2\u5370\u30AD\u30FC\u3067\u79FB\u52D5\u3001Shift+\u77E2\u5370\u30AD\u30FC\u3067\u5927\u304D\u304F\u79FB\u52D5\u3001D\u307E\u305F\u306FESC\u3067\u7D42\u4E86\uFF09",
+    dragResizePrompt: "D\u30AD\u30FC\u3067\u79FB\u52D5\u3001R\u30AD\u30FC\u3067\u30B5\u30A4\u30BA\u5909\u66F4\u3002Home\u3067\u4F4D\u7F6E\u3092\u30EA\u30BB\u30C3\u30C8\u3001Esc\u3067\u9589\u3058\u307E\u3059\u3002",
+    dragModeEnabled: "\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3057\u307E\u3057\u305F\u3002\u77E2\u5370\u30AD\u30FC\u3067\u79FB\u52D5\u3001Shift+\u77E2\u5370\u30AD\u30FC\u3067\u5927\u304D\u304F\u79FB\u52D5\u3067\u304D\u307E\u3059\u3002\u7D42\u4E86\u3059\u308B\u306B\u306F D \u307E\u305F\u306F Esc \u3092\u62BC\u3057\u307E\u3059\u3002",
+    dragModeDisabled: "\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3057\u307E\u3057\u305F\u3002",
+    resizeWindow: "\u30A6\u30A3\u30F3\u30C9\u30A6\u306E\u30B5\u30A4\u30BA\u5909\u66F4",
+    disableResizeWindow: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3059\u308B",
+    resizeModeHint: "\u30EA\u30B5\u30A4\u30BA\u30CF\u30F3\u30C9\u30EB\u304C\u6709\u52B9\u306B\u306A\u308A\u307E\u3057\u305F\u3002\u8FBA\u3084\u89D2\u3092\u30C9\u30E9\u30C3\u30B0\u3057\u3066\u8ABF\u6574\u3057\u307E\u3059\u3002Esc \u307E\u305F\u306F R \u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
+    resizeModeEnabled: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3057\u307E\u3057\u305F\u3002\u8FBA\u3084\u89D2\u3092\u30C9\u30E9\u30C3\u30B0\u3057\u3066\u8ABF\u6574\u3057\u307E\u3059\u3002Esc \u307E\u305F\u306F R \u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
+    resizeModeDisabled: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3057\u307E\u3057\u305F\u3002",
+    positionReset: "\u6587\u5B57\u8D77\u3053\u3057\u306E\u4F4D\u7F6E\u3092\u30EA\u30BB\u30C3\u30C8\u3057\u307E\u3057\u305F\u3002",
+    styleTranscript: "\u6587\u5B57\u8D77\u3053\u3057\u30B9\u30BF\u30A4\u30EB\u8A2D\u5B9A\u3092\u958B\u304F",
+    closeMenu: "\u30E1\u30CB\u30E5\u30FC\u3092\u9589\u3058\u308B",
+    styleTitle: "\u6587\u5B57\u8D77\u3053\u3057\u30B9\u30BF\u30A4\u30EB",
+    autoscroll: "\u81EA\u52D5\u30B9\u30AF\u30ED\u30FC\u30EB",
+    settingsMenu: "\u8A2D\u5B9A\u30E1\u30CB\u30E5\u30FC"
+  },
+  settings: {
+    title: "\u8A2D\u5B9A",
+    quality: "\u753B\u8CEA",
+    speed: "\u901F\u5EA6",
+    captions: "\u5B57\u5E55",
+    language: "\u8A00\u8A9E",
+    reset: "\u30EA\u30BB\u30C3\u30C8",
+    close: "\u9589\u3058\u308B"
+  },
+  speeds: {
+    normal: "\u901A\u5E38"
+  },
+  time: {
+    display: "\u6642\u9593\u8868\u793A",
+    durationPrefix: "\u518D\u751F\u6642\u9593: ",
+    hour: "{count}\u6642\u9593",
+    hours: "{count}\u6642\u9593",
+    minute: "{count}\u5206",
+    minutes: "{count}\u5206",
+    second: "{count}\u79D2",
+    seconds: "{count}\u79D2"
+  }
+};
+
+// src/i18n/translations.js
+function loadBuiltInTranslations() {
+  return {
+    en,
+    de,
+    es,
+    fr,
+    ja
+  };
+}
+var translations = loadBuiltInTranslations();
 
 // src/i18n/i18n.js
 var I18n = class {
   constructor() {
     this.currentLanguage = "en";
-    this.translations = translations;
+    this.translations = loadBuiltInTranslations();
+    this.loadingPromises = /* @__PURE__ */ new Map();
   }
   setLanguage(lang) {
     if (this.translations[lang]) {
@@ -1108,6 +1127,64 @@ var I18n = class {
       this.translations[lang] = {};
     }
     Object.assign(this.translations[lang], translations2);
+  }
+  /**
+   * Load a language file from a URL (JSON or YAML)
+   * @param {string} langCode - Language code (e.g., 'pt', 'it')
+   * @param {string} url - URL to the language file (JSON or YAML)
+   * @returns {Promise<void>}
+   */
+  async loadLanguageFromUrl(langCode, url) {
+    if (this.loadingPromises.has(url)) {
+      return this.loadingPromises.get(url);
+    }
+    const loadPromise = (async () => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Failed to load language file: ${response.statusText}`);
+        }
+        const contentType = response.headers.get("content-type") || "";
+        let translations2;
+        if (contentType.includes("application/json") || url.endsWith(".json")) {
+          translations2 = await response.json();
+        } else if (contentType.includes("text/yaml") || contentType.includes("application/x-yaml") || url.endsWith(".yaml") || url.endsWith(".yml")) {
+          const text = await response.text();
+          try {
+            translations2 = JSON.parse(text);
+          } catch (e) {
+            if (typeof window !== "undefined" && window.jsyaml) {
+              translations2 = window.jsyaml.load(text);
+            } else {
+              console.warn("YAML parsing requires js-yaml library. Please include it or use JSON format.");
+              throw new Error("YAML parsing not available. Please use JSON format or include js-yaml library.");
+            }
+          }
+        } else {
+          translations2 = await response.json();
+        }
+        this.addTranslation(langCode, translations2);
+        return translations2;
+      } catch (error) {
+        console.error(`Error loading language file from ${url}:`, error);
+        throw error;
+      } finally {
+        this.loadingPromises.delete(url);
+      }
+    })();
+    this.loadingPromises.set(url, loadPromise);
+    return loadPromise;
+  }
+  /**
+   * Load multiple language files from URLs
+   * @param {Object} languageMap - Object mapping language codes to URLs
+   * @returns {Promise<void>}
+   */
+  async loadLanguagesFromUrls(languageMap) {
+    const promises = Object.entries(languageMap).map(
+      ([langCode, url]) => this.loadLanguageFromUrl(langCode, url)
+    );
+    await Promise.all(promises);
   }
 };
 var i18n = new I18n();
@@ -6219,12 +6296,30 @@ var Player = class _Player extends EventEmitter {
     var _a;
     try {
       this.log("Initializing VidPly player");
+      if (this.options.languageFiles) {
+        try {
+          await i18n.loadLanguagesFromUrls(this.options.languageFiles);
+        } catch (error) {
+          console.warn("Failed to load some language files:", error);
+        }
+      }
+      if (this.options.languageFile && this.options.languageFileUrl) {
+        try {
+          await i18n.loadLanguageFromUrl(this.options.languageFile, this.options.languageFileUrl);
+          this.log(`Custom language file loaded for ${this.options.languageFile}`);
+        } catch (error) {
+          console.warn(`Failed to load language file for ${this.options.languageFile}:`, error);
+        }
+      }
       if (!this.options.language || this.options.language === "en") {
         const htmlLang = this.detectHtmlLanguage();
         if (htmlLang) {
           this.options.language = htmlLang;
           this.log(`Auto-detected language from HTML: ${htmlLang}`);
         }
+      }
+      if (!this.options.language) {
+        this.options.language = "en";
       }
       i18n.setLanguage(this.options.language);
       this.createContainer();
@@ -6281,12 +6376,11 @@ var Player = class _Player extends EventEmitter {
       return null;
     }
     const normalizedLang = htmlLang.toLowerCase().split("-")[0];
-    const availableLanguages = ["en", "de", "es", "fr", "ja"];
-    if (availableLanguages.includes(normalizedLang)) {
+    if (i18n.translations[normalizedLang]) {
       return normalizedLang;
     }
     this.log(`Language "${htmlLang}" not available, using English as fallback`);
-    return "en";
+    return null;
   }
   createContainer() {
     this.container = DOMUtils.createElement("div", {
@@ -8820,6 +8914,29 @@ function parseDataAttributes(dataset) {
       }
     }
   });
+  if (dataset.vidplyLanguageFiles) {
+    try {
+      options.languageFiles = JSON.parse(dataset.vidplyLanguageFiles);
+    } catch (e) {
+      console.warn("Invalid JSON in data-vidply-language-files:", e);
+    }
+  }
+  if (dataset.vidplyLanguageFile) {
+    try {
+      const parsed = JSON.parse(dataset.vidplyLanguageFile);
+      if (typeof parsed === "object" && parsed !== null) {
+        options.languageFiles = parsed;
+      }
+    } catch (e) {
+      if (dataset.vidplyLanguageFileCode && dataset.vidplyLanguageFileUrl) {
+        options.languageFile = dataset.vidplyLanguageFileCode;
+        options.languageFileUrl = dataset.vidplyLanguageFileUrl;
+      }
+    }
+  } else if (dataset.vidplyLanguageFileCode && dataset.vidplyLanguageFileUrl) {
+    options.languageFile = dataset.vidplyLanguageFileCode;
+    options.languageFileUrl = dataset.vidplyLanguageFileUrl;
+  }
   return options;
 }
 if (document.readyState === "loading") {

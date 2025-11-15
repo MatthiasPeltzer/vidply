@@ -416,9 +416,10 @@
     cursor: pointer;
     display: inline-flex;
     justify-content: center;
-    min-height: 32px;
-    min-width: 32px;
-    padding: 6px;
+    margin: 1px;
+    min-height: 30px;
+    min-width: 30px;
+    padding: 0;
     position: relative;
     transition: background-color 0.2s ease, transform 0.1s ease;
 }
@@ -518,9 +519,11 @@
 }
 
 .vidply-speed-text {
-    font-size: 12px;
-    min-width: 28px;
-    text-align: center;
+    height: 1px;
+    left: -10000px;
+    overflow: hidden;
+    position: absolute;
+    width: 1px;
 }
 
 /* Menu Backdrop (for mobile) */

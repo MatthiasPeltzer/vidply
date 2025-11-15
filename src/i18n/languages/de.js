@@ -1,0 +1,136 @@
+/**
+ * German translations for VidPly
+ */
+
+export const de = {
+  player: {
+    label: 'Videoplayer',
+    play: 'Abspielen',
+    pause: 'Pause',
+    stop: 'Stopp',
+    restart: 'Von vorne beginnen',
+    rewind: 'Zurückspulen',
+    forward: 'Vorspulen',
+    rewindSeconds: '{seconds} Sekunden zurückspulen',
+    forwardSeconds: '{seconds} Sekunden vorspulen',
+    previous: 'Vorheriger Titel',
+    next: 'Nächster Titel',
+    volume: 'Lautstärke',
+    mute: 'Stumm',
+    unmute: 'Ton ein',
+    fullscreen: 'Vollbild',
+    exitFullscreen: 'Vollbild beenden',
+    captions: 'Untertitel',
+    chapters: 'Kapitel',
+    quality: 'Qualität',
+    captionStyling: 'Untertitel-Stil',
+    transcript: 'Transkript umschalten',
+    audioDescription: 'Audiodeskription',
+    signLanguage: 'Gebärdensprache-Video',
+    settings: 'Einstellungen',
+    speed: 'Wiedergabegeschwindigkeit',
+    pip: 'Bild-in-Bild',
+    currentTime: 'Aktuelle Zeit',
+    duration: 'Dauer',
+    progress: 'Fortschritt',
+    seekForward: '{seconds} Sekunden vorspulen',
+    seekBackward: '{seconds} Sekunden zurückspulen',
+    volumeUp: 'Lauter',
+    volumeDown: 'Leiser',
+    loading: 'Lädt...',
+    loadingChapters: 'Kapitel werden geladen...',
+    error: 'Fehler beim Laden',
+    buffering: 'Puffern...',
+    signLanguageVideo: 'Gebärdensprache-Video',
+    noChapters: 'Keine Kapitel verfügbar',
+    noCaptions: 'Keine Untertitel verfügbar',
+    auto: 'Automatisch',
+    autoQuality: 'Automatisch (keine Qualitätsauswahl verfügbar)',
+    noQuality: 'Qualitätsauswahl nicht verfügbar',
+    signLanguageDragResize: 'Gebärdensprache-Video - Drücken Sie D zum Verschieben per Tastatur, R zum Ändern der Größe',
+    signLanguageDragActive: 'Gebärdensprache-Video - Verschiebemodus aktiv. Pfeiltasten zum Bewegen, Escape zum Beenden.',
+    signLanguageResizeActive: 'Gebärdensprache-Video - Größenänderungsmodus aktiv. Links-/Rechts-Pfeiltasten zum Ändern der Größe, Escape zum Beenden.',
+    resizeHandle: 'Größenänderung {direction}-Ecke'
+  },
+  captions: {
+    off: 'Aus',
+    select: 'Untertitel auswählen',
+    fontSize: 'Schriftgröße',
+    fontFamily: 'Schriftart',
+    color: 'Textfarbe',
+    backgroundColor: 'Hintergrundfarbe',
+    opacity: 'Deckkraft'
+  },
+  fontSizes: {
+    small: 'Klein',
+    normal: 'Normal',
+    large: 'Groß',
+    xlarge: 'Sehr groß'
+  },
+  fontFamilies: {
+    sansSerif: 'Sans-serif',
+    serif: 'Serif',
+    monospace: 'Monospace'
+  },
+  styleLabels: {
+    textColor: 'Textfarbe',
+    background: 'Hintergrund',
+    font: 'Schrift',
+    fontSize: 'Schriftgröße',
+    opacity: 'Deckkraft'
+  },
+  audioDescription: {
+    enable: 'Audiodeskription aktivieren',
+    disable: 'Audiodeskription deaktivieren'
+  },
+  signLanguage: {
+    show: 'Gebärdensprache-Video anzeigen',
+    hide: 'Gebärdensprache-Video ausblenden'
+  },
+  transcript: {
+    title: 'Transkript',
+    close: 'Transkript schließen',
+    loading: 'Transkript wird geladen...',
+    noTranscript: 'Kein Transkript für dieses Video verfügbar.',
+    settings: 'Transkript-Einstellungen. Eingabetaste zum Öffnen des Menüs drücken oder D zum Aktivieren des Verschiebemodus',
+    keyboardDragMode: 'Tastatur-Verschiebemodus mit Pfeiltasten umschalten. Tastenkombination: D-Taste',
+    keyboardDragActive: '⌨️ Tastatur-Verschiebemodus aktiv (Pfeiltasten zum Bewegen, Umschalt+Pfeiltasten für große Schritte, D oder ESC zum Beenden)',
+    dragResizePrompt: 'Drücken Sie D zum Verschieben oder R zur Größenänderung. Home setzt die Position zurück, Esc schließt.',
+    dragModeEnabled: 'Tastatur-Verschiebemodus aktiviert. Pfeiltasten zum Bewegen, Umschalt+Pfeiltasten für größere Schritte. D oder Esc zum Beenden.',
+    dragModeDisabled: 'Tastatur-Verschiebemodus deaktiviert.',
+    resizeWindow: 'Fenster vergrößern/verkleinern',
+    disableResizeWindow: 'Resize-Modus deaktivieren',
+    resizeModeHint: 'Griffe aktiviert. Ziehen Sie Kanten oder Ecken zum Anpassen. Esc oder R zum Beenden.',
+    resizeModeEnabled: 'Resize-Modus aktiviert. Kanten oder Ecken ziehen; Esc oder R beendet.',
+    resizeModeDisabled: 'Resize-Modus deaktiviert.',
+    positionReset: 'Transkriptposition zurückgesetzt.',
+    styleTranscript: 'Transkript-Stileinstellungen öffnen',
+    closeMenu: 'Menü schließen',
+    styleTitle: 'Transkript-Stil',
+    autoscroll: 'Automatisches Scrollen',
+    settingsMenu: 'Einstellungsmenü'
+  },
+  settings: {
+    title: 'Einstellungen',
+    quality: 'Qualität',
+    speed: 'Geschwindigkeit',
+    captions: 'Untertitel',
+    language: 'Sprache',
+    reset: 'Zurücksetzen',
+    close: 'Schließen'
+  },
+  speeds: {
+    normal: 'Normal'
+  },
+  time: {
+    display: 'Zeitanzeige',
+    durationPrefix: 'Dauer: ',
+    hour: '{count} Stunde',
+    hours: '{count} Stunden',
+    minute: '{count} Minute',
+    minutes: '{count} Minuten',
+    second: '{count} Sekunde',
+    seconds: '{count} Sekunden'
+  }
+};
+

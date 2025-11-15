@@ -79,6 +79,38 @@ function parseDataAttributes(dataset) {
     }
   });
   
+  // Handle language file attributes
+  // Support for multiple language files: data-vidply-language-files='{"pt": "path/to/pt.json", "it": "path/to/it.json"}'
+  if (dataset.vidplyLanguageFiles) {
+    try {
+      options.languageFiles = JSON.parse(dataset.vidplyLanguageFiles);
+    } catch (e) {
+      console.warn('Invalid JSON in data-vidply-language-files:', e);
+    }
+  }
+  
+  // Support for single language file: data-vidply-language-file='{"pt": "path/to/pt.json"}'
+  // or data-vidply-language-file-code="pt" + data-vidply-language-file-url="path/to/pt.json"
+  if (dataset.vidplyLanguageFile) {
+    try {
+      const parsed = JSON.parse(dataset.vidplyLanguageFile);
+      // If it's an object, treat it as languageFiles
+      if (typeof parsed === 'object' && parsed !== null) {
+        options.languageFiles = parsed;
+      }
+    } catch (e) {
+      // If parsing fails, check for separate code and URL attributes
+      if (dataset.vidplyLanguageFileCode && dataset.vidplyLanguageFileUrl) {
+        options.languageFile = dataset.vidplyLanguageFileCode;
+        options.languageFileUrl = dataset.vidplyLanguageFileUrl;
+      }
+    }
+  } else if (dataset.vidplyLanguageFileCode && dataset.vidplyLanguageFileUrl) {
+    // Support separate attributes for single language file
+    options.languageFile = dataset.vidplyLanguageFileCode;
+    options.languageFileUrl = dataset.vidplyLanguageFileUrl;
+  }
+  
   return options;
 }
 

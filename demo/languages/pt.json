@@ -1,0 +1,132 @@
+{
+  "player": {
+    "label": "Reprodutor de Vídeo",
+    "play": "Reproduzir",
+    "pause": "Pausar",
+    "stop": "Parar",
+    "restart": "Reiniciar do início",
+    "rewind": "Retroceder",
+    "forward": "Avançar",
+    "rewindSeconds": "Retroceder {seconds} segundos",
+    "forwardSeconds": "Avançar {seconds} segundos",
+    "previous": "Faixa anterior",
+    "next": "Próxima faixa",
+    "volume": "Volume",
+    "mute": "Silenciar",
+    "unmute": "Ativar som",
+    "fullscreen": "Tela cheia",
+    "exitFullscreen": "Sair da tela cheia",
+    "captions": "Legendas",
+    "chapters": "Capítulos",
+    "quality": "Qualidade",
+    "captionStyling": "Estilo de legendas",
+    "transcript": "Alternar transcrição",
+    "audioDescription": "Audiodescrição",
+    "signLanguage": "Vídeo em língua de sinais",
+    "settings": "Configurações",
+    "speed": "Velocidade de reprodução",
+    "pip": "Picture in Picture",
+    "currentTime": "Tempo atual",
+    "duration": "Duração",
+    "progress": "Progresso",
+    "seekForward": "Avançar {seconds} segundos",
+    "seekBackward": "Retroceder {seconds} segundos",
+    "volumeUp": "Aumentar volume",
+    "volumeDown": "Diminuir volume",
+    "loading": "Carregando...",
+    "loadingChapters": "Carregando capítulos...",
+    "error": "Erro ao carregar mídia",
+    "buffering": "Armazenando em buffer...",
+    "signLanguageVideo": "Vídeo em Língua de Sinais",
+    "noChapters": "Nenhum capítulo disponível",
+    "noCaptions": "Nenhuma legenda disponível",
+    "auto": "Automático",
+    "autoQuality": "Automático (seleção de qualidade não disponível)",
+    "noQuality": "Seleção de qualidade não disponível",
+    "signLanguageDragResize": "Vídeo em Língua de Sinais - Pressione D para arrastar com o teclado, R para redimensionar",
+    "signLanguageDragActive": "Vídeo em Língua de Sinais - Modo de arrasto ativo. Use as setas para mover, Escape para sair.",
+    "signLanguageResizeActive": "Vídeo em Língua de Sinais - Modo de redimensionamento ativo. Use as setas esquerda/direita para redimensionar, Escape para sair.",
+    "resizeHandle": "Redimensionar canto {direction}"
+  },
+  "captions": {
+    "off": "Desativado",
+    "select": "Selecionar legendas",
+    "fontSize": "Tamanho da fonte",
+    "fontFamily": "Família da fonte",
+    "color": "Cor do texto",
+    "backgroundColor": "Cor de fundo",
+    "opacity": "Opacidade"
+  },
+  "fontSizes": {
+    "small": "Pequeno",
+    "normal": "Normal",
+    "large": "Grande",
+    "xlarge": "Muito grande"
+  },
+  "fontFamilies": {
+    "sansSerif": "Sans-serif",
+    "serif": "Serif",
+    "monospace": "Monospace"
+  },
+  "styleLabels": {
+    "textColor": "Cor do texto",
+    "background": "Fundo",
+    "font": "Fonte",
+    "fontSize": "Tamanho da fonte",
+    "opacity": "Opacidade"
+  },
+  "audioDescription": {
+    "enable": "Ativar audiodescrição",
+    "disable": "Desativar audiodescrição"
+  },
+  "signLanguage": {
+    "show": "Mostrar vídeo em língua de sinais",
+    "hide": "Ocultar vídeo em língua de sinais"
+  },
+  "transcript": {
+    "title": "Transcrição",
+    "close": "Fechar transcrição",
+    "loading": "Carregando transcrição...",
+    "noTranscript": "Nenhuma transcrição disponível para este vídeo.",
+    "settings": "Configurações de transcrição. Pressione Enter para abrir o menu ou D para ativar o modo de arrasto",
+    "keyboardDragMode": "Alternar modo de arrasto com teclado usando setas. Atalho: tecla D",
+    "keyboardDragActive": "⌨️ Modo de Arrasto com Teclado Ativo (Setas para mover, Shift+Setas para passos grandes, D ou ESC para sair)",
+    "dragResizePrompt": "Pressione D para mover ou R para redimensionar. Home redefine a posição, Esc fecha.",
+    "dragModeEnabled": "Modo de arrasto com teclado ativado. Use setas para mover, Shift+Setas para passos grandes. Pressione D ou Esc para sair.",
+    "dragModeDisabled": "Modo de arrasto com teclado desativado.",
+    "resizeWindow": "Redimensionar janela",
+    "disableResizeWindow": "Desativar modo de redimensionamento",
+    "resizeModeHint": "Alças ativadas. Arraste bordas ou cantos para ajustar. Pressione Esc ou R para sair.",
+    "resizeModeEnabled": "Modo de redimensionamento ativado. Arraste bordas ou cantos. Pressione Esc ou R para sair.",
+    "resizeModeDisabled": "Modo de redimensionamento desativado.",
+    "positionReset": "Posição da transcrição redefinida.",
+    "styleTranscript": "Abrir configurações de estilo de transcrição",
+    "closeMenu": "Fechar menu",
+    "styleTitle": "Estilo de Transcrição",
+    "autoscroll": "Rolagem automática",
+    "settingsMenu": "Menu de configurações"
+  },
+  "settings": {
+    "title": "Configurações",
+    "quality": "Qualidade",
+    "speed": "Velocidade",
+    "captions": "Legendas",
+    "language": "Idioma",
+    "reset": "Redefinir",
+    "close": "Fechar"
+  },
+  "speeds": {
+    "normal": "Normal"
+  },
+  "time": {
+    "display": "Exibição de tempo",
+    "durationPrefix": "Duração: ",
+    "hour": "{count} hora",
+    "hours": "{count} horas",
+    "minute": "{count} minuto",
+    "minutes": "{count} minutos",
+    "second": "{count} segundo",
+    "seconds": "{count} segundos"
+  }
+}
+
