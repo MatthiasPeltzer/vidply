@@ -42,6 +42,8 @@ export const de = {
     error: 'Fehler beim Laden',
     buffering: 'Puffern...',
     signLanguageVideo: 'Gebärdensprache-Video',
+    closeSignLanguage: 'Gebärdensprache-Video schließen',
+    signLanguageSettings: 'Gebärdensprache-Einstellungen',
     noChapters: 'Keine Kapitel verfügbar',
     noCaptions: 'Keine Untertitel verfügbar',
     auto: 'Automatisch',

@@ -11,6 +11,7 @@ import { StorageManager } from '../utils/StorageManager.js';
 import { focusElement, focusFirstElement } from '../utils/FocusUtils.js';
 import { createMenuItem, attachMenuKeyboardNavigation, focusFirstMenuItem } from '../utils/MenuUtils.js';
 import { DraggableResizable } from '../utils/DraggableResizable.js';
+import { createLabeledSelect, toggleLabeledSelect, preventDragOnElement } from '../utils/FormUtils.js';
 
 export class TranscriptManager {
   constructor(player) {
@@ -48,6 +49,7 @@ export class TranscriptManager {
     
     // Language selector state
     this.languageSelector = null;
+    this.languageLabel = null;
     this.currentTranscriptLanguage = null;
     this.availableTranscriptLanguages = [];
     this.languageSelectorHandler = null;
@@ -290,13 +292,24 @@ export class TranscriptManager {
     this.headerLeft.appendChild(autoscrollLabel);
     
     // Language selector (will be populated after tracks are loaded)
-    this.languageSelector = DOMUtils.createElement('select', {
-      className: `${this.player.options.classPrefix}-transcript-language-select`,
-      attributes: {
-        'aria-label': i18n.t('settings.language') || 'Language',
-        'style': 'display: none;' // Hidden until we detect multiple languages
-      }
+    const selectId = `${this.player.options.classPrefix}-transcript-language-select`;
+    const { label: languageLabel, select: languageSelector } = createLabeledSelect({
+      classPrefix: this.player.options.classPrefix,
+      labelClass: `${this.player.options.classPrefix}-transcript-language-label`,
+      selectClass: `${this.player.options.classPrefix}-transcript-language-select`,
+      labelText: 'settings.language',
+      selectId: selectId,
+      hidden: true // Hidden until we detect multiple languages
     });
+    
+    this.languageLabel = languageLabel;
+    this.languageSelector = languageSelector;
+    
+    // Prevent drag when interacting with label/select
+    preventDragOnElement(this.languageLabel);
+    preventDragOnElement(this.languageSelector);
+    
+    this.headerLeft.appendChild(this.languageLabel);
     this.headerLeft.appendChild(this.languageSelector);
 
     const closeButton = DOMUtils.createElement('button', {
@@ -596,12 +609,12 @@ export class TranscriptManager {
     
     // Only show selector if there are 2+ languages
     if (this.availableTranscriptLanguages.length < 2) {
-      this.languageSelector.style.display = 'none';
+      toggleLabeledSelect(this.languageLabel, this.languageSelector, false);
       return;
     }
     
-    // Show selector and populate options
-    this.languageSelector.style.display = 'block';
+    // Show selector and label, populate options
+    toggleLabeledSelect(this.languageLabel, this.languageSelector, true);
     
     this.availableTranscriptLanguages.forEach((langInfo, index) => {
       const option = DOMUtils.createElement('option', {
@@ -1095,6 +1108,7 @@ export class TranscriptManager {
           `.${this.player.options.classPrefix}-transcript-close`,
           `.${this.player.options.classPrefix}-transcript-settings`,
           `.${this.player.options.classPrefix}-transcript-language-select`,
+          `.${this.player.options.classPrefix}-transcript-language-label`,
           `.${this.player.options.classPrefix}-transcript-settings-menu`,
           `.${this.player.options.classPrefix}-transcript-style-dialog`
         ];

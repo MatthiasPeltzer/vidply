@@ -11,27 +11,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.js": {
-      "bytes": 4598,
+      "bytes": 4704,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.js": {
-      "bytes": 5064,
+      "bytes": 5186,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.js": {
-      "bytes": 5278,
+      "bytes": 5403,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.js": {
-      "bytes": 5367,
+      "bytes": 5498,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.js": {
-      "bytes": 5488,
+      "bytes": 5583,
       "imports": [],
       "format": "esm"
     },
@@ -191,8 +191,24 @@
       "imports": [],
       "format": "esm"
     },
+    "src/utils/FormUtils.js": {
+      "bytes": 3078,
+      "imports": [
+        {
+          "path": "src/utils/DOMUtils.js",
+          "kind": "import-statement",
+          "original": "./DOMUtils.js"
+        },
+        {
+          "path": "src/i18n/i18n.js",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        }
+      ],
+      "format": "esm"
+    },
     "src/controls/TranscriptManager.js": {
-      "bytes": 69251,
+      "bytes": 70034,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -233,6 +249,11 @@
           "path": "src/utils/DraggableResizable.js",
           "kind": "import-statement",
           "original": "../utils/DraggableResizable.js"
+        },
+        {
+          "path": "src/utils/FormUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/FormUtils.js"
         }
       ],
       "format": "esm"
@@ -264,7 +285,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 165906,
+      "bytes": 165826,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -340,6 +361,11 @@
           "path": "src/utils/MenuUtils.js",
           "kind": "import-statement",
           "original": "../utils/MenuUtils.js"
+        },
+        {
+          "path": "src/utils/FormUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/FormUtils.js"
         }
       ],
       "format": "esm"
@@ -397,22 +423,22 @@
           "bytesInOutput": 1581
         },
         "src/i18n/languages/en.js": {
-          "bytesInOutput": 3690
+          "bytesInOutput": 3783
         },
         "src/i18n/languages/de.js": {
-          "bytesInOutput": 4291
+          "bytesInOutput": 4406
         },
         "src/i18n/languages/es.js": {
-          "bytesInOutput": 4492
+          "bytesInOutput": 4610
         },
         "src/i18n/languages/fr.js": {
-          "bytesInOutput": 4616
+          "bytesInOutput": 4737
         },
         "src/i18n/languages/ja.js": {
-          "bytesInOutput": 7412
+          "bytesInOutput": 7529
         },
         "src/i18n/translations.js": {
-          "bytesInOutput": 59
+          "bytesInOutput": 62
         },
         "src/i18n/i18n.js": {
           "bytesInOutput": 1824
@@ -444,11 +470,14 @@
         "src/utils/DraggableResizable.js": {
           "bytesInOutput": 13861
         },
+        "src/utils/FormUtils.js": {
+          "bytesInOutput": 868
+        },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 36486
+          "bytesInOutput": 36850
         },
         "src/core/Player.js": {
-          "bytesInOutput": 61002
+          "bytesInOutput": 60868
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -466,7 +495,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 233864
+      "bytes": 235529
     }
   }
 }

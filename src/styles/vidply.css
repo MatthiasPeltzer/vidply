@@ -1807,6 +1807,19 @@
 }
 
 /* Transcript Language Selector */
+.vidply-transcript-language-label {
+    /* Visually hidden but accessible to screen readers */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
 .vidply-transcript-language-select {
     background: var(--vidply-white-10);
     border: 1px solid var(--vidply-white-20);
@@ -2381,6 +2394,19 @@
     display: flex;
     gap: 16px;
     position: relative; /* Needed for menu positioning */
+}
+
+.vidply-sign-language-label {
+    /* Visually hidden but accessible to screen readers */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
 }
 
 .vidply-sign-language-select {

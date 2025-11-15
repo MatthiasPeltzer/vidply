@@ -18,6 +18,7 @@ import {i18n} from '../i18n/i18n.js';
 import {StorageManager} from '../utils/StorageManager.js';
 import {DraggableResizable} from '../utils/DraggableResizable.js';
 import {createMenuItem, attachMenuKeyboardNavigation, focusFirstMenuItem} from '../utils/MenuUtils.js';
+import {createLabeledSelect, preventDragOnElement} from '../utils/FormUtils.js';
 
 export class Player extends EventEmitter {
     constructor(element, options = {}) {
@@ -2240,7 +2241,7 @@ export class Player extends EventEmitter {
             className: `${this.options.classPrefix}-sign-language-settings`,
             attributes: {
                 'type': 'button',
-                'aria-label': i18n.t('transcript.settingsMenu') || 'Sign language settings',
+                'aria-label': i18n.t('player.signLanguageSettings'),
                 'aria-expanded': 'false'
             }
         });
@@ -2292,44 +2293,36 @@ export class Player extends EventEmitter {
         // Language selector (if multiple sources available)
         this.signLanguageSelector = null;
         if (hasMultipleSources) {
-            this.signLanguageSelector = DOMUtils.createElement('select', {
-                className: `${this.options.classPrefix}-sign-language-select`,
-                attributes: {
-                    'aria-label': i18n.t('settings.language') || 'Sign Language',
-                    'style': 'display: block;'
+            const selectId = `${this.options.classPrefix}-sign-language-select`;
+            
+            // Create options array
+            const options = Object.keys(this.signLanguageSources).map(langCode => ({
+                value: langCode,
+                text: this.getSignLanguageLabel(langCode),
+                selected: langCode === initialLang
+            }));
+            
+            const { label: signLanguageLabel, select: signLanguageSelector } = createLabeledSelect({
+                classPrefix: this.options.classPrefix,
+                labelClass: `${this.options.classPrefix}-sign-language-label`,
+                selectClass: `${this.options.classPrefix}-sign-language-select`,
+                labelText: 'settings.language',
+                selectId: selectId,
+                options: options,
+                onChange: (e) => {
+                    e.stopPropagation(); // Prevent event from bubbling
+                    const selectedLang = e.target.value;
+                    this.switchSignLanguage(selectedLang);
                 }
             });
             
-            // Populate language options
-            Object.keys(this.signLanguageSources).forEach(langCode => {
-                const option = DOMUtils.createElement('option', {
-                    textContent: this.getSignLanguageLabel(langCode),
-                    attributes: {
-                        'value': langCode
-                    }
-                });
-                if (langCode === initialLang) {
-                    option.setAttribute('selected', 'selected');
-                }
-                this.signLanguageSelector.appendChild(option);
-            });
+            this.signLanguageSelector = signLanguageSelector;
             
-            // Handle language change
-            this.signLanguageSelector.addEventListener('change', (e) => {
-                e.stopPropagation(); // Prevent event from bubbling
-                const selectedLang = e.target.value;
-                this.switchSignLanguage(selectedLang);
-            });
+            // Prevent drag when interacting with label/select
+            preventDragOnElement(signLanguageLabel);
+            preventDragOnElement(this.signLanguageSelector);
             
-            // Prevent clicks on selector from triggering drag
-            this.signLanguageSelector.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-            });
-            
-            this.signLanguageSelector.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-            
+            headerLeft.appendChild(signLanguageLabel);
             headerLeft.appendChild(this.signLanguageSelector);
         }
 
@@ -2340,7 +2333,7 @@ export class Player extends EventEmitter {
             className: `${this.options.classPrefix}-sign-language-close`,
             attributes: {
                 'type': 'button',
-                'aria-label': i18n.t('transcript.close') || 'Close sign language video'
+                'aria-label': i18n.t('player.closeSignLanguage')
             }
         });
         closeButton.appendChild(createIconElement('close'));
@@ -2530,6 +2523,7 @@ export class Player extends EventEmitter {
                 if (e.target.closest(`.${this.options.classPrefix}-sign-language-close`) ||
                     e.target.closest(`.${this.options.classPrefix}-sign-language-settings`) ||
                     e.target.closest(`.${this.options.classPrefix}-sign-language-select`) ||
+                    e.target.closest(`.${this.options.classPrefix}-sign-language-label`) ||
                     e.target.closest(`.${this.options.classPrefix}-sign-language-settings-menu`)) {
                     return false; // Prevent drag
                 }
