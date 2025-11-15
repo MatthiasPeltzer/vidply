@@ -1446,31 +1446,57 @@ var VidPly = (() => {
     // Helper method to attach close-on-outside-click behavior to menus
     attachMenuCloseHandler(menu, button, preventCloseOnInteraction = false) {
       this.positionMenu(menu, button);
+      if (button) {
+        button.setAttribute("aria-expanded", "true");
+      }
+      const closeMenuAndUpdateAria = () => {
+        this.closeMenuAndReturnFocus(menu, button);
+      };
       setTimeout(() => {
         const closeMenu = (e) => {
           if (preventCloseOnInteraction && menu.contains(e.target)) {
             return;
           }
           if (!menu.contains(e.target) && !button.contains(e.target)) {
-            menu.remove();
+            closeMenuAndUpdateAria();
             document.removeEventListener("click", closeMenu);
             document.removeEventListener("keydown", handleEscape);
           }
         };
         const handleEscape = (e) => {
           if (e.key === "Escape") {
-            menu.remove();
+            closeMenuAndUpdateAria();
             document.removeEventListener("click", closeMenu);
             document.removeEventListener("keydown", handleEscape);
-            button.focus();
+            if (button) {
+              button.focus();
+            }
           }
         };
         document.addEventListener("click", closeMenu);
         document.addEventListener("keydown", handleEscape);
       }, 100);
     }
+    // Helper method to close menu and return focus to button
+    closeMenuAndReturnFocus(menu, button) {
+      if (menu) {
+        if (document.contains(menu)) {
+          menu.remove();
+        } else if (menu.parentNode) {
+          menu.parentNode.removeChild(menu);
+        }
+      }
+      if (button) {
+        button.setAttribute("aria-expanded", "false");
+        setTimeout(() => {
+          if (button && document.contains(button)) {
+            button.focus();
+          }
+        }, 0);
+      }
+    }
     // Helper method to add keyboard navigation to menus (arrow keys)
-    attachMenuKeyboardNavigation(menu) {
+    attachMenuKeyboardNavigation(menu, button) {
       const menuItems = Array.from(menu.querySelectorAll(`.${this.player.options.classPrefix}-menu-item`));
       if (menuItems.length === 0) return;
       const handleKeyDown = (e) => {
@@ -1499,7 +1525,16 @@ var VidPly = (() => {
             e.preventDefault();
             if (document.activeElement && menuItems.includes(document.activeElement)) {
               document.activeElement.click();
+              setTimeout(() => {
+                if (button && document.contains(button)) {
+                  button.focus();
+                }
+              }, 0);
             }
+            break;
+          case "Escape":
+            e.preventDefault();
+            this.closeMenuAndReturnFocus(menu, button);
             break;
         }
       };
@@ -1587,6 +1622,22 @@ var VidPly = (() => {
       buttonContainer.appendChild(leftButtons);
       buttonContainer.appendChild(this.rightButtons);
       this.element.appendChild(buttonContainer);
+      this.ensureButtonTitles(buttonContainer);
+    }
+    /**
+     * Ensure all buttons in the controls have title attributes
+     * Uses aria-label as title if title is not present
+     */
+    ensureButtonTitles(container) {
+      const buttons = container.querySelectorAll("button");
+      buttons.forEach((button) => {
+        if (!button.hasAttribute("title")) {
+          const ariaLabel = button.getAttribute("aria-label");
+          if (ariaLabel) {
+            button.setAttribute("title", ariaLabel);
+          }
+        }
+      });
     }
     // Helper methods to check for available features
     hasChapterTracks() {
@@ -1828,7 +1879,7 @@ var VidPly = (() => {
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.volume"),
-          "aria-haspopup": "true"
+          "aria-expanded": "false"
         }
       });
       muteButton.appendChild(createIconElement("volumeHigh"));
@@ -1846,6 +1897,7 @@ var VidPly = (() => {
       const existingSlider = document.querySelector(`.${this.player.options.classPrefix}-volume-menu`);
       if (existingSlider) {
         existingSlider.remove();
+        button.setAttribute("aria-expanded", "false");
         return;
       }
       const volumeMenu = DOMUtils.createElement("div", {
@@ -1969,7 +2021,7 @@ var VidPly = (() => {
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.chapters"),
-          "aria-haspopup": "menu"
+          "aria-expanded": "false"
         }
       });
       button.appendChild(createIconElement("playlist"));
@@ -1983,6 +2035,7 @@ var VidPly = (() => {
       const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-chapters-menu`);
       if (existingMenu) {
         existingMenu.remove();
+        button.setAttribute("aria-expanded", "false");
         return;
       }
       const menu = DOMUtils.createElement("div", {
@@ -2050,11 +2103,11 @@ var VidPly = (() => {
             item.appendChild(titleLabel);
             item.addEventListener("click", () => {
               this.player.seek(cue.startTime);
-              menu.remove();
+              this.closeMenuAndReturnFocus(menu, button);
             });
             menu.appendChild(item);
           }
-          this.attachMenuKeyboardNavigation(menu);
+          this.attachMenuKeyboardNavigation(menu, button);
           setTimeout(() => {
             const firstItem = menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
             if (firstItem) {
@@ -2072,7 +2125,7 @@ var VidPly = (() => {
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.quality"),
-          "aria-haspopup": "menu"
+          "aria-expanded": "false"
         }
       });
       button.appendChild(createIconElement("hd"));
@@ -2093,6 +2146,7 @@ var VidPly = (() => {
       const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-quality-menu`);
       if (existingMenu) {
         existingMenu.remove();
+        button.setAttribute("aria-expanded", "false");
         return;
       }
       const menu = DOMUtils.createElement("div", {
@@ -2135,7 +2189,7 @@ var VidPly = (() => {
               if (this.player.renderer.switchQuality) {
                 this.player.renderer.switchQuality(-1);
               }
-              menu.remove();
+              this.closeMenuAndReturnFocus(menu, button);
             });
             menu.appendChild(autoItem);
           }
@@ -2158,11 +2212,11 @@ var VidPly = (() => {
               if (this.player.renderer.switchQuality) {
                 this.player.renderer.switchQuality(quality.index);
               }
-              menu.remove();
+              this.closeMenuAndReturnFocus(menu, button);
             });
             menu.appendChild(item);
           });
-          this.attachMenuKeyboardNavigation(menu);
+          this.attachMenuKeyboardNavigation(menu, button);
           setTimeout(() => {
             const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
             if (focusTarget) {
@@ -2187,7 +2241,7 @@ var VidPly = (() => {
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.captionStyling"),
-          "aria-haspopup": "menu",
+          "aria-expanded": "false",
           "title": i18n.t("player.captionStyling")
         }
       });
@@ -2209,6 +2263,7 @@ var VidPly = (() => {
       const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-caption-style-menu`);
       if (existingMenu) {
         existingMenu.remove();
+        button.setAttribute("aria-expanded", "false");
         return;
       }
       const menu = DOMUtils.createElement("div", {
@@ -2441,7 +2496,7 @@ var VidPly = (() => {
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.speed"),
-          "aria-haspopup": "menu"
+          "aria-expanded": "false"
         }
       });
       button.appendChild(createIconElement("speed"));
@@ -2471,6 +2526,7 @@ var VidPly = (() => {
       const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-speed-menu`);
       if (existingMenu) {
         existingMenu.remove();
+        button.setAttribute("aria-expanded", "false");
         return;
       }
       const menu = DOMUtils.createElement("div", {
@@ -2498,12 +2554,12 @@ var VidPly = (() => {
         }
         item.addEventListener("click", () => {
           this.player.setPlaybackSpeed(speed);
-          menu.remove();
+          this.closeMenuAndReturnFocus(menu, button);
         });
         menu.appendChild(item);
       });
       button.appendChild(menu);
-      this.attachMenuKeyboardNavigation(menu);
+      this.attachMenuKeyboardNavigation(menu, button);
       this.attachMenuCloseHandler(menu, button);
       setTimeout(() => {
         const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
@@ -2518,8 +2574,7 @@ var VidPly = (() => {
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.captions"),
-          "aria-pressed": "false",
-          "aria-haspopup": "menu"
+          "aria-expanded": "false"
         }
       });
       button.appendChild(createIconElement("captionsOff"));
@@ -2533,6 +2588,7 @@ var VidPly = (() => {
       const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-captions-menu`);
       if (existingMenu) {
         existingMenu.remove();
+        button.setAttribute("aria-expanded", "false");
         return;
       }
       const menu = DOMUtils.createElement("div", {
@@ -2571,7 +2627,7 @@ var VidPly = (() => {
       offItem.addEventListener("click", () => {
         this.player.disableCaptions();
         this.updateCaptionsButton();
-        menu.remove();
+        this.closeMenuAndReturnFocus(menu, button);
       });
       menu.appendChild(offItem);
       const tracks = this.player.captionManager.getAvailableTracks();
@@ -2594,12 +2650,12 @@ var VidPly = (() => {
         item.addEventListener("click", () => {
           this.player.captionManager.switchTrack(track.index);
           this.updateCaptionsButton();
-          menu.remove();
+          this.closeMenuAndReturnFocus(menu, button);
         });
         menu.appendChild(item);
       });
       button.appendChild(menu);
-      this.attachMenuKeyboardNavigation(menu);
+      this.attachMenuKeyboardNavigation(menu, button);
       this.attachMenuCloseHandler(menu, button);
       setTimeout(() => {
         const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
@@ -2613,7 +2669,6 @@ var VidPly = (() => {
       const icon = this.controls.captions.querySelector(".vidply-icon");
       const isEnabled = this.player.state.captionsEnabled;
       icon.innerHTML = isEnabled ? createIconElement("captions").innerHTML : createIconElement("captionsOff").innerHTML;
-      this.controls.captions.setAttribute("aria-pressed", isEnabled ? "true" : "false");
     }
     createTranscriptButton() {
       const button = DOMUtils.createElement("button", {
@@ -2771,10 +2826,9 @@ var VidPly = (() => {
       const icon = this.controls.playPause.querySelector(".vidply-icon");
       const isPlaying = this.player.state.playing;
       icon.innerHTML = isPlaying ? createIconElement("pause").innerHTML : createIconElement("play").innerHTML;
-      this.controls.playPause.setAttribute(
-        "aria-label",
-        isPlaying ? i18n.t("player.pause") : i18n.t("player.play")
-      );
+      const newAriaLabel = isPlaying ? i18n.t("player.pause") : i18n.t("player.play");
+      this.controls.playPause.setAttribute("aria-label", newAriaLabel);
+      this.controls.playPause.setAttribute("title", newAriaLabel);
     }
     updateProgress() {
       if (!this.controls.played) return;
@@ -2817,10 +2871,9 @@ var VidPly = (() => {
             iconName = "volumeHigh";
           }
           icon.innerHTML = createIconElement(iconName).innerHTML;
-          this.controls.mute.setAttribute(
-            "aria-label",
-            this.player.state.muted ? i18n.t("player.unmute") : i18n.t("player.mute")
-          );
+          const newMuteAriaLabel = this.player.state.muted ? i18n.t("player.unmute") : i18n.t("player.mute");
+          this.controls.mute.setAttribute("aria-label", newMuteAriaLabel);
+          this.controls.mute.setAttribute("title", newMuteAriaLabel);
         }
       }
       if (this.controls.volumeSlider) {

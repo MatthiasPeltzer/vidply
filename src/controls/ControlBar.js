@@ -79,6 +79,15 @@ export class ControlBar {
         // Position menu smartly
         this.positionMenu(menu, button);
         
+        // Set aria-expanded to true when menu opens
+        if (button) {
+            button.setAttribute('aria-expanded', 'true');
+        }
+        
+        const closeMenuAndUpdateAria = () => {
+            this.closeMenuAndReturnFocus(menu, button);
+        };
+        
         setTimeout(() => {
             const closeMenu = (e) => {
                 // If this menu has form controls, don't close when clicking inside
@@ -88,7 +97,7 @@ export class ControlBar {
 
                 // Check if click is outside menu and button
                 if (!menu.contains(e.target) && !button.contains(e.target)) {
-                    menu.remove();
+                    closeMenuAndUpdateAria();
                     document.removeEventListener('click', closeMenu);
                     document.removeEventListener('keydown', handleEscape);
                 }
@@ -96,11 +105,13 @@ export class ControlBar {
 
             const handleEscape = (e) => {
                 if (e.key === 'Escape') {
-                    menu.remove();
+                    closeMenuAndUpdateAria();
                     document.removeEventListener('click', closeMenu);
                     document.removeEventListener('keydown', handleEscape);
                     // Return focus to button
-                    button.focus();
+                    if (button) {
+                        button.focus();
+                    }
                 }
             };
 
@@ -109,8 +120,30 @@ export class ControlBar {
         }, 100);
     }
 
+    // Helper method to close menu and return focus to button
+    closeMenuAndReturnFocus(menu, button) {
+        if (menu) {
+            // Remove menu from DOM - use remove() which works reliably
+            if (document.contains(menu)) {
+                menu.remove();
+            } else if (menu.parentNode) {
+                // Fallback if menu is not in document but has parent
+                menu.parentNode.removeChild(menu);
+            }
+        }
+        if (button) {
+            button.setAttribute('aria-expanded', 'false');
+            // Use setTimeout to ensure focus happens after DOM updates
+            setTimeout(() => {
+                if (button && document.contains(button)) {
+                    button.focus();
+                }
+            }, 0);
+        }
+    }
+
     // Helper method to add keyboard navigation to menus (arrow keys)
-    attachMenuKeyboardNavigation(menu) {
+    attachMenuKeyboardNavigation(menu, button) {
         const menuItems = Array.from(menu.querySelectorAll(`.${this.player.options.classPrefix}-menu-item`));
         
         if (menuItems.length === 0) return;
@@ -146,7 +179,18 @@ export class ControlBar {
                     e.preventDefault();
                     if (document.activeElement && menuItems.includes(document.activeElement)) {
                         document.activeElement.click();
+                        // Menu will be closed by the click handler, but ensure focus returns
+                        setTimeout(() => {
+                            if (button && document.contains(button)) {
+                                button.focus();
+                            }
+                        }, 0);
                     }
+                    break;
+                
+                case 'Escape':
+                    e.preventDefault();
+                    this.closeMenuAndReturnFocus(menu, button);
                     break;
             }
         };
@@ -610,7 +654,7 @@ export class ControlBar {
             attributes: {
                 'type': 'button',
                 'aria-label': i18n.t('player.volume'),
-                'aria-haspopup': 'true'
+                'aria-expanded': 'false'
             }
         });
 
@@ -636,6 +680,7 @@ export class ControlBar {
         const existingSlider = document.querySelector(`.${this.player.options.classPrefix}-volume-menu`);
         if (existingSlider) {
             existingSlider.remove();
+            button.setAttribute('aria-expanded', 'false');
             return;
         }
 
@@ -663,6 +708,10 @@ export class ControlBar {
         const volumeFill = DOMUtils.createElement('div', {
             className: `${this.player.options.classPrefix}-volume-fill`
         });
+        
+        // Set initial fill height based on current volume
+        const initialVolumePercent = this.player.state.volume * 100;
+        volumeFill.style.height = `${initialVolumePercent}%`;
 
         const volumeHandle = DOMUtils.createElement('div', {
             className: `${this.player.options.classPrefix}-volume-handle`
@@ -795,7 +844,7 @@ export class ControlBar {
             attributes: {
                 'type': 'button',
                 'aria-label': i18n.t('player.chapters'),
-                'aria-haspopup': 'menu'
+                'aria-expanded': 'false'
             }
         });
 
@@ -814,6 +863,7 @@ export class ControlBar {
         const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-chapters-menu`);
         if (existingMenu) {
             existingMenu.remove();
+            button.setAttribute('aria-expanded', 'false');
             return;
         }
 
@@ -901,14 +951,14 @@ export class ControlBar {
 
                     item.addEventListener('click', () => {
                         this.player.seek(cue.startTime);
-                        menu.remove();
+                        this.closeMenuAndReturnFocus(menu, button);
                     });
 
                     menu.appendChild(item);
                 }
                 
                 // Add keyboard navigation
-                this.attachMenuKeyboardNavigation(menu);
+                this.attachMenuKeyboardNavigation(menu, button);
                 
                 // Focus first item
                 setTimeout(() => {
@@ -933,7 +983,7 @@ export class ControlBar {
             attributes: {
                 'type': 'button',
                 'aria-label': i18n.t('player.quality'),
-                'aria-haspopup': 'menu'
+                'aria-expanded': 'false'
             }
         });
 
@@ -964,6 +1014,7 @@ export class ControlBar {
         const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-quality-menu`);
         if (existingMenu) {
             existingMenu.remove();
+            button.setAttribute('aria-expanded', 'false');
             return;
         }
 
@@ -1016,7 +1067,7 @@ export class ControlBar {
                         if (this.player.renderer.switchQuality) {
                             this.player.renderer.switchQuality(-1); // -1 for auto
                         }
-                        menu.remove();
+                        this.closeMenuAndReturnFocus(menu, button);
                     });
 
                     menu.appendChild(autoItem);
@@ -1045,14 +1096,14 @@ export class ControlBar {
                         if (this.player.renderer.switchQuality) {
                             this.player.renderer.switchQuality(quality.index);
                         }
-                        menu.remove();
+                        this.closeMenuAndReturnFocus(menu, button);
                     });
 
                     menu.appendChild(item);
                 });
                 
                 // Add keyboard navigation
-                this.attachMenuKeyboardNavigation(menu);
+                this.attachMenuKeyboardNavigation(menu, button);
                 
                 // Focus active item or first item
                 setTimeout(() => {
@@ -1085,7 +1136,7 @@ export class ControlBar {
             attributes: {
                 'type': 'button',
                 'aria-label': i18n.t('player.captionStyling'),
-                'aria-haspopup': 'menu',
+                'aria-expanded': 'false',
                 'title': i18n.t('player.captionStyling')
             }
         });
@@ -1113,6 +1164,7 @@ export class ControlBar {
         const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-caption-style-menu`);
         if (existingMenu) {
             existingMenu.remove();
+            button.setAttribute('aria-expanded', 'false');
             return;
         }
 
@@ -1402,7 +1454,7 @@ export class ControlBar {
             attributes: {
                 'type': 'button',
                 'aria-label': i18n.t('player.speed'),
-                'aria-haspopup': 'menu'
+                'aria-expanded': 'false'
             }
         });
 
@@ -1443,6 +1495,7 @@ export class ControlBar {
         const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-speed-menu`);
         if (existingMenu) {
             existingMenu.remove();
+            button.setAttribute('aria-expanded', 'false');
             return;
         }
 
@@ -1475,7 +1528,7 @@ export class ControlBar {
 
             item.addEventListener('click', () => {
                 this.player.setPlaybackSpeed(speed);
-                menu.remove();
+                this.closeMenuAndReturnFocus(menu, button);
             });
 
             menu.appendChild(item);
@@ -1485,7 +1538,7 @@ export class ControlBar {
         button.appendChild(menu);
 
         // Add keyboard navigation
-        this.attachMenuKeyboardNavigation(menu);
+        this.attachMenuKeyboardNavigation(menu, button);
 
         // Close menu on outside click
         this.attachMenuCloseHandler(menu, button);
@@ -1505,8 +1558,7 @@ export class ControlBar {
             attributes: {
                 'type': 'button',
                 'aria-label': i18n.t('player.captions'),
-                'aria-pressed': 'false',
-                'aria-haspopup': 'menu'
+                'aria-expanded': 'false'
             }
         });
 
@@ -1525,6 +1577,7 @@ export class ControlBar {
         const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-captions-menu`);
         if (existingMenu) {
             existingMenu.remove();
+            button.setAttribute('aria-expanded', 'false');
             return;
         }
 
@@ -1576,7 +1629,7 @@ export class ControlBar {
         offItem.addEventListener('click', () => {
             this.player.disableCaptions();
             this.updateCaptionsButton();
-            menu.remove();
+            this.closeMenuAndReturnFocus(menu, button);
         });
 
         menu.appendChild(offItem);
@@ -1606,7 +1659,7 @@ export class ControlBar {
             item.addEventListener('click', () => {
                 this.player.captionManager.switchTrack(track.index);
                 this.updateCaptionsButton();
-                menu.remove();
+                this.closeMenuAndReturnFocus(menu, button);
             });
 
             menu.appendChild(item);
@@ -1616,7 +1669,7 @@ export class ControlBar {
         button.appendChild(menu);
 
         // Add keyboard navigation for the menu
-        this.attachMenuKeyboardNavigation(menu);
+        this.attachMenuKeyboardNavigation(menu, button);
 
         // Close menu on outside click and Escape key
         this.attachMenuCloseHandler(menu, button);
@@ -1640,7 +1693,6 @@ export class ControlBar {
             createIconElement('captions').innerHTML :
             createIconElement('captionsOff').innerHTML;
 
-        this.controls.captions.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
     }
 
     createTranscriptButton() {
@@ -1882,6 +1934,11 @@ export class ControlBar {
         // Update volume fill bar if it exists
         if (this.controls.volumeFill) {
             this.controls.volumeFill.style.height = `${percent}%`;
+        }
+        
+        // Update volume slider aria-valuenow if it exists
+        if (this.controls.volumeSlider) {
+            this.controls.volumeSlider.setAttribute('aria-valuenow', String(Math.round(percent)));
         }
 
         // Update mute button icon (should always work even if slider not shown)
