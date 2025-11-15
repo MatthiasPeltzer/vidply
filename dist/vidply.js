@@ -3743,7 +3743,7 @@ var VidPly = (() => {
   };
 
   // src/utils/MenuUtils.js
-  function createMenuItem2({ classPrefix, itemClass, icon, label, ariaLabel, onClick, hasTextClass = false }) {
+  function createMenuItem({ classPrefix, itemClass, icon, label, ariaLabel, onClick, hasTextClass = false }) {
     const isI18nKeyForAria = typeof label === "string" && (label.startsWith("transcript.") || label.startsWith("player.") || label.startsWith("settings."));
     const ariaLabelText = ariaLabel || (isI18nKeyForAria ? i18n.t(label) || label : label);
     const button = DOMUtils.createElement("button", {
@@ -3769,7 +3769,7 @@ var VidPly = (() => {
     }
     return button;
   }
-  function attachMenuKeyboardNavigation2(menu, button, itemSelector, onClose) {
+  function attachMenuKeyboardNavigation(menu, button, itemSelector, onClose) {
     if (!menu) return;
     const menuItems = Array.from(menu.querySelectorAll(itemSelector));
     if (menuItems.length === 0) return;
@@ -3838,7 +3838,7 @@ var VidPly = (() => {
     menu.addEventListener("keydown", handleKeyDown);
     return handleKeyDown;
   }
-  function focusFirstMenuItem2(menu, itemSelector, delay = 0) {
+  function focusFirstMenuItem(menu, itemSelector, delay = 0) {
     if (!menu) return;
     setTimeout(() => {
       const menuItems = Array.from(menu.querySelectorAll(itemSelector));
@@ -5375,13 +5375,13 @@ var VidPly = (() => {
         }
         this.positionSettingsMenu();
         this.updateResizeOptionState();
-        focusFirstMenuItem2(this.settingsMenu, `.${this.player.options.classPrefix}-transcript-settings-item`);
+        focusFirstMenuItem(this.settingsMenu, `.${this.player.options.classPrefix}-transcript-settings-item`);
         return;
       }
       this.settingsMenu = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-transcript-settings-menu`
       });
-      const keyboardDragOption = createMenuItem2({
+      const keyboardDragOption = createMenuItem({
         classPrefix: this.player.options.classPrefix,
         itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
         icon: "move",
@@ -5391,7 +5391,7 @@ var VidPly = (() => {
           this.hideSettingsMenu();
         }
       });
-      const styleOption = createMenuItem2({
+      const styleOption = createMenuItem({
         classPrefix: this.player.options.classPrefix,
         itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
         icon: "settings",
@@ -5405,7 +5405,7 @@ var VidPly = (() => {
           }, 50);
         }
       });
-      const resizeOption = createMenuItem2({
+      const resizeOption = createMenuItem({
         classPrefix: this.player.options.classPrefix,
         itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
         icon: "resize",
@@ -5429,9 +5429,9 @@ var VidPly = (() => {
       });
       resizeOption.setAttribute("aria-pressed", "false");
       this.resizeOptionButton = resizeOption;
-      this.resizeOptionText = resizeOption.querySelector("span");
+      this.resizeOptionText = resizeOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
       this.updateResizeOptionState();
-      const closeOption = createMenuItem2({
+      const closeOption = createMenuItem({
         classPrefix: this.player.options.classPrefix,
         itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
         icon: "close",
@@ -5461,7 +5461,7 @@ var VidPly = (() => {
           this.settingsMenu.style.visibility = "visible";
         }
       });
-      this.settingsMenuKeyHandler = attachMenuKeyboardNavigation2(
+      this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
         this.settingsMenu,
         this.settingsButton,
         `.${this.player.options.classPrefix}-transcript-settings-item`,
@@ -5473,7 +5473,7 @@ var VidPly = (() => {
         this.settingsButton.setAttribute("aria-expanded", "true");
       }
       this.updateResizeOptionState();
-      focusFirstMenuItem2(this.settingsMenu, `.${this.player.options.classPrefix}-transcript-settings-item`);
+      focusFirstMenuItem(this.settingsMenu, `.${this.player.options.classPrefix}-transcript-settings-item`);
     }
     /**
      * Position settings menu relative to settings button (immediate/synchronous)
@@ -5545,7 +5545,7 @@ var VidPly = (() => {
       if (this.settingsMenuKeyHandler) {
         this.settingsMenu.removeEventListener("keydown", this.settingsMenuKeyHandler);
       }
-      this.settingsMenuKeyHandler = attachMenuKeyboardNavigation2(
+      this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
         this.settingsMenu,
         this.settingsButton,
         `.${this.player.options.classPrefix}-transcript-settings-item`,
@@ -8257,6 +8257,13 @@ var VidPly = (() => {
         settingsClick: (e) => {
           e.preventDefault();
           e.stopPropagation();
+          if (this.signLanguageDocumentClickHandler) {
+            const wasJustOpened = this.signLanguageSettingsMenuJustOpened;
+            this.signLanguageSettingsMenuJustOpened = true;
+            setTimeout(() => {
+              this.signLanguageSettingsMenuJustOpened = wasJustOpened;
+            }, 100);
+          }
           if (this.signLanguageSettingsMenuVisible) {
             this.hideSignLanguageSettingsMenu();
           } else {
@@ -8592,7 +8599,7 @@ var VidPly = (() => {
           if (this.signLanguageSettingsMenuJustOpened) {
             return;
           }
-          if (this.signLanguageSettingsButton && this.signLanguageSettingsButton.contains(e.target)) {
+          if (this.signLanguageSettingsButton && (this.signLanguageSettingsButton === e.target || this.signLanguageSettingsButton.contains(e.target))) {
             return;
           }
           if (this.signLanguageSettingsMenu && this.signLanguageSettingsMenu.contains(e.target)) {
@@ -8603,7 +8610,7 @@ var VidPly = (() => {
           }
         };
         setTimeout(() => {
-          document.addEventListener("click", this.signLanguageDocumentClickHandler);
+          document.addEventListener("mousedown", this.signLanguageDocumentClickHandler, true);
           this.signLanguageDocumentClickHandlerAdded = true;
         }, 300);
       }
@@ -8612,6 +8619,14 @@ var VidPly = (() => {
         this.signLanguageSettingsMenuVisible = true;
         if (this.signLanguageSettingsButton) {
           this.signLanguageSettingsButton.setAttribute("aria-expanded", "true");
+        }
+        if (!this.signLanguageSettingsMenuKeyHandler) {
+          this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
+            this.signLanguageSettingsMenu,
+            this.signLanguageSettingsButton,
+            `.${this.options.classPrefix}-sign-language-settings-item`,
+            () => this.hideSignLanguageSettingsMenu({ focusButton: true })
+          );
         }
         this.positionSignLanguageSettingsMenu();
         this.updateSignLanguageResizeOptionState();
@@ -8655,7 +8670,7 @@ var VidPly = (() => {
       });
       resizeOption.setAttribute("aria-pressed", "false");
       this.signLanguageResizeOptionButton = resizeOption;
-      this.signLanguageResizeOptionText = resizeOption.querySelector("span");
+      this.signLanguageResizeOptionText = resizeOption.querySelector(`.${this.options.classPrefix}-settings-text`);
       this.updateSignLanguageResizeOptionState();
       const closeOption = createMenuItem({
         classPrefix: this.options.classPrefix,
@@ -8671,10 +8686,10 @@ var VidPly = (() => {
       this.signLanguageSettingsMenu.appendChild(closeOption);
       this.signLanguageSettingsMenu.style.visibility = "hidden";
       this.signLanguageSettingsMenu.style.display = "block";
-      if (this.signLanguageWrapper) {
-        this.signLanguageWrapper.appendChild(this.signLanguageSettingsMenu);
-      } else if (this.signLanguageSettingsButton && this.signLanguageSettingsButton.parentNode) {
+      if (this.signLanguageSettingsButton && this.signLanguageSettingsButton.parentNode) {
         this.signLanguageSettingsButton.insertAdjacentElement("afterend", this.signLanguageSettingsMenu);
+      } else if (this.signLanguageWrapper) {
+        this.signLanguageWrapper.appendChild(this.signLanguageSettingsMenu);
       }
       this.positionSignLanguageSettingsMenuImmediate();
       requestAnimationFrame(() => {
@@ -8689,7 +8704,6 @@ var VidPly = (() => {
         () => this.hideSignLanguageSettingsMenu({ focusButton: true })
       );
       this.signLanguageSettingsMenuVisible = true;
-      this.signLanguageSettingsMenu.style.display = "block";
       if (this.signLanguageSettingsButton) {
         this.signLanguageSettingsButton.setAttribute("aria-expanded", "true");
       }
@@ -8718,37 +8732,43 @@ var VidPly = (() => {
       }
     }
     positionSignLanguageSettingsMenuImmediate() {
-      if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton || !this.signLanguageWrapper) return;
+      if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton) return;
       const buttonRect = this.signLanguageSettingsButton.getBoundingClientRect();
       const menuRect = this.signLanguageSettingsMenu.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      const wrapperRect = this.signLanguageWrapper.getBoundingClientRect();
-      const buttonRight = buttonRect.right - wrapperRect.left;
-      const buttonLeft = buttonRect.left - wrapperRect.left;
-      const buttonTop = buttonRect.top - wrapperRect.top;
-      const buttonBottom = buttonRect.bottom - wrapperRect.top;
+      const parentContainer = this.signLanguageSettingsButton.parentElement;
+      if (!parentContainer) return;
+      const parentRect = parentContainer.getBoundingClientRect();
+      const buttonCenterX = buttonRect.left + buttonRect.width / 2 - parentRect.left;
+      const buttonBottom = buttonRect.bottom - parentRect.top;
+      const buttonTop = buttonRect.top - parentRect.top;
       const spaceAbove = buttonRect.top;
       const spaceBelow = viewportHeight - buttonRect.bottom;
       let menuTop = buttonBottom + 8;
       let menuBottom = null;
       if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
         menuTop = null;
-        const wrapperHeight = wrapperRect.bottom - wrapperRect.top;
-        menuBottom = wrapperHeight - buttonTop + 8;
+        const parentHeight = parentRect.bottom - parentRect.top;
+        menuBottom = parentHeight - buttonTop + 8;
         this.signLanguageSettingsMenu.classList.add("vidply-menu-above");
       } else {
         this.signLanguageSettingsMenu.classList.remove("vidply-menu-above");
       }
-      let menuRight = wrapperRect.right - buttonRect.right;
-      let menuLeft = "auto";
-      const menuLeftAbsolute = buttonRect.right - menuRect.width;
+      let menuLeft = buttonCenterX - menuRect.width / 2;
+      let menuRight = "auto";
+      let transformX = "translateX(0)";
+      const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
       if (menuLeftAbsolute < 10) {
-        menuRight = "auto";
-        menuLeft = buttonLeft;
-      } else if (buttonRect.right > viewportWidth - 10) {
-        menuRight = wrapperRect.right - viewportWidth + 10;
+        menuLeft = 0;
+        transformX = "translateX(0)";
+      } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
         menuLeft = "auto";
+        menuRight = 0;
+        transformX = "translateX(0)";
+      } else {
+        menuLeft = buttonCenterX;
+        transformX = "translateX(-50%)";
       }
       if (menuTop !== null) {
         this.signLanguageSettingsMenu.style.top = `${menuTop}px`;
@@ -8764,6 +8784,7 @@ var VidPly = (() => {
         this.signLanguageSettingsMenu.style.left = "auto";
         this.signLanguageSettingsMenu.style.right = `${menuRight}px`;
       }
+      this.signLanguageSettingsMenu.style.transform = transformX;
     }
     positionSignLanguageSettingsMenu() {
       if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton || !this.signLanguageWrapper) return;
@@ -8860,7 +8881,7 @@ var VidPly = (() => {
         this.hideSignLanguageSettingsMenu({ focusButton: false });
       }
       if (this.signLanguageDocumentClickHandler && this.signLanguageDocumentClickHandlerAdded) {
-        document.removeEventListener("click", this.signLanguageDocumentClickHandler);
+        document.removeEventListener("mousedown", this.signLanguageDocumentClickHandler, true);
         this.signLanguageDocumentClickHandlerAdded = false;
         this.signLanguageDocumentClickHandler = null;
       }
