@@ -31,6 +31,15 @@ export class KeyboardManager {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
       return;
     }
+    
+    // Don't handle if focus is inside a menu (let menu handle its own keyboard navigation)
+    const activeElement = document.activeElement;
+    if (activeElement) {
+      const menu = activeElement.closest('.vidply-menu, [role="menu"]');
+      if (menu) {
+        return; // Let the menu handle keyboard events
+      }
+    }
 
     const key = e.key;
     let handled = false;

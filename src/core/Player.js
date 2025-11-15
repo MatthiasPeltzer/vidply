@@ -2180,7 +2180,9 @@ export class Player extends EventEmitter {
             const handle = document.createElement('div');
             handle.className = `vidply-sign-resize-handle vidply-sign-resize-${dir}`;
             handle.setAttribute('data-direction', dir);
+            handle.setAttribute('role', 'button');
             handle.setAttribute('aria-label', `Resize ${dir.toUpperCase()}`);
+            handle.setAttribute('tabindex', '0');
             return handle;
         });
 
