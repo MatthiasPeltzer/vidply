@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -249,19 +249,11 @@
     <section class="demo-section">
       <h2>Video Demo – Metadata Alerts, Sign Language Overlay & Chapters</h2>
       <p>Shows metadata-driven instruction alerts with automatic pause/focus, multi-language captions and chapters, full audio description support, plus an interactive sign language inset that can be repositioned and resized.</p>
-      
-      <!-- Instructions panel for metadata FOCUS demo -->
-      <div id="instructions" role="alert" aria-label="Video Instructions" aria-hidden="true" tabindex="-1" style="display: none; position: relative; background: #1a1a1a; border: 2px solid #60a5fa; border-radius: 8px; padding: 16px; margin-bottom: 16px; max-width: 800px; color: #ffffff;">
-        <h3 style="margin: 0 0 8px 0; color: #ffffff; font-size: 18px;">Instructions</h3>
-        <p style="margin: 0 0 12px 0; line-height: 1.5; color: #ffffff;">This video demonstrates accessibility features. At 00:39, the video will automatically pause and focus will move here to highlight important information about the speaker, Terrill Thompson, Technology Accessibility Specialist.</p>
-        <button id="instructions-continue" style="background: #60a5fa; color: #ffffff; border: none; border-radius: 4px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer;">Continue</button>
-      </div>
-      
+
       <div class="player-container">
         <video 
           id="wwa-video"
           data-vidply
-          data-vidply-options='{"debug":true,"metadataAlerts":{"#instructions":{"continueButton":"#instructions-continue","resume":true,"focusTarget":"playButton","hideOnContinue":true,"resetContent":true}},"metadataHashtags":{"#info":{"alert":"#instructions","title":"Information","message":"This video demonstrates web accessibility principles and best practices.","focus":false}}}'
           data-sign-language-src="media/wwa_sign.mp4"
           data-sign-language-button="true"
           data-sign-language-position="bottom-right"
@@ -279,60 +271,50 @@
           <track kind="captions" src="media/wwa_captions_de.vtt" srclang="de" label="Deutsch">
           <track kind="captions" src="media/wwa_captions_ja.vtt" srclang="ja" label="日本語">
           <track kind="chapters" src="media/wwa_chapters_en.vtt" srclang="en" label="English Chapters">
+          <track kind="chapters" src="media/wwa_chapters_es.vtt" srclang="es" label="Español Capítulos">
+          <track kind="chapters" src="media/wwa_chapters_fr.vtt" srclang="fr" label="Français Chapitres">
+          <track kind="chapters" src="media/wwa_chapters_de.vtt" srclang="de" label="Deutsch Kapitel">
+          <track kind="chapters" src="media/wwa_chapters_ja.vtt" srclang="ja" label="日本語 チャプター">
           <track kind="descriptions" src="media/wwa_description_en.vtt" srclang="en" label="English Descriptions">
           <track kind="descriptions" src="media/wwa_description_es.vtt" srclang="es" label="Español Descripciones">
           <track kind="descriptions" src="media/wwa_description_fr.vtt" srclang="fr" label="Français Descriptions">
           <track kind="descriptions" src="media/wwa_description_de.vtt" srclang="de" label="Deutsch Beschreibungen">
           <track kind="descriptions" src="media/wwa_description_ja.vtt" srclang="ja" label="日本語 説明">
-          <track kind="metadata" src="media/wwa_meta.vtt" srclang="en">
-          Your browser does not support the video tag.
-        </video>
-      </div>
-
-      <div class="code-block">
-        <pre><code class="language-html">&lt;video
-  data-vidply
-  data-sign-language-src=&quot;media/wwa_sign.mp4&quot;
-  data-sign-language-button=&quot;true&quot;
-  data-sign-language-position=&quot;bottom-right&quot;
-  data-audio-description-button=&quot;true&quot;
-  data-vidply-options='{
-    &quot;metadataAlerts&quot;: {
-      &quot;#instructions&quot;: {
-        &quot;continueButton&quot;: &quot;#instructions-continue&quot;,
-        &quot;resume&quot;: true,
-        &quot;focusTarget&quot;: &quot;playButton&quot;,
-        &quot;hideOnContinue&quot;: true
-      }
-    },
-    &quot;metadataHashtags&quot;: {
-      &quot;#info&quot;: {
-        &quot;alert&quot;: &quot;#instructions&quot;,
-        &quot;title&quot;: &quot;Information&quot;,
-        &quot;message&quot;: &quot;This video demonstrates web accessibility principles and best practices.&quot;
-      }
-    }
-  }'
-  poster=&quot;media/wwa_thumbnail.jpg&quot;&gt;
-  &lt;source src=&quot;media/wwa.mp4&quot; type=&quot;video/mp4&quot; data-desc-src=&quot;media/wwa_described.mp4&quot; data-orig-src=&quot;media/wwa.mp4&quot; /&gt;
-  &lt;source src=&quot;media/wwa.webm&quot; type=&quot;video/webm&quot; data-desc-src=&quot;media/wwa_described.webm&quot; data-orig-src=&quot;media/wwa.webm&quot; /&gt;
-  &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_en.vtt&quot; srclang=&quot;en&quot; label=&quot;English&quot; default /&gt;
-  &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_es.vtt&quot; srclang=&quot;es&quot; label=&quot;Español&quot; /&gt;
-  &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_fr.vtt&quot; srclang=&quot;fr&quot; label=&quot;Français&quot; /&gt;
-  &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_de.vtt&quot; srclang=&quot;de&quot; label=&quot;Deutsch&quot; /&gt;
-  &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_ja.vtt&quot; srclang=&quot;ja&quot; label=&quot;日本語&quot; /&gt;
-  &lt;track kind=&quot;chapters&quot; src=&quot;media/wwa_chapters_en.vtt&quot; srclang=&quot;en&quot; label=&quot;English Chapters&quot; /&gt;
-  &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_en.vtt&quot; srclang=&quot;en&quot; label=&quot;English Descriptions&quot; /&gt;
-  &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_es.vtt&quot; srclang=&quot;es&quot; label=&quot;Español Descripciones&quot; /&gt;
-  &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_fr.vtt&quot; srclang=&quot;fr&quot; label=&quot;Français Descriptions&quot; /&gt;
-  &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_de.vtt&quot; srclang=&quot;de&quot; label=&quot;Deutsch Beschreibungen&quot; /&gt;
-  &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_ja.vtt&quot; srclang=&quot;ja&quot; label=&quot;日本語 説明&quot; /&gt;
-  &lt;track kind=&quot;metadata&quot; src=&quot;media/wwa_meta.vtt&quot; srclang=&quot;en&quot; /&gt;
-&lt;/video&gt;</code></pre>
-      </div>
-    </section>
-
-    <!-- Video Demo 3: IT Accessibility -->
+            Your browser does not support the video tag.
+          </video>
+        </div>
+  
+        <div class="code-block">
+          <pre><code class="language-html">&lt;video
+    data-vidply
+    data-sign-language-src=&quot;media/wwa_sign.mp4&quot;
+    data-sign-language-button=&quot;true&quot;
+    data-sign-language-position=&quot;bottom-right&quot;
+    data-audio-description-button=&quot;true&quot;
+    poster=&quot;media/wwa_thumbnail.jpg&quot;&gt;
+    &lt;source src=&quot;media/wwa.mp4&quot; type=&quot;video/mp4&quot; data-desc-src=&quot;media/wwa_described.mp4&quot; data-orig-src=&quot;media/wwa.mp4&quot; /&gt;
+    &lt;source src=&quot;media/wwa.webm&quot; type=&quot;video/webm&quot; data-desc-src=&quot;media/wwa_described.webm&quot; data-orig-src=&quot;media/wwa.webm&quot; /&gt;
+    &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_en.vtt&quot; srclang=&quot;en&quot; label=&quot;English&quot; default /&gt;
+    &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_es.vtt&quot; srclang=&quot;es&quot; label=&quot;Español&quot; /&gt;
+    &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_fr.vtt&quot; srclang=&quot;fr&quot; label=&quot;Français&quot; /&gt;
+    &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_de.vtt&quot; srclang=&quot;de&quot; label=&quot;Deutsch&quot; /&gt;
+    &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_ja.vtt&quot; srclang=&quot;ja&quot; label=&quot;日本語&quot; /&gt;
+    &lt;track kind=&quot;chapters&quot; src=&quot;media/wwa_chapters_en.vtt&quot; srclang=&quot;en&quot; label=&quot;English Chapters&quot; /&gt;
+    &lt;track kind=&quot;chapters&quot; src=&quot;media/wwa_chapters_es.vtt&quot; srclang=&quot;es&quot; label=&quot;Español Capítulos&quot; /&gt;
+    &lt;track kind=&quot;chapters&quot; src=&quot;media/wwa_chapters_fr.vtt&quot; srclang=&quot;fr&quot; label=&quot;Français Chapitres&quot; /&gt;
+    &lt;track kind=&quot;chapters&quot; src=&quot;media/wwa_chapters_de.vtt&quot; srclang=&quot;de&quot; label=&quot;Deutsch Kapitel&quot; /&gt;
+    &lt;track kind=&quot;chapters&quot; src=&quot;media/wwa_chapters_ja.vtt&quot; srclang=&quot;ja&quot; label=&quot;日本語 チャプター&quot; /&gt;
+    &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_en.vtt&quot; srclang=&quot;en&quot; label=&quot;English Descriptions&quot; /&gt;
+    &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_es.vtt&quot; srclang=&quot;es&quot; label=&quot;Español Descripciones&quot; /&gt;
+    &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_fr.vtt&quot; srclang=&quot;fr&quot; label=&quot;Français Descriptions&quot; /&gt;
+    &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_de.vtt&quot; srclang=&quot;de&quot; label=&quot;Deutsch Beschreibungen&quot; /&gt;
+    &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_ja.vtt&quot; srclang=&quot;ja&quot; label=&quot;日本語 説明&quot; /&gt;
+    &lt;track kind=&quot;metadata&quot; src=&quot;media/wwa_meta.vtt&quot; srclang=&quot;en&quot; /&gt;
+  &lt;/video&gt;</code></pre>
+        </div>
+      </section>
+  
+      <!-- Video Demo 3: IT Accessibility -->
     <section class="demo-section">
       <h2>Video Demo – IT Accessibility Source Swap</h2>
       <p>IT Accessibility excerpt illustrating how data-desc-src swaps the media and related caption/chapter tracks to deliver a fully described playback while keeping bilingual subtitles available.</p>

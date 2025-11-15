@@ -1,0 +1,136 @@
+/**
+ * English translations for VidPly
+ */
+
+export const en = {
+  player: {
+    label: 'Video Player',
+    play: 'Play',
+    pause: 'Pause',
+    stop: 'Stop',
+    restart: 'Restart from beginning',
+    rewind: 'Rewind',
+    forward: 'Forward',
+    rewindSeconds: 'Rewind {seconds} seconds',
+    forwardSeconds: 'Forward {seconds} seconds',
+    previous: 'Previous track',
+    next: 'Next track',
+    volume: 'Volume',
+    mute: 'Mute',
+    unmute: 'Unmute',
+    fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit Fullscreen',
+    captions: 'Captions',
+    chapters: 'Chapters',
+    quality: 'Quality',
+    captionStyling: 'Caption styling',
+    transcript: 'Toggle transcript',
+    audioDescription: 'Audio description',
+    signLanguage: 'Sign language video',
+    settings: 'Settings',
+    speed: 'Playback Speed',
+    pip: 'Picture in Picture',
+    currentTime: 'Current time',
+    duration: 'Duration',
+    progress: 'Progress',
+    seekForward: 'Seek forward {seconds} seconds',
+    seekBackward: 'Seek backward {seconds} seconds',
+    volumeUp: 'Volume up',
+    volumeDown: 'Volume down',
+    loading: 'Loading...',
+    loadingChapters: 'Loading chapters...',
+    error: 'Error loading media',
+    buffering: 'Buffering...',
+    signLanguageVideo: 'Sign Language Video',
+    noChapters: 'No chapters available',
+    noCaptions: 'No captions available',
+    auto: 'Auto',
+    autoQuality: 'Auto (no quality selection available)',
+    noQuality: 'Quality selection not available',
+    signLanguageDragResize: 'Sign Language Video - Press D to drag with keyboard, R to resize',
+    signLanguageDragActive: 'Sign Language Video - Drag mode active. Use arrow keys to move, Escape to exit.',
+    signLanguageResizeActive: 'Sign Language Video - Resize mode active. Use left/right arrow keys to resize, Escape to exit.',
+    resizeHandle: 'Resize {direction} corner'
+  },
+  captions: {
+    off: 'Off',
+    select: 'Select captions',
+    fontSize: 'Font Size',
+    fontFamily: 'Font Family',
+    color: 'Text Color',
+    backgroundColor: 'Background Color',
+    opacity: 'Opacity'
+  },
+  fontSizes: {
+    small: 'Small',
+    normal: 'Normal',
+    large: 'Large',
+    xlarge: 'X-Large'
+  },
+  fontFamilies: {
+    sansSerif: 'Sans-serif',
+    serif: 'Serif',
+    monospace: 'Monospace'
+  },
+  styleLabels: {
+    textColor: 'Text Color',
+    background: 'Background',
+    font: 'Font',
+    fontSize: 'Font Size',
+    opacity: 'Opacity'
+  },
+  audioDescription: {
+    enable: 'Enable audio description',
+    disable: 'Disable audio description'
+  },
+  signLanguage: {
+    show: 'Show sign language video',
+    hide: 'Hide sign language video'
+  },
+  transcript: {
+    title: 'Transcript',
+    close: 'Close transcript',
+    loading: 'Loading transcript...',
+    noTranscript: 'No transcript available for this video.',
+    settings: 'Transcript settings. Press Enter to open menu, or D to enable drag mode',
+    keyboardDragMode: 'Toggle keyboard drag mode with arrow keys. Shortcut: D key',
+    keyboardDragActive: '⌨️ Keyboard Drag Mode Active (Arrow keys to move, Shift+Arrows for large steps, D or ESC to exit)',
+    dragResizePrompt: 'Press D to drag or R to resize. Use Home to reset position, Esc to close.',
+    dragModeEnabled: 'Keyboard drag mode enabled. Use arrow keys to move, Shift+Arrow for larger steps. Press D or Esc to exit.',
+    dragModeDisabled: 'Keyboard drag mode disabled.',
+    resizeWindow: 'Resize Window',
+    disableResizeWindow: 'Disable Resize Mode',
+    resizeModeHint: 'Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit.',
+    resizeModeEnabled: 'Resize mode enabled. Drag edges or corners to adjust. Press Esc or R to exit.',
+    resizeModeDisabled: 'Resize mode disabled.',
+    positionReset: 'Transcript position reset.',
+    styleTranscript: 'Open transcript style settings',
+    closeMenu: 'Close Menu',
+    styleTitle: 'Transcript Style',
+    autoscroll: 'Autoscroll',
+    settingsMenu: 'Settings menu'
+  },
+  settings: {
+    title: 'Settings',
+    quality: 'Quality',
+    speed: 'Speed',
+    captions: 'Captions',
+    language: 'Language',
+    reset: 'Reset to defaults',
+    close: 'Close'
+  },
+  speeds: {
+    normal: 'Normal'
+  },
+  time: {
+    display: 'Time display',
+    durationPrefix: 'Duration: ',
+    hour: '{count} hour',
+    hours: '{count} hours',
+    minute: '{count} minute',
+    minutes: '{count} minutes',
+    second: '{count} second',
+    seconds: '{count} seconds'
+  }
+};
+

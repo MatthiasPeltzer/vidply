@@ -248,6 +248,25 @@ export class Player extends EventEmitter {
         try {
             this.log('Initializing VidPly player');
 
+            // Load custom language files if specified
+            if (this.options.languageFiles) {
+                try {
+                    await i18n.loadLanguagesFromUrls(this.options.languageFiles);
+                } catch (error) {
+                    console.warn('Failed to load some language files:', error);
+                }
+            }
+
+            // Load single language file if specified (for backwards compatibility)
+            if (this.options.languageFile && this.options.languageFileUrl) {
+                try {
+                    await i18n.loadLanguageFromUrl(this.options.languageFile, this.options.languageFileUrl);
+                    this.log(`Custom language file loaded for ${this.options.languageFile}`);
+                } catch (error) {
+                    console.warn(`Failed to load language file for ${this.options.languageFile}:`, error);
+                }
+            }
+
             // Auto-detect language from HTML lang attribute if not explicitly set
             if (!this.options.language || this.options.language === 'en') {
                 const htmlLang = this.detectHtmlLanguage();
@@ -255,6 +274,11 @@ export class Player extends EventEmitter {
                     this.options.language = htmlLang;
                     this.log(`Auto-detected language from HTML: ${htmlLang}`);
                 }
+            }
+
+            // Ensure we have a language set (default to 'en' if not set)
+            if (!this.options.language) {
+                this.options.language = 'en';
             }
 
             // Set language
@@ -345,16 +369,14 @@ export class Player extends EventEmitter {
         // Normalize the language code (e.g., "en-US" -> "en", "de-DE" -> "de")
         const normalizedLang = htmlLang.toLowerCase().split('-')[0];
 
-        // Check if this language is available in our translations
-        const availableLanguages = ['en', 'de', 'es', 'fr', 'ja'];
-
-        if (availableLanguages.includes(normalizedLang)) {
+        // Check if this language is available in our translations (including dynamically loaded ones)
+        if (i18n.translations[normalizedLang]) {
             return normalizedLang;
         }
 
         // Language not available, will fallback to English
         this.log(`Language "${htmlLang}" not available, using English as fallback`);
-        return 'en';
+        return null; // Return null instead of 'en' to let the default language handling work
     }
 
     createContainer() {

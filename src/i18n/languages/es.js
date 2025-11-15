@@ -1,0 +1,136 @@
+/**
+ * Spanish translations for VidPly
+ */
+
+export const es = {
+  player: {
+    label: 'Reproductor de video',
+    play: 'Reproducir',
+    pause: 'Pausa',
+    stop: 'Detener',
+    restart: 'Reiniciar desde el principio',
+    rewind: 'Retroceder',
+    forward: 'Avanzar',
+    rewindSeconds: 'Retroceder {seconds} segundos',
+    forwardSeconds: 'Avanzar {seconds} segundos',
+    previous: 'Pista anterior',
+    next: 'Siguiente pista',
+    volume: 'Volumen',
+    mute: 'Silenciar',
+    unmute: 'Activar sonido',
+    fullscreen: 'Pantalla completa',
+    exitFullscreen: 'Salir de pantalla completa',
+    captions: 'Subtítulos',
+    chapters: 'Capítulos',
+    quality: 'Calidad',
+    captionStyling: 'Estilo de subtítulos',
+    transcript: 'Alternar transcripción',
+    audioDescription: 'Audiodescripción',
+    signLanguage: 'Video en lengua de señas',
+    settings: 'Configuración',
+    speed: 'Velocidad de reproducción',
+    pip: 'Imagen en imagen',
+    currentTime: 'Tiempo actual',
+    duration: 'Duración',
+    progress: 'Progreso',
+    seekForward: 'Avanzar {seconds} segundos',
+    seekBackward: 'Retroceder {seconds} segundos',
+    volumeUp: 'Subir volumen',
+    volumeDown: 'Bajar volumen',
+    loading: 'Cargando...',
+    loadingChapters: 'Cargando capítulos...',
+    error: 'Error al cargar',
+    buffering: 'Almacenando en búfer...',
+    signLanguageVideo: 'Video en Lengua de Señas',
+    noChapters: 'No hay capítulos disponibles',
+    noCaptions: 'No hay subtítulos disponibles',
+    auto: 'Automático',
+    autoQuality: 'Automático (selección de calidad no disponible)',
+    noQuality: 'Selección de calidad no disponible',
+    signLanguageDragResize: 'Video en Lengua de Señas - Presione D para arrastrar con el teclado, R para cambiar el tamaño',
+    signLanguageDragActive: 'Video en Lengua de Señas - Modo de arrastre activo. Use las teclas de flecha para mover, Escape para salir.',
+    signLanguageResizeActive: 'Video en Lengua de Señas - Modo de cambio de tamaño activo. Use las teclas de flecha izquierda/derecha para cambiar el tamaño, Escape para salir.',
+    resizeHandle: 'Cambiar tamaño esquina {direction}'
+  },
+  captions: {
+    off: 'Desactivado',
+    select: 'Seleccionar subtítulos',
+    fontSize: 'Tamaño de fuente',
+    fontFamily: 'Familia de fuente',
+    color: 'Color de texto',
+    backgroundColor: 'Color de fondo',
+    opacity: 'Opacidad'
+  },
+  fontSizes: {
+    small: 'Pequeño',
+    normal: 'Normal',
+    large: 'Grande',
+    xlarge: 'Muy grande'
+  },
+  fontFamilies: {
+    sansSerif: 'Sans-serif',
+    serif: 'Serif',
+    monospace: 'Monospace'
+  },
+  styleLabels: {
+    textColor: 'Color de texto',
+    background: 'Fondo',
+    font: 'Fuente',
+    fontSize: 'Tamaño de fuente',
+    opacity: 'Opacidad'
+  },
+  audioDescription: {
+    enable: 'Activar audiodescripción',
+    disable: 'Desactivar audiodescripción'
+  },
+  signLanguage: {
+    show: 'Mostrar video en lengua de señas',
+    hide: 'Ocultar video en lengua de señas'
+  },
+  transcript: {
+    title: 'Transcripción',
+    close: 'Cerrar transcripción',
+    loading: 'Cargando transcripción...',
+    noTranscript: 'No hay transcripción disponible para este video.',
+    settings: 'Configuración de transcripción. Presione Enter para abrir el menú o D para activar el modo de arrastre',
+    keyboardDragMode: 'Alternar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D',
+    keyboardDragActive: '⌨️ Modo de Arrastre con Teclado Activo (Teclas de flecha para mover, Mayús+Flechas para pasos grandes, D o ESC para salir)',
+    dragResizePrompt: 'Pulsa D para mover o R para cambiar el tamaño. Home restablece la posición; Esc cierra.',
+    dragModeEnabled: 'Modo de arrastre con teclado activado. Usa flechas para mover, Mayús+Flechas para pasos grandes. Pulsa D o Esc para salir.',
+    dragModeDisabled: 'Modo de arrastre con teclado desactivado.',
+    resizeWindow: 'Cambiar tamaño de ventana',
+    disableResizeWindow: 'Desactivar modo de cambio de tamaño',
+    resizeModeHint: 'Controladores habilitados. Arrastra bordes o esquinas para ajustar. Pulsa Esc o R para salir.',
+    resizeModeEnabled: 'Modo de cambio de tamaño activado. Arrastra bordes o esquinas. Pulsa Esc o R para salir.',
+    resizeModeDisabled: 'Modo de cambio de tamaño desactivado.',
+    positionReset: 'Posición de la transcripción restablecida.',
+    styleTranscript: 'Abrir configuración de estilo de transcripción',
+    closeMenu: 'Cerrar menú',
+    styleTitle: 'Estilo de Transcripción',
+    autoscroll: 'Desplazamiento automático',
+    settingsMenu: 'Menú de configuración'
+  },
+  settings: {
+    title: 'Configuración',
+    quality: 'Calidad',
+    speed: 'Velocidad',
+    captions: 'Subtítulos',
+    language: 'Idioma',
+    reset: 'Restablecer',
+    close: 'Cerrar'
+  },
+  speeds: {
+    normal: 'Normal'
+  },
+  time: {
+    display: 'Visualización de tiempo',
+    durationPrefix: 'Duración: ',
+    hour: '{count} hora',
+    hours: '{count} horas',
+    minute: '{count} minuto',
+    minutes: '{count} minutos',
+    second: '{count} segundo',
+    seconds: '{count} segundos'
+  }
+};
+
