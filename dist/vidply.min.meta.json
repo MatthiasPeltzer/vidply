@@ -285,7 +285,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 165826,
+      "bytes": 168503,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -470,13 +470,13 @@
           "bytesInOutput": 13861
         },
         "src/utils/FormUtils.js": {
-          "bytesInOutput": 868
+          "bytesInOutput": 869
         },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 36850
+          "bytesInOutput": 36852
         },
         "src/core/Player.js": {
-          "bytesInOutput": 60869
+          "bytesInOutput": 61586
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -491,7 +491,7 @@
           "bytesInOutput": 8100
         }
       },
-      "bytes": 235911
+      "bytes": 236631
     }
   }
 }

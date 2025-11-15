@@ -5,6 +5,52 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.11] - 2025-11-15
+
+### Added
+- Sign language video settings menu with keyboard drag, resize, and close options
+- Multiple sign language video sources support with automatic language selector
+- Automatic sign language video switching when captions change (if language codes match)
+- Accessible labels for all select boxes (visually hidden but available to screen readers)
+- FormUtils.js utility module for creating accessible form elements
+- `createLabeledSelect()` utility function for creating labeled select elements
+- `toggleLabeledSelect()` utility function for showing/hiding labeled select elements
+- `preventDragOnElement()` utility function for centralized drag prevention
+- Translation keys `closeSignLanguage` and `signLanguageSettings` for all built-in languages
+
+### Changed
+- Dropdown menus now use `aria-expanded` instead of `aria-pressed` or `aria-haspopup` for better accessibility
+- Improved dropdown menu focus management - Escape key returns focus to trigger button
+- Enhanced tab navigation - open dropdowns close when tabbing to another button without disrupting focus
+- Sign language settings menu positioning now uses parent container for proper alignment
+- Refactored language selector creation to use new FormUtils utilities
+
+### Fixed
+- Resize icon not displaying in transcript and sign language settings menus
+- Sign language settings button not functioning correctly
+- Dropdown menus closing both old and new menus when clicking between buttons
+- Focus jumping back to previous button when pressing Escape
+- Menu positioning jumps when opening dropdowns
+- Incorrect translation text in sign language close button ("Close transcript" → "Close sign language video")
+- Sign language settings menu not supporting arrow key navigation
+
+### Improved
+- **Accessibility**
+  - All select boxes now have properly associated labels for screen readers
+  - Better ARIA attribute usage throughout dropdown menus
+  - Enhanced keyboard navigation matching Bootstrap 5.3 patterns
+  - Consistent focus management across all interactive elements
+
+- **Code Quality**
+  - Reduced code duplication by extracting common patterns into utilities
+  - Improved maintainability with centralized form element creation
+  - Consistent patterns for all language selectors
+
+### Documentation
+- Updated sign language documentation with multiple video sources and language switching
+- Added documentation for sign language settings menu and keyboard shortcuts
+- Enhanced README with updated sign language feature description
+
 ## [1.0.5] - 2025-10-16
 
 ### Added

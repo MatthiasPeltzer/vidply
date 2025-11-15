@@ -7011,7 +7011,7 @@ var VidPly = (() => {
         this.container.style.height = typeof this.options.height === "number" ? `${this.options.height}px` : this.options.height;
       }
       if (this.options.poster && this.element.tagName === "VIDEO") {
-        this.element.poster = this.options.poster;
+        this.element.poster = this.resolvePosterPath(this.options.poster);
       }
       if (this.element.tagName === "VIDEO") {
         this.createPlayButtonOverlay();
@@ -7198,6 +7198,25 @@ var VidPly = (() => {
     findTrackElement(track) {
       return this.trackElements.find((el) => el.track === track);
     }
+    /**
+     * Convert relative poster path to absolute URL
+     * @param {string} posterPath - Poster path (relative or absolute)
+     * @returns {string} Absolute URL
+     */
+    resolvePosterPath(posterPath) {
+      if (!posterPath) {
+        return posterPath;
+      }
+      if (posterPath.match(/^(https?:|\/)/)) {
+        return posterPath;
+      }
+      try {
+        const posterUrl = new URL(posterPath, window.location.href);
+        return posterUrl.href;
+      } catch (e) {
+        return posterPath;
+      }
+    }
     showPosterOverlay() {
       if (!this.videoWrapper || this.element.tagName !== "VIDEO") {
         return;
@@ -7206,7 +7225,8 @@ var VidPly = (() => {
       if (!poster) {
         return;
       }
-      this.videoWrapper.style.setProperty("--vidply-poster-image", `url("${poster}")`);
+      const resolvedPoster = this.resolvePosterPath(poster);
+      this.videoWrapper.style.setProperty("--vidply-poster-image", `url("${resolvedPoster}")`);
       this.videoWrapper.classList.add("vidply-forced-poster");
     }
     hidePosterOverlay() {
@@ -7262,7 +7282,7 @@ var VidPly = (() => {
           this.element.type = config.type;
         }
         if (config.poster && this.element.tagName === "VIDEO") {
-          this.element.poster = config.poster;
+          this.element.poster = this.resolvePosterPath(config.poster);
         }
         if (config.tracks && config.tracks.length > 0) {
           config.tracks.forEach((trackConfig) => {
@@ -7533,6 +7553,9 @@ var VidPly = (() => {
       const currentTime = this.state.currentTime;
       const wasPlaying = this.state.playing;
       const shouldKeepPoster = !wasPlaying && currentTime === 0;
+      const posterValue = this.resolvePosterPath(
+        this.element.getAttribute("poster") || this.element.poster || this.options.poster
+      );
       if (shouldKeepPoster) {
         this.showPosterOverlay();
       }
@@ -7727,6 +7750,9 @@ var VidPly = (() => {
         });
         this._sourceElementsDirty = true;
         this._sourceElementsCache = null;
+        if (posterValue && this.element.tagName === "VIDEO") {
+          this.element.poster = posterValue;
+        }
         this.element.load();
         await new Promise((resolve) => {
           const onLoadedMetadata = () => {
@@ -7906,9 +7932,15 @@ var VidPly = (() => {
             }
             this.element.appendChild(newSource);
           });
+          if (posterValue && this.element.tagName === "VIDEO") {
+            this.element.poster = posterValue;
+          }
           this.element.load();
           this.invalidateTrackCache();
         } else {
+          if (posterValue && this.element.tagName === "VIDEO") {
+            this.element.poster = posterValue;
+          }
           this.element.src = this.audioDescriptionSrc;
         }
       }
@@ -8107,6 +8139,9 @@ var VidPly = (() => {
       }
       const currentTime = this.state.currentTime;
       const wasPlaying = this.state.playing;
+      const posterValue = this.resolvePosterPath(
+        this.element.getAttribute("poster") || this.element.poster || this.options.poster
+      );
       if (this.audioDescriptionCaptionTracks.length > 0) {
         this.audioDescriptionCaptionTracks.forEach((trackInfo) => {
           if (trackInfo.trackElement && trackInfo.originalTrackSrc) {
@@ -8166,8 +8201,14 @@ var VidPly = (() => {
         });
         this._sourceElementsDirty = true;
         this._sourceElementsCache = null;
+        if (posterValue && this.element.tagName === "VIDEO") {
+          this.element.poster = posterValue;
+        }
         this.element.load();
       } else {
+        if (posterValue && this.element.tagName === "VIDEO") {
+          this.element.poster = posterValue;
+        }
         const originalSrcToUse = this.originalAudioDescriptionSource || this.originalSrc;
         this.element.src = originalSrcToUse;
         this.element.load();
