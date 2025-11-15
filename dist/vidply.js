@@ -1392,6 +1392,25 @@ var VidPly = (() => {
     return svg;
   }
 
+  // src/utils/FocusUtils.js
+  function focusElement(element, { delay = 0, preventScroll = true } = {}) {
+    if (!element) return;
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        if (element && document.contains(element)) {
+          element.focus({ preventScroll });
+        }
+      }, delay);
+    });
+  }
+  function focusFirstElement(container, selector, options = {}) {
+    if (!container) return;
+    const element = container.querySelector(selector);
+    if (element) {
+      focusElement(element, options);
+    }
+  }
+
   // src/controls/ControlBar.js
   var ControlBar = class {
     constructor(player) {
@@ -1401,6 +1420,8 @@ var VidPly = (() => {
       this.hideTimeout = null;
       this.isDraggingProgress = false;
       this.isDraggingVolume = false;
+      this.openMenu = null;
+      this.openMenuButton = null;
       this.init();
     }
     init() {
@@ -1414,12 +1435,12 @@ var VidPly = (() => {
       return window.innerWidth < 640;
     }
     // Smart menu positioning to avoid overflow
-    positionMenu(menu, button) {
+    positionMenu(menu, button, immediate = false) {
       const isMobile = this.isMobile();
       if (isMobile) {
         return;
       }
-      setTimeout(() => {
+      const doPositioning = () => {
         const buttonRect = button.getBoundingClientRect();
         const menuRect = menu.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
@@ -1472,43 +1493,144 @@ var VidPly = (() => {
           menu.style.right = `${menuRight}px`;
         }
         menu.style.transform = transformX;
-      }, 0);
+      };
+      if (immediate) {
+        doPositioning();
+      } else {
+        requestAnimationFrame(() => {
+          setTimeout(doPositioning, 10);
+        });
+      }
     }
     // Helper method to attach close-on-outside-click behavior to menus
     attachMenuCloseHandler(menu, button, preventCloseOnInteraction = false) {
+      if (this.openMenu && this.openMenu !== menu && this.openMenuButton) {
+        if (this.openMenuButton._vidplyBlurHandler) {
+          this.openMenuButton.removeEventListener("blur", this.openMenuButton._vidplyBlurHandler);
+          delete this.openMenuButton._vidplyBlurHandler;
+        }
+        if (this.openMenuButton._vidplyMousedownHandler) {
+          this.openMenuButton.removeEventListener("mousedown", this.openMenuButton._vidplyMousedownHandler);
+          delete this.openMenuButton._vidplyMousedownHandler;
+        }
+        if (this.openMenu && document.contains(this.openMenu)) {
+          this.openMenu.remove();
+        } else if (this.openMenu && this.openMenu.parentNode) {
+          this.openMenu.parentNode.removeChild(this.openMenu);
+        }
+        if (this.openMenuButton) {
+          this.openMenuButton.setAttribute("aria-expanded", "false");
+        }
+      }
+      this.openMenu = menu;
+      this.openMenuButton = button;
       this.positionMenu(menu, button);
       if (button) {
         button.setAttribute("aria-expanded", "true");
       }
+      let isClickingButton = false;
+      let blurHandlerActive = true;
+      const handleButtonMousedown = () => {
+        isClickingButton = true;
+        blurHandlerActive = false;
+        setTimeout(() => {
+          isClickingButton = false;
+          blurHandlerActive = true;
+        }, 200);
+      };
+      button.addEventListener("mousedown", handleButtonMousedown);
+      button._vidplyMousedownHandler = handleButtonMousedown;
+      const handleButtonBlur = (e) => {
+        if (!blurHandlerActive || isClickingButton) {
+          return;
+        }
+        if (this.openMenu !== menu) {
+          return;
+        }
+        const relatedTarget = e.relatedTarget;
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            var _a;
+            if (!blurHandlerActive || this.openMenu !== menu) {
+              return;
+            }
+            const activeElement = document.activeElement;
+            if (menu.contains(activeElement)) {
+              return;
+            }
+            const signLanguageWrapper = this.player.signLanguageWrapper;
+            const transcriptWindow = (_a = this.player.transcriptManager) == null ? void 0 : _a.transcriptWindow;
+            if (signLanguageWrapper && signLanguageWrapper.contains(activeElement) || transcriptWindow && transcriptWindow.contains(activeElement)) {
+              return;
+            }
+            const controlBarButtons = this.element.querySelectorAll("button");
+            const isFocusOnAnotherButton = Array.from(controlBarButtons).includes(activeElement) && activeElement !== button;
+            const isRelatedTargetAnotherButton = relatedTarget && Array.from(controlBarButtons).includes(relatedTarget) && relatedTarget !== button;
+            if (isFocusOnAnotherButton || isRelatedTargetAnotherButton) {
+              if (this.openMenu !== menu) {
+                return;
+              }
+              if (menu && document.contains(menu)) {
+                menu.remove();
+              } else if (menu && menu.parentNode) {
+                menu.parentNode.removeChild(menu);
+              }
+              if (button) {
+                button.setAttribute("aria-expanded", "false");
+              }
+              if (this.openMenu === menu) {
+                this.openMenu = null;
+                this.openMenuButton = null;
+              }
+              button.removeEventListener("blur", handleButtonBlur);
+              button.removeEventListener("mousedown", handleButtonMousedown);
+              delete button._vidplyBlurHandler;
+              delete button._vidplyMousedownHandler;
+            }
+          }, 10);
+        });
+      };
+      button.addEventListener("blur", handleButtonBlur);
+      button._vidplyBlurHandler = handleButtonBlur;
       const closeMenuAndUpdateAria = () => {
         this.closeMenuAndReturnFocus(menu, button);
       };
+      let documentClickHandler = null;
+      let documentEscapeHandler = null;
       setTimeout(() => {
-        const closeMenu = (e) => {
+        documentClickHandler = (e) => {
           if (preventCloseOnInteraction && menu.contains(e.target)) {
             return;
           }
-          if (!menu.contains(e.target) && !button.contains(e.target)) {
+          if (this.openMenu === menu && !menu.contains(e.target) && !button.contains(e.target)) {
             closeMenuAndUpdateAria();
-            document.removeEventListener("click", closeMenu);
-            document.removeEventListener("keydown", handleEscape);
+            if (documentClickHandler) {
+              document.removeEventListener("click", documentClickHandler);
+            }
+            if (documentEscapeHandler) {
+              document.removeEventListener("keydown", documentEscapeHandler);
+            }
           }
         };
-        const handleEscape = (e) => {
-          if (e.key === "Escape") {
+        documentEscapeHandler = (e) => {
+          if (e.key === "Escape" && this.openMenu === menu) {
             e.preventDefault();
             e.stopPropagation();
-            closeMenuAndUpdateAria();
-            document.removeEventListener("click", closeMenu);
-            document.removeEventListener("keydown", handleEscape);
+            this.closeMenuAndReturnFocus(menu, button, true);
+            if (documentClickHandler) {
+              document.removeEventListener("click", documentClickHandler);
+            }
+            if (documentEscapeHandler) {
+              document.removeEventListener("keydown", documentEscapeHandler);
+            }
           }
         };
-        document.addEventListener("click", closeMenu);
-        document.addEventListener("keydown", handleEscape);
+        document.addEventListener("click", documentClickHandler);
+        document.addEventListener("keydown", documentEscapeHandler);
       }, 100);
     }
     // Helper method to close menu and return focus to button
-    closeMenuAndReturnFocus(menu, button) {
+    closeMenuAndReturnFocus(menu, button, returnFocus = true) {
       if (menu) {
         if (document.contains(menu)) {
           menu.remove();
@@ -1518,11 +1640,34 @@ var VidPly = (() => {
       }
       if (button) {
         button.setAttribute("aria-expanded", "false");
-        requestAnimationFrame(() => {
-          if (button && document.contains(button)) {
-            button.focus({ preventScroll: true });
-          }
-        });
+        if (returnFocus) {
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              if (button && document.contains(button)) {
+                button.focus({ preventScroll: true });
+              }
+            }, 0);
+          });
+        }
+      }
+      if (this.openMenu === menu) {
+        this.openMenu = null;
+        this.openMenuButton = null;
+      }
+    }
+    // Close any open menu when tabbing to another button or clicking another button
+    closeOpenMenu() {
+      if (this.openMenu && this.openMenuButton) {
+        if (this.openMenu && document.contains(this.openMenu)) {
+          this.openMenu.remove();
+        } else if (this.openMenu && this.openMenu.parentNode) {
+          this.openMenu.parentNode.removeChild(this.openMenu);
+        }
+        if (this.openMenuButton) {
+          this.openMenuButton.setAttribute("aria-expanded", "false");
+        }
+        this.openMenu = null;
+        this.openMenuButton = null;
       }
     }
     // Helper method to add keyboard navigation to menus (arrow keys)
@@ -1565,17 +1710,13 @@ var VidPly = (() => {
             e.stopPropagation();
             if (document.activeElement && menuItems.includes(document.activeElement)) {
               document.activeElement.click();
-              setTimeout(() => {
-                if (button && document.contains(button)) {
-                  button.focus();
-                }
-              }, 0);
+              focusElement(button, { delay: 0 });
             }
             break;
           case "Escape":
             e.preventDefault();
             e.stopPropagation();
-            this.closeMenuAndReturnFocus(menu, button);
+            this.closeMenuAndReturnFocus(menu, button, true);
             break;
         }
       };
@@ -2081,6 +2222,10 @@ var VidPly = (() => {
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
+        if (this.openMenu === existingMenu) {
+          this.openMenu = null;
+          this.openMenuButton = null;
+        }
         return;
       }
       const menu = DOMUtils.createElement("div", {
@@ -2161,7 +2306,13 @@ var VidPly = (() => {
           }, 0);
         }
       }
+      menu.style.visibility = "hidden";
+      menu.style.display = "block";
       button.insertAdjacentElement("afterend", menu);
+      this.positionMenu(menu, button, true);
+      requestAnimationFrame(() => {
+        menu.style.visibility = "visible";
+      });
       this.attachMenuCloseHandler(menu, button);
     }
     createQualityButton() {
@@ -2192,6 +2343,10 @@ var VidPly = (() => {
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
+        if (this.openMenu === existingMenu) {
+          this.openMenu = null;
+          this.openMenuButton = null;
+        }
         return;
       }
       const menu = DOMUtils.createElement("div", {
@@ -2277,7 +2432,13 @@ var VidPly = (() => {
         });
         menu.appendChild(noSupportItem);
       }
+      menu.style.visibility = "hidden";
+      menu.style.display = "block";
       button.insertAdjacentElement("afterend", menu);
+      this.positionMenu(menu, button, true);
+      requestAnimationFrame(() => {
+        menu.style.visibility = "visible";
+      });
       this.attachMenuCloseHandler(menu, button);
     }
     createCaptionStyleButton() {
@@ -2309,6 +2470,10 @@ var VidPly = (() => {
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
+        if (this.openMenu === existingMenu) {
+          this.openMenu = null;
+          this.openMenuButton = null;
+        }
         return;
       }
       const menu = DOMUtils.createElement("div", {
@@ -2328,7 +2493,13 @@ var VidPly = (() => {
           style: { opacity: "0.5", cursor: "default", padding: "12px 16px" }
         });
         menu.appendChild(noTracksItem);
+        menu.style.visibility = "hidden";
+        menu.style.display = "block";
         button.insertAdjacentElement("afterend", menu);
+        this.positionMenu(menu, button, true);
+        requestAnimationFrame(() => {
+          menu.style.visibility = "visible";
+        });
         this.attachMenuCloseHandler(menu, button, true);
         return;
       }
@@ -2360,16 +2531,15 @@ var VidPly = (() => {
       const opacityGroup = this.createOpacityControl(i18n.t("styleLabels.opacity"), "captionsOpacity");
       menu.appendChild(opacityGroup);
       menu.style.minWidth = "220px";
+      menu.style.visibility = "hidden";
+      menu.style.display = "block";
       button.insertAdjacentElement("afterend", menu);
-      this.attachMenuCloseHandler(menu, button, true);
+      this.positionMenu(menu, button, true);
       requestAnimationFrame(() => {
-        setTimeout(() => {
-          const firstSelect = menu.querySelector(`.${this.player.options.classPrefix}-style-select`);
-          if (firstSelect) {
-            firstSelect.focus({ preventScroll: true });
-          }
-        }, 0);
+        menu.style.visibility = "visible";
       });
+      this.attachMenuCloseHandler(menu, button, true);
+      focusFirstElement(menu, `.${this.player.options.classPrefix}-style-select`);
     }
     createStyleControl(label, property, options) {
       const group = DOMUtils.createElement("div", {
@@ -2574,6 +2744,10 @@ var VidPly = (() => {
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
+        if (this.openMenu === existingMenu) {
+          this.openMenu = null;
+          this.openMenuButton = null;
+        }
         return;
       }
       const menu = DOMUtils.createElement("div", {
@@ -2605,7 +2779,13 @@ var VidPly = (() => {
         });
         menu.appendChild(item);
       });
+      menu.style.visibility = "hidden";
+      menu.style.display = "block";
       button.insertAdjacentElement("afterend", menu);
+      this.positionMenu(menu, button, true);
+      requestAnimationFrame(() => {
+        menu.style.visibility = "visible";
+      });
       this.attachMenuKeyboardNavigation(menu, button);
       this.attachMenuCloseHandler(menu, button);
       setTimeout(() => {
@@ -2636,6 +2816,10 @@ var VidPly = (() => {
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
+        if (this.openMenu === existingMenu) {
+          this.openMenu = null;
+          this.openMenuButton = null;
+        }
         return;
       }
       const menu = DOMUtils.createElement("div", {
@@ -3558,6 +3742,115 @@ var VidPly = (() => {
     }
   };
 
+  // src/utils/MenuUtils.js
+  function createMenuItem2({ classPrefix, itemClass, icon, label, ariaLabel, onClick, hasTextClass = false }) {
+    const isI18nKeyForAria = typeof label === "string" && (label.startsWith("transcript.") || label.startsWith("player.") || label.startsWith("settings."));
+    const ariaLabelText = ariaLabel || (isI18nKeyForAria ? i18n.t(label) || label : label);
+    const button = DOMUtils.createElement("button", {
+      className: itemClass,
+      attributes: {
+        "type": "button",
+        "aria-label": ariaLabelText,
+        "tabindex": "-1"
+      }
+    });
+    if (icon) {
+      button.appendChild(createIconElement(icon));
+    }
+    const isI18nKey = typeof label === "string" && (label.startsWith("transcript.") || label.startsWith("player.") || label.startsWith("settings."));
+    const textContent = isI18nKey ? i18n.t(label) || label : label;
+    const text = DOMUtils.createElement("span", {
+      textContent,
+      className: hasTextClass ? `${classPrefix}-settings-text` : void 0
+    });
+    button.appendChild(text);
+    if (onClick) {
+      button.addEventListener("click", onClick);
+    }
+    return button;
+  }
+  function attachMenuKeyboardNavigation2(menu, button, itemSelector, onClose) {
+    if (!menu) return;
+    const menuItems = Array.from(menu.querySelectorAll(itemSelector));
+    if (menuItems.length === 0) return;
+    const handleKeyDown = (e) => {
+      const currentIndex = menuItems.indexOf(document.activeElement);
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          e.stopPropagation();
+          const nextIndex = (currentIndex + 1) % menuItems.length;
+          menuItems.forEach((item, idx) => {
+            item.setAttribute("tabindex", idx === nextIndex ? "0" : "-1");
+          });
+          menuItems[nextIndex].focus();
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          e.stopPropagation();
+          const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
+          menuItems.forEach((item, idx) => {
+            item.setAttribute("tabindex", idx === prevIndex ? "0" : "-1");
+          });
+          menuItems[prevIndex].focus();
+          break;
+        case "Home":
+          e.preventDefault();
+          e.stopPropagation();
+          menuItems.forEach((item, idx) => {
+            item.setAttribute("tabindex", idx === 0 ? "0" : "-1");
+          });
+          menuItems[0].focus();
+          break;
+        case "End":
+          e.preventDefault();
+          e.stopPropagation();
+          const lastIndex = menuItems.length - 1;
+          menuItems.forEach((item, idx) => {
+            item.setAttribute("tabindex", idx === lastIndex ? "0" : "-1");
+          });
+          menuItems[lastIndex].focus();
+          break;
+        case "Enter":
+        case " ":
+          e.preventDefault();
+          e.stopPropagation();
+          if (document.activeElement && menuItems.includes(document.activeElement)) {
+            document.activeElement.click();
+            if (onClose) {
+              setTimeout(() => {
+                if (button && document.contains(button)) {
+                  button.focus();
+                }
+              }, 0);
+            }
+          }
+          break;
+        case "Escape":
+          e.preventDefault();
+          e.stopPropagation();
+          if (onClose) {
+            onClose();
+          }
+          break;
+      }
+    };
+    menu.addEventListener("keydown", handleKeyDown);
+    return handleKeyDown;
+  }
+  function focusFirstMenuItem2(menu, itemSelector, delay = 0) {
+    if (!menu) return;
+    setTimeout(() => {
+      const menuItems = Array.from(menu.querySelectorAll(itemSelector));
+      if (menuItems.length > 0) {
+        menuItems.forEach((item, index) => {
+          item.setAttribute("tabindex", index === 0 ? "0" : "-1");
+        });
+        focusElement(menuItems[0], { delay: 0 });
+      }
+    }, delay);
+  }
+
   // src/utils/DraggableResizable.js
   var DraggableResizable = class {
     constructor(element, options = {}) {
@@ -4239,11 +4532,7 @@ var VidPly = (() => {
         if (this.player.controlBar && typeof this.player.controlBar.updateTranscriptButton === "function") {
           this.player.controlBar.updateTranscriptButton();
         }
-        this.setManagedTimeout(() => {
-          if (this.settingsButton) {
-            this.settingsButton.focus();
-          }
-        }, 150);
+        focusElement(this.settingsButton, { delay: 150 });
         return;
       }
       this.createTranscriptWindow();
@@ -4253,11 +4542,7 @@ var VidPly = (() => {
         if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
           this.setManagedTimeout(() => this.positionTranscript(), 0);
         }
-        this.setManagedTimeout(() => {
-          if (this.settingsButton) {
-            this.settingsButton.focus();
-          }
-        }, 150);
+        focusElement(this.settingsButton, { delay: 150 });
       }
       this.isVisible = true;
     }
@@ -5090,112 +5375,77 @@ var VidPly = (() => {
         }
         this.positionSettingsMenu();
         this.updateResizeOptionState();
-        setTimeout(() => {
-          const firstItem = this.settingsMenu.querySelector(`.${this.player.options.classPrefix}-transcript-settings-item`);
-          if (firstItem) {
-            firstItem.focus();
-          }
-        }, 0);
+        focusFirstMenuItem2(this.settingsMenu, `.${this.player.options.classPrefix}-transcript-settings-item`);
         return;
       }
       this.settingsMenu = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-transcript-settings-menu`
       });
-      const keyboardDragOption = DOMUtils.createElement("button", {
-        className: `${this.player.options.classPrefix}-transcript-settings-item`,
-        attributes: {
-          "type": "button",
-          "aria-label": i18n.t("transcript.keyboardDragMode"),
-          "tabindex": "-1"
+      const keyboardDragOption = createMenuItem2({
+        classPrefix: this.player.options.classPrefix,
+        itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
+        icon: "move",
+        label: "transcript.keyboardDragMode",
+        onClick: () => {
+          this.toggleKeyboardDragMode();
+          this.hideSettingsMenu();
         }
       });
-      const keyboardIcon = createIconElement("move");
-      const keyboardText = DOMUtils.createElement("span", {
-        textContent: i18n.t("transcript.keyboardDragMode")
-      });
-      keyboardDragOption.appendChild(keyboardIcon);
-      keyboardDragOption.appendChild(keyboardText);
-      keyboardDragOption.addEventListener("click", () => {
-        this.toggleKeyboardDragMode();
-        this.hideSettingsMenu();
-      });
-      const styleOption = DOMUtils.createElement("button", {
-        className: `${this.player.options.classPrefix}-transcript-settings-item`,
-        attributes: {
-          "type": "button",
-          "aria-label": i18n.t("transcript.styleTranscript"),
-          "tabindex": "-1"
+      const styleOption = createMenuItem2({
+        classPrefix: this.player.options.classPrefix,
+        itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
+        icon: "settings",
+        label: "transcript.styleTranscript",
+        onClick: (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.hideSettingsMenu();
+          setTimeout(() => {
+            this.showStyleDialog();
+          }, 50);
         }
       });
-      const styleIcon = createIconElement("settings");
-      const styleText = DOMUtils.createElement("span", {
-        textContent: i18n.t("transcript.styleTranscript")
-      });
-      styleOption.appendChild(styleIcon);
-      styleOption.appendChild(styleText);
-      styleOption.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.hideSettingsMenu();
-        setTimeout(() => {
-          this.showStyleDialog();
-        }, 50);
-      });
-      const resizeOption = DOMUtils.createElement("button", {
-        className: `${this.player.options.classPrefix}-transcript-settings-item`,
-        attributes: {
-          "type": "button",
-          "aria-label": i18n.t("transcript.resizeWindow"),
-          "aria-pressed": "false",
-          "tabindex": "-1"
+      const resizeOption = createMenuItem2({
+        classPrefix: this.player.options.classPrefix,
+        itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
+        icon: "resize",
+        label: "transcript.resizeWindow",
+        hasTextClass: true,
+        onClick: (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const enabled = this.toggleResizeMode({ focus: false });
+          if (enabled) {
+            this.hideSettingsMenu({ focusButton: false });
+            setTimeout(() => {
+              if (this.transcriptWindow) {
+                this.transcriptWindow.focus();
+              }
+            }, 20);
+          } else {
+            this.hideSettingsMenu({ focusButton: true });
+          }
         }
       });
-      const resizeIcon = createIconElement("resize");
-      const resizeText = DOMUtils.createElement("span", {
-        className: `${this.player.options.classPrefix}-transcript-settings-text`,
-        textContent: i18n.t("transcript.resizeWindow")
-      });
-      resizeOption.appendChild(resizeIcon);
-      resizeOption.appendChild(resizeText);
-      resizeOption.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const enabled = this.toggleResizeMode({ focus: false });
-        if (enabled) {
-          this.hideSettingsMenu({ focusButton: false });
-          this.setManagedTimeout(() => {
-            if (this.transcriptWindow) {
-              this.transcriptWindow.focus();
-            }
-          }, 20);
-        } else {
-          this.hideSettingsMenu({ focusButton: true });
-        }
-      });
+      resizeOption.setAttribute("aria-pressed", "false");
       this.resizeOptionButton = resizeOption;
-      this.resizeOptionText = resizeText;
+      this.resizeOptionText = resizeOption.querySelector("span");
       this.updateResizeOptionState();
-      const closeOption = DOMUtils.createElement("button", {
-        className: `${this.player.options.classPrefix}-transcript-settings-item`,
-        attributes: {
-          "type": "button",
-          "aria-label": i18n.t("transcript.closeMenu"),
-          "tabindex": "-1"
+      const closeOption = createMenuItem2({
+        classPrefix: this.player.options.classPrefix,
+        itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
+        icon: "close",
+        label: "transcript.closeMenu",
+        onClick: () => {
+          this.hideSettingsMenu();
         }
-      });
-      const closeIcon = createIconElement("close");
-      const closeText = DOMUtils.createElement("span", {
-        textContent: i18n.t("transcript.closeMenu")
-      });
-      closeOption.appendChild(closeIcon);
-      closeOption.appendChild(closeText);
-      closeOption.addEventListener("click", () => {
-        this.hideSettingsMenu();
       });
       this.settingsMenu.appendChild(keyboardDragOption);
       this.settingsMenu.appendChild(resizeOption);
       this.settingsMenu.appendChild(styleOption);
       this.settingsMenu.appendChild(closeOption);
+      this.settingsMenu.style.visibility = "hidden";
+      this.settingsMenu.style.display = "block";
       if (this.transcriptWindow) {
         this.transcriptWindow.appendChild(this.settingsMenu);
       } else if (this.settingsButton && this.settingsButton.parentNode) {
@@ -5205,147 +5455,102 @@ var VidPly = (() => {
       } else {
         this.transcriptHeader.appendChild(this.settingsMenu);
       }
-      this.positionSettingsMenu();
-      this.attachSettingsMenuKeyboardNavigation();
+      this.positionSettingsMenuImmediate();
+      requestAnimationFrame(() => {
+        if (this.settingsMenu) {
+          this.settingsMenu.style.visibility = "visible";
+        }
+      });
+      this.settingsMenuKeyHandler = attachMenuKeyboardNavigation2(
+        this.settingsMenu,
+        this.settingsButton,
+        `.${this.player.options.classPrefix}-transcript-settings-item`,
+        () => this.hideSettingsMenu({ focusButton: true })
+      );
       this.settingsMenuVisible = true;
       this.settingsMenu.style.display = "block";
       if (this.settingsButton) {
         this.settingsButton.setAttribute("aria-expanded", "true");
       }
       this.updateResizeOptionState();
-      setTimeout(() => {
-        const menuItems = Array.from(this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`));
-        if (menuItems.length > 0) {
-          menuItems.forEach((item, index) => {
-            item.setAttribute("tabindex", index === 0 ? "0" : "-1");
-          });
-          menuItems[0].focus();
-        }
-      }, 0);
+      focusFirstMenuItem2(this.settingsMenu, `.${this.player.options.classPrefix}-transcript-settings-item`);
     }
     /**
-     * Position settings menu relative to settings button
+     * Position settings menu relative to settings button (immediate/synchronous)
+     */
+    positionSettingsMenuImmediate() {
+      if (!this.settingsMenu || !this.settingsButton || !this.transcriptWindow) return;
+      const buttonRect = this.settingsButton.getBoundingClientRect();
+      const menuRect = this.settingsMenu.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const windowRect = this.transcriptWindow.getBoundingClientRect();
+      const buttonRight = buttonRect.right - windowRect.left;
+      const buttonLeft = buttonRect.left - windowRect.left;
+      const buttonTop = buttonRect.top - windowRect.top;
+      const buttonBottom = buttonRect.bottom - windowRect.top;
+      const spaceAbove = buttonRect.top;
+      const spaceBelow = viewportHeight - buttonRect.bottom;
+      let menuTop = buttonBottom + 8;
+      let menuBottom = null;
+      if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
+        menuTop = null;
+        const windowHeight = windowRect.bottom - windowRect.top;
+        menuBottom = windowHeight - buttonTop + 8;
+        this.settingsMenu.classList.add("vidply-menu-above");
+      } else {
+        this.settingsMenu.classList.remove("vidply-menu-above");
+      }
+      let menuRight = windowRect.right - buttonRect.right;
+      let menuLeft = "auto";
+      const menuLeftAbsolute = buttonRect.right - menuRect.width;
+      if (menuLeftAbsolute < 10) {
+        menuRight = "auto";
+        menuLeft = buttonLeft;
+      } else if (buttonRect.right > viewportWidth - 10) {
+        menuRight = windowRect.right - viewportWidth + 10;
+        menuLeft = "auto";
+      }
+      if (menuTop !== null) {
+        this.settingsMenu.style.top = `${menuTop}px`;
+        this.settingsMenu.style.bottom = "auto";
+      } else if (menuBottom !== null) {
+        this.settingsMenu.style.top = "auto";
+        this.settingsMenu.style.bottom = `${menuBottom}px`;
+      }
+      if (menuLeft !== "auto") {
+        this.settingsMenu.style.left = `${menuLeft}px`;
+        this.settingsMenu.style.right = "auto";
+      } else {
+        this.settingsMenu.style.left = "auto";
+        this.settingsMenu.style.right = `${menuRight}px`;
+      }
+    }
+    /**
+     * Position settings menu relative to settings button (async for repositioning)
      */
     positionSettingsMenu() {
       if (!this.settingsMenu || !this.settingsButton || !this.transcriptWindow) return;
-      setTimeout(() => {
-        const buttonRect = this.settingsButton.getBoundingClientRect();
-        const menuRect = this.settingsMenu.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        const windowRect = this.transcriptWindow.getBoundingClientRect();
-        const buttonRight = buttonRect.right - windowRect.left;
-        const buttonLeft = buttonRect.left - windowRect.left;
-        const buttonTop = buttonRect.top - windowRect.top;
-        const buttonBottom = buttonRect.bottom - windowRect.top;
-        const spaceAbove = buttonRect.top;
-        const spaceBelow = viewportHeight - buttonRect.bottom;
-        let menuTop = buttonBottom + 8;
-        let menuBottom = null;
-        if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
-          menuTop = null;
-          const windowHeight = windowRect.bottom - windowRect.top;
-          menuBottom = windowHeight - buttonTop + 8;
-          this.settingsMenu.classList.add("vidply-menu-above");
-        } else {
-          this.settingsMenu.classList.remove("vidply-menu-above");
-        }
-        let menuRight = windowRect.right - buttonRect.right;
-        let menuLeft = "auto";
-        const menuLeftAbsolute = buttonRect.right - menuRect.width;
-        if (menuLeftAbsolute < 10) {
-          menuRight = "auto";
-          menuLeft = buttonLeft;
-        } else if (buttonRect.right > viewportWidth - 10) {
-          menuRight = windowRect.right - viewportWidth + 10;
-          menuLeft = "auto";
-        }
-        if (menuTop !== null) {
-          this.settingsMenu.style.top = `${menuTop}px`;
-          this.settingsMenu.style.bottom = "auto";
-        } else if (menuBottom !== null) {
-          this.settingsMenu.style.top = "auto";
-          this.settingsMenu.style.bottom = `${menuBottom}px`;
-        }
-        if (menuLeft !== "auto") {
-          this.settingsMenu.style.left = `${menuLeft}px`;
-          this.settingsMenu.style.right = "auto";
-        } else {
-          this.settingsMenu.style.left = "auto";
-          this.settingsMenu.style.right = `${menuRight}px`;
-        }
-      }, 0);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          this.positionSettingsMenuImmediate();
+        }, 10);
+      });
     }
     /**
      * Attach keyboard navigation to settings menu
      */
     attachSettingsMenuKeyboardNavigation() {
       if (!this.settingsMenu) return;
-      const menuItems = Array.from(this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`));
-      if (menuItems.length === 0) return;
-      const handleKeyDown = (e) => {
-        const currentIndex = menuItems.indexOf(document.activeElement);
-        switch (e.key) {
-          case "ArrowDown":
-            e.preventDefault();
-            e.stopPropagation();
-            const nextIndex = (currentIndex + 1) % menuItems.length;
-            menuItems.forEach((item, idx) => {
-              item.setAttribute("tabindex", idx === nextIndex ? "0" : "-1");
-            });
-            menuItems[nextIndex].focus();
-            break;
-          case "ArrowUp":
-            e.preventDefault();
-            e.stopPropagation();
-            const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
-            menuItems.forEach((item, idx) => {
-              item.setAttribute("tabindex", idx === prevIndex ? "0" : "-1");
-            });
-            menuItems[prevIndex].focus();
-            break;
-          case "Home":
-            e.preventDefault();
-            e.stopPropagation();
-            menuItems.forEach((item, idx) => {
-              item.setAttribute("tabindex", idx === 0 ? "0" : "-1");
-            });
-            menuItems[0].focus();
-            break;
-          case "End":
-            e.preventDefault();
-            e.stopPropagation();
-            const lastIndex = menuItems.length - 1;
-            menuItems.forEach((item, idx) => {
-              item.setAttribute("tabindex", idx === lastIndex ? "0" : "-1");
-            });
-            menuItems[lastIndex].focus();
-            break;
-          case "Enter":
-          case " ":
-            e.preventDefault();
-            e.stopPropagation();
-            if (document.activeElement && menuItems.includes(document.activeElement)) {
-              document.activeElement.click();
-              setTimeout(() => {
-                if (this.settingsButton && document.contains(this.settingsButton)) {
-                  this.settingsButton.focus();
-                }
-              }, 0);
-            }
-            break;
-          case "Escape":
-            e.preventDefault();
-            e.stopPropagation();
-            this.hideSettingsMenu({ focusButton: true });
-            break;
-        }
-      };
       if (this.settingsMenuKeyHandler) {
         this.settingsMenu.removeEventListener("keydown", this.settingsMenuKeyHandler);
       }
-      this.settingsMenuKeyHandler = handleKeyDown;
-      this.settingsMenu.addEventListener("keydown", this.settingsMenuKeyHandler);
+      this.settingsMenuKeyHandler = attachMenuKeyboardNavigation2(
+        this.settingsMenu,
+        this.settingsButton,
+        `.${this.player.options.classPrefix}-transcript-settings-item`,
+        () => this.hideSettingsMenu({ focusButton: true })
+      );
     }
     /**
      * Hide settings menu
@@ -7991,13 +8196,11 @@ var VidPly = (() => {
         this.signLanguageWrapper.style.display = "block";
         this.state.signLanguageEnabled = true;
         this.emit("signlanguageenabled");
-        requestAnimationFrame(() => {
-          this.setManagedTimeout(() => {
-            if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
-              this.signLanguageSettingsButton.focus({ preventScroll: true });
-            }
-          }, 150);
-        });
+        this.setManagedTimeout(() => {
+          if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
+            this.signLanguageSettingsButton.focus({ preventScroll: true });
+          }
+        }, 150);
         return;
       }
       let initialLang = null;
@@ -8217,13 +8420,11 @@ var VidPly = (() => {
       }
       this.state.signLanguageEnabled = true;
       this.emit("signlanguageenabled");
-      requestAnimationFrame(() => {
-        this.setManagedTimeout(() => {
-          if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
-            this.signLanguageSettingsButton.focus({ preventScroll: true });
-          }
-        }, 150);
-      });
+      this.setManagedTimeout(() => {
+        if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
+          this.signLanguageSettingsButton.focus({ preventScroll: true });
+        }
+      }, 150);
     }
     disableSignLanguage() {
       if (this.signLanguageSettingsMenuVisible) {
@@ -8414,114 +8615,86 @@ var VidPly = (() => {
         }
         this.positionSignLanguageSettingsMenu();
         this.updateSignLanguageResizeOptionState();
-        setTimeout(() => {
-          const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
-          if (menuItems.length > 0) {
-            menuItems.forEach((item, index) => {
-              item.setAttribute("tabindex", index === 0 ? "0" : "-1");
-            });
-            menuItems[0].focus();
-          }
-        }, 0);
+        focusFirstMenuItem(this.signLanguageSettingsMenu, `.${this.options.classPrefix}-sign-language-settings-item`);
         return;
       }
       this.signLanguageSettingsMenu = DOMUtils.createElement("div", {
         className: `${this.options.classPrefix}-sign-language-settings-menu`
       });
-      const keyboardDragOption = DOMUtils.createElement("button", {
-        className: `${this.options.classPrefix}-sign-language-settings-item`,
-        attributes: {
-          "type": "button",
-          "aria-label": i18n.t("transcript.keyboardDragMode") || "Toggle keyboard drag mode",
-          "tabindex": "-1"
+      const keyboardDragOption = createMenuItem({
+        classPrefix: this.options.classPrefix,
+        itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
+        icon: "move",
+        label: "transcript.keyboardDragMode",
+        onClick: () => {
+          this.toggleSignLanguageKeyboardDragMode();
+          this.hideSignLanguageSettingsMenu();
         }
       });
-      const keyboardIcon = createIconElement("move");
-      const keyboardText = DOMUtils.createElement("span", {
-        textContent: i18n.t("transcript.keyboardDragMode") || "Toggle keyboard drag mode"
-      });
-      keyboardDragOption.appendChild(keyboardIcon);
-      keyboardDragOption.appendChild(keyboardText);
-      keyboardDragOption.addEventListener("click", () => {
-        this.toggleSignLanguageKeyboardDragMode();
-        this.hideSignLanguageSettingsMenu();
-      });
-      const resizeOption = DOMUtils.createElement("button", {
-        className: `${this.options.classPrefix}-sign-language-settings-item`,
-        attributes: {
-          "type": "button",
-          "aria-label": i18n.t("transcript.resizeWindow") || "Resize window",
-          "aria-pressed": "false",
-          "tabindex": "-1"
+      const resizeOption = createMenuItem({
+        classPrefix: this.options.classPrefix,
+        itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
+        icon: "resize",
+        label: "transcript.resizeWindow",
+        hasTextClass: true,
+        onClick: (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const enabled = this.toggleSignLanguageResizeMode({ focus: false });
+          if (enabled) {
+            this.hideSignLanguageSettingsMenu({ focusButton: false });
+            setTimeout(() => {
+              if (this.signLanguageWrapper) {
+                this.signLanguageWrapper.focus();
+              }
+            }, 20);
+          } else {
+            this.hideSignLanguageSettingsMenu({ focusButton: true });
+          }
         }
       });
-      const resizeIcon = createIconElement("resize");
-      const resizeText = DOMUtils.createElement("span", {
-        className: `${this.options.classPrefix}-sign-language-settings-text`,
-        textContent: i18n.t("transcript.resizeWindow") || "Resize window"
-      });
-      resizeOption.appendChild(resizeIcon);
-      resizeOption.appendChild(resizeText);
-      resizeOption.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const enabled = this.toggleSignLanguageResizeMode({ focus: false });
-        if (enabled) {
-          this.hideSignLanguageSettingsMenu({ focusButton: false });
-          setTimeout(() => {
-            if (this.signLanguageWrapper) {
-              this.signLanguageWrapper.focus();
-            }
-          }, 20);
-        } else {
-          this.hideSignLanguageSettingsMenu({ focusButton: true });
-        }
-      });
+      resizeOption.setAttribute("aria-pressed", "false");
       this.signLanguageResizeOptionButton = resizeOption;
-      this.signLanguageResizeOptionText = resizeText;
+      this.signLanguageResizeOptionText = resizeOption.querySelector("span");
       this.updateSignLanguageResizeOptionState();
-      const closeOption = DOMUtils.createElement("button", {
-        className: `${this.options.classPrefix}-sign-language-settings-item`,
-        attributes: {
-          "type": "button",
-          "aria-label": i18n.t("transcript.closeMenu") || "Close",
-          "tabindex": "-1"
+      const closeOption = createMenuItem({
+        classPrefix: this.options.classPrefix,
+        itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
+        icon: "close",
+        label: "transcript.closeMenu",
+        onClick: () => {
+          this.hideSignLanguageSettingsMenu();
         }
-      });
-      const closeIcon = createIconElement("close");
-      const closeText = DOMUtils.createElement("span", {
-        textContent: i18n.t("transcript.closeMenu") || "Close"
-      });
-      closeOption.appendChild(closeIcon);
-      closeOption.appendChild(closeText);
-      closeOption.addEventListener("click", () => {
-        this.hideSignLanguageSettingsMenu();
       });
       this.signLanguageSettingsMenu.appendChild(keyboardDragOption);
       this.signLanguageSettingsMenu.appendChild(resizeOption);
       this.signLanguageSettingsMenu.appendChild(closeOption);
+      this.signLanguageSettingsMenu.style.visibility = "hidden";
+      this.signLanguageSettingsMenu.style.display = "block";
       if (this.signLanguageWrapper) {
         this.signLanguageWrapper.appendChild(this.signLanguageSettingsMenu);
       } else if (this.signLanguageSettingsButton && this.signLanguageSettingsButton.parentNode) {
         this.signLanguageSettingsButton.insertAdjacentElement("afterend", this.signLanguageSettingsMenu);
       }
-      this.positionSignLanguageSettingsMenu();
-      this.attachSignLanguageSettingsMenuKeyboardNavigation();
+      this.positionSignLanguageSettingsMenuImmediate();
+      requestAnimationFrame(() => {
+        if (this.signLanguageSettingsMenu) {
+          this.signLanguageSettingsMenu.style.visibility = "visible";
+        }
+      });
+      this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
+        this.signLanguageSettingsMenu,
+        this.signLanguageSettingsButton,
+        `.${this.options.classPrefix}-sign-language-settings-item`,
+        () => this.hideSignLanguageSettingsMenu({ focusButton: true })
+      );
       this.signLanguageSettingsMenuVisible = true;
       this.signLanguageSettingsMenu.style.display = "block";
       if (this.signLanguageSettingsButton) {
         this.signLanguageSettingsButton.setAttribute("aria-expanded", "true");
       }
       this.updateSignLanguageResizeOptionState();
-      setTimeout(() => {
-        const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
-        if (menuItems.length > 0) {
-          menuItems.forEach((item, index) => {
-            item.setAttribute("tabindex", index === 0 ? "0" : "-1");
-          });
-          menuItems[0].focus();
-        }
-      }, 0);
+      focusFirstMenuItem(this.signLanguageSettingsMenu, `.${this.options.classPrefix}-sign-language-settings-item`);
     }
     hideSignLanguageSettingsMenu({ focusButton = true } = {}) {
       if (this.signLanguageSettingsMenu) {
@@ -8544,123 +8717,73 @@ var VidPly = (() => {
         }
       }
     }
+    positionSignLanguageSettingsMenuImmediate() {
+      if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton || !this.signLanguageWrapper) return;
+      const buttonRect = this.signLanguageSettingsButton.getBoundingClientRect();
+      const menuRect = this.signLanguageSettingsMenu.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const wrapperRect = this.signLanguageWrapper.getBoundingClientRect();
+      const buttonRight = buttonRect.right - wrapperRect.left;
+      const buttonLeft = buttonRect.left - wrapperRect.left;
+      const buttonTop = buttonRect.top - wrapperRect.top;
+      const buttonBottom = buttonRect.bottom - wrapperRect.top;
+      const spaceAbove = buttonRect.top;
+      const spaceBelow = viewportHeight - buttonRect.bottom;
+      let menuTop = buttonBottom + 8;
+      let menuBottom = null;
+      if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
+        menuTop = null;
+        const wrapperHeight = wrapperRect.bottom - wrapperRect.top;
+        menuBottom = wrapperHeight - buttonTop + 8;
+        this.signLanguageSettingsMenu.classList.add("vidply-menu-above");
+      } else {
+        this.signLanguageSettingsMenu.classList.remove("vidply-menu-above");
+      }
+      let menuRight = wrapperRect.right - buttonRect.right;
+      let menuLeft = "auto";
+      const menuLeftAbsolute = buttonRect.right - menuRect.width;
+      if (menuLeftAbsolute < 10) {
+        menuRight = "auto";
+        menuLeft = buttonLeft;
+      } else if (buttonRect.right > viewportWidth - 10) {
+        menuRight = wrapperRect.right - viewportWidth + 10;
+        menuLeft = "auto";
+      }
+      if (menuTop !== null) {
+        this.signLanguageSettingsMenu.style.top = `${menuTop}px`;
+        this.signLanguageSettingsMenu.style.bottom = "auto";
+      } else if (menuBottom !== null) {
+        this.signLanguageSettingsMenu.style.top = "auto";
+        this.signLanguageSettingsMenu.style.bottom = `${menuBottom}px`;
+      }
+      if (menuLeft !== "auto") {
+        this.signLanguageSettingsMenu.style.left = `${menuLeft}px`;
+        this.signLanguageSettingsMenu.style.right = "auto";
+      } else {
+        this.signLanguageSettingsMenu.style.left = "auto";
+        this.signLanguageSettingsMenu.style.right = `${menuRight}px`;
+      }
+    }
     positionSignLanguageSettingsMenu() {
       if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton || !this.signLanguageWrapper) return;
-      setTimeout(() => {
-        const buttonRect = this.signLanguageSettingsButton.getBoundingClientRect();
-        const menuRect = this.signLanguageSettingsMenu.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        const wrapperRect = this.signLanguageWrapper.getBoundingClientRect();
-        const buttonRight = buttonRect.right - wrapperRect.left;
-        const buttonLeft = buttonRect.left - wrapperRect.left;
-        const buttonTop = buttonRect.top - wrapperRect.top;
-        const buttonBottom = buttonRect.bottom - wrapperRect.top;
-        const spaceAbove = buttonRect.top;
-        const spaceBelow = viewportHeight - buttonRect.bottom;
-        let menuTop = buttonBottom + 8;
-        let menuBottom = null;
-        if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
-          menuTop = null;
-          const wrapperHeight = wrapperRect.bottom - wrapperRect.top;
-          menuBottom = wrapperHeight - buttonTop + 8;
-          this.signLanguageSettingsMenu.classList.add("vidply-menu-above");
-        } else {
-          this.signLanguageSettingsMenu.classList.remove("vidply-menu-above");
-        }
-        let menuRight = wrapperRect.right - buttonRect.right;
-        let menuLeft = "auto";
-        const menuLeftAbsolute = buttonRect.right - menuRect.width;
-        if (menuLeftAbsolute < 10) {
-          menuRight = "auto";
-          menuLeft = buttonLeft;
-        } else if (buttonRect.right > viewportWidth - 10) {
-          menuRight = wrapperRect.right - viewportWidth + 10;
-          menuLeft = "auto";
-        }
-        if (menuTop !== null) {
-          this.signLanguageSettingsMenu.style.top = `${menuTop}px`;
-          this.signLanguageSettingsMenu.style.bottom = "auto";
-        } else if (menuBottom !== null) {
-          this.signLanguageSettingsMenu.style.top = "auto";
-          this.signLanguageSettingsMenu.style.bottom = `${menuBottom}px`;
-        }
-        if (menuLeft !== "auto") {
-          this.signLanguageSettingsMenu.style.left = `${menuLeft}px`;
-          this.signLanguageSettingsMenu.style.right = "auto";
-        } else {
-          this.signLanguageSettingsMenu.style.left = "auto";
-          this.signLanguageSettingsMenu.style.right = `${menuRight}px`;
-        }
-      }, 0);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          this.positionSignLanguageSettingsMenuImmediate();
+        }, 10);
+      });
     }
     attachSignLanguageSettingsMenuKeyboardNavigation() {
       if (!this.signLanguageSettingsMenu) return;
-      const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
-      if (menuItems.length === 0) return;
-      const handleKeyDown = (e) => {
-        const currentIndex = menuItems.indexOf(document.activeElement);
-        switch (e.key) {
-          case "ArrowDown":
-            e.preventDefault();
-            e.stopPropagation();
-            const nextIndex = (currentIndex + 1) % menuItems.length;
-            menuItems.forEach((item, idx) => {
-              item.setAttribute("tabindex", idx === nextIndex ? "0" : "-1");
-            });
-            menuItems[nextIndex].focus();
-            break;
-          case "ArrowUp":
-            e.preventDefault();
-            e.stopPropagation();
-            const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
-            menuItems.forEach((item, idx) => {
-              item.setAttribute("tabindex", idx === prevIndex ? "0" : "-1");
-            });
-            menuItems[prevIndex].focus();
-            break;
-          case "Home":
-            e.preventDefault();
-            e.stopPropagation();
-            menuItems.forEach((item, idx) => {
-              item.setAttribute("tabindex", idx === 0 ? "0" : "-1");
-            });
-            menuItems[0].focus();
-            break;
-          case "End":
-            e.preventDefault();
-            e.stopPropagation();
-            const lastIndex = menuItems.length - 1;
-            menuItems.forEach((item, idx) => {
-              item.setAttribute("tabindex", idx === lastIndex ? "0" : "-1");
-            });
-            menuItems[lastIndex].focus();
-            break;
-          case "Enter":
-          case " ":
-            e.preventDefault();
-            e.stopPropagation();
-            if (document.activeElement && menuItems.includes(document.activeElement)) {
-              document.activeElement.click();
-              setTimeout(() => {
-                if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
-                  this.signLanguageSettingsButton.focus();
-                }
-              }, 0);
-            }
-            break;
-          case "Escape":
-            e.preventDefault();
-            e.stopPropagation();
-            this.hideSignLanguageSettingsMenu({ focusButton: true });
-            break;
-        }
-      };
       if (this.signLanguageSettingsMenuKeyHandler) {
         this.signLanguageSettingsMenu.removeEventListener("keydown", this.signLanguageSettingsMenuKeyHandler);
       }
-      this.signLanguageSettingsMenuKeyHandler = handleKeyDown;
-      this.signLanguageSettingsMenu.addEventListener("keydown", this.signLanguageSettingsMenuKeyHandler);
+      this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
+        this.signLanguageSettingsMenu,
+        this.signLanguageSettingsButton,
+        `.${this.options.classPrefix}-sign-language-settings-item`,
+        () => this.hideSignLanguageSettingsMenu({ focusButton: true })
+      );
     }
     updateSignLanguageResizeOptionState() {
       if (!this.signLanguageResizeOptionButton) {

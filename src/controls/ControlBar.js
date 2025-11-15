@@ -6,6 +6,7 @@ import {DOMUtils} from '../utils/DOMUtils.js';
 import {TimeUtils} from '../utils/TimeUtils.js';
 import {createIconElement} from '../icons/Icons.js';
 import {i18n} from '../i18n/i18n.js';
+import {focusElement, focusFirstElement} from '../utils/FocusUtils.js';
 
 export class ControlBar {
     constructor(player) {
@@ -15,6 +16,8 @@ export class ControlBar {
         this.hideTimeout = null;
         this.isDraggingProgress = false;
         this.isDraggingVolume = false;
+        this.openMenu = null; // Track currently open menu
+        this.openMenuButton = null; // Track button that opened the menu
 
         this.init();
     }
@@ -32,7 +35,7 @@ export class ControlBar {
     }
 
     // Smart menu positioning to avoid overflow
-    positionMenu(menu, button) {
+    positionMenu(menu, button, immediate = false) {
         const isMobile = this.isMobile();
         
         if (isMobile) {
@@ -43,7 +46,8 @@ export class ControlBar {
         // Desktop: Smart positioning
         // Menu is now a sibling of the button, within controls-left or controls-right container
         // These containers have position: relative, so menus position relative to them
-        setTimeout(() => {
+        
+        const doPositioning = () => {
             const buttonRect = button.getBoundingClientRect();
             const menuRect = menu.getBoundingClientRect();
             const viewportWidth = window.innerWidth;
@@ -120,12 +124,49 @@ export class ControlBar {
             }
             
             menu.style.transform = transformX;
-        }, 0);
+        };
+        
+        if (immediate) {
+            // Position immediately (synchronously) - used when menu is first shown
+            doPositioning();
+        } else {
+            // Use requestAnimationFrame to ensure layout is stable before positioning
+            requestAnimationFrame(() => {
+                setTimeout(doPositioning, 10); // Small delay to ensure layout is stable
+            });
+        }
     }
 
 
     // Helper method to attach close-on-outside-click behavior to menus
     attachMenuCloseHandler(menu, button, preventCloseOnInteraction = false) {
+        // Close any previously open menu and clean up its handlers
+        if (this.openMenu && this.openMenu !== menu && this.openMenuButton) {
+            // Remove previous button's blur handler if it exists
+            if (this.openMenuButton._vidplyBlurHandler) {
+                this.openMenuButton.removeEventListener('blur', this.openMenuButton._vidplyBlurHandler);
+                delete this.openMenuButton._vidplyBlurHandler;
+            }
+            if (this.openMenuButton._vidplyMousedownHandler) {
+                this.openMenuButton.removeEventListener('mousedown', this.openMenuButton._vidplyMousedownHandler);
+                delete this.openMenuButton._vidplyMousedownHandler;
+            }
+            
+            // Close previous menu without returning focus
+            if (this.openMenu && document.contains(this.openMenu)) {
+                this.openMenu.remove();
+            } else if (this.openMenu && this.openMenu.parentNode) {
+                this.openMenu.parentNode.removeChild(this.openMenu);
+            }
+            if (this.openMenuButton) {
+                this.openMenuButton.setAttribute('aria-expanded', 'false');
+            }
+        }
+        
+        // Track this menu as open
+        this.openMenu = menu;
+        this.openMenuButton = button;
+        
         // Position menu smartly
         this.positionMenu(menu, button);
         
@@ -134,42 +175,149 @@ export class ControlBar {
             button.setAttribute('aria-expanded', 'true');
         }
         
+        // Add focus handler to button to close menu when focus leaves to another control bar button
+        // But only if it's a keyboard navigation (Tab), not a click
+        let isClickingButton = false;
+        let blurHandlerActive = true;
+        
+        const handleButtonMousedown = () => {
+            isClickingButton = true;
+            // Temporarily disable blur handler when clicking
+            blurHandlerActive = false;
+            setTimeout(() => {
+                isClickingButton = false;
+                blurHandlerActive = true;
+            }, 200);
+        };
+        button.addEventListener('mousedown', handleButtonMousedown);
+        button._vidplyMousedownHandler = handleButtonMousedown; // Store for cleanup
+        
+        const handleButtonBlur = (e) => {
+            // If blur handler is disabled (during click) or this is a click, don't close the menu
+            if (!blurHandlerActive || isClickingButton) {
+                return;
+            }
+            
+            // Check if this menu is still the open menu (might have been replaced)
+            if (this.openMenu !== menu) {
+                return;
+            }
+            
+            // Store the related target (where focus is going) before async operations
+            const relatedTarget = e.relatedTarget;
+            
+            // Use requestAnimationFrame to check where focus went after browser handles focus
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    // Check again if blur handler is still active and menu is still open
+                    if (!blurHandlerActive || this.openMenu !== menu) {
+                        return;
+                    }
+                    
+                    const activeElement = document.activeElement;
+                    
+                    // Don't close if focus is still within the menu
+                    if (menu.contains(activeElement)) {
+                        return;
+                    }
+                    
+                    // Don't close if focus moved to sign language or transcript windows
+                    const signLanguageWrapper = this.player.signLanguageWrapper;
+                    const transcriptWindow = this.player.transcriptManager?.transcriptWindow;
+                    if ((signLanguageWrapper && signLanguageWrapper.contains(activeElement)) ||
+                        (transcriptWindow && transcriptWindow.contains(activeElement))) {
+                        return;
+                    }
+                    
+                    // If focus moved to another button in the control bar, close the menu
+                    const controlBarButtons = this.element.querySelectorAll('button');
+                    const isFocusOnAnotherButton = Array.from(controlBarButtons).includes(activeElement) && activeElement !== button;
+                    
+                    // Also check relatedTarget in case activeElement hasn't updated yet
+                    const isRelatedTargetAnotherButton = relatedTarget && Array.from(controlBarButtons).includes(relatedTarget) && relatedTarget !== button;
+                    
+                    // Close menu if focus moved to another control bar button (without returning focus)
+                    if (isFocusOnAnotherButton || isRelatedTargetAnotherButton) {
+                        // Double-check this menu is still the open menu
+                        if (this.openMenu !== menu) {
+                            return;
+                        }
+                        
+                        // Just remove the menu, don't touch focus at all
+                        if (menu && document.contains(menu)) {
+                            menu.remove();
+                        } else if (menu && menu.parentNode) {
+                            menu.parentNode.removeChild(menu);
+                        }
+                        if (button) {
+                            button.setAttribute('aria-expanded', 'false');
+                        }
+                        // Clear tracking
+                        if (this.openMenu === menu) {
+                            this.openMenu = null;
+                            this.openMenuButton = null;
+                        }
+                        button.removeEventListener('blur', handleButtonBlur);
+                        button.removeEventListener('mousedown', handleButtonMousedown);
+                        delete button._vidplyBlurHandler;
+                        delete button._vidplyMousedownHandler;
+                    }
+                }, 10); // Small delay to ensure focus has fully moved
+            });
+        };
+        button.addEventListener('blur', handleButtonBlur);
+        button._vidplyBlurHandler = handleButtonBlur; // Store for cleanup
+        
         const closeMenuAndUpdateAria = () => {
             this.closeMenuAndReturnFocus(menu, button);
         };
         
+        // Store document handlers for cleanup
+        let documentClickHandler = null;
+        let documentEscapeHandler = null;
+        
         setTimeout(() => {
-            const closeMenu = (e) => {
+            documentClickHandler = (e) => {
                 // If this menu has form controls, don't close when clicking inside
                 if (preventCloseOnInteraction && menu.contains(e.target)) {
                     return;
                 }
 
                 // Check if click is outside menu and button
-                if (!menu.contains(e.target) && !button.contains(e.target)) {
+                // Also check if this menu is still the open menu
+                if (this.openMenu === menu && !menu.contains(e.target) && !button.contains(e.target)) {
                     closeMenuAndUpdateAria();
-                    document.removeEventListener('click', closeMenu);
-                    document.removeEventListener('keydown', handleEscape);
+                    if (documentClickHandler) {
+                        document.removeEventListener('click', documentClickHandler);
+                    }
+                    if (documentEscapeHandler) {
+                        document.removeEventListener('keydown', documentEscapeHandler);
+                    }
                 }
             };
 
-            const handleEscape = (e) => {
-                if (e.key === 'Escape') {
+            documentEscapeHandler = (e) => {
+                if (e.key === 'Escape' && this.openMenu === menu) {
                     e.preventDefault();
                     e.stopPropagation();
-                    closeMenuAndUpdateAria();
-                    document.removeEventListener('click', closeMenu);
-                    document.removeEventListener('keydown', handleEscape);
+                    // Close menu and return focus to the button that opened it
+                    this.closeMenuAndReturnFocus(menu, button, true);
+                    if (documentClickHandler) {
+                        document.removeEventListener('click', documentClickHandler);
+                    }
+                    if (documentEscapeHandler) {
+                        document.removeEventListener('keydown', documentEscapeHandler);
+                    }
                 }
             };
 
-            document.addEventListener('click', closeMenu);
-            document.addEventListener('keydown', handleEscape);
+            document.addEventListener('click', documentClickHandler);
+            document.addEventListener('keydown', documentEscapeHandler);
         }, 100);
     }
 
     // Helper method to close menu and return focus to button
-    closeMenuAndReturnFocus(menu, button) {
+    closeMenuAndReturnFocus(menu, button, returnFocus = true) {
         if (menu) {
             // Remove menu from DOM - use remove() which works reliably
             if (document.contains(menu)) {
@@ -181,14 +329,41 @@ export class ControlBar {
         }
         if (button) {
             button.setAttribute('aria-expanded', 'false');
-            // Use requestAnimationFrame to ensure DOM updates are complete before focusing
-            // This prevents focus from jumping to next/previous button
-            requestAnimationFrame(() => {
-                if (button && document.contains(button)) {
-                    // Prevent default focus behavior that might move to next/previous element
-                    button.focus({ preventScroll: true });
-                }
-            });
+            // Only return focus if explicitly requested (not when tabbing away)
+            if (returnFocus) {
+                // Use requestAnimationFrame to ensure DOM updates are complete before focusing
+                // This prevents focus from jumping to next/previous button
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        if (button && document.contains(button)) {
+                            button.focus({ preventScroll: true });
+                        }
+                    }, 0);
+                });
+            }
+        }
+        // Clear tracking
+        if (this.openMenu === menu) {
+            this.openMenu = null;
+            this.openMenuButton = null;
+        }
+    }
+    
+    // Close any open menu when tabbing to another button or clicking another button
+    closeOpenMenu() {
+        if (this.openMenu && this.openMenuButton) {
+            // Close without returning focus (user is tabbing to next element or clicking another button)
+            if (this.openMenu && document.contains(this.openMenu)) {
+                this.openMenu.remove();
+            } else if (this.openMenu && this.openMenu.parentNode) {
+                this.openMenu.parentNode.removeChild(this.openMenu);
+            }
+            if (this.openMenuButton) {
+                this.openMenuButton.setAttribute('aria-expanded', 'false');
+            }
+            // Clear tracking
+            this.openMenu = null;
+            this.openMenuButton = null;
         }
     }
 
@@ -242,18 +417,15 @@ export class ControlBar {
                     if (document.activeElement && menuItems.includes(document.activeElement)) {
                         document.activeElement.click();
                         // Menu will be closed by the click handler, but ensure focus returns
-                        setTimeout(() => {
-                            if (button && document.contains(button)) {
-                                button.focus();
-                            }
-                        }, 0);
+                        focusElement(button, { delay: 0 });
                     }
                     break;
                 
                 case 'Escape':
                     e.preventDefault();
                     e.stopPropagation(); // Prevent event from reaching KeyboardManager
-                    this.closeMenuAndReturnFocus(menu, button);
+                    // Close menu and return focus to the button that opened it
+                    this.closeMenuAndReturnFocus(menu, button, true);
                     break;
             }
         };
@@ -925,11 +1097,16 @@ export class ControlBar {
     }
 
     showChaptersMenu(button) {
-        // Remove existing menu if any
+        // Remove existing menu if any (toggle behavior)
         const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-chapters-menu`);
         if (existingMenu) {
             existingMenu.remove();
             button.setAttribute('aria-expanded', 'false');
+            // Clear tracking if this was the open menu
+            if (this.openMenu === existingMenu) {
+                this.openMenu = null;
+                this.openMenuButton = null;
+            }
             return;
         }
 
@@ -1036,8 +1213,21 @@ export class ControlBar {
             }
         }
 
+        // Position menu first (before it's visible) to prevent jumping
+        // Set menu to invisible temporarily
+        menu.style.visibility = 'hidden';
+        menu.style.display = 'block';
+        
         // Insert menu right after the button in the DOM
         button.insertAdjacentElement('afterend', menu);
+        
+        // Position immediately (synchronously) while hidden
+        this.positionMenu(menu, button, true);
+        
+        // Make menu visible after positioning
+        requestAnimationFrame(() => {
+            menu.style.visibility = 'visible';
+        });
 
         // Close menu on outside click
         this.attachMenuCloseHandler(menu, button);
@@ -1076,11 +1266,16 @@ export class ControlBar {
     }
 
     showQualityMenu(button) {
-        // Remove existing menu if any
+        // Remove existing menu if any (toggle behavior)
         const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-quality-menu`);
         if (existingMenu) {
             existingMenu.remove();
             button.setAttribute('aria-expanded', 'false');
+            // Clear tracking if this was the open menu
+            if (this.openMenu === existingMenu) {
+                this.openMenu = null;
+                this.openMenuButton = null;
+            }
             return;
         }
 
@@ -1189,8 +1384,21 @@ export class ControlBar {
             menu.appendChild(noSupportItem);
         }
 
+        // Position menu first (before it's visible) to prevent jumping
+        // Set menu to invisible temporarily
+        menu.style.visibility = 'hidden';
+        menu.style.display = 'block';
+        
         // Insert menu right after the button in the DOM
         button.insertAdjacentElement('afterend', menu);
+        
+        // Position immediately (synchronously) while hidden
+        this.positionMenu(menu, button, true);
+        
+        // Make menu visible after positioning
+        requestAnimationFrame(() => {
+            menu.style.visibility = 'visible';
+        });
 
         // Close menu on outside click
         this.attachMenuCloseHandler(menu, button);
@@ -1226,11 +1434,16 @@ export class ControlBar {
     }
 
     showCaptionStyleMenu(button) {
-        // Remove existing menu if any
+        // Remove existing menu if any (toggle behavior)
         const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-caption-style-menu`);
         if (existingMenu) {
             existingMenu.remove();
             button.setAttribute('aria-expanded', 'false');
+            // Clear tracking if this was the open menu
+            if (this.openMenu === existingMenu) {
+                this.openMenu = null;
+                this.openMenuButton = null;
+            }
             return;
         }
 
@@ -1257,8 +1470,21 @@ export class ControlBar {
             });
             menu.appendChild(noTracksItem);
 
+            // Position menu first (before it's visible) to prevent jumping
+            // Set menu to invisible temporarily
+            menu.style.visibility = 'hidden';
+            menu.style.display = 'block';
+            
             // Insert menu right after the button in the DOM
             button.insertAdjacentElement('afterend', menu);
+            
+            // Position immediately (synchronously) while hidden
+            this.positionMenu(menu, button, true);
+            
+            // Make menu visible after positioning
+            requestAnimationFrame(() => {
+                menu.style.visibility = 'visible';
+            });
 
             // Close menu on outside click
             this.attachMenuCloseHandler(menu, button, true);
@@ -1305,21 +1531,27 @@ export class ControlBar {
         // Set min-width for caption style menu
         menu.style.minWidth = '220px';
 
+        // Position menu first (before it's visible) to prevent jumping
+        // Set menu to invisible temporarily
+        menu.style.visibility = 'hidden';
+        menu.style.display = 'block';
+        
         // Insert menu right after the button in the DOM
         button.insertAdjacentElement('afterend', menu);
+        
+        // Position immediately (synchronously) while hidden
+        this.positionMenu(menu, button, true);
+        
+        // Make menu visible after positioning
+        requestAnimationFrame(() => {
+            menu.style.visibility = 'visible';
+        });
 
         // Close menu on outside click (but not when interacting with controls)
         this.attachMenuCloseHandler(menu, button, true);
 
         // Auto-focus the first style select element
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                const firstSelect = menu.querySelector(`.${this.player.options.classPrefix}-style-select`);
-                if (firstSelect) {
-                    firstSelect.focus({ preventScroll: true });
-                }
-            }, 0);
-        });
+        focusFirstElement(menu, `.${this.player.options.classPrefix}-style-select`);
     }
 
     createStyleControl(label, property, options) {
@@ -1559,11 +1791,16 @@ export class ControlBar {
     }
 
     showSpeedMenu(button) {
-        // Remove existing menu if any
+        // Remove existing menu if any (toggle behavior)
         const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-speed-menu`);
         if (existingMenu) {
             existingMenu.remove();
             button.setAttribute('aria-expanded', 'false');
+            // Clear tracking if this was the open menu
+            if (this.openMenu === existingMenu) {
+                this.openMenu = null;
+                this.openMenuButton = null;
+            }
             return;
         }
 
@@ -1602,8 +1839,21 @@ export class ControlBar {
             menu.appendChild(item);
         });
 
+        // Position menu first (before it's visible) to prevent jumping
+        // Set menu to invisible temporarily
+        menu.style.visibility = 'hidden';
+        menu.style.display = 'block';
+        
         // Insert menu right after the button in the DOM
         button.insertAdjacentElement('afterend', menu);
+        
+        // Position immediately (synchronously) while hidden
+        this.positionMenu(menu, button, true);
+        
+        // Make menu visible after positioning
+        requestAnimationFrame(() => {
+            menu.style.visibility = 'visible';
+        });
 
         // Add keyboard navigation
         this.attachMenuKeyboardNavigation(menu, button);
@@ -1641,11 +1891,16 @@ export class ControlBar {
     }
 
     showCaptionsMenu(button) {
-        // Remove existing menu if any
+        // Remove existing menu if any (toggle behavior)
         const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-captions-menu`);
         if (existingMenu) {
             existingMenu.remove();
             button.setAttribute('aria-expanded', 'false');
+            // Clear tracking if this was the open menu
+            if (this.openMenu === existingMenu) {
+                this.openMenu = null;
+                this.openMenuButton = null;
+            }
             return;
         }
 
