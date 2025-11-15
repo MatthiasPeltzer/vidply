@@ -155,13 +155,11 @@ export class ControlBar {
 
             const handleEscape = (e) => {
                 if (e.key === 'Escape') {
+                    e.preventDefault();
+                    e.stopPropagation();
                     closeMenuAndUpdateAria();
                     document.removeEventListener('click', closeMenu);
                     document.removeEventListener('keydown', handleEscape);
-                    // Return focus to button
-                    if (button) {
-                        button.focus();
-                    }
                 }
             };
 
@@ -183,12 +181,14 @@ export class ControlBar {
         }
         if (button) {
             button.setAttribute('aria-expanded', 'false');
-            // Use setTimeout to ensure focus happens after DOM updates
-            setTimeout(() => {
+            // Use requestAnimationFrame to ensure DOM updates are complete before focusing
+            // This prevents focus from jumping to next/previous button
+            requestAnimationFrame(() => {
                 if (button && document.contains(button)) {
-                    button.focus();
+                    // Prevent default focus behavior that might move to next/previous element
+                    button.focus({ preventScroll: true });
                 }
-            }, 0);
+            });
         }
     }
 
@@ -1311,13 +1311,15 @@ export class ControlBar {
         // Close menu on outside click (but not when interacting with controls)
         this.attachMenuCloseHandler(menu, button, true);
 
-        // Auto-focus the first select element
-        setTimeout(() => {
-            const firstSelect = menu.querySelector('select');
-            if (firstSelect) {
-                firstSelect.focus();
-            }
-        }, 0);
+        // Auto-focus the first style select element
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                const firstSelect = menu.querySelector(`.${this.player.options.classPrefix}-style-select`);
+                if (firstSelect) {
+                    firstSelect.focus({ preventScroll: true });
+                }
+            }, 0);
+        });
     }
 
     createStyleControl(label, property, options) {

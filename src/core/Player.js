@@ -2165,6 +2165,16 @@ export class Player extends EventEmitter {
             this.signLanguageWrapper.style.display = 'block';
             this.state.signLanguageEnabled = true;
             this.emit('signlanguageenabled');
+            
+            // Focus the settings button after wrapper is shown
+            // Use requestAnimationFrame to ensure DOM is fully updated
+            requestAnimationFrame(() => {
+                this.setManagedTimeout(() => {
+                    if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
+                        this.signLanguageSettingsButton.focus({ preventScroll: true });
+                    }
+                }, 150);
+            });
             return;
         }
         
@@ -2452,6 +2462,16 @@ export class Player extends EventEmitter {
 
         this.state.signLanguageEnabled = true;
         this.emit('signlanguageenabled');
+        
+        // Focus the settings button after wrapper is appended to DOM
+        // Use requestAnimationFrame to ensure DOM is fully updated
+        requestAnimationFrame(() => {
+            this.setManagedTimeout(() => {
+                if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
+                    this.signLanguageSettingsButton.focus({ preventScroll: true });
+                }
+            }, 150);
+        });
     }
 
     disableSignLanguage() {
@@ -2556,8 +2576,14 @@ export class Player extends EventEmitter {
                     this.signLanguageDraggable.disableKeyboardDragMode();
                     return;
                 }
-                // Don't close video on Escape - only exit modes
-                // User should use the close button to close the video
+                // Close video if no modes are active
+                this.disableSignLanguage();
+                // Return focus to sign language button if available
+                if (this.controlBar && this.controlBar.controls && this.controlBar.controls.signLanguage) {
+                    setTimeout(() => {
+                        this.controlBar.controls.signLanguage.focus();
+                    }, 0);
+                }
                 return;
             }
         };

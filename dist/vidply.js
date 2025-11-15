@@ -1496,12 +1496,11 @@ var VidPly = (() => {
         };
         const handleEscape = (e) => {
           if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
             closeMenuAndUpdateAria();
             document.removeEventListener("click", closeMenu);
             document.removeEventListener("keydown", handleEscape);
-            if (button) {
-              button.focus();
-            }
           }
         };
         document.addEventListener("click", closeMenu);
@@ -1519,11 +1518,11 @@ var VidPly = (() => {
       }
       if (button) {
         button.setAttribute("aria-expanded", "false");
-        setTimeout(() => {
+        requestAnimationFrame(() => {
           if (button && document.contains(button)) {
-            button.focus();
+            button.focus({ preventScroll: true });
           }
-        }, 0);
+        });
       }
     }
     // Helper method to add keyboard navigation to menus (arrow keys)
@@ -2363,12 +2362,14 @@ var VidPly = (() => {
       menu.style.minWidth = "220px";
       button.insertAdjacentElement("afterend", menu);
       this.attachMenuCloseHandler(menu, button, true);
-      setTimeout(() => {
-        const firstSelect = menu.querySelector("select");
-        if (firstSelect) {
-          firstSelect.focus();
-        }
-      }, 0);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const firstSelect = menu.querySelector(`.${this.player.options.classPrefix}-style-select`);
+          if (firstSelect) {
+            firstSelect.focus({ preventScroll: true });
+          }
+        }, 0);
+      });
     }
     createStyleControl(label, property, options) {
       const group = DOMUtils.createElement("div", {
@@ -7990,6 +7991,13 @@ var VidPly = (() => {
         this.signLanguageWrapper.style.display = "block";
         this.state.signLanguageEnabled = true;
         this.emit("signlanguageenabled");
+        requestAnimationFrame(() => {
+          this.setManagedTimeout(() => {
+            if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
+              this.signLanguageSettingsButton.focus({ preventScroll: true });
+            }
+          }, 150);
+        });
         return;
       }
       let initialLang = null;
@@ -8209,6 +8217,13 @@ var VidPly = (() => {
       }
       this.state.signLanguageEnabled = true;
       this.emit("signlanguageenabled");
+      requestAnimationFrame(() => {
+        this.setManagedTimeout(() => {
+          if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
+            this.signLanguageSettingsButton.focus({ preventScroll: true });
+          }
+        }, 150);
+      });
     }
     disableSignLanguage() {
       if (this.signLanguageSettingsMenuVisible) {
@@ -8290,6 +8305,12 @@ var VidPly = (() => {
           if (this.signLanguageDraggable && this.signLanguageDraggable.keyboardDragMode) {
             this.signLanguageDraggable.disableKeyboardDragMode();
             return;
+          }
+          this.disableSignLanguage();
+          if (this.controlBar && this.controlBar.controls && this.controlBar.controls.signLanguage) {
+            setTimeout(() => {
+              this.controlBar.controls.signLanguage.focus();
+            }, 0);
           }
           return;
         }
