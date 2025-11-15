@@ -42,6 +42,8 @@ export const en = {
     error: 'Error loading media',
     buffering: 'Buffering...',
     signLanguageVideo: 'Sign Language Video',
+    closeSignLanguage: 'Close sign language video',
+    signLanguageSettings: 'Sign language settings',
     noChapters: 'No chapters available',
     noCaptions: 'No captions available',
     auto: 'Auto',

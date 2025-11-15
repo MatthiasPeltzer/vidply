@@ -463,6 +463,8 @@ var VidPly = (() => {
       error: "Error loading media",
       buffering: "Buffering...",
       signLanguageVideo: "Sign Language Video",
+      closeSignLanguage: "Close sign language video",
+      signLanguageSettings: "Sign language settings",
       noChapters: "No chapters available",
       noCaptions: "No captions available",
       auto: "Auto",
@@ -596,6 +598,8 @@ var VidPly = (() => {
       error: "Fehler beim Laden",
       buffering: "Puffern...",
       signLanguageVideo: "Geb\xE4rdensprache-Video",
+      closeSignLanguage: "Geb\xE4rdensprache-Video schlie\xDFen",
+      signLanguageSettings: "Geb\xE4rdensprache-Einstellungen",
       noChapters: "Keine Kapitel verf\xFCgbar",
       noCaptions: "Keine Untertitel verf\xFCgbar",
       auto: "Automatisch",
@@ -729,6 +733,8 @@ var VidPly = (() => {
       error: "Error al cargar",
       buffering: "Almacenando en b\xFAfer...",
       signLanguageVideo: "Video en Lengua de Se\xF1as",
+      closeSignLanguage: "Cerrar video en lengua de se\xF1as",
+      signLanguageSettings: "Configuraci\xF3n de lengua de se\xF1as",
       noChapters: "No hay cap\xEDtulos disponibles",
       noCaptions: "No hay subt\xEDtulos disponibles",
       auto: "Autom\xE1tico",
@@ -862,6 +868,8 @@ var VidPly = (() => {
       error: "Erreur de chargement",
       buffering: "Mise en m\xE9moire tampon...",
       signLanguageVideo: "Vid\xE9o en Langue des Signes",
+      closeSignLanguage: "Fermer la vid\xE9o en langue des signes",
+      signLanguageSettings: "Param\xE8tres de la langue des signes",
       noChapters: "Aucun chapitre disponible",
       noCaptions: "Aucun sous-titre disponible",
       auto: "Automatique",
@@ -995,6 +1003,8 @@ var VidPly = (() => {
       error: "\u8AAD\u307F\u8FBC\u307F\u30A8\u30E9\u30FC",
       buffering: "\u30D0\u30C3\u30D5\u30A1\u30EA\u30F3\u30B0\u4E2D...",
       signLanguageVideo: "\u624B\u8A71\u52D5\u753B",
+      closeSignLanguage: "\u624B\u8A71\u52D5\u753B\u3092\u9589\u3058\u308B",
+      signLanguageSettings: "\u624B\u8A71\u8A2D\u5B9A",
       noChapters: "\u30C1\u30E3\u30D7\u30BF\u30FC\u304C\u3042\u308A\u307E\u305B\u3093",
       noCaptions: "\u5B57\u5E55\u304C\u3042\u308A\u307E\u305B\u3093",
       auto: "\u81EA\u52D5",
@@ -4453,6 +4463,66 @@ var VidPly = (() => {
     }
   };
 
+  // src/utils/FormUtils.js
+  function createLabeledSelect({
+    classPrefix,
+    labelClass,
+    selectClass,
+    labelText,
+    selectId,
+    hidden = false,
+    onChange = null,
+    options = []
+  }) {
+    const isI18nKey = typeof labelText === "string" && (labelText.startsWith("transcript.") || labelText.startsWith("player.") || labelText.startsWith("settings.") || labelText.startsWith("captions."));
+    const labelTextContent = isI18nKey ? i18n.t(labelText) || labelText : labelText;
+    const label = DOMUtils.createElement("label", {
+      className: labelClass,
+      textContent: labelTextContent,
+      attributes: {
+        "for": selectId,
+        "style": hidden ? "display: none;" : void 0
+      }
+    });
+    const select = DOMUtils.createElement("select", {
+      className: selectClass,
+      attributes: {
+        "id": selectId,
+        "style": hidden ? "display: none;" : void 0
+      }
+    });
+    options.forEach((opt) => {
+      const option = DOMUtils.createElement("option", {
+        textContent: opt.text,
+        attributes: {
+          "value": opt.value,
+          "selected": opt.selected ? "selected" : void 0
+        }
+      });
+      select.appendChild(option);
+    });
+    if (onChange) {
+      select.addEventListener("change", onChange);
+    }
+    return { label, select };
+  }
+  function toggleLabeledSelect(label, select, show) {
+    if (label) {
+      label.style.display = show ? "block" : "none";
+    }
+    if (select) {
+      select.style.display = show ? "block" : "none";
+    }
+  }
+  function preventDragOnElement(element) {
+    if (!element) return;
+    ["mousedown", "click"].forEach((eventType) => {
+      element.addEventListener(eventType, (e) => {
+        e.stopPropagation();
+      });
+    });
+  }
+
   // src/controls/TranscriptManager.js
   var TranscriptManager = class {
     constructor(player) {
@@ -4478,6 +4548,7 @@ var VidPly = (() => {
       this.styleDialogVisible = false;
       this.styleDialogJustOpened = false;
       this.languageSelector = null;
+      this.languageLabel = null;
       this.currentTranscriptLanguage = null;
       this.availableTranscriptLanguages = [];
       this.languageSelectorHandler = null;
@@ -4658,14 +4729,21 @@ var VidPly = (() => {
       this.transcriptHeader.appendChild(title);
       this.headerLeft.appendChild(this.settingsButton);
       this.headerLeft.appendChild(autoscrollLabel);
-      this.languageSelector = DOMUtils.createElement("select", {
-        className: `${this.player.options.classPrefix}-transcript-language-select`,
-        attributes: {
-          "aria-label": i18n.t("settings.language") || "Language",
-          "style": "display: none;"
-          // Hidden until we detect multiple languages
-        }
+      const selectId = `${this.player.options.classPrefix}-transcript-language-select`;
+      const { label: languageLabel, select: languageSelector } = createLabeledSelect({
+        classPrefix: this.player.options.classPrefix,
+        labelClass: `${this.player.options.classPrefix}-transcript-language-label`,
+        selectClass: `${this.player.options.classPrefix}-transcript-language-select`,
+        labelText: "settings.language",
+        selectId,
+        hidden: true
+        // Hidden until we detect multiple languages
       });
+      this.languageLabel = languageLabel;
+      this.languageSelector = languageSelector;
+      preventDragOnElement(this.languageLabel);
+      preventDragOnElement(this.languageSelector);
+      this.headerLeft.appendChild(this.languageLabel);
       this.headerLeft.appendChild(this.languageSelector);
       const closeButton = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-transcript-close`,
@@ -4890,10 +4968,10 @@ var VidPly = (() => {
       this.availableTranscriptLanguages = this.getAvailableTranscriptLanguages();
       this.languageSelector.innerHTML = "";
       if (this.availableTranscriptLanguages.length < 2) {
-        this.languageSelector.style.display = "none";
+        toggleLabeledSelect(this.languageLabel, this.languageSelector, false);
         return;
       }
-      this.languageSelector.style.display = "block";
+      toggleLabeledSelect(this.languageLabel, this.languageSelector, true);
       this.availableTranscriptLanguages.forEach((langInfo, index) => {
         const option = DOMUtils.createElement("option", {
           textContent: langInfo.label,
@@ -5264,6 +5342,7 @@ var VidPly = (() => {
             `.${this.player.options.classPrefix}-transcript-close`,
             `.${this.player.options.classPrefix}-transcript-settings`,
             `.${this.player.options.classPrefix}-transcript-language-select`,
+            `.${this.player.options.classPrefix}-transcript-language-label`,
             `.${this.player.options.classPrefix}-transcript-settings-menu`,
             `.${this.player.options.classPrefix}-transcript-style-dialog`
           ];
@@ -8248,7 +8327,7 @@ var VidPly = (() => {
         className: `${this.options.classPrefix}-sign-language-settings`,
         attributes: {
           "type": "button",
-          "aria-label": i18n.t("transcript.settingsMenu") || "Sign language settings",
+          "aria-label": i18n.t("player.signLanguageSettings"),
           "aria-expanded": "false"
         }
       });
@@ -8291,36 +8370,29 @@ var VidPly = (() => {
       headerLeft.appendChild(this.signLanguageSettingsButton);
       this.signLanguageSelector = null;
       if (hasMultipleSources) {
-        this.signLanguageSelector = DOMUtils.createElement("select", {
-          className: `${this.options.classPrefix}-sign-language-select`,
-          attributes: {
-            "aria-label": i18n.t("settings.language") || "Sign Language",
-            "style": "display: block;"
+        const selectId = `${this.options.classPrefix}-sign-language-select`;
+        const options = Object.keys(this.signLanguageSources).map((langCode) => ({
+          value: langCode,
+          text: this.getSignLanguageLabel(langCode),
+          selected: langCode === initialLang
+        }));
+        const { label: signLanguageLabel, select: signLanguageSelector } = createLabeledSelect({
+          classPrefix: this.options.classPrefix,
+          labelClass: `${this.options.classPrefix}-sign-language-label`,
+          selectClass: `${this.options.classPrefix}-sign-language-select`,
+          labelText: "settings.language",
+          selectId,
+          options,
+          onChange: (e) => {
+            e.stopPropagation();
+            const selectedLang = e.target.value;
+            this.switchSignLanguage(selectedLang);
           }
         });
-        Object.keys(this.signLanguageSources).forEach((langCode) => {
-          const option = DOMUtils.createElement("option", {
-            textContent: this.getSignLanguageLabel(langCode),
-            attributes: {
-              "value": langCode
-            }
-          });
-          if (langCode === initialLang) {
-            option.setAttribute("selected", "selected");
-          }
-          this.signLanguageSelector.appendChild(option);
-        });
-        this.signLanguageSelector.addEventListener("change", (e) => {
-          e.stopPropagation();
-          const selectedLang = e.target.value;
-          this.switchSignLanguage(selectedLang);
-        });
-        this.signLanguageSelector.addEventListener("mousedown", (e) => {
-          e.stopPropagation();
-        });
-        this.signLanguageSelector.addEventListener("click", (e) => {
-          e.stopPropagation();
-        });
+        this.signLanguageSelector = signLanguageSelector;
+        preventDragOnElement(signLanguageLabel);
+        preventDragOnElement(this.signLanguageSelector);
+        headerLeft.appendChild(signLanguageLabel);
         headerLeft.appendChild(this.signLanguageSelector);
       }
       headerLeft.appendChild(title);
@@ -8328,7 +8400,7 @@ var VidPly = (() => {
         className: `${this.options.classPrefix}-sign-language-close`,
         attributes: {
           "type": "button",
-          "aria-label": i18n.t("transcript.close") || "Close sign language video"
+          "aria-label": i18n.t("player.closeSignLanguage")
         }
       });
       closeButton.appendChild(createIconElement("close"));
@@ -8471,7 +8543,7 @@ var VidPly = (() => {
           });
         },
         onDragStart: (e) => {
-          if (e.target.closest(`.${this.options.classPrefix}-sign-language-close`) || e.target.closest(`.${this.options.classPrefix}-sign-language-settings`) || e.target.closest(`.${this.options.classPrefix}-sign-language-select`) || e.target.closest(`.${this.options.classPrefix}-sign-language-settings-menu`)) {
+          if (e.target.closest(`.${this.options.classPrefix}-sign-language-close`) || e.target.closest(`.${this.options.classPrefix}-sign-language-settings`) || e.target.closest(`.${this.options.classPrefix}-sign-language-select`) || e.target.closest(`.${this.options.classPrefix}-sign-language-label`) || e.target.closest(`.${this.options.classPrefix}-sign-language-settings-menu`)) {
             return false;
           }
           return true;

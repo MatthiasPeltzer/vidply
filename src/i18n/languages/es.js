@@ -42,6 +42,8 @@ export const es = {
     error: 'Error al cargar',
     buffering: 'Almacenando en búfer...',
     signLanguageVideo: 'Video en Lengua de Señas',
+    closeSignLanguage: 'Cerrar video en lengua de señas',
+    signLanguageSettings: 'Configuración de lengua de señas',
     noChapters: 'No hay capítulos disponibles',
     noCaptions: 'No hay subtítulos disponibles',
     auto: 'Automático',

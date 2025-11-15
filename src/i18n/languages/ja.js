@@ -42,6 +42,8 @@ export const ja = {
     error: '読み込みエラー',
     buffering: 'バッファリング中...',
     signLanguageVideo: '手話動画',
+    closeSignLanguage: '手話動画を閉じる',
+    signLanguageSettings: '手話設定',
     noChapters: 'チャプターがありません',
     noCaptions: '字幕がありません',
     auto: '自動',

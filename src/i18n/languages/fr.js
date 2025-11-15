@@ -42,6 +42,8 @@ export const fr = {
     error: 'Erreur de chargement',
     buffering: 'Mise en mémoire tampon...',
     signLanguageVideo: 'Vidéo en Langue des Signes',
+    closeSignLanguage: 'Fermer la vidéo en langue des signes',
+    signLanguageSettings: 'Paramètres de la langue des signes',
     noChapters: 'Aucun chapitre disponible',
     noCaptions: 'Aucun sous-titre disponible',
     auto: 'Automatique',
