@@ -440,9 +440,9 @@ export class Player extends EventEmitter {
                 : this.options.height;
         }
 
-        // Set poster
+        // Set poster (convert relative paths to absolute URLs)
         if (this.options.poster && this.element.tagName === 'VIDEO') {
-            this.element.poster = this.options.poster;
+            this.element.poster = this.resolvePosterPath(this.options.poster);
         }
 
         // Create centered play button overlay (only for video)
@@ -690,6 +690,31 @@ export class Player extends EventEmitter {
         return this.trackElements.find(el => el.track === track);
     }
 
+    /**
+     * Convert relative poster path to absolute URL
+     * @param {string} posterPath - Poster path (relative or absolute)
+     * @returns {string} Absolute URL
+     */
+    resolvePosterPath(posterPath) {
+        if (!posterPath) {
+            return posterPath;
+        }
+        
+        // If already absolute (starts with http://, https://, or /), return as-is
+        if (posterPath.match(/^(https?:|\/)/)) {
+            return posterPath;
+        }
+        
+        // Convert relative path to absolute URL
+        try {
+            const posterUrl = new URL(posterPath, window.location.href);
+            return posterUrl.href;
+        } catch (e) {
+            // If URL constructor fails, return as-is
+            return posterPath;
+        }
+    }
+
     showPosterOverlay() {
         if (!this.videoWrapper || this.element.tagName !== 'VIDEO') {
             return;
@@ -704,7 +729,9 @@ export class Player extends EventEmitter {
             return;
         }
 
-        this.videoWrapper.style.setProperty('--vidply-poster-image', `url("${poster}")`);
+        // Resolve relative paths to absolute URLs
+        const resolvedPoster = this.resolvePosterPath(poster);
+        this.videoWrapper.style.setProperty('--vidply-poster-image', `url("${resolvedPoster}")`);
         this.videoWrapper.classList.add('vidply-forced-poster');
     }
 
@@ -773,7 +800,7 @@ export class Player extends EventEmitter {
             }
 
             if (config.poster && this.element.tagName === 'VIDEO') {
-                this.element.poster = config.poster;
+                this.element.poster = this.resolvePosterPath(config.poster);
             }
 
             // Add new text tracks
@@ -1113,6 +1140,14 @@ export class Player extends EventEmitter {
         const currentTime = this.state.currentTime;
         const wasPlaying = this.state.playing;
         const shouldKeepPoster = !wasPlaying && currentTime === 0;
+        
+        // Store poster to preserve it during source swap
+        // Convert relative paths to absolute URLs to prevent resolution issues
+        const posterValue = this.resolvePosterPath(
+            this.element.getAttribute('poster') || 
+            this.element.poster || 
+            this.options.poster
+        );
 
         if (shouldKeepPoster) {
             this.showPosterOverlay();
@@ -1397,6 +1432,11 @@ export class Player extends EventEmitter {
             this._sourceElementsDirty = true;
             this._sourceElementsCache = null;
             
+            // Preserve poster before reload
+            if (posterValue && this.element.tagName === 'VIDEO') {
+                this.element.poster = posterValue;
+            }
+            
             // Force reload by calling load() on the element
             // This should pick up the new src attributes from the re-added source elements
             // and also reload the track elements
@@ -1647,11 +1687,20 @@ export class Player extends EventEmitter {
                     this.element.appendChild(newSource);
                 });
                 
+                // Preserve poster before reload
+                if (posterValue && this.element.tagName === 'VIDEO') {
+                    this.element.poster = posterValue;
+                }
+                
                 // Force reload
                 this.element.load();
                 this.invalidateTrackCache();
             } else {
                 // Fallback to updating element src directly (for videos without source elements)
+                // Preserve poster before changing src
+                if (posterValue && this.element.tagName === 'VIDEO') {
+                    this.element.poster = posterValue;
+                }
                 this.element.src = this.audioDescriptionSrc;
             }
         }
@@ -1949,6 +1998,14 @@ export class Player extends EventEmitter {
         // Store current playback state
         const currentTime = this.state.currentTime;
         const wasPlaying = this.state.playing;
+        
+        // Store poster to preserve it during source swap
+        // Convert relative paths to absolute URLs to prevent resolution issues
+        const posterValue = this.resolvePosterPath(
+            this.element.getAttribute('poster') || 
+            this.element.poster || 
+            this.options.poster
+        );
 
         // Swap caption/chapter tracks back to original versions BEFORE loading
         if (this.audioDescriptionCaptionTracks.length > 0) {
@@ -2023,10 +2080,19 @@ export class Player extends EventEmitter {
             this._sourceElementsDirty = true;
             this._sourceElementsCache = null;
             
+            // Preserve poster before reload
+            if (posterValue && this.element.tagName === 'VIDEO') {
+                this.element.poster = posterValue;
+            }
+            
             // Force reload
             this.element.load();
         } else {
             // Fallback to updating element src directly (for videos without source elements)
+            // Preserve poster before changing src
+            if (posterValue && this.element.tagName === 'VIDEO') {
+                this.element.poster = posterValue;
+            }
             const originalSrcToUse = this.originalAudioDescriptionSource || this.originalSrc;
             this.element.src = originalSrcToUse;
             this.element.load();
