@@ -73,10 +73,48 @@ const player = new Player('#video', {
 
 ### Change Language
 
+#### Built-in Languages
+
 ```javascript
 const player = new Player('#video', {
-  language: 'es'  // Spanish
+  language: 'es'  // Spanish (available: en, es, fr, de, ja)
 });
+```
+
+#### Load Custom Language Files
+
+```javascript
+const player = new Player('#video', {
+  language: 'pt',  // Portuguese
+  languageFiles: {
+    'pt': 'languages/pt.json',
+    'it': 'languages/it.json'
+  }
+});
+```
+
+#### Using Data Attributes
+
+```html
+<video 
+  data-vidply 
+  data-vidply-language-files='{"pt": "languages/pt.json", "it": "languages/it.json"}'
+  src="video.mp4"
+></video>
+```
+
+#### Auto-detect from HTML
+
+The player automatically detects the language from the HTML `lang` attribute:
+
+```html
+<html lang="pt">
+  <video 
+    data-vidply 
+    data-vidply-language-file='{"pt": "languages/pt.json"}'
+    src="video.mp4"
+  ></video>
+</html>
 ```
 
 ### Custom Caption Styling

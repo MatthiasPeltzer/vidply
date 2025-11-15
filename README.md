@@ -70,11 +70,11 @@ Try VidPly in action:
 
 ### Internationalization
 Built-in support for 5 languages:
-- 🇬🇧 English
-- 🇪🇸 Spanish (Español)
-- 🇫🇷 French (Français)
-- 🇩🇪 German (Deutsch)
-- 🇯🇵 Japanese (日本語)
+- English (en)
+- Spanish (es) - Español
+- French (fr) - Français
+- German (de) - Deutsch
+- Japanese (ja) - 日本語
 
 All UI elements are fully translated, including:
 - Control buttons and menus
@@ -83,7 +83,7 @@ All UI elements are fully translated, including:
 - Error messages and notifications
 - ARIA labels for screen readers
 
-Easy to add more languages via the i18n system
+**Custom Translations**: Easily add your own languages by loading JSON or YAML translation files via data attributes or JavaScript options. The player automatically detects the HTML `lang` attribute and loads matching translations.
 
 ## Installation
 
@@ -521,6 +521,36 @@ player.destroy()  // Remove player and cleanup
 
 ### Add Custom Language
 
+#### Option 1: Load from URL (Recommended)
+
+```html
+<video 
+  data-vidply 
+  data-vidply-language-files='{"pt": "languages/pt.json", "it": "languages/it.json"}'
+  src="video.mp4"
+></video>
+```
+
+#### Option 2: JavaScript API
+
+```javascript
+import { i18n } from './src/i18n/i18n.js';
+
+// Load language file from URL
+await i18n.loadLanguageFromUrl('pt', 'languages/pt.json');
+
+// Or load multiple languages
+await i18n.loadLanguagesFromUrls({
+  'pt': 'languages/pt.json',
+  'it': 'languages/it.json'
+});
+
+// Set the language
+i18n.setLanguage('pt');
+```
+
+#### Option 3: Add Translations Programmatically
+
 ```javascript
 import { i18n } from './src/i18n/i18n.js';
 
@@ -528,14 +558,38 @@ i18n.addTranslation('pt', {
   player: {
     play: 'Reproduzir',
     pause: 'Pausar',
-    // ... more translations
+    mute: 'Silenciar',
+    unmute: 'Ativar som'
   }
 });
 
 i18n.setLanguage('pt');
 ```
 
-## 🔧 Build Process
+#### Language File Format
+
+Create `languages/pt.json`:
+
+```json
+{
+  "player": {
+    "play": "Reproduzir",
+    "pause": "Pausar",
+    "mute": "Silenciar",
+    "unmute": "Ativar som",
+    "fullscreen": "Tela cheia",
+    "captions": "Legendas"
+  },
+  "time": {
+    "currentTime": "Tempo atual",
+    "duration": "Duração"
+  }
+}
+```
+
+The player supports both JSON and YAML formats for language files.
+
+## Build Process
 
 VidPly uses a modern build system with esbuild for JavaScript and clean-css for CSS.
 
