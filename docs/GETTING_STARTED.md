@@ -384,12 +384,122 @@ Once the player is focused:
 
 ## Change Language
 
+### Built-in Languages
+
+VidPly includes translations for 5 languages:
+- `en` - English
+- `es` - Spanish (Español)
+- `fr` - French (Français)
+- `de` - German (Deutsch)
+- `ja` - Japanese (日本語)
+
 ```javascript
 const player = new Player('#video', {
   language: 'de'  // German UI
 });
+```
 
-// Available: en, es, fr, de, ja
+### Custom Translations
+
+You can add your own translations by loading language files from URLs. The player supports JSON and YAML formats.
+
+#### Using Data Attributes
+
+Load multiple language files:
+
+```html
+<video 
+  data-vidply 
+  data-vidply-language-files='{"pt": "languages/pt.json", "it": "languages/it.json"}'
+  src="video.mp4"
+></video>
+```
+
+Load a single language file:
+
+```html
+<video 
+  data-vidply 
+  data-vidply-language-file='{"pt": "languages/pt.json"}'
+  src="video.mp4"
+></video>
+```
+
+Or use separate attributes:
+
+```html
+<video 
+  data-vidply 
+  data-vidply-language-file-code="pt"
+  data-vidply-language-file-url="languages/pt.json"
+  src="video.mp4"
+></video>
+```
+
+#### Using JavaScript Options
+
+```javascript
+const player = new Player('#video', {
+  language: 'pt',  // Set language after loading
+  languageFiles: {
+    'pt': 'languages/pt.json',
+    'it': 'languages/it.json'
+  }
+});
+```
+
+#### Language File Format (JSON)
+
+Create a file `languages/pt.json`:
+
+```json
+{
+  "player": {
+    "play": "Reproduzir",
+    "pause": "Pausar",
+    "mute": "Silenciar",
+    "unmute": "Ativar som",
+    "fullscreen": "Tela cheia",
+    "exitFullscreen": "Sair da tela cheia",
+    "captions": "Legendas",
+    "settings": "Configurações"
+  },
+  "time": {
+    "currentTime": "Tempo atual",
+    "duration": "Duração"
+  }
+}
+```
+
+#### Auto-detection from HTML
+
+The player automatically detects the language from the HTML `lang` attribute if a matching translation is available:
+
+```html
+<html lang="pt">
+  <video data-vidply 
+         data-vidply-language-file='{"pt": "languages/pt.json"}'
+         src="video.mp4">
+  </video>
+</html>
+```
+
+#### Programmatic Translation Loading
+
+```javascript
+import { i18n } from './src/i18n/i18n.js';
+
+// Load a language file
+await i18n.loadLanguageFromUrl('pt', 'languages/pt.json');
+
+// Or load multiple languages
+await i18n.loadLanguagesFromUrls({
+  'pt': 'languages/pt.json',
+  'it': 'languages/it.json'
+});
+
+// Set the language
+i18n.setLanguage('pt');
 ```
 
 ## Development Mode
