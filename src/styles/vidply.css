@@ -1953,6 +1953,7 @@
     display: flex;
     justify-content: space-between;
     padding: 16px 20px;
+    touch-action: none; /* Prevent browser touch handling for drag */
     user-select: none;
 }
 
@@ -2724,6 +2725,7 @@
     justify-content: space-between;
     padding: 16px 20px;
     position: relative; /* Needed for menu positioning */
+    touch-action: none; /* Prevent browser touch handling for drag */
     user-select: none;
 }
 
@@ -3173,9 +3175,15 @@
         max-height: 400px;
     }
 
-    /* Don't show dragging cursor on mobile */
+    /* Don't show dragging cursor on mobile (except in fullscreen) */
     .vidply-transcript-header {
         cursor: default !important;
+    }
+    
+    /* In fullscreen, enable dragging cursor */
+    .vidply-player.vidply-fullscreen .vidply-transcript-header,
+    .vidply-player:fullscreen .vidply-transcript-header {
+        cursor: move !important;
     }
 }
 
