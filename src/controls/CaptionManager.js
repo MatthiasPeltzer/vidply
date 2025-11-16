@@ -272,6 +272,7 @@ export class CaptionManager {
         }
 
         const activeCues = this.currentTrack.track.activeCues;
+        const isAudioPlayer = this.player.element.tagName.toLowerCase() === 'audio';
 
         if (activeCues.length > 0) {
             const cue = activeCues[0];
@@ -286,7 +287,38 @@ export class CaptionManager {
                 // Handle VTT formatting
                 text = this.parseVTTFormatting(text);
 
-                this.element.innerHTML = DOMUtils.sanitizeHTML(text);
+                // Audio players: transcript-style accumulation
+                if (isAudioPlayer) {
+                    // Remove highlight from previous active cue
+                    const existingCues = this.element.querySelectorAll(`.${this.player.options.classPrefix}-caption-cue`);
+                    existingCues.forEach(el => el.classList.remove(`${this.player.options.classPrefix}-caption-active`));
+                    
+                    // Check if this cue is already displayed
+                    const cueId = `cue-${cue.startTime}-${cue.endTime}`;
+                    let cueElement = this.element.querySelector(`[data-cue-id="${cueId}"]`);
+                    
+                    if (!cueElement) {
+                        // Create new cue element
+                        cueElement = document.createElement('div');
+                        cueElement.className = `${this.player.options.classPrefix}-caption-cue`;
+                        cueElement.setAttribute('data-cue-id', cueId);
+                        cueElement.innerHTML = DOMUtils.sanitizeHTML(text);
+                        this.element.appendChild(cueElement);
+                    }
+                    
+                    // Highlight active cue
+                    cueElement.classList.add(`${this.player.options.classPrefix}-caption-active`);
+                    
+                    // Scroll to active cue smoothly - center it for better visibility
+                    requestAnimationFrame(() => {
+                        if (cueElement) {
+                            cueElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    });
+                } else {
+                    // Video players: replace content as before
+                    this.element.innerHTML = DOMUtils.sanitizeHTML(text);
+                }
 
                 // Make sure it's visible when there's content
                 this.element.style.display = 'block';
@@ -297,9 +329,11 @@ export class CaptionManager {
                 this.player.emit('captionchange', cue);
             }
         } else if (this.currentCue) {
-            // Clear caption when no active cues
-            this.element.innerHTML = '';
-            this.element.style.display = 'none';
+            // Clear caption when no active cues (video players only)
+            if (!isAudioPlayer) {
+                this.element.innerHTML = '';
+                this.element.style.display = 'none';
+            }
             this.currentCue = null;
         }
     }

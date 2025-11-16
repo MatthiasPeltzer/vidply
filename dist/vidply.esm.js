@@ -453,7 +453,9 @@ var en = {
     signLanguageDragResize: "Sign Language Video - Press D to drag with keyboard, R to resize",
     signLanguageDragActive: "Sign Language Video - Drag mode active. Use arrow keys to move, Escape to exit.",
     signLanguageResizeActive: "Sign Language Video - Resize mode active. Use left/right arrow keys to resize, Escape to exit.",
-    resizeHandle: "Resize {direction} corner"
+    resizeHandle: "Resize {direction} corner",
+    moreOptions: "More options",
+    noMoreOptions: "No additional options available"
   },
   captions: {
     off: "Off",
@@ -588,7 +590,9 @@ var de = {
     signLanguageDragResize: "Geb\xE4rdensprache-Video - Dr\xFCcken Sie D zum Verschieben per Tastatur, R zum \xC4ndern der Gr\xF6\xDFe",
     signLanguageDragActive: "Geb\xE4rdensprache-Video - Verschiebemodus aktiv. Pfeiltasten zum Bewegen, Escape zum Beenden.",
     signLanguageResizeActive: "Geb\xE4rdensprache-Video - Gr\xF6\xDFen\xE4nderungsmodus aktiv. Links-/Rechts-Pfeiltasten zum \xC4ndern der Gr\xF6\xDFe, Escape zum Beenden.",
-    resizeHandle: "Gr\xF6\xDFen\xE4nderung {direction}-Ecke"
+    resizeHandle: "Gr\xF6\xDFen\xE4nderung {direction}-Ecke",
+    moreOptions: "Weitere Optionen",
+    noMoreOptions: "Keine weiteren Optionen verf\xFCgbar"
   },
   captions: {
     off: "Aus",
@@ -723,7 +727,9 @@ var es = {
     signLanguageDragResize: "Video en Lengua de Se\xF1as - Presione D para arrastrar con el teclado, R para cambiar el tama\xF1o",
     signLanguageDragActive: "Video en Lengua de Se\xF1as - Modo de arrastre activo. Use las teclas de flecha para mover, Escape para salir.",
     signLanguageResizeActive: "Video en Lengua de Se\xF1as - Modo de cambio de tama\xF1o activo. Use las teclas de flecha izquierda/derecha para cambiar el tama\xF1o, Escape para salir.",
-    resizeHandle: "Cambiar tama\xF1o esquina {direction}"
+    resizeHandle: "Cambiar tama\xF1o esquina {direction}",
+    moreOptions: "M\xE1s opciones",
+    noMoreOptions: "No hay opciones adicionales disponibles"
   },
   captions: {
     off: "Desactivado",
@@ -858,7 +864,9 @@ var fr = {
     signLanguageDragResize: "Vid\xE9o en Langue des Signes - Appuyez sur D pour d\xE9placer avec le clavier, R pour redimensionner",
     signLanguageDragActive: "Vid\xE9o en Langue des Signes - Mode glissement actif. Utilisez les touches fl\xE9ch\xE9es pour d\xE9placer, \xC9chap pour quitter.",
     signLanguageResizeActive: "Vid\xE9o en Langue des Signes - Mode redimensionnement actif. Utilisez les touches fl\xE9ch\xE9es gauche/droite pour redimensionner, \xC9chap pour quitter.",
-    resizeHandle: "Redimensionner coin {direction}"
+    resizeHandle: "Redimensionner coin {direction}",
+    moreOptions: "Plus d'options",
+    noMoreOptions: "Aucune option suppl\xE9mentaire disponible"
   },
   captions: {
     off: "D\xE9sactiv\xE9",
@@ -993,7 +1001,9 @@ var ja = {
     signLanguageDragResize: "\u624B\u8A71\u52D5\u753B - \u30AD\u30FC\u30DC\u30FC\u30C9\u3067\u30C9\u30E9\u30C3\u30B0\u3059\u308B\u306B\u306FD\u30AD\u30FC\u3092\u3001\u30B5\u30A4\u30BA\u5909\u66F4\u3059\u308B\u306B\u306FR\u30AD\u30FC\u3092\u62BC\u3057\u3066\u304F\u3060\u3055\u3044",
     signLanguageDragActive: "\u624B\u8A71\u52D5\u753B - \u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u304C\u6709\u52B9\u3067\u3059\u3002\u77E2\u5370\u30AD\u30FC\u3067\u79FB\u52D5\u3001Escape\u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
     signLanguageResizeActive: "\u624B\u8A71\u52D5\u753B - \u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u304C\u6709\u52B9\u3067\u3059\u3002\u5DE6\u53F3\u306E\u77E2\u5370\u30AD\u30FC\u3067\u30B5\u30A4\u30BA\u5909\u66F4\u3001Escape\u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
-    resizeHandle: "{direction}\u30B3\u30FC\u30CA\u30FC\u306E\u30B5\u30A4\u30BA\u5909\u66F4"
+    resizeHandle: "{direction}\u30B3\u30FC\u30CA\u30FC\u306E\u30B5\u30A4\u30BA\u5909\u66F4",
+    moreOptions: "\u305D\u306E\u4ED6\u306E\u30AA\u30D7\u30B7\u30E7\u30F3",
+    noMoreOptions: "\u8FFD\u52A0\u306E\u30AA\u30D7\u30B7\u30E7\u30F3\u306F\u3042\u308A\u307E\u305B\u3093"
   },
   captions: {
     off: "\u30AA\u30D5",
@@ -1419,6 +1429,7 @@ var ControlBar = class {
     this.createControls();
     this.attachEvents();
     this.setupAutoHide();
+    this.setupOverflowDetection();
   }
   // Helper method to check if we're on a mobile device
   isMobile() {
@@ -1427,7 +1438,47 @@ var ControlBar = class {
   // Smart menu positioning to avoid overflow
   positionMenu(menu, button, immediate = false) {
     const isMobile2 = this.isMobile();
+    const isOverflowMenu = menu.classList.contains(`${this.player.options.classPrefix}-overflow-menu-list`);
     if (isMobile2) {
+      const isVolumeMenu = menu.classList.contains(`${this.player.options.classPrefix}-volume-menu`);
+      const doMobilePositioning = () => {
+        const parentContainer = button.parentElement;
+        if (!parentContainer) return;
+        const buttonRect = button.getBoundingClientRect();
+        const parentRect = parentContainer.getBoundingClientRect();
+        const menuRect = menu.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        if (isVolumeMenu) {
+          const buttonCenterX = buttonRect.left + buttonRect.width / 2 - parentRect.left;
+          menu.style.left = `${buttonCenterX}px`;
+          menu.style.right = "auto";
+          menu.style.transform = "translateX(-50%)";
+          return;
+        }
+        if (menuRect.right > viewportWidth) {
+          menu.style.left = "auto";
+          menu.style.right = "10px";
+          menu.style.transform = "none";
+        }
+        if (menuRect.left < 0) {
+          menu.style.left = "10px";
+          menu.style.right = "auto";
+          menu.style.transform = "none";
+        }
+        if (menuRect.top < 10) {
+          menu.style.top = "10px";
+        }
+        if (menuRect.bottom > viewportHeight - 10) {
+          menu.style.bottom = "10px";
+          menu.style.top = "auto";
+        }
+      };
+      if (immediate) {
+        doMobilePositioning();
+      } else {
+        requestAnimationFrame(doMobilePositioning);
+      }
       return;
     }
     const doPositioning = () => {
@@ -1453,20 +1504,27 @@ var ControlBar = class {
       } else {
         menu.classList.remove("vidply-menu-below");
       }
-      let menuLeft = buttonCenterX - menuRect.width / 2;
+      let menuLeft = "auto";
       let menuRight = "auto";
       let transformX = "translateX(0)";
-      const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
-      if (menuLeftAbsolute < 10) {
-        menuLeft = 0;
-        transformX = "translateX(0)";
-      } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
+      if (isOverflowMenu) {
         menuLeft = "auto";
         menuRight = 0;
         transformX = "translateX(0)";
       } else {
-        menuLeft = buttonCenterX;
-        transformX = "translateX(-50%)";
+        menuLeft = buttonCenterX - menuRect.width / 2;
+        const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
+        if (menuLeftAbsolute < 10) {
+          menuLeft = 0;
+          transformX = "translateX(0)";
+        } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
+          menuLeft = "auto";
+          menuRight = 0;
+          transformX = "translateX(0)";
+        } else {
+          menuLeft = buttonCenterX;
+          transformX = "translateX(-50%)";
+        }
       }
       if (menuTop !== null) {
         menu.style.top = `${menuTop}px`;
@@ -1766,36 +1824,70 @@ var ControlBar = class {
     const hasQualityLevels = this.hasQualityLevels();
     const hasAudioDescription = this.hasAudioDescription();
     if (this.player.options.chaptersButton && hasChapters) {
-      this.rightButtons.appendChild(this.createChaptersButton());
-    }
-    if (this.player.options.qualityButton && hasQualityLevels) {
-      this.rightButtons.appendChild(this.createQualityButton());
+      const btn = this.createChaptersButton();
+      btn.dataset.overflowPriority = "3";
+      btn.dataset.overflowPriorityMobile = "3";
+      this.rightButtons.appendChild(btn);
     }
     if (this.player.options.captionStyleButton && hasCaptions) {
-      this.rightButtons.appendChild(this.createCaptionStyleButton());
-    }
-    if (this.player.options.speedButton) {
-      this.rightButtons.appendChild(this.createSpeedButton());
-    }
-    if (this.player.options.captionsButton && hasCaptions) {
-      this.rightButtons.appendChild(this.createCaptionsButton());
+      const btn = this.createCaptionStyleButton();
+      btn.dataset.overflowPriority = "3";
+      btn.dataset.overflowPriorityMobile = "3";
+      this.rightButtons.appendChild(btn);
     }
     if (this.player.options.transcriptButton && hasCaptions) {
-      this.rightButtons.appendChild(this.createTranscriptButton());
+      const btn = this.createTranscriptButton();
+      btn.dataset.overflowPriority = "3";
+      btn.dataset.overflowPriorityMobile = "3";
+      this.rightButtons.appendChild(btn);
+    }
+    if (this.player.options.qualityButton && hasQualityLevels) {
+      const btn = this.createQualityButton();
+      btn.dataset.overflowPriority = "2";
+      btn.dataset.overflowPriorityMobile = "3";
+      this.rightButtons.appendChild(btn);
+    }
+    if (this.player.options.speedButton) {
+      const btn = this.createSpeedButton();
+      btn.dataset.overflowPriority = "1";
+      btn.dataset.overflowPriorityMobile = "3";
+      this.rightButtons.appendChild(btn);
+    }
+    if (this.player.options.captionsButton && hasCaptions) {
+      const btn = this.createCaptionsButton();
+      btn.dataset.overflowPriority = "1";
+      btn.dataset.overflowPriorityMobile = "3";
+      this.rightButtons.appendChild(btn);
     }
     if (this.player.options.audioDescriptionButton && hasAudioDescription) {
-      this.rightButtons.appendChild(this.createAudioDescriptionButton());
+      const btn = this.createAudioDescriptionButton();
+      btn.dataset.overflowPriority = "2";
+      btn.dataset.overflowPriorityMobile = "3";
+      this.rightButtons.appendChild(btn);
     }
     const hasSignLanguage = this.hasSignLanguage();
     if (this.player.options.signLanguageButton && hasSignLanguage) {
-      this.rightButtons.appendChild(this.createSignLanguageButton());
+      const btn = this.createSignLanguageButton();
+      btn.dataset.overflowPriority = "3";
+      btn.dataset.overflowPriorityMobile = "3";
+      this.rightButtons.appendChild(btn);
     }
     if (this.player.options.pipButton && "pictureInPictureEnabled" in document) {
-      this.rightButtons.appendChild(this.createPipButton());
+      const btn = this.createPipButton();
+      btn.dataset.overflowPriority = "3";
+      btn.dataset.overflowPriorityMobile = "3";
+      this.rightButtons.appendChild(btn);
     }
-    if (this.player.options.fullscreenButton) {
-      this.rightButtons.appendChild(this.createFullscreenButton());
+    const isAudioPlayer = this.player.element.tagName.toLowerCase() === "audio";
+    if (this.player.options.fullscreenButton && !isAudioPlayer) {
+      const btn = this.createFullscreenButton();
+      btn.dataset.overflowPriority = "1";
+      btn.dataset.overflowPriorityMobile = "3";
+      this.rightButtons.appendChild(btn);
     }
+    this.overflowMenuButton = this.createOverflowMenuButton();
+    this.overflowMenuButton.style.display = "none";
+    this.rightButtons.appendChild(this.overflowMenuButton);
     buttonContainer.appendChild(leftButtons);
     buttonContainer.appendChild(this.rightButtons);
     this.element.appendChild(buttonContainer);
@@ -2137,7 +2229,13 @@ var ControlBar = class {
     volumeMenu.addEventListener("click", (e) => {
       e.stopPropagation();
     });
+    volumeMenu.style.visibility = "hidden";
+    volumeMenu.style.display = "block";
     button.insertAdjacentElement("afterend", volumeMenu);
+    this.positionMenu(volumeMenu, button, true);
+    requestAnimationFrame(() => {
+      volumeMenu.style.visibility = "visible";
+    });
     this.controls.volumeSlider = volumeSlider;
     this.controls.volumeFill = volumeFill;
     this.attachMenuCloseHandler(volumeMenu, button, true);
@@ -3196,6 +3294,247 @@ var ControlBar = class {
     });
     showControls();
   }
+  createOverflowMenuButton() {
+    const button = DOMUtils.createElement("button", {
+      className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-overflow-menu`,
+      attributes: {
+        "type": "button",
+        "aria-label": i18n.t("player.moreOptions"),
+        "aria-expanded": "false",
+        "title": i18n.t("player.moreOptions")
+      }
+    });
+    button.appendChild(createIconElement("moreVertical"));
+    button.addEventListener("click", () => {
+      this.showOverflowMenu(button);
+    });
+    this.controls.overflowMenu = button;
+    return button;
+  }
+  showOverflowMenu(button) {
+    const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-overflow-menu-list`);
+    if (existingMenu) {
+      existingMenu.remove();
+      button.setAttribute("aria-expanded", "false");
+      if (this.openMenu === existingMenu) {
+        this.openMenu = null;
+        this.openMenuButton = null;
+      }
+      return;
+    }
+    const menu = DOMUtils.createElement("div", {
+      className: `${this.player.options.classPrefix}-overflow-menu-list ${this.player.options.classPrefix}-menu`,
+      attributes: {
+        "role": "menu",
+        "aria-label": i18n.t("player.moreOptions")
+      }
+    });
+    const overflowButtons = Array.from(this.rightButtons.querySelectorAll('button[data-in-overflow="true"]'));
+    if (overflowButtons.length === 0) {
+      const noItemsText = DOMUtils.createElement("div", {
+        className: `${this.player.options.classPrefix}-menu-item`,
+        textContent: i18n.t("player.noMoreOptions"),
+        style: { opacity: "0.5", cursor: "default" }
+      });
+      menu.appendChild(noItemsText);
+    } else {
+      overflowButtons.forEach((btn) => {
+        const item = DOMUtils.createElement("button", {
+          className: `${this.player.options.classPrefix}-menu-item`,
+          attributes: {
+            "type": "button",
+            "role": "menuitem",
+            "tabindex": "-1"
+          }
+        });
+        const label = btn.getAttribute("aria-label") || btn.getAttribute("title") || "";
+        const icon = btn.querySelector(".vidply-icon");
+        if (icon) {
+          const iconClone = icon.cloneNode(true);
+          item.appendChild(iconClone);
+        } else {
+          const firstChild = btn.querySelector("span");
+          if (firstChild && firstChild.textContent && firstChild.textContent.length <= 3) {
+            const iconClone = firstChild.cloneNode(true);
+            iconClone.classList.add("vidply-icon");
+            item.appendChild(iconClone);
+          }
+        }
+        const labelSpan = DOMUtils.createElement("span", {
+          textContent: label
+        });
+        item.appendChild(labelSpan);
+        item.addEventListener("click", (e) => {
+          this._overflowMenuItemRef = item;
+          const originalDisplay = btn.style.display;
+          btn.style.display = "";
+          btn.style.visibility = "hidden";
+          btn.click();
+          setTimeout(() => {
+            btn.style.display = originalDisplay;
+            btn.style.visibility = "";
+            this._overflowMenuItemRef = null;
+          }, 100);
+          this.closeMenuAndReturnFocus(menu, button);
+        });
+        menu.appendChild(item);
+      });
+      this.attachMenuKeyboardNavigation(menu, button);
+      setTimeout(() => {
+        const firstItem = menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+        if (firstItem && firstItem.tagName === "BUTTON") {
+          firstItem.focus();
+        }
+      }, 0);
+    }
+    menu.style.visibility = "hidden";
+    menu.style.display = "block";
+    button.insertAdjacentElement("afterend", menu);
+    this.positionMenu(menu, button, true);
+    requestAnimationFrame(() => {
+      menu.style.visibility = "visible";
+    });
+    this.attachMenuCloseHandler(menu, button);
+  }
+  setupOverflowDetection() {
+    const checkOverflow = () => {
+      const isDesktop = window.innerWidth >= 640;
+      const isTinyScreen = window.innerWidth < 360;
+      if (!this.rightButtons || this.rightButtons.children.length === 0) {
+        return;
+      }
+      const allButtons = Array.from(this.rightButtons.children).filter(
+        (btn) => !btn.classList.contains(`${this.player.options.classPrefix}-overflow-menu`)
+      );
+      if (allButtons.length === 0) {
+        return;
+      }
+      if (isDesktop || isTinyScreen) {
+        allButtons.forEach((btn) => {
+          btn.dataset.inOverflow = "false";
+          btn.style.display = "";
+        });
+        if (this.overflowMenuButton) {
+          this.overflowMenuButton.style.display = "none";
+        }
+        if (this.player.options.debug) {
+          if (isDesktop) {
+            console.log("Desktop view (\u2265640px) - all buttons visible, overflow menu hidden");
+          } else {
+            console.log("Tiny screen (<360px) - all buttons visible, overflow menu hidden");
+          }
+        }
+        return;
+      }
+      allButtons.forEach((btn) => {
+        btn.style.display = "";
+      });
+      const containerWidth = this.rightButtons.offsetWidth;
+      const overflowButtonWidth = 50;
+      const availableWidth = containerWidth - overflowButtonWidth;
+      let totalWidth = 0;
+      const buttonWidths = allButtons.map((btn) => {
+        const style = getComputedStyle(btn);
+        const width = btn.offsetWidth + parseInt(style.marginLeft || 0) + parseInt(style.marginRight || 0);
+        totalWidth += width;
+        return { btn, width };
+      });
+      const gapWidth = 8;
+      totalWidth += (allButtons.length - 1) * gapWidth;
+      const isSmallScreen = window.innerWidth < 640;
+      const needsOverflow = totalWidth > availableWidth || isSmallScreen;
+      if (this.player.options.debug) {
+        console.log("Overflow detection:", {
+          containerWidth,
+          availableWidth,
+          totalWidth,
+          needsOverflow,
+          isSmallScreen,
+          reason: isSmallScreen ? "mobile screen" : totalWidth > availableWidth ? "not enough space" : "enough space",
+          buttonCount: allButtons.length
+        });
+      }
+      if (needsOverflow) {
+        const isSmallScreen2 = window.innerWidth < 640;
+        const priorityAttr = isSmallScreen2 ? "overflowPriorityMobile" : "overflowPriority";
+        if (this.player.options.debug) {
+          console.log(`Using ${isSmallScreen2 ? "mobile" : "desktop"} priorities (width: ${window.innerWidth}px)`);
+        }
+        const sortedButtons = buttonWidths.sort((a, b) => {
+          const priorityA = parseInt(a.btn.dataset[priorityAttr] || a.btn.dataset.overflowPriority || "1");
+          const priorityB = parseInt(b.btn.dataset[priorityAttr] || b.btn.dataset.overflowPriority || "1");
+          return priorityB - priorityA;
+        });
+        let currentWidth = totalWidth;
+        let movedToOverflow = 0;
+        for (const { btn, width } of sortedButtons) {
+          const priority = parseInt(btn.dataset[priorityAttr] || btn.dataset.overflowPriority || "1");
+          const buttonLabel = btn.getAttribute("aria-label") || "unknown";
+          if (priority === 1) {
+            btn.dataset.inOverflow = "false";
+            btn.style.display = "";
+            continue;
+          }
+          const shouldHide = isSmallScreen2 ? priority > 1 : currentWidth > availableWidth;
+          if (shouldHide) {
+            btn.dataset.inOverflow = "true";
+            btn.style.display = "none";
+            currentWidth -= width;
+            movedToOverflow++;
+            if (this.player.options.debug) {
+              console.log(`  \u2192 Hiding button: ${buttonLabel} (priority ${priority}, ${isSmallScreen2 ? "mobile" : "desktop"})`);
+            }
+          } else {
+            btn.dataset.inOverflow = "false";
+            btn.style.display = "";
+          }
+        }
+        if (this.player.options.debug) {
+          console.log("Overflow button exists?", !!this.overflowMenuButton);
+        }
+        if (!this.overflowMenuButton) {
+          console.error("Overflow menu button not found!");
+          return;
+        }
+        if (movedToOverflow > 0) {
+          this.overflowMenuButton.style.display = "";
+          if (this.player.options.debug) {
+            console.log("Showing overflow menu button -", movedToOverflow, "buttons moved");
+          }
+        } else {
+          this.overflowMenuButton.style.display = "none";
+          if (this.player.options.debug) {
+            console.log("Hiding overflow menu button - all buttons fit");
+          }
+        }
+      } else {
+        allButtons.forEach((btn) => {
+          btn.dataset.inOverflow = "false";
+          btn.style.display = "";
+        });
+        this.overflowMenuButton.style.display = "none";
+      }
+    };
+    const resizeObserver = new ResizeObserver(() => {
+      requestAnimationFrame(checkOverflow);
+    });
+    resizeObserver.observe(this.rightButtons);
+    window.addEventListener("resize", () => {
+      requestAnimationFrame(checkOverflow);
+    });
+    requestAnimationFrame(() => {
+      checkOverflow();
+      setTimeout(() => checkOverflow(), 100);
+      setTimeout(() => checkOverflow(), 300);
+      setTimeout(() => checkOverflow(), 500);
+    });
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => {
+        requestAnimationFrame(checkOverflow);
+      });
+    }
+    this.overflowResizeObserver = resizeObserver;
+  }
   show() {
     this.element.style.display = "";
   }
@@ -3205,6 +3544,9 @@ var ControlBar = class {
   destroy() {
     if (this.hideTimeout) {
       clearTimeout(this.hideTimeout);
+    }
+    if (this.overflowResizeObserver) {
+      this.overflowResizeObserver.disconnect();
     }
     if (this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element);
@@ -3560,20 +3902,43 @@ var CaptionManager = class {
       return;
     }
     const activeCues = this.currentTrack.track.activeCues;
+    const isAudioPlayer = this.player.element.tagName.toLowerCase() === "audio";
     if (activeCues.length > 0) {
       const cue = activeCues[0];
       if (this.currentCue !== cue) {
         this.currentCue = cue;
         let text = cue.text;
         text = this.parseVTTFormatting(text);
-        this.element.innerHTML = DOMUtils.sanitizeHTML(text);
+        if (isAudioPlayer) {
+          const existingCues = this.element.querySelectorAll(`.${this.player.options.classPrefix}-caption-cue`);
+          existingCues.forEach((el) => el.classList.remove(`${this.player.options.classPrefix}-caption-active`));
+          const cueId = `cue-${cue.startTime}-${cue.endTime}`;
+          let cueElement = this.element.querySelector(`[data-cue-id="${cueId}"]`);
+          if (!cueElement) {
+            cueElement = document.createElement("div");
+            cueElement.className = `${this.player.options.classPrefix}-caption-cue`;
+            cueElement.setAttribute("data-cue-id", cueId);
+            cueElement.innerHTML = DOMUtils.sanitizeHTML(text);
+            this.element.appendChild(cueElement);
+          }
+          cueElement.classList.add(`${this.player.options.classPrefix}-caption-active`);
+          requestAnimationFrame(() => {
+            if (cueElement) {
+              cueElement.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          });
+        } else {
+          this.element.innerHTML = DOMUtils.sanitizeHTML(text);
+        }
         this.element.style.display = "block";
         this.positionCaptionsOnMobile();
         this.player.emit("captionchange", cue);
       }
     } else if (this.currentCue) {
-      this.element.innerHTML = "";
-      this.element.style.display = "none";
+      if (!isAudioPlayer) {
+        this.element.innerHTML = "";
+        this.element.style.display = "none";
+      }
       this.currentCue = null;
     }
   }

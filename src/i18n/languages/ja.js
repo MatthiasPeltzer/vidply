@@ -52,7 +52,9 @@ export const ja = {
     signLanguageDragResize: '手話動画 - キーボードでドラッグするにはDキーを、サイズ変更するにはRキーを押してください',
     signLanguageDragActive: '手話動画 - ドラッグモードが有効です。矢印キーで移動、Escapeで終了します。',
     signLanguageResizeActive: '手話動画 - サイズ変更モードが有効です。左右の矢印キーでサイズ変更、Escapeで終了します。',
-    resizeHandle: '{direction}コーナーのサイズ変更'
+    resizeHandle: '{direction}コーナーのサイズ変更',
+    moreOptions: 'その他のオプション',
+    noMoreOptions: '追加のオプションはありません'
   },
   captions: {
     off: 'オフ',

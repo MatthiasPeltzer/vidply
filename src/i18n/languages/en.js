@@ -52,7 +52,9 @@ export const en = {
     signLanguageDragResize: 'Sign Language Video - Press D to drag with keyboard, R to resize',
     signLanguageDragActive: 'Sign Language Video - Drag mode active. Use arrow keys to move, Escape to exit.',
     signLanguageResizeActive: 'Sign Language Video - Resize mode active. Use left/right arrow keys to resize, Escape to exit.',
-    resizeHandle: 'Resize {direction} corner'
+    resizeHandle: 'Resize {direction} corner',
+    moreOptions: 'More options',
+    noMoreOptions: 'No additional options available'
   },
   captions: {
     off: 'Off',

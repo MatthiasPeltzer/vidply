@@ -52,7 +52,9 @@ export const fr = {
     signLanguageDragResize: 'Vidéo en Langue des Signes - Appuyez sur D pour déplacer avec le clavier, R pour redimensionner',
     signLanguageDragActive: 'Vidéo en Langue des Signes - Mode glissement actif. Utilisez les touches fléchées pour déplacer, Échap pour quitter.',
     signLanguageResizeActive: 'Vidéo en Langue des Signes - Mode redimensionnement actif. Utilisez les touches fléchées gauche/droite pour redimensionner, Échap pour quitter.',
-    resizeHandle: 'Redimensionner coin {direction}'
+    resizeHandle: 'Redimensionner coin {direction}',
+    moreOptions: 'Plus d\'options',
+    noMoreOptions: 'Aucune option supplémentaire disponible'
   },
   captions: {
     off: 'Désactivé',
