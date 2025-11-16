@@ -450,6 +450,28 @@
     width: 100%;
 }
 
+/* Control button icons - add backgrounds only in forced-colors mode (high contrast, color inversion) */
+@media (forced-colors: active) {
+    .vidply-controls button .vidply-icon svg {
+        background: Canvas;
+        border-radius: 3px;
+        color: CanvasText;
+        fill: currentColor;
+        padding: 2px;
+    }
+
+    .vidply-transcript-close .vidply-icon svg,
+    .vidply-transcript-settings .vidply-icon svg,
+    .vidply-sign-language-close .vidply-icon svg,
+    .vidply-sign-language-settings .vidply-icon svg {
+        background: Canvas;
+        border-radius: 2px;
+        color: CanvasText;
+        fill: currentColor;
+        padding: 2px;
+    }
+}
+
 /* Volume Control */
 .vidply-volume-slider {
     background: var(--vidply-white-20);
