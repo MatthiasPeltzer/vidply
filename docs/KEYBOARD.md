@@ -19,9 +19,12 @@ VidPly provides comprehensive keyboard navigation for accessibility and power us
 | <kbd>J</kbd> | Chapters Menu | Open chapters menu |
 | <kbd>A</kbd> | Caption Style Menu | Open caption styling options |
 | <kbd>T</kbd> | Transcript | Toggle transcript panel |
+| <kbd>D</kbd> | Drag Mode | Toggle drag mode for transcript/sign language |
+| <kbd>R</kbd> | Resize Mode | Toggle resize mode for transcript/sign language |
 | <kbd>&gt;</kbd> (Shift+.) | Speed Up | Increase playback speed by 0.25x |
 | <kbd>&lt;</kbd> (Shift+,) | Speed Down | Decrease playback speed by 0.25x |
-| <kbd>Esc</kbd> | Close | Close any open menu or exit fullscreen |
+| <kbd>Home</kbd> | Reset Position | Reset transcript/sign language to center |
+| <kbd>Esc</kbd> | Close / Exit | Close menus, exit fullscreen, or exit drag/resize mode |
 
 ## Menu Navigation
 
@@ -91,6 +94,15 @@ When any menu is open (captions, speed, quality, chapters, or caption style), yo
 
 - **Transcript Toggle** (<kbd>T</kbd>)  
   Shows or hides the interactive transcript panel (if available).
+
+- **Drag Mode** (<kbd>D</kbd>)  
+  Toggles keyboard drag mode for transcript or sign language windows. When enabled, use arrow keys to move the window around the screen.
+
+- **Resize Mode** (<kbd>R</kbd>)  
+  Toggles keyboard resize mode for transcript or sign language windows. When enabled, use arrow keys to adjust window size.
+
+- **Reset Position** (<kbd>Home</kbd>)  
+  Resets transcript or sign language window to its default center position.
 
 ## Accessibility Features
 

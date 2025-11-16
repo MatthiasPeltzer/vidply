@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VidPly - Universal Video Player Demo</title>
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-  <link rel="stylesheet" href="../dist/vidply.css?v=20241008-64">
+  <link rel="stylesheet" href="../dist/vidply.css">
   <style>
     * {
       box-sizing: border-box;
@@ -146,7 +146,7 @@
       text-align: center;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 767px) {
       h1 {
         font-size: 36px;
       }
@@ -197,6 +197,7 @@
           id="deadline-video"
           data-vidply
           data-audio-description-button="true"
+          data-transcript-button="true"
           width="800"
           height="450"
           poster="media/deadline_thumbnail.jpg"
@@ -223,6 +224,7 @@
         <pre><code class="language-html">&lt;video
   data-vidply
   data-audio-description-button=&quot;true&quot;
+  data-transcript-button=&quot;true&quot;
   poster=&quot;media/deadline_thumbnail.jpg&quot;&gt;
   &lt;source
     src=&quot;media/deadline.mp4&quot;
@@ -259,6 +261,7 @@
           data-sign-language-button="true"
           data-sign-language-position="bottom-right"
           data-audio-description-button="true"
+          data-transcript-button="true"
           width="800"
           height="450"
           poster="media/wwa_hq_thumbnail.jpg"
@@ -288,10 +291,12 @@
         <div class="code-block">
           <pre><code class="language-html">&lt;video
     data-vidply
-    data-sign-language-src=&quot;media/wwa_sign.mp4&quot;
+    data-sign-language-src-en=&quot;media/wwa_sign_en.mp4&quot;
+    data-sign-language-src-de=&quot;media/wwa_sign_de.mp4&quot;
     data-sign-language-button=&quot;true&quot;
     data-sign-language-position=&quot;bottom-right&quot;
     data-audio-description-button=&quot;true&quot;
+    data-transcript-button=&quot;true&quot;
     poster=&quot;media/wwa_hq_thumbnail.jpg&quot;&gt;
     &lt;source src=&quot;media/wwa.mp4&quot; type=&quot;video/mp4&quot; data-desc-src=&quot;media/wwa_described.mp4&quot; data-orig-src=&quot;media/wwa.mp4&quot; /&gt;
     &lt;source src=&quot;media/wwa.webm&quot; type=&quot;video/webm&quot; data-desc-src=&quot;media/wwa_described.webm&quot; data-orig-src=&quot;media/wwa.webm&quot; /&gt;
@@ -325,6 +330,7 @@
                 id="itaccess-video"
                 data-vidply
                 data-audio-description-button="true"
+                data-transcript-button="true"
                 width="800"
                 height="450"
                 poster="media/itaccess.jpg"
@@ -342,6 +348,7 @@
         <pre><code class="language-html">&lt;video
   data-vidply
   data-audio-description-button=&quot;true&quot;
+  data-transcript-button=&quot;true&quot;
   poster=&quot;media/itaccess.jpg&quot;&gt;
   &lt;source
     src=&quot;media/itaccess_excerpt.mp4&quot;
@@ -477,6 +484,7 @@
             <li>Color Options</li>
             <li>Background Opacity</li>
             <li>Chapters & Descriptions</li>
+            <li>Interactive Transcript Window</li>
           </ul>
         </div>
 
@@ -503,6 +511,9 @@
             <li>←/→ - Seek 10s</li>
             <li>J/L - Seek 30s</li>
             <li>C - Toggle Captions</li>
+            <li>T - Toggle Transcript</li>
+            <li>D - Drag Mode (Transcript/Sign)</li>
+            <li>R - Resize Mode (Transcript/Sign)</li>
           </ul>
         </div>
 

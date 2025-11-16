@@ -5,6 +5,34 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Responsive overflow menu for control bar when many buttons are present
+- Transcript-style caption display for audio players (accumulating captions with highlighting)
+- Drag and resize modes for transcript window with keyboard and mouse support
+- Drag and resize modes for sign language video window
+- Settings menus for transcript and sign language windows
+- Dynamic button text and ARIA labels that change based on active state
+
+### Changed
+- Updated mobile breakpoint from 640px to 768px consistently across all CSS and JavaScript
+- Mobile breakpoint logic now uses `< 768px` for mobile and `>= 768px` for desktop
+- Transcript window minimum width: 370px on desktop, 300px on mobile
+- Video transcript window also has minimum widths (same as audio)
+- Improved responsive design for mobile devices
+
+### Fixed
+- Transcript window resize functionality now properly shows resize handles and works with mouse
+- Sign language video resize functionality improved
+- Consistent breakpoint logic throughout the codebase
+
+### Documentation
+- Updated all documentation files with drag/resize features
+- Fixed mobile breakpoint references (640px → 768px)
+- Added comprehensive keyboard shortcut documentation for D and R keys
+- Enhanced transcript and sign language documentation with settings menu details
+
 ## [1.0.11] - 2025-11-15
 
 ### Added
