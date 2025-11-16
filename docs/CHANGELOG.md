@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dynamic button text and ARIA labels that change based on active state
 
 ### Changed
+- **Touch Support for Transcript and Sign Language Drag/Resize**: Enabled full touch support for dragging and resizing the transcript window and sign language video on touch devices (tablets, phones). The DraggableResizable utility now works seamlessly with touch gestures, allowing users to drag windows by touching the header and resize by touching the resize handles. This works in fullscreen mode on mobile and in all modes on tablets.
 - **Auto-Hide Controls in Landscape Fullscreen**: Controls now auto-hide in landscape fullscreen mode (like desktop), providing an immersive viewing experience. Touch/swipe the screen to show controls, and they'll auto-hide after inactivity. Controls remain always visible in portrait fullscreen mode (mobile layout).
 - **Simplified Volume Control on Touch Devices**: On touch devices (iOS, Android, tablets), the volume control now shows a simple mute/unmute button instead of a volume slider. Mobile devices control HTML5 video volume through hardware buttons, so only a mute toggle is needed for quick silencing. Desktop devices retain the full volume slider control. This provides better UX by offering quick mute functionality while avoiding broken slider controls on mobile.
 - Updated mobile breakpoint from 640px to 768px consistently across all CSS and JavaScript

@@ -5551,6 +5551,9 @@ var TranscriptManager = class {
       this.transcriptWindow.style.removeProperty("border-image-width");
       this.transcriptWindow.style.removeProperty("border-image-outset");
       this.transcriptWindow.style.removeProperty("border-image-repeat");
+      if (this.transcriptHeader) {
+        this.transcriptHeader.style.cursor = "move";
+      }
       if (this.transcriptWindow.parentNode !== this.player.container) {
         this.player.container.appendChild(this.transcriptWindow);
       }
@@ -5976,11 +5979,6 @@ var TranscriptManager = class {
    */
   setupDragAndDrop() {
     if (!this.transcriptHeader || !this.transcriptWindow) return;
-    const isMobile2 = window.innerWidth < 768;
-    const isFullscreen = this.player.state.fullscreen;
-    if (isMobile2 && !isFullscreen) {
-      return;
-    }
     this.draggableResizable = new DraggableResizable(this.transcriptWindow, {
       dragHandle: this.transcriptHeader,
       resizeHandles: this.transcriptResizeHandles,
