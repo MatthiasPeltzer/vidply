@@ -2956,6 +2956,8 @@ export class Player extends EventEmitter {
         this.signLanguageSettingsMenuJustOpened = false;
         this.signLanguageResizeOptionButton = null;
         this.signLanguageResizeOptionText = null;
+        this.signLanguageDragOptionButton = null;
+        this.signLanguageDragOptionText = null;
         this.signLanguageDocumentClickHandler = null;
         this.signLanguageDocumentClickHandlerAdded = false;
 
@@ -3206,6 +3208,8 @@ export class Player extends EventEmitter {
             if (!wasEnabled && isEnabled) {
                 this.enableSignLanguageMoveMode();
             }
+            // Update drag option state
+            this.updateSignLanguageDragOptionState();
         }
     }
 
@@ -3330,6 +3334,7 @@ export class Player extends EventEmitter {
             }
             // Reposition menu in case window was moved (async for repositioning)
             this.positionSignLanguageSettingsMenu();
+            this.updateSignLanguageDragOptionState();
             this.updateSignLanguageResizeOptionState();
             focusFirstMenuItem(this.signLanguageSettingsMenu, `.${this.options.classPrefix}-sign-language-settings-item`);
             return;
@@ -3345,19 +3350,24 @@ export class Player extends EventEmitter {
             classPrefix: this.options.classPrefix,
             itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
             icon: 'move',
-            label: 'transcript.keyboardDragMode',
+            label: 'player.enableSignDragMode',
+            hasTextClass: true,
             onClick: () => {
                 this.toggleSignLanguageKeyboardDragMode();
                 this.hideSignLanguageSettingsMenu();
             }
         });
+        keyboardDragOption.setAttribute('aria-pressed', 'false');
+        this.signLanguageDragOptionButton = keyboardDragOption;
+        this.signLanguageDragOptionText = keyboardDragOption.querySelector(`.${this.options.classPrefix}-settings-text`);
+        this.updateSignLanguageDragOptionState();
 
         // Resize option
         const resizeOption = createMenuItem({
             classPrefix: this.options.classPrefix,
             itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
             icon: 'resize',
-            label: 'transcript.resizeWindow',
+            label: 'player.enableSignResizeMode',
             hasTextClass: true,
             onClick: (event) => {
                 event.preventDefault();
@@ -3437,6 +3447,7 @@ export class Player extends EventEmitter {
         if (this.signLanguageSettingsButton) {
             this.signLanguageSettingsButton.setAttribute('aria-expanded', 'true');
         }
+        this.updateSignLanguageDragOptionState();
         this.updateSignLanguageResizeOptionState();
         
         // Focus first menu item
@@ -3574,19 +3585,47 @@ export class Player extends EventEmitter {
         );
     }
 
+    updateSignLanguageDragOptionState() {
+        if (!this.signLanguageDragOptionButton) {
+            return;
+        }
+        
+        const isEnabled = !!(this.signLanguageDraggable && this.signLanguageDraggable.keyboardDragMode);
+        const text = isEnabled
+            ? i18n.t('player.disableSignDragMode')
+            : i18n.t('player.enableSignDragMode');
+        const ariaLabel = isEnabled
+            ? i18n.t('player.disableSignDragModeAria')
+            : i18n.t('player.enableSignDragModeAria');
+
+        this.signLanguageDragOptionButton.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
+        this.signLanguageDragOptionButton.setAttribute('aria-label', ariaLabel);
+        this.signLanguageDragOptionButton.setAttribute('title', text);
+
+        if (this.signLanguageDragOptionText) {
+            this.signLanguageDragOptionText.textContent = text;
+        }
+    }
+
     updateSignLanguageResizeOptionState() {
         if (!this.signLanguageResizeOptionButton) {
             return;
         }
         
         const isEnabled = !!(this.signLanguageDraggable && this.signLanguageDraggable.pointerResizeMode);
-        const label = isEnabled
-            ? (i18n.t('transcript.disableResizeWindow') || 'Disable Resize Mode')
-            : i18n.t('transcript.resizeWindow') || 'Resize Window';
+        const text = isEnabled
+            ? i18n.t('player.disableSignResizeMode')
+            : i18n.t('player.enableSignResizeMode');
+        const ariaLabel = isEnabled
+            ? i18n.t('player.disableSignResizeModeAria')
+            : i18n.t('player.enableSignResizeModeAria');
 
         this.signLanguageResizeOptionButton.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
+        this.signLanguageResizeOptionButton.setAttribute('aria-label', ariaLabel);
+        this.signLanguageResizeOptionButton.setAttribute('title', text);
+
         if (this.signLanguageResizeOptionText) {
-            this.signLanguageResizeOptionText.textContent = label;
+            this.signLanguageResizeOptionText.textContent = text;
         }
     }
 

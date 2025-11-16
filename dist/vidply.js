@@ -1453,7 +1453,7 @@ var VidPly = (() => {
     }
     // Helper method to check if we're on a mobile device
     isMobile() {
-      return window.innerWidth < 640;
+      return window.innerWidth < 768;
     }
     // Smart menu positioning to avoid overflow
     positionMenu(menu, button, immediate = false) {
@@ -3418,7 +3418,7 @@ var VidPly = (() => {
     }
     setupOverflowDetection() {
       const checkOverflow = () => {
-        const isDesktop = window.innerWidth >= 640;
+        const isDesktop = window.innerWidth >= 768;
         const isTinyScreen = window.innerWidth < 360;
         if (!this.rightButtons || this.rightButtons.children.length === 0) {
           return;
@@ -3439,7 +3439,7 @@ var VidPly = (() => {
           }
           if (this.player.options.debug) {
             if (isDesktop) {
-              console.log("Desktop view (\u2265640px) - all buttons visible, overflow menu hidden");
+              console.log("Desktop view (\u2265768px) - all buttons visible, overflow menu hidden");
             } else {
               console.log("Tiny screen (<360px) - all buttons visible, overflow menu hidden");
             }
@@ -3461,7 +3461,7 @@ var VidPly = (() => {
         });
         const gapWidth = 8;
         totalWidth += (allButtons.length - 1) * gapWidth;
-        const isSmallScreen = window.innerWidth < 640;
+        const isSmallScreen = window.innerWidth < 768;
         const needsOverflow = totalWidth > availableWidth || isSmallScreen;
         if (this.player.options.debug) {
           console.log("Overflow detection:", {
@@ -3475,7 +3475,7 @@ var VidPly = (() => {
           });
         }
         if (needsOverflow) {
-          const isSmallScreen2 = window.innerWidth < 640;
+          const isSmallScreen2 = window.innerWidth < 768;
           const priorityAttr = isSmallScreen2 ? "overflowPriorityMobile" : "overflowPriority";
           if (this.player.options.debug) {
             console.log(`Using ${isSmallScreen2 ? "mobile" : "desktop"} priorities (width: ${window.innerWidth}px)`);
@@ -3721,8 +3721,8 @@ var VidPly = (() => {
       timeout = setTimeout(later, wait);
     };
   }
-  function isMobile(breakpoint = 640) {
-    return window.innerWidth <= breakpoint;
+  function isMobile(breakpoint = 768) {
+    return window.innerWidth < breakpoint;
   }
   function rafWithTimeout(callback, timeout = 100) {
     let called = false;
@@ -5346,7 +5346,7 @@ var VidPly = (() => {
       if (this.draggableResizable && this.draggableResizable.manuallyPositioned) {
         return;
       }
-      const isMobile2 = window.innerWidth < 640;
+      const isMobile2 = window.innerWidth < 768;
       const videoRect = this.player.videoWrapper.getBoundingClientRect();
       const isFullscreen = this.player.state.fullscreen;
       if (isMobile2 && !isFullscreen) {
@@ -5830,7 +5830,7 @@ var VidPly = (() => {
      */
     setupDragAndDrop() {
       if (!this.transcriptHeader || !this.transcriptWindow) return;
-      const isMobile2 = window.innerWidth < 640;
+      const isMobile2 = window.innerWidth < 768;
       const isFullscreen = this.player.state.fullscreen;
       if (isMobile2 && !isFullscreen) {
         return;
@@ -5849,7 +5849,12 @@ var VidPly = (() => {
         maxWidth: () => Math.max(320, window.innerWidth - 40),
         maxHeight: () => Math.max(200, window.innerHeight - 120),
         pointerResizeIndicatorText: i18n.t("transcript.resizeModeHint"),
-        onPointerResizeToggle: (enabled) => this.onPointerResizeModeChange(enabled),
+        onPointerResizeToggle: (enabled) => {
+          this.transcriptResizeHandles.forEach((handle) => {
+            handle.style.display = enabled ? "block" : "none";
+          });
+          this.onPointerResizeModeChange(enabled);
+        },
         onDragStart: (e) => {
           const ignoreSelectors = [
             `.${this.player.options.classPrefix}-transcript-close`,

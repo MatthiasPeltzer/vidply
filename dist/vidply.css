@@ -131,7 +131,7 @@
 }
 
 /* Mobile: Ensure player contains all elements properly */
-@media (width <= 640px) {
+@media (width < 768px) {
     .vidply-player {
         isolation: isolate; /* Create stacking context */
         overflow: visible; /* Allow menus to overflow but within bounds */
@@ -166,7 +166,7 @@
 }
 
 /* Mobile: Video element order and sizing */
-@media (width <= 640px) {
+@media (width < 768px) {
     .vidply-player video,
     .vidply-player audio {
         flex: 0 0 auto; /* Don't grow or shrink */
@@ -211,7 +211,7 @@
 }
 
 /* Mobile: Simplify video wrapper but keep captions contained */
-@media (width <= 640px) {
+@media (width < 768px) {
     .vidply-video-wrapper {
         display: block;
         height: auto;
@@ -305,7 +305,7 @@
 }
 
 /* Mobile: Controls underneath video */
-@media (width <= 640px) {
+@media (width < 768px) {
     .vidply-controls {
         background: var(--vidply-black-90);
         border-top: 1px solid var(--vidply-border-light);
@@ -592,7 +592,7 @@
 }
 
 /* Mobile: Don't use backdrop, menus position above buttons */
-@media (width <= 640px) {
+@media (width < 768px) {
     .vidply-menu-backdrop {
         display: none !important;
     }
@@ -962,6 +962,7 @@
     line-height: 1.6;
     max-height: 150px;
     max-width: 100%;
+    min-width: 370px;
     overflow-y: auto;
     padding: 16px 20px;
     position: relative;
@@ -997,14 +998,14 @@
 }
 
 /* Desktop only: Move captions up when controls are visible */
-@media (width >= 641px) {
+@media (width >= 768px) {
     .vidply-controls-visible .vidply-captions {
         bottom: 96px;
     }
 }
 
 /* Mobile: Caption positioning handled by JavaScript */
-@media (width <= 640px) {
+@media (width < 768px) {
     .vidply-captions {
         /* Bottom position set dynamically by JS based on control height */
         left: 50%;
@@ -1020,6 +1021,7 @@
         font-size: 14px;
         left: 0;
         max-height: 120px;
+        min-width: 300px;
         padding: 12px 16px;
         position: relative;
         transform: none;
@@ -1310,7 +1312,7 @@
 }
 
 /* Responsive Breakpoints */
-@media (width <= 640px) {
+@media (width < 768px) {
     .vidply-controls {
         padding: 16px 12px 12px;
     }
@@ -1751,6 +1753,7 @@
     display: none;
     flex-direction: column;
     max-width: 400px;
+    min-width: 370px;
     order: 4; /* After video-wrapper (1), track-info (2), and playlist-panel (3) */
     position: fixed;
     top: 0;
@@ -2766,24 +2769,8 @@
 
 /* Sign Language Resize Handles */
 .vidply-sign-resize-handle {
-    background: var(--vidply-white);
-    border: 1px solid var(--vidply-black-30);
-    border-radius: 50%;
-    height: 12px;
-    opacity: 0;
     position: absolute;
-    transition: opacity 0.2s ease, background 0.2s ease;
-    width: 12px;
     z-index: 10;
-}
-
-/* Only show resize handles when resize mode is active */
-.vidply-sign-resizable .vidply-sign-resize-handle {
-    opacity: 1;
-}
-
-.vidply-sign-resize-handle:hover {
-    background: var(--vidply-primary);
 }
 
 /* Corner handles - larger hit area */
@@ -2956,7 +2943,7 @@
 }
 
 /* Responsive Sign Language Video */
-@media (width <= 640px) {
+@media (width < 768px) {
     .vidply-sign-language-wrapper {
         min-width: 120px;
         width: 35%;
@@ -2969,7 +2956,7 @@
 }
 
 /* Responsive Adjustments */
-@media (width <= 640px) {
+@media (width < 768px) {
     .vidply-playlist-thumbnail {
         height: 34px;
         width: 60px;
@@ -2994,6 +2981,7 @@
         border-radius: 0;
         border-top: 1px solid var(--vidply-border-light);
         box-shadow: none;
+        min-width: 300px;
         order: 3; /* After controls (which are order: 2) */
         position: relative;
         width: 100%;
