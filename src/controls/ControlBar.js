@@ -35,6 +35,15 @@ export class ControlBar {
         return window.innerWidth < 768;
     }
 
+    // Helper method to detect touch devices
+    isTouchDevice() {
+        return (
+            ('ontouchstart' in window) ||
+            (navigator.maxTouchPoints > 0) ||
+            (navigator.msMaxTouchPoints > 0)
+        );
+    }
+
     // Smart menu positioning to avoid overflow
     positionMenu(menu, button, immediate = false) {
         const isMobile = this.isMobile();
@@ -568,7 +577,13 @@ export class ControlBar {
 
         // Volume control
         if (this.player.options.volumeControl) {
-            leftButtons.appendChild(this.createVolumeControl());
+            // On touch devices: simple mute button (hardware buttons control volume)
+            // On desktop: full volume control with slider
+            if (this.isTouchDevice()) {
+                leftButtons.appendChild(this.createMuteButton());
+            } else {
+                leftButtons.appendChild(this.createVolumeControl());
+            }
         }
 
         // Right buttons
@@ -1004,8 +1019,30 @@ export class ControlBar {
         return button;
     }
 
+    createMuteButton() {
+        // Simple mute/unmute button for touch devices
+        const muteButton = DOMUtils.createElement('button', {
+            className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-mute`,
+            attributes: {
+                'type': 'button',
+                'aria-label': i18n.t('player.mute')
+            }
+        });
+
+        muteButton.appendChild(createIconElement('volumeHigh'));
+
+        // Simply toggle mute on click/touch
+        muteButton.addEventListener('click', () => {
+            this.player.toggleMute();
+        });
+
+        this.controls.mute = muteButton;
+
+        return muteButton;
+    }
+
     createVolumeControl() {
-        // Mute/Volume button
+        // Mute/Volume button with slider (desktop)
         const muteButton = DOMUtils.createElement('button', {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-mute`,
             attributes: {
@@ -1024,13 +1061,6 @@ export class ControlBar {
         });
 
         muteButton.addEventListener('click', () => {
-            this.showVolumeSlider(muteButton);
-        });
-
-        // Touch support for mobile devices
-        muteButton.addEventListener('touchend', (e) => {
-            // Prevent the click event from firing after touchend
-            e.preventDefault();
             this.showVolumeSlider(muteButton);
         });
 
@@ -2778,9 +2808,12 @@ export class ControlBar {
     setupOverflowDetection() {
         // Check for overflow after layout is stable
         const checkOverflow = () => {
-            // Check screen size on every call
+            // Check screen size and orientation
             const isDesktop = window.innerWidth >= 768;
             const isTinyScreen = window.innerWidth < 360;
+            const isLandscape = window.innerHeight < window.innerWidth;
+            const isFullscreen = this.player.state.fullscreen;
+            const isLandscapeFullscreen = isLandscape && isFullscreen;
             
             if (!this.rightButtons || this.rightButtons.children.length === 0) {
                 return;
@@ -2795,8 +2828,17 @@ export class ControlBar {
                 return;
             }
 
+            // Special handling for landscape fullscreen on mobile
+            // In this mode, we always want overflow detection active even if width > 768px
+            if (isLandscapeFullscreen && !isDesktop) {
+                // Force overflow detection in landscape fullscreen mobile
+                if (this.player.options.debug) {
+                    console.log('Landscape fullscreen mobile - enabling overflow detection');
+                }
+                // Continue to overflow detection below (don't return early)
+            }
             // On desktop (≥768px) or tiny screens (<360px), show all buttons and hide overflow menu
-            if (isDesktop || isTinyScreen) {
+            else if (isDesktop || isTinyScreen) {
                 allButtons.forEach(btn => {
                     btn.dataset.inOverflow = 'false';
                     btn.style.display = '';
@@ -2841,7 +2883,7 @@ export class ControlBar {
 
             // Check if overflow is needed
             const isSmallScreen = window.innerWidth < 768;
-            const needsOverflow = totalWidth > availableWidth || isSmallScreen; // Always overflow on mobile
+            const needsOverflow = totalWidth > availableWidth || isSmallScreen || isLandscapeFullscreen; // Always overflow on mobile and landscape fullscreen
 
             // Debug logging
             if (this.player.options.debug) {

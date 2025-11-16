@@ -1515,6 +1515,10 @@ var ControlBar = class {
   isMobile() {
     return window.innerWidth < 768;
   }
+  // Helper method to detect touch devices
+  isTouchDevice() {
+    return "ontouchstart" in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+  }
   // Smart menu positioning to avoid overflow
   positionMenu(menu, button, immediate = false) {
     const isMobile2 = this.isMobile();
@@ -1894,7 +1898,11 @@ var ControlBar = class {
       leftButtons.appendChild(this.createForwardButton());
     }
     if (this.player.options.volumeControl) {
-      leftButtons.appendChild(this.createVolumeControl());
+      if (this.isTouchDevice()) {
+        leftButtons.appendChild(this.createMuteButton());
+      } else {
+        leftButtons.appendChild(this.createVolumeControl());
+      }
     }
     this.rightButtons = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-controls-right`
@@ -2223,6 +2231,21 @@ var ControlBar = class {
     });
     return button;
   }
+  createMuteButton() {
+    const muteButton = DOMUtils.createElement("button", {
+      className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-mute`,
+      attributes: {
+        "type": "button",
+        "aria-label": i18n.t("player.mute")
+      }
+    });
+    muteButton.appendChild(createIconElement("volumeHigh"));
+    muteButton.addEventListener("click", () => {
+      this.player.toggleMute();
+    });
+    this.controls.mute = muteButton;
+    return muteButton;
+  }
   createVolumeControl() {
     const muteButton = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-mute`,
@@ -2238,10 +2261,6 @@ var ControlBar = class {
       this.player.toggleMute();
     });
     muteButton.addEventListener("click", () => {
-      this.showVolumeSlider(muteButton);
-    });
-    muteButton.addEventListener("touchend", (e) => {
-      e.preventDefault();
       this.showVolumeSlider(muteButton);
     });
     this.controls.mute = muteButton;
@@ -3532,6 +3551,9 @@ var ControlBar = class {
     const checkOverflow = () => {
       const isDesktop = window.innerWidth >= 768;
       const isTinyScreen = window.innerWidth < 360;
+      const isLandscape = window.innerHeight < window.innerWidth;
+      const isFullscreen = this.player.state.fullscreen;
+      const isLandscapeFullscreen = isLandscape && isFullscreen;
       if (!this.rightButtons || this.rightButtons.children.length === 0) {
         return;
       }
@@ -3541,7 +3563,11 @@ var ControlBar = class {
       if (allButtons.length === 0) {
         return;
       }
-      if (isDesktop || isTinyScreen) {
+      if (isLandscapeFullscreen && !isDesktop) {
+        if (this.player.options.debug) {
+          console.log("Landscape fullscreen mobile - enabling overflow detection");
+        }
+      } else if (isDesktop || isTinyScreen) {
         allButtons.forEach((btn) => {
           btn.dataset.inOverflow = "false";
           btn.style.display = "";
@@ -3574,7 +3600,7 @@ var ControlBar = class {
       const gapWidth = 8;
       totalWidth += (allButtons.length - 1) * gapWidth;
       const isSmallScreen = window.innerWidth < 768;
-      const needsOverflow = totalWidth > availableWidth || isSmallScreen;
+      const needsOverflow = totalWidth > availableWidth || isSmallScreen || isLandscapeFullscreen;
       if (this.player.options.debug) {
         console.log("Overflow detection:", {
           containerWidth,

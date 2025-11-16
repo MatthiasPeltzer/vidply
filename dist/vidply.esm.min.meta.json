@@ -99,7 +99,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 119000,
+      "bytes": 120814,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -468,7 +468,7 @@
           "bytesInOutput": 222
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 50843
+          "bytesInOutput": 51449
         },
         "src/utils/StorageManager.js": {
           "bytesInOutput": 1606
@@ -495,10 +495,10 @@
           "bytesInOutput": 38421
         },
         "src/core/Player.js": {
-          "bytesInOutput": 72292
+          "bytesInOutput": 72290
         },
         "src/renderers/YouTubeRenderer.js": {
-          "bytesInOutput": 4140
+          "bytesInOutput": 4141
         },
         "src/renderers/VimeoRenderer.js": {
           "bytesInOutput": 4205
@@ -513,7 +513,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 269947
+      "bytes": 270552
     }
   }
 }
