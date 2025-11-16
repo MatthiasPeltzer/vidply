@@ -2286,6 +2286,7 @@ var ControlBar = class {
     };
     volumeSlider.addEventListener("mousedown", (e) => {
       e.stopPropagation();
+      e.preventDefault();
       this.isDraggingVolume = true;
       updateVolume(e.clientY);
     });
@@ -2295,6 +2296,28 @@ var ControlBar = class {
       }
     });
     document.addEventListener("mouseup", () => {
+      this.isDraggingVolume = false;
+    });
+    volumeSlider.addEventListener("touchstart", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      this.isDraggingVolume = true;
+      const touch = e.touches[0];
+      updateVolume(touch.clientY);
+    }, { passive: false });
+    volumeSlider.addEventListener("touchmove", (e) => {
+      if (this.isDraggingVolume) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        updateVolume(touch.clientY);
+      }
+    }, { passive: false });
+    volumeSlider.addEventListener("touchend", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      this.isDraggingVolume = false;
+    }, { passive: false });
+    volumeSlider.addEventListener("touchcancel", () => {
       this.isDraggingVolume = false;
     });
     volumeSlider.addEventListener("keydown", (e) => {
