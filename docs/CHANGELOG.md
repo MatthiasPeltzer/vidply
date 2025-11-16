@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dynamic button text and ARIA labels that change based on active state
 
 ### Changed
+- **Auto-Hide Controls in Landscape Fullscreen**: Controls now auto-hide in landscape fullscreen mode (like desktop), providing an immersive viewing experience. Touch/swipe the screen to show controls, and they'll auto-hide after inactivity. Controls remain always visible in portrait fullscreen mode (mobile layout).
 - **Simplified Volume Control on Touch Devices**: On touch devices (iOS, Android, tablets), the volume control now shows a simple mute/unmute button instead of a volume slider. Mobile devices control HTML5 video volume through hardware buttons, so only a mute toggle is needed for quick silencing. Desktop devices retain the full volume slider control. This provides better UX by offering quick mute functionality while avoiding broken slider controls on mobile.
 - Updated mobile breakpoint from 640px to 768px consistently across all CSS and JavaScript
 - Mobile breakpoint logic now uses `< 768px` for mobile and `>= 768px` for desktop
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved responsive design for mobile devices
 
 ### Fixed
+- **Mobile Fullscreen Landscape Controls Visibility**: Fixed right-side controls (overflow menu, fullscreen button, etc.) not appearing in landscape fullscreen mode. Ensured all control containers (controls-left, controls-right, controls-buttons) are properly displayed with correct flex layout in landscape.
 - **Mobile Fullscreen Landscape Overflow Menu**: Fixed overflow menu detection in landscape fullscreen mode. The overflow detection now properly recognizes landscape fullscreen state and ensures buttons/overflow menu work correctly even when viewport width exceeds 768px.
 - **iOS Fullscreen Mode**: Fixed fullscreen functionality on iPhone/iPad devices. Since iOS doesn't support the Fullscreen API on container elements, VidPly now automatically falls back to a "pseudo-fullscreen" mode that positions the player to fill the viewport using CSS. This provides a proper fullscreen experience on iOS while maintaining all player features.
 - **Mobile Fullscreen Orientation-Aware Controls**: Fixed controls positioning based on device orientation in fullscreen mode. In **landscape** orientation, controls now overlay on the video at the bottom. In **portrait** orientation, controls remain below the video (mobile layout). This provides the optimal viewing experience for each orientation.
