@@ -99,7 +99,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 94905,
+      "bytes": 95232,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -453,7 +453,7 @@
           "bytesInOutput": 222
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 42123
+          "bytesInOutput": 42263
         },
         "src/utils/StorageManager.js": {
           "bytesInOutput": 1606
@@ -495,7 +495,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 245329
+      "bytes": 245469
     }
   }
 }

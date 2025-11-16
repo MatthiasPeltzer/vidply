@@ -444,10 +444,23 @@ export class ControlBar {
     }
 
     createControls() {
+        // Progress bar and time display wrapper
+        const progressTimeWrapper = DOMUtils.createElement('div', {
+            className: `${this.player.options.classPrefix}-progress-time-wrapper`
+        });
+
         // Progress bar container
         if (this.player.options.progressBar) {
             this.createProgressBar();
+            progressTimeWrapper.appendChild(this.controls.progress);
         }
+
+        // Time display (right beside progress bar)
+        if (this.player.options.currentTime || this.player.options.duration) {
+            progressTimeWrapper.appendChild(this.createTimeDisplay());
+        }
+
+        this.element.appendChild(progressTimeWrapper);
 
         // Button container
         const buttonContainer = DOMUtils.createElement('div', {
@@ -490,11 +503,6 @@ export class ControlBar {
         // Volume control
         if (this.player.options.volumeControl) {
             leftButtons.appendChild(this.createVolumeControl());
-        }
-
-        // Time display
-        if (this.player.options.currentTime || this.player.options.duration) {
-            leftButtons.appendChild(this.createTimeDisplay());
         }
 
         // Right buttons
@@ -670,7 +678,6 @@ export class ControlBar {
         progressContainer.appendChild(this.controls.progressTooltip);
 
         this.controls.progress = progressContainer;
-        this.element.appendChild(progressContainer);
 
         // Progress bar events
         this.setupProgressBarEvents();

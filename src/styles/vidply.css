@@ -308,16 +308,24 @@
     }
 }
 
+/* Progress Bar and Time Wrapper */
+.vidply-progress-time-wrapper {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+    width: 100%;
+}
+
 /* Progress Bar */
 .vidply-progress-container {
     background: var(--vidply-white-20);
     border-radius: 3px;
     cursor: pointer;
+    flex: 1;
     height: 5px;
-    margin-bottom: 12px;
     position: relative;
     transition: height 0.2s ease;
-    width: 100%;
 }
 
 .vidply-progress-container:hover,
@@ -456,7 +464,7 @@
         background: Canvas;
         border-radius: 3px;
         color: CanvasText;
-        fill: currentColor;
+        fill: currentcolor;
         padding: 2px;
     }
 
@@ -467,7 +475,7 @@
         background: Canvas;
         border-radius: 2px;
         color: CanvasText;
-        fill: currentColor;
+        fill: currentcolor;
         padding: 2px;
     }
 }
@@ -522,11 +530,13 @@
     align-items: center;
     color: #fff;
     display: flex;
+    flex-shrink: 0;
     font-size: 13px;
     font-variant-numeric: tabular-nums;
     gap: 4px;
     padding: 0 4px;
     user-select: none;
+    white-space: nowrap;
 }
 
 /* Speed Button */
@@ -1152,23 +1162,6 @@
 @media (prefers-color-scheme: dark) {
     .vidply-settings-dialog {
         background: var(--vidply-bg-dialog-dark);
-    }
-}
-
-/* Touch Device Optimizations */
-@media (hover: none) and (pointer: coarse) {
-    .vidply-button {
-        min-height: 48px;
-        min-width: 48px;
-    }
-
-    .vidply-progress-container {
-        height: 10px;
-    }
-
-    .vidply-menu-item {
-        font-size: 16px;
-        padding: 16px 20px;
     }
 }
 
@@ -1831,15 +1824,15 @@
 /* Transcript Language Selector */
 .vidply-transcript-language-label {
     /* Visually hidden but accessible to screen readers */
-    position: absolute;
-    width: 1px;
+    border-width: 0;
+    clip: rect(0, 0, 0, 0);
     height: 1px;
-    padding: 0;
     margin: -1px;
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+    padding: 0;
+    position: absolute;
     white-space: nowrap;
-    border-width: 0;
+    width: 1px;
 }
 
 .vidply-transcript-language-select {
@@ -2420,15 +2413,15 @@
 
 .vidply-sign-language-label {
     /* Visually hidden but accessible to screen readers */
-    position: absolute;
-    width: 1px;
+    border-width: 0;
+    clip: rect(0, 0, 0, 0);
     height: 1px;
-    padding: 0;
     margin: -1px;
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+    padding: 0;
+    position: absolute;
     white-space: nowrap;
-    border-width: 0;
+    width: 1px;
 }
 
 .vidply-sign-language-select {

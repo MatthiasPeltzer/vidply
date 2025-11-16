@@ -1742,9 +1742,17 @@ var VidPly = (() => {
       });
     }
     createControls() {
+      const progressTimeWrapper = DOMUtils.createElement("div", {
+        className: `${this.player.options.classPrefix}-progress-time-wrapper`
+      });
       if (this.player.options.progressBar) {
         this.createProgressBar();
+        progressTimeWrapper.appendChild(this.controls.progress);
       }
+      if (this.player.options.currentTime || this.player.options.duration) {
+        progressTimeWrapper.appendChild(this.createTimeDisplay());
+      }
+      this.element.appendChild(progressTimeWrapper);
       const buttonContainer = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-controls-buttons`
       });
@@ -1769,9 +1777,6 @@ var VidPly = (() => {
       }
       if (this.player.options.volumeControl) {
         leftButtons.appendChild(this.createVolumeControl());
-      }
-      if (this.player.options.currentTime || this.player.options.duration) {
-        leftButtons.appendChild(this.createTimeDisplay());
       }
       this.rightButtons = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-controls-right`
@@ -1898,7 +1903,6 @@ var VidPly = (() => {
       this.controls.played.appendChild(this.controls.progressHandle);
       progressContainer.appendChild(this.controls.progressTooltip);
       this.controls.progress = progressContainer;
-      this.element.appendChild(progressContainer);
       this.setupProgressBarEvents();
     }
     setupProgressBarEvents() {
