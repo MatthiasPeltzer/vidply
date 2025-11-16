@@ -1153,6 +1153,19 @@ export class ControlBar {
         volumeMenu.addEventListener('click', (e) => {
             e.stopPropagation();
         });
+        
+        // Prevent menu from closing on touch events
+        volumeMenu.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+        });
+        
+        volumeMenu.addEventListener('touchmove', (e) => {
+            e.stopPropagation();
+        });
+        
+        volumeMenu.addEventListener('touchend', (e) => {
+            e.stopPropagation();
+        });
 
         // Position menu first (before it's visible) to prevent jumping
         volumeMenu.style.visibility = 'hidden';
