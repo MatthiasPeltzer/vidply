@@ -3386,13 +3386,18 @@ var ControlBar = class {
     };
     this.player.container.addEventListener("mousemove", showControls);
     this.player.container.addEventListener("touchstart", showControls);
+    this.player.container.addEventListener("touchmove", showControls);
     this.player.container.addEventListener("click", showControls);
+    this.player.container.addEventListener("tap", showControls);
     this.element.addEventListener("focusin", showControls);
     this.player.on("pause", () => {
       showControls();
       clearTimeout(this.hideTimeout);
     });
     this.player.on("play", () => {
+      showControls();
+    });
+    this.player.on("enterfullscreen", () => {
       showControls();
     });
     showControls();
