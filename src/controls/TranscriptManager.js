@@ -37,6 +37,8 @@ export class TranscriptManager {
     // Resize mode state
     this.resizeOptionButton = null;
     this.resizeOptionText = null;
+    this.dragOptionButton = null;
+    this.dragOptionText = null;
     this.resizeModeIndicator = null;
     this.resizeModeIndicatorTimeout = null;
     this.transcriptResizeHandles = [];
@@ -1119,7 +1121,14 @@ export class TranscriptManager {
       maxWidth: () => Math.max(320, window.innerWidth - 40),
       maxHeight: () => Math.max(200, window.innerHeight - 120),
       pointerResizeIndicatorText: i18n.t('transcript.resizeModeHint'),
-      onPointerResizeToggle: (enabled) => this.onPointerResizeModeChange(enabled),
+      onPointerResizeToggle: (enabled) => {
+        // Update resize handles visibility
+        this.transcriptResizeHandles.forEach(handle => {
+          handle.style.display = enabled ? 'block' : 'none';
+        });
+        // Call the state change handler
+        this.onPointerResizeModeChange(enabled);
+      },
       onDragStart: (e) => {
         // Don't drag if clicking on certain elements
         const ignoreSelectors = [
@@ -1211,6 +1220,9 @@ export class TranscriptManager {
         this.enableMoveMode();
       }
       
+      // Update drag option state
+      this.updateDragOptionState();
+      
       // Hide settings menu if open
       if (this.settingsMenuVisible) {
         this.hideSettingsMenu();
@@ -1272,12 +1284,17 @@ export class TranscriptManager {
       classPrefix: this.player.options.classPrefix,
       itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
       icon: 'move',
-      label: 'transcript.keyboardDragMode',
+      label: 'transcript.enableDragMode',
+      hasTextClass: true,
       onClick: () => {
         this.toggleKeyboardDragMode();
         this.hideSettingsMenu();
       }
     });
+    keyboardDragOption.setAttribute('aria-pressed', 'false');
+    this.dragOptionButton = keyboardDragOption;
+    this.dragOptionText = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
+    this.updateDragOptionState();
     
     // Style option
     const styleOption = createMenuItem({
@@ -1301,7 +1318,7 @@ export class TranscriptManager {
       classPrefix: this.player.options.classPrefix,
       itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
       icon: 'resize',
-      label: 'transcript.resizeWindow',
+      label: 'transcript.enableResizeMode',
       hasTextClass: true,
       onClick: (event) => {
         event.preventDefault();
@@ -1556,22 +1573,47 @@ export class TranscriptManager {
     return true;
   }
 
+  updateDragOptionState() {
+    if (!this.dragOptionButton) {
+      return;
+    }
+    
+    const isEnabled = !!(this.draggableResizable && this.draggableResizable.keyboardDragMode);
+    const text = isEnabled
+      ? i18n.t('transcript.disableDragMode')
+      : i18n.t('transcript.enableDragMode');
+    const ariaLabel = isEnabled
+      ? i18n.t('transcript.disableDragModeAria')
+      : i18n.t('transcript.enableDragModeAria');
+
+    this.dragOptionButton.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
+    this.dragOptionButton.setAttribute('aria-label', ariaLabel);
+    this.dragOptionButton.setAttribute('title', text);
+
+    if (this.dragOptionText) {
+      this.dragOptionText.textContent = text;
+    }
+  }
+
   updateResizeOptionState() {
     if (!this.resizeOptionButton) {
       return;
     }
     
     const isEnabled = !!(this.draggableResizable && this.draggableResizable.pointerResizeMode);
-    const label = isEnabled
-      ? (i18n.t('transcript.disableResizeWindow') || 'Disable Resize Mode')
-      : i18n.t('transcript.resizeWindow');
+    const text = isEnabled
+      ? i18n.t('transcript.disableResizeMode')
+      : i18n.t('transcript.enableResizeMode');
+    const ariaLabel = isEnabled
+      ? i18n.t('transcript.disableResizeModeAria')
+      : i18n.t('transcript.enableResizeModeAria');
 
     this.resizeOptionButton.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
-    this.resizeOptionButton.setAttribute('aria-label', label);
-    this.resizeOptionButton.setAttribute('title', label);
+    this.resizeOptionButton.setAttribute('aria-label', ariaLabel);
+    this.resizeOptionButton.setAttribute('title', text);
 
     if (this.resizeOptionText) {
-      this.resizeOptionText.textContent = label;
+      this.resizeOptionText.textContent = text;
     }
   }
 
