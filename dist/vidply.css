@@ -1335,6 +1335,12 @@
         display: inline-flex !important;
     }
     
+    /* Ensure buttons are positioned so menus can position relative to them */
+    .vidply-player.vidply-fullscreen .vidply-button,
+    .vidply-player:fullscreen .vidply-button {
+        position: relative !important;
+    }
+    
     /* Fix menu positioning - position relative to button, not centered */
     .vidply-player.vidply-fullscreen .vidply-menu,
     .vidply-player:fullscreen .vidply-menu {
@@ -1349,6 +1355,21 @@
     .vidply-player.vidply-fullscreen .vidply-menu-item,
     .vidply-player:fullscreen .vidply-menu-item {
         flex-direction: row !important; /* Items themselves are horizontal (icon + text) */
+    }
+    
+    /* Caption positioning in landscape fullscreen */
+    .vidply-player.vidply-fullscreen .vidply-captions,
+    .vidply-player:fullscreen .vidply-captions {
+        bottom: 16px !important;
+        transition: bottom 0.3s ease !important;
+    }
+    
+    /* Move captions up when controls are visible or paused */
+    .vidply-player.vidply-fullscreen.vidply-controls-visible .vidply-captions,
+    .vidply-player:fullscreen.vidply-controls-visible .vidply-captions,
+    .vidply-player.vidply-fullscreen.vidply-paused .vidply-captions,
+    .vidply-player:fullscreen.vidply-paused .vidply-captions {
+        bottom: 96px !important;
     }
     
     /* Center video in landscape fullscreen */
