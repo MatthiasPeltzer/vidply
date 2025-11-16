@@ -365,7 +365,15 @@ player.toggleFullscreen() // Toggle fullscreen
 
 ### Volume Control
 
-All sliders support both mouse and touch input for compatibility with desktop and mobile devices.
+```javascript
+player.setVolume(0.5)    // Set volume (0.0-1.0)
+player.getVolume()       // Get current volume
+player.mute()            // Mute audio
+player.unmute()          // Unmute audio
+player.toggleMute()      // Toggle mute state
+```
+
+**Note on Mobile Devices:** On touch devices (iOS, Android, tablets), only a **mute/unmute button** is shown instead of the volume slider. Mobile browsers control HTML5 video volume through **hardware device volume buttons** - this is standard behavior that cannot be overridden by web apps for security reasons. The mute button provides quick silencing functionality while hardware buttons control actual volume levels.
 
 ### Captions
 
