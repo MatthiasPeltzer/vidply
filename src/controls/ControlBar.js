@@ -2563,9 +2563,12 @@ export class ControlBar {
             }
         };
 
+        // Mouse and touch events to show controls
         this.player.container.addEventListener('mousemove', showControls);
         this.player.container.addEventListener('touchstart', showControls);
+        this.player.container.addEventListener('touchmove', showControls); // Also show on touch drag/swipe
         this.player.container.addEventListener('click', showControls);
+        this.player.container.addEventListener('tap', showControls); // Some mobile browsers use tap event
 
         // Show controls on focus
         this.element.addEventListener('focusin', showControls);
@@ -2577,6 +2580,11 @@ export class ControlBar {
         });
 
         this.player.on('play', () => {
+            showControls();
+        });
+
+        // Show controls when entering fullscreen (especially important for mobile landscape)
+        this.player.on('enterfullscreen', () => {
             showControls();
         });
 

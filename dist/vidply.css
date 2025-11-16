@@ -1234,6 +1234,17 @@
     background: #000;
 }
 
+/* Fix controls in fullscreen on mobile devices (especially landscape) */
+.vidply-player.vidply-fullscreen .vidply-controls,
+.vidply-player:fullscreen .vidply-controls {
+    position: absolute !important;
+    bottom: 0 !important;
+    order: 0 !important;
+    border-top: none !important;
+    background: linear-gradient(to top, var(--vidply-black-90) 0%, var(--vidply-black-50) 100%) !important;
+    padding: 20px 16px 16px !important;
+}
+
 /* Transcript in Fullscreen */
 .vidply-player.vidply-fullscreen .vidply-transcript-window,
 .vidply-player:fullscreen .vidply-transcript-window {
