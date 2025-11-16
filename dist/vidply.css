@@ -1320,6 +1320,18 @@
         display: inline-flex !important;
     }
     
+    /* Ensure menus display vertically in landscape fullscreen */
+    .vidply-player.vidply-fullscreen .vidply-menu,
+    .vidply-player:fullscreen .vidply-menu {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-menu-item,
+    .vidply-player:fullscreen .vidply-menu-item {
+        flex-direction: row !important; /* Items themselves are horizontal (icon + text) */
+    }
+    
     /* Center video in landscape fullscreen */
     .vidply-player.vidply-fullscreen .vidply-video-wrapper,
     .vidply-player:fullscreen .vidply-video-wrapper {

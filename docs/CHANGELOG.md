@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved responsive design for mobile devices
 
 ### Fixed
+- **Mobile Fullscreen Landscape Menu Layout**: Fixed menus (overflow, speed, captions, etc.) displaying horizontally instead of vertically in landscape fullscreen. Added explicit flex-direction: column to ensure menu items stack vertically like in portrait mode, while maintaining horizontal layout for icon+text within each menu item.
 - **Mobile Fullscreen Landscape Auto-Hide**: Fixed controls not auto-hiding in landscape fullscreen mode. Increased CSS specificity with !important rules to override mobile defaults, ensuring proper auto-hide behavior. Controls now hide after inactivity and show on touch/swipe.
 - **Mobile Fullscreen Landscape Video Centering**: Fixed video not being centered in landscape fullscreen. Added flex centering (align-items: center, justify-content: center) to video-wrapper and proper object-fit: contain to video element.
 - **Mobile Fullscreen Landscape Controls Visibility**: Fixed right-side controls (overflow menu, fullscreen button, etc.) not appearing in landscape fullscreen mode. Ensured all control containers and child buttons are properly displayed with display: flex and display: inline-flex rules.
