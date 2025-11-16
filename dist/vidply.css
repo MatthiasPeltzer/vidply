@@ -1341,15 +1341,15 @@
         position: relative !important;
     }
     
-    /* Fix menu positioning - position relative to button, not centered */
+    /* Fix menu positioning - ensure vertical layout and proper centering */
     .vidply-player.vidply-fullscreen .vidply-menu,
     .vidply-player:fullscreen .vidply-menu {
         display: flex !important;
         flex-direction: column !important;
-        /* Override mobile centering - position relative to button */
+        /* Keep default centered positioning above button */
         left: auto !important;
-        right: 0 !important;
-        transform: none !important;
+        right: 50% !important;
+        transform: translateX(50%) !important;
     }
     
     .vidply-player.vidply-fullscreen .vidply-menu-item,
