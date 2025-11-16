@@ -32,7 +32,7 @@ export class ControlBar {
 
     // Helper method to check if we're on a mobile device
     isMobile() {
-        return window.innerWidth < 640;
+        return window.innerWidth < 768;
     }
 
     // Smart menu positioning to avoid overflow
@@ -583,11 +583,11 @@ export class ControlBar {
         const hasAudioDescription = this.hasAudioDescription();
 
         // Priority order (lower number = higher priority, stays visible longer)
-        // Desktop (>640px):
+        // Desktop (>768px):
         //   Priority 1: Play, Volume, Captions, Speed, Fullscreen
         //   Priority 2: Audio Description, Quality  
         //   Priority 3: Chapters, Caption Style, Transcript, Sign Language, PiP
-        // Smaller screens (<640px):
+        // Smaller screens (<768px):
         //   Priority 1: Play, Volume, Progress (only left controls visible)
         //   Priority 3: ALL right-side buttons go to overflow menu
 
@@ -2706,7 +2706,7 @@ export class ControlBar {
         // Check for overflow after layout is stable
         const checkOverflow = () => {
             // Check screen size on every call
-            const isDesktop = window.innerWidth >= 640;
+            const isDesktop = window.innerWidth >= 768;
             const isTinyScreen = window.innerWidth < 360;
             
             if (!this.rightButtons || this.rightButtons.children.length === 0) {
@@ -2722,7 +2722,7 @@ export class ControlBar {
                 return;
             }
 
-            // On desktop (≥640px) or tiny screens (<360px), show all buttons and hide overflow menu
+            // On desktop (≥768px) or tiny screens (<360px), show all buttons and hide overflow menu
             if (isDesktop || isTinyScreen) {
                 allButtons.forEach(btn => {
                     btn.dataset.inOverflow = 'false';
@@ -2733,7 +2733,7 @@ export class ControlBar {
                 }
                 if (this.player.options.debug) {
                     if (isDesktop) {
-                        console.log('Desktop view (≥640px) - all buttons visible, overflow menu hidden');
+                        console.log('Desktop view (≥768px) - all buttons visible, overflow menu hidden');
                     } else {
                         console.log('Tiny screen (<360px) - all buttons visible, overflow menu hidden');
                     }
@@ -2767,7 +2767,7 @@ export class ControlBar {
             totalWidth += (allButtons.length - 1) * gapWidth;
 
             // Check if overflow is needed
-            const isSmallScreen = window.innerWidth < 640;
+            const isSmallScreen = window.innerWidth < 768;
             const needsOverflow = totalWidth > availableWidth || isSmallScreen; // Always overflow on mobile
 
             // Debug logging
@@ -2785,7 +2785,7 @@ export class ControlBar {
 
             if (needsOverflow) {
                 // Use responsive priorities based on screen size
-                const isSmallScreen = window.innerWidth < 640;
+                const isSmallScreen = window.innerWidth < 768;
                 const priorityAttr = isSmallScreen ? 'overflowPriorityMobile' : 'overflowPriority';
                 
                 if (this.player.options.debug) {

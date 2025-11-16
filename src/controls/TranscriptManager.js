@@ -455,7 +455,7 @@ export class TranscriptManager {
       return;
     }
     
-    const isMobile = window.innerWidth < 640;
+    const isMobile = window.innerWidth < 768;
     const videoRect = this.player.videoWrapper.getBoundingClientRect();
     
     // Check if player is in fullscreen mode
@@ -1097,7 +1097,7 @@ export class TranscriptManager {
     if (!this.transcriptHeader || !this.transcriptWindow) return;
 
     // Check if we're on mobile and not in fullscreen (no dragging in this case)
-    const isMobile = window.innerWidth < 640;
+    const isMobile = window.innerWidth < 768;
     const isFullscreen = this.player.state.fullscreen;
     
     if (isMobile && !isFullscreen) {

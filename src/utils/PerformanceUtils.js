@@ -39,11 +39,11 @@ export function throttle(func, limit = 100) {
 
 /**
  * Check if current viewport is mobile size
- * @param {number} breakpoint - Mobile breakpoint in pixels (default 640)
+ * @param {number} breakpoint - Mobile breakpoint in pixels (default 768)
  * @returns {boolean} True if mobile
  */
-export function isMobile(breakpoint = 640) {
-    return window.innerWidth <= breakpoint;
+export function isMobile(breakpoint = 768) {
+    return window.innerWidth < breakpoint;
 }
 
 /**
