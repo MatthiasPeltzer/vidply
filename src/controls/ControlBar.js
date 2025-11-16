@@ -2883,7 +2883,7 @@ export class ControlBar {
 
             // Check if overflow is needed
             const isSmallScreen = window.innerWidth < 768;
-            const needsOverflow = totalWidth > availableWidth || isSmallScreen || isLandscapeFullscreen; // Always overflow on mobile and landscape fullscreen
+            const needsOverflow = totalWidth > availableWidth || isSmallScreen || (isLandscapeFullscreen && !isDesktop); // Always overflow on mobile and mobile landscape fullscreen
 
             // Debug logging
             if (this.player.options.debug) {

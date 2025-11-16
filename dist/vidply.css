@@ -1335,28 +1335,6 @@
         display: inline-flex !important;
     }
     
-    /* Ensure buttons are positioned so menus can position relative to them */
-    .vidply-player.vidply-fullscreen .vidply-button,
-    .vidply-player:fullscreen .vidply-button {
-        position: relative !important;
-    }
-    
-    /* Fix menu positioning - ensure vertical layout and proper centering */
-    .vidply-player.vidply-fullscreen .vidply-menu,
-    .vidply-player:fullscreen .vidply-menu {
-        display: flex !important;
-        flex-direction: column !important;
-        /* Keep default centered positioning above button */
-        left: auto !important;
-        right: 50% !important;
-        transform: translateX(50%) !important;
-    }
-    
-    .vidply-player.vidply-fullscreen .vidply-menu-item,
-    .vidply-player:fullscreen .vidply-menu-item {
-        flex-direction: row !important; /* Items themselves are horizontal (icon + text) */
-    }
-    
     /* Caption positioning in landscape fullscreen */
     .vidply-player.vidply-fullscreen .vidply-captions,
     .vidply-player:fullscreen .vidply-captions {
