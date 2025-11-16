@@ -1446,8 +1446,8 @@ var VidPly = (() => {
     }
     // Smart menu positioning to avoid overflow
     positionMenu(menu, button, immediate = false) {
-      const isMobile = this.isMobile();
-      if (isMobile) {
+      const isMobile2 = this.isMobile();
+      if (isMobile2) {
         return;
       }
       const doPositioning = () => {
@@ -3367,6 +3367,33 @@ var VidPly = (() => {
     }
   };
 
+  // src/utils/PerformanceUtils.js
+  function debounce(func, wait = 100) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+  function isMobile(breakpoint = 640) {
+    return window.innerWidth <= breakpoint;
+  }
+  function rafWithTimeout(callback, timeout = 100) {
+    let called = false;
+    const execute = () => {
+      if (!called) {
+        called = true;
+        callback();
+      }
+    };
+    requestAnimationFrame(execute);
+    setTimeout(execute, timeout);
+  }
+
   // src/controls/CaptionManager.js
   var CaptionManager = class {
     constructor(player) {
@@ -3459,14 +3486,15 @@ var VidPly = (() => {
       this.player.on("captionschange", () => {
         this.updateStyles();
       });
-      window.addEventListener("resize", () => {
+      this.debouncedPositionCaptions = debounce(() => {
         this.positionCaptionsOnMobile();
-      });
+      }, 150);
+      window.addEventListener("resize", this.debouncedPositionCaptions);
       this.player.on("enterfullscreen", () => {
-        setTimeout(() => this.positionCaptionsOnMobile(), 100);
+        rafWithTimeout(() => this.positionCaptionsOnMobile(), 100);
       });
       this.player.on("exitfullscreen", () => {
-        setTimeout(() => this.positionCaptionsOnMobile(), 100);
+        rafWithTimeout(() => this.positionCaptionsOnMobile(), 100);
       });
     }
     enable(trackIndex = 0) {
@@ -3574,9 +3602,9 @@ var VidPly = (() => {
       if (!this.element || this.element.style.display === "none") {
         return;
       }
-      const isMobile = window.innerWidth <= 640;
       const isFullscreen = ((_a = this.player.state) == null ? void 0 : _a.fullscreen) || false;
-      if (!isMobile && !isFullscreen) {
+      const mobile = isMobile();
+      if (!mobile && !isFullscreen) {
         this.element.style.bottom = "";
         return;
       }
@@ -3594,11 +3622,9 @@ var VidPly = (() => {
         this.element.style.bottom = `${bottomOffset}px`;
         if (this.player.options.debug) {
           console.log("[VidPly] Caption position:", {
-            isMobile,
+            mobile,
             isFullscreen,
             controlsHeight: controlsRect.height,
-            controlsTop: controlsRect.top,
-            wrapperBottom: wrapperRect.bottom,
             bottomOffset: `${bottomOffset}px`
           });
         }
@@ -4955,10 +4981,10 @@ var VidPly = (() => {
       if (this.draggableResizable && this.draggableResizable.manuallyPositioned) {
         return;
       }
-      const isMobile = window.innerWidth < 640;
+      const isMobile2 = window.innerWidth < 640;
       const videoRect = this.player.videoWrapper.getBoundingClientRect();
       const isFullscreen = this.player.state.fullscreen;
-      if (isMobile && !isFullscreen) {
+      if (isMobile2 && !isFullscreen) {
         this.transcriptWindow.style.position = "relative";
         this.transcriptWindow.style.left = "0";
         this.transcriptWindow.style.right = "0";
@@ -5439,9 +5465,9 @@ var VidPly = (() => {
      */
     setupDragAndDrop() {
       if (!this.transcriptHeader || !this.transcriptWindow) return;
-      const isMobile = window.innerWidth < 640;
+      const isMobile2 = window.innerWidth < 640;
       const isFullscreen = this.player.state.fullscreen;
-      if (isMobile && !isFullscreen) {
+      if (isMobile2 && !isFullscreen) {
         return;
       }
       this.draggableResizable = new DraggableResizable(this.transcriptWindow, {
@@ -7192,25 +7218,26 @@ var VidPly = (() => {
         this.playButtonOverlay.style.pointerEvents = "auto";
         this.positionPlayOverlayOnMobile();
       });
-      window.addEventListener("resize", () => {
+      this.debouncedPositionPlayOverlay = debounce(() => {
         this.positionPlayOverlayOnMobile();
-      });
+      }, 150);
+      window.addEventListener("resize", this.debouncedPositionPlayOverlay);
       this.on("loadedmetadata", () => {
         this.positionPlayOverlayOnMobile();
       });
       this.on("enterfullscreen", () => {
-        setTimeout(() => this.positionPlayOverlayOnMobile(), 100);
+        rafWithTimeout(() => this.positionPlayOverlayOnMobile(), 100);
       });
       this.on("exitfullscreen", () => {
-        setTimeout(() => this.positionPlayOverlayOnMobile(), 100);
+        rafWithTimeout(() => this.positionPlayOverlayOnMobile(), 100);
       });
     }
     positionPlayOverlayOnMobile() {
-      if (!this.playButtonOverlay || !this.element.tagName === "VIDEO") {
+      if (!this.playButtonOverlay || this.element.tagName !== "VIDEO") {
         return;
       }
-      const isMobile = window.innerWidth <= 640;
-      if (!isMobile) {
+      const mobile = isMobile();
+      if (!mobile) {
         this.playButtonOverlay.style.top = "";
         return;
       }
