@@ -3398,7 +3398,7 @@ var VidPly = (() => {
       this.createElement();
       this.loadTracks();
       this.attachEvents();
-      if (this.player.options.captionsDefault && this.tracks.length > 0) {
+      if (this.player.options.captionsDefault && this.tracks.length > 0 && !this.currentTrack) {
         this.enable();
       }
     }
@@ -3416,18 +3416,36 @@ var VidPly = (() => {
     }
     loadTracks() {
       const textTracks = this.player.element.textTracks;
+      let defaultTrackIndex = -1;
       for (let i = 0; i < textTracks.length; i++) {
         const track = textTracks[i];
         if (track.kind === "subtitles" || track.kind === "captions") {
+          const trackElement = this.player.findTrackElement(track);
+          const isDefault = trackElement && trackElement.hasAttribute("default");
           this.tracks.push({
             track,
             language: track.language,
             label: track.label,
             kind: track.kind,
-            index: i
+            index: i,
+            isDefault
           });
-          track.mode = "hidden";
+          if (track.mode === "showing") {
+            track.mode = "hidden";
+          } else if (track.mode === "disabled") {
+            track.mode = "hidden";
+          } else {
+            track.mode = "hidden";
+          }
+          if (isDefault) {
+            defaultTrackIndex = this.tracks.length - 1;
+          }
         }
+      }
+      if (defaultTrackIndex >= 0) {
+        requestAnimationFrame(() => {
+          this.enable(defaultTrackIndex);
+        });
       }
     }
     attachEvents() {
@@ -3442,11 +3460,14 @@ var VidPly = (() => {
       if (this.tracks.length === 0) {
         return;
       }
-      if (this.currentTrack) {
+      if (this.currentTrack && this.currentTrack.track) {
+        if (this.cueChangeHandler) {
+          this.currentTrack.track.removeEventListener("cuechange", this.cueChangeHandler);
+        }
         this.currentTrack.track.mode = "hidden";
       }
       const selectedTrack = this.tracks[trackIndex];
-      if (selectedTrack) {
+      if (selectedTrack && selectedTrack.track) {
         selectedTrack.track.mode = "hidden";
         this.currentTrack = selectedTrack;
         this.player.state.captionsEnabled = true;
@@ -3457,6 +3478,32 @@ var VidPly = (() => {
           this.updateCaptions();
         };
         selectedTrack.track.addEventListener("cuechange", this.cueChangeHandler);
+        const ensureTrackReady = () => {
+          if (selectedTrack.track.readyState < 2) {
+            const onTrackLoad = () => {
+              selectedTrack.track.removeEventListener("load", onTrackLoad);
+              selectedTrack.track.removeEventListener("error", onTrackLoad);
+              requestAnimationFrame(() => {
+                if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
+                  this.updateCaptions();
+                }
+              });
+            };
+            selectedTrack.track.addEventListener("load", onTrackLoad, { once: true });
+            selectedTrack.track.addEventListener("error", onTrackLoad, { once: true });
+          } else {
+            requestAnimationFrame(() => {
+              if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
+                this.updateCaptions();
+              }
+            });
+          }
+        };
+        requestAnimationFrame(() => {
+          if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
+            ensureTrackReady();
+          }
+        });
         this.player.emit("captionsenabled", selectedTrack);
       }
     }
@@ -3472,10 +3519,23 @@ var VidPly = (() => {
       this.player.emit("captionsdisabled");
     }
     updateCaptions() {
-      if (!this.currentTrack) {
+      if (!this.currentTrack || !this.currentTrack.track) {
         return;
       }
+      if (this.currentTrack.track.mode === "disabled") {
+        this.currentTrack.track.mode = "hidden";
+      }
+      if (this.currentTrack.track.mode === "showing") {
+        this.currentTrack.track.mode = "hidden";
+      }
       if (!this.currentTrack.track.activeCues) {
+        if (this.currentTrack.track.cues && this.currentTrack.track.cues.length > 0) {
+          if (this.currentCue) {
+            this.element.innerHTML = "";
+            this.element.style.display = "none";
+            this.currentCue = null;
+          }
+        }
         return;
       }
       const activeCues = this.currentTrack.track.activeCues;
@@ -4563,6 +4623,16 @@ var VidPly = (() => {
       };
       this.handlers = {
         timeupdate: () => this.updateActiveEntry(),
+        audiodescriptionenabled: () => {
+          if (this.isVisible) {
+            this.loadTranscriptData();
+          }
+        },
+        audiodescriptiondisabled: () => {
+          if (this.isVisible) {
+            this.loadTranscriptData();
+          }
+        },
         resize: null,
         settingsClick: null,
         settingsKeydown: null,
@@ -4575,6 +4645,8 @@ var VidPly = (() => {
     init() {
       this.setupMetadataHandlingOnLoad();
       this.player.on("timeupdate", this.handlers.timeupdate);
+      this.player.on("audiodescriptionenabled", this.handlers.audiodescriptionenabled);
+      this.player.on("audiodescriptiondisabled", this.handlers.audiodescriptiondisabled);
       this.player.on("fullscreenchange", () => {
         if (this.isVisible) {
           if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
@@ -5030,7 +5102,8 @@ var VidPly = (() => {
         descriptionTrack = textTracks.find((track) => track.kind === "descriptions");
       }
       const metadataTrack = textTracks.find((track) => track.kind === "metadata");
-      if (!captionTrack && !descriptionTrack && !metadataTrack) {
+      const hasDescriptionTrack = descriptionTrack && this.player.state.audioDescriptionEnabled;
+      if (!captionTrack && !hasDescriptionTrack && !metadataTrack) {
         this.showNoTranscriptMessage();
         return;
       }
@@ -5068,7 +5141,7 @@ var VidPly = (() => {
           allCues.push({ cue, type: "caption" });
         });
       }
-      if (descriptionTrack && descriptionTrack.cues) {
+      if (descriptionTrack && descriptionTrack.cues && this.player.state.audioDescriptionEnabled) {
         Array.from(descriptionTrack.cues).forEach((cue) => {
           allCues.push({ cue, type: "description" });
         });
@@ -6002,6 +6075,12 @@ var VidPly = (() => {
       }
       if (this.handlers.timeupdate) {
         this.player.off("timeupdate", this.handlers.timeupdate);
+      }
+      if (this.handlers.audiodescriptionenabled) {
+        this.player.off("audiodescriptionenabled", this.handlers.audiodescriptionenabled);
+      }
+      if (this.handlers.audiodescriptiondisabled) {
+        this.player.off("audiodescriptiondisabled", this.handlers.audiodescriptiondisabled);
       }
       if (this.settingsButton) {
         if (this.handlers.settingsClick) {
@@ -6940,12 +7019,18 @@ var VidPly = (() => {
         if (this.options.startTime > 0) {
           this.seek(this.options.startTime);
         }
-        if (this.options.muted) {
-          this.mute();
-        }
-        if (this.options.volume !== 0.8) {
-          this.setVolume(this.options.volume);
-        }
+        requestAnimationFrame(() => {
+          if (this.options.muted) {
+            this.mute();
+          } else if (this.renderer && this.renderer.media) {
+            this.renderer.setMuted(false);
+          }
+          if (this.options.volume !== 0.8) {
+            this.setVolume(this.options.volume);
+          } else if (this.renderer && this.renderer.media) {
+            this.renderer.setVolume(this.options.volume);
+          }
+        });
         this.state.ready = true;
         this.emit("ready");
         if (this.options.onReady) {
@@ -7032,6 +7117,11 @@ var VidPly = (() => {
           this.hidePosterOverlay();
         }
       });
+      this.element.addEventListener("loadeddata", () => {
+        if (this.state.playing || this.state.currentTime > 0) {
+          this.hidePosterOverlay();
+        }
+      }, { once: true });
     }
     createPlayButtonOverlay() {
       this.playButtonOverlay = createPlayOverlay();
@@ -7400,6 +7490,10 @@ var VidPly = (() => {
       this.state.volume = newVolume;
       if (newVolume > 0 && this.state.muted) {
         this.state.muted = false;
+        if (this.renderer) {
+          this.renderer.setMuted(false);
+        }
+        this.emit("volumechange");
       }
       this.savePlayerPreferences();
     }
@@ -7542,6 +7636,54 @@ var VidPly = (() => {
         return false;
       }
     }
+    /**
+     * Strip VTT formatting tags from caption text
+     * @param {string} text - Caption text with VTT formatting
+     * @returns {string} Plain text without formatting
+     */
+    stripVTTFormatting(text) {
+      if (!text) return "";
+      return text.replace(/<[^>]+>/g, "").replace(/\n/g, " ").trim().toLowerCase();
+    }
+    /**
+     * Find matching caption time based on text content
+     * Useful for syncing between videos of different lengths (e.g., with/without audio description)
+     * @param {string} targetText - Caption text to search for
+     * @param {Array} tracks - Array of caption tracks to search in
+     * @returns {number|null} Start time of matching caption, or null if not found
+     */
+    findMatchingCaptionTime(targetText, tracks) {
+      if (!targetText || !tracks || tracks.length === 0) {
+        return null;
+      }
+      const normalizedTarget = this.stripVTTFormatting(targetText);
+      for (const trackInfo of tracks) {
+        if (trackInfo.kind !== "captions" && trackInfo.kind !== "subtitles") {
+          continue;
+        }
+        const track = trackInfo.track;
+        if (!track || !track.cues) {
+          continue;
+        }
+        for (let i = 0; i < track.cues.length; i++) {
+          const cue = track.cues[i];
+          const cueText = this.stripVTTFormatting(cue.text);
+          if (cueText === normalizedTarget) {
+            return cue.startTime;
+          }
+          const targetWords = normalizedTarget.split(/\s+/).filter((w) => w.length > 2);
+          const cueWords = cueText.split(/\s+/).filter((w) => w.length > 2);
+          if (targetWords.length > 0 && cueWords.length > 0) {
+            const matchingWords = targetWords.filter((word) => cueWords.includes(word));
+            const matchRatio = matchingWords.length / targetWords.length;
+            if (matchRatio >= 0.8) {
+              return cue.startTime;
+            }
+          }
+        }
+      }
+      return null;
+    }
     // Audio Description
     async enableAudioDescription() {
       const hasSourceElementsWithDesc = this.sourceElements.some((el) => el.getAttribute("data-desc-src"));
@@ -7550,9 +7692,17 @@ var VidPly = (() => {
         console.warn("VidPly: No audio description source, source elements, or tracks provided");
         return;
       }
-      const currentTime = this.state.currentTime;
+      const currentTime = this.element.currentTime;
       const wasPlaying = this.state.playing;
       const shouldKeepPoster = !wasPlaying && currentTime === 0;
+      let currentCaptionText = null;
+      if (this.captionManager && this.captionManager.currentTrack) {
+        const track = this.captionManager.currentTrack.track;
+        if (track && track.activeCues && track.activeCues.length > 0) {
+          const activeCue = track.activeCues[0];
+          currentCaptionText = this.stripVTTFormatting(activeCue.text);
+        }
+      }
       const posterValue = this.resolvePosterPath(
         this.element.getAttribute("poster") || this.element.poster || this.options.poster
       );
@@ -7641,59 +7791,61 @@ var VidPly = (() => {
               trackInfo.trackElement.remove();
             });
             this.element.load();
-            setTimeout(() => {
-              tracksToReadd.forEach(({ trackInfo, oldSrc, parent, nextSibling, attributes }) => {
-                swappedTracksForTranscript.push(trackInfo);
-                const newTrackElement = document.createElement("track");
-                newTrackElement.setAttribute("src", trackInfo.describedSrc);
-                Object.keys(attributes).forEach((attrName) => {
-                  if (attrName !== "src" && attrName !== "data-desc-src") {
-                    newTrackElement.setAttribute(attrName, attributes[attrName]);
-                  }
-                });
-                if (nextSibling && nextSibling.parentNode) {
-                  parent.insertBefore(newTrackElement, nextSibling);
-                } else {
-                  parent.appendChild(newTrackElement);
-                }
-                trackInfo.trackElement = newTrackElement;
-              });
-              this.element.load();
-              this.invalidateTrackCache();
-              const setupNewTracks = () => {
-                this.setManagedTimeout(() => {
-                  swappedTracksForTranscript.forEach((trackInfo) => {
-                    const trackElement = trackInfo.trackElement;
-                    const newTextTrack = trackElement.track;
-                    if (newTextTrack) {
-                      const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
-                      newTextTrack.mode = "hidden";
-                      const restoreMode = () => {
-                        if (modeInfo.wasShowing) {
-                          newTextTrack.mode = "hidden";
-                        } else if (modeInfo.wasHidden) {
-                          newTextTrack.mode = "hidden";
-                        } else {
-                          newTextTrack.mode = "disabled";
-                        }
-                      };
-                      if (newTextTrack.readyState >= 2) {
-                        restoreMode();
-                      } else {
-                        newTextTrack.addEventListener("load", restoreMode, { once: true });
-                        newTextTrack.addEventListener("error", restoreMode, { once: true });
-                      }
+            await new Promise((resolve) => {
+              setTimeout(() => {
+                tracksToReadd.forEach(({ trackInfo, oldSrc, parent, nextSibling, attributes }) => {
+                  swappedTracksForTranscript.push(trackInfo);
+                  const newTrackElement = document.createElement("track");
+                  newTrackElement.setAttribute("src", trackInfo.describedSrc);
+                  Object.keys(attributes).forEach((attrName) => {
+                    if (attrName !== "src" && attrName !== "data-desc-src") {
+                      newTrackElement.setAttribute(attrName, attributes[attrName]);
                     }
                   });
-                }, 300);
-              };
-              if (this.element.readyState >= 1) {
-                setTimeout(setupNewTracks, 200);
-              } else {
-                this.element.addEventListener("loadedmetadata", setupNewTracks, { once: true });
-                setTimeout(setupNewTracks, 2e3);
-              }
-            }, 100);
+                  if (nextSibling && nextSibling.parentNode) {
+                    parent.insertBefore(newTrackElement, nextSibling);
+                  } else {
+                    parent.appendChild(newTrackElement);
+                  }
+                  trackInfo.trackElement = newTrackElement;
+                });
+                this.invalidateTrackCache();
+                const setupNewTracks = () => {
+                  this.setManagedTimeout(() => {
+                    swappedTracksForTranscript.forEach((trackInfo) => {
+                      const trackElement = trackInfo.trackElement;
+                      const newTextTrack = trackElement.track;
+                      if (newTextTrack) {
+                        const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
+                        newTextTrack.mode = "hidden";
+                        const restoreMode = () => {
+                          if (modeInfo.wasShowing) {
+                            newTextTrack.mode = "hidden";
+                          } else if (modeInfo.wasHidden) {
+                            newTextTrack.mode = "hidden";
+                          } else {
+                            newTextTrack.mode = "disabled";
+                          }
+                        };
+                        if (newTextTrack.readyState >= 2) {
+                          restoreMode();
+                        } else {
+                          newTextTrack.addEventListener("load", restoreMode, { once: true });
+                          newTextTrack.addEventListener("error", restoreMode, { once: true });
+                        }
+                      }
+                    });
+                  }, 300);
+                };
+                if (this.element.readyState >= 1) {
+                  setTimeout(setupNewTracks, 200);
+                } else {
+                  this.element.addEventListener("loadedmetadata", setupNewTracks, { once: true });
+                  setTimeout(setupNewTracks, 2e3);
+                }
+                resolve();
+              }, 100);
+            });
             const skippedCount = validationResults.length - tracksToSwap.length;
           }
         }
@@ -7759,17 +7911,58 @@ var VidPly = (() => {
             this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
             resolve();
           };
-          this.element.addEventListener("loadedmetadata", onLoadedMetadata);
+          if (this.element.readyState >= 1) {
+            resolve();
+          } else {
+            this.element.addEventListener("loadedmetadata", onLoadedMetadata);
+          }
         });
         await new Promise((resolve) => setTimeout(resolve, 300));
-        if (currentTime > 0) {
-          this.seek(currentTime);
+        if (currentTime > 0 || wasPlaying) {
+          await new Promise((resolve) => {
+            const onCanPlay = () => {
+              this.element.removeEventListener("canplay", onCanPlay);
+              this.element.removeEventListener("canplaythrough", onCanPlay);
+              resolve();
+            };
+            if (this.element.readyState >= 3) {
+              resolve();
+            } else {
+              this.element.addEventListener("canplay", onCanPlay, { once: true });
+              this.element.addEventListener("canplaythrough", onCanPlay, { once: true });
+              setTimeout(() => {
+                this.element.removeEventListener("canplay", onCanPlay);
+                this.element.removeEventListener("canplaythrough", onCanPlay);
+                resolve();
+              }, 3e3);
+            }
+          });
+        }
+        let syncTime2 = currentTime;
+        if (currentCaptionText && this.captionManager && this.captionManager.tracks.length > 0) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          const matchingTime = this.findMatchingCaptionTime(currentCaptionText, this.captionManager.tracks);
+          if (matchingTime !== null) {
+            syncTime2 = matchingTime;
+            if (this.options.debug) {
+              console.log(`[VidPly] Syncing via caption: ${currentTime}s -> ${syncTime2}s`);
+            }
+          }
+        }
+        if (syncTime2 > 0) {
+          this.seek(syncTime2);
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
         if (wasPlaying) {
-          this.play();
-        }
-        if (!shouldKeepPoster) {
-          this.hidePosterOverlay();
+          await this.play();
+          this.setManagedTimeout(() => {
+            this.hidePosterOverlay();
+          }, 100);
+        } else {
+          this.pause();
+          if (!shouldKeepPoster) {
+            this.hidePosterOverlay();
+          }
         }
         if (!this._audioDescriptionDesiredState) {
           return;
@@ -7949,8 +8142,32 @@ var VidPly = (() => {
           this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
           resolve();
         };
-        this.element.addEventListener("loadedmetadata", onLoadedMetadata);
+        if (this.element.readyState >= 1) {
+          resolve();
+        } else {
+          this.element.addEventListener("loadedmetadata", onLoadedMetadata);
+        }
       });
+      if (currentTime > 0 || wasPlaying) {
+        await new Promise((resolve) => {
+          const onCanPlay = () => {
+            this.element.removeEventListener("canplay", onCanPlay);
+            this.element.removeEventListener("canplaythrough", onCanPlay);
+            resolve();
+          };
+          if (this.element.readyState >= 3) {
+            resolve();
+          } else {
+            this.element.addEventListener("canplay", onCanPlay, { once: true });
+            this.element.addEventListener("canplaythrough", onCanPlay, { once: true });
+            setTimeout(() => {
+              this.element.removeEventListener("canplay", onCanPlay);
+              this.element.removeEventListener("canplaythrough", onCanPlay);
+              resolve();
+            }, 3e3);
+          }
+        });
+      }
       if (this.element.tagName === "VIDEO" && currentTime === 0 && !wasPlaying) {
         if (this.element.readyState >= 1) {
           this.element.currentTime = 1e-3;
@@ -7959,11 +8176,31 @@ var VidPly = (() => {
           }, 10);
         }
       }
-      if (currentTime > 0) {
-        this.seek(currentTime);
+      let syncTime = currentTime;
+      if (currentCaptionText && this.captionManager && this.captionManager.tracks.length > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const matchingTime = this.findMatchingCaptionTime(currentCaptionText, this.captionManager.tracks);
+        if (matchingTime !== null) {
+          syncTime = matchingTime;
+          if (this.options.debug) {
+            console.log(`[VidPly] Syncing via caption: ${currentTime}s -> ${syncTime}s`);
+          }
+        }
+      }
+      if (syncTime > 0) {
+        this.seek(syncTime);
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
       if (wasPlaying) {
-        this.play();
+        await this.play();
+        this.setManagedTimeout(() => {
+          this.hidePosterOverlay();
+        }, 100);
+      } else {
+        this.pause();
+        if (!shouldKeepPoster) {
+          this.hidePosterOverlay();
+        }
       }
       if (swappedTracksForTranscript.length > 0 && this.captionManager) {
         const wasCaptionsEnabled = this.state.captionsEnabled;
@@ -7977,7 +8214,7 @@ var VidPly = (() => {
             };
           }
         }
-        setTimeout(() => {
+        const reloadTracks = () => {
           this.captionManager.tracks = [];
           this.captionManager.loadTracks();
           if (wasCaptionsEnabled && currentTrackInfo && this.captionManager.tracks.length > 0) {
@@ -7985,12 +8222,51 @@ var VidPly = (() => {
               (t) => t.language === currentTrackInfo.language && t.kind === currentTrackInfo.kind
             );
             if (matchingTrackIndex >= 0) {
-              this.captionManager.enable(matchingTrackIndex);
+              const trackToEnable = this.captionManager.tracks[matchingTrackIndex];
+              if (trackToEnable.track.readyState >= 2) {
+                this.captionManager.enable(matchingTrackIndex);
+              } else {
+                const onTrackLoad = () => {
+                  trackToEnable.track.removeEventListener("load", onTrackLoad);
+                  trackToEnable.track.removeEventListener("error", onTrackLoad);
+                  if (this.captionManager && this.captionManager.tracks.includes(trackToEnable)) {
+                    this.captionManager.enable(matchingTrackIndex);
+                  }
+                };
+                trackToEnable.track.addEventListener("load", onTrackLoad, { once: true });
+                trackToEnable.track.addEventListener("error", onTrackLoad, { once: true });
+                trackToEnable.track.mode = "hidden";
+                setTimeout(() => {
+                  if (this.captionManager && this.captionManager.tracks.includes(trackToEnable)) {
+                    this.captionManager.enable(matchingTrackIndex);
+                  }
+                }, 1e3);
+              }
             } else if (this.captionManager.tracks.length > 0) {
-              this.captionManager.enable(0);
+              const firstTrack = this.captionManager.tracks[0];
+              if (firstTrack.track.readyState >= 2) {
+                this.captionManager.enable(0);
+              } else {
+                const onTrackLoad = () => {
+                  firstTrack.track.removeEventListener("load", onTrackLoad);
+                  firstTrack.track.removeEventListener("error", onTrackLoad);
+                  if (this.captionManager && this.captionManager.tracks.includes(firstTrack)) {
+                    this.captionManager.enable(0);
+                  }
+                };
+                firstTrack.track.addEventListener("load", onTrackLoad, { once: true });
+                firstTrack.track.addEventListener("error", onTrackLoad, { once: true });
+                firstTrack.track.mode = "hidden";
+                setTimeout(() => {
+                  if (this.captionManager && this.captionManager.tracks.includes(firstTrack)) {
+                    this.captionManager.enable(0);
+                  }
+                }, 1e3);
+              }
             }
           }
-        }, 600);
+        };
+        setTimeout(reloadTracks, 600);
       }
       if (this.transcriptManager && this.transcriptManager.isVisible) {
         const swappedTracks = typeof swappedTracksForTranscript !== "undefined" ? swappedTracksForTranscript : [];
@@ -8137,16 +8413,69 @@ var VidPly = (() => {
       if (!this.originalSrc) {
         return;
       }
-      const currentTime = this.state.currentTime;
+      const currentTime = this.element.currentTime;
       const wasPlaying = this.state.playing;
+      let currentCaptionText = null;
+      if (this.captionManager && this.captionManager.currentTrack) {
+        const track = this.captionManager.currentTrack.track;
+        if (track && track.activeCues && track.activeCues.length > 0) {
+          const activeCue = track.activeCues[0];
+          currentCaptionText = this.stripVTTFormatting(activeCue.text);
+        }
+      }
       const posterValue = this.resolvePosterPath(
         this.element.getAttribute("poster") || this.element.poster || this.options.poster
       );
+      let swappedTracksForTranscript = [];
       if (this.audioDescriptionCaptionTracks.length > 0) {
-        this.audioDescriptionCaptionTracks.forEach((trackInfo) => {
-          if (trackInfo.trackElement && trackInfo.originalTrackSrc) {
-            trackInfo.trackElement.setAttribute("src", trackInfo.originalTrackSrc);
+        const tracksToRestore = this.audioDescriptionCaptionTracks.map((trackInfo) => {
+          const trackElement = trackInfo.trackElement;
+          if (!trackElement || !trackElement.parentNode) {
+            return null;
           }
+          const parent = trackElement.parentNode;
+          const nextSibling = trackElement.nextSibling;
+          const attributes = {};
+          Array.from(trackElement.attributes).forEach((attr) => {
+            attributes[attr.name] = attr.value;
+          });
+          return {
+            trackInfo,
+            parent,
+            nextSibling,
+            attributes
+          };
+        }).filter(Boolean);
+        tracksToRestore.forEach(({ trackInfo }) => {
+          if (trackInfo.trackElement && trackInfo.trackElement.parentNode) {
+            trackInfo.trackElement.remove();
+          }
+        });
+        this.element.load();
+        await new Promise((resolve) => {
+          setTimeout(() => {
+            tracksToRestore.forEach(({ trackInfo, parent, nextSibling, attributes }) => {
+              swappedTracksForTranscript.push(trackInfo);
+              const newTrackElement = document.createElement("track");
+              newTrackElement.setAttribute("src", trackInfo.originalTrackSrc);
+              Object.keys(attributes).forEach((attrName) => {
+                if (attrName !== "src" && attrName !== "data-desc-src") {
+                  newTrackElement.setAttribute(attrName, attributes[attrName]);
+                }
+              });
+              if (trackInfo.describedSrc) {
+                newTrackElement.setAttribute("data-desc-src", trackInfo.describedSrc);
+              }
+              if (nextSibling && nextSibling.parentNode) {
+                parent.insertBefore(newTrackElement, nextSibling);
+              } else {
+                parent.appendChild(newTrackElement);
+              }
+              trackInfo.trackElement = newTrackElement;
+            });
+            this.invalidateTrackCache();
+            resolve();
+          }, 100);
         });
       }
       const allSourceElements = this.sourceElements;
@@ -8213,25 +8542,128 @@ var VidPly = (() => {
         this.element.src = originalSrcToUse;
         this.element.load();
       }
+      await new Promise((resolve) => {
+        const onLoadedMetadata = () => {
+          this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
+          resolve();
+        };
+        if (this.element.readyState >= 1) {
+          resolve();
+        } else {
+          this.element.addEventListener("loadedmetadata", onLoadedMetadata);
+        }
+      });
       if (currentTime > 0 || wasPlaying) {
         await new Promise((resolve) => {
-          const onLoadedMetadata = () => {
-            this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
+          const onCanPlay = () => {
+            this.element.removeEventListener("canplay", onCanPlay);
+            this.element.removeEventListener("canplaythrough", onCanPlay);
             resolve();
           };
-          this.element.addEventListener("loadedmetadata", onLoadedMetadata);
+          if (this.element.readyState >= 3) {
+            resolve();
+          } else {
+            this.element.addEventListener("canplay", onCanPlay, { once: true });
+            this.element.addEventListener("canplaythrough", onCanPlay, { once: true });
+            setTimeout(() => {
+              this.element.removeEventListener("canplay", onCanPlay);
+              this.element.removeEventListener("canplaythrough", onCanPlay);
+              resolve();
+            }, 3e3);
+          }
         });
-        if (currentTime > 0) {
-          this.seek(currentTime);
-        }
-        if (wasPlaying) {
-          this.play();
+      }
+      let syncTime = currentTime;
+      if (currentCaptionText && this.captionManager && this.captionManager.tracks.length > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const matchingTime = this.findMatchingCaptionTime(currentCaptionText, this.captionManager.tracks);
+        if (matchingTime !== null) {
+          syncTime = matchingTime;
+          if (this.options.debug) {
+            console.log(`[VidPly] Syncing via caption: ${currentTime}s -> ${syncTime}s`);
+          }
         }
       }
-      if (!wasPlaying && currentTime === 0) {
-        this.showPosterOverlay();
-      } else {
+      if (syncTime > 0) {
+        this.seek(syncTime);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      if (wasPlaying) {
+        await this.play();
         this.hidePosterOverlay();
+      } else {
+        this.pause();
+        if (!wasPlaying && syncTime === 0) {
+          this.showPosterOverlay();
+        } else {
+          this.hidePosterOverlay();
+        }
+      }
+      if (swappedTracksForTranscript.length > 0 && this.captionManager) {
+        const wasCaptionsEnabled = this.state.captionsEnabled;
+        let currentTrackInfo = null;
+        if (this.captionManager.currentTrack) {
+          const currentTrackIndex = this.captionManager.tracks.findIndex((t) => t.track === this.captionManager.currentTrack.track);
+          if (currentTrackIndex >= 0) {
+            currentTrackInfo = {
+              language: this.captionManager.tracks[currentTrackIndex].language,
+              kind: this.captionManager.tracks[currentTrackIndex].kind
+            };
+          }
+        }
+        const reloadTracks = () => {
+          this.captionManager.tracks = [];
+          this.captionManager.loadTracks();
+          if (wasCaptionsEnabled && currentTrackInfo && this.captionManager.tracks.length > 0) {
+            const matchingTrackIndex = this.captionManager.tracks.findIndex(
+              (t) => t.language === currentTrackInfo.language && t.kind === currentTrackInfo.kind
+            );
+            if (matchingTrackIndex >= 0) {
+              const trackToEnable = this.captionManager.tracks[matchingTrackIndex];
+              if (trackToEnable.track.readyState >= 2) {
+                this.captionManager.enable(matchingTrackIndex);
+              } else {
+                const onTrackLoad = () => {
+                  trackToEnable.track.removeEventListener("load", onTrackLoad);
+                  trackToEnable.track.removeEventListener("error", onTrackLoad);
+                  if (this.captionManager && this.captionManager.tracks.includes(trackToEnable)) {
+                    this.captionManager.enable(matchingTrackIndex);
+                  }
+                };
+                trackToEnable.track.addEventListener("load", onTrackLoad, { once: true });
+                trackToEnable.track.addEventListener("error", onTrackLoad, { once: true });
+                trackToEnable.track.mode = "hidden";
+                setTimeout(() => {
+                  if (this.captionManager && this.captionManager.tracks.includes(trackToEnable)) {
+                    this.captionManager.enable(matchingTrackIndex);
+                  }
+                }, 1e3);
+              }
+            } else if (this.captionManager.tracks.length > 0) {
+              const firstTrack = this.captionManager.tracks[0];
+              if (firstTrack.track.readyState >= 2) {
+                this.captionManager.enable(0);
+              } else {
+                const onTrackLoad = () => {
+                  firstTrack.track.removeEventListener("load", onTrackLoad);
+                  firstTrack.track.removeEventListener("error", onTrackLoad);
+                  if (this.captionManager && this.captionManager.tracks.includes(firstTrack)) {
+                    this.captionManager.enable(0);
+                  }
+                };
+                firstTrack.track.addEventListener("load", onTrackLoad, { once: true });
+                firstTrack.track.addEventListener("error", onTrackLoad, { once: true });
+                firstTrack.track.mode = "hidden";
+                setTimeout(() => {
+                  if (this.captionManager && this.captionManager.tracks.includes(firstTrack)) {
+                    this.captionManager.enable(0);
+                  }
+                }, 1e3);
+              }
+            }
+          }
+        };
+        setTimeout(reloadTracks, 600);
       }
       if (this.transcriptManager && this.transcriptManager.isVisible) {
         this.setManagedTimeout(() => {

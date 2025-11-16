@@ -331,13 +331,23 @@ export class Player extends EventEmitter {
                 this.seek(this.options.startTime);
             }
 
-            if (this.options.muted) {
-                this.mute();
-            }
+            // Apply volume and mute settings after renderer is initialized
+            // Use requestAnimationFrame to ensure renderer is fully ready
+            requestAnimationFrame(() => {
+                if (this.options.muted) {
+                    this.mute();
+                } else if (this.renderer && this.renderer.media) {
+                    // Ensure media element is not muted if options say it shouldn't be
+                    this.renderer.setMuted(false);
+                }
 
-            if (this.options.volume !== 0.8) {
-                this.setVolume(this.options.volume);
-            }
+                if (this.options.volume !== 0.8) {
+                    this.setVolume(this.options.volume);
+                } else if (this.renderer && this.renderer.media) {
+                    // Ensure volume is set even if it's the default
+                    this.renderer.setVolume(this.options.volume);
+                }
+            });
 
             // Mark as ready
             this.state.ready = true;
@@ -466,14 +476,23 @@ export class Player extends EventEmitter {
         });
 
         this.on('play', () => {
+            // Hide poster immediately when playing
             this.hidePosterOverlay();
         });
 
         this.on('timeupdate', () => {
+            // Hide poster when video has started playing (currentTime > 0)
             if (this.state.currentTime > 0) {
                 this.hidePosterOverlay();
             }
         });
+
+        // Also hide poster on loadeddata event (when first frame is loaded)
+        this.element.addEventListener('loadeddata', () => {
+            if (this.state.playing || this.state.currentTime > 0) {
+                this.hidePosterOverlay();
+            }
+        }, { once: true });
     }
 
     createPlayButtonOverlay() {
@@ -959,8 +978,13 @@ export class Player extends EventEmitter {
         }
         this.state.volume = newVolume;
 
+        // If volume is increased above 0 and currently muted, unmute
         if (newVolume > 0 && this.state.muted) {
             this.state.muted = false;
+            if (this.renderer) {
+                this.renderer.setMuted(false);
+            }
+            this.emit('volumechange');
         }
         
         this.savePlayerPreferences();
@@ -1125,6 +1149,74 @@ export class Player extends EventEmitter {
         }
     }
 
+    /**
+     * Strip VTT formatting tags from caption text
+     * @param {string} text - Caption text with VTT formatting
+     * @returns {string} Plain text without formatting
+     */
+    stripVTTFormatting(text) {
+        if (!text) return '';
+        return text
+            .replace(/<[^>]+>/g, '') // Remove all HTML/VTT tags
+            .replace(/\n/g, ' ')      // Replace newlines with spaces
+            .trim()
+            .toLowerCase();           // Normalize to lowercase for comparison
+    }
+
+    /**
+     * Find matching caption time based on text content
+     * Useful for syncing between videos of different lengths (e.g., with/without audio description)
+     * @param {string} targetText - Caption text to search for
+     * @param {Array} tracks - Array of caption tracks to search in
+     * @returns {number|null} Start time of matching caption, or null if not found
+     */
+    findMatchingCaptionTime(targetText, tracks) {
+        if (!targetText || !tracks || tracks.length === 0) {
+            return null;
+        }
+
+        const normalizedTarget = this.stripVTTFormatting(targetText);
+        
+        // Search through all caption/subtitle tracks
+        for (const trackInfo of tracks) {
+            if (trackInfo.kind !== 'captions' && trackInfo.kind !== 'subtitles') {
+                continue;
+            }
+
+            const track = trackInfo.track;
+            if (!track || !track.cues) {
+                continue;
+            }
+
+            // Search through all cues in this track
+            for (let i = 0; i < track.cues.length; i++) {
+                const cue = track.cues[i];
+                const cueText = this.stripVTTFormatting(cue.text);
+                
+                // Check for exact match or very similar match (at least 80% of words match)
+                if (cueText === normalizedTarget) {
+                    return cue.startTime;
+                }
+                
+                // Fuzzy matching: check if most words match
+                const targetWords = normalizedTarget.split(/\s+/).filter(w => w.length > 2);
+                const cueWords = cueText.split(/\s+/).filter(w => w.length > 2);
+                
+                if (targetWords.length > 0 && cueWords.length > 0) {
+                    const matchingWords = targetWords.filter(word => cueWords.includes(word));
+                    const matchRatio = matchingWords.length / targetWords.length;
+                    
+                    // If 80% or more words match, consider it a match
+                    if (matchRatio >= 0.8) {
+                        return cue.startTime;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
     // Audio Description
     async enableAudioDescription() {
         // Check if we have source elements with data-desc-src (even if audioDescriptionSrc is not set)
@@ -1137,9 +1229,21 @@ export class Player extends EventEmitter {
         }
 
         // Store current playback state
-        const currentTime = this.state.currentTime;
+        // Use element.currentTime directly, not state, as state may not be up-to-date
+        const currentTime = this.element.currentTime;
         const wasPlaying = this.state.playing;
         const shouldKeepPoster = !wasPlaying && currentTime === 0;
+        
+        // Try to find the current caption text for synchronization
+        // This helps when switching between videos of different lengths
+        let currentCaptionText = null;
+        if (this.captionManager && this.captionManager.currentTrack) {
+            const track = this.captionManager.currentTrack.track;
+            if (track && track.activeCues && track.activeCues.length > 0) {
+                const activeCue = track.activeCues[0];
+                currentCaptionText = this.stripVTTFormatting(activeCue.text);
+            }
+        }
         
         // Store poster to preserve it during source swap
         // Convert relative paths to absolute URLs to prevent resolution issues
@@ -1277,87 +1381,89 @@ export class Player extends EventEmitter {
                     this.element.load();
                     
                     // Wait for browser to process the removal, then add new tracks
-                    setTimeout(() => {
-                        tracksToReadd.forEach(({ trackInfo, oldSrc, parent, nextSibling, attributes }) => {
-                            swappedTracksForTranscript.push(trackInfo);
-                            
-                            // Create a completely new track element (not a clone) to force browser to create new TextTrack
-                            const newTrackElement = document.createElement('track');
-                            newTrackElement.setAttribute('src', trackInfo.describedSrc);
-                            
-                            // Copy all attributes except src and data-desc-src
-                            Object.keys(attributes).forEach(attrName => {
-                                if (attrName !== 'src' && attrName !== 'data-desc-src') {
-                                    newTrackElement.setAttribute(attrName, attributes[attrName]);
-                                }
-                            });
-                            
-                            // Insert new track element
-                            if (nextSibling && nextSibling.parentNode) {
-                                parent.insertBefore(newTrackElement, nextSibling);
-                            } else {
-                                parent.appendChild(newTrackElement);
-                            }
-                            
-                            // Update reference to the new track element
-                            trackInfo.trackElement = newTrackElement;
-                        });
-                        
-                        // After all new tracks are added, force browser to reload media element again
-                        // This ensures new track elements are processed and new TextTrack objects are created
-                        this.element.load();
-                        this.invalidateTrackCache();
-                        
-                        // Wait for loadedmetadata event before accessing new TextTrack objects
-                        const setupNewTracks = () => {
-                            // Wait a bit more for browser to fully process the new track elements
-                            this.setManagedTimeout(() => {
-                                swappedTracksForTranscript.forEach((trackInfo) => {
-                                    const trackElement = trackInfo.trackElement;
-                                    const newTextTrack = trackElement.track;
-                                    
-                                    if (newTextTrack) {
-                                        // Get original mode from stored map
-                                        const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
-                                        
-                                        // Set mode to load the new track
-                                        newTextTrack.mode = 'hidden'; // Use hidden to load cues without showing
-                                        
-                                        // Restore original mode after track loads
-                                        // Note: CaptionManager will handle enabling captions separately
-                                        const restoreMode = () => {
-                                            if (modeInfo.wasShowing) {
-                                                // Set to hidden - CaptionManager will set it to showing when it enables
-                                                newTextTrack.mode = 'hidden';
-                                            } else if (modeInfo.wasHidden) {
-                                                newTextTrack.mode = 'hidden';
-                                            } else {
-                                                newTextTrack.mode = 'disabled';
-                                            }
-                                        };
-                                        
-                                        // Wait for track to load
-                                        if (newTextTrack.readyState >= 2) { // LOADED
-                                            restoreMode();
-                                        } else {
-                                            newTextTrack.addEventListener('load', restoreMode, { once: true });
-                                            newTextTrack.addEventListener('error', restoreMode, { once: true });
-                                        }
+                    // Use await to ensure this completes before continuing
+                    await new Promise(resolve => {
+                        setTimeout(() => {
+                            tracksToReadd.forEach(({ trackInfo, oldSrc, parent, nextSibling, attributes }) => {
+                                swappedTracksForTranscript.push(trackInfo);
+                                
+                                // Create a completely new track element (not a clone) to force browser to create new TextTrack
+                                const newTrackElement = document.createElement('track');
+                                newTrackElement.setAttribute('src', trackInfo.describedSrc);
+                                
+                                // Copy all attributes except src and data-desc-src
+                                Object.keys(attributes).forEach(attrName => {
+                                    if (attrName !== 'src' && attrName !== 'data-desc-src') {
+                                        newTrackElement.setAttribute(attrName, attributes[attrName]);
                                     }
                                 });
-                            }, 300); // Additional wait for browser to process track elements
-                        };
-                        
-                        // Wait for loadedmetadata event which fires when browser processes track elements
-                        if (this.element.readyState >= 1) { // HAVE_METADATA
-                            // Already loaded, wait a bit and setup
-                            setTimeout(setupNewTracks, 200);
-                        } else {
-                            this.element.addEventListener('loadedmetadata', setupNewTracks, { once: true });
-                            // Fallback timeout
-                            setTimeout(setupNewTracks, 2000);
-                        }
-                    }, 100); // Wait 100ms after first load() before adding new tracks
+                                
+                                // Insert new track element
+                                if (nextSibling && nextSibling.parentNode) {
+                                    parent.insertBefore(newTrackElement, nextSibling);
+                                } else {
+                                    parent.appendChild(newTrackElement);
+                                }
+                                
+                                // Update reference to the new track element
+                                trackInfo.trackElement = newTrackElement;
+                            });
+                            
+                            this.invalidateTrackCache();
+                            
+                            // Wait for loadedmetadata event before accessing new TextTrack objects
+                            const setupNewTracks = () => {
+                                // Wait a bit more for browser to fully process the new track elements
+                                this.setManagedTimeout(() => {
+                                    swappedTracksForTranscript.forEach((trackInfo) => {
+                                        const trackElement = trackInfo.trackElement;
+                                        const newTextTrack = trackElement.track;
+                                        
+                                        if (newTextTrack) {
+                                            // Get original mode from stored map
+                                            const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
+                                            
+                                            // Set mode to load the new track
+                                            newTextTrack.mode = 'hidden'; // Use hidden to load cues without showing
+                                            
+                                            // Restore original mode after track loads
+                                            // Note: CaptionManager will handle enabling captions separately
+                                            const restoreMode = () => {
+                                                if (modeInfo.wasShowing) {
+                                                    // Set to hidden - CaptionManager will set it to showing when it enables
+                                                    newTextTrack.mode = 'hidden';
+                                                } else if (modeInfo.wasHidden) {
+                                                    newTextTrack.mode = 'hidden';
+                                                } else {
+                                                    newTextTrack.mode = 'disabled';
+                                                }
+                                            };
+                                            
+                                            // Wait for track to load
+                                            if (newTextTrack.readyState >= 2) { // LOADED
+                                                restoreMode();
+                                            } else {
+                                                newTextTrack.addEventListener('load', restoreMode, { once: true });
+                                                newTextTrack.addEventListener('error', restoreMode, { once: true });
+                                            }
+                                        }
+                                    });
+                                }, 300); // Additional wait for browser to process track elements
+                            };
+                            
+                            // Wait for loadedmetadata event which fires when browser processes track elements
+                            if (this.element.readyState >= 1) { // HAVE_METADATA
+                                // Already loaded, wait a bit and setup
+                                setTimeout(setupNewTracks, 200);
+                            } else {
+                                this.element.addEventListener('loadedmetadata', setupNewTracks, { once: true });
+                                // Fallback timeout
+                                setTimeout(setupNewTracks, 2000);
+                            }
+                            
+                            resolve();
+                        }, 100);
+                    }); // Wait 100ms after first load() before adding new tracks
                     
                     const skippedCount = validationResults.length - tracksToSwap.length;
                 }
@@ -1442,29 +1548,87 @@ export class Player extends EventEmitter {
             // and also reload the track elements
             this.element.load();
             
-            // Wait for new source to load
+            // Wait for new source to load metadata
             await new Promise((resolve) => {
                 const onLoadedMetadata = () => {
                     this.element.removeEventListener('loadedmetadata', onLoadedMetadata);
                     resolve();
                 };
-                this.element.addEventListener('loadedmetadata', onLoadedMetadata);
+                
+                if (this.element.readyState >= 1) {
+                    // Metadata already loaded
+                    resolve();
+                } else {
+                    this.element.addEventListener('loadedmetadata', onLoadedMetadata);
+                }
             });
             
             // Wait a bit more for tracks to be recognized and loaded after video metadata loads
             await new Promise(resolve => setTimeout(resolve, 300));
 
+            // If we need to seek and/or play, wait for enough data to be loaded
+            if (currentTime > 0 || wasPlaying) {
+                await new Promise((resolve) => {
+                    const onCanPlay = () => {
+                        this.element.removeEventListener('canplay', onCanPlay);
+                        this.element.removeEventListener('canplaythrough', onCanPlay);
+                        resolve();
+                    };
+                    
+                    // Check if already ready
+                    if (this.element.readyState >= 3) { // HAVE_FUTURE_DATA or better
+                        resolve();
+                    } else {
+                        // Wait for canplay or canplaythrough
+                        this.element.addEventListener('canplay', onCanPlay, { once: true });
+                        this.element.addEventListener('canplaythrough', onCanPlay, { once: true });
+                        
+                        // Fallback timeout in case events don't fire
+                        setTimeout(() => {
+                            this.element.removeEventListener('canplay', onCanPlay);
+                            this.element.removeEventListener('canplaythrough', onCanPlay);
+                            resolve();
+                        }, 3000);
+                    }
+                });
+            }
+
+            // Try to find matching caption in the new track for better synchronization
+            let syncTime = currentTime;
+            if (currentCaptionText && this.captionManager && this.captionManager.tracks.length > 0) {
+                // Wait a bit for tracks to load
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Find the matching caption in the described video's track
+                const matchingTime = this.findMatchingCaptionTime(currentCaptionText, this.captionManager.tracks);
+                if (matchingTime !== null) {
+                    syncTime = matchingTime;
+                    if (this.options.debug) {
+                        console.log(`[VidPly] Syncing via caption: ${currentTime}s -> ${syncTime}s`);
+                    }
+                }
+            }
+
             // Restore playback position (avoid forcing first frame if still at start)
-            if (currentTime > 0) {
-                this.seek(currentTime);
+            if (syncTime > 0) {
+                this.seek(syncTime);
+                // Wait a bit for seek to complete
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
 
             if (wasPlaying) {
-                this.play();
-            }
-
-            if (!shouldKeepPoster) {
-                this.hidePosterOverlay();
+                await this.play();
+                // Hide poster when playing - use setTimeout to ensure play event has fired
+                this.setManagedTimeout(() => {
+                    this.hidePosterOverlay();
+                }, 100);
+            } else {
+                // Explicitly pause the video if it wasn't playing
+                // This ensures it's in a clean paused state after load()
+                this.pause();
+                if (!shouldKeepPoster) {
+                    this.hidePosterOverlay();
+                }
             }
 
             // Update state and emit event
@@ -1705,14 +1869,47 @@ export class Player extends EventEmitter {
             }
         }
 
-        // Wait for new source to load
+        // Wait for new source to load metadata
         await new Promise((resolve) => {
             const onLoadedMetadata = () => {
                 this.element.removeEventListener('loadedmetadata', onLoadedMetadata);
                 resolve();
             };
-            this.element.addEventListener('loadedmetadata', onLoadedMetadata);
+            
+            if (this.element.readyState >= 1) {
+                // Metadata already loaded
+                resolve();
+            } else {
+                this.element.addEventListener('loadedmetadata', onLoadedMetadata);
+            }
         });
+
+        // If we need to seek and/or play, wait for enough data to be loaded
+        if (currentTime > 0 || wasPlaying) {
+            await new Promise((resolve) => {
+                const onCanPlay = () => {
+                    this.element.removeEventListener('canplay', onCanPlay);
+                    this.element.removeEventListener('canplaythrough', onCanPlay);
+                    resolve();
+                };
+                
+                // Check if already ready
+                if (this.element.readyState >= 3) { // HAVE_FUTURE_DATA or better
+                    resolve();
+                } else {
+                    // Wait for canplay or canplaythrough
+                    this.element.addEventListener('canplay', onCanPlay, { once: true });
+                    this.element.addEventListener('canplaythrough', onCanPlay, { once: true });
+                    
+                    // Fallback timeout in case events don't fire
+                    setTimeout(() => {
+                        this.element.removeEventListener('canplay', onCanPlay);
+                        this.element.removeEventListener('canplaythrough', onCanPlay);
+                        resolve();
+                    }, 3000);
+                }
+            });
+        }
 
         // Hide poster if video hasn't started yet (poster should hide when we seek or play)
         if (this.element.tagName === 'VIDEO' && currentTime === 0 && !wasPlaying) {
@@ -1728,13 +1925,42 @@ export class Player extends EventEmitter {
             }
         }
 
+        // Try to find matching caption in the new track for better synchronization
+        let syncTime = currentTime;
+        if (currentCaptionText && this.captionManager && this.captionManager.tracks.length > 0) {
+            // Wait a bit for tracks to load
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Find the matching caption in the described video's track
+            const matchingTime = this.findMatchingCaptionTime(currentCaptionText, this.captionManager.tracks);
+            if (matchingTime !== null) {
+                syncTime = matchingTime;
+                if (this.options.debug) {
+                    console.log(`[VidPly] Syncing via caption: ${currentTime}s -> ${syncTime}s`);
+                }
+            }
+        }
+
         // Restore playback position (avoid forcing first frame if still at start)
-        if (currentTime > 0) {
-            this.seek(currentTime);
+        if (syncTime > 0) {
+            this.seek(syncTime);
+            // Wait a bit for seek to complete
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
 
         if (wasPlaying) {
-            this.play();
+            await this.play();
+            // Hide poster when playing - use setTimeout to ensure play event has fired
+            this.setManagedTimeout(() => {
+                this.hidePosterOverlay();
+            }, 100);
+        } else {
+            // Explicitly pause the video if it wasn't playing
+            // This ensures it's in a clean paused state after load()
+            this.pause();
+            if (!shouldKeepPoster) {
+                this.hidePosterOverlay();
+            }
         }
 
         // Reload CaptionManager tracks if tracks were swapped (so it has fresh references)
@@ -1752,8 +1978,9 @@ export class Player extends EventEmitter {
                 }
             }
             
-            // Wait a bit for new tracks to be available, then reload
-            setTimeout(() => {
+            // Wait for new tracks to be available and loaded, then reload
+            // Use a longer timeout and wait for track load events
+            const reloadTracks = () => {
                 // Reload tracks to get fresh references to new TextTrack objects
                 this.captionManager.tracks = [];
                 this.captionManager.loadTracks();
@@ -1766,13 +1993,59 @@ export class Player extends EventEmitter {
                     );
                     
                     if (matchingTrackIndex >= 0) {
-                        this.captionManager.enable(matchingTrackIndex);
+                        const trackToEnable = this.captionManager.tracks[matchingTrackIndex];
+                        // Wait for track to load its cues before enabling
+                        if (trackToEnable.track.readyState >= 2) {
+                            // Track is already loaded
+                            this.captionManager.enable(matchingTrackIndex);
+                        } else {
+                            // Wait for track to load
+                            const onTrackLoad = () => {
+                                trackToEnable.track.removeEventListener('load', onTrackLoad);
+                                trackToEnable.track.removeEventListener('error', onTrackLoad);
+                                if (this.captionManager && this.captionManager.tracks.includes(trackToEnable)) {
+                                    this.captionManager.enable(matchingTrackIndex);
+                                }
+                            };
+                            trackToEnable.track.addEventListener('load', onTrackLoad, { once: true });
+                            trackToEnable.track.addEventListener('error', onTrackLoad, { once: true });
+                            // Set mode to 'hidden' to trigger loading
+                            trackToEnable.track.mode = 'hidden';
+                            // Fallback timeout
+                            setTimeout(() => {
+                                if (this.captionManager && this.captionManager.tracks.includes(trackToEnable)) {
+                                    this.captionManager.enable(matchingTrackIndex);
+                                }
+                            }, 1000);
+                        }
                     } else if (this.captionManager.tracks.length > 0) {
                         // Fallback: enable first track
-                        this.captionManager.enable(0);
+                        const firstTrack = this.captionManager.tracks[0];
+                        if (firstTrack.track.readyState >= 2) {
+                            this.captionManager.enable(0);
+                        } else {
+                            const onTrackLoad = () => {
+                                firstTrack.track.removeEventListener('load', onTrackLoad);
+                                firstTrack.track.removeEventListener('error', onTrackLoad);
+                                if (this.captionManager && this.captionManager.tracks.includes(firstTrack)) {
+                                    this.captionManager.enable(0);
+                                }
+                            };
+                            firstTrack.track.addEventListener('load', onTrackLoad, { once: true });
+                            firstTrack.track.addEventListener('error', onTrackLoad, { once: true });
+                            firstTrack.track.mode = 'hidden';
+                            setTimeout(() => {
+                                if (this.captionManager && this.captionManager.tracks.includes(firstTrack)) {
+                                    this.captionManager.enable(0);
+                                }
+                            }, 1000);
+                        }
                     }
                 }
-            }, 600); // Wait for tracks to be processed
+            };
+            
+            // Wait for tracks to be processed by the browser
+            setTimeout(reloadTracks, 600);
         }
 
         // Reload transcript if visible (after video metadata loaded, tracks should be available)
@@ -1996,8 +2269,20 @@ export class Player extends EventEmitter {
         }
 
         // Store current playback state
-        const currentTime = this.state.currentTime;
+        // Use element.currentTime directly, not state, as state may not be up-to-date
+        const currentTime = this.element.currentTime;
         const wasPlaying = this.state.playing;
+        
+        // Try to find the current caption text for synchronization
+        // This helps when switching between videos of different lengths
+        let currentCaptionText = null;
+        if (this.captionManager && this.captionManager.currentTrack) {
+            const track = this.captionManager.currentTrack.track;
+            if (track && track.activeCues && track.activeCues.length > 0) {
+                const activeCue = track.activeCues[0];
+                currentCaptionText = this.stripVTTFormatting(activeCue.text);
+            }
+        }
         
         // Store poster to preserve it during source swap
         // Convert relative paths to absolute URLs to prevent resolution issues
@@ -2008,11 +2293,80 @@ export class Player extends EventEmitter {
         );
 
         // Swap caption/chapter tracks back to original versions BEFORE loading
+        // Store swapped tracks for transcript reload
+        let swappedTracksForTranscript = [];
         if (this.audioDescriptionCaptionTracks.length > 0) {
-            this.audioDescriptionCaptionTracks.forEach(trackInfo => {
-                if (trackInfo.trackElement && trackInfo.originalTrackSrc) {
-                    trackInfo.trackElement.setAttribute('src', trackInfo.originalTrackSrc);
+            // Store track information before removing
+            const tracksToRestore = this.audioDescriptionCaptionTracks.map((trackInfo) => {
+                const trackElement = trackInfo.trackElement;
+                if (!trackElement || !trackElement.parentNode) {
+                    return null;
                 }
+                
+                const parent = trackElement.parentNode;
+                const nextSibling = trackElement.nextSibling;
+                
+                // Store all attributes from the current track
+                const attributes = {};
+                Array.from(trackElement.attributes).forEach(attr => {
+                    attributes[attr.name] = attr.value;
+                });
+                
+                return {
+                    trackInfo,
+                    parent,
+                    nextSibling,
+                    attributes
+                };
+            }).filter(Boolean);
+            
+            // Remove all current track elements
+            tracksToRestore.forEach(({ trackInfo }) => {
+                if (trackInfo.trackElement && trackInfo.trackElement.parentNode) {
+                    trackInfo.trackElement.remove();
+                }
+            });
+            
+            // Force browser to process the removal
+            this.element.load();
+            
+            // Wait for browser to process the removal, then add original tracks back
+            // Use await instead of setTimeout to ensure this completes before continuing
+            await new Promise(resolve => {
+                setTimeout(() => {
+                    tracksToRestore.forEach(({ trackInfo, parent, nextSibling, attributes }) => {
+                        swappedTracksForTranscript.push(trackInfo);
+                        
+                        // Create a new track element with the original src
+                        const newTrackElement = document.createElement('track');
+                        newTrackElement.setAttribute('src', trackInfo.originalTrackSrc);
+                        
+                        // Copy all attributes except src and data-desc-src
+                        Object.keys(attributes).forEach(attrName => {
+                            if (attrName !== 'src' && attrName !== 'data-desc-src') {
+                                newTrackElement.setAttribute(attrName, attributes[attrName]);
+                            }
+                        });
+                        
+                        // Keep data-desc-src for future swaps
+                        if (trackInfo.describedSrc) {
+                            newTrackElement.setAttribute('data-desc-src', trackInfo.describedSrc);
+                        }
+                        
+                        // Insert new track element
+                        if (nextSibling && nextSibling.parentNode) {
+                            parent.insertBefore(newTrackElement, nextSibling);
+                        } else {
+                            parent.appendChild(newTrackElement);
+                        }
+                        
+                        // Update reference to the new track element
+                        trackInfo.trackElement = newTrackElement;
+                    });
+                    
+                    this.invalidateTrackCache();
+                    resolve();
+                }, 100);
             });
         }
         
@@ -2098,30 +2452,167 @@ export class Player extends EventEmitter {
             this.element.load();
         }
 
+        // Wait for new source to load metadata
+        await new Promise((resolve) => {
+            const onLoadedMetadata = () => {
+                this.element.removeEventListener('loadedmetadata', onLoadedMetadata);
+                resolve();
+            };
+            
+            if (this.element.readyState >= 1) {
+                // Metadata already loaded
+                resolve();
+            } else {
+                this.element.addEventListener('loadedmetadata', onLoadedMetadata);
+            }
+        });
+
+        // If we need to seek and/or play, wait for enough data to be loaded
         if (currentTime > 0 || wasPlaying) {
-            // Wait for new source to load
             await new Promise((resolve) => {
-                const onLoadedMetadata = () => {
-                    this.element.removeEventListener('loadedmetadata', onLoadedMetadata);
+                const onCanPlay = () => {
+                    this.element.removeEventListener('canplay', onCanPlay);
+                    this.element.removeEventListener('canplaythrough', onCanPlay);
                     resolve();
                 };
-                this.element.addEventListener('loadedmetadata', onLoadedMetadata);
+                
+                // Check if already ready
+                if (this.element.readyState >= 3) { // HAVE_FUTURE_DATA or better
+                    resolve();
+                } else {
+                    // Wait for canplay or canplaythrough
+                    this.element.addEventListener('canplay', onCanPlay, { once: true });
+                    this.element.addEventListener('canplaythrough', onCanPlay, { once: true });
+                    
+                    // Fallback timeout in case events don't fire
+                    setTimeout(() => {
+                        this.element.removeEventListener('canplay', onCanPlay);
+                        this.element.removeEventListener('canplaythrough', onCanPlay);
+                        resolve();
+                    }, 3000);
+                }
             });
+        }
 
-            if (currentTime > 0) {
-                this.seek(currentTime);
-            }
-
-            if (wasPlaying) {
-                this.play();
+        // Try to find matching caption in the new track for better synchronization
+        let syncTime = currentTime;
+        if (currentCaptionText && this.captionManager && this.captionManager.tracks.length > 0) {
+            // Wait a bit for tracks to load
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Find the matching caption in the regular video's track
+            const matchingTime = this.findMatchingCaptionTime(currentCaptionText, this.captionManager.tracks);
+            if (matchingTime !== null) {
+                syncTime = matchingTime;
+                if (this.options.debug) {
+                    console.log(`[VidPly] Syncing via caption: ${currentTime}s -> ${syncTime}s`);
+                }
             }
         }
 
-        if (!wasPlaying && currentTime === 0) {
-            this.showPosterOverlay();
-        } else {
+        if (syncTime > 0) {
+            this.seek(syncTime);
+            // Wait a bit for seek to complete
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        if (wasPlaying) {
+            await this.play();
             this.hidePosterOverlay();
+        } else {
+            // Explicitly pause the video if it wasn't playing
+            // This ensures it's in a clean paused state after load()
+            this.pause();
+            if (!wasPlaying && syncTime === 0) {
+                this.showPosterOverlay();
+            } else {
+                this.hidePosterOverlay();
+            }
         }
+
+            // Reload CaptionManager tracks if tracks were swapped (so it has fresh references)
+            if (swappedTracksForTranscript.length > 0 && this.captionManager) {
+                // Store if captions were enabled and which track
+                const wasCaptionsEnabled = this.state.captionsEnabled;
+                let currentTrackInfo = null;
+                if (this.captionManager.currentTrack) {
+                    const currentTrackIndex = this.captionManager.tracks.findIndex(t => t.track === this.captionManager.currentTrack.track);
+                    if (currentTrackIndex >= 0) {
+                        currentTrackInfo = {
+                            language: this.captionManager.tracks[currentTrackIndex].language,
+                            kind: this.captionManager.tracks[currentTrackIndex].kind
+                        };
+                    }
+                }
+                
+                // Wait for tracks to be processed by the browser
+                const reloadTracks = () => {
+                    // Reload tracks to get fresh references to new TextTrack objects
+                    this.captionManager.tracks = [];
+                    this.captionManager.loadTracks();
+                    
+                    // Re-enable captions if they were enabled before
+                    if (wasCaptionsEnabled && currentTrackInfo && this.captionManager.tracks.length > 0) {
+                        // Find the track by language and kind to match the swapped track
+                        const matchingTrackIndex = this.captionManager.tracks.findIndex(t => 
+                            t.language === currentTrackInfo.language && t.kind === currentTrackInfo.kind
+                        );
+                        
+                        if (matchingTrackIndex >= 0) {
+                            const trackToEnable = this.captionManager.tracks[matchingTrackIndex];
+                            // Wait for track to load its cues before enabling
+                            if (trackToEnable.track.readyState >= 2) {
+                                // Track is already loaded
+                                this.captionManager.enable(matchingTrackIndex);
+                            } else {
+                                // Wait for track to load
+                                const onTrackLoad = () => {
+                                    trackToEnable.track.removeEventListener('load', onTrackLoad);
+                                    trackToEnable.track.removeEventListener('error', onTrackLoad);
+                                    if (this.captionManager && this.captionManager.tracks.includes(trackToEnable)) {
+                                        this.captionManager.enable(matchingTrackIndex);
+                                    }
+                                };
+                                trackToEnable.track.addEventListener('load', onTrackLoad, { once: true });
+                                trackToEnable.track.addEventListener('error', onTrackLoad, { once: true });
+                                // Set mode to 'hidden' to trigger loading
+                                trackToEnable.track.mode = 'hidden';
+                                // Fallback timeout
+                                setTimeout(() => {
+                                    if (this.captionManager && this.captionManager.tracks.includes(trackToEnable)) {
+                                        this.captionManager.enable(matchingTrackIndex);
+                                    }
+                                }, 1000);
+                            }
+                        } else if (this.captionManager.tracks.length > 0) {
+                            // Fallback: enable first track
+                            const firstTrack = this.captionManager.tracks[0];
+                            if (firstTrack.track.readyState >= 2) {
+                                this.captionManager.enable(0);
+                            } else {
+                                const onTrackLoad = () => {
+                                    firstTrack.track.removeEventListener('load', onTrackLoad);
+                                    firstTrack.track.removeEventListener('error', onTrackLoad);
+                                    if (this.captionManager && this.captionManager.tracks.includes(firstTrack)) {
+                                        this.captionManager.enable(0);
+                                    }
+                                };
+                                firstTrack.track.addEventListener('load', onTrackLoad, { once: true });
+                                firstTrack.track.addEventListener('error', onTrackLoad, { once: true });
+                                firstTrack.track.mode = 'hidden';
+                                setTimeout(() => {
+                                    if (this.captionManager && this.captionManager.tracks.includes(firstTrack)) {
+                                        this.captionManager.enable(0);
+                                    }
+                                }, 1000);
+                            }
+                        }
+                    }
+                };
+                
+                // Wait for tracks to be processed by the browser
+                setTimeout(reloadTracks, 600);
+            }
 
             // Reload transcript if visible (after video metadata loaded, tracks should be available)
             // Reload regardless of whether caption tracks were swapped, in case tracks changed

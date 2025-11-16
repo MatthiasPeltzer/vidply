@@ -211,7 +211,7 @@
           <track kind="captions" src="media/deadline_captions_hi.vtt" srclang="hi" label="हिन्दी">
           <track kind="descriptions" src="media/deadline_descriptions_en.vtt" srclang="en" label="English Descriptions">
           <track kind="descriptions" src="media/deadline_descriptions_es.vtt" srclang="es" label="Español Descriptions">
-          <track kind="descriptions" src="media/deadline_descriptions_it.vtt" srclang="it" label="Italiano Descriptions">
+          <track kind="descriptions" src="media/deadline_descriptions_it" srclang="it" label="Italiano Descriptions">
           <track kind="descriptions" src="media/deadline_descriptions_pt-br.vtt" srclang="pt-BR" label="Português (Brasil) Descriptions">
           <track kind="descriptions" src="media/deadline_descriptions_ar.vtt" srclang="ar" label="العربية Descriptions">
           <track kind="descriptions" src="media/deadline_descriptions_hi.vtt" srclang="hi" label="हिन्दी Descriptions">
@@ -320,23 +320,23 @@
       <h2>Video Demo – IT Accessibility Source Swap</h2>
       <p>IT Accessibility excerpt illustrating how data-desc-src swaps the media and related caption/chapter tracks to deliver a fully described playback while keeping bilingual subtitles available.</p>
       
-      <div class="player-container">
-        <video 
-          id="itaccess-video"
-          data-vidply
-          data-audio-description-button="true"
-          width="800"
-          height="450"
-          poster="media/itaccess.jpg"
-          preload="metadata"
+    <div class="player-container">
+        <video
+                id="itaccess-video"
+                data-vidply
+                data-audio-description-button="true"
+                width="800"
+                height="450"
+                poster="media/itaccess.jpg"
+                preload="metadata"
         >
-          <source src="media/itaccess_excerpt.mp4" type="video/mp4" data-desc-src="media/itaccess_excerpt_described.mp4" data-orig-src="media/itaccess_excerpt.mp4">
-          <track kind="captions" src="media/itaccess_excerpt_captions_en.vtt" data-desc-src="media/itaccess_excerpt_described_captions_en.vtt" srclang="en" label="English" default>
-          <track kind="subtitles" src="media/itaccess_excerpt_subtitles_es.vtt" srclang="es" label="Español">
-          <track kind="chapters" src="media/itaccess_excerpt_chapters_en.vtt" data-desc-src="media/itaccess_excerpt_described_chapters_en.vtt" srclang="en" label="Chapters">
-          Your browser does not support the video tag.
+            <source src="media/itaccess_excerpt.mp4" type="video/mp4" data-desc-src="media/itaccess_excerpt_described.mp4" data-orig-src="media/itaccess_excerpt.mp4">
+            <track kind="captions" src="media/itaccess_excerpt_captions_en.vtt" data-desc-src="media/itaccess_excerpt_described_captions_en.vtt" srclang="en" label="English" default>
+            <track kind="chapters" src="media/itaccess_excerpt_chapters_en.vtt" data-desc-src="media/itaccess_excerpt_described_chapters_en.vtt" srclang="en" label="English Chapters">
+            <track kind="subtitles" src="media/itaccess_excerpt_subtitles_es.vtt" srclang="es" label="Español">
+            Your browser does not support the video tag.
         </video>
-      </div>
+    </div>
 
       <div class="code-block">
         <pre><code class="language-html">&lt;video
