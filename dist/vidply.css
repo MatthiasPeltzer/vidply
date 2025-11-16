@@ -1259,6 +1259,38 @@
         background: linear-gradient(to top, var(--vidply-black-90) 0%, var(--vidply-black-50) 100%) !important;
         padding: 20px 16px 16px !important;
         z-index: 20 !important; /* Ensure controls are above video */
+        
+        /* Enable auto-hide in landscape (like desktop) */
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    
+    /* Show controls on hover, touch, visible class, or when paused */
+    .vidply-player.vidply-fullscreen .vidply-controls.vidply-controls-visible,
+    .vidply-player:fullscreen .vidply-controls.vidply-controls-visible,
+    .vidply-player.vidply-fullscreen:hover .vidply-controls,
+    .vidply-player:fullscreen:hover .vidply-controls,
+    .vidply-player.vidply-fullscreen.vidply-paused .vidply-controls,
+    .vidply-player:fullscreen.vidply-paused .vidply-controls {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+    
+    /* Ensure button containers are visible and properly laid out */
+    .vidply-player.vidply-fullscreen .vidply-controls-buttons,
+    .vidply-player:fullscreen .vidply-controls-buttons {
+        display: flex !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-controls-left,
+    .vidply-player:fullscreen .vidply-controls-left,
+    .vidply-player.vidply-fullscreen .vidply-controls-right,
+    .vidply-player:fullscreen .vidply-controls-right {
+        display: flex !important;
+        flex-wrap: nowrap !important;
     }
 }
 
