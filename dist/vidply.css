@@ -199,10 +199,12 @@
     z-index: 1; /* Base video layer */
 }
 
-/* Allow controls to overflow in fullscreen mode */
-.vidply-player.vidply-fullscreen .vidply-video-wrapper,
-.vidply-player:fullscreen .vidply-video-wrapper {
-    overflow: visible;
+/* Allow controls and menus to overflow in fullscreen landscape mode */
+@media (orientation: landscape) {
+    .vidply-player.vidply-fullscreen .vidply-video-wrapper,
+    .vidply-player:fullscreen .vidply-video-wrapper {
+        overflow: visible;
+    }
 }
 
 .vidply-video-wrapper.vidply-forced-poster {
@@ -515,7 +517,9 @@
     cursor: pointer;
     height: 100px;
     margin: 0 auto;
+    padding: 0 10px; /* Add padding for larger touch target on mobile */
     position: relative;
+    touch-action: none; /* Prevent scrolling while dragging */
     width: 6px;
 }
 
@@ -627,9 +631,11 @@
     -webkit-overflow-scrolling: touch;
     overflow-y: auto;
     padding: 8px 0;
+    pointer-events: auto; /* Ensure menus are clickable/touchable */
     position: absolute;
     right: 50%;
     touch-action: pan-y;
+    z-index: 100; /* High z-index to appear above everything */
 
     /* iOS momentum scrolling */
     transform: translateX(50%);
@@ -665,9 +671,11 @@
     min-width: unset;
     overflow-y: hidden;
     padding: 16px 12px;
+    pointer-events: auto; /* Ensure volume menu is touchable */
     right: 50%;
     transform: translateX(50%);
     width: 50px;
+    z-index: 100; /* High z-index to appear above everything */
 }
 
 /* For audio players, show menus below buttons */
@@ -1240,16 +1248,28 @@
     background: #000;
 }
 
-/* Fix controls in fullscreen on mobile devices (especially landscape) */
-.vidply-player.vidply-fullscreen .vidply-controls,
-.vidply-player:fullscreen .vidply-controls {
-    position: absolute !important;
-    bottom: 0 !important;
-    order: 0 !important;
-    border-top: none !important;
-    background: linear-gradient(to top, var(--vidply-black-90) 0%, var(--vidply-black-50) 100%) !important;
-    padding: 20px 16px 16px !important;
-    z-index: 20 !important; /* Ensure controls are above video */
+/* Fix controls in fullscreen LANDSCAPE mode - overlay them on video */
+@media (orientation: landscape) {
+    .vidply-player.vidply-fullscreen .vidply-controls,
+    .vidply-player:fullscreen .vidply-controls {
+        position: absolute !important;
+        bottom: 0 !important;
+        order: 0 !important;
+        border-top: none !important;
+        background: linear-gradient(to top, var(--vidply-black-90) 0%, var(--vidply-black-50) 100%) !important;
+        padding: 20px 16px 16px !important;
+        z-index: 20 !important; /* Ensure controls are above video */
+    }
+}
+
+/* In fullscreen PORTRAIT mode - keep controls below video (mobile layout) */
+@media (orientation: portrait) {
+    .vidply-player.vidply-fullscreen .vidply-controls,
+    .vidply-player:fullscreen .vidply-controls {
+        /* Keep mobile layout - controls below video */
+        position: relative !important;
+        order: 2 !important;
+    }
 }
 
 /* Transcript in Fullscreen */

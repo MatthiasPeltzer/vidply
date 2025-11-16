@@ -2356,6 +2356,15 @@ var VidPly = (() => {
       volumeMenu.addEventListener("click", (e) => {
         e.stopPropagation();
       });
+      volumeMenu.addEventListener("touchstart", (e) => {
+        e.stopPropagation();
+      });
+      volumeMenu.addEventListener("touchmove", (e) => {
+        e.stopPropagation();
+      });
+      volumeMenu.addEventListener("touchend", (e) => {
+        e.stopPropagation();
+      });
       volumeMenu.style.visibility = "hidden";
       volumeMenu.style.display = "block";
       button.insertAdjacentElement("afterend", volumeMenu);
