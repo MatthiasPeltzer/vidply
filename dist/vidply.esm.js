@@ -453,6 +453,14 @@ var en = {
     signLanguageDragResize: "Sign Language Video - Press D to drag with keyboard, R to resize",
     signLanguageDragActive: "Sign Language Video - Drag mode active. Use arrow keys to move, Escape to exit.",
     signLanguageResizeActive: "Sign Language Video - Resize mode active. Use left/right arrow keys to resize, Escape to exit.",
+    enableSignDragMode: "Enable drag mode. Shortcut: D key",
+    disableSignDragMode: "Disable drag mode. Shortcut: D key",
+    enableSignDragModeAria: "Enable toggle keyboard drag mode with arrow keys. Shortcut: D key",
+    disableSignDragModeAria: "Disable toggle keyboard drag mode with arrow keys. Shortcut: D key",
+    enableSignResizeMode: "Enable resize mode. Shortcut: R key",
+    disableSignResizeMode: "Disable resize mode. Shortcut: R key",
+    enableSignResizeModeAria: "Enable keyboard resize mode with arrow keys. Shortcut: R key",
+    disableSignResizeModeAria: "Disable keyboard resize mode with arrow keys. Shortcut: R key",
     resizeHandle: "Resize {direction} corner",
     moreOptions: "More options",
     noMoreOptions: "No additional options available"
@@ -503,8 +511,16 @@ var en = {
     dragResizePrompt: "Press D to drag or R to resize. Use Home to reset position, Esc to close.",
     dragModeEnabled: "Keyboard drag mode enabled. Use arrow keys to move, Shift+Arrow for larger steps. Press D or Esc to exit.",
     dragModeDisabled: "Keyboard drag mode disabled.",
+    enableDragMode: "Enable drag mode. Shortcut: D key",
+    disableDragMode: "Disable drag mode. Shortcut: D key",
+    enableDragModeAria: "Enable toggle keyboard drag mode with arrow keys. Shortcut: D key",
+    disableDragModeAria: "Disable toggle keyboard drag mode with arrow keys. Shortcut: D key",
     resizeWindow: "Resize Window",
     disableResizeWindow: "Disable Resize Mode",
+    enableResizeMode: "Enable resize mode. Shortcut: R key",
+    disableResizeMode: "Disable resize mode. Shortcut: R key",
+    enableResizeModeAria: "Enable keyboard resize mode with arrow keys. Shortcut: R key",
+    disableResizeModeAria: "Disable keyboard resize mode with arrow keys. Shortcut: R key",
     resizeModeHint: "Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit.",
     resizeModeEnabled: "Resize mode enabled. Drag edges or corners to adjust. Press Esc or R to exit.",
     resizeModeDisabled: "Resize mode disabled.",
@@ -590,6 +606,14 @@ var de = {
     signLanguageDragResize: "Geb\xE4rdensprache-Video - Dr\xFCcken Sie D zum Verschieben per Tastatur, R zum \xC4ndern der Gr\xF6\xDFe",
     signLanguageDragActive: "Geb\xE4rdensprache-Video - Verschiebemodus aktiv. Pfeiltasten zum Bewegen, Escape zum Beenden.",
     signLanguageResizeActive: "Geb\xE4rdensprache-Video - Gr\xF6\xDFen\xE4nderungsmodus aktiv. Links-/Rechts-Pfeiltasten zum \xC4ndern der Gr\xF6\xDFe, Escape zum Beenden.",
+    enableSignDragMode: "Verschiebemodus aktivieren. Tastenkombination: D-Taste",
+    disableSignDragMode: "Verschiebemodus deaktivieren. Tastenkombination: D-Taste",
+    enableSignDragModeAria: "Tastatur-Verschiebemodus mit Pfeiltasten aktivieren. Tastenkombination: D-Taste",
+    disableSignDragModeAria: "Tastatur-Verschiebemodus mit Pfeiltasten deaktivieren. Tastenkombination: D-Taste",
+    enableSignResizeMode: "Gr\xF6\xDFen\xE4nderungsmodus aktivieren. Tastenkombination: R-Taste",
+    disableSignResizeMode: "Gr\xF6\xDFen\xE4nderungsmodus deaktivieren. Tastenkombination: R-Taste",
+    enableSignResizeModeAria: "Tastatur-Gr\xF6\xDFen\xE4nderungsmodus mit Pfeiltasten aktivieren. Tastenkombination: R-Taste",
+    disableSignResizeModeAria: "Tastatur-Gr\xF6\xDFen\xE4nderungsmodus mit Pfeiltasten deaktivieren. Tastenkombination: R-Taste",
     resizeHandle: "Gr\xF6\xDFen\xE4nderung {direction}-Ecke",
     moreOptions: "Weitere Optionen",
     noMoreOptions: "Keine weiteren Optionen verf\xFCgbar"
@@ -640,8 +664,16 @@ var de = {
     dragResizePrompt: "Dr\xFCcken Sie D zum Verschieben oder R zur Gr\xF6\xDFen\xE4nderung. Home setzt die Position zur\xFCck, Esc schlie\xDFt.",
     dragModeEnabled: "Tastatur-Verschiebemodus aktiviert. Pfeiltasten zum Bewegen, Umschalt+Pfeiltasten f\xFCr gr\xF6\xDFere Schritte. D oder Esc zum Beenden.",
     dragModeDisabled: "Tastatur-Verschiebemodus deaktiviert.",
+    enableDragMode: "Verschiebemodus aktivieren. Tastenkombination: D-Taste",
+    disableDragMode: "Verschiebemodus deaktivieren. Tastenkombination: D-Taste",
+    enableDragModeAria: "Tastatur-Verschiebemodus mit Pfeiltasten aktivieren. Tastenkombination: D-Taste",
+    disableDragModeAria: "Tastatur-Verschiebemodus mit Pfeiltasten deaktivieren. Tastenkombination: D-Taste",
     resizeWindow: "Fenster vergr\xF6\xDFern/verkleinern",
     disableResizeWindow: "Resize-Modus deaktivieren",
+    enableResizeMode: "Gr\xF6\xDFen\xE4nderungsmodus aktivieren. Tastenkombination: R-Taste",
+    disableResizeMode: "Gr\xF6\xDFen\xE4nderungsmodus deaktivieren. Tastenkombination: R-Taste",
+    enableResizeModeAria: "Tastatur-Gr\xF6\xDFen\xE4nderungsmodus mit Pfeiltasten aktivieren. Tastenkombination: R-Taste",
+    disableResizeModeAria: "Tastatur-Gr\xF6\xDFen\xE4nderungsmodus mit Pfeiltasten deaktivieren. Tastenkombination: R-Taste",
     resizeModeHint: "Griffe aktiviert. Ziehen Sie Kanten oder Ecken zum Anpassen. Esc oder R zum Beenden.",
     resizeModeEnabled: "Resize-Modus aktiviert. Kanten oder Ecken ziehen; Esc oder R beendet.",
     resizeModeDisabled: "Resize-Modus deaktiviert.",
@@ -727,6 +759,14 @@ var es = {
     signLanguageDragResize: "Video en Lengua de Se\xF1as - Presione D para arrastrar con el teclado, R para cambiar el tama\xF1o",
     signLanguageDragActive: "Video en Lengua de Se\xF1as - Modo de arrastre activo. Use las teclas de flecha para mover, Escape para salir.",
     signLanguageResizeActive: "Video en Lengua de Se\xF1as - Modo de cambio de tama\xF1o activo. Use las teclas de flecha izquierda/derecha para cambiar el tama\xF1o, Escape para salir.",
+    enableSignDragMode: "Activar modo de arrastre. Atajo: tecla D",
+    disableSignDragMode: "Desactivar modo de arrastre. Atajo: tecla D",
+    enableSignDragModeAria: "Activar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D",
+    disableSignDragModeAria: "Desactivar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D",
+    enableSignResizeMode: "Activar modo de cambio de tama\xF1o. Atajo: tecla R",
+    disableSignResizeMode: "Desactivar modo de cambio de tama\xF1o. Atajo: tecla R",
+    enableSignResizeModeAria: "Activar modo de cambio de tama\xF1o con teclado usando teclas de flecha. Atajo: tecla R",
+    disableSignResizeModeAria: "Desactivar modo de cambio de tama\xF1o con teclado usando teclas de flecha. Atajo: tecla R",
     resizeHandle: "Cambiar tama\xF1o esquina {direction}",
     moreOptions: "M\xE1s opciones",
     noMoreOptions: "No hay opciones adicionales disponibles"
@@ -777,8 +817,16 @@ var es = {
     dragResizePrompt: "Pulsa D para mover o R para cambiar el tama\xF1o. Home restablece la posici\xF3n; Esc cierra.",
     dragModeEnabled: "Modo de arrastre con teclado activado. Usa flechas para mover, May\xFAs+Flechas para pasos grandes. Pulsa D o Esc para salir.",
     dragModeDisabled: "Modo de arrastre con teclado desactivado.",
+    enableDragMode: "Activar modo de arrastre. Atajo: tecla D",
+    disableDragMode: "Desactivar modo de arrastre. Atajo: tecla D",
+    enableDragModeAria: "Activar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D",
+    disableDragModeAria: "Desactivar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D",
     resizeWindow: "Cambiar tama\xF1o de ventana",
     disableResizeWindow: "Desactivar modo de cambio de tama\xF1o",
+    enableResizeMode: "Activar modo de cambio de tama\xF1o. Atajo: tecla R",
+    disableResizeMode: "Desactivar modo de cambio de tama\xF1o. Atajo: tecla R",
+    enableResizeModeAria: "Activar modo de cambio de tama\xF1o con teclado usando teclas de flecha. Atajo: tecla R",
+    disableResizeModeAria: "Desactivar modo de cambio de tama\xF1o con teclado usando teclas de flecha. Atajo: tecla R",
     resizeModeHint: "Controladores habilitados. Arrastra bordes o esquinas para ajustar. Pulsa Esc o R para salir.",
     resizeModeEnabled: "Modo de cambio de tama\xF1o activado. Arrastra bordes o esquinas. Pulsa Esc o R para salir.",
     resizeModeDisabled: "Modo de cambio de tama\xF1o desactivado.",
@@ -864,6 +912,14 @@ var fr = {
     signLanguageDragResize: "Vid\xE9o en Langue des Signes - Appuyez sur D pour d\xE9placer avec le clavier, R pour redimensionner",
     signLanguageDragActive: "Vid\xE9o en Langue des Signes - Mode glissement actif. Utilisez les touches fl\xE9ch\xE9es pour d\xE9placer, \xC9chap pour quitter.",
     signLanguageResizeActive: "Vid\xE9o en Langue des Signes - Mode redimensionnement actif. Utilisez les touches fl\xE9ch\xE9es gauche/droite pour redimensionner, \xC9chap pour quitter.",
+    enableSignDragMode: "Activer le mode glissement. Raccourci : touche D",
+    disableSignDragMode: "D\xE9sactiver le mode glissement. Raccourci : touche D",
+    enableSignDragModeAria: "Activer le mode glissement clavier avec les touches fl\xE9ch\xE9es. Raccourci : touche D",
+    disableSignDragModeAria: "D\xE9sactiver le mode glissement clavier avec les touches fl\xE9ch\xE9es. Raccourci : touche D",
+    enableSignResizeMode: "Activer le mode redimensionnement. Raccourci : touche R",
+    disableSignResizeMode: "D\xE9sactiver le mode redimensionnement. Raccourci : touche R",
+    enableSignResizeModeAria: "Activer le mode redimensionnement clavier avec les touches fl\xE9ch\xE9es. Raccourci : touche R",
+    disableSignResizeModeAria: "D\xE9sactiver le mode redimensionnement clavier avec les touches fl\xE9ch\xE9es. Raccourci : touche R",
     resizeHandle: "Redimensionner coin {direction}",
     moreOptions: "Plus d'options",
     noMoreOptions: "Aucune option suppl\xE9mentaire disponible"
@@ -914,8 +970,16 @@ var fr = {
     dragResizePrompt: "Appuyez sur D pour d\xE9placer ou R pour redimensionner. Home r\xE9initialise la position, \xC9chap ferme.",
     dragModeEnabled: "Mode glissement clavier activ\xE9. Utilisez les fl\xE8ches pour d\xE9placer, Maj+Fl\xE8ches pour de grands pas. Appuyez sur D ou \xC9chap pour quitter.",
     dragModeDisabled: "Mode glissement clavier d\xE9sactiv\xE9.",
+    enableDragMode: "Activer le mode glissement. Raccourci : touche D",
+    disableDragMode: "D\xE9sactiver le mode glissement. Raccourci : touche D",
+    enableDragModeAria: "Activer le mode glissement clavier avec les touches fl\xE9ch\xE9es. Raccourci : touche D",
+    disableDragModeAria: "D\xE9sactiver le mode glissement clavier avec les touches fl\xE9ch\xE9es. Raccourci : touche D",
     resizeWindow: "Redimensionner la fen\xEAtre",
     disableResizeWindow: "D\xE9sactiver le mode de redimensionnement",
+    enableResizeMode: "Activer le mode redimensionnement. Raccourci : touche R",
+    disableResizeMode: "D\xE9sactiver le mode redimensionnement. Raccourci : touche R",
+    enableResizeModeAria: "Activer le mode redimensionnement clavier avec les touches fl\xE9ch\xE9es. Raccourci : touche R",
+    disableResizeModeAria: "D\xE9sactiver le mode redimensionnement clavier avec les touches fl\xE9ch\xE9es. Raccourci : touche R",
     resizeModeHint: "Poign\xE9es activ\xE9es. Faites glisser les bords ou les coins pour ajuster. Appuyez sur \xC9chap ou R pour quitter.",
     resizeModeEnabled: "Mode redimensionnement activ\xE9. Faites glisser les bords ou coins. Appuyez sur \xC9chap ou R pour quitter.",
     resizeModeDisabled: "Mode redimensionnement d\xE9sactiv\xE9.",
@@ -1001,6 +1065,14 @@ var ja = {
     signLanguageDragResize: "\u624B\u8A71\u52D5\u753B - \u30AD\u30FC\u30DC\u30FC\u30C9\u3067\u30C9\u30E9\u30C3\u30B0\u3059\u308B\u306B\u306FD\u30AD\u30FC\u3092\u3001\u30B5\u30A4\u30BA\u5909\u66F4\u3059\u308B\u306B\u306FR\u30AD\u30FC\u3092\u62BC\u3057\u3066\u304F\u3060\u3055\u3044",
     signLanguageDragActive: "\u624B\u8A71\u52D5\u753B - \u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u304C\u6709\u52B9\u3067\u3059\u3002\u77E2\u5370\u30AD\u30FC\u3067\u79FB\u52D5\u3001Escape\u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
     signLanguageResizeActive: "\u624B\u8A71\u52D5\u753B - \u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u304C\u6709\u52B9\u3067\u3059\u3002\u5DE6\u53F3\u306E\u77E2\u5370\u30AD\u30FC\u3067\u30B5\u30A4\u30BA\u5909\u66F4\u3001Escape\u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
+    enableSignDragMode: "\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AD\u30AD\u30FC",
+    disableSignDragMode: "\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AD\u30AD\u30FC",
+    enableSignDragModeAria: "\u77E2\u5370\u30AD\u30FC\u3067\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AD\u30AD\u30FC",
+    disableSignDragModeAria: "\u77E2\u5370\u30AD\u30FC\u3067\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AD\u30AD\u30FC",
+    enableSignResizeMode: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AR\u30AD\u30FC",
+    disableSignResizeMode: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AR\u30AD\u30FC",
+    enableSignResizeModeAria: "\u77E2\u5370\u30AD\u30FC\u3067\u30AD\u30FC\u30DC\u30FC\u30C9\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AR\u30AD\u30FC",
+    disableSignResizeModeAria: "\u77E2\u5370\u30AD\u30FC\u3067\u30AD\u30FC\u30DC\u30FC\u30C9\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AR\u30AD\u30FC",
     resizeHandle: "{direction}\u30B3\u30FC\u30CA\u30FC\u306E\u30B5\u30A4\u30BA\u5909\u66F4",
     moreOptions: "\u305D\u306E\u4ED6\u306E\u30AA\u30D7\u30B7\u30E7\u30F3",
     noMoreOptions: "\u8FFD\u52A0\u306E\u30AA\u30D7\u30B7\u30E7\u30F3\u306F\u3042\u308A\u307E\u305B\u3093"
@@ -1051,8 +1123,16 @@ var ja = {
     dragResizePrompt: "D\u30AD\u30FC\u3067\u79FB\u52D5\u3001R\u30AD\u30FC\u3067\u30B5\u30A4\u30BA\u5909\u66F4\u3002Home\u3067\u4F4D\u7F6E\u3092\u30EA\u30BB\u30C3\u30C8\u3001Esc\u3067\u9589\u3058\u307E\u3059\u3002",
     dragModeEnabled: "\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3057\u307E\u3057\u305F\u3002\u77E2\u5370\u30AD\u30FC\u3067\u79FB\u52D5\u3001Shift+\u77E2\u5370\u30AD\u30FC\u3067\u5927\u304D\u304F\u79FB\u52D5\u3067\u304D\u307E\u3059\u3002\u7D42\u4E86\u3059\u308B\u306B\u306F D \u307E\u305F\u306F Esc \u3092\u62BC\u3057\u307E\u3059\u3002",
     dragModeDisabled: "\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3057\u307E\u3057\u305F\u3002",
+    enableDragMode: "\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AD\u30AD\u30FC",
+    disableDragMode: "\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AD\u30AD\u30FC",
+    enableDragModeAria: "\u77E2\u5370\u30AD\u30FC\u3067\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AD\u30AD\u30FC",
+    disableDragModeAria: "\u77E2\u5370\u30AD\u30FC\u3067\u30AD\u30FC\u30DC\u30FC\u30C9\u30C9\u30E9\u30C3\u30B0\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AD\u30AD\u30FC",
     resizeWindow: "\u30A6\u30A3\u30F3\u30C9\u30A6\u306E\u30B5\u30A4\u30BA\u5909\u66F4",
     disableResizeWindow: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3059\u308B",
+    enableResizeMode: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AR\u30AD\u30FC",
+    disableResizeMode: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AR\u30AD\u30FC",
+    enableResizeModeAria: "\u77E2\u5370\u30AD\u30FC\u3067\u30AD\u30FC\u30DC\u30FC\u30C9\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AR\u30AD\u30FC",
+    disableResizeModeAria: "\u77E2\u5370\u30AD\u30FC\u3067\u30AD\u30FC\u30DC\u30FC\u30C9\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3059\u308B\u3002\u30B7\u30E7\u30FC\u30C8\u30AB\u30C3\u30C8\uFF1AR\u30AD\u30FC",
     resizeModeHint: "\u30EA\u30B5\u30A4\u30BA\u30CF\u30F3\u30C9\u30EB\u304C\u6709\u52B9\u306B\u306A\u308A\u307E\u3057\u305F\u3002\u8FBA\u3084\u89D2\u3092\u30C9\u30E9\u30C3\u30B0\u3057\u3066\u8ABF\u6574\u3057\u307E\u3059\u3002Esc \u307E\u305F\u306F R \u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
     resizeModeEnabled: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u6709\u52B9\u306B\u3057\u307E\u3057\u305F\u3002\u8FBA\u3084\u89D2\u3092\u30C9\u30E9\u30C3\u30B0\u3057\u3066\u8ABF\u6574\u3057\u307E\u3059\u3002Esc \u307E\u305F\u306F R \u3067\u7D42\u4E86\u3057\u307E\u3059\u3002",
     resizeModeDisabled: "\u30B5\u30A4\u30BA\u5909\u66F4\u30E2\u30FC\u30C9\u3092\u7121\u52B9\u306B\u3057\u307E\u3057\u305F\u3002",
@@ -5020,6 +5100,8 @@ var TranscriptManager = class {
     this.settingsMenuJustOpened = false;
     this.resizeOptionButton = null;
     this.resizeOptionText = null;
+    this.dragOptionButton = null;
+    this.dragOptionText = null;
     this.resizeModeIndicator = null;
     this.resizeModeIndicatorTimeout = null;
     this.transcriptResizeHandles = [];
@@ -5914,6 +5996,7 @@ var TranscriptManager = class {
       if (!wasEnabled && isEnabled) {
         this.enableMoveMode();
       }
+      this.updateDragOptionState();
       if (this.settingsMenuVisible) {
         this.hideSettingsMenu();
       }
@@ -5962,12 +6045,17 @@ var TranscriptManager = class {
       classPrefix: this.player.options.classPrefix,
       itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
       icon: "move",
-      label: "transcript.keyboardDragMode",
+      label: "transcript.enableDragMode",
+      hasTextClass: true,
       onClick: () => {
         this.toggleKeyboardDragMode();
         this.hideSettingsMenu();
       }
     });
+    keyboardDragOption.setAttribute("aria-pressed", "false");
+    this.dragOptionButton = keyboardDragOption;
+    this.dragOptionText = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
+    this.updateDragOptionState();
     const styleOption = createMenuItem({
       classPrefix: this.player.options.classPrefix,
       itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
@@ -5986,7 +6074,7 @@ var TranscriptManager = class {
       classPrefix: this.player.options.classPrefix,
       itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
       icon: "resize",
-      label: "transcript.resizeWindow",
+      label: "transcript.enableResizeMode",
       hasTextClass: true,
       onClick: (event) => {
         event.preventDefault();
@@ -6177,17 +6265,32 @@ var TranscriptManager = class {
     this.draggableResizable.enablePointerResizeMode({ focus });
     return true;
   }
+  updateDragOptionState() {
+    if (!this.dragOptionButton) {
+      return;
+    }
+    const isEnabled = !!(this.draggableResizable && this.draggableResizable.keyboardDragMode);
+    const text = isEnabled ? i18n.t("transcript.disableDragMode") : i18n.t("transcript.enableDragMode");
+    const ariaLabel = isEnabled ? i18n.t("transcript.disableDragModeAria") : i18n.t("transcript.enableDragModeAria");
+    this.dragOptionButton.setAttribute("aria-pressed", isEnabled ? "true" : "false");
+    this.dragOptionButton.setAttribute("aria-label", ariaLabel);
+    this.dragOptionButton.setAttribute("title", text);
+    if (this.dragOptionText) {
+      this.dragOptionText.textContent = text;
+    }
+  }
   updateResizeOptionState() {
     if (!this.resizeOptionButton) {
       return;
     }
     const isEnabled = !!(this.draggableResizable && this.draggableResizable.pointerResizeMode);
-    const label = isEnabled ? i18n.t("transcript.disableResizeWindow") || "Disable Resize Mode" : i18n.t("transcript.resizeWindow");
+    const text = isEnabled ? i18n.t("transcript.disableResizeMode") : i18n.t("transcript.enableResizeMode");
+    const ariaLabel = isEnabled ? i18n.t("transcript.disableResizeModeAria") : i18n.t("transcript.enableResizeModeAria");
     this.resizeOptionButton.setAttribute("aria-pressed", isEnabled ? "true" : "false");
-    this.resizeOptionButton.setAttribute("aria-label", label);
-    this.resizeOptionButton.setAttribute("title", label);
+    this.resizeOptionButton.setAttribute("aria-label", ariaLabel);
+    this.resizeOptionButton.setAttribute("title", text);
     if (this.resizeOptionText) {
-      this.resizeOptionText.textContent = label;
+      this.resizeOptionText.textContent = text;
     }
   }
   showResizeModeIndicator() {
@@ -9346,6 +9449,8 @@ var Player = class _Player extends EventEmitter {
     this.signLanguageSettingsMenuJustOpened = false;
     this.signLanguageResizeOptionButton = null;
     this.signLanguageResizeOptionText = null;
+    this.signLanguageDragOptionButton = null;
+    this.signLanguageDragOptionText = null;
     this.signLanguageDocumentClickHandler = null;
     this.signLanguageDocumentClickHandlerAdded = false;
     this.signLanguageVideo = document.createElement("video");
@@ -9537,6 +9642,7 @@ var Player = class _Player extends EventEmitter {
       if (!wasEnabled && isEnabled) {
         this.enableSignLanguageMoveMode();
       }
+      this.updateSignLanguageDragOptionState();
     }
   }
   enableSignLanguageMoveMode() {
@@ -9628,6 +9734,7 @@ var Player = class _Player extends EventEmitter {
         );
       }
       this.positionSignLanguageSettingsMenu();
+      this.updateSignLanguageDragOptionState();
       this.updateSignLanguageResizeOptionState();
       focusFirstMenuItem(this.signLanguageSettingsMenu, `.${this.options.classPrefix}-sign-language-settings-item`);
       return;
@@ -9639,17 +9746,22 @@ var Player = class _Player extends EventEmitter {
       classPrefix: this.options.classPrefix,
       itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
       icon: "move",
-      label: "transcript.keyboardDragMode",
+      label: "player.enableSignDragMode",
+      hasTextClass: true,
       onClick: () => {
         this.toggleSignLanguageKeyboardDragMode();
         this.hideSignLanguageSettingsMenu();
       }
     });
+    keyboardDragOption.setAttribute("aria-pressed", "false");
+    this.signLanguageDragOptionButton = keyboardDragOption;
+    this.signLanguageDragOptionText = keyboardDragOption.querySelector(`.${this.options.classPrefix}-settings-text`);
+    this.updateSignLanguageDragOptionState();
     const resizeOption = createMenuItem({
       classPrefix: this.options.classPrefix,
       itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
       icon: "resize",
-      label: "transcript.resizeWindow",
+      label: "player.enableSignResizeMode",
       hasTextClass: true,
       onClick: (event) => {
         event.preventDefault();
@@ -9706,6 +9818,7 @@ var Player = class _Player extends EventEmitter {
     if (this.signLanguageSettingsButton) {
       this.signLanguageSettingsButton.setAttribute("aria-expanded", "true");
     }
+    this.updateSignLanguageDragOptionState();
     this.updateSignLanguageResizeOptionState();
     focusFirstMenuItem(this.signLanguageSettingsMenu, `.${this.options.classPrefix}-sign-language-settings-item`);
   }
@@ -9805,15 +9918,32 @@ var Player = class _Player extends EventEmitter {
       () => this.hideSignLanguageSettingsMenu({ focusButton: true })
     );
   }
+  updateSignLanguageDragOptionState() {
+    if (!this.signLanguageDragOptionButton) {
+      return;
+    }
+    const isEnabled = !!(this.signLanguageDraggable && this.signLanguageDraggable.keyboardDragMode);
+    const text = isEnabled ? i18n.t("player.disableSignDragMode") : i18n.t("player.enableSignDragMode");
+    const ariaLabel = isEnabled ? i18n.t("player.disableSignDragModeAria") : i18n.t("player.enableSignDragModeAria");
+    this.signLanguageDragOptionButton.setAttribute("aria-pressed", isEnabled ? "true" : "false");
+    this.signLanguageDragOptionButton.setAttribute("aria-label", ariaLabel);
+    this.signLanguageDragOptionButton.setAttribute("title", text);
+    if (this.signLanguageDragOptionText) {
+      this.signLanguageDragOptionText.textContent = text;
+    }
+  }
   updateSignLanguageResizeOptionState() {
     if (!this.signLanguageResizeOptionButton) {
       return;
     }
     const isEnabled = !!(this.signLanguageDraggable && this.signLanguageDraggable.pointerResizeMode);
-    const label = isEnabled ? i18n.t("transcript.disableResizeWindow") || "Disable Resize Mode" : i18n.t("transcript.resizeWindow") || "Resize Window";
+    const text = isEnabled ? i18n.t("player.disableSignResizeMode") : i18n.t("player.enableSignResizeMode");
+    const ariaLabel = isEnabled ? i18n.t("player.disableSignResizeModeAria") : i18n.t("player.enableSignResizeModeAria");
     this.signLanguageResizeOptionButton.setAttribute("aria-pressed", isEnabled ? "true" : "false");
+    this.signLanguageResizeOptionButton.setAttribute("aria-label", ariaLabel);
+    this.signLanguageResizeOptionButton.setAttribute("title", text);
     if (this.signLanguageResizeOptionText) {
-      this.signLanguageResizeOptionText.textContent = label;
+      this.signLanguageResizeOptionText.textContent = text;
     }
   }
   constrainSignLanguagePosition() {
