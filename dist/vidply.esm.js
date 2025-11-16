@@ -2240,6 +2240,10 @@ var ControlBar = class {
     muteButton.addEventListener("click", () => {
       this.showVolumeSlider(muteButton);
     });
+    muteButton.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      this.showVolumeSlider(muteButton);
+    });
     this.controls.mute = muteButton;
     return muteButton;
   }
@@ -3377,11 +3381,12 @@ var ControlBar = class {
       this.player.state.controlsVisible = true;
       clearTimeout(this.hideTimeout);
       if (this.player.state.playing) {
+        const delay = this.player.state.fullscreen ? this.player.options.hideControlsDelay * 1.5 : this.player.options.hideControlsDelay;
         this.hideTimeout = setTimeout(() => {
           this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
           this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
           this.player.state.controlsVisible = false;
-        }, this.player.options.hideControlsDelay);
+        }, delay);
       }
     };
     this.player.container.addEventListener("mousemove", showControls);
@@ -3399,6 +3404,16 @@ var ControlBar = class {
     });
     this.player.on("enterfullscreen", () => {
       showControls();
+      if (this.player.state.fullscreen) {
+        clearTimeout(this.hideTimeout);
+        this.hideTimeout = setTimeout(() => {
+          if (this.player.state.playing) {
+            this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+            this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+            this.player.state.controlsVisible = false;
+          }
+        }, this.player.options.hideControlsDelay * 2);
+      }
     });
     showControls();
   }

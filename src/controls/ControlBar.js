@@ -1027,6 +1027,13 @@ export class ControlBar {
             this.showVolumeSlider(muteButton);
         });
 
+        // Touch support for mobile devices
+        muteButton.addEventListener('touchend', (e) => {
+            // Prevent the click event from firing after touchend
+            e.preventDefault();
+            this.showVolumeSlider(muteButton);
+        });
+
         this.controls.mute = muteButton;
 
         return muteButton;
@@ -2555,11 +2562,16 @@ export class ControlBar {
             clearTimeout(this.hideTimeout);
 
             if (this.player.state.playing) {
+                // Use longer delay in fullscreen mode for better mobile UX
+                const delay = this.player.state.fullscreen 
+                    ? this.player.options.hideControlsDelay * 1.5 
+                    : this.player.options.hideControlsDelay;
+                    
                 this.hideTimeout = setTimeout(() => {
                     this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
                     this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
                     this.player.state.controlsVisible = false;
-                }, this.player.options.hideControlsDelay);
+                }, delay);
             }
         };
 
@@ -2586,6 +2598,17 @@ export class ControlBar {
         // Show controls when entering fullscreen (especially important for mobile landscape)
         this.player.on('enterfullscreen', () => {
             showControls();
+            // In fullscreen, keep controls visible longer initially
+            if (this.player.state.fullscreen) {
+                clearTimeout(this.hideTimeout);
+                this.hideTimeout = setTimeout(() => {
+                    if (this.player.state.playing) {
+                        this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+                        this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+                        this.player.state.controlsVisible = false;
+                    }
+                }, this.player.options.hideControlsDelay * 2); // Double the delay in fullscreen
+            }
         });
 
         // Initial state
