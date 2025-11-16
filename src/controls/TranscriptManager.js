@@ -528,6 +528,10 @@ export class TranscriptManager {
       this.transcriptWindow.style.removeProperty('border-image-width');
       this.transcriptWindow.style.removeProperty('border-image-outset');
       this.transcriptWindow.style.removeProperty('border-image-repeat');
+      // Enable dragging in fullscreen (including touch devices)
+      if (this.transcriptHeader) {
+        this.transcriptHeader.style.cursor = 'move';
+      }
       
       // Move back to container for fullscreen
       if (this.transcriptWindow.parentNode !== this.player.container) {
@@ -1098,13 +1102,8 @@ export class TranscriptManager {
   setupDragAndDrop() {
     if (!this.transcriptHeader || !this.transcriptWindow) return;
 
-    // Check if we're on mobile and not in fullscreen (no dragging in this case)
-    const isMobile = window.innerWidth < 768;
-    const isFullscreen = this.player.state.fullscreen;
-    
-    if (isMobile && !isFullscreen) {
-      return; // No drag/resize on mobile (not fullscreen)
-    }
+    // Enable drag/resize on all devices (including touch devices)
+    // The DraggableResizable class has built-in touch support
 
     // Create DraggableResizable utility
     this.draggableResizable = new DraggableResizable(this.transcriptWindow, {
