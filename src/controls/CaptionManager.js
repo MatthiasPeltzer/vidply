@@ -5,6 +5,7 @@
 import {DOMUtils} from '../utils/DOMUtils.js';
 import {i18n} from '../i18n/i18n.js';
 import {StorageManager} from '../utils/StorageManager.js';
+import {debounce, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
 
 export class CaptionManager {
     constructor(player) {
@@ -133,18 +134,20 @@ export class CaptionManager {
             this.updateStyles();
         });
         
-        // Update caption position on window resize (for mobile)
-        window.addEventListener('resize', () => {
+        // Debounced resize handler to avoid excessive recalculations
+        this.debouncedPositionCaptions = debounce(() => {
             this.positionCaptionsOnMobile();
-        });
+        }, 150);
         
-        // Recalculate on fullscreen change
+        window.addEventListener('resize', this.debouncedPositionCaptions);
+        
+        // Recalculate on fullscreen change with RAF
         this.player.on('enterfullscreen', () => {
-            setTimeout(() => this.positionCaptionsOnMobile(), 100);
+            rafWithTimeout(() => this.positionCaptionsOnMobile(), 100);
         });
         
         this.player.on('exitfullscreen', () => {
-            setTimeout(() => this.positionCaptionsOnMobile(), 100);
+            rafWithTimeout(() => this.positionCaptionsOnMobile(), 100);
         });
     }
 
@@ -306,17 +309,15 @@ export class CaptionManager {
             return;
         }
         
-        // Check if we're on mobile (width <= 640px) or in fullscreen mode
-        const isMobile = window.innerWidth <= 640;
         const isFullscreen = this.player.state?.fullscreen || false;
+        const mobile = isMobile();
         
-        if (!isMobile && !isFullscreen) {
+        if (!mobile && !isFullscreen) {
             // Reset to CSS defaults on desktop
             this.element.style.bottom = '';
             return;
         }
         
-        // Get the controls element
         const controls = this.player.controlBar?.element;
         if (!controls) {
             return;
@@ -328,23 +329,17 @@ export class CaptionManager {
                 return;
             }
             
-            // Get the height and position of the controls
             const controlsRect = controls.getBoundingClientRect();
             const wrapperRect = this.player.videoWrapper.getBoundingClientRect();
-            
-            // Calculate position from bottom of wrapper
             const bottomOffset = wrapperRect.bottom - controlsRect.top + 16;
             
-            // Position captions above the controls with some spacing
             this.element.style.bottom = `${bottomOffset}px`;
             
             if (this.player.options.debug) {
                 console.log('[VidPly] Caption position:', {
-                    isMobile,
+                    mobile,
                     isFullscreen,
                     controlsHeight: controlsRect.height,
-                    controlsTop: controlsRect.top,
-                    wrapperBottom: wrapperRect.bottom,
                     bottomOffset: `${bottomOffset}px`
                 });
             }
