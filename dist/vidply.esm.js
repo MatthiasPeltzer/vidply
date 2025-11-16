@@ -3439,6 +3439,15 @@ var CaptionManager = class {
     this.player.on("captionschange", () => {
       this.updateStyles();
     });
+    window.addEventListener("resize", () => {
+      this.positionCaptionsOnMobile();
+    });
+    this.player.on("enterfullscreen", () => {
+      setTimeout(() => this.positionCaptionsOnMobile(), 100);
+    });
+    this.player.on("exitfullscreen", () => {
+      setTimeout(() => this.positionCaptionsOnMobile(), 100);
+    });
   }
   enable(trackIndex = 0) {
     if (this.tracks.length === 0) {
@@ -3531,6 +3540,7 @@ var CaptionManager = class {
         text = this.parseVTTFormatting(text);
         this.element.innerHTML = DOMUtils.sanitizeHTML(text);
         this.element.style.display = "block";
+        this.positionCaptionsOnMobile();
         this.player.emit("captionchange", cue);
       }
     } else if (this.currentCue) {
@@ -3538,6 +3548,41 @@ var CaptionManager = class {
       this.element.style.display = "none";
       this.currentCue = null;
     }
+  }
+  positionCaptionsOnMobile() {
+    var _a, _b;
+    if (!this.element || this.element.style.display === "none") {
+      return;
+    }
+    const isMobile = window.innerWidth <= 640;
+    const isFullscreen = ((_a = this.player.state) == null ? void 0 : _a.fullscreen) || false;
+    if (!isMobile && !isFullscreen) {
+      this.element.style.bottom = "";
+      return;
+    }
+    const controls = (_b = this.player.controlBar) == null ? void 0 : _b.element;
+    if (!controls) {
+      return;
+    }
+    requestAnimationFrame(() => {
+      if (!this.element || this.element.style.display === "none") {
+        return;
+      }
+      const controlsRect = controls.getBoundingClientRect();
+      const wrapperRect = this.player.videoWrapper.getBoundingClientRect();
+      const bottomOffset = wrapperRect.bottom - controlsRect.top + 16;
+      this.element.style.bottom = `${bottomOffset}px`;
+      if (this.player.options.debug) {
+        console.log("[VidPly] Caption position:", {
+          isMobile,
+          isFullscreen,
+          controlsHeight: controlsRect.height,
+          controlsTop: controlsRect.top,
+          wrapperBottom: wrapperRect.bottom,
+          bottomOffset: `${bottomOffset}px`
+        });
+      }
+    });
   }
   parseVTTFormatting(text) {
     text = text.replace(/<c[^>]*>(.*?)<\/c>/g, '<span class="caption-class">$1</span>');
@@ -7120,11 +7165,39 @@ var Player = class _Player extends EventEmitter {
     this.on("pause", () => {
       this.playButtonOverlay.style.opacity = "1";
       this.playButtonOverlay.style.pointerEvents = "auto";
+      this.positionPlayOverlayOnMobile();
     });
     this.on("ended", () => {
       this.playButtonOverlay.style.opacity = "1";
       this.playButtonOverlay.style.pointerEvents = "auto";
+      this.positionPlayOverlayOnMobile();
     });
+    window.addEventListener("resize", () => {
+      this.positionPlayOverlayOnMobile();
+    });
+    this.on("loadedmetadata", () => {
+      this.positionPlayOverlayOnMobile();
+    });
+    this.on("enterfullscreen", () => {
+      setTimeout(() => this.positionPlayOverlayOnMobile(), 100);
+    });
+    this.on("exitfullscreen", () => {
+      setTimeout(() => this.positionPlayOverlayOnMobile(), 100);
+    });
+  }
+  positionPlayOverlayOnMobile() {
+    if (!this.playButtonOverlay || !this.element.tagName === "VIDEO") {
+      return;
+    }
+    const isMobile = window.innerWidth <= 640;
+    if (!isMobile) {
+      this.playButtonOverlay.style.top = "";
+      return;
+    }
+    const videoRect = this.element.getBoundingClientRect();
+    const wrapperRect = this.videoWrapper.getBoundingClientRect();
+    const videoCenter = videoRect.top - wrapperRect.top + videoRect.height / 2;
+    this.playButtonOverlay.style.top = `${videoCenter}px`;
   }
   async initializeRenderer() {
     var _a;

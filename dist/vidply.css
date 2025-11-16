@@ -210,12 +210,22 @@
     opacity: 0;
 }
 
-/* Mobile: Simplify video wrapper */
+/* Mobile: Simplify video wrapper but keep captions contained */
 @media (width <= 640px) {
     .vidply-video-wrapper {
         display: block;
         height: auto;
+        min-height: 200px;
         overflow: visible;
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* Ensure video doesn't collapse */
+    .vidply-player video {
+        display: block;
+        position: relative;
+        width: 100%;
     }
 }
 
@@ -329,14 +339,14 @@
     border-radius: 3px;
     cursor: pointer;
     flex: 1;
-    height: 5px;
+    height: 9px;
     position: relative;
     transition: height 0.2s ease;
 }
 
 .vidply-progress-container:hover,
 .vidply-progress-container:focus {
-    height: 8px;
+    height: 11px;
     outline: var(--vidply-focus-outline-white);
     outline-offset: 2px;
 }
@@ -367,14 +377,14 @@
     background: var(--vidply-white);
     border-radius: 50%;
     box-shadow: var(--vidply-shadow-sm);
-    height: 12px;
+    height: 15px;
     opacity: 0;
     position: absolute;
     right: -6px;
     top: 50%;
     transform: translateY(-50%);
     transition: opacity 0.2s ease;
-    width: 12px;
+    width: 15px;
 }
 
 .vidply-progress-container:hover .vidply-progress-handle,
@@ -899,10 +909,29 @@
     }
 }
 
-/* Mobile: Always at 121px */
+/* Mobile: Caption positioning handled by JavaScript */
 @media (width <= 640px) {
     .vidply-captions {
-        bottom: 122px;
+        /* Bottom position set dynamically by JS based on control height */
+        left: 50%;
+        max-width: 95%;
+        position: absolute;
+        transform: translateX(-50%);
+        width: 100%;
+        z-index: 5;
+    }
+    
+    /* Make play overlay smaller and centered */
+    .vidply-play-overlay {
+        transform: translate(-50%, -50%) scale(0.65);
+    }
+    
+    .vidply-play-overlay:hover {
+        transform: translate(-50%, -50%) scale(0.75);
+    }
+    
+    .vidply-play-overlay:active {
+        transform: translate(-50%, -50%) scale(0.6);
     }
 }
 
