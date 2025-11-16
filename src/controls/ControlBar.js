@@ -27,6 +27,7 @@ export class ControlBar {
         this.createControls();
         this.attachEvents();
         this.setupAutoHide();
+        this.setupOverflowDetection();
     }
 
     // Helper method to check if we're on a mobile device
@@ -37,9 +38,64 @@ export class ControlBar {
     // Smart menu positioning to avoid overflow
     positionMenu(menu, button, immediate = false) {
         const isMobile = this.isMobile();
+        const isOverflowMenu = menu.classList.contains(`${this.player.options.classPrefix}-overflow-menu-list`);
         
         if (isMobile) {
-            // Use bottom sheet on mobile - already styled via CSS
+            // On mobile, ensure menus stay within viewport
+            const isVolumeMenu = menu.classList.contains(`${this.player.options.classPrefix}-volume-menu`);
+            
+            const doMobilePositioning = () => {
+                // Get the button's parent container (controls-left or controls-right)
+                const parentContainer = button.parentElement;
+                if (!parentContainer) return;
+                
+                const buttonRect = button.getBoundingClientRect();
+                const parentRect = parentContainer.getBoundingClientRect();
+                const menuRect = menu.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                // Volume menu should be centered on its button
+                if (isVolumeMenu) {
+                    // Calculate button position relative to parent
+                    const buttonCenterX = buttonRect.left + buttonRect.width / 2 - parentRect.left;
+                    
+                    // Center menu on button
+                    menu.style.left = `${buttonCenterX}px`;
+                    menu.style.right = 'auto';
+                    menu.style.transform = 'translateX(-50%)';
+                    return;
+                }
+                
+                // Check if menu overflows viewport
+                if (menuRect.right > viewportWidth) {
+                    menu.style.left = 'auto';
+                    menu.style.right = '10px';
+                    menu.style.transform = 'none';
+                }
+                
+                if (menuRect.left < 0) {
+                    menu.style.left = '10px';
+                    menu.style.right = 'auto';
+                    menu.style.transform = 'none';
+                }
+                
+                // Ensure menu doesn't go off top or bottom
+                if (menuRect.top < 10) {
+                    menu.style.top = '10px';
+                }
+                
+                if (menuRect.bottom > viewportHeight - 10) {
+                    menu.style.bottom = '10px';
+                    menu.style.top = 'auto';
+                }
+            };
+            
+            if (immediate) {
+                doMobilePositioning();
+            } else {
+                requestAnimationFrame(doMobilePositioning);
+            }
             return;
         }
 
@@ -84,26 +140,36 @@ export class ControlBar {
                 menu.classList.remove('vidply-menu-below');
             }
             
-            // Calculate horizontal position (center on button by default)
-            let menuLeft = buttonCenterX - menuRect.width / 2;
+            // Calculate horizontal position
+            let menuLeft = 'auto';
             let menuRight = 'auto';
             let transformX = 'translateX(0)';
             
-            // Check horizontal overflow
-            const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
-            if (menuLeftAbsolute < 10) {
-                // Too far left, align to left edge of parent
-                menuLeft = 0;
-                transformX = 'translateX(0)';
-            } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
-                // Too far right, align to right edge of parent
+            // For overflow menu, always align to the right edge
+            if (isOverflowMenu) {
                 menuLeft = 'auto';
                 menuRight = 0;
                 transformX = 'translateX(0)';
             } else {
-                // Center on button
-                menuLeft = buttonCenterX;
-                transformX = 'translateX(-50%)';
+                // For other menus, center on button by default
+                menuLeft = buttonCenterX - menuRect.width / 2;
+                
+                // Check horizontal overflow
+                const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
+                if (menuLeftAbsolute < 10) {
+                    // Too far left, align to left edge of parent
+                    menuLeft = 0;
+                    transformX = 'translateX(0)';
+                } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
+                    // Too far right, align to right edge of parent
+                    menuLeft = 'auto';
+                    menuRight = 0;
+                    transformX = 'translateX(0)';
+                } else {
+                    // Center on button
+                    menuLeft = buttonCenterX;
+                    transformX = 'translateX(-50%)';
+                }
             }
             
             // Apply calculated positions
@@ -516,56 +582,102 @@ export class ControlBar {
         const hasQualityLevels = this.hasQualityLevels();
         const hasAudioDescription = this.hasAudioDescription();
 
-        // Chapters button - only show if chapters are available
+        // Priority order (lower number = higher priority, stays visible longer)
+        // Desktop (>640px):
+        //   Priority 1: Play, Volume, Captions, Speed, Fullscreen
+        //   Priority 2: Audio Description, Quality  
+        //   Priority 3: Chapters, Caption Style, Transcript, Sign Language, PiP
+        // Smaller screens (<640px):
+        //   Priority 1: Play, Volume, Progress (only left controls visible)
+        //   Priority 3: ALL right-side buttons go to overflow menu
+
+        // Priority 3: Chapters button (overflow on mobile)
         if (this.player.options.chaptersButton && hasChapters) {
-            this.rightButtons.appendChild(this.createChaptersButton());
+            const btn = this.createChaptersButton();
+            btn.dataset.overflowPriority = '3';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
         }
 
-        // Quality button - only show if quality levels are available
-        if (this.player.options.qualityButton && hasQualityLevels) {
-            this.rightButtons.appendChild(this.createQualityButton());
-        }
-
-        // Caption styling button (font, size, color) - only show if captions are available
+        // Priority 3: Caption styling button (overflow on mobile)
         if (this.player.options.captionStyleButton && hasCaptions) {
-            this.rightButtons.appendChild(this.createCaptionStyleButton());
+            const btn = this.createCaptionStyleButton();
+            btn.dataset.overflowPriority = '3';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
         }
 
-        // Speed button - always available
-        if (this.player.options.speedButton) {
-            this.rightButtons.appendChild(this.createSpeedButton());
-        }
-
-        // Captions language selector button - only show if captions are available
-        if (this.player.options.captionsButton && hasCaptions) {
-            this.rightButtons.appendChild(this.createCaptionsButton());
-        }
-
-        // Transcript button - only show if captions/subtitles are available
+        // Priority 3: Transcript button (overflow on mobile)
         if (this.player.options.transcriptButton && hasCaptions) {
-            this.rightButtons.appendChild(this.createTranscriptButton());
+            const btn = this.createTranscriptButton();
+            btn.dataset.overflowPriority = '3';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
         }
 
-        // Audio Description button - only show if audio description source is available
+        // Priority 2 desktop, 3 mobile: Quality button (overflow on mobile)
+        if (this.player.options.qualityButton && hasQualityLevels) {
+            const btn = this.createQualityButton();
+            btn.dataset.overflowPriority = '2';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
+        }
+
+        // Priority 1 desktop, 3 mobile: Speed button (overflow on mobile)
+        if (this.player.options.speedButton) {
+            const btn = this.createSpeedButton();
+            btn.dataset.overflowPriority = '1';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
+        }
+
+        // Priority 1 desktop, 3 mobile: Captions button (overflow on mobile)
+        if (this.player.options.captionsButton && hasCaptions) {
+            const btn = this.createCaptionsButton();
+            btn.dataset.overflowPriority = '1';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
+        }
+
+        // Priority 2 desktop, 3 mobile: Audio Description button (overflow on mobile)
         if (this.player.options.audioDescriptionButton && hasAudioDescription) {
-            this.rightButtons.appendChild(this.createAudioDescriptionButton());
+            const btn = this.createAudioDescriptionButton();
+            btn.dataset.overflowPriority = '2';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
         }
 
-        // Sign Language button - only show if sign language source is available
+        // Priority 3: Sign Language button (overflow on mobile)
         const hasSignLanguage = this.hasSignLanguage();
         if (this.player.options.signLanguageButton && hasSignLanguage) {
-            this.rightButtons.appendChild(this.createSignLanguageButton());
+            const btn = this.createSignLanguageButton();
+            btn.dataset.overflowPriority = '3';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
         }
 
-        // PiP button
+        // Priority 3: PiP button (overflow on mobile)
         if (this.player.options.pipButton && 'pictureInPictureEnabled' in document) {
-            this.rightButtons.appendChild(this.createPipButton());
+            const btn = this.createPipButton();
+            btn.dataset.overflowPriority = '3';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
         }
 
-        // Fullscreen button
-        if (this.player.options.fullscreenButton) {
-            this.rightButtons.appendChild(this.createFullscreenButton());
+        // Priority 1 desktop, 3 mobile: Fullscreen button (overflow on mobile)
+        // Don't show fullscreen button for audio players
+        const isAudioPlayer = this.player.element.tagName.toLowerCase() === 'audio';
+        if (this.player.options.fullscreenButton && !isAudioPlayer) {
+            const btn = this.createFullscreenButton();
+            btn.dataset.overflowPriority = '1';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
         }
+
+        // Create overflow menu button (initially hidden)
+        this.overflowMenuButton = this.createOverflowMenuButton();
+        this.overflowMenuButton.style.display = 'none';
+        this.rightButtons.appendChild(this.overflowMenuButton);
 
         buttonContainer.appendChild(leftButtons);
         buttonContainer.appendChild(this.rightButtons);
@@ -1006,8 +1118,20 @@ export class ControlBar {
             e.stopPropagation();
         });
 
+        // Position menu first (before it's visible) to prevent jumping
+        volumeMenu.style.visibility = 'hidden';
+        volumeMenu.style.display = 'block';
+        
         // Insert menu right after the button in the DOM
         button.insertAdjacentElement('afterend', volumeMenu);
+        
+        // Position immediately (synchronously) while hidden
+        this.positionMenu(volumeMenu, button, true);
+        
+        // Make menu visible after positioning
+        requestAnimationFrame(() => {
+            volumeMenu.style.visibility = 'visible';
+        });
 
         this.controls.volumeSlider = volumeSlider;
         this.controls.volumeFill = volumeFill;
@@ -2431,6 +2555,347 @@ export class ControlBar {
         showControls();
     }
 
+    createOverflowMenuButton() {
+        const button = DOMUtils.createElement('button', {
+            className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-overflow-menu`,
+            attributes: {
+                'type': 'button',
+                'aria-label': i18n.t('player.moreOptions'),
+                'aria-expanded': 'false',
+                'title': i18n.t('player.moreOptions')
+            }
+        });
+
+        button.appendChild(createIconElement('moreVertical'));
+
+        button.addEventListener('click', () => {
+            this.showOverflowMenu(button);
+        });
+
+        this.controls.overflowMenu = button;
+        return button;
+    }
+
+    showOverflowMenu(button) {
+        // Remove existing menu if any (toggle behavior)
+        const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-overflow-menu-list`);
+        if (existingMenu) {
+            existingMenu.remove();
+            button.setAttribute('aria-expanded', 'false');
+            if (this.openMenu === existingMenu) {
+                this.openMenu = null;
+                this.openMenuButton = null;
+            }
+            return;
+        }
+
+        const menu = DOMUtils.createElement('div', {
+            className: `${this.player.options.classPrefix}-overflow-menu-list ${this.player.options.classPrefix}-menu`,
+            attributes: {
+                'role': 'menu',
+                'aria-label': i18n.t('player.moreOptions')
+            }
+        });
+
+        // Get all overflow buttons (those currently hidden)
+        const overflowButtons = Array.from(this.rightButtons.querySelectorAll('button[data-in-overflow="true"]'));
+
+        if (overflowButtons.length === 0) {
+            // No overflow items
+            const noItemsText = DOMUtils.createElement('div', {
+                className: `${this.player.options.classPrefix}-menu-item`,
+                textContent: i18n.t('player.noMoreOptions'),
+                style: {opacity: '0.5', cursor: 'default'}
+            });
+            menu.appendChild(noItemsText);
+        } else {
+            // Create menu items for each overflow button
+            overflowButtons.forEach(btn => {
+                const item = DOMUtils.createElement('button', {
+                    className: `${this.player.options.classPrefix}-menu-item`,
+                    attributes: {
+                        'type': 'button',
+                        'role': 'menuitem',
+                        'tabindex': '-1'
+                    }
+                });
+
+                // Get button label
+                const label = btn.getAttribute('aria-label') || btn.getAttribute('title') || '';
+                
+                // Copy icon if present (SVG icon or text icon like "Aa")
+                const icon = btn.querySelector('.vidply-icon');
+                if (icon) {
+                    const iconClone = icon.cloneNode(true);
+                    item.appendChild(iconClone);
+                } else {
+                    // Check for text icon (like caption styling "Aa")
+                    const firstChild = btn.querySelector('span');
+                    if (firstChild && firstChild.textContent && firstChild.textContent.length <= 3) {
+                        const iconClone = firstChild.cloneNode(true);
+                        iconClone.classList.add('vidply-icon'); // Add icon class for consistent styling
+                        item.appendChild(iconClone);
+                    }
+                }
+                
+                const labelSpan = DOMUtils.createElement('span', {
+                    textContent: label
+                });
+                item.appendChild(labelSpan);
+
+                // When clicked, trigger the original button's click
+                item.addEventListener('click', (e) => {
+                    // Store the overflow menu item as the positioning reference
+                    // This allows submenus to position relative to the visible menu item
+                    this._overflowMenuItemRef = item;
+                    
+                    // Temporarily make the original button visible for positioning
+                    const originalDisplay = btn.style.display;
+                    btn.style.display = '';
+                    btn.style.visibility = 'hidden'; // Keep it invisible but in layout
+                    
+                    // Trigger the button's menu
+                    btn.click();
+                    
+                    // Restore original state after menu is positioned
+                    setTimeout(() => {
+                        btn.style.display = originalDisplay;
+                        btn.style.visibility = '';
+                        this._overflowMenuItemRef = null;
+                    }, 100);
+                    
+                    // Close overflow menu
+                    this.closeMenuAndReturnFocus(menu, button);
+                });
+
+                menu.appendChild(item);
+            });
+
+            // Add keyboard navigation
+            this.attachMenuKeyboardNavigation(menu, button);
+
+            // Focus first item
+            setTimeout(() => {
+                const firstItem = menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+                if (firstItem && firstItem.tagName === 'BUTTON') {
+                    firstItem.focus();
+                }
+            }, 0);
+        }
+
+        // Position menu first (before it's visible) to prevent jumping
+        menu.style.visibility = 'hidden';
+        menu.style.display = 'block';
+        
+        // Insert menu right after the button in the DOM
+        button.insertAdjacentElement('afterend', menu);
+        
+        // Position immediately (synchronously) while hidden
+        this.positionMenu(menu, button, true);
+        
+        // Make menu visible after positioning
+        requestAnimationFrame(() => {
+            menu.style.visibility = 'visible';
+        });
+
+        // Close menu on outside click
+        this.attachMenuCloseHandler(menu, button);
+    }
+
+    setupOverflowDetection() {
+        // Check for overflow after layout is stable
+        const checkOverflow = () => {
+            // Check screen size on every call
+            const isDesktop = window.innerWidth >= 640;
+            const isTinyScreen = window.innerWidth < 360;
+            
+            if (!this.rightButtons || this.rightButtons.children.length === 0) {
+                return;
+            }
+
+            // Get all buttons (except the overflow menu button itself)
+            const allButtons = Array.from(this.rightButtons.children).filter(
+                btn => !btn.classList.contains(`${this.player.options.classPrefix}-overflow-menu`)
+            );
+
+            if (allButtons.length === 0) {
+                return;
+            }
+
+            // On desktop (≥640px) or tiny screens (<360px), show all buttons and hide overflow menu
+            if (isDesktop || isTinyScreen) {
+                allButtons.forEach(btn => {
+                    btn.dataset.inOverflow = 'false';
+                    btn.style.display = '';
+                });
+                if (this.overflowMenuButton) {
+                    this.overflowMenuButton.style.display = 'none';
+                }
+                if (this.player.options.debug) {
+                    if (isDesktop) {
+                        console.log('Desktop view (≥640px) - all buttons visible, overflow menu hidden');
+                    } else {
+                        console.log('Tiny screen (<360px) - all buttons visible, overflow menu hidden');
+                    }
+                }
+                return;
+            }
+
+            // First, make all buttons visible to measure their actual widths
+            allButtons.forEach(btn => {
+                btn.style.display = '';
+            });
+
+            // Get available width
+            const containerWidth = this.rightButtons.offsetWidth;
+            const overflowButtonWidth = 50; // Reserve space for overflow button + gap
+            const availableWidth = containerWidth - overflowButtonWidth;
+
+            // Calculate total width needed for all buttons including gaps
+            let totalWidth = 0;
+            const buttonWidths = allButtons.map(btn => {
+                const style = getComputedStyle(btn);
+                const width = btn.offsetWidth + 
+                             parseInt(style.marginLeft || 0) + 
+                             parseInt(style.marginRight || 0);
+                totalWidth += width;
+                return {btn, width};
+            });
+
+            // Add gap widths (8px per gap between buttons)
+            const gapWidth = 8;
+            totalWidth += (allButtons.length - 1) * gapWidth;
+
+            // Check if overflow is needed
+            const isSmallScreen = window.innerWidth < 640;
+            const needsOverflow = totalWidth > availableWidth || isSmallScreen; // Always overflow on mobile
+
+            // Debug logging
+            if (this.player.options.debug) {
+                console.log('Overflow detection:', {
+                    containerWidth,
+                    availableWidth,
+                    totalWidth,
+                    needsOverflow,
+                    isSmallScreen,
+                    reason: isSmallScreen ? 'mobile screen' : (totalWidth > availableWidth ? 'not enough space' : 'enough space'),
+                    buttonCount: allButtons.length
+                });
+            }
+
+            if (needsOverflow) {
+                // Use responsive priorities based on screen size
+                const isSmallScreen = window.innerWidth < 640;
+                const priorityAttr = isSmallScreen ? 'overflowPriorityMobile' : 'overflowPriority';
+                
+                if (this.player.options.debug) {
+                    console.log(`Using ${isSmallScreen ? 'mobile' : 'desktop'} priorities (width: ${window.innerWidth}px)`);
+                }
+                
+                // Sort buttons by priority (highest priority last)
+                const sortedButtons = buttonWidths.sort((a, b) => {
+                    const priorityA = parseInt(a.btn.dataset[priorityAttr] || a.btn.dataset.overflowPriority || '1');
+                    const priorityB = parseInt(b.btn.dataset[priorityAttr] || b.btn.dataset.overflowPriority || '1');
+                    return priorityB - priorityA; // Higher priority = lower number = later in array
+                });
+
+                // Hide buttons starting with lowest priority until fits
+                let currentWidth = totalWidth;
+                let movedToOverflow = 0;
+
+                for (const {btn, width} of sortedButtons) {
+                    const priority = parseInt(btn.dataset[priorityAttr] || btn.dataset.overflowPriority || '1');
+                    const buttonLabel = btn.getAttribute('aria-label') || 'unknown';
+                    
+                    // Never hide priority 1 buttons
+                    if (priority === 1) {
+                        btn.dataset.inOverflow = 'false';
+                        btn.style.display = '';
+                        continue;
+                    }
+
+                    // On mobile, hide all non-priority-1 buttons (priority 2 and 3)
+                    // On desktop, only hide if not enough space
+                    const shouldHide = isSmallScreen ? (priority > 1) : (currentWidth > availableWidth);
+
+                    if (shouldHide) {
+                        // Move to overflow
+                        btn.dataset.inOverflow = 'true';
+                        btn.style.display = 'none';
+                        currentWidth -= width;
+                        movedToOverflow++;
+                        if (this.player.options.debug) {
+                            console.log(`  → Hiding button: ${buttonLabel} (priority ${priority}, ${isSmallScreen ? 'mobile' : 'desktop'})`);
+                        }
+                    } else {
+                        // Keep visible
+                        btn.dataset.inOverflow = 'false';
+                        btn.style.display = '';
+                    }
+                }
+
+                // Show overflow menu button if we moved any buttons
+                if (this.player.options.debug) {
+                    console.log('Overflow button exists?', !!this.overflowMenuButton);
+                }
+                
+                if (!this.overflowMenuButton) {
+                    console.error('Overflow menu button not found!');
+                    return;
+                }
+                
+                if (movedToOverflow > 0) {
+                    this.overflowMenuButton.style.display = '';
+                    if (this.player.options.debug) {
+                        console.log('Showing overflow menu button -', movedToOverflow, 'buttons moved');
+                    }
+                } else {
+                    this.overflowMenuButton.style.display = 'none';
+                    if (this.player.options.debug) {
+                        console.log('Hiding overflow menu button - all buttons fit');
+                    }
+                }
+            } else {
+                // No overflow needed - show all buttons
+                allButtons.forEach(btn => {
+                    btn.dataset.inOverflow = 'false';
+                    btn.style.display = '';
+                });
+                this.overflowMenuButton.style.display = 'none';
+            }
+        };
+
+        // Check on resize
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(checkOverflow);
+        });
+        resizeObserver.observe(this.rightButtons);
+
+        // Check on window resize
+        window.addEventListener('resize', () => {
+            requestAnimationFrame(checkOverflow);
+        });
+
+        // Initial checks at multiple intervals to ensure layout is stable
+        // Some browsers need more time for font loading, CSS rendering, etc.
+        requestAnimationFrame(() => {
+            checkOverflow();
+            setTimeout(() => checkOverflow(), 100);
+            setTimeout(() => checkOverflow(), 300);
+            setTimeout(() => checkOverflow(), 500);
+        });
+
+        // Also check when fonts are loaded
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                requestAnimationFrame(checkOverflow);
+            });
+        }
+
+        // Store for cleanup
+        this.overflowResizeObserver = resizeObserver;
+    }
+
     show() {
         this.element.style.display = '';
     }
@@ -2442,6 +2907,10 @@ export class ControlBar {
     destroy() {
         if (this.hideTimeout) {
             clearTimeout(this.hideTimeout);
+        }
+
+        if (this.overflowResizeObserver) {
+            this.overflowResizeObserver.disconnect();
         }
 
         if (this.element && this.element.parentNode) {

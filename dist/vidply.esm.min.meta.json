@@ -11,27 +11,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.js": {
-      "bytes": 4704,
+      "bytes": 4793,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.js": {
-      "bytes": 5186,
+      "bytes": 5282,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.js": {
-      "bytes": 5403,
+      "bytes": 5501,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.js": {
-      "bytes": 5498,
+      "bytes": 5599,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.js": {
-      "bytes": 5583,
+      "bytes": 5698,
       "imports": [],
       "format": "esm"
     },
@@ -99,7 +99,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 95232,
+      "bytes": 115895,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -140,7 +140,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.js": {
-      "bytes": 16054,
+      "bytes": 18037,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -438,19 +438,19 @@
           "bytesInOutput": 1581
         },
         "src/i18n/languages/en.js": {
-          "bytesInOutput": 3783
+          "bytesInOutput": 3858
         },
         "src/i18n/languages/de.js": {
-          "bytesInOutput": 4406
+          "bytesInOutput": 4490
         },
         "src/i18n/languages/es.js": {
-          "bytesInOutput": 4610
+          "bytesInOutput": 4696
         },
         "src/i18n/languages/fr.js": {
-          "bytesInOutput": 4737
+          "bytesInOutput": 4825
         },
         "src/i18n/languages/ja.js": {
-          "bytesInOutput": 7529
+          "bytesInOutput": 7699
         },
         "src/i18n/translations.js": {
           "bytesInOutput": 64
@@ -468,7 +468,7 @@
           "bytesInOutput": 222
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 42263
+          "bytesInOutput": 49510
         },
         "src/utils/StorageManager.js": {
           "bytesInOutput": 1606
@@ -477,7 +477,7 @@
           "bytesInOutput": 257
         },
         "src/controls/CaptionManager.js": {
-          "bytesInOutput": 6561
+          "bytesInOutput": 7231
         },
         "src/controls/KeyboardManager.js": {
           "bytesInOutput": 3821
@@ -513,7 +513,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 247450
+      "bytes": 255870
     }
   }
 }

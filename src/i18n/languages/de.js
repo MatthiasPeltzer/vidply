@@ -52,7 +52,9 @@ export const de = {
     signLanguageDragResize: 'Gebärdensprache-Video - Drücken Sie D zum Verschieben per Tastatur, R zum Ändern der Größe',
     signLanguageDragActive: 'Gebärdensprache-Video - Verschiebemodus aktiv. Pfeiltasten zum Bewegen, Escape zum Beenden.',
     signLanguageResizeActive: 'Gebärdensprache-Video - Größenänderungsmodus aktiv. Links-/Rechts-Pfeiltasten zum Ändern der Größe, Escape zum Beenden.',
-    resizeHandle: 'Größenänderung {direction}-Ecke'
+    resizeHandle: 'Größenänderung {direction}-Ecke',
+    moreOptions: 'Weitere Optionen',
+    noMoreOptions: 'Keine weiteren Optionen verfügbar'
   },
   captions: {
     off: 'Aus',

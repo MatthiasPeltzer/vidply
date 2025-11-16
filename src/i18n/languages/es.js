@@ -52,7 +52,9 @@ export const es = {
     signLanguageDragResize: 'Video en Lengua de Señas - Presione D para arrastrar con el teclado, R para cambiar el tamaño',
     signLanguageDragActive: 'Video en Lengua de Señas - Modo de arrastre activo. Use las teclas de flecha para mover, Escape para salir.',
     signLanguageResizeActive: 'Video en Lengua de Señas - Modo de cambio de tamaño activo. Use las teclas de flecha izquierda/derecha para cambiar el tamaño, Escape para salir.',
-    resizeHandle: 'Cambiar tamaño esquina {direction}'
+    resizeHandle: 'Cambiar tamaño esquina {direction}',
+    moreOptions: 'Más opciones',
+    noMoreOptions: 'No hay opciones adicionales disponibles'
   },
   captions: {
     off: 'Desactivado',
