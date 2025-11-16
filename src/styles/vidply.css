@@ -1259,6 +1259,14 @@
 }
 
 @media (orientation: landscape) {
+    /* Make player a flex container to center content */
+    .vidply-player.vidply-fullscreen,
+    .vidply-player:fullscreen {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+    }
+    
     .vidply-player.vidply-fullscreen .vidply-controls,
     .vidply-player:fullscreen .vidply-controls {
         position: absolute !important;
@@ -1278,15 +1286,22 @@
         transition: opacity 0.3s ease !important;
     }
     
-    /* Show controls on hover, touch, visible class, or when paused */
+    /* Show controls only with visible class or when paused (not :hover - causes issues on touch) */
     .vidply-player.vidply-fullscreen .vidply-controls.vidply-controls-visible,
     .vidply-player:fullscreen .vidply-controls.vidply-controls-visible,
-    .vidply-player.vidply-fullscreen:hover .vidply-controls,
-    .vidply-player:fullscreen:hover .vidply-controls,
     .vidply-player.vidply-fullscreen.vidply-paused .vidply-controls,
     .vidply-player:fullscreen.vidply-paused .vidply-controls {
         opacity: 1 !important;
         pointer-events: auto !important;
+    }
+    
+    /* On desktop, also show on hover */
+    @media (hover: hover) and (pointer: fine) {
+        .vidply-player.vidply-fullscreen:hover .vidply-controls,
+        .vidply-player:fullscreen:hover .vidply-controls {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
     }
     
     /* Ensure button containers are visible and properly laid out */
@@ -1314,11 +1329,15 @@
         display: inline-flex !important;
     }
     
-    /* Ensure menus display vertically in landscape fullscreen */
+    /* Fix menu positioning - position relative to button, not centered */
     .vidply-player.vidply-fullscreen .vidply-menu,
     .vidply-player:fullscreen .vidply-menu {
         display: flex !important;
         flex-direction: column !important;
+        /* Override mobile centering - position relative to button */
+        left: auto !important;
+        right: 0 !important;
+        transform: none !important;
     }
     
     .vidply-player.vidply-fullscreen .vidply-menu-item,
@@ -1332,7 +1351,13 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        flex: 1 !important; /* Take remaining space */
         height: 100% !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
     }
     
     .vidply-player.vidply-fullscreen video,
