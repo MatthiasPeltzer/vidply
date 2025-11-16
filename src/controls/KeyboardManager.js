@@ -44,6 +44,14 @@ export class KeyboardManager {
     const key = e.key;
     let handled = false;
 
+    // Special handling for ESC key - exit fullscreen (especially for iOS pseudo-fullscreen)
+    if (key === 'Escape' && this.player.state.fullscreen) {
+      this.player.exitFullscreen();
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
     // Check each shortcut category
     for (const [action, keys] of Object.entries(this.shortcuts)) {
       if (keys.includes(key)) {

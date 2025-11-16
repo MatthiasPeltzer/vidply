@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved responsive design for mobile devices
 
 ### Fixed
+- **iOS Fullscreen Mode**: Fixed fullscreen functionality on iPhone/iPad devices. Since iOS doesn't support the Fullscreen API on container elements, VidPly now automatically falls back to a "pseudo-fullscreen" mode that positions the player to fill the viewport using CSS. This provides a proper fullscreen experience on iOS while maintaining all player features.
+- Added ESC key support for exiting pseudo-fullscreen mode on iOS and other devices without native Fullscreen API support.
+- Improved fullscreen API error handling with automatic fallback to pseudo-fullscreen when native API fails.
 - Transcript window resize functionality now properly shows resize handles and works with mouse
 - Sign language video resize functionality improved
 - Consistent breakpoint logic throughout the codebase

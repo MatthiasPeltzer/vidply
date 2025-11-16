@@ -361,6 +361,8 @@ player.exitFullscreen()   // Exit fullscreen
 player.toggleFullscreen() // Toggle fullscreen
 ```
 
+**Note on iOS/Mobile Safari:** Since iOS doesn't support the Fullscreen API on container elements, VidPly automatically falls back to a "pseudo-fullscreen" mode that positions the player to fill the entire viewport using CSS. This provides a fullscreen-like experience on iOS devices while maintaining all player functionality.
+
 ### Captions
 
 ```javascript

@@ -166,7 +166,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.js": {
-      "bytes": 7127,
+      "bytes": 7398,
       "imports": [],
       "format": "esm"
     },
@@ -295,7 +295,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 193229,
+      "bytes": 196653,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -480,7 +480,7 @@
           "bytesInOutput": 7231
         },
         "src/controls/KeyboardManager.js": {
-          "bytesInOutput": 3821
+          "bytesInOutput": 3943
         },
         "src/utils/MenuUtils.js": {
           "bytesInOutput": 1862
@@ -495,7 +495,7 @@
           "bytesInOutput": 38421
         },
         "src/core/Player.js": {
-          "bytesInOutput": 70726
+          "bytesInOutput": 72292
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -513,7 +513,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 266926
+      "bytes": 268614
     }
   }
 }
