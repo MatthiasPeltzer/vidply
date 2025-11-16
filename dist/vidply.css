@@ -1223,6 +1223,17 @@
     width: 100vw;
 }
 
+/* Pseudo-fullscreen for iOS and browsers without Fullscreen API support */
+.vidply-player.vidply-fullscreen:not(:fullscreen) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999999;
+    background: #000;
+}
+
 /* Transcript in Fullscreen */
 .vidply-player.vidply-fullscreen .vidply-transcript-window,
 .vidply-player:fullscreen .vidply-transcript-window {

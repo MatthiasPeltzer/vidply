@@ -4176,6 +4176,12 @@ var VidPly = (() => {
       }
       const key = e.key;
       let handled = false;
+      if (key === "Escape" && this.player.state.fullscreen) {
+        this.player.exitFullscreen();
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       for (const [action, keys] of Object.entries(this.shortcuts)) {
         if (keys.includes(key)) {
           handled = this.executeAction(action, e);
@@ -8124,28 +8130,44 @@ var VidPly = (() => {
     // Fullscreen
     enterFullscreen() {
       const elem = this.container;
+      let fullscreenPromise = null;
       if (elem.requestFullscreen) {
-        elem.requestFullscreen();
+        fullscreenPromise = elem.requestFullscreen();
       } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
+        fullscreenPromise = elem.webkitRequestFullscreen();
       } else if (elem.mozRequestFullScreen) {
-        elem.mozRequestFullScreen();
+        fullscreenPromise = elem.mozRequestFullScreen();
       } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
+        fullscreenPromise = elem.msRequestFullscreen();
       }
-      this.state.fullscreen = true;
-      this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
-      this.emit("fullscreenchange", true);
+      if (fullscreenPromise && fullscreenPromise.catch) {
+        fullscreenPromise.catch((err) => {
+          this.log("Fullscreen API failed, using pseudo-fullscreen:", err.message);
+          this._enablePseudoFullscreen();
+        });
+      }
+      if (!elem.requestFullscreen && !elem.webkitRequestFullscreen && !elem.mozRequestFullScreen && !elem.msRequestFullscreen) {
+        this._enablePseudoFullscreen();
+      } else {
+        this.state.fullscreen = true;
+        this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
+        this.emit("fullscreenchange", true);
+      }
     }
     exitFullscreen() {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      } else if (document.mozCancelFullScreen) {
-        document.mozCancelFullScreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
+      const isInNativeFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+      if (isInNativeFullscreen) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      } else {
+        this._disablePseudoFullscreen();
       }
       this.state.fullscreen = false;
       this.container.classList.remove(`${this.options.classPrefix}-fullscreen`);
@@ -8157,6 +8179,40 @@ var VidPly = (() => {
       } else {
         this.enterFullscreen();
       }
+    }
+    // Pseudo-fullscreen fallback for iOS and browsers without Fullscreen API
+    _enablePseudoFullscreen() {
+      var _a;
+      this.state.fullscreen = true;
+      this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
+      this._originalBodyOverflow = document.body.style.overflow;
+      this._originalBodyPosition = document.body.style.position;
+      document.body.style.overflow = "hidden";
+      this._originalViewport = (_a = document.querySelector('meta[name="viewport"]')) == null ? void 0 : _a.getAttribute("content");
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (viewport) {
+        viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+      }
+      this.emit("fullscreenchange", true);
+      this.emit("enterfullscreen");
+    }
+    _disablePseudoFullscreen() {
+      if (this._originalBodyOverflow !== void 0) {
+        document.body.style.overflow = this._originalBodyOverflow;
+        delete this._originalBodyOverflow;
+      }
+      if (this._originalBodyPosition !== void 0) {
+        document.body.style.position = this._originalBodyPosition;
+        delete this._originalBodyPosition;
+      }
+      if (this._originalViewport !== void 0) {
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+          viewport.setAttribute("content", this._originalViewport);
+        }
+        delete this._originalViewport;
+      }
+      this.emit("exitfullscreen");
     }
     // Picture-in-Picture
     enterPiP() {
@@ -10193,6 +10249,7 @@ var VidPly = (() => {
             this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
           } else {
             this.container.classList.remove(`${this.options.classPrefix}-fullscreen`);
+            this._disablePseudoFullscreen();
           }
           this.emit("fullscreenchange", isFullscreen);
           if (this.controlBar) {

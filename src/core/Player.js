@@ -1090,31 +1090,63 @@ export class Player extends EventEmitter {
     // Fullscreen
     enterFullscreen() {
         const elem = this.container;
+        let fullscreenPromise = null;
 
+        // Try to use native Fullscreen API
         if (elem.requestFullscreen) {
-            elem.requestFullscreen();
+            fullscreenPromise = elem.requestFullscreen();
         } else if (elem.webkitRequestFullscreen) {
-            elem.webkitRequestFullscreen();
+            fullscreenPromise = elem.webkitRequestFullscreen();
         } else if (elem.mozRequestFullScreen) {
-            elem.mozRequestFullScreen();
+            fullscreenPromise = elem.mozRequestFullScreen();
         } else if (elem.msRequestFullscreen) {
-            elem.msRequestFullscreen();
+            fullscreenPromise = elem.msRequestFullscreen();
         }
 
-        this.state.fullscreen = true;
-        this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
-        this.emit('fullscreenchange', true);
+        // Handle promise-based API (modern browsers)
+        if (fullscreenPromise && fullscreenPromise.catch) {
+            fullscreenPromise.catch((err) => {
+                // Fullscreen API failed (common on iOS), use pseudo-fullscreen fallback
+                this.log('Fullscreen API failed, using pseudo-fullscreen:', err.message);
+                this._enablePseudoFullscreen();
+            });
+        }
+
+        // For browsers without Fullscreen API support, use pseudo-fullscreen
+        if (!elem.requestFullscreen && !elem.webkitRequestFullscreen && 
+            !elem.mozRequestFullScreen && !elem.msRequestFullscreen) {
+            this._enablePseudoFullscreen();
+        } else {
+            // Optimistically set state (will be corrected by fullscreenChangeHandler if it fails)
+            this.state.fullscreen = true;
+            this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
+            this.emit('fullscreenchange', true);
+        }
     }
 
     exitFullscreen() {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
+        // Check if we're in native fullscreen
+        const isInNativeFullscreen = !!(
+            document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement
+        );
+
+        if (isInNativeFullscreen) {
+            // Exit native fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        } else {
+            // We're in pseudo-fullscreen, exit it manually
+            this._disablePseudoFullscreen();
         }
 
         this.state.fullscreen = false;
@@ -1128,6 +1160,50 @@ export class Player extends EventEmitter {
         } else {
             this.enterFullscreen();
         }
+    }
+
+    // Pseudo-fullscreen fallback for iOS and browsers without Fullscreen API
+    _enablePseudoFullscreen() {
+        this.state.fullscreen = true;
+        this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
+        
+        // Prevent body scrolling while in pseudo-fullscreen
+        this._originalBodyOverflow = document.body.style.overflow;
+        this._originalBodyPosition = document.body.style.position;
+        document.body.style.overflow = 'hidden';
+        
+        // On iOS, also lock the viewport
+        this._originalViewport = document.querySelector('meta[name="viewport"]')?.getAttribute('content');
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        }
+        
+        this.emit('fullscreenchange', true);
+        this.emit('enterfullscreen');
+    }
+
+    _disablePseudoFullscreen() {
+        // Restore body scrolling
+        if (this._originalBodyOverflow !== undefined) {
+            document.body.style.overflow = this._originalBodyOverflow;
+            delete this._originalBodyOverflow;
+        }
+        if (this._originalBodyPosition !== undefined) {
+            document.body.style.position = this._originalBodyPosition;
+            delete this._originalBodyPosition;
+        }
+        
+        // Restore viewport settings
+        if (this._originalViewport !== undefined) {
+            const viewport = document.querySelector('meta[name="viewport"]');
+            if (viewport) {
+                viewport.setAttribute('content', this._originalViewport);
+            }
+            delete this._originalViewport;
+        }
+        
+        this.emit('exitfullscreen');
     }
 
     // Picture-in-Picture
@@ -3939,6 +4015,8 @@ export class Player extends EventEmitter {
                     this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
                 } else {
                     this.container.classList.remove(`${this.options.classPrefix}-fullscreen`);
+                    // Clean up pseudo-fullscreen state when exiting
+                    this._disablePseudoFullscreen();
                 }
                 
                 this.emit('fullscreenchange', isFullscreen);
