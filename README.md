@@ -16,7 +16,6 @@ Try VidPly in action:
 - **[Audio Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-audio.html)** - Audio player with playlist support
 - **[Video Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-video.html)** - Video playlist with thumbnails
 - **[HLS Streaming](https://matthiaspeltzer.github.io/vidply/demo/hls-test.html)** - Adaptive bitrate streaming demo
-- **[Sign Language](https://matthiaspeltzer.github.io/vidply/demo/sign-language-demo.html)** - Sign language overlay demo
 
 ## Why VidPly?
 
@@ -318,8 +317,10 @@ const player = new Player('#video', {
 | <kbd>Q</kbd> | Open Quality Menu |
 | <kbd>J</kbd> | Open Chapters Menu |
 | <kbd>T</kbd> | Toggle Transcript |
-| <kbd>D</kbd> | Toggle Keyboard Drag Mode (when transcript focused) |
-| <kbd>R</kbd> | Toggle Resize Mode (when transcript focused) |
+| <kbd>D</kbd> | Toggle Drag Mode (Transcript/Sign Language) |
+| <kbd>R</kbd> | Toggle Resize Mode (Transcript/Sign Language) |
+| <kbd>Escape</kbd> | Exit Drag/Resize Mode or Close Menus |
+| <kbd>Home</kbd> | Reset Transcript/Sign Language Position |
 
 ## API Reference
 
@@ -375,22 +376,23 @@ player.captionManager.getAvailableTracks()  // Get all tracks
 ### Transcript
 
 ```javascript
+// Show/Hide Transcript
 player.transcriptManager.showTranscript()     // Show transcript window
 player.transcriptManager.hideTranscript()     // Hide transcript window
-player.transcriptManager.toggleTranscript()   // Toggle transcript
+player.transcriptManager.toggleTranscript()   // Toggle transcript visibility
 
-// Settings & Move/Resize Controls
-player.transcriptManager.showSettingsMenu()   // Show settings dropdown
-player.transcriptManager.hideSettingsMenu()   // Hide settings dropdown
-player.transcriptManager.enableMoveMode()     // Show move mode feedback
-player.transcriptManager.toggleResizeMode()   // Toggle resize handles
-player.transcriptManager.enableResizeHandles() // Enable window resizing
-player.transcriptManager.disableResizeHandles() // Disable window resizing
+// Drag & Resize Modes (Desktop only, mobile breakpoint: 768px)
+player.transcriptManager.toggleKeyboardDragMode()   // Toggle drag mode (D key)
+player.transcriptManager.togglePointerResizeMode()  // Toggle resize mode (R key)
 
-// NEW: Full Keyboard Support
-player.transcriptManager.enableKeyboardDragMode()  // Enable arrow key dragging
-player.transcriptManager.disableKeyboardDragMode() // Disable arrow key dragging
-player.transcriptManager.toggleKeyboardDragMode()  // Toggle keyboard drag mode
+// Settings Menu
+player.transcriptManager.showSettingsMenu()    // Show settings dropdown
+player.transcriptManager.hideSettingsMenu()    // Hide settings dropdown
+
+// Check State
+if (player.transcriptManager.isVisible) {
+  console.log('Transcript is visible');
+}
 ```
 
 ### Audio Description
@@ -404,9 +406,19 @@ player.toggleAudioDescription()   // Toggle audio description
 ### Sign Language
 
 ```javascript
+// Show/Hide Sign Language Video
 player.enableSignLanguage()   // Show sign language overlay
 player.disableSignLanguage()  // Hide sign language overlay
 player.toggleSignLanguage()   // Toggle sign language
+
+// Multi-Language Support
+player.switchSignLanguage('de')  // Switch to German sign language
+
+// Drag & Resize (available via settings menu or keyboard)
+// D key - Toggle drag mode with arrow keys
+// R key - Toggle resize mode (shows resize handles)
+// Home key - Reset position
+// Escape - Exit drag/resize mode
 ```
 
 ### Playlists

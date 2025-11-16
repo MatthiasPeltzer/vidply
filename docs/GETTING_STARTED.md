@@ -354,6 +354,10 @@ Once the player is focused:
 - <kbd>Q</kbd> - Open Quality Menu
 - <kbd>J</kbd> - Open Chapters Menu
 - <kbd>T</kbd> - Toggle Transcript
+- <kbd>D</kbd> - Toggle Drag Mode (Transcript/Sign Language)
+- <kbd>R</kbd> - Toggle Resize Mode (Transcript/Sign Language)
+- <kbd>Home</kbd> - Reset Position (Transcript/Sign Language)
+- <kbd>Escape</kbd> - Exit Mode or Close Menu
 
 ## Customizing Styles
 
@@ -547,7 +551,7 @@ Check the browser console for detailed logs.
 
 ## Mobile Optimization
 
-VidPly is mobile-friendly by default. For best results:
+VidPly is mobile-friendly by default with a mobile breakpoint at 768px. For best results:
 
 ```html
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -560,6 +564,13 @@ const player = new Player('#video', {
   responsive: true
 });
 ```
+
+**Mobile-specific behavior (screen width < 768px):**
+- Transcript window appears below the video (not draggable/resizable)
+- Sign language video is not draggable/resizable
+- Optimized control bar with overflow menu for many buttons
+- Touch-friendly interface with 44px minimum touch targets
+- Adjusted minimum widths for transcript windows (300px)
 
 ## Accessibility
 

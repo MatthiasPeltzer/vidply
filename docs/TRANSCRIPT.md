@@ -6,9 +6,12 @@ VidPly includes a powerful interactive transcript feature that displays video ca
 
 - **Auto-Scrolling** - Transcript automatically highlights and scrolls to the current line
 - **Click to Seek** - Click any transcript line to jump to that moment in the video
-- **Draggable Window** - Position the transcript anywhere on screen
-- **Keyboard Navigation** - Use arrow keys to move the transcript window
-- **Mobile Responsive** - Adapts to mobile screens with optimized layout
+- **Draggable Window** - Position the transcript anywhere on screen (desktop only)
+- **Resizable Window** - Adjust transcript window size with mouse or keyboard
+- **Keyboard Drag Mode** - Use arrow keys to move the transcript window (D key to toggle)
+- **Keyboard Resize Mode** - Use arrow keys to resize the transcript window (R key to toggle)
+- **Settings Menu** - Configure drag and resize modes
+- **Mobile Responsive** - Adapts to mobile screens (< 768px) with optimized layout
 - **Fullscreen Support** - Transcript repositions intelligently in fullscreen mode
 - **Search & Read** - Perfect for accessibility and language learning
 
@@ -115,20 +118,35 @@ player.on('timeupdate', (time) => {
 });
 ```
 
-### Drag to Reposition (Desktop)
+### Drag & Resize Modes (Desktop)
 
-On desktop, users can:
-- **Drag** the transcript header to move the window
-- **Arrow Keys** to move in 10px increments (Shift = 50px)
-- **Home Key** to reset to center
-- **Escape Key** to close transcript
+On desktop (>= 768px), users can:
+
+**Drag Mode:**
+- **D Key** - Toggle keyboard drag mode
+- **Arrow Keys** - Move window in 10px increments (Shift = 50px)
+- **Mouse Drag** - Drag the transcript header to reposition
+- **Home Key** - Reset to center position
+- **Escape Key** - Exit drag mode
+
+**Resize Mode:**
+- **R Key** - Toggle keyboard resize mode
+- **Arrow Keys** - Resize window in 10px increments (Shift = 50px)
+- **Mouse Resize** - Drag resize handles at window edges
+- **Escape Key** - Exit resize mode
+
+**Settings Menu:**
+- Click the settings icon (⚙️) in the transcript header
+- Toggle drag mode and resize mode
+- Close the transcript window
 
 ### Mobile Behavior
 
-On mobile devices (< 640px):
+On mobile devices (< 768px):
 - Transcript appears below the video player
-- Positioned in document flow (not draggable)
+- Positioned in document flow (not draggable or resizable)
 - Optimized for scrolling and reading
+- Min-width: 300px
 
 ## Positioning Modes
 
@@ -150,15 +168,38 @@ On mobile devices (< 640px):
 
 ## Keyboard Shortcuts
 
-When transcript header is focused:
+### Global Shortcuts (Player focused)
+
+| Key | Action |
+|-----|--------|
+| <kbd>T</kbd> | Toggle transcript window |
+| <kbd>D</kbd> | Toggle drag mode (when transcript visible) |
+| <kbd>R</kbd> | Toggle resize mode (when transcript visible) |
+
+### Drag Mode (D key - must be enabled first)
 
 | Key | Action |
 |-----|--------|
 | <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> | Move window (10px) |
 | <kbd>Shift</kbd> + <kbd>Arrow</kbd> | Move window (50px) |
 | <kbd>Home</kbd> | Reset to center position |
-| <kbd>Escape</kbd> | Close transcript |
-| <kbd>Enter</kbd> on entry | Jump to that time |
+| <kbd>Escape</kbd> | Exit drag mode |
+
+### Resize Mode (R key - must be enabled first)
+
+| Key | Action |
+|-----|--------|
+| <kbd>←</kbd> <kbd>→</kbd> | Adjust width (10px) |
+| <kbd>↑</kbd> <kbd>↓</kbd> | Adjust height (10px) |
+| <kbd>Shift</kbd> + <kbd>Arrow</kbd> | Adjust size (50px) |
+| <kbd>Escape</kbd> | Exit resize mode |
+
+### Transcript Entries
+
+| Key | Action |
+|-----|--------|
+| <kbd>Enter</kbd> / <kbd>Space</kbd> | Jump to that time (when entry focused) |
+| <kbd>Tab</kbd> | Navigate through transcript entries |
 
 ## Styling the Transcript
 

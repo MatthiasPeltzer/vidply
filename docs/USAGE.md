@@ -250,7 +250,7 @@ if (frenchTrack) {
 
 ### Interactive Transcript
 
-Display a clickable, scrolling transcript alongside your video:
+Display a clickable, scrolling transcript alongside your video with drag and resize capabilities:
 
 ```html
 <video 
@@ -269,16 +269,33 @@ const player = new Player('#video', {
   transcriptButton: true
 });
 
-// Control programmatically
+// Show/Hide Transcript
 player.transcriptManager.showTranscript();
 player.transcriptManager.hideTranscript();
 player.transcriptManager.toggleTranscript();
 
-// Check visibility
+// Drag & Resize Modes (Desktop only, screen width >= 768px)
+player.transcriptManager.toggleKeyboardDragMode();   // Toggle drag mode (D key)
+player.transcriptManager.togglePointerResizeMode();  // Toggle resize mode (R key)
+
+// Check State
 if (player.transcriptManager.isVisible) {
   console.log('Transcript is showing');
 }
 ```
+
+**Keyboard Shortcuts:**
+- <kbd>T</kbd> - Toggle transcript window
+- <kbd>D</kbd> - Toggle drag mode (move with arrow keys)
+- <kbd>R</kbd> - Toggle resize mode (resize with arrow keys)
+- <kbd>Home</kbd> - Reset position to center
+- <kbd>Escape</kbd> - Exit drag/resize mode
+
+**Settings Menu:**
+The transcript window includes a settings menu (⚙️ icon) with options to:
+- Enable/disable drag mode
+- Enable/disable resize mode
+- Close the transcript window
 
 See [TRANSCRIPT.md](TRANSCRIPT.md) for complete documentation.
 
@@ -354,19 +371,25 @@ When multiple sign language sources are available:
 
 #### Sign Language Settings Menu
 
-The sign language video includes a settings menu with the following options:
-- **Keyboard Drag Mode** - Toggle keyboard drag mode (Shortcut: D key)
-- **Resize Window** - Toggle resize mode to adjust video size (Shortcut: R key)
+The sign language video includes a settings menu (⚙️ icon) with the following options:
+- **Enable/Disable Drag Mode** - Toggle keyboard drag mode (Shortcut: D key)
+- **Enable/Disable Resize Mode** - Toggle resize mode to adjust video size (Shortcut: R key)
+- **Language Selector** - Switch between available sign language videos (if multiple)
 - **Close Menu** - Close the settings menu
 
-The sign language video:
+**Sign Language Features:**
 - Automatically syncs with main video playback
 - Adjusts playback speed to match main video
 - Muted by default (main video audio is used)
 - Positioned as overlay on main video
-- Can be dragged and resized (similar to transcript window)
-- Supports keyboard navigation (D for drag, R for resize, Escape to exit modes, Home to reset position)
-- Includes a settings menu for drag, resize, and close options
+- Can be dragged and resized (desktop only, >= 768px)
+- Supports keyboard navigation:
+  - <kbd>D</kbd> - Toggle drag mode (move with arrow keys)
+  - <kbd>R</kbd> - Toggle resize mode (resize with arrow keys)
+  - <kbd>Home</kbd> - Reset position
+  - <kbd>Escape</kbd> - Exit drag/resize mode
+- Includes a settings menu for drag, resize, language switching, and close options
+- Automatically switches language when caption language changes (if matching sign language available)
 
 ### Audio Description
 

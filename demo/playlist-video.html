@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VidPly - Video Playlist Demo</title>
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-  <link rel="stylesheet" href="../dist/vidply.css?v=20241008-59">
+  <link rel="stylesheet" href="../dist/vidply.css">
   <style>
     * {
       box-sizing: border-box;
@@ -131,7 +131,7 @@
   </div>
 
   <script type="module">
-    import { Player, PlaylistManager } from '../dist/vidply.esm.js?v=20241008-59';
+    import { Player, PlaylistManager } from '../dist/vidply.esm.js';
 
     console.log('Starting video player initialization...');
 
@@ -185,15 +185,15 @@
         ]
       },
       {
-        src: 'media/itaccess-excerpt.mp4',
+        src: 'media/itaccess_excerpt.mp4',
         type: 'video/mp4',
         title: 'IT Access - Episode 3',
         artist: 'Demo Series',
         poster: 'media/itaccess.jpg',
         tracks: [
-          { src: 'media/itaccess-excerpt-captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
-          { src: 'media/itaccess-excerpt-subtitles_es.vtt', kind: 'subtitles', srclang: 'es', label: 'Español' },
-          { src: 'media/itaccess-excerpt-chapters_en.vtt', kind: 'chapters', srclang: 'en', label: 'Chapters' }
+          { src: 'media/itaccess_excerpt_captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
+          { src: 'media/itaccess_excerpt_subtitles_es.vtt', kind: 'subtitles', srclang: 'es', label: 'Español' },
+          { src: 'media/itaccess_excerpt_chapters_en.vtt', kind: 'chapters', srclang: 'en', label: 'Chapters' }
         ]
       }
     ];
