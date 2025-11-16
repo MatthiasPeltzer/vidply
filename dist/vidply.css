@@ -312,7 +312,7 @@
     position: relative;
 }
 
-/* Mobile: Controls underneath video */
+/* Mobile: Controls underneath video (but not in landscape fullscreen) */
 @media (width < 768px) {
     .vidply-controls {
         background: var(--vidply-black-90);
@@ -334,6 +334,15 @@
     .vidply-controls-left,
     .vidply-controls-right {
         position: relative;
+    }
+    
+    /* Exception: In landscape fullscreen, override mobile defaults */
+    @media (orientation: landscape) {
+        .vidply-player.vidply-fullscreen .vidply-controls,
+        .vidply-player:fullscreen .vidply-controls {
+            /* Landscape fullscreen rules apply (see below) */
+            /* This empty block ensures specificity ordering */
+        }
     }
 }
 
@@ -1249,21 +1258,30 @@
 }
 
 /* Fix controls in fullscreen LANDSCAPE mode - overlay them on video */
+/* Higher specificity to override mobile rules */
+.vidply-player.vidply-fullscreen .vidply-controls,
+.vidply-player:fullscreen .vidply-controls {
+    /* Default: inherit from mobile or desktop */
+}
+
 @media (orientation: landscape) {
     .vidply-player.vidply-fullscreen .vidply-controls,
     .vidply-player:fullscreen .vidply-controls {
         position: absolute !important;
         bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
         order: 0 !important;
         border-top: none !important;
         background: linear-gradient(to top, var(--vidply-black-90) 0%, var(--vidply-black-50) 100%) !important;
         padding: 20px 16px 16px !important;
+        width: 100% !important;
         z-index: 20 !important; /* Ensure controls are above video */
         
         /* Enable auto-hide in landscape (like desktop) */
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: opacity 0.3s ease !important;
     }
     
     /* Show controls on hover, touch, visible class, or when paused */
@@ -1291,6 +1309,31 @@
     .vidply-player:fullscreen .vidply-controls-right {
         display: flex !important;
         flex-wrap: nowrap !important;
+        gap: 8px !important;
+    }
+    
+    /* Make sure buttons within containers are visible */
+    .vidply-player.vidply-fullscreen .vidply-controls-left > *,
+    .vidply-player:fullscreen .vidply-controls-left > *,
+    .vidply-player.vidply-fullscreen .vidply-controls-right > *,
+    .vidply-player:fullscreen .vidply-controls-right > * {
+        display: inline-flex !important;
+    }
+    
+    /* Center video in landscape fullscreen */
+    .vidply-player.vidply-fullscreen .vidply-video-wrapper,
+    .vidply-player:fullscreen .vidply-video-wrapper {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 100% !important;
+    }
+    
+    .vidply-player.vidply-fullscreen video,
+    .vidply-player:fullscreen video {
+        height: 100% !important;
+        width: 100% !important;
+        object-fit: contain !important;
     }
 }
 
