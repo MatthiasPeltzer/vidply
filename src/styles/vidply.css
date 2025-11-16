@@ -193,6 +193,12 @@
     z-index: 1; /* Base video layer */
 }
 
+/* Allow controls to overflow in fullscreen mode */
+.vidply-player.vidply-fullscreen .vidply-video-wrapper,
+.vidply-player:fullscreen .vidply-video-wrapper {
+    overflow: visible;
+}
+
 .vidply-video-wrapper.vidply-forced-poster {
     background-image: var(--vidply-poster-image);
     background-position: center;
@@ -1237,6 +1243,7 @@
     border-top: none !important;
     background: linear-gradient(to top, var(--vidply-black-90) 0%, var(--vidply-black-50) 100%) !important;
     padding: 20px 16px 16px !important;
+    z-index: 20 !important; /* Ensure controls are above video */
 }
 
 /* Transcript in Fullscreen */
