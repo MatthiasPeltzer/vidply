@@ -72,6 +72,16 @@ export class TranscriptManager {
     // Store event handlers for cleanup
     this.handlers = {
       timeupdate: () => this.updateActiveEntry(),
+      audiodescriptionenabled: () => {
+        if (this.isVisible) {
+          this.loadTranscriptData();
+        }
+      },
+      audiodescriptiondisabled: () => {
+        if (this.isVisible) {
+          this.loadTranscriptData();
+        }
+      },
       resize: null,
       settingsClick: null,
       settingsKeydown: null,
@@ -91,6 +101,10 @@ export class TranscriptManager {
     
     // Listen for time updates to highlight active transcript entry
     this.player.on('timeupdate', this.handlers.timeupdate);
+    
+    // Listen for audio description changes to reload transcript
+    this.player.on('audiodescriptionenabled', this.handlers.audiodescriptionenabled);
+    this.player.on('audiodescriptiondisabled', this.handlers.audiodescriptiondisabled);
     
     // Reposition transcript when entering/exiting fullscreen
     this.player.on('fullscreenchange', () => {
@@ -694,13 +708,16 @@ export class TranscriptManager {
     
     const metadataTrack = textTracks.find(track => track.kind === 'metadata');
 
-    // We need at least one track type
-    if (!captionTrack && !descriptionTrack && !metadataTrack) {
+    // We need at least one track type available for display
+    // Description tracks are only included if audio description is enabled
+    const hasDescriptionTrack = descriptionTrack && this.player.state.audioDescriptionEnabled;
+    if (!captionTrack && !hasDescriptionTrack && !metadataTrack) {
       this.showNoTranscriptMessage();
       return;
     }
 
-    // Enable all tracks to load cues
+    // Enable all tracks to load cues (even if we won't display descriptions)
+    // This ensures descriptions are ready when audio description is enabled
     const tracksToLoad = [captionTrack, descriptionTrack, metadataTrack].filter(Boolean);
     tracksToLoad.forEach(track => {
       if (track.mode === 'disabled') {
@@ -748,7 +765,8 @@ export class TranscriptManager {
       });
     }
     
-    if (descriptionTrack && descriptionTrack.cues) {
+    // Only include description cues if audio description is enabled
+    if (descriptionTrack && descriptionTrack.cues && this.player.state.audioDescriptionEnabled) {
       Array.from(descriptionTrack.cues).forEach(cue => {
         allCues.push({ cue, type: 'description' });
       });
@@ -1950,6 +1968,14 @@ export class TranscriptManager {
     // Remove timeupdate listener from player
     if (this.handlers.timeupdate) {
       this.player.off('timeupdate', this.handlers.timeupdate);
+    }
+    
+    // Remove audio description listeners from player
+    if (this.handlers.audiodescriptionenabled) {
+      this.player.off('audiodescriptionenabled', this.handlers.audiodescriptionenabled);
+    }
+    if (this.handlers.audiodescriptiondisabled) {
+      this.player.off('audiodescriptiondisabled', this.handlers.audiodescriptiondisabled);
     }
     
     // Remove settings button event listeners

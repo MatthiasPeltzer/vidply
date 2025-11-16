@@ -50,7 +50,9 @@ export class CaptionManager {
         this.loadTracks();
         this.attachEvents();
 
-        if (this.player.options.captionsDefault && this.tracks.length > 0) {
+        // Only enable captions via captionsDefault option if no default track was found
+        // (loadTracks() already enables tracks with the default attribute)
+        if (this.player.options.captionsDefault && this.tracks.length > 0 && !this.currentTrack) {
             this.enable();
         }
     }
@@ -74,22 +76,51 @@ export class CaptionManager {
 
     loadTracks() {
         const textTracks = this.player.element.textTracks;
+        let defaultTrackIndex = -1;
 
         for (let i = 0; i < textTracks.length; i++) {
             const track = textTracks[i];
 
             if (track.kind === 'subtitles' || track.kind === 'captions') {
+                // Check if this track has the default attribute
+                const trackElement = this.player.findTrackElement(track);
+                const isDefault = trackElement && trackElement.hasAttribute('default');
+                
                 this.tracks.push({
                     track: track,
                     language: track.language,
                     label: track.label,
                     kind: track.kind,
-                    index: i
+                    index: i,
+                    isDefault: isDefault
                 });
 
-                // Disable all tracks initially
-                track.mode = 'hidden';
+                // Set all tracks to 'hidden' mode (not 'disabled' or 'showing')
+                // 'hidden' mode loads cues and fires events, but doesn't show native captions
+                // This is important even for default tracks - we want custom caption display
+                if (track.mode === 'showing') {
+                    // If browser set it to 'showing' (e.g., for default tracks), change to 'hidden'
+                    track.mode = 'hidden';
+                } else if (track.mode === 'disabled') {
+                    // If disabled, set to 'hidden' to load cues
+                    track.mode = 'hidden';
+                } else {
+                    // Ensure it's 'hidden' (might already be, but be explicit)
+                    track.mode = 'hidden';
+                }
+                
+                if (isDefault) {
+                    defaultTrackIndex = this.tracks.length - 1;
+                }
             }
+        }
+        
+        // If a default track was found, enable it
+        // Use a small delay to ensure tracks are ready
+        if (defaultTrackIndex >= 0) {
+            requestAnimationFrame(() => {
+                this.enable(defaultTrackIndex);
+            });
         }
     }
 
@@ -109,21 +140,26 @@ export class CaptionManager {
         }
 
         // Disable current track
-        if (this.currentTrack) {
+        if (this.currentTrack && this.currentTrack.track) {
+            // Remove cuechange listener from old track
+            if (this.cueChangeHandler) {
+                this.currentTrack.track.removeEventListener('cuechange', this.cueChangeHandler);
+            }
             this.currentTrack.track.mode = 'hidden';
         }
 
         // Enable selected track
         const selectedTrack = this.tracks[trackIndex];
 
-        if (selectedTrack) {
+        if (selectedTrack && selectedTrack.track) {
             // Set to 'hidden' not 'showing' to prevent browser from displaying native captions
             // We'll handle the display ourselves
+            // But we need to set mode to 'hidden' to load cues
             selectedTrack.track.mode = 'hidden';
             this.currentTrack = selectedTrack;
             this.player.state.captionsEnabled = true;
 
-            // Remove any existing cuechange listener
+            // Remove any existing cuechange listener from this track
             if (this.cueChangeHandler) {
                 selectedTrack.track.removeEventListener('cuechange', this.cueChangeHandler);
             }
@@ -133,6 +169,40 @@ export class CaptionManager {
                 this.updateCaptions();
             };
             selectedTrack.track.addEventListener('cuechange', this.cueChangeHandler);
+
+            // Force track to load if it's not already loaded
+            // If track is not ready, wait for it to load
+            const ensureTrackReady = () => {
+                if (selectedTrack.track.readyState < 2) {
+                    // Track not loaded yet, wait for load event
+                    const onTrackLoad = () => {
+                        selectedTrack.track.removeEventListener('load', onTrackLoad);
+                        selectedTrack.track.removeEventListener('error', onTrackLoad);
+                        // Force initial update after track loads
+                        requestAnimationFrame(() => {
+                            if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
+                                this.updateCaptions();
+                            }
+                        });
+                    };
+                    selectedTrack.track.addEventListener('load', onTrackLoad, { once: true });
+                    selectedTrack.track.addEventListener('error', onTrackLoad, { once: true });
+                } else {
+                    // Track already loaded, force initial update
+                    requestAnimationFrame(() => {
+                        if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
+                            this.updateCaptions();
+                        }
+                    });
+                }
+            };
+
+            // Use requestAnimationFrame to ensure track is ready
+            requestAnimationFrame(() => {
+                if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
+                    ensureTrackReady();
+                }
+            });
 
             this.player.emit('captionsenabled', selectedTrack);
         }
@@ -152,11 +222,35 @@ export class CaptionManager {
     }
 
     updateCaptions() {
-        if (!this.currentTrack) {
+        if (!this.currentTrack || !this.currentTrack.track) {
             return;
         }
 
+        // Ensure track mode is set to 'hidden' (not 'disabled') to receive cue updates
+        // 'hidden' mode loads cues and fires cuechange events, but doesn't show native captions
+        // If track is 'disabled', it won't have activeCues or fire events
+        if (this.currentTrack.track.mode === 'disabled') {
+            this.currentTrack.track.mode = 'hidden';
+        }
+
+        // Ensure track is in 'hidden' mode (not 'showing') for custom caption display
+        if (this.currentTrack.track.mode === 'showing') {
+            this.currentTrack.track.mode = 'hidden';
+        }
+
+        // Check if track has cues loaded
         if (!this.currentTrack.track.activeCues) {
+            // If no activeCues property, track might not be ready yet
+            // Try to access cues directly
+            if (this.currentTrack.track.cues && this.currentTrack.track.cues.length > 0) {
+                // Track has cues but no active ones yet - this is normal
+                // Clear any existing caption
+                if (this.currentCue) {
+                    this.element.innerHTML = '';
+                    this.element.style.display = 'none';
+                    this.currentCue = null;
+                }
+            }
             return;
         }
 
@@ -183,7 +277,7 @@ export class CaptionManager {
                 this.player.emit('captionchange', cue);
             }
         } else if (this.currentCue) {
-            // Clear caption
+            // Clear caption when no active cues
             this.element.innerHTML = '';
             this.element.style.display = 'none';
             this.currentCue = null;
