@@ -7713,7 +7713,9 @@ var Player = class _Player extends EventEmitter {
     this.element.style.height = "100%";
     if (this.element.tagName === "VIDEO" && this.options.playsInline) {
       this.element.setAttribute("playsinline", "");
+      this.element.setAttribute("webkit-playsinline", "");
       this.element.playsInline = true;
+      this.element.webkitPlaysInline = true;
     }
     if (this.options.width) {
       this.container.style.width = typeof this.options.width === "number" ? `${this.options.width}px` : this.options.width;
@@ -8203,6 +8205,11 @@ var Player = class _Player extends EventEmitter {
   enterFullscreen() {
     const elem = this.container;
     let fullscreenPromise = null;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+    if (isIOS) {
+      this._enablePseudoFullscreen();
+      return;
+    }
     if (elem.requestFullscreen) {
       fullscreenPromise = elem.requestFullscreen();
     } else if (elem.webkitRequestFullscreen) {

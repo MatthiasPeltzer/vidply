@@ -435,7 +435,9 @@ export class Player extends EventEmitter {
         // This allows custom controls to work on iOS devices
         if (this.element.tagName === 'VIDEO' && this.options.playsInline) {
             this.element.setAttribute('playsinline', '');
+            this.element.setAttribute('webkit-playsinline', ''); // For older iOS versions
             this.element.playsInline = true; // Property version
+            this.element.webkitPlaysInline = true; // For older iOS versions
         }
 
         // Set dimensions
@@ -1092,7 +1094,17 @@ export class Player extends EventEmitter {
         const elem = this.container;
         let fullscreenPromise = null;
 
-        // Try to use native Fullscreen API
+        // Detect iOS/iPadOS to avoid native fullscreen conflicts
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        
+        // On iOS/iPadOS, always use pseudo-fullscreen to avoid video element native fullscreen
+        if (isIOS) {
+            this._enablePseudoFullscreen();
+            return;
+        }
+
+        // Try to use native Fullscreen API on other platforms
         if (elem.requestFullscreen) {
             fullscreenPromise = elem.requestFullscreen();
         } else if (elem.webkitRequestFullscreen) {
@@ -1106,7 +1118,7 @@ export class Player extends EventEmitter {
         // Handle promise-based API (modern browsers)
         if (fullscreenPromise && fullscreenPromise.catch) {
             fullscreenPromise.catch((err) => {
-                // Fullscreen API failed (common on iOS), use pseudo-fullscreen fallback
+                // Fullscreen API failed, use pseudo-fullscreen fallback
                 this.log('Fullscreen API failed, using pseudo-fullscreen:', err.message);
                 this._enablePseudoFullscreen();
             });
