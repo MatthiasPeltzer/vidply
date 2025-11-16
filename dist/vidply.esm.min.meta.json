@@ -11,27 +11,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.js": {
-      "bytes": 4793,
+      "bytes": 6061,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.js": {
-      "bytes": 5282,
+      "bytes": 6914,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.js": {
-      "bytes": 5501,
+      "bytes": 7013,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.js": {
-      "bytes": 5599,
+      "bytes": 7231,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.js": {
-      "bytes": 5698,
+      "bytes": 7618,
       "imports": [],
       "format": "esm"
     },
@@ -218,7 +218,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 71573,
+      "bytes": 72871,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -295,7 +295,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 191437,
+      "bytes": 193229,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -438,19 +438,19 @@
           "bytesInOutput": 1581
         },
         "src/i18n/languages/en.js": {
-          "bytesInOutput": 3858
+          "bytesInOutput": 5014
         },
         "src/i18n/languages/de.js": {
-          "bytesInOutput": 4490
+          "bytesInOutput": 6058
         },
         "src/i18n/languages/es.js": {
-          "bytesInOutput": 4696
+          "bytesInOutput": 6112
         },
         "src/i18n/languages/fr.js": {
-          "bytesInOutput": 4825
+          "bytesInOutput": 6393
         },
         "src/i18n/languages/ja.js": {
-          "bytesInOutput": 7699
+          "bytesInOutput": 10923
         },
         "src/i18n/translations.js": {
           "bytesInOutput": 64
@@ -492,10 +492,10 @@
           "bytesInOutput": 869
         },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 37570
+          "bytesInOutput": 38421
         },
         "src/core/Player.js": {
-          "bytesInOutput": 69530
+          "bytesInOutput": 70726
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 4140
@@ -513,7 +513,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 255947
+      "bytes": 266926
     }
   }
 }
