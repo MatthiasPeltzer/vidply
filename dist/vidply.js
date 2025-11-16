@@ -3620,7 +3620,7 @@ var VidPly = (() => {
         const gapWidth = 8;
         totalWidth += (allButtons.length - 1) * gapWidth;
         const isSmallScreen = window.innerWidth < 768;
-        const needsOverflow = totalWidth > availableWidth || isSmallScreen || isLandscapeFullscreen;
+        const needsOverflow = totalWidth > availableWidth || isSmallScreen || isLandscapeFullscreen && !isDesktop;
         if (this.player.options.debug) {
           console.log("Overflow detection:", {
             containerWidth,
