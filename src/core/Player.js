@@ -516,12 +516,57 @@ export class Player extends EventEmitter {
         this.on('pause', () => {
             this.playButtonOverlay.style.opacity = '1';
             this.playButtonOverlay.style.pointerEvents = 'auto';
+            this.positionPlayOverlayOnMobile();
         });
 
         this.on('ended', () => {
             this.playButtonOverlay.style.opacity = '1';
             this.playButtonOverlay.style.pointerEvents = 'auto';
+            this.positionPlayOverlayOnMobile();
         });
+        
+        // Position on resize and load
+        window.addEventListener('resize', () => {
+            this.positionPlayOverlayOnMobile();
+        });
+        
+        this.on('loadedmetadata', () => {
+            this.positionPlayOverlayOnMobile();
+        });
+        
+        // Recalculate on fullscreen change
+        this.on('enterfullscreen', () => {
+            setTimeout(() => this.positionPlayOverlayOnMobile(), 100);
+        });
+        
+        this.on('exitfullscreen', () => {
+            setTimeout(() => this.positionPlayOverlayOnMobile(), 100);
+        });
+    }
+    
+    positionPlayOverlayOnMobile() {
+        if (!this.playButtonOverlay || !this.element.tagName === 'VIDEO') {
+            return;
+        }
+        
+        // Check if we're on mobile (width <= 640px)
+        const isMobile = window.innerWidth <= 640;
+        
+        if (!isMobile) {
+            // Reset to CSS defaults on desktop
+            this.playButtonOverlay.style.top = '';
+            return;
+        }
+        
+        // Get video element dimensions and position
+        const videoRect = this.element.getBoundingClientRect();
+        const wrapperRect = this.videoWrapper.getBoundingClientRect();
+        
+        // Calculate the center of the video element relative to the wrapper
+        const videoCenter = (videoRect.top - wrapperRect.top) + (videoRect.height / 2);
+        
+        // Position play overlay at the center of the video
+        this.playButtonOverlay.style.top = `${videoCenter}px`;
     }
 
     async initializeRenderer() {

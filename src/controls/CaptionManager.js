@@ -132,6 +132,20 @@ export class CaptionManager {
         this.player.on('captionschange', () => {
             this.updateStyles();
         });
+        
+        // Update caption position on window resize (for mobile)
+        window.addEventListener('resize', () => {
+            this.positionCaptionsOnMobile();
+        });
+        
+        // Recalculate on fullscreen change
+        this.player.on('enterfullscreen', () => {
+            setTimeout(() => this.positionCaptionsOnMobile(), 100);
+        });
+        
+        this.player.on('exitfullscreen', () => {
+            setTimeout(() => this.positionCaptionsOnMobile(), 100);
+        });
     }
 
     enable(trackIndex = 0) {
@@ -273,6 +287,9 @@ export class CaptionManager {
 
                 // Make sure it's visible when there's content
                 this.element.style.display = 'block';
+                
+                // Position captions above controls on mobile
+                this.positionCaptionsOnMobile();
 
                 this.player.emit('captionchange', cue);
             }
@@ -282,6 +299,56 @@ export class CaptionManager {
             this.element.style.display = 'none';
             this.currentCue = null;
         }
+    }
+    
+    positionCaptionsOnMobile() {
+        if (!this.element || this.element.style.display === 'none') {
+            return;
+        }
+        
+        // Check if we're on mobile (width <= 640px) or in fullscreen mode
+        const isMobile = window.innerWidth <= 640;
+        const isFullscreen = this.player.state?.fullscreen || false;
+        
+        if (!isMobile && !isFullscreen) {
+            // Reset to CSS defaults on desktop
+            this.element.style.bottom = '';
+            return;
+        }
+        
+        // Get the controls element
+        const controls = this.player.controlBar?.element;
+        if (!controls) {
+            return;
+        }
+        
+        // Use requestAnimationFrame to ensure layout is complete
+        requestAnimationFrame(() => {
+            if (!this.element || this.element.style.display === 'none') {
+                return;
+            }
+            
+            // Get the height and position of the controls
+            const controlsRect = controls.getBoundingClientRect();
+            const wrapperRect = this.player.videoWrapper.getBoundingClientRect();
+            
+            // Calculate position from bottom of wrapper
+            const bottomOffset = wrapperRect.bottom - controlsRect.top + 16;
+            
+            // Position captions above the controls with some spacing
+            this.element.style.bottom = `${bottomOffset}px`;
+            
+            if (this.player.options.debug) {
+                console.log('[VidPly] Caption position:', {
+                    isMobile,
+                    isFullscreen,
+                    controlsHeight: controlsRect.height,
+                    controlsTop: controlsRect.top,
+                    wrapperBottom: wrapperRect.bottom,
+                    bottomOffset: `${bottomOffset}px`
+                });
+            }
+        });
     }
 
     parseVTTFormatting(text) {
