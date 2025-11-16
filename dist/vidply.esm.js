@@ -5235,6 +5235,10 @@ var TranscriptManager = class {
     this.player.on("audiodescriptiondisabled", this.handlers.audiodescriptiondisabled);
     this.player.on("fullscreenchange", () => {
       if (this.isVisible) {
+        const isMobile2 = window.innerWidth < 768;
+        if (isMobile2) {
+          this.setupDragAndDrop();
+        }
         if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
           this.setManagedTimeout(() => this.positionTranscript(), 100);
         }
@@ -5979,6 +5983,18 @@ var TranscriptManager = class {
    */
   setupDragAndDrop() {
     if (!this.transcriptHeader || !this.transcriptWindow) return;
+    const isMobile2 = window.innerWidth < 768;
+    const isFullscreen = this.player.state.fullscreen;
+    if (isMobile2 && !isFullscreen) {
+      if (this.draggableResizable) {
+        this.draggableResizable.destroy();
+        this.draggableResizable = null;
+      }
+      return;
+    }
+    if (this.draggableResizable) {
+      return;
+    }
     this.draggableResizable = new DraggableResizable(this.transcriptWindow, {
       dragHandle: this.transcriptHeader,
       resizeHandles: this.transcriptResizeHandles,
@@ -9688,6 +9704,18 @@ var Player = class _Player extends EventEmitter {
   }
   setupSignLanguageInteraction() {
     if (!this.signLanguageWrapper) return;
+    const isMobile2 = window.innerWidth < 768;
+    const isFullscreen = this.state.fullscreen;
+    if (isMobile2 && !isFullscreen) {
+      if (this.signLanguageDraggable) {
+        this.signLanguageDraggable.destroy();
+        this.signLanguageDraggable = null;
+      }
+      return;
+    }
+    if (this.signLanguageDraggable) {
+      return;
+    }
     this.signLanguageDraggable = new DraggableResizable(this.signLanguageWrapper, {
       dragHandle: this.signLanguageHeader,
       resizeHandles: this.signLanguageResizeHandles,
@@ -10312,6 +10340,10 @@ var Player = class _Player extends EventEmitter {
           this.controlBar.updateFullscreenButton();
         }
         if (this.signLanguageWrapper && this.signLanguageWrapper.style.display !== "none") {
+          const isMobile2 = window.innerWidth < 768;
+          if (isMobile2) {
+            this.setupSignLanguageInteraction();
+          }
           this.setManagedTimeout(() => {
             requestAnimationFrame(() => {
               this.storage.saveSignLanguagePreferences({ size: null });

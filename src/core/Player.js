@@ -3175,7 +3175,27 @@ export class Player extends EventEmitter {
     setupSignLanguageInteraction() {
         if (!this.signLanguageWrapper) return;
 
-        // Create DraggableResizable utility
+        // Check if we're on mobile and not in fullscreen
+        const isMobile = window.innerWidth < 768;
+        const isFullscreen = this.state.fullscreen;
+        
+        // On mobile devices (< 768px), only enable drag/resize in fullscreen
+        // On desktop/tablets (>= 768px), always enable drag/resize
+        if (isMobile && !isFullscreen) {
+            // Destroy existing instance if exiting fullscreen on mobile
+            if (this.signLanguageDraggable) {
+                this.signLanguageDraggable.destroy();
+                this.signLanguageDraggable = null;
+            }
+            return; // No drag/resize on mobile when not in fullscreen
+        }
+
+        // If already initialized, don't re-initialize
+        if (this.signLanguageDraggable) {
+            return;
+        }
+
+        // Create DraggableResizable utility with touch support
         // Use header as drag handle instead of video
         this.signLanguageDraggable = new DraggableResizable(this.signLanguageWrapper, {
             dragHandle: this.signLanguageHeader,
@@ -4028,6 +4048,13 @@ export class Player extends EventEmitter {
                 
                 // Reposition sign language video after fullscreen transition
                 if (this.signLanguageWrapper && this.signLanguageWrapper.style.display !== 'none') {
+                    // Re-setup drag/drop when entering/exiting fullscreen on mobile devices
+                    // This enables drag/resize when entering fullscreen on mobile
+                    const isMobile = window.innerWidth < 768;
+                    if (isMobile) {
+                        this.setupSignLanguageInteraction();
+                    }
+                    
                     // Use setTimeout to ensure layout has updated after fullscreen transition
                     // Longer delay to account for CSS transition animations and layout recalculation
                     this.setManagedTimeout(() => {

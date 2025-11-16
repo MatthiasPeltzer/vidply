@@ -111,6 +111,13 @@ export class TranscriptManager {
     // Reposition transcript when entering/exiting fullscreen
     this.player.on('fullscreenchange', () => {
       if (this.isVisible) {
+        // Re-setup drag/drop when entering/exiting fullscreen on mobile devices
+        // This enables drag/resize when entering fullscreen on mobile
+        const isMobile = window.innerWidth < 768;
+        if (isMobile) {
+          this.setupDragAndDrop();
+        }
+        
         // Only auto-position if user hasn't manually positioned it
         if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
           // Add a small delay to ensure DOM has updated after fullscreen transition
@@ -1102,10 +1109,27 @@ export class TranscriptManager {
   setupDragAndDrop() {
     if (!this.transcriptHeader || !this.transcriptWindow) return;
 
-    // Enable drag/resize on all devices (including touch devices)
-    // The DraggableResizable class has built-in touch support
+    // Check if we're on mobile and not in fullscreen
+    const isMobile = window.innerWidth < 768;
+    const isFullscreen = this.player.state.fullscreen;
+    
+    // On mobile devices (< 768px), only enable drag/resize in fullscreen
+    // On desktop/tablets (>= 768px), always enable drag/resize
+    if (isMobile && !isFullscreen) {
+      // Destroy existing instance if exiting fullscreen on mobile
+      if (this.draggableResizable) {
+        this.draggableResizable.destroy();
+        this.draggableResizable = null;
+      }
+      return; // No drag/resize on mobile when not in fullscreen
+    }
 
-    // Create DraggableResizable utility
+    // If already initialized, don't re-initialize
+    if (this.draggableResizable) {
+      return;
+    }
+
+    // Create DraggableResizable utility with touch support
     this.draggableResizable = new DraggableResizable(this.transcriptWindow, {
       dragHandle: this.transcriptHeader,
       resizeHandles: this.transcriptResizeHandles,
