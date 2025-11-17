@@ -1942,32 +1942,20 @@ var VidPly = (() => {
         btn.dataset.overflowPriorityMobile = "3";
         this.rightButtons.appendChild(btn);
       }
+      if (this.player.options.captionsButton && hasCaptions) {
+        const btn = this.createCaptionsButton();
+        btn.dataset.overflowPriority = "1";
+        btn.dataset.overflowPriorityMobile = "3";
+        this.rightButtons.appendChild(btn);
+      }
       if (this.player.options.captionStyleButton && hasCaptions) {
         const btn = this.createCaptionStyleButton();
         btn.dataset.overflowPriority = "3";
         btn.dataset.overflowPriorityMobile = "3";
         this.rightButtons.appendChild(btn);
       }
-      if (this.player.options.transcriptButton && hasCaptions) {
-        const btn = this.createTranscriptButton();
-        btn.dataset.overflowPriority = "3";
-        btn.dataset.overflowPriorityMobile = "3";
-        this.rightButtons.appendChild(btn);
-      }
-      if (this.player.options.qualityButton && hasQualityLevels) {
-        const btn = this.createQualityButton();
-        btn.dataset.overflowPriority = "2";
-        btn.dataset.overflowPriorityMobile = "3";
-        this.rightButtons.appendChild(btn);
-      }
       if (this.player.options.speedButton) {
         const btn = this.createSpeedButton();
-        btn.dataset.overflowPriority = "1";
-        btn.dataset.overflowPriorityMobile = "3";
-        this.rightButtons.appendChild(btn);
-      }
-      if (this.player.options.captionsButton && hasCaptions) {
-        const btn = this.createCaptionsButton();
         btn.dataset.overflowPriority = "1";
         btn.dataset.overflowPriorityMobile = "3";
         this.rightButtons.appendChild(btn);
@@ -1978,10 +1966,22 @@ var VidPly = (() => {
         btn.dataset.overflowPriorityMobile = "3";
         this.rightButtons.appendChild(btn);
       }
+      if (this.player.options.transcriptButton && hasCaptions) {
+        const btn = this.createTranscriptButton();
+        btn.dataset.overflowPriority = "3";
+        btn.dataset.overflowPriorityMobile = "3";
+        this.rightButtons.appendChild(btn);
+      }
       const hasSignLanguage = this.hasSignLanguage();
       if (this.player.options.signLanguageButton && hasSignLanguage) {
         const btn = this.createSignLanguageButton();
         btn.dataset.overflowPriority = "3";
+        btn.dataset.overflowPriorityMobile = "3";
+        this.rightButtons.appendChild(btn);
+      }
+      if (this.player.options.qualityButton && hasQualityLevels) {
+        const btn = this.createQualityButton();
+        btn.dataset.overflowPriority = "2";
         btn.dataset.overflowPriorityMobile = "3";
         this.rightButtons.appendChild(btn);
       }
@@ -3180,7 +3180,7 @@ var VidPly = (() => {
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.transcript"),
-          "aria-pressed": "false"
+          "aria-expanded": "false"
         }
       });
       button.appendChild(createIconElement("transcript"));
@@ -3196,7 +3196,7 @@ var VidPly = (() => {
     updateTranscriptButton() {
       if (!this.controls.transcript) return;
       const isVisible = this.player.transcriptManager && this.player.transcriptManager.isVisible;
-      this.controls.transcript.setAttribute("aria-pressed", isVisible ? "true" : "false");
+      this.controls.transcript.setAttribute("aria-expanded", isVisible ? "true" : "false");
     }
     createAudioDescriptionButton() {
       const button = DOMUtils.createElement("button", {
@@ -3204,7 +3204,8 @@ var VidPly = (() => {
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.audioDescription"),
-          "aria-pressed": "false",
+          "role": "switch",
+          "aria-checked": "false",
           "title": i18n.t("player.audioDescription")
         }
       });
@@ -3221,7 +3222,7 @@ var VidPly = (() => {
       const icon = this.controls.audioDescription.querySelector(".vidply-icon");
       const isEnabled = this.player.state.audioDescriptionEnabled;
       icon.innerHTML = isEnabled ? createIconElement("audioDescriptionOn").innerHTML : createIconElement("audioDescription").innerHTML;
-      this.controls.audioDescription.setAttribute("aria-pressed", isEnabled ? "true" : "false");
+      this.controls.audioDescription.setAttribute("aria-checked", isEnabled ? "true" : "false");
       this.controls.audioDescription.setAttribute(
         "aria-label",
         isEnabled ? i18n.t("audioDescription.disable") : i18n.t("audioDescription.enable")
@@ -3233,7 +3234,7 @@ var VidPly = (() => {
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.signLanguage"),
-          "aria-pressed": "false",
+          "aria-expanded": "false",
           "title": i18n.t("player.signLanguage")
         }
       });
@@ -3250,7 +3251,7 @@ var VidPly = (() => {
       const icon = this.controls.signLanguage.querySelector(".vidply-icon");
       const isEnabled = this.player.state.signLanguageEnabled;
       icon.innerHTML = isEnabled ? createIconElement("signLanguageOn").innerHTML : createIconElement("signLanguage").innerHTML;
-      this.controls.signLanguage.setAttribute("aria-pressed", isEnabled ? "true" : "false");
+      this.controls.signLanguage.setAttribute("aria-expanded", isEnabled ? "true" : "false");
       this.controls.signLanguage.setAttribute(
         "aria-label",
         isEnabled ? i18n.t("signLanguage.hide") : i18n.t("signLanguage.show")
@@ -4268,7 +4269,7 @@ var VidPly = (() => {
     attachEvents() {
       this.player.container.addEventListener("keydown", (e) => {
         this.handleKeydown(e);
-      });
+      }, true);
       if (!this.player.container.hasAttribute("tabindex")) {
         this.player.container.setAttribute("tabindex", "0");
       }
@@ -4541,7 +4542,7 @@ var VidPly = (() => {
           break;
       }
     };
-    menu.addEventListener("keydown", handleKeyDown);
+    menu.addEventListener("keydown", handleKeyDown, true);
     return handleKeyDown;
   }
   function focusFirstMenuItem(menu, itemSelector, delay = 0) {
@@ -6102,6 +6103,9 @@ var VidPly = (() => {
       this.customKeyHandler = (e) => {
         const key = e.key.toLowerCase();
         const alreadyPrevented = e.defaultPrevented;
+        if (this.settingsMenuVisible || this.styleDialogVisible) {
+          return;
+        }
         if (key === "home") {
           e.preventDefault();
           e.stopPropagation();
@@ -6129,22 +6133,22 @@ var VidPly = (() => {
           return;
         }
         if (key === "escape") {
-          e.preventDefault();
-          e.stopPropagation();
           if (this.draggableResizable && this.draggableResizable.pointerResizeMode) {
+            e.preventDefault();
+            e.stopPropagation();
             this.draggableResizable.disablePointerResizeMode();
             return;
           }
-          if (this.styleDialogVisible) {
-            this.hideStyleDialog();
-          } else if (this.draggableResizable && this.draggableResizable.keyboardDragMode) {
+          if (this.draggableResizable && this.draggableResizable.keyboardDragMode) {
+            e.preventDefault();
+            e.stopPropagation();
             this.draggableResizable.disableKeyboardDragMode();
             this.announceLive(i18n.t("transcript.dragModeDisabled"));
-          } else if (this.settingsMenuVisible) {
-            this.hideSettingsMenu();
-          } else {
-            this.hideTranscript({ focusButton: true });
+            return;
           }
+          e.preventDefault();
+          e.stopPropagation();
+          this.hideTranscript({ focusButton: true });
           return;
         }
       };
@@ -6198,13 +6202,26 @@ var VidPly = (() => {
         if (this.settingsButton) {
           this.settingsButton.setAttribute("aria-expanded", "true");
         }
-        this.positionSettingsMenu();
+        this.attachSettingsMenuKeyboardNavigation();
+        this.positionSettingsMenuImmediate();
         this.updateResizeOptionState();
-        focusFirstMenuItem(this.settingsMenu, `.${this.player.options.classPrefix}-transcript-settings-item`);
+        setTimeout(() => {
+          const menuItems = this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`);
+          if (menuItems.length > 0) {
+            menuItems[0].setAttribute("tabindex", "0");
+            for (let i = 1; i < menuItems.length; i++) {
+              menuItems[i].setAttribute("tabindex", "-1");
+            }
+            menuItems[0].focus();
+          }
+        }, 50);
         return;
       }
       this.settingsMenu = DOMUtils.createElement("div", {
-        className: `${this.player.options.classPrefix}-transcript-settings-menu`
+        className: `${this.player.options.classPrefix}-transcript-settings-menu`,
+        attributes: {
+          "role": "menu"
+        }
       });
       const keyboardDragOption = createMenuItem({
         classPrefix: this.player.options.classPrefix,
@@ -6217,7 +6234,8 @@ var VidPly = (() => {
           this.hideSettingsMenu();
         }
       });
-      keyboardDragOption.setAttribute("aria-pressed", "false");
+      keyboardDragOption.setAttribute("role", "switch");
+      keyboardDragOption.setAttribute("aria-checked", "false");
       this.dragOptionButton = keyboardDragOption;
       this.dragOptionText = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
       this.updateDragOptionState();
@@ -6257,7 +6275,8 @@ var VidPly = (() => {
           }
         }
       });
-      resizeOption.setAttribute("aria-pressed", "false");
+      resizeOption.setAttribute("role", "switch");
+      resizeOption.setAttribute("aria-checked", "false");
       this.resizeOptionButton = resizeOption;
       this.resizeOptionText = resizeOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
       this.updateResizeOptionState();
@@ -6276,14 +6295,14 @@ var VidPly = (() => {
       this.settingsMenu.appendChild(closeOption);
       this.settingsMenu.style.visibility = "hidden";
       this.settingsMenu.style.display = "block";
-      if (this.transcriptWindow) {
-        this.transcriptWindow.appendChild(this.settingsMenu);
-      } else if (this.settingsButton && this.settingsButton.parentNode) {
+      if (this.settingsButton && this.settingsButton.parentNode) {
         this.settingsButton.insertAdjacentElement("afterend", this.settingsMenu);
       } else if (this.headerLeft) {
         this.headerLeft.appendChild(this.settingsMenu);
-      } else {
+      } else if (this.transcriptHeader) {
         this.transcriptHeader.appendChild(this.settingsMenu);
+      } else {
+        this.transcriptWindow.appendChild(this.settingsMenu);
       }
       this.positionSettingsMenuImmediate();
       requestAnimationFrame(() => {
@@ -6303,64 +6322,50 @@ var VidPly = (() => {
         this.settingsButton.setAttribute("aria-expanded", "true");
       }
       this.updateResizeOptionState();
-      focusFirstMenuItem(this.settingsMenu, `.${this.player.options.classPrefix}-transcript-settings-item`);
+      setTimeout(() => {
+        const menuItems = this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`);
+        if (menuItems.length > 0) {
+          menuItems[0].setAttribute("tabindex", "0");
+          for (let i = 1; i < menuItems.length; i++) {
+            menuItems[i].setAttribute("tabindex", "-1");
+          }
+          menuItems[0].focus();
+        }
+      }, 50);
     }
     /**
      * Position settings menu relative to settings button (immediate/synchronous)
      */
     positionSettingsMenuImmediate() {
-      if (!this.settingsMenu || !this.settingsButton || !this.transcriptWindow) return;
+      if (!this.settingsMenu || !this.settingsButton) return;
+      const container = this.settingsButton.parentElement;
+      if (!container) return;
       const buttonRect = this.settingsButton.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
       const menuRect = this.settingsMenu.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      const windowRect = this.transcriptWindow.getBoundingClientRect();
-      const buttonRight = buttonRect.right - windowRect.left;
-      const buttonLeft = buttonRect.left - windowRect.left;
-      const buttonTop = buttonRect.top - windowRect.top;
-      const buttonBottom = buttonRect.bottom - windowRect.top;
-      const spaceAbove = buttonRect.top;
+      const buttonLeft = buttonRect.left - containerRect.left;
+      const buttonBottom = buttonRect.bottom - containerRect.top;
+      const buttonTop = buttonRect.top - containerRect.top;
       const spaceBelow = viewportHeight - buttonRect.bottom;
-      let menuTop = buttonBottom + 8;
-      let menuBottom = null;
+      const spaceAbove = buttonRect.top;
+      let menuTop = buttonBottom + 4;
       if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
-        menuTop = null;
-        const windowHeight = windowRect.bottom - windowRect.top;
-        menuBottom = windowHeight - buttonTop + 8;
+        menuTop = buttonTop - menuRect.height - 4;
         this.settingsMenu.classList.add("vidply-menu-above");
       } else {
         this.settingsMenu.classList.remove("vidply-menu-above");
       }
-      let menuRight = windowRect.right - buttonRect.right;
-      let menuLeft = "auto";
-      const menuLeftAbsolute = buttonRect.right - menuRect.width;
-      if (menuLeftAbsolute < 10) {
-        menuRight = "auto";
-        menuLeft = buttonLeft;
-      } else if (buttonRect.right > viewportWidth - 10) {
-        menuRight = windowRect.right - viewportWidth + 10;
-        menuLeft = "auto";
-      }
-      if (menuTop !== null) {
-        this.settingsMenu.style.top = `${menuTop}px`;
-        this.settingsMenu.style.bottom = "auto";
-      } else if (menuBottom !== null) {
-        this.settingsMenu.style.top = "auto";
-        this.settingsMenu.style.bottom = `${menuBottom}px`;
-      }
-      if (menuLeft !== "auto") {
-        this.settingsMenu.style.left = `${menuLeft}px`;
-        this.settingsMenu.style.right = "auto";
-      } else {
-        this.settingsMenu.style.left = "auto";
-        this.settingsMenu.style.right = `${menuRight}px`;
-      }
+      this.settingsMenu.style.top = `${menuTop}px`;
+      this.settingsMenu.style.left = `${buttonLeft}px`;
+      this.settingsMenu.style.right = "auto";
+      this.settingsMenu.style.bottom = "auto";
     }
     /**
      * Position settings menu relative to settings button (async for repositioning)
      */
     positionSettingsMenu() {
-      if (!this.settingsMenu || !this.settingsButton || !this.transcriptWindow) return;
+      if (!this.settingsMenu || !this.settingsButton) return;
       requestAnimationFrame(() => {
         setTimeout(() => {
           this.positionSettingsMenuImmediate();
@@ -6373,14 +6378,15 @@ var VidPly = (() => {
     attachSettingsMenuKeyboardNavigation() {
       if (!this.settingsMenu) return;
       if (this.settingsMenuKeyHandler) {
-        this.settingsMenu.removeEventListener("keydown", this.settingsMenuKeyHandler);
+        this.settingsMenu.removeEventListener("keydown", this.settingsMenuKeyHandler, true);
       }
-      this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
+      const handler = attachMenuKeyboardNavigation(
         this.settingsMenu,
         this.settingsButton,
         `.${this.player.options.classPrefix}-transcript-settings-item`,
         () => this.hideSettingsMenu({ focusButton: true })
       );
+      this.settingsMenuKeyHandler = handler;
     }
     /**
      * Hide settings menu
@@ -6390,6 +6396,10 @@ var VidPly = (() => {
         this.settingsMenu.style.display = "none";
         this.settingsMenuVisible = false;
         this.settingsMenuJustOpened = false;
+        if (this.settingsMenuKeyHandler) {
+          this.settingsMenu.removeEventListener("keydown", this.settingsMenuKeyHandler, true);
+          this.settingsMenuKeyHandler = null;
+        }
         if (this.settingsButton) {
           this.settingsButton.setAttribute("aria-expanded", "false");
           if (focusButton) {
@@ -6437,7 +6447,7 @@ var VidPly = (() => {
       const isEnabled = !!(this.draggableResizable && this.draggableResizable.keyboardDragMode);
       const text = isEnabled ? i18n.t("transcript.disableDragMode") : i18n.t("transcript.enableDragMode");
       const ariaLabel = isEnabled ? i18n.t("transcript.disableDragModeAria") : i18n.t("transcript.enableDragModeAria");
-      this.dragOptionButton.setAttribute("aria-pressed", isEnabled ? "true" : "false");
+      this.dragOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
       this.dragOptionButton.setAttribute("aria-label", ariaLabel);
       this.dragOptionButton.setAttribute("title", text);
       if (this.dragOptionText) {
@@ -6451,7 +6461,7 @@ var VidPly = (() => {
       const isEnabled = !!(this.draggableResizable && this.draggableResizable.pointerResizeMode);
       const text = isEnabled ? i18n.t("transcript.disableResizeMode") : i18n.t("transcript.enableResizeMode");
       const ariaLabel = isEnabled ? i18n.t("transcript.disableResizeModeAria") : i18n.t("transcript.enableResizeModeAria");
-      this.resizeOptionButton.setAttribute("aria-pressed", isEnabled ? "true" : "false");
+      this.resizeOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
       this.resizeOptionButton.setAttribute("aria-label", ariaLabel);
       this.resizeOptionButton.setAttribute("title", text);
       if (this.resizeOptionText) {
@@ -6500,6 +6510,9 @@ var VidPly = (() => {
       if (this.styleDialog) {
         this.styleDialog.style.display = "block";
         this.styleDialogVisible = true;
+        if (this.handlers.styleDialogKeydown) {
+          document.addEventListener("keydown", this.handlers.styleDialogKeydown);
+        }
         this.styleDialogJustOpened = true;
         setTimeout(() => {
           this.styleDialogJustOpened = false;
@@ -6524,10 +6537,10 @@ var VidPly = (() => {
         i18n.t("captions.fontSize"),
         "fontSize",
         [
-          { label: i18n.t("fontSizes.small"), value: "87.5%" },
+          { label: i18n.t("fontSizes.small"), value: "90%" },
           { label: i18n.t("fontSizes.normal"), value: "100%" },
-          { label: i18n.t("fontSizes.large"), value: "125%" },
-          { label: i18n.t("fontSizes.xlarge"), value: "150%" }
+          { label: i18n.t("fontSizes.large"), value: "110%" },
+          { label: i18n.t("fontSizes.xlarge"), value: "120%" }
         ]
       );
       this.styleDialog.appendChild(fontSizeControl);
@@ -6557,13 +6570,29 @@ var VidPly = (() => {
       closeBtn.addEventListener("click", () => this.hideStyleDialog());
       this.styleDialog.appendChild(closeBtn);
       this.handlers.styleDialogKeydown = (e) => {
+        if (!this.styleDialogVisible) return;
         if (e.key === "Escape") {
           e.preventDefault();
           e.stopPropagation();
           this.hideStyleDialog();
+          return;
+        }
+        if (e.key === "Tab") {
+          const focusableElements = this.styleDialog.querySelectorAll(
+            "select, input, button"
+          );
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
+          if (e.shiftKey && document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          } else if (!e.shiftKey && document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
         }
       };
-      this.styleDialog.addEventListener("keydown", this.handlers.styleDialogKeydown);
+      document.addEventListener("keydown", this.handlers.styleDialogKeydown);
       if (this.headerLeft) {
         this.headerLeft.appendChild(this.styleDialog);
       } else {
@@ -6590,6 +6619,9 @@ var VidPly = (() => {
       if (this.styleDialog) {
         this.styleDialog.style.display = "none";
         this.styleDialogVisible = false;
+        if (this.handlers.styleDialogKeydown) {
+          document.removeEventListener("keydown", this.handlers.styleDialogKeydown);
+        }
         if (this.settingsButton) {
           this.settingsButton.focus();
         }
@@ -6800,8 +6832,8 @@ var VidPly = (() => {
           this.settingsButton.removeEventListener("keydown", this.handlers.settingsKeydown);
         }
       }
-      if (this.styleDialog && this.handlers.styleDialogKeydown) {
-        this.styleDialog.removeEventListener("keydown", this.handlers.styleDialogKeydown);
+      if (this.handlers.styleDialogKeydown) {
+        document.removeEventListener("keydown", this.handlers.styleDialogKeydown);
       }
       if (this.handlers.documentClick) {
         document.removeEventListener("click", this.handlers.documentClick);
@@ -9976,14 +10008,12 @@ var VidPly = (() => {
         if (this.signLanguageSettingsButton) {
           this.signLanguageSettingsButton.setAttribute("aria-expanded", "true");
         }
-        if (!this.signLanguageSettingsMenuKeyHandler) {
-          this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
-            this.signLanguageSettingsMenu,
-            this.signLanguageSettingsButton,
-            `.${this.options.classPrefix}-sign-language-settings-item`,
-            () => this.hideSignLanguageSettingsMenu({ focusButton: true })
-          );
-        }
+        this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
+          this.signLanguageSettingsMenu,
+          this.signLanguageSettingsButton,
+          `.${this.options.classPrefix}-sign-language-settings-item`,
+          () => this.hideSignLanguageSettingsMenu({ focusButton: true })
+        );
         this.positionSignLanguageSettingsMenu();
         this.updateSignLanguageDragOptionState();
         this.updateSignLanguageResizeOptionState();
@@ -9991,7 +10021,10 @@ var VidPly = (() => {
         return;
       }
       this.signLanguageSettingsMenu = DOMUtils.createElement("div", {
-        className: `${this.options.classPrefix}-sign-language-settings-menu`
+        className: `${this.options.classPrefix}-sign-language-settings-menu`,
+        attributes: {
+          "role": "menu"
+        }
       });
       const keyboardDragOption = createMenuItem({
         classPrefix: this.options.classPrefix,
@@ -10004,7 +10037,8 @@ var VidPly = (() => {
           this.hideSignLanguageSettingsMenu();
         }
       });
-      keyboardDragOption.setAttribute("aria-pressed", "false");
+      keyboardDragOption.setAttribute("role", "switch");
+      keyboardDragOption.setAttribute("aria-checked", "false");
       this.signLanguageDragOptionButton = keyboardDragOption;
       this.signLanguageDragOptionText = keyboardDragOption.querySelector(`.${this.options.classPrefix}-settings-text`);
       this.updateSignLanguageDragOptionState();
@@ -10030,7 +10064,8 @@ var VidPly = (() => {
           }
         }
       });
-      resizeOption.setAttribute("aria-pressed", "false");
+      resizeOption.setAttribute("role", "switch");
+      resizeOption.setAttribute("aria-checked", "false");
       this.signLanguageResizeOptionButton = resizeOption;
       this.signLanguageResizeOptionText = resizeOption.querySelector(`.${this.options.classPrefix}-settings-text`);
       this.updateSignLanguageResizeOptionState();
@@ -10176,7 +10211,7 @@ var VidPly = (() => {
       const isEnabled = !!(this.signLanguageDraggable && this.signLanguageDraggable.keyboardDragMode);
       const text = isEnabled ? i18n.t("player.disableSignDragMode") : i18n.t("player.enableSignDragMode");
       const ariaLabel = isEnabled ? i18n.t("player.disableSignDragModeAria") : i18n.t("player.enableSignDragModeAria");
-      this.signLanguageDragOptionButton.setAttribute("aria-pressed", isEnabled ? "true" : "false");
+      this.signLanguageDragOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
       this.signLanguageDragOptionButton.setAttribute("aria-label", ariaLabel);
       this.signLanguageDragOptionButton.setAttribute("title", text);
       if (this.signLanguageDragOptionText) {
@@ -10190,7 +10225,7 @@ var VidPly = (() => {
       const isEnabled = !!(this.signLanguageDraggable && this.signLanguageDraggable.pointerResizeMode);
       const text = isEnabled ? i18n.t("player.disableSignResizeMode") : i18n.t("player.enableSignResizeMode");
       const ariaLabel = isEnabled ? i18n.t("player.disableSignResizeModeAria") : i18n.t("player.enableSignResizeModeAria");
-      this.signLanguageResizeOptionButton.setAttribute("aria-pressed", isEnabled ? "true" : "false");
+      this.signLanguageResizeOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
       this.signLanguageResizeOptionButton.setAttribute("aria-label", ariaLabel);
       this.signLanguageResizeOptionButton.setAttribute("title", text);
       if (this.signLanguageResizeOptionText) {

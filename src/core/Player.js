@@ -3431,15 +3431,13 @@ export class Player extends EventEmitter {
             if (this.signLanguageSettingsButton) {
                 this.signLanguageSettingsButton.setAttribute('aria-expanded', 'true');
             }
-            // Ensure keyboard navigation is attached
-            if (!this.signLanguageSettingsMenuKeyHandler) {
-                this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
-                    this.signLanguageSettingsMenu,
-                    this.signLanguageSettingsButton,
-                    `.${this.options.classPrefix}-sign-language-settings-item`,
-                    () => this.hideSignLanguageSettingsMenu({ focusButton: true })
-                );
-            }
+            // Always re-attach keyboard navigation handler when reopening
+            this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
+                this.signLanguageSettingsMenu,
+                this.signLanguageSettingsButton,
+                `.${this.options.classPrefix}-sign-language-settings-item`,
+                () => this.hideSignLanguageSettingsMenu({ focusButton: true })
+            );
             // Reposition menu in case window was moved (async for repositioning)
             this.positionSignLanguageSettingsMenu();
             this.updateSignLanguageDragOptionState();
@@ -3450,7 +3448,10 @@ export class Player extends EventEmitter {
         
         // Create settings menu
         this.signLanguageSettingsMenu = DOMUtils.createElement('div', {
-            className: `${this.options.classPrefix}-sign-language-settings-menu`
+            className: `${this.options.classPrefix}-sign-language-settings-menu`,
+            attributes: {
+                'role': 'menu'
+            }
         });
 
         // Keyboard drag option
@@ -3465,7 +3466,8 @@ export class Player extends EventEmitter {
                 this.hideSignLanguageSettingsMenu();
             }
         });
-        keyboardDragOption.setAttribute('aria-pressed', 'false');
+        keyboardDragOption.setAttribute('role', 'switch');
+        keyboardDragOption.setAttribute('aria-checked', 'false');
         this.signLanguageDragOptionButton = keyboardDragOption;
         this.signLanguageDragOptionText = keyboardDragOption.querySelector(`.${this.options.classPrefix}-settings-text`);
         this.updateSignLanguageDragOptionState();
@@ -3496,7 +3498,8 @@ export class Player extends EventEmitter {
                 }
             }
         });
-        resizeOption.setAttribute('aria-pressed', 'false');
+        resizeOption.setAttribute('role', 'switch');
+        resizeOption.setAttribute('aria-checked', 'false');
         this.signLanguageResizeOptionButton = resizeOption;
         this.signLanguageResizeOptionText = resizeOption.querySelector(`.${this.options.classPrefix}-settings-text`);
         this.updateSignLanguageResizeOptionState();
@@ -3706,7 +3709,7 @@ export class Player extends EventEmitter {
             ? i18n.t('player.disableSignDragModeAria')
             : i18n.t('player.enableSignDragModeAria');
 
-        this.signLanguageDragOptionButton.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
+        this.signLanguageDragOptionButton.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
         this.signLanguageDragOptionButton.setAttribute('aria-label', ariaLabel);
         this.signLanguageDragOptionButton.setAttribute('title', text);
 
@@ -3728,7 +3731,7 @@ export class Player extends EventEmitter {
             ? i18n.t('player.disableSignResizeModeAria')
             : i18n.t('player.enableSignResizeModeAria');
 
-        this.signLanguageResizeOptionButton.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
+        this.signLanguageResizeOptionButton.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
         this.signLanguageResizeOptionButton.setAttribute('aria-label', ariaLabel);
         this.signLanguageResizeOptionButton.setAttribute('title', text);
 

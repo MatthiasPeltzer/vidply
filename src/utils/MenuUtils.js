@@ -136,7 +136,7 @@ export function attachMenuKeyboardNavigation(menu, button, itemSelector, onClose
         }
     };
 
-    menu.addEventListener('keydown', handleKeyDown);
+    menu.addEventListener('keydown', handleKeyDown, true); // Use capture phase
     return handleKeyDown; // Return handler for cleanup
 }
 

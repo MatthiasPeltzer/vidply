@@ -15,10 +15,11 @@ export class KeyboardManager {
   }
 
   attachEvents() {
-    // Listen for keyboard events on the player container
+    // Listen for keyboard events on the player container using CAPTURE phase
+    // This ensures we intercept events before they reach child elements
     this.player.container.addEventListener('keydown', (e) => {
       this.handleKeydown(e);
-    });
+    }, true); // Use capture phase
 
     // Make player container focusable
     if (!this.player.container.hasAttribute('tabindex')) {
