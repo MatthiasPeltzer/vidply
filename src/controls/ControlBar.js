@@ -2871,8 +2871,9 @@ export class ControlBar {
             }
 
             // Determine if we should use overflow menu
-            // Only use overflow on mobile portrait (width < 768px and not landscape fullscreen)
-            const shouldUseOverflow = !isDesktop && !(isLandscapeFullscreen);
+            // Only use overflow on mobile portrait (width < 768px, not in landscape, and not in fullscreen)
+            // In landscape mode, always show all buttons (even on mobile) to ensure fullscreen button is accessible
+            const shouldUseOverflow = !isDesktop && !isLandscape && !isFullscreen;
             
             if (this.player.options.debug) {
                 console.log('Overflow detection:', {
