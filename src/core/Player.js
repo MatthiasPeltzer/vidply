@@ -2981,7 +2981,7 @@ export class Player extends EventEmitter {
         // Language selector (if multiple sources available)
         this.signLanguageSelector = null;
         if (hasMultipleSources) {
-            const selectId = `${this.options.classPrefix}-sign-language-select`;
+            const selectId = `${this.options.classPrefix}-sign-language-select-${Date.now()}`;
             
             // Create options array
             const options = Object.keys(this.signLanguageSources).map(langCode => ({
@@ -3055,6 +3055,10 @@ export class Player extends EventEmitter {
         this.signLanguageVideo.src = initialSrc;
         this.signLanguageVideo.setAttribute('aria-label', i18n.t('player.signLanguage'));
         this.signLanguageVideo.muted = true; // Sign language video should be muted
+        
+        // Enable inline playback on iOS (prevents native fullscreen)
+        this.signLanguageVideo.setAttribute('playsinline', '');
+        this.signLanguageVideo.setAttribute('webkit-playsinline', ''); // For older iOS versions
 
         // Create resize handles (8 directions like transcript)
         this.signLanguageResizeHandles = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].map(dir => {

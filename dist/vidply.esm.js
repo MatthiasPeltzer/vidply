@@ -5427,7 +5427,7 @@ var TranscriptManager = class {
     this.transcriptHeader.appendChild(title);
     this.headerLeft.appendChild(this.settingsButton);
     this.headerLeft.appendChild(autoscrollLabel);
-    const selectId = `${this.player.options.classPrefix}-transcript-language-select`;
+    const selectId = `${this.player.options.classPrefix}-transcript-language-select-${Date.now()}`;
     const { label: languageLabel, select: languageSelector } = createLabeledSelect({
       classPrefix: this.player.options.classPrefix,
       labelClass: `${this.player.options.classPrefix}-transcript-language-label`,
@@ -9651,7 +9651,7 @@ var Player = class _Player extends EventEmitter {
     headerLeft.appendChild(this.signLanguageSettingsButton);
     this.signLanguageSelector = null;
     if (hasMultipleSources) {
-      const selectId = `${this.options.classPrefix}-sign-language-select`;
+      const selectId = `${this.options.classPrefix}-sign-language-select-${Date.now()}`;
       const options = Object.keys(this.signLanguageSources).map((langCode) => ({
         value: langCode,
         text: this.getSignLanguageLabel(langCode),
@@ -9709,6 +9709,8 @@ var Player = class _Player extends EventEmitter {
     this.signLanguageVideo.src = initialSrc;
     this.signLanguageVideo.setAttribute("aria-label", i18n.t("player.signLanguage"));
     this.signLanguageVideo.muted = true;
+    this.signLanguageVideo.setAttribute("playsinline", "");
+    this.signLanguageVideo.setAttribute("webkit-playsinline", "");
     this.signLanguageResizeHandles = ["n", "s", "e", "w", "ne", "nw", "se", "sw"].map((dir) => {
       const handle = DOMUtils.createElement("div", {
         className: `${this.options.classPrefix}-sign-resize-handle ${this.options.classPrefix}-sign-resize-${dir}`,
