@@ -319,7 +319,7 @@ export class TranscriptManager {
     this.headerLeft.appendChild(autoscrollLabel);
     
     // Language selector (will be populated after tracks are loaded)
-    const selectId = `${this.player.options.classPrefix}-transcript-language-select`;
+    const selectId = `${this.player.options.classPrefix}-transcript-language-select-${Date.now()}`;
     const { label: languageLabel, select: languageSelector } = createLabeledSelect({
       classPrefix: this.player.options.classPrefix,
       labelClass: `${this.player.options.classPrefix}-transcript-language-label`,
