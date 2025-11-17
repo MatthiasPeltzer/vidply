@@ -606,7 +606,7 @@ export class ControlBar {
         //   Priority 1: Play, Volume, Progress (only left controls visible)
         //   Priority 3: ALL right-side buttons go to overflow menu
 
-        // Priority 3: Chapters button (overflow on mobile)
+        // 1. Chapters button
         if (this.player.options.chaptersButton && hasChapters) {
             const btn = this.createChaptersButton();
             btn.dataset.overflowPriority = '3';
@@ -614,39 +614,7 @@ export class ControlBar {
             this.rightButtons.appendChild(btn);
         }
 
-        // Priority 3: Caption styling button (overflow on mobile)
-        if (this.player.options.captionStyleButton && hasCaptions) {
-            const btn = this.createCaptionStyleButton();
-            btn.dataset.overflowPriority = '3';
-            btn.dataset.overflowPriorityMobile = '3';
-            this.rightButtons.appendChild(btn);
-        }
-
-        // Priority 3: Transcript button (overflow on mobile)
-        if (this.player.options.transcriptButton && hasCaptions) {
-            const btn = this.createTranscriptButton();
-            btn.dataset.overflowPriority = '3';
-            btn.dataset.overflowPriorityMobile = '3';
-            this.rightButtons.appendChild(btn);
-        }
-
-        // Priority 2 desktop, 3 mobile: Quality button (overflow on mobile)
-        if (this.player.options.qualityButton && hasQualityLevels) {
-            const btn = this.createQualityButton();
-            btn.dataset.overflowPriority = '2';
-            btn.dataset.overflowPriorityMobile = '3';
-            this.rightButtons.appendChild(btn);
-        }
-
-        // Priority 1 desktop, 3 mobile: Speed button (overflow on mobile)
-        if (this.player.options.speedButton) {
-            const btn = this.createSpeedButton();
-            btn.dataset.overflowPriority = '1';
-            btn.dataset.overflowPriorityMobile = '3';
-            this.rightButtons.appendChild(btn);
-        }
-
-        // Priority 1 desktop, 3 mobile: Captions button (overflow on mobile)
+        // 2. Captions button
         if (this.player.options.captionsButton && hasCaptions) {
             const btn = this.createCaptionsButton();
             btn.dataset.overflowPriority = '1';
@@ -654,7 +622,23 @@ export class ControlBar {
             this.rightButtons.appendChild(btn);
         }
 
-        // Priority 2 desktop, 3 mobile: Audio Description button (overflow on mobile)
+        // 3. Caption styling button
+        if (this.player.options.captionStyleButton && hasCaptions) {
+            const btn = this.createCaptionStyleButton();
+            btn.dataset.overflowPriority = '3';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
+        }
+
+        // 4. Playback speed button
+        if (this.player.options.speedButton) {
+            const btn = this.createSpeedButton();
+            btn.dataset.overflowPriority = '1';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
+        }
+
+        // 5. Audio Description button
         if (this.player.options.audioDescriptionButton && hasAudioDescription) {
             const btn = this.createAudioDescriptionButton();
             btn.dataset.overflowPriority = '2';
@@ -662,7 +646,15 @@ export class ControlBar {
             this.rightButtons.appendChild(btn);
         }
 
-        // Priority 3: Sign Language button (overflow on mobile)
+        // 6. Transcript button
+        if (this.player.options.transcriptButton && hasCaptions) {
+            const btn = this.createTranscriptButton();
+            btn.dataset.overflowPriority = '3';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
+        }
+
+        // 7. Sign Language button
         const hasSignLanguage = this.hasSignLanguage();
         if (this.player.options.signLanguageButton && hasSignLanguage) {
             const btn = this.createSignLanguageButton();
@@ -671,7 +663,15 @@ export class ControlBar {
             this.rightButtons.appendChild(btn);
         }
 
-        // Priority 3: PiP button (overflow on mobile)
+        // Quality button (before fullscreen)
+        if (this.player.options.qualityButton && hasQualityLevels) {
+            const btn = this.createQualityButton();
+            btn.dataset.overflowPriority = '2';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
+        }
+
+        // PiP button (before fullscreen)
         if (this.player.options.pipButton && 'pictureInPictureEnabled' in document) {
             const btn = this.createPipButton();
             btn.dataset.overflowPriority = '3';
@@ -679,7 +679,7 @@ export class ControlBar {
             this.rightButtons.appendChild(btn);
         }
 
-        // Priority 1 desktop, 3 mobile: Fullscreen button (overflow on mobile)
+        // 8. Fullscreen button (last)
         // Don't show fullscreen button for audio players
         const isAudioPlayer = this.player.element.tagName.toLowerCase() === 'audio';
         if (this.player.options.fullscreenButton && !isAudioPlayer) {
@@ -2261,7 +2261,7 @@ export class ControlBar {
             attributes: {
                 'type': 'button',
                 'aria-label': i18n.t('player.transcript'),
-                'aria-pressed': 'false'
+                'aria-expanded': 'false'
             }
         });
 
@@ -2282,7 +2282,7 @@ export class ControlBar {
         if (!this.controls.transcript) return;
 
         const isVisible = this.player.transcriptManager && this.player.transcriptManager.isVisible;
-        this.controls.transcript.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
+        this.controls.transcript.setAttribute('aria-expanded', isVisible ? 'true' : 'false');
     }
 
     createAudioDescriptionButton() {
@@ -2291,7 +2291,8 @@ export class ControlBar {
             attributes: {
                 'type': 'button',
                 'aria-label': i18n.t('player.audioDescription'),
-                'aria-pressed': 'false',
+                'role': 'switch',
+                'aria-checked': 'false',
                 'title': i18n.t('player.audioDescription')
             }
         });
@@ -2317,7 +2318,7 @@ export class ControlBar {
             createIconElement('audioDescriptionOn').innerHTML :
             createIconElement('audioDescription').innerHTML;
 
-        this.controls.audioDescription.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
+        this.controls.audioDescription.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
         this.controls.audioDescription.setAttribute('aria-label',
             isEnabled ? i18n.t('audioDescription.disable') : i18n.t('audioDescription.enable')
         );
@@ -2329,7 +2330,7 @@ export class ControlBar {
             attributes: {
                 'type': 'button',
                 'aria-label': i18n.t('player.signLanguage'),
-                'aria-pressed': 'false',
+                'aria-expanded': 'false',
                 'title': i18n.t('player.signLanguage')
             }
         });
@@ -2355,7 +2356,7 @@ export class ControlBar {
             createIconElement('signLanguageOn').innerHTML :
             createIconElement('signLanguage').innerHTML;
 
-        this.controls.signLanguage.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
+        this.controls.signLanguage.setAttribute('aria-expanded', isEnabled ? 'true' : 'false');
         this.controls.signLanguage.setAttribute('aria-label',
             isEnabled ? i18n.t('signLanguage.hide') : i18n.t('signLanguage.show')
         );

@@ -99,7 +99,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 122322,
+      "bytes": 122021,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -166,12 +166,12 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.js": {
-      "bytes": 7398,
+      "bytes": 7519,
       "imports": [],
       "format": "esm"
     },
     "src/utils/MenuUtils.js": {
-      "bytes": 6077,
+      "bytes": 6104,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -218,7 +218,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 75182,
+      "bytes": 77060,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -295,7 +295,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 198453,
+      "bytes": 198560,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -468,7 +468,7 @@
           "bytesInOutput": 222
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 52049
+          "bytesInOutput": 52067
         },
         "src/utils/StorageManager.js": {
           "bytesInOutput": 1606
@@ -480,10 +480,10 @@
           "bytesInOutput": 7231
         },
         "src/controls/KeyboardManager.js": {
-          "bytesInOutput": 3943
+          "bytesInOutput": 3946
         },
         "src/utils/MenuUtils.js": {
-          "bytesInOutput": 1862
+          "bytesInOutput": 1866
         },
         "src/utils/DraggableResizable.js": {
           "bytesInOutput": 13861
@@ -492,13 +492,13 @@
           "bytesInOutput": 869
         },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 39174
+          "bytesInOutput": 39958
         },
         "src/core/Player.js": {
-          "bytesInOutput": 72790
+          "bytesInOutput": 72837
         },
         "src/renderers/YouTubeRenderer.js": {
-          "bytesInOutput": 4141
+          "bytesInOutput": 4140
         },
         "src/renderers/VimeoRenderer.js": {
           "bytesInOutput": 4205
@@ -513,7 +513,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 272446
+      "bytes": 273301
     }
   }
 }

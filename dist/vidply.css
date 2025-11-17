@@ -341,6 +341,7 @@
         .vidply-player.vidply-fullscreen .vidply-controls,
         .vidply-player:fullscreen .vidply-controls {
             /* Landscape fullscreen rules apply (see below) */
+
             /* This empty block ensures specificity ordering */
         }
     }
@@ -526,7 +527,7 @@
     cursor: pointer;
     height: 100px;
     margin: 0 auto;
-    padding: 0 10px; /* Add padding for larger touch target on mobile */
+    padding: 0 5px; /* Add padding for larger touch target on mobile */
     position: relative;
     touch-action: none; /* Prevent scrolling while dragging */
     width: 6px;
@@ -644,10 +645,11 @@
     position: absolute;
     right: 50%;
     touch-action: pan-y;
-    z-index: 100; /* High z-index to appear above everything */
+    transform: translateX(50%);
 
     /* iOS momentum scrolling */
-    transform: translateX(50%);
+
+ /* High z-index to appear above everything */
 
     /* Ensure menus appear above all player content including overlays */
     z-index: 20;
@@ -683,7 +685,7 @@
     pointer-events: auto; /* Ensure volume menu is touchable */
     right: 50%;
     transform: translateX(50%);
-    width: 50px;
+    width: 35px;
     z-index: 100; /* High z-index to appear above everything */
 }
 
@@ -794,10 +796,11 @@
 /* Overflow menu list - prevent overflow to the right */
 .vidply-overflow-menu-list {
     left: auto !important;
-    right: 0 !important;
-    transform: none !important;
-    /* Ensure menu stays within viewport */
     max-width: calc(100vw - 20px);
+    right: 0 !important;
+
+    /* Ensure menu stays within viewport */
+    transform: none !important;
 }
 
 /* Overflow menu items with icons */
@@ -830,9 +833,9 @@
 
 .vidply-overflow-menu-list .vidply-menu-item span {
     flex: 1;
+    overflow-wrap: break-word;
     text-align: left;
     white-space: normal;
-    word-wrap: break-word;
 }
 
 /* Chapter menu specific */
@@ -1248,16 +1251,17 @@
 
 /* Pseudo-fullscreen for iOS and browsers without Fullscreen API support */
 .vidply-player.vidply-fullscreen:not(:fullscreen) {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 999999;
     background: #000;
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 999999;
 }
 
 /* Fix controls in fullscreen LANDSCAPE mode - overlay them on video */
+
 /* Higher specificity to override mobile rules */
 .vidply-player.vidply-fullscreen .vidply-controls,
 .vidply-player:fullscreen .vidply-controls {
@@ -1275,21 +1279,21 @@
     
     .vidply-player.vidply-fullscreen .vidply-controls,
     .vidply-player:fullscreen .vidply-controls {
-        position: absolute !important;
+        background: linear-gradient(to top, var(--vidply-black-90) 0%, var(--vidply-black-50) 100%) !important;
+        border-top: none !important;
         bottom: 0 !important;
         left: 0 !important;
-        right: 0 !important;
+        opacity: 0 !important;
         order: 0 !important;
-        border-top: none !important;
-        background: linear-gradient(to top, var(--vidply-black-90) 0%, var(--vidply-black-50) 100%) !important;
         padding: 20px 16px 16px !important;
-        width: 100% !important;
-        z-index: 20 !important; /* Ensure controls are above video */
+        pointer-events: none !important;
+        position: absolute !important;
+        right: 0 !important;
         
         /* Enable auto-hide in landscape (like desktop) */
-        opacity: 0 !important;
-        pointer-events: none !important;
         transition: opacity 0.3s ease !important;
+        width: 100% !important;
+        z-index: 20 !important; /* Ensure controls are above video */
     }
     
     /* Show controls only with visible class or when paused (not :hover - causes issues on touch) */
@@ -1353,23 +1357,23 @@
     /* Center video in landscape fullscreen */
     .vidply-player.vidply-fullscreen .vidply-video-wrapper,
     .vidply-player:fullscreen .vidply-video-wrapper {
-        display: flex !important;
         align-items: center !important;
-        justify-content: center !important;
+        bottom: 0 !important;
+        display: flex !important;
         flex: 1 !important; /* Take remaining space */
         height: 100% !important;
-        position: absolute !important;
-        top: 0 !important;
+        justify-content: center !important;
         left: 0 !important;
+        position: absolute !important;
         right: 0 !important;
-        bottom: 0 !important;
+        top: 0 !important;
     }
     
     .vidply-player.vidply-fullscreen video,
     .vidply-player:fullscreen video {
         height: 100% !important;
-        width: 100% !important;
         object-fit: contain !important;
+        width: 100% !important;
     }
 }
 
@@ -1378,8 +1382,8 @@
     .vidply-player.vidply-fullscreen .vidply-controls,
     .vidply-player:fullscreen .vidply-controls {
         /* Keep mobile layout - controls below video */
-        position: relative !important;
         order: 2 !important;
+        position: relative !important;
     }
 }
 
@@ -2216,8 +2220,8 @@
     bottom: 100%;
     content: '';
     height: 0;
+    left: 8px;
     position: absolute;
-    right: 8px;
     width: 0;
 }
 
@@ -2523,32 +2527,18 @@
 
 /* Style Select */
 .vidply-transcript-style-select {
-    background: var(--vidply-white-10);
+    background: var(--vidply-bg-menu);
     border: 1px solid var(--vidply-border);
     border-radius: 4px;
-    color: var(--vidply-white);
-    cursor: pointer;
-    font-size: 13px;
-    outline: none;
-    padding: 6px 10px;
-    transition: var(--vidply-transition-default);
+    color: var(--vidply-text);
+    font-size: 14px;
+    padding: 4px 8px;
     width: 100%;
 }
 
-.vidply-transcript-style-select:hover {
-    background: var(--vidply-white-15);
-    border-color: var(--vidply-border-hover);
-}
-
 .vidply-transcript-style-select:focus {
-    background: var(--vidply-white-15);
-    border-color: var(--vidply-primary-light);
-    box-shadow: 0 0 0 2px var(--vidply-primary-20);
-}
-
-.vidply-transcript-style-select option {
-    background: #1a1a1a;
-    color: #fff;
+    outline: var(--vidply-focus-outline);
+    outline-offset: 2px;
 }
 
 /* Style Color Input */
@@ -2791,8 +2781,8 @@
     bottom: 100%;
     content: '';
     height: 0;
+    left: 48%;
     position: absolute;
-    right: 8px;
     width: 0;
 }
 

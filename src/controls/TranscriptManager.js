@@ -1194,6 +1194,11 @@ export class TranscriptManager {
       const key = e.key.toLowerCase();
       const alreadyPrevented = e.defaultPrevented;
 
+      // Don't handle keys if settings menu or style dialog is open (let them handle keys)
+      if (this.settingsMenuVisible || this.styleDialogVisible) {
+        return;
+      }
+
       if (key === 'home') {
         e.preventDefault();
         e.stopPropagation();
@@ -1223,22 +1228,25 @@ export class TranscriptManager {
       }
       
       if (key === 'escape') {
-        e.preventDefault();
-        e.stopPropagation();
+        // Check priority: resize mode > drag mode > close transcript
+        // (settings menu and style dialog already handled by early return above)
         if (this.draggableResizable && this.draggableResizable.pointerResizeMode) {
+          e.preventDefault();
+          e.stopPropagation();
           this.draggableResizable.disablePointerResizeMode();
           return;
         }
-        if (this.styleDialogVisible) {
-          this.hideStyleDialog();
-        } else if (this.draggableResizable && this.draggableResizable.keyboardDragMode) {
+        if (this.draggableResizable && this.draggableResizable.keyboardDragMode) {
+          e.preventDefault();
+          e.stopPropagation();
           this.draggableResizable.disableKeyboardDragMode();
           this.announceLive(i18n.t('transcript.dragModeDisabled'));
-        } else if (this.settingsMenuVisible) {
-          this.hideSettingsMenu();
-        } else {
-          this.hideTranscript({ focusButton: true });
+          return;
         }
+        // Only close transcript if nothing else is open
+        e.preventDefault();
+        e.stopPropagation();
+        this.hideTranscript({ focusButton: true });
         return;
       }
     };
@@ -1307,15 +1315,30 @@ export class TranscriptManager {
       if (this.settingsButton) {
         this.settingsButton.setAttribute('aria-expanded', 'true');
       }
-      // Reposition menu in case window was moved
-      this.positionSettingsMenu();
+      // Re-attach keyboard navigation handler
+      this.attachSettingsMenuKeyboardNavigation();
+      // Position menu immediately
+      this.positionSettingsMenuImmediate();
       this.updateResizeOptionState();
-      focusFirstMenuItem(this.settingsMenu, `.${this.player.options.classPrefix}-transcript-settings-item`);
+      // Focus first menu item after positioning
+      setTimeout(() => {
+        const menuItems = this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`);
+        if (menuItems.length > 0) {
+          menuItems[0].setAttribute('tabindex', '0');
+          for (let i = 1; i < menuItems.length; i++) {
+            menuItems[i].setAttribute('tabindex', '-1');
+          }
+          menuItems[0].focus();
+        }
+      }, 50);
       return;
     }
     // Create settings menu
     this.settingsMenu = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-transcript-settings-menu`
+      className: `${this.player.options.classPrefix}-transcript-settings-menu`,
+      attributes: {
+        'role': 'menu'
+      }
     });
 
     // Keyboard drag option
@@ -1330,7 +1353,8 @@ export class TranscriptManager {
         this.hideSettingsMenu();
       }
     });
-    keyboardDragOption.setAttribute('aria-pressed', 'false');
+    keyboardDragOption.setAttribute('role', 'switch');
+    keyboardDragOption.setAttribute('aria-checked', 'false');
     this.dragOptionButton = keyboardDragOption;
     this.dragOptionText = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
     this.updateDragOptionState();
@@ -1378,7 +1402,8 @@ export class TranscriptManager {
         }
       }
     });
-    resizeOption.setAttribute('aria-pressed', 'false');
+    resizeOption.setAttribute('role', 'switch');
+    resizeOption.setAttribute('aria-checked', 'false');
     this.resizeOptionButton = resizeOption;
     this.resizeOptionText = resizeOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
     this.updateResizeOptionState();
@@ -1404,15 +1429,15 @@ export class TranscriptManager {
     this.settingsMenu.style.visibility = 'hidden';
     this.settingsMenu.style.display = 'block';
     
-    // Append menu to transcript window for proper positioning
-    if (this.transcriptWindow) {
-      this.transcriptWindow.appendChild(this.settingsMenu);
-    } else if (this.settingsButton && this.settingsButton.parentNode) {
+    // Insert menu right after settings button for proper positioning
+    if (this.settingsButton && this.settingsButton.parentNode) {
       this.settingsButton.insertAdjacentElement('afterend', this.settingsMenu);
     } else if (this.headerLeft) {
       this.headerLeft.appendChild(this.settingsMenu);
-    } else {
+    } else if (this.transcriptHeader) {
       this.transcriptHeader.appendChild(this.settingsMenu);
+    } else {
+      this.transcriptWindow.appendChild(this.settingsMenu);
     }
     
     // Position the menu relative to the settings button (immediately while hidden)
@@ -1443,85 +1468,67 @@ export class TranscriptManager {
     }
     this.updateResizeOptionState();
     
-    // Focus first menu item
-    focusFirstMenuItem(this.settingsMenu, `.${this.player.options.classPrefix}-transcript-settings-item`);
+    // Focus first menu item after visibility is set
+    setTimeout(() => {
+      const menuItems = this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`);
+      if (menuItems.length > 0) {
+        menuItems[0].setAttribute('tabindex', '0');
+        for (let i = 1; i < menuItems.length; i++) {
+          menuItems[i].setAttribute('tabindex', '-1');
+        }
+        menuItems[0].focus();
+      }
+    }, 50);
   }
 
   /**
    * Position settings menu relative to settings button (immediate/synchronous)
    */
   positionSettingsMenuImmediate() {
-    if (!this.settingsMenu || !this.settingsButton || !this.transcriptWindow) return;
+    if (!this.settingsMenu || !this.settingsButton) return;
+    
+    // Get the parent container (header-left) which has position: relative
+    const container = this.settingsButton.parentElement;
+    if (!container) return;
     
     // Position immediately (synchronously) - used when menu is first shown
     const buttonRect = this.settingsButton.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
     const menuRect = this.settingsMenu.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     
-    // Get the transcript window as the positioning container
-    const windowRect = this.transcriptWindow.getBoundingClientRect();
+    // Calculate position relative to the container
+    const buttonLeft = buttonRect.left - containerRect.left;
+    const buttonBottom = buttonRect.bottom - containerRect.top;
+    const buttonTop = buttonRect.top - containerRect.top;
     
-    // Calculate position relative to transcript window
-    const buttonRight = buttonRect.right - windowRect.left;
-    const buttonLeft = buttonRect.left - windowRect.left;
-    const buttonTop = buttonRect.top - windowRect.top;
-    const buttonBottom = buttonRect.bottom - windowRect.top;
-    
-    const spaceAbove = buttonRect.top;
     const spaceBelow = viewportHeight - buttonRect.bottom;
+    const spaceAbove = buttonRect.top;
     
-    // Position menu below button by default (right-aligned with button)
-    let menuTop = buttonBottom + 8;
-    let menuBottom = null;
+    // Position menu below button by default (left-aligned with button)
+    let menuTop = buttonBottom + 4;
     
-    // Prefer below, but switch to above if not enough space
+    // Check if we should position above instead
     if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
-      menuTop = null;
-      const windowHeight = windowRect.bottom - windowRect.top;
-      menuBottom = windowHeight - buttonTop + 8;
+      // Position above the button
+      menuTop = buttonTop - menuRect.height - 4;
       this.settingsMenu.classList.add('vidply-menu-above');
     } else {
       this.settingsMenu.classList.remove('vidply-menu-above');
     }
     
-    // Calculate horizontal position (right-align with button)
-    let menuRight = windowRect.right - buttonRect.right;
-    let menuLeft = 'auto';
-    
-    // Check horizontal overflow
-    const menuLeftAbsolute = buttonRect.right - menuRect.width;
-    if (menuLeftAbsolute < 10) {
-      menuRight = 'auto';
-      menuLeft = buttonLeft;
-    } else if (buttonRect.right > viewportWidth - 10) {
-      menuRight = windowRect.right - viewportWidth + 10;
-      menuLeft = 'auto';
-    }
-    
-    // Apply calculated positions
-    if (menuTop !== null) {
-      this.settingsMenu.style.top = `${menuTop}px`;
-      this.settingsMenu.style.bottom = 'auto';
-    } else if (menuBottom !== null) {
-      this.settingsMenu.style.top = 'auto';
-      this.settingsMenu.style.bottom = `${menuBottom}px`;
-    }
-    
-    if (menuLeft !== 'auto') {
-      this.settingsMenu.style.left = `${menuLeft}px`;
-      this.settingsMenu.style.right = 'auto';
-    } else {
-      this.settingsMenu.style.left = 'auto';
-      this.settingsMenu.style.right = `${menuRight}px`;
-    }
+    // Apply positions (left-aligned with button)
+    this.settingsMenu.style.top = `${menuTop}px`;
+    this.settingsMenu.style.left = `${buttonLeft}px`;
+    this.settingsMenu.style.right = 'auto';
+    this.settingsMenu.style.bottom = 'auto';
   }
   
   /**
    * Position settings menu relative to settings button (async for repositioning)
    */
   positionSettingsMenu() {
-    if (!this.settingsMenu || !this.settingsButton || !this.transcriptWindow) return;
+    if (!this.settingsMenu || !this.settingsButton) return;
     
     // Use requestAnimationFrame to ensure layout is stable before positioning (for repositioning)
     requestAnimationFrame(() => {
@@ -1539,15 +1546,19 @@ export class TranscriptManager {
     
     // Remove existing handler if any
     if (this.settingsMenuKeyHandler) {
-      this.settingsMenu.removeEventListener('keydown', this.settingsMenuKeyHandler);
+      this.settingsMenu.removeEventListener('keydown', this.settingsMenuKeyHandler, true);
     }
     
-    this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
+    const handler = attachMenuKeyboardNavigation(
       this.settingsMenu,
       this.settingsButton,
       `.${this.player.options.classPrefix}-transcript-settings-item`,
       () => this.hideSettingsMenu({ focusButton: true })
     );
+    
+    // Store the handler reference
+    this.settingsMenuKeyHandler = handler;
+    
   }
 
   /**
@@ -1558,6 +1569,12 @@ export class TranscriptManager {
       this.settingsMenu.style.display = 'none';
       this.settingsMenuVisible = false;
       this.settingsMenuJustOpened = false;
+      
+      // Remove keyboard handler to prevent duplicate listeners
+      if (this.settingsMenuKeyHandler) {
+        this.settingsMenu.removeEventListener('keydown', this.settingsMenuKeyHandler, true);
+        this.settingsMenuKeyHandler = null;
+      }
       
       // Update aria-expanded
       if (this.settingsButton) {
@@ -1625,7 +1642,7 @@ export class TranscriptManager {
       ? i18n.t('transcript.disableDragModeAria')
       : i18n.t('transcript.enableDragModeAria');
 
-    this.dragOptionButton.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
+    this.dragOptionButton.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
     this.dragOptionButton.setAttribute('aria-label', ariaLabel);
     this.dragOptionButton.setAttribute('title', text);
 
@@ -1647,7 +1664,7 @@ export class TranscriptManager {
       ? i18n.t('transcript.disableResizeModeAria')
       : i18n.t('transcript.enableResizeModeAria');
 
-    this.resizeOptionButton.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
+    this.resizeOptionButton.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
     this.resizeOptionButton.setAttribute('aria-label', ariaLabel);
     this.resizeOptionButton.setAttribute('title', text);
 
@@ -1710,6 +1727,11 @@ export class TranscriptManager {
       this.styleDialog.style.display = 'block';
       this.styleDialogVisible = true;
       
+      // Re-add keyboard handler
+      if (this.handlers.styleDialogKeydown) {
+        document.addEventListener('keydown', this.handlers.styleDialogKeydown);
+      }
+      
       // Set flag to prevent immediate closing from document click
       this.styleDialogJustOpened = true;
       setTimeout(() => {
@@ -1743,10 +1765,10 @@ export class TranscriptManager {
       i18n.t('captions.fontSize'),
       'fontSize',
       [
-        { label: i18n.t('fontSizes.small'), value: '87.5%' },
+        { label: i18n.t('fontSizes.small'), value: '90%' },
         { label: i18n.t('fontSizes.normal'), value: '100%' },
-        { label: i18n.t('fontSizes.large'), value: '125%' },
-        { label: i18n.t('fontSizes.xlarge'), value: '150%' }
+        { label: i18n.t('fontSizes.large'), value: '110%' },
+        { label: i18n.t('fontSizes.xlarge'), value: '120%' }
       ]
     );
     this.styleDialog.appendChild(fontSizeControl);
@@ -1786,15 +1808,39 @@ export class TranscriptManager {
     closeBtn.addEventListener('click', () => this.hideStyleDialog());
     this.styleDialog.appendChild(closeBtn);
 
-    // ESC key handler for style dialog
+    // Keyboard navigation for style dialog
     this.handlers.styleDialogKeydown = (e) => {
+      // Only handle keys when dialog is visible
+      if (!this.styleDialogVisible) return;
+      
+      // ESC to close
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
         this.hideStyleDialog();
+        return;
+      }
+      
+      // Tab navigation (allow default behavior but trap focus)
+      if (e.key === 'Tab') {
+        // Get all focusable elements
+        const focusableElements = this.styleDialog.querySelectorAll(
+          'select, input, button'
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        
+        // Trap focus within dialog
+        if (e.shiftKey && document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
       }
     };
-    this.styleDialog.addEventListener('keydown', this.handlers.styleDialogKeydown);
+    document.addEventListener('keydown', this.handlers.styleDialogKeydown);
 
     // Append to header left container (same as settings menu) for correct positioning
     if (this.headerLeft) {
@@ -1832,6 +1878,11 @@ export class TranscriptManager {
     if (this.styleDialog) {
       this.styleDialog.style.display = 'none';
       this.styleDialogVisible = false;
+      
+      // Remove keyboard handler
+      if (this.handlers.styleDialogKeydown) {
+        document.removeEventListener('keydown', this.handlers.styleDialogKeydown);
+      }
       
       // Return focus to settings button
       if (this.settingsButton) {
@@ -2093,8 +2144,8 @@ export class TranscriptManager {
     }
     
     // Remove style dialog event listeners
-    if (this.styleDialog && this.handlers.styleDialogKeydown) {
-      this.styleDialog.removeEventListener('keydown', this.handlers.styleDialogKeydown);
+    if (this.handlers.styleDialogKeydown) {
+      document.removeEventListener('keydown', this.handlers.styleDialogKeydown);
     }
 
     // Remove document click listener
