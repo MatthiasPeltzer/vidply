@@ -109,14 +109,17 @@
     <div class="description">
       <h2>Features Demonstrated</h2>
       <ul>
-        <li><strong>Previous/Next buttons</strong> - Navigate between tracks</li>
-        <li><strong>Auto-advance</strong> - Automatically plays the next track</li>
-        <li><strong>Track info display</strong> - Shows current track number and title</li>
-        <li><strong>Playlist panel</strong> - Click any track to play it</li>
-        <li><strong>Album art</strong> - Thumbnail images for each track</li>
-        <li><strong>Per-track captions</strong> - Some tracks have lyrics/captions</li>
-        <li><strong>Active track highlighting</strong> - Shows which track is currently playing</li>
-        <li><strong>Keyboard navigation</strong> - Use Tab and Enter to navigate the playlist</li>
+        <li><strong>Previous/Next buttons</strong> - Navigate between tracks seamlessly</li>
+        <li><strong>Auto-advance</strong> - Automatically plays the next track when one ends</li>
+        <li><strong>Track info display</strong> - Shows current track number, title, and artist</li>
+        <li><strong>Interactive playlist panel</strong> - Click any track to jump to it instantly</li>
+        <li><strong>Album art support</strong> - Display thumbnail images for each track</li>
+        <li><strong>Per-track captions</strong> - Lyrics and translations for selected tracks</li>
+        <li><strong>Per-track chapters</strong> - Navigate song sections with chapter markers</li>
+        <li><strong>Active track highlighting</strong> - Visual indicator for currently playing track</li>
+        <li><strong>Full keyboard navigation</strong> - Tab, Enter, and Space for playlist control</li>
+        <li><strong>Responsive design</strong> - Adapts to mobile, tablet, and desktop screens</li>
+        <li><strong>Accessibility features</strong> - ARIA labels and screen reader support</li>
       </ul>
 
       <h2 style="margin-top: 20px;">Perfect For</h2>
@@ -148,6 +151,7 @@
     // Create playlist manager
     const playlist = new PlaylistManager(player, {
       autoAdvance: true,  // Automatically play next track
+      autoPlayFirst: false,  // Don't auto-play on page load
       loop: false,        // Don't loop back to first track
       showPanel: true     // Show playlist panel below player
     });

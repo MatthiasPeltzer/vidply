@@ -134,7 +134,7 @@
 
     .card li::before {
       color: #28a745;
-      content: "✓ ";
+      content: "• ";
       font-weight: bold;
       margin-right: 8px;
     }
@@ -458,6 +458,8 @@
             <li>Fullscreen Mode</li>
             <li>Picture-in-Picture</li>
             <li>Seek Forward/Backward</li>
+            <li>Responsive Design</li>
+            <li>Mobile Optimized</li>
           </ul>
         </div>
 
@@ -484,7 +486,8 @@
             <li>Color Options</li>
             <li>Background Opacity</li>
             <li>Chapters & Descriptions</li>
-            <li>Interactive Transcript Window</li>
+            <li>Interactive Transcript</li>
+            <li>Draggable & Resizable Windows</li>
           </ul>
         </div>
 
@@ -504,16 +507,19 @@
         <div class="card">
           <h3>Keyboard Shortcuts</h3>
           <ul>
-            <li>Space/K - Play/Pause</li>
+            <li>Space/P/K - Play/Pause</li>
             <li>F - Fullscreen</li>
             <li>M - Mute/Unmute</li>
-            <li>↑/↓ - Volume</li>
+            <li>↑/↓ - Volume Up/Down</li>
             <li>←/→ - Seek 10s</li>
             <li>J/L - Seek 30s</li>
             <li>C - Toggle Captions</li>
             <li>T - Toggle Transcript</li>
-            <li>D - Drag Mode (Transcript/Sign)</li>
-            <li>R - Resize Mode (Transcript/Sign)</li>
+            <li>S - Speed Menu</li>
+            <li>Q - Quality Menu (HLS)</li>
+            <li>D - Drag Mode</li>
+            <li>R - Resize Mode</li>
+            <li>Home - Reset Position</li>
           </ul>
         </div>
 
@@ -587,8 +593,8 @@ player.destroy();</code></pre>
     </section>
 
     <footer>
-      <p>&copy; 2024 VidPly - Built with ❤️ and Vanilla JavaScript</p>
-      <p>Released under GPL-2.0-or-later License</p>
+      <p>&copy; 2025 VidPly - Built with ❤️ and Vanilla JavaScript</p>
+      <p>Released under GPL-2.0-or-later License | Version 1.0.16</p>
     </footer>
   </div>
 
@@ -596,15 +602,15 @@ player.destroy();</code></pre>
     import Player from '../src/index.js';
 
     // Log player initialization
-    console.log('🎬 VidPly Demo Page Loaded');
-    console.log('📺 Players auto-initialize via data-vidply attributes');
+    console.log('VidPly Demo Page Loaded');
+    console.log('Players auto-initialize via data-vidply attributes');
 
     window.addEventListener('load', () => {
-      console.log('✅ All players initialized');
+      console.log('All players initialized');
 
       const wwaVideo = document.querySelector('#wwa-video');
       if (wwaVideo?.vidply) {
-        console.log('🔍 Metadata alerts configured:', wwaVideo.vidply.options.metadataAlerts);
+        console.log('Metadata alerts configured:', wwaVideo.vidply.options.metadataAlerts);
       }
     });
   </script>

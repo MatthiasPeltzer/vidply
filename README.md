@@ -7,7 +7,7 @@ A modern, feature-rich media player built with vanilla ES6 JavaScript. Combines 
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)
 ![ES6](https://img.shields.io/badge/ES6-Module-yellow.svg)
 ![WCAG](https://img.shields.io/badge/WCAG-2.1%20AA-green.svg)
-![Version](https://img.shields.io/badge/version-1.0.5-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.0.16-brightgreen.svg)
 
 ## Live Demos
 
@@ -526,12 +526,33 @@ player.destroy()  // Remove player and cleanup
 
 ### Custom Styling
 
+VidPly provides extensive CSS variables for easy customization:
+
 ```css
-/* Override default colors */
+/* Override default colors and sizing */
 .vidply-player {
+  /* Colors */
   --vidply-primary-color: #3b82f6;
   --vidply-background: rgba(0, 0, 0, 0.8);
   --vidply-text-color: #ffffff;
+  
+  /* Sizing */
+  --vidply-button-size: 40px;
+  --vidply-icon-size: 20px;
+  
+  /* Spacing */
+  --vidply-gap-sm: 4px;
+  --vidply-gap-md: 8px;
+  --vidply-gap-lg: 12px;
+  
+  /* Border radius */
+  --vidply-radius-sm: 4px;
+  --vidply-radius-md: 8px;
+  --vidply-radius-lg: 12px;
+  
+  /* Transitions */
+  --vidply-transition-fast: 150ms;
+  --vidply-transition-normal: 300ms;
 }
 
 /* Custom progress bar */
