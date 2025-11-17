@@ -3622,7 +3622,7 @@ var VidPly = (() => {
           }
           return;
         }
-        const shouldUseOverflow = !isDesktop && !isLandscapeFullscreen;
+        const shouldUseOverflow = !isDesktop && !isLandscape && !isFullscreen;
         if (this.player.options.debug) {
           console.log("Overflow detection:", {
             isDesktop,
