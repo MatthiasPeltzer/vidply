@@ -2850,6 +2850,10 @@ export class ControlBar {
             const isLandscapeFullscreen = isLandscape && isFullscreen;
             
             if (!this.rightButtons || this.rightButtons.children.length === 0) {
+                // Hide overflow button if no buttons exist
+                if (this.overflowMenuButton) {
+                    this.overflowMenuButton.style.display = 'none';
+                }
                 return;
             }
 
@@ -2859,35 +2863,48 @@ export class ControlBar {
             );
 
             if (allButtons.length === 0) {
+                // Hide overflow button if no buttons exist
+                if (this.overflowMenuButton) {
+                    this.overflowMenuButton.style.display = 'none';
+                }
                 return;
             }
 
-            // Special handling for landscape fullscreen on mobile
-            // In this mode, we always want overflow detection active even if width > 768px
-            if (isLandscapeFullscreen && !isDesktop) {
-                // Force overflow detection in landscape fullscreen mobile
-                if (this.player.options.debug) {
-                    console.log('Landscape fullscreen mobile - enabling overflow detection');
-                }
-                // Continue to overflow detection below (don't return early)
+            // Determine if we should use overflow menu
+            // Only use overflow on mobile portrait (width < 768px and not landscape fullscreen)
+            const shouldUseOverflow = !isDesktop && !(isLandscapeFullscreen);
+            
+            if (this.player.options.debug) {
+                console.log('Overflow detection:', {
+                    isDesktop,
+                    isFullscreen,
+                    isLandscape,
+                    isLandscapeFullscreen,
+                    shouldUseOverflow,
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                });
             }
-            // On desktop (≥768px) or tiny screens (<360px), show all buttons and hide overflow menu
-            else if (isDesktop || isTinyScreen) {
+
+            // If we shouldn't use overflow menu, show all buttons and hide overflow button
+            if (!shouldUseOverflow || isTinyScreen) {
                 allButtons.forEach(btn => {
                     btn.dataset.inOverflow = 'false';
                     btn.style.display = '';
                 });
+                // Always hide overflow menu button
                 if (this.overflowMenuButton) {
                     this.overflowMenuButton.style.display = 'none';
                 }
                 if (this.player.options.debug) {
-                    if (isDesktop) {
-                        console.log('Desktop view (≥768px) - all buttons visible, overflow menu hidden');
-                    } else {
-                        console.log('Tiny screen (<360px) - all buttons visible, overflow menu hidden');
-                    }
+                    console.log('No overflow menu needed - all buttons visible, overflow button hidden');
                 }
                 return;
+            }
+            
+            // Continue with overflow detection for mobile portrait only
+            if (this.player.options.debug) {
+                console.log('Mobile portrait - checking for overflow...');
             }
 
             // First, make all buttons visible to measure their actual widths
@@ -3023,6 +3040,14 @@ export class ControlBar {
         // Check on window resize
         window.addEventListener('resize', () => {
             requestAnimationFrame(checkOverflow);
+        });
+
+        // Check on fullscreen changes (important for desktop/tablet fullscreen)
+        this.player.on('fullscreenchange', () => {
+            // Use setTimeout to ensure fullscreen state is fully updated
+            setTimeout(() => {
+                requestAnimationFrame(checkOverflow);
+            }, 50);
         });
 
         // Initial checks at multiple intervals to ensure layout is stable
