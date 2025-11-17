@@ -360,10 +360,10 @@
       <div class="controls-panel">
         <h3>Test Controls</h3>
         <div class="button-group">
-          <button class="btn" id="btn-play">▶ Play</button>
-          <button class="btn" id="btn-pause">⏸ Pause</button>
-          <button class="btn secondary" id="btn-reload">🔄 Reload Stream</button>
-          <button class="btn secondary" id="btn-clear-log">🗑 Clear Log</button>
+          <button class="btn" id="btn-play">Play</button>
+          <button class="btn" id="btn-pause">Pause</button>
+          <button class="btn secondary" id="btn-reload">Reload Stream</button>
+          <button class="btn secondary" id="btn-clear-log">Clear Log</button>
         </div>
 
         <div id="quality-selector" style="display: none;">
@@ -391,11 +391,11 @@
       <div class="info-card">
         <h3>HLS Support Matrix</h3>
         <ul style="margin-top: 12px; line-height: 2;">
-          <li style="color: #ccc;">✅ Safari (macOS/iOS) - Native HLS support</li>
-          <li style="color: #ccc;">✅ Chrome/Edge/Firefox - Via hls.js library</li>
-          <li style="color: #ccc;">✅ Android - Via hls.js library</li>
-          <li style="color: #ccc;">✅ Adaptive bitrate switching</li>
-          <li style="color: #ccc;">✅ Error recovery and retry logic</li>
+          <li style="color: #ccc;">Safari (macOS/iOS) - Native HLS support</li>
+          <li style="color: #ccc;">Chrome/Edge/Firefox - Via hls.js library</li>
+          <li style="color: #ccc;">Android - Via hls.js library</li>
+          <li style="color: #ccc;">Adaptive bitrate switching</li>
+          <li style="color: #ccc;">Error recovery and retry logic</li>
         </ul>
       </div>
 
@@ -490,19 +490,19 @@
         autoplay: false
       });
       
-      log('✅ Player instance created successfully', 'success');
+      log('Player instance created successfully', 'success');
       
       // Store player reference globally for debugging
       window.hlsPlayer = player;
     } catch (error) {
-      log('❌ Failed to create player: ' + error.message, 'error');
+      log('Failed to create player: ' + error.message, 'error');
       console.error('Player initialization error:', error);
     }
 
     // Update HLS engine info
     setTimeout(() => {
       if (!player) {
-        log('❌ Player not initialized', 'error');
+        log('Player not initialized', 'error');
         return;
       }
       
@@ -515,16 +515,16 @@
         
         if (isHLS && player.renderer.hls) {
           engineEl.textContent = 'hls.js v' + (window.Hls?.version || 'unknown');
-          log('✅ Using hls.js renderer', 'success');
+          log('Using hls.js renderer', 'success');
         } else if (isNative) {
           engineEl.textContent = 'Native (Safari)';
-          log('✅ Using native HLS support', 'success');
+          log('Using native HLS support', 'success');
         } else {
           engineEl.textContent = player.renderer.constructor.name;
           log(`Using ${player.renderer.constructor.name}`, 'info');
         }
       } else {
-        log('⚠️ Renderer not yet initialized', 'warn');
+        log('Renderer not yet initialized', 'warn');
       }
     }, 1000);
 
@@ -532,7 +532,7 @@
     if (player) {
       // HLS-specific events
       player.on('hlsmanifestparsed', (data) => {
-        log(`✅ HLS manifest parsed successfully!`, 'success');
+        log(`HLS manifest parsed successfully!`, 'success');
         log(`Found ${data.levels.length} quality levels`, 'success');
       
       // Update quality count
@@ -575,39 +575,39 @@
 
     // Standard player events
     player.on('loadedmetadata', () => {
-      log('✅ Metadata loaded - Duration: ' + Math.round(player.getDuration()) + 's', 'success');
+      log('Metadata loaded - Duration: ' + Math.round(player.getDuration()) + 's', 'success');
     });
 
     player.on('play', () => {
-      log('▶️ Playback started', 'success');
+      log('Playback started', 'success');
       document.getElementById('buffer-status').textContent = 'Playing';
     });
 
     player.on('pause', () => {
-      log('⏸️ Playback paused', 'info');
+      log('Playback paused', 'info');
       document.getElementById('buffer-status').textContent = 'Paused';
     });
 
     player.on('waiting', () => {
-      log('⏳ Buffering...', 'warn');
+      log('Buffering...', 'warn');
       document.getElementById('buffer-status').textContent = 'Buffering';
       document.getElementById('buffer-status').style.color = '#ff9800';
     });
 
     player.on('canplay', () => {
-      log('✅ Ready to play', 'success');
+      log('Ready to play', 'success');
       document.getElementById('buffer-status').textContent = 'Ready';
       document.getElementById('buffer-status').style.color = '#b3d1b4';
     });
 
     player.on('error', (error) => {
-      log('❌ Error: ' + error.message, 'error');
+      log('Error: ' + error.message, 'error');
       document.getElementById('buffer-status').textContent = 'Error';
       document.getElementById('buffer-status').style.color = '#f44336';
     });
 
     player.on('ended', () => {
-      log('🏁 Playback ended', 'info');
+      log('Playback ended', 'info');
       document.getElementById('buffer-status').textContent = 'Ended';
     });
 
@@ -621,7 +621,7 @@
     });
 
     document.getElementById('btn-reload').addEventListener('click', () => {
-      log('🔄 Reloading stream...', 'info');
+      log('Reloading stream...', 'info');
       player.seek(0);
       setTimeout(() => player.play(), 100);
     });
@@ -632,7 +632,7 @@
       
       streamSelect.addEventListener('change', async (e) => {
         const newUrl = e.target.value;
-        log(`🔄 Loading new stream: ${newUrl}`, 'info');
+        log(`Loading new stream: ${newUrl}`, 'info');
         
         try {
           // Destroy current HLS instance if it exists
@@ -656,18 +656,18 @@
           log('Reinitializing renderer...', 'info');
           await player.initializeRenderer();
           
-          log('✅ Stream switched successfully!', 'success');
+          log('Stream switched successfully!', 'success');
         } catch (error) {
-          log(`❌ Failed to switch stream: ${error.message}`, 'error');
+          log(`Failed to switch stream: ${error.message}`, 'error');
           console.error('Stream switch error:', error);
         }
       });
 
       // Log ready state
       player.on('ready', () => {
-        log('🎬 Player ready!', 'success');
+        log('Player ready!', 'success');
         log('You can now test HLS playback', 'info');
-        log('💡 Tip: Check the console for detailed hls.js logs (if using hls.js)', 'info');
+        log('Tip: Check the console for detailed hls.js logs (if using hls.js)', 'info');
       });
 
       // Initial log
@@ -675,22 +675,22 @@
       
       // Check if running on local server
       if (window.location.protocol === 'file:') {
-        log('⚠️ WARNING: You are using file:// protocol!', 'warn');
-        log('⚠️ HLS streams REQUIRE HTTP/HTTPS to work!', 'error');
-        log('💡 Solution: Run "npx serve -p 3000" in terminal', 'info');
-        log('💡 Then open: http://localhost:3000/demo/hls-test.html', 'info');
+        log('WARNING: You are using file:// protocol!', 'warn');
+        log('HLS streams REQUIRE HTTP/HTTPS to work!', 'error');
+        log('Solution: Run "npx serve -p 3000" in terminal', 'info');
+        log('Then open: http://localhost:3000/demo/hls-test.html', 'info');
         document.getElementById('buffer-status').textContent = 'Need Server';
         document.getElementById('buffer-status').style.color = '#f44336';
       } else {
-        log('✅ Running on HTTP server: ' + window.location.origin, 'success');
+        log('Running on HTTP server: ' + window.location.origin, 'success');
       }
       
       // Console helper message
-      console.log('%c🎬 VidPly HLS Test', 'font-size: 20px; font-weight: bold; color: #259af7;');
+      console.log('%cVidPly HLS Test', 'font-size: 20px; font-weight: bold; color: #259af7;');
       console.log('%cPlayer instance available as: window.hlsPlayer', 'color: #b3d1b4;');
       console.log('%cTry: window.hlsPlayer.play(), window.hlsPlayer.pause(), window.hlsPlayer.seek(30)', 'color: #ccc;');
     } else {
-      log('❌ Player initialization failed. Check console for errors.', 'error');
+      log('Player initialization failed. Check console for errors.', 'error');
     }
   </script>
 </body>

@@ -10927,6 +10927,8 @@ var VidPly = (() => {
       this.options = {
         autoAdvance: options.autoAdvance !== false,
         // Default true
+        autoPlayFirst: options.autoPlayFirst !== false,
+        // Default true - auto-play first track on load
         loop: options.loop || false,
         showPanel: options.showPanel !== false,
         // Default true
@@ -10973,8 +10975,37 @@ var VidPly = (() => {
         this.renderPlaylist();
       }
       if (tracks.length > 0) {
-        this.play(0);
+        if (this.options.autoPlayFirst) {
+          this.play(0);
+        } else {
+          this.loadTrack(0);
+        }
       }
+    }
+    /**
+     * Load a track without playing
+     * @param {number} index - Track index
+     */
+    loadTrack(index) {
+      if (index < 0 || index >= this.tracks.length) {
+        console.warn("VidPly Playlist: Invalid track index", index);
+        return;
+      }
+      const track = this.tracks[index];
+      this.currentIndex = index;
+      this.player.load({
+        src: track.src,
+        type: track.type,
+        poster: track.poster,
+        tracks: track.tracks || []
+      });
+      this.updateTrackInfo(track);
+      this.updatePlaylistUI();
+      this.player.emit("playlisttrackchange", {
+        index,
+        item: track,
+        total: this.tracks.length
+      });
     }
     /**
      * Play a specific track

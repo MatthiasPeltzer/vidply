@@ -15,6 +15,7 @@ export class PlaylistManager {
     // Options
     this.options = {
       autoAdvance: options.autoAdvance !== false, // Default true
+      autoPlayFirst: options.autoPlayFirst !== false, // Default true - auto-play first track on load
       loop: options.loop || false,
       showPanel: options.showPanel !== false, // Default true
       ...options
@@ -87,10 +88,50 @@ export class PlaylistManager {
       this.renderPlaylist();
     }
     
-    // Auto-play first track
+    // Auto-play first track (if enabled)
     if (tracks.length > 0) {
-      this.play(0);
+      if (this.options.autoPlayFirst) {
+        this.play(0);
+      } else {
+        // Load first track without playing
+        this.loadTrack(0);
+      }
     }
+  }
+  
+  /**
+   * Load a track without playing
+   * @param {number} index - Track index
+   */
+  loadTrack(index) {
+    if (index < 0 || index >= this.tracks.length) {
+      console.warn('VidPly Playlist: Invalid track index', index);
+      return;
+    }
+    
+    const track = this.tracks[index];
+    
+    // Update current index
+    this.currentIndex = index;
+    
+    // Load track into player
+    this.player.load({
+      src: track.src,
+      type: track.type,
+      poster: track.poster,
+      tracks: track.tracks || []
+    });
+    
+    // Update UI
+    this.updateTrackInfo(track);
+    this.updatePlaylistUI();
+    
+    // Emit event
+    this.player.emit('playlisttrackchange', {
+      index: index,
+      item: track,
+      total: this.tracks.length
+    });
   }
   
   /**
