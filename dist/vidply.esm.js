@@ -3602,7 +3602,7 @@ var ControlBar = class {
         }
         return;
       }
-      const shouldUseOverflow = !isDesktop && !isLandscape && !isFullscreen;
+      const shouldUseOverflow = !isDesktop && !isLandscape;
       if (this.player.options.debug) {
         console.log("Overflow detection:", {
           isDesktop,
