@@ -546,6 +546,7 @@ var en = {
   time: {
     display: "Time display",
     durationPrefix: "Duration: ",
+    of: "of",
     hour: "{count} hour",
     hours: "{count} hours",
     minute: "{count} minute",
@@ -699,6 +700,7 @@ var de = {
   time: {
     display: "Zeitanzeige",
     durationPrefix: "Dauer: ",
+    of: "von",
     hour: "{count} Stunde",
     hours: "{count} Stunden",
     minute: "{count} Minute",
@@ -852,6 +854,7 @@ var es = {
   time: {
     display: "Visualizaci\xF3n de tiempo",
     durationPrefix: "Duraci\xF3n: ",
+    of: "de",
     hour: "{count} hora",
     hours: "{count} horas",
     minute: "{count} minuto",
@@ -1005,6 +1008,7 @@ var fr = {
   time: {
     display: "Affichage du temps",
     durationPrefix: "Dur\xE9e : ",
+    of: "sur",
     hour: "{count} heure",
     hours: "{count} heures",
     minute: "{count} minute",
@@ -1158,6 +1162,7 @@ var ja = {
   time: {
     display: "\u6642\u9593\u8868\u793A",
     durationPrefix: "\u518D\u751F\u6642\u9593: ",
+    of: "/",
     hour: "{count}\u6642\u9593",
     hours: "{count}\u6642\u9593",
     minute: "{count}\u5206",
@@ -2091,6 +2096,7 @@ var ControlBar = class {
       if (!this.isDraggingProgress) {
         const { time } = updateProgress(e.clientX);
         this.controls.progressTooltip.textContent = TimeUtils.formatTime(time);
+        this.controls.progressTooltip.setAttribute("aria-label", TimeUtils.formatDuration(time));
         this.controls.progressTooltip.style.left = `${e.clientX - progress.getBoundingClientRect().left}px`;
         this.controls.progressTooltip.style.display = "block";
       }
@@ -2509,7 +2515,10 @@ var ControlBar = class {
           });
           const timeLabel = DOMUtils.createElement("span", {
             className: `${this.player.options.classPrefix}-chapter-time`,
-            textContent: TimeUtils.formatTime(cue.startTime)
+            textContent: TimeUtils.formatTime(cue.startTime),
+            attributes: {
+              "aria-label": TimeUtils.formatDuration(cue.startTime)
+            }
           });
           const titleLabel = DOMUtils.createElement("span", {
             className: `${this.player.options.classPrefix}-chapter-title`,
@@ -2772,8 +2781,12 @@ var ControlBar = class {
     const group = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-style-group`
     });
+    const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
     const labelEl = DOMUtils.createElement("label", {
       textContent: label,
+      attributes: {
+        "for": controlId
+      },
       style: {
         display: "block",
         fontSize: "12px",
@@ -2784,6 +2797,9 @@ var ControlBar = class {
     group.appendChild(labelEl);
     const select = DOMUtils.createElement("select", {
       className: `${this.player.options.classPrefix}-style-select`,
+      attributes: {
+        "id": controlId
+      },
       style: {
         width: "100%",
         padding: "6px",
@@ -2828,8 +2844,12 @@ var ControlBar = class {
     const group = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-style-group`
     });
+    const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
     const labelEl = DOMUtils.createElement("label", {
       textContent: label,
+      attributes: {
+        "for": controlId
+      },
       style: {
         display: "block",
         fontSize: "12px",
@@ -2840,6 +2860,7 @@ var ControlBar = class {
     group.appendChild(labelEl);
     const input = DOMUtils.createElement("input", {
       attributes: {
+        "id": controlId,
         type: "color",
         value: this.player.options[property]
       },
@@ -2876,6 +2897,7 @@ var ControlBar = class {
     const group = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-style-group`
     });
+    const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
     const labelContainer = DOMUtils.createElement("div", {
       style: {
         display: "flex",
@@ -2885,6 +2907,9 @@ var ControlBar = class {
     });
     const labelEl = DOMUtils.createElement("label", {
       textContent: label,
+      attributes: {
+        "for": controlId
+      },
       style: {
         fontSize: "12px",
         color: "rgba(255,255,255,0.7)"
@@ -2902,6 +2927,7 @@ var ControlBar = class {
     group.appendChild(labelContainer);
     const input = DOMUtils.createElement("input", {
       attributes: {
+        "id": controlId,
         type: "range",
         min: "0",
         max: "1",
@@ -3293,6 +3319,12 @@ var ControlBar = class {
     const percent = this.player.state.currentTime / this.player.state.duration * 100;
     this.controls.played.style.width = `${percent}%`;
     this.controls.progress.setAttribute("aria-valuenow", String(Math.round(percent)));
+    const currentTimeText = TimeUtils.formatDuration(this.player.state.currentTime);
+    const durationText = TimeUtils.formatDuration(this.player.state.duration);
+    this.controls.progress.setAttribute(
+      "aria-valuetext",
+      `${Math.round(percent)}%, ${currentTimeText} ${i18n.t("time.of")} ${durationText}`
+    );
     if (this.controls.currentTimeVisual) {
       const currentTime = this.player.state.currentTime;
       this.controls.currentTimeVisual.textContent = TimeUtils.formatTime(currentTime);
@@ -5363,14 +5395,17 @@ var TranscriptManager = class {
     const title = DOMUtils.createElement("h3", {
       textContent: `${i18n.t("transcript.title")}. ${i18n.t("transcript.dragResizePrompt")}`
     });
+    const autoscrollId = `${this.player.options.classPrefix}-transcript-autoscroll-${Date.now()}`;
     const autoscrollLabel = DOMUtils.createElement("label", {
       className: `${this.player.options.classPrefix}-transcript-autoscroll-label`,
       attributes: {
+        "for": autoscrollId,
         "title": i18n.t("transcript.autoscroll")
       }
     });
     this.autoscrollCheckbox = DOMUtils.createElement("input", {
       attributes: {
+        "id": autoscrollId,
         "type": "checkbox",
         "aria-label": i18n.t("transcript.autoscroll")
       }
@@ -5877,6 +5912,9 @@ var TranscriptManager = class {
    * Create a single transcript entry element
    */
   createTranscriptEntry(cue, index, type = "caption") {
+    const readableTime = TimeUtils.formatDuration(cue.startTime);
+    const entryText = this.stripVTTFormatting(cue.text);
+    const accessibleLabel = `${readableTime}: ${entryText}`;
     const entry = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-transcript-entry ${this.player.options.classPrefix}-transcript-${type}`,
       attributes: {
@@ -5884,16 +5922,25 @@ var TranscriptManager = class {
         "data-end": String(cue.endTime),
         "data-type": type,
         "role": "button",
-        "tabindex": "0"
+        "tabindex": "0",
+        "aria-label": accessibleLabel
       }
     });
     const timestamp = DOMUtils.createElement("span", {
       className: `${this.player.options.classPrefix}-transcript-time`,
-      textContent: TimeUtils.formatTime(cue.startTime)
+      textContent: TimeUtils.formatTime(cue.startTime),
+      attributes: {
+        "aria-hidden": "true"
+        // Hide from screen readers since aria-label on parent is used
+      }
     });
     const text = DOMUtils.createElement("span", {
       className: `${this.player.options.classPrefix}-transcript-text`,
-      textContent: this.stripVTTFormatting(cue.text)
+      textContent: entryText,
+      attributes: {
+        "aria-hidden": "true"
+        // Hide from screen readers since aria-label on parent is used
+      }
     });
     entry.appendChild(timestamp);
     entry.appendChild(text);
@@ -6535,12 +6582,19 @@ var TranscriptManager = class {
     const group = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-transcript-style-group`
     });
+    const controlId = `${this.player.options.classPrefix}-transcript-${property}-${Date.now()}`;
     const labelEl = DOMUtils.createElement("label", {
-      textContent: label
+      textContent: label,
+      attributes: {
+        "for": controlId
+      }
     });
     group.appendChild(labelEl);
     const select = DOMUtils.createElement("select", {
-      className: `${this.player.options.classPrefix}-transcript-style-select`
+      className: `${this.player.options.classPrefix}-transcript-style-select`,
+      attributes: {
+        "id": controlId
+      }
     });
     options.forEach((opt) => {
       const option = DOMUtils.createElement("option", {
@@ -6569,12 +6623,17 @@ var TranscriptManager = class {
     const group = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-transcript-style-group`
     });
+    const controlId = `${this.player.options.classPrefix}-transcript-${property}-${Date.now()}`;
     const labelEl = DOMUtils.createElement("label", {
-      textContent: label
+      textContent: label,
+      attributes: {
+        "for": controlId
+      }
     });
     group.appendChild(labelEl);
     const input = DOMUtils.createElement("input", {
       attributes: {
+        "id": controlId,
         "type": "color",
         "value": this.transcriptStyle[property]
       },
@@ -6595,8 +6654,12 @@ var TranscriptManager = class {
     const group = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-transcript-style-group`
     });
+    const controlId = `${this.player.options.classPrefix}-transcript-${property}-${Date.now()}`;
     const labelEl = DOMUtils.createElement("label", {
-      textContent: label
+      textContent: label,
+      attributes: {
+        "for": controlId
+      }
     });
     group.appendChild(labelEl);
     const valueDisplay = DOMUtils.createElement("span", {
@@ -6605,6 +6668,7 @@ var TranscriptManager = class {
     });
     const input = DOMUtils.createElement("input", {
       attributes: {
+        "id": controlId,
         "type": "range",
         "min": "0",
         "max": "1",

@@ -278,15 +278,19 @@ export class TranscriptManager {
     });
 
     // Autoscroll checkbox
+    const autoscrollId = `${this.player.options.classPrefix}-transcript-autoscroll-${Date.now()}`;
+    
     const autoscrollLabel = DOMUtils.createElement('label', {
       className: `${this.player.options.classPrefix}-transcript-autoscroll-label`,
       attributes: {
+        'for': autoscrollId,
         'title': i18n.t('transcript.autoscroll')
       }
     });
     
     this.autoscrollCheckbox = DOMUtils.createElement('input', {
       attributes: {
+        'id': autoscrollId,
         'type': 'checkbox',
         'aria-label': i18n.t('transcript.autoscroll')
       }
@@ -970,6 +974,11 @@ export class TranscriptManager {
    * Create a single transcript entry element
    */
   createTranscriptEntry(cue, index, type = 'caption') {
+    // Create accessible label combining time and text for screen readers
+    const readableTime = TimeUtils.formatDuration(cue.startTime);
+    const entryText = this.stripVTTFormatting(cue.text);
+    const accessibleLabel = `${readableTime}: ${entryText}`;
+    
     const entry = DOMUtils.createElement('div', {
       className: `${this.player.options.classPrefix}-transcript-entry ${this.player.options.classPrefix}-transcript-${type}`,
       attributes: {
@@ -977,18 +986,25 @@ export class TranscriptManager {
         'data-end': String(cue.endTime),
         'data-type': type,
         'role': 'button',
-        'tabindex': '0'
+        'tabindex': '0',
+        'aria-label': accessibleLabel
       }
     });
 
     const timestamp = DOMUtils.createElement('span', {
       className: `${this.player.options.classPrefix}-transcript-time`,
-      textContent: TimeUtils.formatTime(cue.startTime)
+      textContent: TimeUtils.formatTime(cue.startTime),
+      attributes: {
+        'aria-hidden': 'true'  // Hide from screen readers since aria-label on parent is used
+      }
     });
 
     const text = DOMUtils.createElement('span', {
       className: `${this.player.options.classPrefix}-transcript-text`,
-      textContent: this.stripVTTFormatting(cue.text)
+      textContent: entryText,
+      attributes: {
+        'aria-hidden': 'true'  // Hide from screen readers since aria-label on parent is used
+      }
     });
 
     entry.appendChild(timestamp);
@@ -1832,13 +1848,22 @@ export class TranscriptManager {
       className: `${this.player.options.classPrefix}-transcript-style-group`
     });
 
+    // Generate unique ID for the control
+    const controlId = `${this.player.options.classPrefix}-transcript-${property}-${Date.now()}`;
+
     const labelEl = DOMUtils.createElement('label', {
-      textContent: label
+      textContent: label,
+      attributes: {
+        'for': controlId
+      }
     });
     group.appendChild(labelEl);
 
     const select = DOMUtils.createElement('select', {
-      className: `${this.player.options.classPrefix}-transcript-style-select`
+      className: `${this.player.options.classPrefix}-transcript-style-select`,
+      attributes: {
+        'id': controlId
+      }
     });
 
     options.forEach(opt => {
@@ -1872,13 +1897,20 @@ export class TranscriptManager {
       className: `${this.player.options.classPrefix}-transcript-style-group`
     });
 
+    // Generate unique ID for the control
+    const controlId = `${this.player.options.classPrefix}-transcript-${property}-${Date.now()}`;
+
     const labelEl = DOMUtils.createElement('label', {
-      textContent: label
+      textContent: label,
+      attributes: {
+        'for': controlId
+      }
     });
     group.appendChild(labelEl);
 
     const input = DOMUtils.createElement('input', {
       attributes: {
+        'id': controlId,
         'type': 'color',
         'value': this.transcriptStyle[property]
       },
@@ -1903,8 +1935,14 @@ export class TranscriptManager {
       className: `${this.player.options.classPrefix}-transcript-style-group`
     });
 
+    // Generate unique ID for the control
+    const controlId = `${this.player.options.classPrefix}-transcript-${property}-${Date.now()}`;
+
     const labelEl = DOMUtils.createElement('label', {
-      textContent: label
+      textContent: label,
+      attributes: {
+        'for': controlId
+      }
     });
     group.appendChild(labelEl);
 
@@ -1915,6 +1953,7 @@ export class TranscriptManager {
 
     const input = DOMUtils.createElement('input', {
       attributes: {
+        'id': controlId,
         'type': 'range',
         'min': '0',
         'max': '1',

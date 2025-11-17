@@ -2145,31 +2145,17 @@
 }
 
 .vidply-transcript-language-select {
-    background: var(--vidply-white-10);
-    border: 1px solid var(--vidply-white-20);
+    background: var(--vidply-bg-menu);
+    border: 1px solid var(--vidply-border);
     border-radius: 4px;
-    color: var(--vidply-white);
-    cursor: pointer;
-    font-size: 13px;
+    color: var(--vidply-text);
+    font-size: 14px;
     padding: 4px 8px;
-    transition: var(--vidply-transition-default);
-}
-
-.vidply-transcript-language-select:hover {
-    background: var(--vidply-white-15);
-    border-color: var(--vidply-border-hover);
 }
 
 .vidply-transcript-language-select:focus {
-    background: var(--vidply-white-15);
-    border-color: var(--vidply-border-focus);
-    box-shadow: 0 0 0 3px var(--vidply-primary-20);
-    outline: none;
-}
-
-.vidply-transcript-language-select option {
-    background: #1a1a1a;
-    color: var(--vidply-white);
+    outline: var(--vidply-focus-outline);
+    outline-offset: 2px;
 }
 
 /* Transcript Settings Button */

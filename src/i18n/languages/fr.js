@@ -145,6 +145,7 @@ export const fr = {
   time: {
     display: 'Affichage du temps',
     durationPrefix: 'Durée : ',
+    of: 'sur',
     hour: '{count} heure',
     hours: '{count} heures',
     minute: '{count} minute',
