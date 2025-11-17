@@ -3588,19 +3588,33 @@ var ControlBar = class {
       const isFullscreen = this.player.state.fullscreen;
       const isLandscapeFullscreen = isLandscape && isFullscreen;
       if (!this.rightButtons || this.rightButtons.children.length === 0) {
+        if (this.overflowMenuButton) {
+          this.overflowMenuButton.style.display = "none";
+        }
         return;
       }
       const allButtons = Array.from(this.rightButtons.children).filter(
         (btn) => !btn.classList.contains(`${this.player.options.classPrefix}-overflow-menu`)
       );
       if (allButtons.length === 0) {
+        if (this.overflowMenuButton) {
+          this.overflowMenuButton.style.display = "none";
+        }
         return;
       }
-      if (isLandscapeFullscreen && !isDesktop) {
-        if (this.player.options.debug) {
-          console.log("Landscape fullscreen mobile - enabling overflow detection");
-        }
-      } else if (isDesktop || isTinyScreen) {
+      const shouldUseOverflow = !isDesktop && !isLandscapeFullscreen;
+      if (this.player.options.debug) {
+        console.log("Overflow detection:", {
+          isDesktop,
+          isFullscreen,
+          isLandscape,
+          isLandscapeFullscreen,
+          shouldUseOverflow,
+          width: window.innerWidth,
+          height: window.innerHeight
+        });
+      }
+      if (!shouldUseOverflow || isTinyScreen) {
         allButtons.forEach((btn) => {
           btn.dataset.inOverflow = "false";
           btn.style.display = "";
@@ -3609,13 +3623,12 @@ var ControlBar = class {
           this.overflowMenuButton.style.display = "none";
         }
         if (this.player.options.debug) {
-          if (isDesktop) {
-            console.log("Desktop view (\u2265768px) - all buttons visible, overflow menu hidden");
-          } else {
-            console.log("Tiny screen (<360px) - all buttons visible, overflow menu hidden");
-          }
+          console.log("No overflow menu needed - all buttons visible, overflow button hidden");
         }
         return;
+      }
+      if (this.player.options.debug) {
+        console.log("Mobile portrait - checking for overflow...");
       }
       allButtons.forEach((btn) => {
         btn.style.display = "";
@@ -3712,6 +3725,11 @@ var ControlBar = class {
     resizeObserver.observe(this.rightButtons);
     window.addEventListener("resize", () => {
       requestAnimationFrame(checkOverflow);
+    });
+    this.player.on("fullscreenchange", () => {
+      setTimeout(() => {
+        requestAnimationFrame(checkOverflow);
+      }, 50);
     });
     requestAnimationFrame(() => {
       checkOverflow();
