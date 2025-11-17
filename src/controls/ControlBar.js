@@ -843,6 +843,7 @@ export class ControlBar {
             if (!this.isDraggingProgress) {
                 const {time} = updateProgress(e.clientX);
                 this.controls.progressTooltip.textContent = TimeUtils.formatTime(time);
+                this.controls.progressTooltip.setAttribute('aria-label', TimeUtils.formatDuration(time));
                 this.controls.progressTooltip.style.left = `${e.clientX - progress.getBoundingClientRect().left}px`;
                 this.controls.progressTooltip.style.display = 'block';
             }
@@ -1390,7 +1391,10 @@ export class ControlBar {
 
                     const timeLabel = DOMUtils.createElement('span', {
                         className: `${this.player.options.classPrefix}-chapter-time`,
-                        textContent: TimeUtils.formatTime(cue.startTime)
+                        textContent: TimeUtils.formatTime(cue.startTime),
+                        attributes: {
+                            'aria-label': TimeUtils.formatDuration(cue.startTime)
+                        }
                     });
 
                     const titleLabel = DOMUtils.createElement('span', {
@@ -1769,8 +1773,14 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-style-group`
         });
 
+        // Generate unique ID for the control
+        const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
+
         const labelEl = DOMUtils.createElement('label', {
             textContent: label,
+            attributes: {
+                'for': controlId
+            },
             style: {
                 display: 'block',
                 fontSize: '12px',
@@ -1782,6 +1792,9 @@ export class ControlBar {
 
         const select = DOMUtils.createElement('select', {
             className: `${this.player.options.classPrefix}-style-select`,
+            attributes: {
+                'id': controlId
+            },
             style: {
                 width: '100%',
                 padding: '6px',
@@ -1834,8 +1847,14 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-style-group`
         });
 
+        // Generate unique ID for the control
+        const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
+
         const labelEl = DOMUtils.createElement('label', {
             textContent: label,
+            attributes: {
+                'for': controlId
+            },
             style: {
                 display: 'block',
                 fontSize: '12px',
@@ -1847,6 +1866,7 @@ export class ControlBar {
 
         const input = DOMUtils.createElement('input', {
             attributes: {
+                'id': controlId,
                 type: 'color',
                 value: this.player.options[property]
             },
@@ -1890,6 +1910,9 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-style-group`
         });
 
+        // Generate unique ID for the control
+        const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
+
         const labelContainer = DOMUtils.createElement('div', {
             style: {
                 display: 'flex',
@@ -1900,6 +1923,9 @@ export class ControlBar {
 
         const labelEl = DOMUtils.createElement('label', {
             textContent: label,
+            attributes: {
+                'for': controlId
+            },
             style: {
                 fontSize: '12px',
                 color: 'rgba(255,255,255,0.7)'
@@ -1920,6 +1946,7 @@ export class ControlBar {
 
         const input = DOMUtils.createElement('input', {
             attributes: {
+                'id': controlId,
                 type: 'range',
                 min: '0',
                 max: '1',
@@ -2439,6 +2466,12 @@ export class ControlBar {
         const percent = (this.player.state.currentTime / this.player.state.duration) * 100;
         this.controls.played.style.width = `${percent}%`;
         this.controls.progress.setAttribute('aria-valuenow', String(Math.round(percent)));
+        
+        // Set aria-valuetext to announce both percentage and time for screen readers
+        const currentTimeText = TimeUtils.formatDuration(this.player.state.currentTime);
+        const durationText = TimeUtils.formatDuration(this.player.state.duration);
+        this.controls.progress.setAttribute('aria-valuetext', 
+            `${Math.round(percent)}%, ${currentTimeText} ${i18n.t('time.of')} ${durationText}`);
 
         if (this.controls.currentTimeVisual) {
             const currentTime = this.player.state.currentTime;

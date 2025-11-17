@@ -145,6 +145,7 @@ export const ja = {
   time: {
     display: '時間表示',
     durationPrefix: '再生時間: ',
+    of: '/',
     hour: '{count}時間',
     hours: '{count}時間',
     minute: '{count}分',

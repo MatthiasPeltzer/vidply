@@ -145,6 +145,7 @@ export const de = {
   time: {
     display: 'Zeitanzeige',
     durationPrefix: 'Dauer: ',
+    of: 'von',
     hour: '{count} Stunde',
     hours: '{count} Stunden',
     minute: '{count} Minute',
