@@ -128,7 +128,11 @@ export const en = {
     closeMenu: 'Close Menu',
     styleTitle: 'Transcript Style',
     autoscroll: 'Autoscroll',
-    settingsMenu: 'Transcript dialog settings'
+    settingsMenu: 'Transcript dialog settings',
+    showTimestamps: 'Show timestamps',
+    hideTimestamps: 'Hide timestamps',
+    showTimestampsAria: 'Show timestamps in transcript',
+    hideTimestampsAria: 'Hide timestamps in transcript'
   },
   settings: {
     title: 'Settings',

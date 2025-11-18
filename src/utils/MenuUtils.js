@@ -43,7 +43,10 @@ export function createMenuItem({ classPrefix, itemClass, icon, label, ariaLabel,
     
     const text = DOMUtils.createElement('span', {
         textContent: textContent,
-        className: hasTextClass ? `${classPrefix}-settings-text` : undefined
+        className: hasTextClass ? `${classPrefix}-settings-text` : undefined,
+        attributes: {
+            'aria-hidden': 'true'
+        }
     });
     button.appendChild(text);
     

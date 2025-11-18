@@ -549,7 +549,11 @@ var VidPly = (() => {
       closeMenu: "Close Menu",
       styleTitle: "Transcript Style",
       autoscroll: "Autoscroll",
-      settingsMenu: "Transcript dialog settings"
+      settingsMenu: "Transcript dialog settings",
+      showTimestamps: "Show timestamps",
+      hideTimestamps: "Hide timestamps",
+      showTimestampsAria: "Show timestamps in transcript",
+      hideTimestampsAria: "Hide timestamps in transcript"
     },
     settings: {
       title: "Settings",
@@ -702,8 +706,12 @@ var VidPly = (() => {
       styleTranscript: "Transkript-Stileinstellungen \xF6ffnen",
       closeMenu: "Men\xFC schlie\xDFen",
       styleTitle: "Transkript-Stil",
-      autoscroll: "Automatisches Scrollen",
-      settingsMenu: "Transkript-Dialog-Einstellungen"
+      autoscroll: "Auto-Scroll",
+      settingsMenu: "Transkript-Dialog-Einstellungen",
+      showTimestamps: "Zeitstempel anzeigen",
+      hideTimestamps: "Zeitstempel ausblenden",
+      showTimestampsAria: "Zeitstempel im Transkript anzeigen",
+      hideTimestampsAria: "Zeitstempel im Transkript ausblenden"
     },
     settings: {
       title: "Einstellungen",
@@ -857,7 +865,11 @@ var VidPly = (() => {
       closeMenu: "Cerrar men\xFA",
       styleTitle: "Estilo de Transcripci\xF3n",
       autoscroll: "Desplazamiento autom\xE1tico",
-      settingsMenu: "Configuraci\xF3n del di\xE1logo de transcripci\xF3n"
+      settingsMenu: "Configuraci\xF3n del di\xE1logo de transcripci\xF3n",
+      showTimestamps: "Mostrar marcas de tiempo",
+      hideTimestamps: "Ocultar marcas de tiempo",
+      showTimestampsAria: "Mostrar marcas de tiempo en la transcripci\xF3n",
+      hideTimestampsAria: "Ocultar marcas de tiempo en la transcripci\xF3n"
     },
     settings: {
       title: "Configuraci\xF3n",
@@ -1011,7 +1023,11 @@ var VidPly = (() => {
       closeMenu: "Fermer le menu",
       styleTitle: "Style de Transcription",
       autoscroll: "D\xE9filement automatique",
-      settingsMenu: "Param\xE8tres de dialogue de transcription"
+      settingsMenu: "Param\xE8tres de dialogue de transcription",
+      showTimestamps: "Afficher les horodatages",
+      hideTimestamps: "Masquer les horodatages",
+      showTimestampsAria: "Afficher les horodatages dans la transcription",
+      hideTimestampsAria: "Masquer les horodatages dans la transcription"
     },
     settings: {
       title: "Param\xE8tres",
@@ -1165,7 +1181,11 @@ var VidPly = (() => {
       closeMenu: "\u30E1\u30CB\u30E5\u30FC\u3092\u9589\u3058\u308B",
       styleTitle: "\u6587\u5B57\u8D77\u3053\u3057\u30B9\u30BF\u30A4\u30EB",
       autoscroll: "\u81EA\u52D5\u30B9\u30AF\u30ED\u30FC\u30EB",
-      settingsMenu: "\u6587\u5B57\u8D77\u3053\u3057\u30C0\u30A4\u30A2\u30ED\u30B0\u8A2D\u5B9A"
+      settingsMenu: "\u6587\u5B57\u8D77\u3053\u3057\u30C0\u30A4\u30A2\u30ED\u30B0\u8A2D\u5B9A",
+      showTimestamps: "\u30BF\u30A4\u30E0\u30B9\u30BF\u30F3\u30D7\u3092\u8868\u793A",
+      hideTimestamps: "\u30BF\u30A4\u30E0\u30B9\u30BF\u30F3\u30D7\u3092\u975E\u8868\u793A",
+      showTimestampsAria: "\u6587\u5B57\u8D77\u3053\u3057\u306B\u30BF\u30A4\u30E0\u30B9\u30BF\u30F3\u30D7\u3092\u8868\u793A",
+      hideTimestampsAria: "\u6587\u5B57\u8D77\u3053\u3057\u306E\u30BF\u30A4\u30E0\u30B9\u30BF\u30F3\u30D7\u3092\u975E\u8868\u793A"
     },
     settings: {
       title: "\u8A2D\u5B9A",
@@ -4486,7 +4506,10 @@ var VidPly = (() => {
     const textContent = isI18nKey ? i18n.t(label) || label : label;
     const text = DOMUtils.createElement("span", {
       textContent,
-      className: hasTextClass ? `${classPrefix}-settings-text` : void 0
+      className: hasTextClass ? `${classPrefix}-settings-text` : void 0,
+      attributes: {
+        "aria-hidden": "true"
+      }
     });
     button.appendChild(text);
     if (onClick) {
@@ -5271,6 +5294,7 @@ var VidPly = (() => {
       this.languageSelectorHandler = null;
       const savedPreferences = this.storage.getTranscriptPreferences();
       this.autoscrollEnabled = (savedPreferences == null ? void 0 : savedPreferences.autoscroll) !== void 0 ? savedPreferences.autoscroll : true;
+      this.showTimestamps = (savedPreferences == null ? void 0 : savedPreferences.showTimestamps) !== void 0 ? savedPreferences.showTimestamps : false;
       this.transcriptStyle = {
         fontSize: (savedPreferences == null ? void 0 : savedPreferences.fontSize) || this.player.options.transcriptFontSize || "100%",
         fontFamily: (savedPreferences == null ? void 0 : savedPreferences.fontFamily) || this.player.options.transcriptFontFamily || "sans-serif",
@@ -5830,6 +5854,7 @@ var VidPly = (() => {
         this.transcriptContent.appendChild(entry);
       });
       this.applyTranscriptStyles();
+      this.updateTimestampVisibility();
       this.updateLanguageSelector();
     }
     /**
@@ -6298,6 +6323,22 @@ var VidPly = (() => {
       this.resizeOptionButton = resizeOption;
       this.resizeOptionText = resizeOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
       this.updateResizeOptionState();
+      const showTimestampsOption = createMenuItem({
+        classPrefix: this.player.options.classPrefix,
+        itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
+        icon: "captions",
+        // Using captions icon as a clock/time reference
+        label: "transcript.showTimestamps",
+        hasTextClass: true,
+        onClick: () => {
+          this.toggleShowTimestamps();
+        }
+      });
+      showTimestampsOption.setAttribute("role", "switch");
+      showTimestampsOption.setAttribute("aria-checked", this.showTimestamps ? "true" : "false");
+      this.showTimestampsButton = showTimestampsOption;
+      this.showTimestampsText = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
+      this.updateShowTimestampsState();
       const closeOption = createMenuItem({
         classPrefix: this.player.options.classPrefix,
         itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
@@ -6310,6 +6351,7 @@ var VidPly = (() => {
       this.settingsMenu.appendChild(keyboardDragOption);
       this.settingsMenu.appendChild(resizeOption);
       this.settingsMenu.appendChild(styleOption);
+      this.settingsMenu.appendChild(showTimestampsOption);
       this.settingsMenu.appendChild(closeOption);
       this.settingsMenu.style.visibility = "hidden";
       this.settingsMenu.style.display = "block";
@@ -6485,6 +6527,37 @@ var VidPly = (() => {
       if (this.resizeOptionText) {
         this.resizeOptionText.textContent = text;
       }
+    }
+    toggleShowTimestamps() {
+      this.showTimestamps = !this.showTimestamps;
+      this.updateShowTimestampsState();
+      this.updateTimestampVisibility();
+      this.saveTimestampsPreference();
+    }
+    updateShowTimestampsState() {
+      if (!this.showTimestampsButton) {
+        return;
+      }
+      const text = this.showTimestamps ? i18n.t("transcript.hideTimestamps") : i18n.t("transcript.showTimestamps");
+      const ariaLabel = this.showTimestamps ? i18n.t("transcript.hideTimestampsAria") : i18n.t("transcript.showTimestampsAria");
+      this.showTimestampsButton.setAttribute("aria-checked", this.showTimestamps ? "true" : "false");
+      this.showTimestampsButton.setAttribute("aria-label", ariaLabel);
+      this.showTimestampsButton.setAttribute("title", text);
+      if (this.showTimestampsText) {
+        this.showTimestampsText.textContent = text;
+      }
+    }
+    updateTimestampVisibility() {
+      if (!this.transcriptContent) return;
+      const timestamps = this.transcriptContent.querySelectorAll(`.${this.player.options.classPrefix}-transcript-time`);
+      timestamps.forEach((timestamp) => {
+        timestamp.style.display = this.showTimestamps ? "" : "none";
+      });
+    }
+    saveTimestampsPreference() {
+      const savedPreferences = this.storage.getTranscriptPreferences() || {};
+      savedPreferences.showTimestamps = this.showTimestamps;
+      this.storage.saveTranscriptPreferences(savedPreferences);
     }
     showResizeModeIndicator() {
       if (!this.transcriptHeader) {
@@ -7824,7 +7897,7 @@ var VidPly = (() => {
       this.container = DOMUtils.createElement("div", {
         className: `${this.options.classPrefix}-player`,
         attributes: {
-          "role": "region",
+          "role": "application",
           "aria-label": i18n.t("player.label"),
           "tabindex": "0"
         }

@@ -62,6 +62,9 @@ export class TranscriptManager {
     // Autoscroll state (default: true)
     this.autoscrollEnabled = savedPreferences?.autoscroll !== undefined ? savedPreferences.autoscroll : true;
     
+    // Show timestamps state (default: false)
+    this.showTimestamps = savedPreferences?.showTimestamps !== undefined ? savedPreferences.showTimestamps : false;
+    
     // Transcript styling options (with defaults, then player options, then saved preferences)
     this.transcriptStyle = {
       fontSize: savedPreferences?.fontSize || this.player.options.transcriptFontSize || '100%',
@@ -814,6 +817,9 @@ export class TranscriptManager {
     // Apply current styles to newly loaded entries
     this.applyTranscriptStyles();
     
+    // Apply timestamp visibility preference
+    this.updateTimestampVisibility();
+    
     // Update language selector after loading
     this.updateLanguageSelector();
   }
@@ -1408,6 +1414,23 @@ export class TranscriptManager {
     this.resizeOptionText = resizeOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
     this.updateResizeOptionState();
 
+    // Show timestamps option
+    const showTimestampsOption = createMenuItem({
+      classPrefix: this.player.options.classPrefix,
+      itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
+      icon: 'captions', // Using captions icon as a clock/time reference
+      label: 'transcript.showTimestamps',
+      hasTextClass: true,
+      onClick: () => {
+        this.toggleShowTimestamps();
+      }
+    });
+    showTimestampsOption.setAttribute('role', 'switch');
+    showTimestampsOption.setAttribute('aria-checked', this.showTimestamps ? 'true' : 'false');
+    this.showTimestampsButton = showTimestampsOption;
+    this.showTimestampsText = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
+    this.updateShowTimestampsState();
+
     // Close option
     const closeOption = createMenuItem({
       classPrefix: this.player.options.classPrefix,
@@ -1422,6 +1445,7 @@ export class TranscriptManager {
     this.settingsMenu.appendChild(keyboardDragOption);
     this.settingsMenu.appendChild(resizeOption);
     this.settingsMenu.appendChild(styleOption);
+    this.settingsMenu.appendChild(showTimestampsOption);
     this.settingsMenu.appendChild(closeOption);
 
     // Position menu first (before it's visible) to prevent jumping
@@ -1671,6 +1695,49 @@ export class TranscriptManager {
     if (this.resizeOptionText) {
       this.resizeOptionText.textContent = text;
     }
+  }
+
+  toggleShowTimestamps() {
+    this.showTimestamps = !this.showTimestamps;
+    this.updateShowTimestampsState();
+    this.updateTimestampVisibility();
+    this.saveTimestampsPreference();
+  }
+
+  updateShowTimestampsState() {
+    if (!this.showTimestampsButton) {
+      return;
+    }
+    
+    const text = this.showTimestamps
+      ? i18n.t('transcript.hideTimestamps')
+      : i18n.t('transcript.showTimestamps');
+    const ariaLabel = this.showTimestamps
+      ? i18n.t('transcript.hideTimestampsAria')
+      : i18n.t('transcript.showTimestampsAria');
+
+    this.showTimestampsButton.setAttribute('aria-checked', this.showTimestamps ? 'true' : 'false');
+    this.showTimestampsButton.setAttribute('aria-label', ariaLabel);
+    this.showTimestampsButton.setAttribute('title', text);
+
+    if (this.showTimestampsText) {
+      this.showTimestampsText.textContent = text;
+    }
+  }
+
+  updateTimestampVisibility() {
+    if (!this.transcriptContent) return;
+    
+    const timestamps = this.transcriptContent.querySelectorAll(`.${this.player.options.classPrefix}-transcript-time`);
+    timestamps.forEach(timestamp => {
+      timestamp.style.display = this.showTimestamps ? '' : 'none';
+    });
+  }
+
+  saveTimestampsPreference() {
+    const savedPreferences = this.storage.getTranscriptPreferences() || {};
+    savedPreferences.showTimestamps = this.showTimestamps;
+    this.storage.saveTranscriptPreferences(savedPreferences);
   }
 
   showResizeModeIndicator() {

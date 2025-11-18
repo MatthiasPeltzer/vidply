@@ -128,7 +128,11 @@ export const fr = {
     closeMenu: 'Fermer le menu',
     styleTitle: 'Style de Transcription',
     autoscroll: 'Défilement automatique',
-    settingsMenu: 'Paramètres de dialogue de transcription'
+    settingsMenu: 'Paramètres de dialogue de transcription',
+    showTimestamps: 'Afficher les horodatages',
+    hideTimestamps: 'Masquer les horodatages',
+    showTimestampsAria: 'Afficher les horodatages dans la transcription',
+    hideTimestampsAria: 'Masquer les horodatages dans la transcription'
   },
   settings: {
     title: 'Paramètres',
