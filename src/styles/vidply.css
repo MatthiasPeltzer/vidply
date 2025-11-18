@@ -2251,10 +2251,17 @@
 }
 
 .vidply-transcript-entry {
+    background: none;
+    border: none;
     border-left: 3px solid transparent;
+    color: inherit;
     cursor: pointer;
+    display: block;
+    font: inherit;
     padding: 12px 20px;
+    text-align: left;
     transition: background 0.2s ease;
+    width: 100%;
 }
 
 .vidply-transcript-entry:hover,
