@@ -128,7 +128,11 @@ export const ja = {
     closeMenu: 'メニューを閉じる',
     styleTitle: '文字起こしスタイル',
     autoscroll: '自動スクロール',
-    settingsMenu: '文字起こしダイアログ設定'
+    settingsMenu: '文字起こしダイアログ設定',
+    showTimestamps: 'タイムスタンプを表示',
+    hideTimestamps: 'タイムスタンプを非表示',
+    showTimestampsAria: '文字起こしにタイムスタンプを表示',
+    hideTimestampsAria: '文字起こしのタイムスタンプを非表示'
   },
   settings: {
     title: '設定',

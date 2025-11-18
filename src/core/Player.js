@@ -399,7 +399,7 @@ export class Player extends EventEmitter {
         this.container = DOMUtils.createElement('div', {
             className: `${this.options.classPrefix}-player`,
             attributes: {
-                'role': 'region',
+                'role': 'application',
                 'aria-label': i18n.t('player.label'),
                 'tabindex': '0'
             }

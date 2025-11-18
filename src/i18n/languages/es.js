@@ -128,7 +128,11 @@ export const es = {
     closeMenu: 'Cerrar menú',
     styleTitle: 'Estilo de Transcripción',
     autoscroll: 'Desplazamiento automático',
-    settingsMenu: 'Configuración del diálogo de transcripción'
+    settingsMenu: 'Configuración del diálogo de transcripción',
+    showTimestamps: 'Mostrar marcas de tiempo',
+    hideTimestamps: 'Ocultar marcas de tiempo',
+    showTimestampsAria: 'Mostrar marcas de tiempo en la transcripción',
+    hideTimestampsAria: 'Ocultar marcas de tiempo en la transcripción'
   },
   settings: {
     title: 'Configuración',
