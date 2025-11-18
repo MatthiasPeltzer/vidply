@@ -6011,14 +6011,13 @@ var VidPly = (() => {
       const readableTime = TimeUtils.formatDuration(cue.startTime);
       const entryText = this.stripVTTFormatting(cue.text);
       const accessibleLabel = `${readableTime}: ${entryText}`;
-      const entry = DOMUtils.createElement("div", {
+      const entry = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-transcript-entry ${this.player.options.classPrefix}-transcript-${type}`,
         attributes: {
+          "type": "button",
           "data-start": String(cue.startTime),
           "data-end": String(cue.endTime),
           "data-type": type,
-          "role": "button",
-          "tabindex": "0",
           "aria-label": accessibleLabel
         }
       });
