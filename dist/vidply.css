@@ -2405,16 +2405,13 @@
 
 /* Transcript Language Selector */
 .vidply-transcript-language-label {
-    /* Visually hidden but accessible to screen readers */
-    border-width: 0;
-    clip: rect(0, 0, 0, 0);
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    white-space: nowrap;
-    width: 1px;
+    /* Visible label for voice input accessibility */
+    color: var(--vidply-white);
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    margin-right: 8px;
 }
 
 .vidply-transcript-language-select {
@@ -2971,16 +2968,13 @@
 }
 
 .vidply-sign-language-label {
-    /* Visually hidden but accessible to screen readers */
-    border-width: 0;
-    clip: rect(0, 0, 0, 0);
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    white-space: nowrap;
-    width: 1px;
+    /* Visible label for voice input accessibility */
+    color: var(--vidply-white);
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    margin-right: 8px;
 }
 
 .vidply-sign-language-select {
