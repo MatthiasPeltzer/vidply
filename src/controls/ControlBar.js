@@ -815,8 +815,10 @@ export class ControlBar {
 
         const updateProgress = (clientX) => {
             const rect = progress.getBoundingClientRect();
-            const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-            const time = percent * this.player.state.duration;
+            // Guard against division by zero if progress bar has no width
+            const percent = rect.width > 0 ? Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) : 0;
+            const duration = this.player.state.duration || 0;
+            const time = percent * duration;
             return {percent, time};
         };
 
@@ -1347,6 +1349,9 @@ export class ControlBar {
             const noChaptersItem = DOMUtils.createElement('div', {
                 className: `${this.player.options.classPrefix}-menu-item`,
                 textContent: i18n.t('player.noChapters'),
+                attributes: {
+                    'role': 'menuitem'
+                },
                 style: {opacity: '0.5', cursor: 'default'}
             });
             menu.appendChild(noChaptersItem);
@@ -1363,6 +1368,9 @@ export class ControlBar {
                 const loadingItem = DOMUtils.createElement('div', {
                     className: `${this.player.options.classPrefix}-menu-item`,
                     textContent: i18n.t('player.loadingChapters'),
+                    attributes: {
+                        'role': 'menuitem'
+                    },
                     style: {opacity: '0.5', cursor: 'default'}
                 });
                 menu.appendChild(loadingItem);
@@ -1520,6 +1528,9 @@ export class ControlBar {
                 const noQualityItem = DOMUtils.createElement('div', {
                     className: `${this.player.options.classPrefix}-menu-item`,
                     textContent: i18n.t('player.autoQuality'),
+                    attributes: {
+                        'role': 'menuitem'
+                    },
                     style: {opacity: '0.5', cursor: 'default'}
                 });
                 menu.appendChild(noQualityItem);
@@ -1688,6 +1699,9 @@ export class ControlBar {
             const noTracksItem = DOMUtils.createElement('div', {
                 className: `${this.player.options.classPrefix}-menu-item`,
                 textContent: i18n.t('player.noCaptions'),
+                attributes: {
+                    'role': 'menuitem'
+                },
                 style: {opacity: '0.5', cursor: 'default', padding: '12px 16px'}
             });
             menu.appendChild(noTracksItem);
@@ -2163,6 +2177,9 @@ export class ControlBar {
             const noTracksItem = DOMUtils.createElement('div', {
                 className: `${this.player.options.classPrefix}-menu-item`,
                 textContent: i18n.t('player.noCaptions'),
+                attributes: {
+                    'role': 'menuitem'
+                },
                 style: {opacity: '0.5', cursor: 'default'}
             });
             menu.appendChild(noTracksItem);
@@ -2471,7 +2488,12 @@ export class ControlBar {
     updateProgress() {
         if (!this.controls.played) return;
 
-        const percent = (this.player.state.currentTime / this.player.state.duration) * 100;
+        const currentTime = this.player.state.currentTime || 0;
+        const duration = this.player.state.duration || 0;
+        
+        // Guard against division by zero and ensure valid percentage
+        const percent = duration > 0 ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : 0;
+        
         this.controls.played.style.width = `${percent}%`;
         this.controls.progress.setAttribute('aria-valuenow', String(Math.round(percent)));
         
@@ -2749,6 +2771,9 @@ export class ControlBar {
             const noItemsText = DOMUtils.createElement('div', {
                 className: `${this.player.options.classPrefix}-menu-item`,
                 textContent: i18n.t('player.noMoreOptions'),
+                attributes: {
+                    'role': 'menuitem'
+                },
                 style: {opacity: '0.5', cursor: 'default'}
             });
             menu.appendChild(noItemsText);

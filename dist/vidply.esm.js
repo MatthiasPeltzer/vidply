@@ -2094,8 +2094,9 @@ var ControlBar = class {
     const progress = this.controls.progress;
     const updateProgress = (clientX) => {
       const rect = progress.getBoundingClientRect();
-      const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-      const time = percent * this.player.state.duration;
+      const percent = rect.width > 0 ? Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) : 0;
+      const duration = this.player.state.duration || 0;
+      const time = percent * duration;
       return { percent, time };
     };
     progress.addEventListener("mousedown", (e) => {
@@ -2500,6 +2501,9 @@ var ControlBar = class {
       const noChaptersItem = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-menu-item`,
         textContent: i18n.t("player.noChapters"),
+        attributes: {
+          "role": "menuitem"
+        },
         style: { opacity: "0.5", cursor: "default" }
       });
       menu.appendChild(noChaptersItem);
@@ -2512,6 +2516,9 @@ var ControlBar = class {
         const loadingItem = DOMUtils.createElement("div", {
           className: `${this.player.options.classPrefix}-menu-item`,
           textContent: i18n.t("player.loadingChapters"),
+          attributes: {
+            "role": "menuitem"
+          },
           style: { opacity: "0.5", cursor: "default" }
         });
         menu.appendChild(loadingItem);
@@ -2625,6 +2632,9 @@ var ControlBar = class {
         const noQualityItem = DOMUtils.createElement("div", {
           className: `${this.player.options.classPrefix}-menu-item`,
           textContent: i18n.t("player.autoQuality"),
+          attributes: {
+            "role": "menuitem"
+          },
           style: { opacity: "0.5", cursor: "default" }
         });
         menu.appendChild(noQualityItem);
@@ -2751,6 +2761,9 @@ var ControlBar = class {
       const noTracksItem = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-menu-item`,
         textContent: i18n.t("player.noCaptions"),
+        attributes: {
+          "role": "menuitem"
+        },
         style: { opacity: "0.5", cursor: "default", padding: "12px 16px" }
       });
       menu.appendChild(noTracksItem);
@@ -3111,6 +3124,9 @@ var ControlBar = class {
       const noTracksItem = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-menu-item`,
         textContent: i18n.t("player.noCaptions"),
+        attributes: {
+          "role": "menuitem"
+        },
         style: { opacity: "0.5", cursor: "default" }
       });
       menu.appendChild(noTracksItem);
@@ -3338,7 +3354,9 @@ var ControlBar = class {
   }
   updateProgress() {
     if (!this.controls.played) return;
-    const percent = this.player.state.currentTime / this.player.state.duration * 100;
+    const currentTime = this.player.state.currentTime || 0;
+    const duration = this.player.state.duration || 0;
+    const percent = duration > 0 ? Math.min(100, Math.max(0, currentTime / duration * 100)) : 0;
     this.controls.played.style.width = `${percent}%`;
     this.controls.progress.setAttribute("aria-valuenow", String(Math.round(percent)));
     const currentTimeText = TimeUtils.formatDuration(this.player.state.currentTime);
@@ -3348,10 +3366,10 @@ var ControlBar = class {
       `${Math.round(percent)}%, ${currentTimeText} ${i18n.t("time.of")} ${durationText}`
     );
     if (this.controls.currentTimeVisual) {
-      const currentTime = this.player.state.currentTime;
-      this.controls.currentTimeVisual.textContent = TimeUtils.formatTime(currentTime);
+      const currentTime2 = this.player.state.currentTime;
+      this.controls.currentTimeVisual.textContent = TimeUtils.formatTime(currentTime2);
       if (this.controls.currentTimeAccessible) {
-        this.controls.currentTimeAccessible.textContent = TimeUtils.formatDuration(currentTime);
+        this.controls.currentTimeAccessible.textContent = TimeUtils.formatDuration(currentTime2);
       }
     }
   }
@@ -3539,6 +3557,9 @@ var ControlBar = class {
       const noItemsText = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-menu-item`,
         textContent: i18n.t("player.noMoreOptions"),
+        attributes: {
+          "role": "menuitem"
+        },
         style: { opacity: "0.5", cursor: "default" }
       });
       menu.appendChild(noItemsText);
@@ -4063,6 +4084,9 @@ var CaptionManager = class {
       selectedTrack.track.mode = "hidden";
       this.currentTrack = selectedTrack;
       this.player.state.captionsEnabled = true;
+      if (selectedTrack.language) {
+        this.element.setAttribute("lang", selectedTrack.language);
+      }
       if (this.cueChangeHandler) {
         selectedTrack.track.removeEventListener("cuechange", this.cueChangeHandler);
       }
@@ -4106,6 +4130,7 @@ var CaptionManager = class {
     }
     this.element.style.display = "none";
     this.element.innerHTML = "";
+    this.element.removeAttribute("lang");
     this.currentCue = null;
     this.player.state.captionsEnabled = false;
     this.player.emit("captionsdisabled");
@@ -5719,7 +5744,8 @@ var TranscriptManager = class {
       const option = DOMUtils.createElement("option", {
         textContent: langInfo.label,
         attributes: {
-          "value": langInfo.language
+          "value": langInfo.language,
+          "lang": langInfo.language
         }
       });
       this.languageSelector.appendChild(option);
@@ -5739,6 +5765,9 @@ var TranscriptManager = class {
     this.languageSelectorHandler = (e) => {
       this.currentTranscriptLanguage = e.target.value;
       this.loadTranscriptData();
+      if (this.transcriptContent && this.currentTranscriptLanguage) {
+        this.transcriptContent.setAttribute("lang", this.currentTranscriptLanguage);
+      }
     };
     this.languageSelector.addEventListener("change", this.languageSelectorHandler);
   }
@@ -5835,6 +5864,9 @@ var TranscriptManager = class {
     });
     this.applyTranscriptStyles();
     this.updateTimestampVisibility();
+    if (this.transcriptContent && this.currentTranscriptLanguage) {
+      this.transcriptContent.setAttribute("lang", this.currentTranscriptLanguage);
+    }
     this.updateLanguageSelector();
   }
   /**
