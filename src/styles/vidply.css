@@ -2360,7 +2360,7 @@
 
 /* Transcript Header Left Side (Settings Button + Title) */
 .vidply-transcript-header-left {
-    align-items: center;
+    align-items: flex-start; /* Changed from center to align items at top */
     display: flex;
     gap: 16px;
     position: relative;
@@ -2373,6 +2373,7 @@
 /* Transcript Autoscroll Checkbox */
 .vidply-transcript-autoscroll-label {
     align-items: center;
+    align-self: center; /* Center checkbox label vertically in header */
     cursor: pointer;
     display: flex;
     gap: 6px;
@@ -2398,14 +2399,20 @@
 }
 
 /* Transcript Language Selector */
+.vidply-transcript-language-wrapper {
+    align-items: center;
+    align-self: center; /* Center this wrapper vertically in header */
+    display: flex;
+    flex-direction: row; /* Horizontal layout: label left of select */
+    gap: 8px;
+}
+
 .vidply-transcript-language-label {
     /* Visible label for voice input accessibility */
     color: var(--vidply-white);
-    display: block;
     font-size: 12px;
     font-weight: 500;
-    margin-bottom: 4px;
-    margin-right: 8px;
+    white-space: nowrap;
 }
 
 .vidply-transcript-language-select {
@@ -2425,6 +2432,7 @@
 /* Transcript Settings Button */
 .vidply-transcript-settings {
     align-items: center;
+    align-self: center; /* Center button vertically in header */
     background: transparent;
     border: none;
     border-radius: var(--vidply-radius-sm);
@@ -2955,20 +2963,26 @@
 }
 
 .vidply-sign-language-header-left {
-    align-items: center;
+    align-items: flex-start; /* Changed from center to align items at top */
     display: flex;
     gap: 16px;
     position: relative; /* Needed for menu positioning */
 }
 
+.vidply-sign-language-selector-wrapper {
+    align-items: center;
+    align-self: center; /* Center this wrapper vertically in header */
+    display: flex;
+    flex-direction: row; /* Horizontal layout: label left of select */
+    gap: 8px;
+}
+
 .vidply-sign-language-label {
     /* Visible label for voice input accessibility */
     color: var(--vidply-white);
-    display: block;
     font-size: 12px;
     font-weight: 500;
-    margin-bottom: 4px;
-    margin-right: 8px;
+    white-space: nowrap;
 }
 
 .vidply-sign-language-select {
@@ -2988,6 +3002,7 @@
 /* Sign Language Settings Button */
 .vidply-sign-language-settings {
     align-items: center;
+    align-self: center; /* Center button vertically in header */
     background: transparent;
     border: none;
     border-radius: var(--vidply-radius-sm);
