@@ -175,6 +175,11 @@ export class CaptionManager {
             selectedTrack.track.mode = 'hidden';
             this.currentTrack = selectedTrack;
             this.player.state.captionsEnabled = true;
+            
+            // Set lang attribute for screen readers to pronounce text correctly
+            if (selectedTrack.language) {
+                this.element.setAttribute('lang', selectedTrack.language);
+            }
 
             // Remove any existing cuechange listener from this track
             if (this.cueChangeHandler) {
@@ -233,6 +238,7 @@ export class CaptionManager {
 
         this.element.style.display = 'none';
         this.element.innerHTML = '';
+        this.element.removeAttribute('lang');
         this.currentCue = null;
         this.player.state.captionsEnabled = false;
         this.player.emit('captionsdisabled');

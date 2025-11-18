@@ -209,9 +209,13 @@ export class SettingsDialog {
     // Available tracks
     const tracks = this.player.captionManager.getAvailableTracks();
     tracks.forEach(track => {
+      const attributes = { 'value': String(track.index) };
+      if (track.language) {
+        attributes['lang'] = track.language;
+      }
       const option = DOMUtils.createElement('option', {
         textContent: track.label,
-        attributes: { 'value': String(track.index) }
+        attributes: attributes
       });
       trackSelect.appendChild(option);
     });

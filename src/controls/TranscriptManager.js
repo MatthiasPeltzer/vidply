@@ -654,7 +654,8 @@ export class TranscriptManager {
       const option = DOMUtils.createElement('option', {
         textContent: langInfo.label,
         attributes: {
-          'value': langInfo.language
+          'value': langInfo.language,
+          'lang': langInfo.language
         }
       });
       this.languageSelector.appendChild(option);
@@ -681,6 +682,11 @@ export class TranscriptManager {
     this.languageSelectorHandler = (e) => {
       this.currentTranscriptLanguage = e.target.value;
       this.loadTranscriptData();
+      
+      // Set lang attribute for screen readers to pronounce text correctly
+      if (this.transcriptContent && this.currentTranscriptLanguage) {
+        this.transcriptContent.setAttribute('lang', this.currentTranscriptLanguage);
+      }
     };
     this.languageSelector.addEventListener('change', this.languageSelectorHandler);
   }
@@ -819,6 +825,11 @@ export class TranscriptManager {
     
     // Apply timestamp visibility preference
     this.updateTimestampVisibility();
+    
+    // Set lang attribute for screen readers to pronounce text correctly
+    if (this.transcriptContent && this.currentTranscriptLanguage) {
+      this.transcriptContent.setAttribute('lang', this.currentTranscriptLanguage);
+    }
     
     // Update language selector after loading
     this.updateLanguageSelector();
