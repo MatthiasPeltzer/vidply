@@ -21,6 +21,9 @@ import {createMenuItem, attachMenuKeyboardNavigation, focusFirstMenuItem} from '
 import {createLabeledSelect, preventDragOnElement} from '../utils/FormUtils.js';
 import {debounce, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
 
+// Static counter for unique player instances
+let playerInstanceCounter = 0;
+
 export class Player extends EventEmitter {
     constructor(element, options = {}) {
         super();
@@ -29,6 +32,10 @@ export class Player extends EventEmitter {
         if (!this.element) {
             throw new Error('VidPly: Element not found');
         }
+
+        // Assign unique instance ID
+        playerInstanceCounter++;
+        this.instanceId = playerInstanceCounter;
 
         // Auto-create media element if a non-media element is provided
         if (this.element.tagName !== 'VIDEO' && this.element.tagName !== 'AUDIO') {
@@ -395,12 +402,16 @@ export class Player extends EventEmitter {
     }
 
     createContainer() {
-        // Create main container
+        // Create main container with unique label for multiple players on same page
+        const playerLabel = this.instanceId > 1 
+            ? `${i18n.t('player.label')} ${this.instanceId}`
+            : i18n.t('player.label');
+        
         this.container = DOMUtils.createElement('div', {
             className: `${this.options.classPrefix}-player`,
             attributes: {
                 'role': 'application',
-                'aria-label': i18n.t('player.label'),
+                'aria-label': playerLabel,
                 'tabindex': '0'
             }
         });

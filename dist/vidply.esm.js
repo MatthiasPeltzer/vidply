@@ -7624,6 +7624,7 @@ var HLSRenderer = class {
 };
 
 // src/core/Player.js
+var playerInstanceCounter = 0;
 var Player = class _Player extends EventEmitter {
   constructor(element, options = {}) {
     super();
@@ -7631,6 +7632,8 @@ var Player = class _Player extends EventEmitter {
     if (!this.element) {
       throw new Error("VidPly: Element not found");
     }
+    playerInstanceCounter++;
+    this.instanceId = playerInstanceCounter;
     if (this.element.tagName !== "VIDEO" && this.element.tagName !== "AUDIO") {
       const mediaType = options.mediaType || "video";
       const mediaElement = document.createElement(mediaType);
@@ -7905,11 +7908,12 @@ var Player = class _Player extends EventEmitter {
     return null;
   }
   createContainer() {
+    const playerLabel = this.instanceId > 1 ? `${i18n.t("player.label")} ${this.instanceId}` : i18n.t("player.label");
     this.container = DOMUtils.createElement("div", {
       className: `${this.options.classPrefix}-player`,
       attributes: {
         "role": "application",
-        "aria-label": i18n.t("player.label"),
+        "aria-label": playerLabel,
         "tabindex": "0"
       }
     });
