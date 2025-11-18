@@ -435,9 +435,7 @@ export class Player extends EventEmitter {
         // This allows custom controls to work on iOS devices
         if (this.element.tagName === 'VIDEO' && this.options.playsInline) {
             this.element.setAttribute('playsinline', '');
-            this.element.setAttribute('webkit-playsinline', ''); // For older iOS versions
             this.element.playsInline = true; // Property version
-            this.element.webkitPlaysInline = true; // For older iOS versions
         }
 
         // Set dimensions
@@ -3058,7 +3056,6 @@ export class Player extends EventEmitter {
         
         // Enable inline playback on iOS (prevents native fullscreen)
         this.signLanguageVideo.setAttribute('playsinline', '');
-        this.signLanguageVideo.setAttribute('webkit-playsinline', ''); // For older iOS versions
 
         // Create resize handles (8 directions like transcript)
         this.signLanguageResizeHandles = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].map(dir => {

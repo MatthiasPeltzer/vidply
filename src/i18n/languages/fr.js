@@ -128,7 +128,7 @@ export const fr = {
     closeMenu: 'Fermer le menu',
     styleTitle: 'Style de Transcription',
     autoscroll: 'Défilement automatique',
-    settingsMenu: 'Menu des paramètres'
+    settingsMenu: 'Paramètres de dialogue de transcription'
   },
   settings: {
     title: 'Paramètres',

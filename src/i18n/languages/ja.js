@@ -128,7 +128,7 @@ export const ja = {
     closeMenu: 'メニューを閉じる',
     styleTitle: '文字起こしスタイル',
     autoscroll: '自動スクロール',
-    settingsMenu: '設定メニュー'
+    settingsMenu: '文字起こしダイアログ設定'
   },
   settings: {
     title: '設定',

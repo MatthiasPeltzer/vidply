@@ -128,7 +128,7 @@ export const de = {
     closeMenu: 'Menü schließen',
     styleTitle: 'Transkript-Stil',
     autoscroll: 'Automatisches Scrollen',
-    settingsMenu: 'Einstellungsmenü'
+    settingsMenu: 'Transkript-Dialog-Einstellungen'
   },
   settings: {
     title: 'Einstellungen',

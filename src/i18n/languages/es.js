@@ -128,7 +128,7 @@ export const es = {
     closeMenu: 'Cerrar menú',
     styleTitle: 'Estilo de Transcripción',
     autoscroll: 'Desplazamiento automático',
-    settingsMenu: 'Menú de configuración'
+    settingsMenu: 'Configuración del diálogo de transcripción'
   },
   settings: {
     title: 'Configuración',
