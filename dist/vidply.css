@@ -40,112 +40,112 @@
     --vidply-border-focus: var(--vidply-primary);
     --vidply-border-hover: var(--vidply-white-30);
     --vidply-border-light: var(--vidply-white-10);
+    --vidply-button-size: 30px;
+    --vidply-button-size-mobile: 36px;
+    --vidply-button-size-small: 32px;
     --vidply-focus-outline: 2px solid var(--vidply-primary);
     --vidply-focus-outline-player: 3px solid var(--vidply-primary-light);
     --vidply-focus-outline-white: 2px solid var(--vidply-primary-light);
+    --vidply-font-base: 13px;
+    --vidply-font-lg: 16px;
+    --vidply-font-md: 14px;
+    --vidply-font-sm: 12px;
+    --vidply-font-xl: 18px;
+    --vidply-font-xs: 11px;
+
+    /* Black Color Variations */
+    --vidply-font-xxl: 20px;
+    --vidply-gap-lg: 12px;
+    --vidply-gap-md: 8px;
+    --vidply-gap-sm: 6px;
+    --vidply-gap-xl: 16px;
+    --vidply-gap-xs: 4px;
+    --vidply-gap-xxl: 20px;
+    --vidply-header-height: 28px;
     --vidply-hover-bg: var(--vidply-white-10);
+
+    /* UI Background Colors */
+    --vidply-icon-size: 26px;
+    --vidply-icon-size-mobile: 22px;
+    --vidply-icon-size-small: 20px;
+    --vidply-icon-size-xs: 18px;
+    --vidply-padding-lg: 12px;
+    --vidply-padding-md: 8px;
+    --vidply-padding-sm: 4px;
+    --vidply-padding-xl: 16px;
+    --vidply-padding-xxl: 20px;
     --vidply-primary: #0a406e;
     --vidply-primary-10: rgb(var(--vidply-primary-rgb), 0.1);
+
+    /* Border Colors */
     --vidply-primary-15: rgb(var(--vidply-primary-rgb), 0.15);
     --vidply-primary-20: rgb(var(--vidply-primary-rgb), 0.2);
     --vidply-primary-25: rgb(var(--vidply-primary-rgb), 0.25);
     --vidply-primary-30: rgb(var(--vidply-primary-rgb), 0.3);
+
+    /* Shadow Colors */
     --vidply-primary-40: rgb(var(--vidply-primary-rgb), 0.4);
     --vidply-primary-50: rgb(var(--vidply-primary-rgb), 0.5);
-
-    /* Black Color Variations */
     --vidply-primary-60: rgb(var(--vidply-primary-rgb), 0.6);
+
+    /* Text Colors */
     --vidply-primary-70: rgb(var(--vidply-primary-rgb), 0.7);
     --vidply-primary-80: rgb(var(--vidply-primary-rgb), 0.8);
     --vidply-primary-dark: #083358;
     --vidply-primary-dark-rgb: 8, 51, 88;
     --vidply-primary-light: #71b7e2;
+
+    /* State Colors */
     --vidply-primary-rgb: 10, 64, 110;
+    --vidply-radius-lg: 8px;
+    --vidply-radius-md: 6px;
+    --vidply-radius-sm: 4px;
+
+    /* Sizing Variables */
+    --vidply-radius-xl: 12px;
     --vidply-scrollbar-thumb: var(--vidply-white);
     --vidply-scrollbar-thumb-hover: var(--vidply-white-90);
-
-    /* UI Background Colors */
     --vidply-scrollbar-track: #404040;
     --vidply-scrollbar-track-transcript: #555;
     --vidply-shadow-lg: 0 12px 48px var(--vidply-black-80);
     --vidply-shadow-md: 0 4px 12px var(--vidply-black-40);
+
+    /* Spacing Variables */
     --vidply-shadow-sm: 0 2px 4px var(--vidply-black-30);
     --vidply-text-disabled: var(--vidply-white-60);
     --vidply-text-muted: var(--vidply-white-70);
     --vidply-text-primary: var(--vidply-white);
     --vidply-text-secondary: var(--vidply-white-90);
     --vidply-text-subtle: var(--vidply-white-50);
-    --vidply-transition-default: all 0.2s ease;
 
-    /* Border Colors */
+    /* Border Radius */
+    --vidply-transition-default: all 0.2s ease;
+    --vidply-transition-fast: all 0.1s ease;
+    --vidply-transition-normal: all 0.15s ease;
+    --vidply-transition-slow: all 0.2s ease;
+
+    /* Font Sizes */
+    --vidply-transition-slower: all 0.3s ease;
     --vidply-white: #fff;
     --vidply-white-05: rgb(var(--vidply-white-rgb), 0.05);
     --vidply-white-08: rgb(var(--vidply-white-rgb), 0.08);
     --vidply-white-10: rgb(var(--vidply-white-rgb), 0.1);
-
-    /* Shadow Colors */
     --vidply-white-15: rgb(var(--vidply-white-rgb), 0.15);
     --vidply-white-20: rgb(var(--vidply-white-rgb), 0.2);
-    --vidply-white-25: rgb(var(--vidply-white-rgb), 0.25);
 
-    /* Text Colors */
+    /* Transitions */
+    --vidply-white-25: rgb(var(--vidply-white-rgb), 0.25);
     --vidply-white-30: rgb(var(--vidply-white-rgb), 0.3);
     --vidply-white-40: rgb(var(--vidply-white-rgb), 0.4);
     --vidply-white-50: rgb(var(--vidply-white-rgb), 0.5);
+
+    /* Common Measurements */
     --vidply-white-60: rgb(var(--vidply-white-rgb), 0.6);
     --vidply-white-70: rgb(var(--vidply-white-rgb), 0.7);
-
-    /* State Colors */
     --vidply-white-80: rgb(var(--vidply-white-rgb), 0.8);
     --vidply-white-90: rgb(var(--vidply-white-rgb), 0.9);
     --vidply-white-95: rgb(var(--vidply-white-rgb), 0.95);
     --vidply-white-rgb: 255, 255, 255;
-
-    /* Sizing Variables */
-    --vidply-button-size: 30px;
-    --vidply-button-size-mobile: 36px;
-    --vidply-button-size-small: 32px;
-    --vidply-icon-size: 26px;
-    --vidply-icon-size-mobile: 22px;
-    --vidply-icon-size-small: 20px;
-    --vidply-icon-size-xs: 18px;
-
-    /* Spacing Variables */
-    --vidply-gap-xs: 4px;
-    --vidply-gap-sm: 6px;
-    --vidply-gap-md: 8px;
-    --vidply-gap-lg: 12px;
-    --vidply-gap-xl: 16px;
-    --vidply-gap-xxl: 20px;
-
-    /* Border Radius */
-    --vidply-radius-sm: 4px;
-    --vidply-radius-md: 6px;
-    --vidply-radius-lg: 8px;
-    --vidply-radius-xl: 12px;
-
-    /* Font Sizes */
-    --vidply-font-xs: 11px;
-    --vidply-font-sm: 12px;
-    --vidply-font-base: 13px;
-    --vidply-font-md: 14px;
-    --vidply-font-lg: 16px;
-    --vidply-font-xl: 18px;
-    --vidply-font-xxl: 20px;
-
-    /* Transitions */
-    --vidply-transition-fast: all 0.1s ease;
-    --vidply-transition-normal: all 0.15s ease;
-    --vidply-transition-slow: all 0.2s ease;
-    --vidply-transition-slower: all 0.3s ease;
-
-    /* Common Measurements */
-    --vidply-header-height: 28px;
-    --vidply-padding-sm: 4px;
-    --vidply-padding-md: 8px;
-    --vidply-padding-lg: 12px;
-    --vidply-padding-xl: 16px;
-    --vidply-padding-xxl: 20px;
 }
 
 /* Utility Classes */
@@ -1088,6 +1088,11 @@
     transform: none !important;
 }
 
+/* Hide arrows on menus inside overflow menu */
+.vidply-overflow-menu-list.vidply-menu::after {
+    display: none !important;
+}
+
 /* Overflow menu items with icons */
 .vidply-overflow-menu-list .vidply-menu-item {
     display: flex;
@@ -1873,7 +1878,7 @@
     .vidply-controls-left,
     .vidply-controls-right {
         flex-wrap: nowrap; /* Keep controls in one line - overflow menu handles extras */
-        justify-content: center;
+        gap: var(--vidply-gap-xs);
         width: 100%;
     }
 
@@ -1887,12 +1892,6 @@
     .vidply-icon {
         height: var(--vidply-icon-size-mobile);
         width: var(--vidply-icon-size-mobile);
-    }
-
-    /* Reduce gaps */
-    .vidply-controls-left,
-    .vidply-controls-right {
-        gap: var(--vidply-gap-xs);
     }
 }
 

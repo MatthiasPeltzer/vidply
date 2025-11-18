@@ -2844,7 +2844,6 @@ export class ControlBar {
         const checkOverflow = () => {
             // Check screen size and orientation
             const isDesktop = window.innerWidth >= 768;
-            const isTinyScreen = window.innerWidth < 360;
             const isLandscape = window.innerHeight < window.innerWidth;
             const isFullscreen = this.player.state.fullscreen;
             const isLandscapeFullscreen = isLandscape && isFullscreen;
@@ -2888,7 +2887,7 @@ export class ControlBar {
             }
 
             // If we shouldn't use overflow menu, show all buttons and hide overflow button
-            if (!shouldUseOverflow || isTinyScreen) {
+            if (!shouldUseOverflow) {
                 allButtons.forEach(btn => {
                     btn.dataset.inOverflow = 'false';
                     btn.style.display = '';
