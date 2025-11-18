@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VidPly Demos</title>
+  <meta name="description" content="VidPly demos showcasing video and audio player features including playlists, HLS streaming, captions, transcripts, and accessibility features.">
+  <title>VidPly Demos - Accessible Video & Audio Player</title>
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <style>
     * {
@@ -29,7 +30,11 @@
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
       max-width: 800px;
       padding: 60px 40px;
+    }
+
+    header {
       text-align: center;
+      margin-bottom: 40px;
     }
 
     h1 {
@@ -39,18 +44,45 @@
       font-size: 56px;
       margin-bottom: 20px;
       -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
 
     .subtitle {
       color: #000;
       font-size: 24px;
+      margin-bottom: 30px;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 40px;
+      list-style: none;
+      padding: 0;
+    }
+
+    .badge {
+      background: rgba(10, 64, 110, 0.1);
+      border-radius: 20px;
+      color: #0a406e;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+    }
+
+    nav {
       margin-bottom: 40px;
     }
 
     .demo-links {
       display: grid;
       gap: 20px;
-      margin-bottom: 40px;
+      list-style: none;
     }
 
     .demo-link {
@@ -62,6 +94,7 @@
       font-size: 18px;
       font-weight: 600;
       padding: 20px 30px;
+      text-align: center;
       text-decoration: none;
       transition: transform 0.2s, box-shadow 0.2s;
     }
@@ -75,25 +108,68 @@
       transform: translateY(0);
     }
 
-    .info {
+    .demo-link:focus {
+      outline: 3px solid #0a406e;
+      outline-offset: 4px;
+    }
+
+    main {
       color: #000;
-      font-size: 16px;
-      line-height: 1.6;
     }
 
-    .badge {
-      background: rgba(10, 64, 110, 0.1);
-      border-radius: 20px;
+    section {
+      margin-bottom: 30px;
+    }
+
+    section:last-of-type {
+      margin-bottom: 0;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin-bottom: 12px;
       color: #0a406e;
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 600;
-      margin: 5px;
-      padding: 6px 12px;
     }
 
-    .features {
-      margin: 30px 0;
+    ul {
+      margin-left: 24px;
+      line-height: 1.8;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    code {
+      background: #f0f0f0;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    footer {
+      color: #ffffff;
+      margin-top: 60px;
+      opacity: 0.8;
+      text-align: center;
+    }
+
+    footer p {
+      color: #ffffff;
+      margin: 8px 0;
     }
 
     @media (max-width: 767px) {
@@ -113,36 +189,53 @@
 </head>
 <body>
   <div class="container">
-    <h1><img src="../favicon.svg" width="48" alt="" style="vertical-align: middle; margin-right: 12px;" aria-hidden="true" /> VidPly</h1>
-    <p class="subtitle">Universal, Accessible Video & Audio Player</p>
+    <header>
+      <h1>
+        <img src="../favicon.svg" width="48" height="48" alt="" aria-hidden="true" />
+        <span>VidPly</span>
+      </h1>
+      <p class="subtitle">Universal, Accessible Video & Audio Player</p>
+      
+      <ul class="badges" aria-label="Key features">
+        <li class="badge">Vanilla ES6</li>
+        <li class="badge">WCAG Compliant</li>
+        <li class="badge">Responsive</li>
+        <li class="badge">Multi-Language</li>
+        <li class="badge">Captions</li>
+        <li class="badge">v1.0.16</li>
+      </ul>
+    </header>
 
-    <div class="features">
-      <span class="badge">Vanilla ES6</span>
-      <span class="badge">WCAG Compliant</span>
-      <span class="badge">Responsive</span>
-      <span class="badge">Multi-Language</span>
-      <span class="badge">Captions</span>
-      <span class="badge">v1.0.16</span>
-    </div>
+    <nav aria-label="Demo pages">
+      <h2 class="sr-only">Available Demos</h2>
+      <ul class="demo-links">
+        <li>
+          <a href="demo.html" class="demo-link">
+            Full Demo Page
+          </a>
+        </li>
+        <li>
+          <a href="playlist-audio.html" class="demo-link">
+            Audio Playlist Demo
+          </a>
+        </li>
+        <li>
+          <a href="playlist-video.html" class="demo-link">
+            Video Playlist Demo
+          </a>
+        </li>
+        <li>
+          <a href="hls-test.html" class="demo-link">
+            HLS Streaming Demo
+          </a>
+        </li>
+      </ul>
+    </nav>
 
-    <div class="demo-links">
-      <a href="demo.html" class="demo-link">
-        Full Demo Page
-      </a>
-      <a href="playlist-audio.html" class="demo-link">
-        Audio Playlist Demo
-      </a>
-      <a href="playlist-video.html" class="demo-link">
-        Video Playlist Demo
-      </a>
-      <a href="hls-test.html" class="demo-link">
-        HLS Streaming Demo
-      </a>
-    </div>
-
-    <div class="info">
-      <h2>Core Features:</h2>
-        <ul style="text-align: left;">
+    <main>
+      <section aria-labelledby="core-features">
+        <h2 id="core-features">Core Features</h2>
+        <ul>
           <li>Lightweight - Zero Dependencies</li>
           <li>Easy Integration - Single Attribute</li>
           <li>Responsive Design - Mobile/Tablet/Desktop</li>
@@ -155,8 +248,11 @@
           <li>HLS Streaming with Quality Selection</li>
           <li>YouTube & Vimeo Integration</li>
         </ul>
-        <h2 style="margin-top: 20px;">Accessibility Features:</h2>
-        <ul style="text-align: left;">
+      </section>
+
+      <section aria-labelledby="accessibility-features">
+        <h2 id="accessibility-features">Accessibility Features</h2>
+        <ul>
           <li>WCAG 2.1 AA Compliant</li>
           <li>Full Keyboard Navigation</li>
           <li>Screen Reader Support</li>
@@ -168,16 +264,27 @@
           <li>Chapter Navigation</li>
           <li>Draggable & Resizable Windows</li>
         </ul>
-        <h2 style="margin-top: 20px;">Internationalization:</h2>
-        <ul style="text-align: left;">
+      </section>
+
+      <section aria-labelledby="i18n-features">
+        <h2 id="i18n-features">Internationalization</h2>
+        <ul>
           <li>English, Spanish, French, German, Japanese</li>
           <li>Custom Language Support (JSON/YAML)</li>
           <li>Auto-Detection from HTML lang Attribute</li>
         </ul>
-        <h2 style="margin-top: 20px;">Quick Start:</h2>
-        <p>Simply add <code>data-vidply</code> attribute to any &lt;video&gt; or &lt;audio&gt; element!</p>
-    </div>
+      </section>
+
+      <section aria-labelledby="quick-start">
+        <h2 id="quick-start">Quick Start</h2>
+        <p>Simply add <code>data-vidply</code> attribute to any <code>&lt;video&gt;</code> or <code>&lt;audio&gt;</code> element!</p>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 VidPly - Built with ❤️ and Vanilla JavaScript</p>
+      <p>Released under GPL-2.0-or-later License</p>
+    </footer>
   </div>
 </body>
 </html>
-

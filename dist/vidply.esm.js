@@ -3583,7 +3583,6 @@ var ControlBar = class {
   setupOverflowDetection() {
     const checkOverflow = () => {
       const isDesktop = window.innerWidth >= 768;
-      const isTinyScreen = window.innerWidth < 360;
       const isLandscape = window.innerHeight < window.innerWidth;
       const isFullscreen = this.player.state.fullscreen;
       const isLandscapeFullscreen = isLandscape && isFullscreen;
@@ -3614,7 +3613,7 @@ var ControlBar = class {
           height: window.innerHeight
         });
       }
-      if (!shouldUseOverflow || isTinyScreen) {
+      if (!shouldUseOverflow) {
         allButtons.forEach((btn) => {
           btn.dataset.inOverflow = "false";
           btn.style.display = "";
