@@ -5249,14 +5249,6 @@ function createLabeledSelect({
   }
   return { label, select };
 }
-function toggleLabeledSelect(label, select, show) {
-  if (label) {
-    label.style.display = show ? "block" : "none";
-  }
-  if (select) {
-    select.style.display = show ? "block" : "none";
-  }
-}
 function preventDragOnElement(element) {
   if (!element) return;
   ["mousedown", "click"].forEach((eventType) => {
@@ -5501,15 +5493,23 @@ var TranscriptManager = class {
       selectClass: `${this.player.options.classPrefix}-transcript-language-select`,
       labelText: "settings.language",
       selectId,
-      hidden: true
-      // Hidden until we detect multiple languages
+      hidden: false
+      // Don't hide individual elements, we'll hide the wrapper instead
     });
     this.languageLabel = languageLabel;
     this.languageSelector = languageSelector;
-    preventDragOnElement(this.languageLabel);
-    preventDragOnElement(this.languageSelector);
-    this.headerLeft.appendChild(this.languageLabel);
-    this.headerLeft.appendChild(this.languageSelector);
+    const languageSelectorWrapper = DOMUtils.createElement("div", {
+      className: `${this.player.options.classPrefix}-transcript-language-wrapper`,
+      attributes: {
+        "style": "display: none;"
+        // Hidden until we detect multiple languages
+      }
+    });
+    languageSelectorWrapper.appendChild(this.languageLabel);
+    languageSelectorWrapper.appendChild(this.languageSelector);
+    this.languageSelectorWrapper = languageSelectorWrapper;
+    preventDragOnElement(languageSelectorWrapper);
+    this.headerLeft.appendChild(languageSelectorWrapper);
     const closeButton = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-transcript-close`,
       attributes: {
@@ -5736,10 +5736,14 @@ var TranscriptManager = class {
     this.availableTranscriptLanguages = this.getAvailableTranscriptLanguages();
     this.languageSelector.innerHTML = "";
     if (this.availableTranscriptLanguages.length < 2) {
-      toggleLabeledSelect(this.languageLabel, this.languageSelector, false);
+      if (this.languageSelectorWrapper) {
+        this.languageSelectorWrapper.style.display = "none";
+      }
       return;
     }
-    toggleLabeledSelect(this.languageLabel, this.languageSelector, true);
+    if (this.languageSelectorWrapper) {
+      this.languageSelectorWrapper.style.display = "flex";
+    }
     this.availableTranscriptLanguages.forEach((langInfo, index) => {
       const option = DOMUtils.createElement("option", {
         textContent: langInfo.label,
@@ -9795,10 +9799,13 @@ var Player = class _Player extends EventEmitter {
         }
       });
       this.signLanguageSelector = signLanguageSelector;
-      preventDragOnElement(signLanguageLabel);
-      preventDragOnElement(this.signLanguageSelector);
-      headerLeft.appendChild(signLanguageLabel);
-      headerLeft.appendChild(this.signLanguageSelector);
+      const signLanguageSelectorWrapper = DOMUtils.createElement("div", {
+        className: `${this.options.classPrefix}-sign-language-selector-wrapper`
+      });
+      signLanguageSelectorWrapper.appendChild(signLanguageLabel);
+      signLanguageSelectorWrapper.appendChild(this.signLanguageSelector);
+      preventDragOnElement(signLanguageSelectorWrapper);
+      headerLeft.appendChild(signLanguageSelectorWrapper);
     }
     headerLeft.appendChild(title);
     const closeButton = DOMUtils.createElement("button", {

@@ -329,18 +329,27 @@ export class TranscriptManager {
       selectClass: `${this.player.options.classPrefix}-transcript-language-select`,
       labelText: 'settings.language',
       selectId: selectId,
-      hidden: true // Hidden until we detect multiple languages
+      hidden: false // Don't hide individual elements, we'll hide the wrapper instead
     });
     
     this.languageLabel = languageLabel;
     this.languageSelector = languageSelector;
     
-    // Prevent drag when interacting with label/select
-    preventDragOnElement(this.languageLabel);
-    preventDragOnElement(this.languageSelector);
+    // Wrap label and select in a container for vertical stacking
+    const languageSelectorWrapper = DOMUtils.createElement('div', {
+      className: `${this.player.options.classPrefix}-transcript-language-wrapper`,
+      attributes: {
+        'style': 'display: none;' // Hidden until we detect multiple languages
+      }
+    });
+    languageSelectorWrapper.appendChild(this.languageLabel);
+    languageSelectorWrapper.appendChild(this.languageSelector);
+    this.languageSelectorWrapper = languageSelectorWrapper;
     
-    this.headerLeft.appendChild(this.languageLabel);
-    this.headerLeft.appendChild(this.languageSelector);
+    // Prevent drag when interacting with wrapper
+    preventDragOnElement(languageSelectorWrapper);
+    
+    this.headerLeft.appendChild(languageSelectorWrapper);
 
     const closeButton = DOMUtils.createElement('button', {
       className: `${this.player.options.classPrefix}-transcript-close`,
@@ -643,12 +652,16 @@ export class TranscriptManager {
     
     // Only show selector if there are 2+ languages
     if (this.availableTranscriptLanguages.length < 2) {
-      toggleLabeledSelect(this.languageLabel, this.languageSelector, false);
+      if (this.languageSelectorWrapper) {
+        this.languageSelectorWrapper.style.display = 'none';
+      }
       return;
     }
     
-    // Show selector and label, populate options
-    toggleLabeledSelect(this.languageLabel, this.languageSelector, true);
+    // Show selector wrapper
+    if (this.languageSelectorWrapper) {
+      this.languageSelectorWrapper.style.display = 'flex';
+    }
     
     this.availableTranscriptLanguages.forEach((langInfo, index) => {
       const option = DOMUtils.createElement('option', {

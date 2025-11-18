@@ -3015,12 +3015,17 @@ export class Player extends EventEmitter {
             
             this.signLanguageSelector = signLanguageSelector;
             
-            // Prevent drag when interacting with label/select
-            preventDragOnElement(signLanguageLabel);
-            preventDragOnElement(this.signLanguageSelector);
+            // Wrap label and select in a container for horizontal layout
+            const signLanguageSelectorWrapper = DOMUtils.createElement('div', {
+                className: `${this.options.classPrefix}-sign-language-selector-wrapper`
+            });
+            signLanguageSelectorWrapper.appendChild(signLanguageLabel);
+            signLanguageSelectorWrapper.appendChild(this.signLanguageSelector);
             
-            headerLeft.appendChild(signLanguageLabel);
-            headerLeft.appendChild(this.signLanguageSelector);
+            // Prevent drag when interacting with wrapper
+            preventDragOnElement(signLanguageSelectorWrapper);
+            
+            headerLeft.appendChild(signLanguageSelectorWrapper);
         }
 
         headerLeft.appendChild(title);
