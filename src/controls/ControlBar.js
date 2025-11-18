@@ -1177,6 +1177,11 @@ export class ControlBar {
             } else if (e.key === 'ArrowDown') {
                 e.preventDefault();
                 this.player.setVolume(Math.max(0, this.player.state.volume - 0.1));
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                // Close menu and return focus to button
+                this.closeMenuAndReturnFocus(volumeMenu, button, true);
             }
         });
 
@@ -1215,6 +1220,9 @@ export class ControlBar {
 
         this.controls.volumeSlider = volumeSlider;
         this.controls.volumeFill = volumeFill;
+
+        // Focus the volume slider for keyboard accessibility
+        focusElement(volumeSlider, { delay: 50 });
 
         // Close menu on outside click
         this.attachMenuCloseHandler(volumeMenu, button, true);
@@ -2319,9 +2327,8 @@ export class ControlBar {
             createIconElement('audioDescription').innerHTML;
 
         this.controls.audioDescription.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
-        this.controls.audioDescription.setAttribute('aria-label',
-            isEnabled ? i18n.t('audioDescription.disable') : i18n.t('audioDescription.enable')
-        );
+        // Keep aria-label static - let aria-checked convey the state for switch role
+        // The label describes what the control is, not what action it performs
     }
 
     createSignLanguageButton() {

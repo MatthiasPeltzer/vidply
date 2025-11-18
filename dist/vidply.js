@@ -549,7 +549,7 @@ var VidPly = (() => {
       closeMenu: "Close Menu",
       styleTitle: "Transcript Style",
       autoscroll: "Autoscroll",
-      settingsMenu: "Settings menu"
+      settingsMenu: "Transcript dialog settings"
     },
     settings: {
       title: "Settings",
@@ -703,7 +703,7 @@ var VidPly = (() => {
       closeMenu: "Men\xFC schlie\xDFen",
       styleTitle: "Transkript-Stil",
       autoscroll: "Automatisches Scrollen",
-      settingsMenu: "Einstellungsmen\xFC"
+      settingsMenu: "Transkript-Dialog-Einstellungen"
     },
     settings: {
       title: "Einstellungen",
@@ -857,7 +857,7 @@ var VidPly = (() => {
       closeMenu: "Cerrar men\xFA",
       styleTitle: "Estilo de Transcripci\xF3n",
       autoscroll: "Desplazamiento autom\xE1tico",
-      settingsMenu: "Men\xFA de configuraci\xF3n"
+      settingsMenu: "Configuraci\xF3n del di\xE1logo de transcripci\xF3n"
     },
     settings: {
       title: "Configuraci\xF3n",
@@ -1011,7 +1011,7 @@ var VidPly = (() => {
       closeMenu: "Fermer le menu",
       styleTitle: "Style de Transcription",
       autoscroll: "D\xE9filement automatique",
-      settingsMenu: "Menu des param\xE8tres"
+      settingsMenu: "Param\xE8tres de dialogue de transcription"
     },
     settings: {
       title: "Param\xE8tres",
@@ -1165,7 +1165,7 @@ var VidPly = (() => {
       closeMenu: "\u30E1\u30CB\u30E5\u30FC\u3092\u9589\u3058\u308B",
       styleTitle: "\u6587\u5B57\u8D77\u3053\u3057\u30B9\u30BF\u30A4\u30EB",
       autoscroll: "\u81EA\u52D5\u30B9\u30AF\u30ED\u30FC\u30EB",
-      settingsMenu: "\u8A2D\u5B9A\u30E1\u30CB\u30E5\u30FC"
+      settingsMenu: "\u6587\u5B57\u8D77\u3053\u3057\u30C0\u30A4\u30A2\u30ED\u30B0\u8A2D\u5B9A"
     },
     settings: {
       title: "\u8A2D\u5B9A",
@@ -2376,6 +2376,10 @@ var VidPly = (() => {
         } else if (e.key === "ArrowDown") {
           e.preventDefault();
           this.player.setVolume(Math.max(0, this.player.state.volume - 0.1));
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          this.closeMenuAndReturnFocus(volumeMenu, button, true);
         }
       });
       volumeMenu.addEventListener("click", (e) => {
@@ -2399,6 +2403,7 @@ var VidPly = (() => {
       });
       this.controls.volumeSlider = volumeSlider;
       this.controls.volumeFill = volumeFill;
+      focusElement(volumeSlider, { delay: 50 });
       this.attachMenuCloseHandler(volumeMenu, button, true);
     }
     createTimeDisplay() {
@@ -3223,10 +3228,6 @@ var VidPly = (() => {
       const isEnabled = this.player.state.audioDescriptionEnabled;
       icon.innerHTML = isEnabled ? createIconElement("audioDescriptionOn").innerHTML : createIconElement("audioDescription").innerHTML;
       this.controls.audioDescription.setAttribute("aria-checked", isEnabled ? "true" : "false");
-      this.controls.audioDescription.setAttribute(
-        "aria-label",
-        isEnabled ? i18n.t("audioDescription.disable") : i18n.t("audioDescription.enable")
-      );
     }
     createSignLanguageButton() {
       const button = DOMUtils.createElement("button", {
@@ -7846,9 +7847,7 @@ var VidPly = (() => {
       this.element.style.height = "100%";
       if (this.element.tagName === "VIDEO" && this.options.playsInline) {
         this.element.setAttribute("playsinline", "");
-        this.element.setAttribute("webkit-playsinline", "");
         this.element.playsInline = true;
-        this.element.webkitPlaysInline = true;
       }
       if (this.options.width) {
         this.container.style.width = typeof this.options.width === "number" ? `${this.options.width}px` : this.options.width;
@@ -9747,7 +9746,6 @@ var VidPly = (() => {
       this.signLanguageVideo.setAttribute("aria-label", i18n.t("player.signLanguage"));
       this.signLanguageVideo.muted = true;
       this.signLanguageVideo.setAttribute("playsinline", "");
-      this.signLanguageVideo.setAttribute("webkit-playsinline", "");
       this.signLanguageResizeHandles = ["n", "s", "e", "w", "ne", "nw", "se", "sw"].map((dir) => {
         const handle = DOMUtils.createElement("div", {
           className: `${this.options.classPrefix}-sign-resize-handle ${this.options.classPrefix}-sign-resize-${dir}`,

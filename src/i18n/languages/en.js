@@ -128,7 +128,7 @@ export const en = {
     closeMenu: 'Close Menu',
     styleTitle: 'Transcript Style',
     autoscroll: 'Autoscroll',
-    settingsMenu: 'Settings menu'
+    settingsMenu: 'Transcript dialog settings'
   },
   settings: {
     title: 'Settings',
