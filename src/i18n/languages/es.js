@@ -15,6 +15,7 @@ export const es = {
     forwardSeconds: 'Avanzar {seconds} segundos',
     previous: 'Pista anterior',
     next: 'Siguiente pista',
+    playlist: 'Alternar lista de reproducción',
     volume: 'Volumen',
     mute: 'Silenciar',
     unmute: 'Activar sonido',

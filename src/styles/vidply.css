@@ -1960,7 +1960,9 @@
 
     /* iOS momentum scrolling */
     overflow-y: auto;
+    position: relative;
     touch-action: pan-y;
+    z-index: 1; /* Below menus (z-index: 20) but part of player stacking context */
 }
 
 .vidply-playlist-header {
@@ -1985,34 +1987,48 @@
 
 /* Playlist Items */
 .vidply-playlist-item {
+    border-left: 3px solid transparent;
+    position: relative;
+}
+
+/* Button inside playlist item - handles all interactivity */
+.vidply-playlist-item-button {
     align-items: center;
     background: transparent;
-    border-left: 3px solid transparent;
+    border: none;
+    color: inherit;
     cursor: pointer;
     display: flex;
+    font: inherit;
     gap: 12px;
     padding: 12px 16px;
-    position: relative;
+    text-align: left;
     transition: var(--vidply-transition-default);
+    width: 100%;
+}
+
+.vidply-playlist-item-button:hover {
+    background: var(--vidply-white-08);
 }
 
 .vidply-playlist-item:hover {
-    background: var(--vidply-active-bg);
-    border-left-color: var(--vidply-primary-50);
+    border-left-color: var(--vidply-primary);
 }
 
-.vidply-playlist-item:focus {
+.vidply-playlist-item-button:focus {
     background: var(--vidply-white-08);
-    border-left-color: var(--vidply-primary);
     outline: none;
+}
+
+.vidply-playlist-item-button:focus-visible {
+    background: var(--vidply-white-08);
+    outline: var(--vidply-focus-outline-white);
+    outline-offset: -2px;
     z-index: 1;
 }
 
-.vidply-playlist-item:focus-visible {
-    background: var(--vidply-white-08);
+.vidply-playlist-item:has(:focus-visible) {
     border-left-color: var(--vidply-primary);
-    outline: var(--vidply-focus-outline-white);
-    outline-offset: -2px;
     z-index: 1;
 }
 
@@ -2038,20 +2054,23 @@
 }
 
 .vidply-playlist-item-active {
-    background: var(--vidply-primary-15);
     border-left-color: var(--vidply-primary);
 }
 
-.vidply-playlist-item-active:hover {
+.vidply-playlist-item-active .vidply-playlist-item-button {
+    background: var(--vidply-primary-15);
+}
+
+.vidply-playlist-item-active .vidply-playlist-item-button:hover {
     background: var(--vidply-primary-20);
 }
 
-.vidply-playlist-item-active:focus {
+.vidply-playlist-item-active .vidply-playlist-item-button:focus {
     background: var(--vidply-primary-20);
     outline: none;
 }
 
-.vidply-playlist-item-active:focus-visible {
+.vidply-playlist-item-active .vidply-playlist-item-button:focus-visible {
     background: var(--vidply-primary-20);
     outline: var(--vidply-focus-outline-white);
     outline-offset: -2px;
@@ -2079,7 +2098,7 @@
     width: 32px;
 }
 
-.vidply-playlist-item:hover .vidply-playlist-thumbnail-icon {
+.vidply-playlist-item-button:hover .vidply-playlist-thumbnail-icon {
     color: var(--vidply-text-muted);
     transform: scale(1.1);
 }
@@ -2090,12 +2109,14 @@
 
 /* Playlist Item Info */
 .vidply-playlist-item-info {
+    display: block;
     flex: 1;
     min-width: 0;
 }
 
 .vidply-playlist-item-title {
     color: var(--vidply-white);
+    display: block;
     font-size: 14px;
     font-weight: 500;
     margin-bottom: 4px;
@@ -2110,6 +2131,7 @@
 
 .vidply-playlist-item-artist {
     color: var(--vidply-text-disabled);
+    display: block;
     font-size: 12px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2123,11 +2145,6 @@
     opacity: 0;
     transition: opacity 0.2s ease;
     width: 20px;
-}
-
-.vidply-playlist-item:hover .vidply-playlist-item-icon,
-.vidply-playlist-item-active .vidply-playlist-item-icon {
-    opacity: 0.7;
 }
 
 .vidply-playlist-item-active .vidply-playlist-item-icon {
@@ -3416,4 +3433,5 @@
         cursor: move !important;
     }
 }
+
 

@@ -654,6 +654,14 @@ export class ControlBar {
             this.rightButtons.appendChild(btn);
         }
 
+        // 6.5 Playlist toggle button (for playlists)
+        if (this.player.playlistManager && this.player.options.playlistToggleButton !== false) {
+            const btn = this.createPlaylistToggleButton();
+            btn.dataset.overflowPriority = '2';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
+        }
+
         // 7. Sign Language button
         const hasSignLanguage = this.hasSignLanguage();
         if (this.player.options.signLanguageButton && hasSignLanguage) {
@@ -983,6 +991,33 @@ export class ControlBar {
         updateState();
 
         this.controls.next = button;
+        return button;
+    }
+
+    createPlaylistToggleButton() {
+        // Get unique panel ID from playlist manager
+        const panelId = this.player.playlistManager ? `${this.player.playlistManager.uniqueId}-panel` : 'vidply-playlist-panel';
+        
+        const button = DOMUtils.createElement('button', {
+            className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-playlist-toggle`,
+            attributes: {
+                'type': 'button',
+                'aria-label': i18n.t('player.playlist'),
+                'aria-expanded': 'false',
+                'aria-pressed': 'false',
+                'aria-controls': panelId
+            }
+        });
+
+        button.appendChild(createIconElement('playlist'));
+
+        button.addEventListener('click', () => {
+            if (this.player.playlistManager) {
+                this.player.playlistManager.togglePanel();
+            }
+        });
+
+        this.controls.playlistToggle = button;
         return button;
     }
 

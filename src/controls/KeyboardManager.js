@@ -40,6 +40,12 @@ export class KeyboardManager {
       if (menu) {
         return; // Let the menu handle keyboard events
       }
+      
+        // Don't handle if focus is on a playlist button (let playlist handle navigation)
+        const playlistButton = activeElement.closest('.vidply-playlist-item-button');
+        if (playlistButton) {
+          return; // Let the playlist handle keyboard events
+        }
     }
 
     const key = e.key;

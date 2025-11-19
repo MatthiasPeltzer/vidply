@@ -116,12 +116,12 @@
       gap: 20px;
     }
 
-    .player-wrapper {
-      background: #444;
-      border-radius: 8px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-      overflow: hidden;
-    }
+        .player-wrapper {
+            background: #444;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: visible;
+        }
 
     section {
       background: rgba(255, 255, 255, 0.95);
@@ -211,7 +211,17 @@
 
     <main>
       <figure class="player-wrapper">
-        <div id="video-player"></div>
+        <div id="video-player"
+             data-vidply-options='{"mediaType":"video","autoplay":false,"controls":true,"preload":"metadata"}'
+             data-playlist='[
+               {"src":"media/wwa.mp4","type":"video/mp4","title":"What We Ask - Episode 1","artist":"Demo Series","poster":"media/wwa_hq_thumbnail.jpg","tracks":[{"src":"media/wwa_captions_en.vtt","kind":"captions","srclang":"en","label":"English"},{"src":"media/wwa_captions_es.vtt","kind":"captions","srclang":"es","label":"Español"},{"src":"media/wwa_captions_de.vtt","kind":"captions","srclang":"de","label":"Deutsch"},{"src":"media/wwa_captions_fr.vtt","kind":"captions","srclang":"fr","label":"Français"},{"src":"media/wwa_captions_ja.vtt","kind":"captions","srclang":"ja","label":"日本語"},{"src":"media/wwa_chapters_en.vtt","kind":"chapters","srclang":"en","label":"Chapters"}]},
+               {"src":"media/deadline.mp4","type":"video/mp4","title":"Deadline - Episode 2","artist":"Demo Series","poster":"media/deadline_thumbnail.jpg","tracks":[{"src":"media/deadline_captions_en.vtt","kind":"captions","srclang":"en","label":"English"},{"src":"media/deadline_captions_es.vtt","kind":"captions","srclang":"es","label":"Español"},{"src":"media/deadline_captions_it.vtt","kind":"captions","srclang":"it","label":"Italiano"},{"src":"media/deadline_captions_pt-br.vtt","kind":"captions","srclang":"pt-br","label":"Português"},{"src":"media/deadline_captions_ar.vtt","kind":"captions","srclang":"ar","label":"العربية"},{"src":"media/deadline_captions_hi.vtt","kind":"captions","srclang":"hi","label":"हिन्दी"}]},
+               {"src":"media/itaccess_excerpt.mp4","type":"video/mp4","title":"IT Access - Episode 3","artist":"Demo Series","poster":"media/itaccess.jpg","tracks":[{"src":"media/itaccess_excerpt_captions_en.vtt","kind":"captions","srclang":"en","label":"English"},{"src":"media/itaccess_excerpt_subtitles_es.vtt","kind":"subtitles","srclang":"es","label":"Español"},{"src":"media/itaccess_excerpt_chapters_en.vtt","kind":"chapters","srclang":"en","label":"Chapters"}]}
+             ]'
+             data-playlist-auto-advance="true"
+             data-playlist-auto-play-first="false"
+             data-playlist-loop="false"
+             data-playlist-show-panel="true"></div>
         <figcaption class="sr-only">Video playlist player with 3 episodes</figcaption>
       </figure>
 
@@ -265,69 +275,15 @@
 
     // Create player instance
     const player = new Player('#video-player', {
-      autoplay: false,
-      controls: true,
-      preload: 'metadata',
-      mediaType: 'video'
+        mediaType: 'video'
     });
 
     console.log('Video player created:', player);
 
-    // Create playlist manager
-    const playlist = new PlaylistManager(player, {
-      autoAdvance: true,  // Automatically play next video
-      autoPlayFirst: false,  // Don't auto-play on page load
-      loop: false,        // Don't loop back to first video
-      showPanel: true     // Show playlist panel below player
-    });
+    // Create playlist manager - tracks and options are automatically loaded from data attributes
+    const playlist = new PlaylistManager(player);
 
-    // Load video playlist
-    const videos = [
-      {
-        src: 'media/wwa.mp4',
-        type: 'video/mp4',
-        title: 'What We Ask - Episode 1',
-        artist: 'Demo Series',
-        poster: 'media/wwa_hq_thumbnail.jpg',
-        tracks: [
-          { src: 'media/wwa_captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
-          { src: 'media/wwa_captions_es.vtt', kind: 'captions', srclang: 'es', label: 'Español' },
-          { src: 'media/wwa_captions_de.vtt', kind: 'captions', srclang: 'de', label: 'Deutsch' },
-          { src: 'media/wwa_captions_fr.vtt', kind: 'captions', srclang: 'fr', label: 'Français' },
-          { src: 'media/wwa_captions_ja.vtt', kind: 'captions', srclang: 'ja', label: '日本語' },
-          { src: 'media/wwa_chapters_en.vtt', kind: 'chapters', srclang: 'en', label: 'Chapters' }
-        ]
-      },
-      {
-        src: 'media/deadline.mp4',
-        type: 'video/mp4',
-        title: 'Deadline - Episode 2',
-        artist: 'Demo Series',
-        poster: 'media/deadline_thumbnail.jpg',
-        tracks: [
-          { src: 'media/deadline_captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
-          { src: 'media/deadline_captions_es.vtt', kind: 'captions', srclang: 'es', label: 'Español' },
-          { src: 'media/deadline_captions_it.vtt', kind: 'captions', srclang: 'it', label: 'Italiano' },
-          { src: 'media/deadline_captions_pt-br.vtt', kind: 'captions', srclang: 'pt-br', label: 'Português' },
-          { src: 'media/deadline_captions_ar.vtt', kind: 'captions', srclang: 'ar', label: 'العربية' },
-          { src: 'media/deadline_captions_hi.vtt', kind: 'captions', srclang: 'hi', label: 'हिन्दी' }
-        ]
-      },
-      {
-        src: 'media/itaccess_excerpt.mp4',
-        type: 'video/mp4',
-        title: 'IT Access - Episode 3',
-        artist: 'Demo Series',
-        poster: 'media/itaccess.jpg',
-        tracks: [
-          { src: 'media/itaccess_excerpt_captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
-          { src: 'media/itaccess_excerpt_subtitles_es.vtt', kind: 'subtitles', srclang: 'es', label: 'Español' },
-          { src: 'media/itaccess_excerpt_chapters_en.vtt', kind: 'chapters', srclang: 'en', label: 'Chapters' }
-        ]
-      }
-    ];
-
-    playlist.loadPlaylist(videos);
+    console.log('Video playlist initialized');
 
     // Listen for video changes
     player.on('playlisttrackchange', (e) => {
@@ -358,8 +314,6 @@
           break;
       }
     });
-
-    console.log('Video playlist initialized with', videos.length, 'videos');
   </script>
 </body>
 </html>
