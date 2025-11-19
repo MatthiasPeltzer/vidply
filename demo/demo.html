@@ -32,16 +32,32 @@
       margin-bottom: 60px;
       text-align: center;
     }
-
+    
     h1 {
-      align-items: center;
-      display: flex;
-      font-size: 48px;
-      font-weight: 700;
-      gap: 12px;
-      justify-content: center;
-      margin-bottom: 16px;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        align-items: center;
+        background: linear-gradient(135deg, #0a406e 0%, #6BA4EE 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        display: flex;
+        font-size: 56px;
+        gap: 12px;
+        justify-content: center;
+        margin-bottom: 20px;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    h1 a {
+        align-items: center;
+        background: linear-gradient(135deg, #0a406e 0%, #6BA4EE 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        display: flex;
+        font-size: 56px;
+        gap: 12px;
+        justify-content: center;
+        margin-bottom: 20px;
+        text-decoration: none;
+        -webkit-text-fill-color: transparent;
     }
 
     .subtitle {
@@ -292,10 +308,9 @@
 <body>
   <div class="container">
     <header>
-      <h1>
-        <img src="../favicon.svg" width="48" height="48" alt="" aria-hidden="true" />
-        <span>VidPly</span>
-      </h1>
+        <h1>
+            <a href="index.html"><img src="../favicon.svg" width="48" height="48" alt="" aria-hidden="true"/> <span>VidPly Demo</span></a>
+        </h1>
       <p class="subtitle">Universal, Accessible Video & Audio Player</p>
       
       <ul class="features" aria-label="Key features">
@@ -694,11 +709,11 @@
 
       <!-- JavaScript API -->
       <section aria-labelledby="javascript-api">
-        <h2 id="javascript-api">JavaScript API</h2>
-        <p>Control players programmatically with a simple, intuitive API.</p>
-
-        <div class="code-block">
-          <pre><code class="language-javascript">// Import from built version
+          <details>
+              <summary>JavaScript API</summary>
+              <div class="code-block">
+                  <p>Control players programmatically with a simple, intuitive API.</p>
+            <pre><code class="language-javascript">// Import from built version
 import Player from '../dist/vidply.esm.js';
 
 // Or from source
@@ -743,12 +758,14 @@ player.on('ended', () => console.log('Video ended!'));
 
 // Cleanup
 player.destroy();</code></pre>
-        </div>
+              </div>
+          </details>
       </section>
-    </main>
 
+    </main>
+    
     <footer>
-      <p>&copy; 2025 VidPly - Built with ❤️ and Vanilla JavaScript</p>
+        <p>&copy; 2025 VidPly - Built with ❤️ and Vanilla JavaScript</p>
       <p>Released under GPL-2.0-or-later License</p>
     </footer>
   </div>
@@ -759,14 +776,8 @@ player.destroy();</code></pre>
     // Log player initialization
     console.log('VidPly Demo Page Loaded');
     console.log('Players auto-initialize via data-vidply attributes');
-
     window.addEventListener('load', () => {
       console.log('All players initialized');
-
-      const wwaVideo = document.querySelector('#wwa-video');
-      if (wwaVideo?.vidply) {
-        console.log('Metadata alerts configured:', wwaVideo.vidply.options.metadataAlerts);
-      }
     });
   </script>
 </body>

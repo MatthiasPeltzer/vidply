@@ -294,14 +294,32 @@ var EventEmitter = class {
 var DOMUtils = {
   createElement(tag, options = {}) {
     const element = document.createElement(tag);
+    const standardProps = ["className", "innerHTML", "textContent", "style", "children", "attributes"];
     if (options.className) {
       element.className = options.className;
     }
     if (options.attributes) {
       Object.entries(options.attributes).forEach(([key, value]) => {
-        element.setAttribute(key, value);
+        if (value !== null && value !== void 0) {
+          element.setAttribute(key, value);
+        }
       });
     }
+    Object.keys(options).forEach((key) => {
+      if (!standardProps.includes(key) && options[key] !== null && options[key] !== void 0) {
+        let attrName = key;
+        if (key === "tabIndex") {
+          attrName = "tabindex";
+        } else if (key.startsWith("aria") && key[4] && key[4] === key[4].toUpperCase()) {
+          attrName = "aria-" + key.slice(4).replace(/([A-Z])/g, "-$1").toLowerCase();
+        } else if (key.includes("-")) {
+          attrName = key;
+        } else if (key !== key.toLowerCase()) {
+          attrName = key.replace(/([A-Z])/g, "-$1").toLowerCase();
+        }
+        element.setAttribute(attrName, options[key]);
+      }
+    });
     if (options.innerHTML) {
       element.innerHTML = options.innerHTML;
     }
@@ -11241,8 +11259,11 @@ var PlaylistManager = class {
     this.playlistPanel.appendChild(instructions);
     const list = DOMUtils.createElement("ul", {
       className: "vidply-playlist-list",
+      role: "listbox",
       "aria-labelledby": "vidply-playlist-heading",
-      "aria-describedby": "vidply-playlist-instructions"
+      "aria-describedby": "vidply-playlist-instructions",
+      "aria-activedescendant": ""
+      // Will be updated to currently focused item
     });
     const listDescription = DOMUtils.createElement("div", {
       className: "vidply-sr-only",
@@ -11253,6 +11274,24 @@ var PlaylistManager = class {
     this.tracks.forEach((track, index) => {
       const item = this.createPlaylistItem(track, index);
       list.appendChild(item);
+    });
+    list.setAttribute("tabindex", "0");
+    this.playlistList = list;
+    list.addEventListener("keydown", (e) => {
+      console.log("[Listbox Event Listener] Keydown event received:", e.key, "Type:", e.type, "Target:", e.target);
+      try {
+        this.handleListboxKeydown(e);
+      } catch (error) {
+        console.error("[Listbox Event Listener] Error in handleListboxKeydown:", error);
+      }
+    });
+    list.addEventListener("focus", () => {
+      const activeIndex = this.currentIndex >= 0 ? this.currentIndex : 0;
+      const activeItem = list.querySelector(`#vidply-playlist-item-${this.player.instanceId}-${activeIndex}`);
+      if (activeItem) {
+        list.setAttribute("aria-activedescendant", activeItem.id);
+        activeItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
     });
     this.playlistPanel.appendChild(list);
     this.playlistPanel.style.display = "block";
@@ -11269,17 +11308,21 @@ var PlaylistManager = class {
     const actionText = isActive ? "Press Enter to restart" : "Press Enter to play";
     const item = DOMUtils.createElement("li", {
       className: "vidply-playlist-item",
-      tabIndex: index === 0 ? 0 : -1,
-      // Only first item is in tab order initially
+      role: "option",
+      // Option in a listbox (WCAG 2.1 compliant for aria-label usage)
+      id: `vidply-playlist-item-${this.player.instanceId}-${index}`,
+      // Unique ID for aria-activedescendant
+      tabIndex: -1,
+      // Managed by parent listbox focus
       "aria-label": `${trackPosition}. ${trackTitle}${trackArtist}. ${statusText}. ${actionText}.`,
+      "aria-selected": isActive ? "true" : "false",
+      // Use aria-selected for options
       "aria-posinset": index + 1,
       "aria-setsize": this.tracks.length,
       "data-playlist-index": index
     });
     if (isActive) {
       item.classList.add("vidply-playlist-item-active");
-      item.setAttribute("aria-current", "true");
-      item.setAttribute("tabIndex", "0");
     }
     const positionInfo = DOMUtils.createElement("span", {
       className: "vidply-sr-only"
@@ -11331,33 +11374,63 @@ var PlaylistManager = class {
     item.addEventListener("click", () => {
       this.play(index, true);
     });
-    item.addEventListener("keydown", (e) => {
-      this.handlePlaylistItemKeydown(e, index);
-    });
     return item;
   }
   /**
-   * Handle keyboard navigation in playlist items
+   * Handle keyboard navigation at listbox level (WCAG 2.1 compliant)
+   * Uses aria-activedescendant pattern
    */
-  handlePlaylistItemKeydown(e, index) {
-    const items = Array.from(this.playlistPanel.querySelectorAll(".vidply-playlist-item"));
-    let newIndex = -1;
+  handleListboxKeydown(e) {
+    if (!this.playlistList) return;
+    const items = Array.from(this.playlistList.querySelectorAll(".vidply-playlist-item"));
+    if (items.length === 0) return;
+    const activeId = this.playlistList.getAttribute("aria-activedescendant");
+    let currentItem = null;
+    let currentIndex = 0;
+    if (activeId && activeId.trim() !== "") {
+      currentItem = this.playlistList.querySelector(`#${activeId}`);
+    }
+    if (!currentItem) {
+      if (this.currentIndex >= 0 && this.currentIndex < items.length) {
+        currentIndex = this.currentIndex;
+        currentItem = items[this.currentIndex];
+      } else {
+        currentIndex = 0;
+        currentItem = items[0];
+      }
+      if (currentItem) {
+        this.playlistList.setAttribute("aria-activedescendant", currentItem.id);
+      }
+    } else {
+      currentIndex = items.indexOf(currentItem);
+      if (currentIndex === -1) {
+        currentIndex = parseInt(currentItem.dataset.playlistIndex) || 0;
+      }
+    }
+    console.log(`[handleListboxKeydown] Key: ${e.key}, Current index: ${currentIndex}, Items count: ${items.length}, Active ID: ${activeId}`);
+    let newIndex = currentIndex;
     switch (e.key) {
       case "Enter":
       case " ":
         e.preventDefault();
-        this.play(index, true);
+        this.play(currentIndex, true);
         break;
       case "ArrowDown":
         e.preventDefault();
-        if (index < items.length - 1) {
-          newIndex = index + 1;
+        if (currentIndex < items.length - 1) {
+          newIndex = currentIndex + 1;
+          console.log(`[ArrowDown] Moving from ${currentIndex} to ${newIndex}`);
+        } else {
+          console.log(`[ArrowDown] Already at last item (${currentIndex})`);
         }
         break;
       case "ArrowUp":
         e.preventDefault();
-        if (index > 0) {
-          newIndex = index - 1;
+        if (currentIndex > 0) {
+          newIndex = currentIndex - 1;
+          console.log(`[ArrowUp] Moving from ${currentIndex} to ${newIndex}`);
+        } else {
+          console.log(`[ArrowUp] Already at first item (${currentIndex})`);
         }
         break;
       case "Home":
@@ -11368,12 +11441,35 @@ var PlaylistManager = class {
         e.preventDefault();
         newIndex = items.length - 1;
         break;
+      default:
+        return;
     }
-    if (newIndex !== -1 && newIndex !== index) {
-      items[index].setAttribute("tabIndex", "-1");
-      items[newIndex].setAttribute("tabIndex", "0");
-      items[newIndex].focus();
+    console.log(`[Update check] currentIndex: ${currentIndex}, newIndex: ${newIndex}, will update: ${newIndex !== currentIndex}`);
+    if (newIndex !== currentIndex) {
+      const newItem = items[newIndex];
+      console.log(`[Update] newItem found: ${!!newItem}, newItem.id: ${newItem == null ? void 0 : newItem.id}`);
+      if (newItem) {
+        const oldId = this.playlistList.getAttribute("aria-activedescendant");
+        console.log(`Updating focus: ${currentIndex} -> ${newIndex}, Old ID: ${oldId}, New ID: ${newItem.id}`);
+        this.playlistList.setAttribute("aria-activedescendant", newItem.id);
+        const verifyId = this.playlistList.getAttribute("aria-activedescendant");
+        console.log(`[Verify] aria-activedescendant after update: ${verifyId}`);
+        newItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        const trackInfo = newItem.getAttribute("aria-label");
+        console.log(`Focused: ${trackInfo}`);
+      } else {
+        console.warn(`Could not find item at index ${newIndex} (items.length: ${items.length})`);
+      }
+    } else {
+      console.log(`No change needed, already at index ${currentIndex} (newIndex === currentIndex)`);
     }
+  }
+  /**
+   * Handle keyboard navigation in playlist items (kept for backwards compatibility)
+   * @deprecated - Use handleListboxKeydown instead
+   */
+  handlePlaylistItemKeydown(e, index) {
+    this.handleListboxKeydown(e);
   }
   /**
    * Update playlist UI (highlight current track)
@@ -11388,16 +11484,17 @@ var PlaylistManager = class {
       const trackArtist = track.artist ? ` by ${track.artist}` : "";
       if (index === this.currentIndex) {
         item.classList.add("vidply-playlist-item-active");
-        item.setAttribute("aria-current", "true");
-        item.setAttribute("tabIndex", "0");
+        item.setAttribute("aria-selected", "true");
         const statusText = "Currently playing";
         const actionText = "Press Enter to restart";
         item.setAttribute("aria-label", `${trackPosition}. ${trackTitle}${trackArtist}. ${statusText}. ${actionText}.`);
+        if (this.playlistList) {
+          this.playlistList.setAttribute("aria-activedescendant", item.id);
+        }
         item.scrollIntoView({ behavior: "smooth", block: "nearest" });
       } else {
         item.classList.remove("vidply-playlist-item-active");
-        item.removeAttribute("aria-current");
-        item.setAttribute("tabIndex", "-1");
+        item.setAttribute("aria-selected", "false");
         const statusText = "Not playing";
         const actionText = "Press Enter to play";
         item.setAttribute("aria-label", `${trackPosition}. ${trackTitle}${trackArtist}. ${statusText}. ${actionText}.`);

@@ -152,6 +152,8 @@ Approximate sizes (minified + gzip):
 | vidply.min.css | ~12 KB | ~3 KB |
 | **Total** | ~62 KB | ~18 KB |
 
+**Note:** Actual file sizes may vary depending on the version and features included. These are approximate values for the production builds.
+
 ## Build Scripts Explained
 
 ### build/build.js
@@ -256,26 +258,81 @@ jobs:
 
 ### Build Fails
 
+**Symptom:** Build command fails with errors
+
+**Solutions:**
 ```bash
-# Clear node_modules and reinstall
+# 1. Clear node_modules and reinstall
 rm -rf node_modules package-lock.json
 npm install
 npm run build
+
+# 2. Check Node.js version (requires 18+)
+node --version
+
+# 3. Try using npx directly
+npx esbuild src/index.js --bundle --outfile=dist/vidply.js
 ```
 
 ### Source Maps Not Working
 
-Ensure source maps are enabled in build config and your dev tools are configured to load them.
+**Symptom:** Unable to debug minified code in browser dev tools
+
+**Solutions:**
+1. Ensure source maps are enabled in build config (`build/build.js`)
+2. Check browser dev tools are configured to load source maps
+3. Verify `.map` files exist in `dist/` folder
+4. Clear browser cache and reload
 
 ### Large Bundle Size
 
-The player includes:
-- Complete UI controls
-- Multiple renderers (HTML5, YouTube, Vimeo, HLS)
-- i18n system with 5 languages
-- Accessibility features
+**Symptom:** Bundle size is larger than expected
 
-To reduce size, you can create a custom build that excludes unused features.
+**Explanation:**
+The player includes:
+- Complete UI controls with all buttons and menus
+- Multiple renderers (HTML5, YouTube, Vimeo, HLS)
+- i18n system with 5 built-in languages
+- Full accessibility features (ARIA, keyboard navigation)
+- Transcript, playlist, and sign language features
+
+**Solutions:**
+- The minified + gzipped size (~18 KB) is already optimized for production
+- Modern browsers will cache the files after first load
+- Consider using a CDN for better caching across sites
+- For custom builds excluding unused features, modify `src/index.js` before building
+
+### Permission Denied on Build Scripts
+
+**Symptom:** `EACCES` or permission errors
+
+**Solutions:**
+```bash
+# On Linux/macOS, ensure scripts have execute permission
+chmod +x build/*.js
+
+# Or run with node explicitly
+node build/build.js
+```
+
+### Watch Mode Not Detecting Changes
+
+**Symptom:** Files change but build doesn't trigger
+
+**Solutions:**
+1. Restart watch mode
+2. Check if editor saves files properly (some editors use atomic writes)
+3. Increase file watch timeout in `build/watch.js` if needed
+
+### ESM Import Errors in Browser
+
+**Symptom:** Browser console shows module import errors
+
+**Solutions:**
+1. Ensure you're using a local server (not `file://` protocol)
+2. Check file paths are correct and relative to HTML file
+3. Verify `<script type="module">` is set correctly
+4. Check browser supports ES6 modules (Chrome 61+, Firefox 60+, Safari 11+)
 
 ## Development Workflow
 

@@ -13,7 +13,7 @@ Welcome! This guide will help you get VidPly up and running in 5 minutes.
 ### 1. Get the Code
 
 ```bash
-git clone https://github.com/yourusername/vidply.git
+git clone https://github.com/MatthiasPeltzer/vidply.git
 cd vidply
 ```
 
@@ -565,12 +565,12 @@ const player = new Player('#video', {
 });
 ```
 
-**Mobile-specific behavior (screen width < 768px):**
+**Mobile-specific behavior (< 768px breakpoint):**
 - Transcript window appears below the video (not draggable/resizable)
 - Sign language video is not draggable/resizable
 - Optimized control bar with overflow menu for many buttons
 - Touch-friendly interface with 44px minimum touch targets
-- Adjusted minimum widths for transcript windows (300px)
+- Transcript window minimum width: 300px
 
 ## Accessibility
 
@@ -684,4 +684,4 @@ Happy coding!
 
 ---
 
-Need help? Check the [README](../README.md) or [open an issue](https://github.com/yourusername/vidply/issues).
+Need help? Check the [README](../README.md) or [open an issue](https://github.com/MatthiasPeltzer/vidply/issues).

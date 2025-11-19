@@ -1,344 +1,365 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="VidPly audio playlist demo featuring multiple audio tracks with captions, chapters, track navigation, and auto-advance functionality.">
-  <title>VidPly - Audio Playlist Demo</title>
-  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-  <link rel="stylesheet" href="../dist/vidply.css">
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background: linear-gradient(135deg, #000000 0%, #444444 100%);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      min-height: 100vh;
-      padding: 40px 20px;
-    }
-
-    .container {
-      margin: 0 auto;
-      max-width: 800px;
-    }
-
-    nav {
-      margin-bottom: 20px;
-    }
-
-    .back-link {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 6px;
-      color: white;
-      display: inline-block;
-      padding: 8px 16px;
-      text-decoration: none;
-      transition: background 0.3s;
-    }
-
-    .back-link:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    .back-link:focus {
-      outline: 3px solid white;
-      outline-offset: 4px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    h1 {
-      color: white;
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-    }
-
-    .related-demo {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .demo-link {
-      display: inline-block;
-      background: rgba(255, 255, 255, 0.9);
-      color: #0a406e;
-      padding: 10px 24px;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: 600;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      transition: all 0.2s;
-    }
-
-    .demo-link:hover {
-      background: white;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-
-    .demo-link:focus {
-      outline: 3px solid white;
-      outline-offset: 4px;
-    }
-
-    main {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .player-wrapper {
-      background: #444;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    section {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 8px;
-      padding: 20px;
-    }
-
-    h2 {
-      color: #000;
-      margin-bottom: 12px;
-      font-size: 1.5rem;
-    }
-
-    p {
-      color: #000;
-      line-height: 1.6;
-      margin-bottom: 8px;
-    }
-
-    ul {
-      color: #000;
-      margin-left: 20px;
-      line-height: 1.8;
-    }
-
-    li {
-      margin: 6px 0;
-    }
-
-    code {
-      background: #f4f4f4;
-      border-radius: 3px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.9em;
-      padding: 2px 6px;
-    }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    footer {
-      color: #ffffff;
-      margin-top: 60px;
-      opacity: 0.8;
-      text-align: center;
-    }
-
-    footer p {
-      color: #ffffff;
-      margin: 8px 0;
-    }
-
-    @media (max-width: 768px) {
-      h1 {
-        font-size: 2rem;
-        flex-direction: column;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="VidPly audio playlist demo featuring multiple audio tracks with captions, chapters, track navigation, and auto-advance functionality.">
+    <title>VidPly - Audio Playlist Demo</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../dist/vidply.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #000000 0%, #444444 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            margin: 0 auto;
+            max-width: 800px;
+        }
+        
+        nav {
+            margin-bottom: 20px;
+        }
+        
+        .back-link {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: white;
+            display: inline-block;
+            padding: 8px 16px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .back-link:focus {
+            outline: 3px solid white;
+            outline-offset: 4px;
+        }
+        
+        header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            align-items: center;
+            background: linear-gradient(135deg, #0a406e 0%, #6BA4EE 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            display: flex;
+            font-size: 56px;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        h1 a {
+            align-items: center;
+            background: linear-gradient(135deg, #0a406e 0%, #6BA4EE 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            display: flex;
+            font-size: 56px;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+            text-decoration: none;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .related-demo {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .demo-link {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            color: #0a406e;
+            display: inline-block;
+            font-weight: 600;
+            padding: 10px 24px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .demo-link:hover {
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .demo-link:focus {
+            outline: 3px solid white;
+            outline-offset: 4px;
+        }
+        
+        main {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .player-wrapper {
+            background: #444;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        h2 {
+            color: #000;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+        
+        p {
+            color: #000;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        ul {
+            color: #000;
+            line-height: 1.8;
+            margin-left: 20px;
+        }
+        
+        li {
+            margin: 6px 0;
+        }
+        
+        code {
+            background: #f4f4f4;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            padding: 2px 6px;
+        }
+        
+        .sr-only {
+            border: 0;
+            clip: rect(0, 0, 0, 0);
+            height: 1px;
+            margin: -1px;
+            overflow: hidden;
+            padding: 0;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+        
+        footer {
+            color: #ffffff;
+            margin-top: 60px;
+            opacity: 0.8;
+            text-align: center;
+        }
+        
+        footer p {
+            color: #ffffff;
+            margin: 8px 0;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                flex-direction: column;
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
+<div class="container">
     <nav aria-label="Breadcrumb">
-      <a href="demo.html" class="back-link">← Back to Main Demo</a>
+        <a href="demo.html" class="back-link">← Back to Main Demo</a>
     </nav>
     
     <header>
-      <h1>
-        <img src="../favicon.svg" width="48" height="48" alt="" aria-hidden="true" />
-        <span>Audio Playlist Demo</span>
-      </h1>
-      
-      <div class="related-demo">
-        <a href="playlist-video.html" class="demo-link">Try Video Playlist Demo</a>
-      </div>
+        <h1>
+            <a href="index.html"><img src="../favicon.svg" width="48" height="48" alt="" aria-hidden="true"/>
+                <span>VidPly - Audio Playlist</span></a>
+        </h1>
+        
+        <div class="related-demo">
+            <a href="playlist-video.html" class="demo-link">Try Video Playlist Demo</a>
+        </div>
     </header>
-
+    
     <main>
-      <figure class="player-wrapper">
-        <div id="audio-player" data-vidply data-vidply-options='{"mediaType": "audio"}'></div>
-        <figcaption class="sr-only">Audio playlist player with 5 tracks</figcaption>
-      </figure>
-
-      <section aria-labelledby="features-heading">
-        <h2 id="features-heading">Features Demonstrated</h2>
-        <ul>
-          <li><strong>Previous/Next buttons</strong> - Navigate between tracks seamlessly</li>
-          <li><strong>Auto-advance</strong> - Automatically plays the next track when one ends</li>
-          <li><strong>Track info display</strong> - Shows current track number, title, and artist</li>
-          <li><strong>Interactive playlist panel</strong> - Click any track to jump to it instantly</li>
-          <li><strong>Album art support</strong> - Display thumbnail images for each track</li>
-          <li><strong>Per-track captions</strong> - Lyrics and translations for selected tracks</li>
-          <li><strong>Per-track chapters</strong> - Navigate song sections with chapter markers</li>
-          <li><strong>Active track highlighting</strong> - Visual indicator for currently playing track</li>
-          <li><strong>Full keyboard navigation</strong> - Tab, Enter, and Space for playlist control</li>
-          <li><strong>Responsive design</strong> - Adapts to mobile, tablet, and desktop screens</li>
-          <li><strong>Accessibility features</strong> - ARIA labels and screen reader support</li>
-        </ul>
-      </section>
-
-      <section aria-labelledby="use-cases-heading">
-        <h2 id="use-cases-heading">Perfect For</h2>
-        <ul>
-          <li><strong>Music Players</strong> - Albums, playlists, artist collections</li>
-          <li><strong>Podcasts</strong> - Episode series</li>
-          <li><strong>Audiobooks</strong> - Chapter navigation</li>
-          <li><strong>Audio Courses</strong> - Lesson sequences</li>
-          <li><strong>Language Learning</strong> - Audio lessons with transcripts</li>
-        </ul>
-      </section>
-
-      <section aria-labelledby="keyboard-heading">
-        <h2 id="keyboard-heading">Additional Keyboard Shortcuts</h2>
-        <ul>
-          <li><kbd>Shift</kbd> + <kbd>N</kbd> - Next track</li>
-          <li><kbd>Shift</kbd> + <kbd>P</kbd> - Previous track</li>
-        </ul>
-      </section>
+        <figure class="player-wrapper">
+            <div id="audio-player" data-vidply data-vidply-options='{"mediaType": "audio"}'></div>
+            <figcaption class="sr-only">Audio playlist player with 5 tracks</figcaption>
+        </figure>
+        
+        <section aria-labelledby="features-heading">
+            <h2 id="features-heading">Features Demonstrated</h2>
+            <ul>
+                <li><strong>Previous/Next buttons</strong> - Navigate between tracks seamlessly</li>
+                <li><strong>Auto-advance</strong> - Automatically plays the next track when one ends</li>
+                <li><strong>Track info display</strong> - Shows current track number, title, and artist</li>
+                <li><strong>Interactive playlist panel</strong> - Click any track to jump to it instantly</li>
+                <li><strong>Album art support</strong> - Display thumbnail images for each track</li>
+                <li><strong>Per-track captions</strong> - Lyrics and translations for selected tracks</li>
+                <li><strong>Per-track chapters</strong> - Navigate song sections with chapter markers</li>
+                <li><strong>Active track highlighting</strong> - Visual indicator for currently playing track</li>
+                <li><strong>Full keyboard navigation</strong> - Tab, Enter, and Space for playlist control</li>
+                <li><strong>Responsive design</strong> - Adapts to mobile, tablet, and desktop screens</li>
+                <li><strong>Accessibility features</strong> - ARIA labels and screen reader support</li>
+            </ul>
+        </section>
+        
+        <section aria-labelledby="use-cases-heading">
+            <h2 id="use-cases-heading">Perfect For</h2>
+            <ul>
+                <li><strong>Music Players</strong> - Albums, playlists, artist collections</li>
+                <li><strong>Podcasts</strong> - Episode series</li>
+                <li><strong>Audiobooks</strong> - Chapter navigation</li>
+                <li><strong>Audio Courses</strong> - Lesson sequences</li>
+                <li><strong>Language Learning</strong> - Audio lessons with transcripts</li>
+            </ul>
+        </section>
+        
+        <section aria-labelledby="keyboard-heading">
+            <h2 id="keyboard-heading">Additional Keyboard Shortcuts</h2>
+            <ul>
+                <li><kbd>Shift</kbd> + <kbd>N</kbd> - Next track</li>
+                <li><kbd>Shift</kbd> + <kbd>P</kbd> - Previous track</li>
+            </ul>
+        </section>
     </main>
-
+    
     <footer>
-      <p>&copy; 2025 VidPly - Built with ❤️ and Vanilla JavaScript</p>
-      <p>Released under GPL-2.0-or-later License</p>
+        <p>&copy; 2025 VidPly - Built with ❤️ and Vanilla JavaScript</p>
+        <p>Released under GPL-2.0-or-later License</p>
     </footer>
-  </div>
+</div>
 
-  <script type="module">
-    import { Player, PlaylistManager } from '../dist/vidply.esm.js';
-
+<script type="module">
+    import {Player, PlaylistManager} from '../dist/vidply.esm.js';
+    
     console.log('Starting audio player initialization...');
-
+    
     // Create player instance
     const player = new Player('#audio-player', {
-      autoplay: false,
-      controls: true,
-      preload: 'metadata',
-      mediaType: 'audio'
+        autoplay: false,
+        controls: true,
+        preload: 'metadata',
+        mediaType: 'audio'
     });
-
+    
     console.log('Audio player created:', player);
-
+    
     // Create playlist manager
     const playlist = new PlaylistManager(player, {
-      autoAdvance: true,  // Automatically play next track
-      autoPlayFirst: false,  // Don't auto-play on page load
-      loop: false,        // Don't loop back to first track
-      showPanel: true     // Show playlist panel below player
+        autoAdvance: true,  // Automatically play next track
+        autoPlayFirst: false,  // Don't auto-play on page load
+        loop: false,        // Don't loop back to first track
+        showPanel: true     // Show playlist panel below player
     });
-
+    
     // Load audio playlist
     const tracks = [
-      {
-        src: 'media/everyday.mp3',
-        type: 'audio/mp3',
-        title: 'Everyday',
-        artist: 'Audio Demo Track'
-      },
-      {
-        src: 'media/frenchsong.mp3',
-        type: 'audio/mp3',
-        title: 'French Song',
-        artist: 'Demo Track 2',
-        tracks: [
-          { src: 'media/frenchsong_captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English Translation' },
-          { src: 'media/frenchsong_captions_fr.vtt', kind: 'captions', srclang: 'fr', label: 'Français' },
-          { src: 'media/frenchsong_chapters_en.vtt', kind: 'chapters', srclang: 'en', label: 'Chapters' }
-        ]
-      },
-      {
-        src: 'media/paulallen.mp3',
-        type: 'audio/mp3',
-        title: 'Paul Allen Interview',
-        artist: 'Interview Recording',
-        tracks: [
-          { src: 'media/paulallen_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
-          { src: 'media/paulallen_de.vtt', kind: 'captions', srclang: 'de', label: 'Deutsch' }
-        ]
-      },
-      {
-        src: 'media/php70alpha.mp3',
-        type: 'audio/mp3',
-        title: 'PHP 7.0 Alpha',
-        artist: 'Tech Talk'
-      },
-      {
-        src: 'media/smallf.mp3',
-        type: 'audio/mp3',
-        title: 'Small F',
-        artist: 'Audio Demo Track'
-      }
+        {
+            src: 'media/everyday.mp3',
+            type: 'audio/mp3',
+            title: 'Everyday',
+            artist: 'Audio Demo Track'
+        },
+        {
+            src: 'media/frenchsong.mp3',
+            type: 'audio/mp3',
+            title: 'French Song',
+            artist: 'Demo Track 2',
+            tracks: [
+                {
+                    src: 'media/frenchsong_captions_en.vtt',
+                    kind: 'captions',
+                    srclang: 'en',
+                    label: 'English Translation'
+                },
+                {src: 'media/frenchsong_captions_fr.vtt', kind: 'captions', srclang: 'fr', label: 'Français'},
+                {src: 'media/frenchsong_chapters_en.vtt', kind: 'chapters', srclang: 'en', label: 'Chapters'}
+            ]
+        },
+        {
+            src: 'media/paulallen.mp3',
+            type: 'audio/mp3',
+            title: 'Paul Allen Interview',
+            artist: 'Interview Recording',
+            tracks: [
+                {src: 'media/paulallen_en.vtt', kind: 'captions', srclang: 'en', label: 'English'},
+                {src: 'media/paulallen_de.vtt', kind: 'captions', srclang: 'de', label: 'Deutsch'}
+            ]
+        },
+        {
+            src: 'media/php70alpha.mp3',
+            type: 'audio/mp3',
+            title: 'PHP 7.0 Alpha',
+            artist: 'Tech Talk'
+        },
+        {
+            src: 'media/smallf.mp3',
+            type: 'audio/mp3',
+            title: 'Small F',
+            artist: 'Audio Demo Track'
+        }
     ];
-
+    
     playlist.loadPlaylist(tracks);
-
+    
     // Listen for track changes
     player.on('playlisttrackchange', (e) => {
-      console.log(`Now playing: ${e.item.title}`);
-      
-      // Optional: Update document title
-      document.title = `${e.item.title} - VidPly Audio Playlist`;
+        console.log(`Now playing: ${e.item.title}`);
+        
+        // Optional: Update document title
+        document.title = `${e.item.title} - VidPly Audio Playlist`;
     });
-
+    
     // Optional: Add keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-      switch(e.key) {
-        case 'N':
-        case 'n':
-          if (e.shiftKey) {
-            playlist.next();
-            e.preventDefault();
-          }
-          break;
-        case 'P':
-        case 'p':
-          if (e.shiftKey) {
-            playlist.previous();
-            e.preventDefault();
-          }
-          break;
-      }
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        switch (e.key) {
+            case 'N':
+            case 'n':
+                if (e.shiftKey) {
+                    playlist.next();
+                    e.preventDefault();
+                }
+                break;
+            case 'P':
+            case 'p':
+                if (e.shiftKey) {
+                    playlist.previous();
+                    e.preventDefault();
+                }
+                break;
+        }
     });
-
+    
     console.log('Audio playlist initialized with', tracks.length, 'tracks');
-  </script>
+</script>
 </body>
 </html>

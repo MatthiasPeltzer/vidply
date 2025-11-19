@@ -7,7 +7,7 @@ A modern, feature-rich media player built with vanilla ES6 JavaScript. Combines 
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)
 ![ES6](https://img.shields.io/badge/ES6-Module-yellow.svg)
 ![WCAG](https://img.shields.io/badge/WCAG-2.1%20AA-green.svg)
-![Version](https://img.shields.io/badge/version-1.0.16-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.0.18-brightgreen.svg)
 
 ## Live Demos
 
@@ -339,12 +339,14 @@ player.seekBackward(10) // Skip backward 10 seconds
 ### Volume Control
 
 ```javascript
-player.setVolume(0.5)   // Set volume (0-1)
+player.setVolume(0.5)   // Set volume (0.0-1.0)
 player.getVolume()      // Get current volume
 player.mute()           // Mute audio
 player.unmute()         // Unmute audio
 player.toggleMute()     // Toggle mute state
 ```
+
+**Note on Mobile Devices:** On touch devices (iOS, Android, tablets), only a **mute/unmute button** is shown instead of the volume slider. Mobile browsers control HTML5 video volume through **hardware device volume buttons** - this is standard behavior that cannot be overridden by web apps for security reasons. The mute button provides quick silencing functionality while hardware buttons control actual volume levels.
 
 ### Playback Speed
 
@@ -362,18 +364,6 @@ player.toggleFullscreen() // Toggle fullscreen
 ```
 
 **Note on iOS/Mobile Safari:** Since iOS doesn't support the Fullscreen API on container elements, VidPly automatically falls back to a "pseudo-fullscreen" mode that positions the player to fill the entire viewport using CSS. This provides a fullscreen-like experience on iOS devices while maintaining all player functionality.
-
-### Volume Control
-
-```javascript
-player.setVolume(0.5)    // Set volume (0.0-1.0)
-player.getVolume()       // Get current volume
-player.mute()            // Mute audio
-player.unmute()          // Unmute audio
-player.toggleMute()      // Toggle mute state
-```
-
-**Note on Mobile Devices:** On touch devices (iOS, Android, tablets), only a **mute/unmute button** is shown instead of the volume slider. Mobile browsers control HTML5 video volume through **hardware device volume buttons** - this is standard behavior that cannot be overridden by web apps for security reasons. The mute button provides quick silencing functionality while hardware buttons control actual volume levels.
 
 ### Captions
 

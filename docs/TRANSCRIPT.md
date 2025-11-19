@@ -142,11 +142,11 @@ On desktop (>= 768px), users can:
 
 ### Mobile Behavior
 
-On mobile devices (< 768px):
+On mobile devices (< 768px breakpoint):
 - Transcript appears below the video player
 - Positioned in document flow (not draggable or resizable)
 - Optimized for scrolling and reading
-- Min-width: 300px
+- Minimum width: 300px
 
 ## Positioning Modes
 
@@ -429,7 +429,7 @@ The transcript feature works in all modern browsers:
 
 ### Can't Drag Transcript on Mobile
 
-**Expected:** On mobile (< 640px), transcript is NOT draggable. It's positioned in the page flow below the video.
+**Expected:** On mobile (< 768px), transcript is NOT draggable. It's positioned in the page flow below the video.
 
 ### Transcript Not Auto-Scrolling
 
