@@ -9,8 +9,8 @@ VidPly provides comprehensive keyboard navigation for accessibility and power us
 | <kbd>Space</kbd>, <kbd>P</kbd>, <kbd>K</kbd> | Play/Pause | Toggle video playback |
 | <kbd>M</kbd> | Mute/Unmute | Toggle audio mute with visual feedback |
 | <kbd>F</kbd> | Fullscreen | Toggle fullscreen mode |
-| <kbd>←</kbd> | Seek Backward | Skip backward 5 seconds |
-| <kbd>→</kbd> | Seek Forward | Skip forward 5 seconds |
+| <kbd>←</kbd> | Seek Backward | Skip backward 10 seconds |
+| <kbd>→</kbd> | Seek Forward | Skip forward 10 seconds |
 | <kbd>↑</kbd> | Volume Up | Increase volume by 5% |
 | <kbd>↓</kbd> | Volume Down | Decrease volume by 5% |
 | <kbd>C</kbd> | Captions Menu | Open captions/subtitles menu |
@@ -46,10 +46,10 @@ When any menu is open (captions, speed, quality, chapters, or caption style), yo
   Toggles between play and pause states. Visual feedback shows the current state in the control bar.
 
 - **Seek Backward** (<kbd>←</kbd>)  
-  Skips backward 5 seconds in the video timeline.
+  Skips backward 10 seconds in the video timeline.
 
 - **Seek Forward** (<kbd>→</kbd>)  
-  Skips forward 5 seconds in the video timeline.
+  Skips forward 10 seconds in the video timeline.
 
 ### Audio Controls
 

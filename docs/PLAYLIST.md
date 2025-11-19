@@ -109,7 +109,7 @@ import { Player, PlaylistManager } from 'vidply';
 ## API Methods
 
 ### loadPlaylist(items)
-Load an array of track items into the playlist.
+Load an array of track items into the playlist. Automatically plays the first track unless `autoPlayFirst: false` is set in options.
 
 ```javascript
 playlist.loadPlaylist([
@@ -117,6 +117,9 @@ playlist.loadPlaylist([
   { src: 'track2.mp3', type: 'audio/mp3', title: 'Track 2' }
 ]);
 ```
+
+**Parameters:**
+- `items` (Array): Array of track objects (see Track Object Structure above)
 
 ### addItem(item)
 Add a single track to the playlist.
@@ -129,12 +132,18 @@ playlist.addItem({
 });
 ```
 
+**Parameters:**
+- `item` (Object): Track object (see Track Object Structure above)
+
 ### play(index)
-Play a specific track by index.
+Play a specific track by index (0-based).
 
 ```javascript
 playlist.play(2); // Play third track (0-based index)
 ```
+
+**Parameters:**
+- `index` (Number): Zero-based index of the track to play
 
 ### next()
 Play the next track.
