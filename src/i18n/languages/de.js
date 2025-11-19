@@ -15,6 +15,7 @@ export const de = {
         forwardSeconds: '{seconds} Sekunden vorspulen',
         previous: 'Vorheriger Titel',
         next: 'Nächster Titel',
+        playlist: 'Wiedergabeliste umschalten',
         volume: 'Lautstärke',
         mute: 'Stumm',
         unmute: 'Ton ein',

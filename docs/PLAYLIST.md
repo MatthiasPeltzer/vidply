@@ -60,9 +60,11 @@ That's it!
 - **Auto-Advance** - Automatically play the next track when one finishes
 - **Loop Mode** - Loop back to the first track after the last one
 - **Track Info Display** - Shows current track number, title, and artist
-- **Visual Playlist Panel** - Interactive list of all tracks with thumbnails
+- **Visual Playlist Panel** - Interactive list of all tracks with thumbnails with toggle button
 - **Active Track Highlighting** - Visual indicator for the currently playing track
-- **Keyboard Support** - Navigate playlist items with keyboard
+- **Enhanced Keyboard Navigation** - Full keyboard support with arrow keys, Page Up/Down, Home/End
+- **Screen Reader Support** - ARIA labels, live regions, and boundary announcements
+- **WCAG Compliant** - Meets accessibility guidelines for keyboard navigation and screen readers
 - **Custom Tracks** - Support for captions, chapters, and other text tracks per playlist item
 
 ## Installation
@@ -478,20 +480,73 @@ Customize the playlist appearance with CSS:
 }
 ```
 
-## Keyboard Shortcuts
+## Keyboard Navigation & Accessibility
+
+### Built-in Playlist Navigation
+
+The playlist panel includes comprehensive keyboard navigation support:
+
+- **↑ Up Arrow** - Move to previous track in list
+- **↓ Down Arrow** - Move to next track in list
+- **Page Up** - Jump up 5 tracks
+- **Page Down** - Jump down 5 tracks
+- **Home** - Jump to first track
+- **End** - Jump to last track
+- **Enter / Space** - Play the selected track
+- **Tab** - Navigate to playlist panel and between tracks (roving tabindex pattern)
+
+### Playlist Toggle Button
+
+A playlist toggle button is automatically added to the control bar when a PlaylistManager is active. This button allows users to:
+- Toggle the playlist panel visibility
+- Access the playlist with keyboard navigation (Tab to button, Enter to toggle)
+- Proper ARIA attributes for screen readers (`aria-expanded`, `aria-pressed`, `aria-controls`)
+
+### Screen Reader Support
+
+The playlist includes extensive screen reader support:
+- Live region announcements when navigating (e.g., "End of playlist. 5 of 5.")
+- Boundary announcements (beginning/end of playlist)
+- Track position announcements (e.g., "Track 3 of 10")
+- Status announcements (currently playing, not playing)
+- Descriptive labels for all interactive elements
+
+### Global Keyboard Shortcuts (Optional)
+
+You can add global keyboard shortcuts for playlist navigation:
 
 ```javascript
 document.addEventListener('keydown', (e) => {
+  // Don't interfere with form inputs
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    return;
+  }
+  
   if (e.key === 'ArrowRight' && e.shiftKey) {
     playlist.next();
+    e.preventDefault();
   }
   if (e.key === 'ArrowLeft' && e.shiftKey) {
     playlist.previous();
-  }
-  if (e.key === 'p') {
-    playlist.togglePanel();
+    e.preventDefault();
   }
 });
+```
+
+### Accessibility Methods
+
+```javascript
+// Toggle playlist panel visibility
+playlist.togglePanel();
+
+// Show playlist panel
+playlist.showPanel();
+
+// Hide playlist panel
+playlist.hidePanel();
+
+// Check if panel is visible
+const isVisible = playlist.isPanelVisible;
 ```
 
 ## Common Use Cases

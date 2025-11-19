@@ -6,11 +6,18 @@
 import { DOMUtils } from '../utils/DOMUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 
+// Static counter for unique IDs
+let playlistInstanceCounter = 0;
+
 export class PlaylistManager {
   constructor(player, options = {}) {
     this.player = player;
     this.tracks = [];
     this.currentIndex = -1;
+    
+    // Generate unique instance ID for this playlist
+    this.instanceId = ++playlistInstanceCounter;
+    this.uniqueId = `vidply-playlist-${this.instanceId}`;
     
     // Options
     this.options = {
@@ -25,6 +32,8 @@ export class PlaylistManager {
     this.container = null;
     this.playlistPanel = null;
     this.trackInfoElement = null;
+    this.navigationFeedback = null; // Live region for keyboard navigation feedback
+    this.isPanelVisible = this.options.showPanel !== false;
     
     // Bind methods
     this.handleTrackEnd = this.handleTrackEnd.bind(this);
@@ -38,6 +47,11 @@ export class PlaylistManager {
     
     // Update controls to add playlist buttons
     this.updatePlayerControls();
+    
+    // Load tracks if provided in options
+    if (options.tracks && Array.isArray(options.tracks)) {
+      this.loadPlaylist(options.tracks);
+    }
   }
   
   init() {
@@ -49,6 +63,87 @@ export class PlaylistManager {
     if (this.options.showPanel) {
       this.createUI();
     }
+    
+    // Check for data-playlist attribute on player container (only if tracks weren't provided in options)
+    if (this.tracks.length === 0) {
+      this.loadPlaylistFromAttribute();
+    }
+  }
+  
+  /**
+   * Load playlist from data-playlist attribute if present
+   */
+  loadPlaylistFromAttribute() {
+    // Check the original wrapper element for data-playlist
+    // Structure: #audio-player -> .vidply-player -> .vidply-video-wrapper -> <audio>
+    // So we need to go up 3 levels
+    if (!this.player.element || !this.player.element.parentElement) {
+      console.log('VidPly Playlist: No player element found');
+      return;
+    }
+    
+    const videoWrapper = this.player.element.parentElement; // .vidply-video-wrapper
+    const playerContainer = videoWrapper.parentElement; // .vidply-player
+    const originalElement = playerContainer ? playerContainer.parentElement : null; // #audio-player (original div)
+    
+    if (!originalElement) {
+      console.log('VidPly Playlist: No original element found');
+      return;
+    }
+    
+    // Load playlist options from data attributes
+    this.loadOptionsFromAttributes(originalElement);
+    
+    const playlistData = originalElement.getAttribute('data-playlist');
+    if (!playlistData) {
+      console.log('VidPly Playlist: No data-playlist attribute found');
+      return;
+    }
+    
+    console.log('VidPly Playlist: Found data-playlist attribute, parsing...');
+    try {
+      const tracks = JSON.parse(playlistData);
+      if (Array.isArray(tracks) && tracks.length > 0) {
+        console.log(`VidPly Playlist: Loaded ${tracks.length} tracks from data-playlist`);
+        this.loadPlaylist(tracks);
+      } else {
+        console.warn('VidPly Playlist: data-playlist is not a valid array or is empty');
+      }
+    } catch (error) {
+      console.error('VidPly Playlist: Failed to parse data-playlist attribute', error);
+    }
+  }
+  
+  /**
+   * Load playlist options from data attributes
+   * @param {HTMLElement} element - Element to read attributes from
+   */
+  loadOptionsFromAttributes(element) {
+    // data-playlist-auto-advance
+    const autoAdvance = element.getAttribute('data-playlist-auto-advance');
+    if (autoAdvance !== null) {
+      this.options.autoAdvance = autoAdvance === 'true';
+    }
+    
+    // data-playlist-auto-play-first
+    const autoPlayFirst = element.getAttribute('data-playlist-auto-play-first');
+    if (autoPlayFirst !== null) {
+      this.options.autoPlayFirst = autoPlayFirst === 'true';
+    }
+    
+    // data-playlist-loop
+    const loop = element.getAttribute('data-playlist-loop');
+    if (loop !== null) {
+      this.options.loop = loop === 'true';
+    }
+    
+    // data-playlist-show-panel
+    const showPanel = element.getAttribute('data-playlist-show-panel');
+    if (showPanel !== null) {
+      this.options.showPanel = showPanel === 'true';
+    }
+    
+    console.log('VidPly Playlist: Options from attributes:', this.options);
   }
   
   /**
@@ -169,11 +264,6 @@ export class PlaylistManager {
       total: this.tracks.length
     });
     
-    // Return focus to player for keyboard navigation (only on user action)
-    if (userInitiated && this.player.container) {
-      this.player.container.focus();
-    }
-    
     // Auto-play
     setTimeout(() => {
       this.player.play();
@@ -252,21 +342,38 @@ export class PlaylistManager {
     // Create track info element (shows current track)
     this.trackInfoElement = DOMUtils.createElement('div', {
       className: 'vidply-track-info',
-      role: 'status',
-      'aria-live': 'polite',
-      'aria-atomic': 'true'
+      attributes: {
+        role: 'status',
+        'aria-live': 'polite',
+        'aria-atomic': 'true'
+      }
     });
     this.trackInfoElement.style.display = 'none';
     
     this.container.appendChild(this.trackInfoElement);
     
+    // Create navigation feedback live region
+    this.navigationFeedback = DOMUtils.createElement('div', {
+      className: 'vidply-sr-only',
+      attributes: {
+        role: 'status',
+        'aria-live': 'polite',
+        'aria-atomic': 'true'
+      }
+    });
+    this.container.appendChild(this.navigationFeedback);
+    
     // Create playlist panel with proper landmark
     this.playlistPanel = DOMUtils.createElement('div', {
       className: 'vidply-playlist-panel',
-      role: 'region',
-      'aria-label': 'Media playlist'
+      attributes: {
+        id: `${this.uniqueId}-panel`,
+        role: 'region',
+        'aria-label': 'Media playlist',
+        'aria-labelledby': `${this.uniqueId}-heading`
+      }
     });
-    this.playlistPanel.style.display = 'none';
+    this.playlistPanel.style.display = this.isPanelVisible ? 'none' : 'none'; // Will be shown when playlist is loaded
     
     this.container.appendChild(this.playlistPanel);
   }
@@ -307,7 +414,9 @@ export class PlaylistManager {
     // Create header
     const header = DOMUtils.createElement('h2', {
       className: 'vidply-playlist-header',
-      id: 'vidply-playlist-heading'
+      attributes: {
+        id: `${this.uniqueId}-heading`
+      }
     });
     header.textContent = `Playlist (${this.tracks.length})`;
     this.playlistPanel.appendChild(header);
@@ -315,25 +424,21 @@ export class PlaylistManager {
     // Add keyboard instructions (visually hidden)
     const instructions = DOMUtils.createElement('div', {
       className: 'vidply-sr-only',
-      'aria-hidden': 'false'
+      attributes: {
+        id: `${this.uniqueId}-keyboard-instructions`
+      }
     });
-    instructions.textContent = 'Use arrow keys to navigate between tracks. Press Enter or Space to play a track. Press Home or End to jump to first or last track.';
+    instructions.textContent = 'Playlist navigation: Use Up and Down arrow keys to move between tracks. Press Page Up or Page Down to skip 5 tracks. Press Home to go to first track, End to go to last track. Press Enter or Space to play the selected track.';
     this.playlistPanel.appendChild(instructions);
     
     // Create list (proper ul element)
     const list = DOMUtils.createElement('ul', {
       className: 'vidply-playlist-list',
-      'aria-labelledby': 'vidply-playlist-heading',
-      'aria-describedby': 'vidply-playlist-instructions'
+      attributes: {
+        'aria-labelledby': `${this.uniqueId}-heading`,
+        'aria-describedby': `${this.uniqueId}-keyboard-instructions`
+      }
     });
-    
-    // Add list description
-    const listDescription = DOMUtils.createElement('div', {
-      className: 'vidply-sr-only',
-      id: 'vidply-playlist-instructions'
-    });
-    listDescription.textContent = `Playlist with ${this.tracks.length} ${this.tracks.length === 1 ? 'track' : 'tracks'}`;
-    this.playlistPanel.appendChild(listDescription);
     
     this.tracks.forEach((track, index) => {
       const item = this.createPlaylistItem(track, index);
@@ -341,7 +446,11 @@ export class PlaylistManager {
     });
     
     this.playlistPanel.appendChild(list);
-    this.playlistPanel.style.display = 'block';
+    
+    // Show panel if it should be visible
+    if (this.isPanelVisible) {
+      this.playlistPanel.style.display = 'block';
+    }
   }
   
   /**
@@ -355,39 +464,42 @@ export class PlaylistManager {
     const statusText = isActive ? 'Currently playing' : 'Not playing';
     const actionText = isActive ? 'Press Enter to restart' : 'Press Enter to play';
     
+    // Create list item container (semantic HTML)
     const item = DOMUtils.createElement('li', {
-      className: 'vidply-playlist-item',
-      tabIndex: index === 0 ? 0 : -1, // Only first item is in tab order initially
-      'aria-label': `${trackPosition}. ${trackTitle}${trackArtist}. ${statusText}. ${actionText}.`,
-      'aria-posinset': index + 1,
-      'aria-setsize': this.tracks.length,
-      'data-playlist-index': index
+      className: isActive ? 'vidply-playlist-item vidply-playlist-item-active' : 'vidply-playlist-item',
+      attributes: {
+        'data-playlist-index': index
+      }
     });
     
-    // Add active class if current
+    // Create button wrapper for interactive content
+    const button = DOMUtils.createElement('button', {
+      className: 'vidply-playlist-item-button',
+      attributes: {
+        type: 'button',
+        tabIndex: index === 0 ? 0 : -1, // Only first item is in tab order initially
+        'aria-label': `${trackPosition}. ${trackTitle}${trackArtist}. ${statusText}. ${actionText}.`,
+        'aria-posinset': index + 1,
+        'aria-setsize': this.tracks.length
+      }
+    });
+    
+    // Add aria-current if active
     if (isActive) {
-      item.classList.add('vidply-playlist-item-active');
-      item.setAttribute('aria-current', 'true');
-      item.setAttribute('tabIndex', '0'); // Active item should always be tabbable
+      button.setAttribute('aria-current', 'true');
+      button.setAttribute('tabIndex', '0'); // Active item should always be tabbable
     }
     
-    // Add screen reader only position info
-    const positionInfo = DOMUtils.createElement('span', {
-      className: 'vidply-sr-only'
-    });
-    positionInfo.textContent = `${trackPosition}: `;
-    item.appendChild(positionInfo);
-    
-    // Thumbnail or icon
-    const thumbnail = DOMUtils.createElement('div', {
+    // Thumbnail or icon (using span for valid button content)
+    const thumbnail = DOMUtils.createElement('span', {
       className: 'vidply-playlist-thumbnail',
-      'aria-hidden': 'true'
+      attributes: {
+        'aria-hidden': 'true'
+      }
     });
     
     if (track.poster) {
       thumbnail.style.backgroundImage = `url(${track.poster})`;
-      thumbnail.setAttribute('role', 'img');
-      thumbnail.setAttribute('aria-label', `${trackTitle} thumbnail`);
     } else {
       // Show music/speaker icon for audio tracks
       const icon = createIconElement('music');
@@ -395,54 +507,50 @@ export class PlaylistManager {
       thumbnail.appendChild(icon);
     }
     
-    item.appendChild(thumbnail);
+    button.appendChild(thumbnail);
     
-    // Info
-    const info = DOMUtils.createElement('div', {
+    // Info (using span for valid button content)
+    const info = DOMUtils.createElement('span', {
       className: 'vidply-playlist-item-info',
-      'aria-hidden': 'true'
+      attributes: {
+        'aria-hidden': 'true'
+      }
     });
     
-    const title = DOMUtils.createElement('div', {
+    const title = DOMUtils.createElement('span', {
       className: 'vidply-playlist-item-title'
     });
     title.textContent = trackTitle;
     info.appendChild(title);
     
     if (track.artist) {
-      const artist = DOMUtils.createElement('div', {
+      const artist = DOMUtils.createElement('span', {
         className: 'vidply-playlist-item-artist'
       });
       artist.textContent = track.artist;
       info.appendChild(artist);
     }
     
-    item.appendChild(info);
-    
-    // Status indicator for screen readers
-    if (isActive) {
-      const statusIndicator = DOMUtils.createElement('span', {
-        className: 'vidply-sr-only'
-      });
-      statusIndicator.textContent = ' (Currently playing)';
-      item.appendChild(statusIndicator);
-    }
+    button.appendChild(info);
     
     // Play icon
     const playIcon = createIconElement('play');
     playIcon.classList.add('vidply-playlist-item-icon');
     playIcon.setAttribute('aria-hidden', 'true');
-    item.appendChild(playIcon);
+    button.appendChild(playIcon);
     
     // Click handler
-    item.addEventListener('click', () => {
+    button.addEventListener('click', () => {
       this.play(index, true); // User-initiated
     });
     
     // Keyboard handler
-    item.addEventListener('keydown', (e) => {
+    button.addEventListener('keydown', (e) => {
       this.handlePlaylistItemKeydown(e, index);
     });
+    
+    // Append button to list item
+    item.appendChild(button);
     
     return item;
   }
@@ -451,50 +559,99 @@ export class PlaylistManager {
    * Handle keyboard navigation in playlist items
    */
   handlePlaylistItemKeydown(e, index) {
-    const items = Array.from(this.playlistPanel.querySelectorAll('.vidply-playlist-item'));
+    const buttons = Array.from(this.playlistPanel.querySelectorAll('.vidply-playlist-item-button'));
     let newIndex = -1;
+    let announcement = '';
     
     switch(e.key) {
       case 'Enter':
       case ' ':
         e.preventDefault();
+        e.stopPropagation();
         this.play(index, true); // User-initiated
-        break;
+        return; // No need to move focus
         
       case 'ArrowDown':
         e.preventDefault();
+        e.stopPropagation();
         // Move to next item
-        if (index < items.length - 1) {
+        if (index < buttons.length - 1) {
           newIndex = index + 1;
+        } else {
+          // At the end, announce boundary
+          announcement = `End of playlist. ${buttons.length} of ${buttons.length}.`;
         }
         break;
         
       case 'ArrowUp':
         e.preventDefault();
+        e.stopPropagation();
         // Move to previous item
         if (index > 0) {
           newIndex = index - 1;
+        } else {
+          // At the beginning, announce boundary
+          announcement = 'Beginning of playlist. 1 of ' + buttons.length + '.';
+        }
+        break;
+        
+      case 'PageDown':
+        e.preventDefault();
+        e.stopPropagation();
+        // Move 5 items down (or to end)
+        newIndex = Math.min(index + 5, buttons.length - 1);
+        if (newIndex === buttons.length - 1 && index !== newIndex) {
+          announcement = `Jumped to last track. ${newIndex + 1} of ${buttons.length}.`;
+        }
+        break;
+        
+      case 'PageUp':
+        e.preventDefault();
+        e.stopPropagation();
+        // Move 5 items up (or to beginning)
+        newIndex = Math.max(index - 5, 0);
+        if (newIndex === 0 && index !== newIndex) {
+          announcement = `Jumped to first track. 1 of ${buttons.length}.`;
         }
         break;
         
       case 'Home':
         e.preventDefault();
+        e.stopPropagation();
         // Move to first item
         newIndex = 0;
+        if (index !== 0) {
+          announcement = `First track. 1 of ${buttons.length}.`;
+        }
         break;
         
       case 'End':
         e.preventDefault();
+        e.stopPropagation();
         // Move to last item
-        newIndex = items.length - 1;
+        newIndex = buttons.length - 1;
+        if (index !== buttons.length - 1) {
+          announcement = `Last track. ${buttons.length} of ${buttons.length}.`;
+        }
         break;
     }
     
     // Update tab indices for roving tabindex pattern
     if (newIndex !== -1 && newIndex !== index) {
-      items[index].setAttribute('tabIndex', '-1');
-      items[newIndex].setAttribute('tabIndex', '0');
-      items[newIndex].focus();
+      buttons[index].setAttribute('tabIndex', '-1');
+      buttons[newIndex].setAttribute('tabIndex', '0');
+      buttons[newIndex].focus();
+    }
+    
+    // Announce navigation feedback
+    if (announcement && this.navigationFeedback) {
+      this.navigationFeedback.textContent = announcement;
+      // Clear after a short delay to allow for repeated announcements
+      setTimeout(() => {
+        if (this.navigationFeedback) {
+          this.navigationFeedback.textContent = '';
+        }
+      }, 1000);
     }
   }
   
@@ -505,32 +662,42 @@ export class PlaylistManager {
     if (!this.playlistPanel) return;
     
     const items = this.playlistPanel.querySelectorAll('.vidply-playlist-item');
+    const buttons = this.playlistPanel.querySelectorAll('.vidply-playlist-item-button');
     
     items.forEach((item, index) => {
+      const button = buttons[index];
+      if (!button) return;
+      
       const track = this.tracks[index];
       const trackPosition = `Track ${index + 1} of ${this.tracks.length}`;
       const trackTitle = track.title || `Track ${index + 1}`;
       const trackArtist = track.artist ? ` by ${track.artist}` : '';
       
       if (index === this.currentIndex) {
+        // Update list item styling
         item.classList.add('vidply-playlist-item-active');
-        item.setAttribute('aria-current', 'true');
-        item.setAttribute('tabIndex', '0'); // Active item should be tabbable
+        
+        // Update button ARIA attributes
+        button.setAttribute('aria-current', 'true');
+        button.setAttribute('tabIndex', '0'); // Active item should be tabbable
         
         const statusText = 'Currently playing';
         const actionText = 'Press Enter to restart';
-        item.setAttribute('aria-label', `${trackPosition}. ${trackTitle}${trackArtist}. ${statusText}. ${actionText}.`);
+        button.setAttribute('aria-label', `${trackPosition}. ${trackTitle}${trackArtist}. ${statusText}. ${actionText}.`);
         
         // Scroll into view
         item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
+        // Update list item styling
         item.classList.remove('vidply-playlist-item-active');
-        item.removeAttribute('aria-current');
-        item.setAttribute('tabIndex', '-1'); // Remove from tab order (use arrow keys)
+        
+        // Update button ARIA attributes
+        button.removeAttribute('aria-current');
+        button.setAttribute('tabIndex', '-1'); // Remove from tab order (use arrow keys)
         
         const statusText = 'Not playing';
         const actionText = 'Press Enter to play';
-        item.setAttribute('aria-label', `${trackPosition}. ${trackTitle}${trackArtist}. ${statusText}. ${actionText}.`);
+        button.setAttribute('aria-label', `${trackPosition}. ${trackTitle}${trackArtist}. ${statusText}. ${actionText}.`);
       }
     });
   }
@@ -625,6 +792,67 @@ export class PlaylistManager {
       this.trackInfoElement.innerHTML = '';
       this.trackInfoElement.style.display = 'none';
     }
+  }
+  
+  /**
+   * Toggle playlist panel visibility
+   * @param {boolean} show - Optional: force show (true) or hide (false)
+   * @returns {boolean} - New visibility state
+   */
+  togglePanel(show) {
+    if (!this.playlistPanel) return false;
+    
+    // Determine new state
+    const shouldShow = show !== undefined ? show : this.playlistPanel.style.display === 'none';
+    
+    if (shouldShow) {
+      this.playlistPanel.style.display = 'block';
+      this.isPanelVisible = true;
+      
+      // Focus first item if playlist has tracks
+      if (this.tracks.length > 0) {
+        setTimeout(() => {
+          const firstItem = this.playlistPanel.querySelector('.vidply-playlist-item[tabindex="0"]');
+          if (firstItem) {
+            firstItem.focus();
+          }
+        }, 100);
+      }
+      
+      // Update toggle button state if it exists
+      if (this.player.controlBar && this.player.controlBar.controls.playlistToggle) {
+        this.player.controlBar.controls.playlistToggle.setAttribute('aria-expanded', 'true');
+        this.player.controlBar.controls.playlistToggle.setAttribute('aria-pressed', 'true');
+      }
+    } else {
+      this.playlistPanel.style.display = 'none';
+      this.isPanelVisible = false;
+      
+      // Update toggle button state if it exists
+      if (this.player.controlBar && this.player.controlBar.controls.playlistToggle) {
+        this.player.controlBar.controls.playlistToggle.setAttribute('aria-expanded', 'false');
+        this.player.controlBar.controls.playlistToggle.setAttribute('aria-pressed', 'false');
+        
+        // Return focus to toggle button
+        this.player.controlBar.controls.playlistToggle.focus();
+      }
+    }
+    
+    return this.isPanelVisible;
+  }
+  
+  /**
+   * Show playlist panel
+   */
+  showPanel() {
+    return this.togglePanel(true);
+  }
+  
+  /**
+   * Hide playlist panel
+   */
+  hidePanel() {
+    return this.togglePanel(false);
   }
   
   /**

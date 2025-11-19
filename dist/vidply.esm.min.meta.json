@@ -6,32 +6,32 @@
       "format": "esm"
     },
     "src/utils/DOMUtils.js": {
-      "bytes": 5273,
+      "bytes": 3884,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/en.js": {
-      "bytes": 6285,
+      "bytes": 6319,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.js": {
-      "bytes": 7725,
+      "bytes": 7774,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.js": {
-      "bytes": 7296,
+      "bytes": 7346,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.js": {
-      "bytes": 7513,
+      "bytes": 7560,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.js": {
-      "bytes": 7920,
+      "bytes": 7972,
       "imports": [],
       "format": "esm"
     },
@@ -99,7 +99,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 124258,
+      "bytes": 125654,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -166,7 +166,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.js": {
-      "bytes": 7519,
+      "bytes": 7809,
       "imports": [],
       "format": "esm"
     },
@@ -386,7 +386,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 22987,
+      "bytes": 26102,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -435,22 +435,22 @@
           "bytesInOutput": 436
         },
         "src/utils/DOMUtils.js": {
-          "bytesInOutput": 2002
+          "bytesInOutput": 1581
         },
         "src/i18n/languages/en.js": {
-          "bytesInOutput": 5203
+          "bytesInOutput": 5230
         },
         "src/i18n/languages/de.js": {
-          "bytesInOutput": 6260
+          "bytesInOutput": 6298
         },
         "src/i18n/languages/es.js": {
-          "bytesInOutput": 6366
+          "bytesInOutput": 6411
         },
         "src/i18n/languages/fr.js": {
-          "bytesInOutput": 6640
+          "bytesInOutput": 6680
         },
         "src/i18n/languages/ja.js": {
-          "bytesInOutput": 11370
+          "bytesInOutput": 11448
         },
         "src/i18n/translations.js": {
           "bytesInOutput": 64
@@ -468,7 +468,7 @@
           "bytesInOutput": 222
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 52614
+          "bytesInOutput": 53406
         },
         "src/utils/StorageManager.js": {
           "bytesInOutput": 1606
@@ -480,7 +480,7 @@
           "bytesInOutput": 7325
         },
         "src/controls/KeyboardManager.js": {
-          "bytesInOutput": 3946
+          "bytesInOutput": 3991
         },
         "src/utils/MenuUtils.js": {
           "bytesInOutput": 1900
@@ -507,13 +507,13 @@
           "bytesInOutput": 5389
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 10661
+          "bytesInOutput": 12116
         },
         "src/index.js": {
           "bytesInOutput": 1869
         }
       },
-      "bytes": 280505
+      "bytes": 282604
     }
   }
 }

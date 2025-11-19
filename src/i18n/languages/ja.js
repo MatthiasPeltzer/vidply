@@ -15,6 +15,7 @@ export const ja = {
     forwardSeconds: '{seconds}秒進める',
     previous: '前のトラック',
     next: '次のトラック',
+    playlist: 'プレイリストの切り替え',
     volume: '音量',
     mute: 'ミュート',
     unmute: 'ミュート解除',
