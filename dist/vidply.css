@@ -574,13 +574,12 @@
     left: 0;
     opacity: 0;
     overflow: visible;
-    z-index: 30; /* Always above playlist (z-index: 15) and menus */
     padding: 20px 16px 16px;
     pointer-events: none;
     position: absolute;
     right: 0;
     transition: opacity 0.3s ease;
-    z-index: 10;
+    z-index: 30; /* Always above playlist (z-index: 15) and menus */
 }
 
 .vidply-controls.vidply-controls-visible,
@@ -1066,6 +1065,7 @@
     left: auto !important;
     max-width: calc(100vw - 20px);
     right: 0 !important;
+    z-index: 1000; /* Ensure menu appears above all player elements including playlist */
 
     /* Ensure menu stays within viewport */
     transform: none !important;
@@ -2132,6 +2132,18 @@
     transform: translateY(0);
 }
 
+/* Ensure all menus appear above the playlist in fullscreen */
+.vidply-player.vidply-fullscreen .vidply-menu,
+.vidply-player:fullscreen .vidply-menu {
+    z-index: 1000; /* High z-index to appear above playlist */
+}
+
+/* Menus at container level in fullscreen need absolute positioning */
+.vidply-player.vidply-fullscreen > .vidply-menu,
+.vidply-player:fullscreen > .vidply-menu {
+    position: absolute;
+}
+
 /* Fullscreen playlist styling - horizontal scrollable layout like YouTube */
 .vidply-player.vidply-fullscreen .vidply-playlist-list,
 .vidply-player:fullscreen .vidply-playlist-list {
@@ -2215,12 +2227,7 @@
 
 .vidply-player.vidply-fullscreen .vidply-playlist-item-icon,
 .vidply-player:fullscreen .vidply-playlist-item-icon {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: var(--vidply-black-80);
-    border-radius: 50%;
-    padding: 8px;
+    display: none !important;
 }
 
 /* Fullscreen playlist scrollbar styling - horizontal */

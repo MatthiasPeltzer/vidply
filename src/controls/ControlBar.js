@@ -48,6 +48,58 @@ export class ControlBar {
     positionMenu(menu, button, immediate = false) {
         const isMobile = this.isMobile();
         const isOverflowMenu = menu.classList.contains(`${this.player.options.classPrefix}-overflow-menu-list`);
+        const isFullscreen = this.player.state.fullscreen;
+        
+        // In fullscreen, menu is appended to player container, so use fixed positioning
+        if (isFullscreen && menu.parentElement === this.player.container) {
+            const doFullscreenPositioning = () => {
+                const buttonRect = button.getBoundingClientRect();
+                const menuRect = menu.getBoundingClientRect();
+                const containerRect = this.player.container.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                
+                // Position relative to player container
+                const buttonCenterX = buttonRect.left + buttonRect.width / 2 - containerRect.left;
+                const buttonTop = buttonRect.top - containerRect.top;
+                const buttonBottom = buttonRect.bottom - containerRect.top;
+                
+                const spaceAbove = buttonRect.top - containerRect.top;
+                const spaceBelow = containerRect.bottom - buttonRect.bottom;
+                
+                // Position menu above button by default
+                if (spaceAbove >= menuRect.height + 20 || spaceAbove > spaceBelow) {
+                    menu.style.bottom = `${containerRect.height - buttonTop + 8}px`;
+                    menu.style.top = 'auto';
+                    menu.classList.remove('vidply-menu-below');
+                } else {
+                    // Position below if more space there
+                    menu.style.top = `${buttonBottom + 8}px`;
+                    menu.style.bottom = 'auto';
+                    menu.classList.add('vidply-menu-below');
+                }
+                
+                // Horizontal positioning
+                if (isOverflowMenu) {
+                    // Overflow menu aligns to right
+                    const buttonRight = buttonRect.right - containerRect.left;
+                    menu.style.right = `${containerRect.width - buttonRight}px`;
+                    menu.style.left = 'auto';
+                    menu.style.transform = 'none';
+                } else {
+                    // Other menus center on button
+                    menu.style.left = `${buttonCenterX}px`;
+                    menu.style.right = 'auto';
+                    menu.style.transform = 'translateX(-50%)';
+                }
+            };
+            
+            if (immediate) {
+                doFullscreenPositioning();
+            } else {
+                requestAnimationFrame(doFullscreenPositioning);
+            }
+            return;
+        }
         
         if (isMobile) {
             // On mobile, ensure menus stay within viewport
@@ -212,6 +264,31 @@ export class ControlBar {
         }
     }
 
+    // Helper method to insert menu into DOM (handles fullscreen vs normal mode)
+    insertMenuIntoDOM(menu, button) {
+        // Ensure menu has an ID for aria-controls relationship
+        if (!menu.id) {
+            menu.id = `vidply-menu-${Math.random().toString(36).substr(2, 9)}`;
+        }
+        
+        // Set ARIA attributes for screen reader users (WCAG 4.1.2)
+        button.setAttribute('aria-controls', menu.id);
+        button.setAttribute('aria-haspopup', 'true');
+        
+        // In fullscreen, append menu to player container to escape video-wrapper stacking context
+        // This allows menus to appear above the playlist panel
+        // Otherwise, keep it after the button for WCAG compliance
+        const isFullscreen = this.player.state.fullscreen;
+        if (isFullscreen) {
+            // Append to player container as sibling to playlist panel
+            this.player.container.appendChild(menu);
+            // Store reference to button for positioning
+            menu.dataset.triggerButton = button.getAttribute('aria-label') || 'button';
+        } else {
+            // Insert menu right after the button in the DOM for keyboard navigation
+            button.insertAdjacentElement('afterend', menu);
+        }
+    }
 
     // Helper method to attach close-on-outside-click behavior to menus
     attachMenuCloseHandler(menu, button, preventCloseOnInteraction = false) {
@@ -404,6 +481,12 @@ export class ControlBar {
         }
         if (button) {
             button.setAttribute('aria-expanded', 'false');
+            // Clean up aria-controls since menu is removed (optional, but cleaner)
+            // Note: Keeping it doesn't cause issues, but removing it is semantically correct
+            // when the referenced element no longer exists
+            if (menu && menu.id) {
+                button.removeAttribute('aria-controls');
+            }
             // Only return focus if explicitly requested (not when tabbing away)
             if (returnFocus) {
                 // Use requestAnimationFrame to ensure DOM updates are complete before focusing
@@ -1244,8 +1327,8 @@ export class ControlBar {
         volumeMenu.style.visibility = 'hidden';
         volumeMenu.style.display = 'block';
         
-        // Insert menu right after the button in the DOM
-        button.insertAdjacentElement('afterend', volumeMenu);
+        // Insert menu into DOM (handles fullscreen positioning)
+        this.insertMenuIntoDOM(volumeMenu, button);
         
         // Position immediately (synchronously) while hidden
         this.positionMenu(volumeMenu, button, true);
@@ -1483,8 +1566,8 @@ export class ControlBar {
         menu.style.visibility = 'hidden';
         menu.style.display = 'block';
         
-        // Insert menu right after the button in the DOM
-        button.insertAdjacentElement('afterend', menu);
+        // Insert menu into DOM (handles fullscreen positioning)
+        this.insertMenuIntoDOM(menu, button);
         
         // Position immediately (synchronously) while hidden
         this.positionMenu(menu, button, true);
@@ -1657,8 +1740,8 @@ export class ControlBar {
         menu.style.visibility = 'hidden';
         menu.style.display = 'block';
         
-        // Insert menu right after the button in the DOM
-        button.insertAdjacentElement('afterend', menu);
+        // Insert menu into DOM (handles fullscreen positioning)
+        this.insertMenuIntoDOM(menu, button);
         
         // Position immediately (synchronously) while hidden
         this.positionMenu(menu, button, true);
@@ -1746,8 +1829,8 @@ export class ControlBar {
             menu.style.visibility = 'hidden';
             menu.style.display = 'block';
             
-            // Insert menu right after the button in the DOM
-            button.insertAdjacentElement('afterend', menu);
+            // Insert menu into DOM (handles fullscreen positioning)
+            this.insertMenuIntoDOM(menu, button);
             
             // Position immediately (synchronously) while hidden
             this.positionMenu(menu, button, true);
@@ -1807,8 +1890,8 @@ export class ControlBar {
         menu.style.visibility = 'hidden';
         menu.style.display = 'block';
         
-        // Insert menu right after the button in the DOM
-        button.insertAdjacentElement('afterend', menu);
+        // Insert menu into DOM (handles fullscreen positioning)
+        this.insertMenuIntoDOM(menu, button);
         
         // Position immediately (synchronously) while hidden
         this.positionMenu(menu, button, true);
@@ -2138,8 +2221,8 @@ export class ControlBar {
         menu.style.visibility = 'hidden';
         menu.style.display = 'block';
         
-        // Insert menu right after the button in the DOM
-        button.insertAdjacentElement('afterend', menu);
+        // Insert menu into DOM (handles fullscreen positioning)
+        this.insertMenuIntoDOM(menu, button);
         
         // Position immediately (synchronously) while hidden
         this.positionMenu(menu, button, true);
@@ -2219,8 +2302,8 @@ export class ControlBar {
             });
             menu.appendChild(noTracksItem);
 
-            // Insert menu right after the button in the DOM
-            button.insertAdjacentElement('afterend', menu);
+            // Insert menu into DOM (handles fullscreen positioning)
+            this.insertMenuIntoDOM(menu, button);
 
             // Close menu on outside click
             this.attachMenuCloseHandler(menu, button);
@@ -2285,8 +2368,8 @@ export class ControlBar {
             menu.appendChild(item);
         });
 
-        // Insert menu right after the button in the DOM
-        button.insertAdjacentElement('afterend', menu);
+        // Insert menu into DOM (handles fullscreen positioning)
+        this.insertMenuIntoDOM(menu, button);
 
         // Add keyboard navigation for the menu
         this.attachMenuKeyboardNavigation(menu, button);
@@ -2891,8 +2974,8 @@ export class ControlBar {
         menu.style.visibility = 'hidden';
         menu.style.display = 'block';
         
-        // Insert menu right after the button in the DOM
-        button.insertAdjacentElement('afterend', menu);
+        // Insert menu into DOM (handles fullscreen positioning)
+        this.insertMenuIntoDOM(menu, button);
         
         // Position immediately (synchronously) while hidden
         this.positionMenu(menu, button, true);
