@@ -39,17 +39,21 @@ Try VidPly in action:
   - Video playlists with thumbnails
   - Previous/Next controls
   - Visual playlist panel
+  - **Fullscreen Mode**: YouTube-style horizontal carousel
+    - Auto-show/hide based on playback state
+    - Swipeable touch interface
+    - Responsive card layout
 
-### Accessibility Features
-- **Full Keyboard Navigation** - WCAG 2.1 compliant
-- **Screen Reader Support** - Complete ARIA labels
-- **Interactive Transcripts** - Click-to-seek transcript window with move and resize controls
-- **Sign Language Overlay** - Picture-in-picture sign language video with drag/resize controls and language switching
-- **Audio Description** - Alternate audio track with descriptions
-- **Customizable Shortcuts** - User-definable hotkeys
-- **High Contrast Mode** - Windows HCM support
-- **Focus Indicators** - Clear visual focus states
-- **Live Announcements** - Screen reader updates
+### Accessibility Features (WCAG 2.1 AA Compliant)
+- **Full Keyboard Navigation** - All features accessible via keyboard, custom shortcuts, menu navigation with Arrow keys
+- **Screen Reader Support** - Complete ARIA labels (`aria-controls`, `aria-expanded`, `aria-haspopup`), live regions
+- **Interactive Transcripts** - Click-to-seek, searchable, auto-scroll with proper semantic HTML
+- **Sign Language Overlay** - Picture-in-picture with drag/resize, keyboard accessible
+- **Audio Description** - Alternate audio track with visual content descriptions
+- **Caption Styling** - Fully customizable (font, size, color, opacity, edge style)
+- **High Contrast Mode** - Windows HCM support, color-independent design
+- **Focus Management** - Logical focus order, programmatic focus handling, visible indicators
+- **Touch Accessibility** - 44x44px minimum touch targets, swipeable interfaces
 
 ### Captions & Subtitles
 - **WebVTT Support** - Standard caption format
@@ -64,7 +68,7 @@ Try VidPly in action:
 - **Seek Controls** - Forward/backward navigation
 - **Volume Control** - 0-100% with mute
 - **Loop Playback** - Single or playlist loop
-- **Fullscreen Mode** - Native fullscreen API
+- **Fullscreen Mode** - Native fullscreen API with smart playlist overlay
 - **Picture-in-Picture** - PiP support
 
 ### Internationalization
@@ -682,7 +686,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 - [Getting Started Guide](docs/GETTING_STARTED.md) - Basic setup and usage
 - [Usage Guide](docs/USAGE.md) - Detailed usage examples
-- [Playlist Guide](docs/PLAYLIST.md) - Audio/video playlists
+- [Playlist Guide](docs/PLAYLIST.md) - Audio/video playlists with fullscreen support
 - [Transcript Guide](docs/TRANSCRIPT.md) - Interactive transcripts
 - [Keyboard Shortcuts](docs/KEYBOARD.md) - Complete keyboard reference
 - [Build Guide](docs/BUILD.md) - Build system and development
