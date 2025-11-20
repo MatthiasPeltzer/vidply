@@ -6048,17 +6048,14 @@ var VidPly = (() => {
      * Create a single transcript entry element
      */
     createTranscriptEntry(cue, index, type = "caption") {
-      const readableTime = TimeUtils.formatDuration(cue.startTime);
       const entryText = this.stripVTTFormatting(cue.text);
-      const accessibleLabel = `${readableTime}: ${entryText}`;
-      const entry = DOMUtils.createElement("button", {
+      const entry = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-transcript-entry ${this.player.options.classPrefix}-transcript-${type}`,
         attributes: {
-          "type": "button",
+          "tabindex": "0",
           "data-start": String(cue.startTime),
           "data-end": String(cue.endTime),
-          "data-type": type,
-          "aria-label": accessibleLabel
+          "data-type": type
         }
       });
       const timestamp = DOMUtils.createElement("span", {
@@ -6066,16 +6063,12 @@ var VidPly = (() => {
         textContent: TimeUtils.formatTime(cue.startTime),
         attributes: {
           "aria-hidden": "true"
-          // Hide from screen readers since aria-label on parent is used
+          // Hide from screen readers - decorative timestamp
         }
       });
       const text = DOMUtils.createElement("span", {
         className: `${this.player.options.classPrefix}-transcript-text`,
-        textContent: entryText,
-        attributes: {
-          "aria-hidden": "true"
-          // Hide from screen readers since aria-label on parent is used
-        }
+        textContent: entryText
       });
       entry.appendChild(timestamp);
       entry.appendChild(text);
