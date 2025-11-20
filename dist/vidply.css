@@ -574,6 +574,7 @@
     left: 0;
     opacity: 0;
     overflow: visible;
+    z-index: 30; /* Always above playlist (z-index: 15) and menus */
     padding: 20px 16px 16px;
     pointer-events: none;
     position: absolute;
@@ -1687,11 +1688,53 @@
 
 /* In fullscreen PORTRAIT mode - keep controls below video (mobile layout) */
 @media (orientation: portrait) {
+    /* Make player a relative container */
+    .vidply-player.vidply-fullscreen,
+    .vidply-player:fullscreen {
+        position: relative !important;
+        height: 100vh !important;
+        width: 100vw !important;
+    }
+    
+    /* Make video wrapper fill entire screen - positioned absolutely */
+    .vidply-player.vidply-fullscreen .vidply-video-wrapper,
+    .vidply-player:fullscreen .vidply-video-wrapper {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        z-index: 1 !important;
+    }
+    
+    .vidply-player.vidply-fullscreen video,
+    .vidply-player:fullscreen video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain !important;
+    }
+    
     .vidply-player.vidply-fullscreen .vidply-controls,
     .vidply-player:fullscreen .vidply-controls {
-        /* Keep mobile layout - controls below video */
-        order: 2 !important;
-        position: relative !important;
+        /* Position controls at the bottom */
+        position: absolute !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 30 !important; /* Above playlist */
+    }
+    
+    /* Force playlist to truly overlay - above video, below controls */
+    .vidply-player.vidply-fullscreen .vidply-playlist-panel,
+    .vidply-player:fullscreen .vidply-playlist-panel {
+        position: absolute !important; /* Absolute relative to player */
+        bottom: 80px !important; /* Above controls (typical control height is ~80px) */
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 15 !important; /* Above video (z-index:1), below controls (z-index:30) */
+        margin: 0 !important;
     }
 }
 
@@ -1919,23 +1962,58 @@
         max-height: 80vh;
     }
     
-    /* Landscape fullscreen playlist - optimize for horizontal space */
+    /* Landscape fullscreen playlist - horizontal scrolling */
     .vidply-player.vidply-fullscreen .vidply-playlist-panel,
     .vidply-player:fullscreen .vidply-playlist-panel {
-        bottom: 70px;
-        max-height: 35vh; /* Less height in landscape to avoid covering too much video */
+        bottom: 70px; /* Directly above controls */
+        max-height: 30vh; /* Less height in landscape */
+        padding: 10px 0;
+        overflow-y: hidden;
+        overflow-x: auto;
     }
     
-    /* Landscape playlist items - smaller cards */
+    /* Landscape playlist list - horizontal row */
+    .vidply-player.vidply-fullscreen .vidply-playlist-list,
+    .vidply-player:fullscreen .vidply-playlist-list {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 8px;
+        padding: 0 10px;
+    }
+    
+    /* Landscape items - smaller vertical cards */
     .vidply-player.vidply-fullscreen .vidply-playlist-item,
     .vidply-player:fullscreen .vidply-playlist-item {
-        min-width: 220px;
-        max-width: 260px;
+        width: 180px;
+        min-width: 180px;
+        max-width: 180px;
+        flex-shrink: 0;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-playlist-item-button,
+    .vidply-player:fullscreen .vidply-playlist-item-button {
+        flex-direction: column;
+        gap: 0;
+        padding: 0;
     }
     
     .vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
     .vidply-player:fullscreen .vidply-playlist-thumbnail {
-        height: 120px;
+        height: 100px;
+        width: 100%;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-playlist-item-info,
+    .vidply-player:fullscreen .vidply-playlist-item-info {
+        padding: 8px;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-playlist-header,
+    .vidply-player:fullscreen .vidply-playlist-header {
+        padding: 0 10px 8px;
+        font-size: 11px;
+        flex-shrink: 0;
     }
 }
 
@@ -2033,17 +2111,17 @@
     backdrop-filter: blur(10px);
     border: none;
     border-top: 1px solid var(--vidply-border);
-    bottom: 80px; /* Above controls */
+    bottom: 80px; /* Directly above controls */
     left: 0;
     max-height: 50vh; /* Take up to half the screen */
     opacity: 0;
     overflow-x: hidden;
     overflow-y: auto;
     pointer-events: none;
-    position: absolute;
+    position: absolute !important; /* Force absolute positioning over video */
     right: 0;
     transform: translateY(20px);
-    z-index: 15; /* Above video (z-index: 1) but below controls (z-index: 20) */
+    z-index: 15; /* Above video (z-index: 1) but below controls (z-index: 30) */
 }
 
 /* Show playlist panel in fullscreen when visible */
@@ -3646,47 +3724,87 @@
         font-size: 16px;
     }
     
-    /* Mobile fullscreen playlist - adjust for smaller screens */
+    /* Mobile fullscreen playlist - horizontal scrolling directly above controls */
     .vidply-player.vidply-fullscreen .vidply-playlist-panel,
     .vidply-player:fullscreen .vidply-playlist-panel {
-        bottom: 60px; /* Smaller offset for mobile controls */
-        max-height: 50vh; /* Adjust for horizontal cards */
+        bottom: 100px; /* Directly above controls with extra space */
+        max-height: 35vh; /* Compact height */
+        padding: 12px 0; /* Vertical padding only */
+        overflow-y: hidden; /* No vertical scrolling */
+        overflow-x: auto; /* Horizontal scrolling */
+        position: absolute !important; /* Force absolute over video */
     }
     
-    /* Mobile playlist items - smaller cards for touch */
+    /* Mobile playlist list - horizontal row, no wrapping */
+    .vidply-player.vidply-fullscreen .vidply-playlist-list,
+    .vidply-player:fullscreen .vidply-playlist-list {
+        flex-direction: row; /* Items side by side */
+        flex-wrap: nowrap; /* Never wrap */
+        gap: 8px;
+        padding: 0 12px;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+    }
+    
+    /* Mobile playlist items - only show thumbnails */
     .vidply-player.vidply-fullscreen .vidply-playlist-item,
     .vidply-player:fullscreen .vidply-playlist-item {
-        min-width: 220px;
-        max-width: 240px;
+        width: 120px; /* Smaller width for thumbnail-only */
+        min-width: 120px;
+        max-width: 120px;
+        flex-shrink: 0; /* Don't shrink */
+        scroll-snap-align: start;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-playlist-item-button,
+    .vidply-player:fullscreen .vidply-playlist-item-button {
+        flex-direction: column;
+        gap: 0;
+        padding: 0;
     }
     
     .vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
     .vidply-player:fullscreen .vidply-playlist-thumbnail {
-        height: 124px;
+        height: 90px; /* Square-ish thumbnail */
+        width: 100%; /* Full width of card */
+        flex-shrink: 0;
+        border-radius: 8px; /* Fully rounded for thumbnail-only */
     }
     
+    /* Hide text info on mobile - show only thumbnails */
     .vidply-player.vidply-fullscreen .vidply-playlist-item-info,
     .vidply-player:fullscreen .vidply-playlist-item-info {
-        padding: 10px;
+        display: none; /* Hide text on mobile */
     }
     
-    .vidply-player.vidply-fullscreen .vidply-playlist-item-title,
-    .vidply-player:fullscreen .vidply-playlist-item-title {
-        font-size: 13px;
+    /* If no thumbnail, show only text */
+    .vidply-player.vidply-fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-info,
+    .vidply-player:fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-info {
+        display: flex;
+        flex-direction: column;
+        padding: 8px;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        height: 90px;
     }
     
-    .vidply-player.vidply-fullscreen .vidply-playlist-item-artist,
-    .vidply-player:fullscreen .vidply-playlist-item-artist {
+    .vidply-player.vidply-fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-title,
+    .vidply-player:fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-title {
         font-size: 11px;
+        -webkit-line-clamp: 3;
     }
     
-    /* Ensure touch scrolling works smoothly */
-    .vidply-player.vidply-fullscreen .vidply-playlist-list,
-    .vidply-player:fullscreen .vidply-playlist-list {
-        -webkit-overflow-scrolling: touch;
-        scroll-behavior: smooth;
-        gap: 8px;
-        padding: 8px 12px;
+    .vidply-player.vidply-fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-artist,
+    .vidply-player:fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-artist {
+        font-size: 9px;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-playlist-header,
+    .vidply-player:fullscreen .vidply-playlist-header {
+        padding: 0 12px 8px;
+        font-size: 11px;
+        flex-shrink: 0;
     }
 
     /* Mobile transcript underneath video and controls */
