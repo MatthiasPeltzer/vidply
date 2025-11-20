@@ -2488,9 +2488,11 @@
 
 .vidply-transcript-language-label {
     /* Visible label for voice input accessibility */
-    color: var(--vidply-white);
-    font-size: 12px;
-    font-weight: 500;
+    color: var(--vidply-text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 400;
+    margin-left: 8px;
     white-space: nowrap;
 }
 
@@ -2500,6 +2502,7 @@
     border-radius: 4px;
     color: var(--vidply-text);
     font-size: 14px;
+    max-width: 120px;
     padding: 4px 8px;
 }
 
