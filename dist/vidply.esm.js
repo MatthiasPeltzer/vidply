@@ -1430,7 +1430,8 @@ var iconPaths = {
   moreVertical: `<path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>`,
   moreHorizontal: `<path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>`,
   move: `<path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/>`,
-  resize: `<path d="M21.71 11.29l-9-9c-.39-.39-1.02-.39-1.41 0l-9 9c-.39.39-.39 1.02 0 1.41l9 9c.39.39 1.02.39 1.41 0l9-9c.39-.38.39-1.01 0-1.41zM14 14.5V12h-4v2.5L7 11l3-3.5V10h4V7.5l3 3.5-3 3.5z"/>`
+  resize: `<path d="M21.71 11.29l-9-9c-.39-.39-1.02-.39-1.41 0l-9 9c-.39.39-.39 1.02 0 1.41l9 9c.39.39 1.02.39 1.41 0l9-9c.39-.38.39-1.01 0-1.41zM14 14.5V12h-4v2.5L7 11l3-3.5V10h4V7.5l3 3.5-3 3.5z"/>`,
+  clock: `<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>`
 };
 var svgWrapper = (paths) => `<svg viewBox="0 0 24 24" fill="currentColor">${paths}</svg>`;
 var Icons = Object.fromEntries(
@@ -6370,8 +6371,7 @@ var TranscriptManager = class {
     const showTimestampsOption = createMenuItem({
       classPrefix: this.player.options.classPrefix,
       itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
-      icon: "captions",
-      // Using captions icon as a clock/time reference
+      icon: "clock",
       label: "transcript.showTimestamps",
       hasTextClass: true,
       onClick: () => {
@@ -11075,6 +11075,10 @@ var PlaylistManager = class {
   init() {
     this.player.on("ended", this.handleTrackEnd);
     this.player.on("error", this.handleTrackError);
+    this.player.on("play", this.handlePlaybackStateChange.bind(this));
+    this.player.on("pause", this.handlePlaybackStateChange.bind(this));
+    this.player.on("ended", this.handlePlaybackStateChange.bind(this));
+    this.player.on("fullscreenchange", this.handleFullscreenChange.bind(this));
     if (this.options.showPanel) {
       this.createUI();
     }
@@ -11170,6 +11174,7 @@ var PlaylistManager = class {
         this.loadTrack(0);
       }
     }
+    this.updatePlaylistVisibilityInFullscreen();
   }
   /**
    * Load a track without playing
@@ -11270,6 +11275,50 @@ var PlaylistManager = class {
       setTimeout(() => {
         this.next();
       }, 1e3);
+    }
+  }
+  /**
+   * Handle playback state changes (for fullscreen playlist visibility)
+   */
+  handlePlaybackStateChange() {
+    this.updatePlaylistVisibilityInFullscreen();
+  }
+  /**
+   * Handle fullscreen state changes
+   */
+  handleFullscreenChange() {
+    setTimeout(() => {
+      this.updatePlaylistVisibilityInFullscreen();
+    }, 50);
+  }
+  /**
+   * Update playlist visibility based on fullscreen and playback state
+   * In fullscreen: show when paused/not started, hide when playing
+   * Outside fullscreen: respect original panel visibility setting
+   */
+  updatePlaylistVisibilityInFullscreen() {
+    if (!this.playlistPanel || !this.tracks.length) return;
+    const isFullscreen = this.player.state.fullscreen;
+    const isPlaying = this.player.state.playing;
+    if (isFullscreen) {
+      if (!isPlaying) {
+        this.playlistPanel.classList.add("vidply-playlist-fullscreen-visible");
+        this.playlistPanel.style.display = "block";
+      } else {
+        this.playlistPanel.classList.remove("vidply-playlist-fullscreen-visible");
+        setTimeout(() => {
+          if (this.player.state.playing && this.player.state.fullscreen) {
+            this.playlistPanel.style.display = "none";
+          }
+        }, 300);
+      }
+    } else {
+      this.playlistPanel.classList.remove("vidply-playlist-fullscreen-visible");
+      if (this.isPanelVisible && this.tracks.length > 0) {
+        this.playlistPanel.style.display = "block";
+      } else {
+        this.playlistPanel.style.display = "none";
+      }
     }
   }
   /**

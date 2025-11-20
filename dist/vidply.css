@@ -1918,6 +1918,25 @@
     .vidply-settings-dialog {
         max-height: 80vh;
     }
+    
+    /* Landscape fullscreen playlist - optimize for horizontal space */
+    .vidply-player.vidply-fullscreen .vidply-playlist-panel,
+    .vidply-player:fullscreen .vidply-playlist-panel {
+        bottom: 70px;
+        max-height: 35vh; /* Less height in landscape to avoid covering too much video */
+    }
+    
+    /* Landscape playlist items - smaller cards */
+    .vidply-player.vidply-fullscreen .vidply-playlist-item,
+    .vidply-player:fullscreen .vidply-playlist-item {
+        min-width: 220px;
+        max-width: 260px;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
+    .vidply-player:fullscreen .vidply-playlist-thumbnail {
+        height: 120px;
+    }
 }
 
 /* Extra small screens */
@@ -2003,7 +2022,190 @@
     overflow-y: auto;
     position: relative;
     touch-action: pan-y;
+    transition: opacity 0.3s ease, transform 0.3s ease;
     z-index: 1; /* Below menus (z-index: 20) but part of player stacking context */
+}
+
+/* Fullscreen Playlist Panel - YouTube-style overlay above controls */
+.vidply-player.vidply-fullscreen .vidply-playlist-panel,
+.vidply-player:fullscreen .vidply-playlist-panel {
+    background: linear-gradient(to top, rgb(0 0 0 / 95%) 0%, rgb(0 0 0 / 90%) 100%);
+    backdrop-filter: blur(10px);
+    border: none;
+    border-top: 1px solid var(--vidply-border);
+    bottom: 80px; /* Above controls */
+    left: 0;
+    max-height: 50vh; /* Take up to half the screen */
+    opacity: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    transform: translateY(20px);
+    z-index: 15; /* Above video (z-index: 1) but below controls (z-index: 20) */
+}
+
+/* Show playlist panel in fullscreen when visible */
+.vidply-player.vidply-fullscreen .vidply-playlist-panel.vidply-playlist-fullscreen-visible,
+.vidply-player:fullscreen .vidply-playlist-panel.vidply-playlist-fullscreen-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+/* Fullscreen playlist styling - horizontal scrollable layout like YouTube */
+.vidply-player.vidply-fullscreen .vidply-playlist-list,
+.vidply-player:fullscreen .vidply-playlist-list {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    padding: 8px 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Fullscreen playlist header - more subtle */
+.vidply-player.vidply-fullscreen .vidply-playlist-header,
+.vidply-player:fullscreen .vidply-playlist-header {
+    background: var(--vidply-black-50);
+    border-bottom: 1px solid var(--vidply-border);
+    font-size: 12px;
+    padding: 10px 16px;
+}
+
+/* Fullscreen playlist items - horizontal card style */
+.vidply-player.vidply-fullscreen .vidply-playlist-item,
+.vidply-player:fullscreen .vidply-playlist-item {
+    flex: 0 0 auto;
+    min-width: 280px;
+    max-width: 320px;
+    scroll-snap-align: start;
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-item-button,
+.vidply-player:fullscreen .vidply-playlist-item-button {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 0;
+    background: var(--vidply-black-40);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-item-button:hover,
+.vidply-player:fullscreen .vidply-playlist-item-button:hover {
+    background: var(--vidply-white-10);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px var(--vidply-black-60);
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
+.vidply-player:fullscreen .vidply-playlist-thumbnail {
+    width: 100%;
+    height: 160px;
+    border-radius: 0;
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-item-info,
+.vidply-player:fullscreen .vidply-playlist-item-info {
+    padding: 12px;
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-item-title,
+.vidply-player:fullscreen .vidply-playlist-item-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-item-artist,
+.vidply-player:fullscreen .vidply-playlist-item-artist {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-item-icon,
+.vidply-player:fullscreen .vidply-playlist-item-icon {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--vidply-black-80);
+    border-radius: 50%;
+    padding: 8px;
+}
+
+/* Fullscreen playlist scrollbar styling - horizontal */
+.vidply-player.vidply-fullscreen .vidply-playlist-panel::-webkit-scrollbar,
+.vidply-player:fullscreen .vidply-playlist-panel::-webkit-scrollbar {
+    height: 8px;
+    width: 10px;
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-panel::-webkit-scrollbar-track,
+.vidply-player:fullscreen .vidply-playlist-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-panel::-webkit-scrollbar-thumb,
+.vidply-player:fullscreen .vidply-playlist-panel::-webkit-scrollbar-thumb {
+    background: var(--vidply-white-30);
+    border-radius: 5px;
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-panel::-webkit-scrollbar-thumb:hover,
+.vidply-player:fullscreen .vidply-playlist-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--vidply-white-50);
+}
+
+/* Horizontal scrollbar for playlist list */
+.vidply-player.vidply-fullscreen .vidply-playlist-list::-webkit-scrollbar,
+.vidply-player:fullscreen .vidply-playlist-list::-webkit-scrollbar {
+    height: 6px;
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-list::-webkit-scrollbar-track,
+.vidply-player:fullscreen .vidply-playlist-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-list::-webkit-scrollbar-thumb,
+.vidply-player:fullscreen .vidply-playlist-list::-webkit-scrollbar-thumb {
+    background: var(--vidply-white-20);
+    border-radius: 3px;
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-list::-webkit-scrollbar-thumb:hover,
+.vidply-player:fullscreen .vidply-playlist-list::-webkit-scrollbar-thumb:hover {
+    background: var(--vidply-white-40);
+}
+
+/* Smooth scroll behavior in fullscreen */
+.vidply-player.vidply-fullscreen .vidply-playlist-panel,
+.vidply-player:fullscreen .vidply-playlist-panel {
+    scroll-behavior: smooth;
+}
+
+/* Active item styling in fullscreen */
+.vidply-player.vidply-fullscreen .vidply-playlist-item-active .vidply-playlist-item-button,
+.vidply-player:fullscreen .vidply-playlist-item-active .vidply-playlist-item-button {
+    border: 2px solid var(--vidply-primary-light);
+    background: var(--vidply-primary-15);
+}
+
+.vidply-player.vidply-fullscreen .vidply-playlist-item-active .vidply-playlist-item-title,
+.vidply-player:fullscreen .vidply-playlist-item-active .vidply-playlist-item-title {
+    color: var(--vidply-primary-light);
 }
 
 .vidply-playlist-header {
@@ -3442,6 +3644,49 @@
 
     .vidply-track-title {
         font-size: 16px;
+    }
+    
+    /* Mobile fullscreen playlist - adjust for smaller screens */
+    .vidply-player.vidply-fullscreen .vidply-playlist-panel,
+    .vidply-player:fullscreen .vidply-playlist-panel {
+        bottom: 60px; /* Smaller offset for mobile controls */
+        max-height: 50vh; /* Adjust for horizontal cards */
+    }
+    
+    /* Mobile playlist items - smaller cards for touch */
+    .vidply-player.vidply-fullscreen .vidply-playlist-item,
+    .vidply-player:fullscreen .vidply-playlist-item {
+        min-width: 220px;
+        max-width: 240px;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
+    .vidply-player:fullscreen .vidply-playlist-thumbnail {
+        height: 124px;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-playlist-item-info,
+    .vidply-player:fullscreen .vidply-playlist-item-info {
+        padding: 10px;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-playlist-item-title,
+    .vidply-player:fullscreen .vidply-playlist-item-title {
+        font-size: 13px;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-playlist-item-artist,
+    .vidply-player:fullscreen .vidply-playlist-item-artist {
+        font-size: 11px;
+    }
+    
+    /* Ensure touch scrolling works smoothly */
+    .vidply-player.vidply-fullscreen .vidply-playlist-list,
+    .vidply-player:fullscreen .vidply-playlist-list {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        gap: 8px;
+        padding: 8px 12px;
     }
 
     /* Mobile transcript underneath video and controls */
