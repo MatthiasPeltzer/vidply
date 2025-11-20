@@ -1433,7 +1433,7 @@ export class TranscriptManager {
     const showTimestampsOption = createMenuItem({
       classPrefix: this.player.options.classPrefix,
       itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
-      icon: 'captions', // Using captions icon as a clock/time reference
+      icon: 'clock',
       label: 'transcript.showTimestamps',
       hasTextClass: true,
       onClick: () => {
