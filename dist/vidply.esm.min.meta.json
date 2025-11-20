@@ -99,7 +99,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 125654,
+      "bytes": 129888,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -295,7 +295,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 199264,
+      "bytes": 203896,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -468,7 +468,7 @@
           "bytesInOutput": 222
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 53406
+          "bytesInOutput": 54429
         },
         "src/utils/StorageManager.js": {
           "bytesInOutput": 1606
@@ -513,7 +513,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 283955
+      "bytes": 284978
     }
   }
 }

@@ -1555,6 +1555,45 @@ var ControlBar = class {
   positionMenu(menu, button, immediate = false) {
     const isMobile2 = this.isMobile();
     const isOverflowMenu = menu.classList.contains(`${this.player.options.classPrefix}-overflow-menu-list`);
+    const isFullscreen = this.player.state.fullscreen;
+    if (isFullscreen && menu.parentElement === this.player.container) {
+      const doFullscreenPositioning = () => {
+        const buttonRect = button.getBoundingClientRect();
+        const menuRect = menu.getBoundingClientRect();
+        const containerRect = this.player.container.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const buttonCenterX = buttonRect.left + buttonRect.width / 2 - containerRect.left;
+        const buttonTop = buttonRect.top - containerRect.top;
+        const buttonBottom = buttonRect.bottom - containerRect.top;
+        const spaceAbove = buttonRect.top - containerRect.top;
+        const spaceBelow = containerRect.bottom - buttonRect.bottom;
+        if (spaceAbove >= menuRect.height + 20 || spaceAbove > spaceBelow) {
+          menu.style.bottom = `${containerRect.height - buttonTop + 8}px`;
+          menu.style.top = "auto";
+          menu.classList.remove("vidply-menu-below");
+        } else {
+          menu.style.top = `${buttonBottom + 8}px`;
+          menu.style.bottom = "auto";
+          menu.classList.add("vidply-menu-below");
+        }
+        if (isOverflowMenu) {
+          const buttonRight = buttonRect.right - containerRect.left;
+          menu.style.right = `${containerRect.width - buttonRight}px`;
+          menu.style.left = "auto";
+          menu.style.transform = "none";
+        } else {
+          menu.style.left = `${buttonCenterX}px`;
+          menu.style.right = "auto";
+          menu.style.transform = "translateX(-50%)";
+        }
+      };
+      if (immediate) {
+        doFullscreenPositioning();
+      } else {
+        requestAnimationFrame(doFullscreenPositioning);
+      }
+      return;
+    }
     if (isMobile2) {
       const isVolumeMenu = menu.classList.contains(`${this.player.options.classPrefix}-volume-menu`);
       const doMobilePositioning = () => {
@@ -1664,6 +1703,21 @@ var ControlBar = class {
       requestAnimationFrame(() => {
         setTimeout(doPositioning, 10);
       });
+    }
+  }
+  // Helper method to insert menu into DOM (handles fullscreen vs normal mode)
+  insertMenuIntoDOM(menu, button) {
+    if (!menu.id) {
+      menu.id = `vidply-menu-${Math.random().toString(36).substr(2, 9)}`;
+    }
+    button.setAttribute("aria-controls", menu.id);
+    button.setAttribute("aria-haspopup", "true");
+    const isFullscreen = this.player.state.fullscreen;
+    if (isFullscreen) {
+      this.player.container.appendChild(menu);
+      menu.dataset.triggerButton = button.getAttribute("aria-label") || "button";
+    } else {
+      button.insertAdjacentElement("afterend", menu);
     }
   }
   // Helper method to attach close-on-outside-click behavior to menus
@@ -1804,6 +1858,9 @@ var ControlBar = class {
     }
     if (button) {
       button.setAttribute("aria-expanded", "false");
+      if (menu && menu.id) {
+        button.removeAttribute("aria-controls");
+      }
       if (returnFocus) {
         requestAnimationFrame(() => {
           setTimeout(() => {
@@ -2431,7 +2488,7 @@ var ControlBar = class {
     });
     volumeMenu.style.visibility = "hidden";
     volumeMenu.style.display = "block";
-    button.insertAdjacentElement("afterend", volumeMenu);
+    this.insertMenuIntoDOM(volumeMenu, button);
     this.positionMenu(volumeMenu, button, true);
     requestAnimationFrame(() => {
       volumeMenu.style.visibility = "visible";
@@ -2610,7 +2667,7 @@ var ControlBar = class {
     }
     menu.style.visibility = "hidden";
     menu.style.display = "block";
-    button.insertAdjacentElement("afterend", menu);
+    this.insertMenuIntoDOM(menu, button);
     this.positionMenu(menu, button, true);
     requestAnimationFrame(() => {
       menu.style.visibility = "visible";
@@ -2739,7 +2796,7 @@ var ControlBar = class {
     }
     menu.style.visibility = "hidden";
     menu.style.display = "block";
-    button.insertAdjacentElement("afterend", menu);
+    this.insertMenuIntoDOM(menu, button);
     this.positionMenu(menu, button, true);
     requestAnimationFrame(() => {
       menu.style.visibility = "visible";
@@ -2803,7 +2860,7 @@ var ControlBar = class {
       menu.appendChild(noTracksItem);
       menu.style.visibility = "hidden";
       menu.style.display = "block";
-      button.insertAdjacentElement("afterend", menu);
+      this.insertMenuIntoDOM(menu, button);
       this.positionMenu(menu, button, true);
       requestAnimationFrame(() => {
         menu.style.visibility = "visible";
@@ -2841,7 +2898,7 @@ var ControlBar = class {
     menu.style.minWidth = "220px";
     menu.style.visibility = "hidden";
     menu.style.display = "block";
-    button.insertAdjacentElement("afterend", menu);
+    this.insertMenuIntoDOM(menu, button);
     this.positionMenu(menu, button, true);
     requestAnimationFrame(() => {
       menu.style.visibility = "visible";
@@ -3106,7 +3163,7 @@ var ControlBar = class {
     });
     menu.style.visibility = "hidden";
     menu.style.display = "block";
-    button.insertAdjacentElement("afterend", menu);
+    this.insertMenuIntoDOM(menu, button);
     this.positionMenu(menu, button, true);
     requestAnimationFrame(() => {
       menu.style.visibility = "visible";
@@ -3164,7 +3221,7 @@ var ControlBar = class {
         style: { opacity: "0.5", cursor: "default" }
       });
       menu.appendChild(noTracksItem);
-      button.insertAdjacentElement("afterend", menu);
+      this.insertMenuIntoDOM(menu, button);
       this.attachMenuCloseHandler(menu, button);
       return;
     }
@@ -3213,7 +3270,7 @@ var ControlBar = class {
       });
       menu.appendChild(item);
     });
-    button.insertAdjacentElement("afterend", menu);
+    this.insertMenuIntoDOM(menu, button);
     this.attachMenuKeyboardNavigation(menu, button);
     this.attachMenuCloseHandler(menu, button);
     setTimeout(() => {
@@ -3649,7 +3706,7 @@ var ControlBar = class {
     }
     menu.style.visibility = "hidden";
     menu.style.display = "block";
-    button.insertAdjacentElement("afterend", menu);
+    this.insertMenuIntoDOM(menu, button);
     this.positionMenu(menu, button, true);
     requestAnimationFrame(() => {
       menu.style.visibility = "visible";
