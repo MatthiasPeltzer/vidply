@@ -59,6 +59,13 @@ export class PlaylistManager {
     this.player.on('ended', this.handleTrackEnd);
     this.player.on('error', this.handleTrackError);
     
+    // Listen for playback state changes to show/hide playlist in fullscreen
+    this.player.on('play', this.handlePlaybackStateChange.bind(this));
+    this.player.on('pause', this.handlePlaybackStateChange.bind(this));
+    this.player.on('ended', this.handlePlaybackStateChange.bind(this));
+    // Use fullscreenchange event which is what the player actually emits
+    this.player.on('fullscreenchange', this.handleFullscreenChange.bind(this));
+    
     // Create UI if needed
     if (this.options.showPanel) {
       this.createUI();
@@ -192,6 +199,9 @@ export class PlaylistManager {
         this.loadTrack(0);
       }
     }
+    
+    // Update visibility based on current state
+    this.updatePlaylistVisibilityInFullscreen();
   }
   
   /**
@@ -324,6 +334,61 @@ export class PlaylistManager {
       setTimeout(() => {
         this.next();
       }, 1000);
+    }
+  }
+  
+  /**
+   * Handle playback state changes (for fullscreen playlist visibility)
+   */
+  handlePlaybackStateChange() {
+    this.updatePlaylistVisibilityInFullscreen();
+  }
+  
+  /**
+   * Handle fullscreen state changes
+   */
+  handleFullscreenChange() {
+    // Use a small delay to ensure fullscreen state is fully applied
+    setTimeout(() => {
+      this.updatePlaylistVisibilityInFullscreen();
+    }, 50);
+  }
+  
+  /**
+   * Update playlist visibility based on fullscreen and playback state
+   * In fullscreen: show when paused/not started, hide when playing
+   * Outside fullscreen: respect original panel visibility setting
+   */
+  updatePlaylistVisibilityInFullscreen() {
+    if (!this.playlistPanel || !this.tracks.length) return;
+    
+    const isFullscreen = this.player.state.fullscreen;
+    const isPlaying = this.player.state.playing;
+    
+    if (isFullscreen) {
+      // In fullscreen: show only when not playing (paused or not started)
+      // Check playing state explicitly since paused might not be set initially
+      if (!isPlaying) {
+        this.playlistPanel.classList.add('vidply-playlist-fullscreen-visible');
+        this.playlistPanel.style.display = 'block';
+      } else {
+        this.playlistPanel.classList.remove('vidply-playlist-fullscreen-visible');
+        // Add a smooth fade out with delay to match CSS transition
+        setTimeout(() => {
+          // Double-check state hasn't changed before hiding
+          if (this.player.state.playing && this.player.state.fullscreen) {
+            this.playlistPanel.style.display = 'none';
+          }
+        }, 300); // Match CSS transition duration
+      }
+    } else {
+      // Outside fullscreen: restore original behavior
+      this.playlistPanel.classList.remove('vidply-playlist-fullscreen-visible');
+      if (this.isPanelVisible && this.tracks.length > 0) {
+        this.playlistPanel.style.display = 'block';
+      } else {
+        this.playlistPanel.style.display = 'none';
+      }
     }
   }
   
