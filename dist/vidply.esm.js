@@ -8574,14 +8574,23 @@ var Player = class _Player extends EventEmitter {
     var _a;
     this.state.fullscreen = true;
     this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
+    this._originalScrollX = window.scrollX || window.pageXOffset;
+    this._originalScrollY = window.scrollY || window.pageYOffset;
     this._originalBodyOverflow = document.body.style.overflow;
     this._originalBodyPosition = document.body.style.position;
+    this._originalBodyWidth = document.body.style.width;
+    this._originalBodyHeight = document.body.style.height;
+    this._originalHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.style.width = "100%";
+    document.body.style.height = "100%";
+    document.documentElement.style.overflow = "hidden";
     this._originalViewport = (_a = document.querySelector('meta[name="viewport"]')) == null ? void 0 : _a.getAttribute("content");
     const viewport = document.querySelector('meta[name="viewport"]');
     if (viewport) {
       viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
     }
+    window.scrollTo(0, 0);
     this.emit("fullscreenchange", true);
     this.emit("enterfullscreen");
   }
@@ -8594,12 +8603,29 @@ var Player = class _Player extends EventEmitter {
       document.body.style.position = this._originalBodyPosition;
       delete this._originalBodyPosition;
     }
+    if (this._originalBodyWidth !== void 0) {
+      document.body.style.width = this._originalBodyWidth;
+      delete this._originalBodyWidth;
+    }
+    if (this._originalBodyHeight !== void 0) {
+      document.body.style.height = this._originalBodyHeight;
+      delete this._originalBodyHeight;
+    }
+    if (this._originalHtmlOverflow !== void 0) {
+      document.documentElement.style.overflow = this._originalHtmlOverflow;
+      delete this._originalHtmlOverflow;
+    }
     if (this._originalViewport !== void 0) {
       const viewport = document.querySelector('meta[name="viewport"]');
       if (viewport) {
         viewport.setAttribute("content", this._originalViewport);
       }
       delete this._originalViewport;
+    }
+    if (this._originalScrollX !== void 0 && this._originalScrollY !== void 0) {
+      window.scrollTo(this._originalScrollX, this._originalScrollY);
+      delete this._originalScrollX;
+      delete this._originalScrollY;
     }
     this.emit("exitfullscreen");
   }

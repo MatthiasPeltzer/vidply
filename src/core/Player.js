@@ -1188,17 +1188,31 @@ export class Player extends EventEmitter {
         this.state.fullscreen = true;
         this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
         
+        // Store current scroll position for restoration later
+        this._originalScrollX = window.scrollX || window.pageXOffset;
+        this._originalScrollY = window.scrollY || window.pageYOffset;
+        
         // Prevent body scrolling while in pseudo-fullscreen
         this._originalBodyOverflow = document.body.style.overflow;
         this._originalBodyPosition = document.body.style.position;
-        document.body.style.overflow = 'hidden';
+        this._originalBodyWidth = document.body.style.width;
+        this._originalBodyHeight = document.body.style.height;
+        this._originalHtmlOverflow = document.documentElement.style.overflow;
         
-        // On iOS, also lock the viewport
+        document.body.style.overflow = 'hidden';
+        document.body.style.width = '100%';
+        document.body.style.height = '100%';
+        document.documentElement.style.overflow = 'hidden';
+        
+        // On iOS, also lock the viewport and scroll to top
         this._originalViewport = document.querySelector('meta[name="viewport"]')?.getAttribute('content');
         const viewport = document.querySelector('meta[name="viewport"]');
         if (viewport) {
             viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
         }
+        
+        // Scroll to top on iOS to prevent positioning issues
+        window.scrollTo(0, 0);
         
         this.emit('fullscreenchange', true);
         this.emit('enterfullscreen');
@@ -1214,6 +1228,18 @@ export class Player extends EventEmitter {
             document.body.style.position = this._originalBodyPosition;
             delete this._originalBodyPosition;
         }
+        if (this._originalBodyWidth !== undefined) {
+            document.body.style.width = this._originalBodyWidth;
+            delete this._originalBodyWidth;
+        }
+        if (this._originalBodyHeight !== undefined) {
+            document.body.style.height = this._originalBodyHeight;
+            delete this._originalBodyHeight;
+        }
+        if (this._originalHtmlOverflow !== undefined) {
+            document.documentElement.style.overflow = this._originalHtmlOverflow;
+            delete this._originalHtmlOverflow;
+        }
         
         // Restore viewport settings
         if (this._originalViewport !== undefined) {
@@ -1222,6 +1248,13 @@ export class Player extends EventEmitter {
                 viewport.setAttribute('content', this._originalViewport);
             }
             delete this._originalViewport;
+        }
+        
+        // Restore scroll position
+        if (this._originalScrollX !== undefined && this._originalScrollY !== undefined) {
+            window.scrollTo(this._originalScrollX, this._originalScrollY);
+            delete this._originalScrollX;
+            delete this._originalScrollY;
         }
         
         this.emit('exitfullscreen');
