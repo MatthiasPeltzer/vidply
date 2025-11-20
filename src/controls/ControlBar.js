@@ -1342,7 +1342,7 @@ export class ControlBar {
             }
         });
 
-        button.appendChild(createIconElement('playlist'));
+        button.appendChild(createIconElement('chapters'));
 
         button.addEventListener('click', () => {
             this.showChaptersMenu(button);
