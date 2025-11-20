@@ -89,7 +89,7 @@
       "format": "esm"
     },
     "src/icons/Icons.js": {
-      "bytes": 12746,
+      "bytes": 12891,
       "imports": [],
       "format": "esm"
     },
@@ -461,7 +461,7 @@
           "bytesInOutput": 839
         },
         "src/icons/Icons.js": {
-          "bytesInOutput": 10594
+          "bytesInOutput": 10730
         },
         "src/utils/FocusUtils.js": {
           "bytesInOutput": 222
@@ -509,7 +509,7 @@
           "bytesInOutput": 12116
         }
       },
-      "bytes": 282884
+      "bytes": 283020
     }
   }
 }

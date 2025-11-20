@@ -918,6 +918,7 @@
     max-height: 250px;
     min-width: 200px;
     -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
     overflow-y: auto;
     padding: 8px 0;
     pointer-events: auto; /* Ensure menus are clickable/touchable */
@@ -945,6 +946,7 @@
 /* Volume menu popup - narrow and centered on button */
 .vidply-volume-menu {
     min-width: unset;
+    overflow-x: hidden;
     overflow-y: hidden;
     padding: 16px 12px;
     pointer-events: auto; /* Ensure volume menu is touchable */
@@ -1604,6 +1606,39 @@
     .vidply-player.vidply-fullscreen .vidply-controls-right > .vidply-overflow-menu[style*="display: none"],
     .vidply-player:fullscreen .vidply-controls-right > .vidply-overflow-menu[style*="display: none"] {
         display: none !important;
+    }
+    
+    /* Menu content should be vertically stacked in fullscreen */
+    .vidply-player.vidply-fullscreen .vidply-menu,
+    .vidply-player:fullscreen .vidply-menu {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-menu-item,
+    .vidply-player:fullscreen .vidply-menu-item {
+        align-items: center !important;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+        width: 100% !important;
+    }
+    
+    .vidply-player.vidply-fullscreen .vidply-menu-item-label,
+    .vidply-player:fullscreen .vidply-menu-item-label {
+        align-items: center !important;
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 10px !important;
+        justify-content: flex-start !important;
+    }
+    
+    /* Ensure icon appears on the right (after text) in fullscreen, matching desktop */
+    .vidply-player.vidply-fullscreen .vidply-menu-item .vidply-icon,
+    .vidply-player:fullscreen .vidply-menu-item .vidply-icon {
+        margin-left: auto !important;
+        order: 1 !important;
     }
     
     /* Caption positioning in landscape fullscreen */
