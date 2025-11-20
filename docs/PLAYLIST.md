@@ -412,6 +412,20 @@ document.addEventListener('keydown', (e) => {
 });
 ```
 
+## Fullscreen Behavior
+
+In fullscreen mode, the playlist transforms into a horizontal, swipeable carousel (similar to YouTube):
+
+- **Auto-show/hide**: Appears when paused or not started, hides when playing
+- **Horizontal layout**: Cards displayed side-by-side with scroll-snap navigation
+- **Responsive**: Desktop shows full cards (280px) with thumbnails, title, and artist
+- **Mobile**: Compact view with thumbnail-only on portrait (<768px), text shown if no thumbnail
+- **Touch-friendly**: Swipeable with smooth horizontal scrolling
+- **Position**: Overlays above controls with semi-transparent backdrop
+- **Accessibility**: Menus dynamically portal to container level to appear above playlist
+
+All menus (chapters, quality, captions, etc.) remain accessible in fullscreen via dynamic DOM repositioning that maintains WCAG compliance.
+
 ## UI Components
 
 ### Track Info Display

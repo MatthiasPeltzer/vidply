@@ -146,6 +146,16 @@
     --vidply-white-90: rgb(var(--vidply-white-rgb), 0.9);
     --vidply-white-95: rgb(var(--vidply-white-rgb), 0.95);
     --vidply-white-rgb: 255, 255, 255;
+
+    /* Z-Index Layering System */
+    --vidply-z-base: 1; /* Video, base elements */
+    --vidply-z-overlay: 2; /* Play overlay, video wrapper on mobile */
+    --vidply-z-transcript: 5; /* Transcript window */
+    --vidply-z-playlist: 15; /* Playlist panel in fullscreen */
+    --vidply-z-menu: 20; /* Menus in normal mode */
+    --vidply-z-controls: 30; /* Control bar */
+    --vidply-z-menu-high: 100; /* Volume menu */
+    --vidply-z-menu-fullscreen: 1000; /* Menus in fullscreen mode */
 }
 
 /* Utility Classes */
@@ -546,7 +556,7 @@
     top: 50%;
     transform: translate(-50%, -50%);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 2;
+    z-index: var(--vidply-z-overlay);
 }
 
 .vidply-play-overlay:hover {
@@ -579,7 +589,7 @@
     position: absolute;
     right: 0;
     transition: opacity 0.3s ease;
-    z-index: 30; /* Always above playlist (z-index: 15) and menus */
+    z-index: var(--vidply-z-controls); /* Always above playlist and menus */
 }
 
 .vidply-controls.vidply-controls-visible,
@@ -932,13 +942,7 @@
     right: 50%;
     touch-action: pan-y;
     transform: translateX(50%);
-
-    /* iOS momentum scrolling */
-
- /* High z-index to appear above everything */
-
-    /* Ensure menus appear above all player content including overlays */
-    z-index: 20;
+    z-index: var(--vidply-z-menu); /* Ensure menus appear above all player content including overlays */
 }
 
 /* Menu positioned below button */
@@ -959,7 +963,7 @@
     right: 50%;
     transform: translateX(50%);
     width: 35px;
-    z-index: 100; /* High z-index to appear above everything */
+    z-index: var(--vidply-z-menu-high); /* High z-index to appear above everything */
 }
 
 /* For audio players, show menus below buttons */
@@ -2094,14 +2098,12 @@
     border-top: 1px solid var(--vidply-border-light);
     max-height: 400px;
     order: 3; /* After track info */
-    -webkit-overflow-scrolling: touch;
-
-    /* iOS momentum scrolling */
+    -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
     overflow-y: auto;
     position: relative;
     touch-action: pan-y;
     transition: opacity 0.3s ease, transform 0.3s ease;
-    z-index: 1; /* Below menus (z-index: 20) but part of player stacking context */
+    z-index: var(--vidply-z-base); /* Below menus but part of player stacking context */
 }
 
 /* Fullscreen Playlist Panel - YouTube-style overlay above controls */
@@ -2121,7 +2123,7 @@
     position: absolute !important; /* Force absolute positioning over video */
     right: 0;
     transform: translateY(20px);
-    z-index: 15; /* Above video (z-index: 1) but below controls (z-index: 30) */
+    z-index: var(--vidply-z-playlist); /* Above video but below controls */
 }
 
 /* Show playlist panel in fullscreen when visible */
@@ -2135,7 +2137,7 @@
 /* Ensure all menus appear above the playlist in fullscreen */
 .vidply-player.vidply-fullscreen .vidply-menu,
 .vidply-player:fullscreen .vidply-menu {
-    z-index: 1000; /* High z-index to appear above playlist */
+    z-index: var(--vidply-z-menu-fullscreen); /* High z-index to appear above playlist */
 }
 
 /* Menus at container level in fullscreen need absolute positioning */
@@ -2534,7 +2536,7 @@
     position: fixed;
     top: 0;
     width: 420px;
-    z-index: 5;
+    z-index: var(--vidply-z-transcript);
 }
 
 /* Ensure transcript window is a positioning context for menus (fixed also creates positioning context) */
