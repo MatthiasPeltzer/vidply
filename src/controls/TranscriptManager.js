@@ -294,8 +294,7 @@ export class TranscriptManager {
     this.autoscrollCheckbox = DOMUtils.createElement('input', {
       attributes: {
         'id': autoscrollId,
-        'type': 'checkbox',
-        'aria-label': i18n.t('transcript.autoscroll')
+        'type': 'checkbox'
       }
     });
     // Set checked property directly (boolean attribute, not "true" string)
