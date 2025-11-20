@@ -468,6 +468,13 @@
         height: auto;
         order: 1; /* Before controls */
     }
+    
+    /* Override mobile rules in fullscreen mode */
+    .vidply-player.vidply-fullscreen video,
+    .vidply-player:fullscreen video {
+        flex: 1 1 auto !important;
+        height: 100% !important;
+    }
 }
 
 /* Hide native browser captions - we'll display our own */
@@ -534,6 +541,28 @@
         display: block;
         position: relative;
         width: 100%;
+    }
+    
+    /* Override mobile rules in fullscreen mode - critical for iOS */
+    .vidply-player.vidply-fullscreen .vidply-video-wrapper,
+    .vidply-player:fullscreen .vidply-video-wrapper {
+        display: flex !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+    }
+    
+    .vidply-player.vidply-fullscreen video,
+    .vidply-player:fullscreen video {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
     }
 }
 
@@ -1528,10 +1557,15 @@
     background: #000;
     bottom: 0;
     left: 0;
-    position: fixed;
+    position: fixed !important;
     right: 0;
     top: 0;
     z-index: 999999;
+    /* Critical iOS fixes */
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* Fix controls in fullscreen LANDSCAPE mode - overlay them on video */
@@ -1543,6 +1577,11 @@
 }
 
 @media (orientation: landscape) {
+    /* Make player a fixed container on iOS, standard elsewhere */
+    .vidply-player.vidply-fullscreen:not(:fullscreen) {
+        position: fixed !important;
+    }
+    
     /* Make player a flex container to center content */
     .vidply-player.vidply-fullscreen,
     .vidply-player:fullscreen {
@@ -1692,12 +1731,17 @@
 
 /* In fullscreen PORTRAIT mode - keep controls below video (mobile layout) */
 @media (orientation: portrait) {
-    /* Make player a relative container */
+    /* Make player a fixed container on iOS, relative elsewhere */
+    .vidply-player.vidply-fullscreen:not(:fullscreen) {
+        position: fixed !important;
+    }
+    
     .vidply-player.vidply-fullscreen,
     .vidply-player:fullscreen {
-        position: relative !important;
         height: 100vh !important;
         width: 100vw !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
     
     /* Make video wrapper fill entire screen - positioned absolutely */
@@ -1711,13 +1755,19 @@
         width: 100% !important;
         height: 100% !important;
         z-index: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     
     .vidply-player.vidply-fullscreen video,
     .vidply-player:fullscreen video {
+        position: relative !important;
         width: 100% !important;
         height: 100% !important;
         object-fit: contain !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
     }
     
     .vidply-player.vidply-fullscreen .vidply-controls,
@@ -1974,6 +2024,8 @@
         padding: 10px 0;
         overflow-y: hidden;
         overflow-x: auto;
+        touch-action: pan-x; /* Allow horizontal scrolling on touch devices */
+        -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
     }
     
     /* Landscape playlist list - horizontal row */
@@ -2097,6 +2149,8 @@
     background: var(--vidply-bg-playlist);
     border-top: 1px solid var(--vidply-border-light);
     max-height: 400px;
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
     order: 3; /* After track info */
     -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
     overflow-y: auto;
@@ -2119,9 +2173,10 @@
     opacity: 0;
     overflow-x: hidden;
     overflow-y: auto;
-    pointer-events: none;
+    pointer-events: auto; /* Always allow touch/pointer events for scrolling */
     position: absolute !important; /* Force absolute positioning over video */
     right: 0;
+    touch-action: pan-y; /* Allow vertical scrolling on touch devices */
     transform: translateY(20px);
     z-index: var(--vidply-z-playlist); /* Above video but below controls */
 }
@@ -2130,7 +2185,6 @@
 .vidply-player.vidply-fullscreen .vidply-playlist-panel.vidply-playlist-fullscreen-visible,
 .vidply-player:fullscreen .vidply-playlist-panel.vidply-playlist-fullscreen-visible {
     opacity: 1;
-    pointer-events: auto;
     transform: translateY(0);
 }
 
@@ -3742,6 +3796,8 @@
         overflow-y: hidden; /* No vertical scrolling */
         overflow-x: auto; /* Horizontal scrolling */
         position: absolute !important; /* Force absolute over video */
+        touch-action: pan-x; /* Allow horizontal scrolling on touch devices */
+        -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
     }
     
     /* Mobile playlist list - horizontal row, no wrapping */
@@ -3753,6 +3809,7 @@
         padding: 0 12px;
         -webkit-overflow-scrolling: touch;
         scroll-behavior: smooth;
+        touch-action: pan-x; /* Ensure horizontal swipe gestures work */
     }
     
     /* Mobile playlist items - only show thumbnails */
