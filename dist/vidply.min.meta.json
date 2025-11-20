@@ -218,7 +218,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 80680,
+      "bytes": 80294,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -491,7 +491,7 @@
           "bytesInOutput": 774
         },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 42126
+          "bytesInOutput": 42026
         },
         "src/core/Player.js": {
           "bytesInOutput": 73014
@@ -509,7 +509,7 @@
           "bytesInOutput": 12116
         }
       },
-      "bytes": 282984
+      "bytes": 282884
     }
   }
 }
