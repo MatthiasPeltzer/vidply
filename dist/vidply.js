@@ -7512,6 +7512,11 @@ var VidPly = (() => {
       }
     }
     canPlayNatively() {
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (!isSafari && !isIOS) {
+        return false;
+      }
       const video = document.createElement("video");
       return video.canPlayType("application/vnd.apple.mpegurl") !== "";
     }
