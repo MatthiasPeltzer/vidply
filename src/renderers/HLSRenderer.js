@@ -22,6 +22,16 @@ export class HLSRenderer {
   }
 
   canPlayNatively() {
+    // Only use native HLS on Safari/iOS where it actually works properly
+    // Chrome reports it can play HLS but doesn't have proper quality switching
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    
+    if (!isSafari && !isIOS) {
+      // Force hls.js on non-Safari browsers for proper quality switching
+      return false;
+    }
+    
     const video = document.createElement('video');
     return video.canPlayType('application/vnd.apple.mpegurl') !== '';
   }
