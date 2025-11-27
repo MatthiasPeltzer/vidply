@@ -157,6 +157,14 @@ export const en = {
     minutes: '{count} minutes',
     second: '{count} second',
     seconds: '{count} seconds'
+  },
+  playlist: {
+    title: 'Playlist',
+    trackOf: 'Track {current} of {total}',
+    nowPlaying: 'Now playing: Track {current} of {total}. {title}{artist}',
+    by: ' by ',
+    untitled: 'Untitled',
+    trackUntitled: 'Track {number}'
   }
 };
 

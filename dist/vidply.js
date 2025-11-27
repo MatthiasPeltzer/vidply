@@ -578,6 +578,14 @@ var VidPly = (() => {
       minutes: "{count} minutes",
       second: "{count} second",
       seconds: "{count} seconds"
+    },
+    playlist: {
+      title: "Playlist",
+      trackOf: "Track {current} of {total}",
+      nowPlaying: "Now playing: Track {current} of {total}. {title}{artist}",
+      by: " by ",
+      untitled: "Untitled",
+      trackUntitled: "Track {number}"
     }
   };
 
@@ -737,6 +745,14 @@ var VidPly = (() => {
       minutes: "{count} Minuten",
       second: "{count} Sekunde",
       seconds: "{count} Sekunden"
+    },
+    playlist: {
+      title: "Wiedergabeliste",
+      trackOf: "Titel {current} von {total}",
+      nowPlaying: "L\xE4uft gerade: Titel {current} von {total}. {title}{artist}",
+      by: " von ",
+      untitled: "Ohne Titel",
+      trackUntitled: "Titel {number}"
     }
   };
 
@@ -896,6 +912,14 @@ var VidPly = (() => {
       minutes: "{count} minutos",
       second: "{count} segundo",
       seconds: "{count} segundos"
+    },
+    playlist: {
+      title: "Lista de reproducci\xF3n",
+      trackOf: "Pista {current} de {total}",
+      nowPlaying: "Reproduciendo ahora: Pista {current} de {total}. {title}{artist}",
+      by: " por ",
+      untitled: "Sin t\xEDtulo",
+      trackUntitled: "Pista {number}"
     }
   };
 
@@ -1055,6 +1079,14 @@ var VidPly = (() => {
       minutes: "{count} minutes",
       second: "{count} seconde",
       seconds: "{count} secondes"
+    },
+    playlist: {
+      title: "Liste de lecture",
+      trackOf: "Piste {current} sur {total}",
+      nowPlaying: "Lecture en cours : Piste {current} sur {total}. {title}{artist}",
+      by: " par ",
+      untitled: "Sans titre",
+      trackUntitled: "Piste {number}"
     }
   };
 
@@ -1214,6 +1246,14 @@ var VidPly = (() => {
       minutes: "{count}\u5206",
       second: "{count}\u79D2",
       seconds: "{count}\u79D2"
+    },
+    playlist: {
+      title: "\u30D7\u30EC\u30A4\u30EA\u30B9\u30C8",
+      trackOf: "\u30C8\u30E9\u30C3\u30AF {current}/{total}",
+      nowPlaying: "\u518D\u751F\u4E2D: \u30C8\u30E9\u30C3\u30AF {current}/{total}. {title}{artist}",
+      by: " - ",
+      untitled: "\u30BF\u30A4\u30C8\u30EB\u306A\u3057",
+      trackUntitled: "\u30C8\u30E9\u30C3\u30AF {number}"
     }
   };
 
@@ -11462,7 +11502,7 @@ var VidPly = (() => {
         attributes: {
           id: `${this.uniqueId}-panel`,
           role: "region",
-          "aria-label": "Media playlist",
+          "aria-label": i18n.t("playlist.title"),
           "aria-labelledby": `${this.uniqueId}-heading`
         }
       });
@@ -11476,12 +11516,22 @@ var VidPly = (() => {
       if (!this.trackInfoElement) return;
       const trackNumber = this.currentIndex + 1;
       const totalTracks = this.tracks.length;
-      const trackTitle = track.title || "Untitled";
+      const trackTitle = track.title || i18n.t("playlist.untitled");
       const trackArtist = track.artist || "";
-      const announcement = `Now playing: Track ${trackNumber} of ${totalTracks}. ${trackTitle}${trackArtist ? " by " + trackArtist : ""}`;
+      const artistPart = trackArtist ? i18n.t("playlist.by") + trackArtist : "";
+      const announcement = i18n.t("playlist.nowPlaying", {
+        current: trackNumber,
+        total: totalTracks,
+        title: trackTitle,
+        artist: artistPart
+      });
+      const trackOfText = i18n.t("playlist.trackOf", {
+        current: trackNumber,
+        total: totalTracks
+      });
       this.trackInfoElement.innerHTML = `
       <span class="vidply-sr-only">${DOMUtils.escapeHTML(announcement)}</span>
-      <div class="vidply-track-number" aria-hidden="true">Track ${trackNumber} of ${totalTracks}</div>
+      <div class="vidply-track-number" aria-hidden="true">${DOMUtils.escapeHTML(trackOfText)}</div>
       <div class="vidply-track-title" aria-hidden="true">${DOMUtils.escapeHTML(trackTitle)}</div>
       ${trackArtist ? `<div class="vidply-track-artist" aria-hidden="true">${DOMUtils.escapeHTML(trackArtist)}</div>` : ""}
     `;
@@ -11499,7 +11549,7 @@ var VidPly = (() => {
           id: `${this.uniqueId}-heading`
         }
       });
-      header.textContent = `Playlist (${this.tracks.length})`;
+      header.textContent = `${i18n.t("playlist.title")} (${this.tracks.length})`;
       this.playlistPanel.appendChild(header);
       const instructions = DOMUtils.createElement("div", {
         className: "vidply-sr-only",
@@ -11529,9 +11579,12 @@ var VidPly = (() => {
      * Create playlist item element
      */
     createPlaylistItem(track, index) {
-      const trackPosition = `Track ${index + 1} of ${this.tracks.length}`;
-      const trackTitle = track.title || `Track ${index + 1}`;
-      const trackArtist = track.artist ? ` by ${track.artist}` : "";
+      const trackPosition = i18n.t("playlist.trackOf", {
+        current: index + 1,
+        total: this.tracks.length
+      });
+      const trackTitle = track.title || i18n.t("playlist.trackUntitled", { number: index + 1 });
+      const trackArtist = track.artist ? i18n.t("playlist.by") + track.artist : "";
       const isActive = index === this.currentIndex;
       const statusText = isActive ? "Currently playing" : "Not playing";
       const actionText = isActive ? "Press Enter to restart" : "Press Enter to play";
@@ -11693,9 +11746,12 @@ var VidPly = (() => {
         const button = buttons[index];
         if (!button) return;
         const track = this.tracks[index];
-        const trackPosition = `Track ${index + 1} of ${this.tracks.length}`;
-        const trackTitle = track.title || `Track ${index + 1}`;
-        const trackArtist = track.artist ? ` by ${track.artist}` : "";
+        const trackPosition = i18n.t("playlist.trackOf", {
+          current: index + 1,
+          total: this.tracks.length
+        });
+        const trackTitle = track.title || i18n.t("playlist.trackUntitled", { number: index + 1 });
+        const trackArtist = track.artist ? i18n.t("playlist.by") + track.artist : "";
         if (index === this.currentIndex) {
           item.classList.add("vidply-playlist-item-active");
           button.setAttribute("aria-current", "true");

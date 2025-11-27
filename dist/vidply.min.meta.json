@@ -11,27 +11,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.js": {
-      "bytes": 6319,
+      "bytes": 6566,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.js": {
-      "bytes": 7774,
+      "bytes": 8063,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.js": {
-      "bytes": 7346,
+      "bytes": 7619,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.js": {
-      "bytes": 7560,
+      "bytes": 7826,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.js": {
-      "bytes": 7972,
+      "bytes": 8251,
       "imports": [],
       "format": "esm"
     },
@@ -386,7 +386,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 28703,
+      "bytes": 29234,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -397,6 +397,11 @@
           "path": "src/icons/Icons.js",
           "kind": "import-statement",
           "original": "../icons/Icons.js"
+        },
+        {
+          "path": "src/i18n/i18n.js",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
         }
       ],
       "format": "esm"
@@ -437,19 +442,19 @@
           "bytesInOutput": 1581
         },
         "src/i18n/languages/en.js": {
-          "bytesInOutput": 5230
+          "bytesInOutput": 5426
         },
         "src/i18n/languages/de.js": {
-          "bytesInOutput": 6298
+          "bytesInOutput": 6510
         },
         "src/i18n/languages/es.js": {
-          "bytesInOutput": 6411
+          "bytesInOutput": 6637
         },
         "src/i18n/languages/fr.js": {
-          "bytesInOutput": 6680
+          "bytesInOutput": 6895
         },
         "src/i18n/languages/ja.js": {
-          "bytesInOutput": 11448
+          "bytesInOutput": 11757
         },
         "src/i18n/translations.js": {
           "bytesInOutput": 61
@@ -506,10 +511,10 @@
           "bytesInOutput": 5528
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 13260
+          "bytesInOutput": 13499
         }
       },
-      "bytes": 286480
+      "bytes": 287877
     }
   }
 }

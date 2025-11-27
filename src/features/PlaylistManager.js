@@ -5,6 +5,7 @@
 
 import { DOMUtils } from '../utils/DOMUtils.js';
 import { createIconElement } from '../icons/Icons.js';
+import { i18n } from '../i18n/i18n.js';
 
 // Static counter for unique IDs
 let playlistInstanceCounter = 0;
@@ -434,7 +435,7 @@ export class PlaylistManager {
       attributes: {
         id: `${this.uniqueId}-panel`,
         role: 'region',
-        'aria-label': 'Media playlist',
+        'aria-label': i18n.t('playlist.title'),
         'aria-labelledby': `${this.uniqueId}-heading`
       }
     });
@@ -451,15 +452,26 @@ export class PlaylistManager {
     
     const trackNumber = this.currentIndex + 1;
     const totalTracks = this.tracks.length;
-    const trackTitle = track.title || 'Untitled';
+    const trackTitle = track.title || i18n.t('playlist.untitled');
     const trackArtist = track.artist || '';
     
     // Screen reader announcement
-    const announcement = `Now playing: Track ${trackNumber} of ${totalTracks}. ${trackTitle}${trackArtist ? ' by ' + trackArtist : ''}`;
+    const artistPart = trackArtist ? i18n.t('playlist.by') + trackArtist : '';
+    const announcement = i18n.t('playlist.nowPlaying', {
+      current: trackNumber,
+      total: totalTracks,
+      title: trackTitle,
+      artist: artistPart
+    });
+    
+    const trackOfText = i18n.t('playlist.trackOf', {
+      current: trackNumber,
+      total: totalTracks
+    });
     
     this.trackInfoElement.innerHTML = `
       <span class="vidply-sr-only">${DOMUtils.escapeHTML(announcement)}</span>
-      <div class="vidply-track-number" aria-hidden="true">Track ${trackNumber} of ${totalTracks}</div>
+      <div class="vidply-track-number" aria-hidden="true">${DOMUtils.escapeHTML(trackOfText)}</div>
       <div class="vidply-track-title" aria-hidden="true">${DOMUtils.escapeHTML(trackTitle)}</div>
       ${trackArtist ? `<div class="vidply-track-artist" aria-hidden="true">${DOMUtils.escapeHTML(trackArtist)}</div>` : ''}
     `;
@@ -483,7 +495,7 @@ export class PlaylistManager {
         id: `${this.uniqueId}-heading`
       }
     });
-    header.textContent = `Playlist (${this.tracks.length})`;
+    header.textContent = `${i18n.t('playlist.title')} (${this.tracks.length})`;
     this.playlistPanel.appendChild(header);
     
     // Add keyboard instructions (visually hidden)
@@ -522,9 +534,12 @@ export class PlaylistManager {
    * Create playlist item element
    */
   createPlaylistItem(track, index) {
-    const trackPosition = `Track ${index + 1} of ${this.tracks.length}`;
-    const trackTitle = track.title || `Track ${index + 1}`;
-    const trackArtist = track.artist ? ` by ${track.artist}` : '';
+    const trackPosition = i18n.t('playlist.trackOf', {
+      current: index + 1,
+      total: this.tracks.length
+    });
+    const trackTitle = track.title || i18n.t('playlist.trackUntitled', { number: index + 1 });
+    const trackArtist = track.artist ? i18n.t('playlist.by') + track.artist : '';
     const isActive = index === this.currentIndex;
     const statusText = isActive ? 'Currently playing' : 'Not playing';
     const actionText = isActive ? 'Press Enter to restart' : 'Press Enter to play';
@@ -734,9 +749,12 @@ export class PlaylistManager {
       if (!button) return;
       
       const track = this.tracks[index];
-      const trackPosition = `Track ${index + 1} of ${this.tracks.length}`;
-      const trackTitle = track.title || `Track ${index + 1}`;
-      const trackArtist = track.artist ? ` by ${track.artist}` : '';
+      const trackPosition = i18n.t('playlist.trackOf', {
+        current: index + 1,
+        total: this.tracks.length
+      });
+      const trackTitle = track.title || i18n.t('playlist.trackUntitled', { number: index + 1 });
+      const trackArtist = track.artist ? i18n.t('playlist.by') + track.artist : '';
       
       if (index === this.currentIndex) {
         // Update list item styling
