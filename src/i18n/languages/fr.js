@@ -157,6 +157,14 @@ export const fr = {
     minutes: '{count} minutes',
     second: '{count} seconde',
     seconds: '{count} secondes'
+  },
+  playlist: {
+    title: 'Liste de lecture',
+    trackOf: 'Piste {current} sur {total}',
+    nowPlaying: 'Lecture en cours : Piste {current} sur {total}. {title}{artist}',
+    by: ' par ',
+    untitled: 'Sans titre',
+    trackUntitled: 'Piste {number}'
   }
 };
 

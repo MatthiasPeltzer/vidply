@@ -157,6 +157,14 @@ export const ja = {
     minutes: '{count}分',
     second: '{count}秒',
     seconds: '{count}秒'
+  },
+  playlist: {
+    title: 'プレイリスト',
+    trackOf: 'トラック {current}/{total}',
+    nowPlaying: '再生中: トラック {current}/{total}. {title}{artist}',
+    by: ' - ',
+    untitled: 'タイトルなし',
+    trackUntitled: 'トラック {number}'
   }
 };
 
