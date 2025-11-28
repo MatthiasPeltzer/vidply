@@ -2740,7 +2740,8 @@ var VidPly = (() => {
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.quality"),
-          "aria-expanded": "false"
+          "aria-expanded": "false",
+          "title": i18n.t("player.quality")
         }
       });
       button.appendChild(createIconElement("hd"));
