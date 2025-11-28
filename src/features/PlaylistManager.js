@@ -225,7 +225,9 @@ export class PlaylistManager {
       src: track.src,
       type: track.type,
       poster: track.poster,
-      tracks: track.tracks || []
+      tracks: track.tracks || [],
+      audioDescriptionSrc: track.audioDescriptionSrc || null,
+      signLanguageSrc: track.signLanguageSrc || null
     });
     
     // Update UI
@@ -261,7 +263,9 @@ export class PlaylistManager {
       src: track.src,
       type: track.type,
       poster: track.poster,
-      tracks: track.tracks || []
+      tracks: track.tracks || [],
+      audioDescriptionSrc: track.audioDescriptionSrc || null,
+      signLanguageSrc: track.signLanguageSrc || null
     });
     
     // Update UI
@@ -768,7 +772,7 @@ export class PlaylistManager {
         const actionText = 'Press Enter to restart';
         button.setAttribute('aria-label', `${trackPosition}. ${trackTitle}${trackArtist}. ${statusText}. ${actionText}.`);
         
-        // Scroll into view
+        // Scroll into view within playlist panel (uses 'nearest' to minimize page scroll)
         item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
         // Update list item styling

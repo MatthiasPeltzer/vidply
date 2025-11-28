@@ -142,7 +142,14 @@ export class HTML5Renderer {
   }
 
   play() {
+    // Save scroll position to prevent browser from scrolling to video
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    
     const promise = this.media.play();
+    
+    // Restore scroll position immediately to prevent auto-scroll
+    window.scrollTo(scrollX, scrollY);
     
     if (promise !== undefined) {
       promise.catch(error => {
@@ -152,7 +159,13 @@ export class HTML5Renderer {
         if (this.player.options.autoplay && !this.player.state.muted) {
           this.player.log('Retrying play with muted audio', 'info');
           this.media.muted = true;
-          this.media.play().catch(err => {
+          
+          // Save scroll position again for retry
+          const retryScrollX = window.scrollX;
+          const retryScrollY = window.scrollY;
+          this.media.play().then(() => {
+            window.scrollTo(retryScrollX, retryScrollY);
+          }).catch(err => {
             this.player.handleError(err);
           });
         }

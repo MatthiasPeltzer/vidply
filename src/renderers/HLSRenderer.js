@@ -254,7 +254,14 @@ export class HLSRenderer {
   }
 
   play() {
+    // Save scroll position to prevent browser from scrolling to video
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    
     const promise = this.media.play();
+    
+    // Restore scroll position immediately to prevent auto-scroll
+    window.scrollTo(scrollX, scrollY);
     
     if (promise !== undefined) {
       promise.catch(error => {

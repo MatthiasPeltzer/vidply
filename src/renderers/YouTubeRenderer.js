@@ -211,7 +211,14 @@ export class YouTubeRenderer {
 
   play() {
     if (this.isReady && this.youtube) {
+      // Save scroll position to prevent browser from scrolling to video
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+      
       this.youtube.playVideo();
+      
+      // Restore scroll position immediately to prevent auto-scroll
+      window.scrollTo(scrollX, scrollY);
     }
   }
 

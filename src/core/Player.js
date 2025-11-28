@@ -850,6 +850,8 @@ export class Player extends EventEmitter {
      * @param {string} config.type - Media MIME type
      * @param {string} [config.poster] - Poster image URL
      * @param {Array} [config.tracks] - Text tracks (captions, chapters, etc.)
+     * @param {string} [config.audioDescriptionSrc] - Audio description video URL
+     * @param {string} [config.signLanguageSrc] - Sign language video URL
      */
     async load(config) {
         try {
@@ -859,6 +861,10 @@ export class Player extends EventEmitter {
             if (this.renderer) {
                 this.pause();
             }
+
+            // Save scroll position to prevent browser from auto-scrolling when loading new media
+            const scrollX = window.scrollX || window.pageXOffset;
+            const scrollY = window.scrollY || window.pageYOffset;
 
             // Clear existing text tracks
             const existingTracks = this.trackElements;
@@ -893,6 +899,25 @@ export class Player extends EventEmitter {
                 });
                 this.invalidateTrackCache();
             }
+            
+            // Remember accessibility feature states before switching tracks
+            const wasSignLanguageEnabled = this.state.signLanguageEnabled;
+            const wasAudioDescriptionEnabled = this.state.audioDescriptionEnabled;
+            
+            // Update sources from config FIRST (before hiding features)
+            this.audioDescriptionSrc = config.audioDescriptionSrc || null;
+            this.signLanguageSrc = config.signLanguageSrc || null;
+            
+            // Update original source for toggling
+            this.originalSrc = config.src;
+            
+            // Hide accessibility features that were enabled (must happen AFTER updating sources)
+            if (wasAudioDescriptionEnabled) {
+                this.disableAudioDescription();
+            }
+            if (wasSignLanguageEnabled) {
+                this.disableSignLanguage();
+            }
 
             // Check if we need to change renderer type
             const shouldChangeRenderer = this.shouldChangeRenderer(config.src);
@@ -911,6 +936,9 @@ export class Player extends EventEmitter {
                 this.renderer.media = this.element; // Update media reference
                 this.element.load();
             }
+            
+            // Restore scroll position immediately after loading to prevent auto-scroll
+            window.scrollTo(scrollX, scrollY);
 
             // Reinitialize caption manager to pick up new tracks
             if (this.captionManager) {
@@ -920,12 +948,12 @@ export class Player extends EventEmitter {
             
             // Reinitialize transcript manager to pick up new tracks
             if (this.transcriptManager) {
-                const wasVisible = this.transcriptManager.isVisible;
+                const wasTranscriptVisible = this.transcriptManager.isVisible;
                 this.transcriptManager.destroy();
                 this.transcriptManager = new TranscriptManager(this);
                 
-                // Restore visibility state if transcript was open
-                if (wasVisible) {
+                // Only restore transcript visibility if new track has captions
+                if (wasTranscriptVisible && this.controlBar && this.controlBar.hasCaptionTracks()) {
                     this.transcriptManager.showTranscript();
                 }
             }
@@ -933,6 +961,28 @@ export class Player extends EventEmitter {
             // Update control bar to show/hide feature buttons based on new tracks
             if (this.controlBar) {
                 this.updateControlBar();
+            }
+            
+            // Restore scroll position after control bar update (may have caused micro-scrolls)
+            window.scrollTo(scrollX, scrollY);
+            
+            // Restore accessibility features if they were enabled and available in new track
+            if (wasSignLanguageEnabled && this.signLanguageSrc) {
+                // Small delay to ensure player and control bar are ready
+                setTimeout(() => {
+                    this.enableSignLanguage();
+                    // Restore scroll after sign language is shown
+                    window.scrollTo(scrollX, scrollY);
+                }, 150);
+            }
+            
+            if (wasAudioDescriptionEnabled && this.audioDescriptionSrc) {
+                // Small delay to ensure player is ready
+                setTimeout(() => {
+                    this.enableAudioDescription();
+                    // Restore scroll after audio description is enabled
+                    window.scrollTo(scrollX, scrollY);
+                }, 150);
             }
 
             this.emit('sourcechange', config);
@@ -965,6 +1015,7 @@ export class Player extends EventEmitter {
         // Reattach events for the new controls
         controlBar.attachEvents();
         controlBar.setupAutoHide();
+        controlBar.setupOverflowDetection();
     }
     
     shouldChangeRenderer(src) {

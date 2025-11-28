@@ -269,22 +269,22 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.js": {
-      "bytes": 8660,
+      "bytes": 9169,
       "imports": [],
       "format": "esm"
     },
     "src/renderers/YouTubeRenderer.js": {
-      "bytes": 7186,
+      "bytes": 7465,
       "imports": [],
       "format": "esm"
     },
     "src/renderers/VimeoRenderer.js": {
-      "bytes": 6699,
+      "bytes": 6978,
       "imports": [],
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 9227,
+      "bytes": 9492,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -295,7 +295,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 205467,
+      "bytes": 208133,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -386,7 +386,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 29234,
+      "bytes": 29533,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -434,7 +434,7 @@
       "entryPoint": "src/index.js",
       "inputs": {
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 4675
+          "bytesInOutput": 4803
         },
         "src/utils/EventEmitter.js": {
           "bytesInOutput": 436
@@ -500,25 +500,25 @@
           "bytesInOutput": 41981
         },
         "src/core/Player.js": {
-          "bytesInOutput": 73997
+          "bytesInOutput": 74652
         },
         "src/renderers/YouTubeRenderer.js": {
-          "bytesInOutput": 4140
+          "bytesInOutput": 4203
         },
         "src/renderers/VimeoRenderer.js": {
-          "bytesInOutput": 4205
+          "bytesInOutput": 4268
         },
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 5528
+          "bytesInOutput": 5583
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 13499
+          "bytesInOutput": 13675
         },
         "src/index.js": {
           "bytesInOutput": 1869
         }
       },
-      "bytes": 287525
+      "bytes": 288665
     }
   }
 }
