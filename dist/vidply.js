@@ -11258,6 +11258,7 @@ var VidPly = (() => {
       this.trackInfoElement = null;
       this.navigationFeedback = null;
       this.isPanelVisible = this.options.showPanel !== false;
+      this.isChangingTrack = false;
       this.handleTrackEnd = this.handleTrackEnd.bind(this);
       this.handleTrackError = this.handleTrackError.bind(this);
       this.player.playlistManager = this;
@@ -11381,6 +11382,7 @@ var VidPly = (() => {
         return;
       }
       const track = this.tracks[index];
+      this.isChangingTrack = true;
       this.currentIndex = index;
       this.player.load({
         src: track.src,
@@ -11397,6 +11399,9 @@ var VidPly = (() => {
         item: track,
         total: this.tracks.length
       });
+      setTimeout(() => {
+        this.isChangingTrack = false;
+      }, 150);
     }
     /**
      * Play a specific track
@@ -11409,6 +11414,7 @@ var VidPly = (() => {
         return;
       }
       const track = this.tracks[index];
+      this.isChangingTrack = true;
       this.currentIndex = index;
       this.player.load({
         src: track.src,
@@ -11427,6 +11433,9 @@ var VidPly = (() => {
       });
       setTimeout(() => {
         this.player.play();
+        setTimeout(() => {
+          this.isChangingTrack = false;
+        }, 50);
       }, 100);
     }
     /**
@@ -11461,6 +11470,9 @@ var VidPly = (() => {
      * Handle track end
      */
     handleTrackEnd() {
+      if (this.isChangingTrack) {
+        return;
+      }
       if (this.options.autoAdvance) {
         this.next();
       }
@@ -11529,6 +11541,21 @@ var VidPly = (() => {
         console.warn("VidPly Playlist: No container found");
         return;
       }
+      if (this.player.element.tagName === "AUDIO") {
+        this.trackArtworkElement = DOMUtils.createElement("div", {
+          className: "vidply-track-artwork",
+          attributes: {
+            "aria-hidden": "true"
+          }
+        });
+        this.trackArtworkElement.style.display = "none";
+        const videoWrapper = this.container.querySelector(".vidply-video-wrapper");
+        if (videoWrapper) {
+          this.container.insertBefore(this.trackArtworkElement, videoWrapper);
+        } else {
+          this.container.appendChild(this.trackArtworkElement);
+        }
+      }
       this.trackInfoElement = DOMUtils.createElement("div", {
         className: "vidply-track-info",
         attributes: {
@@ -11587,6 +11614,19 @@ var VidPly = (() => {
       ${trackArtist ? `<div class="vidply-track-artist" aria-hidden="true">${DOMUtils.escapeHTML(trackArtist)}</div>` : ""}
     `;
       this.trackInfoElement.style.display = "block";
+      this.updateTrackArtwork(track);
+    }
+    /**
+     * Update track artwork display (for audio playlists)
+     */
+    updateTrackArtwork(track) {
+      if (!this.trackArtworkElement) return;
+      if (track.poster) {
+        this.trackArtworkElement.style.backgroundImage = `url(${track.poster})`;
+        this.trackArtworkElement.style.display = "block";
+      } else {
+        this.trackArtworkElement.style.display = "none";
+      }
     }
     /**
      * Render playlist
@@ -11896,6 +11936,10 @@ var VidPly = (() => {
         this.trackInfoElement.innerHTML = "";
         this.trackInfoElement.style.display = "none";
       }
+      if (this.trackArtworkElement) {
+        this.trackArtworkElement.style.backgroundImage = "";
+        this.trackArtworkElement.style.display = "none";
+      }
     }
     /**
      * Toggle playlist panel visibility
@@ -11949,6 +11993,9 @@ var VidPly = (() => {
     destroy() {
       this.player.off("ended", this.handleTrackEnd);
       this.player.off("error", this.handleTrackError);
+      if (this.trackArtworkElement) {
+        this.trackArtworkElement.remove();
+      }
       if (this.trackInfoElement) {
         this.trackInfoElement.remove();
       }

@@ -36,6 +36,9 @@ export class PlaylistManager {
     this.navigationFeedback = null; // Live region for keyboard navigation feedback
     this.isPanelVisible = this.options.showPanel !== false;
     
+    // Track change guard to prevent cascade of next() calls
+    this.isChangingTrack = false;
+    
     // Bind methods
     this.handleTrackEnd = this.handleTrackEnd.bind(this);
     this.handleTrackError = this.handleTrackError.bind(this);
@@ -217,6 +220,9 @@ export class PlaylistManager {
     
     const track = this.tracks[index];
     
+    // Set guard flag to prevent cascade of next() calls during track change
+    this.isChangingTrack = true;
+    
     // Update current index
     this.currentIndex = index;
     
@@ -240,6 +246,11 @@ export class PlaylistManager {
       item: track,
       total: this.tracks.length
     });
+    
+    // Clear guard flag after a short delay to ensure track is loaded
+    setTimeout(() => {
+      this.isChangingTrack = false;
+    }, 150);
   }
   
   /**
@@ -255,6 +266,9 @@ export class PlaylistManager {
     
     const track = this.tracks[index];
     
+    // Set guard flag to prevent cascade of next() calls during track change
+    this.isChangingTrack = true;
+    
     // Update current index
     this.currentIndex = index;
     
@@ -279,9 +293,13 @@ export class PlaylistManager {
       total: this.tracks.length
     });
     
-    // Auto-play
+    // Auto-play and clear guard flag after playback starts
     setTimeout(() => {
       this.player.play();
+      // Clear guard flag after a short delay to ensure track has started
+      setTimeout(() => {
+        this.isChangingTrack = false;
+      }, 50);
     }, 100);
   }
   
@@ -323,6 +341,12 @@ export class PlaylistManager {
    * Handle track end
    */
   handleTrackEnd() {
+    // Don't auto-advance if we're already in the process of changing tracks
+    // This prevents a cascade of next() calls when loading a new track triggers an 'ended' event
+    if (this.isChangingTrack) {
+      return;
+    }
+    
     if (this.options.autoAdvance) {
       this.next();
     }
@@ -409,6 +433,26 @@ export class PlaylistManager {
       return;
     }
     
+    // Create track artwork element (shows album art/poster for audio playlists)
+    // Only create for audio players
+    if (this.player.element.tagName === 'AUDIO') {
+      this.trackArtworkElement = DOMUtils.createElement('div', {
+        className: 'vidply-track-artwork',
+        attributes: {
+          'aria-hidden': 'true'
+        }
+      });
+      this.trackArtworkElement.style.display = 'none';
+      
+      // Insert before video wrapper
+      const videoWrapper = this.container.querySelector('.vidply-video-wrapper');
+      if (videoWrapper) {
+        this.container.insertBefore(this.trackArtworkElement, videoWrapper);
+      } else {
+        this.container.appendChild(this.trackArtworkElement);
+      }
+    }
+    
     // Create track info element (shows current track)
     this.trackInfoElement = DOMUtils.createElement('div', {
       className: 'vidply-track-info',
@@ -481,6 +525,25 @@ export class PlaylistManager {
     `;
     
     this.trackInfoElement.style.display = 'block';
+    
+    // Update track artwork if available (for audio playlists)
+    this.updateTrackArtwork(track);
+  }
+  
+  /**
+   * Update track artwork display (for audio playlists)
+   */
+  updateTrackArtwork(track) {
+    if (!this.trackArtworkElement) return;
+    
+    // If track has a poster/artwork, show it
+    if (track.poster) {
+      this.trackArtworkElement.style.backgroundImage = `url(${track.poster})`;
+      this.trackArtworkElement.style.display = 'block';
+    } else {
+      // No artwork available, hide the element
+      this.trackArtworkElement.style.display = 'none';
+    }
   }
   
   /**
@@ -879,6 +942,11 @@ export class PlaylistManager {
       this.trackInfoElement.innerHTML = '';
       this.trackInfoElement.style.display = 'none';
     }
+    
+    if (this.trackArtworkElement) {
+      this.trackArtworkElement.style.backgroundImage = '';
+      this.trackArtworkElement.style.display = 'none';
+    }
   }
   
   /**
@@ -951,6 +1019,10 @@ export class PlaylistManager {
     this.player.off('error', this.handleTrackError);
     
     // Remove UI
+    if (this.trackArtworkElement) {
+      this.trackArtworkElement.remove();
+    }
+    
     if (this.trackInfoElement) {
       this.trackInfoElement.remove();
     }
