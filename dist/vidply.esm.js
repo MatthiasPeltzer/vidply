@@ -129,14 +129,21 @@ var init_HTML5Renderer = __esm({
         });
       }
       play() {
+        const scrollX = window.scrollX;
+        const scrollY = window.scrollY;
         const promise = this.media.play();
+        window.scrollTo(scrollX, scrollY);
         if (promise !== void 0) {
           promise.catch((error) => {
             this.player.log("Play failed:", error, "warn");
             if (this.player.options.autoplay && !this.player.state.muted) {
               this.player.log("Retrying play with muted audio", "info");
               this.media.muted = true;
-              this.media.play().catch((err) => {
+              const retryScrollX = window.scrollX;
+              const retryScrollY = window.scrollY;
+              this.media.play().then(() => {
+                window.scrollTo(retryScrollX, retryScrollY);
+              }).catch((err) => {
                 this.player.handleError(err);
               });
             }
@@ -7264,7 +7271,10 @@ var YouTubeRenderer = class {
   }
   play() {
     if (this.isReady && this.youtube) {
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
       this.youtube.playVideo();
+      window.scrollTo(scrollX, scrollY);
     }
   }
   pause() {
@@ -7458,9 +7468,12 @@ var VimeoRenderer = class {
   }
   play() {
     if (this.isReady && this.vimeo) {
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
       this.vimeo.play().catch((error) => {
         this.player.log("Play error:", error, "warn");
       });
+      window.scrollTo(scrollX, scrollY);
     }
   }
   pause() {
@@ -7712,7 +7725,10 @@ var HLSRenderer = class {
     }
   }
   play() {
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
     const promise = this.media.play();
+    window.scrollTo(scrollX, scrollY);
     if (promise !== void 0) {
       promise.catch((error) => {
         this.player.log("Play failed:", error, "warn");
@@ -8370,6 +8386,8 @@ var Player = class _Player extends EventEmitter {
    * @param {string} config.type - Media MIME type
    * @param {string} [config.poster] - Poster image URL
    * @param {Array} [config.tracks] - Text tracks (captions, chapters, etc.)
+   * @param {string} [config.audioDescriptionSrc] - Audio description video URL
+   * @param {string} [config.signLanguageSrc] - Sign language video URL
    */
   async load(config) {
     try {
@@ -8377,6 +8395,8 @@ var Player = class _Player extends EventEmitter {
       if (this.renderer) {
         this.pause();
       }
+      const scrollX = window.scrollX || window.pageXOffset;
+      const scrollY = window.scrollY || window.pageYOffset;
       const existingTracks = this.trackElements;
       existingTracks.forEach((track) => track.remove());
       this.invalidateTrackCache();
@@ -8401,6 +8421,17 @@ var Player = class _Player extends EventEmitter {
         });
         this.invalidateTrackCache();
       }
+      const wasSignLanguageEnabled = this.state.signLanguageEnabled;
+      const wasAudioDescriptionEnabled = this.state.audioDescriptionEnabled;
+      this.audioDescriptionSrc = config.audioDescriptionSrc || null;
+      this.signLanguageSrc = config.signLanguageSrc || null;
+      this.originalSrc = config.src;
+      if (wasAudioDescriptionEnabled) {
+        this.disableAudioDescription();
+      }
+      if (wasSignLanguageEnabled) {
+        this.disableSignLanguage();
+      }
       const shouldChangeRenderer = this.shouldChangeRenderer(config.src);
       if (shouldChangeRenderer && this.renderer) {
         this.renderer.destroy();
@@ -8412,20 +8443,34 @@ var Player = class _Player extends EventEmitter {
         this.renderer.media = this.element;
         this.element.load();
       }
+      window.scrollTo(scrollX, scrollY);
       if (this.captionManager) {
         this.captionManager.destroy();
         this.captionManager = new CaptionManager(this);
       }
       if (this.transcriptManager) {
-        const wasVisible = this.transcriptManager.isVisible;
+        const wasTranscriptVisible = this.transcriptManager.isVisible;
         this.transcriptManager.destroy();
         this.transcriptManager = new TranscriptManager(this);
-        if (wasVisible) {
+        if (wasTranscriptVisible && this.controlBar && this.controlBar.hasCaptionTracks()) {
           this.transcriptManager.showTranscript();
         }
       }
       if (this.controlBar) {
         this.updateControlBar();
+      }
+      window.scrollTo(scrollX, scrollY);
+      if (wasSignLanguageEnabled && this.signLanguageSrc) {
+        setTimeout(() => {
+          this.enableSignLanguage();
+          window.scrollTo(scrollX, scrollY);
+        }, 150);
+      }
+      if (wasAudioDescriptionEnabled && this.audioDescriptionSrc) {
+        setTimeout(() => {
+          this.enableAudioDescription();
+          window.scrollTo(scrollX, scrollY);
+        }, 150);
       }
       this.emit("sourcechange", config);
       this.log("Media loaded successfully");
@@ -8448,6 +8493,7 @@ var Player = class _Player extends EventEmitter {
     controlBar.createControls();
     controlBar.attachEvents();
     controlBar.setupAutoHide();
+    controlBar.setupOverflowDetection();
   }
   shouldChangeRenderer(src) {
     if (!this.renderer) return true;
@@ -11320,7 +11366,9 @@ var PlaylistManager = class {
       src: track.src,
       type: track.type,
       poster: track.poster,
-      tracks: track.tracks || []
+      tracks: track.tracks || [],
+      audioDescriptionSrc: track.audioDescriptionSrc || null,
+      signLanguageSrc: track.signLanguageSrc || null
     });
     this.updateTrackInfo(track);
     this.updatePlaylistUI();
@@ -11346,7 +11394,9 @@ var PlaylistManager = class {
       src: track.src,
       type: track.type,
       poster: track.poster,
-      tracks: track.tracks || []
+      tracks: track.tracks || [],
+      audioDescriptionSrc: track.audioDescriptionSrc || null,
+      signLanguageSrc: track.signLanguageSrc || null
     });
     this.updateTrackInfo(track);
     this.updatePlaylistUI();

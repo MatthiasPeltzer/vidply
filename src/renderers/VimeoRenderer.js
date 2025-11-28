@@ -188,9 +188,16 @@ export class VimeoRenderer {
 
   play() {
     if (this.isReady && this.vimeo) {
+      // Save scroll position to prevent browser from scrolling to video
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+      
       this.vimeo.play().catch(error => {
         this.player.log('Play error:', error, 'warn');
       });
+      
+      // Restore scroll position immediately to prevent auto-scroll
+      window.scrollTo(scrollX, scrollY);
     }
   }
 
