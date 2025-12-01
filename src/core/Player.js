@@ -432,6 +432,20 @@ export class Player extends EventEmitter {
 
         // Wrap original element
         this.element.parentNode.insertBefore(this.container, this.element);
+        
+        // Create track artwork element for single audio files (before video wrapper)
+        // This shows the poster/artwork above the audio player (similar to playlists)
+        if (this.element.tagName === 'AUDIO' && this.options.poster) {
+            this.trackArtworkElement = DOMUtils.createElement('div', {
+                className: `${this.options.classPrefix}-track-artwork`,
+                attributes: {
+                    'aria-hidden': 'true'
+                }
+            });
+            this.trackArtworkElement.style.backgroundImage = `url(${this.options.poster})`;
+            this.container.appendChild(this.trackArtworkElement);
+        }
+        
         this.container.appendChild(this.videoWrapper);
         this.videoWrapper.appendChild(this.element);
 
