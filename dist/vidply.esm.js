@@ -8078,6 +8078,16 @@ var Player = class _Player extends EventEmitter {
       className: `${this.options.classPrefix}-video-wrapper`
     });
     this.element.parentNode.insertBefore(this.container, this.element);
+    if (this.element.tagName === "AUDIO" && this.options.poster) {
+      this.trackArtworkElement = DOMUtils.createElement("div", {
+        className: `${this.options.classPrefix}-track-artwork`,
+        attributes: {
+          "aria-hidden": "true"
+        }
+      });
+      this.trackArtworkElement.style.backgroundImage = `url(${this.options.poster})`;
+      this.container.appendChild(this.trackArtworkElement);
+    }
     this.container.appendChild(this.videoWrapper);
     this.videoWrapper.appendChild(this.element);
     this.element.controls = false;

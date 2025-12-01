@@ -5,9 +5,10 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.21] - 2025-12-01
 
 ### Added
+- **Single Audio File Artwork Display**: Track artwork is now displayed above single audio files (not just playlists). When a `poster` option is provided to a single audio file, VidPly automatically creates a track artwork element that shows the album art/cover image above the player, matching the visual presentation of playlists. The artwork uses a 16:3 aspect ratio with responsive styling.
 - Responsive overflow menu for control bar when many buttons are present
 - Transcript-style caption display for audio players (accumulating captions with highlighting)
 - Drag and resize modes for transcript window with keyboard and mouse support
