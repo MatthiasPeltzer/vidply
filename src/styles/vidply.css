@@ -396,6 +396,7 @@
     background: var(--vidply-black);
     box-sizing: border-box;
     color: var(--vidply-text-primary);
+    color-scheme: dark light;
     contain: layout style;
     display: flex;
     flex-direction: column;
@@ -1866,6 +1867,433 @@
         transition-duration: 0.01ms !important;
     }
 }
+
+/* ============================================================================
+   Light Mode Support - WCAG 2.1 AA/AAA Compliant
+   ============================================================================ */
+@media (prefers-color-scheme: light) {
+    /* CSS Variables Override for Light Mode */
+    .vidply-player {
+        /* Backgrounds */
+        --vidply-bg-controls: linear-gradient(180deg, rgb(var(--vidply-white-rgb), 0) 0%, rgb(var(--vidply-white-rgb), 0.95) 100%);
+        --vidply-bg-dialog: rgb(248 248 248 / 98%);
+        --vidply-bg-menu: rgb(248 248 248 / 98%);
+        --vidply-bg-menu-rgb: 248, 248, 248;
+        --vidply-bg-playlist: #f5f5f5;
+        --vidply-bg-transcript: rgb(250 250 250 / 98%);
+        --vidply-bg-track-info: rgba(255, 255, 255, 0.95);
+        --vidply-bg-overlay: rgba(255, 255, 255, 0.9);
+        --vidply-bg-caption: rgba(255, 255, 255, 0.95);
+        
+        /* Text Colors - WCAG AA/AAA Compliant */
+        --vidply-text-primary: #1a1a1a;
+        --vidply-text-secondary: #262626;
+        --vidply-text-muted: #404040;
+        --vidply-text-disabled: #999999;
+        --vidply-text-subtle: #666666;
+        
+        /* UI Elements */
+        --vidply-border: rgba(0, 0, 0, 0.15);
+        --vidply-border-hover: rgba(0, 0, 0, 0.3);
+        --vidply-border-light: rgba(0, 0, 0, 0.1);
+        --vidply-hover-bg: rgba(0, 0, 0, 0.08);
+        --vidply-active-bg: rgba(0, 0, 0, 0.15);
+        
+        /* Focus Indicators - Dark Blue for Visibility */
+        --vidply-focus-outline: 2px solid #0a406e;
+        --vidply-focus-outline-player: 3px solid #0a406e;
+        --vidply-focus-outline-white: 2px solid #0a406e;
+        --vidply-border-focus: #0a406e;
+        
+        /* Scrollbars */
+        --vidply-scrollbar-track: #e0e0e0;
+        --vidply-scrollbar-thumb: #999999;
+        --vidply-scrollbar-thumb-hover: #666666;
+        --vidply-scrollbar-track-transcript: #e8e8e8;
+        
+        /* Shadows */
+        --vidply-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.15);
+        --vidply-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.2);
+        --vidply-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* ============================================================================
+       Control Bar & Playback Controls
+       ============================================================================ */
+    .vidply-controls {
+        background: linear-gradient(to top, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.75) 100%);
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .vidply-audio .vidply-controls {
+        background: rgba(255, 255, 255, 0.85);
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .vidply-button,
+    .vidply-icon-button {
+        color: #333333;
+    }
+    
+    .vidply-button:hover,
+    .vidply-icon-button:hover {
+        background: rgba(0, 0, 0, 0.1);
+        color: #1a1a1a;
+    }
+    
+    .vidply-button:active,
+    .vidply-icon-button:active {
+        background: rgba(0, 0, 0, 0.15);
+    }
+    
+    .vidply-time {
+        color: #1a1a1a;
+    }
+    
+    /* Progress Bar */
+    .vidply-progress-container {
+        background: rgba(0, 0, 0, 0.15);
+    }
+    
+    .vidply-progress-loaded {
+        background: rgba(0, 0, 0, 0.25);
+    }
+    
+    /* Volume Slider */
+    .vidply-player .vidply-volume-slider {
+        background: rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .vidply-player .vidply-volume-handle {
+        background: #333333 !important;
+        border: 2px solid #ffffff;
+    }
+    
+    .vidply-player .vidply-volume-fill {
+        background: var(--vidply-primary) !important;
+    }
+    
+    /* ============================================================================
+       Menus & Dialogs
+       ============================================================================ */
+    .vidply-settings-dialog,
+    .vidply-menu {
+        background: var(--vidply-bg-menu);
+        color: var(--vidply-text-primary);
+    }
+    
+    .vidply-menu-item {
+        color: #333333;
+    }
+    
+    .vidply-menu-item:hover {
+        background: rgba(0, 0, 0, 0.08);
+        color: #1a1a1a;
+    }
+    
+    .vidply-menu-item-active {
+        background: rgba(10, 64, 110, 0.15) !important;
+        color: #0a406e !important;
+    }
+    
+    .vidply-menu-item-active .vidply-icon,
+    .vidply-menu-item-active svg {
+        color: #0a406e !important;
+        fill: #0a406e !important;
+    }
+    
+    .vidply-player .vidply-menu-item-value {
+        color: #666666 !important;
+    }
+    
+    /* Settings Dialog */
+    .vidply-player .vidply-settings-header h2,
+    .vidply-player .vidply-settings-section h3 {
+        color: #1a1a1a !important;
+    }
+    
+    .vidply-player .vidply-settings-section label {
+        color: #1a1a1a !important;
+    }
+    
+    .vidply-player .vidply-settings-value {
+        color: #666666 !important;
+    }
+    
+    /* Chapter Menu */
+    .vidply-player .vidply-chapter-title {
+        color: #1a1a1a !important;
+    }
+    
+    .vidply-player .vidply-chapter-time {
+        color: #666666 !important;
+    }
+    
+    /* ============================================================================
+       Playlist & Track Info
+       ============================================================================ */
+    .vidply-playlist-panel {
+        background: var(--vidply-bg-playlist);
+        color: var(--vidply-text-primary);
+    }
+    
+    .vidply-playlist-header {
+        color: #1a1a1a;
+        background: rgba(0, 0, 0, 0.05);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .vidply-player .vidply-playlist-item-title {
+        color: #1a1a1a !important;
+    }
+    
+    .vidply-player .vidply-playlist-item-artist {
+        color: #666666 !important;
+    }
+    
+    .vidply-player .vidply-playlist-item-active .vidply-playlist-item-title {
+        color: var(--vidply-primary) !important;
+    }
+    
+    .vidply-playlist-thumbnail {
+        background-color: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .vidply-playlist-thumbnail-icon {
+        color: #666666;
+    }
+    
+    /* Track Info (Audio Playlists) */
+    .vidply-player .vidply-track-info {
+        background: var(--vidply-bg-track-info);
+    }
+    
+    .vidply-player .vidply-track-number,
+    .vidply-player .vidply-track-title,
+    .vidply-player .vidply-track-artist {
+        color: #000000 !important;
+    }
+    
+    /* ============================================================================
+       Transcript Window
+       ============================================================================ */
+    .vidply-player .vidply-transcript-window {
+        background: rgba(250, 250, 250, 0.98) !important;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        color: var(--vidply-text-primary);
+    }
+    
+    .vidply-player .vidply-transcript-header {
+        background: rgba(240, 240, 240, 0.95) !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .vidply-player .vidply-transcript-header h3 {
+        color: #1a1a1a !important;
+    }
+    
+    .vidply-player .vidply-transcript-close,
+    .vidply-player .vidply-transcript-settings {
+        color: #666666 !important;
+    }
+    
+    .vidply-player .vidply-transcript-close:hover,
+    .vidply-player .vidply-transcript-settings:hover {
+        color: #1a1a1a !important;
+        background: rgba(0, 0, 0, 0.08) !important;
+    }
+    
+    /* Transcript Entries */
+    .vidply-player .vidply-transcript-text {
+        color: #1a1a1a !important;
+    }
+    
+    .vidply-player .vidply-transcript-entry-active .vidply-transcript-text {
+        color: #000000 !important;
+    }
+    
+    .vidply-player .vidply-transcript-time {
+        color: var(--vidply-primary) !important;
+    }
+    
+    .vidply-player .vidply-transcript-entry {
+        border-left-color: transparent !important;
+    }
+    
+    .vidply-player .vidply-transcript-entry:hover,
+    .vidply-player .vidply-transcript-entry:focus {
+        background: rgba(0, 0, 0, 0.05) !important;
+    }
+    
+    .vidply-player .vidply-transcript-entry-active {
+        background: rgba(10, 64, 110, 0.1) !important;
+        border-left-color: var(--vidply-primary) !important;
+    }
+    
+    /* Description Entries (Audio Descriptions) */
+    .vidply-player .vidply-transcript-description {
+        background: rgba(59, 130, 246, 0.08) !important;
+        border-left-color: #3b82f6 !important;
+    }
+    
+    .vidply-player .vidply-transcript-description .vidply-transcript-text {
+        color: #1e40af !important;
+    }
+    
+    .vidply-player .vidply-transcript-description .vidply-transcript-time {
+        color: #3b82f6 !important;
+    }
+    
+    /* Transcript Controls */
+    .vidply-player .vidply-transcript-autoscroll-text,
+    .vidply-player .vidply-transcript-language-label {
+        color: #666666 !important;
+    }
+    
+    .vidply-player .vidply-transcript-language-select {
+        background: #ffffff !important;
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        color: #1a1a1a !important;
+    }
+    
+    /* Transcript Settings Menu */
+    .vidply-player .vidply-transcript-settings-menu {
+        background: rgb(248, 248, 248) !important;
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .vidply-player .vidply-transcript-settings-menu::after {
+        border-bottom-color: rgb(248, 248, 248) !important;
+    }
+    
+    .vidply-player .vidply-transcript-settings-menu.vidply-menu-above::after {
+        border-top-color: rgb(248, 248, 248) !important;
+    }
+    
+    .vidply-player .vidply-transcript-settings-item {
+        color: #1a1a1a !important;
+    }
+    
+    .vidply-player .vidply-transcript-settings-item:hover {
+        background: rgba(0, 0, 0, 0.08) !important;
+    }
+    
+    .vidply-player .vidply-transcript-settings-item:focus {
+        background: rgba(0, 0, 0, 0.12) !important;
+    }
+    
+    /* ============================================================================
+       Sign Language Video Overlay
+       ============================================================================ */
+    .vidply-player .vidply-sign-language-wrapper {
+        background: transparent !important;
+    }
+    
+    .vidply-player .vidply-sign-language-header {
+        background: rgba(240, 240, 240, 0.95) !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .vidply-player .vidply-sign-language-header h3,
+    .vidply-player .vidply-sign-language-label {
+        color: #1a1a1a !important;
+    }
+    
+    .vidply-player .vidply-sign-language-select {
+        background: #ffffff !important;
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        color: #1a1a1a !important;
+    }
+    
+    .vidply-player .vidply-sign-language-settings,
+    .vidply-player .vidply-sign-language-close {
+        color: #666666 !important;
+    }
+    
+    .vidply-player .vidply-sign-language-settings:hover,
+    .vidply-player .vidply-sign-language-close:hover {
+        color: #1a1a1a !important;
+        background: rgba(0, 0, 0, 0.08) !important;
+    }
+    
+    .vidply-player .vidply-sign-language-video {
+        border: 2px solid rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    /* Sign Language Settings Menu */
+    .vidply-player .vidply-sign-language-settings-menu {
+        background: rgb(248, 248, 248) !important;
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .vidply-player .vidply-sign-language-settings-menu::after {
+        border-bottom-color: rgb(248, 248, 248) !important;
+    }
+    
+    .vidply-player .vidply-sign-language-settings-menu.vidply-menu-above::after {
+        border-top-color: rgb(248, 248, 248) !important;
+    }
+    
+    .vidply-player .vidply-sign-language-settings-item {
+        color: #1a1a1a !important;
+    }
+    
+    .vidply-player .vidply-sign-language-settings-item:hover {
+        background: rgba(0, 0, 0, 0.08) !important;
+    }
+    
+    .vidply-player .vidply-sign-language-settings-item:focus {
+        background: rgba(0, 0, 0, 0.12) !important;
+    }
+    
+    /* ============================================================================
+       Form Elements & Labels
+       ============================================================================ */
+    .vidply-player input,
+    .vidply-player select,
+    .vidply-player textarea {
+        color: #1a1a1a !important;
+    }
+    
+    .vidply-player .vidply-style-group label,
+    .vidply-player .vidply-settings-control label {
+        color: #1a1a1a !important;
+    }
+    
+    /* ============================================================================
+       Global Text Elements
+       ============================================================================ */
+    .vidply-player h1,
+    .vidply-player h2,
+    .vidply-player h3,
+    .vidply-player h4,
+    .vidply-player h5,
+    .vidply-player h6 {
+        color: #1a1a1a;
+    }
+    
+    .vidply-player .vidply-draggable-header h3 {
+        color: #1a1a1a !important;
+    }
+    
+    /* ============================================================================
+       Responsive Overrides
+       ============================================================================ */
+    @media (width < 768px) {
+        .vidply-controls {
+            background: rgba(255, 255, 255, 0.95);
+            border-top: 1px solid rgba(0, 0, 0, 0.15);
+        }
+    }
+    
+    @media (orientation: landscape) {
+        .vidply-player:fullscreen .vidply-controls {
+            background: linear-gradient(to top, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 100%) !important;
+        }
+    }
+}
+/* End Light Mode Support */
 
 /* Dark Mode (default) - additional contrast */
 @media (prefers-color-scheme: dark) {
