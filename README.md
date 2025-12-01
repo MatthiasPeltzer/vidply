@@ -221,6 +221,7 @@ const player = new Player('#video', {
   height: 450,
   poster: 'poster.jpg',
   responsive: true,
+  colorScheme: 'dark light', // 'light', 'dark', 'light dark', 'dark light', 'only light', 'only dark'
   
   // Playback
   autoplay: false,
@@ -559,6 +560,60 @@ VidPly provides extensive CSS variables for easy customization:
   background: rgba(59, 130, 246, 0.2);
 }
 ```
+
+### Color Scheme Support
+
+VidPly supports both light and dark color schemes using the CSS `color-scheme` property. The player automatically adapts to your system's color scheme preference while respecting user accessibility settings.
+
+#### Features
+
+- **Automatic Theme Detection** - Respects `prefers-color-scheme` media query
+- **OS Integration** - Browser UI elements (scrollbars, form controls) adapt automatically
+- **Configurable** - Choose light, dark, or both modes
+- **Accessibility First** - Proper contrast ratios maintained in both modes
+
+#### Usage
+
+**Default (Auto)** - Adapts to system preference:
+```javascript
+const player = new Player('#video', {
+  colorScheme: 'dark light'  // Supports both (default)
+});
+```
+
+**Light Mode Only**:
+```javascript
+const player = new Player('#video', {
+  colorScheme: 'light'
+});
+```
+
+**Dark Mode Only**:
+```javascript
+const player = new Player('#video', {
+  colorScheme: 'dark'
+});
+```
+
+**Prevent Override**:
+```javascript
+const player = new Player('#video', {
+  colorScheme: 'only light'  // or 'only dark'
+});
+```
+
+**HTML Meta Tag** (recommended for page-wide support):
+```html
+<head>
+  <meta name="color-scheme" content="dark light">
+</head>
+```
+
+The `color-scheme` property ensures:
+- Native scrollbars match the theme
+- Form controls use appropriate colors
+- Browser UI chrome adapts automatically
+- No screen flash during page load (with meta tag)
 
 ### Add Custom Language
 
