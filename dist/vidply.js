@@ -7829,8 +7829,6 @@ var VidPly = (() => {
         poster: null,
         responsive: true,
         fillContainer: false,
-        colorScheme: "dark light",
-        // 'light', 'dark', 'light dark', 'dark light', 'only light', 'only dark'
         // Playback
         autoplay: false,
         loop: false,
@@ -8095,9 +8093,6 @@ var VidPly = (() => {
       this.container.classList.add(`${this.options.classPrefix}-${mediaType}`);
       if (this.options.responsive) {
         this.container.classList.add(`${this.options.classPrefix}-responsive`);
-      }
-      if (this.options.colorScheme) {
-        this.container.style.colorScheme = this.options.colorScheme;
       }
       this.videoWrapper = DOMUtils.createElement("div", {
         className: `${this.options.classPrefix}-video-wrapper`
