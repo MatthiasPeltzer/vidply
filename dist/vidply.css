@@ -40,40 +40,40 @@
     --vidply-border-focus: var(--vidply-primary-light);
     --vidply-border-hover: var(--vidply-white-30);
     --vidply-border-light: var(--vidply-white-10);
-    --vidply-button-size: 30px;
-    --vidply-button-size-mobile: 36px;
-    --vidply-button-size-small: 32px;
-    --vidply-focus-outline: 2px solid var(--vidply-primary-light);
-    --vidply-focus-outline-player: 3px solid var(--vidply-primary-light);
-    --vidply-focus-outline-white: 2px solid var(--vidply-primary-light);
-    --vidply-font-base: 13px;
-    --vidply-font-lg: 16px;
-    --vidply-font-md: 14px;
-    --vidply-font-sm: 12px;
-    --vidply-font-xl: 18px;
-    --vidply-font-xs: 11px;
+    --vidply-button-size: 1.875rem;
+    --vidply-button-size-mobile: 2.25rem;
+    --vidply-button-size-small: 2rem;
+    --vidply-focus-outline: 0.125rem solid var(--vidply-primary-light);
+    --vidply-focus-outline-player: 0.1875rem solid var(--vidply-primary-light);
+    --vidply-focus-outline-white: 0.125rem solid var(--vidply-primary-light);
+    --vidply-font-base: 0.8125rem;
+    --vidply-font-lg: 1rem;
+    --vidply-font-md: 0.875rem;
+    --vidply-font-sm: 0.75rem;
+    --vidply-font-xl: 1.125rem;
+    --vidply-font-xs: 0.6875rem;
 
     /* Black Color Variations */
-    --vidply-font-xxl: 20px;
-    --vidply-gap-lg: 12px;
-    --vidply-gap-md: 8px;
-    --vidply-gap-sm: 6px;
-    --vidply-gap-xl: 16px;
-    --vidply-gap-xs: 4px;
-    --vidply-gap-xxl: 20px;
-    --vidply-header-height: 28px;
+    --vidply-font-xxl: 1.25rem;
+    --vidply-gap-lg: 0.75rem;
+    --vidply-gap-md: 0.5rem;
+    --vidply-gap-sm: 0.375rem;
+    --vidply-gap-xl: 1rem;
+    --vidply-gap-xs: 0.25rem;
+    --vidply-gap-xxl: 1.25rem;
+    --vidply-header-height: 1.75rem;
     --vidply-hover-bg: var(--vidply-white-10);
 
     /* UI Background Colors */
-    --vidply-icon-size: 26px;
-    --vidply-icon-size-mobile: 22px;
-    --vidply-icon-size-small: 20px;
-    --vidply-icon-size-xs: 18px;
-    --vidply-padding-lg: 12px;
-    --vidply-padding-md: 8px;
-    --vidply-padding-sm: 4px;
-    --vidply-padding-xl: 16px;
-    --vidply-padding-xxl: 20px;
+    --vidply-icon-size: 1.625rem;
+    --vidply-icon-size-mobile: 1.375rem;
+    --vidply-icon-size-small: 1.25rem;
+    --vidply-icon-size-xs: 1.125rem;
+    --vidply-padding-lg: 0.75rem;
+    --vidply-padding-md: 0.5rem;
+    --vidply-padding-sm: 0.25rem;
+    --vidply-padding-xl: 1rem;
+    --vidply-padding-xxl: 1.25rem;
     --vidply-primary: #0a406e;
     --vidply-primary-10: rgb(var(--vidply-primary-rgb), 0.1);
 
@@ -97,21 +97,21 @@
 
     /* State Colors */
     --vidply-primary-rgb: 10, 64, 110;
-    --vidply-radius-lg: 8px;
-    --vidply-radius-md: 6px;
-    --vidply-radius-sm: 4px;
+    --vidply-radius-lg: 0.5rem;
+    --vidply-radius-md: 0.375rem;
+    --vidply-radius-sm: 0.25rem;
 
     /* Sizing Variables */
-    --vidply-radius-xl: 12px;
+    --vidply-radius-xl: 0.75rem;
     --vidply-scrollbar-thumb: var(--vidply-white);
     --vidply-scrollbar-thumb-hover: var(--vidply-white-90);
     --vidply-scrollbar-track: #404040;
     --vidply-scrollbar-track-transcript: #555;
-    --vidply-shadow-lg: 0 12px 48px var(--vidply-black-80);
-    --vidply-shadow-md: 0 4px 12px var(--vidply-black-40);
+    --vidply-shadow-lg: 0 0.75rem 3rem var(--vidply-black-80);
+    --vidply-shadow-md: 0 0.25rem 0.75rem var(--vidply-black-40);
 
     /* Spacing Variables */
-    --vidply-shadow-sm: 0 2px 4px var(--vidply-black-30);
+    --vidply-shadow-sm: 0 0.125rem 0.25rem var(--vidply-black-30);
     --vidply-text-disabled: var(--vidply-white-60);
     --vidply-text-muted: var(--vidply-white-70);
     --vidply-text-primary: var(--vidply-white);
@@ -200,7 +200,7 @@
 
 .vidply-icon-button:focus {
     outline: var(--vidply-focus-outline-white);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 .vidply-icon-button .vidply-icon {
@@ -212,7 +212,7 @@
 .vidply-draggable-header {
     align-items: center;
     background: #282828;
-    border-bottom: 1px solid var(--vidply-border-light);
+    border-bottom: 0.0625rem solid var(--vidply-border-light);
     cursor: move;
     display: flex;
     justify-content: space-between;
@@ -223,21 +223,21 @@
 
 .vidply-draggable-header:focus,
 .vidply-draggable-header:focus-visible {
-    box-shadow: 0 0 0 4px rgb(91 144 255 / 35%);
-    outline: 3px solid var(--vidply-primary-light);
-    outline-offset: 2px;
+    box-shadow: 0 0 0 0.25rem rgb(91 144 255 / 35%);
+    outline: 0.1875rem solid var(--vidply-primary-light);
+    outline-offset: 0.125rem;
 }
 
 .vidply-draggable-header h3 {
     color: var(--vidply-white);
     font-size: var(--vidply-font-lg);
     font-weight: 600;
-    height: 1px;
-    left: -10000px;
+    height: 0.0625rem;
+    left: -625rem;
     margin: 0;
     overflow: hidden;
     position: absolute;
-    width: 1px;
+    width: 0.0625rem;
 }
 
 /* Common Resize Handles */
@@ -250,67 +250,67 @@
 .vidply-resize-handle-nw,
 .vidply-resize-handle-se,
 .vidply-resize-handle-sw {
-    height: 16px;
-    width: 16px;
+    height: 1rem;
+    width: 1rem;
 }
 
 .vidply-resize-handle-n,
 .vidply-resize-handle-s {
     cursor: ns-resize;
-    height: 8px;
-    left: 16px;
-    right: 16px;
+    height: 0.5rem;
+    left: 1rem;
+    right: 1rem;
 }
 
 .vidply-resize-handle-e,
 .vidply-resize-handle-w {
-    bottom: 16px;
+    bottom: 1rem;
     cursor: ew-resize;
-    top: 16px;
-    width: 8px;
+    top: 1rem;
+    width: 0.5rem;
 }
 
-.vidply-resize-handle-n { top: -4px; }
-.vidply-resize-handle-s { bottom: -4px; }
-.vidply-resize-handle-e { right: -4px; }
-.vidply-resize-handle-w { left: -4px; }
+.vidply-resize-handle-n { top: -0.25rem; }
+.vidply-resize-handle-s { bottom: -0.25rem; }
+.vidply-resize-handle-e { right: -0.25rem; }
+.vidply-resize-handle-w { left: -0.25rem; }
 
 .vidply-resize-handle-ne {
     cursor: nesw-resize;
-    right: -8px;
-    top: -8px;
+    right: -0.5rem;
+    top: -0.5rem;
 }
 
 .vidply-resize-handle-nw {
     cursor: nwse-resize;
-    left: -8px;
-    top: -8px;
+    left: -0.5rem;
+    top: -0.5rem;
 }
 
 .vidply-resize-handle-se {
-    bottom: -8px;
+    bottom: -0.5rem;
     cursor: nwse-resize;
-    right: -8px;
+    right: -0.5rem;
 }
 
 .vidply-resize-handle-sw {
-    bottom: -8px;
+    bottom: -0.5rem;
     cursor: nesw-resize;
-    left: -8px;
+    left: -0.5rem;
 }
 
 .vidply-resizable .vidply-resize-handle::after {
     background: var(--vidply-primary-light);
     border-radius: 50%;
     content: '';
-    height: 6px;
+    height: 0.375rem;
     left: 50%;
     opacity: 0;
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
     transition: opacity 0.2s ease;
-    width: 6px;
+    width: 0.375rem;
 }
 
 .vidply-resizable:hover .vidply-resize-handle::after {
@@ -324,31 +324,31 @@
 /* Common Settings Menu Pattern */
 .vidply-popup-settings-menu {
     background: var(--vidply-bg-menu);
-    border: 1px solid var(--vidply-border);
+    border: 0.0625rem solid var(--vidply-border);
     border-radius: var(--vidply-radius-md);
     box-shadow: var(--vidply-shadow-lg);
     display: none;
-    min-width: 240px;
+    min-width: 15rem;
     padding: var(--vidply-gap-sm);
     position: absolute;
     z-index: 100;
 }
 
 .vidply-popup-settings-menu::after {
-    border-bottom: 6px solid var(--vidply-bg-menu);
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
+    border-bottom: 0.375rem solid var(--vidply-bg-menu);
+    border-left: 0.375rem solid transparent;
+    border-right: 0.375rem solid transparent;
     bottom: 100%;
     content: '';
     height: 0;
-    left: 8px;
+    left: 0.5rem;
     position: absolute;
     width: 0;
 }
 
 .vidply-popup-settings-menu.vidply-menu-above::after {
     border-bottom: none;
-    border-top: 6px solid var(--vidply-bg-menu);
+    border-top: 0.375rem solid var(--vidply-bg-menu);
     bottom: auto;
     top: 100%;
 }
@@ -363,7 +363,7 @@
     display: flex;
     font-size: var(--vidply-font-base);
     gap: var(--vidply-gap-md);
-    padding: var(--vidply-padding-md) 10px;
+    padding: var(--vidply-padding-md) 0.625rem;
     text-align: left;
     transition: var(--vidply-transition-normal);
     width: 100%;
@@ -407,7 +407,7 @@
     display: flex;
     flex-direction: column;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.5;
     max-width: 100%;
     overflow: visible;
@@ -423,11 +423,11 @@
 
 .vidply-player:focus-visible {
     outline: var(--vidply-focus-outline-player);
-    outline-offset: 4px;
+    outline-offset: 0.25rem;
 }
 
 /* Mobile: Ensure player contains all elements properly */
-@media (width < 768px) {
+@media (width < 48rem) {
     .vidply-player {
         isolation: isolate; /* Create stacking context */
         overflow: visible; /* Allow menus to overflow but within bounds */
@@ -449,7 +449,7 @@
 }
 
 .vidply-player.vidply-audio .vidply-menu {
-    max-height: 150px;
+    max-height: 9.375rem;
 }
 
 /* Video/Audio Element */
@@ -462,7 +462,7 @@
 }
 
 /* Mobile: Video element order and sizing */
-@media (width < 768px) {
+@media (width < 48rem) {
     .vidply-player video,
     .vidply-player audio {
         flex: 0 0 auto; /* Don't grow or shrink */
@@ -522,11 +522,11 @@
 }
 
 /* Mobile: Simplify video wrapper but keep captions contained */
-@media (width < 768px) {
+@media (width < 48rem) {
     .vidply-video-wrapper {
         display: block;
         height: auto;
-        min-height: 200px;
+        min-height: 12.5rem;
         overflow: visible;
         position: relative;
         z-index: 2;
@@ -580,7 +580,7 @@
 /* Centered Play Button Overlay */
 .vidply-play-overlay {
     cursor: pointer;
-    filter: drop-shadow(0 8px 32px rgb(0 0 0 / 30%));
+    filter: drop-shadow(0 0.5rem 2rem rgb(0 0 0 / 30%));
     left: 50%;
     position: absolute;
     top: 50%;
@@ -590,7 +590,7 @@
 }
 
 .vidply-play-overlay:hover {
-    filter: drop-shadow(0 12px 48px rgb(0 0 0 / 40%));
+    filter: drop-shadow(0 0.75rem 3rem rgb(0 0 0 / 40%));
     transform: translate(-50%, -50%) scale(1.1);
 }
 
@@ -614,7 +614,7 @@
     left: 0;
     opacity: 0;
     overflow: visible;
-    padding: 20px 16px 16px;
+    padding: 1.25rem 1rem 1rem;
     pointer-events: none;
     position: absolute;
     right: 0;
@@ -638,15 +638,15 @@
 }
 
 /* Mobile: Controls underneath video (but not in landscape fullscreen) */
-@media (width < 768px) {
+@media (width < 48rem) {
     .vidply-controls {
         background: var(--vidply-black-90);
-        border-top: 1px solid var(--vidply-border-light);
+        border-top: 0.0625rem solid var(--vidply-border-light);
         bottom: auto;
         left: 0;
         opacity: 1;
         order: 2; /* After video-wrapper (1) */
-        padding: 12px;
+        padding: 0.75rem;
         pointer-events: auto;
         position: relative;
         right: 0;
@@ -684,24 +684,24 @@
 /* Progress Bar */
 .vidply-progress-container {
     background: var(--vidply-white-20);
-    border-radius: 3px;
+    border-radius: 0.1875rem;
     cursor: pointer;
     flex: 1;
-    height: 9px;
+    height: 0.5625rem;
     position: relative;
     transition: height 0.2s ease;
 }
 
 .vidply-progress-container:hover,
 .vidply-progress-container:focus {
-    height: 11px;
+    height: 0.6875rem;
     outline: var(--vidply-focus-outline-white);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 .vidply-progress-buffered {
     background: var(--vidply-white-40);
-    border-radius: 3px;
+    border-radius: 0.1875rem;
     height: 100%;
     left: 0;
     position: absolute;
@@ -712,7 +712,7 @@
 
 .vidply-progress-played {
     background: var(--vidply-primary-light);
-    border-radius: 3px;
+    border-radius: 0.1875rem;
     height: 100%;
     left: 0;
     position: absolute;
@@ -725,14 +725,14 @@
     background: var(--vidply-white);
     border-radius: 50%;
     box-shadow: var(--vidply-shadow-sm);
-    height: 15px;
+    height: 0.9375rem;
     opacity: 0;
     position: absolute;
-    right: -6px;
+    right: -0.375rem;
     top: 50%;
     transform: translateY(-50%);
     transition: opacity 0.2s ease;
-    width: 15px;
+    width: 0.9375rem;
 }
 
 .vidply-progress-container:hover .vidply-progress-handle,
@@ -742,12 +742,12 @@
 
 .vidply-progress-tooltip {
     background: var(--vidply-black-90);
-    border-radius: 4px;
-    bottom: 12px;
+    border-radius: 0.25rem;
+    bottom: 0.75rem;
     color: var(--vidply-white);
     display: none;
-    font-size: 12px;
-    padding: 4px 8px;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
     pointer-events: none;
     position: absolute;
     transform: translateX(-50%);
@@ -783,7 +783,7 @@
     cursor: pointer;
     display: inline-flex;
     justify-content: center;
-    margin: 1px;
+    margin: 0.0625rem;
     min-height: var(--vidply-button-size);
     min-width: var(--vidply-button-size);
     padding: 0;
@@ -801,7 +801,7 @@
 
 .vidply-button:focus {
     outline: var(--vidply-focus-outline-white);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 .vidply-button:disabled {
@@ -827,10 +827,10 @@
 @media (forced-colors: active) {
     .vidply-controls button .vidply-icon svg {
         background: Canvas;
-        border-radius: 3px;
+        border-radius: 0.1875rem;
         color: CanvasText;
         fill: currentcolor;
-        padding: 2px;
+        padding: 0.125rem;
     }
 
     .vidply-transcript-close .vidply-icon svg,
@@ -838,29 +838,29 @@
     .vidply-sign-language-close .vidply-icon svg,
     .vidply-sign-language-settings .vidply-icon svg {
         background: Canvas;
-        border-radius: 2px;
+        border-radius: 0.125rem;
         color: CanvasText;
         fill: currentcolor;
-        padding: 2px;
+        padding: 0.125rem;
     }
 }
 
 /* Volume Control */
 .vidply-volume-slider {
     background: var(--vidply-white-20);
-    border-radius: 3px;
+    border-radius: 0.1875rem;
     cursor: pointer;
-    height: 100px;
+    height: 6.25rem;
     margin: 0 auto;
-    padding: 0 5px; /* Add padding for larger touch target on mobile */
+    padding: 0 0.3125rem; /* Add padding for larger touch target on mobile */
     position: relative;
     touch-action: none; /* Prevent scrolling while dragging */
-    width: 6px;
+    width: 0.375rem;
 }
 
 .vidply-volume-slider:focus {
     outline: var(--vidply-focus-outline-white);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 .vidply-volume-track {
@@ -871,7 +871,7 @@
 
 .vidply-volume-fill {
     background: var(--vidply-primary-light);
-    border-radius: 2px;
+    border-radius: 0.125rem;
     bottom: 0;
     height: 80%;
     left: 0;
@@ -884,12 +884,12 @@
     background: var(--vidply-white);
     border-radius: 50%;
     box-shadow: var(--vidply-shadow-sm);
-    height: 10px;
+    height: 0.625rem;
     left: 50%;
     position: absolute;
-    top: -4px;
+    top: -0.25rem;
     transform: translateX(-50%);
-    width: 10px;
+    width: 0.625rem;
 }
 
 /* Time Display */
@@ -912,11 +912,11 @@
 }
 
 .vidply-speed-text {
-    height: 1px;
-    left: -10000px;
+    height: 0.0625rem;
+    left: -625rem;
     overflow: hidden;
     position: absolute;
-    width: 1px;
+    width: 0.0625rem;
 }
 
 /* Menu Backdrop (for mobile) */
@@ -937,7 +937,7 @@
 }
 
 /* Mobile: Don't use backdrop, menus position above buttons */
-@media (width < 768px) {
+@media (width < 48rem) {
     .vidply-menu-backdrop {
         display: none !important;
     }
@@ -955,18 +955,18 @@
 
 /* Menus */
 .vidply-menu {
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(0.625rem);
     background: var(--vidply-bg-menu);
-    border: 1px solid var(--vidply-border);
-    border-radius: 8px;
-    bottom: calc(100% + 8px);
-    box-shadow: var(--vidply-shadow-lg), 0 0 0 1px var(--vidply-white-10);
-    max-height: 250px;
-    min-width: 200px;
+    border: 0.0625rem solid var(--vidply-border);
+    border-radius: 0.5rem;
+    bottom: calc(100% + 0.5rem);
+    box-shadow: var(--vidply-shadow-lg), 0 0 0 0.0625rem var(--vidply-white-10);
+    max-height: 15.625rem;
+    min-width: 12.5rem;
     -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
     overflow-y: auto;
-    padding: 8px 0;
+    padding: 0.5rem 0;
     pointer-events: auto; /* Ensure menus are clickable/touchable */
     position: absolute;
     right: 50%;
@@ -977,10 +977,10 @@
 
 /* Menu positioned below button */
 .vidply-menu.vidply-menu-below::after {
-    border-bottom: 6px solid var(--vidply-bg-menu);
+    border-bottom: 0.375rem solid var(--vidply-bg-menu);
     border-top: none;
     bottom: auto;
-    top: -6px;
+    top: -0.375rem;
 }
 
 /* Volume menu popup - narrow and centered on button */
@@ -988,18 +988,18 @@
     min-width: unset;
     overflow-x: hidden;
     overflow-y: hidden;
-    padding: 16px 12px;
+    padding: 1rem 0.75rem;
     pointer-events: auto; /* Ensure volume menu is touchable */
     right: 50%;
     transform: translateX(50%);
-    width: 35px;
+    width: 2.1875rem;
     z-index: var(--vidply-z-menu-high); /* High z-index to appear above everything */
 }
 
 /* For audio players, show menus below buttons */
 .vidply-player.vidply-audio .vidply-menu {
     bottom: auto;
-    top: calc(100% + 8px);
+    top: calc(100% + 0.5rem);
 }
 
 .vidply-menu-item {
@@ -1027,8 +1027,8 @@
 .vidply-menu-item:focus {
     background: var(--vidply-primary-25);
     color: var(--vidply-white);
-    outline: 2px solid var(--vidply-primary-light);
-    outline-offset: -2px;
+    outline: 0.125rem solid var(--vidply-primary-light);
+    outline-offset: -0.125rem;
 }
 
 .vidply-menu-item:active {
@@ -1054,8 +1054,8 @@
 
 .vidply-menu-item-active .vidply-icon {
     color: var(--vidply-primary-light);
-    height: 20px;
-    width: 20px;
+    height: 1.25rem;
+    width: 1.25rem;
 }
 
 .vidply-menu-item-with-value {
@@ -1069,13 +1069,13 @@
     align-items: center;
     display: flex;
     flex: 1;
-    gap: 10px;
+    gap: 0.625rem;
 }
 
 .vidply-menu-item-label .vidply-icon {
-    height: 24px;
+    height: 1.5rem;
     opacity: 0.9;
-    width: 24px;
+    width: 1.5rem;
 }
 
 .vidply-menu-item-value {
@@ -1084,7 +1084,7 @@
     color: var(--vidply-text-muted);
     font-size: var(--vidply-font-base);
     font-weight: 500;
-    padding: 2px var(--vidply-gap-md);
+    padding: 0.125rem var(--vidply-gap-md);
     white-space: nowrap;
 }
 
@@ -1097,7 +1097,7 @@
 /* Overflow menu list - prevent overflow to the right */
 .vidply-overflow-menu-list {
     left: auto !important;
-    max-width: calc(100vw - 20px);
+    max-width: calc(100vw - 1.25rem);
     right: 0 !important;
     z-index: 1000; /* Ensure menu appears above all player elements including playlist */
 
@@ -1119,8 +1119,8 @@
 
 /* SVG icons in overflow menu - proper sizing */
 .vidply-overflow-menu-list .vidply-menu-item .vidply-icon svg {
-    height: 18px;
-    width: 18px;
+    height: 1.125rem;
+    width: 1.125rem;
 }
 
 /* Text icons (like "Aa" for caption styling) in overflow menu */
@@ -1148,7 +1148,7 @@
     font-size: var(--vidply-font-base);
     font-weight: 500;
     margin-right: var(--vidply-gap-lg);
-    min-width: 60px;
+    min-width: 3.75rem;
 }
 
 .vidply-chapter-title {
@@ -1209,20 +1209,20 @@
 .vidply-style-group input[type="color"]:focus {
     border-color: var(--vidply-border-focus);
     outline: var(--vidply-focus-outline-white);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 .vidply-style-group input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     background: var(--vidply-primary);
-    border: 2px solid var(--vidply-white);
+    border: 0.125rem solid var(--vidply-white);
     border-radius: 50%;
     box-shadow: var(--vidply-shadow-sm);
     cursor: pointer;
-    height: 16px;
+    height: 1rem;
     transition: transform 0.15s ease, background 0.15s ease;
-    width: 16px;
+    width: 1rem;
 }
 
 .vidply-style-group input[type="range"]::-webkit-slider-thumb:hover {
@@ -1232,13 +1232,13 @@
 
 .vidply-style-group input[type="range"]::-moz-range-thumb {
     background: var(--vidply-primary);
-    border: 2px solid var(--vidply-white);
+    border: 0.125rem solid var(--vidply-white);
     border-radius: 50%;
     box-shadow: var(--vidply-shadow-sm);
     cursor: pointer;
-    height: 16px;
+    height: 1rem;
     transition: transform 0.15s ease, background 0.15s ease;
-    width: 16px;
+    width: 1rem;
 }
 
 .vidply-style-group input[type="range"]::-moz-range-thumb:hover {
@@ -1248,23 +1248,23 @@
 
 .vidply-style-group input[type="range"]::-webkit-slider-runnable-track {
     background: var(--vidply-white-20);
-    border-radius: 3px;
-    height: 6px;
+    border-radius: 0.1875rem;
+    height: 0.375rem;
     width: 100%;
 }
 
 .vidply-style-group input[type="range"]::-moz-range-track {
     background: var(--vidply-white-20);
-    border-radius: 3px;
-    height: 6px;
+    border-radius: 0.1875rem;
+    height: 0.375rem;
     width: 100%;
 }
 
 /* Captions */
 .vidply-captions {
     background: var(--vidply-bg-caption);
-    border-radius: 4px;
-    bottom: 16px;
+    border-radius: 0.25rem;
+    bottom: 1rem;
     color: var(--vidply-white);
     display: none;
     font-family: sans-serif;
@@ -1272,7 +1272,7 @@
     left: 50%;
     line-height: 1.4;
     max-width: 90%;
-    padding: 8px 16px;
+    padding: 0.5rem 1rem;
     pointer-events: none;
     position: absolute;
     text-align: center;
@@ -1284,17 +1284,17 @@
 /* Audio player: Display captions as readable transcript/lyrics */
 .vidply-player.vidply-audio .vidply-captions {
     background: var(--vidply-bg-transcript);
-    border: 1px solid var(--vidply-border);
-    border-radius: 8px;
+    border: 0.0625rem solid var(--vidply-border);
+    border-radius: 0.5rem;
     bottom: auto;
-    font-size: 16px;
+    font-size: 1rem;
     left: 0;
     line-height: 1.6;
-    max-height: 150px;
+    max-height: 9.375rem;
     max-width: 100%;
-    min-width: 370px;
+    min-width: 23.125rem;
     overflow-y: auto;
-    padding: 16px 20px;
+    padding: 1rem 1.25rem;
     position: relative;
     scroll-behavior: smooth;
     text-align: left;
@@ -1306,16 +1306,16 @@
 .vidply-player.vidply-audio .vidply-caption-cue {
     background: transparent;
     border-radius: 0;
-    margin-bottom: 12px;
-    padding: 8px 0;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
 }
 
 /* Highlight active caption in audio player */
 .vidply-player.vidply-audio .vidply-caption-cue.vidply-caption-active {
     background: var(--vidply-primary-15);
-    border-left: 3px solid var(--vidply-primary);
-    border-radius: 4px;
-    padding: 8px 12px;
+    border-left: 0.1875rem solid var(--vidply-primary);
+    border-radius: 0.25rem;
+    padding: 0.5rem 0.75rem;
 }
 
 /* Smooth transitions for caption highlighting */
@@ -1328,14 +1328,14 @@
 }
 
 /* Desktop only: Move captions up when controls are visible */
-@media (width >= 768px) {
+@media (width >= 48rem) {
     .vidply-controls-visible .vidply-captions {
-        bottom: 96px;
+        bottom: 6rem;
     }
 }
 
 /* Mobile: Caption positioning handled by JavaScript */
-@media (width < 768px) {
+@media (width < 48rem) {
     .vidply-captions {
         /* Bottom position set dynamically by JS based on control height */
         left: 50%;
@@ -1348,18 +1348,18 @@
     
     /* Audio player captions on mobile - more compact */
     .vidply-player.vidply-audio .vidply-captions {
-        font-size: 14px;
+        font-size: 0.875rem;
         left: 0;
-        max-height: 120px;
-        min-width: 300px;
-        padding: 12px 16px;
+        max-height: 7.5rem;
+        min-width: 18.75rem;
+        padding: 0.75rem 1rem;
         position: relative;
         transform: none;
         width: 100%;
     }
     
     .vidply-player.vidply-audio .vidply-caption-cue {
-        margin-bottom: 8px;
+        margin-bottom: 0.5rem;
     }
     
     /* Make play overlay smaller and centered */
@@ -1380,7 +1380,7 @@
 .vidply-settings-overlay {
     align-items: center;
     animation: vidply-fade-in 0.2s ease;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(0.5rem);
     background: var(--vidply-bg-overlay);
     bottom: 0;
     display: flex;
@@ -1405,14 +1405,14 @@
 .vidply-settings-dialog {
     animation: vidply-slide-up 0.3s ease;
     background: var(--vidply-bg-dialog);
-    border: 1px solid var(--vidply-border);
-    border-radius: 12px;
+    border: 0.0625rem solid var(--vidply-border);
+    border-radius: 0.75rem;
     box-shadow: var(--vidply-shadow-lg);
     max-height: 80%;
-    max-width: 500px;
+    max-width: 31.25rem;
     -webkit-overflow-scrolling: touch;
     overflow-y: auto;
-    padding: 24px;
+    padding: 1.5rem;
 
     /* iOS momentum scrolling */
     touch-action: pan-y;
@@ -1421,7 +1421,7 @@
 
 @keyframes vidply-slide-up {
     from {
-        transform: translateY(20px);
+        transform: translateY(1.25rem);
         opacity: 0;
     }
 
@@ -1448,7 +1448,7 @@
 .vidply-settings-close {
     min-height: auto;
     min-width: auto;
-    padding: 4px;
+    padding: 0.25rem;
 }
 
 .vidply-settings-content {
@@ -1481,7 +1481,7 @@
 .vidply-settings-color,
 .vidply-settings-range {
     background: var(--vidply-white-10);
-    border: 1px solid var(--vidply-white-20);
+    border: 0.0625rem solid var(--vidply-white-20);
     border-radius: var(--vidply-radius-md);
     color: var(--vidply-white);
     font-size: var(--vidply-font-md);
@@ -1508,7 +1508,7 @@
 .vidply-settings-range:focus {
     background: var(--vidply-white-15);
     border-color: var(--vidply-border-focus);
-    box-shadow: 0 0 0 3px var(--vidply-primary-20);
+    box-shadow: 0 0 0 0.1875rem var(--vidply-primary-20);
     outline: none;
 }
 
@@ -1522,12 +1522,12 @@
     color: var(--vidply-text-muted);
     display: inline-block;
     font-size: var(--vidply-font-base);
-    min-width: 40px;
+    min-width: 2.5rem;
     text-align: right;
 }
 
 .vidply-settings-footer {
-    border-top: 1px solid var(--vidply-white-10);
+    border-top: 0.0625rem solid var(--vidply-white-10);
     display: flex;
     justify-content: flex-end;
     margin-top: var(--vidply-gap-xxl);
@@ -1538,7 +1538,7 @@
     background: var(--vidply-white-10);
     border-radius: var(--vidply-radius-md);
     min-width: auto;
-    padding: 10px var(--vidply-gap-xxl);
+    padding: 0.625rem var(--vidply-gap-xxl);
 }
 
 .vidply-settings-footer .vidply-button:hover {
@@ -1562,9 +1562,9 @@
     right: 0;
     top: 0;
     z-index: 999999;
+
     /* Critical iOS fixes */
     transform: translate3d(0, 0, 0);
-    -webkit-transform: translate3d(0, 0, 0);
     margin: 0 !important;
     padding: 0 !important;
 }
@@ -1599,7 +1599,7 @@
         left: 0 !important;
         opacity: 0 !important;
         order: 0 !important;
-        padding: 20px 16px 16px !important;
+        padding: 1.25rem 1rem 1rem !important;
         pointer-events: none !important;
         position: absolute !important;
         right: 0 !important;
@@ -1642,7 +1642,7 @@
     .vidply-player:fullscreen .vidply-controls-right {
         display: flex !important;
         flex-wrap: nowrap !important;
-        gap: 8px !important;
+        gap: 0.5rem !important;
     }
     
     /* Make sure buttons within containers are visible */
@@ -1681,7 +1681,7 @@
         align-items: center !important;
         display: flex !important;
         flex-direction: row !important;
-        gap: 10px !important;
+        gap: 0.625rem !important;
         justify-content: flex-start !important;
     }
     
@@ -1695,7 +1695,7 @@
     /* Caption positioning in landscape fullscreen */
     .vidply-player.vidply-fullscreen .vidply-captions,
     .vidply-player:fullscreen .vidply-captions {
-        bottom: 16px !important;
+        bottom: 1rem !important;
         transition: bottom 0.3s ease !important;
     }
     
@@ -1704,7 +1704,7 @@
     .vidply-player:fullscreen.vidply-controls-visible .vidply-captions,
     .vidply-player.vidply-fullscreen.vidply-paused .vidply-captions,
     .vidply-player:fullscreen.vidply-paused .vidply-captions {
-        bottom: 96px !important;
+        bottom: 6rem !important;
     }
     
     /* Center video in landscape fullscreen */
@@ -1785,7 +1785,7 @@
     .vidply-player.vidply-fullscreen .vidply-playlist-panel,
     .vidply-player:fullscreen .vidply-playlist-panel {
         position: absolute !important; /* Absolute relative to player */
-        bottom: 80px !important; /* Above controls (typical control height is ~80px) */
+        bottom: 5rem !important; /* Above controls (typical control height is ~5rem) */
         left: 0 !important;
         right: 0 !important;
         z-index: 15 !important; /* Above video (z-index:1), below controls (z-index:30) */
@@ -1796,26 +1796,26 @@
 /* Transcript in Fullscreen */
 .vidply-player.vidply-fullscreen .vidply-transcript-window,
 .vidply-player:fullscreen .vidply-transcript-window {
-    bottom: 80px !important;
+    bottom: 5rem !important;
     height: auto !important;
     left: auto !important;
-    max-height: calc(100vh - 180px) !important;
-    max-width: 420px;
+    max-height: calc(100vh - 11.25rem) !important;
+    max-width: 26.25rem;
     position: fixed !important;
-    right: 20px !important;
+    right: 1.25rem !important;
     top: auto !important;
-    width: 420px;
+    width: 26.25rem;
 }
 
 /* Loading State */
 .vidply-loading {
     display: none;
-    height: 50px;
+    height: 3.125rem;
     left: 50%;
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 50px;
+    width: 3.125rem;
 }
 
 .vidply-player.vidply-buffering .vidply-loading {
@@ -1824,7 +1824,7 @@
 
 .vidply-loading::after {
     animation: vidply-spin 0.8s linear infinite;
-    border: 4px solid var(--vidply-white-20);
+    border: 0.25rem solid var(--vidply-white-20);
     border-radius: 50%;
     border-top-color: var(--vidply-white);
     content: '';
@@ -1841,11 +1841,11 @@
 
 /* Screen Reader Only */
 .vidply-sr-only {
-    height: 1px;
-    left: -10000px;
+    height: 0.0625rem;
+    left: -625rem;
     overflow: hidden;
     position: absolute;
-    width: 1px;
+    width: 0.0625rem;
 }
 
 /* High Contrast Mode Support */
@@ -1855,7 +1855,7 @@
     }
 
     .vidply-button:focus {
-        outline: 3px solid;
+        outline: 0.1875rem solid;
     }
 
     .vidply-progress-played {
@@ -1874,444 +1874,10 @@
     }
 }
 
-/* ============================================================================
-   Light Mode Support - WCAG 2.1 AA/AAA Compliant
-   ============================================================================ */
-@media (prefers-color-scheme: light) {
-    /* CSS Variables Override for Light Mode */
-    .vidply-player {
-        /* Backgrounds */
-        --vidply-bg-controls: linear-gradient(180deg, rgb(var(--vidply-white-rgb), 0) 0%, rgb(var(--vidply-white-rgb), 0.95) 100%);
-        --vidply-bg-dialog: rgb(248 248 248 / 98%);
-        --vidply-bg-menu: rgb(248 248 248 / 98%);
-        --vidply-bg-menu-rgb: 248, 248, 248;
-        --vidply-bg-playlist: #f5f5f5;
-        --vidply-bg-transcript: rgb(250 250 250 / 98%);
-        --vidply-bg-track-info: rgba(255, 255, 255, 0.95);
-        --vidply-bg-overlay: rgba(255, 255, 255, 0.9);
-        --vidply-bg-caption: rgba(255, 255, 255, 0.95);
-        
-        /* Text Colors - WCAG AA/AAA Compliant */
-        --vidply-text-primary: #1a1a1a;
-        --vidply-text-secondary: #262626;
-        --vidply-text-muted: #404040;
-        --vidply-text-disabled: #999999;
-        --vidply-text-subtle: #666666;
-        
-        /* UI Elements */
-        --vidply-border: rgba(0, 0, 0, 0.15);
-        --vidply-border-hover: rgba(0, 0, 0, 0.3);
-        --vidply-border-light: rgba(0, 0, 0, 0.1);
-        --vidply-hover-bg: rgba(0, 0, 0, 0.08);
-        --vidply-active-bg: rgba(0, 0, 0, 0.15);
-        
-        /* Focus Indicators - Dark Blue for Visibility */
-        --vidply-focus-outline: 2px solid #0a406e;
-        --vidply-focus-outline-player: 3px solid #0a406e;
-        --vidply-focus-outline-white: 2px solid #0a406e;
-        --vidply-border-focus: #0a406e;
-        
-        /* Scrollbars */
-        --vidply-scrollbar-track: #e0e0e0;
-        --vidply-scrollbar-thumb: #999999;
-        --vidply-scrollbar-thumb-hover: #666666;
-        --vidply-scrollbar-track-transcript: #e8e8e8;
-        
-        /* Shadows */
-        --vidply-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.15);
-        --vidply-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.2);
-        --vidply-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.3);
-    }
-    
-    /* ============================================================================
-       Control Bar & Playback Controls
-       ============================================================================ */
-    .vidply-controls {
-        background: linear-gradient(to top, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.75) 100%);
-        border-top: 1px solid rgba(0, 0, 0, 0.1);
-    }
-    
-    .vidply-audio .vidply-controls {
-        background: rgba(255, 255, 255, 0.85);
-        border-top: 1px solid rgba(0, 0, 0, 0.1);
-    }
-    
-    .vidply-button,
-    .vidply-icon-button {
-        color: #333333;
-    }
-    
-    .vidply-button:hover,
-    .vidply-icon-button:hover {
-        background: rgba(0, 0, 0, 0.1);
-        color: #1a1a1a;
-    }
-    
-    .vidply-button:active,
-    .vidply-icon-button:active {
-        background: rgba(0, 0, 0, 0.15);
-    }
-    
-    .vidply-time {
-        color: #1a1a1a;
-    }
-    
-    /* Progress Bar */
-    .vidply-progress-container {
-        background: rgba(0, 0, 0, 0.15);
-    }
-    
-    .vidply-progress-loaded {
-        background: rgba(0, 0, 0, 0.25);
-    }
-    
-    /* Volume Slider */
-    .vidply-player .vidply-volume-slider {
-        background: rgba(0, 0, 0, 0.15) !important;
-    }
-    
-    .vidply-player .vidply-volume-handle {
-        background: #333333 !important;
-        border: 2px solid #ffffff;
-    }
-    
-    .vidply-player .vidply-volume-fill {
-        background: var(--vidply-primary) !important;
-    }
-    
-    /* ============================================================================
-       Menus & Dialogs
-       ============================================================================ */
-    .vidply-settings-dialog,
-    .vidply-menu {
-        background: var(--vidply-bg-menu);
-        color: var(--vidply-text-primary);
-    }
-    
-    .vidply-menu-item {
-        color: #333333;
-    }
-    
-    .vidply-menu-item:hover {
-        background: rgba(0, 0, 0, 0.08);
-        color: #1a1a1a;
-    }
-    
-    .vidply-menu-item-active {
-        background: rgba(10, 64, 110, 0.15) !important;
-        color: #0a406e !important;
-    }
-    
-    .vidply-menu-item-active .vidply-icon,
-    .vidply-menu-item-active svg {
-        color: #0a406e !important;
-        fill: #0a406e !important;
-    }
-    
-    .vidply-player .vidply-menu-item-value {
-        color: #666666 !important;
-    }
-    
-    /* Settings Dialog */
-    .vidply-player .vidply-settings-header h2,
-    .vidply-player .vidply-settings-section h3 {
-        color: #1a1a1a !important;
-    }
-    
-    .vidply-player .vidply-settings-section label {
-        color: #1a1a1a !important;
-    }
-    
-    .vidply-player .vidply-settings-value {
-        color: #666666 !important;
-    }
-    
-    /* Chapter Menu */
-    .vidply-player .vidply-chapter-title {
-        color: #1a1a1a !important;
-    }
-    
-    .vidply-player .vidply-chapter-time {
-        color: #666666 !important;
-    }
-    
-    /* ============================================================================
-       Playlist & Track Info
-       ============================================================================ */
-    .vidply-playlist-panel {
-        background: var(--vidply-bg-playlist);
-        color: var(--vidply-text-primary);
-    }
-    
-    .vidply-playlist-header {
-        color: #1a1a1a;
-        background: rgba(0, 0, 0, 0.05);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    }
-    
-    .vidply-player .vidply-playlist-item-title {
-        color: #1a1a1a !important;
-    }
-    
-    .vidply-player .vidply-playlist-item-artist {
-        color: #666666 !important;
-    }
-    
-    .vidply-player .vidply-playlist-item-active .vidply-playlist-item-title {
-        color: var(--vidply-primary) !important;
-    }
-    
-    .vidply-playlist-thumbnail {
-        background-color: #ffffff;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-    }
-    
-    .vidply-playlist-thumbnail-icon {
-        color: #666666;
-    }
-    
-    /* Track Info (Audio Playlists) */
-    .vidply-player .vidply-track-info {
-        background: var(--vidply-bg-track-info);
-    }
-    
-    .vidply-player .vidply-track-number,
-    .vidply-player .vidply-track-title,
-    .vidply-player .vidply-track-artist {
-        color: #000000 !important;
-    }
-    
-    /* ============================================================================
-       Transcript Window
-       ============================================================================ */
-    .vidply-player .vidply-transcript-window {
-        background: rgba(250, 250, 250, 0.98) !important;
-        border: 1px solid rgba(0, 0, 0, 0.15);
-        color: var(--vidply-text-primary);
-    }
-    
-    .vidply-player .vidply-transcript-header {
-        background: rgba(240, 240, 240, 0.95) !important;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    }
-    
-    .vidply-player .vidply-transcript-header h3 {
-        color: #1a1a1a !important;
-    }
-    
-    .vidply-player .vidply-transcript-close,
-    .vidply-player .vidply-transcript-settings {
-        color: #666666 !important;
-    }
-    
-    .vidply-player .vidply-transcript-close:hover,
-    .vidply-player .vidply-transcript-settings:hover {
-        color: #1a1a1a !important;
-        background: rgba(0, 0, 0, 0.08) !important;
-    }
-    
-    /* Transcript Entries */
-    .vidply-player .vidply-transcript-text {
-        color: #1a1a1a !important;
-    }
-    
-    .vidply-player .vidply-transcript-entry-active .vidply-transcript-text {
-        color: #000000 !important;
-    }
-    
-    .vidply-player .vidply-transcript-time {
-        color: var(--vidply-primary) !important;
-    }
-    
-    .vidply-player .vidply-transcript-entry {
-        border-left-color: transparent !important;
-    }
-    
-    .vidply-player .vidply-transcript-entry:hover,
-    .vidply-player .vidply-transcript-entry:focus {
-        background: rgba(0, 0, 0, 0.05) !important;
-    }
-    
-    .vidply-player .vidply-transcript-entry-active {
-        background: rgba(10, 64, 110, 0.1) !important;
-        border-left-color: var(--vidply-primary) !important;
-    }
-    
-    /* Description Entries (Audio Descriptions) */
-    .vidply-player .vidply-transcript-description {
-        background: rgba(59, 130, 246, 0.08) !important;
-        border-left-color: #3b82f6 !important;
-    }
-    
-    .vidply-player .vidply-transcript-description .vidply-transcript-text {
-        color: #1e40af !important;
-    }
-    
-    .vidply-player .vidply-transcript-description .vidply-transcript-time {
-        color: #3b82f6 !important;
-    }
-    
-    /* Transcript Controls */
-    .vidply-player .vidply-transcript-autoscroll-text,
-    .vidply-player .vidply-transcript-language-label {
-        color: #666666 !important;
-    }
-    
-    .vidply-player .vidply-transcript-language-select {
-        background: #ffffff !important;
-        border: 1px solid rgba(0, 0, 0, 0.15) !important;
-        color: #1a1a1a !important;
-    }
-    
-    /* Transcript Settings Menu */
-    .vidply-player .vidply-transcript-settings-menu {
-        background: rgb(248, 248, 248) !important;
-        border: 1px solid rgba(0, 0, 0, 0.15) !important;
-    }
-    
-    .vidply-player .vidply-transcript-settings-menu::after {
-        border-bottom-color: rgb(248, 248, 248) !important;
-    }
-    
-    .vidply-player .vidply-transcript-settings-menu.vidply-menu-above::after {
-        border-top-color: rgb(248, 248, 248) !important;
-    }
-    
-    .vidply-player .vidply-transcript-settings-item {
-        color: #1a1a1a !important;
-    }
-    
-    .vidply-player .vidply-transcript-settings-item:hover {
-        background: rgba(0, 0, 0, 0.08) !important;
-    }
-    
-    .vidply-player .vidply-transcript-settings-item:focus {
-        background: rgba(0, 0, 0, 0.12) !important;
-    }
-    
-    /* ============================================================================
-       Sign Language Video Overlay
-       ============================================================================ */
-    .vidply-player .vidply-sign-language-wrapper {
-        background: transparent !important;
-    }
-    
-    .vidply-player .vidply-sign-language-header {
-        background: rgba(240, 240, 240, 0.95) !important;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    }
-    
-    .vidply-player .vidply-sign-language-header h3,
-    .vidply-player .vidply-sign-language-label {
-        color: #1a1a1a !important;
-    }
-    
-    .vidply-player .vidply-sign-language-select {
-        background: #ffffff !important;
-        border: 1px solid rgba(0, 0, 0, 0.15) !important;
-        color: #1a1a1a !important;
-    }
-    
-    .vidply-player .vidply-sign-language-settings,
-    .vidply-player .vidply-sign-language-close {
-        color: #666666 !important;
-    }
-    
-    .vidply-player .vidply-sign-language-settings:hover,
-    .vidply-player .vidply-sign-language-close:hover {
-        color: #1a1a1a !important;
-        background: rgba(0, 0, 0, 0.08) !important;
-    }
-    
-    .vidply-player .vidply-sign-language-video {
-        border: 2px solid rgba(0, 0, 0, 0.2) !important;
-    }
-    
-    /* Sign Language Settings Menu */
-    .vidply-player .vidply-sign-language-settings-menu {
-        background: rgb(248, 248, 248) !important;
-        border: 1px solid rgba(0, 0, 0, 0.15) !important;
-    }
-    
-    .vidply-player .vidply-sign-language-settings-menu::after {
-        border-bottom-color: rgb(248, 248, 248) !important;
-    }
-    
-    .vidply-player .vidply-sign-language-settings-menu.vidply-menu-above::after {
-        border-top-color: rgb(248, 248, 248) !important;
-    }
-    
-    .vidply-player .vidply-sign-language-settings-item {
-        color: #1a1a1a !important;
-    }
-    
-    .vidply-player .vidply-sign-language-settings-item:hover {
-        background: rgba(0, 0, 0, 0.08) !important;
-    }
-    
-    .vidply-player .vidply-sign-language-settings-item:focus {
-        background: rgba(0, 0, 0, 0.12) !important;
-    }
-    
-    /* ============================================================================
-       Form Elements & Labels
-       ============================================================================ */
-    .vidply-player input,
-    .vidply-player select,
-    .vidply-player textarea {
-        color: #1a1a1a !important;
-    }
-    
-    .vidply-player .vidply-style-group label,
-    .vidply-player .vidply-settings-control label {
-        color: #1a1a1a !important;
-    }
-    
-    /* ============================================================================
-       Global Text Elements
-       ============================================================================ */
-    .vidply-player h1,
-    .vidply-player h2,
-    .vidply-player h3,
-    .vidply-player h4,
-    .vidply-player h5,
-    .vidply-player h6 {
-        color: #1a1a1a;
-    }
-    
-    .vidply-player .vidply-draggable-header h3 {
-        color: #1a1a1a !important;
-    }
-    
-    /* ============================================================================
-       Responsive Overrides
-       ============================================================================ */
-    @media (width < 768px) {
-        .vidply-controls {
-            background: rgba(255, 255, 255, 0.95);
-            border-top: 1px solid rgba(0, 0, 0, 0.15);
-        }
-    }
-    
-    @media (orientation: landscape) {
-        .vidply-player:fullscreen .vidply-controls {
-            background: linear-gradient(to top, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 100%) !important;
-        }
-    }
-}
-/* End Light Mode Support */
-
-/* Dark Mode (default) - additional contrast */
-@media (prefers-color-scheme: dark) {
-    .vidply-settings-dialog {
-        background: var(--vidply-bg-dialog-dark);
-    }
-}
-
 /* Responsive Breakpoints */
-@media (width < 768px) {
+@media (width < 48rem) {
     .vidply-controls {
-        padding: 16px 12px 12px;
+        padding: 1rem 0.75rem 0.75rem;
     }
 
     .vidply-time {
@@ -2324,12 +1890,12 @@
 
     .vidply-settings-dialog {
         animation: slideUpFromBottom 0.3s ease;
-        border-radius: 16px 16px 0 0;
+        border-radius: 1rem 1rem 0 0;
         bottom: 0;
         margin: 0;
         max-height: 90vh;
         max-width: 100%;
-        padding: 20px;
+        padding: 1.25rem;
         position: fixed;
         top: auto;
         width: 100%;
@@ -2341,11 +1907,11 @@
 
     /* Bottom sheet style for menus - positioned within controls */
     .vidply-menu {
-        border-radius: 8px;
-        bottom: calc(100% + 4px);
+        border-radius: 0.5rem;
+        bottom: calc(100% + 0.25rem);
         left: 50%;
-        max-height: 250px;
-        min-width: 200px;
+        max-height: 15.625rem;
+        min-width: 12.5rem;
         position: absolute;
         right: auto;
         top: auto;
@@ -2357,7 +1923,7 @@
     /* Volume menu should stay narrow - positioning handled by JS */
     .vidply-volume-menu {
         min-width: unset !important;
-        width: 50px !important;
+        width: 3.125rem !important;
     }
 
     /* Remove the drag handle on mobile menus */
@@ -2368,33 +1934,33 @@
     /* Caption style menu - narrower on mobile */
     .vidply-caption-style-menu.vidply-settings-menu {
         left: 50%;
-        max-width: calc(100vw - 40px);
-        min-width: 280px;
-        padding: 16px;
+        max-width: calc(100vw - 2.5rem);
+        min-width: 17.5rem;
+        padding: 1rem;
         transform: translateX(-50%);
         width: auto;
     }
 
     .vidply-style-group {
-        margin-bottom: 20px;
+        margin-bottom: 1.25rem;
     }
 
     .vidply-style-group label {
-        font-size: 14px;
-        margin-bottom: 8px;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
     }
 
     .vidply-style-select,
     .vidply-style-group input[type="color"] {
-        font-size: 16px;
-        padding: 12px;
+        font-size: 1rem;
+        padding: 0.75rem;
     }
 
     /* Keep controls in one horizontal row on mobile */
     .vidply-controls-buttons {
         flex-direction: row;
         flex-wrap: nowrap;
-        gap: 8px;
+        gap: 0.5rem;
         width: 100%;
     }
 
@@ -2409,7 +1975,7 @@
     .vidply-button {
         min-height: var(--vidply-button-size-mobile);
         min-width: var(--vidply-button-size-mobile);
-        padding: 5px;
+        padding: 0.3125rem;
     }
 
     .vidply-icon {
@@ -2431,7 +1997,7 @@
 }
 
 /* Landscape mobile optimization */
-@media (width <= 896px) and (orientation: landscape) {
+@media (width <= 56rem) and (orientation: landscape) {
     .vidply-menu {
         max-height: 50vh;
     }
@@ -2447,9 +2013,9 @@
     /* Landscape fullscreen playlist - horizontal scrolling */
     .vidply-player.vidply-fullscreen .vidply-playlist-panel,
     .vidply-player:fullscreen .vidply-playlist-panel {
-        bottom: 70px; /* Directly above controls */
+        bottom: 4.375rem; /* Directly above controls */
         max-height: 30vh; /* Less height in landscape */
-        padding: 10px 0;
+        padding: 0.625rem 0;
         overflow-y: hidden;
         overflow-x: auto;
         touch-action: pan-x; /* Allow horizontal scrolling on touch devices */
@@ -2461,16 +2027,16 @@
     .vidply-player:fullscreen .vidply-playlist-list {
         flex-direction: row;
         flex-wrap: nowrap;
-        gap: 8px;
-        padding: 0 10px;
+        gap: 0.5rem;
+        padding: 0 0.625rem;
     }
     
     /* Landscape items - smaller vertical cards */
     .vidply-player.vidply-fullscreen .vidply-playlist-item,
     .vidply-player:fullscreen .vidply-playlist-item {
-        width: 180px;
-        min-width: 180px;
-        max-width: 180px;
+        width: 11.25rem;
+        min-width: 11.25rem;
+        max-width: 11.25rem;
         flex-shrink: 0;
     }
     
@@ -2483,26 +2049,26 @@
     
     .vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
     .vidply-player:fullscreen .vidply-playlist-thumbnail {
-        height: 100px;
+        height: 6.25rem;
         width: 100%;
-        border-radius: 8px 8px 0 0;
+        border-radius: 0.5rem 0.5rem 0 0;
     }
     
     .vidply-player.vidply-fullscreen .vidply-playlist-item-info,
     .vidply-player:fullscreen .vidply-playlist-item-info {
-        padding: 8px;
+        padding: 0.5rem;
     }
     
     .vidply-player.vidply-fullscreen .vidply-playlist-header,
     .vidply-player:fullscreen .vidply-playlist-header {
-        padding: 0 10px 8px;
-        font-size: 11px;
+        padding: 0 0.625rem 0.5rem;
+        font-size: 0.6875rem;
         flex-shrink: 0;
     }
 }
 
 /* Extra small screens */
-@media (width <= 480px) {
+@media (width <= 30rem) {
     .vidply-speed-text {
         display: none;
     }
@@ -2530,7 +2096,7 @@
 .vidply-player [role="link"]:hover,
 .vidply-player [tabindex]:not([tabindex="-1"]):hover {
     outline: var(--vidply-focus-outline-white);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 /* Print Styles */
@@ -2545,6 +2111,7 @@
    ============================================================================ */
 
 /* Track Info Display (below video, above playlist) */
+
 /* Track Artwork - Displays album art/poster above audio player */
 .vidply-track-artwork {
     aspect-ratio: 16 / 3;
@@ -2552,7 +2119,7 @@
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
-    border-bottom: 1px solid var(--vidply-border-light);
+    border-bottom: 0.0625rem solid var(--vidply-border-light);
     order: 1; /* Before video-wrapper */
     overflow: hidden;
     position: relative;
@@ -2574,38 +2141,37 @@
 
 .vidply-track-info {
     background: var(--vidply-bg-track-info);
-    border-bottom: 1px solid var(--vidply-border-light);
+    border-bottom: 0.0625rem solid var(--vidply-border-light);
     order: 2; /* After video-wrapper */
-    padding: 16px 20px;
+    padding: 1rem 1.25rem;
 }
 
 .vidply-track-number {
     color: var(--vidply-text-muted);
-    font-size: 12px;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
+    font-size: 0.75rem;
+    letter-spacing: 0.0313rem;
+    margin-bottom: 0.25rem;
     text-transform: uppercase;
 }
 
 .vidply-track-title {
     color: var(--vidply-white);
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: 600;
-    margin-bottom: 4px;
+    margin-bottom: 0.25rem;
 }
 
 .vidply-track-artist {
     color: var(--vidply-white-80);
-    font-size: 14px;
+    font-size: 0.875rem;
 }
 
 /* Playlist Panel */
 .vidply-playlist-panel {
     background: var(--vidply-bg-playlist);
-    border-top: 1px solid var(--vidply-border-light);
-    max-height: 400px;
+    border-top: 0.0625rem solid var(--vidply-border-light);
+    max-height: 25rem;
     transform: translate3d(0, 0, 0);
-    -webkit-transform: translate3d(0, 0, 0);
     order: 3; /* After track info */
     -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
     overflow-y: auto;
@@ -2619,10 +2185,10 @@
 .vidply-player.vidply-fullscreen .vidply-playlist-panel,
 .vidply-player:fullscreen .vidply-playlist-panel {
     background: linear-gradient(to top, rgb(0 0 0 / 95%) 0%, rgb(0 0 0 / 90%) 100%);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(0.625rem);
     border: none;
-    border-top: 1px solid var(--vidply-border);
-    bottom: 80px; /* Directly above controls */
+    border-top: 0.0625rem solid var(--vidply-border);
+    bottom: 5rem; /* Directly above controls */
     left: 0;
     max-height: 50vh; /* Take up to half the screen */
     opacity: 0;
@@ -2632,7 +2198,7 @@
     position: absolute !important; /* Force absolute positioning over video */
     right: 0;
     touch-action: pan-y; /* Allow vertical scrolling on touch devices */
-    transform: translateY(20px);
+    transform: translateY(1.25rem);
     z-index: var(--vidply-z-playlist); /* Above video but below controls */
 }
 
@@ -2660,8 +2226,8 @@
 .vidply-player:fullscreen .vidply-playlist-list {
     display: flex;
     flex-direction: row;
-    gap: 12px;
-    padding: 8px 16px;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
@@ -2672,17 +2238,17 @@
 .vidply-player.vidply-fullscreen .vidply-playlist-header,
 .vidply-player:fullscreen .vidply-playlist-header {
     background: var(--vidply-black-50);
-    border-bottom: 1px solid var(--vidply-border);
-    font-size: 12px;
-    padding: 10px 16px;
+    border-bottom: 0.0625rem solid var(--vidply-border);
+    font-size: 0.75rem;
+    padding: 0.625rem 1rem;
 }
 
 /* Fullscreen playlist items - horizontal card style */
 .vidply-player.vidply-fullscreen .vidply-playlist-item,
 .vidply-player:fullscreen .vidply-playlist-item {
     flex: 0 0 auto;
-    min-width: 280px;
-    max-width: 320px;
+    min-width: 17.5rem;
+    max-width: 20rem;
     scroll-snap-align: start;
 }
 
@@ -2690,10 +2256,10 @@
 .vidply-player:fullscreen .vidply-playlist-item-button {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 0.5rem;
     padding: 0;
     background: var(--vidply-black-40);
-    border-radius: 8px;
+    border-radius: 0.5rem;
     overflow: hidden;
     transition: all 0.2s ease;
 }
@@ -2701,27 +2267,27 @@
 .vidply-player.vidply-fullscreen .vidply-playlist-item-button:hover,
 .vidply-player:fullscreen .vidply-playlist-item-button:hover {
     background: var(--vidply-white-10);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px var(--vidply-black-60);
+    transform: translateY(-0.25rem);
+    box-shadow: 0 0.5rem 1.5rem var(--vidply-black-60);
 }
 
 .vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
 .vidply-player:fullscreen .vidply-playlist-thumbnail {
     width: 100%;
-    height: 160px;
+    height: 10rem;
     border-radius: 0;
 }
 
 .vidply-player.vidply-fullscreen .vidply-playlist-item-info,
 .vidply-player:fullscreen .vidply-playlist-item-info {
-    padding: 12px;
+    padding: 0.75rem;
 }
 
 .vidply-player.vidply-fullscreen .vidply-playlist-item-title,
 .vidply-player:fullscreen .vidply-playlist-item-title {
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 600;
-    margin-bottom: 4px;
+    margin-bottom: 0.25rem;
     white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2732,7 +2298,7 @@
 
 .vidply-player.vidply-fullscreen .vidply-playlist-item-artist,
 .vidply-player:fullscreen .vidply-playlist-item-artist {
-    font-size: 12px;
+    font-size: 0.75rem;
     opacity: 0.8;
 }
 
@@ -2744,8 +2310,8 @@
 /* Fullscreen playlist scrollbar styling - horizontal */
 .vidply-player.vidply-fullscreen .vidply-playlist-panel::-webkit-scrollbar,
 .vidply-player:fullscreen .vidply-playlist-panel::-webkit-scrollbar {
-    height: 8px;
-    width: 10px;
+    height: 0.5rem;
+    width: 0.625rem;
 }
 
 .vidply-player.vidply-fullscreen .vidply-playlist-panel::-webkit-scrollbar-track,
@@ -2756,7 +2322,7 @@
 .vidply-player.vidply-fullscreen .vidply-playlist-panel::-webkit-scrollbar-thumb,
 .vidply-player:fullscreen .vidply-playlist-panel::-webkit-scrollbar-thumb {
     background: var(--vidply-white-30);
-    border-radius: 5px;
+    border-radius: 0.3125rem;
 }
 
 .vidply-player.vidply-fullscreen .vidply-playlist-panel::-webkit-scrollbar-thumb:hover,
@@ -2767,7 +2333,7 @@
 /* Horizontal scrollbar for playlist list */
 .vidply-player.vidply-fullscreen .vidply-playlist-list::-webkit-scrollbar,
 .vidply-player:fullscreen .vidply-playlist-list::-webkit-scrollbar {
-    height: 6px;
+    height: 0.375rem;
 }
 
 .vidply-player.vidply-fullscreen .vidply-playlist-list::-webkit-scrollbar-track,
@@ -2778,7 +2344,7 @@
 .vidply-player.vidply-fullscreen .vidply-playlist-list::-webkit-scrollbar-thumb,
 .vidply-player:fullscreen .vidply-playlist-list::-webkit-scrollbar-thumb {
     background: var(--vidply-white-20);
-    border-radius: 3px;
+    border-radius: 0.1875rem;
 }
 
 .vidply-player.vidply-fullscreen .vidply-playlist-list::-webkit-scrollbar-thumb:hover,
@@ -2795,7 +2361,7 @@
 /* Active item styling in fullscreen */
 .vidply-player.vidply-fullscreen .vidply-playlist-item-active .vidply-playlist-item-button,
 .vidply-player:fullscreen .vidply-playlist-item-active .vidply-playlist-item-button {
-    border: 2px solid var(--vidply-primary-light);
+    border: 0.125rem solid var(--vidply-primary-light);
     background: var(--vidply-primary-15);
 }
 
@@ -2806,12 +2372,12 @@
 
 .vidply-playlist-header {
     background: var(--vidply-bg-playlist-header);
-    border-bottom: 1px solid var(--vidply-border-light);
+    border-bottom: 0.0625rem solid var(--vidply-border-light);
     color: var(--vidply-white-90);
-    font-size: 13px;
+    font-size: 0.8125rem;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    padding: 12px 16px;
+    letter-spacing: 0.0313rem;
+    padding: 0.75rem 1rem;
     position: sticky;
     text-transform: uppercase;
     top: 0;
@@ -2821,12 +2387,12 @@
 .vidply-playlist-list {
     list-style: none;
     margin: 0;
-    padding: 4px 0;
+    padding: 0.25rem 0;
 }
 
 /* Playlist Items */
 .vidply-playlist-item {
-    border-left: 3px solid transparent;
+    border-left: 0.1875rem solid transparent;
     position: relative;
 }
 
@@ -2839,8 +2405,8 @@
     cursor: pointer;
     display: flex;
     font: inherit;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
     text-align: left;
     transition: var(--vidply-transition-default);
     width: 100%;
@@ -2862,7 +2428,7 @@
 .vidply-playlist-item-button:focus-visible {
     background: var(--vidply-white-08);
     outline: var(--vidply-focus-outline-white);
-    outline-offset: -2px;
+    outline-offset: -0.125rem;
     z-index: 1;
 }
 
@@ -2877,19 +2443,19 @@
     background: var(--vidply-primary-20);
     border-left-color: var(--vidply-primary);
     outline: var(--vidply-focus-outline-white);
-    outline-offset: -2px;
+    outline-offset: -0.125rem;
     z-index: 2;
 }
 
 /* Show focus ring on listbox when focused */
 .vidply-playlist-list:focus {
-    outline: 2px solid var(--vidply-primary);
-    outline-offset: 2px;
+    outline: 0.125rem solid var(--vidply-primary);
+    outline-offset: 0.125rem;
 }
 
 .vidply-playlist-list:focus-visible {
-    outline: 2px solid var(--vidply-primary);
-    outline-offset: 2px;
+    outline: 0.125rem solid var(--vidply-primary);
+    outline-offset: 0.125rem;
 }
 
 .vidply-playlist-item-active {
@@ -2912,7 +2478,7 @@
 .vidply-playlist-item-active .vidply-playlist-item-button:focus-visible {
     background: var(--vidply-primary-20);
     outline: var(--vidply-focus-outline-white);
-    outline-offset: -2px;
+    outline-offset: -0.125rem;
 }
 
 /* Playlist Thumbnail */
@@ -2921,20 +2487,20 @@
     background-color: var(--vidply-white-10);
     background-position: center;
     background-size: cover;
-    border-radius: 4px;
+    border-radius: 0.25rem;
     display: flex;
     flex-shrink: 0;
-    height: 45px;
+    height: 2.8125rem;
     justify-content: center;
     overflow: hidden;
-    width: 80px;
+    width: 5rem;
 }
 
 .vidply-playlist-thumbnail-icon {
     color: var(--vidply-text-subtle);
-    height: 32px;
+    height: 2rem;
     transition: var(--vidply-transition-default);
-    width: 32px;
+    width: 2rem;
 }
 
 .vidply-playlist-item-button:hover .vidply-playlist-thumbnail-icon {
@@ -2956,9 +2522,9 @@
 .vidply-playlist-item-title {
     color: var(--vidply-white);
     display: block;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 500;
-    margin-bottom: 4px;
+    margin-bottom: 0.25rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2971,7 +2537,7 @@
 .vidply-playlist-item-artist {
     color: var(--vidply-text-disabled);
     display: block;
-    font-size: 12px;
+    font-size: 0.75rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2980,10 +2546,10 @@
 /* Playlist Item Icon */
 .vidply-playlist-item-icon {
     flex-shrink: 0;
-    height: 20px;
+    height: 1.25rem;
     opacity: 0;
     transition: opacity 0.2s ease;
-    width: 20px;
+    width: 1.25rem;
 }
 
 .vidply-playlist-item-active .vidply-playlist-item-icon {
@@ -2998,7 +2564,7 @@
 }
 
 .vidply-playlist-panel::-webkit-scrollbar {
-    width: 8px;
+    width: 0.5rem;
 }
 
 .vidply-playlist-panel::-webkit-scrollbar-track {
@@ -3007,7 +2573,7 @@
 
 .vidply-playlist-panel::-webkit-scrollbar-thumb {
     background: var(--vidply-scrollbar-thumb);
-    border-radius: 4px;
+    border-radius: 0.25rem;
 }
 
 .vidply-playlist-panel::-webkit-scrollbar-thumb:hover {
@@ -3016,7 +2582,7 @@
 
 /* Audio Player with Playlist */
 .vidply-player.vidply-audio.vidply-has-playlist {
-    min-height: 200px;
+    min-height: 12.5rem;
 }
 
 .vidply-player.vidply-audio.vidply-has-playlist audio {
@@ -3033,18 +2599,18 @@
 
 /* Transcript Window */
 .vidply-transcript-window {
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(0.625rem);
     background: var(--vidply-bg-transcript);
-    border: 1px solid var(--vidply-border);
-    border-radius: 8px;
-    box-shadow: 0 10px 40px var(--vidply-black-60);
+    border: 0.0625rem solid var(--vidply-border);
+    border-radius: 0.5rem;
+    box-shadow: 0 0.625rem 2.5rem var(--vidply-black-60);
     display: none;
     flex-direction: column;
-    min-width: 420px;
+    min-width: 26.25rem;
     order: 4; /* After video-wrapper (1), track-info (2), and playlist-panel (3) */
     position: fixed;
     top: 0;
-    width: 420px;
+    width: 26.25rem;
     z-index: var(--vidply-z-transcript);
 }
 
@@ -3052,13 +2618,13 @@
 
 /* Minimum height for audio player transcript */
 .vidply-player.vidply-audio .vidply-transcript-window {
-    min-height: 200px;
+    min-height: 12.5rem;
 }
 
 .vidply-transcript-header {
     align-items: center;
     background: #282828;
-    border-bottom: 1px solid var(--vidply-border-light);
+    border-bottom: 0.0625rem solid var(--vidply-border-light);
     border-radius: var(--vidply-radius-lg) var(--vidply-radius-lg) 0 0;
     cursor: move;
     display: flex;
@@ -3070,21 +2636,21 @@
 
 .vidply-transcript-header:focus,
 .vidply-transcript-header:focus-visible {
-    box-shadow: 0 0 0 4px rgb(91 144 255 / 35%);
-    outline: 3px solid var(--vidply-primary-light);
-    outline-offset: 2px;
+    box-shadow: 0 0 0 0.25rem rgb(91 144 255 / 35%);
+    outline: 0.1875rem solid var(--vidply-primary-light);
+    outline-offset: 0.125rem;
 }
 
 .vidply-transcript-header h3 {
     color: var(--vidply-white);
     font-size: var(--vidply-font-lg);
     font-weight: 600;
-    height: 1px;
-    left: -10000px;
+    height: 0.0625rem;
+    left: -625rem;
     margin: 0;
     overflow: hidden;
     position: absolute;
-    width: 1px;
+    width: 0.0625rem;
 }
 
 .vidply-transcript-close {
@@ -3109,7 +2675,7 @@
 
 .vidply-transcript-close:focus {
     outline: var(--vidply-focus-outline-white);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 .vidply-transcript-close .vidply-icon {
@@ -3123,19 +2689,19 @@
     overflow-y: auto;
 
     /* iOS momentum scrolling */
-    padding: 12px 0;
+    padding: 0.75rem 0;
     touch-action: pan-y;
 }
 
 .vidply-transcript-entry {
     background: none;
     border: none;
-    border-left: 3px solid transparent;
+    border-left: 0.1875rem solid transparent;
     color: inherit;
     cursor: pointer;
     display: block;
     font: inherit;
-    padding: 12px 20px;
+    padding: 0.75rem 1.25rem;
     text-align: left;
     transition: background 0.2s ease;
     width: 100%;
@@ -3156,8 +2722,8 @@
     font-family: 'Courier New', monospace;
     font-size: 100%;
     font-weight: 600;
-    margin-bottom: 4px;
-    margin-right: 8px;
+    margin-bottom: 0.25rem;
+    margin-right: 0.5rem;
 }
 
 .vidply-transcript-text {
@@ -3179,7 +2745,7 @@
 /* Transcript entry types */
 .vidply-transcript-description {
     background: rgb(100 149 237 / 8%); /* Subtle blue tint for descriptions */
-    border-left: 3px solid #8BB3FB;
+    border-left: 0.1875rem solid #8BB3FB;
 }
 
 .vidply-transcript-description .vidply-transcript-text {
@@ -3219,7 +2785,7 @@
 }
 
 .vidply-transcript-content::-webkit-scrollbar {
-    width: 8px;
+    width: 0.5rem;
 }
 
 .vidply-transcript-content::-webkit-scrollbar-track {
@@ -3228,7 +2794,7 @@
 
 .vidply-transcript-content::-webkit-scrollbar-thumb {
     background: var(--vidply-scrollbar-thumb);
-    border-radius: 4px;
+    border-radius: 0.25rem;
 }
 
 .vidply-transcript-content::-webkit-scrollbar-thumb:hover {
@@ -3239,7 +2805,7 @@
 .vidply-transcript-header-left {
     align-items: flex-start; /* Changed from center to align items at top */
     display: flex;
-    gap: 16px;
+    gap: 1rem;
     position: relative;
 }
 
@@ -3253,21 +2819,21 @@
     align-self: center; /* Center checkbox label vertically in header */
     cursor: pointer;
     display: flex;
-    gap: 6px;
+    gap: 0.375rem;
     user-select: none;
     white-space: nowrap;
 }
 
 .vidply-transcript-autoscroll-label input[type="checkbox"] {
     cursor: pointer;
-    height: 16px;
+    height: 1rem;
     margin: 0;
-    width: 16px;
+    width: 1rem;
 }
 
 .vidply-transcript-autoscroll-text {
     color: var(--vidply-text-muted);
-    font-size: 13px;
+    font-size: 0.8125rem;
     transition: color 0.2s ease;
 }
 
@@ -3281,32 +2847,32 @@
     align-self: center; /* Center this wrapper vertically in header */
     display: flex;
     flex-direction: row; /* Horizontal layout: label left of select */
-    gap: 8px;
+    gap: 0.5rem;
 }
 
 .vidply-transcript-language-label {
     /* Visible label for voice input accessibility */
     color: var(--vidply-text-muted);
     cursor: pointer;
-    font-size: 13px;
+    font-size: 0.8125rem;
     font-weight: 400;
-    margin-left: 8px;
+    margin-left: 0.5rem;
     white-space: nowrap;
 }
 
 .vidply-transcript-language-select {
     background: var(--vidply-bg-menu);
-    border: 1px solid var(--vidply-border);
-    border-radius: 4px;
+    border: 0.0625rem solid var(--vidply-border);
+    border-radius: 0.25rem;
     color: var(--vidply-text);
-    font-size: 14px;
-    max-width: 120px;
-    padding: 4px 8px;
+    font-size: 0.875rem;
+    max-width: 7.5rem;
+    padding: 0.25rem 0.5rem;
 }
 
 .vidply-transcript-language-select:focus {
     outline: var(--vidply-focus-outline);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 /* Transcript Settings Button */
@@ -3334,7 +2900,7 @@
 
 .vidply-transcript-settings:focus {
     outline: var(--vidply-focus-outline-white);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 .vidply-transcript-settings .vidply-icon {
@@ -3345,31 +2911,31 @@
 /* Transcript Settings Menu */
 .vidply-transcript-settings-menu {
     background: var(--vidply-bg-menu);
-    border: 1px solid var(--vidply-border);
+    border: 0.0625rem solid var(--vidply-border);
     border-radius: var(--vidply-radius-md);
     box-shadow: var(--vidply-shadow-lg);
     display: none;
-    min-width: 240px;
+    min-width: 15rem;
     padding: var(--vidply-gap-sm);
     position: absolute;
     z-index: 100;
 }
 
 .vidply-transcript-settings-menu::after {
-    border-bottom: 6px solid var(--vidply-bg-menu);
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
+    border-bottom: 0.375rem solid var(--vidply-bg-menu);
+    border-left: 0.375rem solid transparent;
+    border-right: 0.375rem solid transparent;
     bottom: 100%;
     content: '';
     height: 0;
-    left: 8px;
+    left: 0.5rem;
     position: absolute;
     width: 0;
 }
 
 .vidply-transcript-settings-menu.vidply-menu-above::after {
     border-bottom: none;
-    border-top: 6px solid var(--vidply-bg-menu);
+    border-top: 0.375rem solid var(--vidply-bg-menu);
     bottom: auto;
     top: 100%;
 }
@@ -3385,7 +2951,7 @@
     display: flex;
     font-size: var(--vidply-font-base);
     gap: var(--vidply-gap-md);
-    padding: var(--vidply-padding-md) 10px;
+    padding: var(--vidply-padding-md) 0.625rem;
     text-align: left;
     transition: var(--vidply-transition-normal);
     width: 100%;
@@ -3401,8 +2967,8 @@
 
 .vidply-transcript-settings-item:focus {
     background: var(--vidply-primary-25);
-    outline: 2px solid var(--vidply-primary-light);
-    outline-offset: -2px;
+    outline: 0.125rem solid var(--vidply-primary-light);
+    outline-offset: -0.125rem;
 }
 
 .vidply-transcript-settings-item:focus span {
@@ -3423,16 +2989,16 @@
 /* Move Mode Visual Feedback */
 .vidply-transcript-move-mode {
     animation: transcriptPulse 0.5s ease-in-out 2;
-    box-shadow: 0 0 0 3px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+    box-shadow: 0 0 0 0.1875rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
 }
 
 @keyframes transcriptPulse {
     0%, 100% {
-        box-shadow: 0 0 0 3px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+        box-shadow: 0 0 0 0.1875rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
     }
 
     50% {
-        box-shadow: 0 0 0 6px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+        box-shadow: 0 0 0 0.375rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
     }
 }
 
@@ -3446,67 +3012,67 @@
 .vidply-transcript-resize-nw,
 .vidply-transcript-resize-se,
 .vidply-transcript-resize-sw {
-    height: 16px;
-    width: 16px;
+    height: 1rem;
+    width: 1rem;
 }
 
 .vidply-transcript-resize-n,
 .vidply-transcript-resize-s {
     cursor: ns-resize;
-    height: 8px;
-    left: 16px;
-    right: 16px;
+    height: 0.5rem;
+    left: 1rem;
+    right: 1rem;
 }
 
 .vidply-transcript-resize-e,
 .vidply-transcript-resize-w {
-    bottom: 16px;
+    bottom: 1rem;
     cursor: ew-resize;
-    top: 16px;
-    width: 8px;
+    top: 1rem;
+    width: 0.5rem;
 }
 
-.vidply-transcript-resize-n { top: -4px; }
-.vidply-transcript-resize-s { bottom: -4px; }
-.vidply-transcript-resize-e { right: -4px; }
-.vidply-transcript-resize-w { left: -4px; }
+.vidply-transcript-resize-n { top: -0.25rem; }
+.vidply-transcript-resize-s { bottom: -0.25rem; }
+.vidply-transcript-resize-e { right: -0.25rem; }
+.vidply-transcript-resize-w { left: -0.25rem; }
 
 .vidply-transcript-resize-ne {
     cursor: nesw-resize;
-    right: -8px;
-    top: -8px;
+    right: -0.5rem;
+    top: -0.5rem;
 }
 
 .vidply-transcript-resize-nw {
     cursor: nwse-resize;
-    left: -8px;
-    top: -8px;
+    left: -0.5rem;
+    top: -0.5rem;
 }
 
 .vidply-transcript-resize-se {
-    bottom: -8px;
+    bottom: -0.5rem;
     cursor: nwse-resize;
-    right: -8px;
+    right: -0.5rem;
 }
 
 .vidply-transcript-resize-sw {
-    bottom: -8px;
+    bottom: -0.5rem;
     cursor: nesw-resize;
-    left: -8px;
+    left: -0.5rem;
 }
 
 .vidply-transcript-resizable .vidply-transcript-resize-handle::after {
     background: var(--vidply-primary-light);
     border-radius: 50%;
     content: '';
-    height: 6px;
+    height: 0.375rem;
     left: 50%;
     opacity: 0;
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
     transition: opacity 0.2s ease;
-    width: 6px;
+    width: 0.375rem;
 }
 
 .vidply-transcript-resizable:hover .vidply-transcript-resize-handle::after {
@@ -3519,7 +3085,7 @@
 
 /* Resizing State */
 .vidply-transcript-resizing {
-    box-shadow: 0 0 0 2px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+    box-shadow: 0 0 0 0.125rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
     transition: none !important;
 }
 
@@ -3529,17 +3095,17 @@
 
 /* Keyboard Drag Mode */
 .vidply-transcript-keyboard-drag {
-    box-shadow: 0 0 0 3px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+    box-shadow: 0 0 0 0.1875rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
 }
 
 .vidply-transcript-drag-indicator {
     background: linear-gradient(135deg, var(--vidply-primary) 0%, var(--vidply-primary-light) 100%);
-    border-radius: 0 0 6px 6px;
+    border-radius: 0 0 0.375rem 0.375rem;
     color: var(--vidply-white);
-    font-size: 12px;
+    font-size: 0.75rem;
     font-weight: 600;
     left: 0;
-    padding: 8px 12px;
+    padding: 0.5rem 0.75rem;
     position: absolute;
     right: 0;
     text-align: center;
@@ -3551,11 +3117,11 @@
 .vidply-transcript-move-tooltip {
     animation: fadeInDown 0.3s ease;
     background: var(--vidply-black-90);
-    border-radius: 4px;
+    border-radius: 0.25rem;
     color: var(--vidply-white);
-    font-size: 12px;
+    font-size: 0.75rem;
     left: 50%;
-    padding: 6px 12px;
+    padding: 0.375rem 0.75rem;
     position: absolute;
     text-align: center;
     top: 100%;
@@ -3567,11 +3133,11 @@
 .vidply-transcript-resize-tooltip {
     animation: fadeInDown 0.3s ease;
     background: var(--vidply-primary);
-    border-radius: 4px;
+    border-radius: 0.25rem;
     color: var(--vidply-white);
-    font-size: 12px;
+    font-size: 0.75rem;
     left: 50%;
-    padding: 6px 12px;
+    padding: 0.375rem 0.75rem;
     position: absolute;
     text-align: center;
     top: 100%;
@@ -3583,7 +3149,7 @@
 @keyframes fadeInDown {
     from {
         opacity: 0;
-        transform: translateX(-50%) translateY(-10px);
+        transform: translateX(-50%) translateY(-0.625rem);
     }
 
     to {
@@ -3595,15 +3161,15 @@
 /* Transcript Style Dialog - Dropdown Menu Style */
 .vidply-transcript-style-dialog {
     background: var(--vidply-bg-menu);
-    border: 1px solid var(--vidply-border);
-    border-radius: 8px;
+    border: 0.0625rem solid var(--vidply-border);
+    border-radius: 0.5rem;
     box-shadow: var(--vidply-shadow-lg);
     display: none;
     left: 0;
-    max-height: 500px;
-    min-width: 280px;
+    max-height: 31.25rem;
+    min-width: 17.5rem;
     overflow-y: auto;
-    padding: 12px;
+    padding: 0.75rem;
     position: absolute;
     top: 100%;
     width: auto;
@@ -3614,26 +3180,26 @@
 .vidply-transcript-style-dialog::after {
     border-color: transparent transparent var(--vidply-bg-menu) transparent;
     border-style: solid;
-    border-width: 0 8px 8px;
+    border-width: 0 0.5rem 0.5rem;
     content: '';
     height: 0;
-    left: 12px;
+    left: 0.75rem;
     position: absolute;
-    top: -8px;
+    top: -0.5rem;
     width: 0;
 }
 
 .vidply-transcript-style-title {
-    border-bottom: 1px solid var(--vidply-border);
+    border-bottom: 0.0625rem solid var(--vidply-border);
     color: var(--vidply-white);
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 600;
-    margin: 0 0 12px;
-    padding-bottom: 8px;
+    margin: 0 0 0.75rem;
+    padding-bottom: 0.5rem;
 }
 
 .vidply-transcript-style-group {
-    margin-bottom: 12px;
+    margin-bottom: 0.75rem;
 }
 
 .vidply-transcript-style-group:last-child {
@@ -3643,19 +3209,19 @@
 .vidply-transcript-style-group label {
     color: var(--vidply-white-90);
     display: block;
-    font-size: 12px;
+    font-size: 0.75rem;
     font-weight: 500;
-    margin-bottom: 6px;
+    margin-bottom: 0.375rem;
 }
 
 /* Style Select */
 .vidply-transcript-style-select {
     background: var(--vidply-bg-menu);
-    border: 1px solid var(--vidply-border);
-    border-radius: 4px;
+    border: 0.0625rem solid var(--vidply-border);
+    border-radius: 0.25rem;
     color: var(--vidply-text);
-    font-size: 14px;
-    padding: 4px 8px;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
     transition: var(--vidply-transition-default);
     width: 100%;
 }
@@ -3668,50 +3234,50 @@
 .vidply-transcript-style-select:focus {
     background: var(--vidply-white-15);
     border-color: var(--vidply-border-focus);
-    box-shadow: 0 0 0 3px var(--vidply-primary-20);
+    box-shadow: 0 0 0 0.1875rem var(--vidply-primary-20);
     outline: var(--vidply-focus-outline);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 /* Style Color Input */
 .vidply-transcript-style-color {
-    border: 1px solid var(--vidply-border);
-    border-radius: 4px;
+    border: 0.0625rem solid var(--vidply-border);
+    border-radius: 0.25rem;
     cursor: pointer;
-    height: 32px;
+    height: 2rem;
     outline: none;
-    padding: 4px;
+    padding: 0.25rem;
     transition: var(--vidply-transition-default);
     width: 100%;
 }
 
 .vidply-transcript-style-color:hover {
     border-color: var(--vidply-border-hover);
-    box-shadow: 0 0 0 1px var(--vidply-primary-20);
+    box-shadow: 0 0 0 0.0625rem var(--vidply-primary-20);
 }
 
 .vidply-transcript-style-color:focus {
     border-color: var(--vidply-border-focus);
-    box-shadow: 0 0 0 3px var(--vidply-primary-20);
+    box-shadow: 0 0 0 0.1875rem var(--vidply-primary-20);
     outline: var(--vidply-focus-outline);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 /* Style Range Slider */
 .vidply-transcript-style-range-container {
     align-items: center;
     display: flex;
-    gap: 12px;
+    gap: 0.75rem;
 }
 
 .vidply-transcript-style-range {
     -webkit-appearance: none;
     appearance: none;
     background: var(--vidply-white-20);
-    border-radius: 3px;
+    border-radius: 0.1875rem;
     cursor: pointer;
     flex: 1;
-    height: 6px;
+    height: 0.375rem;
     outline: none;
     transition: var(--vidply-transition-default);
 }
@@ -3722,20 +3288,20 @@
 
 .vidply-transcript-style-range:focus {
     background: var(--vidply-white-30);
-    box-shadow: 0 0 0 2px var(--vidply-primary-20);
+    box-shadow: 0 0 0 0.125rem var(--vidply-primary-20);
 }
 
 .vidply-transcript-style-range::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     background: var(--vidply-primary-light);
-    border: 2px solid var(--vidply-white);
+    border: 0.125rem solid var(--vidply-white);
     border-radius: 50%;
     box-shadow: var(--vidply-shadow-sm);
     cursor: pointer;
-    height: 16px;
+    height: 1rem;
     transition: all 0.15s ease;
-    width: 16px;
+    width: 1rem;
 }
 
 .vidply-transcript-style-range::-webkit-slider-thumb:hover {
@@ -3745,13 +3311,13 @@
 
 .vidply-transcript-style-range::-moz-range-thumb {
     background: var(--vidply-primary-light);
-    border: 2px solid var(--vidply-white);
+    border: 0.125rem solid var(--vidply-white);
     border-radius: 50%;
     box-shadow: var(--vidply-shadow-sm);
     cursor: pointer;
-    height: 16px;
+    height: 1rem;
     transition: all 0.15s ease;
-    width: 16px;
+    width: 1rem;
 }
 
 .vidply-transcript-style-range::-moz-range-thumb:hover {
@@ -3761,9 +3327,9 @@
 
 .vidply-transcript-style-value {
     color: var(--vidply-text-muted);
-    font-size: 13px;
+    font-size: 0.8125rem;
     font-weight: 600;
-    min-width: 40px;
+    min-width: 2.5rem;
     text-align: right;
 }
 
@@ -3771,20 +3337,20 @@
 .vidply-transcript-style-close {
     background: var(--vidply-primary);
     border: none;
-    border-radius: 4px;
+    border-radius: 0.25rem;
     color: var(--vidply-white);
     cursor: pointer;
-    font-size: 13px;
+    font-size: 0.8125rem;
     font-weight: 600;
-    margin-top: 12px;
-    padding: 8px 16px;
+    margin-top: 0.75rem;
+    padding: 0.5rem 1rem;
     transition: var(--vidply-transition-default);
     width: 100%;
 }
 
 .vidply-transcript-style-close:hover {
     background: var(--vidply-primary-light);
-    transform: translateY(-1px);
+    transform: translateY(-0.0625rem);
 }
 
 .vidply-transcript-style-close:active {
@@ -3792,22 +3358,22 @@
 }
 
 .vidply-transcript-style-close:focus {
-    box-shadow: 0 0 0 3px var(--vidply-primary-20);
+    box-shadow: 0 0 0 0.1875rem var(--vidply-primary-20);
     outline: var(--vidply-focus-outline);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 /* Sign Language Video Wrapper */
 .vidply-sign-language-wrapper {
     background: transparent;
-    border-radius: 8px;
+    border-radius: 0.5rem;
     height: auto;
     max-width: none;
-    min-height: 100px;
+    min-height: 6.25rem;
     overflow: visible; /* Allow menu to overflow */
     position: absolute;
     transition: opacity 0.3s ease;
-    width: 280px;
+    width: 17.5rem;
     z-index: 3;
 }
 
@@ -3816,15 +3382,15 @@
 }
 
 .vidply-sign-language-wrapper:focus {
-    outline: 2px solid var(--vidply-primary);
-    outline-offset: 2px;
+    outline: 0.125rem solid var(--vidply-primary);
+    outline-offset: 0.125rem;
 }
 
 /* Sign Language Header */
 .vidply-sign-language-header {
     align-items: center;
     background: #282828;
-    border-bottom: 1px solid var(--vidply-border-light);
+    border-bottom: 0.0625rem solid var(--vidply-border-light);
     border-radius: var(--vidply-radius-lg) var(--vidply-radius-lg) 0 0;
     cursor: move;
     display: flex;
@@ -3837,15 +3403,15 @@
 
 .vidply-sign-language-header:focus,
 .vidply-sign-language-header:focus-visible {
-    box-shadow: 0 0 0 4px rgb(91 144 255 / 35%);
-    outline: 3px solid var(--vidply-primary-light);
-    outline-offset: 2px;
+    box-shadow: 0 0 0 0.25rem rgb(91 144 255 / 35%);
+    outline: 0.1875rem solid var(--vidply-primary-light);
+    outline-offset: 0.125rem;
 }
 
 .vidply-sign-language-header-left {
     align-items: flex-start; /* Changed from center to align items at top */
     display: flex;
-    gap: 16px;
+    gap: 1rem;
     position: relative; /* Needed for menu positioning */
 }
 
@@ -3854,29 +3420,29 @@
     align-self: center; /* Center this wrapper vertically in header */
     display: flex;
     flex-direction: row; /* Horizontal layout: label left of select */
-    gap: 8px;
+    gap: 0.5rem;
 }
 
 .vidply-sign-language-label {
     /* Visible label for voice input accessibility */
     color: var(--vidply-white);
-    font-size: 12px;
+    font-size: 0.75rem;
     font-weight: 500;
     white-space: nowrap;
 }
 
 .vidply-sign-language-select {
     background: var(--vidply-bg-menu);
-    border: 1px solid var(--vidply-border);
-    border-radius: 4px;
+    border: 0.0625rem solid var(--vidply-border);
+    border-radius: 0.25rem;
     color: var(--vidply-text);
-    font-size: 14px;
-    padding: 4px 8px;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
 }
 
 .vidply-sign-language-select:focus {
     outline: var(--vidply-focus-outline);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 /* Sign Language Settings Button */
@@ -3903,7 +3469,7 @@
 
 .vidply-sign-language-settings:focus {
     outline: var(--vidply-focus-outline-white);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 .vidply-sign-language-settings .vidply-icon {
@@ -3914,20 +3480,20 @@
 /* Sign Language Settings Menu */
 .vidply-sign-language-settings-menu {
     background: var(--vidply-bg-menu);
-    border: 1px solid var(--vidply-border);
+    border: 0.0625rem solid var(--vidply-border);
     border-radius: var(--vidply-radius-md);
     box-shadow: var(--vidply-shadow-lg);
     display: none;
-    min-width: 240px;
+    min-width: 15rem;
     padding: var(--vidply-gap-sm);
     position: absolute;
     z-index: 100;
 }
 
 .vidply-sign-language-settings-menu::after {
-    border-bottom: 6px solid var(--vidply-bg-menu);
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
+    border-bottom: 0.375rem solid var(--vidply-bg-menu);
+    border-left: 0.375rem solid transparent;
+    border-right: 0.375rem solid transparent;
     bottom: 100%;
     content: '';
     height: 0;
@@ -3938,7 +3504,7 @@
 
 .vidply-sign-language-settings-menu.vidply-menu-above::after {
     border-bottom: none;
-    border-top: 6px solid var(--vidply-bg-menu);
+    border-top: 0.375rem solid var(--vidply-bg-menu);
     bottom: auto;
     top: 100%;
 }
@@ -3954,7 +3520,7 @@
     display: flex;
     font-size: var(--vidply-font-base);
     gap: var(--vidply-gap-md);
-    padding: var(--vidply-padding-md) 10px;
+    padding: var(--vidply-padding-md) 0.625rem;
     text-align: left;
     transition: var(--vidply-transition-normal);
     width: 100%;
@@ -3996,12 +3562,12 @@
     color: var(--vidply-white);
     font-size: var(--vidply-font-lg);
     font-weight: 600;
-    height: 1px;
-    left: -10000px;
+    height: 0.0625rem;
+    left: -625rem;
     margin: 0;
     overflow: hidden;
     position: absolute;
-    width: 1px;
+    width: 0.0625rem;
 }
 
 .vidply-sign-language-close {
@@ -4026,7 +3592,7 @@
 
 .vidply-sign-language-close:focus {
     outline: var(--vidply-focus-outline-white);
-    outline-offset: 2px;
+    outline-offset: 0.125rem;
 }
 
 .vidply-sign-language-close .vidply-icon {
@@ -4037,10 +3603,10 @@
 /* Sign Language Video */
 .vidply-sign-language-video {
     background: var(--vidply-black);
-    border: 2px solid var(--vidply-white-30);
-    border-radius: 0 0 8px 8px;
+    border: 0.125rem solid var(--vidply-white-30);
+    border-radius: 0 0 0.5rem 0.5rem;
     border-top: none;
-    box-shadow: 0 4px 12px var(--vidply-black-60);
+    box-shadow: 0 0.25rem 0.75rem var(--vidply-black-60);
     cursor: default;
     display: block;
     height: auto;
@@ -4059,67 +3625,67 @@
 .vidply-sign-resize-nw,
 .vidply-sign-resize-se,
 .vidply-sign-resize-sw {
-    height: 16px;
-    width: 16px;
+    height: 1rem;
+    width: 1rem;
 }
 
 .vidply-sign-resize-n,
 .vidply-sign-resize-s {
     cursor: ns-resize;
-    height: 8px;
-    left: 16px;
-    right: 16px;
+    height: 0.5rem;
+    left: 1rem;
+    right: 1rem;
 }
 
 .vidply-sign-resize-e,
 .vidply-sign-resize-w {
-    bottom: 16px;
+    bottom: 1rem;
     cursor: ew-resize;
-    top: 16px;
-    width: 8px;
+    top: 1rem;
+    width: 0.5rem;
 }
 
-.vidply-sign-resize-n { top: -4px; }
-.vidply-sign-resize-s { bottom: -4px; }
-.vidply-sign-resize-e { right: -4px; }
-.vidply-sign-resize-w { left: -4px; }
+.vidply-sign-resize-n { top: -0.25rem; }
+.vidply-sign-resize-s { bottom: -0.25rem; }
+.vidply-sign-resize-e { right: -0.25rem; }
+.vidply-sign-resize-w { left: -0.25rem; }
 
 .vidply-sign-resize-ne {
     cursor: nesw-resize;
-    right: -8px;
-    top: -8px;
+    right: -0.5rem;
+    top: -0.5rem;
 }
 
 .vidply-sign-resize-nw {
     cursor: nwse-resize;
-    left: -8px;
-    top: -8px;
+    left: -0.5rem;
+    top: -0.5rem;
 }
 
 .vidply-sign-resize-se {
-    bottom: -8px;
+    bottom: -0.5rem;
     cursor: nwse-resize;
-    right: -8px;
+    right: -0.5rem;
 }
 
 .vidply-sign-resize-sw {
-    bottom: -8px;
+    bottom: -0.5rem;
     cursor: nesw-resize;
-    left: -8px;
+    left: -0.5rem;
 }
 
 .vidply-sign-resizable .vidply-sign-resize-handle::after {
     background: var(--vidply-primary-light);
     border-radius: 50%;
     content: '';
-    height: 6px;
+    height: 0.375rem;
     left: 50%;
     opacity: 0;
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
     transition: opacity 0.2s ease;
-    width: 6px;
+    width: 0.375rem;
 }
 
 .vidply-sign-resizable:hover .vidply-sign-resize-handle::after {
@@ -4145,36 +3711,36 @@
 
 /* Move Mode */
 .vidply-sign-move-mode {
-    box-shadow: 0 0 0 2px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+    box-shadow: 0 0 0 0.125rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
 }
 
 /* Resizing State */
 .vidply-sign-resizing {
-    box-shadow: 0 0 0 2px var(--vidply-primary-light), 0 10px 40px var(--vidply-black-60);
+    box-shadow: 0 0 0 0.125rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
     transition: none !important;
 }
 
 /* Keyboard Drag/Resize Modes */
 .vidply-sign-keyboard-drag,
 .vidply-sign-keyboard-resize {
-    box-shadow: 0 0 0 3px var(--vidply-primary), 0 4px 12px var(--vidply-black-60);
+    box-shadow: 0 0 0 0.1875rem var(--vidply-primary), 0 0.25rem 0.75rem var(--vidply-black-60);
 }
 
 .vidply-sign-keyboard-drag::after,
 .vidply-sign-keyboard-resize::after {
     align-items: center;
     background: var(--vidply-primary);
-    border-radius: 4px;
+    border-radius: 0.25rem;
     color: var(--vidply-white);
     display: flex;
-    font-size: 12px;
+    font-size: 0.75rem;
     font-weight: 600;
     justify-content: center;
     left: 50%;
-    padding: 4px 8px;
+    padding: 0.25rem 0.5rem;
     pointer-events: none;
     position: absolute;
-    top: -28px;
+    top: -1.75rem;
     transform: translateX(-50%);
     white-space: nowrap;
     z-index: 10;
@@ -4190,48 +3756,48 @@
 
 /* Sign Language Video Positions */
 .vidply-sign-position-bottom-right {
-    bottom: 95px; /* Above controls */
-    right: 16px;
+    bottom: 5.9375rem; /* Above controls */
+    right: 1rem;
 }
 
 .vidply-sign-position-bottom-left {
-    bottom: 95px; /* Above controls */
-    left: 16px;
+    bottom: 5.9375rem; /* Above controls */
+    left: 1rem;
 }
 
 .vidply-sign-position-top-right {
-    right: 16px;
-    top: 16px;
+    right: 1rem;
+    top: 1rem;
 }
 
 .vidply-sign-position-top-left {
-    left: 16px;
-    top: 16px;
+    left: 1rem;
+    top: 1rem;
 }
 
 /* Responsive Sign Language Video */
-@media (width < 768px) {
+@media (width < 48rem) {
     .vidply-sign-language-wrapper {
-        min-width: 120px;
+        min-width: 7.5rem;
         width: 35%;
     }
     
     .vidply-sign-position-bottom-right,
     .vidply-sign-position-bottom-left {
-        bottom: 126px !important; /* Adjust for smaller controls */
+        bottom: 7.875rem !important; /* Adjust for smaller controls */
     }
 }
 
 /* Responsive Adjustments */
-@media (width < 768px) {
+@media (width < 48rem) {
     .vidply-playlist-thumbnail {
-        height: 34px;
-        width: 60px;
+        height: 2.125rem;
+        width: 3.75rem;
     }
 
     .vidply-playlist-item {
-        gap: 10px;
-        padding: 10px 12px;
+        gap: 0.625rem;
+        padding: 0.625rem 0.75rem;
     }
 
     .vidply-track-artwork {
@@ -4239,19 +3805,19 @@
     }
     
     .vidply-track-info {
-        padding: 12px 16px;
+        padding: 0.75rem 1rem;
     }
 
     .vidply-track-title {
-        font-size: 16px;
+        font-size: 1rem;
     }
     
     /* Mobile fullscreen playlist - horizontal scrolling directly above controls */
     .vidply-player.vidply-fullscreen .vidply-playlist-panel,
     .vidply-player:fullscreen .vidply-playlist-panel {
-        bottom: 100px; /* Directly above controls with extra space */
+        bottom: 6.25rem; /* Directly above controls with extra space */
         max-height: 35vh; /* Compact height */
-        padding: 12px 0; /* Vertical padding only */
+        padding: 0.75rem 0; /* Vertical padding only */
         overflow-y: hidden; /* No vertical scrolling */
         overflow-x: auto; /* Horizontal scrolling */
         position: absolute !important; /* Force absolute over video */
@@ -4264,8 +3830,8 @@
     .vidply-player:fullscreen .vidply-playlist-list {
         flex-direction: row; /* Items side by side */
         flex-wrap: nowrap; /* Never wrap */
-        gap: 8px;
-        padding: 0 12px;
+        gap: 0.5rem;
+        padding: 0 0.75rem;
         -webkit-overflow-scrolling: touch;
         scroll-behavior: smooth;
         touch-action: pan-x; /* Ensure horizontal swipe gestures work */
@@ -4274,9 +3840,9 @@
     /* Mobile playlist items - only show thumbnails */
     .vidply-player.vidply-fullscreen .vidply-playlist-item,
     .vidply-player:fullscreen .vidply-playlist-item {
-        width: 120px; /* Smaller width for thumbnail-only */
-        min-width: 120px;
-        max-width: 120px;
+        width: 7.5rem; /* Smaller width for thumbnail-only */
+        min-width: 7.5rem;
+        max-width: 7.5rem;
         flex-shrink: 0; /* Don't shrink */
         scroll-snap-align: start;
     }
@@ -4290,10 +3856,10 @@
     
     .vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
     .vidply-player:fullscreen .vidply-playlist-thumbnail {
-        height: 90px; /* Square-ish thumbnail */
+        height: 5.625rem; /* Square-ish thumbnail */
         width: 100%; /* Full width of card */
         flex-shrink: 0;
-        border-radius: 8px; /* Fully rounded for thumbnail-only */
+        border-radius: 0.5rem; /* Fully rounded for thumbnail-only */
     }
     
     /* Hide text info on mobile - show only thumbnails */
@@ -4307,28 +3873,28 @@
     .vidply-player:fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-info {
         display: flex;
         flex-direction: column;
-        padding: 8px;
+        padding: 0.5rem;
         justify-content: center;
         align-items: center;
         text-align: center;
-        height: 90px;
+        height: 5.625rem;
     }
     
     .vidply-player.vidply-fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-title,
     .vidply-player:fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-title {
-        font-size: 11px;
+        font-size: 0.6875rem;
         -webkit-line-clamp: 3;
     }
     
     .vidply-player.vidply-fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-artist,
     .vidply-player:fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-artist {
-        font-size: 9px;
+        font-size: 0.5625rem;
     }
     
     .vidply-player.vidply-fullscreen .vidply-playlist-header,
     .vidply-player:fullscreen .vidply-playlist-header {
-        padding: 0 12px 8px;
-        font-size: 11px;
+        padding: 0 0.75rem 0.5rem;
+        font-size: 0.6875rem;
         flex-shrink: 0;
     }
 
@@ -4336,9 +3902,9 @@
     .vidply-transcript-window {
         border: none;
         border-radius: 0;
-        border-top: 1px solid var(--vidply-border-light);
+        border-top: 0.0625rem solid var(--vidply-border-light);
         box-shadow: none;
-        min-width: 300px;
+        min-width: 18.75rem;
         order: 3; /* After controls (which are order: 2) */
         position: relative;
         width: 100%;
@@ -4347,11 +3913,11 @@
 
     .vidply-transcript-header {
         border-radius: 0;
-        padding: 12px 16px;
+        padding: 0.75rem 1rem;
     }
 
     .vidply-transcript-content {
-        max-height: 400px;
+        max-height: 25rem;
     }
 
     /* Don't show dragging cursor on mobile (except in fullscreen) */
