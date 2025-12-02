@@ -71,7 +71,6 @@ export class Player extends EventEmitter {
             poster: null,
             responsive: true,
             fillContainer: false,
-            colorScheme: 'dark light', // 'light', 'dark', 'light dark', 'dark light', 'only light', 'only dark'
 
             // Playback
             autoplay: false,
@@ -424,11 +423,6 @@ export class Player extends EventEmitter {
         // Add responsive class
         if (this.options.responsive) {
             this.container.classList.add(`${this.options.classPrefix}-responsive`);
-        }
-
-        // Apply color-scheme preference
-        if (this.options.colorScheme) {
-            this.container.style.colorScheme = this.options.colorScheme;
         }
 
         // Create video wrapper (for proper positioning of controls)

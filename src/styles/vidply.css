@@ -396,7 +396,6 @@
     background: var(--vidply-black);
     box-sizing: border-box;
     color: var(--vidply-text-primary);
-    color-scheme: dark light;
     contain: layout style;
     display: flex;
     flex-direction: column;
