@@ -164,7 +164,11 @@ export const de = {
         nowPlaying: 'Läuft gerade: Titel {current} von {total}. {title}{artist}',
         by: ' von ',
         untitled: 'Ohne Titel',
-        trackUntitled: 'Titel {number}'
+        trackUntitled: 'Titel {number}',
+        currentlyPlaying: 'Wird gerade abgespielt',
+        notPlaying: 'Nicht aktiv',
+        pressEnterPlay: 'Eingabetaste zum Abspielen',
+        pressEnterRestart: 'Eingabetaste zum Neustart'
     }
 };
 

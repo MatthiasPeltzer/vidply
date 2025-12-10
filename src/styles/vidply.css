@@ -489,7 +489,6 @@
     background: linear-gradient(135deg, var(--vidply-black) 0%, #2a2a2a 100%);
     height: 100%;
     order: 1; /* First in flex order */
-    overflow: hidden;
     position: relative;
     width: 100%;
     z-index: 1; /* Base video layer */
@@ -580,6 +579,8 @@
     transform: translate(-50%, -50%);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: var(--vidply-z-overlay);
+    border: 0.125rem solid var(--vidply-primary);
+    border-radius: 50%;
 }
 
 .vidply-play-overlay:hover {
@@ -669,7 +670,7 @@
 .vidply-progress-time-wrapper {
     align-items: center;
     display: flex;
-    gap: var(--vidply-gap-lg);
+    gap: 1.25rem;
     margin-bottom: var(--vidply-gap-lg);
     width: 100%;
 }
@@ -681,6 +682,7 @@
     cursor: pointer;
     flex: 1;
     height: 0.5625rem;
+    margin-right: 0.5rem;
     position: relative;
     transition: height 0.2s ease;
 }
@@ -800,6 +802,82 @@
 .vidply-button:disabled {
     cursor: not-allowed;
     opacity: 0.5;
+}
+
+/* Button text - hidden by default, visible when CSS is disabled */
+.vidply-button-text {
+    display: none;
+}
+
+/* When CSS is disabled or unavailable, button text will be visible */
+
+/* This ensures buttons are functional even without CSS */
+
+/* Tooltip styles - aria-hidden popovers for sighted users */
+.vidply-tooltip {
+    background: #e0e0e0;
+    border-radius: var(--vidply-radius-sm);
+    color: #000;
+    font-size: var(--vidply-font-xs);
+    left: 50%;
+    opacity: 0;
+    padding: 0.375rem 0.5rem;
+    pointer-events: none;
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    transform: translateX(-50%) translateY(-0.25rem);
+    transition: opacity var(--vidply-transition-fast), transform var(--vidply-transition-fast);
+    white-space: nowrap;
+    z-index: calc(var(--vidply-z-menu) + 1);
+}
+
+.vidply-tooltip::before {
+    border-color: transparent transparent #e0e0e0;
+    border-style: solid;
+    border-width: 0 0.375rem 0.375rem;
+    content: '';
+    left: 50%;
+    position: absolute;
+    top: -0.375rem;
+    transform: translateX(-50%);
+}
+
+/* Show tooltip on hover/focus */
+.vidply-tooltip-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* In fullscreen mode, position tooltips above buttons */
+.vidply-player.vidply-fullscreen .vidply-tooltip,
+.vidply-player:fullscreen .vidply-tooltip {
+    bottom: calc(100% + 0.5rem);
+    top: auto;
+    transform: translateX(-50%) translateY(0.25rem);
+}
+
+.vidply-player.vidply-fullscreen .vidply-tooltip-visible,
+.vidply-player:fullscreen .vidply-tooltip-visible {
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Adjust tooltip arrow for fullscreen (pointing down instead of up) */
+.vidply-player.vidply-fullscreen .vidply-tooltip::before,
+.vidply-player:fullscreen .vidply-tooltip::before {
+    border-color: #e0e0e0 transparent transparent;
+    border-width: 0.375rem 0.375rem 0;
+    bottom: -0.375rem;
+    top: auto;
+}
+
+/* Ensure buttons with tooltips are positioned relatively */
+.vidply-button,
+.vidply-icon-button,
+.vidply-sign-language-settings,
+.vidply-sign-language-close,
+.vidply-transcript-settings,
+.vidply-transcript-close {
+    position: relative;
 }
 
 /* Icons */
@@ -2139,12 +2217,27 @@
     padding: 1rem 1.25rem;
 }
 
+/* Track header - contains track number and duration */
+.vidply-track-header {
+    align-items: center;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+}
+
 .vidply-track-number {
     color: var(--vidply-text-muted);
     font-size: 0.75rem;
     letter-spacing: 0.0313rem;
-    margin-bottom: 0.25rem;
     text-transform: uppercase;
+}
+
+/* Duration in track info display */
+.vidply-track-duration {
+    color: var(--vidply-text-muted);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
 }
 
 .vidply-track-title {
@@ -2157,6 +2250,18 @@
 .vidply-track-artist {
     color: var(--vidply-white-80);
     font-size: 0.875rem;
+}
+
+.vidply-track-description {
+    color: var(--vidply-white-60);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    margin-top: 0.5rem;
+    max-height: 3.5em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 /* Playlist Panel */
@@ -2264,6 +2369,13 @@
     box-shadow: 0 0.5rem 1.5rem var(--vidply-black-60);
 }
 
+/* Fullscreen thumbnail container - takes full width of card */
+.vidply-player.vidply-fullscreen .vidply-playlist-thumbnail-container,
+.vidply-player:fullscreen .vidply-playlist-thumbnail-container {
+    position: relative;
+    width: 100%;
+}
+
 .vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
 .vidply-player:fullscreen .vidply-playlist-thumbnail {
     width: 100%;
@@ -2271,9 +2383,24 @@
     border-radius: 0;
 }
 
+/* Larger duration badge in fullscreen for better visibility */
+.vidply-player.vidply-fullscreen .vidply-playlist-duration-badge,
+.vidply-player:fullscreen .vidply-playlist-duration-badge {
+    bottom: 0.375rem;
+    font-size: 0.75rem;
+    padding: 0.1875rem 0.375rem;
+    right: 0.375rem;
+}
+
 .vidply-player.vidply-fullscreen .vidply-playlist-item-info,
 .vidply-player:fullscreen .vidply-playlist-item-info {
     padding: 0.75rem;
+}
+
+/* Hide description in fullscreen to save space */
+.vidply-player.vidply-fullscreen .vidply-playlist-item-description,
+.vidply-player:fullscreen .vidply-playlist-item-description {
+    display: none;
 }
 
 .vidply-player.vidply-fullscreen .vidply-playlist-item-title,
@@ -2474,6 +2601,12 @@
     outline-offset: -0.125rem;
 }
 
+/* Playlist Thumbnail Container (wrapper for thumbnail + duration badge) */
+.vidply-playlist-thumbnail-container {
+    flex-shrink: 0;
+    position: relative;
+}
+
 /* Playlist Thumbnail */
 .vidply-playlist-thumbnail {
     align-items: center;
@@ -2505,6 +2638,23 @@
     color: var(--vidply-primary-light);
 }
 
+/* Duration badge on thumbnail (YouTube-style) */
+.vidply-playlist-duration-badge {
+    background: rgb(0 0 0 / 80%);
+    border-radius: 0.1875rem;
+    bottom: 0.125rem;
+    color: var(--vidply-white);
+    font-family: var(--vidply-font-family);
+    font-size: 0.625rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    padding: 0.125rem 0.25rem;
+    position: absolute;
+    right: 0.125rem;
+}
+
 /* Playlist Item Info */
 .vidply-playlist-item-info {
     display: block;
@@ -2512,12 +2662,21 @@
     min-width: 0;
 }
 
+/* Title row - contains title and optional inline duration */
+.vidply-playlist-item-title-row {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
 .vidply-playlist-item-title {
     color: var(--vidply-white);
     display: block;
+    flex: 1;
     font-size: 0.875rem;
     font-weight: 500;
-    margin-bottom: 0.25rem;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2527,6 +2686,14 @@
     color: var(--vidply-primary-light);
 }
 
+/* Inline duration (shown when no thumbnail) */
+.vidply-playlist-item-duration {
+    color: var(--vidply-text-disabled);
+    flex-shrink: 0;
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+}
+
 .vidply-playlist-item-artist {
     color: var(--vidply-text-disabled);
     display: block;
@@ -2534,6 +2701,19 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* Description - truncated with ellipsis */
+.vidply-playlist-item-description {
+    -webkit-box-orient: vertical;
+    color: var(--vidply-text-subtle);
+    display: -webkit-box;
+    font-size: 0.6875rem;
+    -webkit-line-clamp: 2;
+    line-height: 1.4;
+    margin-top: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Playlist Item Icon */

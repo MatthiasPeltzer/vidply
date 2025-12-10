@@ -909,7 +909,13 @@ export class Player extends EventEmitter {
                         track.default = true;
                     }
 
-                    this.element.appendChild(track);
+                    // Insert tracks at the beginning (before any flow content) for HTML5 validity
+                    const firstChild = this.element.firstChild;
+                    if (firstChild && firstChild.nodeType === Node.ELEMENT_NODE && firstChild.tagName !== 'TRACK') {
+                        this.element.insertBefore(track, firstChild);
+                    } else {
+                        this.element.appendChild(track);
+                    }
                 });
                 this.invalidateTrackCache();
             }
@@ -1746,6 +1752,13 @@ export class Player extends EventEmitter {
                 }
             });
             
+            // Remove src attribute if present (video with src can't have source elements per HTML spec)
+            const hasSrcAttribute = this.element.hasAttribute('src');
+            const srcValue = hasSrcAttribute ? this.element.getAttribute('src') : null;
+            if (hasSrcAttribute) {
+                this.element.removeAttribute('src');
+            }
+            
             // Remove all source elements
             allSourceElements.forEach(sourceEl => {
                 sourceEl.remove();
@@ -1965,8 +1978,11 @@ export class Player extends EventEmitter {
                                 }
                             });
                             
-                            // Insert new track element
-                            if (nextSibling && nextSibling.parentNode) {
+                            // Insert new track element at the beginning (before any flow content) for HTML5 validity
+                            const firstChild = parent.firstChild;
+                            if (firstChild && firstChild.nodeType === Node.ELEMENT_NODE && firstChild.tagName !== 'TRACK') {
+                                parent.insertBefore(newTrackElement, firstChild);
+                            } else if (nextSibling && nextSibling.parentNode) {
                                 parent.insertBefore(newTrackElement, nextSibling);
                             } else {
                                 parent.appendChild(newTrackElement);
@@ -2642,6 +2658,13 @@ export class Player extends EventEmitter {
                 }
             });
             
+            // Remove src attribute if present (video with src can't have source elements per HTML spec)
+            const hasSrcAttribute = this.element.hasAttribute('src');
+            const srcValue = hasSrcAttribute ? this.element.getAttribute('src') : null;
+            if (hasSrcAttribute) {
+                this.element.removeAttribute('src');
+            }
+            
             // Remove all source elements
             allSourceElements.forEach(sourceEl => {
                 sourceEl.remove();
@@ -3032,15 +3055,17 @@ export class Player extends EventEmitter {
         });
 
         // Settings button (before language selector)
+        const settingsAriaLabel = i18n.t('player.signLanguageSettings');
         this.signLanguageSettingsButton = DOMUtils.createElement('button', {
             className: `${this.options.classPrefix}-sign-language-settings`,
             attributes: {
                 'type': 'button',
-                'aria-label': i18n.t('player.signLanguageSettings'),
+                'aria-label': settingsAriaLabel,
                 'aria-expanded': 'false'
             }
         });
         this.signLanguageSettingsButton.appendChild(createIconElement('settings'));
+        DOMUtils.attachTooltip(this.signLanguageSettingsButton, settingsAriaLabel, this.options.classPrefix);
         this.signLanguageSettingsHandlers = {
             settingsClick: (e) => {
                 e.preventDefault();
@@ -3129,20 +3154,22 @@ export class Player extends EventEmitter {
         headerLeft.appendChild(title);
         
         // Close button
+        const closeAriaLabel = i18n.t('player.closeSignLanguage');
         const closeButton = DOMUtils.createElement('button', {
             className: `${this.options.classPrefix}-sign-language-close`,
             attributes: {
                 'type': 'button',
-                'aria-label': i18n.t('player.closeSignLanguage')
+                'aria-label': closeAriaLabel
             }
         });
         closeButton.appendChild(createIconElement('close'));
+        DOMUtils.attachTooltip(closeButton, closeAriaLabel, this.options.classPrefix);
         closeButton.addEventListener('click', () => {
             this.disableSignLanguage();
             // Return focus to sign language button if available
             if (this.controlBar && this.controlBar.controls && this.controlBar.controls.signLanguage) {
                 setTimeout(() => {
-                    this.controlBar.controls.signLanguage.focus();
+                    this.controlBar.controls.signLanguage.focus({ preventScroll: true });
                 }, 0);
             }
         });
@@ -3383,7 +3410,7 @@ export class Player extends EventEmitter {
                 e.stopPropagation();
                 const enabled = this.toggleSignLanguageResizeMode();
                 if (enabled) {
-                    this.signLanguageWrapper.focus();
+                    this.signLanguageWrapper.focus({ preventScroll: true });
                 }
                 return;
             }
@@ -3406,7 +3433,7 @@ export class Player extends EventEmitter {
                 // Return focus to sign language button if available
                 if (this.controlBar && this.controlBar.controls && this.controlBar.controls.signLanguage) {
                     setTimeout(() => {
-                        this.controlBar.controls.signLanguage.focus();
+                        this.controlBar.controls.signLanguage.focus({ preventScroll: true });
                     }, 0);
                 }
                 return;
@@ -3583,6 +3610,11 @@ export class Player extends EventEmitter {
         });
         keyboardDragOption.setAttribute('role', 'switch');
         keyboardDragOption.setAttribute('aria-checked', 'false');
+        // Remove any tooltips from menu items (they have visible text)
+        const dragTooltip = keyboardDragOption.querySelector(`.${this.options.classPrefix}-tooltip`);
+        if (dragTooltip) dragTooltip.remove();
+        const dragButtonText = keyboardDragOption.querySelector(`.${this.options.classPrefix}-button-text`);
+        if (dragButtonText) dragButtonText.remove();
         this.signLanguageDragOptionButton = keyboardDragOption;
         this.signLanguageDragOptionText = keyboardDragOption.querySelector(`.${this.options.classPrefix}-settings-text`);
         this.updateSignLanguageDragOptionState();
@@ -3605,7 +3637,7 @@ export class Player extends EventEmitter {
                     // Focus sign language wrapper after handles appear
                     setTimeout(() => {
                         if (this.signLanguageWrapper) {
-                            this.signLanguageWrapper.focus();
+                            this.signLanguageWrapper.focus({ preventScroll: true });
                         }
                     }, 20);
                 } else {
@@ -3615,6 +3647,11 @@ export class Player extends EventEmitter {
         });
         resizeOption.setAttribute('role', 'switch');
         resizeOption.setAttribute('aria-checked', 'false');
+        // Remove any tooltips from menu items (they have visible text)
+        const resizeTooltip = resizeOption.querySelector(`.${this.options.classPrefix}-tooltip`);
+        if (resizeTooltip) resizeTooltip.remove();
+        const resizeButtonText = resizeOption.querySelector(`.${this.options.classPrefix}-button-text`);
+        if (resizeButtonText) resizeButtonText.remove();
         this.signLanguageResizeOptionButton = resizeOption;
         this.signLanguageResizeOptionText = resizeOption.querySelector(`.${this.options.classPrefix}-settings-text`);
         this.updateSignLanguageResizeOptionState();
@@ -3629,6 +3666,11 @@ export class Player extends EventEmitter {
                 this.hideSignLanguageSettingsMenu();
             }
         });
+        // Remove any tooltips from menu items (they have visible text)
+        const closeTooltip = closeOption.querySelector(`.${this.options.classPrefix}-tooltip`);
+        if (closeTooltip) closeTooltip.remove();
+        const closeButtonText = closeOption.querySelector(`.${this.options.classPrefix}-button-text`);
+        if (closeButtonText) closeButtonText.remove();
 
         this.signLanguageSettingsMenu.appendChild(keyboardDragOption);
         this.signLanguageSettingsMenu.appendChild(resizeOption);
@@ -3703,7 +3745,7 @@ export class Player extends EventEmitter {
                 this.signLanguageSettingsButton.setAttribute('aria-expanded', 'false');
                 if (focusButton) {
                     // Return focus to settings button
-                    this.signLanguageSettingsButton.focus();
+                    this.signLanguageSettingsButton.focus({ preventScroll: true });
                 }
             }
         }
@@ -3826,7 +3868,6 @@ export class Player extends EventEmitter {
 
         this.signLanguageDragOptionButton.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
         this.signLanguageDragOptionButton.setAttribute('aria-label', ariaLabel);
-        this.signLanguageDragOptionButton.setAttribute('title', text);
 
         if (this.signLanguageDragOptionText) {
             this.signLanguageDragOptionText.textContent = text;
@@ -3848,7 +3889,6 @@ export class Player extends EventEmitter {
 
         this.signLanguageResizeOptionButton.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
         this.signLanguageResizeOptionButton.setAttribute('aria-label', ariaLabel);
-        this.signLanguageResizeOptionButton.setAttribute('title', text);
 
         if (this.signLanguageResizeOptionText) {
             this.signLanguageResizeOptionText.textContent = text;
@@ -4434,26 +4474,26 @@ export class Player extends EventEmitter {
         }
 
         if (target === 'alert' && fallbackElement) {
-            fallbackElement.focus();
+            fallbackElement.focus({ preventScroll: true });
             return;
         }
 
         if (target === 'player') {
             if (this.container) {
-                this.container.focus();
+                this.container.focus({ preventScroll: true });
             }
             return;
         }
 
         if (target === 'media') {
-            this.element.focus();
+            this.element.focus({ preventScroll: true });
             return;
         }
 
         if (target === 'playButton') {
             const playButton = this.controlBar?.controls?.playPause;
             if (playButton) {
-                playButton.focus();
+                playButton.focus({ preventScroll: true });
             }
             return;
         }
@@ -4464,7 +4504,7 @@ export class Player extends EventEmitter {
                 if (targetElement.tabIndex === -1 && !targetElement.hasAttribute('tabindex')) {
                     targetElement.setAttribute('tabindex', '-1');
                 }
-                targetElement.focus();
+                targetElement.focus({ preventScroll: true });
             }
         }
     }
@@ -4521,7 +4561,7 @@ export class Player extends EventEmitter {
             if (element.tabIndex === -1 && !element.hasAttribute('tabindex')) {
                 element.setAttribute('tabindex', '-1');
             }
-            element.focus();
+            element.focus({ preventScroll: true });
         }
 
         if (shouldShow && config.autoScroll !== false && options.autoScroll !== false) {
@@ -4684,9 +4724,7 @@ export class Player extends EventEmitter {
                 }
                 // Use setTimeout to ensure DOM is ready
                 this.setManagedTimeout(() => {
-                    targetElement.focus();
-                    // Scroll element into view if needed
-                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    targetElement.focus({ preventScroll: true });
                 }, 10);
             } else if (this.options.debug) {
                 this.log('[Metadata] Element not found:', normalizedSelector || targetSelector);

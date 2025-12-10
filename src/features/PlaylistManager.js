@@ -6,6 +6,7 @@
 import { DOMUtils } from '../utils/DOMUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
+import { TimeUtils } from '../utils/TimeUtils.js';
 
 // Static counter for unique IDs
 let playlistInstanceCounter = 0;
@@ -69,6 +70,10 @@ export class PlaylistManager {
     this.player.on('ended', this.handlePlaybackStateChange.bind(this));
     // Use fullscreenchange event which is what the player actually emits
     this.player.on('fullscreenchange', this.handleFullscreenChange.bind(this));
+    
+    // Listen for audio description state changes to update duration displays
+    this.player.on('audiodescriptionenabled', this.handleAudioDescriptionChange.bind(this));
+    this.player.on('audiodescriptiondisabled', this.handleAudioDescriptionChange.bind(this));
     
     // Create UI if needed
     if (this.options.showPanel) {
@@ -384,6 +389,73 @@ export class PlaylistManager {
   }
   
   /**
+   * Handle audio description state changes
+   * Updates duration displays to show audio-described version duration when AD is enabled
+   */
+  handleAudioDescriptionChange() {
+    const currentTrack = this.getCurrentTrack();
+    if (!currentTrack) return;
+    
+    // Update the track info display with the appropriate duration
+    this.updateTrackInfo(currentTrack);
+    
+    // Update the playlist UI to reflect duration changes (aria-labels)
+    this.updatePlaylistUI();
+    
+    // Update visual duration elements in playlist panel
+    this.updatePlaylistDurations();
+  }
+  
+  /**
+   * Update the visual duration displays in the playlist panel
+   * Called when audio description state changes
+   */
+  updatePlaylistDurations() {
+    if (!this.playlistPanel) return;
+    
+    const items = this.playlistPanel.querySelectorAll('.vidply-playlist-item');
+    
+    items.forEach((item, index) => {
+      const track = this.tracks[index];
+      if (!track) return;
+      
+      const effectiveDuration = this.getEffectiveDuration(track);
+      const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : '';
+      
+      // Update duration badge on thumbnail (if exists)
+      const durationBadge = item.querySelector('.vidply-playlist-duration-badge');
+      if (durationBadge) {
+        durationBadge.textContent = trackDuration;
+      }
+      
+      // Update inline duration (if exists)
+      const inlineDuration = item.querySelector('.vidply-playlist-item-duration');
+      if (inlineDuration) {
+        inlineDuration.textContent = trackDuration;
+      }
+    });
+  }
+  
+  /**
+   * Get the effective duration for a track based on audio description state
+   * @param {Object} track - Track object
+   * @returns {number|null} - Duration in seconds or null if not available
+   */
+  getEffectiveDuration(track) {
+    if (!track) return null;
+    
+    const isAudioDescriptionEnabled = this.player.state.audioDescriptionEnabled;
+    
+    // If audio description is enabled and track has audioDescriptionDuration, use it
+    if (isAudioDescriptionEnabled && track.audioDescriptionDuration) {
+      return track.audioDescriptionDuration;
+    }
+    
+    // Otherwise use regular duration
+    return track.duration || null;
+  }
+  
+  /**
    * Update playlist visibility based on fullscreen and playback state
    * In fullscreen: show when paused/not started, hide when playing
    * Outside fullscreen: respect original panel visibility setting
@@ -457,9 +529,7 @@ export class PlaylistManager {
     this.trackInfoElement = DOMUtils.createElement('div', {
       className: 'vidply-track-info',
       attributes: {
-        role: 'status',
-        'aria-live': 'polite',
-        'aria-atomic': 'true'
+        role: 'status'
       }
     });
     this.trackInfoElement.style.display = 'none';
@@ -503,25 +573,43 @@ export class PlaylistManager {
     const trackTitle = track.title || i18n.t('playlist.untitled');
     const trackArtist = track.artist || '';
     
-    // Screen reader announcement
+    // Use effective duration (audio description duration when AD is enabled)
+    const effectiveDuration = this.getEffectiveDuration(track);
+    const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : '';
+    const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : '';
+    
+    // Screen reader announcement - include duration if available
     const artistPart = trackArtist ? i18n.t('playlist.by') + trackArtist : '';
+    const durationPart = trackDurationReadable ? `. ${trackDurationReadable}` : '';
     const announcement = i18n.t('playlist.nowPlaying', {
       current: trackNumber,
       total: totalTracks,
       title: trackTitle,
       artist: artistPart
-    });
+    }) + durationPart;
     
     const trackOfText = i18n.t('playlist.trackOf', {
       current: trackNumber,
       total: totalTracks
     });
     
+    // Build duration HTML if available
+    const durationHtml = trackDuration 
+      ? `<span class="vidply-track-duration" aria-hidden="true">${DOMUtils.escapeHTML(trackDuration)}</span>` 
+      : '';
+    
+    // Get description if available
+    const trackDescription = track.description || '';
+    
     this.trackInfoElement.innerHTML = `
       <span class="vidply-sr-only">${DOMUtils.escapeHTML(announcement)}</span>
-      <div class="vidply-track-number" aria-hidden="true">${DOMUtils.escapeHTML(trackOfText)}</div>
+      <div class="vidply-track-header" aria-hidden="true">
+        <span class="vidply-track-number">${DOMUtils.escapeHTML(trackOfText)}</span>
+        ${durationHtml}
+      </div>
       <div class="vidply-track-title" aria-hidden="true">${DOMUtils.escapeHTML(trackTitle)}</div>
       ${trackArtist ? `<div class="vidply-track-artist" aria-hidden="true">${DOMUtils.escapeHTML(trackArtist)}</div>` : ''}
+      ${trackDescription ? `<div class="vidply-track-description" aria-hidden="true">${DOMUtils.escapeHTML(trackDescription)}</div>` : ''}
     `;
     
     this.trackInfoElement.style.display = 'block';
@@ -579,6 +667,7 @@ export class PlaylistManager {
     const list = DOMUtils.createElement('ul', {
       className: 'vidply-playlist-list',
       attributes: {
+        role: 'listbox',
         'aria-labelledby': `${this.uniqueId}-heading`,
         'aria-describedby': `${this.uniqueId}-keyboard-instructions`
       }
@@ -607,9 +696,21 @@ export class PlaylistManager {
     });
     const trackTitle = track.title || i18n.t('playlist.trackUntitled', { number: index + 1 });
     const trackArtist = track.artist ? i18n.t('playlist.by') + track.artist : '';
+    
+    // Use effective duration (audio description duration when AD is enabled)
+    const effectiveDuration = this.getEffectiveDuration(track);
+    const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : '';
+    const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : '';
     const isActive = index === this.currentIndex;
-    const statusText = isActive ? 'Currently playing' : 'Not playing';
-    const actionText = isActive ? 'Press Enter to restart' : 'Press Enter to play';
+    
+    // Build accessible label for screen readers
+    // With role="option" and aria-checked, screen reader will announce selection state
+    // Position is already announced via aria-posinset/aria-setsize
+    // Format: "Title by Artist. 3 minutes, 45 seconds."
+    let ariaLabel = `${trackTitle}${trackArtist}`;
+    if (trackDurationReadable) {
+      ariaLabel += `. ${trackDurationReadable}`;
+    }
     
     // Create list item container (semantic HTML)
     const item = DOMUtils.createElement('li', {
@@ -624,10 +725,12 @@ export class PlaylistManager {
       className: 'vidply-playlist-item-button',
       attributes: {
         type: 'button',
+        role: 'option',
         tabIndex: index === 0 ? 0 : -1, // Only first item is in tab order initially
-        'aria-label': `${trackPosition}. ${trackTitle}${trackArtist}. ${statusText}. ${actionText}.`,
+        'aria-label': ariaLabel,
         'aria-posinset': index + 1,
-        'aria-setsize': this.tracks.length
+        'aria-setsize': this.tracks.length,
+        'aria-checked': isActive ? 'true' : 'false'
       }
     });
     
@@ -637,12 +740,17 @@ export class PlaylistManager {
       button.setAttribute('tabIndex', '0'); // Active item should always be tabbable
     }
     
-    // Thumbnail or icon (using span for valid button content)
-    const thumbnail = DOMUtils.createElement('span', {
-      className: 'vidply-playlist-thumbnail',
+    // Thumbnail container with optional duration badge
+    const thumbnailContainer = DOMUtils.createElement('span', {
+      className: 'vidply-playlist-thumbnail-container',
       attributes: {
         'aria-hidden': 'true'
       }
+    });
+    
+    // Thumbnail or icon
+    const thumbnail = DOMUtils.createElement('span', {
+      className: 'vidply-playlist-thumbnail'
     });
     
     if (track.poster) {
@@ -654,9 +762,20 @@ export class PlaylistManager {
       thumbnail.appendChild(icon);
     }
     
-    button.appendChild(thumbnail);
+    thumbnailContainer.appendChild(thumbnail);
     
-    // Info (using span for valid button content)
+    // Duration badge on thumbnail (like YouTube) - only show if there's a poster
+    if (trackDuration && track.poster) {
+      const durationBadge = DOMUtils.createElement('span', {
+        className: 'vidply-playlist-duration-badge'
+      });
+      durationBadge.textContent = trackDuration;
+      thumbnailContainer.appendChild(durationBadge);
+    }
+    
+    button.appendChild(thumbnailContainer);
+    
+    // Info section (title, artist, description)
     const info = DOMUtils.createElement('span', {
       className: 'vidply-playlist-item-info',
       attributes: {
@@ -664,18 +783,44 @@ export class PlaylistManager {
       }
     });
     
+    // Title row with optional inline duration (for when no thumbnail)
+    const titleRow = DOMUtils.createElement('span', {
+      className: 'vidply-playlist-item-title-row'
+    });
+    
     const title = DOMUtils.createElement('span', {
       className: 'vidply-playlist-item-title'
     });
     title.textContent = trackTitle;
-    info.appendChild(title);
+    titleRow.appendChild(title);
     
+    // Inline duration (shown when no poster/thumbnail)
+    if (trackDuration && !track.poster) {
+      const inlineDuration = DOMUtils.createElement('span', {
+        className: 'vidply-playlist-item-duration'
+      });
+      inlineDuration.textContent = trackDuration;
+      titleRow.appendChild(inlineDuration);
+    }
+    
+    info.appendChild(titleRow);
+    
+    // Artist
     if (track.artist) {
       const artist = DOMUtils.createElement('span', {
         className: 'vidply-playlist-item-artist'
       });
       artist.textContent = track.artist;
       info.appendChild(artist);
+    }
+    
+    // Description (truncated)
+    if (track.description) {
+      const description = DOMUtils.createElement('span', {
+        className: 'vidply-playlist-item-description'
+      });
+      description.textContent = track.description;
+      info.appendChild(description);
     }
     
     button.appendChild(info);
@@ -787,7 +932,13 @@ export class PlaylistManager {
     if (newIndex !== -1 && newIndex !== index) {
       buttons[index].setAttribute('tabIndex', '-1');
       buttons[newIndex].setAttribute('tabIndex', '0');
-      buttons[newIndex].focus();
+      buttons[newIndex].focus({ preventScroll: false });
+      
+      // Scroll the focused item into view (same behavior as mouse interaction)
+      const item = buttons[newIndex].closest('.vidply-playlist-item');
+      if (item) {
+        item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
     }
     
     // Announce navigation feedback
@@ -823,17 +974,25 @@ export class PlaylistManager {
       const trackTitle = track.title || i18n.t('playlist.trackUntitled', { number: index + 1 });
       const trackArtist = track.artist ? i18n.t('playlist.by') + track.artist : '';
       
+      // Use effective duration (audio description duration when AD is enabled)
+      const effectiveDuration = this.getEffectiveDuration(track);
+      const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : '';
+      
       if (index === this.currentIndex) {
         // Update list item styling
         item.classList.add('vidply-playlist-item-active');
         
         // Update button ARIA attributes
         button.setAttribute('aria-current', 'true');
+        button.setAttribute('aria-checked', 'true');
         button.setAttribute('tabIndex', '0'); // Active item should be tabbable
         
-        const statusText = 'Currently playing';
-        const actionText = 'Press Enter to restart';
-        button.setAttribute('aria-label', `${trackPosition}. ${trackTitle}${trackArtist}. ${statusText}. ${actionText}.`);
+        // Simplified aria-label - status and actions are announced via ARIA roles
+        let ariaLabel = `${trackTitle}${trackArtist}`;
+        if (trackDurationReadable) {
+          ariaLabel += `. ${trackDurationReadable}`;
+        }
+        button.setAttribute('aria-label', ariaLabel);
         
         // Scroll into view within playlist panel (uses 'nearest' to minimize page scroll)
         item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -843,11 +1002,15 @@ export class PlaylistManager {
         
         // Update button ARIA attributes
         button.removeAttribute('aria-current');
+        button.setAttribute('aria-checked', 'false');
         button.setAttribute('tabIndex', '-1'); // Remove from tab order (use arrow keys)
         
-        const statusText = 'Not playing';
-        const actionText = 'Press Enter to play';
-        button.setAttribute('aria-label', `${trackPosition}. ${trackTitle}${trackArtist}. ${statusText}. ${actionText}.`);
+        // Simplified aria-label - status and actions are announced via ARIA roles
+        let ariaLabel = `${trackTitle}${trackArtist}`;
+        if (trackDurationReadable) {
+          ariaLabel += `. ${trackDurationReadable}`;
+        }
+        button.setAttribute('aria-label', ariaLabel);
       }
     });
   }
@@ -969,7 +1132,7 @@ export class PlaylistManager {
         setTimeout(() => {
           const firstItem = this.playlistPanel.querySelector('.vidply-playlist-item[tabindex="0"]');
           if (firstItem) {
-            firstItem.focus();
+            firstItem.focus({ preventScroll: true });
           }
         }, 100);
       }
@@ -989,7 +1152,7 @@ export class PlaylistManager {
         this.player.controlBar.controls.playlistToggle.setAttribute('aria-pressed', 'false');
         
         // Return focus to toggle button
-        this.player.controlBar.controls.playlistToggle.focus();
+        this.player.controlBar.controls.playlistToggle.focus({ preventScroll: true });
       }
     }
     

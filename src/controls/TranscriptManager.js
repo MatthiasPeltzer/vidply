@@ -201,7 +201,7 @@ export class TranscriptManager {
     if (focusButton) {
       const transcriptButton = this.player.controlBar?.controls?.transcript;
       if (transcriptButton && typeof transcriptButton.focus === 'function') {
-        transcriptButton.focus();
+        transcriptButton.focus({ preventScroll: true });
       }
     }
   }
@@ -233,15 +233,17 @@ export class TranscriptManager {
     });
 
     // Settings button
+    const settingsAriaLabel = i18n.t('transcript.settingsMenu');
     this.settingsButton = DOMUtils.createElement('button', {
       className: `${this.player.options.classPrefix}-transcript-settings`,
       attributes: {
         'type': 'button',
-        'aria-label': i18n.t('transcript.settingsMenu'),
+        'aria-label': settingsAriaLabel,
         'aria-expanded': 'false'
       }
     });
     this.settingsButton.appendChild(createIconElement('settings'));
+    DOMUtils.attachTooltip(this.settingsButton, settingsAriaLabel, this.player.options.classPrefix);
     this.handlers.settingsClick = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -286,8 +288,7 @@ export class TranscriptManager {
     const autoscrollLabel = DOMUtils.createElement('label', {
       className: `${this.player.options.classPrefix}-transcript-autoscroll-label`,
       attributes: {
-        'for': autoscrollId,
-        'title': i18n.t('transcript.autoscroll')
+        'for': autoscrollId
       }
     });
     
@@ -350,14 +351,16 @@ export class TranscriptManager {
     
     this.headerLeft.appendChild(languageSelectorWrapper);
 
+    const closeAriaLabel = i18n.t('transcript.close');
     const closeButton = DOMUtils.createElement('button', {
       className: `${this.player.options.classPrefix}-transcript-close`,
       attributes: {
         'type': 'button',
-        'aria-label': i18n.t('transcript.close')
+        'aria-label': closeAriaLabel
       }
     });
     closeButton.appendChild(createIconElement('close'));
+    DOMUtils.attachTooltip(closeButton, closeAriaLabel, this.player.options.classPrefix);
     closeButton.addEventListener('click', () => this.hideTranscript({ focusButton: true }));
 
     this.transcriptHeader.appendChild(this.headerLeft);
@@ -971,7 +974,7 @@ export class TranscriptManager {
         }
         // Use setTimeout to ensure DOM is ready
         this.setManagedTimeout(() => {
-          targetElement.focus();
+          targetElement.focus({ preventScroll: true });
         }, 10);
       } else if (this.player.options.debug) {
         console.warn('[VidPly Metadata] Element not found:', targetSelector);
@@ -1243,7 +1246,7 @@ export class TranscriptManager {
         e.stopPropagation();
         const enabled = this.toggleResizeMode();
         if (enabled) {
-          this.transcriptWindow.focus();
+          this.transcriptWindow.focus({ preventScroll: true });
         }
         return;
       }
@@ -1297,7 +1300,7 @@ export class TranscriptManager {
       }
       
       // Focus the window for keyboard navigation
-      this.transcriptWindow.focus();
+      this.transcriptWindow.focus({ preventScroll: true });
     }
   }
 
@@ -1349,7 +1352,7 @@ export class TranscriptManager {
           for (let i = 1; i < menuItems.length; i++) {
             menuItems[i].setAttribute('tabindex', '-1');
           }
-          menuItems[0].focus();
+          menuItems[0].focus({ preventScroll: true });
         }
       }, 50);
       return;
@@ -1376,6 +1379,11 @@ export class TranscriptManager {
     });
     keyboardDragOption.setAttribute('role', 'switch');
     keyboardDragOption.setAttribute('aria-checked', 'false');
+    // Remove any tooltips from menu items (they have visible text)
+    const dragTooltip = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
+    if (dragTooltip) dragTooltip.remove();
+    const dragButtonText = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
+    if (dragButtonText) dragButtonText.remove();
     this.dragOptionButton = keyboardDragOption;
     this.dragOptionText = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
     this.updateDragOptionState();
@@ -1396,6 +1404,11 @@ export class TranscriptManager {
         }, 50);
       }
     });
+    // Remove any tooltips from menu items (they have visible text)
+    const styleTooltip = styleOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
+    if (styleTooltip) styleTooltip.remove();
+    const styleButtonText = styleOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
+    if (styleButtonText) styleButtonText.remove();
 
     // Resize option
     const resizeOption = createMenuItem({
@@ -1415,7 +1428,7 @@ export class TranscriptManager {
           // Focus transcript window after handles appear
           setTimeout(() => {
             if (this.transcriptWindow) {
-              this.transcriptWindow.focus();
+              this.transcriptWindow.focus({ preventScroll: true });
             }
           }, 20);
         } else {
@@ -1425,6 +1438,11 @@ export class TranscriptManager {
     });
     resizeOption.setAttribute('role', 'switch');
     resizeOption.setAttribute('aria-checked', 'false');
+    // Remove any tooltips from menu items (they have visible text)
+    const resizeTooltip = resizeOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
+    if (resizeTooltip) resizeTooltip.remove();
+    const resizeButtonText = resizeOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
+    if (resizeButtonText) resizeButtonText.remove();
     this.resizeOptionButton = resizeOption;
     this.resizeOptionText = resizeOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
     this.updateResizeOptionState();
@@ -1442,6 +1460,11 @@ export class TranscriptManager {
     });
     showTimestampsOption.setAttribute('role', 'switch');
     showTimestampsOption.setAttribute('aria-checked', this.showTimestamps ? 'true' : 'false');
+    // Remove any tooltips from menu items (they have visible text)
+    const timestampsTooltip = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
+    if (timestampsTooltip) timestampsTooltip.remove();
+    const timestampsButtonText = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
+    if (timestampsButtonText) timestampsButtonText.remove();
     this.showTimestampsButton = showTimestampsOption;
     this.showTimestampsText = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
     this.updateShowTimestampsState();
@@ -1456,6 +1479,11 @@ export class TranscriptManager {
         this.hideSettingsMenu();
       }
     });
+    // Remove any tooltips from menu items (they have visible text)
+    const closeTooltip = closeOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
+    if (closeTooltip) closeTooltip.remove();
+    const closeButtonText = closeOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
+    if (closeButtonText) closeButtonText.remove();
 
     this.settingsMenu.appendChild(keyboardDragOption);
     this.settingsMenu.appendChild(resizeOption);
@@ -1515,7 +1543,7 @@ export class TranscriptManager {
         for (let i = 1; i < menuItems.length; i++) {
           menuItems[i].setAttribute('tabindex', '-1');
         }
-        menuItems[0].focus();
+        menuItems[0].focus({ preventScroll: true });
       }
     }, 50);
   }
@@ -1620,7 +1648,7 @@ export class TranscriptManager {
         this.settingsButton.setAttribute('aria-expanded', 'false');
         if (focusButton) {
           // Return focus to settings button
-          this.settingsButton.focus();
+          this.settingsButton.focus({ preventScroll: true });
         }
       }
     }
@@ -1683,7 +1711,6 @@ export class TranscriptManager {
 
     this.dragOptionButton.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
     this.dragOptionButton.setAttribute('aria-label', ariaLabel);
-    this.dragOptionButton.setAttribute('title', text);
 
     if (this.dragOptionText) {
       this.dragOptionText.textContent = text;
@@ -1705,7 +1732,6 @@ export class TranscriptManager {
 
     this.resizeOptionButton.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
     this.resizeOptionButton.setAttribute('aria-label', ariaLabel);
-    this.resizeOptionButton.setAttribute('title', text);
 
     if (this.resizeOptionText) {
       this.resizeOptionText.textContent = text;
@@ -1733,7 +1759,6 @@ export class TranscriptManager {
 
     this.showTimestampsButton.setAttribute('aria-checked', this.showTimestamps ? 'true' : 'false');
     this.showTimestampsButton.setAttribute('aria-label', ariaLabel);
-    this.showTimestampsButton.setAttribute('title', text);
 
     if (this.showTimestampsText) {
       this.showTimestampsText.textContent = text;
@@ -1824,7 +1849,7 @@ export class TranscriptManager {
       setTimeout(() => {
         const firstSelect = this.styleDialog.querySelector('select, input');
         if (firstSelect) {
-          firstSelect.focus();
+          firstSelect.focus({ preventScroll: true });
         }
       }, 0);
       return;
@@ -1915,10 +1940,10 @@ export class TranscriptManager {
         // Trap focus within dialog
         if (e.shiftKey && document.activeElement === firstElement) {
           e.preventDefault();
-          lastElement.focus();
+          lastElement.focus({ preventScroll: true });
         } else if (!e.shiftKey && document.activeElement === lastElement) {
           e.preventDefault();
-          firstElement.focus();
+          firstElement.focus({ preventScroll: true });
         }
       }
     };
@@ -1948,7 +1973,7 @@ export class TranscriptManager {
     setTimeout(() => {
       const firstSelect = this.styleDialog.querySelector('select, input');
       if (firstSelect) {
-        firstSelect.focus();
+        firstSelect.focus({ preventScroll: true });
       }
     }, 0);
   }
@@ -1968,7 +1993,7 @@ export class TranscriptManager {
       
       // Return focus to settings button
       if (this.settingsButton) {
-        this.settingsButton.focus();
+        this.settingsButton.focus({ preventScroll: true });
       }
     }
   }

@@ -214,9 +214,9 @@
         <div id="video-player"
              data-vidply-options='{"mediaType":"video","autoplay":false,"controls":true,"preload":"metadata"}'
              data-playlist='[
-               {"src":"media/wwa.mp4","type":"video/mp4","title":"What We Ask - Episode 1","artist":"Demo Series","poster":"media/wwa_hq_thumbnail.jpg","tracks":[{"src":"media/wwa_captions_en.vtt","kind":"captions","srclang":"en","label":"English"},{"src":"media/wwa_captions_es.vtt","kind":"captions","srclang":"es","label":"Español"},{"src":"media/wwa_captions_de.vtt","kind":"captions","srclang":"de","label":"Deutsch"},{"src":"media/wwa_captions_fr.vtt","kind":"captions","srclang":"fr","label":"Français"},{"src":"media/wwa_captions_ja.vtt","kind":"captions","srclang":"ja","label":"日本語"},{"src":"media/wwa_chapters_en.vtt","kind":"chapters","srclang":"en","label":"Chapters"}]},
-               {"src":"media/deadline.mp4","type":"video/mp4","title":"Deadline - Episode 2","artist":"Demo Series","poster":"media/deadline_thumbnail.jpg","tracks":[{"src":"media/deadline_captions_en.vtt","kind":"captions","srclang":"en","label":"English"},{"src":"media/deadline_captions_es.vtt","kind":"captions","srclang":"es","label":"Español"},{"src":"media/deadline_captions_it.vtt","kind":"captions","srclang":"it","label":"Italiano"},{"src":"media/deadline_captions_pt-br.vtt","kind":"captions","srclang":"pt-br","label":"Português"},{"src":"media/deadline_captions_ar.vtt","kind":"captions","srclang":"ar","label":"العربية"},{"src":"media/deadline_captions_hi.vtt","kind":"captions","srclang":"hi","label":"हिन्दी"}]},
-               {"src":"media/itaccess_excerpt.mp4","type":"video/mp4","title":"IT Access - Episode 3","artist":"Demo Series","poster":"media/itaccess.jpg","tracks":[{"src":"media/itaccess_excerpt_captions_en.vtt","kind":"captions","srclang":"en","label":"English"},{"src":"media/itaccess_excerpt_subtitles_es.vtt","kind":"subtitles","srclang":"es","label":"Español"},{"src":"media/itaccess_excerpt_chapters_en.vtt","kind":"chapters","srclang":"en","label":"Chapters"}]}
+               {"src":"media/wwa.mp4","type":"video/mp4","title":"What We Ask - Episode 1","artist":"Demo Series","poster":"media/wwa_hq_thumbnail.jpg","duration":52,"audioDescriptionDuration":53,"description":"The pilot episode introduces our cast of characters and sets up the central mystery that will unfold throughout the series.","audioDescriptionSrc":"media/wwa_described.mp4","signLanguageSrc":"media/wwa_sign_en.mp4","tracks":[{"src":"media/wwa_captions_en.vtt","kind":"captions","srclang":"en","label":"English"},{"src":"media/wwa_captions_es.vtt","kind":"captions","srclang":"es","label":"Español"},{"src":"media/wwa_captions_de.vtt","kind":"captions","srclang":"de","label":"Deutsch"},{"src":"media/wwa_captions_fr.vtt","kind":"captions","srclang":"fr","label":"Français"},{"src":"media/wwa_captions_ja.vtt","kind":"captions","srclang":"ja","label":"日本語"},{"src":"media/wwa_chapters_en.vtt","kind":"chapters","srclang":"en","label":"Chapters"}]},
+               {"src":"media/deadline.mp4","type":"video/mp4","title":"Deadline - Episode 2","artist":"Demo Series","poster":"media/deadline_thumbnail.jpg","duration":76,"audioDescriptionDuration":76,"description":"With the deadline approaching, tensions rise as the team races against time to uncover the truth.","audioDescriptionSrc":"media/deadline_desc.mp4","tracks":[{"src":"media/deadline_captions_en.vtt","kind":"captions","srclang":"en","label":"English"},{"src":"media/deadline_captions_es.vtt","kind":"captions","srclang":"es","label":"Español"},{"src":"media/deadline_captions_it.vtt","kind":"captions","srclang":"it","label":"Italiano"},{"src":"media/deadline_captions_pt-br.vtt","kind":"captions","srclang":"pt-br","label":"Português"},{"src":"media/deadline_captions_ar.vtt","kind":"captions","srclang":"ar","label":"العربية"},{"src":"media/deadline_captions_hi.vtt","kind":"captions","srclang":"hi","label":"हिन्दी"}]},
+               {"src":"media/itaccess_excerpt.mp4","type":"video/mp4","title":"IT Access - Episode 3","artist":"Demo Series","poster":"media/itaccess.jpg","duration":50,"audioDescriptionDuration":70,"description":"A behind-the-scenes look at IT accessibility features and how they benefit all users.","audioDescriptionSrc":"media/itaccess_excerpt_described.mp4","tracks":[{"src":"media/itaccess_excerpt_captions_en.vtt","kind":"captions","srclang":"en","label":"English"},{"src":"media/itaccess_excerpt_subtitles_es.vtt","kind":"subtitles","srclang":"es","label":"Español"},{"src":"media/itaccess_excerpt_chapters_en.vtt","kind":"chapters","srclang":"en","label":"Chapters"}]}
              ]'
              data-playlist-auto-advance="true"
              data-playlist-auto-play-first="false"
@@ -230,7 +230,9 @@
         <ul>
           <li><strong>Previous/Next buttons</strong> - Navigate between videos seamlessly</li>
           <li><strong>Auto-advance</strong> - Automatically plays the next video when one ends</li>
-          <li><strong>Episode info display</strong> - Shows current episode number, title, and series</li>
+          <li><strong>Episode info display</strong> - Shows current episode number, title, series, and duration</li>
+          <li><strong>Duration badges</strong> - YouTube-style duration overlays on thumbnails</li>
+          <li><strong>Video descriptions</strong> - Episode synopses and descriptions (WCAG accessible)</li>
           <li><strong>Interactive playlist panel</strong> - Click any video to jump to it instantly</li>
           <li><strong>Video thumbnails</strong> - High-quality preview images for each video</li>
           <li><strong>Per-video captions</strong> - Unique captions and subtitles for each video</li>
@@ -238,7 +240,7 @@
           <li><strong>Active video highlighting</strong> - Visual indicator for currently playing video</li>
           <li><strong>Full keyboard navigation</strong> - Tab, Enter, and Space for playlist control</li>
           <li><strong>Responsive design</strong> - Adapts to mobile, tablet, and desktop screens</li>
-          <li><strong>Accessibility features</strong> - ARIA labels and screen reader support</li>
+          <li><strong>Accessibility features</strong> - ARIA labels with duration announced to screen readers</li>
         </ul>
       </section>
 
