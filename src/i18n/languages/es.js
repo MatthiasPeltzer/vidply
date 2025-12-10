@@ -164,7 +164,11 @@ export const es = {
     nowPlaying: 'Reproduciendo ahora: Pista {current} de {total}. {title}{artist}',
     by: ' por ',
     untitled: 'Sin título',
-    trackUntitled: 'Pista {number}'
+    trackUntitled: 'Pista {number}',
+    currentlyPlaying: 'Reproduciendo actualmente',
+    notPlaying: 'Sin reproducir',
+    pressEnterPlay: 'Pulsa Enter para reproducir',
+    pressEnterRestart: 'Pulsa Enter para reiniciar'
   }
 };
 

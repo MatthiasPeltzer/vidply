@@ -164,7 +164,11 @@ export const en = {
     nowPlaying: 'Now playing: Track {current} of {total}. {title}{artist}',
     by: ' by ',
     untitled: 'Untitled',
-    trackUntitled: 'Track {number}'
+    trackUntitled: 'Track {number}',
+    currentlyPlaying: 'Currently playing',
+    notPlaying: 'Not playing',
+    pressEnterPlay: 'Press Enter to play',
+    pressEnterRestart: 'Press Enter to restart'
   }
 };
 

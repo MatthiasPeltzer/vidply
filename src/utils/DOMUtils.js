@@ -149,6 +149,73 @@ export const DOMUtils = {
     
     temp.innerHTML = safeHtml;
     return temp.innerHTML;
+  },
+
+  /**
+   * Create a tooltip element that is aria-hidden (not read by screen readers)
+   * @param {string} text - Tooltip text
+   * @param {string} classPrefix - Class prefix for styling
+   * @returns {HTMLElement} Tooltip element
+   */
+  createTooltip(text, classPrefix = 'vidply') {
+    const tooltip = this.createElement('span', {
+      className: `${classPrefix}-tooltip`,
+      textContent: text,
+      attributes: {
+        'aria-hidden': 'true'
+      }
+    });
+    return tooltip;
+  },
+
+  /**
+   * Attach a tooltip to an element
+   * @param {HTMLElement} element - Element to attach tooltip to
+   * @param {string} text - Tooltip text
+   * @param {string} classPrefix - Class prefix for styling
+   */
+  attachTooltip(element, text, classPrefix = 'vidply') {
+    if (!element || !text) return;
+    
+    // Remove existing tooltip if any
+    const existingTooltip = element.querySelector(`.${classPrefix}-tooltip`);
+    if (existingTooltip) {
+      existingTooltip.remove();
+    }
+    
+    const tooltip = this.createTooltip(text, classPrefix);
+    element.appendChild(tooltip);
+    
+    // Show tooltip on hover/focus
+    const showTooltip = () => {
+      tooltip.classList.add(`${classPrefix}-tooltip-visible`);
+    };
+    
+    const hideTooltip = () => {
+      tooltip.classList.remove(`${classPrefix}-tooltip-visible`);
+    };
+    
+    element.addEventListener('mouseenter', showTooltip);
+    element.addEventListener('mouseleave', hideTooltip);
+    element.addEventListener('focus', showTooltip);
+    element.addEventListener('blur', hideTooltip);
+  },
+
+  /**
+   * Create visible button text that is hidden by CSS but visible when CSS is disabled
+   * @param {string} text - Button text
+   * @param {string} classPrefix - Class prefix for styling
+   * @returns {HTMLElement} Button text element
+   */
+  createButtonText(text, classPrefix = 'vidply') {
+    const buttonText = this.createElement('span', {
+      className: `${classPrefix}-button-text`,
+      textContent: text,
+      attributes: {
+        'aria-hidden': 'true'
+      }
+    });
+    return buttonText;
   }
 };
 

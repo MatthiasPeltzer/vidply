@@ -47,15 +47,16 @@ export function createWindowHeader({
     // Add settings button if requested
     let settingsButton = null;
     if (showSettings && onSettingsClick) {
+        const settingsAriaLabel = i18n.t('settings.title');
         settingsButton = DOMUtils.createElement('button', {
             className: `${classPrefix}-icon-button ${headerClass}-settings`,
             attributes: {
                 'type': 'button',
-                'aria-label': i18n.t('settings.title'),
-                'title': i18n.t('settings.title')
+                'aria-label': settingsAriaLabel
             }
         });
         settingsButton.appendChild(createIconElement('settings'));
+        DOMUtils.attachTooltip(settingsButton, settingsAriaLabel, classPrefix);
         settingsButton.addEventListener('click', onSettingsClick);
         leftSide.appendChild(settingsButton);
     }
@@ -74,15 +75,16 @@ export function createWindowHeader({
     leftSide.appendChild(title);
 
     // Create close button
+    const closeAriaLabel = i18n.t('player.close');
     const closeButton = DOMUtils.createElement('button', {
         className: `${classPrefix}-icon-button ${headerClass}-close`,
         attributes: {
             'type': 'button',
-            'aria-label': i18n.t('player.close'),
-            'title': i18n.t('player.close')
+            'aria-label': closeAriaLabel
         }
     });
     closeButton.appendChild(createIconElement('close'));
+    DOMUtils.attachTooltip(closeButton, closeAriaLabel, classPrefix);
     if (onClose) {
         closeButton.addEventListener('click', onClose);
     }

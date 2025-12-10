@@ -164,7 +164,11 @@ export const ja = {
     nowPlaying: '再生中: トラック {current}/{total}. {title}{artist}',
     by: ' - ',
     untitled: 'タイトルなし',
-    trackUntitled: 'トラック {number}'
+    trackUntitled: 'トラック {number}',
+    currentlyPlaying: '再生中',
+    notPlaying: '停止中',
+    pressEnterPlay: 'Enterキーで再生',
+    pressEnterRestart: 'Enterキーで最初から再生'
   }
 };
 

@@ -213,11 +213,11 @@
                  data-vidply 
                  data-vidply-options='{"mediaType":"audio","autoplay":false,"controls":true,"preload":"metadata"}'
                  data-playlist='[
-                     {"src":"media/everyday.mp3","type":"audio/mp3","title":"Everyday","artist":"Audio Demo Track"},
-                     {"src":"media/frenchsong.mp3","type":"audio/mp3","title":"French Song","artist":"Demo Track 2","tracks":[{"src":"media/frenchsong_captions_en.vtt","kind":"captions","srclang":"en","label":"English Translation"},{"src":"media/frenchsong_captions_fr.vtt","kind":"captions","srclang":"fr","label":"Français"},{"src":"media/frenchsong_chapters_en.vtt","kind":"chapters","srclang":"en","label":"Chapters"}]},
-                     {"src":"media/paulallen.mp3","type":"audio/mp3","title":"Paul Allen Interview","artist":"Interview Recording","tracks":[{"src":"media/paulallen_en.vtt","kind":"captions","srclang":"en","label":"English"},{"src":"media/paulallen_de.vtt","kind":"captions","srclang":"de","label":"Deutsch"}]},
-                     {"src":"media/php70alpha.mp3","type":"audio/mp3","title":"PHP 7.0 Alpha","artist":"Tech Talk"},
-                     {"src":"media/smallf.mp3","type":"audio/mp3","title":"Small F","artist":"Audio Demo Track"}
+                     {"src":"media/everyday.mp3","type":"audio/mp3","title":"Everyday","artist":"Audio Demo Track","duration":265,"description":"A relaxing everyday ambient track perfect for background listening."},
+                     {"src":"media/frenchsong.mp3","type":"audio/mp3","title":"French Song","artist":"Demo Track 2","duration":182,"description":"Beautiful French melody with English and French captions available.","tracks":[{"src":"media/frenchsong_captions_en.vtt","kind":"captions","srclang":"en","label":"English Translation"},{"src":"media/frenchsong_captions_fr.vtt","kind":"captions","srclang":"fr","label":"Français"},{"src":"media/frenchsong_chapters_en.vtt","kind":"chapters","srclang":"en","label":"Chapters"}]},
+                     {"src":"media/paulallen.mp3","type":"audio/mp3","title":"Paul Allen Interview","artist":"Interview Recording","duration":181,"description":"Historic interview with Paul Allen discussing technology and innovation.","tracks":[{"src":"media/paulallen_en.vtt","kind":"captions","srclang":"en","label":"English"},{"src":"media/paulallen_de.vtt","kind":"captions","srclang":"de","label":"Deutsch"}]},
+                     {"src":"media/php70alpha.mp3","type":"audio/mp3","title":"PHP 7.0 Alpha","artist":"Tech Talk","duration":278,"description":"Technical discussion about PHP 7.0 alpha release features and improvements."},
+                     {"src":"media/smallf.mp3","type":"audio/mp3","title":"Small F","artist":"Audio Demo Track","duration":232,"description":"Short audio snippet for testing purposes."}
                  ]'
                  data-playlist-auto-advance="true"
                  data-playlist-auto-play-first="false"
@@ -231,7 +231,9 @@
             <ul>
                 <li><strong>Previous/Next buttons</strong> - Navigate between tracks seamlessly</li>
                 <li><strong>Auto-advance</strong> - Automatically plays the next track when one ends</li>
-                <li><strong>Track info display</strong> - Shows current track number, title, and artist</li>
+                <li><strong>Track info display</strong> - Shows current track number, title, artist, and duration</li>
+                <li><strong>Duration badges</strong> - YouTube-style duration overlays on thumbnails</li>
+                <li><strong>Track descriptions</strong> - Brief descriptions for each track (WCAG accessible)</li>
                 <li><strong>Interactive playlist panel</strong> - Click any track to jump to it instantly</li>
                 <li><strong>Album art support</strong> - Display thumbnail images for each track</li>
                 <li><strong>Per-track captions</strong> - Lyrics and translations for selected tracks</li>
@@ -239,7 +241,7 @@
                 <li><strong>Active track highlighting</strong> - Visual indicator for currently playing track</li>
                 <li><strong>Full keyboard navigation</strong> - Tab, Enter, and Space for playlist control</li>
                 <li><strong>Responsive design</strong> - Adapts to mobile, tablet, and desktop screens</li>
-                <li><strong>Accessibility features</strong> - ARIA labels and screen reader support</li>
+                <li><strong>Accessibility features</strong> - ARIA labels with duration announced to screen readers</li>
             </ul>
         </section>
         

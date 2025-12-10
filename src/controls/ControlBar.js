@@ -539,14 +539,16 @@ export class ControlBar {
                     e.preventDefault();
                     e.stopPropagation(); // Prevent volume/seek actions
                     const nextIndex = (currentIndex + 1) % menuItems.length;
-                    menuItems[nextIndex].focus();
+                    menuItems[nextIndex].focus({ preventScroll: false });
+                    menuItems[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     break;
                 
                 case 'ArrowUp':
                     e.preventDefault();
                     e.stopPropagation(); // Prevent volume/seek actions
                     const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
-                    menuItems[prevIndex].focus();
+                    menuItems[prevIndex].focus({ preventScroll: false });
+                    menuItems[prevIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     break;
                 
                 case 'ArrowLeft':
@@ -559,13 +561,15 @@ export class ControlBar {
                 case 'Home':
                     e.preventDefault();
                     e.stopPropagation();
-                    menuItems[0].focus();
+                    menuItems[0].focus({ preventScroll: false });
+                    menuItems[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     break;
                 
                 case 'End':
                     e.preventDefault();
                     e.stopPropagation();
-                    menuItems[menuItems.length - 1].focus();
+                    menuItems[menuItems.length - 1].focus({ preventScroll: false });
+                    menuItems[menuItems.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     break;
                 
                 case 'Enter':
@@ -790,21 +794,40 @@ export class ControlBar {
         this.element.appendChild(buttonContainer);
         
         // Ensure all buttons have title attributes
-        this.ensureButtonTitles(buttonContainer);
+        this.ensureButtonTooltips(buttonContainer);
     }
     
     /**
      * Ensure all buttons in the controls have title attributes
      * Uses aria-label as title if title is not present
      */
-    ensureButtonTitles(container) {
+    ensureButtonTooltips(container) {
         const buttons = container.querySelectorAll('button');
         buttons.forEach(button => {
-            if (!button.hasAttribute('title')) {
-                const ariaLabel = button.getAttribute('aria-label');
-                if (ariaLabel) {
-                    button.setAttribute('title', ariaLabel);
-                }
+            // Skip if tooltip already exists
+            if (button.querySelector(`.${this.player.options.classPrefix}-tooltip`)) {
+                return;
+            }
+            
+            // Skip if button text already exists
+            if (button.querySelector(`.${this.player.options.classPrefix}-button-text`)) {
+                return;
+            }
+            
+            // Skip menu items - they already have visible text
+            if (button.getAttribute('role') === 'menuitem' || 
+                button.classList.contains(`${this.player.options.classPrefix}-settings-item`) ||
+                button.classList.contains(`${this.player.options.classPrefix}-menu-item`) ||
+                button.classList.contains(`${this.player.options.classPrefix}-transcript-settings-item`) ||
+                button.classList.contains(`${this.player.options.classPrefix}-sign-language-settings-item`) ||
+                button.classList.contains(`${this.player.options.classPrefix}-popup-settings-item`)) {
+                return;
+            }
+            
+            const ariaLabel = button.getAttribute('aria-label');
+            if (ariaLabel) {
+                // Add tooltip (aria-hidden popover)
+                DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
             }
         });
     }
@@ -935,8 +958,8 @@ export class ControlBar {
         progress.addEventListener('mousemove', (e) => {
             if (!this.isDraggingProgress) {
                 const {time} = updateProgress(e.clientX);
+                // Update tooltip text content instead of aria-label (divs shouldn't have aria-label)
                 this.controls.progressTooltip.textContent = TimeUtils.formatTime(time);
-                this.controls.progressTooltip.setAttribute('aria-label', TimeUtils.formatDuration(time));
                 this.controls.progressTooltip.style.left = `${e.clientX - progress.getBoundingClientRect().left}px`;
                 this.controls.progressTooltip.style.display = 'block';
             }
@@ -1555,7 +1578,7 @@ export class ControlBar {
                 setTimeout(() => {
                     const firstItem = menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
                     if (firstItem) {
-                        firstItem.focus();
+                        firstItem.focus({ preventScroll: true });
                     }
                 }, 0);
             }
@@ -1582,17 +1605,18 @@ export class ControlBar {
     }
 
     createQualityButton() {
+        const ariaLabel = i18n.t('player.quality');
         const button = DOMUtils.createElement('button', {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-quality`,
             attributes: {
                 'type': 'button',
-                'aria-label': i18n.t('player.quality'),
-                'aria-expanded': 'false',
-                'title': i18n.t('player.quality')
+                'aria-label': ariaLabel,
+                'aria-expanded': 'false'
             }
         });
 
         button.appendChild(createIconElement('hd'));
+        DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
 
         // Add quality indicator text
         const qualityText = DOMUtils.createElement('span', {
@@ -1722,7 +1746,7 @@ export class ControlBar {
                 setTimeout(() => {
                     const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
                     if (focusTarget) {
-                        focusTarget.focus();
+                        focusTarget.focus({ preventScroll: true });
                     }
                 }, 0);
             }
@@ -1757,13 +1781,13 @@ export class ControlBar {
     }
 
     createCaptionStyleButton() {
+        const ariaLabel = i18n.t('player.captionStyling');
         const button = DOMUtils.createElement('button', {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-caption-style`,
             attributes: {
                 'type': 'button',
-                'aria-label': i18n.t('player.captionStyling'),
-                'aria-expanded': 'false',
-                'title': i18n.t('player.captionStyling')
+                'aria-label': ariaLabel,
+                'aria-expanded': 'false'
             }
         });
 
@@ -1776,6 +1800,7 @@ export class ControlBar {
             }
         });
         button.appendChild(textIcon);
+        DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
 
         button.addEventListener('click', () => {
             this.showCaptionStyleMenu(button);
@@ -2243,7 +2268,7 @@ export class ControlBar {
         setTimeout(() => {
             const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
             if (focusTarget) {
-                focusTarget.focus();
+                focusTarget.focus({ preventScroll: true });
             }
         }, 0);
     }
@@ -2382,7 +2407,7 @@ export class ControlBar {
         setTimeout(() => {
             const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
             if (focusTarget) {
-                focusTarget.focus();
+                focusTarget.focus({ preventScroll: true });
             }
         }, 0);
     }
@@ -2430,18 +2455,19 @@ export class ControlBar {
     }
 
     createAudioDescriptionButton() {
+        const ariaLabel = i18n.t('player.audioDescription');
         const button = DOMUtils.createElement('button', {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-audio-description`,
             attributes: {
                 'type': 'button',
-                'aria-label': i18n.t('player.audioDescription'),
+                'aria-label': ariaLabel,
                 'role': 'switch',
-                'aria-checked': 'false',
-                'title': i18n.t('player.audioDescription')
+                'aria-checked': 'false'
             }
         });
 
         button.appendChild(createIconElement('audioDescription'));
+        DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
 
         button.addEventListener('click', async () => {
             await this.player.toggleAudioDescription();
@@ -2468,17 +2494,18 @@ export class ControlBar {
     }
 
     createSignLanguageButton() {
+        const ariaLabel = i18n.t('player.signLanguage');
         const button = DOMUtils.createElement('button', {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-sign-language`,
             attributes: {
                 'type': 'button',
-                'aria-label': i18n.t('player.signLanguage'),
-                'aria-expanded': 'false',
-                'title': i18n.t('player.signLanguage')
+                'aria-label': ariaLabel,
+                'aria-expanded': 'false'
             }
         });
 
         button.appendChild(createIconElement('signLanguage'));
+        DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
 
         button.addEventListener('click', () => {
             this.player.toggleSignLanguage();
@@ -2503,6 +2530,75 @@ export class ControlBar {
         this.controls.signLanguage.setAttribute('aria-label',
             isEnabled ? i18n.t('signLanguage.hide') : i18n.t('signLanguage.show')
         );
+    }
+
+    /**
+     * Update accessibility buttons visibility based on current track data.
+     * Called when loading a new playlist track to show/hide buttons accordingly.
+     */
+    updateAccessibilityButtons() {
+        const hasAudioDescription = this.hasAudioDescription();
+        const hasSignLanguage = this.hasSignLanguage();
+        
+        // Handle Audio Description button
+        if (hasAudioDescription) {
+            // Create button if it doesn't exist
+            if (!this.controls.audioDescription && this.player.options.audioDescriptionButton !== false) {
+                const btn = this.createAudioDescriptionButton();
+                btn.dataset.overflowPriority = '2';
+                btn.dataset.overflowPriorityMobile = '3';
+                // Insert before transcript or playlist toggle button
+                const transcriptBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-transcript`);
+                const playlistBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
+                const insertBefore = transcriptBtn || playlistBtn || null;
+                if (insertBefore) {
+                    this.rightButtons.insertBefore(btn, insertBefore);
+                } else {
+                    this.rightButtons.appendChild(btn);
+                }
+                // Re-setup overflow menu after adding button
+                this.setupOverflowMenu();
+            }
+            // Show button
+            if (this.controls.audioDescription) {
+                this.controls.audioDescription.style.display = '';
+            }
+        } else {
+            // Hide button if no audio description available
+            if (this.controls.audioDescription) {
+                this.controls.audioDescription.style.display = 'none';
+            }
+        }
+        
+        // Handle Sign Language button
+        if (hasSignLanguage) {
+            // Create button if it doesn't exist
+            if (!this.controls.signLanguage && this.player.options.signLanguageButton !== false) {
+                const btn = this.createSignLanguageButton();
+                btn.dataset.overflowPriority = '3';
+                btn.dataset.overflowPriorityMobile = '3';
+                // Insert before quality or fullscreen button
+                const qualityBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-quality`);
+                const fullscreenBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-fullscreen`);
+                const insertBefore = qualityBtn || fullscreenBtn || null;
+                if (insertBefore) {
+                    this.rightButtons.insertBefore(btn, insertBefore);
+                } else {
+                    this.rightButtons.appendChild(btn);
+                }
+                // Re-setup overflow menu after adding button
+                this.setupOverflowMenu();
+            }
+            // Show button
+            if (this.controls.signLanguage) {
+                this.controls.signLanguage.style.display = '';
+            }
+        } else {
+            // Hide button if no sign language available
+            if (this.controls.signLanguage) {
+                this.controls.signLanguage.style.display = 'none';
+            }
+        }
     }
 
     createSettingsButton() {
@@ -2600,8 +2696,8 @@ export class ControlBar {
 
         const newAriaLabel = isPlaying ? i18n.t('player.pause') : i18n.t('player.play');
         this.controls.playPause.setAttribute('aria-label', newAriaLabel);
-        // Update title to match aria-label
-        this.controls.playPause.setAttribute('title', newAriaLabel);
+        // Update tooltip to match aria-label
+        DOMUtils.attachTooltip(this.controls.playPause, newAriaLabel, this.player.options.classPrefix);
     }
 
     updateProgress() {
@@ -2677,8 +2773,8 @@ export class ControlBar {
                 const newMuteAriaLabel =
                     this.player.state.muted ? i18n.t('player.unmute') : i18n.t('player.mute');
                 this.controls.mute.setAttribute('aria-label', newMuteAriaLabel);
-                // Update title to match aria-label
-                this.controls.mute.setAttribute('title', newMuteAriaLabel);
+                // Update tooltip to match aria-label
+                DOMUtils.attachTooltip(this.controls.mute, newMuteAriaLabel, this.player.options.classPrefix);
             }
         }
 
@@ -2841,17 +2937,18 @@ export class ControlBar {
     }
 
     createOverflowMenuButton() {
+        const ariaLabel = i18n.t('player.moreOptions');
         const button = DOMUtils.createElement('button', {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-overflow-menu`,
             attributes: {
                 'type': 'button',
-                'aria-label': i18n.t('player.moreOptions'),
-                'aria-expanded': 'false',
-                'title': i18n.t('player.moreOptions')
+                'aria-label': ariaLabel,
+                'aria-expanded': 'false'
             }
         });
 
         button.appendChild(createIconElement('moreVertical'));
+        DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
 
         button.addEventListener('click', () => {
             this.showOverflowMenu(button);
@@ -2966,7 +3063,7 @@ export class ControlBar {
             setTimeout(() => {
                 const firstItem = menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
                 if (firstItem && firstItem.tagName === 'BUTTON') {
-                    firstItem.focus();
+                    firstItem.focus({ preventScroll: true });
                 }
             }, 0);
         }

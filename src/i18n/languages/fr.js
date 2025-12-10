@@ -164,7 +164,11 @@ export const fr = {
     nowPlaying: 'Lecture en cours : Piste {current} sur {total}. {title}{artist}',
     by: ' par ',
     untitled: 'Sans titre',
-    trackUntitled: 'Piste {number}'
+    trackUntitled: 'Piste {number}',
+    currentlyPlaying: 'En cours de lecture',
+    notPlaying: 'Non en lecture',
+    pressEnterPlay: 'Appuyez sur Entrée pour lire',
+    pressEnterRestart: 'Appuyez sur Entrée pour recommencer'
   }
 };
 

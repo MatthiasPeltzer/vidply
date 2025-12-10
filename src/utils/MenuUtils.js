@@ -81,7 +81,8 @@ export function attachMenuKeyboardNavigation(menu, button, itemSelector, onClose
                 menuItems.forEach((item, idx) => {
                     item.setAttribute('tabindex', idx === nextIndex ? '0' : '-1');
                 });
-                menuItems[nextIndex].focus();
+                menuItems[nextIndex].focus({ preventScroll: false });
+                menuItems[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 break;
             
             case 'ArrowUp':
@@ -91,7 +92,8 @@ export function attachMenuKeyboardNavigation(menu, button, itemSelector, onClose
                 menuItems.forEach((item, idx) => {
                     item.setAttribute('tabindex', idx === prevIndex ? '0' : '-1');
                 });
-                menuItems[prevIndex].focus();
+                menuItems[prevIndex].focus({ preventScroll: false });
+                menuItems[prevIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 break;
             
             case 'Home':
@@ -100,7 +102,8 @@ export function attachMenuKeyboardNavigation(menu, button, itemSelector, onClose
                 menuItems.forEach((item, idx) => {
                     item.setAttribute('tabindex', idx === 0 ? '0' : '-1');
                 });
-                menuItems[0].focus();
+                menuItems[0].focus({ preventScroll: false });
+                menuItems[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 break;
             
             case 'End':
@@ -110,7 +113,8 @@ export function attachMenuKeyboardNavigation(menu, button, itemSelector, onClose
                 menuItems.forEach((item, idx) => {
                     item.setAttribute('tabindex', idx === lastIndex ? '0' : '-1');
                 });
-                menuItems[lastIndex].focus();
+                menuItems[lastIndex].focus({ preventScroll: false });
+                menuItems[lastIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 break;
             
             case 'Enter':
@@ -159,6 +163,8 @@ export function focusFirstMenuItem(menu, itemSelector, delay = 0) {
                 item.setAttribute('tabindex', index === 0 ? '0' : '-1');
             });
             focusElement(menuItems[0], { delay: 0 });
+            // Scroll into view for keyboard users
+            menuItems[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }, delay);
 }
