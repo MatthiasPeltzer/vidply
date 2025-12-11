@@ -15,6 +15,7 @@ export class PlaylistManager {
   constructor(player, options = {}) {
     this.player = player;
     this.tracks = [];
+    this.initialTracks = Array.isArray(options.tracks) ? options.tracks : [];
     this.currentIndex = -1;
     
     // Generate unique instance ID for this playlist
@@ -53,9 +54,9 @@ export class PlaylistManager {
     // Update controls to add playlist buttons
     this.updatePlayerControls();
     
-    // Load tracks if provided in options
-    if (options.tracks && Array.isArray(options.tracks)) {
-      this.loadPlaylist(options.tracks);
+    // Load tracks if provided in options (after UI is ready)
+    if (this.initialTracks.length > 0) {
+      this.loadPlaylist(this.initialTracks);
     }
   }
   
@@ -81,7 +82,7 @@ export class PlaylistManager {
     }
     
     // Check for data-playlist attribute on player container (only if tracks weren't provided in options)
-    if (this.tracks.length === 0) {
+    if (this.tracks.length === 0 && this.initialTracks.length === 0) {
       this.loadPlaylistFromAttribute();
     }
   }

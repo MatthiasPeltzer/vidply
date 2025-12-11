@@ -298,6 +298,11 @@
             font-weight: 600;
         }
         
+        .quality-badge.active::after {
+            content: '✓';
+            margin-left: 6px;
+        }
+        
         .log-container {
             background: #000;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -668,10 +673,18 @@
             const qualitySelector = document.getElementById('quality-selector');
             qualityList.innerHTML = '';
             
+            // Get the current level from hls.js
+            const currentLevel = player.renderer?.hls?.currentLevel ?? -1;
+            log(`Current quality level: ${currentLevel}`, 'info');
+            
             data.levels.forEach((level, index) => {
                 const li = document.createElement('li');
                 const button = document.createElement('button');
                 button.className = 'quality-badge';
+                // Mark the current level as active
+                if (index === currentLevel) {
+                    button.classList.add('active');
+                }
                 button.textContent = `${level.height}p (${Math.round(level.bitrate / 1000)} kbps)`;
                 button.setAttribute('data-index', index);
                 button.setAttribute('role', 'button');
@@ -693,12 +706,17 @@
         });
         
         player.on('hlslevelswitched', (data) => {
-            log(`Quality level switched to: ${data.level}`, 'success');
-            document.getElementById('current-quality').textContent = `Level ${data.level}`;
+            const levelIndex = data.level;
+            const levels = player.renderer?.hls?.levels;
+            const level = levels?.[levelIndex];
+            const qualityName = level ? `${level.height}p` : `Level ${levelIndex}`;
+            
+            log(`Quality level switched to: ${qualityName} (index: ${levelIndex})`, 'success');
+            document.getElementById('current-quality').textContent = qualityName;
             
             // Highlight active quality
             document.querySelectorAll('.quality-badge').forEach((badge, idx) => {
-                badge.classList.toggle('active', idx === data.level);
+                badge.classList.toggle('active', idx === levelIndex);
             });
         });
         

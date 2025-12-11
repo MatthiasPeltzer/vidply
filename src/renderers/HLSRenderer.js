@@ -309,6 +309,13 @@ export class HLSRenderer {
     return [];
   }
 
+  getCurrentQuality() {
+    if (this.hls) {
+      return this.hls.currentLevel;
+    }
+    return -1;
+  }
+
   destroy() {
     if (this.hls) {
       this.hls.destroy();

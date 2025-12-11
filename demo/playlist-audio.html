@@ -6,7 +6,7 @@
     <meta name="description" content="VidPly audio playlist demo featuring multiple audio tracks with captions, chapters, track navigation, and auto-advance functionality.">
     <title>VidPly - Audio Playlist Demo</title>
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-    <link rel="stylesheet" href="../dist/vidply.css">
+    <link rel="stylesheet" href="../dist/vidply.min.css">
     <style>
         * {
             box-sizing: border-box;
@@ -272,28 +272,42 @@
 </div>
 
 <script type="module">
-    import {Player, PlaylistManager} from '../dist/vidply.esm.js';
+    import {Player, PlaylistManager} from '../dist/prod/vidply.esm.min.js';
     
     console.log('Starting audio player initialization...');
     
+    const hostElement = document.querySelector('#audio-player');
+
     // Create player instance
-    const player = new Player('#audio-player', {
+    const player = new Player(hostElement, {
         mediaType: 'audio'
     });
     
     console.log('Audio player created:', player);
     
-    // Create playlist manager - tracks and options are automatically loaded from data attributes
-    const playlist = new PlaylistManager(player);
-    
-    console.log('Audio playlist initialized');
-    
-    // Listen for track changes
-    player.on('playlisttrackchange', (e) => {
-        console.log(`Now playing: ${e.item.title}`);
+    // Create playlist after player is ready (ensures container exists)
+    player.on('ready', () => {
+        const playlistData = hostElement.getAttribute('data-playlist');
+        const tracks = playlistData ? JSON.parse(playlistData) : [];
+        const playlistOptions = {
+            autoAdvance: hostElement.getAttribute('data-playlist-auto-advance') !== 'false',
+            autoPlayFirst: hostElement.getAttribute('data-playlist-auto-play-first') === 'true',
+            loop: hostElement.getAttribute('data-playlist-loop') === 'true',
+            showPanel: hostElement.getAttribute('data-playlist-show-panel') !== 'false',
+            tracks
+        };
         
-        // Optional: Update document title
-        document.title = `${e.item.title} - VidPly Audio Playlist`;
+        const playlist = new PlaylistManager(player, playlistOptions);
+        
+        console.log('Audio playlist initialized');
+        
+        // Listen for track changes
+        player.on('playlisttrackchange', (e) => {
+            console.log(`Now playing: ${e.item.title}`);
+            
+            // Optional: Update document title
+            document.title = `${e.item.title} - VidPly Audio Playlist`;
+        });
     });
     
     // Optional: Add keyboard shortcuts

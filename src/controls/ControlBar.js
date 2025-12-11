@@ -2436,11 +2436,9 @@ export class ControlBar {
 
         button.appendChild(createIconElement('transcript'));
 
-        button.addEventListener('click', () => {
-            if (this.player.transcriptManager) {
-                this.player.transcriptManager.toggleTranscript();
+        button.addEventListener('click', async () => {
+            await this.player.toggleTranscript();
                 this.updateTranscriptButton();
-            }
         });
 
         this.controls.transcript = button;

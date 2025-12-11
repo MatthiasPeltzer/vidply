@@ -18,7 +18,7 @@ try {
 console.log('🎨 Building CSS...\n');
 
 const banner = `/*!
- * VidPly v1.0.0 - Styles
+ * VidPly - Styles
  * (c) ${new Date().getFullYear()} Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */`;
