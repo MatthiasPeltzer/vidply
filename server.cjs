@@ -45,7 +45,11 @@ const server = http.createServer((req, res) => {
         res.end(`Server Error: ${error.code}`, 'utf-8');
       }
     } else {
-      res.writeHead(200, { 'Content-Type': contentType });
+      const cacheHeaders = contentType === 'text/html'
+        ? { 'Cache-Control': 'no-cache' }
+        : { 'Cache-Control': 'public, max-age=31536000, immutable' };
+
+      res.writeHead(200, { 'Content-Type': contentType, ...cacheHeaders });
       res.end(content, 'utf-8');
     }
   });

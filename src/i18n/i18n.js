@@ -2,13 +2,14 @@
  * Internationalization system
  */
 
-import { loadBuiltInTranslations } from './translations.js';
+import { getBaseTranslations, getBuiltInLanguageLoaders, loadBuiltInTranslation } from './translations.js';
 
 class I18n {
   constructor() {
     this.currentLanguage = 'en';
-    this.translations = loadBuiltInTranslations();
+    this.translations = getBaseTranslations();
     this.loadingPromises = new Map(); // Cache for loading promises
+    this.builtInLanguageLoaders = getBuiltInLanguageLoaders();
   }
 
   setLanguage(lang) {
@@ -22,6 +23,47 @@ class I18n {
 
   getLanguage() {
     return this.currentLanguage;
+  }
+
+  /**
+   * Ensure a language is available, loading built-ins on demand.
+   * @param {string} lang Language code
+   * @returns {Promise<string|null>} Normalized language code if available
+   */
+  async ensureLanguage(lang) {
+    const normalizedLang = (lang || '').toLowerCase();
+    if (!normalizedLang) return this.currentLanguage;
+
+    if (this.translations[normalizedLang]) {
+      return normalizedLang;
+    }
+
+    if (this.loadingPromises.has(normalizedLang)) {
+      await this.loadingPromises.get(normalizedLang);
+      return this.translations[normalizedLang] ? normalizedLang : null;
+    }
+
+    if (!this.builtInLanguageLoaders[normalizedLang]) {
+      return null;
+    }
+
+    const loadPromise = (async () => {
+      try {
+        const loaded = await loadBuiltInTranslation(normalizedLang);
+        if (loaded) {
+          this.translations[normalizedLang] = loaded;
+        }
+      } catch (error) {
+        console.warn(`Language "${normalizedLang}" failed to load:`, error);
+      } finally {
+        this.loadingPromises.delete(normalizedLang);
+      }
+    })();
+
+    this.loadingPromises.set(normalizedLang, loadPromise);
+    await loadPromise;
+
+    return this.translations[normalizedLang] ? normalizedLang : null;
   }
 
   t(key, replacements = {}) {
@@ -84,20 +126,22 @@ class I18n {
         const contentType = response.headers.get('content-type') || '';
         let translations;
 
+        const buffer = await response.arrayBuffer();
+        const utf8Text = new TextDecoder('utf-8').decode(buffer);
+
         if (contentType.includes('application/json') || url.endsWith('.json')) {
-          translations = await response.json();
+          translations = JSON.parse(utf8Text);
         } else if (contentType.includes('text/yaml') || contentType.includes('application/x-yaml') || url.endsWith('.yaml') || url.endsWith('.yml')) {
           // For YAML, we'll need to parse it
           // Note: This requires a YAML parser library in production
           // For now, we'll try to parse as JSON first, then show a warning
-          const text = await response.text();
           try {
             // Try JSON first (in case server sends JSON with YAML content-type)
-            translations = JSON.parse(text);
+            translations = JSON.parse(utf8Text);
           } catch (e) {
             // If JSON parsing fails, try to use a YAML parser if available
             if (typeof window !== 'undefined' && window.jsyaml) {
-              translations = window.jsyaml.load(text);
+              translations = window.jsyaml.load(utf8Text);
             } else {
               console.warn('YAML parsing requires js-yaml library. Please include it or use JSON format.');
               throw new Error('YAML parsing not available. Please use JSON format or include js-yaml library.');
@@ -105,7 +149,7 @@ class I18n {
           }
         } else {
           // Try to parse as JSON by default
-          translations = await response.json();
+          translations = JSON.parse(utf8Text);
         }
 
         this.addTranslation(langCode, translations);

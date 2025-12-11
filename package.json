@@ -3,8 +3,8 @@
   "version": "1.0.24",
   "description": "Universal, accessible video & audio player with ES6 modules",
   "type": "module",
-  "main": "dist/vidply.js",
-  "module": "dist/vidply.esm.js",
+  "main": "dist/prod/vidply.esm.min.js",
+  "module": "dist/prod/vidply.esm.min.js",
   "files": [
     "dist",
     "src"

@@ -8,11 +8,7 @@ import {DOMUtils} from '../utils/DOMUtils.js';
 import {ControlBar} from '../controls/ControlBar.js';
 import {CaptionManager} from '../controls/CaptionManager.js';
 import {KeyboardManager} from '../controls/KeyboardManager.js';
-import {TranscriptManager} from '../controls/TranscriptManager.js';
 import {HTML5Renderer} from '../renderers/HTML5Renderer.js';
-import {YouTubeRenderer} from '../renderers/YouTubeRenderer.js';
-import {VimeoRenderer} from '../renderers/VimeoRenderer.js';
-import {HLSRenderer} from '../renderers/HLSRenderer.js';
 import {createPlayOverlay, createIconElement} from '../icons/Icons.js';
 import {i18n} from '../i18n/i18n.js';
 import {StorageManager} from '../utils/StorageManager.js';
@@ -293,6 +289,9 @@ export class Player extends EventEmitter {
                 this.options.language = 'en';
             }
 
+            // Ensure requested language is available (loads built-ins on demand)
+            await i18n.ensureLanguage(this.options.language);
+
             // Set language
             i18n.setLanguage(this.options.language);
 
@@ -318,9 +317,9 @@ export class Player extends EventEmitter {
                 this.captionManager = new CaptionManager(this);
             }
 
-            // Initialize transcript
-            if (this.options.transcript || this.options.transcriptButton) {
-                this.transcriptManager = new TranscriptManager(this);
+            // Initialize transcript lazily unless explicitly requested
+            if (this.options.transcript) {
+                await this.ensureTranscriptManager();
             }
             
             // Always set up metadata track handling (independent of transcript)
@@ -373,6 +372,43 @@ export class Player extends EventEmitter {
             this.log('Player initialized successfully');
         } catch (error) {
             this.handleError(error);
+        }
+    }
+
+    /**
+     * Ensure the transcript manager is available, creating it on demand.
+     * This keeps initial load fast when transcripts are not needed.
+     */
+    async ensureTranscriptManager() {
+        if (this.transcriptManager) {
+            return this.transcriptManager;
+        }
+
+        if (!this.options.transcript && !this.options.transcriptButton) {
+            return null;
+        }
+
+        const module = await import('../controls/TranscriptManager.js');
+        const Manager = module.TranscriptManager || module.default;
+
+        if (!Manager) {
+            return null;
+        }
+
+        this.transcriptManager = new Manager(this);
+        return this.transcriptManager;
+    }
+
+    /**
+     * Toggle transcript visibility, lazily creating the manager if necessary.
+     */
+    async toggleTranscript() {
+        const manager = await this.ensureTranscriptManager();
+        if (!manager) return;
+
+        manager.toggleTranscript();
+        if (this.controlBar) {
+            this.controlBar.updateTranscriptButton();
         }
     }
 
@@ -674,21 +710,22 @@ export class Player extends EventEmitter {
             this.originalSrc = src;
         }
 
-        // Detect media type
-        let renderer;
+        // Detect media type and lazily load heavy renderers
+        let rendererClass = HTML5Renderer;
 
         if (src.includes('youtube.com') || src.includes('youtu.be')) {
-            renderer = YouTubeRenderer;
+            const module = await import('../renderers/YouTubeRenderer.js');
+            rendererClass = module.YouTubeRenderer || module.default;
         } else if (src.includes('vimeo.com')) {
-            renderer = VimeoRenderer;
+            const module = await import('../renderers/VimeoRenderer.js');
+            rendererClass = module.VimeoRenderer || module.default;
         } else if (src.includes('.m3u8')) {
-            renderer = HLSRenderer;
-        } else {
-            renderer = HTML5Renderer;
+            const module = await import('../renderers/HLSRenderer.js');
+            rendererClass = module.HLSRenderer || module.default;
         }
 
-        this.log(`Using ${renderer.name} renderer`);
-        this.renderer = new renderer(this);
+        this.log(`Using ${rendererClass?.name || 'HTML5Renderer'} renderer`);
+        this.renderer = new rendererClass(this);
         await this.renderer.init();
         
         // Invalidate cache after renderer initialization (tracks may have changed)
@@ -970,11 +1007,13 @@ export class Player extends EventEmitter {
             if (this.transcriptManager) {
                 const wasTranscriptVisible = this.transcriptManager.isVisible;
                 this.transcriptManager.destroy();
-                this.transcriptManager = new TranscriptManager(this);
+                this.transcriptManager = null;
+
+                await this.ensureTranscriptManager();
                 
                 // Only restore transcript visibility if new track has captions
                 if (wasTranscriptVisible && this.controlBar && this.controlBar.hasCaptionTracks()) {
-                    this.transcriptManager.showTranscript();
+                    this.transcriptManager?.showTranscript();
                 }
             }
             
