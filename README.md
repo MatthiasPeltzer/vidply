@@ -684,6 +684,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Documentation
 
+### Guides
+- **[User's Guide](docs/Users-Guide.md)** - Complete integration guide for web developers
+- **[Developer Quickstart](docs/Developers-Quickstart.md)** - Quick reference for contributors
+
+### Reference
 - [Getting Started Guide](docs/GETTING_STARTED.md) - Basic setup and usage
 - [Usage Guide](docs/USAGE.md) - Detailed usage examples
 - [Playlist Guide](docs/PLAYLIST.md) - Audio/video playlists with fullscreen support

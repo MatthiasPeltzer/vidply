@@ -290,7 +290,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 9492,
+      "bytes": 9605,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -301,7 +301,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 208328,
+      "bytes": 208550,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -513,13 +513,13 @@
           "bytesInOutput": 4334
         },
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 5710
+          "bytesInOutput": 5771
         },
         "src/utils/EventEmitter.js": {
           "bytesInOutput": 436
         },
         "src/core/Player.js": {
-          "bytesInOutput": 77576
+          "bytesInOutput": 77631
         },
         "src/controls/ControlBar.js": {
           "bytesInOutput": 58454
@@ -540,7 +540,7 @@
           "bytesInOutput": 1877
         }
       },
-      "bytes": 298427
+      "bytes": 298543
     }
   }
 }

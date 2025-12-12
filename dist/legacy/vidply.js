@@ -5085,6 +5085,12 @@
           }
           return [];
         }
+        getCurrentQuality() {
+          if (this.hls) {
+            return this.hls.currentLevel;
+          }
+          return -1;
+        }
         destroy() {
           if (this.hls) {
             this.hls.destroy();
@@ -8447,7 +8453,7 @@
     }
     /**
      * Detect language from HTML lang attribute
-     * @returns {string|null} Language code if available in translations, null otherwise
+     * @returns {string|null} Language code if available in translations or as built-in, null otherwise
      */
     detectHtmlLanguage() {
       const htmlLang = document.documentElement.lang || document.documentElement.getAttribute("lang");
@@ -8456,6 +8462,9 @@
       }
       const normalizedLang = htmlLang.toLowerCase().split("-")[0];
       if (i18n.translations[normalizedLang]) {
+        return normalizedLang;
+      }
+      if (i18n.builtInLanguageLoaders && i18n.builtInLanguageLoaders[normalizedLang]) {
         return normalizedLang;
       }
       this.log('Language "'.concat(htmlLang, '" not available, using English as fallback'));

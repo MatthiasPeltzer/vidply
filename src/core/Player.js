@@ -414,7 +414,7 @@ export class Player extends EventEmitter {
 
     /**
      * Detect language from HTML lang attribute
-     * @returns {string|null} Language code if available in translations, null otherwise
+     * @returns {string|null} Language code if available in translations or as built-in, null otherwise
      */
     detectHtmlLanguage() {
         // Try to get lang from html element
@@ -427,8 +427,13 @@ export class Player extends EventEmitter {
         // Normalize the language code (e.g., "en-US" -> "en", "de-DE" -> "de")
         const normalizedLang = htmlLang.toLowerCase().split('-')[0];
 
-        // Check if this language is available in our translations (including dynamically loaded ones)
+        // Check if this language is available in our translations (already loaded)
         if (i18n.translations[normalizedLang]) {
+            return normalizedLang;
+        }
+
+        // Check if this language is available as a built-in that can be loaded on demand
+        if (i18n.builtInLanguageLoaders && i18n.builtInLanguageLoaders[normalizedLang]) {
             return normalizedLang;
         }
 

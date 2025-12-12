@@ -3359,7 +3359,7 @@ var Player = class _Player extends EventEmitter {
   }
   /**
    * Detect language from HTML lang attribute
-   * @returns {string|null} Language code if available in translations, null otherwise
+   * @returns {string|null} Language code if available in translations or as built-in, null otherwise
    */
   detectHtmlLanguage() {
     const htmlLang = document.documentElement.lang || document.documentElement.getAttribute("lang");
@@ -3368,6 +3368,9 @@ var Player = class _Player extends EventEmitter {
     }
     const normalizedLang = htmlLang.toLowerCase().split("-")[0];
     if (i18n.translations[normalizedLang]) {
+      return normalizedLang;
+    }
+    if (i18n.builtInLanguageLoaders && i18n.builtInLanguageLoaders[normalizedLang]) {
       return normalizedLang;
     }
     this.log(`Language "${htmlLang}" not available, using English as fallback`);
@@ -3558,7 +3561,7 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.VimeoRenderer-DCETT5IZ.js");
       rendererClass = module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-PNP5OPES.js");
+      const module = await import("./vidply.HLSRenderer-X46P47LY.js");
       rendererClass = module.HLSRenderer || module.default;
     }
     this.log(`Using ${rendererClass?.name || "HTML5Renderer"} renderer`);
