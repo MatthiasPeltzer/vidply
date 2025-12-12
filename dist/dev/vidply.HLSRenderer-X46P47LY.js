@@ -242,6 +242,12 @@ var HLSRenderer = class {
     }
     return [];
   }
+  getCurrentQuality() {
+    if (this.hls) {
+      return this.hls.currentLevel;
+    }
+    return -1;
+  }
   destroy() {
     if (this.hls) {
       this.hls.destroy();
@@ -252,4 +258,4 @@ var HLSRenderer = class {
 export {
   HLSRenderer
 };
-//# sourceMappingURL=vidply.HLSRenderer-PNP5OPES.js.map
+//# sourceMappingURL=vidply.HLSRenderer-X46P47LY.js.map

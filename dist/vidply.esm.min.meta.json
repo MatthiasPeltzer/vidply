@@ -284,7 +284,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 9492,
+      "bytes": 9605,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -295,7 +295,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 208328,
+      "bytes": 208550,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -442,7 +442,7 @@
       },
       "bytes": 4413
     },
-    "dist/prod/vidply.HLSRenderer-4PW35TCX.min.js": {
+    "dist/prod/vidply.HLSRenderer-LDXSMWTI.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.HTML5Renderer-XJCSUETP.min.js",
@@ -455,10 +455,10 @@
       "entryPoint": "src/renderers/HLSRenderer.js",
       "inputs": {
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 5593
+          "bytesInOutput": 5654
         }
       },
-      "bytes": 5737
+      "bytes": 5798
     },
     "dist/prod/vidply.esm.min.js": {
       "imports": [
@@ -483,7 +483,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.HLSRenderer-4PW35TCX.min.js",
+          "path": "dist/prod/vidply.HLSRenderer-LDXSMWTI.min.js",
           "kind": "dynamic-import"
         }
       ],
@@ -510,7 +510,7 @@
           "bytesInOutput": 3991
         },
         "src/core/Player.js": {
-          "bytesInOutput": 76642
+          "bytesInOutput": 76697
         },
         "src/features/PlaylistManager.js": {
           "bytesInOutput": 16824
@@ -519,7 +519,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 164498
+      "bytes": 164553
     },
     "dist/prod/vidply.de-SWFW4HYT.min.js": {
       "imports": [],
