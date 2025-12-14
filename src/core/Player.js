@@ -58,6 +58,10 @@ export class Player extends EventEmitter {
             // Update element reference to the actual media element
             this.element = mediaElement;
         }
+        
+        // Store original element reference for mixed media swapping
+        // This allows us to swap between video and audio elements in mixed playlists
+        this._originalElement = this.element;
 
         // Default options
         this.options = {
@@ -634,11 +638,18 @@ export class Player extends EventEmitter {
     }
 
     async initializeRenderer() {
-        const src = this.element.src || this.element.querySelector('source')?.src;
+        // Use pending source for external renderers, or get from element for HTML5
+        let src = this._pendingSource || this.element.src || this.element.querySelector('source')?.src;
 
         if (!src) {
             throw new Error('No media source found');
         }
+        
+        // Store the current source for renderers to access
+        this.currentSource = src;
+        
+        // Clear pending source after using it
+        this._pendingSource = null;
 
         // Check for source elements with audio description attributes
         const sourceElements = this.sourceElements;
@@ -727,6 +738,9 @@ export class Player extends EventEmitter {
         } else if (src.includes('.m3u8')) {
             const module = await import('../renderers/HLSRenderer.js');
             rendererClass = module.HLSRenderer || module.default;
+        } else if (src.includes('soundcloud.com') || src.includes('api.soundcloud.com')) {
+            const module = await import('../renderers/SoundCloudRenderer.js');
+            rendererClass = module.SoundCloudRenderer || module.default;
         }
 
         this.log(`Using ${rendererClass?.name || 'HTML5Renderer'} renderer`);
@@ -862,6 +876,13 @@ export class Player extends EventEmitter {
         const resolvedPoster = this.resolvePosterPath(poster);
         this.videoWrapper.style.setProperty('--vidply-poster-image', `url("${resolvedPoster}")`);
         this.videoWrapper.classList.add('vidply-forced-poster');
+        
+        // Apply audio content class (16:3 aspect ratio) for audio in video player
+        if (this._isAudioContent && this.container) {
+            this.container.classList.add('vidply-audio-content');
+        } else if (this.container) {
+            this.container.classList.remove('vidply-audio-content');
+        }
     }
 
     hidePosterOverlay() {
@@ -871,6 +892,9 @@ export class Player extends EventEmitter {
 
         this.videoWrapper.classList.remove('vidply-forced-poster');
         this.videoWrapper.style.removeProperty('--vidply-poster-image');
+        
+        // Note: vidply-audio-content is not removed here because it should persist
+        // for the duration of audio content playback, not just poster display
     }
 
     /**
@@ -909,6 +933,21 @@ export class Player extends EventEmitter {
      * @param {string} [config.audioDescriptionSrc] - Audio description video URL
      * @param {string} [config.signLanguageSrc] - Sign language video URL
      */
+    /**
+     * Check if a source URL requires an external renderer (YouTube, Vimeo, SoundCloud, HLS)
+     * @param {string} src - Source URL
+     * @returns {boolean}
+     */
+    isExternalRendererUrl(src) {
+        if (!src) return false;
+        return src.includes('youtube.com') || 
+               src.includes('youtu.be') || 
+               src.includes('vimeo.com') || 
+               src.includes('soundcloud.com') || 
+               src.includes('api.soundcloud.com') ||
+               src.includes('.m3u8');
+    }
+
     async load(config) {
         try {
             this.log('Loading new media:', config.src);
@@ -927,15 +966,66 @@ export class Player extends EventEmitter {
             existingTracks.forEach(track => track.remove());
             this.invalidateTrackCache();
 
-            // Update media element
-            this.element.src = config.src;
-
-            if (config.type) {
-                this.element.type = config.type;
+            // Check if this is an external renderer URL
+            const isExternalRenderer = this.isExternalRendererUrl(config.src);
+            
+            // Set flag early to suppress any errors that might fire during the transition
+            // This prevents HTML5 element errors from triggering playlist auto-advance
+            if (isExternalRenderer) {
+                this._switchingRenderer = true;
             }
 
+            // Only set src on HTML5 element for non-external sources
+            // External renderers (YouTube, Vimeo, SoundCloud, HLS) handle their own media loading
+            if (!isExternalRenderer) {
+                this.element.src = config.src;
+
+                if (config.type) {
+                    this.element.type = config.type;
+                }
+            } else {
+                // For external renderers, clear the src to prevent HTML5 element errors
+                // but store the URL for the renderer to use
+                // DO NOT call load() here - it will trigger an error event on an element without a valid source
+                this.element.removeAttribute('src');
+                // Also clear any source elements to prevent errors
+                const sources = this.element.querySelectorAll('source');
+                sources.forEach(s => s.removeAttribute('src'));
+            }
+            
+            // Store the source URL for external renderers to access
+            this._pendingSource = config.src;
+            
+            // Track if current content is audio (for poster aspect ratio)
+            this._isAudioContent = config.type && config.type.startsWith('audio/');
+            
+            // Apply or remove audio content class (16:3 aspect ratio for audio in video player)
+            if (this.container) {
+                if (this._isAudioContent) {
+                    this.container.classList.add('vidply-audio-content');
+                } else {
+                    this.container.classList.remove('vidply-audio-content');
+                }
+            }
+            
+            // Handle poster display based on content type
             if (config.poster && this.element.tagName === 'VIDEO') {
-                this.element.poster = this.resolvePosterPath(config.poster);
+                if (this._isAudioContent) {
+                    // For audio in video player: use CSS poster overlay with 16:3 aspect ratio
+                    this.element.removeAttribute('poster');
+                    if (this.videoWrapper) {
+                        const resolvedPoster = this.resolvePosterPath(config.poster);
+                        this.videoWrapper.style.setProperty('--vidply-poster-image', `url("${resolvedPoster}")`);
+                        this.videoWrapper.classList.add('vidply-forced-poster');
+                    }
+                } else {
+                    // For video: use normal poster and remove overlay
+                    this.element.poster = this.resolvePosterPath(config.poster);
+                    if (this.videoWrapper) {
+                        this.videoWrapper.classList.remove('vidply-forced-poster');
+                        this.videoWrapper.style.removeProperty('--vidply-poster-image');
+                    }
+                }
             }
 
             // Add new text tracks
@@ -997,6 +1087,16 @@ export class Player extends EventEmitter {
                 // Just reload the current renderer with the updated element
                 this.renderer.media = this.element; // Update media reference
                 this.element.load();
+            }
+            
+            // Clear the renderer switching flag after a delay to catch async errors
+            // This prevents errors from the old renderer's event queue from causing issues
+            if (isExternalRenderer) {
+                setTimeout(() => {
+                    this._switchingRenderer = false;
+                }, 500);
+            } else {
+                this._switchingRenderer = false;
             }
             
             // Restore scroll position immediately after loading to prevent auto-scroll
@@ -1088,13 +1188,15 @@ export class Player extends EventEmitter {
         const isYouTube = src.includes('youtube.com') || src.includes('youtu.be');
         const isVimeo = src.includes('vimeo.com');
         const isHLS = src.includes('.m3u8');
+        const isSoundCloud = src.includes('soundcloud.com') || src.includes('api.soundcloud.com');
 
         const currentRendererName = this.renderer.constructor.name;
 
         if (isYouTube && currentRendererName !== 'YouTubeRenderer') return true;
         if (isVimeo && currentRendererName !== 'VimeoRenderer') return true;
         if (isHLS && currentRendererName !== 'HLSRenderer') return true;
-        if (!isYouTube && !isVimeo && !isHLS && currentRendererName !== 'HTML5Renderer') return true;
+        if (isSoundCloud && currentRendererName !== 'SoundCloudRenderer') return true;
+        if (!isYouTube && !isVimeo && !isHLS && !isSoundCloud && currentRendererName !== 'HTML5Renderer') return true;
 
         return false;
     }
@@ -4132,6 +4234,13 @@ export class Player extends EventEmitter {
 
     // Error handling
     handleError(error) {
+        // Suppress errors during renderer switching
+        // This prevents cascade of errors when HTML5 element is cleared for external renderers
+        if (this._switchingRenderer) {
+            this.log('Suppressing error during renderer switch:', error, 'debug');
+            return;
+        }
+        
         this.log('Error:', error, 'error');
         this.emit('error', error);
 

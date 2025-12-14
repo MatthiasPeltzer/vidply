@@ -519,6 +519,57 @@
     opacity: 0;
 }
 
+/* Audio content in video player - uses 16:3 aspect ratio for a banner-like appearance */
+/* When audio files are played in a video element, we use CSS poster overlay for better control */
+.vidply-player.vidply-video.vidply-audio-content .vidply-video-wrapper {
+    aspect-ratio: 16 / 3 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: hidden;
+}
+
+.vidply-player.vidply-video.vidply-audio-content .vidply-video-wrapper.vidply-forced-poster {
+    background-size: cover;
+    background-position: center;
+}
+
+/* Hide the video element completely when playing audio - let the wrapper show the poster */
+.vidply-player.vidply-video.vidply-audio-content video {
+    display: none !important;
+}
+
+/* YouTube and Vimeo iframe containers - ensure 16:9 aspect ratio */
+.vidply-video-wrapper > div[id^="youtube-player-"],
+.vidply-video-wrapper > div[id^="vimeo-player-"] {
+    width: 100% !important;
+    aspect-ratio: 16 / 9;
+    max-height: 100%;
+}
+
+.vidply-video-wrapper > div[id^="youtube-player-"] iframe,
+.vidply-video-wrapper > div[id^="vimeo-player-"] iframe {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* SoundCloud iframe - uses 16:3 aspect ratio for single track audio banner appearance */
+.vidply-video-wrapper > iframe.vidply-soundcloud-iframe {
+    width: 100% !important;
+    aspect-ratio: 16 / 3;
+    max-height: 100%;
+}
+
+/* SoundCloud playlist - uses 16:9 aspect ratio to show track list */
+.vidply-video-wrapper > iframe.vidply-soundcloud-iframe.vidply-soundcloud-playlist {
+    aspect-ratio: 16 / 9;
+}
+
+/* Hide VidPly controls when external renderer (YouTube, Vimeo, SoundCloud) is active */
+/* These services have their own native controls */
+.vidply-player.vidply-external-controls .vidply-controls {
+    display: none !important;
+}
+
 /* Mobile: Simplify video wrapper but keep captions contained */
 @media (width < 48rem) {
     .vidply-video-wrapper {

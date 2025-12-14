@@ -30,7 +30,7 @@ var HLSRenderer = class {
     return video.canPlayType("application/vnd.apple.mpegurl") !== "";
   }
   async initNative() {
-    const HTML5Renderer = (await import("./vidply.HTML5Renderer-LXQ3I45Q.js")).HTML5Renderer;
+    const HTML5Renderer = (await import("./vidply.HTML5Renderer-6SBDI6S2.js")).HTML5Renderer;
     const renderer = new HTML5Renderer(this.player);
     await renderer.init();
     Object.getOwnPropertyNames(Object.getPrototypeOf(renderer)).forEach((method) => {
@@ -72,12 +72,14 @@ var HLSRenderer = class {
       fragLoadingMaxRetryTimeout: 64e3
     });
     this.hls.attachMedia(this.media);
-    let src;
-    const sourceElement = this.player.element.querySelector("source");
-    if (sourceElement) {
-      src = sourceElement.getAttribute("src");
-    } else {
-      src = this.player.element.getAttribute("src") || this.player.element.src;
+    let src = this.player.currentSource;
+    if (!src) {
+      const sourceElement = this.player.element.querySelector("source");
+      if (sourceElement) {
+        src = sourceElement.getAttribute("src");
+      } else {
+        src = this.player.element.getAttribute("src") || this.player.element.src;
+      }
     }
     this.player.log(`Loading HLS source: ${src}`, "log");
     if (!src) {
@@ -100,6 +102,9 @@ var HLSRenderer = class {
     this.hls.on(window.Hls.Events.MANIFEST_PARSED, (event, data) => {
       this.player.log("HLS manifest loaded, found " + data.levels.length + " quality levels");
       this.player.emit("hlsmanifestparsed", data);
+      if (this.player.container) {
+        this.player.container.classList.remove("vidply-external-controls");
+      }
     });
     this.hls.on(window.Hls.Events.LEVEL_SWITCHED, (event, data) => {
       this.player.log("HLS level switched to " + data.level);
@@ -258,4 +263,4 @@ var HLSRenderer = class {
 export {
   HLSRenderer
 };
-//# sourceMappingURL=vidply.HLSRenderer-X46P47LY.js.map
+//# sourceMappingURL=vidply.HLSRenderer-ENLZE4QS.js.map

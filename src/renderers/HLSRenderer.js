@@ -92,15 +92,18 @@ export class HLSRenderer {
     // Attach media element
     this.hls.attachMedia(this.media);
 
-    // Load source - Get from attribute to avoid blob URL conversion
-    let src;
-    const sourceElement = this.player.element.querySelector('source');
-    if (sourceElement) {
-      // Use getAttribute to get the original URL, not the blob-converted one
-      src = sourceElement.getAttribute('src');
-    } else {
-      // Fallback to element's src attribute
-      src = this.player.element.getAttribute('src') || this.player.element.src;
+    // Load source - use currentSource for external renderers, or get from attribute
+    let src = this.player.currentSource;
+    
+    if (!src) {
+      const sourceElement = this.player.element.querySelector('source');
+      if (sourceElement) {
+        // Use getAttribute to get the original URL, not the blob-converted one
+        src = sourceElement.getAttribute('src');
+      } else {
+        // Fallback to element's src attribute
+        src = this.player.element.getAttribute('src') || this.player.element.src;
+      }
     }
     
     this.player.log(`Loading HLS source: ${src}`, 'log');
@@ -130,6 +133,11 @@ export class HLSRenderer {
     this.hls.on(window.Hls.Events.MANIFEST_PARSED, (event, data) => {
       this.player.log('HLS manifest loaded, found ' + data.levels.length + ' quality levels');
       this.player.emit('hlsmanifestparsed', data);
+      
+      // Show VidPly controls (remove external controls class if present)
+      if (this.player.container) {
+        this.player.container.classList.remove('vidply-external-controls');
+      }
     });
 
     this.hls.on(window.Hls.Events.LEVEL_SWITCHED, (event, data) => {

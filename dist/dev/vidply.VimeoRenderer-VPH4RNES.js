@@ -14,7 +14,8 @@ var VimeoRenderer = class {
     this.iframe = null;
   }
   async init() {
-    this.videoId = this.extractVideoId(this.player.element.src);
+    const src = this.player.currentSource || this.player.element.src;
+    this.videoId = this.extractVideoId(src);
     if (!this.videoId) {
       throw new Error("Invalid Vimeo URL");
     }
@@ -53,7 +54,8 @@ var VimeoRenderer = class {
     this.iframe = document.createElement("div");
     this.iframe.id = `vimeo-player-${Math.random().toString(36).substr(2, 9)}`;
     this.iframe.style.width = "100%";
-    this.iframe.style.height = "100%";
+    this.iframe.style.aspectRatio = "16 / 9";
+    this.iframe.style.maxHeight = "100%";
     this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
   }
   async initializePlayer() {
@@ -61,7 +63,8 @@ var VimeoRenderer = class {
       id: this.videoId,
       width: "100%",
       height: "100%",
-      controls: false,
+      controls: true,
+      // Use Vimeo native controls
       autoplay: this.player.options.autoplay,
       muted: this.player.options.muted,
       loop: this.player.options.loop,
@@ -73,6 +76,16 @@ var VimeoRenderer = class {
     this.vimeo = new window.Vimeo.Player(this.iframe.id, options);
     await this.vimeo.ready();
     this.isReady = true;
+    const vimeoIframe = this.iframe.querySelector("iframe");
+    if (vimeoIframe) {
+      vimeoIframe.style.width = "100%";
+      vimeoIframe.style.height = "100%";
+      vimeoIframe.setAttribute("width", "100%");
+      vimeoIframe.setAttribute("height", "100%");
+    }
+    if (this.player.container) {
+      this.player.container.classList.add("vidply-external-controls");
+    }
     this.attachEvents();
     try {
       const duration = await this.vimeo.getDuration();
@@ -210,4 +223,4 @@ var VimeoRenderer = class {
 export {
   VimeoRenderer
 };
-//# sourceMappingURL=vidply.VimeoRenderer-DCETT5IZ.js.map
+//# sourceMappingURL=vidply.VimeoRenderer-VPH4RNES.js.map

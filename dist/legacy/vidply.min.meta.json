@@ -171,7 +171,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.js": {
-      "bytes": 9169,
+      "bytes": 9364,
       "imports": [],
       "format": "esm"
     },
@@ -280,17 +280,17 @@
       "format": "esm"
     },
     "src/renderers/YouTubeRenderer.js": {
-      "bytes": 7465,
+      "bytes": 7895,
       "imports": [],
       "format": "esm"
     },
     "src/renderers/VimeoRenderer.js": {
-      "bytes": 6978,
+      "bytes": 7665,
       "imports": [],
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 9605,
+      "bytes": 9900,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -300,8 +300,13 @@
       ],
       "format": "esm"
     },
+    "src/renderers/SoundCloudRenderer.js": {
+      "bytes": 10665,
+      "imports": [],
+      "format": "esm"
+    },
     "src/core/Player.js": {
-      "bytes": 208550,
+      "bytes": 214111,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -389,6 +394,11 @@
           "original": "../renderers/HLSRenderer.js"
         },
         {
+          "path": "src/renderers/SoundCloudRenderer.js",
+          "kind": "dynamic-import",
+          "original": "../renderers/SoundCloudRenderer.js"
+        },
+        {
           "path": "<runtime>",
           "kind": "import-statement",
           "external": true
@@ -397,7 +407,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 37547,
+      "bytes": 48513,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -492,7 +502,7 @@
           "bytesInOutput": 1638
         },
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 4822
+          "bytesInOutput": 4912
         },
         "src/utils/DraggableResizable.js": {
           "bytesInOutput": 14166
@@ -507,19 +517,22 @@
           "bytesInOutput": 43951
         },
         "src/renderers/YouTubeRenderer.js": {
-          "bytesInOutput": 4266
+          "bytesInOutput": 4430
         },
         "src/renderers/VimeoRenderer.js": {
-          "bytesInOutput": 4334
+          "bytesInOutput": 4651
         },
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 5771
+          "bytesInOutput": 5898
+        },
+        "src/renderers/SoundCloudRenderer.js": {
+          "bytesInOutput": 5597
         },
         "src/utils/EventEmitter.js": {
           "bytesInOutput": 436
         },
         "src/core/Player.js": {
-          "bytesInOutput": 77631
+          "bytesInOutput": 79360
         },
         "src/controls/ControlBar.js": {
           "bytesInOutput": 58454
@@ -534,13 +547,13 @@
           "bytesInOutput": 4025
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 17168
+          "bytesInOutput": 21797
         },
         "src/index.js": {
           "bytesInOutput": 1877
         }
       },
-      "bytes": 298543
+      "bytes": 311196
     }
   }
 }

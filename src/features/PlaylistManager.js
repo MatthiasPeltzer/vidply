@@ -28,6 +28,7 @@ export class PlaylistManager {
       autoPlayFirst: options.autoPlayFirst !== false, // Default true - auto-play first track on load
       loop: options.loop || false,
       showPanel: options.showPanel !== false, // Default true
+      recreatePlayers: options.recreatePlayers || false, // New: recreate player for each track type
       ...options
     };
     
@@ -40,6 +41,10 @@ export class PlaylistManager {
     
     // Track change guard to prevent cascade of next() calls
     this.isChangingTrack = false;
+    
+    // Store the host element for player recreation
+    this.hostElement = options.hostElement || null;
+    this.PlayerClass = options.PlayerClass || null;
     
     // Bind methods
     this.handleTrackEnd = this.handleTrackEnd.bind(this);
@@ -58,6 +63,221 @@ export class PlaylistManager {
     if (this.initialTracks.length > 0) {
       this.loadPlaylist(this.initialTracks);
     }
+  }
+  
+  /**
+   * Determine the media type for a track
+   * @param {Object} track - Track object
+   * @returns {string} - 'audio', 'video', 'youtube', 'vimeo', 'soundcloud', 'hls'
+   */
+  getTrackMediaType(track) {
+    const src = track.src || '';
+    
+    if (src.includes('youtube.com') || src.includes('youtu.be')) {
+      return 'youtube';
+    }
+    if (src.includes('vimeo.com')) {
+      return 'vimeo';
+    }
+    if (src.includes('soundcloud.com') || src.includes('api.soundcloud.com')) {
+      return 'soundcloud';
+    }
+    if (src.includes('.m3u8')) {
+      return 'hls';
+    }
+    if (track.type && track.type.startsWith('audio/')) {
+      return 'audio';
+    }
+    // Default to video for video types or unknown
+    return 'video';
+  }
+  
+  /**
+   * Recreate the player with the appropriate element type for the track
+   * @param {Object} track - Track to load
+   * @param {boolean} autoPlay - Whether to auto-play after creation
+   */
+  async recreatePlayerForTrack(track, autoPlay = false) {
+    if (!this.hostElement || !this.PlayerClass) {
+      console.warn('VidPly Playlist: Cannot recreate player - missing hostElement or PlayerClass');
+      return false;
+    }
+    
+    const mediaType = this.getTrackMediaType(track);
+    // SoundCloud uses an iframe widget, so it doesn't need an audio element
+    // Only local audio files need an actual <audio> element
+    const elementType = (mediaType === 'audio') ? 'audio' : 'video';
+    
+    // Store playlist panel state
+    const wasVisible = this.isPanelVisible;
+    const savedTracks = [...this.tracks]; // Keep track data
+    const savedIndex = this.currentIndex;
+    
+    // Detach all playlist UI elements from DOM (keep references)
+    // These will be reattached to the new player container
+    if (this.trackArtworkElement && this.trackArtworkElement.parentNode) {
+      this.trackArtworkElement.parentNode.removeChild(this.trackArtworkElement);
+    }
+    if (this.trackInfoElement && this.trackInfoElement.parentNode) {
+      this.trackInfoElement.parentNode.removeChild(this.trackInfoElement);
+    }
+    if (this.navigationFeedback && this.navigationFeedback.parentNode) {
+      this.navigationFeedback.parentNode.removeChild(this.navigationFeedback);
+    }
+    if (this.playlistPanel && this.playlistPanel.parentNode) {
+      this.playlistPanel.parentNode.removeChild(this.playlistPanel);
+    }
+    
+    // Remove event listeners before destroying
+    if (this.player) {
+      this.player.off('ended', this.handleTrackEnd);
+      this.player.off('error', this.handleTrackError);
+      this.player.destroy();
+    }
+    
+    // Clear the host element
+    this.hostElement.innerHTML = '';
+    
+    // Create new media element with appropriate type
+    const mediaElement = document.createElement(elementType);
+    mediaElement.setAttribute('preload', 'metadata');
+    
+    // For video elements with local media, set poster
+    if (elementType === 'video' && track.poster && 
+        (mediaType === 'video' || mediaType === 'hls')) {
+      mediaElement.setAttribute('poster', track.poster);
+    }
+    
+    // For external renderers (YouTube, Vimeo, SoundCloud, HLS), don't add source
+    // The renderer will handle the source directly
+    const isExternalRenderer = ['youtube', 'vimeo', 'soundcloud', 'hls'].includes(mediaType);
+    
+    if (!isExternalRenderer) {
+      // Add source for HTML5 media
+      const source = document.createElement('source');
+      source.src = track.src;
+      if (track.type) {
+        source.type = track.type;
+      }
+      mediaElement.appendChild(source);
+      
+      // Add tracks (captions, chapters, etc.)
+      if (track.tracks && track.tracks.length > 0) {
+        track.tracks.forEach(trackConfig => {
+          const trackEl = document.createElement('track');
+          trackEl.src = trackConfig.src;
+          trackEl.kind = trackConfig.kind || 'captions';
+          trackEl.srclang = trackConfig.srclang || 'en';
+          trackEl.label = trackConfig.label || trackConfig.srclang;
+          if (trackConfig.default) {
+            trackEl.default = true;
+          }
+          mediaElement.appendChild(trackEl);
+        });
+      }
+    }
+    
+    this.hostElement.appendChild(mediaElement);
+    
+    // Create new player with the media element
+    // Pass the source for external renderers via options
+    const playerOptions = {
+      mediaType: elementType,
+      poster: track.poster,
+      audioDescriptionSrc: track.audioDescriptionSrc || null,
+      audioDescriptionDuration: track.audioDescriptionDuration || null,
+      signLanguageSrc: track.signLanguageSrc || null
+    };
+    
+    this.player = new this.PlayerClass(mediaElement, playerOptions);
+    
+    // Re-register playlist manager
+    this.player.playlistManager = this;
+    
+    // Wait for player to be ready
+    await new Promise(resolve => {
+      this.player.on('ready', resolve);
+    });
+    
+    // Re-attach event listeners
+    this.player.on('ended', this.handleTrackEnd);
+    this.player.on('error', this.handleTrackError);
+    
+    // Re-attach all playlist UI elements to the new player's container
+    if (this.player.container) {
+      // Track artwork goes before video wrapper
+      if (this.trackArtworkElement) {
+        const videoWrapper = this.player.container.querySelector('.vidply-video-wrapper');
+        if (videoWrapper) {
+          this.player.container.insertBefore(this.trackArtworkElement, videoWrapper);
+        } else {
+          this.player.container.appendChild(this.trackArtworkElement);
+        }
+      }
+      // Track info
+      if (this.trackInfoElement) {
+        this.player.container.appendChild(this.trackInfoElement);
+      }
+      // Navigation feedback (screen reader only)
+      if (this.navigationFeedback) {
+        this.player.container.appendChild(this.navigationFeedback);
+      }
+      // Playlist panel
+      if (this.playlistPanel) {
+        this.player.container.appendChild(this.playlistPanel);
+      }
+    }
+    
+    // Update container reference
+    this.container = this.player.container;
+    
+    // Update controls (adds playlist prev/next buttons)
+    this.updatePlayerControls();
+    
+    // Restore tracks data (we kept it during recreation)
+    this.tracks = savedTracks;
+    this.currentIndex = savedIndex;
+    
+    // Update playlist UI to reflect current state
+    this.updatePlaylistUI();
+    
+    // Restore playlist panel visibility
+    this.isPanelVisible = wasVisible;
+    if (this.playlistPanel) {
+      this.playlistPanel.style.display = wasVisible ? '' : 'none';
+    }
+    
+    // For external renderers, load the track via player.load()
+    // For HTML5, the source is already set on the element
+    if (isExternalRenderer) {
+      this.player.load({
+        src: track.src,
+        type: track.type,
+        poster: track.poster,
+        tracks: track.tracks || [],
+        audioDescriptionSrc: track.audioDescriptionSrc || null,
+        signLanguageSrc: track.signLanguageSrc || null
+      });
+    } else {
+      // For HTML5 media, also load to set up accessibility features
+      this.player.load({
+        src: track.src,
+        type: track.type,
+        poster: track.poster,
+        tracks: track.tracks || [],
+        audioDescriptionSrc: track.audioDescriptionSrc || null,
+        signLanguageSrc: track.signLanguageSrc || null
+      });
+    }
+    
+    // Auto-play if requested
+    if (autoPlay) {
+      setTimeout(() => {
+        this.player.play();
+      }, 100);
+    }
+    
+    return true;
   }
   
   init() {
@@ -218,7 +438,7 @@ export class PlaylistManager {
    * Load a track without playing
    * @param {number} index - Track index
    */
-  loadTrack(index) {
+  async loadTrack(index) {
     if (index < 0 || index >= this.tracks.length) {
       console.warn('VidPly Playlist: Invalid track index', index);
       return;
@@ -232,7 +452,36 @@ export class PlaylistManager {
     // Update current index
     this.currentIndex = index;
     
-    // Load track into player
+    // Check if we should recreate the player for this track type
+    if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
+      const currentMediaType = this.player ? 
+        (this.player.element.tagName === 'AUDIO' ? 'audio' : 'video') : null;
+      const newMediaType = this.getTrackMediaType(track);
+      const newElementType = (newMediaType === 'audio' || newMediaType === 'soundcloud') ? 'audio' : 'video';
+      
+      // Recreate if element type is different
+      if (currentMediaType !== newElementType) {
+        await this.recreatePlayerForTrack(track, false);
+        // Update UI after recreation
+        this.updateTrackInfo(track);
+        this.updatePlaylistUI();
+        
+        // Emit event
+        this.player.emit('playlisttrackchange', {
+          index: index,
+          item: track,
+          total: this.tracks.length
+        });
+        
+        // Clear guard flag
+        setTimeout(() => {
+          this.isChangingTrack = false;
+        }, 150);
+        return;
+      }
+    }
+    
+    // Load track into player (normal path)
     this.player.load({
       src: track.src,
       type: track.type,
@@ -264,7 +513,7 @@ export class PlaylistManager {
    * @param {number} index - Track index
    * @param {boolean} userInitiated - Whether this was triggered by user action (default: false)
    */
-  play(index, userInitiated = false) {
+  async play(index, userInitiated = false) {
     if (index < 0 || index >= this.tracks.length) {
       console.warn('VidPly Playlist: Invalid track index', index);
       return;
@@ -278,7 +527,36 @@ export class PlaylistManager {
     // Update current index
     this.currentIndex = index;
     
-    // Load track into player
+    // Check if we should recreate the player for this track type
+    if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
+      const currentMediaType = this.player ? 
+        (this.player.element.tagName === 'AUDIO' ? 'audio' : 'video') : null;
+      const newMediaType = this.getTrackMediaType(track);
+      const newElementType = (newMediaType === 'audio' || newMediaType === 'soundcloud') ? 'audio' : 'video';
+      
+      // Recreate if element type is different
+      if (currentMediaType !== newElementType) {
+        await this.recreatePlayerForTrack(track, true); // true = autoPlay
+        // Update UI after recreation
+        this.updateTrackInfo(track);
+        this.updatePlaylistUI();
+        
+        // Emit event
+        this.player.emit('playlisttrackchange', {
+          index: index,
+          item: track,
+          total: this.tracks.length
+        });
+        
+        // Clear guard flag
+        setTimeout(() => {
+          this.isChangingTrack = false;
+        }, 150);
+        return;
+      }
+    }
+    
+    // Load track into player (normal path)
     this.player.load({
       src: track.src,
       type: track.type,
@@ -359,9 +637,39 @@ export class PlaylistManager {
   }
   
   /**
+   * Check if a source URL requires an external renderer
+   * @param {string} src - Source URL
+   * @returns {boolean}
+   */
+  isExternalRendererUrl(src) {
+    if (!src) return false;
+    return src.includes('youtube.com') || 
+           src.includes('youtu.be') || 
+           src.includes('vimeo.com') || 
+           src.includes('soundcloud.com') || 
+           src.includes('api.soundcloud.com') ||
+           src.includes('.m3u8');
+  }
+
+  /**
    * Handle track error
    */
   handleTrackError(e) {
+    // Don't auto-advance for external renderer tracks
+    // External renderers (YouTube, Vimeo, SoundCloud, HLS) may trigger HTML5 errors
+    // that should be ignored since the external renderer handles playback
+    const currentTrack = this.getCurrentTrack();
+    if (currentTrack && currentTrack.src && this.isExternalRendererUrl(currentTrack.src)) {
+      // Silently ignore errors for external renderer tracks
+      return;
+    }
+    
+    // Don't auto-advance if we're in the process of changing tracks
+    // This prevents a cascade of next() calls when switching between renderer types
+    if (this.isChangingTrack) {
+      return;
+    }
+    
     console.error('VidPly Playlist: Track error', e);
     
     // Try next track

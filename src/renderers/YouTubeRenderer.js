@@ -12,8 +12,9 @@ export class YouTubeRenderer {
   }
 
   async init() {
-    // Extract video ID from URL
-    this.videoId = this.extractVideoId(this.player.element.src);
+    // Extract video ID from URL - use currentSource which works for external renderers
+    const src = this.player.currentSource || this.player.element.src;
+    this.videoId = this.extractVideoId(src);
     
     if (!this.videoId) {
       throw new Error('Invalid YouTube URL');
@@ -85,7 +86,8 @@ export class YouTubeRenderer {
     this.iframe = document.createElement('div');
     this.iframe.id = `youtube-player-${Math.random().toString(36).substr(2, 9)}`;
     this.iframe.style.width = '100%';
-    this.iframe.style.height = '100%';
+    this.iframe.style.aspectRatio = '16 / 9';
+    this.iframe.style.maxHeight = '100%';
     
     this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
   }
@@ -97,9 +99,9 @@ export class YouTubeRenderer {
         width: '100%',
         height: '100%',
         playerVars: {
-          controls: 0,
-          disablekb: 1,
-          fs: 0,
+          controls: 1, // Use YouTube native controls
+          disablekb: 0, // Allow keyboard controls
+          fs: 1, // Allow fullscreen
           modestbranding: 1,
           rel: 0,
           showinfo: 0,
@@ -112,6 +114,10 @@ export class YouTubeRenderer {
           onReady: (event) => {
             this.isReady = true;
             this.attachEvents();
+            // Hide VidPly controls - YouTube has its own
+            if (this.player.container) {
+              this.player.container.classList.add('vidply-external-controls');
+            }
             resolve();
           },
           onStateChange: (event) => this.handleStateChange(event),

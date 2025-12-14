@@ -14,7 +14,8 @@ var YouTubeRenderer = class {
     this.iframe = null;
   }
   async init() {
-    this.videoId = this.extractVideoId(this.player.element.src);
+    const src = this.player.currentSource || this.player.element.src;
+    this.videoId = this.extractVideoId(src);
     if (!this.videoId) {
       throw new Error("Invalid YouTube URL");
     }
@@ -63,7 +64,8 @@ var YouTubeRenderer = class {
     this.iframe = document.createElement("div");
     this.iframe.id = `youtube-player-${Math.random().toString(36).substr(2, 9)}`;
     this.iframe.style.width = "100%";
-    this.iframe.style.height = "100%";
+    this.iframe.style.aspectRatio = "16 / 9";
+    this.iframe.style.maxHeight = "100%";
     this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
   }
   async initializePlayer() {
@@ -73,9 +75,12 @@ var YouTubeRenderer = class {
         width: "100%",
         height: "100%",
         playerVars: {
-          controls: 0,
-          disablekb: 1,
-          fs: 0,
+          controls: 1,
+          // Use YouTube native controls
+          disablekb: 0,
+          // Allow keyboard controls
+          fs: 1,
+          // Allow fullscreen
           modestbranding: 1,
           rel: 0,
           showinfo: 0,
@@ -88,6 +93,9 @@ var YouTubeRenderer = class {
           onReady: (event) => {
             this.isReady = true;
             this.attachEvents();
+            if (this.player.container) {
+              this.player.container.classList.add("vidply-external-controls");
+            }
             resolve();
           },
           onStateChange: (event) => this.handleStateChange(event),
@@ -224,4 +232,4 @@ var YouTubeRenderer = class {
 export {
   YouTubeRenderer
 };
-//# sourceMappingURL=vidply.YouTubeRenderer-QLMMD757.js.map
+//# sourceMappingURL=vidply.YouTubeRenderer-6MGKEFTZ.js.map

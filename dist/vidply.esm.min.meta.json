@@ -171,7 +171,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.js": {
-      "bytes": 9169,
+      "bytes": 9364,
       "imports": [],
       "format": "esm"
     },
@@ -274,17 +274,17 @@
       "format": "esm"
     },
     "src/renderers/YouTubeRenderer.js": {
-      "bytes": 7465,
+      "bytes": 7895,
       "imports": [],
       "format": "esm"
     },
     "src/renderers/VimeoRenderer.js": {
-      "bytes": 6978,
+      "bytes": 7665,
       "imports": [],
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 9605,
+      "bytes": 9900,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -294,8 +294,13 @@
       ],
       "format": "esm"
     },
+    "src/renderers/SoundCloudRenderer.js": {
+      "bytes": 10665,
+      "imports": [],
+      "format": "esm"
+    },
     "src/core/Player.js": {
-      "bytes": 208550,
+      "bytes": 214111,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -381,12 +386,17 @@
           "path": "src/renderers/HLSRenderer.js",
           "kind": "dynamic-import",
           "original": "../renderers/HLSRenderer.js"
+        },
+        {
+          "path": "src/renderers/SoundCloudRenderer.js",
+          "kind": "dynamic-import",
+          "original": "../renderers/SoundCloudRenderer.js"
         }
       ],
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 37547,
+      "bytes": 48513,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -429,7 +439,7 @@
     }
   },
   "outputs": {
-    "dist/prod/vidply.VimeoRenderer-P3PU27S7.min.js": {
+    "dist/prod/vidply.VimeoRenderer-3HBMM2WR.min.js": {
       "imports": [],
       "exports": [
         "VimeoRenderer"
@@ -437,15 +447,15 @@
       "entryPoint": "src/renderers/VimeoRenderer.js",
       "inputs": {
         "src/renderers/VimeoRenderer.js": {
-          "bytesInOutput": 4267
+          "bytesInOutput": 4584
         }
       },
-      "bytes": 4413
+      "bytes": 4730
     },
-    "dist/prod/vidply.HLSRenderer-LDXSMWTI.min.js": {
+    "dist/prod/vidply.HLSRenderer-CBXZ4RF2.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.HTML5Renderer-XJCSUETP.min.js",
+          "path": "dist/prod/vidply.HTML5Renderer-MY7XDV7R.min.js",
           "kind": "dynamic-import"
         }
       ],
@@ -455,15 +465,29 @@
       "entryPoint": "src/renderers/HLSRenderer.js",
       "inputs": {
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 5654
+          "bytesInOutput": 5781
         }
       },
-      "bytes": 5798
+      "bytes": 5925
+    },
+    "dist/prod/vidply.SoundCloudRenderer-MOR2CUFH.min.js": {
+      "imports": [],
+      "exports": [
+        "SoundCloudRenderer",
+        "default"
+      ],
+      "entryPoint": "src/renderers/SoundCloudRenderer.js",
+      "inputs": {
+        "src/renderers/SoundCloudRenderer.js": {
+          "bytesInOutput": 5466
+        }
+      },
+      "bytes": 5630
     },
     "dist/prod/vidply.esm.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-BQBGEJF7.min.js",
+          "path": "dist/prod/vidply.chunk-OXXPY2XB.min.js",
           "kind": "import-statement"
         },
         {
@@ -475,15 +499,19 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.YouTubeRenderer-DGKKWB5M.min.js",
+          "path": "dist/prod/vidply.YouTubeRenderer-MFC2GMAC.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.VimeoRenderer-P3PU27S7.min.js",
+          "path": "dist/prod/vidply.VimeoRenderer-3HBMM2WR.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.HLSRenderer-LDXSMWTI.min.js",
+          "path": "dist/prod/vidply.HLSRenderer-CBXZ4RF2.min.js",
+          "kind": "dynamic-import"
+        },
+        {
+          "path": "dist/prod/vidply.SoundCloudRenderer-MOR2CUFH.min.js",
           "kind": "dynamic-import"
         }
       ],
@@ -510,16 +538,16 @@
           "bytesInOutput": 3991
         },
         "src/core/Player.js": {
-          "bytesInOutput": 76697
+          "bytesInOutput": 78433
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 16824
+          "bytesInOutput": 21453
         },
         "src/index.js": {
           "bytesInOutput": 1869
         }
       },
-      "bytes": 164553
+      "bytes": 170918
     },
     "dist/prod/vidply.de-SWFW4HYT.min.js": {
       "imports": [],
@@ -573,10 +601,10 @@
       },
       "bytes": 7381
     },
-    "dist/prod/vidply.HTML5Renderer-XJCSUETP.min.js": {
+    "dist/prod/vidply.HTML5Renderer-MY7XDV7R.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-BQBGEJF7.min.js",
+          "path": "dist/prod/vidply.chunk-OXXPY2XB.min.js",
           "kind": "import-statement"
         }
       ],
@@ -587,17 +615,17 @@
       "inputs": {},
       "bytes": 192
     },
-    "dist/prod/vidply.chunk-BQBGEJF7.min.js": {
+    "dist/prod/vidply.chunk-OXXPY2XB.min.js": {
       "imports": [],
       "exports": [
         "a"
       ],
       "inputs": {
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 4749
+          "bytesInOutput": 4839
         }
       },
-      "bytes": 4883
+      "bytes": 4973
     },
     "dist/prod/vidply.TranscriptManager-UZ6DUFB6.min.js": {
       "imports": [
@@ -689,7 +717,7 @@
       },
       "bytes": 39549
     },
-    "dist/prod/vidply.YouTubeRenderer-DGKKWB5M.min.js": {
+    "dist/prod/vidply.YouTubeRenderer-MFC2GMAC.min.js": {
       "imports": [],
       "exports": [
         "YouTubeRenderer"
@@ -697,10 +725,10 @@
       "entryPoint": "src/renderers/YouTubeRenderer.js",
       "inputs": {
         "src/renderers/YouTubeRenderer.js": {
-          "bytesInOutput": 4203
+          "bytesInOutput": 4367
         }
       },
-      "bytes": 4351
+      "bytes": 4515
     }
   }
 }
