@@ -16,6 +16,9 @@ var HTML5Renderer = class {
     this.attachEvents();
     this.media.preload = this.player.options.preload;
     this.media.load();
+    if (this.player.container) {
+      this.player.container.classList.remove("vidply-external-controls");
+    }
   }
   attachEvents() {
     this.media.addEventListener("loadedmetadata", () => {
@@ -240,4 +243,4 @@ var HTML5Renderer = class {
 export {
   HTML5Renderer
 };
-//# sourceMappingURL=vidply.chunk-UEIJOJH6.js.map
+//# sourceMappingURL=vidply.chunk-BCOFCT6U.js.map

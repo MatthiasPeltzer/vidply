@@ -21,6 +21,36 @@
             line-height: 1.6;
             padding: 40px 20px;
         }
+
+        .demo-links {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .demo-link {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            color: #0a406e;
+            display: inline-block;
+            font-weight: 600;
+            padding: 10px 24px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .demo-link:hover {
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+
+        .demo-link:focus {
+            outline: 3px solid white;
+            outline-offset: 4px;
+        }
         
         .container {
             margin: 0 auto;
@@ -419,7 +449,14 @@
             <a href="index.html"><img src="../favicon.svg" width="48" height="48" alt="" aria-hidden="true"/>
                 <span>VidPly - HLS Streaming</span></a>
         </h1>
+        <div class="demo-links">
+            <a href="playlist-mixed.html" class="demo-link">Mixed Media Playlist</a>
+            <a href="playlist-video.html" class="demo-link">Video Playlist</a>
+            <a href="playlist-audio.html" class="demo-link">Audio Playlist</a>
+        </div>
+
         <p class="subtitle">Test HTTP Live Streaming (HLS) support with .m3u8 streams</p>
+
         <div class="status-indicators" role="status" aria-live="polite">
             <span class="status pending" id="browser-info">Detecting browser...</span>
             <span class="status pending" id="hls-status">Testing HLS support...</span>

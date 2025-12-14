@@ -1647,6 +1647,9 @@
           this.attachEvents();
           this.media.preload = this.player.options.preload;
           this.media.load();
+          if (this.player.container) {
+            this.player.container.classList.remove("vidply-external-controls");
+          }
         }
         attachEvents() {
           this.media.addEventListener("loadedmetadata", () => {
@@ -4417,7 +4420,8 @@
           this.iframe = null;
         }
         async init() {
-          this.videoId = this.extractVideoId(this.player.element.src);
+          const src = this.player.currentSource || this.player.element.src;
+          this.videoId = this.extractVideoId(src);
           if (!this.videoId) {
             throw new Error("Invalid YouTube URL");
           }
@@ -4466,7 +4470,8 @@
           this.iframe = document.createElement("div");
           this.iframe.id = "youtube-player-".concat(Math.random().toString(36).substr(2, 9));
           this.iframe.style.width = "100%";
-          this.iframe.style.height = "100%";
+          this.iframe.style.aspectRatio = "16 / 9";
+          this.iframe.style.maxHeight = "100%";
           this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
         }
         async initializePlayer() {
@@ -4476,9 +4481,12 @@
               width: "100%",
               height: "100%",
               playerVars: {
-                controls: 0,
-                disablekb: 1,
-                fs: 0,
+                controls: 1,
+                // Use YouTube native controls
+                disablekb: 0,
+                // Allow keyboard controls
+                fs: 1,
+                // Allow fullscreen
                 modestbranding: 1,
                 rel: 0,
                 showinfo: 0,
@@ -4491,6 +4499,9 @@
                 onReady: (event) => {
                   this.isReady = true;
                   this.attachEvents();
+                  if (this.player.container) {
+                    this.player.container.classList.add("vidply-external-controls");
+                  }
                   resolve();
                 },
                 onStateChange: (event) => this.handleStateChange(event),
@@ -4644,7 +4655,8 @@
           this.iframe = null;
         }
         async init() {
-          this.videoId = this.extractVideoId(this.player.element.src);
+          const src = this.player.currentSource || this.player.element.src;
+          this.videoId = this.extractVideoId(src);
           if (!this.videoId) {
             throw new Error("Invalid Vimeo URL");
           }
@@ -4683,7 +4695,8 @@
           this.iframe = document.createElement("div");
           this.iframe.id = "vimeo-player-".concat(Math.random().toString(36).substr(2, 9));
           this.iframe.style.width = "100%";
-          this.iframe.style.height = "100%";
+          this.iframe.style.aspectRatio = "16 / 9";
+          this.iframe.style.maxHeight = "100%";
           this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
         }
         async initializePlayer() {
@@ -4691,7 +4704,8 @@
             id: this.videoId,
             width: "100%",
             height: "100%",
-            controls: false,
+            controls: true,
+            // Use Vimeo native controls
             autoplay: this.player.options.autoplay,
             muted: this.player.options.muted,
             loop: this.player.options.loop,
@@ -4703,6 +4717,16 @@
           this.vimeo = new window.Vimeo.Player(this.iframe.id, options);
           await this.vimeo.ready();
           this.isReady = true;
+          const vimeoIframe = this.iframe.querySelector("iframe");
+          if (vimeoIframe) {
+            vimeoIframe.style.width = "100%";
+            vimeoIframe.style.height = "100%";
+            vimeoIframe.setAttribute("width", "100%");
+            vimeoIframe.setAttribute("height", "100%");
+          }
+          if (this.player.container) {
+            this.player.container.classList.add("vidply-external-controls");
+          }
           this.attachEvents();
           try {
             const duration = await this.vimeo.getDuration();
@@ -4915,12 +4939,14 @@
             fragLoadingMaxRetryTimeout: 64e3
           });
           this.hls.attachMedia(this.media);
-          let src;
-          const sourceElement = this.player.element.querySelector("source");
-          if (sourceElement) {
-            src = sourceElement.getAttribute("src");
-          } else {
-            src = this.player.element.getAttribute("src") || this.player.element.src;
+          let src = this.player.currentSource;
+          if (!src) {
+            const sourceElement = this.player.element.querySelector("source");
+            if (sourceElement) {
+              src = sourceElement.getAttribute("src");
+            } else {
+              src = this.player.element.getAttribute("src") || this.player.element.src;
+            }
           }
           this.player.log("Loading HLS source: ".concat(src), "log");
           if (!src) {
@@ -4943,6 +4969,9 @@
           this.hls.on(window.Hls.Events.MANIFEST_PARSED, (event, data) => {
             this.player.log("HLS manifest loaded, found " + data.levels.length + " quality levels");
             this.player.emit("hlsmanifestparsed", data);
+            if (this.player.container) {
+              this.player.container.classList.remove("vidply-external-controls");
+            }
           });
           this.hls.on(window.Hls.Events.LEVEL_SWITCHED, (event, data) => {
             this.player.log("HLS level switched to " + data.level);
@@ -5098,6 +5127,287 @@
           }
         }
       };
+    }
+  });
+
+  // src/renderers/SoundCloudRenderer.js
+  var SoundCloudRenderer_exports = {};
+  __export(SoundCloudRenderer_exports, {
+    SoundCloudRenderer: () => SoundCloudRenderer,
+    default: () => SoundCloudRenderer_default
+  });
+  var SoundCloudRenderer, SoundCloudRenderer_default;
+  var init_SoundCloudRenderer = __esm({
+    "src/renderers/SoundCloudRenderer.js"() {
+      SoundCloudRenderer = class {
+        constructor(player) {
+          this.player = player;
+          this.widget = null;
+          this.trackUrl = null;
+          this.isReady = false;
+          this.iframe = null;
+          this.iframeId = null;
+        }
+        async init() {
+          var _a;
+          this.trackUrl = this.player.currentSource || this.player.element.src || ((_a = this.player.element.querySelector("source")) == null ? void 0 : _a.src);
+          if (!this.trackUrl || !this.isValidSoundCloudUrl(this.trackUrl)) {
+            throw new Error("Invalid SoundCloud URL");
+          }
+          await this.loadSoundCloudAPI();
+          this.createIframe();
+          await this.initializeWidget();
+        }
+        /**
+         * Validate SoundCloud URL
+         * @param {string} url 
+         * @returns {boolean}
+         */
+        isValidSoundCloudUrl(url) {
+          return url.includes("soundcloud.com") || url.includes("api.soundcloud.com");
+        }
+        /**
+         * Check if URL is a playlist/set
+         */
+        isPlaylist() {
+          return this.trackUrl && this.trackUrl.includes("/sets/");
+        }
+        /**
+         * Extract track/playlist info from URL for embed
+         * SoundCloud URLs can be:
+         * - https://soundcloud.com/artist/track
+         * - https://soundcloud.com/artist/sets/playlist
+         * - https://api.soundcloud.com/tracks/123456
+         */
+        getEmbedUrl() {
+          const encodedUrl = encodeURIComponent(this.trackUrl);
+          const params = new URLSearchParams({
+            url: this.trackUrl,
+            auto_play: this.player.options.autoplay ? "true" : "false",
+            hide_related: "true",
+            show_comments: "false",
+            show_user: "true",
+            show_reposts: "false",
+            show_teaser: "false",
+            visual: "false",
+            // Use classic player for better control
+            color: "%23007bff"
+          });
+          return "https://w.soundcloud.com/player/?".concat(params.toString());
+        }
+        async loadSoundCloudAPI() {
+          if (window.SC && window.SC.Widget) {
+            return Promise.resolve();
+          }
+          return new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = "https://w.soundcloud.com/player/api.js";
+            script.onload = () => {
+              setTimeout(() => {
+                if (window.SC && window.SC.Widget) {
+                  resolve();
+                } else {
+                  reject(new Error("SoundCloud Widget API not available"));
+                }
+              }, 100);
+            };
+            script.onerror = () => reject(new Error("Failed to load SoundCloud Widget API"));
+            document.head.appendChild(script);
+          });
+        }
+        createIframe() {
+          this.player.element.style.display = "none";
+          this.player.element.removeAttribute("poster");
+          if (this.player.videoWrapper) {
+            this.player.videoWrapper.classList.remove("vidply-forced-poster");
+            this.player.videoWrapper.style.removeProperty("--vidply-poster-image");
+          }
+          this.iframeId = "soundcloud-player-".concat(Math.random().toString(36).substr(2, 9));
+          this.iframe = document.createElement("iframe");
+          this.iframe.id = this.iframeId;
+          this.iframe.scrolling = "no";
+          this.iframe.frameBorder = "no";
+          this.iframe.allow = "autoplay";
+          this.iframe.src = this.getEmbedUrl();
+          this.iframe.style.width = "100%";
+          this.iframe.style.display = "block";
+          if (this.isPlaylist()) {
+            this.iframe.style.aspectRatio = "16 / 9";
+            this.iframe.classList.add("vidply-soundcloud-iframe", "vidply-soundcloud-playlist");
+          } else {
+            this.iframe.style.aspectRatio = "16 / 3";
+            this.iframe.classList.add("vidply-soundcloud-iframe");
+          }
+          this.iframe.style.maxHeight = "100%";
+          this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
+        }
+        async initializeWidget() {
+          return new Promise((resolve, reject) => {
+            this.iframe.addEventListener("load", () => {
+              try {
+                this.widget = window.SC.Widget(this.iframe);
+                this.widget.bind(window.SC.Widget.Events.READY, () => {
+                  this.isReady = true;
+                  this.attachEvents();
+                  if (this.player.container) {
+                    this.player.container.classList.add("vidply-external-controls");
+                  }
+                  this.widget.getCurrentSound((sound) => {
+                    if (sound) {
+                      this.player.state.duration = sound.duration / 1e3;
+                      this.player.emit("loadedmetadata");
+                    }
+                  });
+                  resolve();
+                });
+                this.widget.bind(window.SC.Widget.Events.ERROR, (error) => {
+                  this.player.handleError(new Error("SoundCloud error: ".concat(error.message || "Unknown error")));
+                });
+              } catch (error) {
+                reject(error);
+              }
+            });
+            setTimeout(() => {
+              if (!this.isReady) {
+                reject(new Error("SoundCloud widget initialization timeout"));
+              }
+            }, 1e4);
+          });
+        }
+        attachEvents() {
+          if (!this.widget) return;
+          const Events = window.SC.Widget.Events;
+          this.widget.bind(Events.PLAY, () => {
+            this.player.state.playing = true;
+            this.player.state.paused = false;
+            this.player.state.ended = false;
+            this.player.emit("play");
+            if (this.player.options.onPlay) {
+              this.player.options.onPlay.call(this.player);
+            }
+          });
+          this.widget.bind(Events.PAUSE, () => {
+            this.player.state.playing = false;
+            this.player.state.paused = true;
+            this.player.emit("pause");
+            if (this.player.options.onPause) {
+              this.player.options.onPause.call(this.player);
+            }
+          });
+          this.widget.bind(Events.FINISH, () => {
+            this.player.state.playing = false;
+            this.player.state.paused = true;
+            this.player.state.ended = true;
+            this.player.emit("ended");
+            if (this.player.options.onEnded) {
+              this.player.options.onEnded.call(this.player);
+            }
+            if (this.player.options.loop) {
+              this.seek(0);
+              this.play();
+            }
+          });
+          this.widget.bind(Events.PLAY_PROGRESS, (data) => {
+            const currentTime = data.currentPosition / 1e3;
+            this.player.state.currentTime = currentTime;
+            this.player.emit("timeupdate", currentTime);
+            if (this.player.options.onTimeUpdate) {
+              this.player.options.onTimeUpdate.call(this.player, currentTime);
+            }
+          });
+          this.widget.bind(Events.SEEK, (data) => {
+            this.player.state.currentTime = data.currentPosition / 1e3;
+            this.player.emit("seeked");
+          });
+          this.widget.bind(Events.LOAD_PROGRESS, (data) => {
+            if (this.player.state.duration) {
+              const buffered = data.loadedProgress * this.player.state.duration;
+              this.player.emit("progress", buffered);
+            }
+          });
+        }
+        play() {
+          if (this.isReady && this.widget) {
+            const scrollX = window.scrollX;
+            const scrollY = window.scrollY;
+            this.widget.play();
+            window.scrollTo(scrollX, scrollY);
+          }
+        }
+        pause() {
+          if (this.isReady && this.widget) {
+            this.widget.pause();
+          }
+        }
+        seek(time) {
+          if (this.isReady && this.widget) {
+            this.widget.seekTo(time * 1e3);
+            this.player.state.currentTime = time;
+          }
+        }
+        setVolume(volume) {
+          if (this.isReady && this.widget) {
+            this.widget.setVolume(volume * 100);
+            this.player.state.volume = volume;
+          }
+        }
+        setMuted(muted) {
+          if (this.isReady && this.widget) {
+            if (muted) {
+              this.widget.getVolume((vol) => {
+                this._previousVolume = vol;
+                this.widget.setVolume(0);
+              });
+            } else {
+              this.widget.setVolume(this._previousVolume || 100);
+            }
+            this.player.state.muted = muted;
+          }
+        }
+        setPlaybackSpeed(speed) {
+          this.player.log("SoundCloud does not support playback speed control", "warn");
+        }
+        /**
+         * Get current track info
+         * @returns {Promise<Object>}
+         */
+        getCurrentSound() {
+          return new Promise((resolve) => {
+            if (this.isReady && this.widget) {
+              this.widget.getCurrentSound((sound) => {
+                resolve(sound);
+              });
+            } else {
+              resolve(null);
+            }
+          });
+        }
+        destroy() {
+          if (this.widget) {
+            const Events = window.SC.Widget.Events;
+            try {
+              this.widget.unbind(Events.READY);
+              this.widget.unbind(Events.PLAY);
+              this.widget.unbind(Events.PAUSE);
+              this.widget.unbind(Events.FINISH);
+              this.widget.unbind(Events.PLAY_PROGRESS);
+              this.widget.unbind(Events.SEEK);
+              this.widget.unbind(Events.LOAD_PROGRESS);
+              this.widget.unbind(Events.ERROR);
+            } catch (e) {
+            }
+          }
+          if (this.iframe && this.iframe.parentNode) {
+            this.iframe.parentNode.removeChild(this.iframe);
+          }
+          if (this.player.element) {
+            this.player.element.style.display = "";
+          }
+          this.widget = null;
+          this.isReady = false;
+        }
+      };
+      SoundCloudRenderer_default = SoundCloudRenderer;
     }
   });
 
@@ -8180,6 +8490,7 @@
         this.element.appendChild(mediaElement);
         this.element = mediaElement;
       }
+      this._originalElement = this.element;
       this.options = __spreadValues({
         // Display
         width: null,
@@ -8594,10 +8905,12 @@
     }
     async initializeRenderer() {
       var _a;
-      const src = this.element.src || ((_a = this.element.querySelector("source")) == null ? void 0 : _a.src);
+      let src = this._pendingSource || this.element.src || ((_a = this.element.querySelector("source")) == null ? void 0 : _a.src);
       if (!src) {
         throw new Error("No media source found");
       }
+      this.currentSource = src;
+      this._pendingSource = null;
       const sourceElements = this.sourceElements;
       for (const sourceEl of sourceElements) {
         const descSrc = sourceEl.getAttribute("data-desc-src");
@@ -8658,6 +8971,9 @@
       } else if (src.includes(".m3u8")) {
         const module = await Promise.resolve().then(() => (init_HLSRenderer(), HLSRenderer_exports));
         rendererClass = module.HLSRenderer || module.default;
+      } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
+        const module = await Promise.resolve().then(() => (init_SoundCloudRenderer(), SoundCloudRenderer_exports));
+        rendererClass = module.SoundCloudRenderer || module.default;
       }
       this.log("Using ".concat((rendererClass == null ? void 0 : rendererClass.name) || "HTML5Renderer", " renderer"));
       this.renderer = new rendererClass(this);
@@ -8769,6 +9085,11 @@
       const resolvedPoster = this.resolvePosterPath(poster);
       this.videoWrapper.style.setProperty("--vidply-poster-image", 'url("'.concat(resolvedPoster, '")'));
       this.videoWrapper.classList.add("vidply-forced-poster");
+      if (this._isAudioContent && this.container) {
+        this.container.classList.add("vidply-audio-content");
+      } else if (this.container) {
+        this.container.classList.remove("vidply-audio-content");
+      }
     }
     hidePosterOverlay() {
       if (!this.videoWrapper) {
@@ -8811,6 +9132,15 @@
      * @param {string} [config.audioDescriptionSrc] - Audio description video URL
      * @param {string} [config.signLanguageSrc] - Sign language video URL
      */
+    /**
+     * Check if a source URL requires an external renderer (YouTube, Vimeo, SoundCloud, HLS)
+     * @param {string} src - Source URL
+     * @returns {boolean}
+     */
+    isExternalRendererUrl(src) {
+      if (!src) return false;
+      return src.includes("youtube.com") || src.includes("youtu.be") || src.includes("vimeo.com") || src.includes("soundcloud.com") || src.includes("api.soundcloud.com") || src.includes(".m3u8");
+    }
     async load(config) {
       var _a;
       try {
@@ -8823,12 +9153,44 @@
         const existingTracks = this.trackElements;
         existingTracks.forEach((track) => track.remove());
         this.invalidateTrackCache();
-        this.element.src = config.src;
-        if (config.type) {
-          this.element.type = config.type;
+        const isExternalRenderer = this.isExternalRendererUrl(config.src);
+        if (isExternalRenderer) {
+          this._switchingRenderer = true;
+        }
+        if (!isExternalRenderer) {
+          this.element.src = config.src;
+          if (config.type) {
+            this.element.type = config.type;
+          }
+        } else {
+          this.element.removeAttribute("src");
+          const sources = this.element.querySelectorAll("source");
+          sources.forEach((s) => s.removeAttribute("src"));
+        }
+        this._pendingSource = config.src;
+        this._isAudioContent = config.type && config.type.startsWith("audio/");
+        if (this.container) {
+          if (this._isAudioContent) {
+            this.container.classList.add("vidply-audio-content");
+          } else {
+            this.container.classList.remove("vidply-audio-content");
+          }
         }
         if (config.poster && this.element.tagName === "VIDEO") {
-          this.element.poster = this.resolvePosterPath(config.poster);
+          if (this._isAudioContent) {
+            this.element.removeAttribute("poster");
+            if (this.videoWrapper) {
+              const resolvedPoster = this.resolvePosterPath(config.poster);
+              this.videoWrapper.style.setProperty("--vidply-poster-image", 'url("'.concat(resolvedPoster, '")'));
+              this.videoWrapper.classList.add("vidply-forced-poster");
+            }
+          } else {
+            this.element.poster = this.resolvePosterPath(config.poster);
+            if (this.videoWrapper) {
+              this.videoWrapper.classList.remove("vidply-forced-poster");
+              this.videoWrapper.style.removeProperty("--vidply-poster-image");
+            }
+          }
         }
         if (config.tracks && config.tracks.length > 0) {
           config.tracks.forEach((trackConfig) => {
@@ -8870,6 +9232,13 @@
         } else {
           this.renderer.media = this.element;
           this.element.load();
+        }
+        if (isExternalRenderer) {
+          setTimeout(() => {
+            this._switchingRenderer = false;
+          }, 500);
+        } else {
+          this._switchingRenderer = false;
         }
         window.scrollTo(scrollX, scrollY);
         if (this.captionManager) {
@@ -8929,11 +9298,13 @@
       const isYouTube = src.includes("youtube.com") || src.includes("youtu.be");
       const isVimeo = src.includes("vimeo.com");
       const isHLS = src.includes(".m3u8");
+      const isSoundCloud = src.includes("soundcloud.com") || src.includes("api.soundcloud.com");
       const currentRendererName = this.renderer.constructor.name;
       if (isYouTube && currentRendererName !== "YouTubeRenderer") return true;
       if (isVimeo && currentRendererName !== "VimeoRenderer") return true;
       if (isHLS && currentRendererName !== "HLSRenderer") return true;
-      if (!isYouTube && !isVimeo && !isHLS && currentRendererName !== "HTML5Renderer") return true;
+      if (isSoundCloud && currentRendererName !== "SoundCloudRenderer") return true;
+      if (!isYouTube && !isVimeo && !isHLS && !isSoundCloud && currentRendererName !== "HTML5Renderer") return true;
       return false;
     }
     // Playback controls
@@ -11148,6 +11519,10 @@
     }
     // Error handling
     handleError(error) {
+      if (this._switchingRenderer) {
+        this.log("Suppressing error during renderer switch:", error, "debug");
+        return;
+      }
       this.log("Error:", error, "error");
       this.emit("error", error);
       if (this.options.onError) {
@@ -11691,7 +12066,9 @@
         autoPlayFirst: options.autoPlayFirst !== false,
         // Default true - auto-play first track on load
         loop: options.loop || false,
-        showPanel: options.showPanel !== false
+        showPanel: options.showPanel !== false,
+        // Default true
+        recreatePlayers: options.recreatePlayers || false
       }, options);
       this.container = null;
       this.playlistPanel = null;
@@ -11699,6 +12076,8 @@
       this.navigationFeedback = null;
       this.isPanelVisible = this.options.showPanel !== false;
       this.isChangingTrack = false;
+      this.hostElement = options.hostElement || null;
+      this.PlayerClass = options.PlayerClass || null;
       this.handleTrackEnd = this.handleTrackEnd.bind(this);
       this.handleTrackError = this.handleTrackError.bind(this);
       this.player.playlistManager = this;
@@ -11707,6 +12086,159 @@
       if (this.initialTracks.length > 0) {
         this.loadPlaylist(this.initialTracks);
       }
+    }
+    /**
+     * Determine the media type for a track
+     * @param {Object} track - Track object
+     * @returns {string} - 'audio', 'video', 'youtube', 'vimeo', 'soundcloud', 'hls'
+     */
+    getTrackMediaType(track) {
+      const src = track.src || "";
+      if (src.includes("youtube.com") || src.includes("youtu.be")) {
+        return "youtube";
+      }
+      if (src.includes("vimeo.com")) {
+        return "vimeo";
+      }
+      if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
+        return "soundcloud";
+      }
+      if (src.includes(".m3u8")) {
+        return "hls";
+      }
+      if (track.type && track.type.startsWith("audio/")) {
+        return "audio";
+      }
+      return "video";
+    }
+    /**
+     * Recreate the player with the appropriate element type for the track
+     * @param {Object} track - Track to load
+     * @param {boolean} autoPlay - Whether to auto-play after creation
+     */
+    async recreatePlayerForTrack(track, autoPlay = false) {
+      if (!this.hostElement || !this.PlayerClass) {
+        console.warn("VidPly Playlist: Cannot recreate player - missing hostElement or PlayerClass");
+        return false;
+      }
+      const mediaType = this.getTrackMediaType(track);
+      const elementType = mediaType === "audio" ? "audio" : "video";
+      const wasVisible = this.isPanelVisible;
+      const savedTracks = [...this.tracks];
+      const savedIndex = this.currentIndex;
+      if (this.trackArtworkElement && this.trackArtworkElement.parentNode) {
+        this.trackArtworkElement.parentNode.removeChild(this.trackArtworkElement);
+      }
+      if (this.trackInfoElement && this.trackInfoElement.parentNode) {
+        this.trackInfoElement.parentNode.removeChild(this.trackInfoElement);
+      }
+      if (this.navigationFeedback && this.navigationFeedback.parentNode) {
+        this.navigationFeedback.parentNode.removeChild(this.navigationFeedback);
+      }
+      if (this.playlistPanel && this.playlistPanel.parentNode) {
+        this.playlistPanel.parentNode.removeChild(this.playlistPanel);
+      }
+      if (this.player) {
+        this.player.off("ended", this.handleTrackEnd);
+        this.player.off("error", this.handleTrackError);
+        this.player.destroy();
+      }
+      this.hostElement.innerHTML = "";
+      const mediaElement = document.createElement(elementType);
+      mediaElement.setAttribute("preload", "metadata");
+      if (elementType === "video" && track.poster && (mediaType === "video" || mediaType === "hls")) {
+        mediaElement.setAttribute("poster", track.poster);
+      }
+      const isExternalRenderer = ["youtube", "vimeo", "soundcloud", "hls"].includes(mediaType);
+      if (!isExternalRenderer) {
+        const source = document.createElement("source");
+        source.src = track.src;
+        if (track.type) {
+          source.type = track.type;
+        }
+        mediaElement.appendChild(source);
+        if (track.tracks && track.tracks.length > 0) {
+          track.tracks.forEach((trackConfig) => {
+            const trackEl = document.createElement("track");
+            trackEl.src = trackConfig.src;
+            trackEl.kind = trackConfig.kind || "captions";
+            trackEl.srclang = trackConfig.srclang || "en";
+            trackEl.label = trackConfig.label || trackConfig.srclang;
+            if (trackConfig.default) {
+              trackEl.default = true;
+            }
+            mediaElement.appendChild(trackEl);
+          });
+        }
+      }
+      this.hostElement.appendChild(mediaElement);
+      const playerOptions = {
+        mediaType: elementType,
+        poster: track.poster,
+        audioDescriptionSrc: track.audioDescriptionSrc || null,
+        audioDescriptionDuration: track.audioDescriptionDuration || null,
+        signLanguageSrc: track.signLanguageSrc || null
+      };
+      this.player = new this.PlayerClass(mediaElement, playerOptions);
+      this.player.playlistManager = this;
+      await new Promise((resolve) => {
+        this.player.on("ready", resolve);
+      });
+      this.player.on("ended", this.handleTrackEnd);
+      this.player.on("error", this.handleTrackError);
+      if (this.player.container) {
+        if (this.trackArtworkElement) {
+          const videoWrapper = this.player.container.querySelector(".vidply-video-wrapper");
+          if (videoWrapper) {
+            this.player.container.insertBefore(this.trackArtworkElement, videoWrapper);
+          } else {
+            this.player.container.appendChild(this.trackArtworkElement);
+          }
+        }
+        if (this.trackInfoElement) {
+          this.player.container.appendChild(this.trackInfoElement);
+        }
+        if (this.navigationFeedback) {
+          this.player.container.appendChild(this.navigationFeedback);
+        }
+        if (this.playlistPanel) {
+          this.player.container.appendChild(this.playlistPanel);
+        }
+      }
+      this.container = this.player.container;
+      this.updatePlayerControls();
+      this.tracks = savedTracks;
+      this.currentIndex = savedIndex;
+      this.updatePlaylistUI();
+      this.isPanelVisible = wasVisible;
+      if (this.playlistPanel) {
+        this.playlistPanel.style.display = wasVisible ? "" : "none";
+      }
+      if (isExternalRenderer) {
+        this.player.load({
+          src: track.src,
+          type: track.type,
+          poster: track.poster,
+          tracks: track.tracks || [],
+          audioDescriptionSrc: track.audioDescriptionSrc || null,
+          signLanguageSrc: track.signLanguageSrc || null
+        });
+      } else {
+        this.player.load({
+          src: track.src,
+          type: track.type,
+          poster: track.poster,
+          tracks: track.tracks || [],
+          audioDescriptionSrc: track.audioDescriptionSrc || null,
+          signLanguageSrc: track.signLanguageSrc || null
+        });
+      }
+      if (autoPlay) {
+        setTimeout(() => {
+          this.player.play();
+        }, 100);
+      }
+      return true;
     }
     init() {
       this.player.on("ended", this.handleTrackEnd);
@@ -11818,7 +12350,7 @@
      * Load a track without playing
      * @param {number} index - Track index
      */
-    loadTrack(index) {
+    async loadTrack(index) {
       if (index < 0 || index >= this.tracks.length) {
         console.warn("VidPly Playlist: Invalid track index", index);
         return;
@@ -11826,6 +12358,25 @@
       const track = this.tracks[index];
       this.isChangingTrack = true;
       this.currentIndex = index;
+      if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
+        const currentMediaType = this.player ? this.player.element.tagName === "AUDIO" ? "audio" : "video" : null;
+        const newMediaType = this.getTrackMediaType(track);
+        const newElementType = newMediaType === "audio" || newMediaType === "soundcloud" ? "audio" : "video";
+        if (currentMediaType !== newElementType) {
+          await this.recreatePlayerForTrack(track, false);
+          this.updateTrackInfo(track);
+          this.updatePlaylistUI();
+          this.player.emit("playlisttrackchange", {
+            index,
+            item: track,
+            total: this.tracks.length
+          });
+          setTimeout(() => {
+            this.isChangingTrack = false;
+          }, 150);
+          return;
+        }
+      }
       this.player.load({
         src: track.src,
         type: track.type,
@@ -11850,7 +12401,7 @@
      * @param {number} index - Track index
      * @param {boolean} userInitiated - Whether this was triggered by user action (default: false)
      */
-    play(index, userInitiated = false) {
+    async play(index, userInitiated = false) {
       if (index < 0 || index >= this.tracks.length) {
         console.warn("VidPly Playlist: Invalid track index", index);
         return;
@@ -11858,6 +12409,25 @@
       const track = this.tracks[index];
       this.isChangingTrack = true;
       this.currentIndex = index;
+      if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
+        const currentMediaType = this.player ? this.player.element.tagName === "AUDIO" ? "audio" : "video" : null;
+        const newMediaType = this.getTrackMediaType(track);
+        const newElementType = newMediaType === "audio" || newMediaType === "soundcloud" ? "audio" : "video";
+        if (currentMediaType !== newElementType) {
+          await this.recreatePlayerForTrack(track, true);
+          this.updateTrackInfo(track);
+          this.updatePlaylistUI();
+          this.player.emit("playlisttrackchange", {
+            index,
+            item: track,
+            total: this.tracks.length
+          });
+          setTimeout(() => {
+            this.isChangingTrack = false;
+          }, 150);
+          return;
+        }
+      }
       this.player.load({
         src: track.src,
         type: track.type,
@@ -11920,9 +12490,25 @@
       }
     }
     /**
+     * Check if a source URL requires an external renderer
+     * @param {string} src - Source URL
+     * @returns {boolean}
+     */
+    isExternalRendererUrl(src) {
+      if (!src) return false;
+      return src.includes("youtube.com") || src.includes("youtu.be") || src.includes("vimeo.com") || src.includes("soundcloud.com") || src.includes("api.soundcloud.com") || src.includes(".m3u8");
+    }
+    /**
      * Handle track error
      */
     handleTrackError(e) {
+      const currentTrack = this.getCurrentTrack();
+      if (currentTrack && currentTrack.src && this.isExternalRendererUrl(currentTrack.src)) {
+        return;
+      }
+      if (this.isChangingTrack) {
+        return;
+      }
       console.error("VidPly Playlist: Track error", e);
       if (this.options.autoAdvance) {
         setTimeout(() => {

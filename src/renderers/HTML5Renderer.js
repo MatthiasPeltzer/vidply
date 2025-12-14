@@ -20,6 +20,11 @@ export class HTML5Renderer {
     
     // Load media
     this.media.load();
+    
+    // Show VidPly controls (remove external controls class if present)
+    if (this.player.container) {
+      this.player.container.classList.remove('vidply-external-controls');
+    }
   }
 
   attachEvents() {

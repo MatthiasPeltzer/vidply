@@ -12,8 +12,9 @@ export class VimeoRenderer {
   }
 
   async init() {
-    // Extract video ID from URL
-    this.videoId = this.extractVideoId(this.player.element.src);
+    // Extract video ID from URL - use currentSource which works for external renderers
+    const src = this.player.currentSource || this.player.element.src;
+    this.videoId = this.extractVideoId(src);
     
     if (!this.videoId) {
       throw new Error('Invalid Vimeo URL');
@@ -69,7 +70,8 @@ export class VimeoRenderer {
     this.iframe = document.createElement('div');
     this.iframe.id = `vimeo-player-${Math.random().toString(36).substr(2, 9)}`;
     this.iframe.style.width = '100%';
-    this.iframe.style.height = '100%';
+    this.iframe.style.aspectRatio = '16 / 9';
+    this.iframe.style.maxHeight = '100%';
     
     this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
   }
@@ -79,7 +81,7 @@ export class VimeoRenderer {
       id: this.videoId,
       width: '100%',
       height: '100%',
-      controls: false,
+      controls: true, // Use Vimeo native controls
       autoplay: this.player.options.autoplay,
       muted: this.player.options.muted,
       loop: this.player.options.loop,
@@ -95,6 +97,20 @@ export class VimeoRenderer {
     // Wait for player to be ready
     await this.vimeo.ready();
     this.isReady = true;
+    
+    // Ensure the iframe has 100% width and height
+    const vimeoIframe = this.iframe.querySelector('iframe');
+    if (vimeoIframe) {
+      vimeoIframe.style.width = '100%';
+      vimeoIframe.style.height = '100%';
+      vimeoIframe.setAttribute('width', '100%');
+      vimeoIframe.setAttribute('height', '100%');
+    }
+    
+    // Hide VidPly controls - Vimeo has its own
+    if (this.player.container) {
+      this.player.container.classList.add('vidply-external-controls');
+    }
 
     this.attachEvents();
 
