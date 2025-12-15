@@ -21,7 +21,7 @@ import {
   focusFirstMenuItem,
   i18n,
   preventDragOnElement
-} from "./vidply.chunk-5663PYKK.js";
+} from "./vidply.chunk-SRM7VNHG.js";
 
 // src/utils/EventEmitter.js
 var EventEmitter = class {
@@ -3339,7 +3339,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-UTJBQC5B.js");
+    const module = await import("./vidply.TranscriptManager-QSF2PWUN.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;
@@ -7472,7 +7472,7 @@ var PlaylistManager = class {
         if (index < buttons.length - 1) {
           newIndex = index + 1;
         } else {
-          announcement = `End of playlist. ${buttons.length} of ${buttons.length}.`;
+          announcement = i18n.t("playlist.endOfPlaylist", { current: buttons.length, total: buttons.length });
         }
         break;
       case "ArrowUp":
@@ -7481,7 +7481,7 @@ var PlaylistManager = class {
         if (index > 0) {
           newIndex = index - 1;
         } else {
-          announcement = "Beginning of playlist. 1 of " + buttons.length + ".";
+          announcement = i18n.t("playlist.beginningOfPlaylist", { total: buttons.length });
         }
         break;
       case "PageDown":
@@ -7489,7 +7489,7 @@ var PlaylistManager = class {
         e.stopPropagation();
         newIndex = Math.min(index + 5, buttons.length - 1);
         if (newIndex === buttons.length - 1 && index !== newIndex) {
-          announcement = `Jumped to last track. ${newIndex + 1} of ${buttons.length}.`;
+          announcement = i18n.t("playlist.jumpedToLastTrack", { current: newIndex + 1, total: buttons.length });
         }
         break;
       case "PageUp":
@@ -7497,7 +7497,7 @@ var PlaylistManager = class {
         e.stopPropagation();
         newIndex = Math.max(index - 5, 0);
         if (newIndex === 0 && index !== newIndex) {
-          announcement = `Jumped to first track. 1 of ${buttons.length}.`;
+          announcement = i18n.t("playlist.jumpedToFirstTrack", { total: buttons.length });
         }
         break;
       case "Home":
@@ -7505,7 +7505,7 @@ var PlaylistManager = class {
         e.stopPropagation();
         newIndex = 0;
         if (index !== 0) {
-          announcement = `First track. 1 of ${buttons.length}.`;
+          announcement = i18n.t("playlist.firstTrack", { total: buttons.length });
         }
         break;
       case "End":
@@ -7513,7 +7513,7 @@ var PlaylistManager = class {
         e.stopPropagation();
         newIndex = buttons.length - 1;
         if (index !== buttons.length - 1) {
-          announcement = `Last track. ${buttons.length} of ${buttons.length}.`;
+          announcement = i18n.t("playlist.lastTrack", { current: buttons.length, total: buttons.length });
         }
         break;
     }

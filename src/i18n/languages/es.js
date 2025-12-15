@@ -102,6 +102,7 @@ export const es = {
   },
   transcript: {
     title: 'Transcripción',
+    ariaLabel: 'Transcripción de video',
     close: 'Cerrar transcripción',
     loading: 'Cargando transcripción...',
     noTranscript: 'No hay transcripción disponible para este video.',
@@ -169,7 +170,13 @@ export const es = {
     notPlaying: 'Sin reproducir',
     pressEnterPlay: 'Pulsa Enter para reproducir',
     pressEnterRestart: 'Pulsa Enter para reiniciar',
-    keyboardInstructions: 'Navegación de lista de reproducción: Use las teclas de flecha arriba y abajo para moverse entre pistas. Pulse Retroceder página o Avanzar página para saltar 5 pistas. Pulse Inicio para ir a la primera pista, Fin para la última pista. Pulse Intro o Espacio para reproducir la pista seleccionada.'
+    keyboardInstructions: 'Navegación de lista de reproducción: Use las teclas de flecha arriba y abajo para moverse entre pistas. Pulse Retroceder página o Avanzar página para saltar 5 pistas. Pulse Inicio para ir a la primera pista, Fin para la última pista. Pulse Intro o Espacio para reproducir la pista seleccionada.',
+    endOfPlaylist: 'Fin de la lista de reproducción. {current} de {total}.',
+    beginningOfPlaylist: 'Inicio de la lista de reproducción. 1 de {total}.',
+    jumpedToLastTrack: 'Saltó a la última pista. {current} de {total}.',
+    jumpedToFirstTrack: 'Saltó a la primera pista. 1 de {total}.',
+    firstTrack: 'Primera pista. 1 de {total}.',
+    lastTrack: 'Última pista. {current} de {total}.'
   }
 };
 

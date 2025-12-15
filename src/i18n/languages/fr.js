@@ -102,6 +102,7 @@ export const fr = {
   },
   transcript: {
     title: 'Transcription',
+    ariaLabel: 'Transcription vidéo',
     close: 'Fermer la transcription',
     loading: 'Chargement de la transcription...',
     noTranscript: 'Aucune transcription disponible pour cette vidéo.',
@@ -169,7 +170,13 @@ export const fr = {
     notPlaying: 'Non en lecture',
     pressEnterPlay: 'Appuyez sur Entrée pour lire',
     pressEnterRestart: 'Appuyez sur Entrée pour recommencer',
-    keyboardInstructions: 'Navigation de la liste de lecture : Utilisez les touches fléchées haut et bas pour naviguer entre les pistes. Appuyez sur Page précédente ou Page suivante pour sauter 5 pistes. Appuyez sur Début pour aller à la première piste, Fin pour la dernière piste. Appuyez sur Entrée ou Espace pour lire la piste sélectionnée.'
+    keyboardInstructions: 'Navigation de la liste de lecture : Utilisez les touches fléchées haut et bas pour naviguer entre les pistes. Appuyez sur Page précédente ou Page suivante pour sauter 5 pistes. Appuyez sur Début pour aller à la première piste, Fin pour la dernière piste. Appuyez sur Entrée ou Espace pour lire la piste sélectionnée.',
+    endOfPlaylist: 'Fin de la liste de lecture. {current} sur {total}.',
+    beginningOfPlaylist: 'Début de la liste de lecture. 1 sur {total}.',
+    jumpedToLastTrack: 'Sauté à la dernière piste. {current} sur {total}.',
+    jumpedToFirstTrack: 'Sauté à la première piste. 1 sur {total}.',
+    firstTrack: 'Première piste. 1 sur {total}.',
+    lastTrack: 'Dernière piste. {current} sur {total}.'
   }
 };
 

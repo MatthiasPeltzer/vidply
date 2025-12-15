@@ -102,6 +102,7 @@ export const en = {
   },
   transcript: {
     title: 'Transcript',
+    ariaLabel: 'Video Transcript',
     close: 'Close transcript',
     loading: 'Loading transcript...',
     noTranscript: 'No transcript available for this video.',
@@ -169,7 +170,13 @@ export const en = {
     notPlaying: 'Not playing',
     pressEnterPlay: 'Press Enter to play',
     pressEnterRestart: 'Press Enter to restart',
-    keyboardInstructions: 'Playlist navigation: Use Up and Down arrow keys to move between tracks. Press Page Up or Page Down to skip 5 tracks. Press Home to go to first track, End to go to last track. Press Enter or Space to play the selected track.'
+    keyboardInstructions: 'Playlist navigation: Use Up and Down arrow keys to move between tracks. Press Page Up or Page Down to skip 5 tracks. Press Home to go to first track, End to go to last track. Press Enter or Space to play the selected track.',
+    endOfPlaylist: 'End of playlist. {current} of {total}.',
+    beginningOfPlaylist: 'Beginning of playlist. 1 of {total}.',
+    jumpedToLastTrack: 'Jumped to last track. {current} of {total}.',
+    jumpedToFirstTrack: 'Jumped to first track. 1 of {total}.',
+    firstTrack: 'First track. 1 of {total}.',
+    lastTrack: 'Last track. {current} of {total}.'
   }
 };
 

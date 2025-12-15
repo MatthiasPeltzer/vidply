@@ -102,6 +102,7 @@ export const de = {
     },
     transcript: {
         title: 'Transkript',
+        ariaLabel: 'Video-Transkript',
         close: 'Transkript schließen',
         loading: 'Transkript wird geladen...',
         noTranscript: 'Kein Transkript für dieses Video verfügbar.',
@@ -169,7 +170,13 @@ export const de = {
         notPlaying: 'Nicht aktiv',
         pressEnterPlay: 'Eingabetaste zum Abspielen',
         pressEnterRestart: 'Eingabetaste zum Neustart',
-        keyboardInstructions: 'Wiedergabelisten-Navigation: Verwenden Sie die Pfeiltasten nach oben und unten, um zwischen Titeln zu wechseln. Drücken Sie Bild auf oder Bild ab, um 5 Titel zu überspringen. Drücken Sie Pos1, um zum ersten Titel zu springen, Ende für den letzten Titel. Drücken Sie die Eingabetaste oder Leertaste, um den ausgewählten Titel abzuspielen.'
+        keyboardInstructions: 'Wiedergabelisten-Navigation: Verwenden Sie die Pfeiltasten nach oben und unten, um zwischen Titeln zu wechseln. Drücken Sie Bild auf oder Bild ab, um 5 Titel zu überspringen. Drücken Sie Pos1, um zum ersten Titel zu springen, Ende für den letzten Titel. Drücken Sie die Eingabetaste oder Leertaste, um den ausgewählten Titel abzuspielen.',
+        endOfPlaylist: 'Ende der Wiedergabeliste. {current} von {total}.',
+        beginningOfPlaylist: 'Anfang der Wiedergabeliste. 1 von {total}.',
+        jumpedToLastTrack: 'Zum letzten Titel gesprungen. {current} von {total}.',
+        jumpedToFirstTrack: 'Zum ersten Titel gesprungen. 1 von {total}.',
+        firstTrack: 'Erster Titel. 1 von {total}.',
+        lastTrack: 'Letzter Titel. {current} von {total}.'
     }
 };
 

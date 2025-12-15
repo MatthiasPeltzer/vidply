@@ -102,6 +102,7 @@ export const ja = {
   },
   transcript: {
     title: '文字起こし',
+    ariaLabel: 'ビデオ文字起こし',
     close: '文字起こしを閉じる',
     loading: '文字起こしを読み込み中...',
     noTranscript: 'このビデオの文字起こしはありません。',
@@ -169,7 +170,13 @@ export const ja = {
     notPlaying: '停止中',
     pressEnterPlay: 'Enterキーで再生',
     pressEnterRestart: 'Enterキーで最初から再生',
-    keyboardInstructions: 'プレイリストナビゲーション：上下の矢印キーでトラック間を移動します。Page UpまたはPage Downで5トラックをスキップします。Homeで最初のトラックへ、Endで最後のトラックへ移動します。EnterまたはSpaceで選択したトラックを再生します。'
+    keyboardInstructions: 'プレイリストナビゲーション：上下の矢印キーでトラック間を移動します。Page UpまたはPage Downで5トラックをスキップします。Homeで最初のトラックへ、Endで最後のトラックへ移動します。EnterまたはSpaceで選択したトラックを再生します。',
+    endOfPlaylist: 'プレイリストの終わりです。{current}/{total}。',
+    beginningOfPlaylist: 'プレイリストの始めです。1/{total}。',
+    jumpedToLastTrack: '最後のトラックにジャンプしました。{current}/{total}。',
+    jumpedToFirstTrack: '最初のトラックにジャンプしました。1/{total}。',
+    firstTrack: '最初のトラックです。1/{total}。',
+    lastTrack: '最後のトラックです。{current}/{total}。'
   }
 };
 
