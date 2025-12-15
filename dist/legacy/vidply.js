@@ -307,6 +307,7 @@
         },
         transcript: {
           title: "Transcript",
+          ariaLabel: "Video Transcript",
           close: "Close transcript",
           loading: "Loading transcript...",
           noTranscript: "No transcript available for this video.",
@@ -374,7 +375,13 @@
           notPlaying: "Not playing",
           pressEnterPlay: "Press Enter to play",
           pressEnterRestart: "Press Enter to restart",
-          keyboardInstructions: "Playlist navigation: Use Up and Down arrow keys to move between tracks. Press Page Up or Page Down to skip 5 tracks. Press Home to go to first track, End to go to last track. Press Enter or Space to play the selected track."
+          keyboardInstructions: "Playlist navigation: Use Up and Down arrow keys to move between tracks. Press Page Up or Page Down to skip 5 tracks. Press Home to go to first track, End to go to last track. Press Enter or Space to play the selected track.",
+          endOfPlaylist: "End of playlist. {current} of {total}.",
+          beginningOfPlaylist: "Beginning of playlist. 1 of {total}.",
+          jumpedToLastTrack: "Jumped to last track. {current} of {total}.",
+          jumpedToFirstTrack: "Jumped to first track. 1 of {total}.",
+          firstTrack: "First track. 1 of {total}.",
+          lastTrack: "Last track. {current} of {total}."
         }
       };
     }
@@ -488,6 +495,7 @@
         },
         transcript: {
           title: "Transkript",
+          ariaLabel: "Video-Transkript",
           close: "Transkript schließen",
           loading: "Transkript wird geladen...",
           noTranscript: "Kein Transkript für dieses Video verfügbar.",
@@ -555,7 +563,13 @@
           notPlaying: "Nicht aktiv",
           pressEnterPlay: "Eingabetaste zum Abspielen",
           pressEnterRestart: "Eingabetaste zum Neustart",
-          keyboardInstructions: "Wiedergabelisten-Navigation: Verwenden Sie die Pfeiltasten nach oben und unten, um zwischen Titeln zu wechseln. Drücken Sie Bild auf oder Bild ab, um 5 Titel zu überspringen. Drücken Sie Pos1, um zum ersten Titel zu springen, Ende für den letzten Titel. Drücken Sie die Eingabetaste oder Leertaste, um den ausgewählten Titel abzuspielen."
+          keyboardInstructions: "Wiedergabelisten-Navigation: Verwenden Sie die Pfeiltasten nach oben und unten, um zwischen Titeln zu wechseln. Drücken Sie Bild auf oder Bild ab, um 5 Titel zu überspringen. Drücken Sie Pos1, um zum ersten Titel zu springen, Ende für den letzten Titel. Drücken Sie die Eingabetaste oder Leertaste, um den ausgewählten Titel abzuspielen.",
+          endOfPlaylist: "Ende der Wiedergabeliste. {current} von {total}.",
+          beginningOfPlaylist: "Anfang der Wiedergabeliste. 1 von {total}.",
+          jumpedToLastTrack: "Zum letzten Titel gesprungen. {current} von {total}.",
+          jumpedToFirstTrack: "Zum ersten Titel gesprungen. 1 von {total}.",
+          firstTrack: "Erster Titel. 1 von {total}.",
+          lastTrack: "Letzter Titel. {current} von {total}."
         }
       };
     }
@@ -669,6 +683,7 @@
         },
         transcript: {
           title: "Transcripción",
+          ariaLabel: "Transcripción de video",
           close: "Cerrar transcripción",
           loading: "Cargando transcripción...",
           noTranscript: "No hay transcripción disponible para este video.",
@@ -736,7 +751,13 @@
           notPlaying: "Sin reproducir",
           pressEnterPlay: "Pulsa Enter para reproducir",
           pressEnterRestart: "Pulsa Enter para reiniciar",
-          keyboardInstructions: "Navegación de lista de reproducción: Use las teclas de flecha arriba y abajo para moverse entre pistas. Pulse Retroceder página o Avanzar página para saltar 5 pistas. Pulse Inicio para ir a la primera pista, Fin para la última pista. Pulse Intro o Espacio para reproducir la pista seleccionada."
+          keyboardInstructions: "Navegación de lista de reproducción: Use las teclas de flecha arriba y abajo para moverse entre pistas. Pulse Retroceder página o Avanzar página para saltar 5 pistas. Pulse Inicio para ir a la primera pista, Fin para la última pista. Pulse Intro o Espacio para reproducir la pista seleccionada.",
+          endOfPlaylist: "Fin de la lista de reproducción. {current} de {total}.",
+          beginningOfPlaylist: "Inicio de la lista de reproducción. 1 de {total}.",
+          jumpedToLastTrack: "Saltó a la última pista. {current} de {total}.",
+          jumpedToFirstTrack: "Saltó a la primera pista. 1 de {total}.",
+          firstTrack: "Primera pista. 1 de {total}.",
+          lastTrack: "Última pista. {current} de {total}."
         }
       };
     }
@@ -850,6 +871,7 @@
         },
         transcript: {
           title: "Transcription",
+          ariaLabel: "Transcription vidéo",
           close: "Fermer la transcription",
           loading: "Chargement de la transcription...",
           noTranscript: "Aucune transcription disponible pour cette vidéo.",
@@ -917,7 +939,13 @@
           notPlaying: "Non en lecture",
           pressEnterPlay: "Appuyez sur Entrée pour lire",
           pressEnterRestart: "Appuyez sur Entrée pour recommencer",
-          keyboardInstructions: "Navigation de la liste de lecture : Utilisez les touches fléchées haut et bas pour naviguer entre les pistes. Appuyez sur Page précédente ou Page suivante pour sauter 5 pistes. Appuyez sur Début pour aller à la première piste, Fin pour la dernière piste. Appuyez sur Entrée ou Espace pour lire la piste sélectionnée."
+          keyboardInstructions: "Navigation de la liste de lecture : Utilisez les touches fléchées haut et bas pour naviguer entre les pistes. Appuyez sur Page précédente ou Page suivante pour sauter 5 pistes. Appuyez sur Début pour aller à la première piste, Fin pour la dernière piste. Appuyez sur Entrée ou Espace pour lire la piste sélectionnée.",
+          endOfPlaylist: "Fin de la liste de lecture. {current} sur {total}.",
+          beginningOfPlaylist: "Début de la liste de lecture. 1 sur {total}.",
+          jumpedToLastTrack: "Sauté à la dernière piste. {current} sur {total}.",
+          jumpedToFirstTrack: "Sauté à la première piste. 1 sur {total}.",
+          firstTrack: "Première piste. 1 sur {total}.",
+          lastTrack: "Dernière piste. {current} sur {total}."
         }
       };
     }
@@ -1031,6 +1059,7 @@
         },
         transcript: {
           title: "文字起こし",
+          ariaLabel: "ビデオ文字起こし",
           close: "文字起こしを閉じる",
           loading: "文字起こしを読み込み中...",
           noTranscript: "このビデオの文字起こしはありません。",
@@ -1098,7 +1127,13 @@
           notPlaying: "停止中",
           pressEnterPlay: "Enterキーで再生",
           pressEnterRestart: "Enterキーで最初から再生",
-          keyboardInstructions: "プレイリストナビゲーション：上下の矢印キーでトラック間を移動します。Page UpまたはPage Downで5トラックをスキップします。Homeで最初のトラックへ、Endで最後のトラックへ移動します。EnterまたはSpaceで選択したトラックを再生します。"
+          keyboardInstructions: "プレイリストナビゲーション：上下の矢印キーでトラック間を移動します。Page UpまたはPage Downで5トラックをスキップします。Homeで最初のトラックへ、Endで最後のトラックへ移動します。EnterまたはSpaceで選択したトラックを再生します。",
+          endOfPlaylist: "プレイリストの終わりです。{current}/{total}。",
+          beginningOfPlaylist: "プレイリストの始めです。1/{total}。",
+          jumpedToLastTrack: "最後のトラックにジャンプしました。{current}/{total}。",
+          jumpedToFirstTrack: "最初のトラックにジャンプしました。1/{total}。",
+          firstTrack: "最初のトラックです。1/{total}。",
+          lastTrack: "最後のトラックです。{current}/{total}。"
         }
       };
     }
@@ -2829,7 +2864,7 @@
             className: "".concat(this.player.options.classPrefix, "-transcript-window"),
             attributes: {
               "role": "dialog",
-              "aria-label": "Video Transcript",
+              "aria-label": i18n.t("transcript.ariaLabel"),
               "tabindex": "-1"
             }
           });
@@ -12882,7 +12917,7 @@
           if (index < buttons.length - 1) {
             newIndex = index + 1;
           } else {
-            announcement = "End of playlist. ".concat(buttons.length, " of ").concat(buttons.length, ".");
+            announcement = i18n.t("playlist.endOfPlaylist", { current: buttons.length, total: buttons.length });
           }
           break;
         case "ArrowUp":
@@ -12891,7 +12926,7 @@
           if (index > 0) {
             newIndex = index - 1;
           } else {
-            announcement = "Beginning of playlist. 1 of " + buttons.length + ".";
+            announcement = i18n.t("playlist.beginningOfPlaylist", { total: buttons.length });
           }
           break;
         case "PageDown":
@@ -12899,7 +12934,7 @@
           e.stopPropagation();
           newIndex = Math.min(index + 5, buttons.length - 1);
           if (newIndex === buttons.length - 1 && index !== newIndex) {
-            announcement = "Jumped to last track. ".concat(newIndex + 1, " of ").concat(buttons.length, ".");
+            announcement = i18n.t("playlist.jumpedToLastTrack", { current: newIndex + 1, total: buttons.length });
           }
           break;
         case "PageUp":
@@ -12907,7 +12942,7 @@
           e.stopPropagation();
           newIndex = Math.max(index - 5, 0);
           if (newIndex === 0 && index !== newIndex) {
-            announcement = "Jumped to first track. 1 of ".concat(buttons.length, ".");
+            announcement = i18n.t("playlist.jumpedToFirstTrack", { total: buttons.length });
           }
           break;
         case "Home":
@@ -12915,7 +12950,7 @@
           e.stopPropagation();
           newIndex = 0;
           if (index !== 0) {
-            announcement = "First track. 1 of ".concat(buttons.length, ".");
+            announcement = i18n.t("playlist.firstTrack", { total: buttons.length });
           }
           break;
         case "End":
@@ -12923,7 +12958,7 @@
           e.stopPropagation();
           newIndex = buttons.length - 1;
           if (index !== buttons.length - 1) {
-            announcement = "Last track. ".concat(buttons.length, " of ").concat(buttons.length, ".");
+            announcement = i18n.t("playlist.lastTrack", { current: buttons.length, total: buttons.length });
           }
           break;
       }

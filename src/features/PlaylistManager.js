@@ -1180,10 +1180,10 @@ export class PlaylistManager {
           newIndex = index + 1;
         } else {
           // At the end, announce boundary
-          announcement = `End of playlist. ${buttons.length} of ${buttons.length}.`;
+          announcement = i18n.t('playlist.endOfPlaylist', { current: buttons.length, total: buttons.length });
         }
         break;
-        
+
       case 'ArrowUp':
         e.preventDefault();
         e.stopPropagation();
@@ -1192,47 +1192,47 @@ export class PlaylistManager {
           newIndex = index - 1;
         } else {
           // At the beginning, announce boundary
-          announcement = 'Beginning of playlist. 1 of ' + buttons.length + '.';
+          announcement = i18n.t('playlist.beginningOfPlaylist', { total: buttons.length });
         }
         break;
-        
+
       case 'PageDown':
         e.preventDefault();
         e.stopPropagation();
         // Move 5 items down (or to end)
         newIndex = Math.min(index + 5, buttons.length - 1);
         if (newIndex === buttons.length - 1 && index !== newIndex) {
-          announcement = `Jumped to last track. ${newIndex + 1} of ${buttons.length}.`;
+          announcement = i18n.t('playlist.jumpedToLastTrack', { current: newIndex + 1, total: buttons.length });
         }
         break;
-        
+
       case 'PageUp':
         e.preventDefault();
         e.stopPropagation();
         // Move 5 items up (or to beginning)
         newIndex = Math.max(index - 5, 0);
         if (newIndex === 0 && index !== newIndex) {
-          announcement = `Jumped to first track. 1 of ${buttons.length}.`;
+          announcement = i18n.t('playlist.jumpedToFirstTrack', { total: buttons.length });
         }
         break;
-        
+
       case 'Home':
         e.preventDefault();
         e.stopPropagation();
         // Move to first item
         newIndex = 0;
         if (index !== 0) {
-          announcement = `First track. 1 of ${buttons.length}.`;
+          announcement = i18n.t('playlist.firstTrack', { total: buttons.length });
         }
         break;
-        
+
       case 'End':
         e.preventDefault();
         e.stopPropagation();
         // Move to last item
         newIndex = buttons.length - 1;
         if (index !== buttons.length - 1) {
-          announcement = `Last track. ${buttons.length} of ${buttons.length}.`;
+          announcement = i18n.t('playlist.lastTrack', { current: buttons.length, total: buttons.length });
         }
         break;
     }
