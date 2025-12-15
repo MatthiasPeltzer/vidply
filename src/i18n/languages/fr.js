@@ -168,7 +168,8 @@ export const fr = {
     currentlyPlaying: 'En cours de lecture',
     notPlaying: 'Non en lecture',
     pressEnterPlay: 'Appuyez sur Entrée pour lire',
-    pressEnterRestart: 'Appuyez sur Entrée pour recommencer'
+    pressEnterRestart: 'Appuyez sur Entrée pour recommencer',
+    keyboardInstructions: 'Navigation de la liste de lecture : Utilisez les touches fléchées haut et bas pour naviguer entre les pistes. Appuyez sur Page précédente ou Page suivante pour sauter 5 pistes. Appuyez sur Début pour aller à la première piste, Fin pour la dernière piste. Appuyez sur Entrée ou Espace pour lire la piste sélectionnée.'
   }
 };
 

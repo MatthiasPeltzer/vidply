@@ -168,7 +168,8 @@ export const en = {
     currentlyPlaying: 'Currently playing',
     notPlaying: 'Not playing',
     pressEnterPlay: 'Press Enter to play',
-    pressEnterRestart: 'Press Enter to restart'
+    pressEnterRestart: 'Press Enter to restart',
+    keyboardInstructions: 'Playlist navigation: Use Up and Down arrow keys to move between tracks. Press Page Up or Page Down to skip 5 tracks. Press Home to go to first track, End to go to last track. Press Enter or Space to play the selected track.'
   }
 };
 

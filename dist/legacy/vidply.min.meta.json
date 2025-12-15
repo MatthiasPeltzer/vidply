@@ -11,27 +11,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.js": {
-      "bytes": 6736,
+      "bytes": 6990,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.js": {
-      "bytes": 8264,
+      "bytes": 8642,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.js": {
-      "bytes": 7812,
+      "bytes": 8142,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.js": {
-      "bytes": 8025,
+      "bytes": 8383,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.js": {
-      "bytes": 8422,
+      "bytes": 8772,
       "imports": [],
       "format": "esm"
     },
@@ -407,7 +407,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 48513,
+      "bytes": 48327,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -469,19 +469,19 @@
           "bytesInOutput": 2302
         },
         "src/i18n/languages/en.js": {
-          "bytesInOutput": 5577
+          "bytesInOutput": 5824
         },
         "src/i18n/languages/de.js": {
-          "bytesInOutput": 6514
+          "bytesInOutput": 6881
         },
         "src/i18n/languages/es.js": {
-          "bytesInOutput": 6681
+          "bytesInOutput": 7004
         },
         "src/i18n/languages/fr.js": {
-          "bytesInOutput": 6891
+          "bytesInOutput": 7242
         },
         "src/i18n/languages/ja.js": {
-          "bytesInOutput": 7290
+          "bytesInOutput": 7633
         },
         "src/i18n/translations.js": {
           "bytesInOutput": 368
@@ -547,13 +547,13 @@
           "bytesInOutput": 4025
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 21797
+          "bytesInOutput": 21608
         },
         "src/index.js": {
           "bytesInOutput": 1877
         }
       },
-      "bytes": 311196
+      "bytes": 312638
     }
   }
 }

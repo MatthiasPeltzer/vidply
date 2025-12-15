@@ -969,7 +969,7 @@ export class PlaylistManager {
         id: `${this.uniqueId}-keyboard-instructions`
       }
     });
-    instructions.textContent = 'Playlist navigation: Use Up and Down arrow keys to move between tracks. Press Page Up or Page Down to skip 5 tracks. Press Home to go to first track, End to go to last track. Press Enter or Space to play the selected track.';
+    instructions.textContent = i18n.t('playlist.keyboardInstructions');
     this.playlistPanel.appendChild(instructions);
     
     // Create list (proper ul element)

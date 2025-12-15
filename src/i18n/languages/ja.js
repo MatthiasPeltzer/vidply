@@ -168,7 +168,8 @@ export const ja = {
     currentlyPlaying: '再生中',
     notPlaying: '停止中',
     pressEnterPlay: 'Enterキーで再生',
-    pressEnterRestart: 'Enterキーで最初から再生'
+    pressEnterRestart: 'Enterキーで最初から再生',
+    keyboardInstructions: 'プレイリストナビゲーション：上下の矢印キーでトラック間を移動します。Page UpまたはPage Downで5トラックをスキップします。Homeで最初のトラックへ、Endで最後のトラックへ移動します。EnterまたはSpaceで選択したトラックを再生します。'
   }
 };
 

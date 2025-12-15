@@ -168,7 +168,8 @@ export const es = {
     currentlyPlaying: 'Reproduciendo actualmente',
     notPlaying: 'Sin reproducir',
     pressEnterPlay: 'Pulsa Enter para reproducir',
-    pressEnterRestart: 'Pulsa Enter para reiniciar'
+    pressEnterRestart: 'Pulsa Enter para reiniciar',
+    keyboardInstructions: 'Navegación de lista de reproducción: Use las teclas de flecha arriba y abajo para moverse entre pistas. Pulse Retroceder página o Avanzar página para saltar 5 pistas. Pulse Inicio para ir a la primera pista, Fin para la última pista. Pulse Intro o Espacio para reproducir la pista seleccionada.'
   }
 };
 
