@@ -168,7 +168,8 @@ export const de = {
         currentlyPlaying: 'Wird gerade abgespielt',
         notPlaying: 'Nicht aktiv',
         pressEnterPlay: 'Eingabetaste zum Abspielen',
-        pressEnterRestart: 'Eingabetaste zum Neustart'
+        pressEnterRestart: 'Eingabetaste zum Neustart',
+        keyboardInstructions: 'Wiedergabelisten-Navigation: Verwenden Sie die Pfeiltasten nach oben und unten, um zwischen Titeln zu wechseln. Drücken Sie Bild auf oder Bild ab, um 5 Titel zu überspringen. Drücken Sie Pos1, um zum ersten Titel zu springen, Ende für den letzten Titel. Drücken Sie die Eingabetaste oder Leertaste, um den ausgewählten Titel abzuspielen.'
     }
 };
 

@@ -373,7 +373,8 @@
           currentlyPlaying: "Currently playing",
           notPlaying: "Not playing",
           pressEnterPlay: "Press Enter to play",
-          pressEnterRestart: "Press Enter to restart"
+          pressEnterRestart: "Press Enter to restart",
+          keyboardInstructions: "Playlist navigation: Use Up and Down arrow keys to move between tracks. Press Page Up or Page Down to skip 5 tracks. Press Home to go to first track, End to go to last track. Press Enter or Space to play the selected track."
         }
       };
     }
@@ -553,7 +554,8 @@
           currentlyPlaying: "Wird gerade abgespielt",
           notPlaying: "Nicht aktiv",
           pressEnterPlay: "Eingabetaste zum Abspielen",
-          pressEnterRestart: "Eingabetaste zum Neustart"
+          pressEnterRestart: "Eingabetaste zum Neustart",
+          keyboardInstructions: "Wiedergabelisten-Navigation: Verwenden Sie die Pfeiltasten nach oben und unten, um zwischen Titeln zu wechseln. Drücken Sie Bild auf oder Bild ab, um 5 Titel zu überspringen. Drücken Sie Pos1, um zum ersten Titel zu springen, Ende für den letzten Titel. Drücken Sie die Eingabetaste oder Leertaste, um den ausgewählten Titel abzuspielen."
         }
       };
     }
@@ -733,7 +735,8 @@
           currentlyPlaying: "Reproduciendo actualmente",
           notPlaying: "Sin reproducir",
           pressEnterPlay: "Pulsa Enter para reproducir",
-          pressEnterRestart: "Pulsa Enter para reiniciar"
+          pressEnterRestart: "Pulsa Enter para reiniciar",
+          keyboardInstructions: "Navegación de lista de reproducción: Use las teclas de flecha arriba y abajo para moverse entre pistas. Pulse Retroceder página o Avanzar página para saltar 5 pistas. Pulse Inicio para ir a la primera pista, Fin para la última pista. Pulse Intro o Espacio para reproducir la pista seleccionada."
         }
       };
     }
@@ -913,7 +916,8 @@
           currentlyPlaying: "En cours de lecture",
           notPlaying: "Non en lecture",
           pressEnterPlay: "Appuyez sur Entrée pour lire",
-          pressEnterRestart: "Appuyez sur Entrée pour recommencer"
+          pressEnterRestart: "Appuyez sur Entrée pour recommencer",
+          keyboardInstructions: "Navigation de la liste de lecture : Utilisez les touches fléchées haut et bas pour naviguer entre les pistes. Appuyez sur Page précédente ou Page suivante pour sauter 5 pistes. Appuyez sur Début pour aller à la première piste, Fin pour la dernière piste. Appuyez sur Entrée ou Espace pour lire la piste sélectionnée."
         }
       };
     }
@@ -1093,7 +1097,8 @@
           currentlyPlaying: "再生中",
           notPlaying: "停止中",
           pressEnterPlay: "Enterキーで再生",
-          pressEnterRestart: "Enterキーで最初から再生"
+          pressEnterRestart: "Enterキーで最初から再生",
+          keyboardInstructions: "プレイリストナビゲーション：上下の矢印キーでトラック間を移動します。Page UpまたはPage Downで5トラックをスキップします。Homeで最初のトラックへ、Endで最後のトラックへ移動します。EnterまたはSpaceで選択したトラックを再生します。"
         }
       };
     }
@@ -12721,7 +12726,7 @@
           id: "".concat(this.uniqueId, "-keyboard-instructions")
         }
       });
-      instructions.textContent = "Playlist navigation: Use Up and Down arrow keys to move between tracks. Press Page Up or Page Down to skip 5 tracks. Press Home to go to first track, End to go to last track. Press Enter or Space to play the selected track.";
+      instructions.textContent = i18n.t("playlist.keyboardInstructions");
       this.playlistPanel.appendChild(instructions);
       const list = DOMUtils.createElement("ul", {
         className: "vidply-playlist-list",
