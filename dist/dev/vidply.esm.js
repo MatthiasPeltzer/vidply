@@ -3339,7 +3339,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-QSF2PWUN.js");
+    const module = await import("./vidply.TranscriptManager-DGFGMLMD.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;
@@ -3539,7 +3539,7 @@ var Player = class _Player extends EventEmitter {
     trackElements.forEach((trackEl) => {
       const trackKind = trackEl.getAttribute("kind");
       const trackDescSrc = trackEl.getAttribute("data-desc-src");
-      if (trackKind === "captions" || trackKind === "subtitles" || trackKind === "chapters") {
+      if (trackKind === "captions" || trackKind === "subtitles" || trackKind === "chapters" || trackKind === "descriptions") {
         if (trackDescSrc) {
           this.audioDescriptionCaptionTracks.push({
             trackElement: trackEl,

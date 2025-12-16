@@ -750,15 +750,13 @@ export class TranscriptManager {
     const metadataTrack = textTracks.find(track => track.kind === 'metadata');
 
     // We need at least one track type available for display
-    // Description tracks are only included if audio description is enabled
-    const hasDescriptionTrack = descriptionTrack && this.player.state.audioDescriptionEnabled;
-    if (!captionTrack && !hasDescriptionTrack && !metadataTrack) {
+    // (captions, descriptions, or metadata - though metadata is not displayed)
+    if (!captionTrack && !descriptionTrack && !metadataTrack) {
       this.showNoTranscriptMessage();
       return;
     }
 
-    // Enable all tracks to load cues (even if we won't display descriptions)
-    // This ensures descriptions are ready when audio description is enabled
+    // Enable all tracks to load cues so they're available for the transcript
     const tracksToLoad = [captionTrack, descriptionTrack, metadataTrack].filter(Boolean);
     tracksToLoad.forEach(track => {
       if (track.mode === 'disabled') {
@@ -806,8 +804,10 @@ export class TranscriptManager {
       });
     }
     
-    // Only include description cues if audio description is enabled
-    if (descriptionTrack && descriptionTrack.cues && this.player.state.audioDescriptionEnabled) {
+    // Always include description cues in transcript for completeness
+    // (Audio description toggle only controls whether they're read aloud,
+    // but the transcript should always show all content for accessibility)
+    if (descriptionTrack && descriptionTrack.cues) {
       Array.from(descriptionTrack.cues).forEach(cue => {
         allCues.push({ cue, type: 'description' });
       });

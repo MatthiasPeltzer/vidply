@@ -692,18 +692,16 @@ export class Player extends EventEmitter {
             }
         }
 
-        // Check for caption/subtitle tracks with audio description versions
+        // Check for text tracks with audio description versions
         // Only tracks with explicit data-desc-src attribute are swapped (no auto-detection to avoid 404 errors)
-        // Description tracks (kind="descriptions") are NOT swapped - they're for transcripts
         const trackElements = this.trackElements;
         trackElements.forEach(trackEl => {
             const trackKind = trackEl.getAttribute('kind');
             const trackDescSrc = trackEl.getAttribute('data-desc-src');
             
-            // Only handle caption/subtitle tracks (not description tracks)
-            // Description tracks stay as-is since they're for transcripts
-            // Include captions, subtitles, and chapters tracks that can be swapped for audio description
-            if (trackKind === 'captions' || trackKind === 'subtitles' || trackKind === 'chapters') {
+            // Include captions, subtitles, chapters, and descriptions tracks that can be swapped for audio description
+            // Descriptions tracks need swapping because transcript always shows them and timestamps differ
+            if (trackKind === 'captions' || trackKind === 'subtitles' || trackKind === 'chapters' || trackKind === 'descriptions') {
                 if (trackDescSrc) {
                     // Found a track with explicit data-desc-src - this is the described version
                     this.audioDescriptionCaptionTracks.push({
@@ -718,7 +716,6 @@ export class Player extends EventEmitter {
                 // Note: Auto-detection disabled to avoid 404 console errors
                 // If you want described tracks, add data-desc-src attribute to the track element
             }
-            // Description tracks (kind="descriptions") are ignored - they remain unchanged for transcripts
          });
 
          // Store original source for audio description toggling (fallback if not set above)
