@@ -6,7 +6,7 @@
       "format": "esm"
     },
     "src/utils/DOMUtils.js": {
-      "bytes": 6031,
+      "bytes": 7360,
       "imports": [],
       "format": "esm"
     },
@@ -98,8 +98,13 @@
       "imports": [],
       "format": "esm"
     },
+    "src/utils/PerformanceUtils.js": {
+      "bytes": 1820,
+      "imports": [],
+      "format": "esm"
+    },
     "src/controls/ControlBar.js": {
-      "bytes": 132009,
+      "bytes": 131933,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -125,17 +130,17 @@
           "path": "src/utils/FocusUtils.js",
           "kind": "import-statement",
           "original": "../utils/FocusUtils.js"
+        },
+        {
+          "path": "src/utils/PerformanceUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/PerformanceUtils.js"
         }
       ],
       "format": "esm"
     },
     "src/utils/StorageManager.js": {
       "bytes": 3444,
-      "imports": [],
-      "format": "esm"
-    },
-    "src/utils/PerformanceUtils.js": {
-      "bytes": 1820,
       "imports": [],
       "format": "esm"
     },
@@ -222,6 +227,53 @@
       ],
       "format": "esm"
     },
+    "src/core/AudioDescriptionManager.js": {
+      "bytes": 26497,
+      "imports": [
+        {
+          "path": "src/controls/CaptionManager.js",
+          "kind": "import-statement",
+          "original": "../controls/CaptionManager.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/core/SignLanguageManager.js": {
+      "bytes": 39788,
+      "imports": [
+        {
+          "path": "src/utils/DOMUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/DOMUtils.js"
+        },
+        {
+          "path": "src/icons/Icons.js",
+          "kind": "import-statement",
+          "original": "../icons/Icons.js"
+        },
+        {
+          "path": "src/i18n/i18n.js",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        },
+        {
+          "path": "src/utils/DraggableResizable.js",
+          "kind": "import-statement",
+          "original": "../utils/DraggableResizable.js"
+        },
+        {
+          "path": "src/utils/MenuUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/MenuUtils.js"
+        },
+        {
+          "path": "src/utils/FormUtils.js",
+          "kind": "import-statement",
+          "original": "../utils/FormUtils.js"
+        }
+      ],
+      "format": "esm"
+    },
     "src/controls/TranscriptManager.js": {
       "bytes": 80133,
       "imports": [
@@ -300,7 +352,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 213900,
+      "bytes": 210757,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -366,6 +418,16 @@
           "path": "src/utils/PerformanceUtils.js",
           "kind": "import-statement",
           "original": "../utils/PerformanceUtils.js"
+        },
+        {
+          "path": "src/core/AudioDescriptionManager.js",
+          "kind": "import-statement",
+          "original": "./AudioDescriptionManager.js"
+        },
+        {
+          "path": "src/core/SignLanguageManager.js",
+          "kind": "import-statement",
+          "original": "./SignLanguageManager.js"
         },
         {
           "path": "src/controls/TranscriptManager.js",
@@ -491,11 +553,11 @@
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.chunk-5DWTMWEO.min.js",
+          "path": "dist/prod/vidply.chunk-LGTJRPUL.min.js",
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.TranscriptManager-ZKXL63J4.min.js",
+          "path": "dist/prod/vidply.TranscriptManager-WFZSW6NR.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -525,11 +587,11 @@
         "src/utils/EventEmitter.js": {
           "bytesInOutput": 436
         },
-        "src/controls/ControlBar.js": {
-          "bytesInOutput": 56830
-        },
         "src/utils/PerformanceUtils.js": {
           "bytesInOutput": 256
+        },
+        "src/controls/ControlBar.js": {
+          "bytesInOutput": 56781
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 7279
@@ -537,17 +599,23 @@
         "src/controls/KeyboardManager.js": {
           "bytesInOutput": 3991
         },
+        "src/core/AudioDescriptionManager.js": {
+          "bytesInOutput": 9641
+        },
+        "src/core/SignLanguageManager.js": {
+          "bytesInOutput": 19116
+        },
         "src/core/Player.js": {
-          "bytesInOutput": 78453
+          "bytesInOutput": 75524
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 21344
+          "bytesInOutput": 21345
         },
         "src/index.js": {
           "bytesInOutput": 1869
         }
       },
-      "bytes": 170829
+      "bytes": 196610
     },
     "dist/prod/vidply.de-FR3XX54P.min.js": {
       "imports": [],
@@ -627,10 +695,10 @@
       },
       "bytes": 4973
     },
-    "dist/prod/vidply.TranscriptManager-ZKXL63J4.min.js": {
+    "dist/prod/vidply.TranscriptManager-WFZSW6NR.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-5DWTMWEO.min.js",
+          "path": "dist/prod/vidply.chunk-LGTJRPUL.min.js",
           "kind": "import-statement"
         }
       ],
@@ -645,7 +713,7 @@
       },
       "bytes": 43042
     },
-    "dist/prod/vidply.chunk-5DWTMWEO.min.js": {
+    "dist/prod/vidply.chunk-LGTJRPUL.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.de-FR3XX54P.min.js",
@@ -682,7 +750,7 @@
       ],
       "inputs": {
         "src/utils/DOMUtils.js": {
-          "bytesInOutput": 2244
+          "bytesInOutput": 2348
         },
         "src/i18n/languages/en.js": {
           "bytesInOutput": 6159
@@ -715,7 +783,7 @@
           "bytesInOutput": 776
         }
       },
-      "bytes": 40147
+      "bytes": 40251
     },
     "dist/prod/vidply.YouTubeRenderer-MFC2GMAC.min.js": {
       "imports": [],

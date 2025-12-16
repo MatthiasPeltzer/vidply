@@ -7,6 +7,7 @@ import {TimeUtils} from '../utils/TimeUtils.js';
 import {createIconElement} from '../icons/Icons.js';
 import {i18n} from '../i18n/i18n.js';
 import {focusElement, focusFirstElement} from '../utils/FocusUtils.js';
+import {isMobile} from '../utils/PerformanceUtils.js';
 
 export class ControlBar {
     constructor(player) {
@@ -30,11 +31,6 @@ export class ControlBar {
         this.setupOverflowDetection();
     }
 
-    // Helper method to check if we're on a mobile device
-    isMobile() {
-        return window.innerWidth < 768;
-    }
-
     // Helper method to detect touch devices
     isTouchDevice() {
         return (
@@ -46,7 +42,7 @@ export class ControlBar {
 
     // Smart menu positioning to avoid overflow
     positionMenu(menu, button, immediate = false) {
-        const isMobile = this.isMobile();
+        const mobile = isMobile();
         const isOverflowMenu = menu.classList.contains(`${this.player.options.classPrefix}-overflow-menu-list`);
         const isFullscreen = this.player.state.fullscreen;
         
@@ -101,7 +97,7 @@ export class ControlBar {
             return;
         }
         
-        if (isMobile) {
+        if (mobile) {
             // On mobile, ensure menus stay within viewport
             const isVolumeMenu = menu.classList.contains(`${this.player.options.classPrefix}-volume-menu`);
             
