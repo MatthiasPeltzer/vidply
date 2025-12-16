@@ -6,15 +6,21 @@
 
 // src/utils/DOMUtils.js
 var DOMUtils = {
+  /**
+   * Create an element with options
+   * @param {string} tag - HTML tag name
+   * @param {Object} options - Element options
+   * @returns {HTMLElement}
+   */
   createElement(tag, options = {}) {
     const element = document.createElement(tag);
     if (options.className) {
       element.className = options.className;
     }
     if (options.attributes) {
-      Object.entries(options.attributes).forEach(([key, value]) => {
+      for (const [key, value] of Object.entries(options.attributes)) {
         element.setAttribute(key, value);
-      });
+      }
     }
     if (options.innerHTML) {
       element.innerHTML = options.innerHTML;
@@ -26,150 +32,185 @@ var DOMUtils = {
       Object.assign(element.style, options.style);
     }
     if (options.children) {
-      options.children.forEach((child) => {
+      for (const child of options.children) {
         if (child) element.appendChild(child);
-      });
+      }
     }
     return element;
   },
-  addClass(element, className) {
-    if (element && className) {
-      element.classList.add(className);
-    }
-  },
-  removeClass(element, className) {
-    if (element && className) {
-      element.classList.remove(className);
-    }
-  },
-  toggleClass(element, className) {
-    if (element && className) {
-      element.classList.toggle(className);
-    }
-  },
-  hasClass(element, className) {
-    return element && element.classList.contains(className);
-  },
+  /**
+   * Show element (remove display:none)
+   * @param {HTMLElement} element
+   */
   show(element) {
-    if (element) {
-      element.style.display = "";
-    }
+    element?.style && (element.style.display = "");
   },
+  /**
+   * Hide element
+   * @param {HTMLElement} element
+   */
   hide(element) {
-    if (element) {
-      element.style.display = "none";
-    }
+    element?.style && (element.style.display = "none");
   },
-  fadeIn(element, duration = 300) {
+  /**
+   * Fade in element using CSS transitions (GPU accelerated)
+   * @param {HTMLElement} element
+   * @param {number} duration - Duration in ms
+   * @param {Function} [onComplete] - Callback when complete
+   */
+  fadeIn(element, duration = 300, onComplete) {
     if (!element) return;
     element.style.opacity = "0";
     element.style.display = "";
-    let start = null;
-    const animate = (timestamp) => {
-      if (!start) start = timestamp;
-      const progress = timestamp - start;
-      const opacity = Math.min(progress / duration, 1);
-      element.style.opacity = opacity;
-      if (progress < duration) {
-        requestAnimationFrame(animate);
-      }
-    };
-    requestAnimationFrame(animate);
+    element.style.transition = `opacity ${duration}ms ease`;
+    element.offsetHeight;
+    element.style.opacity = "1";
+    if (onComplete) {
+      const cleanup = () => {
+        element.removeEventListener("transitionend", cleanup);
+        onComplete();
+      };
+      element.addEventListener("transitionend", cleanup, { once: true });
+      setTimeout(cleanup, duration + 50);
+    }
   },
-  fadeOut(element, duration = 300) {
+  /**
+   * Fade out element using CSS transitions (GPU accelerated)
+   * @param {HTMLElement} element
+   * @param {number} duration - Duration in ms
+   * @param {Function} [onComplete] - Callback when complete
+   */
+  fadeOut(element, duration = 300, onComplete) {
     if (!element) return;
-    const startOpacity = parseFloat(getComputedStyle(element).opacity) || 1;
-    let start = null;
-    const animate = (timestamp) => {
-      if (!start) start = timestamp;
-      const progress = timestamp - start;
-      const opacity = Math.max(startOpacity - progress / duration, 0);
-      element.style.opacity = opacity;
-      if (progress < duration) {
-        requestAnimationFrame(animate);
-      } else {
-        element.style.display = "none";
-      }
+    element.style.transition = `opacity ${duration}ms ease`;
+    element.style.opacity = "0";
+    const cleanup = () => {
+      element.removeEventListener("transitionend", cleanup);
+      element.style.display = "none";
+      if (onComplete) onComplete();
     };
-    requestAnimationFrame(animate);
+    element.addEventListener("transitionend", cleanup, { once: true });
+    setTimeout(cleanup, duration + 50);
   },
+  /**
+   * Get element's offset position and dimensions
+   * @param {HTMLElement} element
+   * @returns {Object} { top, left, width, height }
+   */
   offset(element) {
-    if (!element) return { top: 0, left: 0 };
+    if (!element) return { top: 0, left: 0, width: 0, height: 0 };
     const rect = element.getBoundingClientRect();
     return {
-      top: rect.top + window.pageYOffset,
-      left: rect.left + window.pageXOffset,
+      top: rect.top + window.scrollY,
+      left: rect.left + window.scrollX,
       width: rect.width,
       height: rect.height
     };
   },
+  /**
+   * Escape HTML special characters
+   * @param {string} str - String to escape
+   * @returns {string} Escaped string
+   */
   escapeHTML(str) {
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
+    const escapeMap = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#x27;"
+    };
+    return str.replace(/[&<>"']/g, (char) => escapeMap[char]);
   },
+  /**
+   * Basic HTML sanitization for VTT captions
+   * Allows safe formatting tags, removes dangerous content
+   * @param {string} html - HTML string to sanitize
+   * @returns {string} Sanitized HTML
+   */
   sanitizeHTML(html) {
-    const temp = document.createElement("div");
     const safeHtml = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "").replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "").replace(/on\w+\s*=/gi, "").replace(/javascript:/gi, "");
+    const temp = document.createElement("div");
     temp.innerHTML = safeHtml;
     return temp.innerHTML;
   },
   /**
-   * Create a tooltip element that is aria-hidden (not read by screen readers)
+   * Create a tooltip element (aria-hidden)
    * @param {string} text - Tooltip text
-   * @param {string} classPrefix - Class prefix for styling
-   * @returns {HTMLElement} Tooltip element
+   * @param {string} classPrefix - Class prefix
+   * @returns {HTMLElement}
    */
   createTooltip(text, classPrefix = "vidply") {
-    const tooltip = this.createElement("span", {
+    return this.createElement("span", {
       className: `${classPrefix}-tooltip`,
       textContent: text,
-      attributes: {
-        "aria-hidden": "true"
-      }
+      attributes: { "aria-hidden": "true" }
     });
-    return tooltip;
   },
   /**
-   * Attach a tooltip to an element
-   * @param {HTMLElement} element - Element to attach tooltip to
+   * Attach a tooltip to an element with hover/focus behavior
+   * @param {HTMLElement} element - Target element
    * @param {string} text - Tooltip text
-   * @param {string} classPrefix - Class prefix for styling
+   * @param {string} classPrefix - Class prefix
    */
   attachTooltip(element, text, classPrefix = "vidply") {
     if (!element || !text) return;
-    const existingTooltip = element.querySelector(`.${classPrefix}-tooltip`);
-    if (existingTooltip) {
-      existingTooltip.remove();
-    }
+    element.querySelector(`.${classPrefix}-tooltip`)?.remove();
     const tooltip = this.createTooltip(text, classPrefix);
     element.appendChild(tooltip);
-    const showTooltip = () => {
-      tooltip.classList.add(`${classPrefix}-tooltip-visible`);
-    };
-    const hideTooltip = () => {
-      tooltip.classList.remove(`${classPrefix}-tooltip-visible`);
-    };
-    element.addEventListener("mouseenter", showTooltip);
-    element.addEventListener("mouseleave", hideTooltip);
-    element.addEventListener("focus", showTooltip);
-    element.addEventListener("blur", hideTooltip);
+    const visibleClass = `${classPrefix}-tooltip-visible`;
+    const show = () => tooltip.classList.add(visibleClass);
+    const hide = () => tooltip.classList.remove(visibleClass);
+    element.addEventListener("mouseenter", show);
+    element.addEventListener("mouseleave", hide);
+    element.addEventListener("focus", show);
+    element.addEventListener("blur", hide);
   },
   /**
-   * Create visible button text that is hidden by CSS but visible when CSS is disabled
+   * Create button text element (visible when CSS disabled)
    * @param {string} text - Button text
-   * @param {string} classPrefix - Class prefix for styling
-   * @returns {HTMLElement} Button text element
+   * @param {string} classPrefix - Class prefix
+   * @returns {HTMLElement}
    */
   createButtonText(text, classPrefix = "vidply") {
-    const buttonText = this.createElement("span", {
+    return this.createElement("span", {
       className: `${classPrefix}-button-text`,
       textContent: text,
-      attributes: {
-        "aria-hidden": "true"
-      }
+      attributes: { "aria-hidden": "true" }
     });
-    return buttonText;
+  },
+  /**
+   * Add class to element (null-safe)
+   * @param {HTMLElement} element
+   * @param {string} className
+   */
+  addClass(element, className) {
+    element?.classList?.add(className);
+  },
+  /**
+   * Remove class from element (null-safe)
+   * @param {HTMLElement} element
+   * @param {string} className
+   */
+  removeClass(element, className) {
+    element?.classList?.remove(className);
+  },
+  /**
+   * Toggle class on element (null-safe)
+   * @param {HTMLElement} element
+   * @param {string} className
+   */
+  toggleClass(element, className) {
+    element?.classList?.toggle(className);
+  },
+  /**
+   * Check if element has class (null-safe)
+   * @param {HTMLElement} element
+   * @param {string} className
+   * @returns {boolean}
+   */
+  hasClass(element, className) {
+    return element?.classList?.contains(className) ?? false;
   }
 };
 
@@ -1635,4 +1676,4 @@ export {
   createLabeledSelect,
   preventDragOnElement
 };
-//# sourceMappingURL=vidply.chunk-SRM7VNHG.js.map
+//# sourceMappingURL=vidply.chunk-GS2JX5RQ.js.map

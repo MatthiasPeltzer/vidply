@@ -16,6 +16,8 @@ import {DraggableResizable} from '../utils/DraggableResizable.js';
 import {createMenuItem, attachMenuKeyboardNavigation, focusFirstMenuItem} from '../utils/MenuUtils.js';
 import {createLabeledSelect, preventDragOnElement} from '../utils/FormUtils.js';
 import {debounce, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
+import {AudioDescriptionManager} from './AudioDescriptionManager.js';
+import {SignLanguageManager} from './SignLanguageManager.js';
 
 // Static counter for unique player instances
 let playerInstanceCounter = 0;
@@ -251,6 +253,47 @@ export class Player extends EventEmitter {
         // Metadata handling
         this.metadataCueChangeHandler = null;
         this.metadataAlertHandlers = new Map();
+
+        // Feature managers (modular refactoring)
+        this.audioDescriptionManager = new AudioDescriptionManager(this);
+        this.signLanguageManager = new SignLanguageManager(this);
+
+        // Backward-compatible property aliases for SignLanguageManager
+        // These allow existing code to reference this.signLanguageWrapper, etc.
+        Object.defineProperties(this, {
+            signLanguageWrapper: {
+                get: () => this.signLanguageManager.wrapper,
+                set: (v) => { this.signLanguageManager.wrapper = v; }
+            },
+            signLanguageVideo: {
+                get: () => this.signLanguageManager.video,
+                set: (v) => { this.signLanguageManager.video = v; }
+            },
+            signLanguageHeader: {
+                get: () => this.signLanguageManager.header,
+                set: (v) => { this.signLanguageManager.header = v; }
+            },
+            signLanguageSettingsButton: {
+                get: () => this.signLanguageManager.settingsButton,
+                set: (v) => { this.signLanguageManager.settingsButton = v; }
+            },
+            signLanguageSettingsMenu: {
+                get: () => this.signLanguageManager.settingsMenu,
+                set: (v) => { this.signLanguageManager.settingsMenu = v; }
+            },
+            signLanguageSettingsMenuVisible: {
+                get: () => this.signLanguageManager.settingsMenuVisible,
+                set: (v) => { this.signLanguageManager.settingsMenuVisible = v; }
+            },
+            signLanguageDraggable: {
+                get: () => this.signLanguageManager.draggable,
+                set: (v) => { this.signLanguageManager.draggable = v; }
+            },
+            currentSignLanguage: {
+                get: () => this.signLanguageManager.currentLanguage,
+                set: (v) => { this.signLanguageManager.currentLanguage = v; }
+            }
+        });
 
         // Initialize
         this.init();
@@ -651,74 +694,10 @@ export class Player extends EventEmitter {
         // Clear pending source after using it
         this._pendingSource = null;
 
-        // Check for source elements with audio description attributes
-        const sourceElements = this.sourceElements;
-        for (const sourceEl of sourceElements) {
-            const descSrc = sourceEl.getAttribute('data-desc-src');
-            const origSrc = sourceEl.getAttribute('data-orig-src');
-            
-            if (descSrc || origSrc) {
-                // Found a source element with audio description attributes
-                // Store the first one as reference, but we'll search all of them when toggling
-                if (!this.audioDescriptionSourceElement) {
-                    this.audioDescriptionSourceElement = sourceEl;
-                }
-                
-                if (origSrc) {
-                    // Store the original src from the attribute for this source
-                    if (!this.originalAudioDescriptionSource) {
-                        this.originalAudioDescriptionSource = origSrc;
-                    }
-                    // Store the original src from the first source element that has data-orig-src
-                    if (!this.originalSrc) {
-                        this.originalSrc = origSrc;
-                    }
-                } else {
-                    // If data-orig-src is not set, use the current src attribute
-                    const currentSrcAttr = sourceEl.getAttribute('src');
-                    if (!this.originalAudioDescriptionSource && currentSrcAttr) {
-                        this.originalAudioDescriptionSource = currentSrcAttr;
-                    }
-                    if (!this.originalSrc && currentSrcAttr) {
-                        this.originalSrc = currentSrcAttr;
-                    }
-                }
-                
-                // Store audio description source from data-desc-src (use first one found)
-                if (descSrc && !this.audioDescriptionSrc) {
-                    this.audioDescriptionSrc = descSrc;
-                }
-                // Continue checking all source elements to ensure we capture all audio description sources
-            }
-        }
-
-        // Check for text tracks with audio description versions
-        // Only tracks with explicit data-desc-src attribute are swapped (no auto-detection to avoid 404 errors)
-        const trackElements = this.trackElements;
-        trackElements.forEach(trackEl => {
-            const trackKind = trackEl.getAttribute('kind');
-            const trackDescSrc = trackEl.getAttribute('data-desc-src');
-            
-            // Include captions, subtitles, chapters, and descriptions tracks that can be swapped for audio description
-            // Descriptions tracks need swapping because transcript always shows them and timestamps differ
-            if (trackKind === 'captions' || trackKind === 'subtitles' || trackKind === 'chapters' || trackKind === 'descriptions') {
-                if (trackDescSrc) {
-                    // Found a track with explicit data-desc-src - this is the described version
-                    this.audioDescriptionCaptionTracks.push({
-                        trackElement: trackEl,
-                        originalSrc: trackEl.getAttribute('src'),
-                        describedSrc: trackDescSrc,
-                        originalTrackSrc: trackEl.getAttribute('data-orig-src') || trackEl.getAttribute('src'),
-                        explicit: true // Explicitly defined, so we should validate it
-                    });
-                    this.log(`Found explicit described ${trackKind} track: ${trackEl.getAttribute('src')} -> ${trackDescSrc}`);
-                }
-                // Note: Auto-detection disabled to avoid 404 console errors
-                // If you want described tracks, add data-desc-src attribute to the track element
-            }
-         });
-
-         // Store original source for audio description toggling (fallback if not set above)
+        // Initialize audio description sources from elements
+        this.audioDescriptionManager.initFromSourceElements(this.sourceElements, this.trackElements);
+        
+        // Store original source for audio description toggling (fallback if not set by manager)
         if (!this.originalSrc) {
             this.originalSrc = src;
         }
@@ -1037,6 +1016,11 @@ export class Player extends EventEmitter {
                     if (trackConfig.default) {
                         track.default = true;
                     }
+                    
+                    // Support described track sources for audio description track swapping
+                    if (trackConfig.describedSrc) {
+                        track.setAttribute('data-desc-src', trackConfig.describedSrc);
+                    }
 
                     // Insert tracks at the beginning (before any flow content) for HTML5 validity
                     const firstChild = this.element.firstChild;
@@ -1059,6 +1043,16 @@ export class Player extends EventEmitter {
             
             // Update original source for toggling
             this.originalSrc = config.src;
+            
+            // Update manager sources for playlist changes
+            if (this.audioDescriptionManager) {
+                this.audioDescriptionManager.updateSources(config.audioDescriptionSrc);
+                // Reinitialize to pick up new track elements with data-desc-src attributes
+                this.audioDescriptionManager.reinitialize();
+            }
+            if (this.signLanguageManager) {
+                this.signLanguageManager.updateSources(config.signLanguageSrc, config.signLanguageSources);
+            }
             
             // Hide accessibility features that were enabled (must happen AFTER updating sources)
             if (wasAudioDescriptionEnabled) {
@@ -1604,8 +1598,13 @@ export class Player extends EventEmitter {
         return null;
     }
 
-    // Audio Description
+    // Audio Description (delegated to AudioDescriptionManager)
     async enableAudioDescription() {
+        return this.audioDescriptionManager.enable();
+    }
+
+    // Legacy method body preserved for reference - can be removed after testing
+    async _legacyEnableAudioDescription() {
         // Check if we have source elements with data-desc-src (even if audioDescriptionSrc is not set)
         const hasSourceElementsWithDesc = this.sourceElements.some(el => el.getAttribute('data-desc-src'));
         const hasTracksWithDesc = this.audioDescriptionCaptionTracks.length > 0;
@@ -2661,6 +2660,11 @@ export class Player extends EventEmitter {
     }
 
     async disableAudioDescription() {
+        return this.audioDescriptionManager.disable();
+    }
+
+    // Legacy method body preserved for reference - can be removed after testing
+    async _legacyDisableAudioDescription() {
         if (!this.originalSrc) {
             return;
         }
@@ -3038,82 +3042,16 @@ export class Player extends EventEmitter {
     }
 
     async toggleAudioDescription() {
-        // Check if we have description tracks or audio-described video
-        const descriptionTrack = this.findTextTrack('descriptions');
-        
-        // Check if we have audio-described video source (either from options or source elements with data-desc-src)
-        const hasAudioDescriptionSrc = this.audioDescriptionSrc || 
-            this.sourceElements.some(el => el.getAttribute('data-desc-src'));
-        
-        if (descriptionTrack && hasAudioDescriptionSrc) {
-            // We have both: toggle description track AND swap caption tracks/sources
-            if (this.state.audioDescriptionEnabled) {
-                this._audioDescriptionDesiredState = false;
-                // Disable: toggle description track off and swap captions/sources back
-                descriptionTrack.mode = 'hidden';
-                await this.disableAudioDescription();
-            } else {
-                this._audioDescriptionDesiredState = true;
-                // Enable: swap caption tracks/sources and toggle description track on
-                await this.enableAudioDescription();
-                // Wait for tracks to be ready after source swap, then enable description track
-                // Use a longer timeout to ensure tracks are loaded after source swap
-                const enableDescriptionTrack = () => {
-                    this.invalidateTrackCache();
-                    const descTrack = this.findTextTrack('descriptions');
-                    if (descTrack) {
-                        // Set to 'hidden' first if it's in 'disabled' mode, then to 'showing'
-                        if (descTrack.mode === 'disabled') {
-                            descTrack.mode = 'hidden';
-                            // Use setTimeout to ensure the browser processes the mode change
-                            this.setManagedTimeout(() => {
-                                descTrack.mode = 'showing';
-                            }, 50);
-                        } else {
-                            descTrack.mode = 'showing';
-                        }
-                    } else if (this.element.readyState < 2) {
-                        // Tracks not ready yet, wait a bit more
-                        this.setManagedTimeout(enableDescriptionTrack, 100);
-                    }
-                };
-                // Wait for metadata to load first
-                if (this.element.readyState >= 1) {
-                    this.setManagedTimeout(enableDescriptionTrack, 200);
-                } else {
-                    this.element.addEventListener('loadedmetadata', () => {
-                        this.setManagedTimeout(enableDescriptionTrack, 200);
-                    }, { once: true });
-                }
-            }
-        } else if (descriptionTrack) {
-            // Only description track, no audio-described video source to swap
-            // Toggle description track
-            if (descriptionTrack.mode === 'showing') {
-                this._audioDescriptionDesiredState = false;
-                descriptionTrack.mode = 'hidden';
-                this.state.audioDescriptionEnabled = false;
-                this.emit('audiodescriptiondisabled');
-            } else {
-                this._audioDescriptionDesiredState = true;
-                descriptionTrack.mode = 'showing';
-                this.state.audioDescriptionEnabled = true;
-                this.emit('audiodescriptionenabled');
-            }
-        } else if (hasAudioDescriptionSrc) {
-            // Use audio-described video source (no description track)
-            if (this.state.audioDescriptionEnabled) {
-                this._audioDescriptionDesiredState = false;
-                await this.disableAudioDescription();
-            } else {
-                this._audioDescriptionDesiredState = true;
-                await this.enableAudioDescription();
-            }
-        }
+        return this.audioDescriptionManager.toggle();
     }
 
-    // Sign Language
+    // Sign Language (delegated to SignLanguageManager)
     enableSignLanguage() {
+        return this.signLanguageManager.enable();
+    }
+
+    // Legacy method body preserved for reference - can be removed after testing
+    _legacyEnableSignLanguage() {
         // Determine available sign language sources
         const hasMultipleSources = Object.keys(this.signLanguageSources).length > 0;
         const hasSingleSource = !!this.signLanguageSrc;
@@ -3449,27 +3387,19 @@ export class Player extends EventEmitter {
     }
 
     disableSignLanguage() {
-        // Hide settings menu if open
-        if (this.signLanguageSettingsMenuVisible) {
-            this.hideSignLanguageSettingsMenu({ focusButton: false });
-        }
-        
-        if (this.signLanguageWrapper) {
-            this.signLanguageWrapper.style.display = 'none';
-        }
-        this.state.signLanguageEnabled = false;
-        this.emit('signlanguagedisabled');
+        return this.signLanguageManager.disable();
     }
 
     toggleSignLanguage() {
-        if (this.state.signLanguageEnabled) {
-            this.disableSignLanguage();
-        } else {
-            this.enableSignLanguage();
-        }
+        return this.signLanguageManager.toggle();
     }
 
     setupSignLanguageInteraction() {
+        return this.signLanguageManager._setupInteraction();
+    }
+
+    // Legacy method preserved for reference
+    _legacySetupSignLanguageInteraction() {
         if (!this.signLanguageWrapper) return;
 
         // Check if we're on mobile and not in fullscreen
@@ -3652,6 +3582,11 @@ export class Player extends EventEmitter {
     }
 
     switchSignLanguage(langCode) {
+        return this.signLanguageManager.switchLanguage(langCode);
+    }
+
+    // Legacy method preserved for reference
+    _legacySwitchSignLanguage(langCode) {
         if (!this.signLanguageSources[langCode] || !this.signLanguageVideo) {
             return;
         }
@@ -3674,6 +3609,11 @@ export class Player extends EventEmitter {
     }
 
     showSignLanguageSettingsMenu() {
+        return this.signLanguageManager.showSettingsMenu();
+    }
+
+    // Legacy method preserved for reference
+    _legacyShowSignLanguageSettingsMenu() {
         // Set flag to prevent immediate closing
         this.signLanguageSettingsMenuJustOpened = true;
         setTimeout(() => {
@@ -3866,32 +3806,7 @@ export class Player extends EventEmitter {
     }
 
     hideSignLanguageSettingsMenu({ focusButton = true } = {}) {
-        if (this.signLanguageSettingsMenu) {
-            this.signLanguageSettingsMenu.style.display = 'none';
-            this.signLanguageSettingsMenuVisible = false;
-            this.signLanguageSettingsMenuJustOpened = false;
-            
-            // Remove keyboard handler
-            if (this.signLanguageSettingsMenuKeyHandler) {
-                this.signLanguageSettingsMenu.removeEventListener('keydown', this.signLanguageSettingsMenuKeyHandler);
-                this.signLanguageSettingsMenuKeyHandler = null;
-            }
-            
-            // Reset tabindex on menu items
-            const menuItems = Array.from(this.signLanguageSettingsMenu.querySelectorAll(`.${this.options.classPrefix}-sign-language-settings-item`));
-            menuItems.forEach(item => {
-                item.setAttribute('tabindex', '-1');
-            });
-            
-            // Update aria-expanded
-            if (this.signLanguageSettingsButton) {
-                this.signLanguageSettingsButton.setAttribute('aria-expanded', 'false');
-                if (focusButton) {
-                    // Return focus to settings button
-                    this.signLanguageSettingsButton.focus({ preventScroll: true });
-                }
-            }
-        }
+        return this.signLanguageManager.hideSettingsMenu({ focusButton });
     }
 
     positionSignLanguageSettingsMenuImmediate() {
@@ -4039,6 +3954,15 @@ export class Player extends EventEmitter {
     }
 
     constrainSignLanguagePosition() {
+        return this.signLanguageManager.constrainPosition();
+    }
+
+    saveSignLanguagePreferences() {
+        return this.signLanguageManager.savePreferences();
+    }
+
+    // Legacy methods preserved for reference - can be removed after testing
+    _legacyConstrainSignLanguagePosition() {
         if (!this.signLanguageWrapper || !this.videoWrapper) return;
         
         // Don't auto-position if user has manually positioned it
@@ -4108,7 +4032,7 @@ export class Player extends EventEmitter {
         this.signLanguageWrapper.classList.remove(...Array.from(this.signLanguageWrapper.classList).filter(c => c.startsWith('vidply-sign-position-')));
     }
 
-    saveSignLanguagePreferences() {
+    _legacySaveSignLanguagePreferences() {
         if (!this.signLanguageWrapper) return;
         
         // Only save width - position is always calculated fresh to bottom-right
@@ -4121,73 +4045,7 @@ export class Player extends EventEmitter {
     }
 
     cleanupSignLanguage() {
-        // Hide settings menu if open
-        if (this.signLanguageSettingsMenuVisible) {
-            this.hideSignLanguageSettingsMenu({ focusButton: false });
-        }
-        
-        // Remove document click handler
-        if (this.signLanguageDocumentClickHandler && this.signLanguageDocumentClickHandlerAdded) {
-            document.removeEventListener('mousedown', this.signLanguageDocumentClickHandler, true);
-            this.signLanguageDocumentClickHandlerAdded = false;
-            this.signLanguageDocumentClickHandler = null;
-        }
-        
-        // Remove settings menu event listeners
-        if (this.signLanguageSettingsHandlers) {
-            if (this.signLanguageSettingsButton) {
-                this.signLanguageSettingsButton.removeEventListener('click', this.signLanguageSettingsHandlers.settingsClick);
-                this.signLanguageSettingsButton.removeEventListener('keydown', this.signLanguageSettingsHandlers.settingsKeydown);
-            }
-            this.signLanguageSettingsHandlers = null;
-        }
-        
-        // Remove event listeners
-        if (this.signLanguageHandlers) {
-            this.off('play', this.signLanguageHandlers.play);
-            this.off('pause', this.signLanguageHandlers.pause);
-            this.off('timeupdate', this.signLanguageHandlers.timeupdate);
-            this.off('ratechange', this.signLanguageHandlers.ratechange);
-            if (this.signLanguageHandlers.captionChange) {
-                this.off('captionsenabled', this.signLanguageHandlers.captionChange);
-            }
-            this.signLanguageHandlers = null;
-        }
-
-        // Remove event listeners
-        if (this.signLanguageInteractionHandlers) {
-            if (this.signLanguageHeader && this.signLanguageInteractionHandlers.headerKeyHandler) {
-                this.signLanguageHeader.removeEventListener('keydown', this.signLanguageInteractionHandlers.headerKeyHandler);
-            }
-            if (this.signLanguageWrapper && this.signLanguageInteractionHandlers.customKeyHandler) {
-                this.signLanguageWrapper.removeEventListener('keydown', this.signLanguageInteractionHandlers.customKeyHandler);
-            }
-        }
-
-        // Destroy draggable utility
-        if (this.signLanguageDraggable) {
-            if (this.signLanguageDraggable.pointerResizeMode) {
-                this.signLanguageDraggable.disablePointerResizeMode();
-            }
-            this.signLanguageDraggable.destroy();
-            this.signLanguageDraggable = null;
-        }
-        
-        // Clear interaction handlers reference
-        this.signLanguageInteractionHandlers = null;
-
-        // Remove video and wrapper elements
-        if (this.signLanguageWrapper && this.signLanguageWrapper.parentNode) {
-            if (this.signLanguageVideo) {
-                this.signLanguageVideo.pause();
-                this.signLanguageVideo.src = '';
-            }
-            this.signLanguageWrapper.parentNode.removeChild(this.signLanguageWrapper);
-        }
-        this.signLanguageWrapper = null;
-        this.signLanguageVideo = null;
-        this.signLanguageSettingsButton = null;
-        this.signLanguageSettingsMenu = null;
+        return this.signLanguageManager.cleanup();
     }
 
     // Settings
