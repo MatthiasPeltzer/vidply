@@ -3268,8 +3268,7 @@
             descriptionTrack = textTracks.find((track) => track.kind === "descriptions");
           }
           const metadataTrack = textTracks.find((track) => track.kind === "metadata");
-          const hasDescriptionTrack = descriptionTrack && this.player.state.audioDescriptionEnabled;
-          if (!captionTrack && !hasDescriptionTrack && !metadataTrack) {
+          if (!captionTrack && !descriptionTrack && !metadataTrack) {
             this.showNoTranscriptMessage();
             return;
           }
@@ -3307,7 +3306,7 @@
               allCues.push({ cue, type: "caption" });
             });
           }
-          if (descriptionTrack && descriptionTrack.cues && this.player.state.audioDescriptionEnabled) {
+          if (descriptionTrack && descriptionTrack.cues) {
             Array.from(descriptionTrack.cues).forEach((cue) => {
               allCues.push({ cue, type: "description" });
             });
@@ -8984,7 +8983,7 @@
       trackElements.forEach((trackEl) => {
         const trackKind = trackEl.getAttribute("kind");
         const trackDescSrc = trackEl.getAttribute("data-desc-src");
-        if (trackKind === "captions" || trackKind === "subtitles" || trackKind === "chapters") {
+        if (trackKind === "captions" || trackKind === "subtitles" || trackKind === "chapters" || trackKind === "descriptions") {
           if (trackDescSrc) {
             this.audioDescriptionCaptionTracks.push({
               trackElement: trackEl,

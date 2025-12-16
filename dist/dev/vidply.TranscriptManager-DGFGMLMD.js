@@ -15,7 +15,7 @@ import {
   focusElement,
   i18n,
   preventDragOnElement
-} from "./vidply.chunk-UH5MTGKF.js";
+} from "./vidply.chunk-SRM7VNHG.js";
 
 // src/controls/TranscriptManager.js
 var TranscriptManager = class {
@@ -162,7 +162,7 @@ var TranscriptManager = class {
       className: `${this.player.options.classPrefix}-transcript-window`,
       attributes: {
         "role": "dialog",
-        "aria-label": "Video Transcript",
+        "aria-label": i18n.t("transcript.ariaLabel"),
         "tabindex": "-1"
       }
     });
@@ -566,8 +566,7 @@ var TranscriptManager = class {
       descriptionTrack = textTracks.find((track) => track.kind === "descriptions");
     }
     const metadataTrack = textTracks.find((track) => track.kind === "metadata");
-    const hasDescriptionTrack = descriptionTrack && this.player.state.audioDescriptionEnabled;
-    if (!captionTrack && !hasDescriptionTrack && !metadataTrack) {
+    if (!captionTrack && !descriptionTrack && !metadataTrack) {
       this.showNoTranscriptMessage();
       return;
     }
@@ -605,7 +604,7 @@ var TranscriptManager = class {
         allCues.push({ cue, type: "caption" });
       });
     }
-    if (descriptionTrack && descriptionTrack.cues && this.player.state.audioDescriptionEnabled) {
+    if (descriptionTrack && descriptionTrack.cues) {
       Array.from(descriptionTrack.cues).forEach((cue) => {
         allCues.push({ cue, type: "description" });
       });
@@ -1741,4 +1740,4 @@ var TranscriptManager = class {
 export {
   TranscriptManager
 };
-//# sourceMappingURL=vidply.TranscriptManager-GZKY44ON.js.map
+//# sourceMappingURL=vidply.TranscriptManager-DGFGMLMD.js.map

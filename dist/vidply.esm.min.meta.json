@@ -223,7 +223,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 80197,
+      "bytes": 80133,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -300,7 +300,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 214111,
+      "bytes": 213900,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -495,7 +495,7 @@
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.TranscriptManager-DZ2WZU3K.min.js",
+          "path": "dist/prod/vidply.TranscriptManager-ZKXL63J4.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -538,7 +538,7 @@
           "bytesInOutput": 3991
         },
         "src/core/Player.js": {
-          "bytesInOutput": 78433
+          "bytesInOutput": 78453
         },
         "src/features/PlaylistManager.js": {
           "bytesInOutput": 21344
@@ -547,7 +547,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 170809
+      "bytes": 170829
     },
     "dist/prod/vidply.de-FR3XX54P.min.js": {
       "imports": [],
@@ -627,7 +627,7 @@
       },
       "bytes": 4973
     },
-    "dist/prod/vidply.TranscriptManager-DZ2WZU3K.min.js": {
+    "dist/prod/vidply.TranscriptManager-ZKXL63J4.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-5DWTMWEO.min.js",
@@ -640,10 +640,10 @@
       "entryPoint": "src/controls/TranscriptManager.js",
       "inputs": {
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 42861
+          "bytesInOutput": 42771
         }
       },
-      "bytes": 43132
+      "bytes": 43042
     },
     "dist/prod/vidply.chunk-5DWTMWEO.min.js": {
       "imports": [
