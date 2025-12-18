@@ -352,7 +352,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 210757,
+      "bytes": 205981,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
