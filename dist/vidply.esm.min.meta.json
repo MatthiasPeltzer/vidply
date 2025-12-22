@@ -104,12 +104,12 @@
       "format": "esm"
     },
     "src/utils/VideoFrameCapture.js": {
-      "bytes": 4092,
+      "bytes": 4640,
       "imports": [],
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 138319,
+      "bytes": 144875,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -606,10 +606,10 @@
           "bytesInOutput": 256
         },
         "src/utils/VideoFrameCapture.js": {
-          "bytesInOutput": 838
+          "bytesInOutput": 1009
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 59666
+          "bytesInOutput": 61881
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 7279
@@ -633,7 +633,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 201314
+      "bytes": 203700
     },
     "dist/prod/vidply.de-FR3XX54P.min.js": {
       "imports": [],

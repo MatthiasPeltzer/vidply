@@ -104,12 +104,12 @@
       "format": "esm"
     },
     "src/utils/VideoFrameCapture.js": {
-      "bytes": 4092,
+      "bytes": 4640,
       "imports": [],
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 138319,
+      "bytes": 144875,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -612,13 +612,13 @@
           "bytesInOutput": 77401
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 61316
+          "bytesInOutput": 63557
         },
         "src/utils/PerformanceUtils.js": {
           "bytesInOutput": 257
         },
         "src/utils/VideoFrameCapture.js": {
-          "bytesInOutput": 842
+          "bytesInOutput": 1013
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 7462
@@ -639,7 +639,7 @@
           "bytesInOutput": 1877
         }
       },
-      "bytes": 346259
+      "bytes": 348671
     }
   }
 }

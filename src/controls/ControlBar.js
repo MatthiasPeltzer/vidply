@@ -959,12 +959,19 @@ export class ControlBar {
 
         // Check if renderer supports preview (HTML5Renderer or HLSRenderer with native support)
         // We check if renderer has a media property that is a video element
+        // Note: Don't rely on constructor.name as it's minified in production builds
         const renderer = this.player.renderer;
         const hasVideoMedia = renderer && renderer.media && renderer.media.tagName === 'VIDEO';
-        const isHTML5Renderer = renderer && (
-            renderer.constructor.name === 'HTML5Renderer' ||
-            (renderer.constructor.name === 'HLSRenderer' && hasVideoMedia)
-        );
+        
+        // Check if it's HTML5Renderer by checking:
+        // 1. Has media property that is a video element
+        // 2. Media is the same as player.element (HTML5Renderer sets this.media = player.element)
+        // 3. Doesn't have hls property (HLSRenderer has hls property)
+        // 4. Has seek method (all renderers have this, but combined with above checks it's reliable)
+        const isHTML5Renderer = hasVideoMedia && 
+            renderer.media === this.player.element &&
+            !renderer.hls &&
+            typeof renderer.seek === 'function';
         
         this.previewSupported = isHTML5Renderer && hasVideoMedia;
 
@@ -972,34 +979,57 @@ export class ControlBar {
             // Create a hidden video element for capturing frames
             this.previewVideo = document.createElement('video');
             this.previewVideo.muted = true;
-            this.previewVideo.preload = 'metadata';
+            this.previewVideo.preload = 'auto'; // Need more than metadata to capture frames
+            this.previewVideo.playsInline = true;
             this.previewVideo.style.position = 'absolute';
             this.previewVideo.style.visibility = 'hidden';
             this.previewVideo.style.width = '1px';
             this.previewVideo.style.height = '1px';
             this.previewVideo.style.top = '-9999px';
             
-            // Copy source from main video
+            // Copy source and attributes from main video
             const mainVideo = renderer.media || this.player.element;
+            let videoSrc = null;
+            
             if (mainVideo.src) {
-                this.previewVideo.src = mainVideo.src;
+                videoSrc = mainVideo.src;
             } else {
                 const source = mainVideo.querySelector('source');
                 if (source) {
-                    this.previewVideo.src = source.src;
+                    videoSrc = source.src;
                 }
             }
             
+            if (!videoSrc) {
+                this.player.log('No video source found for preview', 'warn');
+                this.previewSupported = false;
+                return;
+            }
+            
+            // Copy crossOrigin if set (important for CORS)
+            if (mainVideo.crossOrigin) {
+                this.previewVideo.crossOrigin = mainVideo.crossOrigin;
+            }
+            
             // Handle errors gracefully
-            this.previewVideo.addEventListener('error', () => {
-                this.player.log('Preview video failed to load', 'warn');
+            this.previewVideo.addEventListener('error', (e) => {
+                this.player.log('Preview video failed to load:', e, 'warn');
                 this.previewSupported = false;
             });
             
-            // Append to player container (hidden)
+            // Wait for metadata to be loaded before using
+            this.previewVideo.addEventListener('loadedmetadata', () => {
+                this.previewVideoReady = true;
+            }, { once: true });
+            
+            // Append to player container (hidden) BEFORE setting src
             if (this.player.container) {
                 this.player.container.appendChild(this.previewVideo);
             }
+            
+            // Set source after appending to DOM
+            this.previewVideo.src = videoSrc;
+            this.previewVideoReady = false;
         }
     }
 
@@ -1011,6 +1041,55 @@ export class ControlBar {
     async generatePreviewThumbnail(time) {
         if (!this.previewSupported || !this.previewVideo) {
             return null;
+        }
+
+        // Wait for preview video to be ready if not yet loaded
+        if (!this.previewVideoReady) {
+            if (this.previewVideo.readyState < 2) {
+                // Wait for at least HAVE_CURRENT_DATA (2) to ensure we can capture frames
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Preview video data load timeout'));
+                    }, 10000);
+                    
+                    const cleanup = () => {
+                        clearTimeout(timeout);
+                        this.previewVideo.removeEventListener('loadeddata', checkReady);
+                        this.previewVideo.removeEventListener('canplay', checkReady);
+                        this.previewVideo.removeEventListener('error', onError);
+                    };
+                    
+                    const checkReady = () => {
+                        if (this.previewVideo.readyState >= 2) {
+                            cleanup();
+                            this.previewVideoReady = true;
+                            resolve();
+                        }
+                    };
+                    
+                    const onError = () => {
+                        cleanup();
+                        reject(new Error('Preview video failed to load'));
+                    };
+                    
+                    // Try loadeddata first (faster), fallback to canplay
+                    if (this.previewVideo.readyState >= 1) {
+                        this.previewVideo.addEventListener('loadeddata', checkReady);
+                    }
+                    this.previewVideo.addEventListener('canplay', checkReady);
+                    this.previewVideo.addEventListener('error', onError);
+                    
+                    // If already ready, resolve immediately
+                    if (this.previewVideo.readyState >= 2) {
+                        checkReady();
+                    }
+                }).catch(() => {
+                    this.previewSupported = false;
+                    return null;
+                });
+            } else {
+                this.previewVideoReady = true;
+            }
         }
 
         // Check cache first
@@ -1029,8 +1108,9 @@ export class ControlBar {
         });
 
         if (dataURL) {
-            // Cache the thumbnail (limit cache size)
-            if (this.previewThumbnailCache.size > 20) {
+            // Cache the thumbnail (limit cache size to 20 entries using LRU-like behavior)
+            if (this.previewThumbnailCache.size >= 20) {
+                // Delete oldest entry (first key in insertion order)
                 const firstKey = this.previewThumbnailCache.keys().next().value;
                 this.previewThumbnailCache.delete(firstKey);
             }
@@ -1045,7 +1125,7 @@ export class ControlBar {
      * @param {number} time - Time in seconds
      */
     async updatePreviewThumbnail(time) {
-        if (!this.previewSupported) {
+        if (!this.previewSupported || !this.controls.progressPreview) {
             return;
         }
 
@@ -1056,12 +1136,27 @@ export class ControlBar {
 
         // Debounce thumbnail generation to avoid excessive seeking
         this.previewThumbnailTimeout = setTimeout(async () => {
-            const thumbnail = await this.generatePreviewThumbnail(time);
-            if (thumbnail && this.controls.progressPreview) {
-                this.controls.progressPreview.style.backgroundImage = `url(${thumbnail})`;
-                this.controls.progressPreview.style.display = 'block';
+            try {
+                const thumbnail = await this.generatePreviewThumbnail(time);
+                if (thumbnail && this.controls.progressPreview) {
+                    // Set background image and make visible
+                    this.controls.progressPreview.style.backgroundImage = `url("${thumbnail}")`;
+                    this.controls.progressPreview.style.display = 'block';
+                    this.controls.progressPreview.style.backgroundRepeat = 'no-repeat';
+                    this.controls.progressPreview.style.backgroundPosition = 'center';
+                } else {
+                    // Hide if thumbnail generation failed
+                    if (this.controls.progressPreview) {
+                        this.controls.progressPreview.style.display = 'none';
+                    }
+                }
+                this.currentPreviewTime = time;
+            } catch (error) {
+                this.player.log('Preview thumbnail update failed:', error, 'warn');
+                if (this.controls.progressPreview) {
+                    this.controls.progressPreview.style.display = 'none';
+                }
             }
-            this.currentPreviewTime = time;
         }, 100);
     }
 
@@ -1109,8 +1204,10 @@ export class ControlBar {
                 this.controls.progressTooltip.style.left = `${left}px`;
                 this.controls.progressTooltip.style.display = 'block';
                 
-                // Update preview thumbnail
-                this.updatePreviewThumbnail(time);
+                // Update preview thumbnail (only if supported)
+                if (this.previewSupported) {
+                    this.updatePreviewThumbnail(time);
+                }
             }
         });
 
@@ -2815,6 +2912,12 @@ export class ControlBar {
             this.updateDuration();
             this.ensureQualityButton();
             this.updateQualityIndicator();
+            // Update preview video source when metadata loads (for playlists)
+            this.updatePreviewVideoSource();
+        });
+        this.player.on('sourcechange', () => {
+            // Update preview video source when source changes (for playlists)
+            this.updatePreviewVideoSource();
         });
         this.player.on('volumechange', () => this.updateVolumeDisplay());
         this.player.on('progress', () => this.updateBuffered());
@@ -3474,6 +3577,49 @@ export class ControlBar {
 
     hide() {
         this.element.style.display = 'none';
+    }
+
+    /**
+     * Update preview video source when player source changes (for playlists)
+     * Also re-initializes if preview wasn't set up initially
+     */
+    updatePreviewVideoSource() {
+        const renderer = this.player.renderer;
+        if (!renderer || !renderer.media || renderer.media.tagName !== 'VIDEO') {
+            return;
+        }
+
+        // If preview wasn't initialized yet, try to initialize it now
+        if (!this.previewSupported && !this.previewVideo) {
+            this.initPreviewThumbnail();
+        }
+
+        if (!this.previewSupported || !this.previewVideo) {
+            return;
+        }
+
+        const mainVideo = renderer.media;
+        const newSrc = mainVideo.src || mainVideo.querySelector('source')?.src;
+        
+        if (newSrc && this.previewVideo.src !== newSrc) {
+            // Clear cache when source changes
+            this.previewThumbnailCache.clear();
+            this.previewVideoReady = false;
+            this.previewVideo.src = newSrc;
+            
+            // Copy crossOrigin if set
+            if (mainVideo.crossOrigin) {
+                this.previewVideo.crossOrigin = mainVideo.crossOrigin;
+            }
+            
+            // Wait for new source to load
+            this.previewVideo.addEventListener('loadedmetadata', () => {
+                this.previewVideoReady = true;
+            }, { once: true });
+        } else if (newSrc && !this.previewVideoReady && this.previewVideo.readyState >= 1) {
+            // If source is the same but video is ready, mark as ready
+            this.previewVideoReady = true;
+        }
     }
 
     /**

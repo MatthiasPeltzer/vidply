@@ -97,13 +97,22 @@ export async function captureVideoFrame(video, time, options = {}) {
 
         // Check if video is already at the right time and ready
         const timeDiff = Math.abs(video.currentTime - time);
+        // Need at least HAVE_METADATA (1) to know duration, but HAVE_CURRENT_DATA (2) is better for frame capture
         if (timeDiff < 0.1 && video.readyState >= 2) {
             // Video is already at the right position, capture immediately
             captureFrame();
-        } else {
-            // Seek to the desired time
+        } else if (video.readyState >= 1) {
+            // Video has metadata, we can seek
             video.addEventListener('seeked', onSeeked);
             video.currentTime = time;
+        } else {
+            // Video not ready yet, wait for metadata first
+            const onLoadedMetadata = () => {
+                video.removeEventListener('loadedmetadata', onLoadedMetadata);
+                video.addEventListener('seeked', onSeeked);
+                video.currentTime = time;
+            };
+            video.addEventListener('loadedmetadata', onLoadedMetadata);
         }
     });
 }
