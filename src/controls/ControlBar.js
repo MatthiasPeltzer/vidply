@@ -8,6 +8,7 @@ import {createIconElement} from '../icons/Icons.js';
 import {i18n} from '../i18n/i18n.js';
 import {focusElement, focusFirstElement} from '../utils/FocusUtils.js';
 import {isMobile} from '../utils/PerformanceUtils.js';
+import {captureVideoFrame} from '../utils/VideoFrameCapture.js';
 
 export class ControlBar {
     constructor(player) {
@@ -909,6 +910,21 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-progress-tooltip`
         });
 
+        // Preview thumbnail (for video only)
+        this.controls.progressPreview = DOMUtils.createElement('div', {
+            className: `${this.player.options.classPrefix}-progress-preview`,
+            attributes: {
+                'aria-hidden': 'true'
+            }
+        });
+        this.controls.progressTooltip.appendChild(this.controls.progressPreview);
+
+        // Time text
+        this.controls.progressTooltipTime = DOMUtils.createElement('div', {
+            className: `${this.player.options.classPrefix}-progress-tooltip-time`
+        });
+        this.controls.progressTooltip.appendChild(this.controls.progressTooltipTime);
+
         progressContainer.appendChild(this.controls.buffered);
         progressContainer.appendChild(this.controls.played);
         this.controls.played.appendChild(this.controls.progressHandle);
@@ -916,8 +932,137 @@ export class ControlBar {
 
         this.controls.progress = progressContainer;
 
+        // Initialize preview functionality
+        this.initPreviewThumbnail();
+
         // Progress bar events
         this.setupProgressBarEvents();
+    }
+
+    /**
+     * Initialize preview thumbnail functionality for HTML5 video
+     */
+    initPreviewThumbnail() {
+        this.previewThumbnailCache = new Map();
+        this.previewVideo = null;
+        this.currentPreviewTime = null;
+        this.previewThumbnailTimeout = null;
+        this.previewSupported = false;
+
+        // Check if preview is supported (HTML5 video only)
+        // Check if element is a video
+        const isVideo = this.player.element && this.player.element.tagName === 'VIDEO';
+        
+        if (!isVideo) {
+            return;
+        }
+
+        // Check if renderer supports preview (HTML5Renderer or HLSRenderer with native support)
+        // We check if renderer has a media property that is a video element
+        const renderer = this.player.renderer;
+        const hasVideoMedia = renderer && renderer.media && renderer.media.tagName === 'VIDEO';
+        const isHTML5Renderer = renderer && (
+            renderer.constructor.name === 'HTML5Renderer' ||
+            (renderer.constructor.name === 'HLSRenderer' && hasVideoMedia)
+        );
+        
+        this.previewSupported = isHTML5Renderer && hasVideoMedia;
+
+        if (this.previewSupported) {
+            // Create a hidden video element for capturing frames
+            this.previewVideo = document.createElement('video');
+            this.previewVideo.muted = true;
+            this.previewVideo.preload = 'metadata';
+            this.previewVideo.style.position = 'absolute';
+            this.previewVideo.style.visibility = 'hidden';
+            this.previewVideo.style.width = '1px';
+            this.previewVideo.style.height = '1px';
+            this.previewVideo.style.top = '-9999px';
+            
+            // Copy source from main video
+            const mainVideo = renderer.media || this.player.element;
+            if (mainVideo.src) {
+                this.previewVideo.src = mainVideo.src;
+            } else {
+                const source = mainVideo.querySelector('source');
+                if (source) {
+                    this.previewVideo.src = source.src;
+                }
+            }
+            
+            // Handle errors gracefully
+            this.previewVideo.addEventListener('error', () => {
+                this.player.log('Preview video failed to load', 'warn');
+                this.previewSupported = false;
+            });
+            
+            // Append to player container (hidden)
+            if (this.player.container) {
+                this.player.container.appendChild(this.previewVideo);
+            }
+        }
+    }
+
+    /**
+     * Generate preview thumbnail for a specific time
+     * @param {number} time - Time in seconds
+     * @returns {Promise<string>} Data URL of the thumbnail
+     */
+    async generatePreviewThumbnail(time) {
+        if (!this.previewSupported || !this.previewVideo) {
+            return null;
+        }
+
+        // Check cache first
+        const cacheKey = Math.floor(time);
+        if (this.previewThumbnailCache.has(cacheKey)) {
+            return this.previewThumbnailCache.get(cacheKey);
+        }
+
+        // Use shared frame capture utility
+        // Don't restore state since preview video is always muted and hidden
+        const dataURL = await captureVideoFrame(this.previewVideo, time, {
+            restoreState: false,
+            quality: 0.8,
+            maxWidth: 160,
+            maxHeight: 90
+        });
+
+        if (dataURL) {
+            // Cache the thumbnail (limit cache size)
+            if (this.previewThumbnailCache.size > 20) {
+                const firstKey = this.previewThumbnailCache.keys().next().value;
+                this.previewThumbnailCache.delete(firstKey);
+            }
+            this.previewThumbnailCache.set(cacheKey, dataURL);
+        }
+
+        return dataURL;
+    }
+
+    /**
+     * Update preview thumbnail display
+     * @param {number} time - Time in seconds
+     */
+    async updatePreviewThumbnail(time) {
+        if (!this.previewSupported) {
+            return;
+        }
+
+        // Clear any pending updates
+        if (this.previewThumbnailTimeout) {
+            clearTimeout(this.previewThumbnailTimeout);
+        }
+
+        // Debounce thumbnail generation to avoid excessive seeking
+        this.previewThumbnailTimeout = setTimeout(async () => {
+            const thumbnail = await this.generatePreviewThumbnail(time);
+            if (thumbnail && this.controls.progressPreview) {
+                this.controls.progressPreview.style.backgroundImage = `url(${thumbnail})`;
+                this.controls.progressPreview.style.display = 'block';
+            }
+            this.currentPreviewTime = time;
+        }, 100);
     }
 
     setupProgressBarEvents() {
@@ -954,15 +1099,26 @@ export class ControlBar {
         progress.addEventListener('mousemove', (e) => {
             if (!this.isDraggingProgress) {
                 const {time} = updateProgress(e.clientX);
-                // Update tooltip text content instead of aria-label (divs shouldn't have aria-label)
-                this.controls.progressTooltip.textContent = TimeUtils.formatTime(time);
-                this.controls.progressTooltip.style.left = `${e.clientX - progress.getBoundingClientRect().left}px`;
+                const rect = progress.getBoundingClientRect();
+                const left = e.clientX - rect.left;
+                
+                // Update tooltip time text
+                this.controls.progressTooltipTime.textContent = TimeUtils.formatTime(time);
+                
+                // Update tooltip position
+                this.controls.progressTooltip.style.left = `${left}px`;
                 this.controls.progressTooltip.style.display = 'block';
+                
+                // Update preview thumbnail
+                this.updatePreviewThumbnail(time);
             }
         });
 
         progress.addEventListener('mouseleave', () => {
             this.controls.progressTooltip.style.display = 'none';
+            if (this.previewThumbnailTimeout) {
+                clearTimeout(this.previewThumbnailTimeout);
+            }
         });
 
         // Keyboard navigation
@@ -3320,6 +3476,23 @@ export class ControlBar {
         this.element.style.display = 'none';
     }
 
+    /**
+     * Cleanup preview thumbnail resources
+     */
+    cleanupPreviewThumbnail() {
+        if (this.previewThumbnailTimeout) {
+            clearTimeout(this.previewThumbnailTimeout);
+            this.previewThumbnailTimeout = null;
+        }
+        
+        if (this.previewVideo && this.previewVideo.parentNode) {
+            this.previewVideo.parentNode.removeChild(this.previewVideo);
+            this.previewVideo = null;
+        }
+        
+        this.previewThumbnailCache.clear();
+    }
+
     destroy() {
         if (this.hideTimeout) {
             clearTimeout(this.hideTimeout);
@@ -3328,6 +3501,9 @@ export class ControlBar {
         if (this.overflowResizeObserver) {
             this.overflowResizeObserver.disconnect();
         }
+
+        // Cleanup preview thumbnail resources
+        this.cleanupPreviewThumbnail();
 
         if (this.element && this.element.parentNode) {
             this.element.parentNode.removeChild(this.element);

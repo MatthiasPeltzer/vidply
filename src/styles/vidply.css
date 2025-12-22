@@ -793,11 +793,30 @@
     color: var(--vidply-white);
     display: none;
     font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
+    padding: 0;
     pointer-events: none;
     position: absolute;
     transform: translateX(-50%);
     white-space: nowrap;
+    overflow: hidden;
+}
+
+.vidply-progress-preview {
+    background-size: cover;
+    background-position: center;
+    border-radius: 0.25rem 0.25rem 0 0;
+    display: none;
+    height: 5rem;
+    width: 8.888888889rem; /* 160px at 18px base */
+    min-width: 8.888888889rem;
+}
+
+.vidply-progress-tooltip-time {
+    background: var(--vidply-black-90);
+    border-radius: 0 0 0.25rem 0.25rem;
+    padding: 0.25rem 0.5rem;
+    text-align: center;
+    width: 100%;
 }
 
 /* Button Container */

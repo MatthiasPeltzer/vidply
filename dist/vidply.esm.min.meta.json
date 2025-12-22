@@ -103,8 +103,13 @@
       "imports": [],
       "format": "esm"
     },
+    "src/utils/VideoFrameCapture.js": {
+      "bytes": 4092,
+      "imports": [],
+      "format": "esm"
+    },
     "src/controls/ControlBar.js": {
-      "bytes": 131933,
+      "bytes": 138319,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -135,6 +140,11 @@
           "path": "src/utils/PerformanceUtils.js",
           "kind": "import-statement",
           "original": "../utils/PerformanceUtils.js"
+        },
+        {
+          "path": "src/utils/VideoFrameCapture.js",
+          "kind": "import-statement",
+          "original": "../utils/VideoFrameCapture.js"
         }
       ],
       "format": "esm"
@@ -176,7 +186,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.js": {
-      "bytes": 9364,
+      "bytes": 9645,
       "imports": [],
       "format": "esm"
     },
@@ -352,7 +362,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 205981,
+      "bytes": 209146,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -428,6 +438,11 @@
           "path": "src/core/SignLanguageManager.js",
           "kind": "import-statement",
           "original": "./SignLanguageManager.js"
+        },
+        {
+          "path": "src/utils/VideoFrameCapture.js",
+          "kind": "import-statement",
+          "original": "../utils/VideoFrameCapture.js"
         },
         {
           "path": "src/controls/TranscriptManager.js",
@@ -514,10 +529,10 @@
       },
       "bytes": 4730
     },
-    "dist/prod/vidply.HLSRenderer-CBXZ4RF2.min.js": {
+    "dist/prod/vidply.HLSRenderer-3CG7BZKA.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.HTML5Renderer-MY7XDV7R.min.js",
+          "path": "dist/prod/vidply.HTML5Renderer-KKW3OLHM.min.js",
           "kind": "dynamic-import"
         }
       ],
@@ -549,7 +564,7 @@
     "dist/prod/vidply.esm.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-OXXPY2XB.min.js",
+          "path": "dist/prod/vidply.chunk-34RH2THY.min.js",
           "kind": "import-statement"
         },
         {
@@ -569,7 +584,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.HLSRenderer-CBXZ4RF2.min.js",
+          "path": "dist/prod/vidply.HLSRenderer-3CG7BZKA.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -590,8 +605,11 @@
         "src/utils/PerformanceUtils.js": {
           "bytesInOutput": 256
         },
+        "src/utils/VideoFrameCapture.js": {
+          "bytesInOutput": 838
+        },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 56781
+          "bytesInOutput": 59666
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 7279
@@ -603,10 +621,10 @@
           "bytesInOutput": 9641
         },
         "src/core/SignLanguageManager.js": {
-          "bytesInOutput": 19116
+          "bytesInOutput": 19117
         },
         "src/core/Player.js": {
-          "bytesInOutput": 75524
+          "bytesInOutput": 76504
         },
         "src/features/PlaylistManager.js": {
           "bytesInOutput": 21345
@@ -615,7 +633,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 196610
+      "bytes": 201314
     },
     "dist/prod/vidply.de-FR3XX54P.min.js": {
       "imports": [],
@@ -669,10 +687,10 @@
       },
       "bytes": 8204
     },
-    "dist/prod/vidply.HTML5Renderer-MY7XDV7R.min.js": {
+    "dist/prod/vidply.HTML5Renderer-KKW3OLHM.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-OXXPY2XB.min.js",
+          "path": "dist/prod/vidply.chunk-34RH2THY.min.js",
           "kind": "import-statement"
         }
       ],
@@ -683,17 +701,17 @@
       "inputs": {},
       "bytes": 192
     },
-    "dist/prod/vidply.chunk-OXXPY2XB.min.js": {
+    "dist/prod/vidply.chunk-34RH2THY.min.js": {
       "imports": [],
       "exports": [
         "a"
       ],
       "inputs": {
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 4839
+          "bytesInOutput": 4974
         }
       },
-      "bytes": 4973
+      "bytes": 5108
     },
     "dist/prod/vidply.TranscriptManager-WFZSW6NR.min.js": {
       "imports": [
