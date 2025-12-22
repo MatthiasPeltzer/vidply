@@ -159,9 +159,16 @@ async function captureVideoFrame(video, time, options = {}) {
     const timeDiff = Math.abs(video.currentTime - time);
     if (timeDiff < 0.1 && video.readyState >= 2) {
       captureFrame();
-    } else {
+    } else if (video.readyState >= 1) {
       video.addEventListener("seeked", onSeeked);
       video.currentTime = time;
+    } else {
+      const onLoadedMetadata = () => {
+        video.removeEventListener("loadedmetadata", onLoadedMetadata);
+        video.addEventListener("seeked", onSeeked);
+        video.currentTime = time;
+      };
+      video.addEventListener("loadedmetadata", onLoadedMetadata);
     }
   });
 }
@@ -836,33 +843,48 @@ var ControlBar = class {
     }
     const renderer = this.player.renderer;
     const hasVideoMedia = renderer && renderer.media && renderer.media.tagName === "VIDEO";
-    const isHTML5Renderer = renderer && (renderer.constructor.name === "HTML5Renderer" || renderer.constructor.name === "HLSRenderer" && hasVideoMedia);
+    const isHTML5Renderer = hasVideoMedia && renderer.media === this.player.element && !renderer.hls && typeof renderer.seek === "function";
     this.previewSupported = isHTML5Renderer && hasVideoMedia;
     if (this.previewSupported) {
       this.previewVideo = document.createElement("video");
       this.previewVideo.muted = true;
-      this.previewVideo.preload = "metadata";
+      this.previewVideo.preload = "auto";
+      this.previewVideo.playsInline = true;
       this.previewVideo.style.position = "absolute";
       this.previewVideo.style.visibility = "hidden";
       this.previewVideo.style.width = "1px";
       this.previewVideo.style.height = "1px";
       this.previewVideo.style.top = "-9999px";
       const mainVideo = renderer.media || this.player.element;
+      let videoSrc = null;
       if (mainVideo.src) {
-        this.previewVideo.src = mainVideo.src;
+        videoSrc = mainVideo.src;
       } else {
         const source = mainVideo.querySelector("source");
         if (source) {
-          this.previewVideo.src = source.src;
+          videoSrc = source.src;
         }
       }
-      this.previewVideo.addEventListener("error", () => {
-        this.player.log("Preview video failed to load", "warn");
+      if (!videoSrc) {
+        this.player.log("No video source found for preview", "warn");
+        this.previewSupported = false;
+        return;
+      }
+      if (mainVideo.crossOrigin) {
+        this.previewVideo.crossOrigin = mainVideo.crossOrigin;
+      }
+      this.previewVideo.addEventListener("error", (e) => {
+        this.player.log("Preview video failed to load:", e, "warn");
         this.previewSupported = false;
       });
+      this.previewVideo.addEventListener("loadedmetadata", () => {
+        this.previewVideoReady = true;
+      }, { once: true });
       if (this.player.container) {
         this.player.container.appendChild(this.previewVideo);
       }
+      this.previewVideo.src = videoSrc;
+      this.previewVideoReady = false;
     }
   }
   /**
@@ -873,6 +895,45 @@ var ControlBar = class {
   async generatePreviewThumbnail(time) {
     if (!this.previewSupported || !this.previewVideo) {
       return null;
+    }
+    if (!this.previewVideoReady) {
+      if (this.previewVideo.readyState < 2) {
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error("Preview video data load timeout"));
+          }, 1e4);
+          const cleanup = () => {
+            clearTimeout(timeout);
+            this.previewVideo.removeEventListener("loadeddata", checkReady);
+            this.previewVideo.removeEventListener("canplay", checkReady);
+            this.previewVideo.removeEventListener("error", onError);
+          };
+          const checkReady = () => {
+            if (this.previewVideo.readyState >= 2) {
+              cleanup();
+              this.previewVideoReady = true;
+              resolve();
+            }
+          };
+          const onError = () => {
+            cleanup();
+            reject(new Error("Preview video failed to load"));
+          };
+          if (this.previewVideo.readyState >= 1) {
+            this.previewVideo.addEventListener("loadeddata", checkReady);
+          }
+          this.previewVideo.addEventListener("canplay", checkReady);
+          this.previewVideo.addEventListener("error", onError);
+          if (this.previewVideo.readyState >= 2) {
+            checkReady();
+          }
+        }).catch(() => {
+          this.previewSupported = false;
+          return null;
+        });
+      } else {
+        this.previewVideoReady = true;
+      }
     }
     const cacheKey = Math.floor(time);
     if (this.previewThumbnailCache.has(cacheKey)) {
@@ -885,7 +946,7 @@ var ControlBar = class {
       maxHeight: 90
     });
     if (dataURL) {
-      if (this.previewThumbnailCache.size > 20) {
+      if (this.previewThumbnailCache.size >= 20) {
         const firstKey = this.previewThumbnailCache.keys().next().value;
         this.previewThumbnailCache.delete(firstKey);
       }
@@ -898,19 +959,32 @@ var ControlBar = class {
    * @param {number} time - Time in seconds
    */
   async updatePreviewThumbnail(time) {
-    if (!this.previewSupported) {
+    if (!this.previewSupported || !this.controls.progressPreview) {
       return;
     }
     if (this.previewThumbnailTimeout) {
       clearTimeout(this.previewThumbnailTimeout);
     }
     this.previewThumbnailTimeout = setTimeout(async () => {
-      const thumbnail = await this.generatePreviewThumbnail(time);
-      if (thumbnail && this.controls.progressPreview) {
-        this.controls.progressPreview.style.backgroundImage = `url(${thumbnail})`;
-        this.controls.progressPreview.style.display = "block";
+      try {
+        const thumbnail = await this.generatePreviewThumbnail(time);
+        if (thumbnail && this.controls.progressPreview) {
+          this.controls.progressPreview.style.backgroundImage = `url("${thumbnail}")`;
+          this.controls.progressPreview.style.display = "block";
+          this.controls.progressPreview.style.backgroundRepeat = "no-repeat";
+          this.controls.progressPreview.style.backgroundPosition = "center";
+        } else {
+          if (this.controls.progressPreview) {
+            this.controls.progressPreview.style.display = "none";
+          }
+        }
+        this.currentPreviewTime = time;
+      } catch (error) {
+        this.player.log("Preview thumbnail update failed:", error, "warn");
+        if (this.controls.progressPreview) {
+          this.controls.progressPreview.style.display = "none";
+        }
       }
-      this.currentPreviewTime = time;
     }, 100);
   }
   setupProgressBarEvents() {
@@ -944,7 +1018,9 @@ var ControlBar = class {
         this.controls.progressTooltipTime.textContent = TimeUtils.formatTime(time);
         this.controls.progressTooltip.style.left = `${left}px`;
         this.controls.progressTooltip.style.display = "block";
-        this.updatePreviewThumbnail(time);
+        if (this.previewSupported) {
+          this.updatePreviewThumbnail(time);
+        }
       }
     });
     progress.addEventListener("mouseleave", () => {
@@ -2231,6 +2307,10 @@ var ControlBar = class {
       this.updateDuration();
       this.ensureQualityButton();
       this.updateQualityIndicator();
+      this.updatePreviewVideoSource();
+    });
+    this.player.on("sourcechange", () => {
+      this.updatePreviewVideoSource();
     });
     this.player.on("volumechange", () => this.updateVolumeDisplay());
     this.player.on("progress", () => this.updateBuffered());
@@ -2697,6 +2777,37 @@ var ControlBar = class {
   }
   hide() {
     this.element.style.display = "none";
+  }
+  /**
+   * Update preview video source when player source changes (for playlists)
+   * Also re-initializes if preview wasn't set up initially
+   */
+  updatePreviewVideoSource() {
+    const renderer = this.player.renderer;
+    if (!renderer || !renderer.media || renderer.media.tagName !== "VIDEO") {
+      return;
+    }
+    if (!this.previewSupported && !this.previewVideo) {
+      this.initPreviewThumbnail();
+    }
+    if (!this.previewSupported || !this.previewVideo) {
+      return;
+    }
+    const mainVideo = renderer.media;
+    const newSrc = mainVideo.src || mainVideo.querySelector("source")?.src;
+    if (newSrc && this.previewVideo.src !== newSrc) {
+      this.previewThumbnailCache.clear();
+      this.previewVideoReady = false;
+      this.previewVideo.src = newSrc;
+      if (mainVideo.crossOrigin) {
+        this.previewVideo.crossOrigin = mainVideo.crossOrigin;
+      }
+      this.previewVideo.addEventListener("loadedmetadata", () => {
+        this.previewVideoReady = true;
+      }, { once: true });
+    } else if (newSrc && !this.previewVideoReady && this.previewVideo.readyState >= 1) {
+      this.previewVideoReady = true;
+    }
   }
   /**
    * Cleanup preview thumbnail resources
