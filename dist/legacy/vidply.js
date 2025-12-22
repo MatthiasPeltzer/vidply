@@ -1741,6 +1741,11 @@
           this.media.addEventListener("loadedmetadata", () => {
             this.player.state.duration = this.media.duration;
             this.player.emit("loadedmetadata");
+            if (this.media.tagName === "VIDEO") {
+              this.player.autoGeneratePoster().catch((error) => {
+                this.player.log("Failed to auto-generate poster:", error, "warn");
+              });
+            }
           });
           this.media.addEventListener("play", () => {
             this.player.state.playing = true;
@@ -5574,6 +5579,81 @@
     setTimeout(execute, timeout);
   }
 
+  // src/utils/VideoFrameCapture.js
+  async function captureVideoFrame(video, time, options = {}) {
+    if (!video || video.tagName !== "VIDEO") {
+      return null;
+    }
+    const {
+      restoreState = true,
+      quality = 0.9,
+      maxWidth,
+      maxHeight
+    } = options;
+    const wasPlaying = !video.paused;
+    const originalTime = video.currentTime;
+    const originalMuted = video.muted;
+    if (restoreState) {
+      video.muted = true;
+    }
+    return new Promise((resolve) => {
+      const captureFrame = () => {
+        try {
+          let width = video.videoWidth || 640;
+          let height = video.videoHeight || 360;
+          if (maxWidth && width > maxWidth) {
+            const ratio = maxWidth / width;
+            width = maxWidth;
+            height = Math.round(height * ratio);
+          }
+          if (maxHeight && height > maxHeight) {
+            const ratio = maxHeight / height;
+            height = maxHeight;
+            width = Math.round(width * ratio);
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(video, 0, 0, width, height);
+          const dataURL = canvas.toDataURL("image/jpeg", quality);
+          if (restoreState) {
+            video.currentTime = originalTime;
+            video.muted = originalMuted;
+            if (wasPlaying && !video.paused) {
+              video.play().catch(() => {
+              });
+            }
+          }
+          resolve(dataURL);
+        } catch (error) {
+          if (restoreState) {
+            video.currentTime = originalTime;
+            video.muted = originalMuted;
+            if (wasPlaying && !video.paused) {
+              video.play().catch(() => {
+              });
+            }
+          }
+          resolve(null);
+        }
+      };
+      const onSeeked = () => {
+        video.removeEventListener("seeked", onSeeked);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(captureFrame);
+        });
+      };
+      const timeDiff = Math.abs(video.currentTime - time);
+      if (timeDiff < 0.1 && video.readyState >= 2) {
+        captureFrame();
+      } else {
+        video.addEventListener("seeked", onSeeked);
+        video.currentTime = time;
+      }
+    });
+  }
+
   // src/controls/ControlBar.js
   var ControlBar = class {
     constructor(player) {
@@ -6211,12 +6291,116 @@
       this.controls.progressTooltip = DOMUtils.createElement("div", {
         className: "".concat(this.player.options.classPrefix, "-progress-tooltip")
       });
+      this.controls.progressPreview = DOMUtils.createElement("div", {
+        className: "".concat(this.player.options.classPrefix, "-progress-preview"),
+        attributes: {
+          "aria-hidden": "true"
+        }
+      });
+      this.controls.progressTooltip.appendChild(this.controls.progressPreview);
+      this.controls.progressTooltipTime = DOMUtils.createElement("div", {
+        className: "".concat(this.player.options.classPrefix, "-progress-tooltip-time")
+      });
+      this.controls.progressTooltip.appendChild(this.controls.progressTooltipTime);
       progressContainer.appendChild(this.controls.buffered);
       progressContainer.appendChild(this.controls.played);
       this.controls.played.appendChild(this.controls.progressHandle);
       progressContainer.appendChild(this.controls.progressTooltip);
       this.controls.progress = progressContainer;
+      this.initPreviewThumbnail();
       this.setupProgressBarEvents();
+    }
+    /**
+     * Initialize preview thumbnail functionality for HTML5 video
+     */
+    initPreviewThumbnail() {
+      this.previewThumbnailCache = /* @__PURE__ */ new Map();
+      this.previewVideo = null;
+      this.currentPreviewTime = null;
+      this.previewThumbnailTimeout = null;
+      this.previewSupported = false;
+      const isVideo = this.player.element && this.player.element.tagName === "VIDEO";
+      if (!isVideo) {
+        return;
+      }
+      const renderer = this.player.renderer;
+      const hasVideoMedia = renderer && renderer.media && renderer.media.tagName === "VIDEO";
+      const isHTML5Renderer = renderer && (renderer.constructor.name === "HTML5Renderer" || renderer.constructor.name === "HLSRenderer" && hasVideoMedia);
+      this.previewSupported = isHTML5Renderer && hasVideoMedia;
+      if (this.previewSupported) {
+        this.previewVideo = document.createElement("video");
+        this.previewVideo.muted = true;
+        this.previewVideo.preload = "metadata";
+        this.previewVideo.style.position = "absolute";
+        this.previewVideo.style.visibility = "hidden";
+        this.previewVideo.style.width = "1px";
+        this.previewVideo.style.height = "1px";
+        this.previewVideo.style.top = "-9999px";
+        const mainVideo = renderer.media || this.player.element;
+        if (mainVideo.src) {
+          this.previewVideo.src = mainVideo.src;
+        } else {
+          const source = mainVideo.querySelector("source");
+          if (source) {
+            this.previewVideo.src = source.src;
+          }
+        }
+        this.previewVideo.addEventListener("error", () => {
+          this.player.log("Preview video failed to load", "warn");
+          this.previewSupported = false;
+        });
+        if (this.player.container) {
+          this.player.container.appendChild(this.previewVideo);
+        }
+      }
+    }
+    /**
+     * Generate preview thumbnail for a specific time
+     * @param {number} time - Time in seconds
+     * @returns {Promise<string>} Data URL of the thumbnail
+     */
+    async generatePreviewThumbnail(time) {
+      if (!this.previewSupported || !this.previewVideo) {
+        return null;
+      }
+      const cacheKey = Math.floor(time);
+      if (this.previewThumbnailCache.has(cacheKey)) {
+        return this.previewThumbnailCache.get(cacheKey);
+      }
+      const dataURL = await captureVideoFrame(this.previewVideo, time, {
+        restoreState: false,
+        quality: 0.8,
+        maxWidth: 160,
+        maxHeight: 90
+      });
+      if (dataURL) {
+        if (this.previewThumbnailCache.size > 20) {
+          const firstKey = this.previewThumbnailCache.keys().next().value;
+          this.previewThumbnailCache.delete(firstKey);
+        }
+        this.previewThumbnailCache.set(cacheKey, dataURL);
+      }
+      return dataURL;
+    }
+    /**
+     * Update preview thumbnail display
+     * @param {number} time - Time in seconds
+     */
+    async updatePreviewThumbnail(time) {
+      if (!this.previewSupported) {
+        return;
+      }
+      if (this.previewThumbnailTimeout) {
+        clearTimeout(this.previewThumbnailTimeout);
+      }
+      this.previewThumbnailTimeout = setTimeout(async () => {
+        const thumbnail = await this.generatePreviewThumbnail(time);
+        if (thumbnail && this.controls.progressPreview) {
+          this.controls.progressPreview.style.backgroundImage = "url(".concat(thumbnail, ")");
+          this.controls.progressPreview.style.display = "block";
+        }
+        this.currentPreviewTime = time;
+      }, 100);
     }
     setupProgressBarEvents() {
       const progress = this.controls.progress;
@@ -6244,13 +6428,19 @@
       progress.addEventListener("mousemove", (e) => {
         if (!this.isDraggingProgress) {
           const { time } = updateProgress(e.clientX);
-          this.controls.progressTooltip.textContent = TimeUtils.formatTime(time);
-          this.controls.progressTooltip.style.left = "".concat(e.clientX - progress.getBoundingClientRect().left, "px");
+          const rect = progress.getBoundingClientRect();
+          const left = e.clientX - rect.left;
+          this.controls.progressTooltipTime.textContent = TimeUtils.formatTime(time);
+          this.controls.progressTooltip.style.left = "".concat(left, "px");
           this.controls.progressTooltip.style.display = "block";
+          this.updatePreviewThumbnail(time);
         }
       });
       progress.addEventListener("mouseleave", () => {
         this.controls.progressTooltip.style.display = "none";
+        if (this.previewThumbnailTimeout) {
+          clearTimeout(this.previewThumbnailTimeout);
+        }
       });
       progress.addEventListener("keydown", (e) => {
         if (e.key === "ArrowLeft") {
@@ -7997,6 +8187,20 @@
     hide() {
       this.element.style.display = "none";
     }
+    /**
+     * Cleanup preview thumbnail resources
+     */
+    cleanupPreviewThumbnail() {
+      if (this.previewThumbnailTimeout) {
+        clearTimeout(this.previewThumbnailTimeout);
+        this.previewThumbnailTimeout = null;
+      }
+      if (this.previewVideo && this.previewVideo.parentNode) {
+        this.previewVideo.parentNode.removeChild(this.previewVideo);
+        this.previewVideo = null;
+      }
+      this.previewThumbnailCache.clear();
+    }
     destroy() {
       if (this.hideTimeout) {
         clearTimeout(this.hideTimeout);
@@ -8004,6 +8208,7 @@
       if (this.overflowResizeObserver) {
         this.overflowResizeObserver.disconnect();
       }
+      this.cleanupPreviewThumbnail();
       if (this.element && this.element.parentNode) {
         this.element.parentNode.removeChild(this.element);
       }
@@ -10635,6 +10840,64 @@
         return posterPath;
       }
     }
+    /**
+     * Generate a poster image from video frame at specified time
+     * @param {number} time - Time in seconds (default: 10)
+     * @returns {Promise<string|null>} Data URL of the poster image or null if failed
+     */
+    async generatePosterFromVideo(time = 10) {
+      if (this.element.tagName !== "VIDEO") {
+        return null;
+      }
+      const renderer = this.renderer;
+      if (!renderer || !renderer.media || renderer.media.tagName !== "VIDEO") {
+        return null;
+      }
+      const video = renderer.media;
+      if (!video.duration || video.duration < time) {
+        time = Math.min(time, Math.max(1, video.duration * 0.1));
+      }
+      let videoToUse = video;
+      if (this.controlBar && this.controlBar.previewVideo && this.controlBar.previewSupported) {
+        videoToUse = this.controlBar.previewVideo;
+      }
+      const restoreState = videoToUse === video;
+      return await captureVideoFrame(videoToUse, time, {
+        restoreState,
+        quality: 0.9
+      });
+    }
+    /**
+     * Auto-generate poster from video if none is provided
+     */
+    async autoGeneratePoster() {
+      const hasPoster = this.element.getAttribute("poster") || this.element.poster || this.options.poster;
+      if (hasPoster) {
+        return;
+      }
+      if (this.element.tagName !== "VIDEO") {
+        return;
+      }
+      if (!this.state.duration || this.state.duration === 0) {
+        await new Promise((resolve) => {
+          const onLoadedMetadata = () => {
+            this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
+            resolve();
+          };
+          if (this.element.readyState >= 1) {
+            resolve();
+          } else {
+            this.element.addEventListener("loadedmetadata", onLoadedMetadata);
+          }
+        });
+      }
+      const posterDataURL = await this.generatePosterFromVideo(10);
+      if (posterDataURL) {
+        this.element.poster = posterDataURL;
+        this.log("Auto-generated poster from video frame at 10 seconds", "info");
+        this.showPosterOverlay();
+      }
+    }
     showPosterOverlay() {
       if (!this.videoWrapper || this.element.tagName !== "VIDEO") {
         return;
@@ -10643,7 +10906,7 @@
       if (!poster) {
         return;
       }
-      const resolvedPoster = this.resolvePosterPath(poster);
+      const resolvedPoster = poster.startsWith("data:") ? poster : this.resolvePosterPath(poster);
       this.videoWrapper.style.setProperty("--vidply-poster-image", 'url("'.concat(resolvedPoster, '")'));
       this.videoWrapper.classList.add("vidply-forced-poster");
       if (this._isAudioContent && this.container) {

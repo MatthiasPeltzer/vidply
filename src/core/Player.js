@@ -18,6 +18,7 @@ import {createLabeledSelect, preventDragOnElement} from '../utils/FormUtils.js';
 import {debounce, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
 import {AudioDescriptionManager} from './AudioDescriptionManager.js';
 import {SignLanguageManager} from './SignLanguageManager.js';
+import {captureVideoFrame} from '../utils/VideoFrameCapture.js';
 
 // Static counter for unique player instances
 let playerInstanceCounter = 0;
@@ -834,6 +835,95 @@ export class Player extends EventEmitter {
         }
     }
 
+    /**
+     * Generate a poster image from video frame at specified time
+     * @param {number} time - Time in seconds (default: 10)
+     * @returns {Promise<string|null>} Data URL of the poster image or null if failed
+     */
+    async generatePosterFromVideo(time = 10) {
+        // Only for HTML5 video
+        if (this.element.tagName !== 'VIDEO') {
+            return null;
+        }
+
+        // Check if renderer supports this (HTML5Renderer only)
+        const renderer = this.renderer;
+        if (!renderer || !renderer.media || renderer.media.tagName !== 'VIDEO') {
+            return null;
+        }
+
+        const video = renderer.media;
+        
+        // Check if video has enough duration
+        if (!video.duration || video.duration < time) {
+            // Use a smaller time if video is shorter
+            time = Math.min(time, Math.max(1, video.duration * 0.1));
+        }
+
+        // Try to use preview video from ControlBar if available (avoids interfering with playback)
+        let videoToUse = video;
+        if (this.controlBar && this.controlBar.previewVideo && this.controlBar.previewSupported) {
+            videoToUse = this.controlBar.previewVideo;
+        }
+
+        // Use shared frame capture utility
+        // For main video, restore state; for preview video, no need
+        const restoreState = videoToUse === video;
+        return await captureVideoFrame(videoToUse, time, {
+            restoreState,
+            quality: 0.9
+        });
+    }
+
+    /**
+     * Auto-generate poster from video if none is provided
+     */
+    async autoGeneratePoster() {
+        // Check if poster already exists
+        const hasPoster = 
+            this.element.getAttribute('poster') ||
+            this.element.poster ||
+            this.options.poster;
+
+        if (hasPoster) {
+            return;
+        }
+
+        // Only for HTML5 video
+        if (this.element.tagName !== 'VIDEO') {
+            return;
+        }
+
+        // Wait for metadata to be loaded
+        if (!this.state.duration || this.state.duration === 0) {
+            // Wait for loadedmetadata event
+            await new Promise((resolve) => {
+                const onLoadedMetadata = () => {
+                    this.element.removeEventListener('loadedmetadata', onLoadedMetadata);
+                    resolve();
+                };
+                
+                if (this.element.readyState >= 1) {
+                    resolve();
+                } else {
+                    this.element.addEventListener('loadedmetadata', onLoadedMetadata);
+                }
+            });
+        }
+
+        // Generate poster from second 10
+        const posterDataURL = await this.generatePosterFromVideo(10);
+        
+        if (posterDataURL) {
+            // Set as poster
+            this.element.poster = posterDataURL;
+            this.log('Auto-generated poster from video frame at 10 seconds', 'info');
+            
+            // Show the poster overlay
+            this.showPosterOverlay();
+        }
+    }
+
     showPosterOverlay() {
         if (!this.videoWrapper || this.element.tagName !== 'VIDEO') {
             return;
@@ -848,8 +938,10 @@ export class Player extends EventEmitter {
             return;
         }
 
-        // Resolve relative paths to absolute URLs
-        const resolvedPoster = this.resolvePosterPath(poster);
+        // Resolve relative paths to absolute URLs (skip for data URLs)
+        const resolvedPoster = poster.startsWith('data:') 
+            ? poster 
+            : this.resolvePosterPath(poster);
         this.videoWrapper.style.setProperty('--vidply-poster-image', `url("${resolvedPoster}")`);
         this.videoWrapper.classList.add('vidply-forced-poster');
         

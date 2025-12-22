@@ -103,8 +103,13 @@
       "imports": [],
       "format": "esm"
     },
+    "src/utils/VideoFrameCapture.js": {
+      "bytes": 4092,
+      "imports": [],
+      "format": "esm"
+    },
     "src/controls/ControlBar.js": {
-      "bytes": 131933,
+      "bytes": 138319,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -135,6 +140,11 @@
           "path": "src/utils/PerformanceUtils.js",
           "kind": "import-statement",
           "original": "../utils/PerformanceUtils.js"
+        },
+        {
+          "path": "src/utils/VideoFrameCapture.js",
+          "kind": "import-statement",
+          "original": "../utils/VideoFrameCapture.js"
         }
       ],
       "format": "esm"
@@ -176,7 +186,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.js": {
-      "bytes": 9364,
+      "bytes": 9645,
       "imports": [],
       "format": "esm"
     },
@@ -358,7 +368,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 205981,
+      "bytes": 209146,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -434,6 +444,11 @@
           "path": "src/core/SignLanguageManager.js",
           "kind": "import-statement",
           "original": "./SignLanguageManager.js"
+        },
+        {
+          "path": "src/utils/VideoFrameCapture.js",
+          "kind": "import-statement",
+          "original": "../utils/VideoFrameCapture.js"
         },
         {
           "path": "src/controls/TranscriptManager.js",
@@ -564,7 +579,7 @@
           "bytesInOutput": 1638
         },
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 4915
+          "bytesInOutput": 5050
         },
         "src/utils/DraggableResizable.js": {
           "bytesInOutput": 14166
@@ -594,13 +609,16 @@
           "bytesInOutput": 437
         },
         "src/core/Player.js": {
-          "bytesInOutput": 76421
+          "bytesInOutput": 77401
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 58403
+          "bytesInOutput": 61316
         },
         "src/utils/PerformanceUtils.js": {
           "bytesInOutput": 257
+        },
+        "src/utils/VideoFrameCapture.js": {
+          "bytesInOutput": 842
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 7462
@@ -621,7 +639,7 @@
           "bytesInOutput": 1877
         }
       },
-      "bytes": 341389
+      "bytes": 346259
     }
   }
 }
