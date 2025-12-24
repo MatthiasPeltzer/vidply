@@ -362,7 +362,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 209146,
+      "bytes": 214014,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -473,7 +473,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 48411,
+      "bytes": 49922,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
