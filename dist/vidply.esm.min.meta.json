@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 144875,
+      "bytes": 145861,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -346,7 +346,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 9900,
+      "bytes": 10310,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -362,7 +362,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 214014,
+      "bytes": 214379,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -529,7 +529,7 @@
       },
       "bytes": 4730
     },
-    "dist/prod/vidply.HLSRenderer-3CG7BZKA.min.js": {
+    "dist/prod/vidply.HLSRenderer-VWNJD2CB.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.HTML5Renderer-KKW3OLHM.min.js",
@@ -542,10 +542,10 @@
       "entryPoint": "src/renderers/HLSRenderer.js",
       "inputs": {
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 5781
+          "bytesInOutput": 5884
         }
       },
-      "bytes": 5925
+      "bytes": 6028
     },
     "dist/prod/vidply.SoundCloudRenderer-MOR2CUFH.min.js": {
       "imports": [],
@@ -584,7 +584,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.HLSRenderer-3CG7BZKA.min.js",
+          "path": "dist/prod/vidply.HLSRenderer-VWNJD2CB.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -609,7 +609,7 @@
           "bytesInOutput": 1009
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 61881
+          "bytesInOutput": 62339
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 7279
@@ -624,7 +624,7 @@
           "bytesInOutput": 19117
         },
         "src/core/Player.js": {
-          "bytesInOutput": 76504
+          "bytesInOutput": 76547
         },
         "src/features/PlaylistManager.js": {
           "bytesInOutput": 21345
@@ -633,7 +633,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 203700
+      "bytes": 204201
     },
     "dist/prod/vidply.de-FR3XX54P.min.js": {
       "imports": [],

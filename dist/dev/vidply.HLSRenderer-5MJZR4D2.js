@@ -237,13 +237,19 @@ var HLSRenderer = class {
   }
   getQualities() {
     if (this.hls && this.hls.levels) {
-      return this.hls.levels.map((level, index) => ({
-        index,
-        height: level.height,
-        width: level.width,
-        bitrate: level.bitrate,
-        name: `${level.height}p`
-      }));
+      return this.hls.levels.map((level, index) => {
+        const height = Number(level.height) || 0;
+        const bitrate = Number(level.bitrate) || 0;
+        const kb = bitrate > 0 ? Math.round(bitrate / 1e3) : 0;
+        const name = height > 0 ? `${height}p` : kb > 0 ? `${kb} kb` : "Auto";
+        return {
+          index,
+          height: level.height,
+          width: level.width,
+          bitrate: level.bitrate,
+          name
+        };
+      });
     }
     return [];
   }
@@ -263,4 +269,4 @@ var HLSRenderer = class {
 export {
   HLSRenderer
 };
-//# sourceMappingURL=vidply.HLSRenderer-UMPUDSYL.js.map
+//# sourceMappingURL=vidply.HLSRenderer-5MJZR4D2.js.map

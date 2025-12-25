@@ -98,6 +98,11 @@ export class Player extends EventEmitter {
             qualityButton: true,
             captionStyleButton: true,
             speedButton: true,
+            // When enabled, the playback speed UI is suppressed for ALL HLS streams (audio + video).
+            hideSpeedForHls: false,
+            // When enabled, the playback speed UI is suppressed for HLS *video* streams only.
+            // This is useful for live streams where speed controls don't make sense.
+            hideSpeedForHlsVideo: false,
             captionsButton: true,
             transcriptButton: true,
             fullscreenButton: true,

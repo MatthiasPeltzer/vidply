@@ -715,7 +715,22 @@ export class ControlBar {
         }
 
         // 4. Playback speed button
-        if (this.player.options.speedButton) {
+        // IMPORTANT: Don't rely on renderer.constructor.name here.
+        // In production builds, class names are minified (e.g. "class s"), which would break the check.
+        // Instead, detect HLS by the current source URL.
+        const src = this.player.currentSource
+            || this.player.element?.getAttribute?.('src')
+            || this.player.element?.currentSrc
+            || this.player.element?.src
+            || this.player.element?.querySelector?.('source')?.getAttribute?.('src')
+            || this.player.element?.querySelector?.('source')?.src
+            || '';
+        const isHlsSource = typeof src === 'string' && src.includes('.m3u8');
+        const isVideoElement = this.player.element?.tagName?.toLowerCase() === 'video';
+        const hideSpeedForThisPlayer =
+            (!!this.player.options.hideSpeedForHls && isHlsSource)
+            || (!!this.player.options.hideSpeedForHlsVideo && isHlsSource && isVideoElement);
+        if (this.player.options.speedButton && !hideSpeedForThisPlayer) {
             const btn = this.createSpeedButton();
             btn.dataset.overflowPriority = '1';
             btn.dataset.overflowPriorityMobile = '3';

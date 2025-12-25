@@ -5194,13 +5194,19 @@
         }
         getQualities() {
           if (this.hls && this.hls.levels) {
-            return this.hls.levels.map((level, index) => ({
-              index,
-              height: level.height,
-              width: level.width,
-              bitrate: level.bitrate,
-              name: "".concat(level.height, "p")
-            }));
+            return this.hls.levels.map((level, index) => {
+              const height = Number(level.height) || 0;
+              const bitrate = Number(level.bitrate) || 0;
+              const kb = bitrate > 0 ? Math.round(bitrate / 1e3) : 0;
+              const name = height > 0 ? "".concat(height, "p") : kb > 0 ? "".concat(kb, " kb") : "Auto";
+              return {
+                index,
+                height: level.height,
+                width: level.width,
+                bitrate: level.bitrate,
+                name
+              };
+            });
           }
           return [];
         }
@@ -6091,6 +6097,7 @@
       });
     }
     createControls() {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
       const progressTimeWrapper = DOMUtils.createElement("div", {
         className: "".concat(this.player.options.classPrefix, "-progress-time-wrapper")
       });
@@ -6156,7 +6163,11 @@
         btn.dataset.overflowPriorityMobile = "3";
         this.rightButtons.appendChild(btn);
       }
-      if (this.player.options.speedButton) {
+      const src = this.player.currentSource || ((_b = (_a = this.player.element) == null ? void 0 : _a.getAttribute) == null ? void 0 : _b.call(_a, "src")) || ((_c = this.player.element) == null ? void 0 : _c.currentSrc) || ((_d = this.player.element) == null ? void 0 : _d.src) || ((_h = (_g = (_f = (_e = this.player.element) == null ? void 0 : _e.querySelector) == null ? void 0 : _f.call(_e, "source")) == null ? void 0 : _g.getAttribute) == null ? void 0 : _h.call(_g, "src")) || ((_k = (_j = (_i = this.player.element) == null ? void 0 : _i.querySelector) == null ? void 0 : _j.call(_i, "source")) == null ? void 0 : _k.src) || "";
+      const isHlsSource = typeof src === "string" && src.includes(".m3u8");
+      const isVideoElement = ((_m = (_l = this.player.element) == null ? void 0 : _l.tagName) == null ? void 0 : _m.toLowerCase()) === "video";
+      const hideSpeedForThisPlayer = !!this.player.options.hideSpeedForHls && isHlsSource || !!this.player.options.hideSpeedForHlsVideo && isHlsSource && isVideoElement;
+      if (this.player.options.speedButton && !hideSpeedForThisPlayer) {
         const btn = this.createSpeedButton();
         btn.dataset.overflowPriority = "1";
         btn.dataset.overflowPriorityMobile = "3";
@@ -10393,6 +10404,11 @@
         qualityButton: true,
         captionStyleButton: true,
         speedButton: true,
+        // When enabled, the playback speed UI is suppressed for ALL HLS streams (audio + video).
+        hideSpeedForHls: false,
+        // When enabled, the playback speed UI is suppressed for HLS *video* streams only.
+        // This is useful for live streams where speed controls don't make sense.
+        hideSpeedForHlsVideo: false,
         captionsButton: true,
         transcriptButton: true,
         fullscreenButton: true,
