@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 144875,
+      "bytes": 145861,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -352,7 +352,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 9900,
+      "bytes": 10310,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -368,7 +368,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 214014,
+      "bytes": 214379,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -600,7 +600,7 @@
           "bytesInOutput": 4651
         },
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 5898
+          "bytesInOutput": 6010
         },
         "src/renderers/SoundCloudRenderer.js": {
           "bytesInOutput": 5597
@@ -609,10 +609,10 @@
           "bytesInOutput": 437
         },
         "src/core/Player.js": {
-          "bytesInOutput": 77401
+          "bytesInOutput": 77444
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 63557
+          "bytesInOutput": 64315
         },
         "src/utils/PerformanceUtils.js": {
           "bytesInOutput": 257
@@ -639,7 +639,7 @@
           "bytesInOutput": 1877
         }
       },
-      "bytes": 348671
+      "bytes": 349584
     }
   }
 }

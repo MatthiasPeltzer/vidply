@@ -667,7 +667,11 @@ var ControlBar = class {
       btn.dataset.overflowPriorityMobile = "3";
       this.rightButtons.appendChild(btn);
     }
-    if (this.player.options.speedButton) {
+    const src = this.player.currentSource || this.player.element?.getAttribute?.("src") || this.player.element?.currentSrc || this.player.element?.src || this.player.element?.querySelector?.("source")?.getAttribute?.("src") || this.player.element?.querySelector?.("source")?.src || "";
+    const isHlsSource = typeof src === "string" && src.includes(".m3u8");
+    const isVideoElement = this.player.element?.tagName?.toLowerCase() === "video";
+    const hideSpeedForThisPlayer = !!this.player.options.hideSpeedForHls && isHlsSource || !!this.player.options.hideSpeedForHlsVideo && isHlsSource && isVideoElement;
+    if (this.player.options.speedButton && !hideSpeedForThisPlayer) {
       const btn = this.createSpeedButton();
       btn.dataset.overflowPriority = "1";
       btn.dataset.overflowPriorityMobile = "3";
@@ -4879,6 +4883,11 @@ var Player = class _Player extends EventEmitter {
       qualityButton: true,
       captionStyleButton: true,
       speedButton: true,
+      // When enabled, the playback speed UI is suppressed for ALL HLS streams (audio + video).
+      hideSpeedForHls: false,
+      // When enabled, the playback speed UI is suppressed for HLS *video* streams only.
+      // This is useful for live streams where speed controls don't make sense.
+      hideSpeedForHlsVideo: false,
       captionsButton: true,
       transcriptButton: true,
       fullscreenButton: true,
@@ -5332,7 +5341,7 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.VimeoRenderer-VPH4RNES.js");
       rendererClass = module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-UMPUDSYL.js");
+      const module = await import("./vidply.HLSRenderer-5MJZR4D2.js");
       rendererClass = module.HLSRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-CD7VJKNS.js");
