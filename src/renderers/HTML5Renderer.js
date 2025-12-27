@@ -6,6 +6,7 @@ export class HTML5Renderer {
   constructor(player) {
     this.player = player;
     this.media = player.element;
+    this._didDeferredLoad = false;
   }
 
   async init() {
@@ -15,11 +16,16 @@ export class HTML5Renderer {
     
     this.attachEvents();
     
-    // Set preload
-    this.media.preload = this.player.options.preload;
-    
-    // Load media
-    this.media.load();
+    // Set preload + optionally defer network loading until user play
+    if (this.player.options.deferLoad) {
+      // Allow metadata preload while still avoiding an explicit load() call.
+      // Note: browsers may still fetch metadata automatically when preload="metadata".
+      this.media.preload = this.player.options.preload || 'none';
+    } else {
+      this.media.preload = this.player.options.preload;
+      // Load media (eager)
+      this.media.load();
+    }
     
     // Show VidPly controls (remove external controls class if present)
     if (this.player.container) {
@@ -157,6 +163,19 @@ export class HTML5Renderer {
     // Save scroll position to prevent browser from scrolling to video
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
+
+    // If deferLoad is enabled, trigger load only on the first user play request.
+    if (this.player.options.deferLoad && !this._didDeferredLoad) {
+      try {
+        // Only call load() if browser hasn't loaded anything yet.
+        if (this.media.readyState === 0) {
+          this.media.load();
+        }
+      } catch (e) {
+        // ignore
+      }
+      this._didDeferredLoad = true;
+    }
     
     const promise = this.media.play();
     
@@ -183,6 +202,25 @@ export class HTML5Renderer {
         }
       });
     }
+  }
+
+  /**
+   * Ensure the media element has been loaded at least once (metadata/initial state)
+   * without starting playback. Useful for playlists to behave like single videos.
+   */
+  ensureLoaded() {
+    if (!this.player.options.deferLoad || this._didDeferredLoad) {
+      return;
+    }
+
+    try {
+      if (this.media.readyState === 0) {
+        this.media.load();
+      }
+    } catch (e) {
+      // ignore
+    }
+    this._didDeferredLoad = true;
   }
 
   pause() {

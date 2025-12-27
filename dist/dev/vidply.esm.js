@@ -5,7 +5,7 @@
  */
 import {
   HTML5Renderer
-} from "./vidply.chunk-W2LSBD6Y.js";
+} from "./vidply.chunk-UVO24MXU.js";
 import {
   DOMUtils,
   DraggableResizable,
@@ -21,7 +21,7 @@ import {
   focusFirstMenuItem,
   i18n,
   preventDragOnElement
-} from "./vidply.chunk-GS2JX5RQ.js";
+} from "./vidply.chunk-PMRKJBGH.js";
 
 // src/utils/EventEmitter.js
 var EventEmitter = class {
@@ -189,6 +189,8 @@ var ControlBar = class {
   init() {
     this.createElement();
     this.createControls();
+    this.updateDuration();
+    this.updateProgress();
     this.attachEvents();
     this.setupAutoHide();
     this.setupOverflowDetection();
@@ -755,18 +757,28 @@ var ControlBar = class {
   hasChapterTracks() {
     const textTracks = this.player.element.textTracks;
     for (let i = 0; i < textTracks.length; i++) {
-      if (textTracks[i].kind === "chapters") {
-        return true;
-      }
+      if (textTracks[i].kind === "chapters") return true;
+    }
+    const trackEls = Array.from(this.player.element.querySelectorAll('track[kind="chapters"]'));
+    if (trackEls.length > 0) return true;
+    const current = this.player.playlistManager?.getCurrentTrack?.();
+    if (current?.tracks && Array.isArray(current.tracks)) {
+      return current.tracks.some((t) => t?.kind === "chapters");
     }
     return false;
   }
   hasCaptionTracks() {
     const textTracks = this.player.element.textTracks;
     for (let i = 0; i < textTracks.length; i++) {
-      if (textTracks[i].kind === "captions" || textTracks[i].kind === "subtitles") {
-        return true;
-      }
+      if (textTracks[i].kind === "captions" || textTracks[i].kind === "subtitles") return true;
+    }
+    const trackEls = Array.from(this.player.element.querySelectorAll("track"));
+    if (trackEls.some((el) => el.getAttribute("kind") === "captions" || el.getAttribute("kind") === "subtitles")) {
+      return true;
+    }
+    const current = this.player.playlistManager?.getCurrentTrack?.();
+    if (current?.tracks && Array.isArray(current.tracks)) {
+      return current.tracks.some((t) => t?.kind === "captions" || t?.kind === "subtitles");
     }
     return false;
   }
@@ -841,55 +853,64 @@ var ControlBar = class {
     this.currentPreviewTime = null;
     this.previewThumbnailTimeout = null;
     this.previewSupported = false;
+    this.previewVideoReady = false;
+    this.previewVideoInitialized = false;
     const isVideo = this.player.element && this.player.element.tagName === "VIDEO";
     if (!isVideo) {
       return;
     }
+  }
+  /**
+   * Lazily create the hidden preview video (only after playback started once)
+   */
+  ensurePreviewVideoInitialized() {
+    if (this.previewVideoInitialized) return;
+    if (!this.player?.state?.hasStartedPlayback) return;
     const renderer = this.player.renderer;
     const hasVideoMedia = renderer && renderer.media && renderer.media.tagName === "VIDEO";
     const isHTML5Renderer = hasVideoMedia && renderer.media === this.player.element && !renderer.hls && typeof renderer.seek === "function";
     this.previewSupported = isHTML5Renderer && hasVideoMedia;
-    if (this.previewSupported) {
-      this.previewVideo = document.createElement("video");
-      this.previewVideo.muted = true;
-      this.previewVideo.preload = "auto";
-      this.previewVideo.playsInline = true;
-      this.previewVideo.style.position = "absolute";
-      this.previewVideo.style.visibility = "hidden";
-      this.previewVideo.style.width = "1px";
-      this.previewVideo.style.height = "1px";
-      this.previewVideo.style.top = "-9999px";
-      const mainVideo = renderer.media || this.player.element;
-      let videoSrc = null;
-      if (mainVideo.src) {
-        videoSrc = mainVideo.src;
-      } else {
-        const source = mainVideo.querySelector("source");
-        if (source) {
-          videoSrc = source.src;
-        }
+    if (!this.previewSupported) return;
+    const mainVideo = renderer.media || this.player.element;
+    let videoSrc = null;
+    if (mainVideo.src) {
+      videoSrc = mainVideo.src;
+    } else {
+      const source = mainVideo.querySelector("source");
+      if (source) {
+        videoSrc = source.src;
       }
-      if (!videoSrc) {
-        this.player.log("No video source found for preview", "warn");
-        this.previewSupported = false;
-        return;
-      }
-      if (mainVideo.crossOrigin) {
-        this.previewVideo.crossOrigin = mainVideo.crossOrigin;
-      }
-      this.previewVideo.addEventListener("error", (e) => {
-        this.player.log("Preview video failed to load:", e, "warn");
-        this.previewSupported = false;
-      });
-      this.previewVideo.addEventListener("loadedmetadata", () => {
-        this.previewVideoReady = true;
-      }, { once: true });
-      if (this.player.container) {
-        this.player.container.appendChild(this.previewVideo);
-      }
-      this.previewVideo.src = videoSrc;
-      this.previewVideoReady = false;
     }
+    if (!videoSrc) {
+      this.player.log("No video source found for preview", "warn");
+      this.previewSupported = false;
+      return;
+    }
+    this.previewVideo = document.createElement("video");
+    this.previewVideo.muted = true;
+    this.previewVideo.preload = "auto";
+    this.previewVideo.playsInline = true;
+    this.previewVideo.style.position = "absolute";
+    this.previewVideo.style.visibility = "hidden";
+    this.previewVideo.style.width = "1px";
+    this.previewVideo.style.height = "1px";
+    this.previewVideo.style.top = "-9999px";
+    if (mainVideo.crossOrigin) {
+      this.previewVideo.crossOrigin = mainVideo.crossOrigin;
+    }
+    this.previewVideo.addEventListener("error", (e) => {
+      this.player.log("Preview video failed to load:", e, "warn");
+      this.previewSupported = false;
+    });
+    this.previewVideo.addEventListener("loadedmetadata", () => {
+      this.previewVideoReady = true;
+    }, { once: true });
+    if (this.player.container) {
+      this.player.container.appendChild(this.previewVideo);
+    }
+    this.previewVideo.src = videoSrc;
+    this.previewVideoReady = false;
+    this.previewVideoInitialized = true;
   }
   /**
    * Generate preview thumbnail for a specific time
@@ -1022,8 +1043,17 @@ var ControlBar = class {
         this.controls.progressTooltipTime.textContent = TimeUtils.formatTime(time);
         this.controls.progressTooltip.style.left = `${left}px`;
         this.controls.progressTooltip.style.display = "block";
+        if (!this.player?.state?.hasStartedPlayback) {
+          if (this.controls.progressPreview) {
+            this.controls.progressPreview.style.display = "none";
+          }
+          return;
+        }
+        this.ensurePreviewVideoInitialized();
         if (this.previewSupported) {
           this.updatePreviewThumbnail(time);
+        } else if (this.controls.progressPreview) {
+          this.controls.progressPreview.style.display = "none";
         }
       }
     });
@@ -4867,6 +4897,17 @@ var Player = class _Player extends EventEmitter {
       volume: 0.8,
       playbackSpeed: 1,
       preload: "metadata",
+      // Optional initial duration (seconds) so UI can show duration
+      // before media metadata is loaded (useful with deferLoad/preload=none).
+      initialDuration: 0,
+      // When enabled, VidPly will not start network loading during init().
+      // - HTML5: does not call element.load() until the first user-initiated play()
+      // - HLS (hls.js): does not load manifest/segments until the first play()
+      // This is useful for pages with many players to avoid high initial bandwidth.
+      deferLoad: false,
+      // When enabled, clicking Audio Description / Sign Language before playback will show
+      // a notice instead of implicitly starting playback/loading.
+      requirePlaybackForAccessibilityToggles: false,
       startTime: 0,
       playsInline: true,
       // Enable inline playback on iOS (prevents native fullscreen)
@@ -4965,6 +5006,8 @@ var Player = class _Player extends EventEmitter {
     };
     this.options.metadataAlerts = this.options.metadataAlerts || {};
     this.options.metadataHashtags = this.options.metadataHashtags || {};
+    this.noticeElement = null;
+    this.noticeTimeout = null;
     this.storage = new StorageManager("vidply");
     const savedPrefs = this.storage.getPlayerPreferences();
     if (savedPrefs) {
@@ -4979,10 +5022,11 @@ var Player = class _Player extends EventEmitter {
       ended: false,
       buffering: false,
       seeking: false,
+      hasStartedPlayback: false,
       muted: this.options.muted,
       volume: this.options.volume,
       currentTime: 0,
-      duration: 0,
+      duration: Number(this.options.initialDuration) > 0 ? Number(this.options.initialDuration) : 0,
       playbackSpeed: this.options.playbackSpeed,
       fullscreen: false,
       pip: false,
@@ -5070,6 +5114,51 @@ var Player = class _Player extends EventEmitter {
       }
     });
     this.init();
+  }
+  /**
+   * Show a small in-player notice (non-blocking), also announced to screen readers.
+   */
+  showNotice(message, { timeout = 2500, priority = "polite" } = {}) {
+    try {
+      if (!message) return;
+      if (!this.container) return;
+      if (this.keyboardManager?.announce) {
+        this.keyboardManager.announce(message, priority);
+      }
+      if (!this.noticeElement) {
+        const el = document.createElement("div");
+        el.className = `${this.options.classPrefix}-notice`;
+        el.setAttribute("role", "status");
+        el.setAttribute("aria-live", priority);
+        el.setAttribute("aria-atomic", "true");
+        el.style.position = "absolute";
+        el.style.left = "0.75rem";
+        el.style.right = "0.75rem";
+        el.style.top = "0.75rem";
+        el.style.zIndex = "9999";
+        el.style.padding = "0.5rem 0.75rem";
+        el.style.borderRadius = "0.5rem";
+        el.style.background = "rgba(0, 0, 0, 0.75)";
+        el.style.color = "#fff";
+        el.style.fontSize = "0.875rem";
+        el.style.lineHeight = "1.3";
+        el.style.pointerEvents = "none";
+        this.noticeElement = el;
+        this.container.appendChild(el);
+      }
+      this.noticeElement.textContent = message;
+      this.noticeElement.style.display = "block";
+      if (this.noticeTimeout) {
+        clearTimeout(this.noticeTimeout);
+        this.noticeTimeout = null;
+      }
+      this.noticeTimeout = setTimeout(() => {
+        if (this.noticeElement) {
+          this.noticeElement.style.display = "none";
+        }
+      }, timeout);
+    } catch (e) {
+    }
   }
   async init() {
     try {
@@ -5162,7 +5251,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-T677KF4N.js");
+    const module = await import("./vidply.TranscriptManager-R7NJRU7E.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;
@@ -5246,8 +5335,23 @@ var Player = class _Player extends EventEmitter {
     if (this.options.height) {
       this.container.style.height = typeof this.options.height === "number" ? `${this.options.height}px` : this.options.height;
     }
+    if (this.element.tagName === "VIDEO" && !this.options.height) {
+      const wAttr = parseInt(this.element.getAttribute("width") || "", 10);
+      const hAttr = parseInt(this.element.getAttribute("height") || "", 10);
+      if (Number.isFinite(wAttr) && Number.isFinite(hAttr) && wAttr > 0 && hAttr > 0) {
+        if (!this.container.style.aspectRatio) {
+          this.container.style.aspectRatio = `${wAttr} / ${hAttr}`;
+        }
+        if (this.videoWrapper && !this.videoWrapper.style.aspectRatio) {
+          this.videoWrapper.style.aspectRatio = `${wAttr} / ${hAttr}`;
+          this.videoWrapper.style.height = "auto";
+        }
+      }
+    }
     if (this.options.poster && this.element.tagName === "VIDEO") {
-      this.element.poster = this.resolvePosterPath(this.options.poster);
+      const resolvedPoster = this.resolvePosterPath(this.options.poster);
+      this.element.poster = resolvedPoster;
+      this.applyPosterAspectRatio(resolvedPoster);
     }
     if (this.element.tagName === "VIDEO") {
       this.createPlayButtonOverlay();
@@ -5261,6 +5365,7 @@ var Player = class _Player extends EventEmitter {
       }
     });
     this.on("play", () => {
+      this.state.hasStartedPlayback = true;
       this.hidePosterOverlay();
     });
     this.on("timeupdate", () => {
@@ -5273,6 +5378,34 @@ var Player = class _Player extends EventEmitter {
         this.hidePosterOverlay();
       }
     }, { once: true });
+  }
+  /**
+   * Apply aspect ratio to the video wrapper based on the poster's intrinsic size.
+   * This helps render correct poster sizing before media metadata is available.
+   */
+  applyPosterAspectRatio(posterUrl) {
+    try {
+      if (!posterUrl) return;
+      if (this.element.tagName !== "VIDEO") return;
+      if (!this.videoWrapper) return;
+      if (this.options.width || this.options.height) return;
+      if (this._posterAspectAppliedFor === posterUrl) return;
+      this._posterAspectAppliedFor = posterUrl;
+      const img = new Image();
+      img.decoding = "async";
+      img.onload = () => {
+        const w = img.naturalWidth;
+        const h = img.naturalHeight;
+        if (!w || !h) return;
+        this.videoWrapper.style.aspectRatio = `${w} / ${h}`;
+        this.videoWrapper.style.height = "auto";
+        if (this.container && !this.container.style.aspectRatio) {
+          this.container.style.aspectRatio = `${w} / ${h}`;
+        }
+      };
+      img.src = posterUrl;
+    } catch (e) {
+    }
   }
   createPlayButtonOverlay() {
     this.playButtonOverlay = createPlayOverlay();
@@ -5341,7 +5474,7 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.VimeoRenderer-VPH4RNES.js");
       rendererClass = module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-5MJZR4D2.js");
+      const module = await import("./vidply.HLSRenderer-LIFBU6UD.js");
       rendererClass = module.HLSRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-CD7VJKNS.js");
@@ -5670,7 +5803,25 @@ var Player = class _Player extends EventEmitter {
         await this.initializeRenderer();
       } else {
         this.renderer.media = this.element;
-        this.element.load();
+        if (this.options.deferLoad) {
+          try {
+            this.element.preload = this.options.preload || "metadata";
+          } catch (e) {
+          }
+          if (this.renderer) {
+            if (typeof this.renderer._didDeferredLoad === "boolean") {
+              this.renderer._didDeferredLoad = false;
+            }
+            if (typeof this.renderer._hlsSourceLoaded === "boolean") {
+              this.renderer._hlsSourceLoaded = false;
+            }
+            if ("_pendingSrc" in this.renderer) {
+              this.renderer._pendingSrc = this._pendingSource || this.currentSource || null;
+            }
+          }
+        } else {
+          this.element.load();
+        }
       }
       if (isExternalRenderer) {
         setTimeout(() => {
@@ -5716,6 +5867,20 @@ var Player = class _Player extends EventEmitter {
     }
   }
   /**
+   * Ensure the current renderer has started its initial load (metadata/manifest)
+   * without starting playback. This is useful for playlists to behave like
+   * single videos on selection, while still keeping autoplay off.
+   */
+  ensureLoaded() {
+    try {
+      if (!this.renderer) return;
+      if (typeof this.renderer.ensureLoaded === "function") {
+        this.renderer.ensureLoaded();
+      }
+    } catch (e) {
+    }
+  }
+  /**
    * Check if we need to change renderer type
    * @param {string} src - New source URL
    * @returns {boolean}
@@ -5750,6 +5915,11 @@ var Player = class _Player extends EventEmitter {
   play() {
     if (this.renderer) {
       this.renderer.play();
+      return;
+    }
+    if (this.playlistManager && Array.isArray(this.playlistManager.tracks) && this.playlistManager.tracks.length > 0) {
+      const index = this.playlistManager.currentIndex >= 0 ? this.playlistManager.currentIndex : 0;
+      this.playlistManager.play(index, true);
     }
   }
   pause() {
@@ -7078,6 +7248,17 @@ var Player = class _Player extends EventEmitter {
     this.emit("audiodescriptiondisabled");
   }
   async toggleAudioDescription() {
+    if (this.options.requirePlaybackForAccessibilityToggles && !this.renderer && this.playlistManager?.tracks?.length) {
+      this.showNotice(i18n.t("player.startPlaybackForAudioDescription"));
+      return;
+    }
+    if (!this.renderer && this.playlistManager && this.playlistManager.tracks?.length) {
+      this.audioDescriptionManager.desiredState = !this.audioDescriptionManager.desiredState;
+      this.state.audioDescriptionEnabled = this.audioDescriptionManager.desiredState;
+      this.emit(this.audioDescriptionManager.desiredState ? "audiodescriptionenabled" : "audiodescriptiondisabled");
+      this.play();
+      return;
+    }
     return this.audioDescriptionManager.toggle();
   }
   // Sign Language (delegated to SignLanguageManager)
@@ -7339,6 +7520,18 @@ var Player = class _Player extends EventEmitter {
     return this.signLanguageManager.disable();
   }
   toggleSignLanguage() {
+    if (this.options.requirePlaybackForAccessibilityToggles && !this.renderer && this.playlistManager?.tracks?.length) {
+      this.showNotice(i18n.t("player.startPlaybackForSignLanguage"));
+      return;
+    }
+    if (!this.renderer && this.playlistManager && this.playlistManager.tracks?.length) {
+      const wasEnabled = this.signLanguageManager.enabled;
+      const result = this.signLanguageManager.toggle();
+      if (!wasEnabled && this.signLanguageManager.enabled) {
+        this.play();
+      }
+      return result;
+    }
     return this.signLanguageManager.toggle();
   }
   setupSignLanguageInteraction() {
@@ -8466,6 +8659,7 @@ var PlaylistManager = class {
     if (this.playlistPanel && this.playlistPanel.parentNode) {
       this.playlistPanel.parentNode.removeChild(this.playlistPanel);
     }
+    const preservedPlayerOptions = this.player?.options ? { ...this.player.options } : {};
     if (this.player) {
       this.player.off("ended", this.handleTrackEnd);
       this.player.off("error", this.handleTrackError);
@@ -8473,7 +8667,8 @@ var PlaylistManager = class {
     }
     this.hostElement.innerHTML = "";
     const mediaElement = document.createElement(elementType);
-    mediaElement.setAttribute("preload", "metadata");
+    const preloadValue = preservedPlayerOptions.preload || "metadata";
+    mediaElement.setAttribute("preload", preloadValue);
     if (elementType === "video" && track.poster && (mediaType === "video" || mediaType === "hls")) {
       mediaElement.setAttribute("poster", track.poster);
     }
@@ -8507,6 +8702,7 @@ var PlaylistManager = class {
       audioDescriptionDuration: track.audioDescriptionDuration || null,
       signLanguageSrc: track.signLanguageSrc || null
     };
+    Object.assign(playerOptions, preservedPlayerOptions);
     this.player = new this.PlayerClass(mediaElement, playerOptions);
     this.player.playlistManager = this;
     await new Promise((resolve) => {
@@ -8669,13 +8865,17 @@ var PlaylistManager = class {
       if (this.options.autoPlayFirst) {
         this.play(0);
       } else {
-        this.loadTrack(0);
+        void this.loadTrack(0).catch(() => {
+        });
       }
     }
     this.updatePlaylistVisibilityInFullscreen();
   }
   /**
    * Load a track without playing
+   * This is the playlist equivalent of a "single video initialized but not started yet":
+   * it updates UI selection and loads the media into the player so metadata/manifests
+   * and feature managers can be ready, but it does not start playback.
    * @param {number} index - Track index
    */
   async loadTrack(index) {
@@ -8684,16 +8884,15 @@ var PlaylistManager = class {
       return;
     }
     const track = this.tracks[index];
+    this.selectTrack(index);
     this.isChangingTrack = true;
-    this.currentIndex = index;
     if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
       const currentMediaType = this.player ? this.player.element.tagName === "AUDIO" ? "audio" : "video" : null;
       const newMediaType = this.getTrackMediaType(track);
       const newElementType = newMediaType === "audio" || newMediaType === "soundcloud" ? "audio" : "video";
       if (currentMediaType !== newElementType) {
         await this.recreatePlayerForTrack(track, false);
-        this.updateTrackInfo(track);
-        this.updatePlaylistUI();
+        this.selectTrack(index);
         this.player.emit("playlisttrackchange", {
           index,
           item: track,
@@ -8705,16 +8904,19 @@ var PlaylistManager = class {
         return;
       }
     }
-    this.player.load({
+    const loadPromise = this.player.load({
       src: track.src,
       type: track.type,
       poster: track.poster,
       tracks: track.tracks || [],
       audioDescriptionSrc: track.audioDescriptionSrc || null,
-      signLanguageSrc: track.signLanguageSrc || null
+      signLanguageSrc: track.signLanguageSrc || null,
+      signLanguageSources: track.signLanguageSources || {}
     });
-    this.updateTrackInfo(track);
-    this.updatePlaylistUI();
+    if (this.player?.options?.deferLoad && typeof this.player.ensureLoaded === "function") {
+      Promise.resolve(loadPromise).then(() => this.player?.ensureLoaded?.()).catch(() => {
+      });
+    }
     this.player.emit("playlisttrackchange", {
       index,
       item: track,
@@ -8723,6 +8925,97 @@ var PlaylistManager = class {
     setTimeout(() => {
       this.isChangingTrack = false;
     }, 150);
+  }
+  /**
+   * Select a track (UI/selection only; does NOT set the media src / does NOT initialize renderer)
+   *
+   * In "B always" playlist mode, you typically want `loadTrack()` on selection so the
+   * selected item behaves like a single video (metadata/manifest loaded, features ready)
+   * without auto-playing.
+   * @param {number} index - Track index
+   */
+  selectTrack(index) {
+    if (index < 0 || index >= this.tracks.length) {
+      console.warn("VidPly Playlist: Invalid track index", index);
+      return;
+    }
+    const track = this.tracks[index];
+    this.currentIndex = index;
+    try {
+      if (this.player?.element?.tagName === "VIDEO") {
+        if (track.poster) {
+          const posterUrl = typeof this.player.resolvePosterPath === "function" ? this.player.resolvePosterPath(track.poster) : track.poster;
+          this.player.element.poster = posterUrl;
+          this.player.applyPosterAspectRatio?.(posterUrl);
+        } else {
+          this.player.element.removeAttribute("poster");
+        }
+      }
+      this.player.audioDescriptionSrc = track.audioDescriptionSrc || null;
+      this.player.signLanguageSrc = track.signLanguageSrc || null;
+      this.player.signLanguageSources = track.signLanguageSources || {};
+      if (track.duration && Number(track.duration) > 0) {
+        this.player.state.duration = Number(track.duration);
+      }
+      if (this.player.audioDescriptionManager) {
+        this.player.audioDescriptionManager.src = track.audioDescriptionSrc || null;
+        this.player.audioDescriptionManager.originalSource = track.src || this.player.originalSrc || null;
+      }
+      if (this.player.signLanguageManager) {
+        this.player.signLanguageManager.src = track.signLanguageSrc || null;
+        this.player.signLanguageManager.sources = track.signLanguageSources || {};
+        this.player.signLanguageManager.currentLanguage = null;
+      }
+      if (track.src && !this.player.originalSrc) {
+        this.player.originalSrc = track.src;
+      }
+      const existing = Array.from(this.player.element.querySelectorAll("track"));
+      existing.forEach((t) => t.remove());
+      if (Array.isArray(track.tracks)) {
+        track.tracks.forEach((tc) => {
+          if (!tc?.src) return;
+          const el = document.createElement("track");
+          el.src = tc.src;
+          el.kind = tc.kind || "captions";
+          el.srclang = tc.srclang || "en";
+          el.label = tc.label || tc.srclang || "Track";
+          if (tc.default) el.default = true;
+          if (tc.describedSrc) {
+            el.setAttribute("data-desc-src", tc.describedSrc);
+          }
+          this.player.element.appendChild(el);
+        });
+      }
+      if (typeof this.player.invalidateTrackCache === "function") {
+        this.player.invalidateTrackCache();
+      }
+      if (this.player.audioDescriptionManager && typeof this.player.audioDescriptionManager.initFromSourceElements === "function") {
+        try {
+          this.player.audioDescriptionManager.captionTracks = [];
+          this.player.audioDescriptionManager.initFromSourceElements(this.player.sourceElements, this.player.trackElements);
+        } catch (e) {
+        }
+      }
+      if (this.player.captionManager && typeof this.player.captionManager.loadTracks === "function") {
+        try {
+          this.player.captionManager.tracks = [];
+          this.player.captionManager.currentTrack = null;
+          this.player.captionManager.loadTracks();
+        } catch (e) {
+        }
+      }
+      if (typeof this.player.updateControlBar === "function") {
+        this.player.updateControlBar();
+      }
+    } catch (e) {
+    }
+    this.updateTrackInfo(track);
+    this.updatePlaylistUI();
+    this.player.emit("playlisttrackselect", {
+      index,
+      item: track,
+      total: this.tracks.length
+    });
   }
   /**
    * Play a specific track
@@ -8756,13 +9049,21 @@ var PlaylistManager = class {
         return;
       }
     }
+    let srcToLoad = track.src;
+    if (this.player?.audioDescriptionManager?.desiredState && track.audioDescriptionSrc) {
+      this.player.originalSrc = track.src;
+      this.player.audioDescriptionManager.originalSource = track.src;
+      this.player.audioDescriptionManager.src = track.audioDescriptionSrc;
+      srcToLoad = track.audioDescriptionSrc;
+    }
     this.player.load({
-      src: track.src,
+      src: srcToLoad,
       type: track.type,
       poster: track.poster,
       tracks: track.tracks || [],
       audioDescriptionSrc: track.audioDescriptionSrc || null,
-      signLanguageSrc: track.signLanguageSrc || null
+      signLanguageSrc: track.signLanguageSrc || null,
+      signLanguageSources: track.signLanguageSources || {}
     });
     this.updateTrackInfo(track);
     this.updatePlaylistUI();

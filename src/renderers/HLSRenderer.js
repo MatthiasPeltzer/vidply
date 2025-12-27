@@ -8,6 +8,8 @@ export class HLSRenderer {
     this.player = player;
     this.media = player.element;
     this.hls = null;
+    this._hlsSourceLoaded = false;
+    this._pendingSrc = null;
   }
 
   async init() {
@@ -67,6 +69,8 @@ export class HLSRenderer {
     // Create hls.js instance with better error recovery
     this.hls = new window.Hls({
       debug: this.player.options.debug,
+      // When deferLoad is enabled, do not start loading until the first play().
+      autoStartLoad: !this.player.options.deferLoad,
       enableWorker: true,
       lowLatencyMode: false,
       backBufferLength: 90,
@@ -112,7 +116,13 @@ export class HLSRenderer {
       throw new Error('No HLS source found');
     }
     
-    this.hls.loadSource(src);
+    if (this.player.options.deferLoad) {
+      // Defer manifest/segment loading until first play()
+      this._pendingSrc = src;
+    } else {
+      this.hls.loadSource(src);
+      this._hlsSourceLoaded = true;
+    }
 
     // Attach events
     this.attachHlsEvents();
@@ -261,10 +271,59 @@ export class HLSRenderer {
     }
   }
 
+  /**
+   * Ensure the HLS manifest/initial loading is started without starting playback.
+   * This makes playlist selection behave more like single-video initialization.
+   */
+  ensureLoaded() {
+    if (!this.player.options.deferLoad) {
+      return;
+    }
+
+    // Native HLS path delegates to HTML5Renderer; if we got here and have no hls.js instance,
+    // there's nothing to do.
+    if (!this.hls) {
+      return;
+    }
+
+    if (this._hlsSourceLoaded) {
+      return;
+    }
+
+    const src = this._pendingSrc || this.player._pendingSource || this.player.currentSource;
+    if (!src) {
+      return;
+    }
+
+    try {
+      this.hls.loadSource(src);
+      this._hlsSourceLoaded = true;
+      // Start loading so manifest is parsed and levels/tracks become available.
+      // Note: this may fetch initial fragments depending on stream/config.
+      this.hls.startLoad();
+    } catch (e) {
+      // ignore
+    }
+  }
+
   play() {
     // Save scroll position to prevent browser from scrolling to video
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
+
+    // If deferLoad is enabled, start HLS loading only on the first user play request.
+    if (this.player.options.deferLoad && this.hls && !this._hlsSourceLoaded) {
+      const src = this._pendingSrc || this.player.currentSource;
+      if (src) {
+        try {
+          this.hls.loadSource(src);
+          this.hls.startLoad();
+          this._hlsSourceLoaded = true;
+        } catch (e) {
+          // ignore and let media.play() surface errors if any
+        }
+      }
+    }
     
     const promise = this.media.play();
     

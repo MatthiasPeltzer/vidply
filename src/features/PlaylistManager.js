@@ -128,6 +128,9 @@ export class PlaylistManager {
       this.playlistPanel.parentNode.removeChild(this.playlistPanel);
     }
     
+    // Preserve existing player options so recreated players behave consistently
+    const preservedPlayerOptions = this.player?.options ? { ...this.player.options } : {};
+
     // Remove event listeners before destroying
     if (this.player) {
       this.player.off('ended', this.handleTrackEnd);
@@ -140,7 +143,9 @@ export class PlaylistManager {
     
     // Create new media element with appropriate type
     const mediaElement = document.createElement(elementType);
-    mediaElement.setAttribute('preload', 'metadata');
+    // Respect configured preload (playlists should behave like single videos even with deferLoad)
+    const preloadValue = preservedPlayerOptions.preload || 'metadata';
+    mediaElement.setAttribute('preload', preloadValue);
     
     // For video elements with local media, set poster
     if (elementType === 'video' && track.poster && 
@@ -188,6 +193,8 @@ export class PlaylistManager {
       audioDescriptionDuration: track.audioDescriptionDuration || null,
       signLanguageSrc: track.signLanguageSrc || null
     };
+    // Merge back preserved options (so deferLoad/preload/etc remain active)
+    Object.assign(playerOptions, preservedPlayerOptions);
     
     this.player = new this.PlayerClass(mediaElement, playerOptions);
     
@@ -425,8 +432,11 @@ export class PlaylistManager {
       if (this.options.autoPlayFirst) {
         this.play(0);
       } else {
-        // Load first track without playing
-        this.loadTrack(0);
+        // Behave like a single video: load the first track (metadata/manifest)
+        // but do not start playback.
+        void this.loadTrack(0).catch(() => {
+          // ignore
+        });
       }
     }
     
@@ -436,6 +446,9 @@ export class PlaylistManager {
   
   /**
    * Load a track without playing
+   * This is the playlist equivalent of a "single video initialized but not started yet":
+   * it updates UI selection and loads the media into the player so metadata/manifests
+   * and feature managers can be ready, but it does not start playback.
    * @param {number} index - Track index
    */
   async loadTrack(index) {
@@ -446,11 +459,12 @@ export class PlaylistManager {
     
     const track = this.tracks[index];
     
+    // Always update UI immediately (poster, buttons, duration, etc.).
+    // Note: this is UI-only; actual media loading is performed by player.load() below.
+    this.selectTrack(index);
+    
     // Set guard flag to prevent cascade of next() calls during track change
     this.isChangingTrack = true;
-    
-    // Update current index
-    this.currentIndex = index;
     
     // Check if we should recreate the player for this track type
     if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
@@ -462,9 +476,8 @@ export class PlaylistManager {
       // Recreate if element type is different
       if (currentMediaType !== newElementType) {
         await this.recreatePlayerForTrack(track, false);
-        // Update UI after recreation
-        this.updateTrackInfo(track);
-        this.updatePlaylistUI();
+        // Re-apply selection to the newly created player (poster/tracks/buttons)
+        this.selectTrack(index);
         
         // Emit event
         this.player.emit('playlisttrackchange', {
@@ -482,18 +495,25 @@ export class PlaylistManager {
     }
     
     // Load track into player (normal path)
-    this.player.load({
+    const loadPromise = this.player.load({
       src: track.src,
       type: track.type,
       poster: track.poster,
       tracks: track.tracks || [],
       audioDescriptionSrc: track.audioDescriptionSrc || null,
-      signLanguageSrc: track.signLanguageSrc || null
+      signLanguageSrc: track.signLanguageSrc || null,
+      signLanguageSources: track.signLanguageSources || {}
     });
-    
-    // Update UI
-    this.updateTrackInfo(track);
-    this.updatePlaylistUI();
+
+    // For playlist UX parity with single videos: fetch metadata/manifest now,
+    // but do not start playback.
+    if (this.player?.options?.deferLoad && typeof this.player.ensureLoaded === 'function') {
+      Promise.resolve(loadPromise)
+        .then(() => this.player?.ensureLoaded?.())
+        .catch(() => {
+          // ignore
+        });
+    }
     
     // Emit event
     this.player.emit('playlisttrackchange', {
@@ -506,6 +526,133 @@ export class PlaylistManager {
     setTimeout(() => {
       this.isChangingTrack = false;
     }, 150);
+  }
+
+  /**
+   * Select a track (UI/selection only; does NOT set the media src / does NOT initialize renderer)
+   *
+   * In "B always" playlist mode, you typically want `loadTrack()` on selection so the
+   * selected item behaves like a single video (metadata/manifest loaded, features ready)
+   * without auto-playing.
+   * @param {number} index - Track index
+   */
+  selectTrack(index) {
+    if (index < 0 || index >= this.tracks.length) {
+      console.warn('VidPly Playlist: Invalid track index', index);
+      return;
+    }
+
+    const track = this.tracks[index];
+    this.currentIndex = index;
+
+    // Apply per-track metadata without touching the media source.
+    // This ensures poster + feature buttons (chapters/captions/transcript/sign-language)
+    // can be updated instantly even before any media network activity happens.
+    try {
+      // Poster for video element
+      if (this.player?.element?.tagName === 'VIDEO') {
+        if (track.poster) {
+          const posterUrl = typeof this.player.resolvePosterPath === 'function'
+            ? this.player.resolvePosterPath(track.poster)
+            : track.poster;
+          this.player.element.poster = posterUrl;
+          this.player.applyPosterAspectRatio?.(posterUrl);
+        } else {
+          this.player.element.removeAttribute('poster');
+        }
+      }
+
+      // Update sign language / audio description sources (used for button visibility)
+      this.player.audioDescriptionSrc = track.audioDescriptionSrc || null;
+      this.player.signLanguageSrc = track.signLanguageSrc || null;
+      this.player.signLanguageSources = track.signLanguageSources || {};
+
+      // Fill duration early for UI (progress/time display) without loading media
+      if (track.duration && Number(track.duration) > 0) {
+        this.player.state.duration = Number(track.duration);
+      }
+      // Also sync feature managers (they keep their own copy of sources)
+      if (this.player.audioDescriptionManager) {
+        this.player.audioDescriptionManager.src = track.audioDescriptionSrc || null;
+        // Remember original (non-described) source for switching back later
+        this.player.audioDescriptionManager.originalSource = track.src || this.player.originalSrc || null;
+      }
+      if (this.player.signLanguageManager) {
+        this.player.signLanguageManager.src = track.signLanguageSrc || null;
+        this.player.signLanguageManager.sources = track.signLanguageSources || {};
+        this.player.signLanguageManager.currentLanguage = null;
+      }
+
+      // For audio description switching, remember original source even before first play
+      if (track.src && !this.player.originalSrc) {
+        this.player.originalSrc = track.src;
+      }
+
+      // Replace <track> elements so captions/chapters/transcript can be detected/loaded
+      const existing = Array.from(this.player.element.querySelectorAll('track'));
+      existing.forEach(t => t.remove());
+
+      if (Array.isArray(track.tracks)) {
+        track.tracks.forEach(tc => {
+          if (!tc?.src) return;
+          const el = document.createElement('track');
+          el.src = tc.src;
+          el.kind = tc.kind || 'captions';
+          el.srclang = tc.srclang || 'en';
+          el.label = tc.label || tc.srclang || 'Track';
+          if (tc.default) el.default = true;
+          if (tc.describedSrc) {
+            el.setAttribute('data-desc-src', tc.describedSrc);
+          }
+          this.player.element.appendChild(el);
+        });
+      }
+
+      if (typeof this.player.invalidateTrackCache === 'function') {
+        this.player.invalidateTrackCache();
+      }
+
+      // Re-scan described-track metadata for AudioDescriptionManager
+      if (this.player.audioDescriptionManager && typeof this.player.audioDescriptionManager.initFromSourceElements === 'function') {
+        try {
+          this.player.audioDescriptionManager.captionTracks = [];
+          this.player.audioDescriptionManager.initFromSourceElements(this.player.sourceElements, this.player.trackElements);
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // Refresh caption/transcript managers so menus reflect newly injected <track> elements
+      // (important when we defer MP4/MP3 loading but still want VTT-based UI to work).
+      if (this.player.captionManager && typeof this.player.captionManager.loadTracks === 'function') {
+        try {
+          this.player.captionManager.tracks = [];
+          this.player.captionManager.currentTrack = null;
+          this.player.captionManager.loadTracks();
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // TranscriptManager reads from TextTracks too; it will be correct after media starts.
+      // For now, we just ensure control bar is rebuilt so the button is present.
+
+      // Rebuild controls so feature buttons appear immediately
+      if (typeof this.player.updateControlBar === 'function') {
+        this.player.updateControlBar();
+      }
+    } catch (e) {
+      // ignore preview errors; selection should still work
+    }
+
+    this.updateTrackInfo(track);
+    this.updatePlaylistUI();
+
+    this.player.emit('playlisttrackselect', {
+      index,
+      item: track,
+      total: this.tracks.length
+    });
   }
   
   /**
@@ -557,13 +704,24 @@ export class PlaylistManager {
     }
     
     // Load track into player (normal path)
+    // If audio description was toggled before the first play, load the described source directly.
+    let srcToLoad = track.src;
+    if (this.player?.audioDescriptionManager?.desiredState && track.audioDescriptionSrc) {
+      // Preserve original for later toggling back
+      this.player.originalSrc = track.src;
+      this.player.audioDescriptionManager.originalSource = track.src;
+      this.player.audioDescriptionManager.src = track.audioDescriptionSrc;
+      srcToLoad = track.audioDescriptionSrc;
+    }
+
     this.player.load({
-      src: track.src,
+      src: srcToLoad,
       type: track.type,
       poster: track.poster,
       tracks: track.tracks || [],
       audioDescriptionSrc: track.audioDescriptionSrc || null,
-      signLanguageSrc: track.signLanguageSrc || null
+      signLanguageSrc: track.signLanguageSrc || null,
+      signLanguageSources: track.signLanguageSources || {}
     });
     
     // Update UI

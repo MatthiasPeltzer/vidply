@@ -48,6 +48,9 @@ var de = {
     signLanguageVideo: "Gebärdensprache-Video",
     closeSignLanguage: "Gebärdensprache-Video schließen",
     signLanguageSettings: "Gebärdensprache-Einstellungen",
+    startPlaybackFirst: "Bitte starten Sie die Wiedergabe zuerst.",
+    startPlaybackForAudioDescription: "Bitte starten Sie die Wiedergabe zuerst, um die Audiodeskription zu nutzen.",
+    startPlaybackForSignLanguage: "Bitte starten Sie die Wiedergabe zuerst, um das Gebärdensprache-Video zu nutzen.",
     noChapters: "Keine Kapitel verfügbar",
     noCaptions: "Keine Untertitel verfügbar",
     auto: "Automatisch",
@@ -185,4 +188,4 @@ var de = {
 export {
   de
 };
-//# sourceMappingURL=vidply.de-SNL6AJ4D.js.map
+//# sourceMappingURL=vidply.de-CEGBLV67.js.map
