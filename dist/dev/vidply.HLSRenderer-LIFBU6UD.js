@@ -10,6 +10,8 @@ var HLSRenderer = class {
     this.player = player;
     this.media = player.element;
     this.hls = null;
+    this._hlsSourceLoaded = false;
+    this._pendingSrc = null;
   }
   async init() {
     if (this.canPlayNatively()) {
@@ -30,7 +32,7 @@ var HLSRenderer = class {
     return video.canPlayType("application/vnd.apple.mpegurl") !== "";
   }
   async initNative() {
-    const HTML5Renderer = (await import("./vidply.HTML5Renderer-FXBZQL6Y.js")).HTML5Renderer;
+    const HTML5Renderer = (await import("./vidply.HTML5Renderer-YWMVYWFS.js")).HTML5Renderer;
     const renderer = new HTML5Renderer(this.player);
     await renderer.init();
     Object.getOwnPropertyNames(Object.getPrototypeOf(renderer)).forEach((method) => {
@@ -50,6 +52,8 @@ var HLSRenderer = class {
     }
     this.hls = new window.Hls({
       debug: this.player.options.debug,
+      // When deferLoad is enabled, do not start loading until the first play().
+      autoStartLoad: !this.player.options.deferLoad,
       enableWorker: true,
       lowLatencyMode: false,
       backBufferLength: 90,
@@ -85,7 +89,12 @@ var HLSRenderer = class {
     if (!src) {
       throw new Error("No HLS source found");
     }
-    this.hls.loadSource(src);
+    if (this.player.options.deferLoad) {
+      this._pendingSrc = src;
+    } else {
+      this.hls.loadSource(src);
+      this._hlsSourceLoaded = true;
+    }
     this.attachHlsEvents();
     this.attachMediaEvents();
   }
@@ -204,9 +213,45 @@ var HLSRenderer = class {
       this.player.log("Non-fatal HLS error: " + data.details, "warn");
     }
   }
+  /**
+   * Ensure the HLS manifest/initial loading is started without starting playback.
+   * This makes playlist selection behave more like single-video initialization.
+   */
+  ensureLoaded() {
+    if (!this.player.options.deferLoad) {
+      return;
+    }
+    if (!this.hls) {
+      return;
+    }
+    if (this._hlsSourceLoaded) {
+      return;
+    }
+    const src = this._pendingSrc || this.player._pendingSource || this.player.currentSource;
+    if (!src) {
+      return;
+    }
+    try {
+      this.hls.loadSource(src);
+      this._hlsSourceLoaded = true;
+      this.hls.startLoad();
+    } catch (e) {
+    }
+  }
   play() {
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
+    if (this.player.options.deferLoad && this.hls && !this._hlsSourceLoaded) {
+      const src = this._pendingSrc || this.player.currentSource;
+      if (src) {
+        try {
+          this.hls.loadSource(src);
+          this.hls.startLoad();
+          this._hlsSourceLoaded = true;
+        } catch (e) {
+        }
+      }
+    }
     const promise = this.media.play();
     window.scrollTo(scrollX, scrollY);
     if (promise !== void 0) {
@@ -269,4 +314,4 @@ var HLSRenderer = class {
 export {
   HLSRenderer
 };
-//# sourceMappingURL=vidply.HLSRenderer-5MJZR4D2.js.map
+//# sourceMappingURL=vidply.HLSRenderer-LIFBU6UD.js.map

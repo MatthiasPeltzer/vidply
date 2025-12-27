@@ -82,6 +82,17 @@ export class Player extends EventEmitter {
             volume: 0.8,
             playbackSpeed: 1.0,
             preload: 'metadata',
+            // Optional initial duration (seconds) so UI can show duration
+            // before media metadata is loaded (useful with deferLoad/preload=none).
+            initialDuration: 0,
+            // When enabled, VidPly will not start network loading during init().
+            // - HTML5: does not call element.load() until the first user-initiated play()
+            // - HLS (hls.js): does not load manifest/segments until the first play()
+            // This is useful for pages with many players to avoid high initial bandwidth.
+            deferLoad: false,
+            // When enabled, clicking Audio Description / Sign Language before playback will show
+            // a notice instead of implicitly starting playback/loading.
+            requirePlaybackForAccessibilityToggles: false,
             startTime: 0,
             playsInline: true, // Enable inline playback on iOS (prevents native fullscreen)
 
@@ -190,6 +201,10 @@ export class Player extends EventEmitter {
         this.options.metadataAlerts = this.options.metadataAlerts || {};
         this.options.metadataHashtags = this.options.metadataHashtags || {};
 
+        // Notice UI
+        this.noticeElement = null;
+        this.noticeTimeout = null;
+
         // Storage manager
         this.storage = new StorageManager('vidply');
         
@@ -209,10 +224,11 @@ export class Player extends EventEmitter {
             ended: false,
             buffering: false,
             seeking: false,
+            hasStartedPlayback: false,
             muted: this.options.muted,
             volume: this.options.volume,
             currentTime: 0,
-            duration: 0,
+            duration: Number(this.options.initialDuration) > 0 ? Number(this.options.initialDuration) : 0,
             playbackSpeed: this.options.playbackSpeed,
             fullscreen: false,
             pip: false,
@@ -303,6 +319,59 @@ export class Player extends EventEmitter {
 
         // Initialize
         this.init();
+    }
+
+    /**
+     * Show a small in-player notice (non-blocking), also announced to screen readers.
+     */
+    showNotice(message, { timeout = 2500, priority = 'polite' } = {}) {
+        try {
+            if (!message) return;
+            if (!this.container) return;
+
+            // Screen reader announcement (reuse KeyboardManager announcer if available)
+            if (this.keyboardManager?.announce) {
+                this.keyboardManager.announce(message, priority);
+            }
+
+            if (!this.noticeElement) {
+                const el = document.createElement('div');
+                el.className = `${this.options.classPrefix}-notice`;
+                el.setAttribute('role', 'status');
+                el.setAttribute('aria-live', priority);
+                el.setAttribute('aria-atomic', 'true');
+                // Inline styling to avoid requiring CSS rebuilds
+                el.style.position = 'absolute';
+                el.style.left = '0.75rem';
+                el.style.right = '0.75rem';
+                el.style.top = '0.75rem';
+                el.style.zIndex = '9999';
+                el.style.padding = '0.5rem 0.75rem';
+                el.style.borderRadius = '0.5rem';
+                el.style.background = 'rgba(0, 0, 0, 0.75)';
+                el.style.color = '#fff';
+                el.style.fontSize = '0.875rem';
+                el.style.lineHeight = '1.3';
+                el.style.pointerEvents = 'none';
+                this.noticeElement = el;
+                this.container.appendChild(el);
+            }
+
+            this.noticeElement.textContent = message;
+            this.noticeElement.style.display = 'block';
+
+            if (this.noticeTimeout) {
+                clearTimeout(this.noticeTimeout);
+                this.noticeTimeout = null;
+            }
+            this.noticeTimeout = setTimeout(() => {
+                if (this.noticeElement) {
+                    this.noticeElement.style.display = 'none';
+                }
+            }, timeout);
+        } catch (e) {
+            // ignore
+        }
     }
 
     async init() {
@@ -570,9 +639,35 @@ export class Player extends EventEmitter {
                 : this.options.height;
         }
 
+        // If no explicit height is set, ensure video players still have a stable layout box
+        // even before any media is loaded (important for deferLoad + playlists).
+        // We use the element's width/height attributes (e.g. from TYPO3) as aspect ratio.
+        if (this.element.tagName === 'VIDEO' && !this.options.height) {
+            const wAttr = parseInt(this.element.getAttribute('width') || '', 10);
+            const hAttr = parseInt(this.element.getAttribute('height') || '', 10);
+            if (Number.isFinite(wAttr) && Number.isFinite(hAttr) && wAttr > 0 && hAttr > 0) {
+                // Only set if not already defined by CSS/inline style
+                if (!this.container.style.aspectRatio) {
+                    this.container.style.aspectRatio = `${wAttr} / ${hAttr}`;
+                }
+
+                // The actual visual box is the videoWrapper (the video element is 100% height).
+                // Give the wrapper the same aspect ratio so posters render correctly before metadata is loaded.
+                if (this.videoWrapper && !this.videoWrapper.style.aspectRatio) {
+                    this.videoWrapper.style.aspectRatio = `${wAttr} / ${hAttr}`;
+                    // Override default CSS height:100% (which depends on parent having a height)
+                    this.videoWrapper.style.height = 'auto';
+                }
+            }
+        }
+
         // Set poster (convert relative paths to absolute URLs)
         if (this.options.poster && this.element.tagName === 'VIDEO') {
-            this.element.poster = this.resolvePosterPath(this.options.poster);
+            const resolvedPoster = this.resolvePosterPath(this.options.poster);
+            this.element.poster = resolvedPoster;
+            // If we intentionally have no media loaded yet (e.g. deferLoad/playlist),
+            // use poster aspect ratio to size the wrapper so the poster isn't stretched.
+            this.applyPosterAspectRatio(resolvedPoster);
         }
 
         // Create centered play button overlay (only for video)
@@ -596,6 +691,7 @@ export class Player extends EventEmitter {
         });
 
         this.on('play', () => {
+            this.state.hasStartedPlayback = true;
             // Hide poster immediately when playing
             this.hidePosterOverlay();
         });
@@ -613,6 +709,45 @@ export class Player extends EventEmitter {
                 this.hidePosterOverlay();
             }
         }, { once: true });
+    }
+
+    /**
+     * Apply aspect ratio to the video wrapper based on the poster's intrinsic size.
+     * This helps render correct poster sizing before media metadata is available.
+     */
+    applyPosterAspectRatio(posterUrl) {
+        try {
+            if (!posterUrl) return;
+            if (this.element.tagName !== 'VIDEO') return;
+            if (!this.videoWrapper) return;
+
+            // If user explicitly configured dimensions, don't override.
+            if (this.options.width || this.options.height) return;
+
+            // Avoid repeated work
+            if (this._posterAspectAppliedFor === posterUrl) return;
+            this._posterAspectAppliedFor = posterUrl;
+
+            const img = new Image();
+            img.decoding = 'async';
+            img.onload = () => {
+                const w = img.naturalWidth;
+                const h = img.naturalHeight;
+                if (!w || !h) return;
+
+                // Apply to wrapper (the actual layout box)
+                this.videoWrapper.style.aspectRatio = `${w} / ${h}`;
+                this.videoWrapper.style.height = 'auto';
+
+                // Also apply to container if not explicitly set
+                if (this.container && !this.container.style.aspectRatio) {
+                    this.container.style.aspectRatio = `${w} / ${h}`;
+                }
+            };
+            img.src = posterUrl;
+        } catch (e) {
+            // ignore
+        }
     }
 
     createPlayButtonOverlay() {
@@ -1174,7 +1309,30 @@ export class Player extends EventEmitter {
             } else {
                 // Just reload the current renderer with the updated element
                 this.renderer.media = this.element; // Update media reference
-                this.element.load();
+                if (this.options.deferLoad) {
+                    try {
+                        // Keep configured preload behavior; actual network load is controlled
+                        // by ensureLoaded()/play() when deferLoad is enabled.
+                        this.element.preload = this.options.preload || 'metadata';
+                    } catch (e) {
+                        // ignore
+                    }
+                    // Reset renderer-level deferred flags if present (HTML5/HLS renderers)
+                    if (this.renderer) {
+                        if (typeof this.renderer._didDeferredLoad === 'boolean') {
+                            this.renderer._didDeferredLoad = false;
+                        }
+                        if (typeof this.renderer._hlsSourceLoaded === 'boolean') {
+                            this.renderer._hlsSourceLoaded = false;
+                        }
+                        if ('_pendingSrc' in this.renderer) {
+                            // For HLS, store pending src for the first play() call
+                            this.renderer._pendingSrc = this._pendingSource || this.currentSource || null;
+                        }
+                    }
+                } else {
+                    this.element.load();
+                }
             }
             
             // Clear the renderer switching flag after a delay to catch async errors
@@ -1246,6 +1404,22 @@ export class Player extends EventEmitter {
     }
 
     /**
+     * Ensure the current renderer has started its initial load (metadata/manifest)
+     * without starting playback. This is useful for playlists to behave like
+     * single videos on selection, while still keeping autoplay off.
+     */
+    ensureLoaded() {
+        try {
+            if (!this.renderer) return;
+            if (typeof this.renderer.ensureLoaded === 'function') {
+                this.renderer.ensureLoaded();
+            }
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    /**
      * Check if we need to change renderer type
      * @param {string} src - New source URL
      * @returns {boolean}
@@ -1293,6 +1467,14 @@ export class Player extends EventEmitter {
     play() {
         if (this.renderer) {
             this.renderer.play();
+            return;
+        }
+
+        // Playlist support: if no renderer exists yet (no initial src),
+        // start playback via playlist selection.
+        if (this.playlistManager && Array.isArray(this.playlistManager.tracks) && this.playlistManager.tracks.length > 0) {
+            const index = this.playlistManager.currentIndex >= 0 ? this.playlistManager.currentIndex : 0;
+            this.playlistManager.play(index, true);
         }
     }
 
@@ -3139,6 +3321,22 @@ export class Player extends EventEmitter {
     }
 
     async toggleAudioDescription() {
+        if (this.options.requirePlaybackForAccessibilityToggles && !this.renderer && this.playlistManager?.tracks?.length) {
+            this.showNotice(i18n.t('player.startPlaybackForAudioDescription'));
+            return;
+        }
+
+        // If user toggles audio description before the first track has been loaded,
+        // remember desired state and start playback so the described source is loaded.
+        if (!this.renderer && this.playlistManager && this.playlistManager.tracks?.length) {
+            this.audioDescriptionManager.desiredState = !this.audioDescriptionManager.desiredState;
+            this.state.audioDescriptionEnabled = this.audioDescriptionManager.desiredState;
+            this.emit(this.audioDescriptionManager.desiredState ? 'audiodescriptionenabled' : 'audiodescriptiondisabled');
+            // Start playback (PlaylistManager.play() will honor desiredState and load described src)
+            this.play();
+            return;
+        }
+
         return this.audioDescriptionManager.toggle();
     }
 
@@ -3488,6 +3686,22 @@ export class Player extends EventEmitter {
     }
 
     toggleSignLanguage() {
+        if (this.options.requirePlaybackForAccessibilityToggles && !this.renderer && this.playlistManager?.tracks?.length) {
+            this.showNotice(i18n.t('player.startPlaybackForSignLanguage'));
+            return;
+        }
+
+        // If user toggles sign language before the first track has been loaded,
+        // enable the overlay and start playback so sign language video sync begins.
+        if (!this.renderer && this.playlistManager && this.playlistManager.tracks?.length) {
+            const wasEnabled = this.signLanguageManager.enabled;
+            const result = this.signLanguageManager.toggle();
+            if (!wasEnabled && this.signLanguageManager.enabled) {
+                this.play();
+            }
+            return result;
+        }
+
         return this.signLanguageManager.toggle();
     }
 

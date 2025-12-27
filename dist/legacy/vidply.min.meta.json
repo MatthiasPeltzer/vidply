@@ -11,12 +11,12 @@
       "format": "esm"
     },
     "src/i18n/languages/en.js": {
-      "bytes": 7390,
+      "bytes": 7637,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.js": {
-      "bytes": 9108,
+      "bytes": 9427,
       "imports": [],
       "format": "esm"
     },
@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 145861,
+      "bytes": 147152,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -186,7 +186,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.js": {
-      "bytes": 9645,
+      "bytes": 10921,
       "imports": [],
       "format": "esm"
     },
@@ -352,7 +352,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 10310,
+      "bytes": 12151,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -368,7 +368,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 214379,
+      "bytes": 224782,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -484,7 +484,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 49922,
+      "bytes": 57201,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -546,10 +546,10 @@
           "bytesInOutput": 2595
         },
         "src/i18n/languages/en.js": {
-          "bytesInOutput": 6175
+          "bytesInOutput": 6401
         },
         "src/i18n/languages/de.js": {
-          "bytesInOutput": 7270
+          "bytesInOutput": 7556
         },
         "src/i18n/languages/es.js": {
           "bytesInOutput": 7407
@@ -579,7 +579,7 @@
           "bytesInOutput": 1638
         },
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 5050
+          "bytesInOutput": 5469
         },
         "src/utils/DraggableResizable.js": {
           "bytesInOutput": 14166
@@ -600,7 +600,7 @@
           "bytesInOutput": 4651
         },
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 6010
+          "bytesInOutput": 6646
         },
         "src/renderers/SoundCloudRenderer.js": {
           "bytesInOutput": 5597
@@ -609,10 +609,10 @@
           "bytesInOutput": 437
         },
         "src/core/Player.js": {
-          "bytesInOutput": 77444
+          "bytesInOutput": 81593
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 64315
+          "bytesInOutput": 65573
         },
         "src/utils/PerformanceUtils.js": {
           "bytesInOutput": 257
@@ -633,13 +633,13 @@
           "bytesInOutput": 19804
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 21617
+          "bytesInOutput": 24783
         },
         "src/index.js": {
           "bytesInOutput": 1877
         }
       },
-      "bytes": 349584
+      "bytes": 359724
     }
   }
 }

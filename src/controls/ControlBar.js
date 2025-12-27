@@ -27,6 +27,10 @@ export class ControlBar {
     init() {
         this.createElement();
         this.createControls();
+        // Ensure time UI reflects any prefilled state (e.g. initialDuration)
+        // even when media metadata is deferred and 'loadedmetadata' won't fire yet.
+        this.updateDuration();
+        this.updateProgress();
         this.attachEvents();
         this.setupAutoHide();
         this.setupOverflowDetection();
@@ -846,22 +850,44 @@ export class ControlBar {
 
     // Helper methods to check for available features
     hasChapterTracks() {
+        // 1) Prefer already-loaded TextTracks (fast + accurate)
         const textTracks = this.player.element.textTracks;
         for (let i = 0; i < textTracks.length; i++) {
-            if (textTracks[i].kind === 'chapters') {
-                return true;
+            if (textTracks[i].kind === 'chapters') return true;
             }
+
+        // 2) Fallback to DOM <track> elements (works before tracks are fully loaded)
+        const trackEls = Array.from(this.player.element.querySelectorAll('track[kind="chapters"]'));
+        if (trackEls.length > 0) return true;
+
+        // 3) Playlist metadata fallback (works even when we intentionally defer loading)
+        const current = this.player.playlistManager?.getCurrentTrack?.();
+        if (current?.tracks && Array.isArray(current.tracks)) {
+            return current.tracks.some(t => t?.kind === 'chapters');
         }
+
         return false;
     }
 
     hasCaptionTracks() {
+        // 1) Prefer already-loaded TextTracks
         const textTracks = this.player.element.textTracks;
         for (let i = 0; i < textTracks.length; i++) {
-            if (textTracks[i].kind === 'captions' || textTracks[i].kind === 'subtitles') {
+            if (textTracks[i].kind === 'captions' || textTracks[i].kind === 'subtitles') return true;
+        }
+
+        // 2) Fallback to DOM <track> elements
+        const trackEls = Array.from(this.player.element.querySelectorAll('track'));
+        if (trackEls.some(el => (el.getAttribute('kind') === 'captions' || el.getAttribute('kind') === 'subtitles'))) {
                 return true;
             }
+
+        // 3) Playlist metadata fallback
+        const current = this.player.playlistManager?.getCurrentTrack?.();
+        if (current?.tracks && Array.isArray(current.tracks)) {
+            return current.tracks.some(t => t?.kind === 'captions' || t?.kind === 'subtitles');
         }
+
         return false;
     }
 
@@ -963,6 +989,8 @@ export class ControlBar {
         this.currentPreviewTime = null;
         this.previewThumbnailTimeout = null;
         this.previewSupported = false;
+        this.previewVideoReady = false;
+        this.previewVideoInitialized = false;
 
         // Check if preview is supported (HTML5 video only)
         // Check if element is a video
@@ -972,80 +1000,75 @@ export class ControlBar {
             return;
         }
 
-        // Check if renderer supports preview (HTML5Renderer or HLSRenderer with native support)
-        // We check if renderer has a media property that is a video element
-        // Note: Don't rely on constructor.name as it's minified in production builds
+        // IMPORTANT: do NOT create/load the preview video until the user has started playback at least once.
+        // Otherwise we'd trigger heavy MP4 network traffic just by hovering the progress bar.
+    }
+
+    /**
+     * Lazily create the hidden preview video (only after playback started once)
+     */
+    ensurePreviewVideoInitialized() {
+        if (this.previewVideoInitialized) return;
+        if (!this.player?.state?.hasStartedPlayback) return;
+
         const renderer = this.player.renderer;
         const hasVideoMedia = renderer && renderer.media && renderer.media.tagName === 'VIDEO';
-        
-        // Check if it's HTML5Renderer by checking:
-        // 1. Has media property that is a video element
-        // 2. Media is the same as player.element (HTML5Renderer sets this.media = player.element)
-        // 3. Doesn't have hls property (HLSRenderer has hls property)
-        // 4. Has seek method (all renderers have this, but combined with above checks it's reliable)
-        const isHTML5Renderer = hasVideoMedia && 
+        const isHTML5Renderer = hasVideoMedia &&
             renderer.media === this.player.element &&
             !renderer.hls &&
             typeof renderer.seek === 'function';
-        
-        this.previewSupported = isHTML5Renderer && hasVideoMedia;
 
-        if (this.previewSupported) {
-            // Create a hidden video element for capturing frames
-            this.previewVideo = document.createElement('video');
-            this.previewVideo.muted = true;
-            this.previewVideo.preload = 'auto'; // Need more than metadata to capture frames
-            this.previewVideo.playsInline = true;
-            this.previewVideo.style.position = 'absolute';
-            this.previewVideo.style.visibility = 'hidden';
-            this.previewVideo.style.width = '1px';
-            this.previewVideo.style.height = '1px';
-            this.previewVideo.style.top = '-9999px';
-            
-            // Copy source and attributes from main video
-            const mainVideo = renderer.media || this.player.element;
-            let videoSrc = null;
-            
-            if (mainVideo.src) {
-                videoSrc = mainVideo.src;
-            } else {
-                const source = mainVideo.querySelector('source');
-                if (source) {
-                    videoSrc = source.src;
-                }
+        this.previewSupported = isHTML5Renderer && hasVideoMedia;
+        if (!this.previewSupported) return;
+
+        const mainVideo = renderer.media || this.player.element;
+        let videoSrc = null;
+        if (mainVideo.src) {
+            videoSrc = mainVideo.src;
+        } else {
+            const source = mainVideo.querySelector('source');
+            if (source) {
+                videoSrc = source.src;
             }
-            
-            if (!videoSrc) {
-                this.player.log('No video source found for preview', 'warn');
-                this.previewSupported = false;
-                return;
-            }
-            
-            // Copy crossOrigin if set (important for CORS)
-            if (mainVideo.crossOrigin) {
-                this.previewVideo.crossOrigin = mainVideo.crossOrigin;
-            }
-            
-            // Handle errors gracefully
-            this.previewVideo.addEventListener('error', (e) => {
-                this.player.log('Preview video failed to load:', e, 'warn');
-                this.previewSupported = false;
-            });
-            
-            // Wait for metadata to be loaded before using
-            this.previewVideo.addEventListener('loadedmetadata', () => {
-                this.previewVideoReady = true;
-            }, { once: true });
-            
-            // Append to player container (hidden) BEFORE setting src
-            if (this.player.container) {
-                this.player.container.appendChild(this.previewVideo);
-            }
-            
-            // Set source after appending to DOM
-            this.previewVideo.src = videoSrc;
-            this.previewVideoReady = false;
         }
+
+        if (!videoSrc) {
+            this.player.log('No video source found for preview', 'warn');
+            this.previewSupported = false;
+            return;
+        }
+
+        // Create a hidden video element for capturing frames
+        this.previewVideo = document.createElement('video');
+        this.previewVideo.muted = true;
+        this.previewVideo.preload = 'auto'; // Need more than metadata to capture frames
+        this.previewVideo.playsInline = true;
+        this.previewVideo.style.position = 'absolute';
+        this.previewVideo.style.visibility = 'hidden';
+        this.previewVideo.style.width = '1px';
+        this.previewVideo.style.height = '1px';
+        this.previewVideo.style.top = '-9999px';
+
+        if (mainVideo.crossOrigin) {
+            this.previewVideo.crossOrigin = mainVideo.crossOrigin;
+        }
+
+        this.previewVideo.addEventListener('error', (e) => {
+            this.player.log('Preview video failed to load:', e, 'warn');
+            this.previewSupported = false;
+        });
+
+        this.previewVideo.addEventListener('loadedmetadata', () => {
+            this.previewVideoReady = true;
+        }, { once: true });
+
+        if (this.player.container) {
+            this.player.container.appendChild(this.previewVideo);
+        }
+
+        this.previewVideo.src = videoSrc;
+        this.previewVideoReady = false;
+        this.previewVideoInitialized = true;
     }
 
     /**
@@ -1218,10 +1241,21 @@ export class ControlBar {
                 // Update tooltip position
                 this.controls.progressTooltip.style.left = `${left}px`;
                 this.controls.progressTooltip.style.display = 'block';
-                
-                // Update preview thumbnail (only if supported)
+
+                // Only show preview thumbnails after the user has started playback at least once.
+                // Before that, show just the timestamp (no empty preview box).
+                if (!this.player?.state?.hasStartedPlayback) {
+                    if (this.controls.progressPreview) {
+                        this.controls.progressPreview.style.display = 'none';
+                    }
+                    return;
+                }
+
+                this.ensurePreviewVideoInitialized();
                 if (this.previewSupported) {
                     this.updatePreviewThumbnail(time);
+                } else if (this.controls.progressPreview) {
+                    this.controls.progressPreview.style.display = 'none';
                 }
             }
         });

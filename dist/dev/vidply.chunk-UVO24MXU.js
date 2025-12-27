@@ -9,13 +9,18 @@ var HTML5Renderer = class {
   constructor(player) {
     this.player = player;
     this.media = player.element;
+    this._didDeferredLoad = false;
   }
   async init() {
     this.media.controls = false;
     this.media.removeAttribute("controls");
     this.attachEvents();
-    this.media.preload = this.player.options.preload;
-    this.media.load();
+    if (this.player.options.deferLoad) {
+      this.media.preload = this.player.options.preload || "none";
+    } else {
+      this.media.preload = this.player.options.preload;
+      this.media.load();
+    }
     if (this.player.container) {
       this.player.container.classList.remove("vidply-external-controls");
     }
@@ -122,6 +127,15 @@ var HTML5Renderer = class {
   play() {
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
+    if (this.player.options.deferLoad && !this._didDeferredLoad) {
+      try {
+        if (this.media.readyState === 0) {
+          this.media.load();
+        }
+      } catch (e) {
+      }
+      this._didDeferredLoad = true;
+    }
     const promise = this.media.play();
     window.scrollTo(scrollX, scrollY);
     if (promise !== void 0) {
@@ -140,6 +154,22 @@ var HTML5Renderer = class {
         }
       });
     }
+  }
+  /**
+   * Ensure the media element has been loaded at least once (metadata/initial state)
+   * without starting playback. Useful for playlists to behave like single videos.
+   */
+  ensureLoaded() {
+    if (!this.player.options.deferLoad || this._didDeferredLoad) {
+      return;
+    }
+    try {
+      if (this.media.readyState === 0) {
+        this.media.load();
+      }
+    } catch (e) {
+    }
+    this._didDeferredLoad = true;
   }
   pause() {
     this.media.pause();
@@ -248,4 +278,4 @@ var HTML5Renderer = class {
 export {
   HTML5Renderer
 };
-//# sourceMappingURL=vidply.chunk-W2LSBD6Y.js.map
+//# sourceMappingURL=vidply.chunk-UVO24MXU.js.map

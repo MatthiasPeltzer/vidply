@@ -258,6 +258,9 @@ var en = {
     signLanguageVideo: "Sign Language Video",
     closeSignLanguage: "Close sign language video",
     signLanguageSettings: "Sign language settings",
+    startPlaybackFirst: "Please start playback first.",
+    startPlaybackForAudioDescription: "Please start playback first to use audio description.",
+    startPlaybackForSignLanguage: "Please start playback first to use sign language video.",
     noChapters: "No chapters available",
     noCaptions: "No captions available",
     auto: "Auto",
@@ -395,7 +398,7 @@ var en = {
 
 // src/i18n/translations.js
 var builtInLanguageLoaders = {
-  de: () => import("./vidply.de-SNL6AJ4D.js"),
+  de: () => import("./vidply.de-CEGBLV67.js"),
   es: () => import("./vidply.es-2QCQKZ4U.js"),
   fr: () => import("./vidply.fr-FJAZRL4L.js"),
   ja: () => import("./vidply.ja-2XQOW53T.js")
@@ -1676,4 +1679,4 @@ export {
   createLabeledSelect,
   preventDragOnElement
 };
-//# sourceMappingURL=vidply.chunk-GS2JX5RQ.js.map
+//# sourceMappingURL=vidply.chunk-PMRKJBGH.js.map
