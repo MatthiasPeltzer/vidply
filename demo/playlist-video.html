@@ -267,7 +267,7 @@
     </main>
 
     <footer>
-      <p>&copy; 2025 VidPly - Built with ❤️ and Vanilla JavaScript</p>
+      <p>&copy; 2025 VidPly - Built with Vanilla JavaScript</p>
       <p>Released under GPL-2.0-or-later License</p>
     </footer>
   </div>
@@ -280,11 +280,21 @@
     const hostElement = document.querySelector('#video-player');
 
     // Create player instance
+    let parsedOptions = {};
+    try {
+      parsedOptions = hostElement.dataset.vidplyOptions ? JSON.parse(hostElement.dataset.vidplyOptions) : {};
+    } catch (e) {
+      console.warn('Invalid JSON in data-vidply-options:', e);
+    }
+
     const player = new Player(hostElement, {
-        mediaType: 'video'
+      mediaType: 'video',
+      ...parsedOptions
     });
 
     console.log('Video player created:', player);
+
+    let playlist;
 
     // Create playlist after player is ready (ensures container exists)
     player.on('ready', () => {
@@ -292,13 +302,13 @@
       const tracks = playlistData ? JSON.parse(playlistData) : [];
       const playlistOptions = {
         autoAdvance: hostElement.getAttribute('data-playlist-auto-advance') !== 'false',
-        autoPlayFirst: hostElement.getAttribute('data-playlist-auto-play-first') === 'true',
+        autoPlayFirst: hostElement.getAttribute('data-playlist-auto-play-first') !== 'false',
         loop: hostElement.getAttribute('data-playlist-loop') === 'true',
         showPanel: hostElement.getAttribute('data-playlist-show-panel') !== 'false',
         tracks
       };
 
-      const playlist = new PlaylistManager(player, playlistOptions);
+      playlist = new PlaylistManager(player, playlistOptions);
 
       console.log('Video playlist initialized');
 
@@ -314,6 +324,7 @@
     // Optional: Add keyboard shortcuts
     document.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (!playlist) return;
 
       switch(e.key) {
         case 'N':

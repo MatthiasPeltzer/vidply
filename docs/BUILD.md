@@ -30,10 +30,10 @@ npm run build
 ```
 
 This creates:
-- `dist/vidply.esm.js` - ES Module (development)
-- `dist/vidply.esm.min.js` - ES Module (production, minified)
-- `dist/vidply.js` - IIFE/UMD bundle (development)
-- `dist/vidply.min.js` - IIFE/UMD bundle (production, minified)
+- `dist/dev/vidply.esm.js` - ES Module (development)
+- `dist/prod/vidply.esm.min.js` - ES Module (production, minified)
+- `dist/legacy/vidply.js` - IIFE bundle (development)
+- `dist/legacy/vidply.min.js` - IIFE bundle (production, minified)
 - `dist/vidply.css` - Unminified styles
 - `dist/vidply.min.css` - Minified styles
 
@@ -82,7 +82,7 @@ This starts a local server at http://localhost:3000
 - Recommended for modern projects
 
 ```javascript
-import Player from './dist/vidply.esm.min.js';
+import Player from './dist/prod/vidply.esm.min.js';
 ```
 
 **IIFE Format** (`dist/vidply.js` and `.min.js`)
@@ -92,7 +92,7 @@ import Player from './dist/vidply.esm.min.js';
 - For traditional web pages
 
 ```html
-<script src="dist/vidply.min.js"></script>
+<script src="dist/legacy/vidply.min.js"></script>
 <script>
   const player = new VidPly.Player('#video');
 </script>
@@ -120,7 +120,7 @@ import Player from './dist/vidply.esm.min.js';
 <video data-vidply src="video.mp4"></video>
 
 <script type="module">
-  import Player from './dist/vidply.esm.min.js';
+  import Player from './dist/prod/vidply.esm.min.js';
   // Player auto-initializes with data-vidply
 </script>
 ```
@@ -129,7 +129,7 @@ import Player from './dist/vidply.esm.min.js';
 
 ```html
 <link rel="stylesheet" href="dist/vidply.min.css">
-<script src="dist/vidply.min.js"></script>
+<script src="dist/legacy/vidply.min.js"></script>
 
 <video id="my-video" src="video.mp4"></video>
 
@@ -345,7 +345,7 @@ node build/build.js
 ## Distribution
 
 For production deployment, only include:
-- `dist/vidply.esm.min.js` or `dist/vidply.min.js`
+- `dist/prod/vidply.esm.min.js` or `dist/legacy/vidply.min.js`
 - `dist/vidply.min.css`
 
 These are the only files users need.

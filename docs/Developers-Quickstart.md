@@ -40,8 +40,8 @@ vidply/
 │   ├── playlist-video.html   # Video playlist demo
 │   └── hls-test.html         # HLS streaming demo
 ├── dist/                     # Built files (generated)
-│   ├── vidply.esm.min.js     # ES Module (production)
-│   ├── vidply.min.js         # IIFE (production)
+│   ├── prod/vidply.esm.min.js# ES Module (production)
+│   ├── legacy/vidply.min.js  # IIFE (production)
 │   └── vidply.min.css        # Styles (production)
 ├── docs/                     # Documentation
 ├── src/                      # Source code
@@ -111,10 +111,10 @@ vidply/
 
 | File | Format | Use |
 |------|--------|-----|
-| `vidply.esm.js` | ES Module | Development |
-| `vidply.esm.min.js` | ES Module | Production |
-| `vidply.js` | IIFE | Development |
-| `vidply.min.js` | IIFE | Production |
+| `dev/vidply.esm.js` | ES Module | Development |
+| `prod/vidply.esm.min.js` | ES Module | Production |
+| `legacy/vidply.js` | IIFE | Development |
+| `legacy/vidply.min.js` | IIFE | Production |
 
 **Features:**
 - Code splitting (renderers loaded on demand)

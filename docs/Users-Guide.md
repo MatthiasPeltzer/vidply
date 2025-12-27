@@ -31,8 +31,8 @@ npm run build
 ```
 
 This creates files in `dist/`:
-- `vidply.esm.min.js` - ES Module (recommended)
-- `vidply.min.js` - IIFE for script tag
+- `prod/vidply.esm.min.js` - ES Module (recommended)
+- `legacy/vidply.min.js` - IIFE for script tag (global `VidPly`)
 - `vidply.min.css` - Styles
 
 ### 2. Include in Your Page
@@ -42,7 +42,7 @@ This creates files in `dist/`:
 ```html
 <link rel="stylesheet" href="dist/vidply.min.css">
 <script type="module">
-  import Player from './dist/vidply.esm.min.js';
+  import Player from './dist/prod/vidply.esm.min.js';
 </script>
 ```
 
@@ -50,7 +50,7 @@ This creates files in `dist/`:
 
 ```html
 <link rel="stylesheet" href="dist/vidply.min.css">
-<script src="dist/vidply.min.js"></script>
+<script src="dist/legacy/vidply.min.js"></script>
 ```
 
 ---
@@ -258,6 +258,10 @@ const player = new Player('#my-video', {
 | `captionsDefault` | bool | false | Show captions by default |
 | `transcript` | bool | false | Show transcript panel |
 | `debug` | bool | false | Debug logging |
+| `preload` | string | 'metadata' | `'none'`, `'metadata'`, `'auto'` |
+| `deferLoad` | bool | false | Avoid starting network loading during init; load on user play / explicit load |
+| `initialDuration` | number | 0 | Initial duration in seconds (UI only, before media metadata is loaded) |
+| `requirePlaybackForAccessibilityToggles` | bool | false | If true: AD/SL before playback shows a notice instead of implicitly loading/playing |
 
 ---
 
@@ -269,9 +273,10 @@ const player = new Player('#my-video', {
 <div id="audio-player"></div>
 
 <script type="module">
-  import { Player, PlaylistManager } from './dist/vidply.esm.min.js';
+  import { Player, PlaylistManager } from './dist/prod/vidply.esm.min.js';
   
-  const player = new Player('#audio-player', { type: 'audio' });
+  // When you pass a non-media element, VidPly will create the media element for you.
+  const player = new Player('#audio-player', { mediaType: 'audio' });
   const playlist = new PlaylistManager(player, {
     autoAdvance: true,
     loop: false,
@@ -301,7 +306,7 @@ const player = new Player('#my-video', {
 <div id="video-player"></div>
 
 <script type="module">
-  import { Player, PlaylistManager } from './dist/vidply.esm.min.js';
+  import { Player, PlaylistManager } from './dist/prod/vidply.esm.min.js';
   
   const player = new Player('#video-player');
   const playlist = new PlaylistManager(player, {
@@ -332,6 +337,7 @@ const player = new Player('#my-video', {
 | Option | Default | Description |
 |--------|---------|-------------|
 | `autoAdvance` | true | Auto-play next track |
+| `autoPlayFirst` | true | Auto-play first track on `loadPlaylist()` (if false: first track is loaded/selected but not played) |
 | `loop` | false | Loop playlist |
 | `showPanel` | true | Show playlist panel |
 
@@ -531,7 +537,7 @@ const player = new Player('#my-video', {
 **Via JavaScript:**
 
 ```javascript
-import { i18n } from './dist/vidply.esm.min.js';
+import { i18n } from './dist/prod/vidply.esm.min.js';
 
 await i18n.loadLanguageFromUrl('pt', 'languages/pt.json');
 i18n.setLanguage('pt');

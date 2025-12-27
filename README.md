@@ -118,7 +118,7 @@ This creates minified files in the `dist/` folder.
   </video>
 
   <script type="module">
-    import Player from './dist/vidply.esm.min.js';
+    import Player from './dist/prod/vidply.esm.min.js';
     // Auto-initialized via data-vidply attribute
   </script>
 </body>
@@ -129,7 +129,7 @@ This creates minified files in the `dist/` folder.
 
 ```html
 <link rel="stylesheet" href="dist/vidply.min.css">
-<script src="dist/vidply.min.js"></script>
+<script src="dist/legacy/vidply.min.js"></script>
 
 <video id="my-video" src="video.mp4"></video>
 
@@ -170,7 +170,7 @@ npm run build
 ```html
 <link rel="stylesheet" href="dist/vidply.min.css">
 <script type="module">
-  import Player from './dist/vidply.esm.min.js';
+  import Player from './dist/prod/vidply.esm.min.js';
 </script>
 ```
 
@@ -647,10 +647,10 @@ npm run dev          # Start dev server
 
 ### Output Files
 
-- `dist/vidply.esm.js` - ES Module (development)
-- `dist/vidply.esm.min.js` - ES Module (production)
-- `dist/vidply.js` - IIFE (development)
-- `dist/vidply.min.js` - IIFE (production)
+- `dist/dev/vidply.esm.js` - ES Module (development)
+- `dist/prod/vidply.esm.min.js` - ES Module (production)
+- `dist/legacy/vidply.js` - IIFE (development)
+- `dist/legacy/vidply.min.js` - IIFE (production)
 - `dist/vidply.css` - Styles (unminified)
 - `dist/vidply.min.css` - Styles (minified)
 

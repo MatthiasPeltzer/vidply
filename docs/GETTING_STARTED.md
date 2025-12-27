@@ -34,8 +34,8 @@ npm run build
 ```
 
 This creates production-ready files in `dist/`:
-- `vidply.esm.min.js` - Minified ES Module (~50KB)
-- `vidply.min.js` - Minified IIFE bundle (~52KB)
+- `prod/vidply.esm.min.js` - Minified ES Module (recommended for production)
+- `legacy/vidply.min.js` - Minified IIFE bundle (global `VidPly`)
 - `vidply.min.css` - Minified styles (~12KB)
 
 ### 4. View the Demo
@@ -78,7 +78,7 @@ Open http://localhost:3000/demo/ to see VidPly in action!
   </video>
 
   <script type="module">
-    import Player from './dist/vidply.esm.min.js';
+    import Player from './dist/prod/vidply.esm.min.js';
     // That's it! Player auto-initializes
   </script>
 </body>
@@ -525,7 +525,7 @@ Check the browser console for detailed logs.
 ```html
 <link rel="stylesheet" href="dist/vidply.min.css">
 <script type="module">
-  import Player from './dist/vidply.esm.min.js';
+  import Player from './dist/prod/vidply.esm.min.js';
 </script>
 ```
 
@@ -533,7 +533,7 @@ Check the browser console for detailed logs.
 
 ```html
 <link rel="stylesheet" href="dist/vidply.min.css">
-<script src="dist/vidply.min.js"></script>
+<script src="dist/legacy/vidply.min.js"></script>
 <script>
   const player = new VidPly.Player('#video');
 </script>
