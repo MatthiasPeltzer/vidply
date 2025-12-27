@@ -26,7 +26,7 @@ VidPly includes a powerful interactive transcript feature that displays video ca
 </video>
 
 <script type="module">
-  import Player from './dist/vidply.esm.min.js';
+  import Player from './dist/prod/vidply.esm.min.js';
 </script>
 ```
 
@@ -299,7 +299,7 @@ On mobile devices (< 768px breakpoint):
   </div>
 
   <script type="module">
-    import Player from './dist/vidply.esm.min.js';
+    import Player from './dist/prod/vidply.esm.min.js';
     
     // Player is auto-initialized via data-vidply
     

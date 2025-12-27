@@ -422,7 +422,7 @@ const playlist = new PlaylistManager(player, { tracks });</code></pre>
     </main>
 
     <footer>
-      <p>&copy; 2025 VidPly - Built with ❤️ and Vanilla JavaScript</p>
+    <p>&copy; 2025 VidPly - Built with Vanilla JavaScript</p>
       <p>Released under GPL-2.0-or-later License</p>
     </footer>
   </div>
@@ -438,9 +438,17 @@ const playlist = new PlaylistManager(player, { tracks });</code></pre>
     const mediaBadges = document.querySelectorAll('.media-badge');
 
     // Create player instance (video type to support all content)
-    const player = new Player(hostElement, {
-      mediaType: 'video'
-    });
+      let parsedOptions = {};
+      try {
+        parsedOptions = hostElement.dataset.vidplyOptions ? JSON.parse(hostElement.dataset.vidplyOptions) : {};
+      } catch (e) {
+        console.warn('Invalid JSON in data-vidply-options:', e);
+      }
+
+      const player = new Player(hostElement, {
+        mediaType: 'video',
+        ...parsedOptions
+      });
 
     console.log('Mixed media player created:', player);
 
@@ -463,7 +471,7 @@ const playlist = new PlaylistManager(player, { tracks });</code></pre>
       
       const playlistOptions = {
         autoAdvance: hostElement.getAttribute('data-playlist-auto-advance') !== 'false',
-        autoPlayFirst: hostElement.getAttribute('data-playlist-auto-play-first') === 'true',
+        autoPlayFirst: hostElement.getAttribute('data-playlist-auto-play-first') !== 'false',
         loop: hostElement.getAttribute('data-playlist-loop') === 'true',
         showPanel: hostElement.getAttribute('data-playlist-show-panel') !== 'false',
         tracks,

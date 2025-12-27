@@ -628,14 +628,20 @@ const player = new Player('#video', {
 
 ### 2. Lazy Loading
 
+VidPly can avoid eager network loading (useful if you have many players on one page):
+
 ```html
-<!-- Only initialize when in viewport -->
-<video 
+<video
   data-vidply
-  loading="lazy"
+  preload="none"
+  data-vidply-options='{"deferLoad": true, "preload": "none"}'
   src="video.mp4"
 ></video>
 ```
+
+Notes:
+- With `deferLoad: true`, VidPly does not call `media.load()` during init (and HLS will not start loading) until the user starts playback.
+- Browsers may still perform small requests depending on `preload` and their buffering strategy.
 
 ### 3. Responsive Images for Poster
 
@@ -773,7 +779,7 @@ Here's a video with all accessibility features enabled:
   </video>
 
   <script type="module">
-    import Player from './dist/vidply.esm.min.js';
+    import Player from './dist/prod/vidply.esm.min.js';
     
     // Player auto-initializes with all features enabled
   </script>

@@ -319,10 +319,10 @@ VidPly v1.0.0 is here! A complete, production-ready video player built with vani
 - `build/clean.js` - Clean dist directory
 
 #### Output Files
-- `dist/vidply.esm.js` - ES Module (dev)
-- `dist/vidply.esm.min.js` - ES Module (prod)
-- `dist/vidply.js` - IIFE bundle (dev)
-- `dist/vidply.min.js` - IIFE bundle (prod)
+- `dist/dev/vidply.esm.js` - ES Module (dev)
+- `dist/prod/vidply.esm.min.js` - ES Module (prod)
+- `dist/legacy/vidply.js` - IIFE bundle (dev)
+- `dist/legacy/vidply.min.js` - IIFE bundle (prod)
 - `dist/vidply.css` - Styles (unminified)
 - `dist/vidply.min.css` - Styles (minified)
 

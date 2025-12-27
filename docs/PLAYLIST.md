@@ -82,8 +82,9 @@ import { Player, PlaylistManager } from 'vidply';
 ```javascript
 {
   autoAdvance: true,  // Automatically play next track when current ends
-  loop: false,        // Loop back to first track after last
-  showPanel: true     // Show visual playlist panel
+  autoPlayFirst: true, // Auto-play first track on load (if false: load/select first track, but do not start playback)
+  loop: false,         // Loop back to first track after last
+  showPanel: true      // Show visual playlist panel
 }
 ```
 
@@ -111,7 +112,10 @@ import { Player, PlaylistManager } from 'vidply';
 ## API Methods
 
 ### loadPlaylist(items)
-Load an array of track items into the playlist. Automatically plays the first track unless `autoPlayFirst: false` is set in options.
+Load an array of track items into the playlist.
+
+- If `autoPlayFirst: true` (default): first track will start playing.
+- If `autoPlayFirst: false`: first track will be selected and loaded (so poster/UI/features can initialize), but playback will not start.
 
 ```javascript
 playlist.loadPlaylist([
@@ -628,12 +632,13 @@ Perfect for:
 
 ## Best Practices
 
-1. **Preload Metadata**: Set `preload: 'metadata'` to load track durations without downloading full files
-2. **Provide Thumbnails**: Add poster images for better visual presentation
-3. **Include Duration**: Pre-calculate durations for better UX
-4. **Use Consistent Naming**: Keep track object properties consistent across your playlist
-5. **Handle Loading States**: Listen to `loadstart` and `canplay` events for loading indicators
-6. **Accessibility**: Ensure track titles and artists are descriptive for screen readers
+1. **Avoid eager network loading**: Use `deferLoad: true` (and optionally `preload: 'none'`) to avoid starting downloads during init
+2. **Preload Metadata**: Set `preload: 'metadata'` to load track durations without downloading full files
+3. **Provide Thumbnails**: Add poster images for better visual presentation
+4. **Include Duration**: Pre-calculate durations for better UX
+5. **Use Consistent Naming**: Keep track object properties consistent across your playlist
+6. **Handle Loading States**: Listen to `loadstart` and `canplay` events for loading indicators
+7. **Accessibility**: Ensure track titles and artists are descriptive for screen readers
 
 ## Troubleshooting
 
