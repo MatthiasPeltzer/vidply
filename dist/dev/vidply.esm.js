@@ -1,11 +1,11 @@
 /*!
  * Universal, Accessible Video Player
- * (c) 2025 Matthias Peltzer
+ * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 import {
   HTML5Renderer
-} from "./vidply.chunk-UVO24MXU.js";
+} from "./vidply.chunk-IIN4G4UQ.js";
 import {
   DOMUtils,
   DraggableResizable,
@@ -21,7 +21,7 @@ import {
   focusFirstMenuItem,
   i18n,
   preventDragOnElement
-} from "./vidply.chunk-PMRKJBGH.js";
+} from "./vidply.chunk-74NJTDQI.js";
 
 // src/utils/EventEmitter.js
 var EventEmitter = class {
@@ -5251,7 +5251,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-R7NJRU7E.js");
+    const module = await import("./vidply.TranscriptManager-T3BVTZHZ.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;
@@ -5468,16 +5468,16 @@ var Player = class _Player extends EventEmitter {
     }
     let rendererClass = HTML5Renderer;
     if (src.includes("youtube.com") || src.includes("youtu.be")) {
-      const module = await import("./vidply.YouTubeRenderer-6MGKEFTZ.js");
+      const module = await import("./vidply.YouTubeRenderer-EVXXE34A.js");
       rendererClass = module.YouTubeRenderer || module.default;
     } else if (src.includes("vimeo.com")) {
-      const module = await import("./vidply.VimeoRenderer-VPH4RNES.js");
+      const module = await import("./vidply.VimeoRenderer-DY2FG7LZ.js");
       rendererClass = module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-LIFBU6UD.js");
+      const module = await import("./vidply.HLSRenderer-YGWCAICA.js");
       rendererClass = module.HLSRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
-      const module = await import("./vidply.SoundCloudRenderer-CD7VJKNS.js");
+      const module = await import("./vidply.SoundCloudRenderer-RIA3QKP3.js");
       rendererClass = module.SoundCloudRenderer || module.default;
     }
     this.log(`Using ${rendererClass?.name || "HTML5Renderer"} renderer`);
@@ -9244,21 +9244,6 @@ var PlaylistManager = class {
       console.warn("VidPly Playlist: No container found");
       return;
     }
-    if (this.player.element.tagName === "AUDIO") {
-      this.trackArtworkElement = DOMUtils.createElement("div", {
-        className: "vidply-track-artwork",
-        attributes: {
-          "aria-hidden": "true"
-        }
-      });
-      this.trackArtworkElement.style.display = "none";
-      const videoWrapper = this.container.querySelector(".vidply-video-wrapper");
-      if (videoWrapper) {
-        this.container.insertBefore(this.trackArtworkElement, videoWrapper);
-      } else {
-        this.container.appendChild(this.trackArtworkElement);
-      }
-    }
     this.trackInfoElement = DOMUtils.createElement("div", {
       className: "vidply-track-info",
       attributes: {
@@ -9331,6 +9316,27 @@ var PlaylistManager = class {
    * Update track artwork display (for audio playlists)
    */
   updateTrackArtwork(track) {
+    if (this.player?.element?.tagName !== "AUDIO") {
+      if (this.trackArtworkElement) {
+        this.trackArtworkElement.style.display = "none";
+      }
+      return;
+    }
+    if (!this.trackArtworkElement && this.container) {
+      this.trackArtworkElement = DOMUtils.createElement("div", {
+        className: "vidply-track-artwork",
+        attributes: {
+          "aria-hidden": "true"
+        }
+      });
+      this.trackArtworkElement.style.display = "none";
+      const videoWrapper = this.container.querySelector(".vidply-video-wrapper");
+      if (videoWrapper) {
+        this.container.insertBefore(this.trackArtworkElement, videoWrapper);
+      } else {
+        this.container.appendChild(this.trackArtworkElement);
+      }
+    }
     if (!this.trackArtworkElement) return;
     if (track.poster) {
       this.trackArtworkElement.style.backgroundImage = `url(${track.poster})`;

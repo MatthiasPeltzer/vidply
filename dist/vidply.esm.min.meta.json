@@ -473,7 +473,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 57201,
+      "bytes": 57809,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -516,7 +516,7 @@
     }
   },
   "outputs": {
-    "dist/prod/vidply.VimeoRenderer-3HBMM2WR.min.js": {
+    "dist/prod/vidply.VimeoRenderer-UQWHQ4LC.min.js": {
       "imports": [],
       "exports": [
         "VimeoRenderer"
@@ -529,10 +529,10 @@
       },
       "bytes": 4730
     },
-    "dist/prod/vidply.HLSRenderer-ESR6NAMI.min.js": {
+    "dist/prod/vidply.HLSRenderer-D2KTBEEI.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.HTML5Renderer-6ROXQSQY.min.js",
+          "path": "dist/prod/vidply.HTML5Renderer-ZSV6PDOH.min.js",
           "kind": "dynamic-import"
         }
       ],
@@ -547,7 +547,7 @@
       },
       "bytes": 6658
     },
-    "dist/prod/vidply.SoundCloudRenderer-MOR2CUFH.min.js": {
+    "dist/prod/vidply.SoundCloudRenderer-BFV5SSIU.min.js": {
       "imports": [],
       "exports": [
         "SoundCloudRenderer",
@@ -564,31 +564,31 @@
     "dist/prod/vidply.esm.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-7HVHEUHH.min.js",
+          "path": "dist/prod/vidply.chunk-SQVOYVKH.min.js",
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.chunk-IQKD4GUB.min.js",
+          "path": "dist/prod/vidply.chunk-OM7DNW5P.min.js",
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.TranscriptManager-B65LKXGG.min.js",
+          "path": "dist/prod/vidply.TranscriptManager-GPAOXEK4.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.YouTubeRenderer-MFC2GMAC.min.js",
+          "path": "dist/prod/vidply.YouTubeRenderer-K7A57ICA.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.VimeoRenderer-3HBMM2WR.min.js",
+          "path": "dist/prod/vidply.VimeoRenderer-UQWHQ4LC.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.HLSRenderer-ESR6NAMI.min.js",
+          "path": "dist/prod/vidply.HLSRenderer-D2KTBEEI.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.SoundCloudRenderer-MOR2CUFH.min.js",
+          "path": "dist/prod/vidply.SoundCloudRenderer-BFV5SSIU.min.js",
           "kind": "dynamic-import"
         }
       ],
@@ -627,15 +627,15 @@
           "bytesInOutput": 80485
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 24268
+          "bytesInOutput": 24397
         },
         "src/index.js": {
           "bytesInOutput": 1869
         }
       },
-      "bytes": 212078
+      "bytes": 212207
     },
-    "dist/prod/vidply.de-IHKC573T.min.js": {
+    "dist/prod/vidply.de-WCUZUF3T.min.js": {
       "imports": [],
       "exports": [
         "de"
@@ -648,7 +648,7 @@
       },
       "bytes": 7647
     },
-    "dist/prod/vidply.es-3IJCQLJ7.min.js": {
+    "dist/prod/vidply.es-54CIIDMO.min.js": {
       "imports": [],
       "exports": [
         "es"
@@ -661,7 +661,7 @@
       },
       "bytes": 7498
     },
-    "dist/prod/vidply.fr-NC4VEAPH.min.js": {
+    "dist/prod/vidply.fr-7FYGFFK2.min.js": {
       "imports": [],
       "exports": [
         "fr"
@@ -674,7 +674,7 @@
       },
       "bytes": 7737
     },
-    "dist/prod/vidply.ja-4ZC6ZQLV.min.js": {
+    "dist/prod/vidply.ja-E4UTAURP.min.js": {
       "imports": [],
       "exports": [
         "ja"
@@ -687,10 +687,10 @@
       },
       "bytes": 8204
     },
-    "dist/prod/vidply.HTML5Renderer-6ROXQSQY.min.js": {
+    "dist/prod/vidply.HTML5Renderer-ZSV6PDOH.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-7HVHEUHH.min.js",
+          "path": "dist/prod/vidply.chunk-SQVOYVKH.min.js",
           "kind": "import-statement"
         }
       ],
@@ -701,7 +701,7 @@
       "inputs": {},
       "bytes": 192
     },
-    "dist/prod/vidply.chunk-7HVHEUHH.min.js": {
+    "dist/prod/vidply.chunk-SQVOYVKH.min.js": {
       "imports": [],
       "exports": [
         "a"
@@ -713,10 +713,10 @@
       },
       "bytes": 5521
     },
-    "dist/prod/vidply.TranscriptManager-B65LKXGG.min.js": {
+    "dist/prod/vidply.TranscriptManager-GPAOXEK4.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-IQKD4GUB.min.js",
+          "path": "dist/prod/vidply.chunk-OM7DNW5P.min.js",
           "kind": "import-statement"
         }
       ],
@@ -731,22 +731,22 @@
       },
       "bytes": 43042
     },
-    "dist/prod/vidply.chunk-IQKD4GUB.min.js": {
+    "dist/prod/vidply.chunk-OM7DNW5P.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.de-IHKC573T.min.js",
+          "path": "dist/prod/vidply.de-WCUZUF3T.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.es-3IJCQLJ7.min.js",
+          "path": "dist/prod/vidply.es-54CIIDMO.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.fr-NC4VEAPH.min.js",
+          "path": "dist/prod/vidply.fr-7FYGFFK2.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.ja-4ZC6ZQLV.min.js",
+          "path": "dist/prod/vidply.ja-E4UTAURP.min.js",
           "kind": "dynamic-import"
         }
       ],
@@ -803,7 +803,7 @@
       },
       "bytes": 40477
     },
-    "dist/prod/vidply.YouTubeRenderer-MFC2GMAC.min.js": {
+    "dist/prod/vidply.YouTubeRenderer-K7A57ICA.min.js": {
       "imports": [],
       "exports": [
         "YouTubeRenderer"

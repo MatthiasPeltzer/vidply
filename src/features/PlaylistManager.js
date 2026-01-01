@@ -972,25 +972,9 @@ export class PlaylistManager {
       return;
     }
     
-    // Create track artwork element (shows album art/poster for audio playlists)
-    // Only create for audio players
-    if (this.player.element.tagName === 'AUDIO') {
-      this.trackArtworkElement = DOMUtils.createElement('div', {
-        className: 'vidply-track-artwork',
-        attributes: {
-          'aria-hidden': 'true'
-        }
-      });
-      this.trackArtworkElement.style.display = 'none';
-      
-      // Insert before video wrapper
-      const videoWrapper = this.container.querySelector('.vidply-video-wrapper');
-      if (videoWrapper) {
-        this.container.insertBefore(this.trackArtworkElement, videoWrapper);
-      } else {
-        this.container.appendChild(this.trackArtworkElement);
-      }
-    }
+    // Track artwork element (shows album art/poster for audio tracks).
+    // Important: in mixed playlists the player may start as <video> and later recreate to <audio>,
+    // so we create this lazily in `updateTrackArtwork()` when we actually have an audio element.
     
     // Create track info element (shows current track)
     this.trackInfoElement = DOMUtils.createElement('div', {
@@ -1089,6 +1073,34 @@ export class PlaylistManager {
    * Update track artwork display (for audio playlists)
    */
   updateTrackArtwork(track) {
+    // Only show artwork for audio players.
+    // In mixed playlists we may recreate from <video> -> <audio> later, so ensure the element exists lazily.
+    if (this.player?.element?.tagName !== 'AUDIO') {
+      if (this.trackArtworkElement) {
+        this.trackArtworkElement.style.display = 'none';
+      }
+      return;
+    }
+
+    // Lazily create artwork element once we have an audio element/container.
+    if (!this.trackArtworkElement && this.container) {
+      this.trackArtworkElement = DOMUtils.createElement('div', {
+        className: 'vidply-track-artwork',
+        attributes: {
+          'aria-hidden': 'true'
+        }
+      });
+      this.trackArtworkElement.style.display = 'none';
+
+      // Insert before video wrapper (if present) for consistent layout.
+      const videoWrapper = this.container.querySelector('.vidply-video-wrapper');
+      if (videoWrapper) {
+        this.container.insertBefore(this.trackArtworkElement, videoWrapper);
+      } else {
+        this.container.appendChild(this.trackArtworkElement);
+      }
+    }
+
     if (!this.trackArtworkElement) return;
     
     // If track has a poster/artwork, show it

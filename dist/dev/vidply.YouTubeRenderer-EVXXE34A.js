@@ -1,6 +1,6 @@
 /*!
  * Universal, Accessible Video Player
- * (c) 2025 Matthias Peltzer
+ * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 
@@ -232,4 +232,4 @@ var YouTubeRenderer = class {
 export {
   YouTubeRenderer
 };
-//# sourceMappingURL=vidply.YouTubeRenderer-6MGKEFTZ.js.map
+//# sourceMappingURL=vidply.YouTubeRenderer-EVXXE34A.js.map

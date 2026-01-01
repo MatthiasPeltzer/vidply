@@ -1,12 +1,12 @@
 /*!
  * Universal, Accessible Video Player
- * (c) 2025 Matthias Peltzer
+ * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 import {
   HTML5Renderer
-} from "./vidply.chunk-UVO24MXU.js";
+} from "./vidply.chunk-IIN4G4UQ.js";
 export {
   HTML5Renderer
 };
-//# sourceMappingURL=vidply.HTML5Renderer-YWMVYWFS.js.map
+//# sourceMappingURL=vidply.HTML5Renderer-PMNFHAKW.js.map

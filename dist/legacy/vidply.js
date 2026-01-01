@@ -1,6 +1,6 @@
 /*!
  * Universal, Accessible Video Player
- * (c) 2025 Matthias Peltzer
+ * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 (() => {
@@ -14870,21 +14870,6 @@
         console.warn("VidPly Playlist: No container found");
         return;
       }
-      if (this.player.element.tagName === "AUDIO") {
-        this.trackArtworkElement = DOMUtils.createElement("div", {
-          className: "vidply-track-artwork",
-          attributes: {
-            "aria-hidden": "true"
-          }
-        });
-        this.trackArtworkElement.style.display = "none";
-        const videoWrapper = this.container.querySelector(".vidply-video-wrapper");
-        if (videoWrapper) {
-          this.container.insertBefore(this.trackArtworkElement, videoWrapper);
-        } else {
-          this.container.appendChild(this.trackArtworkElement);
-        }
-      }
       this.trackInfoElement = DOMUtils.createElement("div", {
         className: "vidply-track-info",
         attributes: {
@@ -14948,6 +14933,28 @@
      * Update track artwork display (for audio playlists)
      */
     updateTrackArtwork(track) {
+      var _a, _b;
+      if (((_b = (_a = this.player) == null ? void 0 : _a.element) == null ? void 0 : _b.tagName) !== "AUDIO") {
+        if (this.trackArtworkElement) {
+          this.trackArtworkElement.style.display = "none";
+        }
+        return;
+      }
+      if (!this.trackArtworkElement && this.container) {
+        this.trackArtworkElement = DOMUtils.createElement("div", {
+          className: "vidply-track-artwork",
+          attributes: {
+            "aria-hidden": "true"
+          }
+        });
+        this.trackArtworkElement.style.display = "none";
+        const videoWrapper = this.container.querySelector(".vidply-video-wrapper");
+        if (videoWrapper) {
+          this.container.insertBefore(this.trackArtworkElement, videoWrapper);
+        } else {
+          this.container.appendChild(this.trackArtworkElement);
+        }
+      }
       if (!this.trackArtworkElement) return;
       if (track.poster) {
         this.trackArtworkElement.style.backgroundImage = "url(".concat(track.poster, ")");

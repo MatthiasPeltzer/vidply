@@ -1,6 +1,6 @@
 /*!
  * Universal, Accessible Video Player
- * (c) 2025 Matthias Peltzer
+ * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 import {
@@ -15,7 +15,7 @@ import {
   focusElement,
   i18n,
   preventDragOnElement
-} from "./vidply.chunk-PMRKJBGH.js";
+} from "./vidply.chunk-74NJTDQI.js";
 
 // src/controls/TranscriptManager.js
 var TranscriptManager = class {
@@ -1740,4 +1740,4 @@ var TranscriptManager = class {
 export {
   TranscriptManager
 };
-//# sourceMappingURL=vidply.TranscriptManager-R7NJRU7E.js.map
+//# sourceMappingURL=vidply.TranscriptManager-T3BVTZHZ.js.map

@@ -1,6 +1,6 @@
 /*!
  * Universal, Accessible Video Player
- * (c) 2025 Matthias Peltzer
+ * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 
@@ -277,4 +277,4 @@ export {
   SoundCloudRenderer,
   SoundCloudRenderer_default as default
 };
-//# sourceMappingURL=vidply.SoundCloudRenderer-CD7VJKNS.js.map
+//# sourceMappingURL=vidply.SoundCloudRenderer-RIA3QKP3.js.map

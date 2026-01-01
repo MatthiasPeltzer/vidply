@@ -1,6 +1,6 @@
 /*!
  * Universal, Accessible Video Player
- * (c) 2025 Matthias Peltzer
+ * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 
@@ -185,4 +185,4 @@ var ja = {
 export {
   ja
 };
-//# sourceMappingURL=vidply.ja-2XQOW53T.js.map
+//# sourceMappingURL=vidply.ja-FTBFZD66.js.map
