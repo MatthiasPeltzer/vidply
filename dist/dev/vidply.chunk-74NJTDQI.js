@@ -1,6 +1,6 @@
 /*!
  * Universal, Accessible Video Player
- * (c) 2025 Matthias Peltzer
+ * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 
@@ -398,10 +398,10 @@ var en = {
 
 // src/i18n/translations.js
 var builtInLanguageLoaders = {
-  de: () => import("./vidply.de-CEGBLV67.js"),
-  es: () => import("./vidply.es-2QCQKZ4U.js"),
-  fr: () => import("./vidply.fr-FJAZRL4L.js"),
-  ja: () => import("./vidply.ja-2XQOW53T.js")
+  de: () => import("./vidply.de-YBEYEXBL.js"),
+  es: () => import("./vidply.es-QA4YSA5S.js"),
+  fr: () => import("./vidply.fr-LAM3XJZI.js"),
+  ja: () => import("./vidply.ja-FTBFZD66.js")
 };
 function getBaseTranslations() {
   return { en };
@@ -1679,4 +1679,4 @@ export {
   createLabeledSelect,
   preventDragOnElement
 };
-//# sourceMappingURL=vidply.chunk-PMRKJBGH.js.map
+//# sourceMappingURL=vidply.chunk-74NJTDQI.js.map
