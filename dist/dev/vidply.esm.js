@@ -4562,6 +4562,7 @@ var SignLanguageManager = class {
         this.hideSettingsMenu();
       }
     });
+    dragOption.setAttribute("data-setting", "keyboard-drag");
     dragOption.setAttribute("role", "switch");
     dragOption.setAttribute("aria-checked", "false");
     this._removeTooltipFromMenuItem(dragOption);

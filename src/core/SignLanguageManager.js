@@ -769,6 +769,8 @@ export class SignLanguageManager {
                 this.hideSettingsMenu();
             }
         });
+        // Allow CSS to hide this option on touch/mobile where dragging is always enabled
+        dragOption.setAttribute('data-setting', 'keyboard-drag');
         dragOption.setAttribute('role', 'switch');
         dragOption.setAttribute('aria-checked', 'false');
         this._removeTooltipFromMenuItem(dragOption);

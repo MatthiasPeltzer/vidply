@@ -3892,6 +3892,13 @@
     flex: 1;
 }
 
+/* Mobile: drag is always available via touch, so hide the keyboard drag mode toggle */
+@media (max-width: 48rem), (width < 48rem) {
+    .vidply-sign-language-settings-item[data-setting="keyboard-drag"] {
+        display: none !important;
+    }
+}
+
 .vidply-sign-language-header h3 {
     color: var(--vidply-white);
     font-size: var(--vidply-font-lg);
