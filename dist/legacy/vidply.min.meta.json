@@ -181,7 +181,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.js": {
-      "bytes": 7809,
+      "bytes": 8719,
       "imports": [],
       "format": "esm"
     },
@@ -255,7 +255,7 @@
       "format": "esm"
     },
     "src/core/SignLanguageManager.js": {
-      "bytes": 40472,
+      "bytes": 40888,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -624,13 +624,13 @@
           "bytesInOutput": 7462
         },
         "src/controls/KeyboardManager.js": {
-          "bytesInOutput": 4025
+          "bytesInOutput": 4404
         },
         "src/core/AudioDescriptionManager.js": {
           "bytesInOutput": 9690
         },
         "src/core/SignLanguageManager.js": {
-          "bytesInOutput": 19951
+          "bytesInOutput": 20126
         },
         "src/features/PlaylistManager.js": {
           "bytesInOutput": 25066
@@ -639,7 +639,7 @@
           "bytesInOutput": 1877
         }
       },
-      "bytes": 362720
+      "bytes": 363274
     }
   }
 }

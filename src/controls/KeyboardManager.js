@@ -46,6 +46,25 @@ export class KeyboardManager {
         if (playlistButton) {
           return; // Let the playlist handle keyboard events
         }
+
+      // Don't steal arrow keys when the sign-language overlay is in keyboard drag/resize mode.
+      // DraggableResizable listens on the overlay itself, but we run in CAPTURE phase, so we must opt out here.
+      const signWrapper = activeElement.closest('.vidply-sign-language-wrapper');
+      if (signWrapper) {
+        const draggable = this.player.signLanguageManager?.draggable;
+        if (draggable?.keyboardDragMode || draggable?.keyboardResizeMode) {
+          return;
+        }
+      }
+
+      // Same idea for the transcript floating window (it also uses DraggableResizable).
+      const transcriptWindow = activeElement.closest('.vidply-transcript-window');
+      if (transcriptWindow) {
+        const draggable = this.player.transcriptManager?.draggableResizable;
+        if (draggable?.keyboardDragMode || draggable?.keyboardResizeMode) {
+          return;
+        }
+      }
     }
 
     const key = e.key;

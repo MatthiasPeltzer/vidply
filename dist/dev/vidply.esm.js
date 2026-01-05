@@ -3235,6 +3235,20 @@ var KeyboardManager = class {
       if (playlistButton) {
         return;
       }
+      const signWrapper = activeElement.closest(".vidply-sign-language-wrapper");
+      if (signWrapper) {
+        const draggable = this.player.signLanguageManager?.draggable;
+        if (draggable?.keyboardDragMode || draggable?.keyboardResizeMode) {
+          return;
+        }
+      }
+      const transcriptWindow = activeElement.closest(".vidply-transcript-window");
+      if (transcriptWindow) {
+        const draggable = this.player.transcriptManager?.draggableResizable;
+        if (draggable?.keyboardDragMode || draggable?.keyboardResizeMode) {
+          return;
+        }
+      }
     }
     const key = e.key;
     let handled = false;
@@ -4559,7 +4573,12 @@ var SignLanguageManager = class {
       hasTextClass: true,
       onClick: () => {
         this.toggleKeyboardDragMode();
-        this.hideSettingsMenu();
+        this.hideSettingsMenu({ focusButton: false });
+        if (this.draggable?.keyboardDragMode) {
+          setTimeout(() => {
+            this.wrapper?.focus?.({ preventScroll: true });
+          }, 20);
+        }
       }
     });
     dragOption.setAttribute("data-setting", "keyboard-drag");
