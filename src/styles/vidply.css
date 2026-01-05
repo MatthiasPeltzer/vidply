@@ -3695,6 +3695,12 @@
     user-select: none;
 }
 
+/* iOS/Android: `touch-action` does NOT inherit.
+   Ensure touching any child inside the header still counts as a drag gesture area. */
+.vidply-sign-language-header * {
+    touch-action: none;
+}
+
 .vidply-sign-language-header:focus,
 .vidply-sign-language-header:focus-visible {
     box-shadow: 0 0 0 0.25rem rgb(91 144 255 / 35%);
@@ -3913,6 +3919,7 @@
 .vidply-sign-resize-handle {
     position: absolute;
     z-index: 10;
+    touch-action: none;
 }
 
 .vidply-sign-resize-ne,
