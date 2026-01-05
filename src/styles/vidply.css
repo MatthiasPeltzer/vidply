@@ -1140,6 +1140,11 @@
 }
 
 /* Menu positioned below button */
+.vidply-menu.vidply-menu-below {
+    bottom: auto;
+    top: calc(100% + 0.5rem);
+}
+
 .vidply-menu.vidply-menu-below::after {
     border-bottom: 0.375rem solid var(--vidply-bg-menu);
     border-top: none;

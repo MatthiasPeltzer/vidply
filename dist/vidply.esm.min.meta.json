@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 147152,
+      "bytes": 147374,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -609,7 +609,7 @@
           "bytesInOutput": 1009
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 63355
+          "bytesInOutput": 63377
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 7279
@@ -633,7 +633,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 211737
+      "bytes": 211759
     },
     "dist/prod/vidply.de-WCUZUF3T.min.js": {
       "imports": [],

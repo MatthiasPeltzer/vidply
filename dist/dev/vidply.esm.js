@@ -271,6 +271,7 @@ var ControlBar = class {
         }
         if (menuRect.top < 10) {
           menu.style.top = "10px";
+          menu.style.bottom = "auto";
         }
         if (menuRect.bottom > viewportHeight - 10) {
           menu.style.bottom = "10px";
