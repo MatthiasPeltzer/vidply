@@ -29,6 +29,8 @@ Build both JavaScript and CSS:
 npm run build
 ```
 
+`npm run build` now **cleans `dist/` first** to avoid stale files (e.g. old chunk names) when rebuilding.
+
 This creates:
 - `dist/dev/vidply.esm.js` - ES Module (development)
 - `dist/prod/vidply.esm.min.js` - ES Module (production, minified)

@@ -11,8 +11,8 @@
   ],
   "scripts": {
     "dev": "npx serve . -p 3000",
-    "start": "npm run build:js && npm run build:css && npm run dev",
-    "build": "npm run build:js && npm run build:css",
+    "start": "npm run clean && npm run build:js && npm run build:css && npm run dev",
+    "build": "npm run clean && npm run build:js && npm run build:css",
     "build:js": "node build/build.js",
     "build:css": "node build/build-css.js",
     "watch": "node build/watch.js",
