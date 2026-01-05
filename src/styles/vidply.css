@@ -3666,6 +3666,8 @@
     min-height: 6.25rem;
     overflow: visible; /* Allow menu to overflow */
     position: absolute;
+    /* Mobile/touch: make the entire overlay a reliable drag surface (touch-action doesn't inherit) */
+    touch-action: none;
     transition: opacity 0.3s ease;
     width: 17.5rem;
     z-index: 3;

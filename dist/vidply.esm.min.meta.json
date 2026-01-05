@@ -249,7 +249,7 @@
       "format": "esm"
     },
     "src/core/SignLanguageManager.js": {
-      "bytes": 39788,
+      "bytes": 39978,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -621,7 +621,7 @@
           "bytesInOutput": 9641
         },
         "src/core/SignLanguageManager.js": {
-          "bytesInOutput": 19117
+          "bytesInOutput": 19118
         },
         "src/core/Player.js": {
           "bytesInOutput": 80604
@@ -633,7 +633,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 212396
+      "bytes": 212397
     },
     "dist/prod/vidply.de-WCUZUF3T.min.js": {
       "imports": [],
