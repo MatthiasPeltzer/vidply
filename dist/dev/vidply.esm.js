@@ -5339,7 +5339,7 @@ var Player = class _Player extends EventEmitter {
       const wAttr = parseInt(this.element.getAttribute("width") || "", 10);
       const hAttr = parseInt(this.element.getAttribute("height") || "", 10);
       if (Number.isFinite(wAttr) && Number.isFinite(hAttr) && wAttr > 0 && hAttr > 0) {
-        if (!this.container.style.aspectRatio) {
+        if (!this.container.classList.contains("vidply-has-playlist") && !this.container.style.aspectRatio) {
           this.container.style.aspectRatio = `${wAttr} / ${hAttr}`;
         }
         if (this.videoWrapper && !this.videoWrapper.style.aspectRatio) {
@@ -5399,7 +5399,7 @@ var Player = class _Player extends EventEmitter {
         if (!w || !h) return;
         this.videoWrapper.style.aspectRatio = `${w} / ${h}`;
         this.videoWrapper.style.height = "auto";
-        if (this.container && !this.container.style.aspectRatio) {
+        if (this.container && !this.container.classList.contains("vidply-has-playlist") && !this.container.style.aspectRatio) {
           this.container.style.aspectRatio = `${w} / ${h}`;
         }
       };
@@ -8857,6 +8857,9 @@ var PlaylistManager = class {
     this.currentIndex = -1;
     if (this.container) {
       this.container.classList.add("vidply-has-playlist");
+      if (!this.player?.options?.height) {
+        this.container.style.aspectRatio = "";
+      }
     }
     if (this.playlistPanel) {
       this.renderPlaylist();

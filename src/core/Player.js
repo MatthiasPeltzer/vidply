@@ -647,7 +647,9 @@ export class Player extends EventEmitter {
             const hAttr = parseInt(this.element.getAttribute('height') || '', 10);
             if (Number.isFinite(wAttr) && Number.isFinite(hAttr) && wAttr > 0 && hAttr > 0) {
                 // Only set if not already defined by CSS/inline style
-                if (!this.container.style.aspectRatio) {
+                // In playlist mode, the container must be allowed to grow (playlist panel is appended inside it).
+                // Keep aspect ratio on the video wrapper instead.
+                if (!this.container.classList.contains('vidply-has-playlist') && !this.container.style.aspectRatio) {
                     this.container.style.aspectRatio = `${wAttr} / ${hAttr}`;
                 }
 
@@ -740,7 +742,9 @@ export class Player extends EventEmitter {
                 this.videoWrapper.style.height = 'auto';
 
                 // Also apply to container if not explicitly set
-                if (this.container && !this.container.style.aspectRatio) {
+                // In playlist mode, the container must be allowed to grow (playlist panel is appended inside it).
+                // Keep aspect ratio on the video wrapper instead.
+                if (this.container && !this.container.classList.contains('vidply-has-playlist') && !this.container.style.aspectRatio) {
                     this.container.style.aspectRatio = `${w} / ${h}`;
                 }
             };

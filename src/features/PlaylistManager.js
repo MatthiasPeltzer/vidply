@@ -420,6 +420,18 @@ export class PlaylistManager {
     // Add playlist class to container
     if (this.container) {
       this.container.classList.add('vidply-has-playlist');
+
+      // IMPORTANT:
+      // The Player may set an inline `aspect-ratio` on the container (based on poster or width/height attrs)
+      // to create a stable video box before metadata is loaded. That works for single media, but in playlist
+      // mode we append UI (track info + playlist panel) *inside* the container. If the container keeps an
+      // aspect-ratio, its height is constrained and the playlist UI can overflow and visually overlap the
+      // content below the player (especially noticeable on iOS Safari).
+      //
+      // So: when a playlist is active, remove the container aspect-ratio unless the user explicitly set a height.
+      if (!this.player?.options?.height) {
+        this.container.style.aspectRatio = '';
+      }
     }
     
     // Update UI
