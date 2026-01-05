@@ -2355,18 +2355,20 @@
     /* Fullscreen mode overrides with its own transform, so this is safe */
     .vidply-playlist-panel {
         transform: none;
-        /* Ensure proper containment */
-        contain: layout style;
         /* Ensure it's properly positioned in flex layout */
         flex-shrink: 0;
+        /* Don't use contain on playlist panel as it prevents proper layout calculation */
     }
     
     /* Ensure player container properly contains playlist on iOS */
     .vidply-player.vidply-has-playlist {
-        /* Ensure container expands to contain all children */
-        min-height: 0;
+        /* Remove contain: layout to allow container to expand with playlist */
+        /* Keep style containment for performance, but allow layout to flow */
+        contain: style;
         /* Use isolation to create proper stacking context */
         isolation: isolate;
+        /* Ensure container expands to contain all children */
+        min-height: 0;
     }
     
     /* Ensure playlist panel doesn't overflow container on iOS */
