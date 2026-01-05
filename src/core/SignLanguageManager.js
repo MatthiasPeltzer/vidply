@@ -766,7 +766,14 @@ export class SignLanguageManager {
             hasTextClass: true,
             onClick: () => {
                 this.toggleKeyboardDragMode();
-                this.hideSettingsMenu();
+                // Keep focus off the settings button so arrow keys go to the draggable overlay.
+                this.hideSettingsMenu({ focusButton: false });
+                // If we just enabled keyboard drag mode, focus the overlay.
+                if (this.draggable?.keyboardDragMode) {
+                    setTimeout(() => {
+                        this.wrapper?.focus?.({ preventScroll: true });
+                    }, 20);
+                }
             }
         });
         // Allow CSS to hide this option on touch/mobile where dragging is always enabled

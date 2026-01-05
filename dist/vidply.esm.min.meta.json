@@ -181,7 +181,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.js": {
-      "bytes": 7809,
+      "bytes": 8719,
       "imports": [],
       "format": "esm"
     },
@@ -249,7 +249,7 @@
       "format": "esm"
     },
     "src/core/SignLanguageManager.js": {
-      "bytes": 40472,
+      "bytes": 40888,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -615,13 +615,13 @@
           "bytesInOutput": 7279
         },
         "src/controls/KeyboardManager.js": {
-          "bytesInOutput": 3991
+          "bytesInOutput": 4294
         },
         "src/core/AudioDescriptionManager.js": {
           "bytesInOutput": 9641
         },
         "src/core/SignLanguageManager.js": {
-          "bytesInOutput": 19218
+          "bytesInOutput": 19331
         },
         "src/core/Player.js": {
           "bytesInOutput": 80604
@@ -633,7 +633,7 @@
           "bytesInOutput": 1869
         }
       },
-      "bytes": 212497
+      "bytes": 212913
     },
     "dist/prod/vidply.de-WCUZUF3T.min.js": {
       "imports": [],

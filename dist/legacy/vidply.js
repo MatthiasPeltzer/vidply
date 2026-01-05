@@ -8887,6 +8887,7 @@
       }
     }
     handleKeydown(e) {
+      var _a, _b;
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
         return;
       }
@@ -8899,6 +8900,20 @@
         const playlistButton = activeElement.closest(".vidply-playlist-item-button");
         if (playlistButton) {
           return;
+        }
+        const signWrapper = activeElement.closest(".vidply-sign-language-wrapper");
+        if (signWrapper) {
+          const draggable = (_a = this.player.signLanguageManager) == null ? void 0 : _a.draggable;
+          if ((draggable == null ? void 0 : draggable.keyboardDragMode) || (draggable == null ? void 0 : draggable.keyboardResizeMode)) {
+            return;
+          }
+        }
+        const transcriptWindow = activeElement.closest(".vidply-transcript-window");
+        if (transcriptWindow) {
+          const draggable = (_b = this.player.transcriptManager) == null ? void 0 : _b.draggableResizable;
+          if ((draggable == null ? void 0 : draggable.keyboardDragMode) || (draggable == null ? void 0 : draggable.keyboardResizeMode)) {
+            return;
+          }
         }
       }
       const key = e.key;
@@ -10241,8 +10256,15 @@
         label: "player.enableSignDragMode",
         hasTextClass: true,
         onClick: () => {
+          var _a2;
           this.toggleKeyboardDragMode();
-          this.hideSettingsMenu();
+          this.hideSettingsMenu({ focusButton: false });
+          if ((_a2 = this.draggable) == null ? void 0 : _a2.keyboardDragMode) {
+            setTimeout(() => {
+              var _a3, _b2;
+              (_b2 = (_a3 = this.wrapper) == null ? void 0 : _a3.focus) == null ? void 0 : _b2.call(_a3, { preventScroll: true });
+            }, 20);
+          }
         }
       });
       dragOption.setAttribute("data-setting", "keyboard-drag");
