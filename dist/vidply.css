@@ -2365,7 +2365,10 @@
         flex-shrink: 0;
         /* Remove z-index in normal mode to prevent overlaying content below */
         z-index: auto;
-        /* Don't use contain on playlist panel as it prevents proper layout calculation */
+        /* Ensure it participates in normal document flow */
+        position: relative;
+        /* Explicitly set display to ensure it's in flow */
+        display: block;
     }
     
     /* Ensure player container properly contains playlist on iOS */
@@ -2374,9 +2377,21 @@
         /* Keep style containment for performance, but allow layout to flow */
         contain: style;
         /* Don't use isolation as it creates stacking context that causes overlay issues */
-        /* isolation: isolate; */
+        /* Override mobile isolation rule for playlists */
+        isolation: auto;
         /* Ensure container expands to contain all children */
         min-height: 0;
+        /* Ensure height is calculated based on content - override any fixed heights */
+        height: auto !important;
+        /* Ensure overflow doesn't clip the playlist */
+        overflow: visible;
+    }
+    
+    /* Override mobile isolation for playlists on iOS */
+    @media (width < 48rem) {
+        .vidply-player.vidply-has-playlist {
+            isolation: auto;
+        }
     }
     
     /* Ensure playlist panel doesn't overflow container on iOS */
@@ -2384,6 +2399,10 @@
         /* Prevent overflow that causes content below to be overlapped */
         max-width: 100%;
         width: 100%;
+        /* Ensure it's part of the flex layout flow */
+        flex-basis: auto;
+        /* Explicitly ensure it's in normal flow */
+        float: none;
     }
 }
 
