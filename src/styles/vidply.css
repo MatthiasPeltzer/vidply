@@ -2357,6 +2357,8 @@
         transform: none;
         /* Ensure it's properly positioned in flex layout */
         flex-shrink: 0;
+        /* Remove z-index in normal mode to prevent overlaying content below */
+        z-index: auto;
         /* Don't use contain on playlist panel as it prevents proper layout calculation */
     }
     
@@ -2365,8 +2367,8 @@
         /* Remove contain: layout to allow container to expand with playlist */
         /* Keep style containment for performance, but allow layout to flow */
         contain: style;
-        /* Use isolation to create proper stacking context */
-        isolation: isolate;
+        /* Don't use isolation as it creates stacking context that causes overlay issues */
+        /* isolation: isolate; */
         /* Ensure container expands to contain all children */
         min-height: 0;
     }
