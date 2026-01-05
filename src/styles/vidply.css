@@ -2339,7 +2339,6 @@
     background: var(--vidply-bg-playlist);
     border-top: 0.0625rem solid var(--vidply-border-light);
     max-height: 25rem;
-    transform: translate3d(0, 0, 0);
     order: 3; /* After track info */
     -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
     overflow-y: auto;
@@ -2347,6 +2346,35 @@
     touch-action: pan-y;
     transition: opacity 0.3s ease, transform 0.3s ease;
     z-index: var(--vidply-z-base); /* Below menus but part of player stacking context */
+}
+
+/* iOS Safari fix: Ensure playlist panel doesn't cause overflow issues */
+@supports (-webkit-touch-callout: none) {
+    /* Remove transform in normal mode that creates stacking context issues on iOS */
+    /* The transform was only for hardware acceleration, but causes layout issues */
+    /* Fullscreen mode overrides with its own transform, so this is safe */
+    .vidply-playlist-panel {
+        transform: none;
+        /* Ensure proper containment */
+        contain: layout style;
+        /* Ensure it's properly positioned in flex layout */
+        flex-shrink: 0;
+    }
+    
+    /* Ensure player container properly contains playlist on iOS */
+    .vidply-player.vidply-has-playlist {
+        /* Ensure container expands to contain all children */
+        min-height: 0;
+        /* Use isolation to create proper stacking context */
+        isolation: isolate;
+    }
+    
+    /* Ensure playlist panel doesn't overflow container on iOS */
+    .vidply-player.vidply-has-playlist .vidply-playlist-panel {
+        /* Prevent overflow that causes content below to be overlapped */
+        max-width: 100%;
+        width: 100%;
+    }
 }
 
 /* Fullscreen Playlist Panel - YouTube-style overlay above controls */
