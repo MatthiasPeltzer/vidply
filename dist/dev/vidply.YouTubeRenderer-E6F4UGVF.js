@@ -64,7 +64,6 @@ var YouTubeRenderer = class {
     this.iframe = document.createElement("div");
     this.iframe.id = `youtube-player-${Math.random().toString(36).substr(2, 9)}`;
     this.iframe.style.width = "100%";
-    this.iframe.style.aspectRatio = "16 / 9";
     this.iframe.style.maxHeight = "100%";
     this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
   }
@@ -232,4 +231,4 @@ var YouTubeRenderer = class {
 export {
   YouTubeRenderer
 };
-//# sourceMappingURL=vidply.YouTubeRenderer-EVXXE34A.js.map
+//# sourceMappingURL=vidply.YouTubeRenderer-E6F4UGVF.js.map

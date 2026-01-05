@@ -149,13 +149,13 @@
 
     /* Z-Index Layering System */
     --vidply-z-base: 1; /* Video, base elements */
-    --vidply-z-overlay: 2; /* Play overlay, video wrapper on mobile */
-    --vidply-z-transcript: 5; /* Transcript window */
-    --vidply-z-playlist: 15; /* Playlist panel in fullscreen */
-    --vidply-z-menu: 20; /* Menus in normal mode */
     --vidply-z-controls: 30; /* Control bar */
-    --vidply-z-menu-high: 100; /* Volume menu */
+    --vidply-z-menu: 20; /* Menus in normal mode */
     --vidply-z-menu-fullscreen: 1000; /* Menus in fullscreen mode */
+    --vidply-z-menu-high: 100; /* Volume menu */
+    --vidply-z-overlay: 2; /* Play overlay, video wrapper on mobile */
+    --vidply-z-playlist: 15; /* Playlist panel in fullscreen */
+    --vidply-z-transcript: 5; /* Transcript window */
 }
 
 /* Utility Classes */
@@ -426,7 +426,7 @@
 }
 
 /* Mobile: Ensure player contains all elements properly */
-@media (max-width: 48rem), (width < 48rem) {
+@media (width <= 48rem), (width < 48rem) {
     .vidply-player {
         isolation: isolate; /* Create stacking context */
         overflow: visible; /* Allow menus to overflow but within bounds */
@@ -442,7 +442,6 @@
 /* Responsive container */
 
 .vidply-player.vidply-audio {
-    aspect-ratio: auto;
     background: linear-gradient(135deg, var(--vidply-primary-20) 0%, rgb(var(--vidply-primary-dark-rgb), 0.2) 100%);
     height: auto;
 }
@@ -461,11 +460,14 @@
 }
 
 /* Mobile: Video element order and sizing */
-@media (max-width: 48rem), (width < 48rem) {
+@media (width <= 48rem), (width < 48rem) {
     .vidply-player video,
     .vidply-player audio {
         flex: 0 0 auto; /* Don't grow or shrink */
-        height: auto;
+
+    /* Player sets inline `height: 100%` on the media element.
+       On mobile we need `auto` to prevent wrapper height collapse / overlap. */
+    height: auto !important;
         order: 1; /* Before controls */
     }
     
@@ -502,28 +504,12 @@
 
 /* Ensure the video wrapper establishes an intrinsic height in ALL non-fullscreen modes.
    Controls are appended inside `.vidply-video-wrapper` and are positioned `absolute` by default.
-   If the wrapper has no intrinsic height (e.g. when container aspect-ratio is cleared for playlists),
+   If the wrapper has no intrinsic height,
    the wrapper can collapse and the controls will overlap the content that follows (like `.vidply-track-info`).
 
    We keep fullscreen behavior untouched (fullscreen rules already size the wrapper explicitly). */
-.vidply-player.vidply-video:not(.vidply-fullscreen):not(:fullscreen) .vidply-video-wrapper {
-    aspect-ratio: 16 / 9;
+.vidply-player.vidply-video:not(.vidply-fullscreen, :fullscreen) .vidply-video-wrapper {
     height: auto;
-}
-
-/* Playlist mode (mobile): controls can cover the track info because the control bar is tall and can overlap.
-   Reserve space *below* the wrapper so the controls never cover `.vidply-track-info` that follows. */
-@media (max-width: 48rem), (width < 48rem) {
-    .vidply-player.vidply-video.vidply-has-playlist:not(.vidply-fullscreen):not(:fullscreen) .vidply-video-wrapper {
-        margin-bottom: 5rem; /* matches typical control bar height */
-    }
-}
-
-/* Desktop: no extra spacing needed */
-@media (min-width: 48.0001rem) {
-    .vidply-player.vidply-video.vidply-has-playlist:not(.vidply-fullscreen):not(:fullscreen) .vidply-video-wrapper {
-        margin-bottom: 0;
-    }
 }
 
 /* Allow controls and menus to overflow in fullscreen landscape mode */
@@ -546,17 +532,19 @@
 }
 
 /* Audio content in video player - uses 16:3 aspect ratio for a banner-like appearance */
+
 /* When audio files are played in a video element, we use CSS poster overlay for better control */
 .vidply-player.vidply-video.vidply-audio-content .vidply-video-wrapper {
-    aspect-ratio: 16 / 3 !important;
     height: auto !important;
-    min-height: 0 !important;
+
+    /* We still need a visible box for the poster banner */
+    min-height: 7.5rem !important;
     overflow: hidden;
 }
 
 .vidply-player.vidply-video.vidply-audio-content .vidply-video-wrapper.vidply-forced-poster {
-    background-size: cover;
     background-position: center;
+    background-size: cover;
 }
 
 /* Hide the video element completely when playing audio - let the wrapper show the poster */
@@ -564,40 +552,48 @@
     display: none !important;
 }
 
-/* YouTube and Vimeo iframe containers - ensure 16:9 aspect ratio */
-.vidply-video-wrapper > div[id^="youtube-player-"],
+/* YouTube and Vimeo iframe containers - keep classic 16:9 framing */
+.vidply-video-wrapper > iframe[id^="youtube-player-"],
 .vidply-video-wrapper > div[id^="vimeo-player-"] {
-    width: 100% !important;
     aspect-ratio: 16 / 9;
-    max-height: 100%;
+    height: auto;
+    max-height: none !important; /* override renderer inline maxHeight=100% */
+    position: relative; /* ensure absolutely-positioned iframes size against this box */
+    width: 100% !important;
 }
 
 .vidply-video-wrapper > div[id^="youtube-player-"] iframe,
 .vidply-video-wrapper > div[id^="vimeo-player-"] iframe {
-    width: 100% !important;
-    height: 100% !important;
-}
-
-/* SoundCloud iframe - uses 16:3 aspect ratio for single track audio banner appearance */
-.vidply-video-wrapper > iframe.vidply-soundcloud-iframe {
-    width: 100% !important;
-    aspect-ratio: 16 / 3;
-    max-height: 100%;
-}
-
-/* SoundCloud playlist - uses 16:9 aspect ratio to show track list */
-.vidply-video-wrapper > iframe.vidply-soundcloud-iframe.vidply-soundcloud-playlist {
     aspect-ratio: 16 / 9;
+
+    /* Some providers inject height:100% which can ignore the intended 16:9 sizing.
+       Force the iframe itself to be 16:9 and let height be derived. */
+    display: block;
+    height: auto !important;
+    position: relative;
+    width: 100% !important;
+}
+
+/* SoundCloud iframe - stable height */
+.vidply-video-wrapper > iframe.vidply-soundcloud-iframe {
+    height: clamp(6rem, 18vh, 12rem);
+    width: 100% !important;
+}
+
+/* SoundCloud playlist - taller variant to show track list */
+.vidply-video-wrapper > iframe.vidply-soundcloud-iframe.vidply-soundcloud-playlist {
+    height: clamp(12.5rem, 45vh, 28rem);
 }
 
 /* Hide VidPly controls when external renderer (YouTube, Vimeo, SoundCloud) is active */
+
 /* These services have their own native controls */
 .vidply-player.vidply-external-controls .vidply-controls {
     display: none !important;
 }
 
 /* Mobile: Simplify video wrapper but keep captions contained */
-@media (max-width: 48rem), (width < 48rem) {
+@media (width <= 48rem), (width < 48rem) {
     .vidply-video-wrapper {
         display: block;
         height: auto;
@@ -615,30 +611,31 @@
     /* Ensure video doesn't collapse */
     .vidply-player video {
         display: block;
+        height: auto !important;
         position: relative;
-        width: 100%;
+    width: 100%;
     }
     
     /* Override mobile rules in fullscreen mode - critical for iOS */
     .vidply-player.vidply-fullscreen .vidply-video-wrapper,
     .vidply-player:fullscreen .vidply-video-wrapper {
+        bottom: 0 !important;
         display: flex !important;
         height: 100% !important;
+        left: 0 !important;
         min-height: 0 !important;
         position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
         right: 0 !important;
-        bottom: 0 !important;
+        top: 0 !important;
     }
     
     .vidply-player.vidply-fullscreen video,
     .vidply-player:fullscreen video {
+        height: 100% !important;
+        left: 0 !important;
         position: absolute !important;
         top: 0 !important;
-        left: 0 !important;
         width: 100% !important;
-        height: 100% !important;
     }
 }
 
@@ -654,6 +651,8 @@
 
 /* Centered Play Button Overlay */
 .vidply-play-overlay {
+    border: 0.125rem solid var(--vidply-primary);
+    border-radius: 50%;
     cursor: pointer;
     filter: drop-shadow(0 0.5rem 2rem rgb(0 0 0 / 30%));
     left: 50%;
@@ -662,8 +661,6 @@
     transform: translate(-50%, -50%);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: var(--vidply-z-overlay);
-    border: 0.125rem solid var(--vidply-primary);
-    border-radius: 50%;
 }
 
 .vidply-play-overlay:hover {
@@ -715,7 +712,7 @@
 }
 
 /* Mobile: Controls underneath video (but not in landscape fullscreen) */
-@media (max-width: 48rem), (width < 48rem) {
+@media (width <= 48rem), (width < 48rem) {
     .vidply-controls {
         background: var(--vidply-black-90);
         border-top: 0.0625rem solid var(--vidply-border-light);
@@ -825,22 +822,22 @@
     color: var(--vidply-white);
     display: none;
     font-size: 0.75rem;
+    overflow: hidden;
     padding: 0;
     pointer-events: none;
     position: absolute;
     transform: translateX(-50%);
     white-space: nowrap;
-    overflow: hidden;
 }
 
 .vidply-progress-preview {
-    background-size: cover;
     background-position: center;
+    background-size: cover;
     border-radius: 0.25rem 0.25rem 0 0;
     display: none;
     height: 5rem;
-    width: 8.888888889rem; /* 160px at 18px base */
     min-width: 8.888888889rem;
+    width: 8.888888889rem; /* 160px at 18px base */
 }
 
 .vidply-progress-tooltip-time {
@@ -1110,7 +1107,7 @@
 }
 
 /* Mobile: Don't use backdrop, menus position above buttons */
-@media (max-width: 48rem), (width < 48rem) {
+@media (width <= 48rem), (width < 48rem) {
     .vidply-menu-backdrop {
         display: none !important;
     }
@@ -1272,10 +1269,10 @@
     left: auto !important;
     max-width: calc(100vw - 1.25rem);
     right: 0 !important;
-    z-index: 1000; /* Ensure menu appears above all player elements including playlist */
+    transform: none !important;
 
     /* Ensure menu stays within viewport */
-    transform: none !important;
+    z-index: 1000; /* Ensure menu appears above all player elements including playlist */
 }
 
 /* Overflow menu items with icons */
@@ -1508,7 +1505,7 @@
 }
 
 /* Mobile: Caption positioning handled by JavaScript */
-@media (max-width: 48rem), (width < 48rem) {
+@media (width <= 48rem), (width < 48rem) {
     .vidply-captions {
         /* Bottom position set dynamically by JS based on control height */
         left: 50%;
@@ -1731,15 +1728,15 @@
     background: #000;
     bottom: 0;
     left: 0;
-    position: fixed !important;
-    right: 0;
-    top: 0;
-    z-index: 999999;
-
-    /* Critical iOS fixes */
-    transform: translate3d(0, 0, 0);
     margin: 0 !important;
     padding: 0 !important;
+    position: fixed !important;
+    right: 0;
+
+    /* Critical iOS fixes */
+    top: 0;
+    transform: translate3d(0, 0, 0);
+    z-index: 999999;
 }
 
 /* Fix controls in fullscreen LANDSCAPE mode - overlay them on video */
@@ -1912,44 +1909,44 @@
     
     .vidply-player.vidply-fullscreen,
     .vidply-player:fullscreen {
-        height: 100vh !important;
-        width: 100vw !important;
         display: flex !important;
         flex-direction: column !important;
+        height: 100vh !important;
+        width: 100vw !important;
     }
     
     /* Make video wrapper fill entire screen - positioned absolutely */
     .vidply-player.vidply-fullscreen .vidply-video-wrapper,
     .vidply-player:fullscreen .vidply-video-wrapper {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        z-index: 1 !important;
-        display: flex !important;
         align-items: center !important;
+        bottom: 0 !important;
+        display: flex !important;
+        height: 100% !important;
         justify-content: center !important;
+        left: 0 !important;
+        position: absolute !important;
+        right: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        z-index: 1 !important;
     }
     
     .vidply-player.vidply-fullscreen video,
     .vidply-player:fullscreen video {
+        height: 100% !important;
+        max-height: 100% !important;
+        max-width: 100% !important;
+        object-fit: contain !important;
         position: relative !important;
         width: 100% !important;
-        height: 100% !important;
-        object-fit: contain !important;
-        max-width: 100% !important;
-        max-height: 100% !important;
     }
     
     .vidply-player.vidply-fullscreen .vidply-controls,
     .vidply-player:fullscreen .vidply-controls {
         /* Position controls at the bottom */
-        position: absolute !important;
         bottom: 0 !important;
         left: 0 !important;
+        position: absolute !important;
         right: 0 !important;
         z-index: 30 !important; /* Above playlist */
     }
@@ -1957,12 +1954,12 @@
     /* Force playlist to truly overlay - above video, below controls */
     .vidply-player.vidply-fullscreen .vidply-playlist-panel,
     .vidply-player:fullscreen .vidply-playlist-panel {
-        position: absolute !important; /* Absolute relative to player */
         bottom: 5rem !important; /* Above controls (typical control height is ~5rem) */
         left: 0 !important;
+        margin: 0 !important;
+        position: absolute !important; /* Absolute relative to player */
         right: 0 !important;
         z-index: 15 !important; /* Above video (z-index:1), below controls (z-index:30) */
-        margin: 0 !important;
     }
 }
 
@@ -2048,7 +2045,7 @@
 }
 
 /* Responsive Breakpoints */
-@media (max-width: 48rem), (width < 48rem) {
+@media (width <= 48rem), (width < 48rem) {
     .vidply-controls {
         padding: 1rem 0.75rem 0.75rem;
     }
@@ -2170,7 +2167,7 @@
 }
 
 /* Landscape mobile optimization */
-@media (max-width: 56rem) and (orientation: landscape), (width <= 56rem) and (orientation: landscape) {
+@media (width <= 56rem) and (orientation: landscape), (width <= 56rem) and (orientation: landscape) {
     .vidply-menu {
         max-height: 50vh;
     }
@@ -2188,11 +2185,11 @@
     .vidply-player:fullscreen .vidply-playlist-panel {
         bottom: 4.375rem; /* Directly above controls */
         max-height: 30vh; /* Less height in landscape */
-        padding: 0.625rem 0;
-        overflow-y: hidden;
-        overflow-x: auto;
-        touch-action: pan-x; /* Allow horizontal scrolling on touch devices */
         -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0.625rem 0;
+        touch-action: pan-x; /* Allow horizontal scrolling on touch devices */
     }
     
     /* Landscape playlist list - horizontal row */
@@ -2207,10 +2204,10 @@
     /* Landscape items - smaller vertical cards */
     .vidply-player.vidply-fullscreen .vidply-playlist-item,
     .vidply-player:fullscreen .vidply-playlist-item {
-        width: 11.25rem;
-        min-width: 11.25rem;
-        max-width: 11.25rem;
         flex-shrink: 0;
+        max-width: 11.25rem;
+        min-width: 11.25rem;
+        width: 11.25rem;
     }
     
     .vidply-player.vidply-fullscreen .vidply-playlist-item-button,
@@ -2222,9 +2219,9 @@
     
     .vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
     .vidply-player:fullscreen .vidply-playlist-thumbnail {
+        border-radius: 0.5rem 0.5rem 0 0;
         height: 6.25rem;
         width: 100%;
-        border-radius: 0.5rem 0.5rem 0 0;
     }
     
     .vidply-player.vidply-fullscreen .vidply-playlist-item-info,
@@ -2234,14 +2231,14 @@
     
     .vidply-player.vidply-fullscreen .vidply-playlist-header,
     .vidply-player:fullscreen .vidply-playlist-header {
-        padding: 0 0.625rem 0.5rem;
-        font-size: 0.6875rem;
         flex-shrink: 0;
+        font-size: 0.6875rem;
+        padding: 0 0.625rem 0.5rem;
     }
 }
 
 /* Extra small screens */
-@media (max-width: 30rem), (width <= 30rem) {
+@media (width <= 30rem), (width <= 30rem) {
     .vidply-speed-text {
         display: none;
     }
@@ -2287,12 +2284,12 @@
 
 /* Track Artwork - Displays album art/poster above audio player */
 .vidply-track-artwork {
-    aspect-ratio: 16 / 3;
     background-color: var(--vidply-black);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
     border-bottom: 0.0625rem solid var(--vidply-border-light);
+    height: clamp(7.5rem, 22vh, 12rem);
     order: 1; /* Before video-wrapper */
     overflow: hidden;
     position: relative;
@@ -2355,15 +2352,15 @@
 }
 
 .vidply-track-description {
+    -webkit-box-orient: vertical;
     color: var(--vidply-white-60);
+    display: -webkit-box;
     font-size: 0.8125rem;
+    -webkit-line-clamp: 2;
     line-height: 1.4;
     margin-top: 0.5rem;
     max-height: 3.5em;
     overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
 }
 
 /* Playlist Panel */
@@ -2383,16 +2380,22 @@
 /* iOS Safari fix: Ensure playlist panel doesn't cause overflow issues */
 @supports (-webkit-touch-callout: none) {
     /* Remove transform in normal mode that creates stacking context issues on iOS */
+
     /* The transform was only for hardware acceleration, but causes layout issues */
+
     /* Fullscreen mode overrides with its own transform, so this is safe */
     .vidply-playlist-panel {
         transform: none;
+
         /* Ensure it's properly positioned in flex layout */
         flex-shrink: 0;
+
         /* Remove z-index in normal mode to prevent overlaying content below */
         z-index: auto;
+
         /* Ensure it participates in normal document flow */
         position: relative;
+
         /* Explicitly set display to ensure it's in flow */
         display: block;
     }
@@ -2400,21 +2403,27 @@
     /* Ensure player container properly contains playlist on iOS */
     .vidply-player.vidply-has-playlist {
         /* Remove contain: layout to allow container to expand with playlist */
+
         /* Keep style containment for performance, but allow layout to flow */
         contain: style;
+
         /* Don't use isolation as it creates stacking context that causes overlay issues */
+
         /* Override mobile isolation rule for playlists */
         isolation: auto;
+
         /* Ensure container expands to contain all children */
         min-height: 0;
+
         /* Ensure height is calculated based on content - override any fixed heights */
         height: auto !important;
+
         /* Ensure overflow doesn't clip the playlist */
         overflow: visible;
     }
     
     /* Override mobile isolation for playlists on iOS */
-    @media (max-width: 48rem), (width < 48rem) {
+    @media (width <= 48rem), (width < 48rem) {
         .vidply-player.vidply-has-playlist {
             isolation: auto;
         }
@@ -2425,8 +2434,10 @@
         /* Prevent overflow that causes content below to be overlapped */
         max-width: 100%;
         width: 100%;
+
         /* Ensure it's part of the flex layout flow */
         flex-basis: auto;
+
         /* Explicitly ensure it's in normal flow */
         float: none;
     }
@@ -2435,8 +2446,8 @@
 /* Fullscreen Playlist Panel - YouTube-style overlay above controls */
 .vidply-player.vidply-fullscreen .vidply-playlist-panel,
 .vidply-player:fullscreen .vidply-playlist-panel {
-    background: linear-gradient(to top, rgb(0 0 0 / 95%) 0%, rgb(0 0 0 / 90%) 100%);
     backdrop-filter: blur(0.625rem);
+    background: linear-gradient(to top, rgb(0 0 0 / 95%) 0%, rgb(0 0 0 / 90%) 100%);
     border: none;
     border-top: 0.0625rem solid var(--vidply-border);
     bottom: 5rem; /* Directly above controls */
@@ -2478,11 +2489,11 @@
     display: flex;
     flex-direction: row;
     gap: 0.75rem;
-    padding: 0.5rem 1rem;
+    -webkit-overflow-scrolling: touch;
     overflow-x: auto;
     overflow-y: hidden;
+    padding: 0.5rem 1rem;
     scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
 }
 
 /* Fullscreen playlist header - more subtle */
@@ -2498,28 +2509,28 @@
 .vidply-player.vidply-fullscreen .vidply-playlist-item,
 .vidply-player:fullscreen .vidply-playlist-item {
     flex: 0 0 auto;
-    min-width: 17.5rem;
     max-width: 20rem;
+    min-width: 17.5rem;
     scroll-snap-align: start;
 }
 
 .vidply-player.vidply-fullscreen .vidply-playlist-item-button,
 .vidply-player:fullscreen .vidply-playlist-item-button {
-    flex-direction: column;
     align-items: stretch;
-    gap: 0.5rem;
-    padding: 0;
     background: var(--vidply-black-40);
     border-radius: 0.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
     overflow: hidden;
+    padding: 0;
     transition: all 0.2s ease;
 }
 
 .vidply-player.vidply-fullscreen .vidply-playlist-item-button:hover,
 .vidply-player:fullscreen .vidply-playlist-item-button:hover {
     background: var(--vidply-white-10);
-    transform: translateY(-0.25rem);
     box-shadow: 0 0.5rem 1.5rem var(--vidply-black-60);
+    transform: translateY(-0.25rem);
 }
 
 /* Fullscreen thumbnail container - takes full width of card */
@@ -2531,9 +2542,9 @@
 
 .vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
 .vidply-player:fullscreen .vidply-playlist-thumbnail {
-    width: 100%;
-    height: 10rem;
     border-radius: 0;
+    height: 10rem;
+    width: 100%;
 }
 
 /* Larger duration badge in fullscreen for better visibility */
@@ -2558,15 +2569,15 @@
 
 .vidply-player.vidply-fullscreen .vidply-playlist-item-title,
 .vidply-player:fullscreen .vidply-playlist-item-title {
+    -webkit-box-orient: vertical;
+    display: -webkit-box;
     font-size: 0.875rem;
     font-weight: 600;
+    -webkit-line-clamp: 2;
     margin-bottom: 0.25rem;
-    white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    white-space: normal;
 }
 
 .vidply-player.vidply-fullscreen .vidply-playlist-item-artist,
@@ -2634,8 +2645,8 @@
 /* Active item styling in fullscreen */
 .vidply-player.vidply-fullscreen .vidply-playlist-item-active .vidply-playlist-item-button,
 .vidply-player:fullscreen .vidply-playlist-item-active .vidply-playlist-item-button {
-    border: 0.125rem solid var(--vidply-primary-light);
     background: var(--vidply-primary-15);
+    border: 0.125rem solid var(--vidply-primary-light);
 }
 
 .vidply-player.vidply-fullscreen .vidply-playlist-item-active .vidply-playlist-item-title,
@@ -3698,6 +3709,7 @@
     min-height: 6.25rem;
     overflow: visible; /* Allow menu to overflow */
     position: absolute;
+
     /* Mobile/touch: make the entire overlay a reliable drag surface (touch-action doesn't inherit) */
     touch-action: none;
     transition: opacity 0.3s ease;
@@ -3893,7 +3905,7 @@
 }
 
 /* Mobile: drag is always available via touch, so hide the keyboard drag mode toggle */
-@media (max-width: 48rem), (width < 48rem) {
+@media (width <= 48rem), (width < 48rem) {
     .vidply-sign-language-settings-item[data-setting="keyboard-drag"] {
         display: none !important;
     }
@@ -3959,8 +3971,8 @@
 /* Sign Language Resize Handles */
 .vidply-sign-resize-handle {
     position: absolute;
-    z-index: 10;
     touch-action: none;
+    z-index: 10;
 }
 
 .vidply-sign-resize-ne,
@@ -4118,7 +4130,7 @@
 }
 
 /* Responsive Sign Language Video */
-@media (max-width: 48rem), (width < 48rem) {
+@media (width <= 48rem), (width < 48rem) {
     .vidply-sign-language-wrapper {
         min-width: 7.5rem;
         width: 35%;
@@ -4131,7 +4143,7 @@
 }
 
 /* Responsive Adjustments */
-@media (max-width: 48rem), (width < 48rem) {
+@media (width <= 48rem), (width < 48rem) {
     .vidply-playlist-thumbnail {
         height: 2.125rem;
         width: 3.75rem;
@@ -4143,7 +4155,7 @@
     }
 
     .vidply-track-artwork {
-        aspect-ratio: 16 / 3;
+        height: clamp(6.5rem, 20vh, 10rem);
     }
     
     .vidply-track-info {
@@ -4159,12 +4171,12 @@
     .vidply-player:fullscreen .vidply-playlist-panel {
         bottom: 6.25rem; /* Directly above controls with extra space */
         max-height: 35vh; /* Compact height */
-        padding: 0.75rem 0; /* Vertical padding only */
-        overflow-y: hidden; /* No vertical scrolling */
+        -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
         overflow-x: auto; /* Horizontal scrolling */
+        overflow-y: hidden; /* No vertical scrolling */
+        padding: 0.75rem 0; /* Vertical padding only */
         position: absolute !important; /* Force absolute over video */
         touch-action: pan-x; /* Allow horizontal scrolling on touch devices */
-        -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
     }
     
     /* Mobile playlist list - horizontal row, no wrapping */
@@ -4173,8 +4185,8 @@
         flex-direction: row; /* Items side by side */
         flex-wrap: nowrap; /* Never wrap */
         gap: 0.5rem;
-        padding: 0 0.75rem;
         -webkit-overflow-scrolling: touch;
+        padding: 0 0.75rem;
         scroll-behavior: smooth;
         touch-action: pan-x; /* Ensure horizontal swipe gestures work */
     }
@@ -4182,11 +4194,11 @@
     /* Mobile playlist items - only show thumbnails */
     .vidply-player.vidply-fullscreen .vidply-playlist-item,
     .vidply-player:fullscreen .vidply-playlist-item {
-        width: 7.5rem; /* Smaller width for thumbnail-only */
-        min-width: 7.5rem;
-        max-width: 7.5rem;
         flex-shrink: 0; /* Don't shrink */
+        max-width: 7.5rem;
+        min-width: 7.5rem;
         scroll-snap-align: start;
+        width: 7.5rem; /* Smaller width for thumbnail-only */
     }
     
     .vidply-player.vidply-fullscreen .vidply-playlist-item-button,
@@ -4198,10 +4210,10 @@
     
     .vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
     .vidply-player:fullscreen .vidply-playlist-thumbnail {
+        border-radius: 0.5rem; /* Fully rounded for thumbnail-only */
+        flex-shrink: 0;
         height: 5.625rem; /* Square-ish thumbnail */
         width: 100%; /* Full width of card */
-        flex-shrink: 0;
-        border-radius: 0.5rem; /* Fully rounded for thumbnail-only */
     }
     
     /* Hide text info on mobile - show only thumbnails */
@@ -4213,13 +4225,13 @@
     /* If no thumbnail, show only text */
     .vidply-player.vidply-fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-info,
     .vidply-player:fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-info {
+        align-items: center;
         display: flex;
         flex-direction: column;
-        padding: 0.5rem;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
         height: 5.625rem;
+        justify-content: center;
+        padding: 0.5rem;
+        text-align: center;
     }
     
     .vidply-player.vidply-fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-title,
@@ -4235,9 +4247,9 @@
     
     .vidply-player.vidply-fullscreen .vidply-playlist-header,
     .vidply-player:fullscreen .vidply-playlist-header {
-        padding: 0 0.75rem 0.5rem;
-        font-size: 0.6875rem;
         flex-shrink: 0;
+        font-size: 0.6875rem;
+        padding: 0 0.75rem 0.5rem;
     }
 
     /* Mobile transcript underneath video and controls */

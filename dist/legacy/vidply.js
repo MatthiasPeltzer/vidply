@@ -4675,7 +4675,6 @@
           this.iframe = document.createElement("div");
           this.iframe.id = "youtube-player-".concat(Math.random().toString(36).substr(2, 9));
           this.iframe.style.width = "100%";
-          this.iframe.style.aspectRatio = "16 / 9";
           this.iframe.style.maxHeight = "100%";
           this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
         }
@@ -4900,7 +4899,6 @@
           this.iframe = document.createElement("div");
           this.iframe.id = "vimeo-player-".concat(Math.random().toString(36).substr(2, 9));
           this.iframe.style.width = "100%";
-          this.iframe.style.aspectRatio = "16 / 9";
           this.iframe.style.maxHeight = "100%";
           this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
         }
@@ -5488,10 +5486,8 @@
           this.iframe.style.width = "100%";
           this.iframe.style.display = "block";
           if (this.isPlaylist()) {
-            this.iframe.style.aspectRatio = "16 / 9";
             this.iframe.classList.add("vidply-soundcloud-iframe", "vidply-soundcloud-playlist");
           } else {
-            this.iframe.style.aspectRatio = "16 / 3";
             this.iframe.classList.add("vidply-soundcloud-iframe");
           }
           this.iframe.style.maxHeight = "100%";
@@ -11047,23 +11043,9 @@
       if (this.options.height) {
         this.container.style.height = typeof this.options.height === "number" ? "".concat(this.options.height, "px") : this.options.height;
       }
-      if (this.element.tagName === "VIDEO" && !this.options.height) {
-        const wAttr = parseInt(this.element.getAttribute("width") || "", 10);
-        const hAttr = parseInt(this.element.getAttribute("height") || "", 10);
-        if (Number.isFinite(wAttr) && Number.isFinite(hAttr) && wAttr > 0 && hAttr > 0) {
-          if (!this.container.classList.contains("vidply-has-playlist") && !this.container.style.aspectRatio) {
-            this.container.style.aspectRatio = "".concat(wAttr, " / ").concat(hAttr);
-          }
-          if (this.videoWrapper && !this.videoWrapper.style.aspectRatio) {
-            this.videoWrapper.style.aspectRatio = "".concat(wAttr, " / ").concat(hAttr);
-            this.videoWrapper.style.height = "auto";
-          }
-        }
-      }
       if (this.options.poster && this.element.tagName === "VIDEO") {
         const resolvedPoster = this.resolvePosterPath(this.options.poster);
         this.element.poster = resolvedPoster;
-        this.applyPosterAspectRatio(resolvedPoster);
       }
       if (this.element.tagName === "VIDEO") {
         this.createPlayButtonOverlay();
@@ -11090,34 +11072,6 @@
           this.hidePosterOverlay();
         }
       }, { once: true });
-    }
-    /**
-     * Apply aspect ratio to the video wrapper based on the poster's intrinsic size.
-     * This helps render correct poster sizing before media metadata is available.
-     */
-    applyPosterAspectRatio(posterUrl) {
-      try {
-        if (!posterUrl) return;
-        if (this.element.tagName !== "VIDEO") return;
-        if (!this.videoWrapper) return;
-        if (this.options.width || this.options.height) return;
-        if (this._posterAspectAppliedFor === posterUrl) return;
-        this._posterAspectAppliedFor = posterUrl;
-        const img = new Image();
-        img.decoding = "async";
-        img.onload = () => {
-          const w = img.naturalWidth;
-          const h = img.naturalHeight;
-          if (!w || !h) return;
-          this.videoWrapper.style.aspectRatio = "".concat(w, " / ").concat(h);
-          this.videoWrapper.style.height = "auto";
-          if (this.container && !this.container.classList.contains("vidply-has-playlist") && !this.container.style.aspectRatio) {
-            this.container.style.aspectRatio = "".concat(w, " / ").concat(h);
-          }
-        };
-        img.src = posterUrl;
-      } catch (e) {
-      }
     }
     createPlayButtonOverlay() {
       this.playButtonOverlay = createPlayOverlay();
@@ -14578,14 +14532,10 @@
      * @param {Array} tracks - Array of track objects
      */
     loadPlaylist(tracks) {
-      var _a, _b;
       this.tracks = tracks;
       this.currentIndex = -1;
       if (this.container) {
         this.container.classList.add("vidply-has-playlist");
-        if (!((_b = (_a = this.player) == null ? void 0 : _a.options) == null ? void 0 : _b.height)) {
-          this.container.style.aspectRatio = "";
-        }
       }
       if (this.playlistPanel) {
         this.renderPlaylist();
@@ -15536,6 +15486,7 @@
       "responsive": "responsive",
       "pipButton": "pipButton",
       "fullscreenButton": "fullscreenButton"
+      // Layout
     };
     Object.keys(attributeMap).forEach((dataKey) => {
       const optionKey = attributeMap[dataKey];
