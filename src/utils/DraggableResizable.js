@@ -65,9 +65,18 @@ export class DraggableResizable {
       touchstart: this.onTouchStart.bind(this),
       touchmove: this.onTouchMove.bind(this),
       touchend: this.onTouchEnd.bind(this),
+      pointerdown: this.onPointerDown.bind(this),
+      pointermove: this.onPointerMove.bind(this),
+      pointerup: this.onPointerUp.bind(this),
+      pointercancel: this.onPointerUp.bind(this),
       keydown: this.onKeyDown.bind(this),
-      resizeHandleMousedown: this.onResizeHandleMouseDown.bind(this)
+      resizeHandleMousedown: this.onResizeHandleMouseDown.bind(this),
+      resizeHandlePointerDown: this.onResizeHandlePointerDown.bind(this)
     };
+
+    // Pointer tracking (Pointer Events unify mouse + touch)
+    this.activePointerId = null;
+    this.activePointerType = null;
 
     this.init();
   }
@@ -114,15 +123,25 @@ export class DraggableResizable {
   init() {
     const dragHandle = this.options.dragHandle || this.element;
     
-    // Drag events
-    dragHandle.addEventListener('mousedown', this.handlers.mousedown);
-    dragHandle.addEventListener('touchstart', this.handlers.touchstart);
-    
-    // Document-level move/up events
-    document.addEventListener('mousemove', this.handlers.mousemove);
-    document.addEventListener('mouseup', this.handlers.mouseup);
-    document.addEventListener('touchmove', this.handlers.touchmove, { passive: false });
-    document.addEventListener('touchend', this.handlers.touchend);
+    // Prefer Pointer Events when available (covers mouse + touch in one codepath)
+    if (typeof window !== 'undefined' && 'PointerEvent' in window) {
+      dragHandle.addEventListener('pointerdown', this.handlers.pointerdown);
+
+      // Document-level move/up events
+      document.addEventListener('pointermove', this.handlers.pointermove, { passive: false });
+      document.addEventListener('pointerup', this.handlers.pointerup);
+      document.addEventListener('pointercancel', this.handlers.pointercancel);
+    } else {
+      // Fallback for very old browsers
+      dragHandle.addEventListener('mousedown', this.handlers.mousedown);
+      dragHandle.addEventListener('touchstart', this.handlers.touchstart, { passive: false });
+
+      // Document-level move/up events
+      document.addEventListener('mousemove', this.handlers.mousemove);
+      document.addEventListener('mouseup', this.handlers.mouseup);
+      document.addEventListener('touchmove', this.handlers.touchmove, { passive: false });
+      document.addEventListener('touchend', this.handlers.touchend);
+    }
     
     // Keyboard events
     this.element.addEventListener('keydown', this.handlers.keydown);
@@ -130,8 +149,12 @@ export class DraggableResizable {
     // Resize handles
     if (this.options.resizeHandles && this.options.resizeHandles.length > 0) {
       this.options.resizeHandles.forEach(handle => {
-        handle.addEventListener('mousedown', this.handlers.resizeHandleMousedown);
-        handle.addEventListener('touchstart', this.handlers.resizeHandleMousedown);
+        if (typeof window !== 'undefined' && 'PointerEvent' in window) {
+          handle.addEventListener('pointerdown', this.handlers.resizeHandlePointerDown);
+        } else {
+          handle.addEventListener('mousedown', this.handlers.resizeHandleMousedown);
+          handle.addEventListener('touchstart', this.handlers.resizeHandleMousedown, { passive: false });
+        }
 
         const managed = handle.dataset.vidplyManagedResize === 'true';
         this.resizeHandlesManaged.set(handle, managed);
@@ -141,6 +164,62 @@ export class DraggableResizable {
         }
       });
     }
+  }
+
+  onPointerDown(e) {
+    // Only handle primary pointer (avoid multi-touch weirdness)
+    if (e.isPrimary === false) return;
+
+    // Only left click for mouse
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+    // Don't drag if clicking on resize handle
+    if (e.target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
+      return;
+    }
+
+    // Call custom handler if provided
+    if (this.options.onDragStart && !this.options.onDragStart(e)) {
+      return;
+    }
+
+    this.activePointerId = e.pointerId;
+    this.activePointerType = e.pointerType;
+
+    // Capture pointer so drag continues even if leaving handle
+    try {
+      e.currentTarget?.setPointerCapture?.(e.pointerId);
+    } catch {
+      // ignore
+    }
+
+    this.startDragging(e.clientX, e.clientY);
+    e.preventDefault();
+  }
+
+  onPointerMove(e) {
+    if (this.activePointerId !== null && e.pointerId !== this.activePointerId) return;
+
+    if (this.isDragging) {
+      this.drag(e.clientX, e.clientY);
+      e.preventDefault();
+    } else if (this.isResizing) {
+      this.resize(e.clientX, e.clientY);
+      e.preventDefault();
+    }
+  }
+
+  onPointerUp(e) {
+    if (this.activePointerId !== null && e.pointerId !== this.activePointerId) return;
+
+    if (this.isDragging) {
+      this.stopDragging();
+    } else if (this.isResizing) {
+      this.stopResizing();
+    }
+
+    this.activePointerId = null;
+    this.activePointerType = null;
   }
 
   onMouseDown(e) {
@@ -171,6 +250,33 @@ export class DraggableResizable {
 
     const touch = e.touches[0];
     this.startDragging(touch.clientX, touch.clientY);
+    // Prevent page scroll while dragging (requires passive:false listener)
+    e.preventDefault();
+  }
+
+  onResizeHandlePointerDown(e) {
+    // Only handle primary pointer
+    if (e.isPrimary === false) return;
+
+    // Only left click for mouse
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const handle = e.target;
+    this.resizeDirection = handle.getAttribute('data-direction');
+
+    this.activePointerId = e.pointerId;
+    this.activePointerType = e.pointerType;
+
+    try {
+      e.currentTarget?.setPointerCapture?.(e.pointerId);
+    } catch {
+      // ignore
+    }
+
+    this.startResizing(e.clientX, e.clientY);
   }
 
   onResizeHandleMouseDown(e) {
@@ -758,12 +864,16 @@ export class DraggableResizable {
     // Remove drag events
     dragHandle.removeEventListener('mousedown', this.handlers.mousedown);
     dragHandle.removeEventListener('touchstart', this.handlers.touchstart);
+    dragHandle.removeEventListener('pointerdown', this.handlers.pointerdown);
     
     // Remove document-level events
     document.removeEventListener('mousemove', this.handlers.mousemove);
     document.removeEventListener('mouseup', this.handlers.mouseup);
     document.removeEventListener('touchmove', this.handlers.touchmove);
     document.removeEventListener('touchend', this.handlers.touchend);
+    document.removeEventListener('pointermove', this.handlers.pointermove);
+    document.removeEventListener('pointerup', this.handlers.pointerup);
+    document.removeEventListener('pointercancel', this.handlers.pointercancel);
     
     // Remove keyboard events
     this.element.removeEventListener('keydown', this.handlers.keydown);
@@ -773,6 +883,7 @@ export class DraggableResizable {
       this.options.resizeHandles.forEach(handle => {
         handle.removeEventListener('mousedown', this.handlers.resizeHandleMousedown);
         handle.removeEventListener('touchstart', this.handlers.resizeHandleMousedown);
+        handle.removeEventListener('pointerdown', this.handlers.resizeHandlePointerDown);
       });
     }
     

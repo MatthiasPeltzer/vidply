@@ -191,7 +191,7 @@
       "format": "esm"
     },
     "src/utils/DraggableResizable.js": {
-      "bytes": 25328,
+      "bytes": 29165,
       "imports": [],
       "format": "esm"
     },
@@ -568,11 +568,11 @@
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.chunk-OM7DNW5P.min.js",
+          "path": "dist/prod/vidply.chunk-Z6BHMOGK.min.js",
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.TranscriptManager-GPAOXEK4.min.js",
+          "path": "dist/prod/vidply.TranscriptManager-VXCTCJ7X.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -713,10 +713,10 @@
       },
       "bytes": 5521
     },
-    "dist/prod/vidply.TranscriptManager-GPAOXEK4.min.js": {
+    "dist/prod/vidply.TranscriptManager-VXCTCJ7X.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-OM7DNW5P.min.js",
+          "path": "dist/prod/vidply.chunk-Z6BHMOGK.min.js",
           "kind": "import-statement"
         }
       ],
@@ -731,7 +731,7 @@
       },
       "bytes": 43042
     },
-    "dist/prod/vidply.chunk-OM7DNW5P.min.js": {
+    "dist/prod/vidply.chunk-Z6BHMOGK.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.de-WCUZUF3T.min.js",
@@ -792,7 +792,7 @@
           "bytesInOutput": 1606
         },
         "src/utils/DraggableResizable.js": {
-          "bytesInOutput": 13775
+          "bytesInOutput": 16101
         },
         "src/utils/MenuUtils.js": {
           "bytesInOutput": 2257
@@ -801,7 +801,7 @@
           "bytesInOutput": 776
         }
       },
-      "bytes": 40477
+      "bytes": 42803
     },
     "dist/prod/vidply.YouTubeRenderer-K7A57ICA.min.js": {
       "imports": [],
