@@ -459,8 +459,11 @@ export class SignLanguageManager {
     _setupInteraction() {
         const isMobile = window.innerWidth < 768;
         const isFullscreen = this.player.state.fullscreen;
-        
-        if (isMobile && !isFullscreen) {
+
+        // Historically, drag/resize was disabled on mobile unless fullscreen to avoid scroll conflicts.
+        // Now that we support touch/pointer dragging with proper `touch-action` handling, enable it
+        // by default on iOS/Android as well. Allow opting out via option.
+        if (isMobile && !isFullscreen && this.player?.options?.signLanguageDragOnMobile === false) {
             if (this.draggable) {
                 this.draggable.destroy();
                 this.draggable = null;

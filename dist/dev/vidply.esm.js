@@ -4298,7 +4298,7 @@ var SignLanguageManager = class {
   _setupInteraction() {
     const isMobile2 = window.innerWidth < 768;
     const isFullscreen = this.player.state.fullscreen;
-    if (isMobile2 && !isFullscreen) {
+    if (isMobile2 && !isFullscreen && this.player?.options?.signLanguageDragOnMobile === false) {
       if (this.draggable) {
         this.draggable.destroy();
         this.draggable = null;

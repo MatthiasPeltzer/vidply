@@ -255,7 +255,7 @@
       "format": "esm"
     },
     "src/core/SignLanguageManager.js": {
-      "bytes": 39978,
+      "bytes": 40314,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -630,7 +630,7 @@
           "bytesInOutput": 9690
         },
         "src/core/SignLanguageManager.js": {
-          "bytesInOutput": 19805
+          "bytesInOutput": 19904
         },
         "src/features/PlaylistManager.js": {
           "bytesInOutput": 25066
@@ -639,7 +639,7 @@
           "bytesInOutput": 1877
         }
       },
-      "bytes": 362574
+      "bytes": 362673
     }
   }
 }
