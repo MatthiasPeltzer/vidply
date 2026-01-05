@@ -145,6 +145,9 @@ export class ControlBar {
                 // Ensure menu doesn't go off top or bottom
                 if (menuRect.top < 10) {
                     menu.style.top = '10px';
+                    // Important: clear bottom constraint, otherwise top+bottom will squeeze the menu height
+                    // into a tiny strip on some mobile layouts.
+                    menu.style.bottom = 'auto';
                 }
                 
                 if (menuRect.bottom > viewportHeight - 10) {
