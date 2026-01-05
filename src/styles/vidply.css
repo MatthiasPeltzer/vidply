@@ -420,7 +420,7 @@
 }
 
 /* Mobile: Ensure player contains all elements properly */
-@media (width < 48rem) {
+@media (max-width: 48rem), (width < 48rem) {
     .vidply-player {
         isolation: isolate; /* Create stacking context */
         overflow: visible; /* Allow menus to overflow but within bounds */
@@ -455,7 +455,7 @@
 }
 
 /* Mobile: Video element order and sizing */
-@media (width < 48rem) {
+@media (max-width: 48rem), (width < 48rem) {
     .vidply-player video,
     .vidply-player audio {
         flex: 0 0 auto; /* Don't grow or shrink */
@@ -575,7 +575,7 @@
 }
 
 /* Mobile: Simplify video wrapper but keep captions contained */
-@media (width < 48rem) {
+@media (max-width: 48rem), (width < 48rem) {
     .vidply-video-wrapper {
         display: block;
         height: auto;
@@ -693,7 +693,7 @@
 }
 
 /* Mobile: Controls underneath video (but not in landscape fullscreen) */
-@media (width < 48rem) {
+@media (max-width: 48rem), (width < 48rem) {
     .vidply-controls {
         background: var(--vidply-black-90);
         border-top: 0.0625rem solid var(--vidply-border-light);
@@ -1088,7 +1088,7 @@
 }
 
 /* Mobile: Don't use backdrop, menus position above buttons */
-@media (width < 48rem) {
+@media (max-width: 48rem), (width < 48rem) {
     .vidply-menu-backdrop {
         display: none !important;
     }
@@ -1486,7 +1486,7 @@
 }
 
 /* Mobile: Caption positioning handled by JavaScript */
-@media (width < 48rem) {
+@media (max-width: 48rem), (width < 48rem) {
     .vidply-captions {
         /* Bottom position set dynamically by JS based on control height */
         left: 50%;
@@ -2026,7 +2026,7 @@
 }
 
 /* Responsive Breakpoints */
-@media (width < 48rem) {
+@media (max-width: 48rem), (width < 48rem) {
     .vidply-controls {
         padding: 1rem 0.75rem 0.75rem;
     }
@@ -2148,7 +2148,7 @@
 }
 
 /* Landscape mobile optimization */
-@media (width <= 56rem) and (orientation: landscape) {
+@media (max-width: 56rem) and (orientation: landscape), (width <= 56rem) and (orientation: landscape) {
     .vidply-menu {
         max-height: 50vh;
     }
@@ -2219,7 +2219,7 @@
 }
 
 /* Extra small screens */
-@media (width <= 30rem) {
+@media (max-width: 30rem), (width <= 30rem) {
     .vidply-speed-text {
         display: none;
     }
@@ -2392,7 +2392,7 @@
     }
     
     /* Override mobile isolation for playlists on iOS */
-    @media (width < 48rem) {
+    @media (max-width: 48rem), (width < 48rem) {
         .vidply-player.vidply-has-playlist {
             isolation: auto;
         }
@@ -4089,7 +4089,7 @@
 }
 
 /* Responsive Sign Language Video */
-@media (width < 48rem) {
+@media (max-width: 48rem), (width < 48rem) {
     .vidply-sign-language-wrapper {
         min-width: 7.5rem;
         width: 35%;
@@ -4102,7 +4102,7 @@
 }
 
 /* Responsive Adjustments */
-@media (width < 48rem) {
+@media (max-width: 48rem), (width < 48rem) {
     .vidply-playlist-thumbnail {
         height: 2.125rem;
         width: 3.75rem;
