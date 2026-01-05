@@ -9973,9 +9973,10 @@
      * Setup interaction (drag and resize)
      */
     _setupInteraction() {
+      var _a, _b;
       const isMobile2 = window.innerWidth < 768;
       const isFullscreen = this.player.state.fullscreen;
-      if (isMobile2 && !isFullscreen) {
+      if (isMobile2 && !isFullscreen && ((_b = (_a = this.player) == null ? void 0 : _a.options) == null ? void 0 : _b.signLanguageDragOnMobile) === false) {
         if (this.draggable) {
           this.draggable.destroy();
           this.draggable = null;
