@@ -362,7 +362,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 224782,
+      "bytes": 225272,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -473,7 +473,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 57809,
+      "bytes": 58571,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -624,16 +624,16 @@
           "bytesInOutput": 19117
         },
         "src/core/Player.js": {
-          "bytesInOutput": 80485
+          "bytesInOutput": 80604
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 24397
+          "bytesInOutput": 24467
         },
         "src/index.js": {
           "bytesInOutput": 1869
         }
       },
-      "bytes": 212207
+      "bytes": 212396
     },
     "dist/prod/vidply.de-WCUZUF3T.min.js": {
       "imports": [],
