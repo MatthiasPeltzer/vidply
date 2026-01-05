@@ -86,7 +86,6 @@ export class YouTubeRenderer {
     this.iframe = document.createElement('div');
     this.iframe.id = `youtube-player-${Math.random().toString(36).substr(2, 9)}`;
     this.iframe.style.width = '100%';
-    this.iframe.style.aspectRatio = '16 / 9';
     this.iframe.style.maxHeight = '100%';
     
     this.player.element.parentNode.insertBefore(this.iframe, this.player.element);

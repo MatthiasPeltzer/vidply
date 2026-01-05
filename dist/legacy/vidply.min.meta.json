@@ -342,12 +342,12 @@
       "format": "esm"
     },
     "src/renderers/YouTubeRenderer.js": {
-      "bytes": 7895,
+      "bytes": 7848,
       "imports": [],
       "format": "esm"
     },
     "src/renderers/VimeoRenderer.js": {
-      "bytes": 7665,
+      "bytes": 7618,
       "imports": [],
       "format": "esm"
     },
@@ -363,12 +363,12 @@
       "format": "esm"
     },
     "src/renderers/SoundCloudRenderer.js": {
-      "bytes": 10665,
+      "bytes": 10507,
       "imports": [],
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 225272,
+      "bytes": 221656,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -484,7 +484,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 58571,
+      "bytes": 57809,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -515,7 +515,7 @@
       "format": "esm"
     },
     "src/index.js": {
-      "bytes": 5317,
+      "bytes": 5335,
       "imports": [
         {
           "path": "src/core/Player.js",
@@ -594,22 +594,22 @@
           "bytesInOutput": 43869
         },
         "src/renderers/YouTubeRenderer.js": {
-          "bytesInOutput": 4430
+          "bytesInOutput": 4391
         },
         "src/renderers/VimeoRenderer.js": {
-          "bytesInOutput": 4651
+          "bytesInOutput": 4612
         },
         "src/renderers/HLSRenderer.js": {
           "bytesInOutput": 6646
         },
         "src/renderers/SoundCloudRenderer.js": {
-          "bytesInOutput": 5597
+          "bytesInOutput": 5515
         },
         "src/utils/EventEmitter.js": {
           "bytesInOutput": 437
         },
         "src/core/Player.js": {
-          "bytesInOutput": 81712
+          "bytesInOutput": 80543
         },
         "src/controls/ControlBar.js": {
           "bytesInOutput": 65573
@@ -633,13 +633,13 @@
           "bytesInOutput": 20126
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 25066
+          "bytesInOutput": 24958
         },
         "src/index.js": {
           "bytesInOutput": 1877
         }
       },
-      "bytes": 363274
+      "bytes": 361837
     }
   }
 }

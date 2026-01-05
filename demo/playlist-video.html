@@ -222,7 +222,7 @@
     <main>
       <figure class="player-wrapper">
         <div id="video-player"
-             data-vidply-options='{"mediaType":"video","autoplay":false,"controls":true,"preload":"metadata"}'
+             data-vidply-options='{"mediaType":"video","autoplay":false,"controls":true,"preload":"metadata"}}'
              data-playlist='[
                {"src":"media/wwa.mp4","type":"video/mp4","title":"What We Ask - Episode 1","artist":"Demo Series","poster":"media/wwa_hq_thumbnail.jpg","duration":52,"audioDescriptionDuration":53,"description":"The pilot episode introduces our cast of characters and sets up the central mystery that will unfold throughout the series.","audioDescriptionSrc":"media/wwa_described.mp4","signLanguageSrc":"media/wwa_sign_en.mp4","tracks":[{"src":"media/wwa_captions_en.vtt","kind":"captions","srclang":"en","label":"English"},{"src":"media/wwa_captions_es.vtt","kind":"captions","srclang":"es","label":"Español"},{"src":"media/wwa_captions_de.vtt","kind":"captions","srclang":"de","label":"Deutsch"},{"src":"media/wwa_captions_fr.vtt","kind":"captions","srclang":"fr","label":"Français"},{"src":"media/wwa_captions_ja.vtt","kind":"captions","srclang":"ja","label":"日本語"},{"src":"media/wwa_description_en.vtt","kind":"descriptions","srclang":"en","label":"English Descriptions"},{"src":"media/wwa_chapters_en.vtt","kind":"chapters","srclang":"en","label":"Chapters"}]},
                {"src":"media/deadline.mp4","type":"video/mp4","title":"Deadline - Episode 2","artist":"Demo Series","poster":"media/deadline_thumbnail.jpg","duration":76,"audioDescriptionDuration":76,"description":"With the deadline approaching, tensions rise as the team races against time to uncover the truth.","audioDescriptionSrc":"media/deadline_desc.mp4","tracks":[{"src":"media/deadline_captions_en.vtt","kind":"captions","srclang":"en","label":"English"},{"src":"media/deadline_captions_es.vtt","kind":"captions","srclang":"es","label":"Español"},{"src":"media/deadline_captions_it.vtt","kind":"captions","srclang":"it","label":"Italiano"},{"src":"media/deadline_captions_pt-br.vtt","kind":"captions","srclang":"pt-br","label":"Português"},{"src":"media/deadline_captions_ar.vtt","kind":"captions","srclang":"ar","label":"العربية"},{"src":"media/deadline_captions_hi.vtt","kind":"captions","srclang":"hi","label":"हिन्दी"},{"src":"media/deadline_descriptions_en.vtt","kind":"descriptions","srclang":"en","label":"English Descriptions"}]},
@@ -234,6 +234,70 @@
              data-playlist-show-panel="true"></div>
         <figcaption class="sr-only">Video playlist player with 3 episodes</figcaption>
       </figure>
+
+        <!-- Video Demo 1: Deadline -->
+            <video
+                    id="deadline-video"
+                    data-vidply
+                    data-audio-description-button="true"
+                    data-transcript-button="true"
+                    data-vidply-options='{"noAspectRatio":true}'
+                    width="800"
+                    height="450"
+                    poster="media/deadline_thumbnail.jpg"
+                    preload="metadata"
+            >
+                <source src="media/deadline.mp4" type="video/mp4" data-desc-src="media/deadline_desc.mp4" data-orig-src="media/deadline.mp4">
+                <track kind="captions" src="media/deadline_captions_en.vtt" srclang="en" label="English" default>
+                <track kind="captions" src="media/deadline_captions_es.vtt" srclang="es" label="Español">
+                <track kind="captions" src="media/deadline_captions_it.vtt" srclang="it" label="Italiano">
+                <track kind="captions" src="media/deadline_captions_pt-br.vtt" srclang="pt-BR" label="Português (Brasil)">
+                <track kind="captions" src="media/deadline_captions_ar.vtt" srclang="ar" label="العربية">
+                <track kind="captions" src="media/deadline_captions_hi.vtt" srclang="hi" label="हिन्दी">
+                <track kind="descriptions" src="media/deadline_descriptions_en.vtt" srclang="en" label="English Descriptions">
+                <track kind="descriptions" src="media/deadline_descriptions_es.vtt" srclang="es" label="Español Descriptions">
+                <track kind="descriptions" src="media/deadline_descriptions_it.vtt" srclang="it" label="Italiano Descriptions">
+                <track kind="descriptions" src="media/deadline_descriptions_pt-br.vtt" srclang="pt-BR" label="Português (Brasil) Descriptions">
+                <track kind="descriptions" src="media/deadline_descriptions_ar.vtt" srclang="ar" label="العربية Descriptions">
+                <track kind="descriptions" src="media/deadline_descriptions_hi.vtt" srclang="hi" label="हिन्दी Descriptions">
+                Your browser does not support the video tag.
+            </video>
+
+        <!-- Video Demo 2: WWA -->
+            <video
+                    id="wwa-video"
+                    data-vidply
+                    data-sign-language-src-en="media/wwa_sign_en.mp4"
+                    data-sign-language-src-de="media/wwa_sign_de.mp4"
+                    data-sign-language-button="true"
+                    data-sign-language-position="bottom-right"
+                    data-audio-description-button="true"
+                    data-transcript-button="true"
+                    data-vidply-options='{"noAspectRatio":true}'
+                    width="800"
+                    height="450"
+                    poster="media/wwa_hq_thumbnail.jpg"
+                    preload="metadata"
+            >
+                <source src="media/wwa.mp4" type="video/mp4" data-desc-src="media/wwa_described.mp4" data-orig-src="media/wwa.mp4">
+                <source src="media/wwa.webm" type="video/webm" data-desc-src="media/wwa_described.webm" data-orig-src="media/wwa.webm">
+                <track kind="captions" src="media/wwa_captions_en.vtt" srclang="en" label="English" default>
+                <track kind="captions" src="media/wwa_captions_es.vtt" srclang="es" label="Español">
+                <track kind="captions" src="media/wwa_captions_fr.vtt" srclang="fr" label="Français">
+                <track kind="captions" src="media/wwa_captions_de.vtt" srclang="de" label="Deutsch">
+                <track kind="captions" src="media/wwa_captions_ja.vtt" srclang="ja" label="日本語">
+                <track kind="descriptions" src="media/wwa_description_en.vtt" srclang="en" label="English Descriptions">
+                <track kind="descriptions" src="media/wwa_description_es.vtt" srclang="es" label="Español Descripciones">
+                <track kind="descriptions" src="media/wwa_description_fr.vtt" srclang="fr" label="Français Descriptions">
+                <track kind="descriptions" src="media/wwa_description_de.vtt" srclang="de" label="Deutsch Beschreibungen">
+                <track kind="descriptions" src="media/wwa_description_ja.vtt" srclang="ja" label="日本語 説明">
+                <track kind="chapters" src="media/wwa_chapters_en.vtt" srclang="en" label="English Chapters">
+                <track kind="chapters" src="media/wwa_chapters_es.vtt" srclang="es" label="Español Capítulos">
+                <track kind="chapters" src="media/wwa_chapters_fr.vtt" srclang="fr" label="Français Chapitres">
+                <track kind="chapters" src="media/wwa_chapters_de.vtt" srclang="de" label="Deutsch Kapitel">
+                <track kind="chapters" src="media/wwa_chapters_ja.vtt" srclang="ja" label="日本語 チャプター">
+                Your browser does not support the video tag.
+            </video>
 
       <section aria-labelledby="features-heading">
         <h2 id="features-heading">Features Demonstrated</h2>

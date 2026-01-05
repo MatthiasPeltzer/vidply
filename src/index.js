@@ -57,7 +57,9 @@ function parseDataAttributes(dataset) {
     'keyboard': 'keyboard',
     'responsive': 'responsive',
     'pipButton': 'pipButton',
-    'fullscreenButton': 'fullscreenButton'
+    'fullscreenButton': 'fullscreenButton',
+
+    // Layout
   };
   
   // Parse each data attribute

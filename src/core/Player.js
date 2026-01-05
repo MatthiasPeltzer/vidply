@@ -588,6 +588,7 @@ export class Player extends EventEmitter {
             this.container.classList.add(`${this.options.classPrefix}-responsive`);
         }
 
+
         // Create video wrapper (for proper positioning of controls)
         this.videoWrapper = DOMUtils.createElement('div', {
             className: `${this.options.classPrefix}-video-wrapper`
@@ -639,37 +640,10 @@ export class Player extends EventEmitter {
                 : this.options.height;
         }
 
-        // If no explicit height is set, ensure video players still have a stable layout box
-        // even before any media is loaded (important for deferLoad + playlists).
-        // We use the element's width/height attributes (e.g. from TYPO3) as aspect ratio.
-        if (this.element.tagName === 'VIDEO' && !this.options.height) {
-            const wAttr = parseInt(this.element.getAttribute('width') || '', 10);
-            const hAttr = parseInt(this.element.getAttribute('height') || '', 10);
-            if (Number.isFinite(wAttr) && Number.isFinite(hAttr) && wAttr > 0 && hAttr > 0) {
-                // Only set if not already defined by CSS/inline style
-                // In playlist mode, the container must be allowed to grow (playlist panel is appended inside it).
-                // Keep aspect ratio on the video wrapper instead.
-                if (!this.container.classList.contains('vidply-has-playlist') && !this.container.style.aspectRatio) {
-                    this.container.style.aspectRatio = `${wAttr} / ${hAttr}`;
-                }
-
-                // The actual visual box is the videoWrapper (the video element is 100% height).
-                // Give the wrapper the same aspect ratio so posters render correctly before metadata is loaded.
-                if (this.videoWrapper && !this.videoWrapper.style.aspectRatio) {
-                    this.videoWrapper.style.aspectRatio = `${wAttr} / ${hAttr}`;
-                    // Override default CSS height:100% (which depends on parent having a height)
-                    this.videoWrapper.style.height = 'auto';
-                }
-            }
-        }
-
         // Set poster (convert relative paths to absolute URLs)
         if (this.options.poster && this.element.tagName === 'VIDEO') {
             const resolvedPoster = this.resolvePosterPath(this.options.poster);
             this.element.poster = resolvedPoster;
-            // If we intentionally have no media loaded yet (e.g. deferLoad/playlist),
-            // use poster aspect ratio to size the wrapper so the poster isn't stretched.
-            this.applyPosterAspectRatio(resolvedPoster);
         }
 
         // Create centered play button overlay (only for video)
@@ -711,47 +685,6 @@ export class Player extends EventEmitter {
                 this.hidePosterOverlay();
             }
         }, { once: true });
-    }
-
-    /**
-     * Apply aspect ratio to the video wrapper based on the poster's intrinsic size.
-     * This helps render correct poster sizing before media metadata is available.
-     */
-    applyPosterAspectRatio(posterUrl) {
-        try {
-            if (!posterUrl) return;
-            if (this.element.tagName !== 'VIDEO') return;
-            if (!this.videoWrapper) return;
-
-            // If user explicitly configured dimensions, don't override.
-            if (this.options.width || this.options.height) return;
-
-            // Avoid repeated work
-            if (this._posterAspectAppliedFor === posterUrl) return;
-            this._posterAspectAppliedFor = posterUrl;
-
-            const img = new Image();
-            img.decoding = 'async';
-            img.onload = () => {
-                const w = img.naturalWidth;
-                const h = img.naturalHeight;
-                if (!w || !h) return;
-
-                // Apply to wrapper (the actual layout box)
-                this.videoWrapper.style.aspectRatio = `${w} / ${h}`;
-                this.videoWrapper.style.height = 'auto';
-
-                // Also apply to container if not explicitly set
-                // In playlist mode, the container must be allowed to grow (playlist panel is appended inside it).
-                // Keep aspect ratio on the video wrapper instead.
-                if (this.container && !this.container.classList.contains('vidply-has-playlist') && !this.container.style.aspectRatio) {
-                    this.container.style.aspectRatio = `${w} / ${h}`;
-                }
-            };
-            img.src = posterUrl;
-        } catch (e) {
-            // ignore
-        }
     }
 
     createPlayButtonOverlay() {

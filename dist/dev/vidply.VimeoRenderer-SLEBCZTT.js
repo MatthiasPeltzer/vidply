@@ -54,7 +54,6 @@ var VimeoRenderer = class {
     this.iframe = document.createElement("div");
     this.iframe.id = `vimeo-player-${Math.random().toString(36).substr(2, 9)}`;
     this.iframe.style.width = "100%";
-    this.iframe.style.aspectRatio = "16 / 9";
     this.iframe.style.maxHeight = "100%";
     this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
   }
@@ -223,4 +222,4 @@ var VimeoRenderer = class {
 export {
   VimeoRenderer
 };
-//# sourceMappingURL=vidply.VimeoRenderer-DY2FG7LZ.js.map
+//# sourceMappingURL=vidply.VimeoRenderer-SLEBCZTT.js.map

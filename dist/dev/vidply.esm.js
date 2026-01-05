@@ -5357,23 +5357,9 @@ var Player = class _Player extends EventEmitter {
     if (this.options.height) {
       this.container.style.height = typeof this.options.height === "number" ? `${this.options.height}px` : this.options.height;
     }
-    if (this.element.tagName === "VIDEO" && !this.options.height) {
-      const wAttr = parseInt(this.element.getAttribute("width") || "", 10);
-      const hAttr = parseInt(this.element.getAttribute("height") || "", 10);
-      if (Number.isFinite(wAttr) && Number.isFinite(hAttr) && wAttr > 0 && hAttr > 0) {
-        if (!this.container.classList.contains("vidply-has-playlist") && !this.container.style.aspectRatio) {
-          this.container.style.aspectRatio = `${wAttr} / ${hAttr}`;
-        }
-        if (this.videoWrapper && !this.videoWrapper.style.aspectRatio) {
-          this.videoWrapper.style.aspectRatio = `${wAttr} / ${hAttr}`;
-          this.videoWrapper.style.height = "auto";
-        }
-      }
-    }
     if (this.options.poster && this.element.tagName === "VIDEO") {
       const resolvedPoster = this.resolvePosterPath(this.options.poster);
       this.element.poster = resolvedPoster;
-      this.applyPosterAspectRatio(resolvedPoster);
     }
     if (this.element.tagName === "VIDEO") {
       this.createPlayButtonOverlay();
@@ -5400,34 +5386,6 @@ var Player = class _Player extends EventEmitter {
         this.hidePosterOverlay();
       }
     }, { once: true });
-  }
-  /**
-   * Apply aspect ratio to the video wrapper based on the poster's intrinsic size.
-   * This helps render correct poster sizing before media metadata is available.
-   */
-  applyPosterAspectRatio(posterUrl) {
-    try {
-      if (!posterUrl) return;
-      if (this.element.tagName !== "VIDEO") return;
-      if (!this.videoWrapper) return;
-      if (this.options.width || this.options.height) return;
-      if (this._posterAspectAppliedFor === posterUrl) return;
-      this._posterAspectAppliedFor = posterUrl;
-      const img = new Image();
-      img.decoding = "async";
-      img.onload = () => {
-        const w = img.naturalWidth;
-        const h = img.naturalHeight;
-        if (!w || !h) return;
-        this.videoWrapper.style.aspectRatio = `${w} / ${h}`;
-        this.videoWrapper.style.height = "auto";
-        if (this.container && !this.container.classList.contains("vidply-has-playlist") && !this.container.style.aspectRatio) {
-          this.container.style.aspectRatio = `${w} / ${h}`;
-        }
-      };
-      img.src = posterUrl;
-    } catch (e) {
-    }
   }
   createPlayButtonOverlay() {
     this.playButtonOverlay = createPlayOverlay();
@@ -5490,16 +5448,16 @@ var Player = class _Player extends EventEmitter {
     }
     let rendererClass = HTML5Renderer;
     if (src.includes("youtube.com") || src.includes("youtu.be")) {
-      const module = await import("./vidply.YouTubeRenderer-EVXXE34A.js");
+      const module = await import("./vidply.YouTubeRenderer-E6F4UGVF.js");
       rendererClass = module.YouTubeRenderer || module.default;
     } else if (src.includes("vimeo.com")) {
-      const module = await import("./vidply.VimeoRenderer-DY2FG7LZ.js");
+      const module = await import("./vidply.VimeoRenderer-SLEBCZTT.js");
       rendererClass = module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
       const module = await import("./vidply.HLSRenderer-YGWCAICA.js");
       rendererClass = module.HLSRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
-      const module = await import("./vidply.SoundCloudRenderer-RIA3QKP3.js");
+      const module = await import("./vidply.SoundCloudRenderer-HCMKXHSX.js");
       rendererClass = module.SoundCloudRenderer || module.default;
     }
     this.log(`Using ${rendererClass?.name || "HTML5Renderer"} renderer`);
@@ -8879,9 +8837,6 @@ var PlaylistManager = class {
     this.currentIndex = -1;
     if (this.container) {
       this.container.classList.add("vidply-has-playlist");
-      if (!this.player?.options?.height) {
-        this.container.style.aspectRatio = "";
-      }
     }
     if (this.playlistPanel) {
       this.renderPlaylist();
@@ -9834,6 +9789,7 @@ function parseDataAttributes(dataset) {
     "responsive": "responsive",
     "pipButton": "pipButton",
     "fullscreenButton": "fullscreenButton"
+    // Layout
   };
   Object.keys(attributeMap).forEach((dataKey) => {
     const optionKey = attributeMap[dataKey];

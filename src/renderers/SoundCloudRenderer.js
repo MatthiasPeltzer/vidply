@@ -125,10 +125,8 @@ export class SoundCloudRenderer {
     // Use different aspect ratio for playlists vs single tracks
     // Playlists need more height to show the track list
     if (this.isPlaylist()) {
-      this.iframe.style.aspectRatio = '16 / 9'; // More height for playlist
       this.iframe.classList.add('vidply-soundcloud-iframe', 'vidply-soundcloud-playlist');
     } else {
-      this.iframe.style.aspectRatio = '16 / 3'; // Banner-like for single track
       this.iframe.classList.add('vidply-soundcloud-iframe');
     }
     this.iframe.style.maxHeight = '100%';
