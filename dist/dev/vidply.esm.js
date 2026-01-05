@@ -21,7 +21,7 @@ import {
   focusFirstMenuItem,
   i18n,
   preventDragOnElement
-} from "./vidply.chunk-74NJTDQI.js";
+} from "./vidply.chunk-AXXU22HR.js";
 
 // src/utils/EventEmitter.js
 var EventEmitter = class {
@@ -5251,7 +5251,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-T3BVTZHZ.js");
+    const module = await import("./vidply.TranscriptManager-EIIN5YOF.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;

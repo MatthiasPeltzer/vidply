@@ -191,7 +191,7 @@
       "format": "esm"
     },
     "src/utils/DraggableResizable.js": {
-      "bytes": 25328,
+      "bytes": 29165,
       "imports": [
         {
           "path": "<runtime>",
@@ -582,7 +582,7 @@
           "bytesInOutput": 5469
         },
         "src/utils/DraggableResizable.js": {
-          "bytesInOutput": 14166
+          "bytesInOutput": 16613
         },
         "src/utils/MenuUtils.js": {
           "bytesInOutput": 2298
@@ -639,7 +639,7 @@
           "bytesInOutput": 1877
         }
       },
-      "bytes": 360126
+      "bytes": 362573
     }
   }
 }

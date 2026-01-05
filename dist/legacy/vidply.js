@@ -2065,9 +2065,16 @@
             touchstart: this.onTouchStart.bind(this),
             touchmove: this.onTouchMove.bind(this),
             touchend: this.onTouchEnd.bind(this),
+            pointerdown: this.onPointerDown.bind(this),
+            pointermove: this.onPointerMove.bind(this),
+            pointerup: this.onPointerUp.bind(this),
+            pointercancel: this.onPointerUp.bind(this),
             keydown: this.onKeyDown.bind(this),
-            resizeHandleMousedown: this.onResizeHandleMouseDown.bind(this)
+            resizeHandleMousedown: this.onResizeHandleMouseDown.bind(this),
+            resizeHandlePointerDown: this.onResizeHandlePointerDown.bind(this)
           };
+          this.activePointerId = null;
+          this.activePointerType = null;
           this.init();
         }
         hasManagedResizeHandles() {
@@ -2104,17 +2111,28 @@
         }
         init() {
           const dragHandle = this.options.dragHandle || this.element;
-          dragHandle.addEventListener("mousedown", this.handlers.mousedown);
-          dragHandle.addEventListener("touchstart", this.handlers.touchstart);
-          document.addEventListener("mousemove", this.handlers.mousemove);
-          document.addEventListener("mouseup", this.handlers.mouseup);
-          document.addEventListener("touchmove", this.handlers.touchmove, { passive: false });
-          document.addEventListener("touchend", this.handlers.touchend);
+          if (typeof window !== "undefined" && "PointerEvent" in window) {
+            dragHandle.addEventListener("pointerdown", this.handlers.pointerdown);
+            document.addEventListener("pointermove", this.handlers.pointermove, { passive: false });
+            document.addEventListener("pointerup", this.handlers.pointerup);
+            document.addEventListener("pointercancel", this.handlers.pointercancel);
+          } else {
+            dragHandle.addEventListener("mousedown", this.handlers.mousedown);
+            dragHandle.addEventListener("touchstart", this.handlers.touchstart, { passive: false });
+            document.addEventListener("mousemove", this.handlers.mousemove);
+            document.addEventListener("mouseup", this.handlers.mouseup);
+            document.addEventListener("touchmove", this.handlers.touchmove, { passive: false });
+            document.addEventListener("touchend", this.handlers.touchend);
+          }
           this.element.addEventListener("keydown", this.handlers.keydown);
           if (this.options.resizeHandles && this.options.resizeHandles.length > 0) {
             this.options.resizeHandles.forEach((handle) => {
-              handle.addEventListener("mousedown", this.handlers.resizeHandleMousedown);
-              handle.addEventListener("touchstart", this.handlers.resizeHandleMousedown);
+              if (typeof window !== "undefined" && "PointerEvent" in window) {
+                handle.addEventListener("pointerdown", this.handlers.resizeHandlePointerDown);
+              } else {
+                handle.addEventListener("mousedown", this.handlers.resizeHandleMousedown);
+                handle.addEventListener("touchstart", this.handlers.resizeHandleMousedown, { passive: false });
+              }
               const managed = handle.dataset.vidplyManagedResize === "true";
               this.resizeHandlesManaged.set(handle, managed);
               if (managed) {
@@ -2123,6 +2141,45 @@
               }
             });
           }
+        }
+        onPointerDown(e) {
+          var _a, _b;
+          if (e.isPrimary === false) return;
+          if (e.pointerType === "mouse" && e.button !== 0) return;
+          if (e.target.classList.contains("".concat(this.options.classPrefix, "-resize-handle"))) {
+            return;
+          }
+          if (this.options.onDragStart && !this.options.onDragStart(e)) {
+            return;
+          }
+          this.activePointerId = e.pointerId;
+          this.activePointerType = e.pointerType;
+          try {
+            (_b = (_a = e.currentTarget) == null ? void 0 : _a.setPointerCapture) == null ? void 0 : _b.call(_a, e.pointerId);
+          } catch (e2) {
+          }
+          this.startDragging(e.clientX, e.clientY);
+          e.preventDefault();
+        }
+        onPointerMove(e) {
+          if (this.activePointerId !== null && e.pointerId !== this.activePointerId) return;
+          if (this.isDragging) {
+            this.drag(e.clientX, e.clientY);
+            e.preventDefault();
+          } else if (this.isResizing) {
+            this.resize(e.clientX, e.clientY);
+            e.preventDefault();
+          }
+        }
+        onPointerUp(e) {
+          if (this.activePointerId !== null && e.pointerId !== this.activePointerId) return;
+          if (this.isDragging) {
+            this.stopDragging();
+          } else if (this.isResizing) {
+            this.stopResizing();
+          }
+          this.activePointerId = null;
+          this.activePointerType = null;
         }
         onMouseDown(e) {
           if (e.target.classList.contains("".concat(this.options.classPrefix, "-resize-handle"))) {
@@ -2143,6 +2200,23 @@
           }
           const touch = e.touches[0];
           this.startDragging(touch.clientX, touch.clientY);
+          e.preventDefault();
+        }
+        onResizeHandlePointerDown(e) {
+          var _a, _b;
+          if (e.isPrimary === false) return;
+          if (e.pointerType === "mouse" && e.button !== 0) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const handle = e.target;
+          this.resizeDirection = handle.getAttribute("data-direction");
+          this.activePointerId = e.pointerId;
+          this.activePointerType = e.pointerType;
+          try {
+            (_b = (_a = e.currentTarget) == null ? void 0 : _a.setPointerCapture) == null ? void 0 : _b.call(_a, e.pointerId);
+          } catch (e2) {
+          }
+          this.startResizing(e.clientX, e.clientY);
         }
         onResizeHandleMouseDown(e) {
           var _a, _b, _c, _d;
@@ -2583,15 +2657,20 @@
           this.disablePointerResizeMode();
           dragHandle.removeEventListener("mousedown", this.handlers.mousedown);
           dragHandle.removeEventListener("touchstart", this.handlers.touchstart);
+          dragHandle.removeEventListener("pointerdown", this.handlers.pointerdown);
           document.removeEventListener("mousemove", this.handlers.mousemove);
           document.removeEventListener("mouseup", this.handlers.mouseup);
           document.removeEventListener("touchmove", this.handlers.touchmove);
           document.removeEventListener("touchend", this.handlers.touchend);
+          document.removeEventListener("pointermove", this.handlers.pointermove);
+          document.removeEventListener("pointerup", this.handlers.pointerup);
+          document.removeEventListener("pointercancel", this.handlers.pointercancel);
           this.element.removeEventListener("keydown", this.handlers.keydown);
           if (this.options.resizeHandles && this.options.resizeHandles.length > 0) {
             this.options.resizeHandles.forEach((handle) => {
               handle.removeEventListener("mousedown", this.handlers.resizeHandleMousedown);
               handle.removeEventListener("touchstart", this.handlers.resizeHandleMousedown);
+              handle.removeEventListener("pointerdown", this.handlers.resizeHandlePointerDown);
             });
           }
           this.element.classList.remove(
