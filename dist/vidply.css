@@ -500,14 +500,30 @@
     z-index: 1; /* Base video layer */
 }
 
-/* Video players: ensure the video wrapper establishes an intrinsic height.
-   Without an explicit container height (e.g. playlist mode clears container aspect-ratio),
-   `height: 100%` can collapse and let absolutely-positioned controls overlap elements below
-   (like `.vidply-track-info`). This gives a stable default that can be overridden by inline
-   aspect-ratio (poster/width/height detection). */
-.vidply-player.vidply-video .vidply-video-wrapper {
+/* Ensure the video wrapper establishes an intrinsic height in ALL non-fullscreen modes.
+   Controls are appended inside `.vidply-video-wrapper` and are positioned `absolute` by default.
+   If the wrapper has no intrinsic height (e.g. when container aspect-ratio is cleared for playlists),
+   the wrapper can collapse and the controls will overlap the content that follows (like `.vidply-track-info`).
+
+   We keep fullscreen behavior untouched (fullscreen rules already size the wrapper explicitly). */
+.vidply-player.vidply-video:not(.vidply-fullscreen):not(:fullscreen) .vidply-video-wrapper {
     aspect-ratio: 16 / 9;
     height: auto;
+}
+
+/* Playlist mode (mobile): controls can cover the track info because the control bar is tall and can overlap.
+   Reserve space *below* the wrapper so the controls never cover `.vidply-track-info` that follows. */
+@media (max-width: 48rem), (width < 48rem) {
+    .vidply-player.vidply-video.vidply-has-playlist:not(.vidply-fullscreen):not(:fullscreen) .vidply-video-wrapper {
+        margin-bottom: 5rem; /* matches typical control bar height */
+    }
+}
+
+/* Desktop: no extra spacing needed */
+@media (min-width: 48.0001rem) {
+    .vidply-player.vidply-video.vidply-has-playlist:not(.vidply-fullscreen):not(:fullscreen) .vidply-video-wrapper {
+        margin-bottom: 0;
+    }
 }
 
 /* Allow controls and menus to overflow in fullscreen landscape mode */
