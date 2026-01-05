@@ -4308,7 +4308,9 @@ var SignLanguageManager = class {
     if (this.draggable) return;
     const classPrefix = this.player.options.classPrefix;
     this.draggable = new DraggableResizable(this.wrapper, {
-      dragHandle: this.header,
+      // Allow dragging from anywhere on the sign-language window (better for touch).
+      // We still block dragging when interacting with controls via `onDragStart` below.
+      dragHandle: this.wrapper,
       resizeHandles: this.resizeHandles,
       constrainToViewport: true,
       maintainAspectRatio: true,
