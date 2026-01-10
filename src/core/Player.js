@@ -1612,6 +1612,9 @@ export class Player extends EventEmitter {
         this.state.fullscreen = true;
         this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
         
+        // Add body class for CSS targeting (fallback for browsers without :has() support)
+        document.body.classList.add('vidply-fullscreen-active');
+        
         // Store current scroll position for restoration later
         this._originalScrollX = window.scrollX || window.pageXOffset;
         this._originalScrollY = window.scrollY || window.pageYOffset;
@@ -1622,11 +1625,15 @@ export class Player extends EventEmitter {
         this._originalBodyWidth = document.body.style.width;
         this._originalBodyHeight = document.body.style.height;
         this._originalHtmlOverflow = document.documentElement.style.overflow;
+        this._originalBodyBackground = document.body.style.background;
+        this._originalHtmlBackground = document.documentElement.style.background;
         
         document.body.style.overflow = 'hidden';
         document.body.style.width = '100%';
         document.body.style.height = '100%';
+        document.body.style.background = '#000';
         document.documentElement.style.overflow = 'hidden';
+        document.documentElement.style.background = '#000';
         
         // On iOS, also lock the viewport and scroll to top
         this._originalViewport = document.querySelector('meta[name="viewport"]')?.getAttribute('content');
@@ -1638,11 +1645,62 @@ export class Player extends EventEmitter {
         // Scroll to top on iOS to prevent positioning issues
         window.scrollTo(0, 0);
         
+        // Make all other page content inert to prevent keyboard focus escaping to background
+        this._makeBackgroundInert();
+        
         this.emit('fullscreenchange', true);
         this.emit('enterfullscreen');
     }
+    
+    /**
+     * Makes all page content except the fullscreen player inert (non-focusable)
+     * This prevents keyboard navigation from focusing on hidden background elements
+     */
+    _makeBackgroundInert() {
+        this._inertElements = [];
+        
+        // Find all siblings and ancestors' siblings that should be made inert
+        let current = this.container;
+        while (current && current !== document.body && current !== document.documentElement) {
+            const parent = current.parentElement;
+            if (parent) {
+                // Make all siblings inert
+                Array.from(parent.children).forEach(sibling => {
+                    if (sibling !== current && 
+                        sibling.nodeType === Node.ELEMENT_NODE &&
+                        !sibling.hasAttribute('inert') &&
+                        sibling.tagName !== 'SCRIPT' &&
+                        sibling.tagName !== 'STYLE' &&
+                        sibling.tagName !== 'LINK' &&
+                        sibling.tagName !== 'META') {
+                        sibling.setAttribute('inert', '');
+                        this._inertElements.push(sibling);
+                    }
+                });
+            }
+            current = parent;
+        }
+    }
+    
+    /**
+     * Restores interactivity to elements that were made inert during fullscreen
+     */
+    _restoreBackgroundInteractivity() {
+        if (this._inertElements) {
+            this._inertElements.forEach(el => {
+                el.removeAttribute('inert');
+            });
+            this._inertElements = [];
+        }
+    }
 
     _disablePseudoFullscreen() {
+        // Remove body class for CSS targeting
+        document.body.classList.remove('vidply-fullscreen-active');
+        
+        // Restore interactivity to background elements
+        this._restoreBackgroundInteractivity();
+        
         // Restore body scrolling
         if (this._originalBodyOverflow !== undefined) {
             document.body.style.overflow = this._originalBodyOverflow;
@@ -1663,6 +1721,14 @@ export class Player extends EventEmitter {
         if (this._originalHtmlOverflow !== undefined) {
             document.documentElement.style.overflow = this._originalHtmlOverflow;
             delete this._originalHtmlOverflow;
+        }
+        if (this._originalBodyBackground !== undefined) {
+            document.body.style.background = this._originalBodyBackground;
+            delete this._originalBodyBackground;
+        }
+        if (this._originalHtmlBackground !== undefined) {
+            document.documentElement.style.background = this._originalHtmlBackground;
+            delete this._originalHtmlBackground;
         }
         
         // Restore viewport settings
@@ -4459,8 +4525,16 @@ export class Player extends EventEmitter {
                 
                 if (isFullscreen) {
                     this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
+                    // Add body class for CSS targeting (fallback for browsers without :has() support)
+                    document.body.classList.add('vidply-fullscreen-active');
+                    // Make background content inert to prevent keyboard focus escaping
+                    this._makeBackgroundInert();
                 } else {
                     this.container.classList.remove(`${this.options.classPrefix}-fullscreen`);
+                    // Remove body class for CSS targeting
+                    document.body.classList.remove('vidply-fullscreen-active');
+                    // Restore background interactivity
+                    this._restoreBackgroundInteractivity();
                     // Clean up pseudo-fullscreen state when exiting
                     this._disablePseudoFullscreen();
                 }

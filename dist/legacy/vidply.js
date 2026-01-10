@@ -11744,6 +11744,7 @@
       var _a;
       this.state.fullscreen = true;
       this.container.classList.add("".concat(this.options.classPrefix, "-fullscreen"));
+      document.body.classList.add("vidply-fullscreen-active");
       this._originalScrollX = window.scrollX || window.pageXOffset;
       this._originalScrollY = window.scrollY || window.pageYOffset;
       this._originalBodyOverflow = document.body.style.overflow;
@@ -11751,20 +11752,58 @@
       this._originalBodyWidth = document.body.style.width;
       this._originalBodyHeight = document.body.style.height;
       this._originalHtmlOverflow = document.documentElement.style.overflow;
+      this._originalBodyBackground = document.body.style.background;
+      this._originalHtmlBackground = document.documentElement.style.background;
       document.body.style.overflow = "hidden";
       document.body.style.width = "100%";
       document.body.style.height = "100%";
+      document.body.style.background = "#000";
       document.documentElement.style.overflow = "hidden";
+      document.documentElement.style.background = "#000";
       this._originalViewport = (_a = document.querySelector('meta[name="viewport"]')) == null ? void 0 : _a.getAttribute("content");
       const viewport = document.querySelector('meta[name="viewport"]');
       if (viewport) {
         viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
       }
       window.scrollTo(0, 0);
+      this._makeBackgroundInert();
       this.emit("fullscreenchange", true);
       this.emit("enterfullscreen");
     }
+    /**
+     * Makes all page content except the fullscreen player inert (non-focusable)
+     * This prevents keyboard navigation from focusing on hidden background elements
+     */
+    _makeBackgroundInert() {
+      this._inertElements = [];
+      let current = this.container;
+      while (current && current !== document.body && current !== document.documentElement) {
+        const parent = current.parentElement;
+        if (parent) {
+          Array.from(parent.children).forEach((sibling) => {
+            if (sibling !== current && sibling.nodeType === Node.ELEMENT_NODE && !sibling.hasAttribute("inert") && sibling.tagName !== "SCRIPT" && sibling.tagName !== "STYLE" && sibling.tagName !== "LINK" && sibling.tagName !== "META") {
+              sibling.setAttribute("inert", "");
+              this._inertElements.push(sibling);
+            }
+          });
+        }
+        current = parent;
+      }
+    }
+    /**
+     * Restores interactivity to elements that were made inert during fullscreen
+     */
+    _restoreBackgroundInteractivity() {
+      if (this._inertElements) {
+        this._inertElements.forEach((el) => {
+          el.removeAttribute("inert");
+        });
+        this._inertElements = [];
+      }
+    }
     _disablePseudoFullscreen() {
+      document.body.classList.remove("vidply-fullscreen-active");
+      this._restoreBackgroundInteractivity();
       if (this._originalBodyOverflow !== void 0) {
         document.body.style.overflow = this._originalBodyOverflow;
         delete this._originalBodyOverflow;
@@ -11784,6 +11823,14 @@
       if (this._originalHtmlOverflow !== void 0) {
         document.documentElement.style.overflow = this._originalHtmlOverflow;
         delete this._originalHtmlOverflow;
+      }
+      if (this._originalBodyBackground !== void 0) {
+        document.body.style.background = this._originalBodyBackground;
+        delete this._originalBodyBackground;
+      }
+      if (this._originalHtmlBackground !== void 0) {
+        document.documentElement.style.background = this._originalHtmlBackground;
+        delete this._originalHtmlBackground;
       }
       if (this._originalViewport !== void 0) {
         const viewport = document.querySelector('meta[name="viewport"]');
@@ -13804,8 +13851,12 @@
           this.state.fullscreen = isFullscreen;
           if (isFullscreen) {
             this.container.classList.add("".concat(this.options.classPrefix, "-fullscreen"));
+            document.body.classList.add("vidply-fullscreen-active");
+            this._makeBackgroundInert();
           } else {
             this.container.classList.remove("".concat(this.options.classPrefix, "-fullscreen"));
+            document.body.classList.remove("vidply-fullscreen-active");
+            this._restoreBackgroundInteractivity();
             this._disablePseudoFullscreen();
           }
           this.emit("fullscreenchange", isFullscreen);
