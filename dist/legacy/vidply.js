@@ -15221,7 +15221,16 @@
       playIcon.setAttribute("aria-hidden", "true");
       button.appendChild(playIcon);
       button.addEventListener("click", () => {
-        this.play(index, true);
+        const track2 = this.tracks[index];
+        const isExternalRenderer = this.isExternalRendererUrl(track2 == null ? void 0 : track2.src);
+        if (isExternalRenderer && this.player.state.fullscreen) {
+          this.player.exitFullscreen();
+          setTimeout(() => {
+            this.play(index, true);
+          }, 100);
+        } else {
+          this.play(index, true);
+        }
       });
       button.addEventListener("keydown", (e) => {
         this.handlePlaylistItemKeydown(e, index);
@@ -15241,7 +15250,18 @@
         case " ":
           e.preventDefault();
           e.stopPropagation();
-          this.play(index, true);
+          {
+            const track = this.tracks[index];
+            const isExternalRenderer = this.isExternalRendererUrl(track == null ? void 0 : track.src);
+            if (isExternalRenderer && this.player.state.fullscreen) {
+              this.player.exitFullscreen();
+              setTimeout(() => {
+                this.play(index, true);
+              }, 100);
+            } else {
+              this.play(index, true);
+            }
+          }
           return;
         // No need to move focus
         case "ArrowDown":
