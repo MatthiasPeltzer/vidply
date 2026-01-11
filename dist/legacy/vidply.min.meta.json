@@ -484,7 +484,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 57809,
+      "bytes": 58869,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -633,13 +633,13 @@
           "bytesInOutput": 20126
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 24958
+          "bytesInOutput": 25297
         },
         "src/index.js": {
           "bytesInOutput": 1877
         }
       },
-      "bytes": 363266
+      "bytes": 363605
     }
   }
 }

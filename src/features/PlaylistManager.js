@@ -1312,7 +1312,20 @@ export class PlaylistManager {
     
     // Click handler
     button.addEventListener('click', () => {
-      this.play(index, true); // User-initiated
+      const track = this.tracks[index];
+      const isExternalRenderer = this.isExternalRendererUrl(track?.src);
+      
+      // Exit fullscreen for external renderer tracks (YouTube, Vimeo, SoundCloud)
+      // These have their own native controls that work better outside vidply's fullscreen
+      if (isExternalRenderer && this.player.state.fullscreen) {
+        this.player.exitFullscreen();
+        // Small delay to let fullscreen exit before loading
+        setTimeout(() => {
+          this.play(index, true);
+        }, 100);
+      } else {
+        this.play(index, true); // User-initiated
+      }
     });
     
     // Keyboard handler
@@ -1339,7 +1352,20 @@ export class PlaylistManager {
       case ' ':
         e.preventDefault();
         e.stopPropagation();
-        this.play(index, true); // User-initiated
+        {
+          const track = this.tracks[index];
+          const isExternalRenderer = this.isExternalRendererUrl(track?.src);
+          
+          // Exit fullscreen for external renderer tracks (YouTube, Vimeo, SoundCloud)
+          if (isExternalRenderer && this.player.state.fullscreen) {
+            this.player.exitFullscreen();
+            setTimeout(() => {
+              this.play(index, true);
+            }, 100);
+          } else {
+            this.play(index, true); // User-initiated
+          }
+        }
         return; // No need to move focus
         
       case 'ArrowDown':
