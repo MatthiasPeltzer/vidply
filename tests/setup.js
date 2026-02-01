@@ -21,18 +21,24 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock ResizeObserver (not implemented in jsdom)
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+global.ResizeObserver = class ResizeObserver {
+  constructor(callback) {
+    this.callback = callback;
+  }
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
 
 // Mock IntersectionObserver (not implemented in jsdom)
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+global.IntersectionObserver = class IntersectionObserver {
+  constructor(callback) {
+    this.callback = callback;
+  }
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
 
 // Mock requestAnimationFrame
 global.requestAnimationFrame = vi.fn(cb => setTimeout(cb, 16));
