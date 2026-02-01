@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="VidPly full demo page showcasing video and audio player features including multi-language captions, audio descriptions, transcripts, sign language, and more.">
+  <title>VidPly - Universal Video Player Demo</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="stylesheet" href="../dist/vidply.css">
+  <link rel="modulepreload" href="../dist/prod/vidply.esm.min.js">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(135deg, #000000 0%, #444444 100%);
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      margin: 0 auto;
+      max-width: 1200px;
+    }
+
+    header {
+      color: #ffffff;
+      margin-bottom: 60px;
+      text-align: center;
+    }
+    
+    h1 {
+        align-items: center;
+        background: linear-gradient(135deg, #0a406e 0%, #6BA4EE 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        display: flex;
+        font-size: 56px;
+        gap: 12px;
+        justify-content: center;
+        margin-bottom: 20px;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    h1 a {
+        align-items: center;
+        background: linear-gradient(135deg, #0a406e 0%, #6BA4EE 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        display: flex;
+        font-size: 56px;
+        gap: 12px;
+        justify-content: center;
+        margin-bottom: 20px;
+        text-decoration: none;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 20px;
+      margin-bottom: 24px;
+      opacity: 0.9;
+    }
+
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      list-style: none;
+      margin-bottom: 40px;
+      padding: 0;
+    }
+
+    .feature-badge {
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      color: #ffffff;
+      font-size: 16px;
+      padding: 8px 16px;
+    }
+
+    nav {
+      margin-top: 24px;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      list-style: none;
+    }
+
+    .nav-link {
+      background: rgba(40, 167, 69, 0.95);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      color: #ffffff;
+      display: inline-block;
+      font-weight: 600;
+      padding: 12px 32px;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .nav-link:hover {
+      background: rgba(40, 167, 69, 1);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      transform: translateY(-2px);
+    }
+
+    .nav-link:focus {
+      outline: 3px solid white;
+      outline-offset: 4px;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    section {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      padding: 32px;
+    }
+
+    h2 {
+      color: #1a1a1a;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    section > p {
+      color: #000;
+      margin-bottom: 24px;
+    }
+
+    figure {
+      margin: 0 auto 24px;
+      max-width: 800px;
+    }
+
+    figcaption {
+      color: #555;
+      font-size: 14px;
+      font-style: italic;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .sr-only {
+      border: 0;
+      clip: rect(0, 0, 0, 0);
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+
+    details {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+
+    summary {
+      align-items: center;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      cursor: pointer;
+      display: flex;
+      font-weight: 600;
+      gap: 8px;
+      padding: 12px 20px;
+      transition: background 0.2s ease;
+      user-select: none;
+    }
+
+    summary:hover {
+      background: #e8e8e8;
+    }
+
+    summary:focus {
+      outline: 2px solid #0a406e;
+      outline-offset: -2px;
+    }
+
+    summary::before {
+      content: '▶';
+      display: inline-block;
+      font-size: 12px;
+      transition: transform 0.2s ease;
+    }
+
+    details[open] summary::before {
+      transform: rotate(90deg);
+    }
+
+    .code-block {
+      background: #1a1a1a;
+      border-radius: 0 0 8px 8px;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      overflow-x: auto;
+      padding: 20px;
+    }
+
+    .code-block pre {
+      margin: 0;
+    }
+
+    .feature-grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      list-style: none;
+      margin-top: 24px;
+    }
+
+    .feature-card {
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .feature-card h3 {
+      color: #495057;
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    .feature-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-card li {
+      border-bottom: 1px solid #e9ecef;
+      color: #000;
+      padding: 8px 0;
+    }
+
+    .feature-card li:last-child {
+      border-bottom: none;
+    }
+
+    .feature-card li::before {
+      color: #28a745;
+      content: "• ";
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    footer {
+      color: #ffffff;
+      margin-top: 60px;
+      opacity: 0.8;
+      text-align: center;
+    }
+
+    footer p {
+      color: #ffffff;
+      margin: 8px 0;
+    }
+
+    @media (max-width: 767px) {
+      h1 {
+        flex-direction: column;
+        font-size: 36px;
+        gap: 8px;
+      }
+      
+      h1 a {
+        font-size: 24px;
+      }
+
+      section {
+        padding: 20px;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      summary {
+        font-size: 14px;
+        padding: 10px 16px;
+      }
+
+      .code-block {
+        font-size: 14px;
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+        <h1>
+            <a href="index.html"><img src="../favicon.svg" width="48" height="48" alt="" aria-hidden="true"/> <span>VidPly Demo</span></a>
+        </h1>
+      <p class="subtitle">Universal, Accessible Video & Audio Player</p>
+      
+      <ul class="features" aria-label="Key features">
+        <li class="feature-badge">Vanilla ES6</li>
+        <li class="feature-badge">WCAG Compliant</li>
+        <li class="feature-badge">Responsive</li>
+        <li class="feature-badge">Multi-Language</li>
+        <li class="feature-badge">Captions</li>
+        <li class="feature-badge">Descriptions</li>
+      </ul>
+
+      <nav aria-label="Other demo pages">
+        <ul class="nav-links">
+          <li>
+            <a href="playlist-mixed.html" class="nav-link">Mixed Media Playlist</a>
+          </li>
+          <li>
+            <a href="playlist-audio.html" class="nav-link">Audio Playlist Demo</a>
+          </li>
+          <li>
+            <a href="playlist-video.html" class="nav-link">Video Playlist Demo</a>
+          </li>
+          <li>
+            <a href="hls-test.html" class="nav-link">HLS Streaming Test</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <!-- Video Demo 1: Deadline -->
+      <section aria-labelledby="demo-deadline">
+        <h2 id="demo-deadline">Video Demo – Multi-language Captions & Audio Description Tracks</h2>
+        <p>Deadline animation demo featuring six caption languages, matching description text tracks, and an audio description toggle so you can switch between the original and described video sources.</p>
+        
+        <figure>
+          <video 
+            id="deadline-video"
+            data-vidply
+            data-audio-description-button="true"
+            data-transcript-button="true"
+            width="800"
+            height="450"
+            poster="media/deadline_thumbnail.jpg"
+            preload="metadata"
+          >
+            <source src="media/deadline.mp4" type="video/mp4" data-desc-src="media/deadline_desc.mp4" data-orig-src="media/deadline.mp4">
+            <track kind="captions" src="media/deadline_captions_en.vtt" srclang="en" label="English" default>
+            <track kind="captions" src="media/deadline_captions_es.vtt" srclang="es" label="Español">
+            <track kind="captions" src="media/deadline_captions_it.vtt" srclang="it" label="Italiano">
+            <track kind="captions" src="media/deadline_captions_pt-br.vtt" srclang="pt-BR" label="Português (Brasil)">
+            <track kind="captions" src="media/deadline_captions_ar.vtt" srclang="ar" label="العربية">
+            <track kind="captions" src="media/deadline_captions_hi.vtt" srclang="hi" label="हिन्दी">
+            <track kind="descriptions" src="media/deadline_descriptions_en.vtt" srclang="en" label="English Descriptions">
+            <track kind="descriptions" src="media/deadline_descriptions_es.vtt" srclang="es" label="Español Descriptions">
+            <track kind="descriptions" src="media/deadline_descriptions_it.vtt" srclang="it" label="Italiano Descriptions">
+            <track kind="descriptions" src="media/deadline_descriptions_pt-br.vtt" srclang="pt-BR" label="Português (Brasil) Descriptions">
+            <track kind="descriptions" src="media/deadline_descriptions_ar.vtt" srclang="ar" label="العربية Descriptions">
+            <track kind="descriptions" src="media/deadline_descriptions_hi.vtt" srclang="hi" label="हिन्दी Descriptions">
+            Your browser does not support the video tag.
+          </video>
+          <figcaption>Deadline video with multiple caption and description tracks</figcaption>
+        </figure>
+
+        <details>
+          <summary>View HTML Code</summary>
+          <div class="code-block">
+            <pre><code class="language-html">&lt;video
+  data-vidply
+  data-audio-description-button=&quot;true&quot;
+  data-transcript-button=&quot;true&quot;
+  poster=&quot;media/deadline_thumbnail.jpg&quot;&gt;
+  &lt;source
+    src=&quot;media/deadline.mp4&quot;
+    type=&quot;video/mp4&quot;
+    data-desc-src=&quot;media/deadline_desc.mp4&quot;
+    data-orig-src=&quot;media/deadline.mp4&quot; /&gt;
+  &lt;track kind=&quot;captions&quot; src=&quot;media/deadline_captions_en.vtt&quot; srclang=&quot;en&quot; label=&quot;English&quot; default /&gt;
+  &lt;track kind=&quot;captions&quot; src=&quot;media/deadline_captions_es.vtt&quot; srclang=&quot;es&quot; label=&quot;Español&quot; /&gt;
+  &lt;track kind=&quot;captions&quot; src=&quot;media/deadline_captions_it.vtt&quot; srclang=&quot;it&quot; label=&quot;Italiano&quot; /&gt;
+  &lt;track kind=&quot;captions&quot; src=&quot;media/deadline_captions_pt-br.vtt&quot; srclang=&quot;pt-BR&quot; label=&quot;Português (Brasil)&quot; /&gt;
+  &lt;track kind=&quot;captions&quot; src=&quot;media/deadline_captions_ar.vtt&quot; srclang=&quot;ar&quot; label=&quot;العربية&quot; /&gt;
+  &lt;track kind=&quot;captions&quot; src=&quot;media/deadline_captions_hi.vtt&quot; srclang=&quot;hi&quot; label=&quot;हिन्दी&quot; /&gt;
+  &lt;track kind=&quot;descriptions&quot; src=&quot;media/deadline_descriptions_en.vtt&quot; srclang=&quot;en&quot; label=&quot;English Descriptions&quot; /&gt;
+  &lt;track kind=&quot;descriptions&quot; src=&quot;media/deadline_descriptions_es.vtt&quot; srclang=&quot;es&quot; label=&quot;Español Descripciones&quot; /&gt;
+  &lt;track kind=&quot;descriptions&quot; src=&quot;media/deadline_descriptions_it.vtt&quot; srclang=&quot;it&quot; label=&quot;Italiano Descrizioni&quot; /&gt;
+  &lt;track kind=&quot;descriptions&quot; src=&quot;media/deadline_descriptions_pt-br.vtt&quot; srclang=&quot;pt-BR&quot; label=&quot;Português (Brasil) Descrições&quot; /&gt;
+  &lt;track kind=&quot;descriptions&quot; src=&quot;media/deadline_descriptions_ar.vtt&quot; srclang=&quot;ar&quot; label=&quot;العربية وصف&quot; /&gt;
+  &lt;track kind=&quot;descriptions&quot; src=&quot;media/deadline_descriptions_hi.vtt&quot; srclang=&quot;hi&quot; label=&quot;हिन्दी विवरण&quot; /&gt;
+&lt;/video&gt;</code></pre>
+          </div>
+        </details>
+      </section>
+
+      <!-- Video Demo 2: WWA -->
+      <section aria-labelledby="demo-wwa">
+        <h2 id="demo-wwa">Video Demo – Metadata Alerts, Sign Language Overlay & Chapters</h2>
+        <p>Shows metadata-driven instruction alerts with automatic pause/focus, multi-language captions and chapters, full audio description support, plus an interactive sign language inset that can be repositioned and resized.</p>
+
+        <figure>
+          <video 
+            id="wwa-video"
+            data-vidply
+            data-sign-language-src-en="media/wwa_sign_en.mp4"
+            data-sign-language-src-de="media/wwa_sign_de.mp4"
+            data-sign-language-button="true"
+            data-sign-language-position="bottom-right"
+            data-audio-description-button="true"
+            data-transcript-button="true"
+            width="800"
+            height="450"
+            poster="media/wwa_hq_thumbnail.jpg"
+            preload="metadata"
+          >
+            <source src="media/wwa.mp4" type="video/mp4" data-desc-src="media/wwa_described.mp4" data-orig-src="media/wwa.mp4">
+            <source src="media/wwa.webm" type="video/webm" data-desc-src="media/wwa_described.webm" data-orig-src="media/wwa.webm">
+            <track kind="captions" src="media/wwa_captions_en.vtt" srclang="en" label="English" default>
+            <track kind="captions" src="media/wwa_captions_es.vtt" srclang="es" label="Español">
+            <track kind="captions" src="media/wwa_captions_fr.vtt" srclang="fr" label="Français">
+            <track kind="captions" src="media/wwa_captions_de.vtt" srclang="de" label="Deutsch">
+            <track kind="captions" src="media/wwa_captions_ja.vtt" srclang="ja" label="日本語">
+            <track kind="descriptions" src="media/wwa_description_en.vtt" srclang="en" label="English Descriptions">
+            <track kind="descriptions" src="media/wwa_description_es.vtt" srclang="es" label="Español Descripciones">
+            <track kind="descriptions" src="media/wwa_description_fr.vtt" srclang="fr" label="Français Descriptions">
+            <track kind="descriptions" src="media/wwa_description_de.vtt" srclang="de" label="Deutsch Beschreibungen">
+            <track kind="descriptions" src="media/wwa_description_ja.vtt" srclang="ja" label="日本語 説明">
+            <track kind="chapters" src="media/wwa_chapters_en.vtt" srclang="en" label="English Chapters">
+            <track kind="chapters" src="media/wwa_chapters_es.vtt" srclang="es" label="Español Capítulos">
+            <track kind="chapters" src="media/wwa_chapters_fr.vtt" srclang="fr" label="Français Chapitres">
+            <track kind="chapters" src="media/wwa_chapters_de.vtt" srclang="de" label="Deutsch Kapitel">
+            <track kind="chapters" src="media/wwa_chapters_ja.vtt" srclang="ja" label="日本語 チャプター">
+            Your browser does not support the video tag.
+          </video>
+          <figcaption>Working with Accessibility video with sign language overlay and chapters</figcaption>
+        </figure>
+
+        <details>
+          <summary>View HTML Code</summary>
+          <div class="code-block">
+            <pre><code class="language-html">&lt;video
+  data-vidply
+  data-sign-language-src-en=&quot;media/wwa_sign_en.mp4&quot;
+  data-sign-language-src-de=&quot;media/wwa_sign_de.mp4&quot;
+  data-sign-language-button=&quot;true&quot;
+  data-sign-language-position=&quot;bottom-right&quot;
+  data-audio-description-button=&quot;true&quot;
+  data-transcript-button=&quot;true&quot;
+  poster=&quot;media/wwa_hq_thumbnail.jpg&quot;&gt;
+  &lt;source src=&quot;media/wwa.mp4&quot; type=&quot;video/mp4&quot; data-desc-src=&quot;media/wwa_described.mp4&quot; data-orig-src=&quot;media/wwa.mp4&quot; /&gt;
+  &lt;source src=&quot;media/wwa.webm&quot; type=&quot;video/webm&quot; data-desc-src=&quot;media/wwa_described.webm&quot; data-orig-src=&quot;media/wwa.webm&quot; /&gt;
+  &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_en.vtt&quot; srclang=&quot;en&quot; label=&quot;English&quot; default /&gt;
+  &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_es.vtt&quot; srclang=&quot;es&quot; label=&quot;Español&quot; /&gt;
+  &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_fr.vtt&quot; srclang=&quot;fr&quot; label=&quot;Français&quot; /&gt;
+  &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_de.vtt&quot; srclang=&quot;de&quot; label=&quot;Deutsch&quot; /&gt;
+  &lt;track kind=&quot;captions&quot; src=&quot;media/wwa_captions_ja.vtt&quot; srclang=&quot;ja&quot; label=&quot;日本語&quot; /&gt;
+  &lt;track kind=&quot;chapters&quot; src=&quot;media/wwa_chapters_en.vtt&quot; srclang=&quot;en&quot; label=&quot;English Chapters&quot; /&gt;
+  &lt;track kind=&quot;chapters&quot; src=&quot;media/wwa_chapters_es.vtt&quot; srclang=&quot;es&quot; label=&quot;Español Capítulos&quot; /&gt;
+  &lt;track kind=&quot;chapters&quot; src=&quot;media/wwa_chapters_fr.vtt&quot; srclang=&quot;fr&quot; label=&quot;Français Chapitres&quot; /&gt;
+  &lt;track kind=&quot;chapters&quot; src=&quot;media/wwa_chapters_de.vtt&quot; srclang=&quot;de&quot; label=&quot;Deutsch Kapitel&quot; /&gt;
+  &lt;track kind=&quot;chapters&quot; src=&quot;media/wwa_chapters_ja.vtt&quot; srclang=&quot;ja&quot; label=&quot;日本語 チャプター&quot; /&gt;
+  &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_en.vtt&quot; srclang=&quot;en&quot; label=&quot;English Descriptions&quot; /&gt;
+  &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_es.vtt&quot; srclang=&quot;es&quot; label=&quot;Español Descripciones&quot; /&gt;
+  &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_fr.vtt&quot; srclang=&quot;fr&quot; label=&quot;Français Descriptions&quot; /&gt;
+  &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_de.vtt&quot; srclang=&quot;de&quot; label=&quot;Deutsch Beschreibungen&quot; /&gt;
+  &lt;track kind=&quot;descriptions&quot; src=&quot;media/wwa_description_ja.vtt&quot; srclang=&quot;ja&quot; label=&quot;日本語 説明&quot; /&gt;
+  &lt;track kind=&quot;metadata&quot; src=&quot;media/wwa_meta.vtt&quot; srclang=&quot;en&quot; /&gt;
+&lt;/video&gt;</code></pre>
+          </div>
+        </details>
+      </section>
+
+      <!-- Video Demo 3: IT Accessibility -->
+      <section aria-labelledby="demo-itaccess">
+        <h2 id="demo-itaccess">Video Demo – IT Accessibility Source Swap</h2>
+        <p>IT Accessibility excerpt illustrating how data-desc-src swaps the media and related caption/chapter tracks to deliver a fully described playback while keeping bilingual subtitles available.</p>
+        
+        <figure>
+          <video
+            id="itaccess-video"
+            data-vidply
+            data-audio-description-button="true"
+            data-transcript-button="true"
+            width="800"
+            height="450"
+            poster="media/itaccess.jpg"
+            preload="metadata"
+          >
+            <source src="media/itaccess_excerpt.mp4" type="video/mp4" data-desc-src="media/itaccess_excerpt_described.mp4" data-orig-src="media/itaccess_excerpt.mp4">
+            <track kind="captions" src="media/itaccess_excerpt_captions_en.vtt" data-desc-src="media/itaccess_excerpt_described_captions_en.vtt" srclang="en" label="English" default>
+            <track kind="descriptions" src="media/itaccess_excerpt_descriptions_en.vtt" data-desc-src="media/itaccess_excerpt_described_descriptions_en.vtt" srclang="en" label="English Descriptions">
+            <track kind="chapters" src="media/itaccess_excerpt_chapters_en.vtt" data-desc-src="media/itaccess_excerpt_described_chapters_en.vtt" srclang="en" label="English Chapters">
+            Your browser does not support the video tag.
+          </video>
+          <figcaption>IT Accessibility video with audio description source swapping</figcaption>
+        </figure>
+
+        <details>
+          <summary>View HTML Code</summary>
+          <div class="code-block">
+            <pre><code class="language-html">&lt;video
+  data-vidply
+  data-audio-description-button=&quot;true&quot;
+  data-transcript-button=&quot;true&quot;
+  poster=&quot;media/itaccess.jpg&quot;&gt;
+  &lt;source
+    src=&quot;media/itaccess_excerpt.mp4&quot;
+    type=&quot;video/mp4&quot;
+    data-desc-src=&quot;media/itaccess_excerpt_described.mp4&quot;
+    data-orig-src=&quot;media/itaccess_excerpt.mp4&quot; /&gt;
+  &lt;track
+    kind=&quot;captions&quot;
+    src=&quot;media/itaccess_excerpt_captions_en.vtt&quot;
+    data-desc-src=&quot;media/itaccess_excerpt_described_captions_en.vtt&quot;
+    srclang=&quot;en&quot;
+    label=&quot;English&quot;
+    default /&gt;
+  &lt;track kind=&quot;subtitles&quot; src=&quot;media/itaccess_excerpt_subtitles_es.vtt&quot; srclang=&quot;es&quot; label=&quot;Español&quot; /&gt;
+  &lt;track
+    kind=&quot;chapters&quot;
+    src=&quot;media/itaccess_excerpt_chapters_en.vtt&quot;
+    data-desc-src=&quot;media/itaccess_excerpt_described_chapters_en.vtt&quot;
+    srclang=&quot;en&quot;
+    label=&quot;Chapters&quot; /&gt;
+&lt;/video&gt;</code></pre>
+          </div>
+        </details>
+      </section>
+
+      <!-- Audio Demo 1: French Song -->
+      <section aria-labelledby="demo-frenchsong">
+        <h2 id="demo-frenchsong">Audio Player - French Song</h2>
+        <p>Music player showcasing time-synced captions in English and French alongside chapter cues so vocals and verses stay accessible for screen reader and keyboard users.</p>
+        
+        <figure>
+          <audio 
+            id="frenchsong-audio"
+            data-vidply
+            data-vidply-options='{"controls": true}'
+          >
+            <source src="media/frenchsong.mp3" type="audio/mpeg">
+            <source src="media/frenchsong.ogg" type="audio/ogg">
+            <track kind="captions" src="media/frenchsong_captions_en.vtt" srclang="en" label="English" default>
+            <track kind="captions" src="media/frenchsong_captions_fr.vtt" srclang="fr" label="Français">
+            <track kind="chapters" src="media/frenchsong_chapters_en.vtt" srclang="en" label="Chapters">
+            Your browser does not support the audio tag.
+          </audio>
+          <figcaption>French song with bilingual captions and chapter markers</figcaption>
+        </figure>
+
+        <details>
+          <summary>View HTML Code</summary>
+          <div class="code-block">
+            <pre><code class="language-html">&lt;audio data-vidply data-vidply-options='{"controls": true}'&gt;
+  &lt;source src=&quot;media/frenchsong.mp3&quot; type=&quot;audio/mpeg&quot; /&gt;
+  &lt;source src=&quot;media/frenchsong.ogg&quot; type=&quot;audio/ogg&quot; /&gt;
+  &lt;track kind=&quot;captions&quot; src=&quot;media/frenchsong_captions_en.vtt&quot; srclang=&quot;en&quot; label=&quot;English&quot; default /&gt;
+  &lt;track kind=&quot;captions&quot; src=&quot;media/frenchsong_captions_fr.vtt&quot; srclang=&quot;fr&quot; label=&quot;Français&quot; /&gt;
+  &lt;track kind=&quot;chapters&quot; src=&quot;media/frenchsong_chapters_en.vtt&quot; srclang=&quot;en&quot; label=&quot;Chapters&quot; /&gt;
+&lt;/audio&gt;</code></pre>
+          </div>
+        </details>
+      </section>
+
+      <!-- Audio Demo 2: Paul Allen Interview -->
+      <section aria-labelledby="demo-paulallen">
+        <h2 id="demo-paulallen">Audio Player - Paul Allen Interview</h2>
+        <p>Bilingual interview example with English and German caption tracks and a metadata file that can drive interactive cue-based callouts.</p>
+        
+        <figure>
+          <audio 
+            id="paulallen-audio"
+            data-vidply
+          >
+            <source src="media/paulallen.mp3" type="audio/mpeg">
+            <source src="media/paulallen.ogg" type="audio/ogg">
+            <track kind="captions" src="media/paulallen_en.vtt" srclang="en" label="English" default>
+            <track kind="captions" src="media/paulallen_de.vtt" srclang="de" label="Deutsch">
+            <track kind="metadata" src="media/paulallen_meta.vtt" label="Metadata">
+            Your browser does not support the audio tag.
+          </audio>
+          <figcaption>Paul Allen interview with bilingual captions and metadata</figcaption>
+        </figure>
+      </section>
+
+      <!-- Audio Demo 3: Everyday Life -->
+      <section aria-labelledby="demo-everyday">
+        <h2 id="demo-everyday">Audio Player - Simple Audio</h2>
+        <p>Lightweight audio player demonstrating straightforward MP3/OGG playback with VidPly defaults.</p>
+        
+        <figure>
+          <audio 
+            id="everyday-audio"
+            data-vidply
+            data-vidply-options='{"speedButton": false}'
+          >
+            <source src="media/everyday.mp3" type="audio/mpeg">
+            <source src="media/everyday.ogg" type="audio/ogg">
+            Your browser does not support the audio tag.
+          </audio>
+          <figcaption>Simple audio playback without additional features</figcaption>
+        </figure>
+      </section>
+
+      <!-- Features Overview -->
+      <section aria-labelledby="features-overview">
+        <h2 id="features-overview">Feature Overview</h2>
+        <p>VidPly blends modern playback controls, accessibility tooling, text track innovations, and playlist utilities into a single vanilla JS solution.</p>
+
+        <ul class="feature-grid">
+          <li class="feature-card">
+            <h3>Core Features</h3>
+            <ul>
+              <li>Play/Pause/Stop</li>
+              <li>Progress Scrubbing</li>
+              <li>Volume Control</li>
+              <li>Playback Speed (0.25x-2x)</li>
+              <li>Fullscreen Mode</li>
+              <li>Picture-in-Picture</li>
+              <li>Seek Forward/Backward</li>
+              <li>Responsive Design</li>
+              <li>Mobile Optimized</li>
+            </ul>
+          </li>
+
+          <li class="feature-card">
+            <h3>Accessibility</h3>
+            <ul>
+              <li>Full Keyboard Navigation</li>
+              <li>Screen Reader Support</li>
+              <li>Sign Language Video</li>
+              <li>Audio Descriptions</li>
+              <li>ARIA Labels</li>
+              <li>High Contrast Mode</li>
+              <li>WCAG 2.1 AA Compliant</li>
+            </ul>
+          </li>
+
+          <li class="feature-card">
+            <h3>Captions & Text</h3>
+            <ul>
+              <li>WebVTT Support</li>
+              <li>Multiple Languages</li>
+              <li>Customizable Styling</li>
+              <li>Font Size/Family</li>
+              <li>Color Options</li>
+              <li>Background Opacity</li>
+              <li>Chapters & Descriptions</li>
+              <li>Interactive Transcript</li>
+              <li>Draggable & Resizable Windows</li>
+            </ul>
+          </li>
+
+          <li class="feature-card">
+            <h3>Formats</h3>
+            <ul>
+              <li>MP4 Video</li>
+              <li>WebM Video</li>
+              <li>MP3 Audio</li>
+              <li>OGG Audio/Video</li>
+              <li>HLS Streaming (.m3u8)</li>
+              <li>YouTube Videos</li>
+              <li>Vimeo Videos</li>
+            </ul>
+          </li>
+
+          <li class="feature-card">
+            <h3>Keyboard Shortcuts</h3>
+            <ul>
+              <li>Space/P/K - Play/Pause</li>
+              <li>F - Fullscreen</li>
+              <li>M - Mute/Unmute</li>
+              <li>↑/↓ - Volume Up/Down</li>
+              <li>←/→ - Seek 10s</li>
+              <li>J/L - Seek 30s</li>
+              <li>C - Toggle Captions</li>
+              <li>T - Toggle Transcript</li>
+              <li>S - Speed Menu</li>
+              <li>Q - Quality Menu (HLS)</li>
+              <li>D - Drag Mode</li>
+              <li>R - Resize Mode</li>
+              <li>Home - Reset Position</li>
+            </ul>
+          </li>
+
+          <li class="feature-card">
+            <h3>i18n Support</h3>
+            <ul>
+              <li>English</li>
+              <li>Spanish</li>
+              <li>French</li>
+              <li>German</li>
+              <li>Japanese</li>
+              <li>Custom Languages</li>
+              <li>Easy Translation</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <!-- JavaScript API -->
+      <section aria-labelledby="javascript-api">
+          <details>
+              <summary>JavaScript API</summary>
+              <div class="code-block">
+                  <p>Control players programmatically with a simple, intuitive API.</p>
+            <pre><code class="language-javascript">// Import from built version
+import Player from '../dist/vidply.esm.js';
+
+// Or from source
+// import Player from '../src/index.js';
+
+// Create a new player instance
+const player = new Player('#my-video', {
+  controls: true,
+  autoplay: false,
+  loop: false,
+  volume: 0.8,
+  captions: true,
+  captionsDefault: true,
+  keyboard: true,
+  responsive: true,
+  language: 'en'
+});
+
+// Control playback
+player.play();
+player.pause();
+player.seek(30);
+
+// Volume control
+player.setVolume(0.5);
+player.mute();
+
+// Speed control
+player.setPlaybackSpeed(1.5);
+
+// Fullscreen
+player.enterFullscreen();
+
+// Captions
+player.enableCaptions();
+
+// Event listeners
+player.on('play', () => console.log('Playing!'));
+player.on('pause', () => console.log('Paused!'));
+player.on('timeupdate', (time) => console.log('Time:', time));
+player.on('ended', () => console.log('Video ended!'));
+
+// Cleanup
+player.destroy();</code></pre>
+              </div>
+          </details>
+      </section>
+
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 VidPly - Built with Vanilla JavaScript</p>
+      <p>Released under GPL-2.0-or-later License</p>
+    </footer>
+  </div>
+
+  <script type="module">
+    import Player from '../src/index.js';
+
+    // Log player initialization
+    console.log('VidPly Demo Page Loaded');
+    console.log('Players auto-initialize via data-vidply attributes');
+    window.addEventListener('load', () => {
+      console.log('All players initialized');
+    });
+  </script>
+</body>
+
+</html>
