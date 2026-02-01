@@ -16,7 +16,15 @@
     "build:js": "node build/build.js",
     "build:css": "node build/build-css.js",
     "watch": "node build/watch.js",
-    "clean": "node build/clean.js"
+    "clean": "node build/clean.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:all": "vitest run && playwright test"
   },
   "keywords": [
     "video",
@@ -50,7 +58,11 @@
     "access": "public"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.1",
+    "@vitest/coverage-v8": "^4.0.18",
     "clean-css": "^5.3.3",
-    "esbuild": "^0.27.2"
+    "esbuild": "^0.27.2",
+    "jsdom": "^27.4.0",
+    "vitest": "^4.0.18"
   }
 }
