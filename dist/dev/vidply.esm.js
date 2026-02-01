@@ -5,7 +5,7 @@
  */
 import {
   HTML5Renderer
-} from "./vidply.chunk-IIN4G4UQ.js";
+} from "./vidply.chunk-6A7APLCL.js";
 import {
   DOMUtils,
   DraggableResizable,
@@ -21,7 +21,7 @@ import {
   focusFirstMenuItem,
   i18n,
   preventDragOnElement
-} from "./vidply.chunk-AXXU22HR.js";
+} from "./vidply.chunk-LD3OELXW.js";
 
 // src/utils/EventEmitter.js
 var EventEmitter = class {
@@ -699,11 +699,21 @@ var ControlBar = class {
       this.rightButtons.appendChild(btn);
     }
     const hasSignLanguage = this.hasSignLanguage();
-    if (this.player.options.signLanguageButton && hasSignLanguage) {
-      const btn = this.createSignLanguageButton();
-      btn.dataset.overflowPriority = "3";
-      btn.dataset.overflowPriorityMobile = "3";
-      this.rightButtons.appendChild(btn);
+    const showSignLanguageButtons = this.player.options.signLanguageButton !== false && hasSignLanguage;
+    const signLanguageDisplayMode = this.player.options.signLanguageDisplayMode || "both";
+    if (showSignLanguageButtons) {
+      if (["pip", "both"].includes(signLanguageDisplayMode)) {
+        const pipBtn = this.createSignLanguageButton();
+        pipBtn.dataset.overflowPriority = "3";
+        pipBtn.dataset.overflowPriorityMobile = "3";
+        this.rightButtons.appendChild(pipBtn);
+      }
+      if (["main", "both"].includes(signLanguageDisplayMode)) {
+        const mainViewBtn = this.createSignLanguageInMainViewButton();
+        mainViewBtn.dataset.overflowPriority = "3";
+        mainViewBtn.dataset.overflowPriorityMobile = "3";
+        this.rightButtons.appendChild(mainViewBtn);
+      }
     }
     if (this.player.options.qualityButton && hasQualityLevels) {
       const btn = this.createQualityButton();
@@ -2217,7 +2227,7 @@ var ControlBar = class {
         "aria-expanded": "false"
       }
     });
-    button.appendChild(createIconElement("signLanguage"));
+    button.appendChild(createIconElement("signLanguagePip"));
     DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
     button.addEventListener("click", () => {
       this.player.toggleSignLanguage();
@@ -2230,12 +2240,50 @@ var ControlBar = class {
     if (!this.controls.signLanguage) return;
     const icon = this.controls.signLanguage.querySelector(".vidply-icon");
     const isEnabled = this.player.state.signLanguageEnabled;
-    icon.innerHTML = isEnabled ? createIconElement("signLanguageOn").innerHTML : createIconElement("signLanguage").innerHTML;
+    icon.innerHTML = isEnabled ? createIconElement("signLanguagePipOn").innerHTML : createIconElement("signLanguagePip").innerHTML;
     this.controls.signLanguage.setAttribute("aria-expanded", isEnabled ? "true" : "false");
     this.controls.signLanguage.setAttribute(
       "aria-label",
       isEnabled ? i18n.t("signLanguage.hide") : i18n.t("signLanguage.show")
     );
+  }
+  /**
+   * Create sign language in main view button (src swap, like audio description)
+   */
+  createSignLanguageInMainViewButton() {
+    const ariaLabel = i18n.t("signLanguage.showInMainView");
+    const button = DOMUtils.createElement("button", {
+      className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-sign-language-main-view`,
+      attributes: {
+        "type": "button",
+        "aria-label": ariaLabel,
+        "aria-pressed": "false"
+      }
+    });
+    button.appendChild(createIconElement("signLanguage"));
+    DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
+    button.addEventListener("click", () => {
+      if (this.player.signLanguageManager) {
+        this.player.signLanguageManager.toggleInMainView();
+      }
+    });
+    this.controls.signLanguageMainView = button;
+    return button;
+  }
+  /**
+   * Update sign language in main view button state
+   */
+  updateSignLanguageInMainViewButton() {
+    const btn = this.controls.signLanguageMainView;
+    if (!btn) return;
+    const isEnabled = this.player.state.signLanguageInMainView;
+    const newLabel = isEnabled ? i18n.t("signLanguage.hideInMainView") : i18n.t("signLanguage.showInMainView");
+    const iconName = isEnabled ? "signLanguageOn" : "signLanguage";
+    btn.querySelector(".vidply-icon").innerHTML = createIconElement(iconName).innerHTML;
+    btn.setAttribute("aria-pressed", String(isEnabled));
+    btn.setAttribute("aria-label", newLabel);
+    const tooltip = btn.querySelector(`.${this.player.options.classPrefix}-tooltip`);
+    if (tooltip) tooltip.textContent = newLabel;
   }
   /**
    * Update accessibility buttons visibility based on current track data.
@@ -2267,28 +2315,53 @@ var ControlBar = class {
         this.controls.audioDescription.style.display = "none";
       }
     }
-    if (hasSignLanguage) {
-      if (!this.controls.signLanguage && this.player.options.signLanguageButton !== false) {
+    const showSignLanguage = hasSignLanguage && this.player.options.signLanguageButton !== false;
+    const classPrefix = this.player.options.classPrefix;
+    const displayMode = this.player.options.signLanguageDisplayMode || "both";
+    const showPip = ["pip", "both"].includes(displayMode);
+    const showMain = ["main", "both"].includes(displayMode);
+    if (showSignLanguage) {
+      const qualityBtn = this.rightButtons.querySelector(`.${classPrefix}-quality`);
+      const fullscreenBtn = this.rightButtons.querySelector(`.${classPrefix}-fullscreen`);
+      const insertBeforeRef = qualityBtn || fullscreenBtn || null;
+      let needsOverflowSetup = false;
+      if (showPip && !this.controls.signLanguage) {
         const btn = this.createSignLanguageButton();
         btn.dataset.overflowPriority = "3";
         btn.dataset.overflowPriorityMobile = "3";
-        const qualityBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-quality`);
-        const fullscreenBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-fullscreen`);
-        const insertBefore = qualityBtn || fullscreenBtn || null;
-        if (insertBefore) {
-          this.rightButtons.insertBefore(btn, insertBefore);
+        if (insertBeforeRef) {
+          this.rightButtons.insertBefore(btn, insertBeforeRef);
         } else {
           this.rightButtons.appendChild(btn);
         }
+        needsOverflowSetup = true;
+      }
+      if (showMain && !this.controls.signLanguageMainView) {
+        const btn = this.createSignLanguageInMainViewButton();
+        btn.dataset.overflowPriority = "3";
+        btn.dataset.overflowPriorityMobile = "3";
+        const afterPip = this.controls.signLanguage?.nextSibling;
+        if (afterPip) {
+          this.rightButtons.insertBefore(btn, afterPip);
+        } else if (insertBeforeRef) {
+          this.rightButtons.insertBefore(btn, insertBeforeRef);
+        } else {
+          this.rightButtons.appendChild(btn);
+        }
+        needsOverflowSetup = true;
+      }
+      if (needsOverflowSetup) {
         this.setupOverflowMenu();
       }
       if (this.controls.signLanguage) {
-        this.controls.signLanguage.style.display = "";
+        this.controls.signLanguage.style.display = showPip ? "" : "none";
+      }
+      if (this.controls.signLanguageMainView) {
+        this.controls.signLanguageMainView.style.display = showMain ? "" : "none";
       }
     } else {
-      if (this.controls.signLanguage) {
-        this.controls.signLanguage.style.display = "none";
-      }
+      if (this.controls.signLanguage) this.controls.signLanguage.style.display = "none";
+      if (this.controls.signLanguageMainView) this.controls.signLanguageMainView.style.display = "none";
     }
   }
   createSettingsButton() {
@@ -2357,6 +2430,8 @@ var ControlBar = class {
     this.player.on("audiodescriptiondisabled", () => this.updateAudioDescriptionButton());
     this.player.on("signlanguageenabled", () => this.updateSignLanguageButton());
     this.player.on("signlanguagedisabled", () => this.updateSignLanguageButton());
+    this.player.on("signlanguageinmainviewenabled", () => this.updateSignLanguageInMainViewButton());
+    this.player.on("signlanguageinmainviewdisabled", () => this.updateSignLanguageInMainViewButton());
     this.player.on("qualitychange", () => this.updateQualityIndicator());
     this.player.on("hlslevelswitched", () => this.updateQualityIndicator());
     this.player.on("hlsmanifestparsed", () => {
@@ -3965,6 +4040,11 @@ var SignLanguageManager = class {
     this.settingsMenu = null;
     this.resizeHandles = [];
     this.enabled = false;
+    this.inMainView = false;
+    this.mainViewOriginalSrc = null;
+    this.mainViewOriginalSources = null;
+    this._mainViewUsingSourceSwap = false;
+    this._mainViewMutedBefore = false;
     this.settingsMenuVisible = false;
     this.settingsMenuJustOpened = false;
     this.documentClickHandlerAdded = false;
@@ -4069,22 +4149,245 @@ var SignLanguageManager = class {
     }
   }
   /**
+   * Enable sign language in main view: replace main video src with sign language URL (like audio description).
+   * Same video element, different URL; no overlay.
+   */
+  async enableInMainView() {
+    const hasMultipleSources = Object.keys(this.sources).length > 0;
+    const hasSingleSource = !!this.src;
+    if (!hasMultipleSources && !hasSingleSource) return;
+    if (!this.player.element || this.player.element.tagName !== "VIDEO") return;
+    if (this.inMainView) return;
+    let signSrc;
+    if (hasMultipleSources) {
+      const initialLang = this._determineInitialLanguage();
+      this.currentLanguage = initialLang;
+      signSrc = this.sources[initialLang];
+    } else {
+      signSrc = this.src;
+    }
+    const el = this.player.element;
+    const currentTime = this.player.state.currentTime;
+    const wasPlaying = this.player.state.playing;
+    const posterValue = el.poster || el.getAttribute("poster") || this.player.options.poster;
+    const shouldKeepPoster = currentTime < 0.1 && !wasPlaying;
+    const sourceElements = Array.from(el.querySelectorAll("source"));
+    const firstSource = sourceElements[0];
+    this.mainViewOriginalSrc = el.currentSrc && el.currentSrc.length > 0 ? el.currentSrc : el.src && el.src.length > 0 ? el.src : firstSource && firstSource.getAttribute("src") ? firstSource.getAttribute("src") : "";
+    this._mainViewMutedBefore = this.player.state.muted;
+    if (posterValue && shouldKeepPoster && el.tagName === "VIDEO") {
+      el.poster = posterValue;
+    }
+    if (sourceElements.length > 0) {
+      this.mainViewOriginalSources = sourceElements;
+      this.mainViewOriginalSources.forEach((source) => source.remove());
+      const signSource = document.createElement("source");
+      signSource.setAttribute("src", signSrc);
+      const type = this._inferVideoType(signSrc);
+      if (type) {
+        signSource.setAttribute("type", type);
+      }
+      const trackNode = el.querySelector("track");
+      if (trackNode) {
+        el.insertBefore(signSource, trackNode);
+      } else {
+        el.appendChild(signSource);
+      }
+      this._mainViewUsingSourceSwap = true;
+    } else {
+      el.src = signSrc;
+      this._mainViewUsingSourceSwap = false;
+    }
+    el.muted = true;
+    this.player.currentSource = signSrc;
+    if (typeof this.player.invalidateTrackCache === "function") {
+      this.player.invalidateTrackCache();
+    }
+    el.load();
+    await this._waitForMediaReadyMainView(currentTime > 0 || wasPlaying);
+    if (currentTime > 0) {
+      this.player.seek(currentTime);
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    if (wasPlaying) {
+      await this.player.play();
+    } else {
+      this.player.pause();
+      if (!shouldKeepPoster && this.player.hidePosterOverlay) {
+        this.player.hidePosterOverlay();
+      }
+    }
+    this.inMainView = true;
+    this.player.state.signLanguageInMainView = true;
+    if (this.player.videoWrapper) {
+      this.player.videoWrapper.classList.add("vidply-sign-language-main-view-active");
+    }
+    this.player.emit("signlanguageinmainviewenabled");
+  }
+  /**
+   * Disable sign language in main view: restore main video src.
+   */
+  async disableInMainView() {
+    if (!this.inMainView) return;
+    if (!this.mainViewOriginalSrc && !this.mainViewOriginalSources) {
+      this.inMainView = false;
+      this.player.state.signLanguageInMainView = false;
+      if (this.player.videoWrapper) {
+        this.player.videoWrapper.classList.remove("vidply-sign-language-main-view-active");
+      }
+      this.player.emit("signlanguageinmainviewdisabled");
+      return;
+    }
+    const el = this.player.element;
+    const currentTime = this.player.state.currentTime;
+    const wasPlaying = this.player.state.playing;
+    const posterValue = el.poster || el.getAttribute("poster") || this.player.options.poster;
+    if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
+      Array.from(el.querySelectorAll("source")).forEach((source) => source.remove());
+      const trackNode = el.querySelector("track");
+      this.mainViewOriginalSources.forEach((source) => {
+        if (trackNode) {
+          el.insertBefore(source, trackNode);
+        } else {
+          el.appendChild(source);
+        }
+      });
+      this._mainViewUsingSourceSwap = false;
+    } else if (this.mainViewOriginalSrc) {
+      el.src = this.mainViewOriginalSrc;
+    }
+    el.muted = this._mainViewMutedBefore;
+    this.player.currentSource = this.mainViewOriginalSrc || el.querySelector("source") && el.querySelector("source").src || "";
+    if (typeof this.player.invalidateTrackCache === "function") {
+      this.player.invalidateTrackCache();
+    }
+    el.load();
+    await this._waitForMediaReadyMainView(currentTime > 0 || wasPlaying);
+    if (currentTime > 0) {
+      this.player.seek(currentTime);
+    }
+    if (wasPlaying) {
+      try {
+        await this.player.play();
+      } catch (e) {
+        this.player.log?.("Sign language main view: play after restore failed", e, "warn");
+      }
+    }
+    this.mainViewOriginalSrc = null;
+    this.mainViewOriginalSources = null;
+    this.inMainView = false;
+    this.player.state.signLanguageInMainView = false;
+    if (this.player.videoWrapper) {
+      this.player.videoWrapper.classList.remove("vidply-sign-language-main-view-active");
+    }
+    this.player.emit("signlanguageinmainviewdisabled");
+  }
+  /**
+   * Wait for media ready (like AudioDescriptionManager).
+   */
+  async _waitForMediaReadyMainView(needSeek = false) {
+    const el = this.player.element;
+    const loadedMetaPromise = new Promise((resolve) => {
+      if (el.readyState >= 1) {
+        resolve();
+        return;
+      }
+      const onLoad = () => {
+        el.removeEventListener("loadedmetadata", onLoad);
+        el.removeEventListener("error", onError);
+        resolve();
+      };
+      const onError = () => {
+        el.removeEventListener("loadedmetadata", onLoad);
+        el.removeEventListener("error", onError);
+        resolve();
+      };
+      el.addEventListener("loadedmetadata", onLoad);
+      el.addEventListener("error", onError, { once: true });
+    });
+    const timeoutPromise = new Promise((r) => setTimeout(r, 1e4));
+    await Promise.race([loadedMetaPromise, timeoutPromise]);
+    await new Promise((r) => setTimeout(r, 300));
+    if (needSeek) {
+      await new Promise((resolve) => {
+        if (el.readyState >= 3) resolve();
+        else {
+          const onCanPlay = () => {
+            el.removeEventListener("canplay", onCanPlay);
+            el.removeEventListener("canplaythrough", onCanPlay);
+            resolve();
+          };
+          el.addEventListener("canplay", onCanPlay, { once: true });
+          el.addEventListener("canplaythrough", onCanPlay, { once: true });
+          setTimeout(() => {
+            el.removeEventListener("canplay", onCanPlay);
+            el.removeEventListener("canplaythrough", onCanPlay);
+            resolve();
+          }, 3e3);
+        }
+      });
+    }
+  }
+  /**
+   * Toggle sign language in main view (src swap, like audio description).
+   */
+  toggleInMainView() {
+    if (this.inMainView) {
+      this.disableInMainView();
+    } else {
+      this.enableInMainView();
+    }
+  }
+  /**
    * Switch to a different sign language
    */
   switchLanguage(langCode) {
-    if (!this.sources[langCode] || !this.video) {
-      return;
-    }
-    const currentTime = this.video.currentTime;
-    const wasPlaying = !this.video.paused;
-    this.video.src = this.sources[langCode];
+    if (!this.sources[langCode]) return;
     this.currentLanguage = langCode;
-    this.video.currentTime = currentTime;
-    if (wasPlaying) {
-      this.video.play().catch(() => {
+    if (this.video) {
+      const currentTime = this.video.currentTime;
+      const wasPlaying = !this.video.paused;
+      this.video.src = this.sources[langCode];
+      this.video.currentTime = currentTime;
+      if (wasPlaying) {
+        this.video.play().catch(() => {
+        });
+      }
+    }
+    if (this.inMainView && this.player.element && this.player.element.tagName === "VIDEO") {
+      const currentTime = this.player.state.currentTime;
+      const wasPlaying = this.player.state.playing;
+      if (this._mainViewUsingSourceSwap) {
+        const signSource = this.player.element.querySelector("source");
+        if (signSource) {
+          signSource.setAttribute("src", this.sources[langCode]);
+          const type = this._inferVideoType(this.sources[langCode]);
+          if (type) {
+            signSource.setAttribute("type", type);
+          }
+        }
+      } else {
+        this.player.element.src = this.sources[langCode];
+      }
+      this.player.currentSource = this.sources[langCode];
+      if (typeof this.player.invalidateTrackCache === "function") {
+        this.player.invalidateTrackCache();
+      }
+      this.player.element.load();
+      this._waitForMediaReadyMainView(true).then(() => {
+        if (currentTime > 0) this.player.seek(currentTime);
+        if (wasPlaying) this.player.play();
       });
     }
     this.player.emit("signlanguagelanguagechanged", langCode);
+  }
+  _inferVideoType(url) {
+    if (!url) return "";
+    const cleanUrl = url.split("?")[0].toLowerCase();
+    if (cleanUrl.endsWith(".mp4")) return "video/mp4";
+    if (cleanUrl.endsWith(".webm")) return "video/webm";
+    if (cleanUrl.endsWith(".ogv") || cleanUrl.endsWith(".ogg")) return "video/ogg";
+    return "";
   }
   /**
    * Get language label
@@ -4823,6 +5126,36 @@ var SignLanguageManager = class {
    * Cleanup
    */
   cleanup() {
+    if (this.inMainView && this.player.element) {
+      const el = this.player.element;
+      if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
+        Array.from(el.querySelectorAll("source")).forEach((source) => source.remove());
+        const trackNode = el.querySelector("track");
+        this.mainViewOriginalSources.forEach((source) => {
+          if (trackNode) {
+            el.insertBefore(source, trackNode);
+          } else {
+            el.appendChild(source);
+          }
+        });
+        this._mainViewUsingSourceSwap = false;
+      } else if (this.mainViewOriginalSrc) {
+        el.src = this.mainViewOriginalSrc;
+      }
+      el.muted = this._mainViewMutedBefore;
+      if (typeof this.player.invalidateTrackCache === "function") {
+        this.player.invalidateTrackCache();
+      }
+      el.load();
+      this.mainViewOriginalSrc = null;
+      this.mainViewOriginalSources = null;
+      this.inMainView = false;
+      this.player.state.signLanguageInMainView = false;
+      if (this.player.videoWrapper) {
+        this.player.videoWrapper.classList.remove("vidply-sign-language-main-view-active");
+      }
+      this.player.emit("signlanguageinmainviewdisabled");
+    }
     if (this.settingsMenuVisible) {
       this.hideSettingsMenu({ focusButton: false });
     }
@@ -4979,6 +5312,8 @@ var Player = class _Player extends EventEmitter {
       signLanguageButton: true,
       signLanguagePosition: "bottom-right",
       // Position: 'bottom-right', 'bottom-left', 'top-right', 'top-left'
+      signLanguageDisplayMode: "both",
+      // Display mode: 'pip' (overlay), 'main' (source swap), 'both'
       // Transcripts
       transcript: false,
       transcriptPosition: "external",
@@ -5057,7 +5392,8 @@ var Player = class _Player extends EventEmitter {
       currentCaption: null,
       controlsVisible: true,
       audioDescriptionEnabled: false,
-      signLanguageEnabled: false
+      signLanguageEnabled: false,
+      signLanguageInMainView: false
     };
     this.originalSrc = null;
     this.audioDescriptionSrc = this.options.audioDescriptionSrc;
@@ -5274,7 +5610,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-EIIN5YOF.js");
+    const module = await import("./vidply.TranscriptManager-UWM2WNAV.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;
@@ -5455,7 +5791,7 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.VimeoRenderer-SLEBCZTT.js");
       rendererClass = module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-YGWCAICA.js");
+      const module = await import("./vidply.HLSRenderer-JX33TBXM.js");
       rendererClass = module.HLSRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-HCMKXHSX.js");
@@ -9841,6 +10177,7 @@ function parseDataAttributes(dataset) {
     "signLanguageSrc": "signLanguageSrc",
     "signLanguageButton": "signLanguageButton",
     "signLanguagePosition": "signLanguagePosition",
+    "signLanguageDisplayMode": "signLanguageDisplayMode",
     // Audio Description
     "audioDescriptionSrc": "audioDescriptionSrc",
     "audioDescriptionButton": "audioDescriptionButton",

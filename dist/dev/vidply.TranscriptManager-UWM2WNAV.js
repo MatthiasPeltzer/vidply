@@ -15,7 +15,7 @@ import {
   focusElement,
   i18n,
   preventDragOnElement
-} from "./vidply.chunk-AXXU22HR.js";
+} from "./vidply.chunk-LD3OELXW.js";
 
 // src/controls/TranscriptManager.js
 var TranscriptManager = class {
@@ -1740,4 +1740,4 @@ var TranscriptManager = class {
 export {
   TranscriptManager
 };
-//# sourceMappingURL=vidply.TranscriptManager-EIIN5YOF.js.map
+//# sourceMappingURL=vidply.TranscriptManager-UWM2WNAV.js.map

@@ -201,7 +201,9 @@ export class HTML5Renderer {
           });
         }
       });
+      return promise;
     }
+    return Promise.resolve();
   }
 
   /**

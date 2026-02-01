@@ -31,6 +31,11 @@ export class SignLanguageManager {
         
         // State
         this.enabled = false;
+        this.inMainView = false; // sign language shown in main video (src swap, like audio description)
+        this.mainViewOriginalSrc = null;
+        this.mainViewOriginalSources = null;
+        this._mainViewUsingSourceSwap = false;
+        this._mainViewMutedBefore = false;
         this.settingsMenuVisible = false;
         this.settingsMenuJustOpened = false;
         this.documentClickHandlerAdded = false;
@@ -172,26 +177,271 @@ export class SignLanguageManager {
     }
 
     /**
+     * Enable sign language in main view: replace main video src with sign language URL (like audio description).
+     * Same video element, different URL; no overlay.
+     */
+    async enableInMainView() {
+        const hasMultipleSources = Object.keys(this.sources).length > 0;
+        const hasSingleSource = !!this.src;
+        if (!hasMultipleSources && !hasSingleSource) return;
+        if (!this.player.element || this.player.element.tagName !== 'VIDEO') return;
+        if (this.inMainView) return;
+
+        let signSrc;
+        if (hasMultipleSources) {
+            const initialLang = this._determineInitialLanguage();
+            this.currentLanguage = initialLang;
+            signSrc = this.sources[initialLang];
+        } else {
+            signSrc = this.src;
+        }
+
+        const el = this.player.element;
+        const currentTime = this.player.state.currentTime;
+        const wasPlaying = this.player.state.playing;
+        const posterValue = el.poster || el.getAttribute('poster') || this.player.options.poster;
+        const shouldKeepPoster = currentTime < 0.1 && !wasPlaying;
+
+        const sourceElements = Array.from(el.querySelectorAll('source'));
+        const firstSource = sourceElements[0];
+        this.mainViewOriginalSrc = (el.currentSrc && el.currentSrc.length > 0)
+            ? el.currentSrc
+            : (el.src && el.src.length > 0)
+                ? el.src
+                : (firstSource && firstSource.getAttribute('src'))
+                    ? firstSource.getAttribute('src')
+                    : '';
+        this._mainViewMutedBefore = this.player.state.muted;
+
+        if (posterValue && shouldKeepPoster && el.tagName === 'VIDEO') {
+            el.poster = posterValue;
+        }
+        if (sourceElements.length > 0) {
+            this.mainViewOriginalSources = sourceElements;
+            this.mainViewOriginalSources.forEach(source => source.remove());
+            const signSource = document.createElement('source');
+            signSource.setAttribute('src', signSrc);
+            const type = this._inferVideoType(signSrc);
+            if (type) {
+                signSource.setAttribute('type', type);
+            }
+            const trackNode = el.querySelector('track');
+            if (trackNode) {
+                el.insertBefore(signSource, trackNode);
+            } else {
+                el.appendChild(signSource);
+            }
+            this._mainViewUsingSourceSwap = true;
+        } else {
+            el.src = signSrc;
+            this._mainViewUsingSourceSwap = false;
+        }
+        el.muted = true;
+        this.player.currentSource = signSrc;
+        if (typeof this.player.invalidateTrackCache === 'function') {
+            this.player.invalidateTrackCache();
+        }
+        el.load();
+
+        await this._waitForMediaReadyMainView(currentTime > 0 || wasPlaying);
+
+        if (currentTime > 0) {
+            this.player.seek(currentTime);
+            await new Promise(r => setTimeout(r, 100));
+        }
+        if (wasPlaying) {
+            await this.player.play();
+        } else {
+            this.player.pause();
+            if (!shouldKeepPoster && this.player.hidePosterOverlay) {
+                this.player.hidePosterOverlay();
+            }
+        }
+
+        this.inMainView = true;
+        this.player.state.signLanguageInMainView = true;
+        if (this.player.videoWrapper) {
+            this.player.videoWrapper.classList.add('vidply-sign-language-main-view-active');
+        }
+        this.player.emit('signlanguageinmainviewenabled');
+    }
+
+    /**
+     * Disable sign language in main view: restore main video src.
+     */
+    async disableInMainView() {
+        if (!this.inMainView) return;
+        if (!this.mainViewOriginalSrc && !this.mainViewOriginalSources) {
+            this.inMainView = false;
+            this.player.state.signLanguageInMainView = false;
+            if (this.player.videoWrapper) {
+                this.player.videoWrapper.classList.remove('vidply-sign-language-main-view-active');
+            }
+            this.player.emit('signlanguageinmainviewdisabled');
+            return;
+        }
+
+        const el = this.player.element;
+        const currentTime = this.player.state.currentTime;
+        const wasPlaying = this.player.state.playing;
+        const posterValue = el.poster || el.getAttribute('poster') || this.player.options.poster;
+
+        if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
+            Array.from(el.querySelectorAll('source')).forEach(source => source.remove());
+            const trackNode = el.querySelector('track');
+            this.mainViewOriginalSources.forEach(source => {
+                if (trackNode) {
+                    el.insertBefore(source, trackNode);
+                } else {
+                    el.appendChild(source);
+                }
+            });
+            this._mainViewUsingSourceSwap = false;
+        } else if (this.mainViewOriginalSrc) {
+            el.src = this.mainViewOriginalSrc;
+        }
+        el.muted = this._mainViewMutedBefore;
+        this.player.currentSource = this.mainViewOriginalSrc || (el.querySelector('source') && el.querySelector('source').src) || '';
+        if (typeof this.player.invalidateTrackCache === 'function') {
+            this.player.invalidateTrackCache();
+        }
+        el.load();
+
+        await this._waitForMediaReadyMainView(currentTime > 0 || wasPlaying);
+
+        if (currentTime > 0) {
+            this.player.seek(currentTime);
+        }
+        if (wasPlaying) {
+            try {
+                await this.player.play();
+            } catch (e) {
+                this.player.log?.('Sign language main view: play after restore failed', e, 'warn');
+            }
+        }
+
+        this.mainViewOriginalSrc = null;
+        this.mainViewOriginalSources = null;
+        this.inMainView = false;
+        this.player.state.signLanguageInMainView = false;
+        if (this.player.videoWrapper) {
+            this.player.videoWrapper.classList.remove('vidply-sign-language-main-view-active');
+        }
+        this.player.emit('signlanguageinmainviewdisabled');
+    }
+
+    /**
+     * Wait for media ready (like AudioDescriptionManager).
+     */
+    async _waitForMediaReadyMainView(needSeek = false) {
+        const el = this.player.element;
+        const loadedMetaPromise = new Promise((resolve) => {
+            if (el.readyState >= 1) {
+                resolve();
+                return;
+            }
+            const onLoad = () => {
+                el.removeEventListener('loadedmetadata', onLoad);
+                el.removeEventListener('error', onError);
+                resolve();
+            };
+            const onError = () => {
+                el.removeEventListener('loadedmetadata', onLoad);
+                el.removeEventListener('error', onError);
+                resolve();
+            };
+            el.addEventListener('loadedmetadata', onLoad);
+            el.addEventListener('error', onError, { once: true });
+        });
+        const timeoutPromise = new Promise(r => setTimeout(r, 10000));
+        await Promise.race([loadedMetaPromise, timeoutPromise]);
+        await new Promise(r => setTimeout(r, 300));
+        if (needSeek) {
+            await new Promise((resolve) => {
+                if (el.readyState >= 3) resolve();
+                else {
+                    const onCanPlay = () => {
+                        el.removeEventListener('canplay', onCanPlay);
+                        el.removeEventListener('canplaythrough', onCanPlay);
+                        resolve();
+                    };
+                    el.addEventListener('canplay', onCanPlay, { once: true });
+                    el.addEventListener('canplaythrough', onCanPlay, { once: true });
+                    setTimeout(() => {
+                        el.removeEventListener('canplay', onCanPlay);
+                        el.removeEventListener('canplaythrough', onCanPlay);
+                        resolve();
+                    }, 3000);
+                }
+            });
+        }
+    }
+
+    /**
+     * Toggle sign language in main view (src swap, like audio description).
+     */
+    toggleInMainView() {
+        if (this.inMainView) {
+            this.disableInMainView();
+        } else {
+            this.enableInMainView();
+        }
+    }
+
+    /**
      * Switch to a different sign language
      */
     switchLanguage(langCode) {
-        if (!this.sources[langCode] || !this.video) {
-            return;
-        }
-        
-        const currentTime = this.video.currentTime;
-        const wasPlaying = !this.video.paused;
-        
-        this.video.src = this.sources[langCode];
+        if (!this.sources[langCode]) return;
+
         this.currentLanguage = langCode;
-        
-        // Restore playback state
-        this.video.currentTime = currentTime;
-        if (wasPlaying) {
-            this.video.play().catch(() => {});
+
+        if (this.video) {
+            const currentTime = this.video.currentTime;
+            const wasPlaying = !this.video.paused;
+            this.video.src = this.sources[langCode];
+            this.video.currentTime = currentTime;
+            if (wasPlaying) {
+                this.video.play().catch(() => {});
+            }
         }
-        
+
+        if (this.inMainView && this.player.element && this.player.element.tagName === 'VIDEO') {
+            const currentTime = this.player.state.currentTime;
+            const wasPlaying = this.player.state.playing;
+            if (this._mainViewUsingSourceSwap) {
+                const signSource = this.player.element.querySelector('source');
+                if (signSource) {
+                    signSource.setAttribute('src', this.sources[langCode]);
+                    const type = this._inferVideoType(this.sources[langCode]);
+                    if (type) {
+                        signSource.setAttribute('type', type);
+                    }
+                }
+            } else {
+                this.player.element.src = this.sources[langCode];
+            }
+            this.player.currentSource = this.sources[langCode];
+            if (typeof this.player.invalidateTrackCache === 'function') {
+                this.player.invalidateTrackCache();
+            }
+            this.player.element.load();
+            this._waitForMediaReadyMainView(true).then(() => {
+                if (currentTime > 0) this.player.seek(currentTime);
+                if (wasPlaying) this.player.play();
+            });
+        }
+
         this.player.emit('signlanguagelanguagechanged', langCode);
+    }
+
+    _inferVideoType(url) {
+        if (!url) return '';
+        const cleanUrl = url.split('?')[0].toLowerCase();
+        if (cleanUrl.endsWith('.mp4')) return 'video/mp4';
+        if (cleanUrl.endsWith('.webm')) return 'video/webm';
+        if (cleanUrl.endsWith('.ogv') || cleanUrl.endsWith('.ogg')) return 'video/ogg';
+        return '';
     }
 
     /**
@@ -1076,6 +1326,36 @@ export class SignLanguageManager {
      * Cleanup
      */
     cleanup() {
+        if (this.inMainView && this.player.element) {
+            const el = this.player.element;
+            if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
+                Array.from(el.querySelectorAll('source')).forEach(source => source.remove());
+                const trackNode = el.querySelector('track');
+                this.mainViewOriginalSources.forEach(source => {
+                    if (trackNode) {
+                        el.insertBefore(source, trackNode);
+                    } else {
+                        el.appendChild(source);
+                    }
+                });
+                this._mainViewUsingSourceSwap = false;
+            } else if (this.mainViewOriginalSrc) {
+                el.src = this.mainViewOriginalSrc;
+            }
+            el.muted = this._mainViewMutedBefore;
+            if (typeof this.player.invalidateTrackCache === 'function') {
+                this.player.invalidateTrackCache();
+            }
+            el.load();
+            this.mainViewOriginalSrc = null;
+            this.mainViewOriginalSources = null;
+            this.inMainView = false;
+            this.player.state.signLanguageInMainView = false;
+            if (this.player.videoWrapper) {
+                this.player.videoWrapper.classList.remove('vidply-sign-language-main-view-active');
+            }
+            this.player.emit('signlanguageinmainviewdisabled');
+        }
         if (this.settingsMenuVisible) {
             this.hideSettingsMenu({ focusButton: false });
         }

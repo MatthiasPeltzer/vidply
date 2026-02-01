@@ -11,27 +11,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.js": {
-      "bytes": 7637,
+      "bytes": 7753,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.js": {
-      "bytes": 9427,
+      "bytes": 9565,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.js": {
-      "bytes": 8594,
+      "bytes": 8731,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.js": {
-      "bytes": 8836,
+      "bytes": 8987,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.js": {
-      "bytes": 9301,
+      "bytes": 9420,
       "imports": [],
       "format": "esm"
     },
@@ -89,7 +89,7 @@
       "format": "esm"
     },
     "src/icons/Icons.js": {
-      "bytes": 11393,
+      "bytes": 12497,
       "imports": [],
       "format": "esm"
     },
@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 147374,
+      "bytes": 155633,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -186,7 +186,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.js": {
-      "bytes": 10921,
+      "bytes": 10612,
       "imports": [],
       "format": "esm"
     },
@@ -255,7 +255,7 @@
       "format": "esm"
     },
     "src/core/SignLanguageManager.js": {
-      "bytes": 40888,
+      "bytes": 51384,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -368,7 +368,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 225107,
+      "bytes": 225260,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -515,7 +515,7 @@
       "format": "esm"
     },
     "src/index.js": {
-      "bytes": 5335,
+      "bytes": 5394,
       "imports": [
         {
           "path": "src/core/Player.js",
@@ -546,19 +546,19 @@
           "bytesInOutput": 2595
         },
         "src/i18n/languages/en.js": {
-          "bytesInOutput": 6401
+          "bytesInOutput": 6503
         },
         "src/i18n/languages/de.js": {
-          "bytesInOutput": 7556
+          "bytesInOutput": 7672
         },
         "src/i18n/languages/es.js": {
-          "bytesInOutput": 7407
+          "bytesInOutput": 7530
         },
         "src/i18n/languages/fr.js": {
-          "bytesInOutput": 7646
+          "bytesInOutput": 7783
         },
         "src/i18n/languages/ja.js": {
-          "bytesInOutput": 8113
+          "bytesInOutput": 8218
         },
         "src/i18n/translations.js": {
           "bytesInOutput": 368
@@ -570,7 +570,7 @@
           "bytesInOutput": 896
         },
         "src/icons/Icons.js": {
-          "bytesInOutput": 9362
+          "bytesInOutput": 10448
         },
         "src/utils/FocusUtils.js": {
           "bytesInOutput": 239
@@ -579,7 +579,7 @@
           "bytesInOutput": 1638
         },
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 5469
+          "bytesInOutput": 5497
         },
         "src/utils/DraggableResizable.js": {
           "bytesInOutput": 16613
@@ -609,10 +609,10 @@
           "bytesInOutput": 437
         },
         "src/core/Player.js": {
-          "bytesInOutput": 81950
+          "bytesInOutput": 82010
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 65595
+          "bytesInOutput": 67755
         },
         "src/utils/PerformanceUtils.js": {
           "bytesInOutput": 257
@@ -630,16 +630,16 @@
           "bytesInOutput": 9690
         },
         "src/core/SignLanguageManager.js": {
-          "bytesInOutput": 20126
+          "bytesInOutput": 26184
         },
         "src/features/PlaylistManager.js": {
           "bytesInOutput": 25297
         },
         "src/index.js": {
-          "bytesInOutput": 1877
+          "bytesInOutput": 1927
         }
       },
-      "bytes": 363605
+      "bytes": 373630
     }
   }
 }

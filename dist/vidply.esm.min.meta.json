@@ -11,27 +11,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.js": {
-      "bytes": 7637,
+      "bytes": 7753,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.js": {
-      "bytes": 9427,
+      "bytes": 9565,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.js": {
-      "bytes": 8594,
+      "bytes": 8731,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.js": {
-      "bytes": 8836,
+      "bytes": 8987,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.js": {
-      "bytes": 9301,
+      "bytes": 9420,
       "imports": [],
       "format": "esm"
     },
@@ -89,7 +89,7 @@
       "format": "esm"
     },
     "src/icons/Icons.js": {
-      "bytes": 11393,
+      "bytes": 12497,
       "imports": [],
       "format": "esm"
     },
@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 147374,
+      "bytes": 155633,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -186,7 +186,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.js": {
-      "bytes": 10921,
+      "bytes": 10612,
       "imports": [],
       "format": "esm"
     },
@@ -249,7 +249,7 @@
       "format": "esm"
     },
     "src/core/SignLanguageManager.js": {
-      "bytes": 40888,
+      "bytes": 51384,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -362,7 +362,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 225107,
+      "bytes": 225260,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -499,7 +499,7 @@
       "format": "esm"
     },
     "src/index.js": {
-      "bytes": 5335,
+      "bytes": 5394,
       "imports": [
         {
           "path": "src/core/Player.js",
@@ -529,10 +529,10 @@
       },
       "bytes": 4691
     },
-    "dist/prod/vidply.HLSRenderer-D2KTBEEI.min.js": {
+    "dist/prod/vidply.HLSRenderer-BM33JUCR.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.HTML5Renderer-ZSV6PDOH.min.js",
+          "path": "dist/prod/vidply.HTML5Renderer-I7YADYDX.min.js",
           "kind": "dynamic-import"
         }
       ],
@@ -564,15 +564,15 @@
     "dist/prod/vidply.esm.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-SQVOYVKH.min.js",
+          "path": "dist/prod/vidply.chunk-Q6PZTGZP.min.js",
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.chunk-Z6BHMOGK.min.js",
+          "path": "dist/prod/vidply.chunk-I7BQYXMN.min.js",
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.TranscriptManager-VXCTCJ7X.min.js",
+          "path": "dist/prod/vidply.TranscriptManager-AYJL4AG3.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -584,7 +584,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.HLSRenderer-D2KTBEEI.min.js",
+          "path": "dist/prod/vidply.HLSRenderer-BM33JUCR.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -609,7 +609,7 @@
           "bytesInOutput": 1009
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 63377
+          "bytesInOutput": 65486
         },
         "src/controls/CaptionManager.js": {
           "bytesInOutput": 7279
@@ -621,21 +621,21 @@
           "bytesInOutput": 9641
         },
         "src/core/SignLanguageManager.js": {
-          "bytesInOutput": 19331
+          "bytesInOutput": 25359
         },
         "src/core/Player.js": {
-          "bytesInOutput": 80905
+          "bytesInOutput": 80962
         },
         "src/features/PlaylistManager.js": {
           "bytesInOutput": 24708
         },
         "src/index.js": {
-          "bytesInOutput": 1869
+          "bytesInOutput": 1919
         }
       },
-      "bytes": 213477
+      "bytes": 221721
     },
-    "dist/prod/vidply.de-WCUZUF3T.min.js": {
+    "dist/prod/vidply.de-MFGEETCC.min.js": {
       "imports": [],
       "exports": [
         "de"
@@ -643,12 +643,12 @@
       "entryPoint": "src/i18n/languages/de.js",
       "inputs": {
         "src/i18n/languages/de.js": {
-          "bytesInOutput": 7512
+          "bytesInOutput": 7628
         }
       },
-      "bytes": 7647
+      "bytes": 7763
     },
-    "dist/prod/vidply.es-54CIIDMO.min.js": {
+    "dist/prod/vidply.es-HZGMS5GG.min.js": {
       "imports": [],
       "exports": [
         "es"
@@ -656,12 +656,12 @@
       "entryPoint": "src/i18n/languages/es.js",
       "inputs": {
         "src/i18n/languages/es.js": {
-          "bytesInOutput": 7363
+          "bytesInOutput": 7486
         }
       },
-      "bytes": 7498
+      "bytes": 7621
     },
-    "dist/prod/vidply.fr-7FYGFFK2.min.js": {
+    "dist/prod/vidply.fr-HW3KSCFM.min.js": {
       "imports": [],
       "exports": [
         "fr"
@@ -669,12 +669,12 @@
       "entryPoint": "src/i18n/languages/fr.js",
       "inputs": {
         "src/i18n/languages/fr.js": {
-          "bytesInOutput": 7602
+          "bytesInOutput": 7739
         }
       },
-      "bytes": 7737
+      "bytes": 7874
     },
-    "dist/prod/vidply.ja-E4UTAURP.min.js": {
+    "dist/prod/vidply.ja-GXSYRBQY.min.js": {
       "imports": [],
       "exports": [
         "ja"
@@ -682,15 +682,15 @@
       "entryPoint": "src/i18n/languages/ja.js",
       "inputs": {
         "src/i18n/languages/ja.js": {
-          "bytesInOutput": 8069
+          "bytesInOutput": 8174
         }
       },
-      "bytes": 8204
+      "bytes": 8309
     },
-    "dist/prod/vidply.HTML5Renderer-ZSV6PDOH.min.js": {
+    "dist/prod/vidply.HTML5Renderer-I7YADYDX.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-SQVOYVKH.min.js",
+          "path": "dist/prod/vidply.chunk-Q6PZTGZP.min.js",
           "kind": "import-statement"
         }
       ],
@@ -701,22 +701,22 @@
       "inputs": {},
       "bytes": 192
     },
-    "dist/prod/vidply.chunk-SQVOYVKH.min.js": {
+    "dist/prod/vidply.chunk-Q6PZTGZP.min.js": {
       "imports": [],
       "exports": [
         "a"
       ],
       "inputs": {
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 5387
+          "bytesInOutput": 5415
         }
       },
-      "bytes": 5521
+      "bytes": 5549
     },
-    "dist/prod/vidply.TranscriptManager-VXCTCJ7X.min.js": {
+    "dist/prod/vidply.TranscriptManager-AYJL4AG3.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-Z6BHMOGK.min.js",
+          "path": "dist/prod/vidply.chunk-I7BQYXMN.min.js",
           "kind": "import-statement"
         }
       ],
@@ -731,22 +731,22 @@
       },
       "bytes": 43042
     },
-    "dist/prod/vidply.chunk-Z6BHMOGK.min.js": {
+    "dist/prod/vidply.chunk-I7BQYXMN.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.de-WCUZUF3T.min.js",
+          "path": "dist/prod/vidply.de-MFGEETCC.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.es-54CIIDMO.min.js",
+          "path": "dist/prod/vidply.es-HZGMS5GG.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.fr-7FYGFFK2.min.js",
+          "path": "dist/prod/vidply.fr-HW3KSCFM.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.ja-E4UTAURP.min.js",
+          "path": "dist/prod/vidply.ja-GXSYRBQY.min.js",
           "kind": "dynamic-import"
         }
       ],
@@ -771,7 +771,7 @@
           "bytesInOutput": 2348
         },
         "src/i18n/languages/en.js": {
-          "bytesInOutput": 6385
+          "bytesInOutput": 6487
         },
         "src/i18n/translations.js": {
           "bytesInOutput": 340
@@ -783,7 +783,7 @@
           "bytesInOutput": 839
         },
         "src/icons/Icons.js": {
-          "bytesInOutput": 9302
+          "bytesInOutput": 10388
         },
         "src/utils/FocusUtils.js": {
           "bytesInOutput": 221
@@ -801,7 +801,7 @@
           "bytesInOutput": 776
         }
       },
-      "bytes": 42803
+      "bytes": 43991
     },
     "dist/prod/vidply.YouTubeRenderer-ZL6YUHTF.min.js": {
       "imports": [],

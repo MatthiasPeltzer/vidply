@@ -101,7 +101,9 @@ var ja = {
   },
   signLanguage: {
     show: "手話動画を表示",
-    hide: "手話動画を非表示"
+    hide: "手話動画を非表示",
+    showInMainView: "メイン動画に手話を表示",
+    hideInMainView: "メイン動画から手話を削除"
   },
   transcript: {
     title: "文字起こし",
@@ -185,4 +187,4 @@ var ja = {
 export {
   ja
 };
-//# sourceMappingURL=vidply.ja-FTBFZD66.js.map
+//# sourceMappingURL=vidply.ja-HS2NMBQZ.js.map
