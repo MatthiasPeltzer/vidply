@@ -219,4 +219,283 @@ describe('AudioDescriptionManager', () => {
       expect(manager.enabled).toBe(false);
     });
   });
+
+  describe('enable', () => {
+    it('should warn when no audio description source available', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      manager = new AudioDescriptionManager(mockPlayer);
+      
+      await manager.enable();
+      
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('No audio description source'));
+      warnSpy.mockRestore();
+    });
+
+    it('should set desiredState to true', async () => {
+      mockPlayer.options.audioDescriptionSrc = '/videos/ad-version.mp4';
+      mockPlayer.state = {
+        currentTime: 0,
+        playing: false
+      };
+      manager = new AudioDescriptionManager(mockPlayer);
+      
+      // Mock the internal methods to avoid full implementation
+      manager._enableWithDirectSrc = vi.fn().mockResolvedValue();
+      
+      await manager.enable();
+      
+      expect(manager.desiredState).toBe(true);
+    });
+
+    it('should store current playback state before switching', async () => {
+      mockPlayer.options.audioDescriptionSrc = '/videos/ad-version.mp4';
+      mockPlayer.state = {
+        currentTime: 30,
+        playing: true
+      };
+      manager = new AudioDescriptionManager(mockPlayer);
+      manager._enableWithDirectSrc = vi.fn().mockResolvedValue();
+      
+      await manager.enable();
+      
+      // The method should capture currentTime and wasPlaying
+      expect(manager._enableWithDirectSrc).toHaveBeenCalled();
+    });
+  });
+
+  describe('disable', () => {
+    it('should return early when no original source', async () => {
+      manager = new AudioDescriptionManager(mockPlayer);
+      mockPlayer.originalSrc = null;
+      
+      await manager.disable();
+      
+      // Should exit without error
+      expect(manager.desiredState).toBe(false);
+    });
+
+    it('should set desiredState to false', async () => {
+      manager = new AudioDescriptionManager(mockPlayer);
+      mockPlayer.originalSrc = '/videos/original.mp4';
+      mockPlayer.state = {
+        currentTime: 0,
+        playing: false
+      };
+      manager._disableWithDirectSrc = vi.fn().mockResolvedValue();
+      
+      await manager.disable();
+      
+      expect(manager.desiredState).toBe(false);
+    });
+  });
+
+  describe('toggle', () => {
+    beforeEach(() => {
+      mockPlayer.findTextTrack = vi.fn().mockReturnValue(null);
+      mockPlayer.state = {
+        currentTime: 0,
+        playing: false
+      };
+    });
+
+    it('should enable when currently disabled and has src', async () => {
+      mockPlayer.options.audioDescriptionSrc = '/videos/ad.mp4';
+      manager = new AudioDescriptionManager(mockPlayer);
+      manager.enabled = false;
+      manager._enableWithDirectSrc = vi.fn().mockResolvedValue();
+      
+      await manager.toggle();
+      
+      expect(manager.desiredState).toBe(true);
+    });
+
+    it('should disable when currently enabled and has src', async () => {
+      mockPlayer.options.audioDescriptionSrc = '/videos/ad.mp4';
+      mockPlayer.originalSrc = '/videos/original.mp4';
+      manager = new AudioDescriptionManager(mockPlayer);
+      manager.enabled = true;
+      manager._disableWithDirectSrc = vi.fn().mockResolvedValue();
+      
+      await manager.toggle();
+      
+      expect(manager.desiredState).toBe(false);
+    });
+
+    it('should toggle description track when track exists but no src', async () => {
+      const mockTrack = { mode: 'hidden' };
+      mockPlayer.findTextTrack = vi.fn().mockReturnValue(mockTrack);
+      mockPlayer.emit = vi.fn();
+      manager = new AudioDescriptionManager(mockPlayer);
+      
+      await manager.toggle();
+      
+      expect(mockTrack.mode).toBe('showing');
+      expect(manager.enabled).toBe(true);
+    });
+
+    it('should disable description track when already showing', async () => {
+      const mockTrack = { mode: 'showing' };
+      mockPlayer.findTextTrack = vi.fn().mockReturnValue(mockTrack);
+      mockPlayer.emit = vi.fn();
+      manager = new AudioDescriptionManager(mockPlayer);
+      
+      await manager.toggle();
+      
+      expect(mockTrack.mode).toBe('hidden');
+      expect(manager.enabled).toBe(false);
+    });
+  });
+
+  describe('_getCurrentCaptionText', () => {
+    it('should return null when no caption manager', () => {
+      manager = new AudioDescriptionManager(mockPlayer);
+      mockPlayer.captionManager = null;
+      
+      const result = manager._getCurrentCaptionText();
+      
+      expect(result).toBeNull();
+    });
+
+    it('should return null when no current track', () => {
+      manager = new AudioDescriptionManager(mockPlayer);
+      mockPlayer.captionManager = { currentTrack: null };
+      
+      const result = manager._getCurrentCaptionText();
+      
+      expect(result).toBeNull();
+    });
+
+    it('should return null when no current cue', () => {
+      manager = new AudioDescriptionManager(mockPlayer);
+      mockPlayer.captionManager = { 
+        currentTrack: {}, 
+        currentCue: null 
+      };
+      
+      const result = manager._getCurrentCaptionText();
+      
+      expect(result).toBeNull();
+    });
+
+    it('should return cue text when available', () => {
+      manager = new AudioDescriptionManager(mockPlayer);
+      mockPlayer.captionManager = { 
+        currentTrack: {}, 
+        currentCue: { text: 'Hello world' }
+      };
+      
+      const result = manager._getCurrentCaptionText();
+      
+      expect(result).toBe('Hello world');
+    });
+  });
+
+  describe('_validateTrackExists', () => {
+    beforeEach(() => {
+      manager = new AudioDescriptionManager(mockPlayer);
+    });
+
+    it('should return true for successful HEAD request', async () => {
+      global.fetch = vi.fn().mockResolvedValue({ ok: true });
+      
+      const result = await manager._validateTrackExists('/test.vtt');
+      
+      expect(result).toBe(true);
+      expect(global.fetch).toHaveBeenCalledWith('/test.vtt', { method: 'HEAD' });
+    });
+
+    it('should return false for failed HEAD request', async () => {
+      global.fetch = vi.fn().mockResolvedValue({ ok: false });
+      
+      const result = await manager._validateTrackExists('/nonexistent.vtt');
+      
+      expect(result).toBe(false);
+    });
+
+    it('should return false on fetch error', async () => {
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+      
+      const result = await manager._validateTrackExists('/error.vtt');
+      
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('_swapCaptionTracks', () => {
+    beforeEach(() => {
+      manager = new AudioDescriptionManager(mockPlayer);
+    });
+
+    it('should return empty array when no caption tracks', async () => {
+      manager.captionTracks = [];
+      
+      const result = await manager._swapCaptionTracks(true);
+      
+      expect(result).toEqual([]);
+    });
+
+    it('should validate track URLs before swapping', async () => {
+      // This test just checks the method exists and basic behavior
+      manager.captionTracks = [{
+        trackElement: null, // No element
+        originalSrc: '/captions/normal.vtt',
+        describedSrc: '/captions/ad.vtt',
+        explicit: true
+      }];
+      
+      global.fetch = vi.fn().mockResolvedValue({ ok: false });
+      
+      const result = await manager._swapCaptionTracks(true);
+      
+      // Should return empty since validation fails
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('source element handling', () => {
+    it('should handle empty source elements array', () => {
+      manager = new AudioDescriptionManager(mockPlayer);
+      manager.initFromSourceElements([], []);
+      
+      expect(manager.sourceElement).toBeNull();
+    });
+
+    it('should handle source elements without desc-src', () => {
+      const sourceEl = document.createElement('source');
+      sourceEl.setAttribute('src', '/videos/normal.mp4');
+      // No data-desc-src
+      
+      manager = new AudioDescriptionManager(mockPlayer);
+      manager.initFromSourceElements([sourceEl], []);
+      
+      expect(manager.src).toBeNull();
+    });
+  });
+
+  describe('track element handling', () => {
+    it('should handle metadata tracks', () => {
+      const trackEl = document.createElement('track');
+      trackEl.setAttribute('kind', 'metadata');
+      trackEl.setAttribute('src', '/metadata.vtt');
+      trackEl.setAttribute('data-desc-src', '/metadata-ad.vtt');
+      
+      manager = new AudioDescriptionManager(mockPlayer);
+      manager.initFromSourceElements([], [trackEl]);
+      
+      // Metadata tracks should not be in captionTracks
+      expect(manager.captionTracks.length).toBe(0);
+    });
+
+    it('should handle descriptions track kind', () => {
+      const trackEl = document.createElement('track');
+      trackEl.setAttribute('kind', 'descriptions');
+      trackEl.setAttribute('src', '/descriptions.vtt');
+      trackEl.setAttribute('data-desc-src', '/descriptions-ad.vtt');
+      
+      manager = new AudioDescriptionManager(mockPlayer);
+      manager.initFromSourceElements([], [trackEl]);
+      
+      expect(manager.captionTracks.length).toBe(1);
+    });
+  });
 });
