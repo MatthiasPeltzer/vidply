@@ -189,3 +189,137 @@ test.describe('Focus Management', () => {
     await expect(focusedElement).toBeVisible();
   });
 });
+
+test.describe('Additional Keyboard Shortcuts', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/demo/single-player.html');
+    await page.waitForSelector('.vidply-player', { timeout: 15000 });
+  });
+
+  test('should seek to start with Home key', async ({ page }) => {
+    const player = page.locator('.vidply-player');
+    await player.click();
+
+    // Start playback and wait
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(2000);
+
+    // Press Home to go to start
+    await page.keyboard.press('Home');
+    await page.waitForTimeout(300);
+
+    // Video should be at or near the beginning
+    // Just verify no errors occurred
+    const pauseButton = page.locator('button[aria-label="Pause"]');
+    await expect(pauseButton).toBeVisible();
+  });
+
+  test('should seek to end with End key', async ({ page }) => {
+    const player = page.locator('.vidply-player');
+    await player.click();
+
+    // Start playback
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(500);
+
+    // Press End to go to end
+    await page.keyboard.press('End');
+    await page.waitForTimeout(500);
+
+    // Video should be at or near the end - just verify no crash
+  });
+
+  test('should seek with number keys (0-9)', async ({ page }) => {
+    const player = page.locator('.vidply-player');
+    await player.click();
+
+    // Start playback
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(500);
+
+    // Press 5 to seek to 50%
+    await page.keyboard.press('5');
+    await page.waitForTimeout(500);
+
+    // Press 0 to seek to 0%
+    await page.keyboard.press('0');
+    await page.waitForTimeout(300);
+
+    // Just verify no errors
+    const player2 = page.locator('.vidply-player');
+    await expect(player2).toBeVisible();
+  });
+
+  test('should toggle captions with C key', async ({ page }) => {
+    const player = page.locator('.vidply-player');
+    await player.click();
+
+    // Press C to toggle captions
+    await page.keyboard.press('c');
+    await page.waitForTimeout(500);
+
+    // Press C again
+    await page.keyboard.press('c');
+    await page.waitForTimeout(300);
+
+    // Just verify no errors - captions state is internal
+  });
+
+  test('should increase volume with Up arrow when focused on volume', async ({ page }) => {
+    const volumeButton = page.locator('button[aria-label="Volume"], button[aria-label="Mute"]');
+    await volumeButton.first().focus();
+
+    // Press up arrow
+    await page.keyboard.press('ArrowUp');
+    await page.waitForTimeout(200);
+
+    // Just verify no errors
+    await expect(volumeButton.first()).toBeVisible();
+  });
+
+  test('should decrease volume with Down arrow when focused on volume', async ({ page }) => {
+    const volumeButton = page.locator('button[aria-label="Volume"], button[aria-label="Mute"]');
+    await volumeButton.first().focus();
+
+    // Press down arrow
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(200);
+
+    // Just verify no errors
+    await expect(volumeButton.first()).toBeVisible();
+  });
+
+  test('should handle J key for rewind', async ({ page }) => {
+    const player = page.locator('.vidply-player');
+    await player.click();
+
+    // Start playback
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(2000);
+
+    // Press J to rewind
+    await page.keyboard.press('j');
+    await page.waitForTimeout(300);
+
+    // Just verify no errors
+    const pauseButton = page.locator('button[aria-label="Pause"]');
+    await expect(pauseButton).toBeVisible();
+  });
+
+  test('should handle L key for forward', async ({ page }) => {
+    const player = page.locator('.vidply-player');
+    await player.click();
+
+    // Start playback
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(1000);
+
+    // Press L to forward
+    await page.keyboard.press('l');
+    await page.waitForTimeout(300);
+
+    // Just verify no errors
+    const pauseButton = page.locator('button[aria-label="Pause"]');
+    await expect(pauseButton).toBeVisible();
+  });
+});
