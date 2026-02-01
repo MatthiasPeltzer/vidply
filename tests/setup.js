@@ -44,6 +44,9 @@ global.IntersectionObserver = class IntersectionObserver {
 global.requestAnimationFrame = vi.fn(cb => setTimeout(cb, 16));
 global.cancelAnimationFrame = vi.fn(id => clearTimeout(id));
 
+// Mock window.scrollTo (not implemented in jsdom)
+window.scrollTo = vi.fn();
+
 // Mock HTMLMediaElement methods (not implemented in jsdom)
 Object.defineProperty(HTMLMediaElement.prototype, 'play', {
   configurable: true,

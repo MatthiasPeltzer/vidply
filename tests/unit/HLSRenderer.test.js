@@ -1,0 +1,593 @@
+/**
+ * Unit Tests: HLSRenderer
+ * Tests HLS streaming support
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { HLSRenderer } from '../../src/renderers/HLSRenderer.js';
+
+describe('HLSRenderer', () => {
+  let renderer;
+  let mockPlayer;
+  let mockMedia;
+  let mockHls;
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    vi.useFakeTimers();
+    
+    mockMedia = document.createElement('video');
+    mockMedia.src = 'https://example.com/stream.m3u8';
+    document.body.appendChild(mockMedia);
+
+    mockPlayer = {
+      element: mockMedia,
+      currentSource: 'https://example.com/stream.m3u8',
+      container: document.createElement('div'),
+      options: {
+        debug: false,
+        deferLoad: false,
+        autoplay: false,
+        loop: false
+      },
+      state: {
+        duration: 0,
+        currentTime: 0,
+        volume: 1,
+        muted: false,
+        playing: false,
+        paused: true,
+        ended: false,
+        buffering: false
+      },
+      emit: vi.fn(),
+      handleError: vi.fn(),
+      log: vi.fn(),
+      seek: vi.fn(),
+      play: vi.fn()
+    };
+
+    // Mock hls.js - needs to be a proper class for `new` to work
+    mockHls = {
+      attachMedia: vi.fn(),
+      loadSource: vi.fn(),
+      startLoad: vi.fn(),
+      recoverMediaError: vi.fn(),
+      destroy: vi.fn(),
+      on: vi.fn(),
+      levels: [
+        { height: 360, width: 640, bitrate: 800000 },
+        { height: 720, width: 1280, bitrate: 2500000 },
+        { height: 1080, width: 1920, bitrate: 5000000 }
+      ],
+      currentLevel: 1
+    };
+
+    // Create a proper constructor function that can be used with `new`
+    class MockHls {
+      constructor() {
+        Object.assign(this, mockHls);
+      }
+    }
+    MockHls.isSupported = vi.fn(() => true);
+    MockHls.Events = {
+      MANIFEST_PARSED: 'hlsManifestParsed',
+      LEVEL_SWITCHED: 'hlsLevelSwitched',
+      ERROR: 'hlsError',
+      FRAG_BUFFERED: 'hlsFragBuffered'
+    };
+    MockHls.ErrorTypes = {
+      NETWORK_ERROR: 'networkError',
+      MEDIA_ERROR: 'mediaError',
+      OTHER_ERROR: 'otherError'
+    };
+    window.Hls = MockHls;
+
+    renderer = new HLSRenderer(mockPlayer);
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = '';
+    vi.useRealTimers();
+    vi.clearAllMocks();
+    delete window.Hls;
+  });
+
+  describe('constructor', () => {
+    it('should store player reference', () => {
+      expect(renderer.player).toBe(mockPlayer);
+    });
+
+    it('should store media element', () => {
+      expect(renderer.media).toBe(mockMedia);
+    });
+
+    it('should initialize with null hls instance', () => {
+      expect(renderer.hls).toBeNull();
+    });
+
+    it('should initialize hlsSourceLoaded to false', () => {
+      expect(renderer._hlsSourceLoaded).toBe(false);
+    });
+  });
+
+  describe('canPlayNatively', () => {
+    it('should return false for non-Safari browsers', () => {
+      // Default user agent in jsdom is not Safari
+      expect(renderer.canPlayNatively()).toBe(false);
+    });
+
+    it('should check native HLS support', () => {
+      // The method creates a video element and checks canPlayType
+      const result = renderer.canPlayNatively();
+      expect(typeof result).toBe('boolean');
+    });
+  });
+
+  describe('initHlsJs', () => {
+    it('should hide native controls', async () => {
+      await renderer.initHlsJs();
+      
+      expect(mockMedia.controls).toBe(false);
+    });
+
+    it('should create Hls instance', async () => {
+      await renderer.initHlsJs();
+      
+      // Verify hls instance was created
+      expect(renderer.hls).not.toBeNull();
+      expect(renderer.hls.attachMedia).toBeDefined();
+    });
+
+    it('should attach media element', async () => {
+      await renderer.initHlsJs();
+      
+      expect(mockHls.attachMedia).toHaveBeenCalledWith(mockMedia);
+    });
+
+    it('should load source when deferLoad is false', async () => {
+      await renderer.initHlsJs();
+      
+      expect(mockHls.loadSource).toHaveBeenCalled();
+      expect(renderer._hlsSourceLoaded).toBe(true);
+    });
+
+    it('should defer loading when deferLoad is true', async () => {
+      mockPlayer.options.deferLoad = true;
+      renderer = new HLSRenderer(mockPlayer);
+      
+      await renderer.initHlsJs();
+      
+      expect(mockHls.loadSource).not.toHaveBeenCalled();
+      expect(renderer._hlsSourceLoaded).toBe(false);
+      expect(renderer._pendingSrc).toBe(mockPlayer.currentSource);
+    });
+
+    it('should throw error when HLS is not supported', async () => {
+      window.Hls.isSupported.mockReturnValue(false);
+      
+      await expect(renderer.initHlsJs()).rejects.toThrow('HLS is not supported');
+    });
+
+    it('should throw error when no source found', async () => {
+      // Create a fresh video element without any source
+      const emptyVideo = document.createElement('video');
+      document.body.appendChild(emptyVideo);
+      
+      const playerWithoutSource = {
+        ...mockPlayer,
+        element: emptyVideo,
+        currentSource: null
+      };
+      // Clear any source attributes
+      emptyVideo.removeAttribute('src');
+      
+      renderer = new HLSRenderer(playerWithoutSource);
+      
+      await expect(renderer.initHlsJs()).rejects.toThrow('No HLS source found');
+    });
+  });
+
+  describe('attachHlsEvents', () => {
+    beforeEach(async () => {
+      await renderer.initHlsJs();
+    });
+
+    it('should bind MANIFEST_PARSED event', () => {
+      expect(mockHls.on).toHaveBeenCalledWith(
+        window.Hls.Events.MANIFEST_PARSED,
+        expect.any(Function)
+      );
+    });
+
+    it('should bind LEVEL_SWITCHED event', () => {
+      expect(mockHls.on).toHaveBeenCalledWith(
+        window.Hls.Events.LEVEL_SWITCHED,
+        expect.any(Function)
+      );
+    });
+
+    it('should bind ERROR event', () => {
+      expect(mockHls.on).toHaveBeenCalledWith(
+        window.Hls.Events.ERROR,
+        expect.any(Function)
+      );
+    });
+
+    it('should bind FRAG_BUFFERED event', () => {
+      expect(mockHls.on).toHaveBeenCalledWith(
+        window.Hls.Events.FRAG_BUFFERED,
+        expect.any(Function)
+      );
+    });
+  });
+
+  describe('handleHlsError', () => {
+    beforeEach(async () => {
+      await renderer.initHlsJs();
+    });
+
+    it('should log error details', () => {
+      renderer.handleHlsError({
+        type: 'networkError',
+        details: 'manifestLoadError',
+        fatal: false
+      });
+      
+      expect(mockPlayer.log).toHaveBeenCalled();
+    });
+
+    it('should attempt recovery for fatal network errors', () => {
+      renderer.handleHlsError({
+        type: window.Hls.ErrorTypes.NETWORK_ERROR,
+        details: 'manifestLoadError',
+        fatal: true
+      });
+      
+      vi.advanceTimersByTime(1500);
+      
+      expect(mockHls.startLoad).toHaveBeenCalled();
+    });
+
+    it('should attempt recovery for fatal media errors', () => {
+      renderer.handleHlsError({
+        type: window.Hls.ErrorTypes.MEDIA_ERROR,
+        details: 'bufferStalledError',
+        fatal: true
+      });
+      
+      expect(mockHls.recoverMediaError).toHaveBeenCalled();
+    });
+
+    it('should destroy hls on unrecoverable errors', () => {
+      renderer.handleHlsError({
+        type: 'otherError',
+        details: 'unknownError',
+        fatal: true
+      });
+      
+      expect(mockHls.destroy).toHaveBeenCalled();
+      expect(mockPlayer.handleError).toHaveBeenCalled();
+    });
+
+    it('should log non-fatal errors', () => {
+      renderer.handleHlsError({
+        type: 'networkError',
+        details: 'fragLoadError',
+        fatal: false
+      });
+      
+      expect(mockPlayer.log).toHaveBeenCalledWith(
+        expect.stringContaining('Non-fatal'),
+        'warn'
+      );
+    });
+  });
+
+  describe('play', () => {
+    beforeEach(async () => {
+      await renderer.initHlsJs();
+      // Reset mock to track calls after init
+      mockHls.loadSource.mockClear();
+      mockHls.startLoad.mockClear();
+    });
+
+    it('should call media.play()', () => {
+      const playSpy = vi.spyOn(mockMedia, 'play').mockResolvedValue();
+      
+      renderer.play();
+      
+      expect(playSpy).toHaveBeenCalled();
+    });
+
+    it('should start HLS loading on first play when deferLoad is true', async () => {
+      mockPlayer.options.deferLoad = true;
+      renderer = new HLSRenderer(mockPlayer);
+      await renderer.initHlsJs();
+      
+      // Manually spy on play
+      vi.spyOn(mockMedia, 'play').mockResolvedValue();
+      
+      renderer.play();
+      
+      expect(mockHls.loadSource).toHaveBeenCalled();
+      expect(mockHls.startLoad).toHaveBeenCalled();
+    });
+
+    it('should handle play promise rejection', () => {
+      vi.spyOn(mockMedia, 'play').mockRejectedValue(new Error('Play failed'));
+      
+      expect(() => renderer.play()).not.toThrow();
+    });
+  });
+
+  describe('pause', () => {
+    it('should call media.pause()', async () => {
+      await renderer.initHlsJs();
+      const pauseSpy = vi.spyOn(mockMedia, 'pause');
+      
+      renderer.pause();
+      
+      expect(pauseSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('seek', () => {
+    it('should set media.currentTime', async () => {
+      await renderer.initHlsJs();
+      
+      renderer.seek(30);
+      
+      expect(mockMedia.currentTime).toBe(30);
+    });
+  });
+
+  describe('setVolume', () => {
+    it('should set media.volume', async () => {
+      await renderer.initHlsJs();
+      
+      renderer.setVolume(0.5);
+      
+      expect(mockMedia.volume).toBe(0.5);
+    });
+  });
+
+  describe('setMuted', () => {
+    it('should set media.muted', async () => {
+      await renderer.initHlsJs();
+      
+      renderer.setMuted(true);
+      
+      expect(mockMedia.muted).toBe(true);
+    });
+  });
+
+  describe('setPlaybackSpeed', () => {
+    it('should set media.playbackRate', async () => {
+      await renderer.initHlsJs();
+      
+      renderer.setPlaybackSpeed(1.5);
+      
+      expect(mockMedia.playbackRate).toBe(1.5);
+    });
+  });
+
+  describe('switchQuality', () => {
+    it('should set hls.currentLevel', async () => {
+      await renderer.initHlsJs();
+      
+      renderer.switchQuality(2);
+      
+      // Check the renderer's hls instance, not mockHls
+      expect(renderer.hls.currentLevel).toBe(2);
+    });
+
+    it('should not throw when hls is null', () => {
+      renderer.hls = null;
+      expect(() => renderer.switchQuality(1)).not.toThrow();
+    });
+  });
+
+  describe('getQualities', () => {
+    it('should return quality levels', async () => {
+      await renderer.initHlsJs();
+      
+      const qualities = renderer.getQualities();
+      
+      expect(qualities).toHaveLength(3);
+      expect(qualities[0]).toHaveProperty('index', 0);
+      expect(qualities[0]).toHaveProperty('height', 360);
+      expect(qualities[0]).toHaveProperty('name', '360p');
+    });
+
+    it('should format quality names correctly', async () => {
+      await renderer.initHlsJs();
+      
+      const qualities = renderer.getQualities();
+      
+      expect(qualities[1].name).toBe('720p');
+      expect(qualities[2].name).toBe('1080p');
+    });
+
+    it('should handle audio-only levels (height=0)', async () => {
+      mockHls.levels = [{ height: 0, width: 0, bitrate: 128000 }];
+      await renderer.initHlsJs();
+      
+      const qualities = renderer.getQualities();
+      
+      expect(qualities[0].name).toBe('128 kb');
+    });
+
+    it('should return empty array when hls is null', () => {
+      renderer.hls = null;
+      
+      const qualities = renderer.getQualities();
+      
+      expect(qualities).toEqual([]);
+    });
+
+    it('should return empty array when levels is null', async () => {
+      await renderer.initHlsJs();
+      // Set levels to null on the actual hls instance
+      renderer.hls.levels = null;
+      
+      const qualities = renderer.getQualities();
+      
+      expect(qualities).toEqual([]);
+    });
+  });
+
+  describe('getCurrentQuality', () => {
+    it('should return current level index', async () => {
+      await renderer.initHlsJs();
+      
+      const quality = renderer.getCurrentQuality();
+      
+      expect(quality).toBe(1);
+    });
+
+    it('should return -1 when hls is null', () => {
+      renderer.hls = null;
+      
+      const quality = renderer.getCurrentQuality();
+      
+      expect(quality).toBe(-1);
+    });
+  });
+
+  describe('ensureLoaded', () => {
+    it('should do nothing when deferLoad is false', async () => {
+      await renderer.initHlsJs();
+      mockHls.loadSource.mockClear();
+      
+      renderer.ensureLoaded();
+      
+      expect(mockHls.loadSource).not.toHaveBeenCalled();
+    });
+
+    it('should load source when deferLoad is true and not yet loaded', async () => {
+      mockPlayer.options.deferLoad = true;
+      renderer = new HLSRenderer(mockPlayer);
+      await renderer.initHlsJs();
+      
+      renderer.ensureLoaded();
+      
+      expect(mockHls.loadSource).toHaveBeenCalled();
+      expect(mockHls.startLoad).toHaveBeenCalled();
+      expect(renderer._hlsSourceLoaded).toBe(true);
+    });
+
+    it('should not reload when already loaded', async () => {
+      mockPlayer.options.deferLoad = true;
+      renderer = new HLSRenderer(mockPlayer);
+      await renderer.initHlsJs();
+      renderer._hlsSourceLoaded = true;
+      mockHls.loadSource.mockClear();
+      
+      renderer.ensureLoaded();
+      
+      expect(mockHls.loadSource).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing when hls is null', () => {
+      mockPlayer.options.deferLoad = true;
+      renderer.hls = null;
+      
+      expect(() => renderer.ensureLoaded()).not.toThrow();
+    });
+  });
+
+  describe('destroy', () => {
+    it('should destroy hls instance', async () => {
+      await renderer.initHlsJs();
+      
+      renderer.destroy();
+      
+      expect(mockHls.destroy).toHaveBeenCalled();
+      expect(renderer.hls).toBeNull();
+    });
+
+    it('should handle destroy when hls is null', () => {
+      renderer.hls = null;
+      
+      expect(() => renderer.destroy()).not.toThrow();
+    });
+  });
+
+  describe('media events', () => {
+    beforeEach(async () => {
+      await renderer.initHlsJs();
+    });
+
+    it('should handle loadedmetadata event', () => {
+      Object.defineProperty(mockMedia, 'duration', { value: 120, configurable: true });
+      mockMedia.dispatchEvent(new Event('loadedmetadata'));
+      
+      expect(mockPlayer.state.duration).toBe(120);
+      expect(mockPlayer.emit).toHaveBeenCalledWith('loadedmetadata');
+    });
+
+    it('should handle play event', () => {
+      mockMedia.dispatchEvent(new Event('play'));
+      
+      expect(mockPlayer.state.playing).toBe(true);
+      expect(mockPlayer.state.paused).toBe(false);
+      expect(mockPlayer.emit).toHaveBeenCalledWith('play');
+    });
+
+    it('should handle pause event', () => {
+      mockMedia.dispatchEvent(new Event('pause'));
+      
+      expect(mockPlayer.state.playing).toBe(false);
+      expect(mockPlayer.state.paused).toBe(true);
+      expect(mockPlayer.emit).toHaveBeenCalledWith('pause');
+    });
+
+    it('should handle ended event', () => {
+      mockMedia.dispatchEvent(new Event('ended'));
+      
+      expect(mockPlayer.state.ended).toBe(true);
+      expect(mockPlayer.emit).toHaveBeenCalledWith('ended');
+    });
+
+    it('should handle loop on ended', () => {
+      mockPlayer.options.loop = true;
+      
+      mockMedia.dispatchEvent(new Event('ended'));
+      
+      expect(mockPlayer.seek).toHaveBeenCalledWith(0);
+      expect(mockPlayer.play).toHaveBeenCalled();
+    });
+
+    it('should handle timeupdate event', () => {
+      Object.defineProperty(mockMedia, 'currentTime', { value: 45, configurable: true });
+      mockMedia.dispatchEvent(new Event('timeupdate'));
+      
+      expect(mockPlayer.state.currentTime).toBe(45);
+      expect(mockPlayer.emit).toHaveBeenCalledWith('timeupdate', 45);
+    });
+
+    it('should handle volumechange event', () => {
+      Object.defineProperty(mockMedia, 'volume', { value: 0.7, configurable: true });
+      Object.defineProperty(mockMedia, 'muted', { value: false, configurable: true });
+      mockMedia.dispatchEvent(new Event('volumechange'));
+      
+      expect(mockPlayer.state.volume).toBe(0.7);
+      expect(mockPlayer.emit).toHaveBeenCalledWith('volumechange', 0.7);
+    });
+
+    it('should handle waiting event', () => {
+      mockMedia.dispatchEvent(new Event('waiting'));
+      
+      expect(mockPlayer.state.buffering).toBe(true);
+      expect(mockPlayer.emit).toHaveBeenCalledWith('waiting');
+    });
+
+    it('should handle canplay event', () => {
+      mockMedia.dispatchEvent(new Event('canplay'));
+      
+      expect(mockPlayer.state.buffering).toBe(false);
+      expect(mockPlayer.emit).toHaveBeenCalledWith('canplay');
+    });
+  });
+});
