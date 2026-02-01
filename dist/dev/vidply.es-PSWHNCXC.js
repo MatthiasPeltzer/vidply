@@ -101,7 +101,9 @@ var es = {
   },
   signLanguage: {
     show: "Mostrar video en lengua de señas",
-    hide: "Ocultar video en lengua de señas"
+    hide: "Ocultar video en lengua de señas",
+    showInMainView: "Mostrar lengua de señas en video principal",
+    hideInMainView: "Ocultar lengua de señas del video principal"
   },
   transcript: {
     title: "Transcripción",
@@ -185,4 +187,4 @@ var es = {
 export {
   es
 };
-//# sourceMappingURL=vidply.es-QA4YSA5S.js.map
+//# sourceMappingURL=vidply.es-PSWHNCXC.js.map

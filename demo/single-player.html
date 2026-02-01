@@ -218,7 +218,6 @@
         <!-- Video Demo 1: WWA -->
         <video
                 id="wwa-video"
-                data-vidply
                 data-sign-language-src-en="media/wwa_sign_en.mp4"
                 data-sign-language-src-de="media/wwa_sign_de.mp4"
                 data-sign-language-button="true"
@@ -264,7 +263,72 @@
 
     console.log('Starting video player initialization...');
 
-    const hostElement = document.querySelector('#video-player');
+    const hostElement = document.querySelector('#wwa-video');
+    if (!hostElement) {
+        console.error('VidPly demo: video element #wwa-video not found.');
+        throw new Error('VidPly demo: video element #wwa-video not found.');
+    }
+
+    const parseDataAttributes = (dataset) => {
+        const options = {};
+        const attributeMap = {
+            signLanguageSrc: 'signLanguageSrc',
+            signLanguageButton: 'signLanguageButton',
+            signLanguagePosition: 'signLanguagePosition',
+            audioDescriptionSrc: 'audioDescriptionSrc',
+            audioDescriptionButton: 'audioDescriptionButton',
+            autoplay: 'autoplay',
+            loop: 'loop',
+            muted: 'muted',
+            controls: 'controls',
+            poster: 'poster',
+            width: 'width',
+            height: 'height',
+            language: 'language',
+            captions: 'captions',
+            captionsDefault: 'captionsDefault',
+            transcript: 'transcript',
+            transcriptButton: 'transcriptButton',
+            keyboard: 'keyboard',
+            responsive: 'responsive',
+            pipButton: 'pipButton',
+            fullscreenButton: 'fullscreenButton'
+        };
+        Object.keys(attributeMap).forEach((dataKey) => {
+            const optionKey = attributeMap[dataKey];
+            const value = dataset[dataKey];
+            if (value !== undefined) {
+                if (value === 'true') {
+                    options[optionKey] = true;
+                } else if (value === 'false') {
+                    options[optionKey] = false;
+                } else if (!isNaN(value) && value !== '') {
+                    options[optionKey] = Number(value);
+                } else {
+                    options[optionKey] = value;
+                }
+            }
+        });
+
+        const signLanguageSources = {};
+        Object.keys(dataset).forEach((key) => {
+            if (key.startsWith('signLanguageSrc') && key !== 'signLanguageSrc') {
+                const langMatch = key.match(/^signLanguageSrc([A-Z][a-z]*)$/);
+                if (langMatch) {
+                    const langCode = langMatch[1].toLowerCase();
+                    signLanguageSources[langCode] = dataset[key];
+                }
+            }
+        });
+        if (Object.keys(signLanguageSources).length > 0) {
+            options.signLanguageSources = signLanguageSources;
+            if (dataset.signLanguageSrc && !options.signLanguageSrc) {
+                options.signLanguageSrc = dataset.signLanguageSrc;
+            }
+        }
+
+        return options;
+    };
 
     // Create player instance
     let parsedOptions = {};
@@ -273,20 +337,32 @@
     } catch (e) {
         console.warn('Invalid JSON in data-vidply-options:', e);
     }
+    const dataOptions = parseDataAttributes(hostElement.dataset);
+    const mergedOptions = { ...dataOptions, ...parsedOptions };
 
     const player = new Player(hostElement, {
         mediaType: 'video',
-        ...parsedOptions
+        ...mergedOptions
     });
 
     console.log('Video player created:', player);
 
     let playlist;
 
-    // Create playlist after player is ready (ensures container exists)
+    // Only create playlist if data-playlist attribute exists with tracks
     player.on('ready', () => {
         const playlistData = hostElement.getAttribute('data-playlist');
-        const tracks = playlistData ? JSON.parse(playlistData) : [];
+        if (!playlistData) {
+            console.log('Single video mode - no playlist');
+            return;
+        }
+        
+        const tracks = JSON.parse(playlistData);
+        if (!tracks || tracks.length === 0) {
+            console.log('Single video mode - empty playlist');
+            return;
+        }
+
         const playlistOptions = {
             autoAdvance: hostElement.getAttribute('data-playlist-auto-advance') !== 'false',
             autoPlayFirst: hostElement.getAttribute('data-playlist-auto-play-first') !== 'false',
@@ -296,39 +372,29 @@
         };
 
         playlist = new PlaylistManager(player, playlistOptions);
-
-        console.log('Video playlist initialized');
+        console.log('Video playlist initialized with', tracks.length, 'tracks');
 
         // Listen for video changes
         player.on('playlisttrackchange', (e) => {
             console.log(`Now playing: ${e.item.title}`);
-
-            // Optional: Update document title
             document.title = `${e.item.title} - VidPly Video Playlist`;
         });
-    });
 
-    // Optional: Add keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-        if (!playlist) return;
+        // Add keyboard shortcuts for playlist navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (!playlist) return;
 
-        switch(e.key) {
-            case 'N':
-            case 'n':
-                if (e.shiftKey) {
+            if (e.shiftKey) {
+                if (e.key === 'N' || e.key === 'n') {
                     playlist.next();
                     e.preventDefault();
-                }
-                break;
-            case 'P':
-            case 'p':
-                if (e.shiftKey) {
+                } else if (e.key === 'P' || e.key === 'p') {
                     playlist.previous();
                     e.preventDefault();
                 }
-                break;
-        }
+            }
+        });
     });
 </script>
 </body>

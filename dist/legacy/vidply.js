@@ -352,7 +352,9 @@
         },
         signLanguage: {
           show: "Show sign language video",
-          hide: "Hide sign language video"
+          hide: "Hide sign language video",
+          showInMainView: "Show sign language in main video",
+          hideInMainView: "Hide sign language from main video"
         },
         transcript: {
           title: "Transcript",
@@ -543,7 +545,9 @@
         },
         signLanguage: {
           show: "Gebärdensprache-Video anzeigen",
-          hide: "Gebärdensprache-Video ausblenden"
+          hide: "Gebärdensprache-Video ausblenden",
+          showInMainView: "Gebärdensprache im Hauptvideo anzeigen",
+          hideInMainView: "Gebärdensprache aus Hauptvideo entfernen"
         },
         transcript: {
           title: "Transkript",
@@ -731,7 +735,9 @@
         },
         signLanguage: {
           show: "Mostrar video en lengua de señas",
-          hide: "Ocultar video en lengua de señas"
+          hide: "Ocultar video en lengua de señas",
+          showInMainView: "Mostrar lengua de señas en video principal",
+          hideInMainView: "Ocultar lengua de señas del video principal"
         },
         transcript: {
           title: "Transcripción",
@@ -919,7 +925,9 @@
         },
         signLanguage: {
           show: "Afficher la vidéo en langue des signes",
-          hide: "Masquer la vidéo en langue des signes"
+          hide: "Masquer la vidéo en langue des signes",
+          showInMainView: "Afficher langue des signes dans la vidéo principale",
+          hideInMainView: "Masquer langue des signes de la vidéo principale"
         },
         transcript: {
           title: "Transcription",
@@ -1107,7 +1115,9 @@
         },
         signLanguage: {
           show: "手話動画を表示",
-          hide: "手話動画を非表示"
+          hide: "手話動画を非表示",
+          showInMainView: "メイン動画に手話を表示",
+          hideInMainView: "メイン動画から手話を削除"
         },
         transcript: {
           title: "文字起こし",
@@ -1544,6 +1554,8 @@
         audioDescriptionOn: '<rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><text x="12" y="16" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="currentColor">AD</text>',
         signLanguage: '<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>',
         signLanguageOn: '<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>',
+        signLanguagePip: '<g transform="scale(1.2) translate(1, 1)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g><polygon points="14,23 23,14 23,23" fill="currentColor"/>',
+        signLanguagePipOn: '<g transform="scale(1.2) translate(1, 1)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g><polygon points="14,23 23,14 23,23" fill="currentColor"/>',
         music: '<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7zm-1.5 16c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>',
         moreVertical: '<path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>',
         move: '<path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/>',
@@ -1876,7 +1888,9 @@
                 });
               }
             });
+            return promise;
           }
+          return Promise.resolve();
         }
         /**
          * Ensure the media element has been loaded at least once (metadata/initial state)
@@ -6351,11 +6365,21 @@
         this.rightButtons.appendChild(btn);
       }
       const hasSignLanguage = this.hasSignLanguage();
-      if (this.player.options.signLanguageButton && hasSignLanguage) {
-        const btn = this.createSignLanguageButton();
-        btn.dataset.overflowPriority = "3";
-        btn.dataset.overflowPriorityMobile = "3";
-        this.rightButtons.appendChild(btn);
+      const showSignLanguageButtons = this.player.options.signLanguageButton !== false && hasSignLanguage;
+      const signLanguageDisplayMode = this.player.options.signLanguageDisplayMode || "both";
+      if (showSignLanguageButtons) {
+        if (["pip", "both"].includes(signLanguageDisplayMode)) {
+          const pipBtn = this.createSignLanguageButton();
+          pipBtn.dataset.overflowPriority = "3";
+          pipBtn.dataset.overflowPriorityMobile = "3";
+          this.rightButtons.appendChild(pipBtn);
+        }
+        if (["main", "both"].includes(signLanguageDisplayMode)) {
+          const mainViewBtn = this.createSignLanguageInMainViewButton();
+          mainViewBtn.dataset.overflowPriority = "3";
+          mainViewBtn.dataset.overflowPriorityMobile = "3";
+          this.rightButtons.appendChild(mainViewBtn);
+        }
       }
       if (this.player.options.qualityButton && hasQualityLevels) {
         const btn = this.createQualityButton();
@@ -7873,7 +7897,7 @@
           "aria-expanded": "false"
         }
       });
-      button.appendChild(createIconElement("signLanguage"));
+      button.appendChild(createIconElement("signLanguagePip"));
       DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
       button.addEventListener("click", () => {
         this.player.toggleSignLanguage();
@@ -7886,7 +7910,7 @@
       if (!this.controls.signLanguage) return;
       const icon = this.controls.signLanguage.querySelector(".vidply-icon");
       const isEnabled = this.player.state.signLanguageEnabled;
-      icon.innerHTML = isEnabled ? createIconElement("signLanguageOn").innerHTML : createIconElement("signLanguage").innerHTML;
+      icon.innerHTML = isEnabled ? createIconElement("signLanguagePipOn").innerHTML : createIconElement("signLanguagePip").innerHTML;
       this.controls.signLanguage.setAttribute("aria-expanded", isEnabled ? "true" : "false");
       this.controls.signLanguage.setAttribute(
         "aria-label",
@@ -7894,10 +7918,49 @@
       );
     }
     /**
+     * Create sign language in main view button (src swap, like audio description)
+     */
+    createSignLanguageInMainViewButton() {
+      const ariaLabel = i18n.t("signLanguage.showInMainView");
+      const button = DOMUtils.createElement("button", {
+        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-sign-language-main-view"),
+        attributes: {
+          "type": "button",
+          "aria-label": ariaLabel,
+          "aria-pressed": "false"
+        }
+      });
+      button.appendChild(createIconElement("signLanguage"));
+      DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
+      button.addEventListener("click", () => {
+        if (this.player.signLanguageManager) {
+          this.player.signLanguageManager.toggleInMainView();
+        }
+      });
+      this.controls.signLanguageMainView = button;
+      return button;
+    }
+    /**
+     * Update sign language in main view button state
+     */
+    updateSignLanguageInMainViewButton() {
+      const btn = this.controls.signLanguageMainView;
+      if (!btn) return;
+      const isEnabled = this.player.state.signLanguageInMainView;
+      const newLabel = isEnabled ? i18n.t("signLanguage.hideInMainView") : i18n.t("signLanguage.showInMainView");
+      const iconName = isEnabled ? "signLanguageOn" : "signLanguage";
+      btn.querySelector(".vidply-icon").innerHTML = createIconElement(iconName).innerHTML;
+      btn.setAttribute("aria-pressed", String(isEnabled));
+      btn.setAttribute("aria-label", newLabel);
+      const tooltip = btn.querySelector(".".concat(this.player.options.classPrefix, "-tooltip"));
+      if (tooltip) tooltip.textContent = newLabel;
+    }
+    /**
      * Update accessibility buttons visibility based on current track data.
      * Called when loading a new playlist track to show/hide buttons accordingly.
      */
     updateAccessibilityButtons() {
+      var _a;
       const hasAudioDescription = this.hasAudioDescription();
       const hasSignLanguage = this.hasSignLanguage();
       if (hasAudioDescription) {
@@ -7923,28 +7986,53 @@
           this.controls.audioDescription.style.display = "none";
         }
       }
-      if (hasSignLanguage) {
-        if (!this.controls.signLanguage && this.player.options.signLanguageButton !== false) {
+      const showSignLanguage = hasSignLanguage && this.player.options.signLanguageButton !== false;
+      const classPrefix = this.player.options.classPrefix;
+      const displayMode = this.player.options.signLanguageDisplayMode || "both";
+      const showPip = ["pip", "both"].includes(displayMode);
+      const showMain = ["main", "both"].includes(displayMode);
+      if (showSignLanguage) {
+        const qualityBtn = this.rightButtons.querySelector(".".concat(classPrefix, "-quality"));
+        const fullscreenBtn = this.rightButtons.querySelector(".".concat(classPrefix, "-fullscreen"));
+        const insertBeforeRef = qualityBtn || fullscreenBtn || null;
+        let needsOverflowSetup = false;
+        if (showPip && !this.controls.signLanguage) {
           const btn = this.createSignLanguageButton();
           btn.dataset.overflowPriority = "3";
           btn.dataset.overflowPriorityMobile = "3";
-          const qualityBtn = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-quality"));
-          const fullscreenBtn = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-fullscreen"));
-          const insertBefore = qualityBtn || fullscreenBtn || null;
-          if (insertBefore) {
-            this.rightButtons.insertBefore(btn, insertBefore);
+          if (insertBeforeRef) {
+            this.rightButtons.insertBefore(btn, insertBeforeRef);
           } else {
             this.rightButtons.appendChild(btn);
           }
+          needsOverflowSetup = true;
+        }
+        if (showMain && !this.controls.signLanguageMainView) {
+          const btn = this.createSignLanguageInMainViewButton();
+          btn.dataset.overflowPriority = "3";
+          btn.dataset.overflowPriorityMobile = "3";
+          const afterPip = (_a = this.controls.signLanguage) == null ? void 0 : _a.nextSibling;
+          if (afterPip) {
+            this.rightButtons.insertBefore(btn, afterPip);
+          } else if (insertBeforeRef) {
+            this.rightButtons.insertBefore(btn, insertBeforeRef);
+          } else {
+            this.rightButtons.appendChild(btn);
+          }
+          needsOverflowSetup = true;
+        }
+        if (needsOverflowSetup) {
           this.setupOverflowMenu();
         }
         if (this.controls.signLanguage) {
-          this.controls.signLanguage.style.display = "";
+          this.controls.signLanguage.style.display = showPip ? "" : "none";
+        }
+        if (this.controls.signLanguageMainView) {
+          this.controls.signLanguageMainView.style.display = showMain ? "" : "none";
         }
       } else {
-        if (this.controls.signLanguage) {
-          this.controls.signLanguage.style.display = "none";
-        }
+        if (this.controls.signLanguage) this.controls.signLanguage.style.display = "none";
+        if (this.controls.signLanguageMainView) this.controls.signLanguageMainView.style.display = "none";
       }
     }
     createSettingsButton() {
@@ -8013,6 +8101,8 @@
       this.player.on("audiodescriptiondisabled", () => this.updateAudioDescriptionButton());
       this.player.on("signlanguageenabled", () => this.updateSignLanguageButton());
       this.player.on("signlanguagedisabled", () => this.updateSignLanguageButton());
+      this.player.on("signlanguageinmainviewenabled", () => this.updateSignLanguageInMainViewButton());
+      this.player.on("signlanguageinmainviewdisabled", () => this.updateSignLanguageInMainViewButton());
       this.player.on("qualitychange", () => this.updateQualityIndicator());
       this.player.on("hlslevelswitched", () => this.updateQualityIndicator());
       this.player.on("hlsmanifestparsed", () => {
@@ -9636,6 +9726,11 @@
       this.settingsMenu = null;
       this.resizeHandles = [];
       this.enabled = false;
+      this.inMainView = false;
+      this.mainViewOriginalSrc = null;
+      this.mainViewOriginalSources = null;
+      this._mainViewUsingSourceSwap = false;
+      this._mainViewMutedBefore = false;
       this.settingsMenuVisible = false;
       this.settingsMenuJustOpened = false;
       this.documentClickHandlerAdded = false;
@@ -9740,22 +9835,246 @@
       }
     }
     /**
+     * Enable sign language in main view: replace main video src with sign language URL (like audio description).
+     * Same video element, different URL; no overlay.
+     */
+    async enableInMainView() {
+      const hasMultipleSources = Object.keys(this.sources).length > 0;
+      const hasSingleSource = !!this.src;
+      if (!hasMultipleSources && !hasSingleSource) return;
+      if (!this.player.element || this.player.element.tagName !== "VIDEO") return;
+      if (this.inMainView) return;
+      let signSrc;
+      if (hasMultipleSources) {
+        const initialLang = this._determineInitialLanguage();
+        this.currentLanguage = initialLang;
+        signSrc = this.sources[initialLang];
+      } else {
+        signSrc = this.src;
+      }
+      const el = this.player.element;
+      const currentTime = this.player.state.currentTime;
+      const wasPlaying = this.player.state.playing;
+      const posterValue = el.poster || el.getAttribute("poster") || this.player.options.poster;
+      const shouldKeepPoster = currentTime < 0.1 && !wasPlaying;
+      const sourceElements = Array.from(el.querySelectorAll("source"));
+      const firstSource = sourceElements[0];
+      this.mainViewOriginalSrc = el.currentSrc && el.currentSrc.length > 0 ? el.currentSrc : el.src && el.src.length > 0 ? el.src : firstSource && firstSource.getAttribute("src") ? firstSource.getAttribute("src") : "";
+      this._mainViewMutedBefore = this.player.state.muted;
+      if (posterValue && shouldKeepPoster && el.tagName === "VIDEO") {
+        el.poster = posterValue;
+      }
+      if (sourceElements.length > 0) {
+        this.mainViewOriginalSources = sourceElements;
+        this.mainViewOriginalSources.forEach((source) => source.remove());
+        const signSource = document.createElement("source");
+        signSource.setAttribute("src", signSrc);
+        const type = this._inferVideoType(signSrc);
+        if (type) {
+          signSource.setAttribute("type", type);
+        }
+        const trackNode = el.querySelector("track");
+        if (trackNode) {
+          el.insertBefore(signSource, trackNode);
+        } else {
+          el.appendChild(signSource);
+        }
+        this._mainViewUsingSourceSwap = true;
+      } else {
+        el.src = signSrc;
+        this._mainViewUsingSourceSwap = false;
+      }
+      el.muted = true;
+      this.player.currentSource = signSrc;
+      if (typeof this.player.invalidateTrackCache === "function") {
+        this.player.invalidateTrackCache();
+      }
+      el.load();
+      await this._waitForMediaReadyMainView(currentTime > 0 || wasPlaying);
+      if (currentTime > 0) {
+        this.player.seek(currentTime);
+        await new Promise((r) => setTimeout(r, 100));
+      }
+      if (wasPlaying) {
+        await this.player.play();
+      } else {
+        this.player.pause();
+        if (!shouldKeepPoster && this.player.hidePosterOverlay) {
+          this.player.hidePosterOverlay();
+        }
+      }
+      this.inMainView = true;
+      this.player.state.signLanguageInMainView = true;
+      if (this.player.videoWrapper) {
+        this.player.videoWrapper.classList.add("vidply-sign-language-main-view-active");
+      }
+      this.player.emit("signlanguageinmainviewenabled");
+    }
+    /**
+     * Disable sign language in main view: restore main video src.
+     */
+    async disableInMainView() {
+      var _a, _b;
+      if (!this.inMainView) return;
+      if (!this.mainViewOriginalSrc && !this.mainViewOriginalSources) {
+        this.inMainView = false;
+        this.player.state.signLanguageInMainView = false;
+        if (this.player.videoWrapper) {
+          this.player.videoWrapper.classList.remove("vidply-sign-language-main-view-active");
+        }
+        this.player.emit("signlanguageinmainviewdisabled");
+        return;
+      }
+      const el = this.player.element;
+      const currentTime = this.player.state.currentTime;
+      const wasPlaying = this.player.state.playing;
+      const posterValue = el.poster || el.getAttribute("poster") || this.player.options.poster;
+      if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
+        Array.from(el.querySelectorAll("source")).forEach((source) => source.remove());
+        const trackNode = el.querySelector("track");
+        this.mainViewOriginalSources.forEach((source) => {
+          if (trackNode) {
+            el.insertBefore(source, trackNode);
+          } else {
+            el.appendChild(source);
+          }
+        });
+        this._mainViewUsingSourceSwap = false;
+      } else if (this.mainViewOriginalSrc) {
+        el.src = this.mainViewOriginalSrc;
+      }
+      el.muted = this._mainViewMutedBefore;
+      this.player.currentSource = this.mainViewOriginalSrc || el.querySelector("source") && el.querySelector("source").src || "";
+      if (typeof this.player.invalidateTrackCache === "function") {
+        this.player.invalidateTrackCache();
+      }
+      el.load();
+      await this._waitForMediaReadyMainView(currentTime > 0 || wasPlaying);
+      if (currentTime > 0) {
+        this.player.seek(currentTime);
+      }
+      if (wasPlaying) {
+        try {
+          await this.player.play();
+        } catch (e) {
+          (_b = (_a = this.player).log) == null ? void 0 : _b.call(_a, "Sign language main view: play after restore failed", e, "warn");
+        }
+      }
+      this.mainViewOriginalSrc = null;
+      this.mainViewOriginalSources = null;
+      this.inMainView = false;
+      this.player.state.signLanguageInMainView = false;
+      if (this.player.videoWrapper) {
+        this.player.videoWrapper.classList.remove("vidply-sign-language-main-view-active");
+      }
+      this.player.emit("signlanguageinmainviewdisabled");
+    }
+    /**
+     * Wait for media ready (like AudioDescriptionManager).
+     */
+    async _waitForMediaReadyMainView(needSeek = false) {
+      const el = this.player.element;
+      const loadedMetaPromise = new Promise((resolve) => {
+        if (el.readyState >= 1) {
+          resolve();
+          return;
+        }
+        const onLoad = () => {
+          el.removeEventListener("loadedmetadata", onLoad);
+          el.removeEventListener("error", onError);
+          resolve();
+        };
+        const onError = () => {
+          el.removeEventListener("loadedmetadata", onLoad);
+          el.removeEventListener("error", onError);
+          resolve();
+        };
+        el.addEventListener("loadedmetadata", onLoad);
+        el.addEventListener("error", onError, { once: true });
+      });
+      const timeoutPromise = new Promise((r) => setTimeout(r, 1e4));
+      await Promise.race([loadedMetaPromise, timeoutPromise]);
+      await new Promise((r) => setTimeout(r, 300));
+      if (needSeek) {
+        await new Promise((resolve) => {
+          if (el.readyState >= 3) resolve();
+          else {
+            const onCanPlay = () => {
+              el.removeEventListener("canplay", onCanPlay);
+              el.removeEventListener("canplaythrough", onCanPlay);
+              resolve();
+            };
+            el.addEventListener("canplay", onCanPlay, { once: true });
+            el.addEventListener("canplaythrough", onCanPlay, { once: true });
+            setTimeout(() => {
+              el.removeEventListener("canplay", onCanPlay);
+              el.removeEventListener("canplaythrough", onCanPlay);
+              resolve();
+            }, 3e3);
+          }
+        });
+      }
+    }
+    /**
+     * Toggle sign language in main view (src swap, like audio description).
+     */
+    toggleInMainView() {
+      if (this.inMainView) {
+        this.disableInMainView();
+      } else {
+        this.enableInMainView();
+      }
+    }
+    /**
      * Switch to a different sign language
      */
     switchLanguage(langCode) {
-      if (!this.sources[langCode] || !this.video) {
-        return;
-      }
-      const currentTime = this.video.currentTime;
-      const wasPlaying = !this.video.paused;
-      this.video.src = this.sources[langCode];
+      if (!this.sources[langCode]) return;
       this.currentLanguage = langCode;
-      this.video.currentTime = currentTime;
-      if (wasPlaying) {
-        this.video.play().catch(() => {
+      if (this.video) {
+        const currentTime = this.video.currentTime;
+        const wasPlaying = !this.video.paused;
+        this.video.src = this.sources[langCode];
+        this.video.currentTime = currentTime;
+        if (wasPlaying) {
+          this.video.play().catch(() => {
+          });
+        }
+      }
+      if (this.inMainView && this.player.element && this.player.element.tagName === "VIDEO") {
+        const currentTime = this.player.state.currentTime;
+        const wasPlaying = this.player.state.playing;
+        if (this._mainViewUsingSourceSwap) {
+          const signSource = this.player.element.querySelector("source");
+          if (signSource) {
+            signSource.setAttribute("src", this.sources[langCode]);
+            const type = this._inferVideoType(this.sources[langCode]);
+            if (type) {
+              signSource.setAttribute("type", type);
+            }
+          }
+        } else {
+          this.player.element.src = this.sources[langCode];
+        }
+        this.player.currentSource = this.sources[langCode];
+        if (typeof this.player.invalidateTrackCache === "function") {
+          this.player.invalidateTrackCache();
+        }
+        this.player.element.load();
+        this._waitForMediaReadyMainView(true).then(() => {
+          if (currentTime > 0) this.player.seek(currentTime);
+          if (wasPlaying) this.player.play();
         });
       }
       this.player.emit("signlanguagelanguagechanged", langCode);
+    }
+    _inferVideoType(url) {
+      if (!url) return "";
+      const cleanUrl = url.split("?")[0].toLowerCase();
+      if (cleanUrl.endsWith(".mp4")) return "video/mp4";
+      if (cleanUrl.endsWith(".webm")) return "video/webm";
+      if (cleanUrl.endsWith(".ogv") || cleanUrl.endsWith(".ogg")) return "video/ogg";
+      return "";
     }
     /**
      * Get language label
@@ -10508,6 +10827,36 @@
      */
     cleanup() {
       var _a;
+      if (this.inMainView && this.player.element) {
+        const el = this.player.element;
+        if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
+          Array.from(el.querySelectorAll("source")).forEach((source) => source.remove());
+          const trackNode = el.querySelector("track");
+          this.mainViewOriginalSources.forEach((source) => {
+            if (trackNode) {
+              el.insertBefore(source, trackNode);
+            } else {
+              el.appendChild(source);
+            }
+          });
+          this._mainViewUsingSourceSwap = false;
+        } else if (this.mainViewOriginalSrc) {
+          el.src = this.mainViewOriginalSrc;
+        }
+        el.muted = this._mainViewMutedBefore;
+        if (typeof this.player.invalidateTrackCache === "function") {
+          this.player.invalidateTrackCache();
+        }
+        el.load();
+        this.mainViewOriginalSrc = null;
+        this.mainViewOriginalSources = null;
+        this.inMainView = false;
+        this.player.state.signLanguageInMainView = false;
+        if (this.player.videoWrapper) {
+          this.player.videoWrapper.classList.remove("vidply-sign-language-main-view-active");
+        }
+        this.player.emit("signlanguageinmainviewdisabled");
+      }
       if (this.settingsMenuVisible) {
         this.hideSettingsMenu({ focusButton: false });
       }
@@ -10664,6 +11013,8 @@
         signLanguageButton: true,
         signLanguagePosition: "bottom-right",
         // Position: 'bottom-right', 'bottom-left', 'top-right', 'top-left'
+        signLanguageDisplayMode: "both",
+        // Display mode: 'pip' (overlay), 'main' (source swap), 'both'
         // Transcripts
         transcript: false,
         transcriptPosition: "external",
@@ -10741,7 +11092,8 @@
         currentCaption: null,
         controlsVisible: true,
         audioDescriptionEnabled: false,
-        signLanguageEnabled: false
+        signLanguageEnabled: false,
+        signLanguageInMainView: false
       };
       this.originalSrc = null;
       this.audioDescriptionSrc = this.options.audioDescriptionSrc;
@@ -15538,6 +15890,7 @@
       "signLanguageSrc": "signLanguageSrc",
       "signLanguageButton": "signLanguageButton",
       "signLanguagePosition": "signLanguagePosition",
+      "signLanguageDisplayMode": "signLanguageDisplayMode",
       // Audio Description
       "audioDescriptionSrc": "audioDescriptionSrc",
       "audioDescriptionButton": "audioDescriptionButton",

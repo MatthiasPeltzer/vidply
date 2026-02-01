@@ -104,7 +104,9 @@ var de = {
   },
   signLanguage: {
     show: "Gebärdensprache-Video anzeigen",
-    hide: "Gebärdensprache-Video ausblenden"
+    hide: "Gebärdensprache-Video ausblenden",
+    showInMainView: "Gebärdensprache im Hauptvideo anzeigen",
+    hideInMainView: "Gebärdensprache aus Hauptvideo entfernen"
   },
   transcript: {
     title: "Transkript",
@@ -188,4 +190,4 @@ var de = {
 export {
   de
 };
-//# sourceMappingURL=vidply.de-YBEYEXBL.js.map
+//# sourceMappingURL=vidply.de-IXUNTP3C.js.map

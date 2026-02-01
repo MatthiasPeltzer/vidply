@@ -142,6 +142,7 @@ export class Player extends EventEmitter {
             signLanguageSrc: null, // URL to sign language video
             signLanguageButton: true,
             signLanguagePosition: 'bottom-right', // Position: 'bottom-right', 'bottom-left', 'top-right', 'top-left'
+            signLanguageDisplayMode: 'both', // Display mode: 'pip' (overlay), 'main' (source swap), 'both'
 
             // Transcripts
             transcript: false,
@@ -236,7 +237,8 @@ export class Player extends EventEmitter {
             currentCaption: null,
             controlsVisible: true,
             audioDescriptionEnabled: false,
-            signLanguageEnabled: false
+            signLanguageEnabled: false,
+            signLanguageInMainView: false
         };
 
         // Store original source for toggling

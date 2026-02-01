@@ -101,7 +101,9 @@ export const en = {
   },
   signLanguage: {
     show: 'Show sign language video',
-    hide: 'Hide sign language video'
+    hide: 'Hide sign language video',
+    showInMainView: 'Show sign language in main video',
+    hideInMainView: 'Hide sign language from main video'
   },
   transcript: {
     title: 'Transcript',

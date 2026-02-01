@@ -768,13 +768,26 @@ export class ControlBar {
             this.rightButtons.appendChild(btn);
         }
 
-        // 7. Sign Language button
+        // 7. Sign Language buttons (PiP overlay and/or main view src swap)
         const hasSignLanguage = this.hasSignLanguage();
-        if (this.player.options.signLanguageButton && hasSignLanguage) {
-            const btn = this.createSignLanguageButton();
-            btn.dataset.overflowPriority = '3';
-            btn.dataset.overflowPriorityMobile = '3';
-            this.rightButtons.appendChild(btn);
+        const showSignLanguageButtons = this.player.options.signLanguageButton !== false && hasSignLanguage;
+        const signLanguageDisplayMode = this.player.options.signLanguageDisplayMode || 'both';
+        if (showSignLanguageButtons) {
+            // PiP overlay button (show if mode is 'pip' or 'both')
+            if (['pip', 'both'].includes(signLanguageDisplayMode)) {
+                const pipBtn = this.createSignLanguageButton();
+                pipBtn.dataset.overflowPriority = '3';
+                pipBtn.dataset.overflowPriorityMobile = '3';
+                this.rightButtons.appendChild(pipBtn);
+            }
+            
+            // Main view button (show if mode is 'main' or 'both')
+            if (['main', 'both'].includes(signLanguageDisplayMode)) {
+                const mainViewBtn = this.createSignLanguageInMainViewButton();
+                mainViewBtn.dataset.overflowPriority = '3';
+                mainViewBtn.dataset.overflowPriorityMobile = '3';
+                this.rightButtons.appendChild(mainViewBtn);
+            }
         }
 
         // Quality button (before fullscreen)
@@ -2803,7 +2816,7 @@ export class ControlBar {
             }
         });
 
-        button.appendChild(createIconElement('signLanguage'));
+        button.appendChild(createIconElement('signLanguagePip'));
         DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
 
         button.addEventListener('click', () => {
@@ -2822,13 +2835,59 @@ export class ControlBar {
         const isEnabled = this.player.state.signLanguageEnabled;
 
         icon.innerHTML = isEnabled ?
-            createIconElement('signLanguageOn').innerHTML :
-            createIconElement('signLanguage').innerHTML;
+            createIconElement('signLanguagePipOn').innerHTML :
+            createIconElement('signLanguagePip').innerHTML;
 
         this.controls.signLanguage.setAttribute('aria-expanded', isEnabled ? 'true' : 'false');
         this.controls.signLanguage.setAttribute('aria-label',
             isEnabled ? i18n.t('signLanguage.hide') : i18n.t('signLanguage.show')
         );
+    }
+
+    /**
+     * Create sign language in main view button (src swap, like audio description)
+     */
+    createSignLanguageInMainViewButton() {
+        const ariaLabel = i18n.t('signLanguage.showInMainView');
+        const button = DOMUtils.createElement('button', {
+            className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-sign-language-main-view`,
+            attributes: {
+                'type': 'button',
+                'aria-label': ariaLabel,
+                'aria-pressed': 'false'
+            }
+        });
+
+        button.appendChild(createIconElement('signLanguage'));
+        DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
+
+        button.addEventListener('click', () => {
+            if (this.player.signLanguageManager) {
+                this.player.signLanguageManager.toggleInMainView();
+            }
+        });
+
+        this.controls.signLanguageMainView = button;
+        return button;
+    }
+
+    /**
+     * Update sign language in main view button state
+     */
+    updateSignLanguageInMainViewButton() {
+        const btn = this.controls.signLanguageMainView;
+        if (!btn) return;
+
+        const isEnabled = this.player.state.signLanguageInMainView;
+        const newLabel = isEnabled ? i18n.t('signLanguage.hideInMainView') : i18n.t('signLanguage.showInMainView');
+        const iconName = isEnabled ? 'signLanguageOn' : 'signLanguage';
+
+        btn.querySelector('.vidply-icon').innerHTML = createIconElement(iconName).innerHTML;
+        btn.setAttribute('aria-pressed', String(isEnabled));
+        btn.setAttribute('aria-label', newLabel);
+        
+        const tooltip = btn.querySelector(`.${this.player.options.classPrefix}-tooltip`);
+        if (tooltip) tooltip.textContent = newLabel;
     }
 
     /**
@@ -2869,34 +2928,65 @@ export class ControlBar {
             }
         }
         
-        // Handle Sign Language button
-        if (hasSignLanguage) {
-            // Create button if it doesn't exist
-            if (!this.controls.signLanguage && this.player.options.signLanguageButton !== false) {
+        // Handle Sign Language buttons (PiP overlay and/or main view based on displayMode)
+        const showSignLanguage = hasSignLanguage && this.player.options.signLanguageButton !== false;
+        const classPrefix = this.player.options.classPrefix;
+        const displayMode = this.player.options.signLanguageDisplayMode || 'both';
+        const showPip = ['pip', 'both'].includes(displayMode);
+        const showMain = ['main', 'both'].includes(displayMode);
+        
+        if (showSignLanguage) {
+            // Find insertion point once for both buttons
+            const qualityBtn = this.rightButtons.querySelector(`.${classPrefix}-quality`);
+            const fullscreenBtn = this.rightButtons.querySelector(`.${classPrefix}-fullscreen`);
+            const insertBeforeRef = qualityBtn || fullscreenBtn || null;
+            let needsOverflowSetup = false;
+            
+            // Create PiP button if needed and doesn't exist
+            if (showPip && !this.controls.signLanguage) {
                 const btn = this.createSignLanguageButton();
                 btn.dataset.overflowPriority = '3';
                 btn.dataset.overflowPriorityMobile = '3';
-                // Insert before quality or fullscreen button
-                const qualityBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-quality`);
-                const fullscreenBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-fullscreen`);
-                const insertBefore = qualityBtn || fullscreenBtn || null;
-                if (insertBefore) {
-                    this.rightButtons.insertBefore(btn, insertBefore);
+                if (insertBeforeRef) {
+                    this.rightButtons.insertBefore(btn, insertBeforeRef);
                 } else {
                     this.rightButtons.appendChild(btn);
                 }
-                // Re-setup overflow menu after adding button
+                needsOverflowSetup = true;
+            }
+            
+            // Create main view button if needed and doesn't exist
+            if (showMain && !this.controls.signLanguageMainView) {
+                const btn = this.createSignLanguageInMainViewButton();
+                btn.dataset.overflowPriority = '3';
+                btn.dataset.overflowPriorityMobile = '3';
+                // Insert after PiP button or at the reference point
+                const afterPip = this.controls.signLanguage?.nextSibling;
+                if (afterPip) {
+                    this.rightButtons.insertBefore(btn, afterPip);
+                } else if (insertBeforeRef) {
+                    this.rightButtons.insertBefore(btn, insertBeforeRef);
+                } else {
+                    this.rightButtons.appendChild(btn);
+                }
+                needsOverflowSetup = true;
+            }
+            
+            if (needsOverflowSetup) {
                 this.setupOverflowMenu();
             }
-            // Show button
+            
+            // Show/hide buttons based on displayMode
             if (this.controls.signLanguage) {
-                this.controls.signLanguage.style.display = '';
+                this.controls.signLanguage.style.display = showPip ? '' : 'none';
+            }
+            if (this.controls.signLanguageMainView) {
+                this.controls.signLanguageMainView.style.display = showMain ? '' : 'none';
             }
         } else {
-            // Hide button if no sign language available
-            if (this.controls.signLanguage) {
-                this.controls.signLanguage.style.display = 'none';
-            }
+            // Hide both buttons if no sign language available
+            if (this.controls.signLanguage) this.controls.signLanguage.style.display = 'none';
+            if (this.controls.signLanguageMainView) this.controls.signLanguageMainView.style.display = 'none';
         }
     }
 
@@ -2981,6 +3071,8 @@ export class ControlBar {
         this.player.on('audiodescriptiondisabled', () => this.updateAudioDescriptionButton());
         this.player.on('signlanguageenabled', () => this.updateSignLanguageButton());
         this.player.on('signlanguagedisabled', () => this.updateSignLanguageButton());
+        this.player.on('signlanguageinmainviewenabled', () => this.updateSignLanguageInMainViewButton());
+        this.player.on('signlanguageinmainviewdisabled', () => this.updateSignLanguageInMainViewButton());
         this.player.on('qualitychange', () => this.updateQualityIndicator());
         this.player.on('hlslevelswitched', () => this.updateQualityIndicator());
         this.player.on('hlsmanifestparsed', () => {

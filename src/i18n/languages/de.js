@@ -101,7 +101,9 @@ export const de = {
     },
     signLanguage: {
         show: 'Gebärdensprache-Video anzeigen',
-        hide: 'Gebärdensprache-Video ausblenden'
+        hide: 'Gebärdensprache-Video ausblenden',
+        showInMainView: 'Gebärdensprache im Hauptvideo anzeigen',
+        hideInMainView: 'Gebärdensprache aus Hauptvideo entfernen'
     },
     transcript: {
         title: 'Transkript',

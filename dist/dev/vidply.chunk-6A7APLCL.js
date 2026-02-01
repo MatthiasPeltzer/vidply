@@ -153,7 +153,9 @@ var HTML5Renderer = class {
           });
         }
       });
+      return promise;
     }
+    return Promise.resolve();
   }
   /**
    * Ensure the media element has been loaded at least once (metadata/initial state)
@@ -278,4 +280,4 @@ var HTML5Renderer = class {
 export {
   HTML5Renderer
 };
-//# sourceMappingURL=vidply.chunk-IIN4G4UQ.js.map
+//# sourceMappingURL=vidply.chunk-6A7APLCL.js.map

@@ -36,6 +36,7 @@ function parseDataAttributes(dataset) {
     'signLanguageSrc': 'signLanguageSrc',
     'signLanguageButton': 'signLanguageButton',
     'signLanguagePosition': 'signLanguagePosition',
+    'signLanguageDisplayMode': 'signLanguageDisplayMode',
     
     // Audio Description
     'audioDescriptionSrc': 'audioDescriptionSrc',

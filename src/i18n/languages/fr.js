@@ -98,7 +98,9 @@ export const fr = {
   },
   signLanguage: {
     show: 'Afficher la vidéo en langue des signes',
-    hide: 'Masquer la vidéo en langue des signes'
+    hide: 'Masquer la vidéo en langue des signes',
+    showInMainView: 'Afficher langue des signes dans la vidéo principale',
+    hideInMainView: 'Masquer langue des signes de la vidéo principale'
   },
   transcript: {
     title: 'Transcription',
