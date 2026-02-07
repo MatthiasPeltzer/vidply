@@ -14868,27 +14868,22 @@
      */
     loadPlaylistFromAttribute() {
       if (!this.player.element || !this.player.element.parentElement) {
-        console.log("VidPly Playlist: No player element found");
         return;
       }
       const videoWrapper = this.player.element.parentElement;
       const playerContainer = videoWrapper.parentElement;
       const originalElement = playerContainer ? playerContainer.parentElement : null;
       if (!originalElement) {
-        console.log("VidPly Playlist: No original element found");
         return;
       }
       this.loadOptionsFromAttributes(originalElement);
       const playlistData = originalElement.getAttribute("data-playlist");
       if (!playlistData) {
-        console.log("VidPly Playlist: No data-playlist attribute found");
         return;
       }
-      console.log("VidPly Playlist: Found data-playlist attribute, parsing...");
       try {
         const tracks = JSON.parse(playlistData);
         if (Array.isArray(tracks) && tracks.length > 0) {
-          console.log("VidPly Playlist: Loaded ".concat(tracks.length, " tracks from data-playlist"));
           this.loadPlaylist(tracks);
         } else {
           console.warn("VidPly Playlist: data-playlist is not a valid array or is empty");
@@ -14918,7 +14913,6 @@
       if (showPanel !== null) {
         this.options.showPanel = showPanel === "true";
       }
-      console.log("VidPly Playlist: Options from attributes:", this.options);
     }
     /**
      * Update player controls to add playlist navigation buttons
