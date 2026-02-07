@@ -322,7 +322,6 @@ export class PlaylistManager {
     // Structure: #audio-player -> .vidply-player -> .vidply-video-wrapper -> <audio>
     // So we need to go up 3 levels
     if (!this.player.element || !this.player.element.parentElement) {
-      console.log('VidPly Playlist: No player element found');
       return;
     }
     
@@ -331,7 +330,6 @@ export class PlaylistManager {
     const originalElement = playerContainer ? playerContainer.parentElement : null; // #audio-player (original div)
     
     if (!originalElement) {
-      console.log('VidPly Playlist: No original element found');
       return;
     }
     
@@ -340,15 +338,12 @@ export class PlaylistManager {
     
     const playlistData = originalElement.getAttribute('data-playlist');
     if (!playlistData) {
-      console.log('VidPly Playlist: No data-playlist attribute found');
       return;
     }
     
-    console.log('VidPly Playlist: Found data-playlist attribute, parsing...');
     try {
       const tracks = JSON.parse(playlistData);
       if (Array.isArray(tracks) && tracks.length > 0) {
-        console.log(`VidPly Playlist: Loaded ${tracks.length} tracks from data-playlist`);
         this.loadPlaylist(tracks);
       } else {
         console.warn('VidPly Playlist: data-playlist is not a valid array or is empty');
@@ -386,8 +381,6 @@ export class PlaylistManager {
     if (showPanel !== null) {
       this.options.showPanel = showPanel === 'true';
     }
-    
-    console.log('VidPly Playlist: Options from attributes:', this.options);
   }
   
   /**

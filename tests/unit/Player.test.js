@@ -93,7 +93,8 @@ vi.mock('../../src/icons/Icons.js', () => ({
 vi.mock('../../src/i18n/i18n.js', () => ({
   i18n: {
     t: vi.fn((key) => key),
-    setLanguage: vi.fn()
+    setLanguage: vi.fn(),
+    ensureLanguage: vi.fn().mockResolvedValue(true)
   }
 }));
 

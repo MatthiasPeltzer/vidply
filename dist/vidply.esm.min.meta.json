@@ -473,7 +473,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 58869,
+      "bytes": 58411,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -627,13 +627,13 @@
           "bytesInOutput": 80962
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 24708
+          "bytesInOutput": 24295
         },
         "src/index.js": {
           "bytesInOutput": 1919
         }
       },
-      "bytes": 221721
+      "bytes": 221308
     },
     "dist/prod/vidply.de-MFGEETCC.min.js": {
       "imports": [],

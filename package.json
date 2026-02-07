@@ -58,11 +58,11 @@
     "access": "public"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.1",
+    "@playwright/test": "^1.58.2",
     "@vitest/coverage-v8": "^4.0.18",
     "clean-css": "^5.3.3",
-    "esbuild": "^0.27.2",
-    "jsdom": "^27.4.0",
+    "esbuild": "^0.27.3",
+    "jsdom": "^28.0.0",
     "vitest": "^4.0.18"
   }
 }
