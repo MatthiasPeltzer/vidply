@@ -66,6 +66,17 @@ export class HLSRenderer {
       throw new Error('HLS is not supported in this browser');
     }
 
+    // HTML5 spec: If video has src attribute, <source> children are not allowed.
+    // hls.js sets a blob: URL on the src attribute, so we must remove any <source> elements
+    // to maintain valid HTML. Store the original source URL first.
+    const sourceElements = Array.from(this.media.querySelectorAll('source'));
+    let originalSrc = null;
+    if (sourceElements.length > 0) {
+      originalSrc = sourceElements[0].getAttribute('src');
+      sourceElements.forEach(source => source.remove());
+      this.player.log('Removed <source> elements for HTML5 validity (hls.js uses src attribute)');
+    }
+
     // Create hls.js instance with better error recovery
     this.hls = new window.Hls({
       debug: this.player.options.debug,
@@ -97,16 +108,23 @@ export class HLSRenderer {
     this.hls.attachMedia(this.media);
 
     // Load source - use currentSource for external renderers, or get from attribute
+    // Priority: currentSource > originalSrc (from removed <source>) > data-vidply-src > src attribute
     let src = this.player.currentSource;
     
+    if (!src && originalSrc) {
+      src = originalSrc;
+    }
+    
     if (!src) {
-      const sourceElement = this.player.element.querySelector('source');
-      if (sourceElement) {
-        // Use getAttribute to get the original URL, not the blob-converted one
-        src = sourceElement.getAttribute('src');
-      } else {
-        // Fallback to element's src attribute
-        src = this.player.element.getAttribute('src') || this.player.element.src;
+      // Try data-vidply-src attribute (used by TYPO3 integration)
+      src = this.player.element.getAttribute('data-vidply-src');
+    }
+    
+    if (!src) {
+      // Fallback to element's src attribute (but not blob: URLs)
+      const elementSrc = this.player.element.getAttribute('src') || this.player.element.src;
+      if (elementSrc && !elementSrc.startsWith('blob:')) {
+        src = elementSrc;
       }
     }
     

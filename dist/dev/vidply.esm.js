@@ -5,7 +5,7 @@
  */
 import {
   HTML5Renderer
-} from "./vidply.chunk-6A7APLCL.js";
+} from "./vidply.chunk-YUGVRBIH.js";
 import {
   DOMUtils,
   DraggableResizable,
@@ -5791,7 +5791,7 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.VimeoRenderer-SLEBCZTT.js");
       rendererClass = module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-JX33TBXM.js");
+      const module = await import("./vidply.HLSRenderer-ZLTE6K3O.js");
       rendererClass = module.HLSRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-HCMKXHSX.js");
@@ -9767,7 +9767,8 @@ var PlaylistManager = class {
     const item = DOMUtils.createElement("li", {
       className: isActive ? "vidply-playlist-item vidply-playlist-item-active" : "vidply-playlist-item",
       attributes: {
-        "data-playlist-index": index
+        "data-playlist-index": index,
+        role: "none"
       }
     });
     const button = DOMUtils.createElement("button", {

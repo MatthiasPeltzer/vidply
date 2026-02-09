@@ -257,8 +257,10 @@ export class HTML5Renderer {
     }
 
     return sources.map((source, index) => {
-      // Try to extract quality from data attributes or label
-      const label = source.getAttribute('data-quality') || source.getAttribute('label') || '';
+      // Extract quality from data-quality attribute (preferred, HTML5-valid)
+      // Fallback to deprecated 'label' attribute for backward compatibility
+      // Note: 'label' is not a valid HTML attribute on <source> elements
+      const label = source.getAttribute('data-quality') || source.getAttribute('data-label') || source.getAttribute('label') || '';
       const height = source.getAttribute('data-height') || this.extractHeightFromLabel(label);
       const width = source.getAttribute('data-width') || '';
       

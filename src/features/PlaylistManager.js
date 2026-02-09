@@ -1136,6 +1136,8 @@ export class PlaylistManager {
     this.playlistPanel.appendChild(instructions);
     
     // Create list (proper ul element)
+    // Note: role="listbox" requires option children. We use role="none" on <li> elements
+    // so the buttons with role="option" become the semantic children of the listbox.
     const list = DOMUtils.createElement('ul', {
       className: 'vidply-playlist-list',
       attributes: {
@@ -1184,11 +1186,14 @@ export class PlaylistManager {
       ariaLabel += `. ${trackDurationReadable}`;
     }
     
-    // Create list item container (semantic HTML)
+    // Create list item container
+    // role="none" removes the <li> from the accessibility tree so the button with
+    // role="option" becomes the direct semantic child of the listbox (required by ARIA).
     const item = DOMUtils.createElement('li', {
       className: isActive ? 'vidply-playlist-item vidply-playlist-item-active' : 'vidply-playlist-item',
       attributes: {
-        'data-playlist-index': index
+        'data-playlist-index': index,
+        role: 'none'
       }
     });
     
