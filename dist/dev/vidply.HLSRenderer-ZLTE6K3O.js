@@ -32,7 +32,7 @@ var HLSRenderer = class {
     return video.canPlayType("application/vnd.apple.mpegurl") !== "";
   }
   async initNative() {
-    const HTML5Renderer = (await import("./vidply.HTML5Renderer-NBO7TGYL.js")).HTML5Renderer;
+    const HTML5Renderer = (await import("./vidply.HTML5Renderer-HFFBZHDX.js")).HTML5Renderer;
     const renderer = new HTML5Renderer(this.player);
     await renderer.init();
     Object.getOwnPropertyNames(Object.getPrototypeOf(renderer)).forEach((method) => {
@@ -49,6 +49,13 @@ var HLSRenderer = class {
     }
     if (!window.Hls.isSupported()) {
       throw new Error("HLS is not supported in this browser");
+    }
+    const sourceElements = Array.from(this.media.querySelectorAll("source"));
+    let originalSrc = null;
+    if (sourceElements.length > 0) {
+      originalSrc = sourceElements[0].getAttribute("src");
+      sourceElements.forEach((source) => source.remove());
+      this.player.log("Removed <source> elements for HTML5 validity (hls.js uses src attribute)");
     }
     this.hls = new window.Hls({
       debug: this.player.options.debug,
@@ -77,12 +84,16 @@ var HLSRenderer = class {
     });
     this.hls.attachMedia(this.media);
     let src = this.player.currentSource;
+    if (!src && originalSrc) {
+      src = originalSrc;
+    }
     if (!src) {
-      const sourceElement = this.player.element.querySelector("source");
-      if (sourceElement) {
-        src = sourceElement.getAttribute("src");
-      } else {
-        src = this.player.element.getAttribute("src") || this.player.element.src;
+      src = this.player.element.getAttribute("data-vidply-src");
+    }
+    if (!src) {
+      const elementSrc = this.player.element.getAttribute("src") || this.player.element.src;
+      if (elementSrc && !elementSrc.startsWith("blob:")) {
+        src = elementSrc;
       }
     }
     this.player.log(`Loading HLS source: ${src}`, "log");
@@ -314,4 +325,4 @@ var HLSRenderer = class {
 export {
   HLSRenderer
 };
-//# sourceMappingURL=vidply.HLSRenderer-JX33TBXM.js.map
+//# sourceMappingURL=vidply.HLSRenderer-ZLTE6K3O.js.map

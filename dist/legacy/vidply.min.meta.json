@@ -186,7 +186,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.js": {
-      "bytes": 10612,
+      "bytes": 10816,
       "imports": [],
       "format": "esm"
     },
@@ -352,7 +352,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 12151,
+      "bytes": 12977,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -484,7 +484,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 58411,
+      "bytes": 58771,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -579,7 +579,7 @@
           "bytesInOutput": 1638
         },
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 5497
+          "bytesInOutput": 5527
         },
         "src/utils/DraggableResizable.js": {
           "bytesInOutput": 16613
@@ -600,7 +600,7 @@
           "bytesInOutput": 4612
         },
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 6646
+          "bytesInOutput": 6900
         },
         "src/renderers/SoundCloudRenderer.js": {
           "bytesInOutput": 5515
@@ -633,13 +633,13 @@
           "bytesInOutput": 26184
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 24875
+          "bytesInOutput": 24887
         },
         "src/index.js": {
           "bytesInOutput": 1927
         }
       },
-      "bytes": 373208
+      "bytes": 373504
     }
   }
 }

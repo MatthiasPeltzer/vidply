@@ -198,7 +198,7 @@ var HTML5Renderer = class {
       return [];
     }
     return sources.map((source, index) => {
-      const label = source.getAttribute("data-quality") || source.getAttribute("label") || "";
+      const label = source.getAttribute("data-quality") || source.getAttribute("data-label") || source.getAttribute("label") || "";
       const height = source.getAttribute("data-height") || this.extractHeightFromLabel(label);
       const width = source.getAttribute("data-width") || "";
       return {
@@ -280,4 +280,4 @@ var HTML5Renderer = class {
 export {
   HTML5Renderer
 };
-//# sourceMappingURL=vidply.chunk-6A7APLCL.js.map
+//# sourceMappingURL=vidply.chunk-YUGVRBIH.js.map

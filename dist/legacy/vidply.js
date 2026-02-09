@@ -1933,7 +1933,7 @@
             return [];
           }
           return sources.map((source, index) => {
-            const label = source.getAttribute("data-quality") || source.getAttribute("label") || "";
+            const label = source.getAttribute("data-quality") || source.getAttribute("data-label") || source.getAttribute("label") || "";
             const height = source.getAttribute("data-height") || this.extractHeightFromLabel(label);
             const width = source.getAttribute("data-width") || "";
             return {
@@ -5134,6 +5134,13 @@
           if (!window.Hls.isSupported()) {
             throw new Error("HLS is not supported in this browser");
           }
+          const sourceElements = Array.from(this.media.querySelectorAll("source"));
+          let originalSrc = null;
+          if (sourceElements.length > 0) {
+            originalSrc = sourceElements[0].getAttribute("src");
+            sourceElements.forEach((source) => source.remove());
+            this.player.log("Removed <source> elements for HTML5 validity (hls.js uses src attribute)");
+          }
           this.hls = new window.Hls({
             debug: this.player.options.debug,
             // When deferLoad is enabled, do not start loading until the first play().
@@ -5161,12 +5168,16 @@
           });
           this.hls.attachMedia(this.media);
           let src = this.player.currentSource;
+          if (!src && originalSrc) {
+            src = originalSrc;
+          }
           if (!src) {
-            const sourceElement = this.player.element.querySelector("source");
-            if (sourceElement) {
-              src = sourceElement.getAttribute("src");
-            } else {
-              src = this.player.element.getAttribute("src") || this.player.element.src;
+            src = this.player.element.getAttribute("data-vidply-src");
+          }
+          if (!src) {
+            const elementSrc = this.player.element.getAttribute("src") || this.player.element.src;
+            if (elementSrc && !elementSrc.startsWith("blob:")) {
+              src = elementSrc;
             }
           }
           this.player.log("Loading HLS source: ".concat(src), "log");
@@ -15480,7 +15491,8 @@
       const item = DOMUtils.createElement("li", {
         className: isActive ? "vidply-playlist-item vidply-playlist-item-active" : "vidply-playlist-item",
         attributes: {
-          "data-playlist-index": index
+          "data-playlist-index": index,
+          role: "none"
         }
       });
       const button = DOMUtils.createElement("button", {
