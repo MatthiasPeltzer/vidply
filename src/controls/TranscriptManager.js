@@ -489,7 +489,7 @@ export class TranscriptManager {
     const isFullscreen = this.player.state.fullscreen;
     
     if (isMobile && !isFullscreen) {
-      // Mobile: Position underneath the video and controls as part of the layout
+      // Mobile: Position directly underneath the video controls as part of the layout
       this.transcriptWindow.style.position = 'relative';
       this.transcriptWindow.style.left = '0';
       this.transcriptWindow.style.right = '0';
@@ -497,7 +497,7 @@ export class TranscriptManager {
       this.transcriptWindow.style.top = 'auto';
       this.transcriptWindow.style.width = '100%';
       this.transcriptWindow.style.maxWidth = '100%';
-      this.transcriptWindow.style.maxHeight = '400px';
+      this.transcriptWindow.style.maxHeight = '300px';
       this.transcriptWindow.style.height = 'auto';
       this.transcriptWindow.style.borderRadius = '0';
       this.transcriptWindow.style.transform = 'none';
@@ -520,9 +520,10 @@ export class TranscriptManager {
         this.transcriptHeader.style.cursor = 'default';
       }
       
-      // Ensure transcript is at the container level for proper stacking
-      if (this.transcriptWindow.parentNode !== this.player.container) {
-        this.player.container.appendChild(this.transcriptWindow);
+      // Insert directly after video wrapper to appear right under controls
+      const videoWrapper = this.player.videoWrapper;
+      if (videoWrapper && videoWrapper.nextSibling !== this.transcriptWindow) {
+        videoWrapper.parentNode.insertBefore(this.transcriptWindow, videoWrapper.nextSibling);
       }
     } else if (isFullscreen) {
       // In fullscreen: position in bottom right corner inside the video
@@ -563,7 +564,7 @@ export class TranscriptManager {
         this.player.container.appendChild(this.transcriptWindow);
       }
     } else {
-      // Desktop mode: position in right side of viewport
+      // Desktop mode: position to the right of video, or overlay if insufficient space
       const transcriptWidth = parseFloat(this.transcriptWindow.style.width) || 400;
       const padding = 20;
       const minWidth = 260;
@@ -578,20 +579,63 @@ export class TranscriptManager {
 
       ensureContainerPositioned();
 
-      const left = (videoRect.right - containerRect.left) + padding;
+      // Calculate available space to the right of the video
+      // WCAG 1.4.10 Reflow: Avoid horizontal overflow and content being cut off
       const availableWidth = window.innerWidth - videoRect.right - padding;
-      const appliedWidth = Math.max(minWidth, Math.min(transcriptWidth, availableWidth));
-      const appliedHeight = videoRect.height;
+      
+      // Switch to overlay mode when:
+      // 1. Available width is less than the desired transcript width (would cause squeezing/cutoff)
+      // 2. OR available width is below minimum usable width
+      // This triggers earlier - as soon as the transcript would be squeezed
+      const wouldBeCutOff = availableWidth < transcriptWidth;
+      const hasMinimumSpace = availableWidth >= minWidth;
+      const useOverlay = wouldBeCutOff || !hasMinimumSpace;
 
-      this.transcriptWindow.style.position = 'absolute';
-      this.transcriptWindow.style.left = `${left}px`;
-      this.transcriptWindow.style.right = 'auto';
-      this.transcriptWindow.style.bottom = 'auto';
-      this.transcriptWindow.style.top = '0';
-      this.transcriptWindow.style.height = `${appliedHeight}px`;
-      this.transcriptWindow.style.maxHeight = 'none';
-      this.transcriptWindow.style.width = `${appliedWidth}px`;
-      this.transcriptWindow.style.maxWidth = 'none';
+      if (!useOverlay) {
+        // Position to the right of the video (original behavior)
+        const left = (videoRect.right - containerRect.left) + padding;
+        const appliedWidth = Math.max(minWidth, Math.min(transcriptWidth, availableWidth));
+        const appliedHeight = videoRect.height;
+
+        this.transcriptWindow.style.position = 'absolute';
+        this.transcriptWindow.style.left = `${left}px`;
+        this.transcriptWindow.style.right = 'auto';
+        this.transcriptWindow.style.bottom = 'auto';
+        this.transcriptWindow.style.top = '0';
+        this.transcriptWindow.style.height = `${appliedHeight}px`;
+        this.transcriptWindow.style.maxHeight = 'none';
+        this.transcriptWindow.style.width = `${appliedWidth}px`;
+        this.transcriptWindow.style.maxWidth = 'none';
+        this.transcriptWindow.style.boxShadow = '';
+      } else {
+        // Insufficient space: fall back to compact overlay mode inside video area
+        // Positioned above controls to prevent horizontal overflow
+        const overlayMaxWidth = 320;
+        const overlayMaxHeight = 280;
+        const overlayWidth = Math.min(overlayMaxWidth, videoRect.width - 40);
+        const overlayHeight = Math.min(overlayMaxHeight, videoRect.height - 120);
+        
+        // Calculate position relative to container, placing overlay inside video area
+        const videoWrapperRect = this.player.videoWrapper.getBoundingClientRect();
+        const controlsHeight = 70; // Approximate height of controls
+        
+        // Position from top of container to bottom of video minus controls and overlay height
+        const overlayActualHeight = Math.max(180, overlayHeight);
+        const topPosition = (videoWrapperRect.bottom - containerRect.top) - controlsHeight - overlayActualHeight;
+        const rightPosition = (containerRect.right - videoWrapperRect.right) + 12;
+
+        this.transcriptWindow.style.position = 'absolute';
+        this.transcriptWindow.style.left = 'auto';
+        this.transcriptWindow.style.right = `${rightPosition}px`;
+        this.transcriptWindow.style.top = `${topPosition}px`;
+        this.transcriptWindow.style.bottom = 'auto';
+        this.transcriptWindow.style.width = `${Math.max(minWidth, overlayWidth)}px`;
+        this.transcriptWindow.style.maxWidth = `${overlayMaxWidth}px`;
+        this.transcriptWindow.style.height = `${overlayActualHeight}px`;
+        this.transcriptWindow.style.maxHeight = `${overlayMaxHeight}px`;
+        this.transcriptWindow.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.6)'; // Enhanced shadow for overlay visibility
+      }
+
       this.transcriptWindow.style.borderRadius = '8px';
       this.transcriptWindow.style.border = '1px solid var(--vidply-border)';
       // Remove borderTop and any other individual border properties to avoid empty values
