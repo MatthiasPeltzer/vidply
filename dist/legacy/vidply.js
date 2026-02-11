@@ -3252,7 +3252,7 @@
             this.transcriptWindow.style.top = "auto";
             this.transcriptWindow.style.width = "100%";
             this.transcriptWindow.style.maxWidth = "100%";
-            this.transcriptWindow.style.maxHeight = "400px";
+            this.transcriptWindow.style.maxHeight = "300px";
             this.transcriptWindow.style.height = "auto";
             this.transcriptWindow.style.borderRadius = "0";
             this.transcriptWindow.style.transform = "none";
@@ -3271,8 +3271,9 @@
             if (this.transcriptHeader) {
               this.transcriptHeader.style.cursor = "default";
             }
-            if (this.transcriptWindow.parentNode !== this.player.container) {
-              this.player.container.appendChild(this.transcriptWindow);
+            const videoWrapper = this.player.videoWrapper;
+            if (videoWrapper && videoWrapper.nextSibling !== this.transcriptWindow) {
+              videoWrapper.parentNode.insertBefore(this.transcriptWindow, videoWrapper.nextSibling);
             }
           } else if (isFullscreen) {
             this.transcriptWindow.style.position = "fixed";
@@ -3318,19 +3319,45 @@
               }
             };
             ensureContainerPositioned();
-            const left = videoRect.right - containerRect.left + padding;
             const availableWidth = window.innerWidth - videoRect.right - padding;
-            const appliedWidth = Math.max(minWidth, Math.min(transcriptWidth, availableWidth));
-            const appliedHeight = videoRect.height;
-            this.transcriptWindow.style.position = "absolute";
-            this.transcriptWindow.style.left = "".concat(left, "px");
-            this.transcriptWindow.style.right = "auto";
-            this.transcriptWindow.style.bottom = "auto";
-            this.transcriptWindow.style.top = "0";
-            this.transcriptWindow.style.height = "".concat(appliedHeight, "px");
-            this.transcriptWindow.style.maxHeight = "none";
-            this.transcriptWindow.style.width = "".concat(appliedWidth, "px");
-            this.transcriptWindow.style.maxWidth = "none";
+            const wouldBeCutOff = availableWidth < transcriptWidth;
+            const hasMinimumSpace = availableWidth >= minWidth;
+            const useOverlay = wouldBeCutOff || !hasMinimumSpace;
+            if (!useOverlay) {
+              const left = videoRect.right - containerRect.left + padding;
+              const appliedWidth = Math.max(minWidth, Math.min(transcriptWidth, availableWidth));
+              const appliedHeight = videoRect.height;
+              this.transcriptWindow.style.position = "absolute";
+              this.transcriptWindow.style.left = "".concat(left, "px");
+              this.transcriptWindow.style.right = "auto";
+              this.transcriptWindow.style.bottom = "auto";
+              this.transcriptWindow.style.top = "0";
+              this.transcriptWindow.style.height = "".concat(appliedHeight, "px");
+              this.transcriptWindow.style.maxHeight = "none";
+              this.transcriptWindow.style.width = "".concat(appliedWidth, "px");
+              this.transcriptWindow.style.maxWidth = "none";
+              this.transcriptWindow.style.boxShadow = "";
+            } else {
+              const overlayMaxWidth = 320;
+              const overlayMaxHeight = 280;
+              const overlayWidth = Math.min(overlayMaxWidth, videoRect.width - 40);
+              const overlayHeight = Math.min(overlayMaxHeight, videoRect.height - 120);
+              const videoWrapperRect = this.player.videoWrapper.getBoundingClientRect();
+              const controlsHeight = 70;
+              const overlayActualHeight = Math.max(180, overlayHeight);
+              const topPosition = videoWrapperRect.bottom - containerRect.top - controlsHeight - overlayActualHeight;
+              const rightPosition = containerRect.right - videoWrapperRect.right + 12;
+              this.transcriptWindow.style.position = "absolute";
+              this.transcriptWindow.style.left = "auto";
+              this.transcriptWindow.style.right = "".concat(rightPosition, "px");
+              this.transcriptWindow.style.top = "".concat(topPosition, "px");
+              this.transcriptWindow.style.bottom = "auto";
+              this.transcriptWindow.style.width = "".concat(Math.max(minWidth, overlayWidth), "px");
+              this.transcriptWindow.style.maxWidth = "".concat(overlayMaxWidth, "px");
+              this.transcriptWindow.style.height = "".concat(overlayActualHeight, "px");
+              this.transcriptWindow.style.maxHeight = "".concat(overlayMaxHeight, "px");
+              this.transcriptWindow.style.boxShadow = "0 4px 16px rgba(0, 0, 0, 0.6)";
+            }
             this.transcriptWindow.style.borderRadius = "8px";
             this.transcriptWindow.style.border = "1px solid var(--vidply-border)";
             this.transcriptWindow.style.removeProperty("border-top");

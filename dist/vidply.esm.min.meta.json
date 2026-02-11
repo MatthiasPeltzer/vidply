@@ -285,7 +285,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 80133,
+      "bytes": 82777,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -572,7 +572,7 @@
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.TranscriptManager-AYJL4AG3.min.js",
+          "path": "dist/prod/vidply.TranscriptManager-PBMPGOBY.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -713,7 +713,7 @@
       },
       "bytes": 5579
     },
-    "dist/prod/vidply.TranscriptManager-AYJL4AG3.min.js": {
+    "dist/prod/vidply.TranscriptManager-PBMPGOBY.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-I7BQYXMN.min.js",
@@ -726,10 +726,10 @@
       "entryPoint": "src/controls/TranscriptManager.js",
       "inputs": {
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 42771
+          "bytesInOutput": 43516
         }
       },
-      "bytes": 43042
+      "bytes": 43787
     },
     "dist/prod/vidply.chunk-I7BQYXMN.min.js": {
       "imports": [
