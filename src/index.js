@@ -6,6 +6,9 @@
 import { Player } from './core/Player.js';
 import { PlaylistManager } from './features/PlaylistManager.js';
 
+// Map to track pending lazy-initialized players
+const pendingPlayers = new Map();
+
 // Auto-initialize players
 function initializePlayers() {
   const elements = document.querySelectorAll('[data-vidply]');
@@ -21,10 +24,99 @@ function initializePlayers() {
     const dataOptions = parseDataAttributes(element.dataset);
     const mergedOptions = { ...dataOptions, ...options };
     
-    // Create player instance
-    new Player(element, mergedOptions);
+    // Check for lazy initialization settings
+    // Default to true for auto-init, can be disabled with data-vidply-lazy="false"
+    const lazyInit = element.dataset.vidplyLazy !== 'false' && mergedOptions.lazyInit !== false;
+    const lazyMargin = element.dataset.vidplyLazyMargin || mergedOptions.lazyMargin || '500px';
+    
+    // Use IntersectionObserver for lazy loading if supported and enabled
+    if (lazyInit && 'IntersectionObserver' in window) {
+      observeForLazyInit(element, mergedOptions, lazyMargin);
+    } else {
+      // Immediate initialization
+      new Player(element, mergedOptions);
+    }
   });
 }
+
+/**
+ * Set up IntersectionObserver to lazily initialize a player when visible
+ * @param {HTMLElement} element - The video element to observe
+ * @param {Object} options - Player options
+ * @param {string} margin - Root margin for IntersectionObserver
+ */
+function observeForLazyInit(element, options, margin) {
+  // Check if element has very small dimensions - CSS may not have loaded yet
+  // In this case, initialize immediately as IntersectionObserver won't work reliably
+  const rect = element.getBoundingClientRect();
+  if (rect.height < 20) {
+    new Player(element, options);
+    return;
+  }
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Stop observing once triggered
+        observer.unobserve(entry.target);
+        
+        // Remove from pending map
+        pendingPlayers.delete(entry.target);
+        
+        // Initialize the player
+        new Player(entry.target, options);
+      }
+    });
+  }, {
+    rootMargin: margin,
+    threshold: 0
+  });
+  
+  observer.observe(element);
+  
+  // Store for potential cleanup
+  pendingPlayers.set(element, { observer, options });
+}
+
+/**
+ * Cancel lazy initialization for an element
+ * @param {HTMLElement} element - The element to cancel lazy init for
+ */
+function cancelLazyInit(element) {
+  const pending = pendingPlayers.get(element);
+  if (pending) {
+    pending.observer.unobserve(element);
+    pendingPlayers.delete(element);
+  }
+}
+
+/**
+ * Manually trigger lazy observation for an element
+ * Useful for programmatic setup outside of auto-initialization
+ * @param {string|HTMLElement} selector - Element or selector
+ * @param {Object} options - Player options
+ * @param {string} margin - Root margin (default: '200px')
+ * @returns {Object|null} Reference to cancel lazy init, or null if immediate init
+ */
+Player.observeLazy = function(selector, options = {}, margin = '200px') {
+  const element = typeof selector === 'string' ? document.querySelector(selector) : selector;
+  
+  if (!element) {
+    console.warn('VidPly: Element not found for lazy observation');
+    return null;
+  }
+  
+  if ('IntersectionObserver' in window) {
+    observeForLazyInit(element, options, margin);
+    return {
+      cancel: () => cancelLazyInit(element)
+    };
+  } else {
+    // Fallback to immediate initialization
+    new Player(element, options);
+    return null;
+  }
+};
 
 // Helper function to parse data attributes into options
 function parseDataAttributes(dataset) {
@@ -61,6 +153,13 @@ function parseDataAttributes(dataset) {
     'fullscreenButton': 'fullscreenButton',
 
     // Layout
+    
+    // Lazy Loading
+    'lazyInit': 'lazyInit',
+    'lazyMargin': 'lazyMargin',
+    
+    // Theming
+    'theme': 'theme'
   };
   
   // Parse each data attribute

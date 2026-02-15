@@ -449,8 +449,12 @@ const playlist = new PlaylistManager(player, { tracks });</code></pre>
         console.warn('Invalid JSON in data-vidply-options:', e);
       }
 
+      // Get theme from data attribute
+      const theme = hostElement.dataset.theme || 'dark';
+
       const player = new Player(hostElement, {
         mediaType: 'video',
+        theme,
         ...parsedOptions
       });
 

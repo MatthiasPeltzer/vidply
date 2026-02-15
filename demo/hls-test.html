@@ -479,11 +479,11 @@
             
             <div class="stream-selector">
                 <label for="stream-select">Select Test Stream:</label> <select id="stream-select">
-                <option value="https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8">Apple Test Stream (Best)</option>
-                <option value="https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8">Tears of Steel</option>
-                <option value="https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8">Big Buck Bunny (Bitmovin)</option>
-                <option value="https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8">Sintel</option>
-                <option value="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8">Big Buck Bunny (Mux)</option>
+                <option value="https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8" data-poster="media/appletest.png">Apple Test Stream (Best)</option>
+                <option value="https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8" data-poster="media/tearsofsteel.png">Tears of Steel</option>
+                <option value="https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8" data-poster="media/artofmotion.png">Art of Motion (Bitmovin)</option>
+                <option value="https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8" data-poster="media/sintel.png">Sintel</option>
+                <option value="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" data-poster="media/bigbunny.png">Big Buck Bunny (Mux)</option>
             </select>
             </div>
             
@@ -493,6 +493,7 @@
                         width="900"
                         height="506"
                         preload="metadata"
+                        poster="media/appletest.png"
                 >
                     <source src="https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8" type="application/x-mpegURL">
                 </video>
@@ -661,7 +662,8 @@
             debug: true,
             controls: true,
             volume: 0.8,
-            autoplay: false
+            autoplay: false,
+            theme: 'light'
         });
         
         log('Player instance created successfully', 'success');
@@ -823,25 +825,31 @@
         
         streamSelect.addEventListener('change', async (e) => {
             const newUrl = e.target.value;
+            const selectedOption = e.target.selectedOptions[0];
+            const newPoster = selectedOption.dataset.poster;
             log(`Loading new stream: ${newUrl}`, 'info');
             
             try {
-                // Destroy current HLS instance if it exists
-                if (player.renderer && player.renderer.hls) {
-                    log('Destroying current HLS instance...', 'info');
-                    player.renderer.hls.destroy();
-                }
-                
-                // Update source
-                const source = videoElement.querySelector('source');
-                source.src = newUrl;
-                videoElement.src = newUrl;
-                
                 // Reset UI immediately
                 document.getElementById('quality-count').textContent = '0';
                 document.getElementById('current-quality').textContent = '-';
                 document.getElementById('quality-selector').style.display = 'none';
                 document.getElementById('buffer-status').textContent = 'Loading...';
+                
+                // Destroy current HLS instance if it exists
+                if (player.renderer && player.renderer.hls) {
+                    log('Destroying current HLS instance...', 'info');
+                    player.renderer.hls.destroy();
+                    player.renderer.hls = null;
+                }
+                
+                // Update poster image
+                if (newPoster) {
+                    videoElement.poster = newPoster;
+                }
+                
+                // Set the new source directly on the video element
+                videoElement.src = newUrl;
                 
                 // Reinitialize the renderer
                 log('Reinitializing renderer...', 'info');

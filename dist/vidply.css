@@ -158,6 +158,932 @@
     --vidply-z-transcript: 5; /* Transcript window */
 }
 
+/* ============================================
+   Theme System
+   ============================================ */
+
+/* Dark Theme (Default) - uses root variables as-is */
+.vidply-theme-dark {
+    /* Dark theme is the default, no overrides needed */
+}
+
+/* Light Theme */
+.vidply-theme-light {
+    /* Base colors - invert black/white */
+    --vidply-active-bg: rgba(0, 0, 0, 0.12);
+    --vidply-bg-controls: linear-gradient(180deg, rgb(255 255 255 / 0) 0%, rgb(240 240 240 / 95%) 100%);
+    --vidply-bg-dialog: rgb(245 245 245 / 98%);
+    --vidply-bg-dialog-dark: rgb(235 235 235 / 98%);
+    
+    /* Background colors */
+    --vidply-bg-menu: rgb(250 250 250 / 98%);
+    --vidply-bg-menu-rgb: 250, 250, 250;
+    --vidply-bg-playlist: #f5f5f5;
+    --vidply-bg-playlist-header: #e8e8e8;
+    --vidply-bg-track-info: #f0f0f0;
+    --vidply-bg-transcript: rgb(248 248 248 / 98%);
+    --vidply-black: #fff;
+    --vidply-black-rgb: 255, 255, 255;
+    --vidply-border: rgba(0, 0, 0, 0.15);
+    
+    /* Text colors */
+    --vidply-border-hover: rgba(0, 0, 0, 0.25);
+    --vidply-border-light: rgba(0, 0, 0, 0.1);
+    --vidply-hover-bg: rgba(0, 0, 0, 0.08);
+    --vidply-scrollbar-thumb: #888;
+    --vidply-scrollbar-thumb-hover: #666;
+    
+    /* Border colors */
+    --vidply-scrollbar-track: #e0e0e0;
+    --vidply-scrollbar-track-transcript: #ddd;
+    --vidply-shadow-lg: 0 0.75rem 3rem rgba(0, 0, 0, 0.2);
+    
+    /* State colors */
+    --vidply-shadow-md: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+    --vidply-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+    
+    /* Scrollbar */
+    --vidply-text-disabled: #999;
+    --vidply-text-muted: #555;
+    --vidply-text-primary: #1a1a1a;
+    --vidply-text-secondary: #333;
+    
+    /* Shadows - lighter for light theme */
+    --vidply-text-subtle: #777;
+    --vidply-white: #000;
+    --vidply-white-rgb: 0, 0, 0;
+}
+
+/* Light theme specific overrides for controls - use opaque background, not transparent gradient */
+.vidply-theme-light .vidply-controls {
+    background: linear-gradient(180deg, rgba(240, 240, 240, 0.85) 0%, rgba(235, 235, 235, 0.98) 100%) !important;
+}
+
+/* Light theme - Mobile control bar override */
+@media (width <= 48rem), (width < 48rem) {
+    .vidply-theme-light .vidply-controls {
+        background: rgba(240, 240, 240, 0.98) !important;
+    }
+}
+
+/* Light theme - Fullscreen control bar override */
+.vidply-theme-light.vidply-fullscreen .vidply-controls,
+.vidply-theme-light:fullscreen .vidply-controls,
+.vidply-player.vidply-theme-light.vidply-fullscreen .vidply-controls,
+.vidply-player.vidply-theme-light:fullscreen .vidply-controls {
+    background: linear-gradient(180deg, rgba(240, 240, 240, 0.85) 0%, rgba(235, 235, 235, 0.98) 100%) !important;
+}
+
+/* Light theme - Audio player control bar */
+.vidply-theme-light.vidply-audio .vidply-controls {
+    background: rgba(240, 240, 240, 0.98) !important;
+}
+
+.vidply-theme-light .vidply-button svg,
+.vidply-theme-light .vidply-icon-button svg {
+    fill: #333;
+}
+
+.vidply-theme-light .vidply-button:hover svg,
+.vidply-theme-light .vidply-icon-button:hover svg {
+    fill: #000;
+}
+
+.vidply-theme-light .vidply-progress-played {
+    background: var(--vidply-primary);
+}
+
+.vidply-theme-light .vidply-volume-slider-fill {
+    background: var(--vidply-primary);
+}
+
+/* =============================================
+   Light theme - WCAG compliant focus/hover states
+   Focus: 3:1 contrast ratio minimum
+   ============================================= */
+
+/* Light theme - Button focus states */
+.vidply-theme-light .vidply-button:focus,
+.vidply-theme-light .vidply-button:focus-visible {
+    box-shadow: 0 0 0 4px rgba(10, 64, 110, 0.3) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: 2px !important;
+}
+
+.vidply-theme-light .vidply-button:hover {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+.vidply-theme-light .vidply-icon-button:focus,
+.vidply-theme-light .vidply-icon-button:focus-visible {
+    box-shadow: 0 0 0 4px rgba(10, 64, 110, 0.3) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: 2px !important;
+}
+
+.vidply-theme-light .vidply-icon-button:hover {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Light theme - Transcript window (WCAG AA compliant) */
+.vidply-theme-light .vidply-transcript-window {
+    background: #f8f8f8;
+    border-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.vidply-theme-light .vidply-transcript-header {
+    background: #e8e8e8;
+    border-bottom-color: rgba(0, 0, 0, 0.12);
+}
+
+.vidply-theme-light .vidply-transcript-header h3 {
+    color: #1a1a1a;
+}
+
+.vidply-theme-light .vidply-transcript-title {
+    color: #1a1a1a;
+}
+
+.vidply-theme-light .vidply-transcript-content {
+    background: #ffffff;
+}
+
+/* Light theme - Transcript entries (correct class names) */
+.vidply-theme-light .vidply-transcript-entry {
+    color: #212121;
+}
+
+.vidply-theme-light .vidply-transcript-entry:hover {
+    background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.vidply-theme-light .vidply-transcript-entry:focus,
+.vidply-theme-light .vidply-transcript-entry:focus-visible {
+    background: rgba(10, 64, 110, 0.1) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: -2px !important;
+}
+
+.vidply-theme-light .vidply-transcript-entry-active {
+    background: rgba(10, 64, 110, 0.12);
+    border-left-color: #0a406e;
+}
+
+.vidply-theme-light .vidply-transcript-time {
+    color: #0a406e; /* Dark blue - 7.5:1 contrast on white */
+}
+
+.vidply-theme-light .vidply-transcript-text {
+    color: #212121 !important; /* Near black - 16:1 contrast on white */
+    opacity: 1 !important;
+}
+
+.vidply-theme-light .vidply-transcript-entry-active .vidply-transcript-text {
+    color: #0a406e !important;
+}
+
+.vidply-theme-light .vidply-transcript-entry:hover .vidply-transcript-text,
+.vidply-theme-light .vidply-transcript-entry:focus .vidply-transcript-text {
+    color: #1a1a1a !important;
+}
+
+/* Light theme - Description entries in transcript */
+.vidply-theme-light .vidply-transcript-description {
+    background: rgba(10, 64, 110, 0.08) !important;
+    border-left-color: #0a406e !important;
+}
+
+.vidply-theme-light .vidply-transcript-description .vidply-transcript-text {
+    color: #1a5490 !important; /* Dark blue - readable on light background */
+    font-style: italic;
+    opacity: 1 !important;
+}
+
+.vidply-theme-light .vidply-transcript-description:hover .vidply-transcript-text,
+.vidply-theme-light .vidply-transcript-description:focus .vidply-transcript-text {
+    color: #0a406e !important;
+    opacity: 1 !important;
+}
+
+.vidply-theme-light .vidply-transcript-description.vidply-transcript-entry-active {
+    background: rgba(10, 64, 110, 0.15) !important;
+}
+
+.vidply-theme-light .vidply-transcript-description.vidply-transcript-entry-active .vidply-transcript-text {
+    color: #083358 !important;
+    opacity: 1 !important;
+}
+
+/* Light theme - Transcript header controls */
+.vidply-theme-light .vidply-transcript-header-left {
+    color: #1a1a1a;
+}
+
+.vidply-theme-light .vidply-transcript-autoscroll-label {
+    color: #333;
+}
+
+.vidply-theme-light .vidply-transcript-autoscroll-label input[type="checkbox"] {
+    accent-color: #0a406e;
+}
+
+/* Light theme - Transcript header buttons */
+.vidply-theme-light .vidply-transcript-header .vidply-icon-button,
+.vidply-theme-light .vidply-transcript-header button {
+    color: #333;
+}
+
+.vidply-theme-light .vidply-transcript-header .vidply-icon-button svg,
+.vidply-theme-light .vidply-transcript-header button svg {
+    fill: #333;
+}
+
+.vidply-theme-light .vidply-transcript-header .vidply-icon-button:hover svg,
+.vidply-theme-light .vidply-transcript-header button:hover svg {
+    fill: #000;
+}
+
+.vidply-theme-light .vidply-transcript-header .vidply-icon-button:focus,
+.vidply-theme-light .vidply-transcript-header .vidply-icon-button:focus-visible,
+.vidply-theme-light .vidply-transcript-header button:focus,
+.vidply-theme-light .vidply-transcript-header button:focus-visible {
+    box-shadow: 0 0 0 4px rgba(10, 64, 110, 0.3) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: 2px !important;
+}
+
+/* Light theme - Language dropdown in transcript */
+.vidply-theme-light .vidply-transcript-header select,
+.vidply-theme-light .vidply-transcript-language-select {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    color: #1a1a1a;
+}
+
+.vidply-theme-light .vidply-transcript-header select:hover,
+.vidply-theme-light .vidply-transcript-language-select:hover {
+    border-color: rgba(0, 0, 0, 0.4);
+}
+
+.vidply-theme-light .vidply-transcript-header select:focus,
+.vidply-theme-light .vidply-transcript-language-select:focus {
+    border-color: #0a406e !important;
+    box-shadow: 0 0 0 3px rgba(10, 64, 110, 0.4) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: 0 !important;
+}
+
+/* Light theme - Transcript scrollbar */
+.vidply-theme-light .vidply-transcript-content {
+    scrollbar-color: #999 #e0e0e0;
+}
+
+/* Light theme - Menus and dropdowns */
+.vidply-theme-light .vidply-menu {
+    background: #fafafa;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.vidply-theme-light .vidply-menu-item {
+    color: #333;
+}
+
+.vidply-theme-light .vidply-menu-item:hover {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+.vidply-theme-light .vidply-menu-item:focus,
+.vidply-theme-light .vidply-menu-item:focus-visible {
+    background: rgba(10, 64, 110, 0.12) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: -2px !important;
+}
+
+.vidply-theme-light .vidply-menu-item.vidply-active,
+.vidply-theme-light .vidply-menu-item[aria-checked="true"] {
+    background: rgba(10, 64, 110, 0.1);
+    color: #0a406e;
+}
+
+.vidply-theme-light .vidply-menu-header {
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+    color: #555;
+}
+
+.vidply-theme-light .vidply-menu-divider {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Light theme - Caption style menu (WCAG compliant) */
+.vidply-theme-light .vidply-caption-style-menu {
+    background: #f5f5f5;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.vidply-theme-light .vidply-caption-style-menu label {
+    color: #1a1a1a !important;
+    font-weight: 500;
+}
+
+.vidply-theme-light .vidply-caption-style-menu select {
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.3) !important;
+    color: #1a1a1a !important;
+}
+
+.vidply-theme-light .vidply-caption-style-menu select:hover {
+    border-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.vidply-theme-light .vidply-caption-style-menu select:focus,
+.vidply-theme-light .vidply-caption-style-menu select:focus-visible {
+    border-color: #0a406e !important;
+    box-shadow: 0 0 0 3px rgba(10, 64, 110, 0.4) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: 0 !important;
+}
+
+/* Light theme - Style select dropdowns specifically */
+.vidply-theme-light .vidply-style-select {
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.3) !important;
+    color: #1a1a1a !important;
+}
+
+.vidply-theme-light .vidply-style-select:hover {
+    border-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.vidply-theme-light .vidply-style-select:focus,
+.vidply-theme-light .vidply-style-select:focus-visible {
+    border-color: #0a406e !important;
+    box-shadow: 0 0 0 3px rgba(10, 64, 110, 0.4) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: 0 !important;
+}
+
+/* Light theme - Settings menu (including caption style popup) */
+.vidply-theme-light .vidply-settings-menu {
+    background: #f5f5f5;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.vidply-theme-light .vidply-style-group {
+    color: #1a1a1a !important;
+}
+
+.vidply-theme-light .vidply-style-group label {
+    color: #1a1a1a !important;
+    font-weight: 500;
+}
+
+/* Light theme - Transcript style groups */
+.vidply-theme-light .vidply-transcript-style-group label {
+    color: #1a1a1a !important;
+}
+
+.vidply-theme-light .vidply-transcript-style-group select {
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.3) !important;
+    color: #1a1a1a !important;
+}
+
+/* Light theme - All select dropdowns */
+.vidply-theme-light select {
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    color: #1a1a1a;
+}
+
+.vidply-theme-light select:focus,
+.vidply-theme-light select:focus-visible {
+    border-color: #0a406e !important;
+    box-shadow: 0 0 0 3px rgba(10, 64, 110, 0.4) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: 0 !important;
+}
+
+.vidply-theme-light select option {
+    background: #ffffff;
+    color: #1a1a1a;
+}
+
+/* Light theme - Volume menu */
+.vidply-theme-light .vidply-volume-menu {
+    background: #fafafa;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* Light theme - Chapters menu */
+.vidply-theme-light .vidply-chapters-menu {
+    background: #fafafa;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.vidply-theme-light .vidply-chapter-item {
+    color: #333;
+}
+
+.vidply-theme-light .vidply-chapter-item:hover {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+.vidply-theme-light .vidply-chapter-item:focus,
+.vidply-theme-light .vidply-chapter-item:focus-visible {
+    background: rgba(10, 64, 110, 0.1) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: -2px !important;
+}
+
+.vidply-theme-light .vidply-chapter-item.vidply-active {
+    background: rgba(10, 64, 110, 0.1);
+}
+
+.vidply-theme-light .vidply-chapter-time {
+    color: #0a406e;
+}
+
+/* Light theme - Speed menu */
+.vidply-theme-light .vidply-speed-menu {
+    background: #fafafa;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* Light theme - Quality menu */
+.vidply-theme-light .vidply-quality-menu {
+    background: #fafafa;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* Light theme - Captions display (for audio players) */
+.vidply-theme-light .vidply-captions {
+    background: #f5f5f5 !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+    color: #1a1a1a !important;
+}
+
+.vidply-theme-light.vidply-audio .vidply-captions,
+.vidply-theme-light .vidply-player.vidply-audio .vidply-captions {
+    background: #f5f5f5 !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    color: #1a1a1a !important;
+}
+
+/* Light theme - Captions menu */
+.vidply-theme-light .vidply-captions-menu {
+    background: #fafafa;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* Light theme - Settings dialog */
+.vidply-theme-light .vidply-settings-dialog {
+    background: #f8f8f8;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.vidply-theme-light .vidply-settings-header {
+    background: #f0f0f0;
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+    color: #1a1a1a;
+}
+
+.vidply-theme-light .vidply-settings-content {
+    background: #ffffff;
+}
+
+/* Light theme - Playlist */
+.vidply-theme-light .vidply-playlist-panel {
+    background: #f5f5f5;
+    border-color: rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vidply-theme-light .vidply-playlist-header {
+    background: #e8e8e8 !important;
+    border-bottom-color: rgba(0, 0, 0, 0.15) !important;
+    color: #1a1a1a !important;
+}
+
+.vidply-theme-light .vidply-playlist-list {
+    background: #f5f5f5;
+}
+
+.vidply-theme-light .vidply-playlist-item {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+.vidply-theme-light .vidply-playlist-item:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.vidply-theme-light .vidply-playlist-item:focus,
+.vidply-theme-light .vidply-playlist-item:focus-visible {
+    background: rgba(10, 64, 110, 0.1) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: -2px !important;
+}
+
+.vidply-theme-light .vidply-playlist-item-button {
+    color: #1a1a1a;
+}
+
+.vidply-theme-light .vidply-playlist-item-button:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.vidply-theme-light .vidply-playlist-item-button:focus,
+.vidply-theme-light .vidply-playlist-item-button:focus-visible {
+    background: rgba(10, 64, 110, 0.08) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: -2px !important;
+}
+
+.vidply-theme-light .vidply-playlist-item-active,
+.vidply-theme-light .vidply-playlist-item.vidply-playlist-item-active {
+    background: rgba(10, 64, 110, 0.08);
+    border-color: #0a406e;
+}
+
+.vidply-theme-light .vidply-playlist-item-active .vidply-playlist-item-button,
+.vidply-theme-light .vidply-playlist-item.vidply-playlist-item-active .vidply-playlist-item-button {
+    background: transparent;
+}
+
+.vidply-theme-light .vidply-playlist-item-active .vidply-playlist-item-button:hover,
+.vidply-theme-light .vidply-playlist-item.vidply-playlist-item-active .vidply-playlist-item-button:hover {
+    background: rgba(10, 64, 110, 0.12) !important;
+}
+
+.vidply-theme-light .vidply-playlist-item-title {
+    color: #1a1a1a;
+}
+
+.vidply-theme-light .vidply-playlist-item-artist {
+    color: #555;
+}
+
+.vidply-theme-light .vidply-playlist-item-description {
+    color: #666;
+}
+
+.vidply-theme-light .vidply-playlist-item-duration {
+    color: #666;
+}
+
+.vidply-theme-light .vidply-playlist-duration-badge {
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+}
+
+.vidply-theme-light .vidply-playlist-thumbnail-container {
+    background: #e0e0e0;
+}
+
+.vidply-theme-light .vidply-playlist-thumbnail-icon {
+    color: #666;
+}
+
+.vidply-theme-light .vidply-playlist-item-icon {
+    color: #555;
+}
+
+.vidply-theme-light .vidply-playlist-item-active .vidply-playlist-item-icon {
+    color: #0a406e;
+}
+
+/* Light theme - Track info */
+.vidply-theme-light .vidply-track-info {
+    background: #f0f0f0 !important;
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+.vidply-theme-light .vidply-track-header,
+.vidply-theme-light .vidply-track-number,
+.vidply-theme-light .vidply-track-duration {
+    color: #555 !important;
+}
+
+.vidply-theme-light .vidply-track-title {
+    color: #1a1a1a !important;
+}
+
+.vidply-theme-light .vidply-track-artist {
+    color: #444 !important;
+}
+
+.vidply-theme-light .vidply-track-description {
+    color: #555 !important;
+}
+
+/* Light theme - Sign language window */
+.vidply-theme-light .vidply-sign-language-wrapper {
+    border-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.vidply-theme-light .vidply-sign-language-header {
+    background: rgba(240, 240, 240, 0.95);
+    color: #1a1a1a;
+}
+
+/* Light theme - Tooltips */
+.vidply-theme-light .vidply-tooltip {
+    background: #333;
+    color: #fff;
+}
+
+/* Light theme - Time display */
+.vidply-theme-light .vidply-time,
+.vidply-theme-light .vidply-time *,
+.vidply-theme-light .vidply-current-time,
+.vidply-theme-light .vidply-duration,
+.vidply-theme-light .vidply-current-time *,
+.vidply-theme-light .vidply-duration * {
+    color: #1a1a1a !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Light theme - Control bar time display (higher specificity) */
+.vidply-theme-light .vidply-control-bar .vidply-time,
+.vidply-theme-light .vidply-control-bar .vidply-time *,
+.vidply-theme-light .vidply-control-bar .vidply-current-time,
+.vidply-theme-light .vidply-control-bar .vidply-current-time *,
+.vidply-theme-light .vidply-control-bar .vidply-duration,
+.vidply-theme-light .vidply-control-bar .vidply-duration * {
+    color: #1a1a1a !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Light theme - Controls container time display (highest specificity) */
+.vidply-theme-light .vidply-controls .vidply-time,
+.vidply-theme-light .vidply-controls .vidply-time *,
+.vidply-theme-light .vidply-controls .vidply-current-time,
+.vidply-theme-light .vidply-controls .vidply-current-time *,
+.vidply-theme-light .vidply-controls .vidply-duration,
+.vidply-theme-light .vidply-controls .vidply-duration * {
+    color: #1a1a1a !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Light theme - Time display spans including separator */
+.vidply-theme-light .vidply-time > span:not(.vidply-sr-only),
+.vidply-theme-light .vidply-current-time > span:not(.vidply-sr-only),
+.vidply-theme-light .vidply-duration > span:not(.vidply-sr-only) {
+    color: #1a1a1a !important;
+}
+
+/* Light theme - Progress bar tooltip */
+.vidply-theme-light .vidply-progress-tooltip {
+    background: #333;
+    color: #fff;
+}
+
+/* Light theme - Resume prompt */
+.vidply-theme-light .vidply-resume-prompt {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.vidply-theme-light .vidply-resume-prompt-content {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.vidply-theme-light .vidply-resume-prompt-message {
+    color: #1a1a1a;
+}
+
+.vidply-theme-light .vidply-resume-prompt-button {
+    background: #f0f0f0;
+    border-color: rgba(0, 0, 0, 0.15);
+    color: #333;
+}
+
+.vidply-theme-light .vidply-resume-prompt-button:hover {
+    background: #d9d9d9 !important;
+}
+
+.vidply-theme-light .vidply-resume-prompt-button:focus,
+.vidply-theme-light .vidply-resume-prompt-button:focus-visible {
+    box-shadow: 0 0 0 4px rgba(10, 64, 110, 0.3) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: 2px !important;
+}
+
+.vidply-theme-light .vidply-resume-prompt-button-primary {
+    background: var(--vidply-primary);
+    border-color: var(--vidply-primary);
+    color: #fff;
+}
+
+.vidply-theme-light .vidply-resume-prompt-button-primary:hover {
+    background: #063557 !important; /* Darker shade for better contrast */
+}
+
+.vidply-theme-light .vidply-resume-prompt-button-primary:focus,
+.vidply-theme-light .vidply-resume-prompt-button-primary:focus-visible {
+    box-shadow: 0 0 0 4px rgba(10, 64, 110, 0.4) !important;
+    outline: 2px solid #063557 !important;
+    outline-offset: 2px !important;
+}
+
+/* Light theme - Form elements (WCAG compliant) */
+.vidply-theme-light input[type="range"] {
+    background: #ccc;
+}
+
+.vidply-theme-light input[type="checkbox"] {
+    accent-color: #0a406e;
+}
+
+.vidply-theme-light .vidply-labeled-select {
+    background: #f5f5f5;
+}
+
+.vidply-theme-light .vidply-labeled-select select {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    color: #1a1a1a;
+}
+
+.vidply-theme-light .vidply-labeled-select select:focus,
+.vidply-theme-light .vidply-labeled-select select:focus-visible {
+    border-color: #0a406e !important;
+    box-shadow: 0 0 0 3px rgba(10, 64, 110, 0.4) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: 0 !important;
+}
+
+.vidply-theme-light .vidply-labeled-select label {
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+/* Light theme - All labels should have proper contrast */
+.vidply-theme-light label {
+    color: #1a1a1a !important;
+}
+
+/* Light theme - Checkboxes and their labels */
+.vidply-theme-light .vidply-checkbox-label,
+.vidply-theme-light [class*="autoscroll"] label {
+    color: #333 !important;
+}
+
+/* Light theme - Universal text color fixes for any missed elements */
+.vidply-theme-light [class*="vidply-"] label,
+.vidply-theme-light [class*="vidply-"] .label {
+    color: #1a1a1a !important;
+}
+
+.vidply-theme-light [class*="vidply-menu"] {
+    color: #1a1a1a;
+}
+
+.vidply-theme-light [class*="vidply-"] span:not(.vidply-tooltip):not([class*="icon"]) {
+    color: inherit;
+}
+
+/* Light theme - WCAG catch-all focus states for all interactive elements */
+.vidply-theme-light a:focus,
+.vidply-theme-light a:focus-visible {
+    outline: 2px solid #0a406e !important;
+    outline-offset: 2px !important;
+}
+
+.vidply-theme-light [tabindex]:focus,
+.vidply-theme-light [tabindex]:focus-visible {
+    outline: 2px solid #0a406e !important;
+    outline-offset: 2px !important;
+}
+
+/* Light theme - Control bar buttons focus */
+.vidply-theme-light .vidply-control-bar button:focus,
+.vidply-theme-light .vidply-control-bar button:focus-visible {
+    box-shadow: 0 0 0 4px rgba(10, 64, 110, 0.3) !important;
+    outline: 2px solid #0a406e !important;
+    outline-offset: 2px !important;
+}
+
+/* Light theme - Slider focus (range inputs) */
+.vidply-theme-light input[type="range"]:focus,
+.vidply-theme-light input[type="range"]:focus-visible {
+    outline: 2px solid #0a406e !important;
+    outline-offset: 4px !important;
+}
+
+/* Light theme - Checkbox focus */
+.vidply-theme-light input[type="checkbox"]:focus,
+.vidply-theme-light input[type="checkbox"]:focus-visible {
+    outline: 2px solid #0a406e !important;
+    outline-offset: 2px !important;
+}
+
+/* Light theme - Progress bar focus */
+.vidply-theme-light .vidply-progress:focus,
+.vidply-theme-light .vidply-progress:focus-visible,
+.vidply-theme-light .vidply-progress-bar:focus,
+.vidply-theme-light .vidply-progress-bar:focus-visible {
+    outline: 2px solid #0a406e !important;
+    outline-offset: 2px !important;
+}
+
+/* Light theme - Volume slider focus */
+.vidply-theme-light .vidply-volume-slider:focus,
+.vidply-theme-light .vidply-volume-slider:focus-visible {
+    outline: 2px solid #0a406e !important;
+    outline-offset: 2px !important;
+}
+
+/* Minimal Theme - Simplified, transparent controls */
+.vidply-theme-minimal {
+    /* More transparent backgrounds */
+    --vidply-bg-controls: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.6) 100%);
+    --vidply-bg-dialog: rgba(0, 0, 0, 0.9);
+    --vidply-bg-menu: rgba(0, 0, 0, 0.85);
+    
+    /* Simpler borders */
+    --vidply-border: transparent;
+    --vidply-border-light: transparent;
+    
+    /* Reduced radius for cleaner look */
+    --vidply-radius-lg: 0.375rem;
+    --vidply-radius-md: 0.25rem;
+    --vidply-radius-sm: 0.125rem;
+    --vidply-radius-xl: 0.5rem;
+}
+
+/* Minimal theme - hide less essential UI elements */
+.vidply-theme-minimal .vidply-tooltip {
+    display: none;
+}
+
+.vidply-theme-minimal .vidply-button-text {
+    display: none;
+}
+
+.vidply-theme-minimal .vidply-controls {
+    padding: 0.5rem 0.75rem;
+}
+
+/* High Contrast Theme - For accessibility */
+.vidply-theme-high-contrast {
+    /* Maximum contrast colors */
+    --vidply-bg-controls: #000000;
+    --vidply-bg-dialog: #000000;
+    --vidply-bg-menu: #000000;
+    --vidply-border: #ffffff;
+    --vidply-border-focus: #ffff00;
+    --vidply-border-hover: #ffff00;
+    
+    /* Bright accent for visibility */
+    --vidply-border-light: #ffffff;
+    --vidply-focus-outline: 0.1875rem solid #ffff00;
+    --vidply-focus-outline-player: 0.25rem solid #ffff00;
+    
+    /* Strong borders */
+    --vidply-primary: #ffff00;
+    --vidply-primary-light: #ffff00;
+    --vidply-primary-rgb: 255, 255, 0;
+    --vidply-text-muted: #ffff00;
+    
+    /* Larger focus indicators */
+    --vidply-text-primary: #ffffff;
+    --vidply-text-secondary: #ffffff;
+}
+
+.vidply-theme-high-contrast .vidply-controls {
+    background: #000000;
+    border-top: 2px solid #ffffff;
+}
+
+.vidply-theme-high-contrast .vidply-button,
+.vidply-theme-high-contrast .vidply-icon-button {
+    border: 1px solid #ffffff;
+}
+
+.vidply-theme-high-contrast .vidply-button:focus,
+.vidply-theme-high-contrast .vidply-icon-button:focus {
+    outline: var(--vidply-focus-outline);
+    outline-offset: 2px;
+}
+
+.vidply-theme-high-contrast .vidply-progress-played {
+    background: #ffff00;
+}
+
+.vidply-theme-high-contrast .vidply-menu-item:focus {
+    background: #ffff00;
+    color: #000000;
+}
+
 /* Utility Classes */
 .vidply-flex-center {
     align-items: center;
@@ -437,6 +1363,15 @@
 .vidply-player *::before,
 .vidply-player *::after {
     box-sizing: inherit;
+}
+
+/* Uninitialized elements with data-vidply - ensure minimum size for lazy loading detection */
+audio[data-vidply]:not(.vidply-initialized),
+video[data-vidply]:not(.vidply-initialized) {
+    display: block;
+    min-height: 3rem;
+    min-width: 100%;
+    width: 100%;
 }
 
 /* Responsive container */
@@ -757,7 +1692,7 @@
 
 /* Progress Bar */
 .vidply-progress-container {
-    background: var(--vidply-white-20);
+    background: var(--vidply-white-50);
     border-radius: 0.1875rem;
     cursor: pointer;
     flex: 1;
@@ -991,6 +1926,20 @@
     display: block;
     height: 100%;
     width: 100%;
+}
+
+/* Audio Description icon active state - background and inverted foreground */
+.vidply-icon-ad-bg {
+    fill: currentColor;
+}
+
+/* Audio Description icon - inverted text/foreground when active */
+.vidply-icon-ad-fg {
+    fill: #000; /* Black text on white/light background (dark theme active state) */
+}
+
+.vidply-theme-light .vidply-icon-ad-fg {
+    fill: #fff; /* White text on dark background (light theme active state) */
 }
 
 /* Control button icons - add backgrounds only in forced-colors mode (high contrast, color inversion) */
@@ -4363,6 +5312,113 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     .vidply-player.vidply-fullscreen .vidply-transcript-header,
     .vidply-player:fullscreen .vidply-transcript-header {
         cursor: move !important;
+    }
+}
+
+/* ============================================
+   Resume Prompt Styles
+   ============================================ */
+
+.vidply-resume-prompt {
+    align-items: center;
+    animation: vidply-resume-fade-in 0.2s ease-out;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    position: absolute;
+    z-index: 100;
+}
+
+@keyframes vidply-resume-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.vidply-resume-prompt-content {
+    background: var(--vidply-bg-secondary, rgba(40, 40, 40, 0.95));
+    border: 1px solid var(--vidply-border-light, rgba(255, 255, 255, 0.1));
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    max-width: 90%;
+    padding: 1.5rem 2rem;
+    text-align: center;
+    width: 20rem;
+}
+
+.vidply-resume-prompt-message {
+    color: var(--vidply-text-primary, #ffffff);
+    font-size: 1rem;
+    line-height: 1.4;
+    margin: 0 0 1.25rem;
+}
+
+.vidply-resume-prompt-buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.vidply-resume-prompt-button {
+    background: var(--vidply-bg-tertiary, rgba(255, 255, 255, 0.1));
+    border: 1px solid var(--vidply-border-light, rgba(255, 255, 255, 0.2));
+    border-radius: 0.5rem;
+    color: var(--vidply-text-primary, #ffffff);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.625rem 1.25rem;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.vidply-resume-prompt-button:hover {
+    background: var(--vidply-bg-hover, rgba(255, 255, 255, 0.15));
+    border-color: var(--vidply-border-hover, rgba(255, 255, 255, 0.3));
+}
+
+.vidply-resume-prompt-button:focus {
+    border-color: var(--vidply-focus-color, #4a9eff);
+    box-shadow: 0 0 0 2px var(--vidply-focus-ring, rgba(74, 158, 255, 0.4));
+    outline: none;
+}
+
+.vidply-resume-prompt-button:active {
+    transform: scale(0.98);
+}
+
+.vidply-resume-prompt-button-primary {
+    background: var(--vidply-accent-color, #4a9eff);
+    border-color: var(--vidply-accent-color, #4a9eff);
+}
+
+.vidply-resume-prompt-button-primary:hover {
+    background: var(--vidply-accent-hover, #3a8eef);
+    border-color: var(--vidply-accent-hover, #3a8eef);
+}
+
+/* Responsive adjustments for resume prompt */
+@media (width <= 30rem) {
+    .vidply-resume-prompt-content {
+        padding: 1.25rem 1.5rem;
+        width: 16rem;
+    }
+
+    .vidply-resume-prompt-message {
+        font-size: 0.9375rem;
+    }
+
+    .vidply-resume-prompt-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .vidply-resume-prompt-button {
+        width: 100%;
     }
 }
 

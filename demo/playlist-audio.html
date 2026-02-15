@@ -219,9 +219,7 @@
     
     <main>
         <figure class="player-wrapper">
-            <div id="audio-player" 
-                 data-vidply 
-                 data-vidply-options='{"mediaType":"audio","autoplay":false,"controls":true,"preload":"metadata"}'
+            <div id="audio-player"
                  data-playlist='[
                      {"src":"media/everyday.mp3","type":"audio/mp3","title":"Everyday","artist":"Audio Demo Track","duration":265,"description":"A relaxing everyday ambient track perfect for background listening."},
                      {"src":"media/frenchsong.mp3","type":"audio/mp3","title":"French Song","artist":"Demo Track 2","duration":182,"description":"Beautiful French melody with English and French captions available.","tracks":[{"src":"media/frenchsong_captions_en.vtt","kind":"captions","srclang":"en","label":"English Translation"},{"src":"media/frenchsong_captions_fr.vtt","kind":"captions","srclang":"fr","label":"Français"},{"src":"media/frenchsong_chapters_en.vtt","kind":"chapters","srclang":"en","label":"Chapters"}]},
@@ -232,7 +230,8 @@
                  data-playlist-auto-advance="true"
                  data-playlist-auto-play-first="false"
                  data-playlist-loop="false"
-                 data-playlist-show-panel="true"></div>
+                 data-playlist-show-panel="true"
+            data-theme="light"></div>
             <figcaption class="sr-only">Audio playlist player with 5 tracks</figcaption>
         </figure>
         
@@ -296,8 +295,12 @@
         console.warn('Invalid JSON in data-vidply-options:', e);
     }
 
+    // Get theme from data attribute
+    const theme = hostElement.dataset.theme || 'dark';
+
     const player = new Player(hostElement, {
         mediaType: 'audio',
+        theme,
         ...parsedOptions
     });
     

@@ -161,6 +161,11 @@ export const fr = {
     second: '{count} seconde',
     seconds: '{count} secondes'
   },
+  resume: {
+    prompt: 'Reprendre à {time} ?',
+    resume: 'Reprendre',
+    startOver: 'Recommencer'
+  },
   playlist: {
     title: 'Liste de lecture',
     trackOf: 'Piste {current} sur {total}',

@@ -231,7 +231,8 @@
              data-playlist-auto-advance="true"
              data-playlist-auto-play-first="false"
              data-playlist-loop="false"
-             data-playlist-show-panel="true"></div>
+             data-playlist-show-panel="true"
+        data-theme="light"></div>
         <figcaption class="sr-only">Video playlist player with 3 episodes</figcaption>
       </figure>
 
@@ -357,8 +358,12 @@
       console.warn('Invalid JSON in data-vidply-options:', e);
     }
 
+    // Get theme from data attribute
+    const theme = hostElement.dataset.theme || 'dark';
+    
     const player = new Player(hostElement, {
       mediaType: 'video',
+      theme,
       ...parsedOptions
     });
 

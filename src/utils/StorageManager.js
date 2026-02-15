@@ -152,5 +152,81 @@ export class StorageManager {
   getSignLanguagePreferences() {
     return this.get('sign_language_preferences', null);
   }
+
+  // ============================================
+  // Watch Progress Methods
+  // ============================================
+
+  /**
+   * Maximum number of watch progress entries to store
+   */
+  static MAX_WATCH_PROGRESS_ENTRIES = 100;
+
+  /**
+   * Save watch progress for a video
+   * @param {string} videoId - Unique identifier for the video
+   * @param {number} currentTime - Current playback position in seconds
+   * @param {number} duration - Total duration of the video in seconds
+   * @returns {boolean} Whether the save was successful
+   */
+  saveWatchProgress(videoId, currentTime, duration) {
+    if (!videoId || !duration || duration <= 0) return false;
+
+    const allProgress = this.get('watch_progress', {});
+    
+    // Calculate percentage
+    const percentage = (currentTime / duration) * 100;
+    
+    // Save the progress entry
+    allProgress[videoId] = {
+      currentTime,
+      duration,
+      percentage,
+      updatedAt: Date.now()
+    };
+    
+    // Enforce storage limit - remove oldest entries if exceeded
+    const entries = Object.entries(allProgress);
+    if (entries.length > StorageManager.MAX_WATCH_PROGRESS_ENTRIES) {
+      // Sort by updatedAt ascending (oldest first)
+      entries.sort((a, b) => a[1].updatedAt - b[1].updatedAt);
+      
+      // Remove oldest entries
+      const toRemove = entries.length - StorageManager.MAX_WATCH_PROGRESS_ENTRIES;
+      for (let i = 0; i < toRemove; i++) {
+        delete allProgress[entries[i][0]];
+      }
+    }
+    
+    return this.set('watch_progress', allProgress);
+  }
+
+  /**
+   * Get watch progress for a video
+   * @param {string} videoId - Unique identifier for the video
+   * @returns {Object|null} Watch progress object or null if not found
+   */
+  getWatchProgress(videoId) {
+    if (!videoId) return null;
+    
+    const allProgress = this.get('watch_progress', {});
+    return allProgress[videoId] || null;
+  }
+
+  /**
+   * Clear watch progress for a video
+   * @param {string} videoId - Unique identifier for the video
+   * @returns {boolean} Whether the clear was successful
+   */
+  clearWatchProgress(videoId) {
+    if (!videoId) return false;
+    
+    const allProgress = this.get('watch_progress', {});
+    if (allProgress[videoId]) {
+      delete allProgress[videoId];
+      return this.set('watch_progress', allProgress);
+    }
+    return true;
+  }
 }
 

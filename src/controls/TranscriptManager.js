@@ -145,9 +145,16 @@ export class TranscriptManager {
    * Show transcript window
    */
   showTranscript() {
+    // Always invalidate track cache to get fresh HLS subtitle tracks
+    this.player.invalidateTrackCache();
+    
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = 'flex';
       this.isVisible = true;
+      
+      // Reload transcript data to get fresh HLS tracks
+      this.loadTranscriptData();
+      this.updateLanguageSelector();
 
       if (this.player.controlBar && typeof this.player.controlBar.updateTranscriptButton === 'function') {
         this.player.controlBar.updateTranscriptButton();

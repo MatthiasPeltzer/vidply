@@ -454,6 +454,38 @@ export class CaptionManager {
         }));
     }
 
+    /**
+     * Refresh tracks list - useful when HLS adds subtitle tracks dynamically
+     */
+    refreshTracks() {
+        // Store current track info to restore after refresh
+        const currentLanguage = this.currentTrack?.language;
+        const wasEnabled = this.player.state.captionsEnabled;
+        
+        // Disable current caption
+        if (this.currentTrack) {
+            this.disable();
+        }
+        
+        // Clear existing tracks
+        this.tracks = [];
+        
+        // Reload tracks from video element
+        this.loadTracks();
+        
+        this.player.log(`Caption tracks refreshed, found ${this.tracks.length} tracks`, 'info');
+        
+        // Try to restore previous track if it exists
+        if (wasEnabled && currentLanguage && this.tracks.length > 0) {
+            const matchingIndex = this.tracks.findIndex(t => t.language === currentLanguage);
+            if (matchingIndex >= 0) {
+                this.enable(matchingIndex);
+            }
+        }
+        
+        return this.tracks.length;
+    }
+
     switchTrack(trackIndex) {
         if (trackIndex >= 0 && trackIndex < this.tracks.length) {
             this.disable();
