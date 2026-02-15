@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 166955,
+      "bytes": 167008,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -630,7 +630,7 @@
           "bytesInOutput": 170720
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 124188
+          "bytesInOutput": 124129
         },
         "src/utils/VideoFrameCapture.js": {
           "bytesInOutput": 2634
@@ -645,7 +645,7 @@
           "bytesInOutput": 5600
         }
       },
-      "bytes": 705359
+      "bytes": 705300
     }
   }
 }

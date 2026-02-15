@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 166955,
+      "bytes": 167008,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -673,7 +673,7 @@
           "bytesInOutput": 2474
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 115148
+          "bytesInOutput": 115093
         },
         "src/controls/KeyboardManager.js": {
           "bytesInOutput": 6807
@@ -688,7 +688,7 @@
           "bytesInOutput": 5260
         }
       },
-      "bytes": 333759
+      "bytes": 333704
     },
     "dist/prod/vidply.chunk-AK4IZ5DH.min.js": {
       "imports": [
