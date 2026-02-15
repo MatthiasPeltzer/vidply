@@ -161,6 +161,11 @@ export const ja = {
     second: '{count}秒',
     seconds: '{count}秒'
   },
+  resume: {
+    prompt: '{time}から再開しますか？',
+    resume: '再開',
+    startOver: '最初から'
+  },
   playlist: {
     title: 'プレイリスト',
     trackOf: 'トラック {current}/{total}',

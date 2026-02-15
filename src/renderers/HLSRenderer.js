@@ -10,6 +10,7 @@ export class HLSRenderer {
     this.hls = null;
     this._hlsSourceLoaded = false;
     this._pendingSrc = null;
+    this._hlsSubtitleTracksCount = undefined; // Reset on new instance
   }
 
   async init() {
@@ -166,11 +167,36 @@ export class HLSRenderer {
       if (this.player.container) {
         this.player.container.classList.remove('vidply-external-controls');
       }
+      
+      // Check for subtitle tracks after manifest parse
+      // This handles streams without subtitles (SUBTITLE_TRACKS_UPDATED won't fire for them)
+      setTimeout(() => {
+        if (this._hlsSubtitleTracksCount === undefined || this._hlsSubtitleTracksCount === 0) {
+          const currentCount = this.hls?.subtitleTracks?.length || 0;
+          if (currentCount === 0) {
+            this._hlsSubtitleTracksCount = 0;
+            this.updateCaptionButtonsForHls();
+          }
+        }
+      }, 500);
     });
 
     this.hls.on(window.Hls.Events.LEVEL_SWITCHED, (event, data) => {
       this.player.log('HLS level switched to ' + data.level);
       this.player.emit('hlslevelswitched', data);
+    });
+
+    // Handle HLS subtitle tracks
+    this.hls.on(window.Hls.Events.SUBTITLE_TRACKS_UPDATED, (event, data) => {
+      this.player.log('HLS subtitle tracks updated, found ' + data.subtitleTracks.length + ' tracks');
+      this.player.emit('hlssubtitletracksupdated', data);
+      this._hlsSubtitleTracksCount = data.subtitleTracks.length;
+      this.updateCaptionButtonsForHls();
+    });
+
+    this.hls.on(window.Hls.Events.SUBTITLE_TRACK_SWITCH, (event, data) => {
+      this.player.log('HLS subtitle track switched to ' + data.id);
+      this.player.emit('hlssubtitletrackswitch', data);
     });
 
     this.hls.on(window.Hls.Events.ERROR, (event, data) => {
@@ -180,6 +206,61 @@ export class HLSRenderer {
     this.hls.on(window.Hls.Events.FRAG_BUFFERED, () => {
       this.player.state.buffering = false;
     });
+  }
+
+  /**
+   * Update caption buttons based on HLS subtitle tracks
+   * Handles the case where control bar may not exist yet
+   */
+  updateCaptionButtonsForHls() {
+    const tracksCount = this._hlsSubtitleTracksCount || 0;
+    
+    const doUpdate = () => {
+      this.player.invalidateTrackCache();
+      
+      if (tracksCount > 0) {
+        // HLS has subtitle tracks - refresh managers and add buttons
+        if (this.player.captionManager) {
+          this.player.captionManager.refreshTracks();
+        }
+        
+        if (this.player.transcriptManager?.isVisible) {
+          this.player.transcriptManager.loadTranscriptData();
+          this.player.transcriptManager.updateLanguageSelector();
+        }
+        
+        if (this.player.controlBar) {
+          this.player.controlBar.ensureCaptionsButton();
+          this.player.controlBar.ensureCaptionStyleButton();
+          this.player.controlBar.ensureTranscriptButton();
+        }
+      } else {
+        // No HLS subtitle tracks - clean up
+        if (this.player.captionManager) {
+          this.player.captionManager.refreshTracks();
+        }
+        
+        if (this.player.transcriptManager?.isVisible) {
+          this.player.transcriptManager.hideTranscript();
+        }
+        
+        if (this.player.controlBar) {
+          this.player.controlBar.removeHlsCaptionButtons(true);
+        }
+      }
+    };
+    
+    if (this.player.controlBar) {
+      doUpdate();
+      return;
+    }
+    
+    // Control bar doesn't exist yet - wait for ready event
+    const onReady = () => {
+      this.player.off('ready', onReady);
+      doUpdate();
+    };
+    this.player.on('ready', onReady);
   }
 
   attachMediaEvents() {

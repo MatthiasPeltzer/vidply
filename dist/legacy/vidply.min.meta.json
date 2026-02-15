@@ -11,27 +11,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.js": {
-      "bytes": 7753,
+      "bytes": 7860,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.js": {
-      "bytes": 9565,
+      "bytes": 9694,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.js": {
-      "bytes": 8731,
+      "bytes": 8853,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.js": {
-      "bytes": 8987,
+      "bytes": 9100,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.js": {
-      "bytes": 9420,
+      "bytes": 9543,
       "imports": [],
       "format": "esm"
     },
@@ -89,7 +89,7 @@
       "format": "esm"
     },
     "src/icons/Icons.js": {
-      "bytes": 12497,
+      "bytes": 12483,
       "imports": [],
       "format": "esm"
     },
@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 155633,
+      "bytes": 166955,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -150,12 +150,18 @@
       "format": "esm"
     },
     "src/utils/StorageManager.js": {
-      "bytes": 3444,
-      "imports": [],
+      "bytes": 5866,
+      "imports": [
+        {
+          "path": "<runtime>",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
       "format": "esm"
     },
     "src/controls/CaptionManager.js": {
-      "bytes": 17842,
+      "bytes": 18896,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -244,7 +250,7 @@
       "format": "esm"
     },
     "src/core/AudioDescriptionManager.js": {
-      "bytes": 26497,
+      "bytes": 27513,
       "imports": [
         {
           "path": "src/controls/CaptionManager.js",
@@ -291,7 +297,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 82777,
+      "bytes": 83025,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -352,7 +358,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 12977,
+      "bytes": 15898,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -368,7 +374,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 225260,
+      "bytes": 243911,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -436,19 +442,19 @@
           "original": "../utils/PerformanceUtils.js"
         },
         {
-          "path": "src/core/AudioDescriptionManager.js",
+          "path": "src/utils/VideoFrameCapture.js",
           "kind": "import-statement",
+          "original": "../utils/VideoFrameCapture.js"
+        },
+        {
+          "path": "src/core/AudioDescriptionManager.js",
+          "kind": "dynamic-import",
           "original": "./AudioDescriptionManager.js"
         },
         {
           "path": "src/core/SignLanguageManager.js",
-          "kind": "import-statement",
+          "kind": "dynamic-import",
           "original": "./SignLanguageManager.js"
-        },
-        {
-          "path": "src/utils/VideoFrameCapture.js",
-          "kind": "import-statement",
-          "original": "../utils/VideoFrameCapture.js"
         },
         {
           "path": "src/controls/TranscriptManager.js",
@@ -484,7 +490,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 58771,
+      "bytes": 57066,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -515,7 +521,7 @@
       "format": "esm"
     },
     "src/index.js": {
-      "bytes": 5394,
+      "bytes": 8654,
       "imports": [
         {
           "path": "src/core/Player.js",
@@ -543,103 +549,103 @@
       "entryPoint": "src/index.js",
       "inputs": {
         "src/utils/DOMUtils.js": {
-          "bytesInOutput": 2595
+          "bytesInOutput": 8266
         },
         "src/i18n/languages/en.js": {
-          "bytesInOutput": 6503
+          "bytesInOutput": 8813
         },
         "src/i18n/languages/de.js": {
-          "bytesInOutput": 7672
+          "bytesInOutput": 10031
         },
         "src/i18n/languages/es.js": {
-          "bytesInOutput": 7530
+          "bytesInOutput": 9862
         },
         "src/i18n/languages/fr.js": {
-          "bytesInOutput": 7783
+          "bytesInOutput": 10106
         },
         "src/i18n/languages/ja.js": {
-          "bytesInOutput": 8218
+          "bytesInOutput": 10551
         },
         "src/i18n/translations.js": {
-          "bytesInOutput": 368
+          "bytesInOutput": 874
         },
         "src/i18n/i18n.js": {
-          "bytesInOutput": 2480
+          "bytesInOutput": 6103
         },
         "src/utils/TimeUtils.js": {
-          "bytesInOutput": 896
+          "bytesInOutput": 2485
         },
         "src/icons/Icons.js": {
-          "bytesInOutput": 10448
+          "bytesInOutput": 12013
         },
         "src/utils/FocusUtils.js": {
-          "bytesInOutput": 239
-        },
-        "src/utils/StorageManager.js": {
-          "bytesInOutput": 1638
-        },
-        "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 5527
-        },
-        "src/utils/DraggableResizable.js": {
-          "bytesInOutput": 16613
-        },
-        "src/utils/MenuUtils.js": {
-          "bytesInOutput": 2298
-        },
-        "src/utils/FormUtils.js": {
-          "bytesInOutput": 798
-        },
-        "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 44650
-        },
-        "src/renderers/YouTubeRenderer.js": {
-          "bytesInOutput": 4391
-        },
-        "src/renderers/VimeoRenderer.js": {
-          "bytesInOutput": 4612
-        },
-        "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 6900
-        },
-        "src/renderers/SoundCloudRenderer.js": {
-          "bytesInOutput": 5515
-        },
-        "src/utils/EventEmitter.js": {
-          "bytesInOutput": 437
-        },
-        "src/core/Player.js": {
-          "bytesInOutput": 82010
-        },
-        "src/controls/ControlBar.js": {
-          "bytesInOutput": 67755
+          "bytesInOutput": 592
         },
         "src/utils/PerformanceUtils.js": {
-          "bytesInOutput": 257
+          "bytesInOutput": 968
         },
-        "src/utils/VideoFrameCapture.js": {
-          "bytesInOutput": 1013
+        "src/utils/StorageManager.js": {
+          "bytesInOutput": 6627
         },
         "src/controls/CaptionManager.js": {
-          "bytesInOutput": 7462
+          "bytesInOutput": 14845
         },
-        "src/controls/KeyboardManager.js": {
-          "bytesInOutput": 4404
+        "src/renderers/HTML5Renderer.js": {
+          "bytesInOutput": 10792
+        },
+        "src/utils/DraggableResizable.js": {
+          "bytesInOutput": 29150
+        },
+        "src/utils/MenuUtils.js": {
+          "bytesInOutput": 4663
+        },
+        "src/utils/FormUtils.js": {
+          "bytesInOutput": 1633
         },
         "src/core/AudioDescriptionManager.js": {
-          "bytesInOutput": 9690
+          "bytesInOutput": 23327
         },
         "src/core/SignLanguageManager.js": {
-          "bytesInOutput": 26184
+          "bytesInOutput": 50948
+        },
+        "src/controls/TranscriptManager.js": {
+          "bytesInOutput": 80113
+        },
+        "src/renderers/YouTubeRenderer.js": {
+          "bytesInOutput": 8334
+        },
+        "src/renderers/VimeoRenderer.js": {
+          "bytesInOutput": 8147
+        },
+        "src/renderers/HLSRenderer.js": {
+          "bytesInOutput": 15424
+        },
+        "src/renderers/SoundCloudRenderer.js": {
+          "bytesInOutput": 10468
+        },
+        "src/utils/EventEmitter.js": {
+          "bytesInOutput": 958
+        },
+        "src/core/Player.js": {
+          "bytesInOutput": 170720
+        },
+        "src/controls/ControlBar.js": {
+          "bytesInOutput": 124188
+        },
+        "src/utils/VideoFrameCapture.js": {
+          "bytesInOutput": 2634
+        },
+        "src/controls/KeyboardManager.js": {
+          "bytesInOutput": 7443
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 24887
+          "bytesInOutput": 46262
         },
         "src/index.js": {
-          "bytesInOutput": 1927
+          "bytesInOutput": 5600
         }
       },
-      "bytes": 374285
+      "bytes": 705359
     }
   }
 }

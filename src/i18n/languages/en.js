@@ -164,6 +164,11 @@ export const en = {
     second: '{count} second',
     seconds: '{count} seconds'
   },
+  resume: {
+    prompt: 'Resume from {time}?',
+    resume: 'Resume',
+    startOver: 'Start Over'
+  },
   playlist: {
     title: 'Playlist',
     trackOf: 'Track {current} of {total}',

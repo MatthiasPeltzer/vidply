@@ -15,10 +15,28 @@ import {StorageManager} from '../utils/StorageManager.js';
 import {DraggableResizable} from '../utils/DraggableResizable.js';
 import {createMenuItem, attachMenuKeyboardNavigation, focusFirstMenuItem} from '../utils/MenuUtils.js';
 import {createLabeledSelect, preventDragOnElement} from '../utils/FormUtils.js';
-import {debounce, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
-import {AudioDescriptionManager} from './AudioDescriptionManager.js';
-import {SignLanguageManager} from './SignLanguageManager.js';
+import {debounce, throttle, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
 import {captureVideoFrame} from '../utils/VideoFrameCapture.js';
+
+// Lazy-loaded managers (loaded only when feature is needed)
+let AudioDescriptionManagerModule = null;
+let SignLanguageManagerModule = null;
+
+async function loadAudioDescriptionManager() {
+    if (!AudioDescriptionManagerModule) {
+        const module = await import('./AudioDescriptionManager.js');
+        AudioDescriptionManagerModule = module.AudioDescriptionManager;
+    }
+    return AudioDescriptionManagerModule;
+}
+
+async function loadSignLanguageManager() {
+    if (!SignLanguageManagerModule) {
+        const module = await import('./SignLanguageManager.js');
+        SignLanguageManagerModule = module.SignLanguageManager;
+    }
+    return SignLanguageManagerModule;
+}
 
 // Static counter for unique player instances
 let playerInstanceCounter = 0;
@@ -181,6 +199,28 @@ export class Player extends EventEmitter {
             language: 'en',
             languages: ['en'],
 
+            // Resume Playback
+            resumePlayback: true,       // Enable saving and resuming playback position
+            resumeThreshold: 10,        // Don't resume if < threshold seconds watched
+            resumePrompt: true,         // Show prompt to resume (false = auto-resume silently)
+
+            // Thumbnail Preview
+            thumbnailPreview: true,          // Enable/disable thumbnail preview on seek bar
+            thumbnailCacheSize: 50,          // Max cached thumbnails (default increased from 20)
+            thumbnailPregenerate: true,      // Pre-generate thumbnails during idle time
+            thumbnailInterval: 10,           // Pre-generation interval in seconds
+            thumbnailWidth: 160,             // Thumbnail width
+            thumbnailHeight: 90,             // Thumbnail height
+            thumbnailQuality: 0.8,           // Thumbnail JPEG quality
+
+            // Lazy Loading (primarily used by index.js auto-init)
+            lazyInit: true,                  // Enable lazy initialization via IntersectionObserver
+            lazyMargin: '200px',             // Root margin for IntersectionObserver
+
+            // Theming
+            theme: 'dark',                   // Theme: 'dark', 'light', 'minimal', 'high-contrast'
+            themeVariables: {},              // Custom CSS variable overrides (e.g., { 'primary': '#ff0000' })
+
             // Advanced
             debug: false,
             classPrefix: 'vidply',
@@ -238,8 +278,14 @@ export class Player extends EventEmitter {
             controlsVisible: true,
             audioDescriptionEnabled: false,
             signLanguageEnabled: false,
-            signLanguageInMainView: false
+            signLanguageInMainView: false,
+            resumePromptVisible: false
         };
+
+        // Resume playback properties
+        this.resumePromptElement = null;
+        this._saveProgressThrottled = null;
+        this._resumeChecked = false;
 
         // Store original source for toggling
         this.originalSrc = null;
@@ -278,44 +324,45 @@ export class Player extends EventEmitter {
         this.metadataCueChangeHandler = null;
         this.metadataAlertHandlers = new Map();
 
-        // Feature managers (modular refactoring)
-        this.audioDescriptionManager = new AudioDescriptionManager(this);
-        this.signLanguageManager = new SignLanguageManager(this);
+        // Feature managers (lazy-loaded)
+        this.audioDescriptionManager = null;
+        this.signLanguageManager = null;
+        this._managersLoading = null; // Promise for loading managers
 
         // Backward-compatible property aliases for SignLanguageManager
         // These allow existing code to reference this.signLanguageWrapper, etc.
         Object.defineProperties(this, {
             signLanguageWrapper: {
-                get: () => this.signLanguageManager.wrapper,
-                set: (v) => { this.signLanguageManager.wrapper = v; }
+                get: () => this.signLanguageManager?.wrapper,
+                set: (v) => { if (this.signLanguageManager) this.signLanguageManager.wrapper = v; }
             },
             signLanguageVideo: {
-                get: () => this.signLanguageManager.video,
-                set: (v) => { this.signLanguageManager.video = v; }
+                get: () => this.signLanguageManager?.video,
+                set: (v) => { if (this.signLanguageManager) this.signLanguageManager.video = v; }
             },
             signLanguageHeader: {
-                get: () => this.signLanguageManager.header,
-                set: (v) => { this.signLanguageManager.header = v; }
+                get: () => this.signLanguageManager?.header,
+                set: (v) => { if (this.signLanguageManager) this.signLanguageManager.header = v; }
             },
             signLanguageSettingsButton: {
-                get: () => this.signLanguageManager.settingsButton,
-                set: (v) => { this.signLanguageManager.settingsButton = v; }
+                get: () => this.signLanguageManager?.settingsButton,
+                set: (v) => { if (this.signLanguageManager) this.signLanguageManager.settingsButton = v; }
             },
             signLanguageSettingsMenu: {
-                get: () => this.signLanguageManager.settingsMenu,
-                set: (v) => { this.signLanguageManager.settingsMenu = v; }
+                get: () => this.signLanguageManager?.settingsMenu,
+                set: (v) => { if (this.signLanguageManager) this.signLanguageManager.settingsMenu = v; }
             },
             signLanguageSettingsMenuVisible: {
-                get: () => this.signLanguageManager.settingsMenuVisible,
-                set: (v) => { this.signLanguageManager.settingsMenuVisible = v; }
+                get: () => this.signLanguageManager?.settingsMenuVisible,
+                set: (v) => { if (this.signLanguageManager) this.signLanguageManager.settingsMenuVisible = v; }
             },
             signLanguageDraggable: {
-                get: () => this.signLanguageManager.draggable,
-                set: (v) => { this.signLanguageManager.draggable = v; }
+                get: () => this.signLanguageManager?.draggable,
+                set: (v) => { if (this.signLanguageManager) this.signLanguageManager.draggable = v; }
             },
             currentSignLanguage: {
-                get: () => this.signLanguageManager.currentLanguage,
-                set: (v) => { this.signLanguageManager.currentLanguage = v; }
+                get: () => this.signLanguageManager?.currentLanguage,
+                set: (v) => { if (this.signLanguageManager) this.signLanguageManager.currentLanguage = v; }
             }
         });
 
@@ -430,6 +477,9 @@ export class Player extends EventEmitter {
                 this.log('No initial source - waiting for playlist or manual load');
             }
 
+            // Initialize feature managers (lazy-loaded based on options)
+            await this.initFeatureManagers();
+
             // Create controls
             if (this.options.controls) {
                 this.controlBar = new ControlBar(this);
@@ -480,8 +530,14 @@ export class Player extends EventEmitter {
                 }
             });
 
+            // Initialize resume playback feature
+            if (this.options.resumePlayback) {
+                this.initResumePlayback();
+            }
+
             // Mark as ready
             this.state.ready = true;
+            this._originalElement.classList.add('vidply-initialized');
             this.emit('ready');
 
             if (this.options.onReady) {
@@ -537,6 +593,79 @@ export class Player extends EventEmitter {
     }
 
     /**
+     * Ensure the audio description manager is available, creating it on demand.
+     * This keeps initial load fast when audio description is not needed.
+     */
+    async ensureAudioDescriptionManager() {
+        if (this.audioDescriptionManager) {
+            return this.audioDescriptionManager;
+        }
+
+        // Only load if audio description feature is potentially needed
+        const hasAudioDescSrc = this.options.audioDescriptionSrc || this.audioDescriptionSrc;
+        const hasAudioDescButton = this.options.audioDescriptionButton;
+        
+        if (!hasAudioDescSrc && !hasAudioDescButton) {
+            return null;
+        }
+
+        const AudioDescManager = await loadAudioDescriptionManager();
+        this.audioDescriptionManager = new AudioDescManager(this);
+        return this.audioDescriptionManager;
+    }
+
+    /**
+     * Ensure the sign language manager is available, creating it on demand.
+     * This keeps initial load fast when sign language is not needed.
+     */
+    async ensureSignLanguageManager() {
+        if (this.signLanguageManager) {
+            return this.signLanguageManager;
+        }
+
+        // Only load if sign language feature is potentially needed
+        const hasSignLangSrc = this.options.signLanguageSrc || this.signLanguageSrc;
+        const hasSignLangSources = this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0;
+        const hasSignLangButton = this.options.signLanguageButton;
+        
+        if (!hasSignLangSrc && !hasSignLangSources && !hasSignLangButton) {
+            return null;
+        }
+
+        const SignLangManager = await loadSignLanguageManager();
+        this.signLanguageManager = new SignLangManager(this);
+        return this.signLanguageManager;
+    }
+
+    /**
+     * Initialize feature managers if needed (called during init)
+     */
+    async initFeatureManagers() {
+        const promises = [];
+        
+        // Check for source elements with audio description attributes
+        const hasSourceElementsWithDesc = this.sourceElements.some(
+            el => el.getAttribute('data-desc-src') || el.getAttribute('data-orig-src')
+        );
+        
+        // Load audio description manager if feature is enabled OR source elements have AD attributes
+        if (this.options.audioDescriptionButton || this.options.audioDescriptionSrc || 
+            this.audioDescriptionSrc || hasSourceElementsWithDesc) {
+            promises.push(this.ensureAudioDescriptionManager());
+        }
+        
+        // Load sign language manager if feature is enabled
+        if (this.options.signLanguageButton || this.options.signLanguageSrc || this.signLanguageSrc || 
+            (this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0)) {
+            promises.push(this.ensureSignLanguageManager());
+        }
+        
+        if (promises.length > 0) {
+            await Promise.all(promises);
+        }
+    }
+
+    /**
      * Detect language from HTML lang attribute
      * @returns {string|null} Language code if available in translations or as built-in, null otherwise
      */
@@ -564,6 +693,386 @@ export class Player extends EventEmitter {
         // Language not available, will fallback to English
         this.log(`Language "${htmlLang}" not available, using English as fallback`);
         return null; // Return null instead of 'en' to let the default language handling work
+    }
+
+    // ============================================
+    // Resume Playback Methods
+    // ============================================
+
+    /**
+     * Initialize resume playback functionality
+     */
+    initResumePlayback() {
+        // Create throttled save progress function (save every 5 seconds)
+        this._saveProgressThrottled = throttle(() => this.saveProgress(), 5000);
+
+        // Bind to timeupdate for saving progress
+        this.on('timeupdate', () => {
+            if (this.state.playing && this.state.duration > 0) {
+                this._saveProgressThrottled();
+            }
+        });
+
+        // Check for resume on loadedmetadata
+        this.on('loadedmetadata', () => {
+            if (!this._resumeChecked) {
+                this._resumeChecked = true;
+                this.checkForResume();
+            }
+        });
+
+        // Clear progress when video ends
+        this.on('ended', () => {
+            const videoId = this.getVideoId();
+            if (videoId) {
+                this.storage.clearWatchProgress(videoId);
+            }
+        });
+    }
+
+    /**
+     * Get a unique identifier for the current video
+     * Uses data-video-id attribute if available, otherwise hashes the source URL
+     * @returns {string|null} Video ID or null if not available
+     */
+    getVideoId() {
+        // First check for explicit video ID attribute
+        const explicitId = this.element.getAttribute('data-video-id') || 
+                          this.element.dataset.videoId ||
+                          this._originalElement?.getAttribute('data-video-id') ||
+                          this._originalElement?.dataset?.videoId;
+        
+        if (explicitId) {
+            return explicitId;
+        }
+
+        // Get source URL
+        let src = this.element.src;
+        if (!src) {
+            const sourceEl = this.element.querySelector('source');
+            src = sourceEl?.src;
+        }
+
+        if (!src) {
+            return null;
+        }
+
+        // Simple hash function for the URL
+        return this._hashString(src);
+    }
+
+    /**
+     * Simple string hash function
+     * @param {string} str - String to hash
+     * @returns {string} Hash string
+     */
+    _hashString(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+        return 'v_' + Math.abs(hash).toString(36);
+    }
+
+    /**
+     * Save current playback progress
+     */
+    saveProgress() {
+        if (!this.options.resumePlayback) return;
+
+        const videoId = this.getVideoId();
+        if (!videoId) return;
+
+        const currentTime = this.state.currentTime;
+        const duration = this.state.duration;
+
+        // Don't save if video is too short or at the very beginning
+        if (duration < 30 || currentTime < this.options.resumeThreshold) {
+            return;
+        }
+
+        // Don't save if near the end (> 95% complete)
+        const percentage = (currentTime / duration) * 100;
+        if (percentage > 95) {
+            return;
+        }
+
+        this.storage.saveWatchProgress(videoId, currentTime, duration);
+    }
+
+    /**
+     * Check if there's saved progress and potentially show resume prompt
+     */
+    checkForResume() {
+        if (!this.options.resumePlayback) return;
+
+        const videoId = this.getVideoId();
+        if (!videoId) return;
+
+        const progress = this.storage.getWatchProgress(videoId);
+        if (!progress) return;
+
+        const { currentTime, duration, percentage } = progress;
+
+        // Don't resume if below threshold or near the end
+        if (currentTime < this.options.resumeThreshold || percentage > 95) {
+            this.storage.clearWatchProgress(videoId);
+            return;
+        }
+
+        // Check if duration matches (video might have changed)
+        if (this.state.duration > 0 && Math.abs(this.state.duration - duration) > 5) {
+            this.storage.clearWatchProgress(videoId);
+            return;
+        }
+
+        if (this.options.resumePrompt) {
+            this.showResumePrompt(currentTime);
+        } else {
+            // Auto-resume silently
+            this.seek(currentTime);
+        }
+    }
+
+    /**
+     * Format time for display (mm:ss or hh:mm:ss)
+     * @param {number} seconds - Time in seconds
+     * @returns {string} Formatted time string
+     */
+    _formatResumeTime(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+
+        if (h > 0) {
+            return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    /**
+     * Show the resume prompt overlay
+     * @param {number} savedTime - Time to resume from
+     */
+    showResumePrompt(savedTime) {
+        if (this.state.resumePromptVisible || !this.container) return;
+
+        const formattedTime = this._formatResumeTime(savedTime);
+        const promptText = i18n.t('resume.prompt', { time: formattedTime });
+
+        // Create prompt element
+        this.resumePromptElement = DOMUtils.createElement('div', {
+            className: `${this.options.classPrefix}-resume-prompt`,
+            attributes: {
+                'role': 'dialog',
+                'aria-label': promptText,
+                'aria-modal': 'true'
+            }
+        });
+
+        const promptContent = DOMUtils.createElement('div', {
+            className: `${this.options.classPrefix}-resume-prompt-content`
+        });
+
+        const promptMessage = DOMUtils.createElement('p', {
+            className: `${this.options.classPrefix}-resume-prompt-message`,
+            textContent: promptText
+        });
+
+        const buttonContainer = DOMUtils.createElement('div', {
+            className: `${this.options.classPrefix}-resume-prompt-buttons`
+        });
+
+        // Resume button
+        const resumeButton = DOMUtils.createElement('button', {
+            className: `${this.options.classPrefix}-resume-prompt-button ${this.options.classPrefix}-resume-prompt-button-primary`,
+            textContent: i18n.t('resume.resume'),
+            attributes: {
+                'type': 'button'
+            }
+        });
+
+        resumeButton.addEventListener('click', () => {
+            this.hideResumePrompt();
+            this.seek(savedTime);
+            this.play();
+        });
+
+        // Start Over button
+        const startOverButton = DOMUtils.createElement('button', {
+            className: `${this.options.classPrefix}-resume-prompt-button`,
+            textContent: i18n.t('resume.startOver'),
+            attributes: {
+                'type': 'button'
+            }
+        });
+
+        startOverButton.addEventListener('click', () => {
+            this.hideResumePrompt();
+            const videoId = this.getVideoId();
+            if (videoId) {
+                this.storage.clearWatchProgress(videoId);
+            }
+            this.seek(0);
+            this.play();
+        });
+
+        // Keyboard handler for ESC key
+        const handleKeydown = (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                this.hideResumePrompt();
+            }
+        };
+        this.resumePromptElement.addEventListener('keydown', handleKeydown);
+
+        // Assemble prompt
+        buttonContainer.appendChild(resumeButton);
+        buttonContainer.appendChild(startOverButton);
+        promptContent.appendChild(promptMessage);
+        promptContent.appendChild(buttonContainer);
+        this.resumePromptElement.appendChild(promptContent);
+
+        // Add to container
+        this.container.appendChild(this.resumePromptElement);
+        this.state.resumePromptVisible = true;
+
+        // Focus the resume button
+        requestAnimationFrame(() => {
+            resumeButton.focus();
+        });
+
+        this.emit('resumepromptshow', { savedTime });
+    }
+
+    /**
+     * Hide the resume prompt overlay
+     */
+    hideResumePrompt() {
+        if (!this.resumePromptElement) return;
+
+        this.resumePromptElement.remove();
+        this.resumePromptElement = null;
+        this.state.resumePromptVisible = false;
+
+        this.emit('resumeprompthide');
+    }
+
+    // ============================================
+    // Theme Methods
+    // ============================================
+
+    /**
+     * Available theme names
+     */
+    static THEMES = ['dark', 'light', 'minimal', 'high-contrast'];
+
+    /**
+     * Apply the current theme to the player container
+     */
+    applyTheme() {
+        if (!this.container) return;
+
+        // Remove existing theme classes
+        const themeClasses = Player.THEMES.map(
+            t => `${this.options.classPrefix}-theme-${t}`
+        );
+        this.container.classList.remove(...themeClasses);
+
+        // Apply selected theme class
+        const theme = this.options.theme;
+        if (theme && Player.THEMES.includes(theme)) {
+            this.container.classList.add(`${this.options.classPrefix}-theme-${theme}`);
+        }
+
+        // Apply custom variable overrides
+        if (this.options.themeVariables && typeof this.options.themeVariables === 'object') {
+            Object.entries(this.options.themeVariables).forEach(([key, value]) => {
+                // Ensure key has proper prefix
+                const cssVar = key.startsWith('--vidply-') ? key : `--vidply-${key}`;
+                this.container.style.setProperty(cssVar, value);
+            });
+        }
+    }
+
+    /**
+     * Set the player theme at runtime
+     * @param {string} themeName - Theme name: 'dark', 'light', 'minimal', 'high-contrast'
+     * @param {Object} customVariables - Optional CSS variable overrides
+     */
+    setTheme(themeName, customVariables = {}) {
+        const previousTheme = this.options.theme;
+
+        // Update options
+        this.options.theme = themeName;
+        
+        // Merge custom variables
+        if (customVariables && Object.keys(customVariables).length > 0) {
+            this.options.themeVariables = {
+                ...this.options.themeVariables,
+                ...customVariables
+            };
+        }
+
+        // Apply the theme
+        this.applyTheme();
+
+        // Emit theme change event
+        this.emit('themechange', {
+            theme: themeName,
+            previousTheme,
+            customVariables: this.options.themeVariables
+        });
+    }
+
+    /**
+     * Get the current theme name
+     * @returns {string} Current theme name
+     */
+    getTheme() {
+        return this.options.theme;
+    }
+
+    /**
+     * Set a single CSS variable override
+     * @param {string} variableName - Variable name (with or without --vidply- prefix)
+     * @param {string} value - CSS value
+     */
+    setThemeVariable(variableName, value) {
+        if (!this.container) return;
+
+        const cssVar = variableName.startsWith('--vidply-') 
+            ? variableName 
+            : `--vidply-${variableName}`;
+        
+        this.container.style.setProperty(cssVar, value);
+        
+        // Store in options for persistence
+        this.options.themeVariables = this.options.themeVariables || {};
+        this.options.themeVariables[variableName] = value;
+    }
+
+    /**
+     * Reset theme to default (dark) and clear custom variables
+     */
+    resetTheme() {
+        // Clear custom variables from container
+        if (this.container && this.options.themeVariables) {
+            Object.keys(this.options.themeVariables).forEach(key => {
+                const cssVar = key.startsWith('--vidply-') ? key : `--vidply-${key}`;
+                this.container.style.removeProperty(cssVar);
+            });
+        }
+
+        // Reset to defaults
+        this.options.theme = 'dark';
+        this.options.themeVariables = {};
+        
+        this.applyTheme();
+        this.emit('themechange', { theme: 'dark', previousTheme: this.options.theme });
     }
 
     createContainer() {
@@ -687,6 +1196,9 @@ export class Player extends EventEmitter {
                 this.hidePosterOverlay();
             }
         }, { once: true });
+
+        // Apply theme
+        this.applyTheme();
     }
 
     createPlayButtonOverlay() {
@@ -775,7 +1287,7 @@ export class Player extends EventEmitter {
         this._pendingSource = null;
 
         // Initialize audio description sources from elements
-        this.audioDescriptionManager.initFromSourceElements(this.sourceElements, this.trackElements);
+        this.audioDescriptionManager?.initFromSourceElements(this.sourceElements, this.trackElements);
         
         // Store original source for audio description toggling (fallback if not set by manager)
         if (!this.originalSrc) {
@@ -1884,7 +2396,8 @@ export class Player extends EventEmitter {
 
     // Audio Description (delegated to AudioDescriptionManager)
     async enableAudioDescription() {
-        return this.audioDescriptionManager.enable();
+        const manager = await this.ensureAudioDescriptionManager();
+        return manager?.enable();
     }
 
     // Legacy method body preserved for reference - can be removed after testing
@@ -2539,7 +3052,7 @@ export class Player extends EventEmitter {
                 // Force reload
                 this.element.load();
                 this.invalidateTrackCache();
-            } else {
+            } else if (this.audioDescriptionSrc) {
                 // Fallback to updating element src directly (for videos without source elements)
                 // Preserve poster before changing src
                 if (posterValue && this.element.tagName === 'VIDEO') {
@@ -2944,7 +3457,8 @@ export class Player extends EventEmitter {
     }
 
     async disableAudioDescription() {
-        return this.audioDescriptionManager.disable();
+        const manager = await this.ensureAudioDescriptionManager();
+        return manager?.disable();
     }
 
     // Legacy method body preserved for reference - can be removed after testing
@@ -3331,23 +3845,27 @@ export class Player extends EventEmitter {
             return;
         }
 
+        const manager = await this.ensureAudioDescriptionManager();
+        if (!manager) return;
+
         // If user toggles audio description before the first track has been loaded,
         // remember desired state and start playback so the described source is loaded.
         if (!this.renderer && this.playlistManager && this.playlistManager.tracks?.length) {
-            this.audioDescriptionManager.desiredState = !this.audioDescriptionManager.desiredState;
-            this.state.audioDescriptionEnabled = this.audioDescriptionManager.desiredState;
-            this.emit(this.audioDescriptionManager.desiredState ? 'audiodescriptionenabled' : 'audiodescriptiondisabled');
+            manager.desiredState = !manager.desiredState;
+            this.state.audioDescriptionEnabled = manager.desiredState;
+            this.emit(manager.desiredState ? 'audiodescriptionenabled' : 'audiodescriptiondisabled');
             // Start playback (PlaylistManager.play() will honor desiredState and load described src)
             this.play();
             return;
         }
 
-        return this.audioDescriptionManager.toggle();
+        return manager.toggle();
     }
 
     // Sign Language (delegated to SignLanguageManager)
-    enableSignLanguage() {
-        return this.signLanguageManager.enable();
+    async enableSignLanguage() {
+        const manager = await this.ensureSignLanguageManager();
+        return manager?.enable();
     }
 
     // Legacy method body preserved for reference - can be removed after testing
@@ -3686,32 +4204,36 @@ export class Player extends EventEmitter {
         }, 150);
     }
 
-    disableSignLanguage() {
-        return this.signLanguageManager.disable();
+    async disableSignLanguage() {
+        const manager = await this.ensureSignLanguageManager();
+        return manager?.disable();
     }
 
-    toggleSignLanguage() {
+    async toggleSignLanguage() {
         if (this.options.requirePlaybackForAccessibilityToggles && !this.renderer && this.playlistManager?.tracks?.length) {
             this.showNotice(i18n.t('player.startPlaybackForSignLanguage'));
             return;
         }
 
+        const manager = await this.ensureSignLanguageManager();
+        if (!manager) return;
+
         // If user toggles sign language before the first track has been loaded,
         // enable the overlay and start playback so sign language video sync begins.
         if (!this.renderer && this.playlistManager && this.playlistManager.tracks?.length) {
-            const wasEnabled = this.signLanguageManager.enabled;
-            const result = this.signLanguageManager.toggle();
-            if (!wasEnabled && this.signLanguageManager.enabled) {
+            const wasEnabled = manager.enabled;
+            const result = manager.toggle();
+            if (!wasEnabled && manager.enabled) {
                 this.play();
             }
             return result;
         }
 
-        return this.signLanguageManager.toggle();
+        return manager.toggle();
     }
 
     setupSignLanguageInteraction() {
-        return this.signLanguageManager._setupInteraction();
+        return this.signLanguageManager?._setupInteraction();
     }
 
     // Legacy method preserved for reference
@@ -3898,7 +4420,7 @@ export class Player extends EventEmitter {
     }
 
     switchSignLanguage(langCode) {
-        return this.signLanguageManager.switchLanguage(langCode);
+        return this.signLanguageManager?.switchLanguage(langCode);
     }
 
     // Legacy method preserved for reference
@@ -3925,7 +4447,7 @@ export class Player extends EventEmitter {
     }
 
     showSignLanguageSettingsMenu() {
-        return this.signLanguageManager.showSettingsMenu();
+        return this.signLanguageManager?.showSettingsMenu();
     }
 
     // Legacy method preserved for reference
@@ -4122,7 +4644,7 @@ export class Player extends EventEmitter {
     }
 
     hideSignLanguageSettingsMenu({ focusButton = true } = {}) {
-        return this.signLanguageManager.hideSettingsMenu({ focusButton });
+        return this.signLanguageManager?.hideSettingsMenu({ focusButton });
     }
 
     positionSignLanguageSettingsMenuImmediate() {
@@ -4270,11 +4792,11 @@ export class Player extends EventEmitter {
     }
 
     constrainSignLanguagePosition() {
-        return this.signLanguageManager.constrainPosition();
+        return this.signLanguageManager?.constrainPosition();
     }
 
     saveSignLanguagePreferences() {
-        return this.signLanguageManager.savePreferences();
+        return this.signLanguageManager?.savePreferences();
     }
 
     // Legacy methods preserved for reference - can be removed after testing
@@ -4361,7 +4883,7 @@ export class Player extends EventEmitter {
     }
 
     cleanupSignLanguage() {
-        return this.signLanguageManager.cleanup();
+        return this.signLanguageManager?.cleanup();
     }
 
     // Settings

@@ -28,6 +28,7 @@
     for (var name in all)
       __defProp(target, name, { get: all[name], enumerable: true });
   };
+  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // src/utils/DOMUtils.js
   var DOMUtils;
@@ -415,6 +416,11 @@
           second: "{count} second",
           seconds: "{count} seconds"
         },
+        resume: {
+          prompt: "Resume from {time}?",
+          resume: "Resume",
+          startOver: "Start Over"
+        },
         playlist: {
           title: "Playlist",
           trackOf: "Track {current} of {total}",
@@ -608,6 +614,11 @@
           second: "{count} Sekunde",
           seconds: "{count} Sekunden"
         },
+        resume: {
+          prompt: "Bei {time} fortsetzen?",
+          resume: "Fortsetzen",
+          startOver: "Von vorne"
+        },
         playlist: {
           title: "Wiedergabeliste",
           trackOf: "Titel {current} von {total}",
@@ -797,6 +808,11 @@
           minutes: "{count} minutos",
           second: "{count} segundo",
           seconds: "{count} segundos"
+        },
+        resume: {
+          prompt: "¿Continuar desde {time}?",
+          resume: "Continuar",
+          startOver: "Empezar de nuevo"
         },
         playlist: {
           title: "Lista de reproducción",
@@ -988,6 +1004,11 @@
           second: "{count} seconde",
           seconds: "{count} secondes"
         },
+        resume: {
+          prompt: "Reprendre à {time} ?",
+          resume: "Reprendre",
+          startOver: "Recommencer"
+        },
         playlist: {
           title: "Liste de lecture",
           trackOf: "Piste {current} sur {total}",
@@ -1177,6 +1198,11 @@
           minutes: "{count}分",
           second: "{count}秒",
           seconds: "{count}秒"
+        },
+        resume: {
+          prompt: "{time}から再開しますか？",
+          resume: "再開",
+          startOver: "最初から"
         },
         playlist: {
           title: "プレイリスト",
@@ -1550,8 +1576,8 @@
         hd: '<path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm7-1c0 .55-.45 1-1 1h-.75v1.5h-1.5V15H14c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v4zm-3.5-.5h2v-3h-2v3z"/>',
         transcript: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>',
         chapters: '<path d="M3 5h2v2H3V5zm0 4h2v2H3V9zm0 4h2v2H3v-2zm0 4h2v2H3v-2zM7 5h14v2H7V5zm0 4h14v2H7V9zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/>',
-        audioDescription: '<rect x="2" y="5" width="20" height="14" rx="2" fill="#ffffff" stroke="#ffffff" stroke-width="2"/><text x="12" y="16" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#1a1a1a">AD</text>',
-        audioDescriptionOn: '<rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><text x="12" y="16" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="currentColor">AD</text>',
+        audioDescription: '<rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="12" y="14.5" text-anchor="middle" font-size="8" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor">AD</text>',
+        audioDescriptionOn: '<rect x="2" y="5" width="20" height="14" rx="2" fill="currentColor"/><text x="12" y="14.5" text-anchor="middle" font-size="8" font-weight="bold" font-family="Arial, sans-serif" class="vidply-icon-ad-fg">AD</text>',
         signLanguage: '<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>',
         signLanguageOn: '<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>',
         signLanguagePip: '<g transform="scale(1.2) translate(1, 1)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g><polygon points="14,23 23,14 23,23" fill="currentColor"/>',
@@ -1592,11 +1618,52 @@
     }
   });
 
+  // src/utils/PerformanceUtils.js
+  function debounce(func, wait = 100) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+  function throttle(func, limit = 100) {
+    let inThrottle;
+    return function executedFunction(...args) {
+      if (!inThrottle) {
+        func(...args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    };
+  }
+  function isMobile(breakpoint = 768) {
+    return window.innerWidth < breakpoint;
+  }
+  function rafWithTimeout(callback, timeout = 100) {
+    let called = false;
+    const execute = () => {
+      if (!called) {
+        called = true;
+        callback();
+      }
+    };
+    requestAnimationFrame(execute);
+    setTimeout(execute, timeout);
+  }
+  var init_PerformanceUtils = __esm({
+    "src/utils/PerformanceUtils.js"() {
+    }
+  });
+
   // src/utils/StorageManager.js
-  var StorageManager;
+  var _StorageManager, StorageManager;
   var init_StorageManager = __esm({
     "src/utils/StorageManager.js"() {
-      StorageManager = class {
+      _StorageManager = class _StorageManager {
         constructor(namespace = "vidply") {
           this.namespace = namespace;
           this.storage = this.isStorageAvailable() ? localStorage : null;
@@ -1727,6 +1794,428 @@
          */
         getSignLanguagePreferences() {
           return this.get("sign_language_preferences", null);
+        }
+        /**
+         * Save watch progress for a video
+         * @param {string} videoId - Unique identifier for the video
+         * @param {number} currentTime - Current playback position in seconds
+         * @param {number} duration - Total duration of the video in seconds
+         * @returns {boolean} Whether the save was successful
+         */
+        saveWatchProgress(videoId, currentTime, duration) {
+          if (!videoId || !duration || duration <= 0) return false;
+          const allProgress = this.get("watch_progress", {});
+          const percentage = currentTime / duration * 100;
+          allProgress[videoId] = {
+            currentTime,
+            duration,
+            percentage,
+            updatedAt: Date.now()
+          };
+          const entries = Object.entries(allProgress);
+          if (entries.length > _StorageManager.MAX_WATCH_PROGRESS_ENTRIES) {
+            entries.sort((a, b) => a[1].updatedAt - b[1].updatedAt);
+            const toRemove = entries.length - _StorageManager.MAX_WATCH_PROGRESS_ENTRIES;
+            for (let i = 0; i < toRemove; i++) {
+              delete allProgress[entries[i][0]];
+            }
+          }
+          return this.set("watch_progress", allProgress);
+        }
+        /**
+         * Get watch progress for a video
+         * @param {string} videoId - Unique identifier for the video
+         * @returns {Object|null} Watch progress object or null if not found
+         */
+        getWatchProgress(videoId) {
+          if (!videoId) return null;
+          const allProgress = this.get("watch_progress", {});
+          return allProgress[videoId] || null;
+        }
+        /**
+         * Clear watch progress for a video
+         * @param {string} videoId - Unique identifier for the video
+         * @returns {boolean} Whether the clear was successful
+         */
+        clearWatchProgress(videoId) {
+          if (!videoId) return false;
+          const allProgress = this.get("watch_progress", {});
+          if (allProgress[videoId]) {
+            delete allProgress[videoId];
+            return this.set("watch_progress", allProgress);
+          }
+          return true;
+        }
+      };
+      // ============================================
+      // Watch Progress Methods
+      // ============================================
+      /**
+       * Maximum number of watch progress entries to store
+       */
+      __publicField(_StorageManager, "MAX_WATCH_PROGRESS_ENTRIES", 100);
+      StorageManager = _StorageManager;
+    }
+  });
+
+  // src/controls/CaptionManager.js
+  var CaptionManager;
+  var init_CaptionManager = __esm({
+    "src/controls/CaptionManager.js"() {
+      init_DOMUtils();
+      init_i18n();
+      init_StorageManager();
+      init_PerformanceUtils();
+      CaptionManager = class {
+        constructor(player) {
+          this.player = player;
+          this.element = null;
+          this.tracks = [];
+          this.currentTrack = null;
+          this.currentCue = null;
+          this.storage = new StorageManager("vidply");
+          this.loadSavedPreferences();
+          this.init();
+        }
+        loadSavedPreferences() {
+          const saved = this.storage.getCaptionPreferences();
+          if (saved) {
+            if (saved.fontSize) this.player.options.captionsFontSize = saved.fontSize;
+            if (saved.fontFamily) this.player.options.captionsFontFamily = saved.fontFamily;
+            if (saved.color) this.player.options.captionsColor = saved.color;
+            if (saved.backgroundColor) this.player.options.captionsBackgroundColor = saved.backgroundColor;
+            if (saved.opacity !== void 0) this.player.options.captionsOpacity = saved.opacity;
+          }
+        }
+        saveCaptionPreferences() {
+          this.storage.saveCaptionPreferences({
+            fontSize: this.player.options.captionsFontSize,
+            fontFamily: this.player.options.captionsFontFamily,
+            color: this.player.options.captionsColor,
+            backgroundColor: this.player.options.captionsBackgroundColor,
+            opacity: this.player.options.captionsOpacity
+          });
+        }
+        init() {
+          this.createElement();
+          this.loadTracks();
+          this.attachEvents();
+          if (this.player.options.captionsDefault && this.tracks.length > 0 && !this.currentTrack) {
+            this.enable();
+          }
+        }
+        createElement() {
+          this.element = DOMUtils.createElement("div", {
+            className: "".concat(this.player.options.classPrefix, "-captions"),
+            attributes: {
+              "role": "region",
+              "aria-label": i18n.t("player.captions")
+            }
+          });
+          this.updateStyles();
+          const target = this.player.videoWrapper || this.player.container;
+          target.appendChild(this.element);
+        }
+        loadTracks() {
+          const textTracks = this.player.element.textTracks;
+          let defaultTrackIndex = -1;
+          for (let i = 0; i < textTracks.length; i++) {
+            const track = textTracks[i];
+            if (track.kind === "subtitles" || track.kind === "captions") {
+              const trackElement = this.player.findTrackElement(track);
+              const isDefault = trackElement && trackElement.hasAttribute("default");
+              this.tracks.push({
+                track,
+                language: track.language,
+                label: track.label,
+                kind: track.kind,
+                index: i,
+                isDefault
+              });
+              if (track.mode === "showing") {
+                track.mode = "hidden";
+              } else if (track.mode === "disabled") {
+                track.mode = "hidden";
+              } else {
+                track.mode = "hidden";
+              }
+              if (isDefault) {
+                defaultTrackIndex = this.tracks.length - 1;
+              }
+            }
+          }
+          if (defaultTrackIndex >= 0) {
+            requestAnimationFrame(() => {
+              this.enable(defaultTrackIndex);
+            });
+          }
+        }
+        attachEvents() {
+          this.player.on("timeupdate", () => {
+            this.updateCaptions();
+          });
+          this.player.on("captionschange", () => {
+            this.updateStyles();
+          });
+          this.debouncedPositionCaptions = debounce(() => {
+            this.positionCaptionsOnMobile();
+          }, 150);
+          window.addEventListener("resize", this.debouncedPositionCaptions);
+          this.player.on("enterfullscreen", () => {
+            rafWithTimeout(() => this.positionCaptionsOnMobile(), 100);
+          });
+          this.player.on("exitfullscreen", () => {
+            rafWithTimeout(() => this.positionCaptionsOnMobile(), 100);
+          });
+        }
+        enable(trackIndex = 0) {
+          if (this.tracks.length === 0) {
+            return;
+          }
+          if (this.currentTrack && this.currentTrack.track) {
+            if (this.cueChangeHandler) {
+              this.currentTrack.track.removeEventListener("cuechange", this.cueChangeHandler);
+            }
+            this.currentTrack.track.mode = "hidden";
+          }
+          const selectedTrack = this.tracks[trackIndex];
+          if (selectedTrack && selectedTrack.track) {
+            selectedTrack.track.mode = "hidden";
+            this.currentTrack = selectedTrack;
+            this.player.state.captionsEnabled = true;
+            if (selectedTrack.language) {
+              this.element.setAttribute("lang", selectedTrack.language);
+            }
+            if (this.cueChangeHandler) {
+              selectedTrack.track.removeEventListener("cuechange", this.cueChangeHandler);
+            }
+            this.cueChangeHandler = () => {
+              this.updateCaptions();
+            };
+            selectedTrack.track.addEventListener("cuechange", this.cueChangeHandler);
+            const ensureTrackReady = () => {
+              if (selectedTrack.track.readyState < 2) {
+                const onTrackLoad = () => {
+                  selectedTrack.track.removeEventListener("load", onTrackLoad);
+                  selectedTrack.track.removeEventListener("error", onTrackLoad);
+                  requestAnimationFrame(() => {
+                    if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
+                      this.updateCaptions();
+                    }
+                  });
+                };
+                selectedTrack.track.addEventListener("load", onTrackLoad, { once: true });
+                selectedTrack.track.addEventListener("error", onTrackLoad, { once: true });
+              } else {
+                requestAnimationFrame(() => {
+                  if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
+                    this.updateCaptions();
+                  }
+                });
+              }
+            };
+            requestAnimationFrame(() => {
+              if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
+                ensureTrackReady();
+              }
+            });
+            this.player.emit("captionsenabled", selectedTrack);
+          }
+        }
+        disable() {
+          if (this.currentTrack) {
+            this.currentTrack.track.mode = "hidden";
+            this.currentTrack = null;
+          }
+          this.element.style.display = "none";
+          this.element.innerHTML = "";
+          this.element.removeAttribute("lang");
+          this.currentCue = null;
+          this.player.state.captionsEnabled = false;
+          this.player.emit("captionsdisabled");
+        }
+        updateCaptions() {
+          if (!this.currentTrack || !this.currentTrack.track) {
+            return;
+          }
+          if (this.currentTrack.track.mode === "disabled") {
+            this.currentTrack.track.mode = "hidden";
+          }
+          if (this.currentTrack.track.mode === "showing") {
+            this.currentTrack.track.mode = "hidden";
+          }
+          if (!this.currentTrack.track.activeCues) {
+            if (this.currentTrack.track.cues && this.currentTrack.track.cues.length > 0) {
+              if (this.currentCue) {
+                this.element.innerHTML = "";
+                this.element.style.display = "none";
+                this.currentCue = null;
+              }
+            }
+            return;
+          }
+          const activeCues = this.currentTrack.track.activeCues;
+          const isAudioPlayer = this.player.element.tagName.toLowerCase() === "audio";
+          if (activeCues.length > 0) {
+            const cue = activeCues[0];
+            if (this.currentCue !== cue) {
+              this.currentCue = cue;
+              let text = cue.text;
+              text = this.parseVTTFormatting(text);
+              if (isAudioPlayer) {
+                const existingCues = this.element.querySelectorAll(".".concat(this.player.options.classPrefix, "-caption-cue"));
+                existingCues.forEach((el) => el.classList.remove("".concat(this.player.options.classPrefix, "-caption-active")));
+                const cueId = "cue-".concat(cue.startTime, "-").concat(cue.endTime);
+                let cueElement = this.element.querySelector('[data-cue-id="'.concat(cueId, '"]'));
+                if (!cueElement) {
+                  cueElement = document.createElement("div");
+                  cueElement.className = "".concat(this.player.options.classPrefix, "-caption-cue");
+                  cueElement.setAttribute("data-cue-id", cueId);
+                  cueElement.innerHTML = DOMUtils.sanitizeHTML(text);
+                  this.element.appendChild(cueElement);
+                }
+                cueElement.classList.add("".concat(this.player.options.classPrefix, "-caption-active"));
+                requestAnimationFrame(() => {
+                  if (cueElement) {
+                    cueElement.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }
+                });
+              } else {
+                this.element.innerHTML = DOMUtils.sanitizeHTML(text);
+              }
+              this.element.style.display = "block";
+              this.positionCaptionsOnMobile();
+              this.player.emit("captionchange", cue);
+            }
+          } else if (this.currentCue) {
+            if (!isAudioPlayer) {
+              this.element.innerHTML = "";
+              this.element.style.display = "none";
+            }
+            this.currentCue = null;
+          }
+        }
+        positionCaptionsOnMobile() {
+          var _a, _b;
+          if (!this.element || this.element.style.display === "none") {
+            return;
+          }
+          const isFullscreen = ((_a = this.player.state) == null ? void 0 : _a.fullscreen) || false;
+          const mobile = isMobile();
+          if (!mobile && !isFullscreen) {
+            this.element.style.bottom = "";
+            return;
+          }
+          const controls = (_b = this.player.controlBar) == null ? void 0 : _b.element;
+          if (!controls) {
+            return;
+          }
+          requestAnimationFrame(() => {
+            if (!this.element || this.element.style.display === "none") {
+              return;
+            }
+            const controlsRect = controls.getBoundingClientRect();
+            const wrapperRect = this.player.videoWrapper.getBoundingClientRect();
+            const bottomOffset = wrapperRect.bottom - controlsRect.top + 16;
+            this.element.style.bottom = "".concat(bottomOffset, "px");
+            if (this.player.options.debug) {
+              console.log("[VidPly] Caption position:", {
+                mobile,
+                isFullscreen,
+                controlsHeight: controlsRect.height,
+                bottomOffset: "".concat(bottomOffset, "px")
+              });
+            }
+          });
+        }
+        parseVTTFormatting(text) {
+          text = text.replace(/<c[^>]*>(.*?)<\/c>/g, '<span class="caption-class">$1</span>');
+          text = text.replace(/<b>(.*?)<\/b>/g, "<strong>$1</strong>");
+          text = text.replace(/<i>(.*?)<\/i>/g, "<em>$1</em>");
+          text = text.replace(/<u>(.*?)<\/u>/g, "<u>$1</u>");
+          text = text.replace(/<v\s+([^>]+)>(.*?)<\/v>/g, '<span class="caption-voice" data-voice="$1">$2</span>');
+          return text;
+        }
+        updateStyles() {
+          if (!this.element) return;
+          const options = this.player.options;
+          this.element.style.fontSize = options.captionsFontSize;
+          this.element.style.fontFamily = options.captionsFontFamily;
+          this.element.style.color = options.captionsColor;
+          this.element.style.backgroundColor = this.hexToRgba(
+            options.captionsBackgroundColor,
+            options.captionsOpacity
+          );
+        }
+        hexToRgba(hex, alpha) {
+          const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+          if (result) {
+            return "rgba(".concat(parseInt(result[1], 16), ", ").concat(parseInt(result[2], 16), ", ").concat(parseInt(result[3], 16), ", ").concat(alpha, ")");
+          }
+          return hex;
+        }
+        setCaptionStyle(property, value) {
+          switch (property) {
+            case "fontSize":
+              this.player.options.captionsFontSize = value;
+              break;
+            case "fontFamily":
+              this.player.options.captionsFontFamily = value;
+              break;
+            case "color":
+              this.player.options.captionsColor = value;
+              break;
+            case "backgroundColor":
+              this.player.options.captionsBackgroundColor = value;
+              break;
+            case "opacity":
+              this.player.options.captionsOpacity = value;
+              break;
+          }
+          this.updateStyles();
+          this.saveCaptionPreferences();
+          this.player.emit("captionschange");
+        }
+        getAvailableTracks() {
+          return this.tracks.map((t, index) => ({
+            index,
+            language: t.language,
+            label: t.label || t.language,
+            kind: t.kind
+          }));
+        }
+        /**
+         * Refresh tracks list - useful when HLS adds subtitle tracks dynamically
+         */
+        refreshTracks() {
+          var _a;
+          const currentLanguage = (_a = this.currentTrack) == null ? void 0 : _a.language;
+          const wasEnabled = this.player.state.captionsEnabled;
+          if (this.currentTrack) {
+            this.disable();
+          }
+          this.tracks = [];
+          this.loadTracks();
+          this.player.log("Caption tracks refreshed, found ".concat(this.tracks.length, " tracks"), "info");
+          if (wasEnabled && currentLanguage && this.tracks.length > 0) {
+            const matchingIndex = this.tracks.findIndex((t) => t.language === currentLanguage);
+            if (matchingIndex >= 0) {
+              this.enable(matchingIndex);
+            }
+          }
+          return this.tracks.length;
+        }
+        switchTrack(trackIndex) {
+          if (trackIndex >= 0 && trackIndex < this.tracks.length) {
+            this.disable();
+            this.enable(trackIndex);
+          }
+        }
+        destroy() {
+          this.disable();
+          if (this.element && this.element.parentNode) {
+            this.element.parentNode.removeChild(this.element);
+          }
         }
       };
     }
@@ -2881,6 +3370,1778 @@
     }
   });
 
+  // src/core/AudioDescriptionManager.js
+  var AudioDescriptionManager_exports = {};
+  __export(AudioDescriptionManager_exports, {
+    AudioDescriptionManager: () => AudioDescriptionManager
+  });
+  var AudioDescriptionManager;
+  var init_AudioDescriptionManager = __esm({
+    "src/core/AudioDescriptionManager.js"() {
+      init_CaptionManager();
+      AudioDescriptionManager = class {
+        constructor(player) {
+          this.player = player;
+          this.enabled = false;
+          this.desiredState = false;
+          this.src = player.options.audioDescriptionSrc;
+          this.sourceElement = null;
+          this.originalSource = null;
+          this.captionTracks = [];
+        }
+        /**
+         * Initialize audio description from source elements
+         * Called during player initialization
+         */
+        initFromSourceElements(sourceElements, trackElements) {
+          for (const sourceEl of sourceElements) {
+            const descSrc = sourceEl.getAttribute("data-desc-src");
+            const origSrc = sourceEl.getAttribute("data-orig-src");
+            if (descSrc || origSrc) {
+              if (!this.sourceElement) {
+                this.sourceElement = sourceEl;
+              }
+              if (origSrc) {
+                if (!this.originalSource) {
+                  this.originalSource = origSrc;
+                }
+                if (!this.player.originalSrc) {
+                  this.player.originalSrc = origSrc;
+                }
+              } else {
+                const currentSrcAttr = sourceEl.getAttribute("src");
+                if (!this.originalSource && currentSrcAttr) {
+                  this.originalSource = currentSrcAttr;
+                }
+                if (!this.player.originalSrc && currentSrcAttr) {
+                  this.player.originalSrc = currentSrcAttr;
+                }
+              }
+              if (descSrc && !this.src) {
+                this.src = descSrc;
+              }
+            }
+          }
+          trackElements.forEach((trackEl) => {
+            const trackKind = trackEl.getAttribute("kind");
+            const trackDescSrc = trackEl.getAttribute("data-desc-src");
+            if ((trackKind === "captions" || trackKind === "subtitles" || trackKind === "chapters" || trackKind === "descriptions") && trackDescSrc) {
+              this.captionTracks.push({
+                trackElement: trackEl,
+                originalSrc: trackEl.getAttribute("src"),
+                describedSrc: trackDescSrc,
+                originalTrackSrc: trackEl.getAttribute("data-orig-src") || trackEl.getAttribute("src"),
+                explicit: true
+              });
+              this.player.log("Found explicit described ".concat(trackKind, " track: ").concat(trackEl.getAttribute("src"), " -> ").concat(trackDescSrc));
+            }
+          });
+        }
+        /**
+         * Check if audio description is available
+         */
+        isAvailable() {
+          const hasSourceElementsWithDesc = this.player.sourceElements.some(
+            (el) => el.getAttribute("data-desc-src")
+          );
+          return !!(this.src || hasSourceElementsWithDesc || this.captionTracks.length > 0);
+        }
+        /**
+         * Enable audio description
+         */
+        async enable() {
+          const hasSourceElementsWithDesc = this.player.sourceElements.some(
+            (el) => el.getAttribute("data-desc-src")
+          );
+          const hasTracksWithDesc = this.captionTracks.length > 0;
+          if (!this.src && !hasSourceElementsWithDesc && !hasTracksWithDesc) {
+            console.warn("VidPly: No audio description source, source elements, or tracks provided");
+            return;
+          }
+          this.desiredState = true;
+          const currentTime = this.player.state.currentTime;
+          const wasPlaying = this.player.state.playing;
+          const posterValue = this.player.element.poster || this.player.element.getAttribute("poster") || this.player.options.poster;
+          const shouldKeepPoster = currentTime < 0.1 && !wasPlaying;
+          const currentCaptionText = this._getCurrentCaptionText();
+          if (this.sourceElement) {
+            await this._enableWithSourceElement(currentTime, wasPlaying, posterValue, shouldKeepPoster, currentCaptionText);
+          } else if (this.src) {
+            await this._enableWithDirectSrc(currentTime, wasPlaying, posterValue, shouldKeepPoster);
+          } else if (hasTracksWithDesc) {
+            await this._swapCaptionTracks(true);
+            this.enabled = true;
+            this.player.emit("audiodescriptionenabled");
+          }
+        }
+        /**
+         * Disable audio description
+         */
+        async disable() {
+          this.desiredState = false;
+          const hasTracksWithDesc = this.captionTracks.length > 0;
+          if (!this.sourceElement && !this.src && hasTracksWithDesc) {
+            await this._swapCaptionTracks(false);
+            this.enabled = false;
+            this.player.emit("audiodescriptiondisabled");
+            return;
+          }
+          if (!this.player.originalSrc) {
+            return;
+          }
+          const currentTime = this.player.state.currentTime;
+          const wasPlaying = this.player.state.playing;
+          const posterValue = this.player.element.poster || this.player.element.getAttribute("poster") || this.player.options.poster;
+          const shouldKeepPoster = currentTime < 0.1 && !wasPlaying;
+          const currentCaptionText = this._getCurrentCaptionText();
+          if (this.sourceElement) {
+            await this._disableWithSourceElement(currentTime, wasPlaying, posterValue, shouldKeepPoster, currentCaptionText);
+          } else if (this.src) {
+            await this._disableWithDirectSrc(currentTime, wasPlaying, posterValue);
+          }
+        }
+        /**
+         * Toggle audio description
+         */
+        async toggle() {
+          const descriptionTrack = this.player.findTextTrack("descriptions");
+          const hasAudioDescriptionSrc = this.isAvailable();
+          if (descriptionTrack && !hasAudioDescriptionSrc) {
+            if (descriptionTrack.mode === "showing") {
+              descriptionTrack.mode = "hidden";
+              this.enabled = false;
+              this.player.emit("audiodescriptiondisabled");
+            } else {
+              descriptionTrack.mode = "showing";
+              this.enabled = true;
+              this.player.emit("audiodescriptionenabled");
+            }
+          } else if (descriptionTrack && hasAudioDescriptionSrc) {
+            if (this.enabled) {
+              this.desiredState = false;
+              await this.disable();
+            } else {
+              descriptionTrack.mode = "showing";
+              this.desiredState = true;
+              await this.enable();
+            }
+          } else if (hasAudioDescriptionSrc) {
+            if (this.enabled) {
+              this.desiredState = false;
+              await this.disable();
+            } else {
+              this.desiredState = true;
+              await this.enable();
+            }
+          }
+        }
+        /**
+         * Get current caption text for synchronization
+         */
+        _getCurrentCaptionText() {
+          if (this.player.captionManager && this.player.captionManager.currentTrack && this.player.captionManager.currentCue) {
+            return this.player.captionManager.currentCue.text;
+          }
+          return null;
+        }
+        /**
+         * Validate that a track URL exists
+         */
+        async _validateTrackExists(url) {
+          try {
+            const response = await fetch(url, { method: "HEAD" });
+            return response.ok;
+          } catch (e) {
+            return false;
+          }
+        }
+        /**
+         * Swap caption tracks to described versions
+         */
+        async _swapCaptionTracks(toDescribed = true) {
+          if (this.captionTracks.length === 0) return [];
+          const swappedTracks = [];
+          const validationPromises = this.captionTracks.map(async (trackInfo) => {
+            if (trackInfo.trackElement && trackInfo.describedSrc) {
+              if (trackInfo.explicit === true) {
+                try {
+                  const exists = await this._validateTrackExists(
+                    toDescribed ? trackInfo.describedSrc : trackInfo.originalSrc
+                  );
+                  return { trackInfo, exists };
+                } catch (e) {
+                  return { trackInfo, exists: false };
+                }
+              }
+            }
+            return { trackInfo, exists: false };
+          });
+          const validationResults = await Promise.all(validationPromises);
+          const tracksToSwap = validationResults.filter((result) => result.exists);
+          if (tracksToSwap.length > 0) {
+            const trackModes = /* @__PURE__ */ new Map();
+            tracksToSwap.forEach(({ trackInfo }) => {
+              const textTrack = trackInfo.trackElement.track;
+              if (textTrack) {
+                trackModes.set(trackInfo, {
+                  wasShowing: textTrack.mode === "showing",
+                  wasHidden: textTrack.mode === "hidden"
+                });
+              } else {
+                trackModes.set(trackInfo, { wasShowing: false, wasHidden: false });
+              }
+            });
+            const tracksToReadd = tracksToSwap.map(({ trackInfo }) => {
+              const attributes = {};
+              Array.from(trackInfo.trackElement.attributes).forEach((attr) => {
+                attributes[attr.name] = attr.value;
+              });
+              const result = {
+                trackInfo,
+                oldSrc: trackInfo.trackElement.getAttribute("src"),
+                parent: trackInfo.trackElement.parentNode,
+                nextSibling: trackInfo.trackElement.nextSibling,
+                attributes
+              };
+              trackInfo.trackElement.remove();
+              return result;
+            });
+            this.player.element.load();
+            await new Promise((resolve) => {
+              setTimeout(() => {
+                tracksToReadd.forEach(({ trackInfo, parent, nextSibling, attributes }) => {
+                  swappedTracks.push(trackInfo);
+                  const newTrackElement = document.createElement("track");
+                  const newSrc = toDescribed ? trackInfo.describedSrc : trackInfo.originalSrc;
+                  newTrackElement.setAttribute("src", newSrc);
+                  Object.keys(attributes).forEach((attrName) => {
+                    if (attrName !== "src" && attrName !== "data-desc-src") {
+                      newTrackElement.setAttribute(attrName, attributes[attrName]);
+                    }
+                  });
+                  const targetParent = parent || this.player.element;
+                  if (nextSibling && nextSibling.parentNode) {
+                    targetParent.insertBefore(newTrackElement, nextSibling);
+                  } else {
+                    targetParent.appendChild(newTrackElement);
+                  }
+                  trackInfo.trackElement = newTrackElement;
+                });
+                this.player.invalidateTrackCache();
+                const setupNewTracks = () => {
+                  this.player.setManagedTimeout(() => {
+                    swappedTracks.forEach((trackInfo) => {
+                      const newTextTrack = trackInfo.trackElement.track;
+                      if (newTextTrack) {
+                        const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
+                        newTextTrack.mode = "hidden";
+                        const restoreMode = () => {
+                          if (modeInfo.wasShowing || modeInfo.wasHidden) {
+                            newTextTrack.mode = "hidden";
+                          } else {
+                            newTextTrack.mode = "disabled";
+                          }
+                        };
+                        if (newTextTrack.readyState >= 2) {
+                          restoreMode();
+                        } else {
+                          newTextTrack.addEventListener("load", restoreMode, { once: true });
+                          newTextTrack.addEventListener("error", restoreMode, { once: true });
+                        }
+                      }
+                    });
+                  }, 300);
+                };
+                if (this.player.element.readyState >= 1) {
+                  setTimeout(setupNewTracks, 200);
+                } else {
+                  this.player.element.addEventListener("loadedmetadata", setupNewTracks, { once: true });
+                  setTimeout(setupNewTracks, 2e3);
+                }
+                resolve();
+              }, 100);
+            });
+          }
+          return swappedTracks;
+        }
+        /**
+         * Update source elements to described versions
+         */
+        _updateSourceElements(toDescribed = true) {
+          const sourceElements = this.player.sourceElements;
+          const sourcesToUpdate = [];
+          sourceElements.forEach((sourceEl) => {
+            const descSrcAttr = sourceEl.getAttribute("data-desc-src");
+            const currentSrc = sourceEl.getAttribute("src");
+            if (descSrcAttr) {
+              const type = sourceEl.getAttribute("type");
+              let origSrc = sourceEl.getAttribute("data-orig-src") || currentSrc;
+              sourcesToUpdate.push({
+                src: toDescribed ? descSrcAttr : origSrc,
+                type,
+                origSrc,
+                descSrc: descSrcAttr
+              });
+            } else {
+              sourcesToUpdate.push({
+                src: sourceEl.getAttribute("src"),
+                type: sourceEl.getAttribute("type"),
+                origSrc: null,
+                descSrc: null
+              });
+            }
+          });
+          if (this.player.element.hasAttribute("src")) {
+            this.player.element.removeAttribute("src");
+          }
+          sourceElements.forEach((sourceEl) => sourceEl.remove());
+          sourcesToUpdate.forEach((sourceInfo) => {
+            const newSource = document.createElement("source");
+            newSource.setAttribute("src", sourceInfo.src);
+            if (sourceInfo.type) {
+              newSource.setAttribute("type", sourceInfo.type);
+            }
+            if (sourceInfo.origSrc) {
+              newSource.setAttribute("data-orig-src", sourceInfo.origSrc);
+            }
+            if (sourceInfo.descSrc) {
+              newSource.setAttribute("data-desc-src", sourceInfo.descSrc);
+            }
+            const firstTrack = this.player.element.querySelector("track");
+            if (firstTrack) {
+              this.player.element.insertBefore(newSource, firstTrack);
+            } else {
+              this.player.element.appendChild(newSource);
+            }
+          });
+          this.player._sourceElementsDirty = true;
+          this.player._sourceElementsCache = null;
+        }
+        /**
+         * Wait for media to be ready
+         */
+        async _waitForMediaReady(needSeek = false) {
+          await new Promise((resolve) => {
+            if (this.player.element.readyState >= 1) {
+              resolve();
+            } else {
+              const onLoad = () => {
+                this.player.element.removeEventListener("loadedmetadata", onLoad);
+                resolve();
+              };
+              this.player.element.addEventListener("loadedmetadata", onLoad);
+            }
+          });
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          if (needSeek) {
+            await new Promise((resolve) => {
+              if (this.player.element.readyState >= 3) {
+                resolve();
+              } else {
+                const onCanPlay = () => {
+                  this.player.element.removeEventListener("canplay", onCanPlay);
+                  this.player.element.removeEventListener("canplaythrough", onCanPlay);
+                  resolve();
+                };
+                this.player.element.addEventListener("canplay", onCanPlay, { once: true });
+                this.player.element.addEventListener("canplaythrough", onCanPlay, { once: true });
+                setTimeout(() => {
+                  this.player.element.removeEventListener("canplay", onCanPlay);
+                  this.player.element.removeEventListener("canplaythrough", onCanPlay);
+                  resolve();
+                }, 3e3);
+              }
+            });
+          }
+        }
+        /**
+         * Restore playback state after source change
+         */
+        async _restorePlaybackState(currentTime, wasPlaying, shouldKeepPoster, currentCaptionText) {
+          let syncTime = currentTime;
+          if (currentCaptionText && this.player.captionManager && this.player.captionManager.tracks.length > 0) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            const matchingTime = this.player.findMatchingCaptionTime(
+              currentCaptionText,
+              this.player.captionManager.tracks
+            );
+            if (matchingTime !== null) {
+              syncTime = matchingTime;
+              if (this.player.options.debug) {
+                this.player.log("[VidPly] Syncing via caption: ".concat(currentTime, "s -> ").concat(syncTime, "s"));
+              }
+            }
+          }
+          if (syncTime > 0) {
+            this.player.seek(syncTime);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+          if (wasPlaying) {
+            await this.player.play();
+            this.player.setManagedTimeout(() => {
+              this.player.hidePosterOverlay();
+            }, 100);
+          } else {
+            this.player.pause();
+            if (!shouldKeepPoster) {
+              this.player.hidePosterOverlay();
+            }
+          }
+        }
+        /**
+         * Enable with source element method
+         */
+        async _enableWithSourceElement(currentTime, wasPlaying, posterValue, shouldKeepPoster, currentCaptionText) {
+          await this._swapCaptionTracks(true);
+          this._updateSourceElements(true);
+          if (posterValue && this.player.element.tagName === "VIDEO") {
+            this.player.element.poster = posterValue;
+          }
+          this.player.element.load();
+          await this._waitForMediaReady(currentTime > 0 || wasPlaying);
+          await this._restorePlaybackState(currentTime, wasPlaying, shouldKeepPoster, currentCaptionText);
+          if (!this.desiredState) return;
+          this.enabled = true;
+          this.player.state.audioDescriptionEnabled = true;
+          this.player.emit("audiodescriptionenabled");
+          this._reloadTranscript();
+        }
+        /**
+         * Enable with direct src method
+         */
+        async _enableWithDirectSrc(currentTime, wasPlaying, posterValue, shouldKeepPoster) {
+          await this._swapCaptionTracks(true);
+          if (posterValue && this.player.element.tagName === "VIDEO") {
+            this.player.element.poster = posterValue;
+          }
+          this.player.element.src = this.src;
+          await this._waitForMediaReady(currentTime > 0 || wasPlaying);
+          if (currentTime > 0) {
+            this.player.seek(currentTime);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+          if (wasPlaying) {
+            await this.player.play();
+          } else {
+            this.player.pause();
+            if (!shouldKeepPoster) {
+              this.player.hidePosterOverlay();
+            }
+          }
+          if (!this.desiredState) return;
+          this.enabled = true;
+          this.player.state.audioDescriptionEnabled = true;
+          this.player.emit("audiodescriptionenabled");
+          this._reloadTranscript();
+        }
+        /**
+         * Disable with source element method
+         */
+        async _disableWithSourceElement(currentTime, wasPlaying, posterValue, shouldKeepPoster, currentCaptionText) {
+          await this._swapCaptionTracks(false);
+          this._updateSourceElements(false);
+          if (posterValue && this.player.element.tagName === "VIDEO") {
+            this.player.element.poster = posterValue;
+          }
+          this.player.element.load();
+          this.player.invalidateTrackCache();
+          await this._waitForMediaReady(currentTime > 0 || wasPlaying);
+          await this._restorePlaybackState(currentTime, wasPlaying, shouldKeepPoster, currentCaptionText);
+          if (this.player.captionManager) {
+            this.player.captionManager.destroy();
+            this.player.captionManager = new CaptionManager(this.player);
+          }
+          if (this.desiredState) return;
+          this.enabled = false;
+          this.player.state.audioDescriptionEnabled = false;
+          this.player.emit("audiodescriptiondisabled");
+          this._reloadTranscript();
+        }
+        /**
+         * Disable with direct src method
+         */
+        async _disableWithDirectSrc(currentTime, wasPlaying, posterValue) {
+          await this._swapCaptionTracks(false);
+          if (posterValue && this.player.element.tagName === "VIDEO") {
+            this.player.element.poster = posterValue;
+          }
+          const originalSrcToUse = this.originalSource || this.player.originalSrc;
+          this.player.element.src = originalSrcToUse;
+          this.player.element.load();
+          await this._waitForMediaReady(currentTime > 0 || wasPlaying);
+          if (currentTime > 0) {
+            this.player.seek(currentTime);
+          }
+          if (wasPlaying) {
+            await this.player.play();
+          }
+          if (this.desiredState) return;
+          this.enabled = false;
+          this.player.state.audioDescriptionEnabled = false;
+          this.player.emit("audiodescriptiondisabled");
+          this._reloadTranscript();
+        }
+        /**
+         * Reload transcript after audio description state change
+         */
+        _reloadTranscript() {
+          if (this.player.transcriptManager && this.player.transcriptManager.isVisible) {
+            this.player.setManagedTimeout(() => {
+              if (this.player.transcriptManager && this.player.transcriptManager.loadTranscriptData) {
+                this.player.transcriptManager.loadTranscriptData();
+              }
+            }, 800);
+          }
+        }
+        /**
+         * Update sources (called when playlist changes)
+         */
+        updateSources(audioDescriptionSrc) {
+          this.src = audioDescriptionSrc || null;
+          this.enabled = false;
+          this.desiredState = false;
+          this.sourceElement = null;
+          this.originalSource = null;
+          this.captionTracks = [];
+        }
+        /**
+         * Reinitialize from current player elements (called after playlist loads new tracks)
+         */
+        reinitialize() {
+          this.player.invalidateTrackCache();
+          this.initFromSourceElements(this.player.sourceElements, this.player.trackElements);
+        }
+        /**
+         * Cleanup
+         */
+        destroy() {
+          this.enabled = false;
+          this.desiredState = false;
+          this.captionTracks = [];
+          this.sourceElement = null;
+          this.originalSource = null;
+        }
+      };
+    }
+  });
+
+  // src/core/SignLanguageManager.js
+  var SignLanguageManager_exports = {};
+  __export(SignLanguageManager_exports, {
+    SignLanguageManager: () => SignLanguageManager
+  });
+  var SignLanguageManager;
+  var init_SignLanguageManager = __esm({
+    "src/core/SignLanguageManager.js"() {
+      init_DOMUtils();
+      init_Icons();
+      init_i18n();
+      init_DraggableResizable();
+      init_MenuUtils();
+      init_FormUtils();
+      SignLanguageManager = class {
+        constructor(player) {
+          this.player = player;
+          this.src = player.options.signLanguageSrc;
+          this.sources = player.options.signLanguageSources || {};
+          this.currentLanguage = null;
+          this.desiredPosition = player.options.signLanguagePosition || "bottom-right";
+          this.wrapper = null;
+          this.header = null;
+          this.video = null;
+          this.selector = null;
+          this.settingsButton = null;
+          this.settingsMenu = null;
+          this.resizeHandles = [];
+          this.enabled = false;
+          this.inMainView = false;
+          this.mainViewOriginalSrc = null;
+          this.mainViewOriginalSources = null;
+          this._mainViewUsingSourceSwap = false;
+          this._mainViewMutedBefore = false;
+          this.settingsMenuVisible = false;
+          this.settingsMenuJustOpened = false;
+          this.documentClickHandlerAdded = false;
+          this.handlers = null;
+          this.settingsHandlers = null;
+          this.interactionHandlers = null;
+          this.draggable = null;
+          this.documentClickHandler = null;
+          this.settingsMenuKeyHandler = null;
+          this.customKeyHandler = null;
+          this.dragOptionButton = null;
+          this.dragOptionText = null;
+          this.resizeOptionButton = null;
+          this.resizeOptionText = null;
+        }
+        /**
+         * Check if sign language is available
+         */
+        isAvailable() {
+          return Object.keys(this.sources).length > 0 || !!this.src;
+        }
+        /**
+         * Enable sign language video
+         */
+        enable() {
+          const hasMultipleSources = Object.keys(this.sources).length > 0;
+          const hasSingleSource = !!this.src;
+          if (!hasMultipleSources && !hasSingleSource) {
+            console.warn("No sign language video source provided");
+            return;
+          }
+          if (this.wrapper) {
+            this.wrapper.style.display = "block";
+            this.enabled = true;
+            this.player.state.signLanguageEnabled = true;
+            this.player.emit("signlanguageenabled");
+            this.player.setManagedTimeout(() => {
+              if (this.settingsButton && document.contains(this.settingsButton)) {
+                this.settingsButton.focus({ preventScroll: true });
+              }
+            }, 150);
+            return;
+          }
+          let initialLang = null;
+          let initialSrc = null;
+          if (hasMultipleSources) {
+            initialLang = this._determineInitialLanguage();
+            initialSrc = this.sources[initialLang];
+            this.currentLanguage = initialLang;
+          } else {
+            initialSrc = this.src;
+          }
+          this._createWrapper();
+          this._createHeader(hasMultipleSources, initialLang);
+          this._createVideo(initialSrc);
+          this._createResizeHandles();
+          this.wrapper.appendChild(this.header);
+          this.wrapper.appendChild(this.video);
+          this.resizeHandles.forEach((handle) => this.wrapper.appendChild(handle));
+          this._applyInitialSize();
+          this.player.container.appendChild(this.wrapper);
+          requestAnimationFrame(() => {
+            this.constrainPosition();
+          });
+          this.video.currentTime = this.player.state.currentTime;
+          if (!this.player.state.paused) {
+            this.video.play();
+          }
+          this._setupInteraction();
+          this._setupEventHandlers(hasMultipleSources);
+          this.enabled = true;
+          this.player.state.signLanguageEnabled = true;
+          this.player.emit("signlanguageenabled");
+          this.player.setManagedTimeout(() => {
+            if (this.settingsButton && document.contains(this.settingsButton)) {
+              this.settingsButton.focus({ preventScroll: true });
+            }
+          }, 150);
+        }
+        /**
+         * Disable sign language video
+         */
+        disable() {
+          if (this.settingsMenuVisible) {
+            this.hideSettingsMenu({ focusButton: false });
+          }
+          if (this.wrapper) {
+            this.wrapper.style.display = "none";
+          }
+          this.enabled = false;
+          this.player.state.signLanguageEnabled = false;
+          this.player.emit("signlanguagedisabled");
+        }
+        /**
+         * Toggle sign language video
+         */
+        toggle() {
+          if (this.enabled) {
+            this.disable();
+          } else {
+            this.enable();
+          }
+        }
+        /**
+         * Enable sign language in main view: replace main video src with sign language URL (like audio description).
+         * Same video element, different URL; no overlay.
+         */
+        async enableInMainView() {
+          const hasMultipleSources = Object.keys(this.sources).length > 0;
+          const hasSingleSource = !!this.src;
+          if (!hasMultipleSources && !hasSingleSource) return;
+          if (!this.player.element || this.player.element.tagName !== "VIDEO") return;
+          if (this.inMainView) return;
+          let signSrc;
+          if (hasMultipleSources) {
+            const initialLang = this._determineInitialLanguage();
+            this.currentLanguage = initialLang;
+            signSrc = this.sources[initialLang];
+          } else {
+            signSrc = this.src;
+          }
+          const el = this.player.element;
+          const currentTime = this.player.state.currentTime;
+          const wasPlaying = this.player.state.playing;
+          const posterValue = el.poster || el.getAttribute("poster") || this.player.options.poster;
+          const shouldKeepPoster = currentTime < 0.1 && !wasPlaying;
+          const sourceElements = Array.from(el.querySelectorAll("source"));
+          const firstSource = sourceElements[0];
+          this.mainViewOriginalSrc = el.currentSrc && el.currentSrc.length > 0 ? el.currentSrc : el.src && el.src.length > 0 ? el.src : firstSource && firstSource.getAttribute("src") ? firstSource.getAttribute("src") : "";
+          this._mainViewMutedBefore = this.player.state.muted;
+          if (posterValue && shouldKeepPoster && el.tagName === "VIDEO") {
+            el.poster = posterValue;
+          }
+          if (sourceElements.length > 0) {
+            this.mainViewOriginalSources = sourceElements;
+            this.mainViewOriginalSources.forEach((source) => source.remove());
+            const signSource = document.createElement("source");
+            signSource.setAttribute("src", signSrc);
+            const type = this._inferVideoType(signSrc);
+            if (type) {
+              signSource.setAttribute("type", type);
+            }
+            const trackNode = el.querySelector("track");
+            if (trackNode) {
+              el.insertBefore(signSource, trackNode);
+            } else {
+              el.appendChild(signSource);
+            }
+            this._mainViewUsingSourceSwap = true;
+          } else {
+            el.src = signSrc;
+            this._mainViewUsingSourceSwap = false;
+          }
+          el.muted = true;
+          this.player.currentSource = signSrc;
+          if (typeof this.player.invalidateTrackCache === "function") {
+            this.player.invalidateTrackCache();
+          }
+          el.load();
+          await this._waitForMediaReadyMainView(currentTime > 0 || wasPlaying);
+          if (currentTime > 0) {
+            this.player.seek(currentTime);
+            await new Promise((r) => setTimeout(r, 100));
+          }
+          if (wasPlaying) {
+            await this.player.play();
+          } else {
+            this.player.pause();
+            if (!shouldKeepPoster && this.player.hidePosterOverlay) {
+              this.player.hidePosterOverlay();
+            }
+          }
+          this.inMainView = true;
+          this.player.state.signLanguageInMainView = true;
+          if (this.player.videoWrapper) {
+            this.player.videoWrapper.classList.add("vidply-sign-language-main-view-active");
+          }
+          this.player.emit("signlanguageinmainviewenabled");
+        }
+        /**
+         * Disable sign language in main view: restore main video src.
+         */
+        async disableInMainView() {
+          var _a, _b;
+          if (!this.inMainView) return;
+          if (!this.mainViewOriginalSrc && !this.mainViewOriginalSources) {
+            this.inMainView = false;
+            this.player.state.signLanguageInMainView = false;
+            if (this.player.videoWrapper) {
+              this.player.videoWrapper.classList.remove("vidply-sign-language-main-view-active");
+            }
+            this.player.emit("signlanguageinmainviewdisabled");
+            return;
+          }
+          const el = this.player.element;
+          const currentTime = this.player.state.currentTime;
+          const wasPlaying = this.player.state.playing;
+          const posterValue = el.poster || el.getAttribute("poster") || this.player.options.poster;
+          if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
+            Array.from(el.querySelectorAll("source")).forEach((source) => source.remove());
+            const trackNode = el.querySelector("track");
+            this.mainViewOriginalSources.forEach((source) => {
+              if (trackNode) {
+                el.insertBefore(source, trackNode);
+              } else {
+                el.appendChild(source);
+              }
+            });
+            this._mainViewUsingSourceSwap = false;
+          } else if (this.mainViewOriginalSrc) {
+            el.src = this.mainViewOriginalSrc;
+          }
+          el.muted = this._mainViewMutedBefore;
+          this.player.currentSource = this.mainViewOriginalSrc || el.querySelector("source") && el.querySelector("source").src || "";
+          if (typeof this.player.invalidateTrackCache === "function") {
+            this.player.invalidateTrackCache();
+          }
+          el.load();
+          await this._waitForMediaReadyMainView(currentTime > 0 || wasPlaying);
+          if (currentTime > 0) {
+            this.player.seek(currentTime);
+          }
+          if (wasPlaying) {
+            try {
+              await this.player.play();
+            } catch (e) {
+              (_b = (_a = this.player).log) == null ? void 0 : _b.call(_a, "Sign language main view: play after restore failed", e, "warn");
+            }
+          }
+          this.mainViewOriginalSrc = null;
+          this.mainViewOriginalSources = null;
+          this.inMainView = false;
+          this.player.state.signLanguageInMainView = false;
+          if (this.player.videoWrapper) {
+            this.player.videoWrapper.classList.remove("vidply-sign-language-main-view-active");
+          }
+          this.player.emit("signlanguageinmainviewdisabled");
+        }
+        /**
+         * Wait for media ready (like AudioDescriptionManager).
+         */
+        async _waitForMediaReadyMainView(needSeek = false) {
+          const el = this.player.element;
+          const loadedMetaPromise = new Promise((resolve) => {
+            if (el.readyState >= 1) {
+              resolve();
+              return;
+            }
+            const onLoad = () => {
+              el.removeEventListener("loadedmetadata", onLoad);
+              el.removeEventListener("error", onError);
+              resolve();
+            };
+            const onError = () => {
+              el.removeEventListener("loadedmetadata", onLoad);
+              el.removeEventListener("error", onError);
+              resolve();
+            };
+            el.addEventListener("loadedmetadata", onLoad);
+            el.addEventListener("error", onError, { once: true });
+          });
+          const timeoutPromise = new Promise((r) => setTimeout(r, 1e4));
+          await Promise.race([loadedMetaPromise, timeoutPromise]);
+          await new Promise((r) => setTimeout(r, 300));
+          if (needSeek) {
+            await new Promise((resolve) => {
+              if (el.readyState >= 3) resolve();
+              else {
+                const onCanPlay = () => {
+                  el.removeEventListener("canplay", onCanPlay);
+                  el.removeEventListener("canplaythrough", onCanPlay);
+                  resolve();
+                };
+                el.addEventListener("canplay", onCanPlay, { once: true });
+                el.addEventListener("canplaythrough", onCanPlay, { once: true });
+                setTimeout(() => {
+                  el.removeEventListener("canplay", onCanPlay);
+                  el.removeEventListener("canplaythrough", onCanPlay);
+                  resolve();
+                }, 3e3);
+              }
+            });
+          }
+        }
+        /**
+         * Toggle sign language in main view (src swap, like audio description).
+         */
+        toggleInMainView() {
+          if (this.inMainView) {
+            this.disableInMainView();
+          } else {
+            this.enableInMainView();
+          }
+        }
+        /**
+         * Switch to a different sign language
+         */
+        switchLanguage(langCode) {
+          if (!this.sources[langCode]) return;
+          this.currentLanguage = langCode;
+          if (this.video) {
+            const currentTime = this.video.currentTime;
+            const wasPlaying = !this.video.paused;
+            this.video.src = this.sources[langCode];
+            this.video.currentTime = currentTime;
+            if (wasPlaying) {
+              this.video.play().catch(() => {
+              });
+            }
+          }
+          if (this.inMainView && this.player.element && this.player.element.tagName === "VIDEO") {
+            const currentTime = this.player.state.currentTime;
+            const wasPlaying = this.player.state.playing;
+            if (this._mainViewUsingSourceSwap) {
+              const signSource = this.player.element.querySelector("source");
+              if (signSource) {
+                signSource.setAttribute("src", this.sources[langCode]);
+                const type = this._inferVideoType(this.sources[langCode]);
+                if (type) {
+                  signSource.setAttribute("type", type);
+                }
+              }
+            } else {
+              this.player.element.src = this.sources[langCode];
+            }
+            this.player.currentSource = this.sources[langCode];
+            if (typeof this.player.invalidateTrackCache === "function") {
+              this.player.invalidateTrackCache();
+            }
+            this.player.element.load();
+            this._waitForMediaReadyMainView(true).then(() => {
+              if (currentTime > 0) this.player.seek(currentTime);
+              if (wasPlaying) this.player.play();
+            });
+          }
+          this.player.emit("signlanguagelanguagechanged", langCode);
+        }
+        _inferVideoType(url) {
+          if (!url) return "";
+          const cleanUrl = url.split("?")[0].toLowerCase();
+          if (cleanUrl.endsWith(".mp4")) return "video/mp4";
+          if (cleanUrl.endsWith(".webm")) return "video/webm";
+          if (cleanUrl.endsWith(".ogv") || cleanUrl.endsWith(".ogg")) return "video/ogg";
+          return "";
+        }
+        /**
+         * Get language label
+         */
+        getLanguageLabel(langCode) {
+          const langNames = {
+            "en": "English",
+            "de": "Deutsch",
+            "es": "Español",
+            "fr": "Français",
+            "it": "Italiano",
+            "ja": "日本語",
+            "pt": "Português",
+            "ar": "العربية",
+            "hi": "हिन्दी"
+          };
+          return langNames[langCode] || langCode.toUpperCase();
+        }
+        /**
+         * Determine initial sign language
+         */
+        _determineInitialLanguage() {
+          var _a;
+          if (this.player.captionManager && this.player.captionManager.currentTrack) {
+            const captionLang = (_a = this.player.captionManager.currentTrack.language) == null ? void 0 : _a.toLowerCase().split("-")[0];
+            if (captionLang && this.sources[captionLang]) {
+              return captionLang;
+            }
+          }
+          if (this.player.options.language) {
+            const playerLang = this.player.options.language.toLowerCase().split("-")[0];
+            if (this.sources[playerLang]) {
+              return playerLang;
+            }
+          }
+          return Object.keys(this.sources)[0];
+        }
+        /**
+         * Create wrapper element
+         */
+        _createWrapper() {
+          this.wrapper = document.createElement("div");
+          this.wrapper.className = "vidply-sign-language-wrapper";
+          this.wrapper.setAttribute("tabindex", "0");
+          this.wrapper.setAttribute("aria-label", i18n.t("player.signLanguageDragResize"));
+        }
+        /**
+         * Create header element
+         */
+        _createHeader(hasMultipleSources, initialLang) {
+          const classPrefix = this.player.options.classPrefix;
+          this.header = DOMUtils.createElement("div", {
+            className: "".concat(classPrefix, "-sign-language-header"),
+            attributes: { "tabindex": "0" }
+          });
+          const headerLeft = DOMUtils.createElement("div", {
+            className: "".concat(classPrefix, "-sign-language-header-left")
+          });
+          const title = DOMUtils.createElement("h3", {
+            textContent: i18n.t("player.signLanguageVideo")
+          });
+          this._createSettingsButton(headerLeft);
+          if (hasMultipleSources) {
+            this._createLanguageSelector(headerLeft, initialLang);
+          }
+          headerLeft.appendChild(title);
+          const closeButton = this._createCloseButton();
+          this.header.appendChild(headerLeft);
+          this.header.appendChild(closeButton);
+          this.settingsMenuVisible = false;
+          this.settingsMenu = null;
+          this.settingsMenuJustOpened = false;
+        }
+        /**
+         * Create settings button
+         */
+        _createSettingsButton(container) {
+          const classPrefix = this.player.options.classPrefix;
+          const ariaLabel = i18n.t("player.signLanguageSettings");
+          this.settingsButton = DOMUtils.createElement("button", {
+            className: "".concat(classPrefix, "-sign-language-settings"),
+            attributes: {
+              "type": "button",
+              "aria-label": ariaLabel,
+              "aria-expanded": "false"
+            }
+          });
+          this.settingsButton.appendChild(createIconElement("settings"));
+          DOMUtils.attachTooltip(this.settingsButton, ariaLabel, classPrefix);
+          this.settingsHandlers = {
+            click: (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (this.documentClickHandler) {
+                this.settingsMenuJustOpened = true;
+                setTimeout(() => {
+                  this.settingsMenuJustOpened = false;
+                }, 100);
+              }
+              if (this.settingsMenuVisible) {
+                this.hideSettingsMenu();
+              } else {
+                this.showSettingsMenu();
+              }
+            },
+            keydown: (e) => {
+              if (e.key === "d" || e.key === "D") {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleKeyboardDragMode();
+              } else if (e.key === "r" || e.key === "R") {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleResizeMode();
+              } else if (e.key === "Escape" && this.settingsMenuVisible) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.hideSettingsMenu();
+              }
+            }
+          };
+          this.settingsButton.addEventListener("click", this.settingsHandlers.click);
+          this.settingsButton.addEventListener("keydown", this.settingsHandlers.keydown);
+          container.appendChild(this.settingsButton);
+        }
+        /**
+         * Create language selector
+         */
+        _createLanguageSelector(container, initialLang) {
+          const classPrefix = this.player.options.classPrefix;
+          const selectId = "".concat(classPrefix, "-sign-language-select-").concat(Date.now());
+          const options = Object.keys(this.sources).map((langCode) => ({
+            value: langCode,
+            text: this.getLanguageLabel(langCode),
+            selected: langCode === initialLang
+          }));
+          const { label, select } = createLabeledSelect({
+            classPrefix,
+            labelClass: "".concat(classPrefix, "-sign-language-label"),
+            selectClass: "".concat(classPrefix, "-sign-language-select"),
+            labelText: "settings.language",
+            selectId,
+            options,
+            onChange: (e) => {
+              e.stopPropagation();
+              this.switchLanguage(e.target.value);
+            }
+          });
+          this.selector = select;
+          const selectorWrapper = DOMUtils.createElement("div", {
+            className: "".concat(classPrefix, "-sign-language-selector-wrapper")
+          });
+          selectorWrapper.appendChild(label);
+          selectorWrapper.appendChild(this.selector);
+          preventDragOnElement(selectorWrapper);
+          container.appendChild(selectorWrapper);
+        }
+        /**
+         * Create close button
+         */
+        _createCloseButton() {
+          const classPrefix = this.player.options.classPrefix;
+          const ariaLabel = i18n.t("player.closeSignLanguage");
+          const closeButton = DOMUtils.createElement("button", {
+            className: "".concat(classPrefix, "-sign-language-close"),
+            attributes: {
+              "type": "button",
+              "aria-label": ariaLabel
+            }
+          });
+          closeButton.appendChild(createIconElement("close"));
+          DOMUtils.attachTooltip(closeButton, ariaLabel, classPrefix);
+          closeButton.addEventListener("click", () => {
+            var _a, _b;
+            this.disable();
+            if ((_b = (_a = this.player.controlBar) == null ? void 0 : _a.controls) == null ? void 0 : _b.signLanguage) {
+              setTimeout(() => {
+                this.player.controlBar.controls.signLanguage.focus({ preventScroll: true });
+              }, 0);
+            }
+          });
+          return closeButton;
+        }
+        /**
+         * Create video element
+         */
+        _createVideo(src) {
+          this.video = document.createElement("video");
+          this.video.className = "vidply-sign-language-video";
+          this.video.src = src;
+          this.video.setAttribute("aria-label", i18n.t("player.signLanguage"));
+          this.video.muted = true;
+          this.video.setAttribute("playsinline", "");
+        }
+        /**
+         * Create resize handles
+         */
+        _createResizeHandles() {
+          const classPrefix = this.player.options.classPrefix;
+          this.resizeHandles = ["n", "s", "e", "w", "ne", "nw", "se", "sw"].map((dir) => {
+            const handle = DOMUtils.createElement("div", {
+              className: "".concat(classPrefix, "-sign-resize-handle ").concat(classPrefix, "-sign-resize-").concat(dir),
+              attributes: {
+                "data-direction": dir,
+                "data-vidply-managed-resize": "true",
+                "aria-hidden": "true"
+              }
+            });
+            handle.style.display = "none";
+            return handle;
+          });
+        }
+        /**
+         * Apply initial size
+         */
+        _applyInitialSize() {
+          var _a;
+          const saved = this.player.storage.getSignLanguagePreferences();
+          if ((_a = saved == null ? void 0 : saved.size) == null ? void 0 : _a.width) {
+            this.wrapper.style.width = saved.size.width;
+          } else {
+            this.wrapper.style.width = "280px";
+          }
+          this.wrapper.style.height = "auto";
+        }
+        /**
+         * Setup interaction (drag and resize)
+         */
+        _setupInteraction() {
+          var _a, _b;
+          const isMobile2 = window.innerWidth < 768;
+          const isFullscreen = this.player.state.fullscreen;
+          if (isMobile2 && !isFullscreen && ((_b = (_a = this.player) == null ? void 0 : _a.options) == null ? void 0 : _b.signLanguageDragOnMobile) === false) {
+            if (this.draggable) {
+              this.draggable.destroy();
+              this.draggable = null;
+            }
+            return;
+          }
+          if (this.draggable) return;
+          const classPrefix = this.player.options.classPrefix;
+          this.draggable = new DraggableResizable(this.wrapper, {
+            // Allow dragging from anywhere on the sign-language window (better for touch).
+            // We still block dragging when interacting with controls via `onDragStart` below.
+            dragHandle: this.wrapper,
+            resizeHandles: this.resizeHandles,
+            constrainToViewport: true,
+            maintainAspectRatio: true,
+            minWidth: 150,
+            minHeight: 100,
+            classPrefix: "".concat(classPrefix, "-sign"),
+            keyboardDragKey: "d",
+            keyboardResizeKey: "r",
+            keyboardStep: 10,
+            keyboardStepLarge: 50,
+            pointerResizeIndicatorText: i18n.t("player.signLanguageResizeActive"),
+            onPointerResizeToggle: (enabled) => {
+              this.resizeHandles.forEach((handle) => {
+                handle.style.display = enabled ? "block" : "none";
+              });
+            },
+            onDragStart: (e) => {
+              if (e.target.closest(".".concat(classPrefix, "-sign-language-close")) || e.target.closest(".".concat(classPrefix, "-sign-language-settings")) || e.target.closest(".".concat(classPrefix, "-sign-language-select")) || e.target.closest(".".concat(classPrefix, "-sign-language-label")) || e.target.closest(".".concat(classPrefix, "-sign-language-settings-menu"))) {
+                return false;
+              }
+              return true;
+            }
+          });
+          this._setupCustomKeyHandler();
+          this.interactionHandlers = {
+            draggable: this.draggable,
+            customKeyHandler: this.customKeyHandler
+          };
+        }
+        /**
+         * Setup custom keyboard handler
+         */
+        _setupCustomKeyHandler() {
+          this.customKeyHandler = (e) => {
+            var _a, _b, _c, _d;
+            const key = e.key.toLowerCase();
+            if (this.settingsMenuVisible) return;
+            if (key === "home") {
+              e.preventDefault();
+              e.stopPropagation();
+              if (this.draggable) {
+                if (this.draggable.pointerResizeMode) {
+                  this.draggable.disablePointerResizeMode();
+                }
+                this.draggable.manuallyPositioned = false;
+                this.constrainPosition();
+              }
+              return;
+            }
+            if (key === "r") {
+              e.preventDefault();
+              e.stopPropagation();
+              if (this.toggleResizeMode()) {
+                this.wrapper.focus({ preventScroll: true });
+              }
+              return;
+            }
+            if (key === "escape") {
+              e.preventDefault();
+              e.stopPropagation();
+              if ((_a = this.draggable) == null ? void 0 : _a.pointerResizeMode) {
+                this.draggable.disablePointerResizeMode();
+                return;
+              }
+              if ((_b = this.draggable) == null ? void 0 : _b.keyboardDragMode) {
+                this.draggable.disableKeyboardDragMode();
+                return;
+              }
+              this.disable();
+              if ((_d = (_c = this.player.controlBar) == null ? void 0 : _c.controls) == null ? void 0 : _d.signLanguage) {
+                setTimeout(() => {
+                  this.player.controlBar.controls.signLanguage.focus({ preventScroll: true });
+                }, 0);
+              }
+            }
+          };
+          this.wrapper.addEventListener("keydown", this.customKeyHandler);
+        }
+        /**
+         * Setup event handlers
+         */
+        _setupEventHandlers(hasMultipleSources) {
+          this.handlers = {
+            play: () => {
+              if (this.video) this.video.play();
+            },
+            pause: () => {
+              if (this.video) this.video.pause();
+            },
+            timeupdate: () => {
+              if (this.video && Math.abs(this.video.currentTime - this.player.state.currentTime) > 0.5) {
+                this.video.currentTime = this.player.state.currentTime;
+              }
+            },
+            ratechange: () => {
+              if (this.video) this.video.playbackRate = this.player.state.playbackSpeed;
+            }
+          };
+          this.player.on("play", this.handlers.play);
+          this.player.on("pause", this.handlers.pause);
+          this.player.on("timeupdate", this.handlers.timeupdate);
+          this.player.on("ratechange", this.handlers.ratechange);
+          if (hasMultipleSources) {
+            this.handlers.captionChange = () => {
+              var _a, _b;
+              if (((_a = this.player.captionManager) == null ? void 0 : _a.currentTrack) && this.selector) {
+                const captionLang = (_b = this.player.captionManager.currentTrack.language) == null ? void 0 : _b.toLowerCase().split("-")[0];
+                if (captionLang && this.sources[captionLang] && this.currentLanguage !== captionLang) {
+                  this.switchLanguage(captionLang);
+                  this.selector.value = captionLang;
+                }
+              }
+            };
+            this.player.on("captionsenabled", this.handlers.captionChange);
+          }
+        }
+        /**
+         * Constrain position within video wrapper
+         */
+        constrainPosition() {
+          var _a;
+          if (!this.wrapper || !this.player.videoWrapper) return;
+          if ((_a = this.draggable) == null ? void 0 : _a.manuallyPositioned) return;
+          if (!this.wrapper.style.width) {
+            this.wrapper.style.width = "280px";
+          }
+          const videoWrapperRect = this.player.videoWrapper.getBoundingClientRect();
+          const containerRect = this.player.container.getBoundingClientRect();
+          const wrapperRect = this.wrapper.getBoundingClientRect();
+          const videoWrapperLeft = videoWrapperRect.left - containerRect.left;
+          const videoWrapperTop = videoWrapperRect.top - containerRect.top;
+          const videoWrapperWidth = videoWrapperRect.width;
+          const videoWrapperHeight = videoWrapperRect.height;
+          let wrapperWidth = wrapperRect.width || 280;
+          let wrapperHeight = wrapperRect.height || 280 * 9 / 16;
+          let left, top;
+          const margin = 16;
+          const controlsHeight = 95;
+          const position = this.desiredPosition || "bottom-right";
+          switch (position) {
+            case "bottom-right":
+              left = videoWrapperLeft + videoWrapperWidth - wrapperWidth - margin;
+              top = videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight;
+              break;
+            case "bottom-left":
+              left = videoWrapperLeft + margin;
+              top = videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight;
+              break;
+            case "top-right":
+              left = videoWrapperLeft + videoWrapperWidth - wrapperWidth - margin;
+              top = videoWrapperTop + margin;
+              break;
+            case "top-left":
+              left = videoWrapperLeft + margin;
+              top = videoWrapperTop + margin;
+              break;
+            default:
+              left = videoWrapperLeft + videoWrapperWidth - wrapperWidth - margin;
+              top = videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight;
+          }
+          left = Math.max(videoWrapperLeft, Math.min(left, videoWrapperLeft + videoWrapperWidth - wrapperWidth));
+          top = Math.max(videoWrapperTop, Math.min(top, videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight));
+          this.wrapper.style.left = "".concat(left, "px");
+          this.wrapper.style.top = "".concat(top, "px");
+          this.wrapper.style.right = "auto";
+          this.wrapper.style.bottom = "auto";
+        }
+        /**
+         * Show settings menu
+         */
+        showSettingsMenu() {
+          var _a;
+          this.settingsMenuJustOpened = true;
+          setTimeout(() => {
+            this.settingsMenuJustOpened = false;
+          }, 350);
+          this._addDocumentClickHandler();
+          if (this.settingsMenu) {
+            this.settingsMenu.style.display = "block";
+            this.settingsMenuVisible = true;
+            (_a = this.settingsButton) == null ? void 0 : _a.setAttribute("aria-expanded", "true");
+            this._attachMenuKeyboardNavigation();
+            this._positionSettingsMenu();
+            this._updateDragOptionState();
+            this._updateResizeOptionState();
+            focusFirstMenuItem(this.settingsMenu, ".".concat(this.player.options.classPrefix, "-sign-language-settings-item"));
+            return;
+          }
+          this._createSettingsMenu();
+        }
+        /**
+         * Hide settings menu
+         */
+        hideSettingsMenu({ focusButton = true } = {}) {
+          if (this.settingsMenu) {
+            this.settingsMenu.style.display = "none";
+            this.settingsMenuVisible = false;
+            this.settingsMenuJustOpened = false;
+            if (this.settingsMenuKeyHandler) {
+              this.settingsMenu.removeEventListener("keydown", this.settingsMenuKeyHandler);
+              this.settingsMenuKeyHandler = null;
+            }
+            const classPrefix = this.player.options.classPrefix;
+            const menuItems = Array.from(this.settingsMenu.querySelectorAll(".".concat(classPrefix, "-sign-language-settings-item")));
+            menuItems.forEach((item) => item.setAttribute("tabindex", "-1"));
+            if (this.settingsButton) {
+              this.settingsButton.setAttribute("aria-expanded", "false");
+              if (focusButton) {
+                this.settingsButton.focus({ preventScroll: true });
+              }
+            }
+          }
+        }
+        /**
+         * Add document click handler
+         */
+        _addDocumentClickHandler() {
+          if (this.documentClickHandlerAdded) return;
+          this.documentClickHandler = (e) => {
+            if (this.settingsMenuJustOpened) return;
+            if (this.settingsButton && (this.settingsButton === e.target || this.settingsButton.contains(e.target))) {
+              return;
+            }
+            if (this.settingsMenu && this.settingsMenu.contains(e.target)) {
+              return;
+            }
+            if (this.settingsMenuVisible) {
+              this.hideSettingsMenu();
+            }
+          };
+          setTimeout(() => {
+            document.addEventListener("mousedown", this.documentClickHandler, true);
+            this.documentClickHandlerAdded = true;
+          }, 300);
+        }
+        /**
+         * Create settings menu
+         */
+        _createSettingsMenu() {
+          var _a, _b;
+          const classPrefix = this.player.options.classPrefix;
+          this.settingsMenu = DOMUtils.createElement("div", {
+            className: "".concat(classPrefix, "-sign-language-settings-menu"),
+            attributes: { "role": "menu" }
+          });
+          const dragOption = createMenuItem({
+            classPrefix,
+            itemClass: "".concat(classPrefix, "-sign-language-settings-item"),
+            icon: "move",
+            label: "player.enableSignDragMode",
+            hasTextClass: true,
+            onClick: () => {
+              var _a2;
+              this.toggleKeyboardDragMode();
+              this.hideSettingsMenu({ focusButton: false });
+              if ((_a2 = this.draggable) == null ? void 0 : _a2.keyboardDragMode) {
+                setTimeout(() => {
+                  var _a3, _b2;
+                  (_b2 = (_a3 = this.wrapper) == null ? void 0 : _a3.focus) == null ? void 0 : _b2.call(_a3, { preventScroll: true });
+                }, 20);
+              }
+            }
+          });
+          dragOption.setAttribute("data-setting", "keyboard-drag");
+          dragOption.setAttribute("role", "switch");
+          dragOption.setAttribute("aria-checked", "false");
+          this._removeTooltipFromMenuItem(dragOption);
+          this.dragOptionButton = dragOption;
+          this.dragOptionText = dragOption.querySelector(".".concat(classPrefix, "-settings-text"));
+          this._updateDragOptionState();
+          const resizeOption = createMenuItem({
+            classPrefix,
+            itemClass: "".concat(classPrefix, "-sign-language-settings-item"),
+            icon: "resize",
+            label: "player.enableSignResizeMode",
+            hasTextClass: true,
+            onClick: (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              const enabled = this.toggleResizeMode({ focus: false });
+              if (enabled) {
+                this.hideSettingsMenu({ focusButton: false });
+                setTimeout(() => {
+                  if (this.wrapper) this.wrapper.focus({ preventScroll: true });
+                }, 20);
+              } else {
+                this.hideSettingsMenu({ focusButton: true });
+              }
+            }
+          });
+          resizeOption.setAttribute("role", "switch");
+          resizeOption.setAttribute("aria-checked", "false");
+          this._removeTooltipFromMenuItem(resizeOption);
+          this.resizeOptionButton = resizeOption;
+          this.resizeOptionText = resizeOption.querySelector(".".concat(classPrefix, "-settings-text"));
+          this._updateResizeOptionState();
+          const closeOption = createMenuItem({
+            classPrefix,
+            itemClass: "".concat(classPrefix, "-sign-language-settings-item"),
+            icon: "close",
+            label: "transcript.closeMenu",
+            onClick: () => this.hideSettingsMenu()
+          });
+          this._removeTooltipFromMenuItem(closeOption);
+          this.settingsMenu.appendChild(dragOption);
+          this.settingsMenu.appendChild(resizeOption);
+          this.settingsMenu.appendChild(closeOption);
+          this.settingsMenu.style.visibility = "hidden";
+          this.settingsMenu.style.display = "block";
+          if ((_a = this.settingsButton) == null ? void 0 : _a.parentNode) {
+            this.settingsButton.insertAdjacentElement("afterend", this.settingsMenu);
+          } else if (this.wrapper) {
+            this.wrapper.appendChild(this.settingsMenu);
+          }
+          this._positionSettingsMenuImmediate();
+          requestAnimationFrame(() => {
+            if (this.settingsMenu) {
+              this.settingsMenu.style.visibility = "visible";
+            }
+          });
+          this._attachMenuKeyboardNavigation();
+          this.settingsMenuVisible = true;
+          (_b = this.settingsButton) == null ? void 0 : _b.setAttribute("aria-expanded", "true");
+          this._updateDragOptionState();
+          this._updateResizeOptionState();
+          focusFirstMenuItem(this.settingsMenu, ".".concat(classPrefix, "-sign-language-settings-item"));
+        }
+        /**
+         * Remove tooltip from menu item
+         */
+        _removeTooltipFromMenuItem(item) {
+          const classPrefix = this.player.options.classPrefix;
+          const tooltip = item.querySelector(".".concat(classPrefix, "-tooltip"));
+          if (tooltip) tooltip.remove();
+          const buttonText = item.querySelector(".".concat(classPrefix, "-button-text"));
+          if (buttonText) buttonText.remove();
+        }
+        /**
+         * Attach menu keyboard navigation
+         */
+        _attachMenuKeyboardNavigation() {
+          if (this.settingsMenuKeyHandler) {
+            this.settingsMenu.removeEventListener("keydown", this.settingsMenuKeyHandler);
+          }
+          this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
+            this.settingsMenu,
+            this.settingsButton,
+            ".".concat(this.player.options.classPrefix, "-sign-language-settings-item"),
+            () => this.hideSettingsMenu({ focusButton: true })
+          );
+        }
+        /**
+         * Position settings menu immediately
+         */
+        _positionSettingsMenuImmediate() {
+          if (!this.settingsMenu || !this.settingsButton) return;
+          const buttonRect = this.settingsButton.getBoundingClientRect();
+          const menuRect = this.settingsMenu.getBoundingClientRect();
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight;
+          const parentContainer = this.settingsButton.parentElement;
+          if (!parentContainer) return;
+          const parentRect = parentContainer.getBoundingClientRect();
+          const buttonCenterX = buttonRect.left + buttonRect.width / 2 - parentRect.left;
+          const buttonBottom = buttonRect.bottom - parentRect.top;
+          const buttonTop = buttonRect.top - parentRect.top;
+          const spaceAbove = buttonRect.top;
+          const spaceBelow = viewportHeight - buttonRect.bottom;
+          let menuTop = buttonBottom + 8;
+          let menuBottom = null;
+          if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
+            menuTop = null;
+            const parentHeight = parentRect.bottom - parentRect.top;
+            menuBottom = parentHeight - buttonTop + 8;
+            this.settingsMenu.classList.add("vidply-menu-above");
+          } else {
+            this.settingsMenu.classList.remove("vidply-menu-above");
+          }
+          let menuLeft = buttonCenterX - menuRect.width / 2;
+          let menuRight = "auto";
+          let transformX = "translateX(0)";
+          const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
+          if (menuLeftAbsolute < 10) {
+            menuLeft = 0;
+          } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
+            menuLeft = "auto";
+            menuRight = 0;
+          } else {
+            menuLeft = buttonCenterX;
+            transformX = "translateX(-50%)";
+          }
+          if (menuTop !== null) {
+            this.settingsMenu.style.top = "".concat(menuTop, "px");
+            this.settingsMenu.style.bottom = "auto";
+          } else if (menuBottom !== null) {
+            this.settingsMenu.style.top = "auto";
+            this.settingsMenu.style.bottom = "".concat(menuBottom, "px");
+          }
+          if (menuLeft !== "auto") {
+            this.settingsMenu.style.left = "".concat(menuLeft, "px");
+            this.settingsMenu.style.right = "auto";
+          } else {
+            this.settingsMenu.style.left = "auto";
+            this.settingsMenu.style.right = "".concat(menuRight, "px");
+          }
+          this.settingsMenu.style.transform = transformX;
+        }
+        /**
+         * Position settings menu with RAF
+         */
+        _positionSettingsMenu() {
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              this._positionSettingsMenuImmediate();
+            }, 10);
+          });
+        }
+        /**
+         * Toggle keyboard drag mode
+         */
+        toggleKeyboardDragMode() {
+          if (this.draggable) {
+            const wasEnabled = this.draggable.keyboardDragMode;
+            this.draggable.toggleKeyboardDragMode();
+            const isEnabled = this.draggable.keyboardDragMode;
+            if (!wasEnabled && isEnabled) {
+              this._enableMoveMode();
+            }
+            this._updateDragOptionState();
+          }
+        }
+        /**
+         * Enable move mode visual feedback
+         */
+        _enableMoveMode() {
+          this.wrapper.classList.add("".concat(this.player.options.classPrefix, "-sign-move-mode"));
+          this._updateResizeOptionState();
+          setTimeout(() => {
+            this.wrapper.classList.remove("".concat(this.player.options.classPrefix, "-sign-move-mode"));
+          }, 2e3);
+        }
+        /**
+         * Toggle resize mode
+         */
+        toggleResizeMode({ focus = true } = {}) {
+          if (!this.draggable) return false;
+          if (this.draggable.pointerResizeMode) {
+            this.draggable.disablePointerResizeMode({ focus });
+            this._updateResizeOptionState();
+            return false;
+          }
+          this.draggable.enablePointerResizeMode({ focus });
+          this._updateResizeOptionState();
+          return true;
+        }
+        /**
+         * Update drag option state
+         */
+        _updateDragOptionState() {
+          var _a;
+          if (!this.dragOptionButton) return;
+          const isEnabled = !!((_a = this.draggable) == null ? void 0 : _a.keyboardDragMode);
+          const text = isEnabled ? i18n.t("player.disableSignDragMode") : i18n.t("player.enableSignDragMode");
+          const ariaLabel = isEnabled ? i18n.t("player.disableSignDragModeAria") : i18n.t("player.enableSignDragModeAria");
+          this.dragOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
+          this.dragOptionButton.setAttribute("aria-label", ariaLabel);
+          if (this.dragOptionText) {
+            this.dragOptionText.textContent = text;
+          }
+        }
+        /**
+         * Update resize option state
+         */
+        _updateResizeOptionState() {
+          var _a;
+          if (!this.resizeOptionButton) return;
+          const isEnabled = !!((_a = this.draggable) == null ? void 0 : _a.pointerResizeMode);
+          const text = isEnabled ? i18n.t("player.disableSignResizeMode") : i18n.t("player.enableSignResizeMode");
+          const ariaLabel = isEnabled ? i18n.t("player.disableSignResizeModeAria") : i18n.t("player.enableSignResizeModeAria");
+          this.resizeOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
+          this.resizeOptionButton.setAttribute("aria-label", ariaLabel);
+          if (this.resizeOptionText) {
+            this.resizeOptionText.textContent = text;
+          }
+        }
+        /**
+         * Save preferences
+         */
+        savePreferences() {
+          if (!this.wrapper) return;
+          this.player.storage.saveSignLanguagePreferences({
+            size: { width: this.wrapper.style.width }
+          });
+        }
+        /**
+         * Update sources (called when playlist changes)
+         */
+        updateSources(signLanguageSrc, signLanguageSources) {
+          this.src = signLanguageSrc || null;
+          this.sources = signLanguageSources || {};
+          this.currentLanguage = null;
+        }
+        /**
+         * Cleanup
+         */
+        cleanup() {
+          var _a;
+          if (this.inMainView && this.player.element) {
+            const el = this.player.element;
+            if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
+              Array.from(el.querySelectorAll("source")).forEach((source) => source.remove());
+              const trackNode = el.querySelector("track");
+              this.mainViewOriginalSources.forEach((source) => {
+                if (trackNode) {
+                  el.insertBefore(source, trackNode);
+                } else {
+                  el.appendChild(source);
+                }
+              });
+              this._mainViewUsingSourceSwap = false;
+            } else if (this.mainViewOriginalSrc) {
+              el.src = this.mainViewOriginalSrc;
+            }
+            el.muted = this._mainViewMutedBefore;
+            if (typeof this.player.invalidateTrackCache === "function") {
+              this.player.invalidateTrackCache();
+            }
+            el.load();
+            this.mainViewOriginalSrc = null;
+            this.mainViewOriginalSources = null;
+            this.inMainView = false;
+            this.player.state.signLanguageInMainView = false;
+            if (this.player.videoWrapper) {
+              this.player.videoWrapper.classList.remove("vidply-sign-language-main-view-active");
+            }
+            this.player.emit("signlanguageinmainviewdisabled");
+          }
+          if (this.settingsMenuVisible) {
+            this.hideSettingsMenu({ focusButton: false });
+          }
+          if (this.documentClickHandler && this.documentClickHandlerAdded) {
+            document.removeEventListener("mousedown", this.documentClickHandler, true);
+            this.documentClickHandlerAdded = false;
+            this.documentClickHandler = null;
+          }
+          if (this.settingsHandlers && this.settingsButton) {
+            this.settingsButton.removeEventListener("click", this.settingsHandlers.click);
+            this.settingsButton.removeEventListener("keydown", this.settingsHandlers.keydown);
+          }
+          this.settingsHandlers = null;
+          if (this.handlers) {
+            this.player.off("play", this.handlers.play);
+            this.player.off("pause", this.handlers.pause);
+            this.player.off("timeupdate", this.handlers.timeupdate);
+            this.player.off("ratechange", this.handlers.ratechange);
+            if (this.handlers.captionChange) {
+              this.player.off("captionsenabled", this.handlers.captionChange);
+            }
+            this.handlers = null;
+          }
+          if (this.wrapper && this.customKeyHandler) {
+            this.wrapper.removeEventListener("keydown", this.customKeyHandler);
+          }
+          if (this.draggable) {
+            if (this.draggable.pointerResizeMode) {
+              this.draggable.disablePointerResizeMode();
+            }
+            this.draggable.destroy();
+            this.draggable = null;
+          }
+          this.interactionHandlers = null;
+          if ((_a = this.wrapper) == null ? void 0 : _a.parentNode) {
+            if (this.video) {
+              this.video.pause();
+              this.video.src = "";
+            }
+            this.wrapper.parentNode.removeChild(this.wrapper);
+          }
+          this.wrapper = null;
+          this.video = null;
+          this.settingsButton = null;
+          this.settingsMenu = null;
+        }
+        /**
+         * Destroy
+         */
+        destroy() {
+          this.cleanup();
+          this.enabled = false;
+        }
+      };
+    }
+  });
+
   // src/controls/TranscriptManager.js
   var TranscriptManager_exports = {};
   __export(TranscriptManager_exports, {
@@ -2991,9 +5252,12 @@
          * Show transcript window
          */
         showTranscript() {
+          this.player.invalidateTrackCache();
           if (this.transcriptWindow) {
             this.transcriptWindow.style.display = "flex";
             this.isVisible = true;
+            this.loadTranscriptData();
+            this.updateLanguageSelector();
             if (this.player.controlBar && typeof this.player.controlBar.updateTranscriptButton === "function") {
               this.player.controlBar.updateTranscriptButton();
             }
@@ -5123,6 +7387,7 @@
           this.hls = null;
           this._hlsSourceLoaded = false;
           this._pendingSrc = null;
+          this._hlsSubtitleTracksCount = void 0;
         }
         async init() {
           if (this.canPlayNatively()) {
@@ -5236,10 +7501,30 @@
             if (this.player.container) {
               this.player.container.classList.remove("vidply-external-controls");
             }
+            setTimeout(() => {
+              var _a, _b;
+              if (this._hlsSubtitleTracksCount === void 0 || this._hlsSubtitleTracksCount === 0) {
+                const currentCount = ((_b = (_a = this.hls) == null ? void 0 : _a.subtitleTracks) == null ? void 0 : _b.length) || 0;
+                if (currentCount === 0) {
+                  this._hlsSubtitleTracksCount = 0;
+                  this.updateCaptionButtonsForHls();
+                }
+              }
+            }, 500);
           });
           this.hls.on(window.Hls.Events.LEVEL_SWITCHED, (event, data) => {
             this.player.log("HLS level switched to " + data.level);
             this.player.emit("hlslevelswitched", data);
+          });
+          this.hls.on(window.Hls.Events.SUBTITLE_TRACKS_UPDATED, (event, data) => {
+            this.player.log("HLS subtitle tracks updated, found " + data.subtitleTracks.length + " tracks");
+            this.player.emit("hlssubtitletracksupdated", data);
+            this._hlsSubtitleTracksCount = data.subtitleTracks.length;
+            this.updateCaptionButtonsForHls();
+          });
+          this.hls.on(window.Hls.Events.SUBTITLE_TRACK_SWITCH, (event, data) => {
+            this.player.log("HLS subtitle track switched to " + data.id);
+            this.player.emit("hlssubtitletrackswitch", data);
           });
           this.hls.on(window.Hls.Events.ERROR, (event, data) => {
             this.handleHlsError(data);
@@ -5247,6 +7532,50 @@
           this.hls.on(window.Hls.Events.FRAG_BUFFERED, () => {
             this.player.state.buffering = false;
           });
+        }
+        /**
+         * Update caption buttons based on HLS subtitle tracks
+         * Handles the case where control bar may not exist yet
+         */
+        updateCaptionButtonsForHls() {
+          const tracksCount = this._hlsSubtitleTracksCount || 0;
+          const doUpdate = () => {
+            var _a, _b;
+            this.player.invalidateTrackCache();
+            if (tracksCount > 0) {
+              if (this.player.captionManager) {
+                this.player.captionManager.refreshTracks();
+              }
+              if ((_a = this.player.transcriptManager) == null ? void 0 : _a.isVisible) {
+                this.player.transcriptManager.loadTranscriptData();
+                this.player.transcriptManager.updateLanguageSelector();
+              }
+              if (this.player.controlBar) {
+                this.player.controlBar.ensureCaptionsButton();
+                this.player.controlBar.ensureCaptionStyleButton();
+                this.player.controlBar.ensureTranscriptButton();
+              }
+            } else {
+              if (this.player.captionManager) {
+                this.player.captionManager.refreshTracks();
+              }
+              if ((_b = this.player.transcriptManager) == null ? void 0 : _b.isVisible) {
+                this.player.transcriptManager.hideTranscript();
+              }
+              if (this.player.controlBar) {
+                this.player.controlBar.removeHlsCaptionButtons(true);
+              }
+            }
+          };
+          if (this.player.controlBar) {
+            doUpdate();
+            return;
+          }
+          const onReady = () => {
+            this.player.off("ready", onReady);
+            doUpdate();
+          };
+          this.player.on("ready", onReady);
         }
         attachMediaEvents() {
           this.media.addEventListener("loadedmetadata", () => {
@@ -5765,33 +8094,7 @@
   init_Icons();
   init_i18n();
   init_FocusUtils();
-
-  // src/utils/PerformanceUtils.js
-  function debounce(func, wait = 100) {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  }
-  function isMobile(breakpoint = 768) {
-    return window.innerWidth < breakpoint;
-  }
-  function rafWithTimeout(callback, timeout = 100) {
-    let called = false;
-    const execute = () => {
-      if (!called) {
-        called = true;
-        callback();
-      }
-    };
-    requestAnimationFrame(execute);
-    setTimeout(execute, timeout);
-  }
+  init_PerformanceUtils();
 
   // src/utils/VideoFrameCapture.js
   async function captureVideoFrame(video, time, options = {}) {
@@ -6484,18 +8787,20 @@
       return false;
     }
     hasCaptionTracks() {
-      var _a, _b;
+      var _a, _b, _c;
       const textTracks = this.player.element.textTracks;
       for (let i = 0; i < textTracks.length; i++) {
-        if (textTracks[i].kind === "captions" || textTracks[i].kind === "subtitles") return true;
+        if (textTracks[i].kind === "captions" || textTracks[i].kind === "subtitles") {
+          return true;
+        }
       }
       const trackEls = Array.from(this.player.element.querySelectorAll("track"));
       if (trackEls.some((el) => el.getAttribute("kind") === "captions" || el.getAttribute("kind") === "subtitles")) {
         return true;
       }
       const current = (_b = (_a = this.player.playlistManager) == null ? void 0 : _a.getCurrentTrack) == null ? void 0 : _b.call(_a);
-      if ((current == null ? void 0 : current.tracks) && Array.isArray(current.tracks)) {
-        return current.tracks.some((t) => (t == null ? void 0 : t.kind) === "captions" || (t == null ? void 0 : t.kind) === "subtitles");
+      if ((_c = current == null ? void 0 : current.tracks) == null ? void 0 : _c.some((t) => (t == null ? void 0 : t.kind) === "captions" || (t == null ? void 0 : t.kind) === "subtitles")) {
+        return true;
       }
       return false;
     }
@@ -6572,6 +8877,7 @@
       this.previewSupported = false;
       this.previewVideoReady = false;
       this.previewVideoInitialized = false;
+      this.previewUsingMainVideo = false;
       const isVideo = this.player.element && this.player.element.tagName === "VIDEO";
       if (!isVideo) {
         return;
@@ -6579,16 +8885,42 @@
     }
     /**
      * Lazily create the hidden preview video (only after playback started once)
+     * Supports both HTML5 and HLS renderers
      */
     ensurePreviewVideoInitialized() {
       var _a, _b;
       if (this.previewVideoInitialized) return;
       if (!((_b = (_a = this.player) == null ? void 0 : _a.state) == null ? void 0 : _b.hasStartedPlayback)) return;
+      if (this.player.options.thumbnailPreview === false) {
+        this.previewSupported = false;
+        this.previewVideoInitialized = true;
+        return;
+      }
       const renderer = this.player.renderer;
       const hasVideoMedia = renderer && renderer.media && renderer.media.tagName === "VIDEO";
-      const isHTML5Renderer = hasVideoMedia && renderer.media === this.player.element && !renderer.hls && typeof renderer.seek === "function";
+      if (!hasVideoMedia) {
+        this.previewSupported = false;
+        this.previewVideoInitialized = true;
+        return;
+      }
+      const isHLSRenderer = renderer.hls && typeof renderer.hls.loadLevel !== "undefined";
+      const isHTML5Renderer = hasVideoMedia && renderer.media === this.player.element && !isHLSRenderer && typeof renderer.seek === "function";
+      if (isHLSRenderer) {
+        this.previewVideo = renderer.media;
+        this.previewVideoReady = renderer.media.readyState >= 2;
+        this.previewSupported = true;
+        this.previewUsingMainVideo = true;
+        this.previewVideoInitialized = true;
+        if (this.player.options.thumbnailPregenerate) {
+          this.pregenerateThumbnails();
+        }
+        return;
+      }
       this.previewSupported = isHTML5Renderer && hasVideoMedia;
-      if (!this.previewSupported) return;
+      if (!this.previewSupported) {
+        this.previewVideoInitialized = true;
+        return;
+      }
       const mainVideo = renderer.media || this.player.element;
       let videoSrc = null;
       if (mainVideo.src) {
@@ -6602,6 +8934,7 @@
       if (!videoSrc) {
         this.player.log("No video source found for preview", "warn");
         this.previewSupported = false;
+        this.previewVideoInitialized = true;
         return;
       }
       this.previewVideo = document.createElement("video");
@@ -6622,13 +8955,48 @@
       });
       this.previewVideo.addEventListener("loadedmetadata", () => {
         this.previewVideoReady = true;
+        if (this.player.options.thumbnailPregenerate) {
+          this.pregenerateThumbnails();
+        }
       }, { once: true });
       if (this.player.container) {
         this.player.container.appendChild(this.previewVideo);
       }
       this.previewVideo.src = videoSrc;
       this.previewVideoReady = false;
+      this.previewUsingMainVideo = false;
       this.previewVideoInitialized = true;
+    }
+    /**
+     * Pre-generate thumbnails during browser idle time
+     * Uses requestIdleCallback to avoid impacting UI performance
+     */
+    pregenerateThumbnails() {
+      if (!this.previewSupported || !this.previewVideo) return;
+      if (!window.requestIdleCallback) return;
+      const duration = this.player.state.duration;
+      if (!duration || duration <= 0) return;
+      const interval = this.player.options.thumbnailInterval || 10;
+      const times = [];
+      for (let t = 0; t < duration; t += interval) {
+        const cacheKey = Math.floor(t);
+        if (!this.previewThumbnailCache.has(cacheKey)) {
+          times.push(t);
+        }
+      }
+      if (times.length === 0) return;
+      this.player.log("Pre-generating ".concat(times.length, " thumbnails"), "debug");
+      const generateNext = (deadline) => {
+        while (deadline.timeRemaining() > 50 && times.length > 0) {
+          const time = times.shift();
+          this.generatePreviewThumbnail(time).catch(() => {
+          });
+        }
+        if (times.length > 0 && this.previewSupported) {
+          requestIdleCallback(generateNext, { timeout: 5e3 });
+        }
+      };
+      requestIdleCallback(generateNext, { timeout: 5e3 });
     }
     /**
      * Generate preview thumbnail for a specific time
@@ -6682,14 +9050,19 @@
       if (this.previewThumbnailCache.has(cacheKey)) {
         return this.previewThumbnailCache.get(cacheKey);
       }
+      const restoreState = this.previewUsingMainVideo;
+      const quality = this.player.options.thumbnailQuality || 0.8;
+      const maxWidth = this.player.options.thumbnailWidth || 160;
+      const maxHeight = this.player.options.thumbnailHeight || 90;
       const dataURL = await captureVideoFrame(this.previewVideo, time, {
-        restoreState: false,
-        quality: 0.8,
-        maxWidth: 160,
-        maxHeight: 90
+        restoreState,
+        quality,
+        maxWidth,
+        maxHeight
       });
       if (dataURL) {
-        if (this.previewThumbnailCache.size >= 20) {
+        const maxCacheSize = this.player.options.thumbnailCacheSize || 50;
+        if (this.previewThumbnailCache.size >= maxCacheSize) {
           const firstKey = this.previewThumbnailCache.keys().next().value;
           this.previewThumbnailCache.delete(firstKey);
         }
@@ -8258,6 +10631,125 @@
       }
       this.player.log("Quality button added dynamically", "info");
     }
+    /**
+     * Dynamically add captions button if HLS subtitle tracks become available
+     * Button order: Chapters, Captions, Caption Style, Speed, AD, Transcript, Playlist, Sign, Quality, PiP, Fullscreen
+     */
+    ensureCaptionsButton() {
+      if (!this.player.options.captionsButton) return;
+      if (this.controls.captions) return;
+      const btn = this.createCaptionsButton();
+      btn.dataset.overflowPriority = "1";
+      btn.dataset.overflowPriorityMobile = "3";
+      const chaptersButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-chapters"));
+      if (chaptersButton && chaptersButton.nextSibling) {
+        this.rightButtons.insertBefore(btn, chaptersButton.nextSibling);
+      } else if (chaptersButton) {
+        chaptersButton.after(btn);
+      } else {
+        this.rightButtons.insertBefore(btn, this.rightButtons.firstChild);
+      }
+      this.player.log("Captions button added dynamically for HLS subtitles", "info");
+    }
+    /**
+     * Dynamically add caption style button if HLS subtitle tracks become available
+     */
+    ensureCaptionStyleButton() {
+      if (!this.player.options.captionStyleButton) return;
+      if (this.controls.captionStyle) return;
+      const btn = this.createCaptionStyleButton();
+      btn.dataset.overflowPriority = "3";
+      btn.dataset.overflowPriorityMobile = "3";
+      const captionsButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-captions-button"));
+      if (captionsButton) {
+        captionsButton.after(btn);
+      } else {
+        this.rightButtons.insertBefore(btn, this.rightButtons.firstChild);
+      }
+      this.player.log("Caption style button added dynamically for HLS subtitles", "info");
+    }
+    /**
+     * Dynamically add transcript button if HLS subtitle tracks become available
+     */
+    ensureTranscriptButton() {
+      if (!this.player.options.transcriptButton) return;
+      if (this.controls.transcript) return;
+      const btn = this.createTranscriptButton();
+      btn.dataset.overflowPriority = "3";
+      btn.dataset.overflowPriorityMobile = "3";
+      const adButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-audio-description"));
+      const speedButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-speed"));
+      const captionStyleButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-caption-style"));
+      if (adButton) {
+        adButton.after(btn);
+      } else if (speedButton) {
+        speedButton.after(btn);
+      } else if (captionStyleButton) {
+        captionStyleButton.after(btn);
+      } else {
+        const qualityButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-quality"));
+        const pipButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-pip"));
+        const fullscreenButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-fullscreen"));
+        const insertBefore = qualityButton || pipButton || fullscreenButton;
+        if (insertBefore) {
+          this.rightButtons.insertBefore(btn, insertBefore);
+        } else {
+          this.rightButtons.appendChild(btn);
+        }
+      }
+      this.player.log("Transcript button added dynamically for HLS subtitles", "info");
+    }
+    /**
+     * Remove caption-related buttons if no HLS subtitle tracks are available
+     * and no native caption tracks exist. Called when switching to a stream
+     * without subtitles.
+     * @param {boolean} force - If true, skip the native captions check and force removal
+     */
+    removeHlsCaptionButtons(force = false) {
+      if (!force) {
+        const trackElements = this.player.element.querySelectorAll('track[kind="captions"], track[kind="subtitles"]');
+        if (trackElements.length > 0) {
+          this.player.log("Keeping caption buttons - native track elements exist", "info");
+          return;
+        }
+      }
+      this.disableAllCaptions();
+      if (this.controls.captions) {
+        this.controls.captions.remove();
+        this.controls.captions = null;
+        this.player.log("Captions button removed - no subtitle tracks", "info");
+      }
+      if (this.controls.captionStyle) {
+        this.controls.captionStyle.remove();
+        this.controls.captionStyle = null;
+        this.player.log("Caption style button removed - no subtitle tracks", "info");
+      }
+      if (this.controls.transcript) {
+        this.controls.transcript.remove();
+        this.controls.transcript = null;
+        this.player.log("Transcript button removed - no subtitle tracks", "info");
+      }
+    }
+    /**
+     * Disable all caption/subtitle tracks and clear the captions display
+     */
+    disableAllCaptions() {
+      var _a;
+      const textTracks = this.player.element.textTracks;
+      for (let i = 0; i < textTracks.length; i++) {
+        textTracks[i].mode = "disabled";
+      }
+      if (this.player.captionsManager) {
+        this.player.captionsManager.hide();
+      }
+      const captionsContainer = (_a = this.player.container) == null ? void 0 : _a.querySelector(".".concat(this.player.options.classPrefix, "-captions"));
+      if (captionsContainer) {
+        captionsContainer.textContent = "";
+        captionsContainer.style.display = "none";
+      }
+      this.player.state.captionsEnabled = false;
+      this.player.log("All captions disabled and cleared", "info");
+    }
     updateQualityIndicator() {
       if (!this.controls.qualityText) return;
       if (!this.player.renderer || !this.player.renderer.getQualities) return;
@@ -8657,341 +11149,8 @@
     }
   };
 
-  // src/controls/CaptionManager.js
-  init_DOMUtils();
-  init_i18n();
-  init_StorageManager();
-  var CaptionManager = class {
-    constructor(player) {
-      this.player = player;
-      this.element = null;
-      this.tracks = [];
-      this.currentTrack = null;
-      this.currentCue = null;
-      this.storage = new StorageManager("vidply");
-      this.loadSavedPreferences();
-      this.init();
-    }
-    loadSavedPreferences() {
-      const saved = this.storage.getCaptionPreferences();
-      if (saved) {
-        if (saved.fontSize) this.player.options.captionsFontSize = saved.fontSize;
-        if (saved.fontFamily) this.player.options.captionsFontFamily = saved.fontFamily;
-        if (saved.color) this.player.options.captionsColor = saved.color;
-        if (saved.backgroundColor) this.player.options.captionsBackgroundColor = saved.backgroundColor;
-        if (saved.opacity !== void 0) this.player.options.captionsOpacity = saved.opacity;
-      }
-    }
-    saveCaptionPreferences() {
-      this.storage.saveCaptionPreferences({
-        fontSize: this.player.options.captionsFontSize,
-        fontFamily: this.player.options.captionsFontFamily,
-        color: this.player.options.captionsColor,
-        backgroundColor: this.player.options.captionsBackgroundColor,
-        opacity: this.player.options.captionsOpacity
-      });
-    }
-    init() {
-      this.createElement();
-      this.loadTracks();
-      this.attachEvents();
-      if (this.player.options.captionsDefault && this.tracks.length > 0 && !this.currentTrack) {
-        this.enable();
-      }
-    }
-    createElement() {
-      this.element = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-captions"),
-        attributes: {
-          "role": "region",
-          "aria-label": i18n.t("player.captions")
-        }
-      });
-      this.updateStyles();
-      const target = this.player.videoWrapper || this.player.container;
-      target.appendChild(this.element);
-    }
-    loadTracks() {
-      const textTracks = this.player.element.textTracks;
-      let defaultTrackIndex = -1;
-      for (let i = 0; i < textTracks.length; i++) {
-        const track = textTracks[i];
-        if (track.kind === "subtitles" || track.kind === "captions") {
-          const trackElement = this.player.findTrackElement(track);
-          const isDefault = trackElement && trackElement.hasAttribute("default");
-          this.tracks.push({
-            track,
-            language: track.language,
-            label: track.label,
-            kind: track.kind,
-            index: i,
-            isDefault
-          });
-          if (track.mode === "showing") {
-            track.mode = "hidden";
-          } else if (track.mode === "disabled") {
-            track.mode = "hidden";
-          } else {
-            track.mode = "hidden";
-          }
-          if (isDefault) {
-            defaultTrackIndex = this.tracks.length - 1;
-          }
-        }
-      }
-      if (defaultTrackIndex >= 0) {
-        requestAnimationFrame(() => {
-          this.enable(defaultTrackIndex);
-        });
-      }
-    }
-    attachEvents() {
-      this.player.on("timeupdate", () => {
-        this.updateCaptions();
-      });
-      this.player.on("captionschange", () => {
-        this.updateStyles();
-      });
-      this.debouncedPositionCaptions = debounce(() => {
-        this.positionCaptionsOnMobile();
-      }, 150);
-      window.addEventListener("resize", this.debouncedPositionCaptions);
-      this.player.on("enterfullscreen", () => {
-        rafWithTimeout(() => this.positionCaptionsOnMobile(), 100);
-      });
-      this.player.on("exitfullscreen", () => {
-        rafWithTimeout(() => this.positionCaptionsOnMobile(), 100);
-      });
-    }
-    enable(trackIndex = 0) {
-      if (this.tracks.length === 0) {
-        return;
-      }
-      if (this.currentTrack && this.currentTrack.track) {
-        if (this.cueChangeHandler) {
-          this.currentTrack.track.removeEventListener("cuechange", this.cueChangeHandler);
-        }
-        this.currentTrack.track.mode = "hidden";
-      }
-      const selectedTrack = this.tracks[trackIndex];
-      if (selectedTrack && selectedTrack.track) {
-        selectedTrack.track.mode = "hidden";
-        this.currentTrack = selectedTrack;
-        this.player.state.captionsEnabled = true;
-        if (selectedTrack.language) {
-          this.element.setAttribute("lang", selectedTrack.language);
-        }
-        if (this.cueChangeHandler) {
-          selectedTrack.track.removeEventListener("cuechange", this.cueChangeHandler);
-        }
-        this.cueChangeHandler = () => {
-          this.updateCaptions();
-        };
-        selectedTrack.track.addEventListener("cuechange", this.cueChangeHandler);
-        const ensureTrackReady = () => {
-          if (selectedTrack.track.readyState < 2) {
-            const onTrackLoad = () => {
-              selectedTrack.track.removeEventListener("load", onTrackLoad);
-              selectedTrack.track.removeEventListener("error", onTrackLoad);
-              requestAnimationFrame(() => {
-                if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
-                  this.updateCaptions();
-                }
-              });
-            };
-            selectedTrack.track.addEventListener("load", onTrackLoad, { once: true });
-            selectedTrack.track.addEventListener("error", onTrackLoad, { once: true });
-          } else {
-            requestAnimationFrame(() => {
-              if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
-                this.updateCaptions();
-              }
-            });
-          }
-        };
-        requestAnimationFrame(() => {
-          if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
-            ensureTrackReady();
-          }
-        });
-        this.player.emit("captionsenabled", selectedTrack);
-      }
-    }
-    disable() {
-      if (this.currentTrack) {
-        this.currentTrack.track.mode = "hidden";
-        this.currentTrack = null;
-      }
-      this.element.style.display = "none";
-      this.element.innerHTML = "";
-      this.element.removeAttribute("lang");
-      this.currentCue = null;
-      this.player.state.captionsEnabled = false;
-      this.player.emit("captionsdisabled");
-    }
-    updateCaptions() {
-      if (!this.currentTrack || !this.currentTrack.track) {
-        return;
-      }
-      if (this.currentTrack.track.mode === "disabled") {
-        this.currentTrack.track.mode = "hidden";
-      }
-      if (this.currentTrack.track.mode === "showing") {
-        this.currentTrack.track.mode = "hidden";
-      }
-      if (!this.currentTrack.track.activeCues) {
-        if (this.currentTrack.track.cues && this.currentTrack.track.cues.length > 0) {
-          if (this.currentCue) {
-            this.element.innerHTML = "";
-            this.element.style.display = "none";
-            this.currentCue = null;
-          }
-        }
-        return;
-      }
-      const activeCues = this.currentTrack.track.activeCues;
-      const isAudioPlayer = this.player.element.tagName.toLowerCase() === "audio";
-      if (activeCues.length > 0) {
-        const cue = activeCues[0];
-        if (this.currentCue !== cue) {
-          this.currentCue = cue;
-          let text = cue.text;
-          text = this.parseVTTFormatting(text);
-          if (isAudioPlayer) {
-            const existingCues = this.element.querySelectorAll(".".concat(this.player.options.classPrefix, "-caption-cue"));
-            existingCues.forEach((el) => el.classList.remove("".concat(this.player.options.classPrefix, "-caption-active")));
-            const cueId = "cue-".concat(cue.startTime, "-").concat(cue.endTime);
-            let cueElement = this.element.querySelector('[data-cue-id="'.concat(cueId, '"]'));
-            if (!cueElement) {
-              cueElement = document.createElement("div");
-              cueElement.className = "".concat(this.player.options.classPrefix, "-caption-cue");
-              cueElement.setAttribute("data-cue-id", cueId);
-              cueElement.innerHTML = DOMUtils.sanitizeHTML(text);
-              this.element.appendChild(cueElement);
-            }
-            cueElement.classList.add("".concat(this.player.options.classPrefix, "-caption-active"));
-            requestAnimationFrame(() => {
-              if (cueElement) {
-                cueElement.scrollIntoView({ behavior: "smooth", block: "center" });
-              }
-            });
-          } else {
-            this.element.innerHTML = DOMUtils.sanitizeHTML(text);
-          }
-          this.element.style.display = "block";
-          this.positionCaptionsOnMobile();
-          this.player.emit("captionchange", cue);
-        }
-      } else if (this.currentCue) {
-        if (!isAudioPlayer) {
-          this.element.innerHTML = "";
-          this.element.style.display = "none";
-        }
-        this.currentCue = null;
-      }
-    }
-    positionCaptionsOnMobile() {
-      var _a, _b;
-      if (!this.element || this.element.style.display === "none") {
-        return;
-      }
-      const isFullscreen = ((_a = this.player.state) == null ? void 0 : _a.fullscreen) || false;
-      const mobile = isMobile();
-      if (!mobile && !isFullscreen) {
-        this.element.style.bottom = "";
-        return;
-      }
-      const controls = (_b = this.player.controlBar) == null ? void 0 : _b.element;
-      if (!controls) {
-        return;
-      }
-      requestAnimationFrame(() => {
-        if (!this.element || this.element.style.display === "none") {
-          return;
-        }
-        const controlsRect = controls.getBoundingClientRect();
-        const wrapperRect = this.player.videoWrapper.getBoundingClientRect();
-        const bottomOffset = wrapperRect.bottom - controlsRect.top + 16;
-        this.element.style.bottom = "".concat(bottomOffset, "px");
-        if (this.player.options.debug) {
-          console.log("[VidPly] Caption position:", {
-            mobile,
-            isFullscreen,
-            controlsHeight: controlsRect.height,
-            bottomOffset: "".concat(bottomOffset, "px")
-          });
-        }
-      });
-    }
-    parseVTTFormatting(text) {
-      text = text.replace(/<c[^>]*>(.*?)<\/c>/g, '<span class="caption-class">$1</span>');
-      text = text.replace(/<b>(.*?)<\/b>/g, "<strong>$1</strong>");
-      text = text.replace(/<i>(.*?)<\/i>/g, "<em>$1</em>");
-      text = text.replace(/<u>(.*?)<\/u>/g, "<u>$1</u>");
-      text = text.replace(/<v\s+([^>]+)>(.*?)<\/v>/g, '<span class="caption-voice" data-voice="$1">$2</span>');
-      return text;
-    }
-    updateStyles() {
-      if (!this.element) return;
-      const options = this.player.options;
-      this.element.style.fontSize = options.captionsFontSize;
-      this.element.style.fontFamily = options.captionsFontFamily;
-      this.element.style.color = options.captionsColor;
-      this.element.style.backgroundColor = this.hexToRgba(
-        options.captionsBackgroundColor,
-        options.captionsOpacity
-      );
-    }
-    hexToRgba(hex, alpha) {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-      if (result) {
-        return "rgba(".concat(parseInt(result[1], 16), ", ").concat(parseInt(result[2], 16), ", ").concat(parseInt(result[3], 16), ", ").concat(alpha, ")");
-      }
-      return hex;
-    }
-    setCaptionStyle(property, value) {
-      switch (property) {
-        case "fontSize":
-          this.player.options.captionsFontSize = value;
-          break;
-        case "fontFamily":
-          this.player.options.captionsFontFamily = value;
-          break;
-        case "color":
-          this.player.options.captionsColor = value;
-          break;
-        case "backgroundColor":
-          this.player.options.captionsBackgroundColor = value;
-          break;
-        case "opacity":
-          this.player.options.captionsOpacity = value;
-          break;
-      }
-      this.updateStyles();
-      this.saveCaptionPreferences();
-      this.player.emit("captionschange");
-    }
-    getAvailableTracks() {
-      return this.tracks.map((t, index) => ({
-        index,
-        language: t.language,
-        label: t.label || t.language,
-        kind: t.kind
-      }));
-    }
-    switchTrack(trackIndex) {
-      if (trackIndex >= 0 && trackIndex < this.tracks.length) {
-        this.disable();
-        this.enable(trackIndex);
-      }
-    }
-    destroy() {
-      this.disable();
-      if (this.element && this.element.parentNode) {
-        this.element.parentNode.removeChild(this.element);
-      }
-    }
-  };
+  // src/core/Player.js
+  init_CaptionManager();
 
   // src/controls/KeyboardManager.js
   var KeyboardManager = class {
@@ -9207,1752 +11366,25 @@
   init_DraggableResizable();
   init_MenuUtils();
   init_FormUtils();
-
-  // src/core/AudioDescriptionManager.js
-  var AudioDescriptionManager = class {
-    constructor(player) {
-      this.player = player;
-      this.enabled = false;
-      this.desiredState = false;
-      this.src = player.options.audioDescriptionSrc;
-      this.sourceElement = null;
-      this.originalSource = null;
-      this.captionTracks = [];
+  init_PerformanceUtils();
+  var AudioDescriptionManagerModule = null;
+  var SignLanguageManagerModule = null;
+  async function loadAudioDescriptionManager() {
+    if (!AudioDescriptionManagerModule) {
+      const module = await Promise.resolve().then(() => (init_AudioDescriptionManager(), AudioDescriptionManager_exports));
+      AudioDescriptionManagerModule = module.AudioDescriptionManager;
     }
-    /**
-     * Initialize audio description from source elements
-     * Called during player initialization
-     */
-    initFromSourceElements(sourceElements, trackElements) {
-      for (const sourceEl of sourceElements) {
-        const descSrc = sourceEl.getAttribute("data-desc-src");
-        const origSrc = sourceEl.getAttribute("data-orig-src");
-        if (descSrc || origSrc) {
-          if (!this.sourceElement) {
-            this.sourceElement = sourceEl;
-          }
-          if (origSrc) {
-            if (!this.originalSource) {
-              this.originalSource = origSrc;
-            }
-            if (!this.player.originalSrc) {
-              this.player.originalSrc = origSrc;
-            }
-          } else {
-            const currentSrcAttr = sourceEl.getAttribute("src");
-            if (!this.originalSource && currentSrcAttr) {
-              this.originalSource = currentSrcAttr;
-            }
-            if (!this.player.originalSrc && currentSrcAttr) {
-              this.player.originalSrc = currentSrcAttr;
-            }
-          }
-          if (descSrc && !this.src) {
-            this.src = descSrc;
-          }
-        }
-      }
-      trackElements.forEach((trackEl) => {
-        const trackKind = trackEl.getAttribute("kind");
-        const trackDescSrc = trackEl.getAttribute("data-desc-src");
-        if ((trackKind === "captions" || trackKind === "subtitles" || trackKind === "chapters" || trackKind === "descriptions") && trackDescSrc) {
-          this.captionTracks.push({
-            trackElement: trackEl,
-            originalSrc: trackEl.getAttribute("src"),
-            describedSrc: trackDescSrc,
-            originalTrackSrc: trackEl.getAttribute("data-orig-src") || trackEl.getAttribute("src"),
-            explicit: true
-          });
-          this.player.log("Found explicit described ".concat(trackKind, " track: ").concat(trackEl.getAttribute("src"), " -> ").concat(trackDescSrc));
-        }
-      });
+    return AudioDescriptionManagerModule;
+  }
+  async function loadSignLanguageManager() {
+    if (!SignLanguageManagerModule) {
+      const module = await Promise.resolve().then(() => (init_SignLanguageManager(), SignLanguageManager_exports));
+      SignLanguageManagerModule = module.SignLanguageManager;
     }
-    /**
-     * Check if audio description is available
-     */
-    isAvailable() {
-      const hasSourceElementsWithDesc = this.player.sourceElements.some(
-        (el) => el.getAttribute("data-desc-src")
-      );
-      return !!(this.src || hasSourceElementsWithDesc || this.captionTracks.length > 0);
-    }
-    /**
-     * Enable audio description
-     */
-    async enable() {
-      const hasSourceElementsWithDesc = this.player.sourceElements.some(
-        (el) => el.getAttribute("data-desc-src")
-      );
-      const hasTracksWithDesc = this.captionTracks.length > 0;
-      if (!this.src && !hasSourceElementsWithDesc && !hasTracksWithDesc) {
-        console.warn("VidPly: No audio description source, source elements, or tracks provided");
-        return;
-      }
-      this.desiredState = true;
-      const currentTime = this.player.state.currentTime;
-      const wasPlaying = this.player.state.playing;
-      const posterValue = this.player.element.poster || this.player.element.getAttribute("poster") || this.player.options.poster;
-      const shouldKeepPoster = currentTime < 0.1 && !wasPlaying;
-      const currentCaptionText = this._getCurrentCaptionText();
-      if (this.sourceElement) {
-        await this._enableWithSourceElement(currentTime, wasPlaying, posterValue, shouldKeepPoster, currentCaptionText);
-      } else {
-        await this._enableWithDirectSrc(currentTime, wasPlaying, posterValue, shouldKeepPoster);
-      }
-    }
-    /**
-     * Disable audio description
-     */
-    async disable() {
-      if (!this.player.originalSrc) {
-        return;
-      }
-      this.desiredState = false;
-      const currentTime = this.player.state.currentTime;
-      const wasPlaying = this.player.state.playing;
-      const posterValue = this.player.element.poster || this.player.element.getAttribute("poster") || this.player.options.poster;
-      const shouldKeepPoster = currentTime < 0.1 && !wasPlaying;
-      const currentCaptionText = this._getCurrentCaptionText();
-      if (this.sourceElement) {
-        await this._disableWithSourceElement(currentTime, wasPlaying, posterValue, shouldKeepPoster, currentCaptionText);
-      } else {
-        await this._disableWithDirectSrc(currentTime, wasPlaying, posterValue);
-      }
-    }
-    /**
-     * Toggle audio description
-     */
-    async toggle() {
-      const descriptionTrack = this.player.findTextTrack("descriptions");
-      const hasAudioDescriptionSrc = this.isAvailable();
-      if (descriptionTrack && !hasAudioDescriptionSrc) {
-        if (descriptionTrack.mode === "showing") {
-          descriptionTrack.mode = "hidden";
-          this.enabled = false;
-          this.player.emit("audiodescriptiondisabled");
-        } else {
-          descriptionTrack.mode = "showing";
-          this.enabled = true;
-          this.player.emit("audiodescriptionenabled");
-        }
-      } else if (descriptionTrack && hasAudioDescriptionSrc) {
-        if (this.enabled) {
-          this.desiredState = false;
-          await this.disable();
-        } else {
-          descriptionTrack.mode = "showing";
-          this.desiredState = true;
-          await this.enable();
-        }
-      } else if (hasAudioDescriptionSrc) {
-        if (this.enabled) {
-          this.desiredState = false;
-          await this.disable();
-        } else {
-          this.desiredState = true;
-          await this.enable();
-        }
-      }
-    }
-    /**
-     * Get current caption text for synchronization
-     */
-    _getCurrentCaptionText() {
-      if (this.player.captionManager && this.player.captionManager.currentTrack && this.player.captionManager.currentCue) {
-        return this.player.captionManager.currentCue.text;
-      }
-      return null;
-    }
-    /**
-     * Validate that a track URL exists
-     */
-    async _validateTrackExists(url) {
-      try {
-        const response = await fetch(url, { method: "HEAD" });
-        return response.ok;
-      } catch (e) {
-        return false;
-      }
-    }
-    /**
-     * Swap caption tracks to described versions
-     */
-    async _swapCaptionTracks(toDescribed = true) {
-      if (this.captionTracks.length === 0) return [];
-      const swappedTracks = [];
-      const validationPromises = this.captionTracks.map(async (trackInfo) => {
-        if (trackInfo.trackElement && trackInfo.describedSrc) {
-          if (trackInfo.explicit === true) {
-            try {
-              const exists = await this._validateTrackExists(
-                toDescribed ? trackInfo.describedSrc : trackInfo.originalSrc
-              );
-              return { trackInfo, exists };
-            } catch (e) {
-              return { trackInfo, exists: false };
-            }
-          }
-        }
-        return { trackInfo, exists: false };
-      });
-      const validationResults = await Promise.all(validationPromises);
-      const tracksToSwap = validationResults.filter((result) => result.exists);
-      if (tracksToSwap.length > 0) {
-        const trackModes = /* @__PURE__ */ new Map();
-        tracksToSwap.forEach(({ trackInfo }) => {
-          const textTrack = trackInfo.trackElement.track;
-          if (textTrack) {
-            trackModes.set(trackInfo, {
-              wasShowing: textTrack.mode === "showing",
-              wasHidden: textTrack.mode === "hidden"
-            });
-          } else {
-            trackModes.set(trackInfo, { wasShowing: false, wasHidden: false });
-          }
-        });
-        const tracksToReadd = tracksToSwap.map(({ trackInfo }) => {
-          const attributes = {};
-          Array.from(trackInfo.trackElement.attributes).forEach((attr) => {
-            attributes[attr.name] = attr.value;
-          });
-          const result = {
-            trackInfo,
-            oldSrc: trackInfo.trackElement.getAttribute("src"),
-            parent: trackInfo.trackElement.parentNode,
-            nextSibling: trackInfo.trackElement.nextSibling,
-            attributes
-          };
-          trackInfo.trackElement.remove();
-          return result;
-        });
-        this.player.element.load();
-        await new Promise((resolve) => {
-          setTimeout(() => {
-            tracksToReadd.forEach(({ trackInfo, parent, nextSibling, attributes }) => {
-              swappedTracks.push(trackInfo);
-              const newTrackElement = document.createElement("track");
-              const newSrc = toDescribed ? trackInfo.describedSrc : trackInfo.originalSrc;
-              newTrackElement.setAttribute("src", newSrc);
-              Object.keys(attributes).forEach((attrName) => {
-                if (attrName !== "src" && attrName !== "data-desc-src") {
-                  newTrackElement.setAttribute(attrName, attributes[attrName]);
-                }
-              });
-              const targetParent = parent || this.player.element;
-              if (nextSibling && nextSibling.parentNode) {
-                targetParent.insertBefore(newTrackElement, nextSibling);
-              } else {
-                targetParent.appendChild(newTrackElement);
-              }
-              trackInfo.trackElement = newTrackElement;
-            });
-            this.player.invalidateTrackCache();
-            const setupNewTracks = () => {
-              this.player.setManagedTimeout(() => {
-                swappedTracks.forEach((trackInfo) => {
-                  const newTextTrack = trackInfo.trackElement.track;
-                  if (newTextTrack) {
-                    const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
-                    newTextTrack.mode = "hidden";
-                    const restoreMode = () => {
-                      if (modeInfo.wasShowing || modeInfo.wasHidden) {
-                        newTextTrack.mode = "hidden";
-                      } else {
-                        newTextTrack.mode = "disabled";
-                      }
-                    };
-                    if (newTextTrack.readyState >= 2) {
-                      restoreMode();
-                    } else {
-                      newTextTrack.addEventListener("load", restoreMode, { once: true });
-                      newTextTrack.addEventListener("error", restoreMode, { once: true });
-                    }
-                  }
-                });
-              }, 300);
-            };
-            if (this.player.element.readyState >= 1) {
-              setTimeout(setupNewTracks, 200);
-            } else {
-              this.player.element.addEventListener("loadedmetadata", setupNewTracks, { once: true });
-              setTimeout(setupNewTracks, 2e3);
-            }
-            resolve();
-          }, 100);
-        });
-      }
-      return swappedTracks;
-    }
-    /**
-     * Update source elements to described versions
-     */
-    _updateSourceElements(toDescribed = true) {
-      const sourceElements = this.player.sourceElements;
-      const sourcesToUpdate = [];
-      sourceElements.forEach((sourceEl) => {
-        const descSrcAttr = sourceEl.getAttribute("data-desc-src");
-        const currentSrc = sourceEl.getAttribute("src");
-        if (descSrcAttr) {
-          const type = sourceEl.getAttribute("type");
-          let origSrc = sourceEl.getAttribute("data-orig-src") || currentSrc;
-          sourcesToUpdate.push({
-            src: toDescribed ? descSrcAttr : origSrc,
-            type,
-            origSrc,
-            descSrc: descSrcAttr
-          });
-        } else {
-          sourcesToUpdate.push({
-            src: sourceEl.getAttribute("src"),
-            type: sourceEl.getAttribute("type"),
-            origSrc: null,
-            descSrc: null
-          });
-        }
-      });
-      if (this.player.element.hasAttribute("src")) {
-        this.player.element.removeAttribute("src");
-      }
-      sourceElements.forEach((sourceEl) => sourceEl.remove());
-      sourcesToUpdate.forEach((sourceInfo) => {
-        const newSource = document.createElement("source");
-        newSource.setAttribute("src", sourceInfo.src);
-        if (sourceInfo.type) {
-          newSource.setAttribute("type", sourceInfo.type);
-        }
-        if (sourceInfo.origSrc) {
-          newSource.setAttribute("data-orig-src", sourceInfo.origSrc);
-        }
-        if (sourceInfo.descSrc) {
-          newSource.setAttribute("data-desc-src", sourceInfo.descSrc);
-        }
-        const firstTrack = this.player.element.querySelector("track");
-        if (firstTrack) {
-          this.player.element.insertBefore(newSource, firstTrack);
-        } else {
-          this.player.element.appendChild(newSource);
-        }
-      });
-      this.player._sourceElementsDirty = true;
-      this.player._sourceElementsCache = null;
-    }
-    /**
-     * Wait for media to be ready
-     */
-    async _waitForMediaReady(needSeek = false) {
-      await new Promise((resolve) => {
-        if (this.player.element.readyState >= 1) {
-          resolve();
-        } else {
-          const onLoad = () => {
-            this.player.element.removeEventListener("loadedmetadata", onLoad);
-            resolve();
-          };
-          this.player.element.addEventListener("loadedmetadata", onLoad);
-        }
-      });
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      if (needSeek) {
-        await new Promise((resolve) => {
-          if (this.player.element.readyState >= 3) {
-            resolve();
-          } else {
-            const onCanPlay = () => {
-              this.player.element.removeEventListener("canplay", onCanPlay);
-              this.player.element.removeEventListener("canplaythrough", onCanPlay);
-              resolve();
-            };
-            this.player.element.addEventListener("canplay", onCanPlay, { once: true });
-            this.player.element.addEventListener("canplaythrough", onCanPlay, { once: true });
-            setTimeout(() => {
-              this.player.element.removeEventListener("canplay", onCanPlay);
-              this.player.element.removeEventListener("canplaythrough", onCanPlay);
-              resolve();
-            }, 3e3);
-          }
-        });
-      }
-    }
-    /**
-     * Restore playback state after source change
-     */
-    async _restorePlaybackState(currentTime, wasPlaying, shouldKeepPoster, currentCaptionText) {
-      let syncTime = currentTime;
-      if (currentCaptionText && this.player.captionManager && this.player.captionManager.tracks.length > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        const matchingTime = this.player.findMatchingCaptionTime(
-          currentCaptionText,
-          this.player.captionManager.tracks
-        );
-        if (matchingTime !== null) {
-          syncTime = matchingTime;
-          if (this.player.options.debug) {
-            this.player.log("[VidPly] Syncing via caption: ".concat(currentTime, "s -> ").concat(syncTime, "s"));
-          }
-        }
-      }
-      if (syncTime > 0) {
-        this.player.seek(syncTime);
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-      if (wasPlaying) {
-        await this.player.play();
-        this.player.setManagedTimeout(() => {
-          this.player.hidePosterOverlay();
-        }, 100);
-      } else {
-        this.player.pause();
-        if (!shouldKeepPoster) {
-          this.player.hidePosterOverlay();
-        }
-      }
-    }
-    /**
-     * Enable with source element method
-     */
-    async _enableWithSourceElement(currentTime, wasPlaying, posterValue, shouldKeepPoster, currentCaptionText) {
-      await this._swapCaptionTracks(true);
-      this._updateSourceElements(true);
-      if (posterValue && this.player.element.tagName === "VIDEO") {
-        this.player.element.poster = posterValue;
-      }
-      this.player.element.load();
-      await this._waitForMediaReady(currentTime > 0 || wasPlaying);
-      await this._restorePlaybackState(currentTime, wasPlaying, shouldKeepPoster, currentCaptionText);
-      if (!this.desiredState) return;
-      this.enabled = true;
-      this.player.state.audioDescriptionEnabled = true;
-      this.player.emit("audiodescriptionenabled");
-      this._reloadTranscript();
-    }
-    /**
-     * Enable with direct src method
-     */
-    async _enableWithDirectSrc(currentTime, wasPlaying, posterValue, shouldKeepPoster) {
-      await this._swapCaptionTracks(true);
-      if (posterValue && this.player.element.tagName === "VIDEO") {
-        this.player.element.poster = posterValue;
-      }
-      this.player.element.src = this.src;
-      await this._waitForMediaReady(currentTime > 0 || wasPlaying);
-      if (currentTime > 0) {
-        this.player.seek(currentTime);
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-      if (wasPlaying) {
-        await this.player.play();
-      } else {
-        this.player.pause();
-        if (!shouldKeepPoster) {
-          this.player.hidePosterOverlay();
-        }
-      }
-      if (!this.desiredState) return;
-      this.enabled = true;
-      this.player.state.audioDescriptionEnabled = true;
-      this.player.emit("audiodescriptionenabled");
-      this._reloadTranscript();
-    }
-    /**
-     * Disable with source element method
-     */
-    async _disableWithSourceElement(currentTime, wasPlaying, posterValue, shouldKeepPoster, currentCaptionText) {
-      await this._swapCaptionTracks(false);
-      this._updateSourceElements(false);
-      if (posterValue && this.player.element.tagName === "VIDEO") {
-        this.player.element.poster = posterValue;
-      }
-      this.player.element.load();
-      this.player.invalidateTrackCache();
-      await this._waitForMediaReady(currentTime > 0 || wasPlaying);
-      await this._restorePlaybackState(currentTime, wasPlaying, shouldKeepPoster, currentCaptionText);
-      if (this.player.captionManager) {
-        this.player.captionManager.destroy();
-        this.player.captionManager = new CaptionManager(this.player);
-      }
-      if (this.desiredState) return;
-      this.enabled = false;
-      this.player.state.audioDescriptionEnabled = false;
-      this.player.emit("audiodescriptiondisabled");
-      this._reloadTranscript();
-    }
-    /**
-     * Disable with direct src method
-     */
-    async _disableWithDirectSrc(currentTime, wasPlaying, posterValue) {
-      await this._swapCaptionTracks(false);
-      if (posterValue && this.player.element.tagName === "VIDEO") {
-        this.player.element.poster = posterValue;
-      }
-      const originalSrcToUse = this.originalSource || this.player.originalSrc;
-      this.player.element.src = originalSrcToUse;
-      this.player.element.load();
-      await this._waitForMediaReady(currentTime > 0 || wasPlaying);
-      if (currentTime > 0) {
-        this.player.seek(currentTime);
-      }
-      if (wasPlaying) {
-        await this.player.play();
-      }
-      if (this.desiredState) return;
-      this.enabled = false;
-      this.player.state.audioDescriptionEnabled = false;
-      this.player.emit("audiodescriptiondisabled");
-      this._reloadTranscript();
-    }
-    /**
-     * Reload transcript after audio description state change
-     */
-    _reloadTranscript() {
-      if (this.player.transcriptManager && this.player.transcriptManager.isVisible) {
-        this.player.setManagedTimeout(() => {
-          if (this.player.transcriptManager && this.player.transcriptManager.loadTranscriptData) {
-            this.player.transcriptManager.loadTranscriptData();
-          }
-        }, 800);
-      }
-    }
-    /**
-     * Update sources (called when playlist changes)
-     */
-    updateSources(audioDescriptionSrc) {
-      this.src = audioDescriptionSrc || null;
-      this.enabled = false;
-      this.desiredState = false;
-      this.sourceElement = null;
-      this.originalSource = null;
-      this.captionTracks = [];
-    }
-    /**
-     * Reinitialize from current player elements (called after playlist loads new tracks)
-     */
-    reinitialize() {
-      this.player.invalidateTrackCache();
-      this.initFromSourceElements(this.player.sourceElements, this.player.trackElements);
-    }
-    /**
-     * Cleanup
-     */
-    destroy() {
-      this.enabled = false;
-      this.desiredState = false;
-      this.captionTracks = [];
-      this.sourceElement = null;
-      this.originalSource = null;
-    }
-  };
-
-  // src/core/SignLanguageManager.js
-  init_DOMUtils();
-  init_Icons();
-  init_i18n();
-  init_DraggableResizable();
-  init_MenuUtils();
-  init_FormUtils();
-  var SignLanguageManager = class {
-    constructor(player) {
-      this.player = player;
-      this.src = player.options.signLanguageSrc;
-      this.sources = player.options.signLanguageSources || {};
-      this.currentLanguage = null;
-      this.desiredPosition = player.options.signLanguagePosition || "bottom-right";
-      this.wrapper = null;
-      this.header = null;
-      this.video = null;
-      this.selector = null;
-      this.settingsButton = null;
-      this.settingsMenu = null;
-      this.resizeHandles = [];
-      this.enabled = false;
-      this.inMainView = false;
-      this.mainViewOriginalSrc = null;
-      this.mainViewOriginalSources = null;
-      this._mainViewUsingSourceSwap = false;
-      this._mainViewMutedBefore = false;
-      this.settingsMenuVisible = false;
-      this.settingsMenuJustOpened = false;
-      this.documentClickHandlerAdded = false;
-      this.handlers = null;
-      this.settingsHandlers = null;
-      this.interactionHandlers = null;
-      this.draggable = null;
-      this.documentClickHandler = null;
-      this.settingsMenuKeyHandler = null;
-      this.customKeyHandler = null;
-      this.dragOptionButton = null;
-      this.dragOptionText = null;
-      this.resizeOptionButton = null;
-      this.resizeOptionText = null;
-    }
-    /**
-     * Check if sign language is available
-     */
-    isAvailable() {
-      return Object.keys(this.sources).length > 0 || !!this.src;
-    }
-    /**
-     * Enable sign language video
-     */
-    enable() {
-      const hasMultipleSources = Object.keys(this.sources).length > 0;
-      const hasSingleSource = !!this.src;
-      if (!hasMultipleSources && !hasSingleSource) {
-        console.warn("No sign language video source provided");
-        return;
-      }
-      if (this.wrapper) {
-        this.wrapper.style.display = "block";
-        this.enabled = true;
-        this.player.state.signLanguageEnabled = true;
-        this.player.emit("signlanguageenabled");
-        this.player.setManagedTimeout(() => {
-          if (this.settingsButton && document.contains(this.settingsButton)) {
-            this.settingsButton.focus({ preventScroll: true });
-          }
-        }, 150);
-        return;
-      }
-      let initialLang = null;
-      let initialSrc = null;
-      if (hasMultipleSources) {
-        initialLang = this._determineInitialLanguage();
-        initialSrc = this.sources[initialLang];
-        this.currentLanguage = initialLang;
-      } else {
-        initialSrc = this.src;
-      }
-      this._createWrapper();
-      this._createHeader(hasMultipleSources, initialLang);
-      this._createVideo(initialSrc);
-      this._createResizeHandles();
-      this.wrapper.appendChild(this.header);
-      this.wrapper.appendChild(this.video);
-      this.resizeHandles.forEach((handle) => this.wrapper.appendChild(handle));
-      this._applyInitialSize();
-      this.player.container.appendChild(this.wrapper);
-      requestAnimationFrame(() => {
-        this.constrainPosition();
-      });
-      this.video.currentTime = this.player.state.currentTime;
-      if (!this.player.state.paused) {
-        this.video.play();
-      }
-      this._setupInteraction();
-      this._setupEventHandlers(hasMultipleSources);
-      this.enabled = true;
-      this.player.state.signLanguageEnabled = true;
-      this.player.emit("signlanguageenabled");
-      this.player.setManagedTimeout(() => {
-        if (this.settingsButton && document.contains(this.settingsButton)) {
-          this.settingsButton.focus({ preventScroll: true });
-        }
-      }, 150);
-    }
-    /**
-     * Disable sign language video
-     */
-    disable() {
-      if (this.settingsMenuVisible) {
-        this.hideSettingsMenu({ focusButton: false });
-      }
-      if (this.wrapper) {
-        this.wrapper.style.display = "none";
-      }
-      this.enabled = false;
-      this.player.state.signLanguageEnabled = false;
-      this.player.emit("signlanguagedisabled");
-    }
-    /**
-     * Toggle sign language video
-     */
-    toggle() {
-      if (this.enabled) {
-        this.disable();
-      } else {
-        this.enable();
-      }
-    }
-    /**
-     * Enable sign language in main view: replace main video src with sign language URL (like audio description).
-     * Same video element, different URL; no overlay.
-     */
-    async enableInMainView() {
-      const hasMultipleSources = Object.keys(this.sources).length > 0;
-      const hasSingleSource = !!this.src;
-      if (!hasMultipleSources && !hasSingleSource) return;
-      if (!this.player.element || this.player.element.tagName !== "VIDEO") return;
-      if (this.inMainView) return;
-      let signSrc;
-      if (hasMultipleSources) {
-        const initialLang = this._determineInitialLanguage();
-        this.currentLanguage = initialLang;
-        signSrc = this.sources[initialLang];
-      } else {
-        signSrc = this.src;
-      }
-      const el = this.player.element;
-      const currentTime = this.player.state.currentTime;
-      const wasPlaying = this.player.state.playing;
-      const posterValue = el.poster || el.getAttribute("poster") || this.player.options.poster;
-      const shouldKeepPoster = currentTime < 0.1 && !wasPlaying;
-      const sourceElements = Array.from(el.querySelectorAll("source"));
-      const firstSource = sourceElements[0];
-      this.mainViewOriginalSrc = el.currentSrc && el.currentSrc.length > 0 ? el.currentSrc : el.src && el.src.length > 0 ? el.src : firstSource && firstSource.getAttribute("src") ? firstSource.getAttribute("src") : "";
-      this._mainViewMutedBefore = this.player.state.muted;
-      if (posterValue && shouldKeepPoster && el.tagName === "VIDEO") {
-        el.poster = posterValue;
-      }
-      if (sourceElements.length > 0) {
-        this.mainViewOriginalSources = sourceElements;
-        this.mainViewOriginalSources.forEach((source) => source.remove());
-        const signSource = document.createElement("source");
-        signSource.setAttribute("src", signSrc);
-        const type = this._inferVideoType(signSrc);
-        if (type) {
-          signSource.setAttribute("type", type);
-        }
-        const trackNode = el.querySelector("track");
-        if (trackNode) {
-          el.insertBefore(signSource, trackNode);
-        } else {
-          el.appendChild(signSource);
-        }
-        this._mainViewUsingSourceSwap = true;
-      } else {
-        el.src = signSrc;
-        this._mainViewUsingSourceSwap = false;
-      }
-      el.muted = true;
-      this.player.currentSource = signSrc;
-      if (typeof this.player.invalidateTrackCache === "function") {
-        this.player.invalidateTrackCache();
-      }
-      el.load();
-      await this._waitForMediaReadyMainView(currentTime > 0 || wasPlaying);
-      if (currentTime > 0) {
-        this.player.seek(currentTime);
-        await new Promise((r) => setTimeout(r, 100));
-      }
-      if (wasPlaying) {
-        await this.player.play();
-      } else {
-        this.player.pause();
-        if (!shouldKeepPoster && this.player.hidePosterOverlay) {
-          this.player.hidePosterOverlay();
-        }
-      }
-      this.inMainView = true;
-      this.player.state.signLanguageInMainView = true;
-      if (this.player.videoWrapper) {
-        this.player.videoWrapper.classList.add("vidply-sign-language-main-view-active");
-      }
-      this.player.emit("signlanguageinmainviewenabled");
-    }
-    /**
-     * Disable sign language in main view: restore main video src.
-     */
-    async disableInMainView() {
-      var _a, _b;
-      if (!this.inMainView) return;
-      if (!this.mainViewOriginalSrc && !this.mainViewOriginalSources) {
-        this.inMainView = false;
-        this.player.state.signLanguageInMainView = false;
-        if (this.player.videoWrapper) {
-          this.player.videoWrapper.classList.remove("vidply-sign-language-main-view-active");
-        }
-        this.player.emit("signlanguageinmainviewdisabled");
-        return;
-      }
-      const el = this.player.element;
-      const currentTime = this.player.state.currentTime;
-      const wasPlaying = this.player.state.playing;
-      const posterValue = el.poster || el.getAttribute("poster") || this.player.options.poster;
-      if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
-        Array.from(el.querySelectorAll("source")).forEach((source) => source.remove());
-        const trackNode = el.querySelector("track");
-        this.mainViewOriginalSources.forEach((source) => {
-          if (trackNode) {
-            el.insertBefore(source, trackNode);
-          } else {
-            el.appendChild(source);
-          }
-        });
-        this._mainViewUsingSourceSwap = false;
-      } else if (this.mainViewOriginalSrc) {
-        el.src = this.mainViewOriginalSrc;
-      }
-      el.muted = this._mainViewMutedBefore;
-      this.player.currentSource = this.mainViewOriginalSrc || el.querySelector("source") && el.querySelector("source").src || "";
-      if (typeof this.player.invalidateTrackCache === "function") {
-        this.player.invalidateTrackCache();
-      }
-      el.load();
-      await this._waitForMediaReadyMainView(currentTime > 0 || wasPlaying);
-      if (currentTime > 0) {
-        this.player.seek(currentTime);
-      }
-      if (wasPlaying) {
-        try {
-          await this.player.play();
-        } catch (e) {
-          (_b = (_a = this.player).log) == null ? void 0 : _b.call(_a, "Sign language main view: play after restore failed", e, "warn");
-        }
-      }
-      this.mainViewOriginalSrc = null;
-      this.mainViewOriginalSources = null;
-      this.inMainView = false;
-      this.player.state.signLanguageInMainView = false;
-      if (this.player.videoWrapper) {
-        this.player.videoWrapper.classList.remove("vidply-sign-language-main-view-active");
-      }
-      this.player.emit("signlanguageinmainviewdisabled");
-    }
-    /**
-     * Wait for media ready (like AudioDescriptionManager).
-     */
-    async _waitForMediaReadyMainView(needSeek = false) {
-      const el = this.player.element;
-      const loadedMetaPromise = new Promise((resolve) => {
-        if (el.readyState >= 1) {
-          resolve();
-          return;
-        }
-        const onLoad = () => {
-          el.removeEventListener("loadedmetadata", onLoad);
-          el.removeEventListener("error", onError);
-          resolve();
-        };
-        const onError = () => {
-          el.removeEventListener("loadedmetadata", onLoad);
-          el.removeEventListener("error", onError);
-          resolve();
-        };
-        el.addEventListener("loadedmetadata", onLoad);
-        el.addEventListener("error", onError, { once: true });
-      });
-      const timeoutPromise = new Promise((r) => setTimeout(r, 1e4));
-      await Promise.race([loadedMetaPromise, timeoutPromise]);
-      await new Promise((r) => setTimeout(r, 300));
-      if (needSeek) {
-        await new Promise((resolve) => {
-          if (el.readyState >= 3) resolve();
-          else {
-            const onCanPlay = () => {
-              el.removeEventListener("canplay", onCanPlay);
-              el.removeEventListener("canplaythrough", onCanPlay);
-              resolve();
-            };
-            el.addEventListener("canplay", onCanPlay, { once: true });
-            el.addEventListener("canplaythrough", onCanPlay, { once: true });
-            setTimeout(() => {
-              el.removeEventListener("canplay", onCanPlay);
-              el.removeEventListener("canplaythrough", onCanPlay);
-              resolve();
-            }, 3e3);
-          }
-        });
-      }
-    }
-    /**
-     * Toggle sign language in main view (src swap, like audio description).
-     */
-    toggleInMainView() {
-      if (this.inMainView) {
-        this.disableInMainView();
-      } else {
-        this.enableInMainView();
-      }
-    }
-    /**
-     * Switch to a different sign language
-     */
-    switchLanguage(langCode) {
-      if (!this.sources[langCode]) return;
-      this.currentLanguage = langCode;
-      if (this.video) {
-        const currentTime = this.video.currentTime;
-        const wasPlaying = !this.video.paused;
-        this.video.src = this.sources[langCode];
-        this.video.currentTime = currentTime;
-        if (wasPlaying) {
-          this.video.play().catch(() => {
-          });
-        }
-      }
-      if (this.inMainView && this.player.element && this.player.element.tagName === "VIDEO") {
-        const currentTime = this.player.state.currentTime;
-        const wasPlaying = this.player.state.playing;
-        if (this._mainViewUsingSourceSwap) {
-          const signSource = this.player.element.querySelector("source");
-          if (signSource) {
-            signSource.setAttribute("src", this.sources[langCode]);
-            const type = this._inferVideoType(this.sources[langCode]);
-            if (type) {
-              signSource.setAttribute("type", type);
-            }
-          }
-        } else {
-          this.player.element.src = this.sources[langCode];
-        }
-        this.player.currentSource = this.sources[langCode];
-        if (typeof this.player.invalidateTrackCache === "function") {
-          this.player.invalidateTrackCache();
-        }
-        this.player.element.load();
-        this._waitForMediaReadyMainView(true).then(() => {
-          if (currentTime > 0) this.player.seek(currentTime);
-          if (wasPlaying) this.player.play();
-        });
-      }
-      this.player.emit("signlanguagelanguagechanged", langCode);
-    }
-    _inferVideoType(url) {
-      if (!url) return "";
-      const cleanUrl = url.split("?")[0].toLowerCase();
-      if (cleanUrl.endsWith(".mp4")) return "video/mp4";
-      if (cleanUrl.endsWith(".webm")) return "video/webm";
-      if (cleanUrl.endsWith(".ogv") || cleanUrl.endsWith(".ogg")) return "video/ogg";
-      return "";
-    }
-    /**
-     * Get language label
-     */
-    getLanguageLabel(langCode) {
-      const langNames = {
-        "en": "English",
-        "de": "Deutsch",
-        "es": "Español",
-        "fr": "Français",
-        "it": "Italiano",
-        "ja": "日本語",
-        "pt": "Português",
-        "ar": "العربية",
-        "hi": "हिन्दी"
-      };
-      return langNames[langCode] || langCode.toUpperCase();
-    }
-    /**
-     * Determine initial sign language
-     */
-    _determineInitialLanguage() {
-      var _a;
-      if (this.player.captionManager && this.player.captionManager.currentTrack) {
-        const captionLang = (_a = this.player.captionManager.currentTrack.language) == null ? void 0 : _a.toLowerCase().split("-")[0];
-        if (captionLang && this.sources[captionLang]) {
-          return captionLang;
-        }
-      }
-      if (this.player.options.language) {
-        const playerLang = this.player.options.language.toLowerCase().split("-")[0];
-        if (this.sources[playerLang]) {
-          return playerLang;
-        }
-      }
-      return Object.keys(this.sources)[0];
-    }
-    /**
-     * Create wrapper element
-     */
-    _createWrapper() {
-      this.wrapper = document.createElement("div");
-      this.wrapper.className = "vidply-sign-language-wrapper";
-      this.wrapper.setAttribute("tabindex", "0");
-      this.wrapper.setAttribute("aria-label", i18n.t("player.signLanguageDragResize"));
-    }
-    /**
-     * Create header element
-     */
-    _createHeader(hasMultipleSources, initialLang) {
-      const classPrefix = this.player.options.classPrefix;
-      this.header = DOMUtils.createElement("div", {
-        className: "".concat(classPrefix, "-sign-language-header"),
-        attributes: { "tabindex": "0" }
-      });
-      const headerLeft = DOMUtils.createElement("div", {
-        className: "".concat(classPrefix, "-sign-language-header-left")
-      });
-      const title = DOMUtils.createElement("h3", {
-        textContent: i18n.t("player.signLanguageVideo")
-      });
-      this._createSettingsButton(headerLeft);
-      if (hasMultipleSources) {
-        this._createLanguageSelector(headerLeft, initialLang);
-      }
-      headerLeft.appendChild(title);
-      const closeButton = this._createCloseButton();
-      this.header.appendChild(headerLeft);
-      this.header.appendChild(closeButton);
-      this.settingsMenuVisible = false;
-      this.settingsMenu = null;
-      this.settingsMenuJustOpened = false;
-    }
-    /**
-     * Create settings button
-     */
-    _createSettingsButton(container) {
-      const classPrefix = this.player.options.classPrefix;
-      const ariaLabel = i18n.t("player.signLanguageSettings");
-      this.settingsButton = DOMUtils.createElement("button", {
-        className: "".concat(classPrefix, "-sign-language-settings"),
-        attributes: {
-          "type": "button",
-          "aria-label": ariaLabel,
-          "aria-expanded": "false"
-        }
-      });
-      this.settingsButton.appendChild(createIconElement("settings"));
-      DOMUtils.attachTooltip(this.settingsButton, ariaLabel, classPrefix);
-      this.settingsHandlers = {
-        click: (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (this.documentClickHandler) {
-            this.settingsMenuJustOpened = true;
-            setTimeout(() => {
-              this.settingsMenuJustOpened = false;
-            }, 100);
-          }
-          if (this.settingsMenuVisible) {
-            this.hideSettingsMenu();
-          } else {
-            this.showSettingsMenu();
-          }
-        },
-        keydown: (e) => {
-          if (e.key === "d" || e.key === "D") {
-            e.preventDefault();
-            e.stopPropagation();
-            this.toggleKeyboardDragMode();
-          } else if (e.key === "r" || e.key === "R") {
-            e.preventDefault();
-            e.stopPropagation();
-            this.toggleResizeMode();
-          } else if (e.key === "Escape" && this.settingsMenuVisible) {
-            e.preventDefault();
-            e.stopPropagation();
-            this.hideSettingsMenu();
-          }
-        }
-      };
-      this.settingsButton.addEventListener("click", this.settingsHandlers.click);
-      this.settingsButton.addEventListener("keydown", this.settingsHandlers.keydown);
-      container.appendChild(this.settingsButton);
-    }
-    /**
-     * Create language selector
-     */
-    _createLanguageSelector(container, initialLang) {
-      const classPrefix = this.player.options.classPrefix;
-      const selectId = "".concat(classPrefix, "-sign-language-select-").concat(Date.now());
-      const options = Object.keys(this.sources).map((langCode) => ({
-        value: langCode,
-        text: this.getLanguageLabel(langCode),
-        selected: langCode === initialLang
-      }));
-      const { label, select } = createLabeledSelect({
-        classPrefix,
-        labelClass: "".concat(classPrefix, "-sign-language-label"),
-        selectClass: "".concat(classPrefix, "-sign-language-select"),
-        labelText: "settings.language",
-        selectId,
-        options,
-        onChange: (e) => {
-          e.stopPropagation();
-          this.switchLanguage(e.target.value);
-        }
-      });
-      this.selector = select;
-      const selectorWrapper = DOMUtils.createElement("div", {
-        className: "".concat(classPrefix, "-sign-language-selector-wrapper")
-      });
-      selectorWrapper.appendChild(label);
-      selectorWrapper.appendChild(this.selector);
-      preventDragOnElement(selectorWrapper);
-      container.appendChild(selectorWrapper);
-    }
-    /**
-     * Create close button
-     */
-    _createCloseButton() {
-      const classPrefix = this.player.options.classPrefix;
-      const ariaLabel = i18n.t("player.closeSignLanguage");
-      const closeButton = DOMUtils.createElement("button", {
-        className: "".concat(classPrefix, "-sign-language-close"),
-        attributes: {
-          "type": "button",
-          "aria-label": ariaLabel
-        }
-      });
-      closeButton.appendChild(createIconElement("close"));
-      DOMUtils.attachTooltip(closeButton, ariaLabel, classPrefix);
-      closeButton.addEventListener("click", () => {
-        var _a, _b;
-        this.disable();
-        if ((_b = (_a = this.player.controlBar) == null ? void 0 : _a.controls) == null ? void 0 : _b.signLanguage) {
-          setTimeout(() => {
-            this.player.controlBar.controls.signLanguage.focus({ preventScroll: true });
-          }, 0);
-        }
-      });
-      return closeButton;
-    }
-    /**
-     * Create video element
-     */
-    _createVideo(src) {
-      this.video = document.createElement("video");
-      this.video.className = "vidply-sign-language-video";
-      this.video.src = src;
-      this.video.setAttribute("aria-label", i18n.t("player.signLanguage"));
-      this.video.muted = true;
-      this.video.setAttribute("playsinline", "");
-    }
-    /**
-     * Create resize handles
-     */
-    _createResizeHandles() {
-      const classPrefix = this.player.options.classPrefix;
-      this.resizeHandles = ["n", "s", "e", "w", "ne", "nw", "se", "sw"].map((dir) => {
-        const handle = DOMUtils.createElement("div", {
-          className: "".concat(classPrefix, "-sign-resize-handle ").concat(classPrefix, "-sign-resize-").concat(dir),
-          attributes: {
-            "data-direction": dir,
-            "data-vidply-managed-resize": "true",
-            "aria-hidden": "true"
-          }
-        });
-        handle.style.display = "none";
-        return handle;
-      });
-    }
-    /**
-     * Apply initial size
-     */
-    _applyInitialSize() {
-      var _a;
-      const saved = this.player.storage.getSignLanguagePreferences();
-      if ((_a = saved == null ? void 0 : saved.size) == null ? void 0 : _a.width) {
-        this.wrapper.style.width = saved.size.width;
-      } else {
-        this.wrapper.style.width = "280px";
-      }
-      this.wrapper.style.height = "auto";
-    }
-    /**
-     * Setup interaction (drag and resize)
-     */
-    _setupInteraction() {
-      var _a, _b;
-      const isMobile2 = window.innerWidth < 768;
-      const isFullscreen = this.player.state.fullscreen;
-      if (isMobile2 && !isFullscreen && ((_b = (_a = this.player) == null ? void 0 : _a.options) == null ? void 0 : _b.signLanguageDragOnMobile) === false) {
-        if (this.draggable) {
-          this.draggable.destroy();
-          this.draggable = null;
-        }
-        return;
-      }
-      if (this.draggable) return;
-      const classPrefix = this.player.options.classPrefix;
-      this.draggable = new DraggableResizable(this.wrapper, {
-        // Allow dragging from anywhere on the sign-language window (better for touch).
-        // We still block dragging when interacting with controls via `onDragStart` below.
-        dragHandle: this.wrapper,
-        resizeHandles: this.resizeHandles,
-        constrainToViewport: true,
-        maintainAspectRatio: true,
-        minWidth: 150,
-        minHeight: 100,
-        classPrefix: "".concat(classPrefix, "-sign"),
-        keyboardDragKey: "d",
-        keyboardResizeKey: "r",
-        keyboardStep: 10,
-        keyboardStepLarge: 50,
-        pointerResizeIndicatorText: i18n.t("player.signLanguageResizeActive"),
-        onPointerResizeToggle: (enabled) => {
-          this.resizeHandles.forEach((handle) => {
-            handle.style.display = enabled ? "block" : "none";
-          });
-        },
-        onDragStart: (e) => {
-          if (e.target.closest(".".concat(classPrefix, "-sign-language-close")) || e.target.closest(".".concat(classPrefix, "-sign-language-settings")) || e.target.closest(".".concat(classPrefix, "-sign-language-select")) || e.target.closest(".".concat(classPrefix, "-sign-language-label")) || e.target.closest(".".concat(classPrefix, "-sign-language-settings-menu"))) {
-            return false;
-          }
-          return true;
-        }
-      });
-      this._setupCustomKeyHandler();
-      this.interactionHandlers = {
-        draggable: this.draggable,
-        customKeyHandler: this.customKeyHandler
-      };
-    }
-    /**
-     * Setup custom keyboard handler
-     */
-    _setupCustomKeyHandler() {
-      this.customKeyHandler = (e) => {
-        var _a, _b, _c, _d;
-        const key = e.key.toLowerCase();
-        if (this.settingsMenuVisible) return;
-        if (key === "home") {
-          e.preventDefault();
-          e.stopPropagation();
-          if (this.draggable) {
-            if (this.draggable.pointerResizeMode) {
-              this.draggable.disablePointerResizeMode();
-            }
-            this.draggable.manuallyPositioned = false;
-            this.constrainPosition();
-          }
-          return;
-        }
-        if (key === "r") {
-          e.preventDefault();
-          e.stopPropagation();
-          if (this.toggleResizeMode()) {
-            this.wrapper.focus({ preventScroll: true });
-          }
-          return;
-        }
-        if (key === "escape") {
-          e.preventDefault();
-          e.stopPropagation();
-          if ((_a = this.draggable) == null ? void 0 : _a.pointerResizeMode) {
-            this.draggable.disablePointerResizeMode();
-            return;
-          }
-          if ((_b = this.draggable) == null ? void 0 : _b.keyboardDragMode) {
-            this.draggable.disableKeyboardDragMode();
-            return;
-          }
-          this.disable();
-          if ((_d = (_c = this.player.controlBar) == null ? void 0 : _c.controls) == null ? void 0 : _d.signLanguage) {
-            setTimeout(() => {
-              this.player.controlBar.controls.signLanguage.focus({ preventScroll: true });
-            }, 0);
-          }
-        }
-      };
-      this.wrapper.addEventListener("keydown", this.customKeyHandler);
-    }
-    /**
-     * Setup event handlers
-     */
-    _setupEventHandlers(hasMultipleSources) {
-      this.handlers = {
-        play: () => {
-          if (this.video) this.video.play();
-        },
-        pause: () => {
-          if (this.video) this.video.pause();
-        },
-        timeupdate: () => {
-          if (this.video && Math.abs(this.video.currentTime - this.player.state.currentTime) > 0.5) {
-            this.video.currentTime = this.player.state.currentTime;
-          }
-        },
-        ratechange: () => {
-          if (this.video) this.video.playbackRate = this.player.state.playbackSpeed;
-        }
-      };
-      this.player.on("play", this.handlers.play);
-      this.player.on("pause", this.handlers.pause);
-      this.player.on("timeupdate", this.handlers.timeupdate);
-      this.player.on("ratechange", this.handlers.ratechange);
-      if (hasMultipleSources) {
-        this.handlers.captionChange = () => {
-          var _a, _b;
-          if (((_a = this.player.captionManager) == null ? void 0 : _a.currentTrack) && this.selector) {
-            const captionLang = (_b = this.player.captionManager.currentTrack.language) == null ? void 0 : _b.toLowerCase().split("-")[0];
-            if (captionLang && this.sources[captionLang] && this.currentLanguage !== captionLang) {
-              this.switchLanguage(captionLang);
-              this.selector.value = captionLang;
-            }
-          }
-        };
-        this.player.on("captionsenabled", this.handlers.captionChange);
-      }
-    }
-    /**
-     * Constrain position within video wrapper
-     */
-    constrainPosition() {
-      var _a;
-      if (!this.wrapper || !this.player.videoWrapper) return;
-      if ((_a = this.draggable) == null ? void 0 : _a.manuallyPositioned) return;
-      if (!this.wrapper.style.width) {
-        this.wrapper.style.width = "280px";
-      }
-      const videoWrapperRect = this.player.videoWrapper.getBoundingClientRect();
-      const containerRect = this.player.container.getBoundingClientRect();
-      const wrapperRect = this.wrapper.getBoundingClientRect();
-      const videoWrapperLeft = videoWrapperRect.left - containerRect.left;
-      const videoWrapperTop = videoWrapperRect.top - containerRect.top;
-      const videoWrapperWidth = videoWrapperRect.width;
-      const videoWrapperHeight = videoWrapperRect.height;
-      let wrapperWidth = wrapperRect.width || 280;
-      let wrapperHeight = wrapperRect.height || 280 * 9 / 16;
-      let left, top;
-      const margin = 16;
-      const controlsHeight = 95;
-      const position = this.desiredPosition || "bottom-right";
-      switch (position) {
-        case "bottom-right":
-          left = videoWrapperLeft + videoWrapperWidth - wrapperWidth - margin;
-          top = videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight;
-          break;
-        case "bottom-left":
-          left = videoWrapperLeft + margin;
-          top = videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight;
-          break;
-        case "top-right":
-          left = videoWrapperLeft + videoWrapperWidth - wrapperWidth - margin;
-          top = videoWrapperTop + margin;
-          break;
-        case "top-left":
-          left = videoWrapperLeft + margin;
-          top = videoWrapperTop + margin;
-          break;
-        default:
-          left = videoWrapperLeft + videoWrapperWidth - wrapperWidth - margin;
-          top = videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight;
-      }
-      left = Math.max(videoWrapperLeft, Math.min(left, videoWrapperLeft + videoWrapperWidth - wrapperWidth));
-      top = Math.max(videoWrapperTop, Math.min(top, videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight));
-      this.wrapper.style.left = "".concat(left, "px");
-      this.wrapper.style.top = "".concat(top, "px");
-      this.wrapper.style.right = "auto";
-      this.wrapper.style.bottom = "auto";
-    }
-    /**
-     * Show settings menu
-     */
-    showSettingsMenu() {
-      var _a;
-      this.settingsMenuJustOpened = true;
-      setTimeout(() => {
-        this.settingsMenuJustOpened = false;
-      }, 350);
-      this._addDocumentClickHandler();
-      if (this.settingsMenu) {
-        this.settingsMenu.style.display = "block";
-        this.settingsMenuVisible = true;
-        (_a = this.settingsButton) == null ? void 0 : _a.setAttribute("aria-expanded", "true");
-        this._attachMenuKeyboardNavigation();
-        this._positionSettingsMenu();
-        this._updateDragOptionState();
-        this._updateResizeOptionState();
-        focusFirstMenuItem(this.settingsMenu, ".".concat(this.player.options.classPrefix, "-sign-language-settings-item"));
-        return;
-      }
-      this._createSettingsMenu();
-    }
-    /**
-     * Hide settings menu
-     */
-    hideSettingsMenu({ focusButton = true } = {}) {
-      if (this.settingsMenu) {
-        this.settingsMenu.style.display = "none";
-        this.settingsMenuVisible = false;
-        this.settingsMenuJustOpened = false;
-        if (this.settingsMenuKeyHandler) {
-          this.settingsMenu.removeEventListener("keydown", this.settingsMenuKeyHandler);
-          this.settingsMenuKeyHandler = null;
-        }
-        const classPrefix = this.player.options.classPrefix;
-        const menuItems = Array.from(this.settingsMenu.querySelectorAll(".".concat(classPrefix, "-sign-language-settings-item")));
-        menuItems.forEach((item) => item.setAttribute("tabindex", "-1"));
-        if (this.settingsButton) {
-          this.settingsButton.setAttribute("aria-expanded", "false");
-          if (focusButton) {
-            this.settingsButton.focus({ preventScroll: true });
-          }
-        }
-      }
-    }
-    /**
-     * Add document click handler
-     */
-    _addDocumentClickHandler() {
-      if (this.documentClickHandlerAdded) return;
-      this.documentClickHandler = (e) => {
-        if (this.settingsMenuJustOpened) return;
-        if (this.settingsButton && (this.settingsButton === e.target || this.settingsButton.contains(e.target))) {
-          return;
-        }
-        if (this.settingsMenu && this.settingsMenu.contains(e.target)) {
-          return;
-        }
-        if (this.settingsMenuVisible) {
-          this.hideSettingsMenu();
-        }
-      };
-      setTimeout(() => {
-        document.addEventListener("mousedown", this.documentClickHandler, true);
-        this.documentClickHandlerAdded = true;
-      }, 300);
-    }
-    /**
-     * Create settings menu
-     */
-    _createSettingsMenu() {
-      var _a, _b;
-      const classPrefix = this.player.options.classPrefix;
-      this.settingsMenu = DOMUtils.createElement("div", {
-        className: "".concat(classPrefix, "-sign-language-settings-menu"),
-        attributes: { "role": "menu" }
-      });
-      const dragOption = createMenuItem({
-        classPrefix,
-        itemClass: "".concat(classPrefix, "-sign-language-settings-item"),
-        icon: "move",
-        label: "player.enableSignDragMode",
-        hasTextClass: true,
-        onClick: () => {
-          var _a2;
-          this.toggleKeyboardDragMode();
-          this.hideSettingsMenu({ focusButton: false });
-          if ((_a2 = this.draggable) == null ? void 0 : _a2.keyboardDragMode) {
-            setTimeout(() => {
-              var _a3, _b2;
-              (_b2 = (_a3 = this.wrapper) == null ? void 0 : _a3.focus) == null ? void 0 : _b2.call(_a3, { preventScroll: true });
-            }, 20);
-          }
-        }
-      });
-      dragOption.setAttribute("data-setting", "keyboard-drag");
-      dragOption.setAttribute("role", "switch");
-      dragOption.setAttribute("aria-checked", "false");
-      this._removeTooltipFromMenuItem(dragOption);
-      this.dragOptionButton = dragOption;
-      this.dragOptionText = dragOption.querySelector(".".concat(classPrefix, "-settings-text"));
-      this._updateDragOptionState();
-      const resizeOption = createMenuItem({
-        classPrefix,
-        itemClass: "".concat(classPrefix, "-sign-language-settings-item"),
-        icon: "resize",
-        label: "player.enableSignResizeMode",
-        hasTextClass: true,
-        onClick: (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          const enabled = this.toggleResizeMode({ focus: false });
-          if (enabled) {
-            this.hideSettingsMenu({ focusButton: false });
-            setTimeout(() => {
-              if (this.wrapper) this.wrapper.focus({ preventScroll: true });
-            }, 20);
-          } else {
-            this.hideSettingsMenu({ focusButton: true });
-          }
-        }
-      });
-      resizeOption.setAttribute("role", "switch");
-      resizeOption.setAttribute("aria-checked", "false");
-      this._removeTooltipFromMenuItem(resizeOption);
-      this.resizeOptionButton = resizeOption;
-      this.resizeOptionText = resizeOption.querySelector(".".concat(classPrefix, "-settings-text"));
-      this._updateResizeOptionState();
-      const closeOption = createMenuItem({
-        classPrefix,
-        itemClass: "".concat(classPrefix, "-sign-language-settings-item"),
-        icon: "close",
-        label: "transcript.closeMenu",
-        onClick: () => this.hideSettingsMenu()
-      });
-      this._removeTooltipFromMenuItem(closeOption);
-      this.settingsMenu.appendChild(dragOption);
-      this.settingsMenu.appendChild(resizeOption);
-      this.settingsMenu.appendChild(closeOption);
-      this.settingsMenu.style.visibility = "hidden";
-      this.settingsMenu.style.display = "block";
-      if ((_a = this.settingsButton) == null ? void 0 : _a.parentNode) {
-        this.settingsButton.insertAdjacentElement("afterend", this.settingsMenu);
-      } else if (this.wrapper) {
-        this.wrapper.appendChild(this.settingsMenu);
-      }
-      this._positionSettingsMenuImmediate();
-      requestAnimationFrame(() => {
-        if (this.settingsMenu) {
-          this.settingsMenu.style.visibility = "visible";
-        }
-      });
-      this._attachMenuKeyboardNavigation();
-      this.settingsMenuVisible = true;
-      (_b = this.settingsButton) == null ? void 0 : _b.setAttribute("aria-expanded", "true");
-      this._updateDragOptionState();
-      this._updateResizeOptionState();
-      focusFirstMenuItem(this.settingsMenu, ".".concat(classPrefix, "-sign-language-settings-item"));
-    }
-    /**
-     * Remove tooltip from menu item
-     */
-    _removeTooltipFromMenuItem(item) {
-      const classPrefix = this.player.options.classPrefix;
-      const tooltip = item.querySelector(".".concat(classPrefix, "-tooltip"));
-      if (tooltip) tooltip.remove();
-      const buttonText = item.querySelector(".".concat(classPrefix, "-button-text"));
-      if (buttonText) buttonText.remove();
-    }
-    /**
-     * Attach menu keyboard navigation
-     */
-    _attachMenuKeyboardNavigation() {
-      if (this.settingsMenuKeyHandler) {
-        this.settingsMenu.removeEventListener("keydown", this.settingsMenuKeyHandler);
-      }
-      this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
-        this.settingsMenu,
-        this.settingsButton,
-        ".".concat(this.player.options.classPrefix, "-sign-language-settings-item"),
-        () => this.hideSettingsMenu({ focusButton: true })
-      );
-    }
-    /**
-     * Position settings menu immediately
-     */
-    _positionSettingsMenuImmediate() {
-      if (!this.settingsMenu || !this.settingsButton) return;
-      const buttonRect = this.settingsButton.getBoundingClientRect();
-      const menuRect = this.settingsMenu.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const parentContainer = this.settingsButton.parentElement;
-      if (!parentContainer) return;
-      const parentRect = parentContainer.getBoundingClientRect();
-      const buttonCenterX = buttonRect.left + buttonRect.width / 2 - parentRect.left;
-      const buttonBottom = buttonRect.bottom - parentRect.top;
-      const buttonTop = buttonRect.top - parentRect.top;
-      const spaceAbove = buttonRect.top;
-      const spaceBelow = viewportHeight - buttonRect.bottom;
-      let menuTop = buttonBottom + 8;
-      let menuBottom = null;
-      if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
-        menuTop = null;
-        const parentHeight = parentRect.bottom - parentRect.top;
-        menuBottom = parentHeight - buttonTop + 8;
-        this.settingsMenu.classList.add("vidply-menu-above");
-      } else {
-        this.settingsMenu.classList.remove("vidply-menu-above");
-      }
-      let menuLeft = buttonCenterX - menuRect.width / 2;
-      let menuRight = "auto";
-      let transformX = "translateX(0)";
-      const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
-      if (menuLeftAbsolute < 10) {
-        menuLeft = 0;
-      } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
-        menuLeft = "auto";
-        menuRight = 0;
-      } else {
-        menuLeft = buttonCenterX;
-        transformX = "translateX(-50%)";
-      }
-      if (menuTop !== null) {
-        this.settingsMenu.style.top = "".concat(menuTop, "px");
-        this.settingsMenu.style.bottom = "auto";
-      } else if (menuBottom !== null) {
-        this.settingsMenu.style.top = "auto";
-        this.settingsMenu.style.bottom = "".concat(menuBottom, "px");
-      }
-      if (menuLeft !== "auto") {
-        this.settingsMenu.style.left = "".concat(menuLeft, "px");
-        this.settingsMenu.style.right = "auto";
-      } else {
-        this.settingsMenu.style.left = "auto";
-        this.settingsMenu.style.right = "".concat(menuRight, "px");
-      }
-      this.settingsMenu.style.transform = transformX;
-    }
-    /**
-     * Position settings menu with RAF
-     */
-    _positionSettingsMenu() {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          this._positionSettingsMenuImmediate();
-        }, 10);
-      });
-    }
-    /**
-     * Toggle keyboard drag mode
-     */
-    toggleKeyboardDragMode() {
-      if (this.draggable) {
-        const wasEnabled = this.draggable.keyboardDragMode;
-        this.draggable.toggleKeyboardDragMode();
-        const isEnabled = this.draggable.keyboardDragMode;
-        if (!wasEnabled && isEnabled) {
-          this._enableMoveMode();
-        }
-        this._updateDragOptionState();
-      }
-    }
-    /**
-     * Enable move mode visual feedback
-     */
-    _enableMoveMode() {
-      this.wrapper.classList.add("".concat(this.player.options.classPrefix, "-sign-move-mode"));
-      this._updateResizeOptionState();
-      setTimeout(() => {
-        this.wrapper.classList.remove("".concat(this.player.options.classPrefix, "-sign-move-mode"));
-      }, 2e3);
-    }
-    /**
-     * Toggle resize mode
-     */
-    toggleResizeMode({ focus = true } = {}) {
-      if (!this.draggable) return false;
-      if (this.draggable.pointerResizeMode) {
-        this.draggable.disablePointerResizeMode({ focus });
-        this._updateResizeOptionState();
-        return false;
-      }
-      this.draggable.enablePointerResizeMode({ focus });
-      this._updateResizeOptionState();
-      return true;
-    }
-    /**
-     * Update drag option state
-     */
-    _updateDragOptionState() {
-      var _a;
-      if (!this.dragOptionButton) return;
-      const isEnabled = !!((_a = this.draggable) == null ? void 0 : _a.keyboardDragMode);
-      const text = isEnabled ? i18n.t("player.disableSignDragMode") : i18n.t("player.enableSignDragMode");
-      const ariaLabel = isEnabled ? i18n.t("player.disableSignDragModeAria") : i18n.t("player.enableSignDragModeAria");
-      this.dragOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
-      this.dragOptionButton.setAttribute("aria-label", ariaLabel);
-      if (this.dragOptionText) {
-        this.dragOptionText.textContent = text;
-      }
-    }
-    /**
-     * Update resize option state
-     */
-    _updateResizeOptionState() {
-      var _a;
-      if (!this.resizeOptionButton) return;
-      const isEnabled = !!((_a = this.draggable) == null ? void 0 : _a.pointerResizeMode);
-      const text = isEnabled ? i18n.t("player.disableSignResizeMode") : i18n.t("player.enableSignResizeMode");
-      const ariaLabel = isEnabled ? i18n.t("player.disableSignResizeModeAria") : i18n.t("player.enableSignResizeModeAria");
-      this.resizeOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
-      this.resizeOptionButton.setAttribute("aria-label", ariaLabel);
-      if (this.resizeOptionText) {
-        this.resizeOptionText.textContent = text;
-      }
-    }
-    /**
-     * Save preferences
-     */
-    savePreferences() {
-      if (!this.wrapper) return;
-      this.player.storage.saveSignLanguagePreferences({
-        size: { width: this.wrapper.style.width }
-      });
-    }
-    /**
-     * Update sources (called when playlist changes)
-     */
-    updateSources(signLanguageSrc, signLanguageSources) {
-      this.src = signLanguageSrc || null;
-      this.sources = signLanguageSources || {};
-      this.currentLanguage = null;
-    }
-    /**
-     * Cleanup
-     */
-    cleanup() {
-      var _a;
-      if (this.inMainView && this.player.element) {
-        const el = this.player.element;
-        if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
-          Array.from(el.querySelectorAll("source")).forEach((source) => source.remove());
-          const trackNode = el.querySelector("track");
-          this.mainViewOriginalSources.forEach((source) => {
-            if (trackNode) {
-              el.insertBefore(source, trackNode);
-            } else {
-              el.appendChild(source);
-            }
-          });
-          this._mainViewUsingSourceSwap = false;
-        } else if (this.mainViewOriginalSrc) {
-          el.src = this.mainViewOriginalSrc;
-        }
-        el.muted = this._mainViewMutedBefore;
-        if (typeof this.player.invalidateTrackCache === "function") {
-          this.player.invalidateTrackCache();
-        }
-        el.load();
-        this.mainViewOriginalSrc = null;
-        this.mainViewOriginalSources = null;
-        this.inMainView = false;
-        this.player.state.signLanguageInMainView = false;
-        if (this.player.videoWrapper) {
-          this.player.videoWrapper.classList.remove("vidply-sign-language-main-view-active");
-        }
-        this.player.emit("signlanguageinmainviewdisabled");
-      }
-      if (this.settingsMenuVisible) {
-        this.hideSettingsMenu({ focusButton: false });
-      }
-      if (this.documentClickHandler && this.documentClickHandlerAdded) {
-        document.removeEventListener("mousedown", this.documentClickHandler, true);
-        this.documentClickHandlerAdded = false;
-        this.documentClickHandler = null;
-      }
-      if (this.settingsHandlers && this.settingsButton) {
-        this.settingsButton.removeEventListener("click", this.settingsHandlers.click);
-        this.settingsButton.removeEventListener("keydown", this.settingsHandlers.keydown);
-      }
-      this.settingsHandlers = null;
-      if (this.handlers) {
-        this.player.off("play", this.handlers.play);
-        this.player.off("pause", this.handlers.pause);
-        this.player.off("timeupdate", this.handlers.timeupdate);
-        this.player.off("ratechange", this.handlers.ratechange);
-        if (this.handlers.captionChange) {
-          this.player.off("captionsenabled", this.handlers.captionChange);
-        }
-        this.handlers = null;
-      }
-      if (this.wrapper && this.customKeyHandler) {
-        this.wrapper.removeEventListener("keydown", this.customKeyHandler);
-      }
-      if (this.draggable) {
-        if (this.draggable.pointerResizeMode) {
-          this.draggable.disablePointerResizeMode();
-        }
-        this.draggable.destroy();
-        this.draggable = null;
-      }
-      this.interactionHandlers = null;
-      if ((_a = this.wrapper) == null ? void 0 : _a.parentNode) {
-        if (this.video) {
-          this.video.pause();
-          this.video.src = "";
-        }
-        this.wrapper.parentNode.removeChild(this.wrapper);
-      }
-      this.wrapper = null;
-      this.video = null;
-      this.settingsButton = null;
-      this.settingsMenu = null;
-    }
-    /**
-     * Destroy
-     */
-    destroy() {
-      this.cleanup();
-      this.enabled = false;
-    }
-  };
-
-  // src/core/Player.js
+    return SignLanguageManagerModule;
+  }
   var playerInstanceCounter = 0;
-  var Player = class _Player extends EventEmitter {
+  var _Player = class _Player extends EventEmitter {
     constructor(element, options = {}) {
       super();
       this.element = typeof element === "string" ? document.querySelector(element) : element;
@@ -11086,6 +11518,38 @@
         // Languages
         language: "en",
         languages: ["en"],
+        // Resume Playback
+        resumePlayback: true,
+        // Enable saving and resuming playback position
+        resumeThreshold: 10,
+        // Don't resume if < threshold seconds watched
+        resumePrompt: true,
+        // Show prompt to resume (false = auto-resume silently)
+        // Thumbnail Preview
+        thumbnailPreview: true,
+        // Enable/disable thumbnail preview on seek bar
+        thumbnailCacheSize: 50,
+        // Max cached thumbnails (default increased from 20)
+        thumbnailPregenerate: true,
+        // Pre-generate thumbnails during idle time
+        thumbnailInterval: 10,
+        // Pre-generation interval in seconds
+        thumbnailWidth: 160,
+        // Thumbnail width
+        thumbnailHeight: 90,
+        // Thumbnail height
+        thumbnailQuality: 0.8,
+        // Thumbnail JPEG quality
+        // Lazy Loading (primarily used by index.js auto-init)
+        lazyInit: true,
+        // Enable lazy initialization via IntersectionObserver
+        lazyMargin: "200px",
+        // Root margin for IntersectionObserver
+        // Theming
+        theme: "dark",
+        // Theme: 'dark', 'light', 'minimal', 'high-contrast'
+        themeVariables: {},
+        // Custom CSS variable overrides (e.g., { 'primary': '#ff0000' })
         // Advanced
         debug: false,
         classPrefix: "vidply",
@@ -11131,8 +11595,12 @@
         controlsVisible: true,
         audioDescriptionEnabled: false,
         signLanguageEnabled: false,
-        signLanguageInMainView: false
+        signLanguageInMainView: false,
+        resumePromptVisible: false
       };
+      this.resumePromptElement = null;
+      this._saveProgressThrottled = null;
+      this._resumeChecked = false;
       this.originalSrc = null;
       this.audioDescriptionSrc = this.options.audioDescriptionSrc;
       this.signLanguageSrc = this.options.signLanguageSrc;
@@ -11158,55 +11626,80 @@
       this.settingsDialog = null;
       this.metadataCueChangeHandler = null;
       this.metadataAlertHandlers = /* @__PURE__ */ new Map();
-      this.audioDescriptionManager = new AudioDescriptionManager(this);
-      this.signLanguageManager = new SignLanguageManager(this);
+      this.audioDescriptionManager = null;
+      this.signLanguageManager = null;
+      this._managersLoading = null;
       Object.defineProperties(this, {
         signLanguageWrapper: {
-          get: () => this.signLanguageManager.wrapper,
+          get: () => {
+            var _a;
+            return (_a = this.signLanguageManager) == null ? void 0 : _a.wrapper;
+          },
           set: (v) => {
-            this.signLanguageManager.wrapper = v;
+            if (this.signLanguageManager) this.signLanguageManager.wrapper = v;
           }
         },
         signLanguageVideo: {
-          get: () => this.signLanguageManager.video,
+          get: () => {
+            var _a;
+            return (_a = this.signLanguageManager) == null ? void 0 : _a.video;
+          },
           set: (v) => {
-            this.signLanguageManager.video = v;
+            if (this.signLanguageManager) this.signLanguageManager.video = v;
           }
         },
         signLanguageHeader: {
-          get: () => this.signLanguageManager.header,
+          get: () => {
+            var _a;
+            return (_a = this.signLanguageManager) == null ? void 0 : _a.header;
+          },
           set: (v) => {
-            this.signLanguageManager.header = v;
+            if (this.signLanguageManager) this.signLanguageManager.header = v;
           }
         },
         signLanguageSettingsButton: {
-          get: () => this.signLanguageManager.settingsButton,
+          get: () => {
+            var _a;
+            return (_a = this.signLanguageManager) == null ? void 0 : _a.settingsButton;
+          },
           set: (v) => {
-            this.signLanguageManager.settingsButton = v;
+            if (this.signLanguageManager) this.signLanguageManager.settingsButton = v;
           }
         },
         signLanguageSettingsMenu: {
-          get: () => this.signLanguageManager.settingsMenu,
+          get: () => {
+            var _a;
+            return (_a = this.signLanguageManager) == null ? void 0 : _a.settingsMenu;
+          },
           set: (v) => {
-            this.signLanguageManager.settingsMenu = v;
+            if (this.signLanguageManager) this.signLanguageManager.settingsMenu = v;
           }
         },
         signLanguageSettingsMenuVisible: {
-          get: () => this.signLanguageManager.settingsMenuVisible,
+          get: () => {
+            var _a;
+            return (_a = this.signLanguageManager) == null ? void 0 : _a.settingsMenuVisible;
+          },
           set: (v) => {
-            this.signLanguageManager.settingsMenuVisible = v;
+            if (this.signLanguageManager) this.signLanguageManager.settingsMenuVisible = v;
           }
         },
         signLanguageDraggable: {
-          get: () => this.signLanguageManager.draggable,
+          get: () => {
+            var _a;
+            return (_a = this.signLanguageManager) == null ? void 0 : _a.draggable;
+          },
           set: (v) => {
-            this.signLanguageManager.draggable = v;
+            if (this.signLanguageManager) this.signLanguageManager.draggable = v;
           }
         },
         currentSignLanguage: {
-          get: () => this.signLanguageManager.currentLanguage,
+          get: () => {
+            var _a;
+            return (_a = this.signLanguageManager) == null ? void 0 : _a.currentLanguage;
+          },
           set: (v) => {
-            this.signLanguageManager.currentLanguage = v;
+            if (this.signLanguageManager) this.signLanguageManager.currentLanguage = v;
           }
         }
       });
@@ -11296,6 +11789,7 @@
         } else {
           this.log("No initial source - waiting for playlist or manual load");
         }
+        await this.initFeatureManagers();
         if (this.options.controls) {
           this.controlBar = new ControlBar(this);
           this.videoWrapper.appendChild(this.controlBar.element);
@@ -11326,7 +11820,11 @@
             this.renderer.setVolume(this.options.volume);
           }
         });
+        if (this.options.resumePlayback) {
+          this.initResumePlayback();
+        }
         this.state.ready = true;
+        this._originalElement.classList.add("vidply-initialized");
         this.emit("ready");
         if (this.options.onReady) {
           this.options.onReady.call(this);
@@ -11370,6 +11868,59 @@
       }
     }
     /**
+     * Ensure the audio description manager is available, creating it on demand.
+     * This keeps initial load fast when audio description is not needed.
+     */
+    async ensureAudioDescriptionManager() {
+      if (this.audioDescriptionManager) {
+        return this.audioDescriptionManager;
+      }
+      const hasAudioDescSrc = this.options.audioDescriptionSrc || this.audioDescriptionSrc;
+      const hasAudioDescButton = this.options.audioDescriptionButton;
+      if (!hasAudioDescSrc && !hasAudioDescButton) {
+        return null;
+      }
+      const AudioDescManager = await loadAudioDescriptionManager();
+      this.audioDescriptionManager = new AudioDescManager(this);
+      return this.audioDescriptionManager;
+    }
+    /**
+     * Ensure the sign language manager is available, creating it on demand.
+     * This keeps initial load fast when sign language is not needed.
+     */
+    async ensureSignLanguageManager() {
+      if (this.signLanguageManager) {
+        return this.signLanguageManager;
+      }
+      const hasSignLangSrc = this.options.signLanguageSrc || this.signLanguageSrc;
+      const hasSignLangSources = this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0;
+      const hasSignLangButton = this.options.signLanguageButton;
+      if (!hasSignLangSrc && !hasSignLangSources && !hasSignLangButton) {
+        return null;
+      }
+      const SignLangManager = await loadSignLanguageManager();
+      this.signLanguageManager = new SignLangManager(this);
+      return this.signLanguageManager;
+    }
+    /**
+     * Initialize feature managers if needed (called during init)
+     */
+    async initFeatureManagers() {
+      const promises = [];
+      const hasSourceElementsWithDesc = this.sourceElements.some(
+        (el) => el.getAttribute("data-desc-src") || el.getAttribute("data-orig-src")
+      );
+      if (this.options.audioDescriptionButton || this.options.audioDescriptionSrc || this.audioDescriptionSrc || hasSourceElementsWithDesc) {
+        promises.push(this.ensureAudioDescriptionManager());
+      }
+      if (this.options.signLanguageButton || this.options.signLanguageSrc || this.signLanguageSrc || this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0) {
+        promises.push(this.ensureSignLanguageManager());
+      }
+      if (promises.length > 0) {
+        await Promise.all(promises);
+      }
+    }
+    /**
      * Detect language from HTML lang attribute
      * @returns {string|null} Language code if available in translations or as built-in, null otherwise
      */
@@ -11387,6 +11938,279 @@
       }
       this.log('Language "'.concat(htmlLang, '" not available, using English as fallback'));
       return null;
+    }
+    // ============================================
+    // Resume Playback Methods
+    // ============================================
+    /**
+     * Initialize resume playback functionality
+     */
+    initResumePlayback() {
+      this._saveProgressThrottled = throttle(() => this.saveProgress(), 5e3);
+      this.on("timeupdate", () => {
+        if (this.state.playing && this.state.duration > 0) {
+          this._saveProgressThrottled();
+        }
+      });
+      this.on("loadedmetadata", () => {
+        if (!this._resumeChecked) {
+          this._resumeChecked = true;
+          this.checkForResume();
+        }
+      });
+      this.on("ended", () => {
+        const videoId = this.getVideoId();
+        if (videoId) {
+          this.storage.clearWatchProgress(videoId);
+        }
+      });
+    }
+    /**
+     * Get a unique identifier for the current video
+     * Uses data-video-id attribute if available, otherwise hashes the source URL
+     * @returns {string|null} Video ID or null if not available
+     */
+    getVideoId() {
+      var _a, _b, _c;
+      const explicitId = this.element.getAttribute("data-video-id") || this.element.dataset.videoId || ((_a = this._originalElement) == null ? void 0 : _a.getAttribute("data-video-id")) || ((_c = (_b = this._originalElement) == null ? void 0 : _b.dataset) == null ? void 0 : _c.videoId);
+      if (explicitId) {
+        return explicitId;
+      }
+      let src = this.element.src;
+      if (!src) {
+        const sourceEl = this.element.querySelector("source");
+        src = sourceEl == null ? void 0 : sourceEl.src;
+      }
+      if (!src) {
+        return null;
+      }
+      return this._hashString(src);
+    }
+    /**
+     * Simple string hash function
+     * @param {string} str - String to hash
+     * @returns {string} Hash string
+     */
+    _hashString(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash;
+      }
+      return "v_" + Math.abs(hash).toString(36);
+    }
+    /**
+     * Save current playback progress
+     */
+    saveProgress() {
+      if (!this.options.resumePlayback) return;
+      const videoId = this.getVideoId();
+      if (!videoId) return;
+      const currentTime = this.state.currentTime;
+      const duration = this.state.duration;
+      if (duration < 30 || currentTime < this.options.resumeThreshold) {
+        return;
+      }
+      const percentage = currentTime / duration * 100;
+      if (percentage > 95) {
+        return;
+      }
+      this.storage.saveWatchProgress(videoId, currentTime, duration);
+    }
+    /**
+     * Check if there's saved progress and potentially show resume prompt
+     */
+    checkForResume() {
+      if (!this.options.resumePlayback) return;
+      const videoId = this.getVideoId();
+      if (!videoId) return;
+      const progress = this.storage.getWatchProgress(videoId);
+      if (!progress) return;
+      const { currentTime, duration, percentage } = progress;
+      if (currentTime < this.options.resumeThreshold || percentage > 95) {
+        this.storage.clearWatchProgress(videoId);
+        return;
+      }
+      if (this.state.duration > 0 && Math.abs(this.state.duration - duration) > 5) {
+        this.storage.clearWatchProgress(videoId);
+        return;
+      }
+      if (this.options.resumePrompt) {
+        this.showResumePrompt(currentTime);
+      } else {
+        this.seek(currentTime);
+      }
+    }
+    /**
+     * Format time for display (mm:ss or hh:mm:ss)
+     * @param {number} seconds - Time in seconds
+     * @returns {string} Formatted time string
+     */
+    _formatResumeTime(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor(seconds % 3600 / 60);
+      const s = Math.floor(seconds % 60);
+      if (h > 0) {
+        return "".concat(h, ":").concat(m.toString().padStart(2, "0"), ":").concat(s.toString().padStart(2, "0"));
+      }
+      return "".concat(m, ":").concat(s.toString().padStart(2, "0"));
+    }
+    /**
+     * Show the resume prompt overlay
+     * @param {number} savedTime - Time to resume from
+     */
+    showResumePrompt(savedTime) {
+      if (this.state.resumePromptVisible || !this.container) return;
+      const formattedTime = this._formatResumeTime(savedTime);
+      const promptText = i18n.t("resume.prompt", { time: formattedTime });
+      this.resumePromptElement = DOMUtils.createElement("div", {
+        className: "".concat(this.options.classPrefix, "-resume-prompt"),
+        attributes: {
+          "role": "dialog",
+          "aria-label": promptText,
+          "aria-modal": "true"
+        }
+      });
+      const promptContent = DOMUtils.createElement("div", {
+        className: "".concat(this.options.classPrefix, "-resume-prompt-content")
+      });
+      const promptMessage = DOMUtils.createElement("p", {
+        className: "".concat(this.options.classPrefix, "-resume-prompt-message"),
+        textContent: promptText
+      });
+      const buttonContainer = DOMUtils.createElement("div", {
+        className: "".concat(this.options.classPrefix, "-resume-prompt-buttons")
+      });
+      const resumeButton = DOMUtils.createElement("button", {
+        className: "".concat(this.options.classPrefix, "-resume-prompt-button ").concat(this.options.classPrefix, "-resume-prompt-button-primary"),
+        textContent: i18n.t("resume.resume"),
+        attributes: {
+          "type": "button"
+        }
+      });
+      resumeButton.addEventListener("click", () => {
+        this.hideResumePrompt();
+        this.seek(savedTime);
+        this.play();
+      });
+      const startOverButton = DOMUtils.createElement("button", {
+        className: "".concat(this.options.classPrefix, "-resume-prompt-button"),
+        textContent: i18n.t("resume.startOver"),
+        attributes: {
+          "type": "button"
+        }
+      });
+      startOverButton.addEventListener("click", () => {
+        this.hideResumePrompt();
+        const videoId = this.getVideoId();
+        if (videoId) {
+          this.storage.clearWatchProgress(videoId);
+        }
+        this.seek(0);
+        this.play();
+      });
+      const handleKeydown = (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          this.hideResumePrompt();
+        }
+      };
+      this.resumePromptElement.addEventListener("keydown", handleKeydown);
+      buttonContainer.appendChild(resumeButton);
+      buttonContainer.appendChild(startOverButton);
+      promptContent.appendChild(promptMessage);
+      promptContent.appendChild(buttonContainer);
+      this.resumePromptElement.appendChild(promptContent);
+      this.container.appendChild(this.resumePromptElement);
+      this.state.resumePromptVisible = true;
+      requestAnimationFrame(() => {
+        resumeButton.focus();
+      });
+      this.emit("resumepromptshow", { savedTime });
+    }
+    /**
+     * Hide the resume prompt overlay
+     */
+    hideResumePrompt() {
+      if (!this.resumePromptElement) return;
+      this.resumePromptElement.remove();
+      this.resumePromptElement = null;
+      this.state.resumePromptVisible = false;
+      this.emit("resumeprompthide");
+    }
+    /**
+     * Apply the current theme to the player container
+     */
+    applyTheme() {
+      if (!this.container) return;
+      const themeClasses = _Player.THEMES.map(
+        (t) => "".concat(this.options.classPrefix, "-theme-").concat(t)
+      );
+      this.container.classList.remove(...themeClasses);
+      const theme = this.options.theme;
+      if (theme && _Player.THEMES.includes(theme)) {
+        this.container.classList.add("".concat(this.options.classPrefix, "-theme-").concat(theme));
+      }
+      if (this.options.themeVariables && typeof this.options.themeVariables === "object") {
+        Object.entries(this.options.themeVariables).forEach(([key, value]) => {
+          const cssVar = key.startsWith("--vidply-") ? key : "--vidply-".concat(key);
+          this.container.style.setProperty(cssVar, value);
+        });
+      }
+    }
+    /**
+     * Set the player theme at runtime
+     * @param {string} themeName - Theme name: 'dark', 'light', 'minimal', 'high-contrast'
+     * @param {Object} customVariables - Optional CSS variable overrides
+     */
+    setTheme(themeName, customVariables = {}) {
+      const previousTheme = this.options.theme;
+      this.options.theme = themeName;
+      if (customVariables && Object.keys(customVariables).length > 0) {
+        this.options.themeVariables = __spreadValues(__spreadValues({}, this.options.themeVariables), customVariables);
+      }
+      this.applyTheme();
+      this.emit("themechange", {
+        theme: themeName,
+        previousTheme,
+        customVariables: this.options.themeVariables
+      });
+    }
+    /**
+     * Get the current theme name
+     * @returns {string} Current theme name
+     */
+    getTheme() {
+      return this.options.theme;
+    }
+    /**
+     * Set a single CSS variable override
+     * @param {string} variableName - Variable name (with or without --vidply- prefix)
+     * @param {string} value - CSS value
+     */
+    setThemeVariable(variableName, value) {
+      if (!this.container) return;
+      const cssVar = variableName.startsWith("--vidply-") ? variableName : "--vidply-".concat(variableName);
+      this.container.style.setProperty(cssVar, value);
+      this.options.themeVariables = this.options.themeVariables || {};
+      this.options.themeVariables[variableName] = value;
+    }
+    /**
+     * Reset theme to default (dark) and clear custom variables
+     */
+    resetTheme() {
+      if (this.container && this.options.themeVariables) {
+        Object.keys(this.options.themeVariables).forEach((key) => {
+          const cssVar = key.startsWith("--vidply-") ? key : "--vidply-".concat(key);
+          this.container.style.removeProperty(cssVar);
+        });
+      }
+      this.options.theme = "dark";
+      this.options.themeVariables = {};
+      this.applyTheme();
+      this.emit("themechange", { theme: "dark", previousTheme: this.options.theme });
     }
     createContainer() {
       const playerLabel = this.instanceId > 1 ? "".concat(i18n.t("player.label"), " ").concat(this.instanceId) : i18n.t("player.label");
@@ -11463,6 +12287,7 @@
           this.hidePosterOverlay();
         }
       }, { once: true });
+      this.applyTheme();
     }
     createPlayButtonOverlay() {
       this.playButtonOverlay = createPlayOverlay();
@@ -11513,14 +12338,14 @@
       this.playButtonOverlay.style.top = "".concat(videoCenter, "px");
     }
     async initializeRenderer() {
-      var _a;
+      var _a, _b;
       let src = this._pendingSource || this.element.src || ((_a = this.element.querySelector("source")) == null ? void 0 : _a.src);
       if (!src) {
         throw new Error("No media source found");
       }
       this.currentSource = src;
       this._pendingSource = null;
-      this.audioDescriptionManager.initFromSourceElements(this.sourceElements, this.trackElements);
+      (_b = this.audioDescriptionManager) == null ? void 0 : _b.initFromSourceElements(this.sourceElements, this.trackElements);
       if (!this.originalSrc) {
         this.originalSrc = src;
       }
@@ -12341,7 +13166,8 @@
     }
     // Audio Description (delegated to AudioDescriptionManager)
     async enableAudioDescription() {
-      return this.audioDescriptionManager.enable();
+      const manager = await this.ensureAudioDescriptionManager();
+      return manager == null ? void 0 : manager.enable();
     }
     // Legacy method body preserved for reference - can be removed after testing
     async _legacyEnableAudioDescription() {
@@ -12797,7 +13623,7 @@
           }
           this.element.load();
           this.invalidateTrackCache();
-        } else {
+        } else if (this.audioDescriptionSrc) {
           if (posterValue && this.element.tagName === "VIDEO") {
             this.element.poster = posterValue;
           }
@@ -13077,7 +13903,8 @@
       this.emit("audiodescriptionenabled");
     }
     async disableAudioDescription() {
-      return this.audioDescriptionManager.disable();
+      const manager = await this.ensureAudioDescriptionManager();
+      return manager == null ? void 0 : manager.disable();
     }
     // Legacy method body preserved for reference - can be removed after testing
     async _legacyDisableAudioDescription() {
@@ -13360,18 +14187,21 @@
         this.showNotice(i18n.t("player.startPlaybackForAudioDescription"));
         return;
       }
+      const manager = await this.ensureAudioDescriptionManager();
+      if (!manager) return;
       if (!this.renderer && this.playlistManager && ((_c = this.playlistManager.tracks) == null ? void 0 : _c.length)) {
-        this.audioDescriptionManager.desiredState = !this.audioDescriptionManager.desiredState;
-        this.state.audioDescriptionEnabled = this.audioDescriptionManager.desiredState;
-        this.emit(this.audioDescriptionManager.desiredState ? "audiodescriptionenabled" : "audiodescriptiondisabled");
+        manager.desiredState = !manager.desiredState;
+        this.state.audioDescriptionEnabled = manager.desiredState;
+        this.emit(manager.desiredState ? "audiodescriptionenabled" : "audiodescriptiondisabled");
         this.play();
         return;
       }
-      return this.audioDescriptionManager.toggle();
+      return manager.toggle();
     }
     // Sign Language (delegated to SignLanguageManager)
-    enableSignLanguage() {
-      return this.signLanguageManager.enable();
+    async enableSignLanguage() {
+      const manager = await this.ensureSignLanguageManager();
+      return manager == null ? void 0 : manager.enable();
     }
     // Legacy method body preserved for reference - can be removed after testing
     _legacyEnableSignLanguage() {
@@ -13626,27 +14456,31 @@
         }
       }, 150);
     }
-    disableSignLanguage() {
-      return this.signLanguageManager.disable();
+    async disableSignLanguage() {
+      const manager = await this.ensureSignLanguageManager();
+      return manager == null ? void 0 : manager.disable();
     }
-    toggleSignLanguage() {
+    async toggleSignLanguage() {
       var _a, _b, _c;
       if (this.options.requirePlaybackForAccessibilityToggles && !this.renderer && ((_b = (_a = this.playlistManager) == null ? void 0 : _a.tracks) == null ? void 0 : _b.length)) {
         this.showNotice(i18n.t("player.startPlaybackForSignLanguage"));
         return;
       }
+      const manager = await this.ensureSignLanguageManager();
+      if (!manager) return;
       if (!this.renderer && this.playlistManager && ((_c = this.playlistManager.tracks) == null ? void 0 : _c.length)) {
-        const wasEnabled = this.signLanguageManager.enabled;
-        const result = this.signLanguageManager.toggle();
-        if (!wasEnabled && this.signLanguageManager.enabled) {
+        const wasEnabled = manager.enabled;
+        const result = manager.toggle();
+        if (!wasEnabled && manager.enabled) {
           this.play();
         }
         return result;
       }
-      return this.signLanguageManager.toggle();
+      return manager.toggle();
     }
     setupSignLanguageInteraction() {
-      return this.signLanguageManager._setupInteraction();
+      var _a;
+      return (_a = this.signLanguageManager) == null ? void 0 : _a._setupInteraction();
     }
     // Legacy method preserved for reference
     _legacySetupSignLanguageInteraction() {
@@ -13787,7 +14621,8 @@
       return langNames[langCode] || langCode.toUpperCase();
     }
     switchSignLanguage(langCode) {
-      return this.signLanguageManager.switchLanguage(langCode);
+      var _a;
+      return (_a = this.signLanguageManager) == null ? void 0 : _a.switchLanguage(langCode);
     }
     // Legacy method preserved for reference
     _legacySwitchSignLanguage(langCode) {
@@ -13806,7 +14641,8 @@
       this.emit("signlanguagelanguagechanged", langCode);
     }
     showSignLanguageSettingsMenu() {
-      return this.signLanguageManager.showSettingsMenu();
+      var _a;
+      return (_a = this.signLanguageManager) == null ? void 0 : _a.showSettingsMenu();
     }
     // Legacy method preserved for reference
     _legacyShowSignLanguageSettingsMenu() {
@@ -13953,7 +14789,8 @@
       focusFirstMenuItem(this.signLanguageSettingsMenu, ".".concat(this.options.classPrefix, "-sign-language-settings-item"));
     }
     hideSignLanguageSettingsMenu({ focusButton = true } = {}) {
-      return this.signLanguageManager.hideSettingsMenu({ focusButton });
+      var _a;
+      return (_a = this.signLanguageManager) == null ? void 0 : _a.hideSettingsMenu({ focusButton });
     }
     positionSignLanguageSettingsMenuImmediate() {
       if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton) return;
@@ -14057,10 +14894,12 @@
       }
     }
     constrainSignLanguagePosition() {
-      return this.signLanguageManager.constrainPosition();
+      var _a;
+      return (_a = this.signLanguageManager) == null ? void 0 : _a.constrainPosition();
     }
     saveSignLanguagePreferences() {
-      return this.signLanguageManager.savePreferences();
+      var _a;
+      return (_a = this.signLanguageManager) == null ? void 0 : _a.savePreferences();
     }
     // Legacy methods preserved for reference - can be removed after testing
     _legacyConstrainSignLanguagePosition() {
@@ -14123,7 +14962,8 @@
       });
     }
     cleanupSignLanguage() {
-      return this.signLanguageManager.cleanup();
+      var _a;
+      return (_a = this.signLanguageManager) == null ? void 0 : _a.cleanup();
     }
     // Settings
     // Settings dialog removed - using individual control buttons instead
@@ -14685,6 +15525,14 @@
       }
     }
   };
+  // ============================================
+  // Theme Methods
+  // ============================================
+  /**
+   * Available theme names
+   */
+  __publicField(_Player, "THEMES", ["dark", "light", "minimal", "high-contrast"]);
+  var Player = _Player;
   Player.instances = [];
 
   // src/features/PlaylistManager.js
@@ -15907,15 +16755,66 @@
   };
 
   // src/index.js
+  var pendingPlayers = /* @__PURE__ */ new Map();
   function initializePlayers() {
     const elements = document.querySelectorAll("[data-vidply]");
     elements.forEach((element) => {
       const options = element.dataset.vidplyOptions ? JSON.parse(element.dataset.vidplyOptions) : {};
       const dataOptions = parseDataAttributes(element.dataset);
       const mergedOptions = __spreadValues(__spreadValues({}, dataOptions), options);
-      new Player(element, mergedOptions);
+      const lazyInit = element.dataset.vidplyLazy !== "false" && mergedOptions.lazyInit !== false;
+      const lazyMargin = element.dataset.vidplyLazyMargin || mergedOptions.lazyMargin || "500px";
+      if (lazyInit && "IntersectionObserver" in window) {
+        observeForLazyInit(element, mergedOptions, lazyMargin);
+      } else {
+        new Player(element, mergedOptions);
+      }
     });
   }
+  function observeForLazyInit(element, options, margin) {
+    const rect = element.getBoundingClientRect();
+    if (rect.height < 20) {
+      new Player(element, options);
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          observer.unobserve(entry.target);
+          pendingPlayers.delete(entry.target);
+          new Player(entry.target, options);
+        }
+      });
+    }, {
+      rootMargin: margin,
+      threshold: 0
+    });
+    observer.observe(element);
+    pendingPlayers.set(element, { observer, options });
+  }
+  function cancelLazyInit(element) {
+    const pending = pendingPlayers.get(element);
+    if (pending) {
+      pending.observer.unobserve(element);
+      pendingPlayers.delete(element);
+    }
+  }
+  Player.observeLazy = function(selector, options = {}, margin = "200px") {
+    const element = typeof selector === "string" ? document.querySelector(selector) : selector;
+    if (!element) {
+      console.warn("VidPly: Element not found for lazy observation");
+      return null;
+    }
+    if ("IntersectionObserver" in window) {
+      observeForLazyInit(element, options, margin);
+      return {
+        cancel: () => cancelLazyInit(element)
+      };
+    } else {
+      new Player(element, options);
+      return null;
+    }
+  };
   function parseDataAttributes(dataset) {
     const options = {};
     const attributeMap = {
@@ -15943,8 +16842,13 @@
       "keyboard": "keyboard",
       "responsive": "responsive",
       "pipButton": "pipButton",
-      "fullscreenButton": "fullscreenButton"
+      "fullscreenButton": "fullscreenButton",
       // Layout
+      // Lazy Loading
+      "lazyInit": "lazyInit",
+      "lazyMargin": "lazyMargin",
+      // Theming
+      "theme": "theme"
     };
     Object.keys(attributeMap).forEach((dataKey) => {
       const optionKey = attributeMap[dataKey];

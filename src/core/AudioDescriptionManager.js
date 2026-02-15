@@ -114,23 +114,40 @@ export class AudioDescriptionManager {
         // Get current caption text for synchronization
         const currentCaptionText = this._getCurrentCaptionText();
 
-        // Switch to audio-described version
+        // Switch to audio-described version based on what's available
         if (this.sourceElement) {
+            // Use source element approach (data-desc-src on <source> elements)
             await this._enableWithSourceElement(currentTime, wasPlaying, posterValue, shouldKeepPoster, currentCaptionText);
-        } else {
+        } else if (this.src) {
+            // Use direct src approach (audioDescriptionSrc option)
             await this._enableWithDirectSrc(currentTime, wasPlaying, posterValue, shouldKeepPoster);
+        } else if (hasTracksWithDesc) {
+            // Only caption tracks with descriptions - swap tracks without changing video source
+            await this._swapCaptionTracks(true);
+            this.enabled = true;
+            this.player.emit('audiodescriptionenabled');
         }
+        // If none of the above, we already returned at the top check
     }
 
     /**
      * Disable audio description
      */
     async disable() {
-        if (!this.player.originalSrc) {
+        this.desiredState = false;
+
+        // If we only had caption tracks (no video source swap), just swap tracks back
+        const hasTracksWithDesc = this.captionTracks.length > 0;
+        if (!this.sourceElement && !this.src && hasTracksWithDesc) {
+            await this._swapCaptionTracks(false);
+            this.enabled = false;
+            this.player.emit('audiodescriptiondisabled');
             return;
         }
 
-        this.desiredState = false;
+        if (!this.player.originalSrc) {
+            return;
+        }
 
         // Store current state
         const currentTime = this.player.state.currentTime;
@@ -145,7 +162,7 @@ export class AudioDescriptionManager {
 
         if (this.sourceElement) {
             await this._disableWithSourceElement(currentTime, wasPlaying, posterValue, shouldKeepPoster, currentCaptionText);
-        } else {
+        } else if (this.src) {
             await this._disableWithDirectSrc(currentTime, wasPlaying, posterValue);
         }
     }
@@ -545,7 +562,7 @@ export class AudioDescriptionManager {
             this.player.element.poster = posterValue;
         }
         
-        // Set src
+        // Set src (this method should only be called when this.src exists)
         this.player.element.src = this.src;
         
         // Wait and restore

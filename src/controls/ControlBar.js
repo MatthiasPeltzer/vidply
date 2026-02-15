@@ -889,19 +889,21 @@ export class ControlBar {
         // 1) Prefer already-loaded TextTracks
         const textTracks = this.player.element.textTracks;
         for (let i = 0; i < textTracks.length; i++) {
-            if (textTracks[i].kind === 'captions' || textTracks[i].kind === 'subtitles') return true;
+            if (textTracks[i].kind === 'captions' || textTracks[i].kind === 'subtitles') {
+                return true;
+            }
         }
 
         // 2) Fallback to DOM <track> elements
         const trackEls = Array.from(this.player.element.querySelectorAll('track'));
-        if (trackEls.some(el => (el.getAttribute('kind') === 'captions' || el.getAttribute('kind') === 'subtitles'))) {
-                return true;
-            }
+        if (trackEls.some(el => el.getAttribute('kind') === 'captions' || el.getAttribute('kind') === 'subtitles')) {
+            return true;
+        }
 
         // 3) Playlist metadata fallback
         const current = this.player.playlistManager?.getCurrentTrack?.();
-        if (current?.tracks && Array.isArray(current.tracks)) {
-            return current.tracks.some(t => t?.kind === 'captions' || t?.kind === 'subtitles');
+        if (current?.tracks?.some(t => t?.kind === 'captions' || t?.kind === 'subtitles')) {
+            return true;
         }
 
         return false;
@@ -1007,8 +1009,9 @@ export class ControlBar {
         this.previewSupported = false;
         this.previewVideoReady = false;
         this.previewVideoInitialized = false;
+        this.previewUsingMainVideo = false; // Flag for HLS mode (uses main video instead of separate element)
 
-        // Check if preview is supported (HTML5 video only)
+        // Check if preview is supported (HTML5 video or HLS stream)
         // Check if element is a video
         const isVideo = this.player.element && this.player.element.tagName === 'VIDEO';
         
@@ -1022,20 +1025,57 @@ export class ControlBar {
 
     /**
      * Lazily create the hidden preview video (only after playback started once)
+     * Supports both HTML5 and HLS renderers
      */
     ensurePreviewVideoInitialized() {
         if (this.previewVideoInitialized) return;
         if (!this.player?.state?.hasStartedPlayback) return;
 
+        // Check if thumbnail preview is disabled via options
+        if (this.player.options.thumbnailPreview === false) {
+            this.previewSupported = false;
+            this.previewVideoInitialized = true;
+            return;
+        }
+
         const renderer = this.player.renderer;
         const hasVideoMedia = renderer && renderer.media && renderer.media.tagName === 'VIDEO';
+        
+        if (!hasVideoMedia) {
+            this.previewSupported = false;
+            this.previewVideoInitialized = true;
+            return;
+        }
+
+        // Check if this is an HLS stream (hls.js handles seeking internally)
+        const isHLSRenderer = renderer.hls && typeof renderer.hls.loadLevel !== 'undefined';
         const isHTML5Renderer = hasVideoMedia &&
             renderer.media === this.player.element &&
-            !renderer.hls &&
+            !isHLSRenderer &&
             typeof renderer.seek === 'function';
 
+        // For HLS, we use the main video element directly (hls.js handles seeking)
+        // For HTML5, we create a separate hidden video element
+        if (isHLSRenderer) {
+            // Use main video for HLS - hls.js manages the buffer
+            this.previewVideo = renderer.media;
+            this.previewVideoReady = renderer.media.readyState >= 2;
+            this.previewSupported = true;
+            this.previewUsingMainVideo = true; // Flag to indicate we're using main video
+            this.previewVideoInitialized = true;
+            
+            // Start pregeneration if enabled
+            if (this.player.options.thumbnailPregenerate) {
+                this.pregenerateThumbnails();
+            }
+            return;
+        }
+
         this.previewSupported = isHTML5Renderer && hasVideoMedia;
-        if (!this.previewSupported) return;
+        if (!this.previewSupported) {
+            this.previewVideoInitialized = true;
+            return;
+        }
 
         const mainVideo = renderer.media || this.player.element;
         let videoSrc = null;
@@ -1051,6 +1091,7 @@ export class ControlBar {
         if (!videoSrc) {
             this.player.log('No video source found for preview', 'warn');
             this.previewSupported = false;
+            this.previewVideoInitialized = true;
             return;
         }
 
@@ -1076,6 +1117,11 @@ export class ControlBar {
 
         this.previewVideo.addEventListener('loadedmetadata', () => {
             this.previewVideoReady = true;
+            
+            // Start pregeneration if enabled
+            if (this.player.options.thumbnailPregenerate) {
+                this.pregenerateThumbnails();
+            }
         }, { once: true });
 
         if (this.player.container) {
@@ -1084,7 +1130,55 @@ export class ControlBar {
 
         this.previewVideo.src = videoSrc;
         this.previewVideoReady = false;
+        this.previewUsingMainVideo = false;
         this.previewVideoInitialized = true;
+    }
+
+    /**
+     * Pre-generate thumbnails during browser idle time
+     * Uses requestIdleCallback to avoid impacting UI performance
+     */
+    pregenerateThumbnails() {
+        if (!this.previewSupported || !this.previewVideo) return;
+        if (!window.requestIdleCallback) return; // Not supported in older browsers
+        
+        const duration = this.player.state.duration;
+        if (!duration || duration <= 0) return;
+        
+        const interval = this.player.options.thumbnailInterval || 10;
+        const times = [];
+        
+        // Generate list of times to pre-generate
+        for (let t = 0; t < duration; t += interval) {
+            // Skip times already in cache
+            const cacheKey = Math.floor(t);
+            if (!this.previewThumbnailCache.has(cacheKey)) {
+                times.push(t);
+            }
+        }
+        
+        if (times.length === 0) return;
+        
+        this.player.log(`Pre-generating ${times.length} thumbnails`, 'debug');
+        
+        const generateNext = (deadline) => {
+            // Generate thumbnails while we have idle time (at least 50ms)
+            while (deadline.timeRemaining() > 50 && times.length > 0) {
+                const time = times.shift();
+                // Fire-and-forget thumbnail generation
+                this.generatePreviewThumbnail(time).catch(() => {
+                    // Silently ignore errors during pregeneration
+                });
+            }
+            
+            // Schedule next batch if there are more to generate
+            if (times.length > 0 && this.previewSupported) {
+                requestIdleCallback(generateNext, { timeout: 5000 });
+            }
+        };
+        
+        // Start pre-generation with a timeout to ensure it eventually runs
+        requestIdleCallback(generateNext, { timeout: 5000 });
     }
 
     /**
@@ -1153,17 +1247,23 @@ export class ControlBar {
         }
 
         // Use shared frame capture utility
-        // Don't restore state since preview video is always muted and hidden
+        // For main video (HLS), we need to restore state; for preview video, we don't
+        const restoreState = this.previewUsingMainVideo;
+        const quality = this.player.options.thumbnailQuality || 0.8;
+        const maxWidth = this.player.options.thumbnailWidth || 160;
+        const maxHeight = this.player.options.thumbnailHeight || 90;
+        
         const dataURL = await captureVideoFrame(this.previewVideo, time, {
-            restoreState: false,
-            quality: 0.8,
-            maxWidth: 160,
-            maxHeight: 90
+            restoreState,
+            quality,
+            maxWidth,
+            maxHeight
         });
 
         if (dataURL) {
-            // Cache the thumbnail (limit cache size to 20 entries using LRU-like behavior)
-            if (this.previewThumbnailCache.size >= 20) {
+            // Cache the thumbnail (configurable cache size with LRU-like behavior)
+            const maxCacheSize = this.player.options.thumbnailCacheSize || 50;
+            if (this.previewThumbnailCache.size >= maxCacheSize) {
                 // Delete oldest entry (first key in insertion order)
                 const firstKey = this.previewThumbnailCache.keys().next().value;
                 this.previewThumbnailCache.delete(firstKey);
@@ -3240,6 +3340,175 @@ export class ControlBar {
         }
         
         this.player.log('Quality button added dynamically', 'info');
+    }
+
+    /**
+     * Dynamically add captions button if HLS subtitle tracks become available
+     * Button order: Chapters, Captions, Caption Style, Speed, AD, Transcript, Playlist, Sign, Quality, PiP, Fullscreen
+     */
+    ensureCaptionsButton() {
+        // Skip if captions button is disabled
+        if (!this.player.options.captionsButton) return;
+        
+        // Skip if button already exists
+        if (this.controls.captions) return;
+        
+        // Create the captions button
+        const btn = this.createCaptionsButton();
+        btn.dataset.overflowPriority = '1';
+        btn.dataset.overflowPriorityMobile = '3';
+        
+        // Insert after chapters button, or at the start
+        const chaptersButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-chapters`);
+        if (chaptersButton && chaptersButton.nextSibling) {
+            this.rightButtons.insertBefore(btn, chaptersButton.nextSibling);
+        } else if (chaptersButton) {
+            chaptersButton.after(btn);
+        } else {
+            this.rightButtons.insertBefore(btn, this.rightButtons.firstChild);
+        }
+        
+        this.player.log('Captions button added dynamically for HLS subtitles', 'info');
+    }
+
+    /**
+     * Dynamically add caption style button if HLS subtitle tracks become available
+     */
+    ensureCaptionStyleButton() {
+        // Skip if caption style button is disabled
+        if (!this.player.options.captionStyleButton) return;
+        
+        // Skip if button already exists
+        if (this.controls.captionStyle) return;
+        
+        // Create the caption style button
+        const btn = this.createCaptionStyleButton();
+        btn.dataset.overflowPriority = '3';
+        btn.dataset.overflowPriorityMobile = '3';
+        
+        // Insert after captions button
+        const captionsButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-captions-button`);
+        if (captionsButton) {
+            captionsButton.after(btn);
+        } else {
+            // Insert at start if no captions button
+            this.rightButtons.insertBefore(btn, this.rightButtons.firstChild);
+        }
+        
+        this.player.log('Caption style button added dynamically for HLS subtitles', 'info');
+    }
+
+    /**
+     * Dynamically add transcript button if HLS subtitle tracks become available
+     */
+    ensureTranscriptButton() {
+        // Skip if transcript button is disabled
+        if (!this.player.options.transcriptButton) return;
+        
+        // Skip if button already exists
+        if (this.controls.transcript) return;
+        
+        // Create the transcript button
+        const btn = this.createTranscriptButton();
+        btn.dataset.overflowPriority = '3';
+        btn.dataset.overflowPriorityMobile = '3';
+        
+        // Insert after AD button, or after speed button
+        const adButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-audio-description`);
+        const speedButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-speed`);
+        const captionStyleButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-caption-style`);
+        
+        if (adButton) {
+            adButton.after(btn);
+        } else if (speedButton) {
+            speedButton.after(btn);
+        } else if (captionStyleButton) {
+            captionStyleButton.after(btn);
+        } else {
+            // Insert before quality/pip/fullscreen buttons
+            const qualityButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-quality`);
+            const pipButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-pip`);
+            const fullscreenButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-fullscreen`);
+            const insertBefore = qualityButton || pipButton || fullscreenButton;
+            
+            if (insertBefore) {
+                this.rightButtons.insertBefore(btn, insertBefore);
+            } else {
+                this.rightButtons.appendChild(btn);
+            }
+        }
+        
+        this.player.log('Transcript button added dynamically for HLS subtitles', 'info');
+    }
+
+    /**
+     * Remove caption-related buttons if no HLS subtitle tracks are available
+     * and no native caption tracks exist. Called when switching to a stream
+     * without subtitles.
+     * @param {boolean} force - If true, skip the native captions check and force removal
+     */
+    removeHlsCaptionButtons(force = false) {
+        if (!force) {
+            // Check if there are native caption tracks (from <track> elements in the HTML)
+            // Note: For HLS streams, we pass force=true because HLS manages its own text tracks
+            const trackElements = this.player.element.querySelectorAll('track[kind="captions"], track[kind="subtitles"]');
+            if (trackElements.length > 0) {
+                this.player.log('Keeping caption buttons - native track elements exist', 'info');
+                return;
+            }
+        }
+        
+        // Disable all text tracks and clear captions display
+        this.disableAllCaptions();
+        
+        // Remove captions button if it exists
+        if (this.controls.captions) {
+            this.controls.captions.remove();
+            this.controls.captions = null;
+            this.player.log('Captions button removed - no subtitle tracks', 'info');
+        }
+        
+        // Remove caption style button if it exists
+        if (this.controls.captionStyle) {
+            this.controls.captionStyle.remove();
+            this.controls.captionStyle = null;
+            this.player.log('Caption style button removed - no subtitle tracks', 'info');
+        }
+        
+        // Remove transcript button if it exists
+        if (this.controls.transcript) {
+            this.controls.transcript.remove();
+            this.controls.transcript = null;
+            this.player.log('Transcript button removed - no subtitle tracks', 'info');
+        }
+    }
+
+    /**
+     * Disable all caption/subtitle tracks and clear the captions display
+     */
+    disableAllCaptions() {
+        // Disable all text tracks
+        const textTracks = this.player.element.textTracks;
+        for (let i = 0; i < textTracks.length; i++) {
+            textTracks[i].mode = 'disabled';
+        }
+        
+        // Clear caption display
+        if (this.player.captionsManager) {
+            this.player.captionsManager.hide();
+        }
+        
+        // Clear the captions container if it exists
+        const captionsContainer = this.player.container?.querySelector(`.${this.player.options.classPrefix}-captions`);
+        if (captionsContainer) {
+            captionsContainer.textContent = '';
+            captionsContainer.style.display = 'none';
+        }
+        
+        // Update player state
+        this.player.state.captionsEnabled = false;
+        
+        this.player.log('All captions disabled and cleared', 'info');
     }
 
     updateQualityIndicator() {
