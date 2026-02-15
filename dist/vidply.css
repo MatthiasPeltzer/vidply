@@ -723,11 +723,11 @@
 }
 
 .vidply-theme-light .vidply-playlist-item-artist {
-    color: #555;
+    color: #555 !important;
 }
 
 .vidply-theme-light .vidply-playlist-item-description {
-    color: #666;
+    color: #666 !important;
 }
 
 .vidply-theme-light .vidply-playlist-item-duration {
