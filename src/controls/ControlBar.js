@@ -1057,17 +1057,15 @@ export class ControlBar {
         // For HLS, we use the main video element directly (hls.js handles seeking)
         // For HTML5, we create a separate hidden video element
         if (isHLSRenderer) {
-            // Use main video for HLS - hls.js manages the buffer
-            this.previewVideo = renderer.media;
-            this.previewVideoReady = renderer.media.readyState >= 2;
-            this.previewSupported = true;
-            this.previewUsingMainVideo = true; // Flag to indicate we're using main video
-            this.previewVideoInitialized = true;
-            
-            // Start pregeneration if enabled
-            if (this.player.options.thumbnailPregenerate) {
-                this.pregenerateThumbnails();
-            }
+            // HLS streams: Preview thumbnails are disabled because seeking the main video
+            // for thumbnail generation would cause visible playback jumps.
+            // A separate HLS instance for preview would be too resource-intensive.
+            this.previewVideo = null;
+            this.previewVideoReady = false;
+            this.previewSupported = false;
+            this.previewUsingMainVideo = false;
+            this.previewVideoInitialized = true; // Mark as initialized so we don't retry
+            this.player.log('Preview thumbnails disabled for HLS streams', 'info');
             return;
         }
 

@@ -882,14 +882,12 @@ var ControlBar = class {
     const isHLSRenderer = renderer.hls && typeof renderer.hls.loadLevel !== "undefined";
     const isHTML5Renderer = hasVideoMedia && renderer.media === this.player.element && !isHLSRenderer && typeof renderer.seek === "function";
     if (isHLSRenderer) {
-      this.previewVideo = renderer.media;
-      this.previewVideoReady = renderer.media.readyState >= 2;
-      this.previewSupported = true;
-      this.previewUsingMainVideo = true;
+      this.previewVideo = null;
+      this.previewVideoReady = false;
+      this.previewSupported = false;
+      this.previewUsingMainVideo = false;
       this.previewVideoInitialized = true;
-      if (this.player.options.thumbnailPregenerate) {
-        this.pregenerateThumbnails();
-      }
+      this.player.log("Preview thumbnails disabled for HLS streams", "info");
       return;
     }
     this.previewSupported = isHTML5Renderer && hasVideoMedia;
