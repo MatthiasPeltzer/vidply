@@ -62,6 +62,8 @@ That's it!
 - **Track Info Display** - Shows current track number, title, and artist
 - **Visual Playlist Panel** - Interactive list of all tracks with thumbnails with toggle button
 - **Active Track Highlighting** - Visual indicator for the currently playing track
+- **Mixed Media Support** - Combine audio and video files in a single playlist
+- **Lazy Loading** - Media files only load when played (configurable)
 - **Enhanced Keyboard Navigation** - Full keyboard support with arrow keys, Page Up/Down, Home/End
 - **Screen Reader Support** - ARIA labels, live regions, and boundary announcements
 - **WCAG Compliant** - Meets accessibility guidelines for keyboard navigation and screen readers
@@ -615,6 +617,28 @@ Perfect for:
 - Tutorial series
 - Conference talks
 
+### Mixed Media Playlist
+
+```javascript
+const mixedPlaylist = new PlaylistManager(player, {
+  autoAdvance: true,
+  showPanel: true
+});
+
+mixedPlaylist.loadPlaylist([
+  { src: 'intro.mp4', type: 'video/mp4', title: 'Introduction Video' },
+  { src: 'episode1.mp3', type: 'audio/mp3', title: 'Episode 1 Audio' },
+  { src: 'episode2.mp4', type: 'video/mp4', title: 'Episode 2 Video' },
+  { src: 'bonus.mp3', type: 'audio/mp3', title: 'Bonus Content' }
+]);
+```
+
+Perfect for:
+- Mixed content courses (video lectures + audio supplements)
+- Multimedia presentations
+- Content with both video and audio episodes
+- Educational content combining different media types
+
 ### Audiobook Chapters
 
 ```javascript
@@ -676,6 +700,7 @@ Tested in:
 See the complete demos:
 - **Audio Playlist**: [demo/playlist-audio.html](../demo/playlist-audio.html)
 - **Video Playlist**: [demo/playlist-video.html](../demo/playlist-video.html)
+- **Mixed Media Playlist**: [demo/playlist-mixed.html](../demo/playlist-mixed.html)
 
 ## Implementation Details
 

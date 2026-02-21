@@ -9,18 +9,18 @@
   <meta http-equiv="refresh" content="0; url=./demo/">
   <style>
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(135deg, #1e3a8a 0%, #60a5fa 100%);
-      min-height: 100vh;
-      display: flex;
       align-items: center;
-      justify-content: center;
+      background: linear-gradient(135deg, #1e3a8a 0%, #60a5fa 100%);
       color: white;
+      display: flex;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      justify-content: center;
+      min-height: 100vh;
       padding: 20px;
     }
     main {
@@ -28,10 +28,10 @@
       text-align: center;
     }
     .logo {
-      width: 120px;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
       height: 120px;
       margin-bottom: 30px;
-      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+      width: 120px;
     }
     h1 {
       font-size: 48px;
@@ -45,24 +45,24 @@
     }
     .redirect-message {
       font-size: 16px;
-      opacity: 0.8;
       margin-top: 20px;
+      opacity: 0.8;
     }
     .cta-link {
-      display: inline-block;
       background: white;
-      color: #1e3a8a;
-      padding: 15px 40px;
       border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 18px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      color: #1e3a8a;
+      display: inline-block;
+      font-size: 18px;
+      font-weight: 600;
+      padding: 15px 40px;
+      text-decoration: none;
       transition: transform 0.2s, box-shadow 0.2s;
     }
     .cta-link:hover {
-      transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      transform: translateY(-2px);
     }
     .cta-link:focus {
       outline: 3px solid white;
@@ -78,8 +78,8 @@
 
     footer p {
       color: #ffffff;
-      margin: 8px 0;
       font-size: 14px;
+      margin: 8px 0;
     }
   </style>
 </head>
@@ -95,7 +95,7 @@
   </main>
 
   <footer>
-    <p>&copy; 2025 VidPly - Built with Vanilla JavaScript</p>
+    <p>&copy; 2026 VidPly - Built with Vanilla JavaScript</p>
     <p>Released under GPL-2.0-or-later License</p>
   </footer>
 </body>
