@@ -640,18 +640,21 @@ After building, you'll have:
 ```
 vidply/
 ├── dist/
-│   ├── vidply.esm.js       # ES Module (dev)
-│   ├── vidply.esm.min.js   # ES Module (prod)
-│   ├── vidply.js           # IIFE (dev)
-│   ├── vidply.min.js       # IIFE (prod)
-│   ├── vidply.css          # Styles (dev)
-│   └── vidply.min.css      # Styles (prod)
+│   ├── dev/
+│   │   └── vidply.esm.js       # ES Module (dev)
+│   ├── prod/
+│   │   └── vidply.esm.min.js   # ES Module (prod)
+│   ├── legacy/
+│   │   ├── vidply.js           # IIFE (dev)
+│   │   └── vidply.min.js       # IIFE (prod)
+│   ├── vidply.css              # Styles (dev)
+│   └── vidply.min.css          # Styles (prod)
 └── ...
 ```
 
 Only include in production:
-- `vidply.esm.min.js` (or `vidply.min.js`)
-- `vidply.min.css`
+- `dist/prod/vidply.esm.min.js` (or `dist/legacy/vidply.min.js`)
+- `dist/vidply.min.css`
 
 Total: ~62KB uncompressed, ~18KB gzipped
 

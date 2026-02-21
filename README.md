@@ -7,7 +7,7 @@ A modern, feature-rich media player built with vanilla ES6 JavaScript. Combines 
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)
 ![ES6](https://img.shields.io/badge/ES6-Module-yellow.svg)
 ![WCAG](https://img.shields.io/badge/WCAG-2.1%20AA-green.svg)
-![Version](https://img.shields.io/badge/version-1.0.18-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.0.40-brightgreen.svg)
 
 ## Live Demos
 
@@ -15,6 +15,7 @@ Try VidPly in action:
 - **[Main Demo](https://matthiaspeltzer.github.io/vidply/demo/demo.html)** - Full-featured video player showcase
 - **[Audio Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-audio.html)** - Audio player with playlist support
 - **[Video Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-video.html)** - Video playlist with thumbnails
+- **[Mixed Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-mixed.html)** - Combined audio and video playlist
 - **[HLS Streaming](https://matthiaspeltzer.github.io/vidply/demo/hls-test.html)** - Adaptive bitrate streaming demo
 
 ## Why VidPly?
@@ -33,10 +34,12 @@ Try VidPly in action:
 - **Multiple Formats** - MP3, OGG, WAV (audio) / MP4, WebM (video)
 - **YouTube Integration** - Embed YouTube videos with unified controls
 - **Vimeo Integration** - Seamless Vimeo player integration
-- **HLS Streaming** - Adaptive bitrate streaming with quality selection
+- **HLS Streaming** - Adaptive bitrate streaming with quality selection and dynamic subtitle detection
+- **Preview Thumbnails** - Video preview thumbnails on progress bar hover
 - **Playlists** - Full playlist support with auto-advance and navigation
   - Audio playlists with track info
   - Video playlists with thumbnails
+  - **Mixed playlists** - Combine audio and video in a single playlist
   - Previous/Next controls
   - Visual playlist panel
   - **Fullscreen Mode**: YouTube-style horizontal carousel
@@ -301,7 +304,11 @@ const player = new Player('#video', {
   
   // Advanced
   debug: false,
-  pauseOthersOnPlay: true
+  pauseOthersOnPlay: true,
+  
+  // Performance
+  preload: 'metadata',    // 'none', 'metadata', or 'auto'
+  deferLoad: false        // Delay loading until user plays (good for many players)
 });
 ```
 
@@ -643,6 +650,9 @@ npm run build:css    # Build CSS only
 npm run watch        # Watch mode for development
 npm run clean        # Clean dist directory
 npm run dev          # Start dev server
+npm run test         # Run unit tests (Vitest)
+npm run test:e2e     # Run end-to-end tests (Playwright)
+npm run test:all     # Run all tests
 ```
 
 ### Output Files
@@ -669,7 +679,7 @@ See [BUILD.md](docs/BUILD.md) for detailed build documentation.
 
 GNU General Public License v2.0 or later
 
-Copyright (C) 2025 Matthias Peltzer
+Copyright (C) 2026 Matthias Peltzer
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

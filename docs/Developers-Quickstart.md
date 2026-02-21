@@ -501,5 +501,5 @@ if (this.options.debug) {
 
 ---
 
-**Version:** 1.0.25 | **License:** GPL-2.0-or-later
+**Version:** 1.0.40 | **License:** GPL-2.0-or-later
 

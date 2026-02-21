@@ -5,6 +5,137 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.40] - 2026-02-21
+
+### Added
+- **Dynamic HLS Subtitle Handling**: Automatic detection and loading of subtitle tracks from HLS manifests
+- Light theme fixes and improvements
+- Updated copyright year to 2026
+
+### Fixed
+- Removed blocked Akamai video from HLS stream demo page
+
+## [1.0.39] - 2026-02-20
+
+### Fixed
+- **Transcript Dialog Overflow (WCAG 1.4.10)**: Fixed transcript dialog overflow issues for full-width video players, ensuring proper reflow compliance
+
+## [1.0.38] - 2026-02-19
+
+### Fixed
+- Removed browser fallback message
+- HTML5 validation errors for accessibility and media elements
+
+### Changed
+- Updated esbuild to version 0.27.3
+
+## [1.0.37] - 2026-02-18
+
+### Added
+- **Testing Infrastructure**: Added Vitest for unit testing and Playwright for end-to-end testing
+- **Sign Language Display Mode**: New display mode option for sign language overlay
+- New Picture-in-Picture (PiP) icon for sign language window
+- Single player and playlist demo pages for testing
+
+### Fixed
+- Close fullscreen when clicking external media in playlist preview list
+
+## [1.0.36] - 2026-02-17
+
+### Fixed
+- **Comprehensive Fullscreen Mode Improvements**: Multiple fixes for fullscreen behavior across devices
+
+## [1.0.35] - 2026-02-16
+
+### Fixed
+- Mobile overflow menu height when positioned below trigger button
+- Added aspect ratio handling only for Vimeo or YouTube layers
+- Keyboard drag mode improvements
+- Multiple iOS playlist fixes
+- **Sign Language Touch Support**: Enabled touch drag/resize for sign language overlay via Pointer Events
+
+## [1.0.34] - 2026-02-15
+
+### Fixed
+- Audio artwork display in mixed playlists when poster image is available
+
+## [1.0.33] - 2026-02-14
+
+### Added
+- **Deferred Loading**: Playlist selection now loads metadata without autoplay
+- Initial duration display before media metadata is loaded
+- Lazy loading for audio, video, and HLS files (only load on play)
+
+### Changed
+- Updated documentation and demo files
+
+## [1.0.32] - 2026-02-13
+
+### Fixed
+- Hide speed control for HLS streams (detected by .m3u8 source URL)
+- Removed outdated JavaScript code
+
+## [1.0.31] - 2026-02-12
+
+### Added
+- **Preview Thumbnails**: Video preview thumbnails on hover over progress bar
+- **Auto-Poster Generation**: Automatic poster image generation from video for playlists
+
+## [1.0.30] - 2026-02-11
+
+### Added
+- **Preview Thumbnails**: Video preview thumbnails and auto-poster generation for single videos
+
+### Changed
+- Updated esbuild dependency
+
+## [1.0.29] - 2026-02-10
+
+### Fixed
+- Audio description caption track swapping in playlists
+
+### Added
+- **Transcript Descriptions**: Always show descriptions in transcript and swap tracks for audio-described videos
+
+## [1.0.28] - 2026-02-09
+
+### Fixed
+- Added missing translation strings
+
+## [1.0.27] - 2026-02-08
+
+### Added
+- **Mixed Playlist Support**: Support for playlists containing both audio and video items
+
+## [1.0.26] - 2026-02-07
+
+### Fixed
+- VidPly language detection with lazy loading
+
+## [1.0.25] - 2026-02-06
+
+### Added
+- Added `dist/` directory to GitHub repository
+
+### Changed
+- **ESM Optimization**: Improved ES module builds with legacy code as optional
+
+## [1.0.24] - 2026-02-05
+
+### Added
+- **Menu Keyboard Navigation**: Added scrollIntoView for keyboard navigation in all menu popups
+
+## [1.0.23] - 2026-02-04
+
+### Changed
+- Removed light mode support (simplified theming)
+- Converted all sizing to rem units for better accessibility scaling
+
+## [1.0.22] - 2026-02-03
+
+### Added
+- **WCAG-Compliant Light Mode**: Added light mode with proper color-scheme support (later removed in 1.0.23)
+
 ## [1.0.21] - 2025-12-01
 
 ### Added
