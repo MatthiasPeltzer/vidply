@@ -3155,6 +3155,9 @@ export class ControlBar {
             // Update preview video source when metadata loads (for playlists)
             this.updatePreviewVideoSource();
         });
+        this.player.on('durationchange', () => {
+            this.updateDuration();
+        });
         this.player.on('sourcechange', () => {
             // Update preview video source when source changes (for playlists)
             this.updatePreviewVideoSource();

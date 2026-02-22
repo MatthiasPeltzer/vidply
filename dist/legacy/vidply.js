@@ -2259,6 +2259,13 @@
               });
             }
           });
+          this.media.addEventListener("durationchange", () => {
+            const duration = this.media.duration;
+            if (duration && isFinite(duration) && duration > 0) {
+              this.player.state.duration = duration;
+              this.player.emit("durationchange", duration);
+            }
+          });
           this.media.addEventListener("play", () => {
             this.player.state.playing = true;
             this.player.state.paused = false;
@@ -7582,6 +7589,13 @@
             this.player.state.duration = this.media.duration;
             this.player.emit("loadedmetadata");
           });
+          this.media.addEventListener("durationchange", () => {
+            const duration = this.media.duration;
+            if (duration && isFinite(duration) && duration > 0) {
+              this.player.state.duration = duration;
+              this.player.emit("durationchange", duration);
+            }
+          });
           this.media.addEventListener("play", () => {
             this.player.state.playing = true;
             this.player.state.paused = false;
@@ -10496,6 +10510,9 @@
         this.ensureQualityButton();
         this.updateQualityIndicator();
         this.updatePreviewVideoSource();
+      });
+      this.player.on("durationchange", () => {
+        this.updateDuration();
       });
       this.player.on("sourcechange", () => {
         this.updatePreviewVideoSource();

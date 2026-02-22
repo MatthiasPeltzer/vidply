@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 167008,
+      "bytes": 167107,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -186,7 +186,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.js": {
-      "bytes": 10816,
+      "bytes": 11096,
       "imports": [],
       "format": "esm"
     },
@@ -346,7 +346,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 15898,
+      "bytes": 16186,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -572,10 +572,10 @@
       },
       "bytes": 6812
     },
-    "dist/prod/vidply.HLSRenderer-TBGNB3HF.min.js": {
+    "dist/prod/vidply.HLSRenderer-KZXNKUON.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.HTML5Renderer-HTHCSDW2.min.js",
+          "path": "dist/prod/vidply.HTML5Renderer-UC4UXGXP.min.js",
           "kind": "dynamic-import"
         }
       ],
@@ -585,10 +585,10 @@
       "entryPoint": "src/renderers/HLSRenderer.js",
       "inputs": {
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 12655
+          "bytesInOutput": 12934
         }
       },
-      "bytes": 12832
+      "bytes": 13111
     },
     "dist/prod/vidply.SoundCloudRenderer-S7DCYVO3.min.js": {
       "imports": [],
@@ -611,7 +611,7 @@
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.chunk-G2P52V5M.min.js",
+          "path": "dist/prod/vidply.chunk-5TIDLEBG.min.js",
           "kind": "import-statement"
         },
         {
@@ -651,7 +651,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.HLSRenderer-TBGNB3HF.min.js",
+          "path": "dist/prod/vidply.HLSRenderer-KZXNKUON.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -673,7 +673,7 @@
           "bytesInOutput": 2474
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 115093
+          "bytesInOutput": 115175
         },
         "src/controls/KeyboardManager.js": {
           "bytesInOutput": 6807
@@ -688,7 +688,7 @@
           "bytesInOutput": 5260
         }
       },
-      "bytes": 333704
+      "bytes": 333786
     },
     "dist/prod/vidply.chunk-AK4IZ5DH.min.js": {
       "imports": [
@@ -759,10 +759,10 @@
       },
       "bytes": 9463
     },
-    "dist/prod/vidply.HTML5Renderer-HTHCSDW2.min.js": {
+    "dist/prod/vidply.HTML5Renderer-UC4UXGXP.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-G2P52V5M.min.js",
+          "path": "dist/prod/vidply.chunk-5TIDLEBG.min.js",
           "kind": "import-statement"
         }
       ],
@@ -773,17 +773,17 @@
       "inputs": {},
       "bytes": 212
     },
-    "dist/prod/vidply.chunk-G2P52V5M.min.js": {
+    "dist/prod/vidply.chunk-5TIDLEBG.min.js": {
       "imports": [],
       "exports": [
         "HTML5Renderer"
       ],
       "inputs": {
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 8924
+          "bytesInOutput": 9203
         }
       },
-      "bytes": 9106
+      "bytes": 9385
     },
     "dist/prod/vidply.AudioDescriptionManager-S2B3YPBT.min.js": {
       "imports": [

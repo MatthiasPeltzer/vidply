@@ -33,7 +33,7 @@ var HLSRenderer = class {
     return video.canPlayType("application/vnd.apple.mpegurl") !== "";
   }
   async initNative() {
-    const HTML5Renderer = (await import("./vidply.HTML5Renderer-HFFBZHDX.js")).HTML5Renderer;
+    const HTML5Renderer = (await import("./vidply.HTML5Renderer-2HOPIMWV.js")).HTML5Renderer;
     const renderer = new HTML5Renderer(this.player);
     await renderer.init();
     Object.getOwnPropertyNames(Object.getPrototypeOf(renderer)).forEach((method) => {
@@ -204,6 +204,13 @@ var HLSRenderer = class {
     this.media.addEventListener("loadedmetadata", () => {
       this.player.state.duration = this.media.duration;
       this.player.emit("loadedmetadata");
+    });
+    this.media.addEventListener("durationchange", () => {
+      const duration = this.media.duration;
+      if (duration && isFinite(duration) && duration > 0) {
+        this.player.state.duration = duration;
+        this.player.emit("durationchange", duration);
+      }
     });
     this.media.addEventListener("play", () => {
       this.player.state.playing = true;
@@ -388,4 +395,4 @@ var HLSRenderer = class {
 export {
   HLSRenderer
 };
-//# sourceMappingURL=vidply.HLSRenderer-QXQPR4KT.js.map
+//# sourceMappingURL=vidply.HLSRenderer-2R5BIV7K.js.map
