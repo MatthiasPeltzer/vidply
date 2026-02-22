@@ -8,7 +8,7 @@ import {
 } from "./vidply.chunk-7TDF7KK7.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-YUGVRBIH.js";
+} from "./vidply.chunk-2M4DV6KY.js";
 import {
   CaptionManager,
   debounce,
@@ -2471,6 +2471,9 @@ var ControlBar = class {
       this.updateQualityIndicator();
       this.updatePreviewVideoSource();
     });
+    this.player.on("durationchange", () => {
+      this.updateDuration();
+    });
     this.player.on("sourcechange", () => {
       this.updatePreviewVideoSource();
     });
@@ -4304,7 +4307,7 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.VimeoRenderer-SLEBCZTT.js");
       rendererClass = module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-QXQPR4KT.js");
+      const module = await import("./vidply.HLSRenderer-2R5BIV7K.js");
       rendererClass = module.HLSRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-HCMKXHSX.js");

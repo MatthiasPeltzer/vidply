@@ -35,6 +35,13 @@ var HTML5Renderer = class {
         });
       }
     });
+    this.media.addEventListener("durationchange", () => {
+      const duration = this.media.duration;
+      if (duration && isFinite(duration) && duration > 0) {
+        this.player.state.duration = duration;
+        this.player.emit("durationchange", duration);
+      }
+    });
     this.media.addEventListener("play", () => {
       this.player.state.playing = true;
       this.player.state.paused = false;
@@ -280,4 +287,4 @@ var HTML5Renderer = class {
 export {
   HTML5Renderer
 };
-//# sourceMappingURL=vidply.chunk-YUGVRBIH.js.map
+//# sourceMappingURL=vidply.chunk-2M4DV6KY.js.map

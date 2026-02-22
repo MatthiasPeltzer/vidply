@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 167008,
+      "bytes": 167107,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -192,7 +192,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.js": {
-      "bytes": 10816,
+      "bytes": 11096,
       "imports": [],
       "format": "esm"
     },
@@ -358,7 +358,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 15898,
+      "bytes": 16186,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -591,7 +591,7 @@
           "bytesInOutput": 14845
         },
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 10792
+          "bytesInOutput": 11113
         },
         "src/utils/DraggableResizable.js": {
           "bytesInOutput": 29150
@@ -618,7 +618,7 @@
           "bytesInOutput": 8147
         },
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 15424
+          "bytesInOutput": 15745
         },
         "src/renderers/SoundCloudRenderer.js": {
           "bytesInOutput": 10468
@@ -630,7 +630,7 @@
           "bytesInOutput": 170720
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 124129
+          "bytesInOutput": 124217
         },
         "src/utils/VideoFrameCapture.js": {
           "bytesInOutput": 2634
@@ -645,7 +645,7 @@
           "bytesInOutput": 5600
         }
       },
-      "bytes": 705300
+      "bytes": 706030
     }
   }
 }
