@@ -254,11 +254,10 @@
         console.warn('Invalid JSON in data-vidply-options:', e);
     }
 
-    const mergedOptions = { ...dataOptions, ...parsedOptions };
+    const mergedOptions = { ...parsedOptions };
 
     const player = new Player(hostElement, {
-        mediaType: 'audio',
-        ...mergedOptions
+        mediaType: 'audio'
     });
 
     console.log('Audio player created:', player);
