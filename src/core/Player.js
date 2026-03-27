@@ -1959,7 +1959,10 @@ export class Player extends EventEmitter {
     }
 
     seekForward(interval = this.options.seekInterval) {
-        this.seek(Math.min(this.state.currentTime + interval, this.state.duration));
+        const targetTime = this.state.currentTime + interval;
+        // Only cap to duration if duration is known (> 0), otherwise let the media element handle it
+        const seekTime = this.state.duration > 0 ? Math.min(targetTime, this.state.duration) : targetTime;
+        this.seek(seekTime);
     }
 
     seekBackward(interval = this.options.seekInterval) {

@@ -2241,6 +2241,9 @@
           this.attachEvents();
           if (this.player.options.deferLoad) {
             this.media.preload = this.player.options.preload || "none";
+            if (this.player.options.preload === "metadata") {
+              this.media.load();
+            }
           } else {
             this.media.preload = this.player.options.preload;
             this.media.load();
@@ -12846,7 +12849,9 @@
       }
     }
     seekForward(interval = this.options.seekInterval) {
-      this.seek(Math.min(this.state.currentTime + interval, this.state.duration));
+      const targetTime = this.state.currentTime + interval;
+      const seekTime = this.state.duration > 0 ? Math.min(targetTime, this.state.duration) : targetTime;
+      this.seek(seekTime);
     }
     seekBackward(interval = this.options.seekInterval) {
       this.seek(Math.max(this.state.currentTime - interval, 0));

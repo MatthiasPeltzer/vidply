@@ -192,7 +192,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.js": {
-      "bytes": 11096,
+      "bytes": 11379,
       "imports": [],
       "format": "esm"
     },
@@ -374,7 +374,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 244076,
+      "bytes": 244294,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -591,7 +591,7 @@
           "bytesInOutput": 14845
         },
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 11113
+          "bytesInOutput": 11222
         },
         "src/utils/DraggableResizable.js": {
           "bytesInOutput": 29150
@@ -627,7 +627,7 @@
           "bytesInOutput": 958
         },
         "src/core/Player.js": {
-          "bytesInOutput": 170872
+          "bytesInOutput": 170981
         },
         "src/controls/ControlBar.js": {
           "bytesInOutput": 124217
@@ -645,7 +645,7 @@
           "bytesInOutput": 5600
         }
       },
-      "bytes": 706182
+      "bytes": 706400
     }
   }
 }
