@@ -246,17 +246,7 @@
 
     console.log('Starting audio player initialization...');
 
-    // Create player instance
-    let parsedOptions = {};
-    try {
-        parsedOptions = hostElement.dataset.vidplyOptions ? JSON.parse(hostElement.dataset.vidplyOptions) : {};
-    } catch (e) {
-        console.warn('Invalid JSON in data-vidply-options:', e);
-    }
-
-    const mergedOptions = { ...parsedOptions };
-
-    const player = new Player(hostElement, {
+    const player = new Player({
         mediaType: 'audio'
     });
 
