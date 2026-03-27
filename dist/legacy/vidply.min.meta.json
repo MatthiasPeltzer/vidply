@@ -374,7 +374,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 243911,
+      "bytes": 244076,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -627,7 +627,7 @@
           "bytesInOutput": 958
         },
         "src/core/Player.js": {
-          "bytesInOutput": 170720
+          "bytesInOutput": 170872
         },
         "src/controls/ControlBar.js": {
           "bytesInOutput": 124217
@@ -645,7 +645,7 @@
           "bytesInOutput": 5600
         }
       },
-      "bytes": 706030
+      "bytes": 706182
     }
   }
 }

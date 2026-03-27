@@ -663,6 +663,10 @@ export class Player extends EventEmitter {
         if (promises.length > 0) {
             await Promise.all(promises);
         }
+
+        if (this.audioDescriptionManager) {
+            this.audioDescriptionManager.initFromSourceElements(this.sourceElements, this.trackElements);
+        }
     }
 
     /**
