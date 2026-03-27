@@ -242,76 +242,9 @@
 </div>
 
 <script type="module">
-    import { Player, PlaylistManager } from '../dist/prod/vidply.esm.min.js';
+    import { Player } from '../dist/prod/vidply.esm.min.js';
 
-    console.log('Starting video player initialization...');
-
-    const hostElement = document.querySelector('#wwa-video');
-    if (!hostElement) {
-        console.error('VidPly demo: video element #wwa-video not found.');
-        throw new Error('VidPly demo: video element #wwa-video not found.');
-    }
-
-    const parseDataAttributes = (dataset) => {
-        const options = {};
-        const attributeMap = {
-            signLanguageSrc: 'signLanguageSrc',
-            signLanguageButton: 'signLanguageButton',
-            signLanguagePosition: 'signLanguagePosition',
-            audioDescriptionSrc: 'audioDescriptionSrc',
-            audioDescriptionButton: 'audioDescriptionButton',
-            autoplay: 'autoplay',
-            loop: 'loop',
-            muted: 'muted',
-            controls: 'controls',
-            poster: 'poster',
-            width: 'width',
-            height: 'height',
-            language: 'language',
-            captions: 'captions',
-            captionsDefault: 'captionsDefault',
-            transcript: 'transcript',
-            transcriptButton: 'transcriptButton',
-            keyboard: 'keyboard',
-            responsive: 'responsive',
-            pipButton: 'pipButton',
-            fullscreenButton: 'fullscreenButton'
-        };
-        Object.keys(attributeMap).forEach((dataKey) => {
-            const optionKey = attributeMap[dataKey];
-            const value = dataset[dataKey];
-            if (value !== undefined) {
-                if (value === 'true') {
-                    options[optionKey] = true;
-                } else if (value === 'false') {
-                    options[optionKey] = false;
-                } else if (!isNaN(value) && value !== '') {
-                    options[optionKey] = Number(value);
-                } else {
-                    options[optionKey] = value;
-                }
-            }
-        });
-
-        const signLanguageSources = {};
-        Object.keys(dataset).forEach((key) => {
-            if (key.startsWith('signLanguageSrc') && key !== 'signLanguageSrc') {
-                const langMatch = key.match(/^signLanguageSrc([A-Z][a-z]*)$/);
-                if (langMatch) {
-                    const langCode = langMatch[1].toLowerCase();
-                    signLanguageSources[langCode] = dataset[key];
-                }
-            }
-        });
-        if (Object.keys(signLanguageSources).length > 0) {
-            options.signLanguageSources = signLanguageSources;
-            if (dataset.signLanguageSrc && !options.signLanguageSrc) {
-                options.signLanguageSrc = dataset.signLanguageSrc;
-            }
-        }
-
-        return options;
-    };
+    console.log('Starting audio player initialization...');
 
     // Create player instance
     let parsedOptions = {};
@@ -324,61 +257,11 @@
     const mergedOptions = { ...dataOptions, ...parsedOptions };
 
     const player = new Player(hostElement, {
-        mediaType: 'video',
+        mediaType: 'audio',
         ...mergedOptions
     });
 
-    console.log('Video player created:', player);
-
-    let playlist;
-
-    // Only create playlist if data-playlist attribute exists with tracks
-    player.on('ready', () => {
-        const playlistData = hostElement.getAttribute('data-playlist');
-        if (!playlistData) {
-            console.log('Single video mode - no playlist');
-            return;
-        }
-        
-        const tracks = JSON.parse(playlistData);
-        if (!tracks || tracks.length === 0) {
-            console.log('Single video mode - empty playlist');
-            return;
-        }
-
-        const playlistOptions = {
-            autoAdvance: hostElement.getAttribute('data-playlist-auto-advance') !== 'false',
-            autoPlayFirst: hostElement.getAttribute('data-playlist-auto-play-first') !== 'false',
-            loop: hostElement.getAttribute('data-playlist-loop') === 'true',
-            showPanel: hostElement.getAttribute('data-playlist-show-panel') !== 'false',
-            tracks
-        };
-
-        playlist = new PlaylistManager(player, playlistOptions);
-        console.log('Video playlist initialized with', tracks.length, 'tracks');
-
-        // Listen for video changes
-        player.on('playlisttrackchange', (e) => {
-            console.log(`Now playing: ${e.item.title}`);
-            document.title = `${e.item.title} - VidPly Video Playlist`;
-        });
-
-        // Add keyboard shortcuts for playlist navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-            if (!playlist) return;
-
-            if (e.shiftKey) {
-                if (e.key === 'N' || e.key === 'n') {
-                    playlist.next();
-                    e.preventDefault();
-                } else if (e.key === 'P' || e.key === 'p') {
-                    playlist.previous();
-                    e.preventDefault();
-                }
-            }
-        });
-    });
+    console.log('Audio player created:', player);
 </script>
 </body>
 </html>
