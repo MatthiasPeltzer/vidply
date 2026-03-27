@@ -253,7 +253,7 @@
     } catch (e) {
         console.warn('Invalid JSON in data-vidply-options:', e);
     }
-    const dataOptions = parseDataAttributes(hostElement.dataset);
+
     const mergedOptions = { ...dataOptions, ...parsedOptions };
 
     const player = new Player(hostElement, {
