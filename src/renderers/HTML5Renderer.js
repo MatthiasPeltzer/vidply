@@ -18,9 +18,15 @@ export class HTML5Renderer {
     
     // Set preload + optionally defer network loading until user play
     if (this.player.options.deferLoad) {
-      // Allow metadata preload while still avoiding an explicit load() call.
+      // Allow metadata preload while still avoiding full media download.
       // Note: browsers may still fetch metadata automatically when preload="metadata".
       this.media.preload = this.player.options.preload || 'none';
+      
+      // Firefox requires an explicit load() call to fetch metadata even with preload="metadata".
+      // Only call load() if preload is set to "metadata" to ensure duration is available.
+      if (this.player.options.preload === 'metadata') {
+        this.media.load();
+      }
     } else {
       this.media.preload = this.player.options.preload;
       // Load media (eager)

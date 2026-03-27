@@ -33,7 +33,7 @@ var HLSRenderer = class {
     return video.canPlayType("application/vnd.apple.mpegurl") !== "";
   }
   async initNative() {
-    const HTML5Renderer = (await import("./vidply.HTML5Renderer-2HOPIMWV.js")).HTML5Renderer;
+    const HTML5Renderer = (await import("./vidply.HTML5Renderer-Z6XYGT4E.js")).HTML5Renderer;
     const renderer = new HTML5Renderer(this.player);
     await renderer.init();
     Object.getOwnPropertyNames(Object.getPrototypeOf(renderer)).forEach((method) => {
@@ -395,4 +395,4 @@ var HLSRenderer = class {
 export {
   HLSRenderer
 };
-//# sourceMappingURL=vidply.HLSRenderer-2R5BIV7K.js.map
+//# sourceMappingURL=vidply.HLSRenderer-RTJ6NSB3.js.map

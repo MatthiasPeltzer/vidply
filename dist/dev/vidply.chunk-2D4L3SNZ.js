@@ -17,6 +17,9 @@ var HTML5Renderer = class {
     this.attachEvents();
     if (this.player.options.deferLoad) {
       this.media.preload = this.player.options.preload || "none";
+      if (this.player.options.preload === "metadata") {
+        this.media.load();
+      }
     } else {
       this.media.preload = this.player.options.preload;
       this.media.load();
@@ -287,4 +290,4 @@ var HTML5Renderer = class {
 export {
   HTML5Renderer
 };
-//# sourceMappingURL=vidply.chunk-2M4DV6KY.js.map
+//# sourceMappingURL=vidply.chunk-2D4L3SNZ.js.map

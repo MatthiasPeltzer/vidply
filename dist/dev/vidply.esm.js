@@ -8,7 +8,7 @@ import {
 } from "./vidply.chunk-7TDF7KK7.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-2M4DV6KY.js";
+} from "./vidply.chunk-2D4L3SNZ.js";
 import {
   CaptionManager,
   debounce,
@@ -4310,7 +4310,7 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.VimeoRenderer-SLEBCZTT.js");
       rendererClass = module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-2R5BIV7K.js");
+      const module = await import("./vidply.HLSRenderer-RTJ6NSB3.js");
       rendererClass = module.HLSRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-HCMKXHSX.js");
@@ -4780,7 +4780,9 @@ var Player = class _Player extends EventEmitter {
     }
   }
   seekForward(interval = this.options.seekInterval) {
-    this.seek(Math.min(this.state.currentTime + interval, this.state.duration));
+    const targetTime = this.state.currentTime + interval;
+    const seekTime = this.state.duration > 0 ? Math.min(targetTime, this.state.duration) : targetTime;
+    this.seek(seekTime);
   }
   seekBackward(interval = this.options.seekInterval) {
     this.seek(Math.max(this.state.currentTime - interval, 0));

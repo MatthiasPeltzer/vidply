@@ -5,8 +5,8 @@
  */
 import {
   HTML5Renderer
-} from "./vidply.chunk-2M4DV6KY.js";
+} from "./vidply.chunk-2D4L3SNZ.js";
 export {
   HTML5Renderer
 };
-//# sourceMappingURL=vidply.HTML5Renderer-2HOPIMWV.js.map
+//# sourceMappingURL=vidply.HTML5Renderer-Z6XYGT4E.js.map
