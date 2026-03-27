@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="VidPly video playlist demo featuring multiple videos with captions, chapters, thumbnails, track navigation, and auto-advance functionality.">
+    <title>VidPly - Single Video</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../dist/vidply.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #444444 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            margin: 0 auto;
+            max-width: 1000px;
+        }
+
+        nav {
+            margin-bottom: 20px;
+        }
+
+        .back-link {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: white;
+            display: inline-block;
+            padding: 8px 16px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .back-link:focus {
+            outline: 3px solid white;
+            outline-offset: 4px;
+        }
+
+        header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            align-items: center;
+            background: linear-gradient(135deg, #0a406e 0%, #6BA4EE 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            display: flex;
+            font-size: 56px;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h1 a {
+            align-items: center;
+            background: linear-gradient(135deg, #0a406e 0%, #6BA4EE 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: #6BA4EE;
+            display: flex;
+            font-size: 56px;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+            text-decoration: none;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .related-demo {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .demo-link {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            color: #0a406e;
+            display: inline-block;
+            font-weight: 600;
+            padding: 10px 24px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .demo-link:hover {
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+
+        .demo-link:focus {
+            outline: 3px solid white;
+            outline-offset: 4px;
+        }
+
+        .demo-link[href="playlist-mixed.html"] {
+            margin-bottom: 8px;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .player-wrapper {
+            background: #444;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: visible;
+        }
+
+        section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #000;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+
+        p {
+            color: #000;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        ul {
+            color: #000;
+            line-height: 1.8;
+            margin-left: 20px;
+        }
+
+        li {
+            margin: 6px 0;
+        }
+
+        code {
+            background: #f4f4f4;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            padding: 2px 6px;
+        }
+
+        .sr-only {
+            border: 0;
+            clip: rect(0, 0, 0, 0);
+            height: 1px;
+            margin: -1px;
+            overflow: hidden;
+            padding: 0;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+
+        footer {
+            color: #ffffff;
+            margin-top: 60px;
+            opacity: 0.8;
+            text-align: center;
+        }
+
+        footer p {
+            color: #ffffff;
+            margin: 8px 0;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                flex-direction: column;
+                font-size: 2rem;
+            }
+
+            h1 a {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <nav aria-label="Breadcrumb">
+        <a href="demo.html" class="back-link">← Back to Main Demo</a>
+    </nav>
+
+    <header>
+
+        <h1>
+            <a href="index.html"><img src="../favicon.svg" width="48" height="48" alt="" aria-hidden="true"/>
+                <span>VidPly - Single Video</span></a>
+        </h1>
+
+    </header>
+
+    <main>
+        <!-- Audio Demo 3: Everyday Life -->
+        <section aria-labelledby="demo-everyday">
+            <h2 id="demo-everyday">Audio Player - Simple Audio</h2>
+            <p>Lightweight audio player demonstrating straightforward MP3/OGG playback with VidPly defaults.</p>
+
+            <figure>
+                <audio
+                        id="everyday-audio"
+                        data-vidply
+                        data-vidply-options='{"speedButton": false}'
+                >
+                    <source src="media/everyday.mp3" type="audio/mpeg">
+                    <source src="media/everyday.ogg" type="audio/ogg">
+                </audio>
+                <figcaption>Simple audio playback without additional features</figcaption>
+            </figure>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2026 VidPly - Built with Vanilla JavaScript</p>
+        <p>Released under GPL-2.0-or-later License</p>
+    </footer>
+</div>
+
+<script type="module">
+    import { Player, PlaylistManager } from '../dist/prod/vidply.esm.min.js';
+
+    console.log('Starting video player initialization...');
+
+    const hostElement = document.querySelector('#wwa-video');
+    if (!hostElement) {
+        console.error('VidPly demo: video element #wwa-video not found.');
+        throw new Error('VidPly demo: video element #wwa-video not found.');
+    }
+
+    const parseDataAttributes = (dataset) => {
+        const options = {};
+        const attributeMap = {
+            signLanguageSrc: 'signLanguageSrc',
+            signLanguageButton: 'signLanguageButton',
+            signLanguagePosition: 'signLanguagePosition',
+            audioDescriptionSrc: 'audioDescriptionSrc',
+            audioDescriptionButton: 'audioDescriptionButton',
+            autoplay: 'autoplay',
+            loop: 'loop',
+            muted: 'muted',
+            controls: 'controls',
+            poster: 'poster',
+            width: 'width',
+            height: 'height',
+            language: 'language',
+            captions: 'captions',
+            captionsDefault: 'captionsDefault',
+            transcript: 'transcript',
+            transcriptButton: 'transcriptButton',
+            keyboard: 'keyboard',
+            responsive: 'responsive',
+            pipButton: 'pipButton',
+            fullscreenButton: 'fullscreenButton'
+        };
+        Object.keys(attributeMap).forEach((dataKey) => {
+            const optionKey = attributeMap[dataKey];
+            const value = dataset[dataKey];
+            if (value !== undefined) {
+                if (value === 'true') {
+                    options[optionKey] = true;
+                } else if (value === 'false') {
+                    options[optionKey] = false;
+                } else if (!isNaN(value) && value !== '') {
+                    options[optionKey] = Number(value);
+                } else {
+                    options[optionKey] = value;
+                }
+            }
+        });
+
+        const signLanguageSources = {};
+        Object.keys(dataset).forEach((key) => {
+            if (key.startsWith('signLanguageSrc') && key !== 'signLanguageSrc') {
+                const langMatch = key.match(/^signLanguageSrc([A-Z][a-z]*)$/);
+                if (langMatch) {
+                    const langCode = langMatch[1].toLowerCase();
+                    signLanguageSources[langCode] = dataset[key];
+                }
+            }
+        });
+        if (Object.keys(signLanguageSources).length > 0) {
+            options.signLanguageSources = signLanguageSources;
+            if (dataset.signLanguageSrc && !options.signLanguageSrc) {
+                options.signLanguageSrc = dataset.signLanguageSrc;
+            }
+        }
+
+        return options;
+    };
+
+    // Create player instance
+    let parsedOptions = {};
+    try {
+        parsedOptions = hostElement.dataset.vidplyOptions ? JSON.parse(hostElement.dataset.vidplyOptions) : {};
+    } catch (e) {
+        console.warn('Invalid JSON in data-vidply-options:', e);
+    }
+    const dataOptions = parseDataAttributes(hostElement.dataset);
+    const mergedOptions = { ...dataOptions, ...parsedOptions };
+
+    const player = new Player(hostElement, {
+        mediaType: 'video',
+        ...mergedOptions
+    });
+
+    console.log('Video player created:', player);
+
+    let playlist;
+
+    // Only create playlist if data-playlist attribute exists with tracks
+    player.on('ready', () => {
+        const playlistData = hostElement.getAttribute('data-playlist');
+        if (!playlistData) {
+            console.log('Single video mode - no playlist');
+            return;
+        }
+        
+        const tracks = JSON.parse(playlistData);
+        if (!tracks || tracks.length === 0) {
+            console.log('Single video mode - empty playlist');
+            return;
+        }
+
+        const playlistOptions = {
+            autoAdvance: hostElement.getAttribute('data-playlist-auto-advance') !== 'false',
+            autoPlayFirst: hostElement.getAttribute('data-playlist-auto-play-first') !== 'false',
+            loop: hostElement.getAttribute('data-playlist-loop') === 'true',
+            showPanel: hostElement.getAttribute('data-playlist-show-panel') !== 'false',
+            tracks
+        };
+
+        playlist = new PlaylistManager(player, playlistOptions);
+        console.log('Video playlist initialized with', tracks.length, 'tracks');
+
+        // Listen for video changes
+        player.on('playlisttrackchange', (e) => {
+            console.log(`Now playing: ${e.item.title}`);
+            document.title = `${e.item.title} - VidPly Video Playlist`;
+        });
+
+        // Add keyboard shortcuts for playlist navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (!playlist) return;
+
+            if (e.shiftKey) {
+                if (e.key === 'N' || e.key === 'n') {
+                    playlist.next();
+                    e.preventDefault();
+                } else if (e.key === 'P' || e.key === 'p') {
+                    playlist.previous();
+                    e.preventDefault();
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>
