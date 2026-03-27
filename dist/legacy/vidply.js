@@ -11934,6 +11934,9 @@
       if (promises.length > 0) {
         await Promise.all(promises);
       }
+      if (this.audioDescriptionManager) {
+        this.audioDescriptionManager.initFromSourceElements(this.sourceElements, this.trackElements);
+      }
     }
     /**
      * Detect language from HTML lang attribute

@@ -362,7 +362,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 243911,
+      "bytes": 244076,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -679,7 +679,7 @@
           "bytesInOutput": 6807
         },
         "src/core/Player.js": {
-          "bytesInOutput": 159187
+          "bytesInOutput": 159333
         },
         "src/features/PlaylistManager.js": {
           "bytesInOutput": 42955
@@ -688,7 +688,7 @@
           "bytesInOutput": 5260
         }
       },
-      "bytes": 333786
+      "bytes": 333932
     },
     "dist/prod/vidply.chunk-AK4IZ5DH.min.js": {
       "imports": [
