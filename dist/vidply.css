@@ -2020,7 +2020,7 @@ video[data-vidply]:not(.vidply-initialized) {
     left: 50%;
     position: absolute;
     top: -0.75rem;
-    transform: translateX(-50%);
+    transform: translateX(-51%);
     width: 1.5rem; /* WCAG 2.2 SC 2.5.8 – 24px minimum target */
 }
 
@@ -2125,7 +2125,7 @@ video[data-vidply]:not(.vidply-initialized) {
     min-width: unset;
     overflow-x: hidden;
     overflow-y: hidden;
-    padding: 1rem 0.75rem;
+    padding: 1rem 0.25rem;
     pointer-events: auto; /* Ensure volume menu is touchable */
     right: 50%;
     transform: translateX(50%);
