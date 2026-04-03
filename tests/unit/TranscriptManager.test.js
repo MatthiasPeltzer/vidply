@@ -117,6 +117,7 @@ describe('TranscriptManager', () => {
       on: vi.fn(),
       emit: vi.fn(),
       pause: vi.fn(),
+      invalidateTrackCache: vi.fn(),
       setManagedTimeout: vi.fn((cb) => { cb(); return 1; }),
       clearManagedTimeout: vi.fn()
     };
@@ -536,7 +537,8 @@ describe('TranscriptManager', () => {
     it('should show existing window if already created', () => {
       manager.transcriptWindow = document.createElement('div');
       manager.transcriptWindow.style.display = 'none';
-      
+      manager.transcriptContent = document.createElement('div');
+
       manager.showTranscript();
       
       expect(manager.transcriptWindow.style.display).toBe('flex');

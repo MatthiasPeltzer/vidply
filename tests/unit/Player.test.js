@@ -133,6 +133,7 @@ vi.mock('../../src/utils/FormUtils.js', () => ({
 
 vi.mock('../../src/utils/PerformanceUtils.js', () => ({
   debounce: vi.fn((fn) => fn),
+  throttle: vi.fn((fn) => fn),
   isMobile: vi.fn().mockReturnValue(false),
   rafWithTimeout: vi.fn((fn) => fn())
 }));
@@ -686,7 +687,12 @@ describe('Player', () => {
   describe('audio description methods', () => {
     it('enableAudioDescription should call audioDescriptionManager.enable', async () => {
       player = new Player(videoElement);
-      
+      player.audioDescriptionManager = {
+        enable: vi.fn().mockResolvedValue(),
+        disable: vi.fn().mockResolvedValue(),
+        toggle: vi.fn().mockResolvedValue()
+      };
+
       await player.enableAudioDescription();
       
       expect(player.audioDescriptionManager.enable).toHaveBeenCalled();
@@ -694,7 +700,12 @@ describe('Player', () => {
 
     it('disableAudioDescription should call audioDescriptionManager.disable', async () => {
       player = new Player(videoElement);
-      
+      player.audioDescriptionManager = {
+        enable: vi.fn().mockResolvedValue(),
+        disable: vi.fn().mockResolvedValue(),
+        toggle: vi.fn().mockResolvedValue()
+      };
+
       await player.disableAudioDescription();
       
       expect(player.audioDescriptionManager.disable).toHaveBeenCalled();
@@ -702,7 +713,12 @@ describe('Player', () => {
 
     it('toggleAudioDescription should call audioDescriptionManager.toggle', async () => {
       player = new Player(videoElement);
-      
+      player.audioDescriptionManager = {
+        enable: vi.fn().mockResolvedValue(),
+        disable: vi.fn().mockResolvedValue(),
+        toggle: vi.fn().mockResolvedValue()
+      };
+
       await player.toggleAudioDescription();
       
       expect(player.audioDescriptionManager.toggle).toHaveBeenCalled();
@@ -710,27 +726,42 @@ describe('Player', () => {
   });
 
   describe('sign language methods', () => {
-    it('enableSignLanguage should call signLanguageManager.enable', () => {
+    it('enableSignLanguage should call signLanguageManager.enable', async () => {
       player = new Player(videoElement);
-      
-      player.enableSignLanguage();
-      
+      player.signLanguageManager = {
+        enable: vi.fn(),
+        disable: vi.fn(),
+        toggle: vi.fn()
+      };
+
+      await player.enableSignLanguage();
+
       expect(player.signLanguageManager.enable).toHaveBeenCalled();
     });
 
-    it('disableSignLanguage should call signLanguageManager.disable', () => {
+    it('disableSignLanguage should call signLanguageManager.disable', async () => {
       player = new Player(videoElement);
-      
-      player.disableSignLanguage();
-      
+      player.signLanguageManager = {
+        enable: vi.fn(),
+        disable: vi.fn(),
+        toggle: vi.fn()
+      };
+
+      await player.disableSignLanguage();
+
       expect(player.signLanguageManager.disable).toHaveBeenCalled();
     });
 
-    it('toggleSignLanguage should call signLanguageManager.toggle', () => {
+    it('toggleSignLanguage should call signLanguageManager.toggle', async () => {
       player = new Player(videoElement);
-      
-      player.toggleSignLanguage();
-      
+      player.signLanguageManager = {
+        enable: vi.fn(),
+        disable: vi.fn(),
+        toggle: vi.fn()
+      };
+
+      await player.toggleSignLanguage();
+
       expect(player.signLanguageManager.toggle).toHaveBeenCalled();
     });
   });

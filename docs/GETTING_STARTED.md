@@ -574,7 +574,7 @@ const player = new Player('#video', {
 
 ## Accessibility
 
-VidPly is WCAG 2.1 AA compliant out of the box:
+VidPly is WCAG 2.2 AA compliant out of the box:
 
 - Full keyboard navigation
 - Screen reader support

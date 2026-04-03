@@ -5,6 +5,28 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.44] - 2026-04-03
+
+### Changed
+- **WCAG 2.2 AA Compliance**: Upgraded accessibility target from WCAG 2.1 AA to WCAG 2.2 AA
+
+### Fixed
+- **Target Size (WCAG 2.2 SC 2.5.8)**: Ensured all interactive targets meet the 24×24 CSS px minimum
+  - Progress bar: Added transparent `::before` hit area (9px visual → 24px target)
+  - Progress handle: Increased from 15px to 24px
+  - Volume slider: Expanded horizontal padding for 24px touch target
+  - Volume handle: Increased from 10px to 24px
+  - Resize handles (corners): Increased from 16px to 24px
+  - Resize handles (edges): Increased from 8px to 24px on narrow axis
+- **Dragging Movements (WCAG 2.2 SC 2.5.7)**: Verified all drag operations have single-pointer non-drag alternatives
+  - Transcript/Sign Language windows: Keyboard D/R/Home/Esc + settings menu toggles
+  - Progress bar: Click-to-seek + keyboard arrow keys
+  - Volume slider: Click-to-set + keyboard Up/Down arrows
+  - Playlist carousel: Native CSS scroll + Previous/Next buttons
+
+### Documentation
+- Updated WCAG compliance references from 2.1 to 2.2 in README, Users Guide, and Getting Started guide
+
 ## [1.0.40] - 2026-02-21
 
 ### Added

@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Playback Speed', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
@@ -70,7 +70,7 @@ test.describe('Playback Speed', () => {
 
 test.describe('Caption Styling', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
@@ -100,7 +100,7 @@ test.describe('Caption Styling', () => {
 
 test.describe('Seek Controls', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
@@ -164,7 +164,7 @@ test.describe('Seek Controls', () => {
 
 test.describe('Progress Bar Interaction', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
@@ -208,7 +208,7 @@ test.describe('Progress Bar Interaction', () => {
 
 test.describe('Overflow Menu', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
@@ -247,7 +247,7 @@ test.describe('Overflow Menu', () => {
 
 test.describe('Picture-in-Picture', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
@@ -263,7 +263,7 @@ test.describe('Picture-in-Picture', () => {
 
 test.describe('Quality Selection', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
@@ -279,7 +279,7 @@ test.describe('Quality Selection', () => {
 
 test.describe('Fullscreen Behavior', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
@@ -321,7 +321,7 @@ test.describe('Fullscreen Behavior', () => {
 
 test.describe('Video Poster', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
