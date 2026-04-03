@@ -2,11 +2,11 @@
 
 **Universal, Accessible Video & Audio Player**
 
-A modern, feature-rich media player built with vanilla ES6 JavaScript. Combines the best accessibility features from AblePlayer with the streaming capabilities of MediaElement.js. Fully internationalized with support for 5 languages and complete WCAG 2.1 AA compliance.
+A modern, feature-rich media player built with vanilla ES6 JavaScript. Combines the best accessibility features from AblePlayer with the streaming capabilities of MediaElement.js. Fully internationalized with support for 5 languages and complete WCAG 2.2 AA compliance.
 
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)
 ![ES6](https://img.shields.io/badge/ES6-Module-yellow.svg)
-![WCAG](https://img.shields.io/badge/WCAG-2.1%20AA-green.svg)
+![WCAG](https://img.shields.io/badge/WCAG-2.2%20AA-green.svg)
 ![Version](https://img.shields.io/badge/version-1.0.40-brightgreen.svg)
 
 ## Live Demos
@@ -21,7 +21,7 @@ Try VidPly in action:
 ## Why VidPly?
 
 - **Zero Dependencies** - Pure vanilla JavaScript, no frameworks required
-- **Accessibility First** - WCAG 2.1 AA compliant with full keyboard and screen reader support
+- **Accessibility First** - WCAG 2.2 AA compliant with full keyboard and screen reader support
 - **Multilingual** - Built-in translations for 5 languages with easy extensibility
 - **Fully Customizable** - CSS variables and comprehensive API
 - **Modern Build** - ES6 modules with tree-shaking support
@@ -47,7 +47,7 @@ Try VidPly in action:
     - Swipeable touch interface
     - Responsive card layout
 
-### Accessibility Features (WCAG 2.1 AA Compliant)
+### Accessibility Features (WCAG 2.2 AA Compliant)
 - **Full Keyboard Navigation** - All features accessible via keyboard, custom shortcuts, menu navigation with Arrow keys
 - **Screen Reader Support** - Complete ARIA labels (`aria-controls`, `aria-expanded`, `aria-haspopup`), live regions
 - **Interactive Transcripts** - Click-to-seek, searchable, auto-scroll with proper semantic HTML

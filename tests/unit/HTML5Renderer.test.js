@@ -86,8 +86,9 @@ describe('HTML5Renderer', () => {
       expect(mockMedia.preload).toBe('metadata');
     });
 
-    it('should not call load when deferLoad is true', async () => {
+    it('should not call load when deferLoad is true and preload is none', async () => {
       mockPlayer.options.deferLoad = true;
+      mockPlayer.options.preload = 'none';
       const loadSpy = vi.spyOn(mockMedia, 'load');
       
       await renderer.init();

@@ -16,7 +16,7 @@ VidPly is a universal, accessible media player supporting:
 | **Vimeo** | Embedded with unified controls |
 | **HLS** | Adaptive bitrate streaming |
 | **Playlists** | Audio, video & mixed media with thumbnails |
-| **Accessibility** | WCAG 2.1 AA compliant |
+| **Accessibility** | WCAG 2.2 AA compliant |
 | **Languages** | EN, ES, FR, DE, JA + custom |
 
 ---

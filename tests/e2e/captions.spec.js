@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Captions', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
@@ -75,7 +75,7 @@ test.describe('Captions', () => {
 
 test.describe('Chapters', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
@@ -129,7 +129,7 @@ test.describe('Chapters', () => {
 
 test.describe('Transcript', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
@@ -182,7 +182,7 @@ test.describe('Transcript', () => {
 
 test.describe('Sign Language', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
@@ -217,7 +217,7 @@ test.describe('Sign Language', () => {
 
 test.describe('Audio Description', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo/single-player.html');
+    await page.goto('/demo/single-player-video.html');
     await page.waitForSelector('.vidply-player', { timeout: 15000 });
   });
 
