@@ -49,11 +49,11 @@ const terserOptionsLegacy = {
   ...terserOptions,
   compress: {
     ...terserOptions.compress,
-    ecma: 2017
+    ecma: 2020
   },
   format: {
     ...terserOptions.format,
-    ecma: 2017
+    ecma: 2020
   },
   module: false
 };
@@ -163,8 +163,12 @@ async function buildAll() {
         minify: false, // We'll use Terser for minification instead
         sourcemap: !config.minify,
         target: config.legacy
-          ? ['es2017', 'chrome60', 'firefox60', 'safari12', 'edge79']
+          ? ['es2020', 'chrome80', 'firefox78', 'safari14', 'edge88']
           : ['es2022', 'chrome100', 'firefox100', 'safari15', 'edge100'],
+        // Destructuring is natively supported in all targeted browsers (ES2015+).
+        // Explicitly disable esbuild's attempt to lower it (esbuild 0.25+ errors
+        // instead of silently passing through patterns it cannot fully transform).
+        ...(config.legacy ? { supported: { destructuring: true } } : {}),
         charset: 'utf8',
         banner: {
           js: banner
