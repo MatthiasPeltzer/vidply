@@ -198,13 +198,7 @@
     },
     "src/utils/DraggableResizable.js": {
       "bytes": 29165,
-      "imports": [
-        {
-          "path": "<runtime>",
-          "kind": "import-statement",
-          "external": true
-        }
-      ],
+      "imports": [],
       "format": "esm"
     },
     "src/utils/MenuUtils.js": {
@@ -511,11 +505,6 @@
           "path": "src/utils/TimeUtils.js",
           "kind": "import-statement",
           "original": "../utils/TimeUtils.js"
-        },
-        {
-          "path": "<runtime>",
-          "kind": "import-statement",
-          "external": true
         }
       ],
       "format": "esm"
@@ -532,11 +521,6 @@
           "path": "src/features/PlaylistManager.js",
           "kind": "import-statement",
           "original": "./features/PlaylistManager.js"
-        },
-        {
-          "path": "<runtime>",
-          "kind": "import-statement",
-          "external": true
         }
       ],
       "format": "esm"
@@ -549,7 +533,7 @@
       "entryPoint": "src/index.js",
       "inputs": {
         "src/utils/DOMUtils.js": {
-          "bytesInOutput": 8266
+          "bytesInOutput": 8185
         },
         "src/i18n/languages/en.js": {
           "bytesInOutput": 8813
@@ -570,13 +554,13 @@
           "bytesInOutput": 874
         },
         "src/i18n/i18n.js": {
-          "bytesInOutput": 6103
+          "bytesInOutput": 6057
         },
         "src/utils/TimeUtils.js": {
-          "bytesInOutput": 2485
+          "bytesInOutput": 2443
         },
         "src/icons/Icons.js": {
-          "bytesInOutput": 12013
+          "bytesInOutput": 11981
         },
         "src/utils/FocusUtils.js": {
           "bytesInOutput": 592
@@ -585,67 +569,67 @@
           "bytesInOutput": 968
         },
         "src/utils/StorageManager.js": {
-          "bytesInOutput": 6627
+          "bytesInOutput": 6611
         },
         "src/controls/CaptionManager.js": {
-          "bytesInOutput": 14845
+          "bytesInOutput": 14699
         },
         "src/renderers/HTML5Renderer.js": {
-          "bytesInOutput": 11222
+          "bytesInOutput": 11200
         },
         "src/utils/DraggableResizable.js": {
-          "bytesInOutput": 29150
+          "bytesInOutput": 28870
         },
         "src/utils/MenuUtils.js": {
-          "bytesInOutput": 4663
+          "bytesInOutput": 4653
         },
         "src/utils/FormUtils.js": {
           "bytesInOutput": 1633
         },
         "src/core/AudioDescriptionManager.js": {
-          "bytesInOutput": 23327
+          "bytesInOutput": 23273
         },
         "src/core/SignLanguageManager.js": {
-          "bytesInOutput": 50948
+          "bytesInOutput": 50576
         },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 80113
+          "bytesInOutput": 79097
         },
         "src/renderers/YouTubeRenderer.js": {
-          "bytesInOutput": 8334
+          "bytesInOutput": 8328
         },
         "src/renderers/VimeoRenderer.js": {
-          "bytesInOutput": 8147
+          "bytesInOutput": 8135
         },
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 15745
+          "bytesInOutput": 15655
         },
         "src/renderers/SoundCloudRenderer.js": {
-          "bytesInOutput": 10468
+          "bytesInOutput": 10450
         },
         "src/utils/EventEmitter.js": {
           "bytesInOutput": 958
         },
         "src/core/Player.js": {
-          "bytesInOutput": 170981
+          "bytesInOutput": 170019
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 124217
+          "bytesInOutput": 122327
         },
         "src/utils/VideoFrameCapture.js": {
           "bytesInOutput": 2634
         },
         "src/controls/KeyboardManager.js": {
-          "bytesInOutput": 7443
+          "bytesInOutput": 7407
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 46262
+          "bytesInOutput": 46031
         },
         "src/index.js": {
-          "bytesInOutput": 5600
+          "bytesInOutput": 5574
         }
       },
-      "bytes": 706400
+      "bytes": 700498
     }
   }
 }

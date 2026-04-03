@@ -6,21 +6,7 @@
 (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropNames = Object.getOwnPropertyNames;
-  var __getOwnPropSymbols = Object.getOwnPropertySymbols;
-  var __hasOwnProp = Object.prototype.hasOwnProperty;
-  var __propIsEnum = Object.prototype.propertyIsEnumerable;
   var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-  var __spreadValues = (a, b) => {
-    for (var prop in b || (b = {}))
-      if (__hasOwnProp.call(b, prop))
-        __defNormalProp(a, prop, b[prop]);
-    if (__getOwnPropSymbols)
-      for (var prop of __getOwnPropSymbols(b)) {
-        if (__propIsEnum.call(b, prop))
-          __defNormalProp(a, prop, b[prop]);
-      }
-    return a;
-  };
   var __esm = (fn, res) => function __init() {
     return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
   };
@@ -91,7 +77,7 @@
           if (!element) return;
           element.style.opacity = "0";
           element.style.display = "";
-          element.style.transition = "opacity ".concat(duration, "ms ease");
+          element.style.transition = `opacity ${duration}ms ease`;
           element.offsetHeight;
           element.style.opacity = "1";
           if (onComplete) {
@@ -111,7 +97,7 @@
          */
         fadeOut(element, duration = 300, onComplete) {
           if (!element) return;
-          element.style.transition = "opacity ".concat(duration, "ms ease");
+          element.style.transition = `opacity ${duration}ms ease`;
           element.style.opacity = "0";
           const cleanup = () => {
             element.removeEventListener("transitionend", cleanup);
@@ -171,7 +157,7 @@
          */
         createTooltip(text, classPrefix = "vidply") {
           return this.createElement("span", {
-            className: "".concat(classPrefix, "-tooltip"),
+            className: `${classPrefix}-tooltip`,
             textContent: text,
             attributes: { "aria-hidden": "true" }
           });
@@ -185,10 +171,10 @@
         attachTooltip(element, text, classPrefix = "vidply") {
           var _a;
           if (!element || !text) return;
-          (_a = element.querySelector(".".concat(classPrefix, "-tooltip"))) == null ? void 0 : _a.remove();
+          (_a = element.querySelector(`.${classPrefix}-tooltip`)) == null ? void 0 : _a.remove();
           const tooltip = this.createTooltip(text, classPrefix);
           element.appendChild(tooltip);
-          const visibleClass = "".concat(classPrefix, "-tooltip-visible");
+          const visibleClass = `${classPrefix}-tooltip-visible`;
           const show = () => tooltip.classList.add(visibleClass);
           const hide = () => tooltip.classList.remove(visibleClass);
           element.addEventListener("mouseenter", show);
@@ -204,7 +190,7 @@
          */
         createButtonText(text, classPrefix = "vidply") {
           return this.createElement("span", {
-            className: "".concat(classPrefix, "-button-text"),
+            className: `${classPrefix}-button-text`,
             textContent: text,
             attributes: { "aria-hidden": "true" }
           });
@@ -243,8 +229,8 @@
          * @returns {boolean}
          */
         hasClass(element, className) {
-          var _a, _b;
-          return (_b = (_a = element == null ? void 0 : element.classList) == null ? void 0 : _a.contains(className)) != null ? _b : false;
+          var _a;
+          return ((_a = element == null ? void 0 : element.classList) == null ? void 0 : _a.contains(className)) ?? false;
         }
       };
     }
@@ -1270,7 +1256,7 @@
           if (this.translations[lang]) {
             this.currentLanguage = lang;
           } else {
-            console.warn('Language "'.concat(lang, '" not found, falling back to English'));
+            console.warn(`Language "${lang}" not found, falling back to English`);
             this.currentLanguage = "en";
           }
         }
@@ -1302,7 +1288,7 @@
                 this.translations[normalizedLang] = loaded;
               }
             } catch (error) {
-              console.warn('Language "'.concat(normalizedLang, '" failed to load:'), error);
+              console.warn(`Language "${normalizedLang}" failed to load:`, error);
             } finally {
               this.loadingPromises.delete(normalizedLang);
             }
@@ -1331,7 +1317,7 @@
           }
           if (typeof value === "string") {
             Object.entries(replacements).forEach(([placeholder, replacement]) => {
-              value = value.replace(new RegExp("{".concat(placeholder, "}"), "g"), replacement);
+              value = value.replace(new RegExp(`{${placeholder}}`, "g"), replacement);
             });
           }
           return value;
@@ -1356,7 +1342,7 @@
             try {
               const response = await fetch(url);
               if (!response.ok) {
-                throw new Error("Failed to load language file: ".concat(response.statusText));
+                throw new Error(`Failed to load language file: ${response.statusText}`);
               }
               const contentType = response.headers.get("content-type") || "";
               let translations2;
@@ -1381,7 +1367,7 @@
               this.addTranslation(langCode, translations2);
               return translations2;
             } catch (error) {
-              console.error("Error loading language file from ".concat(url, ":"), error);
+              console.error(`Error loading language file from ${url}:`, error);
               throw error;
             } finally {
               this.loadingPromises.delete(url);
@@ -1424,9 +1410,9 @@
           const secs = Math.floor(seconds % 60);
           const pad = (num) => String(num).padStart(2, "0");
           if (hours > 0 || alwaysShowHours) {
-            return "".concat(pad(hours), ":").concat(pad(minutes), ":").concat(pad(secs));
+            return `${pad(hours)}:${pad(minutes)}:${pad(secs)}`;
           }
-          return "".concat(pad(minutes), ":").concat(pad(secs));
+          return `${pad(minutes)}:${pad(secs)}`;
         },
         /**
          * Parse time string to seconds
@@ -1484,7 +1470,7 @@
   }
   function createIconElement(name, className = "") {
     const wrapper = document.createElement("span");
-    wrapper.className = "vidply-icon ".concat(className).trim();
+    wrapper.className = `vidply-icon ${className}`.trim();
     wrapper.innerHTML = getIcon(name);
     wrapper.setAttribute("aria-hidden", "true");
     return wrapper;
@@ -1499,7 +1485,7 @@
     svg.setAttribute("role", "presentation");
     svg.style.cursor = "pointer";
     const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-    const filterId = "vidply-play-shadow-".concat(Math.random().toString(36).substr(2, 9));
+    const filterId = `vidply-play-shadow-${Math.random().toString(36).substr(2, 9)}`;
     const filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
     filter.setAttribute("id", filterId);
     filter.setAttribute("x", "-50%");
@@ -1535,7 +1521,7 @@
     circle.setAttribute("cy", "40");
     circle.setAttribute("r", "40");
     circle.setAttribute("fill", "rgba(255, 255, 255, 0.95)");
-    circle.setAttribute("filter", "url(#".concat(filterId, ")"));
+    circle.setAttribute("filter", `url(#${filterId})`);
     circle.setAttribute("class", "vidply-play-overlay-bg");
     svg.appendChild(circle);
     const playTriangle = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
@@ -1549,46 +1535,46 @@
   var init_Icons = __esm({
     "src/icons/Icons.js"() {
       iconPaths = {
-        play: '<path d="M8 5v14l11-7z"/>',
-        pause: '<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>',
-        stop: '<rect x="6" y="6" width="12" height="12"/>',
-        rewind: '<path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/>',
-        forward: '<path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>',
-        skipPrevious: '<path d="M6 6h2v12H6V6zm3 6l8.5 6V6L9 12z"/>',
-        skipNext: '<path d="M16 6h2v12h-2V6zM6 6l8.5 6L6 18V6z"/>',
-        restart: '<path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>',
-        volumeHigh: '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>',
-        volumeMedium: '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>',
-        volumeLow: '<path d="M7 9v6h4l5 5V4l-5 5H7z"/>',
-        volumeMuted: '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>',
-        fullscreen: '<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>',
-        fullscreenExit: '<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>',
-        settings: '<path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>',
-        captions: '<path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1z"/>',
-        captionsOff: '<path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1z"/><path d="M0 0h24v24H0z" fill="none"/>',
-        pip: '<path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 1.98 2 1.98h18c1.1 0 2-.88 2-1.98V5c0-1.1-.9-2-2-2zm0 16.01H3V4.98h18v14.03z"/>',
-        speed: '<path d="M20.38 8.57l-1.23 1.85a8 8 0 0 1-.22 7.58H5.07A8 8 0 0 1 15.58 6.85l1.85-1.23A10 10 0 0 0 3.35 19a2 2 0 0 0 1.72 1h13.85a2 2 0 0 0 1.74-1 10 10 0 0 0-.27-10.44z"/><path d="M10.59 15.41a2 2 0 0 0 2.83 0l5.66-8.49-8.49 5.66a2 2 0 0 0 0 2.83z"/>',
-        close: '<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>',
-        check: '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>',
-        loading: '<path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>',
-        error: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>',
-        playlist: '<path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/>',
-        hd: '<path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm7-1c0 .55-.45 1-1 1h-.75v1.5h-1.5V15H14c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v4zm-3.5-.5h2v-3h-2v3z"/>',
-        transcript: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>',
-        chapters: '<path d="M3 5h2v2H3V5zm0 4h2v2H3V9zm0 4h2v2H3v-2zm0 4h2v2H3v-2zM7 5h14v2H7V5zm0 4h14v2H7V9zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/>',
-        audioDescription: '<rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="12" y="14.5" text-anchor="middle" font-size="8" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor">AD</text>',
-        audioDescriptionOn: '<rect x="2" y="5" width="20" height="14" rx="2" fill="currentColor"/><text x="12" y="14.5" text-anchor="middle" font-size="8" font-weight="bold" font-family="Arial, sans-serif" class="vidply-icon-ad-fg">AD</text>',
-        signLanguage: '<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>',
-        signLanguageOn: '<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>',
-        signLanguagePip: '<g transform="scale(1.2) translate(1, 1)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g><polygon points="14,23 23,14 23,23" fill="currentColor"/>',
-        signLanguagePipOn: '<g transform="scale(1.2) translate(1, 1)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g><polygon points="14,23 23,14 23,23" fill="currentColor"/>',
-        music: '<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7zm-1.5 16c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>',
-        moreVertical: '<path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>',
-        move: '<path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/>',
-        resize: '<path d="M21.71 11.29l-9-9c-.39-.39-1.02-.39-1.41 0l-9 9c-.39.39-.39 1.02 0 1.41l9 9c.39.39 1.02.39 1.41 0l9-9c.39-.38.39-1.01 0-1.41zM14 14.5V12h-4v2.5L7 11l3-3.5V10h4V7.5l3 3.5-3 3.5z"/>',
-        clock: '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>'
+        play: `<path d="M8 5v14l11-7z"/>`,
+        pause: `<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>`,
+        stop: `<rect x="6" y="6" width="12" height="12"/>`,
+        rewind: `<path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/>`,
+        forward: `<path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>`,
+        skipPrevious: `<path d="M6 6h2v12H6V6zm3 6l8.5 6V6L9 12z"/>`,
+        skipNext: `<path d="M16 6h2v12h-2V6zM6 6l8.5 6L6 18V6z"/>`,
+        restart: `<path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>`,
+        volumeHigh: `<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>`,
+        volumeMedium: `<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>`,
+        volumeLow: `<path d="M7 9v6h4l5 5V4l-5 5H7z"/>`,
+        volumeMuted: `<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>`,
+        fullscreen: `<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>`,
+        fullscreenExit: `<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>`,
+        settings: `<path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>`,
+        captions: `<path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1z"/>`,
+        captionsOff: `<path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1z"/><path d="M0 0h24v24H0z" fill="none"/>`,
+        pip: `<path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 1.98 2 1.98h18c1.1 0 2-.88 2-1.98V5c0-1.1-.9-2-2-2zm0 16.01H3V4.98h18v14.03z"/>`,
+        speed: `<path d="M20.38 8.57l-1.23 1.85a8 8 0 0 1-.22 7.58H5.07A8 8 0 0 1 15.58 6.85l1.85-1.23A10 10 0 0 0 3.35 19a2 2 0 0 0 1.72 1h13.85a2 2 0 0 0 1.74-1 10 10 0 0 0-.27-10.44z"/><path d="M10.59 15.41a2 2 0 0 0 2.83 0l5.66-8.49-8.49 5.66a2 2 0 0 0 0 2.83z"/>`,
+        close: `<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>`,
+        check: `<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>`,
+        loading: `<path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>`,
+        error: `<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>`,
+        playlist: `<path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/>`,
+        hd: `<path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm7-1c0 .55-.45 1-1 1h-.75v1.5h-1.5V15H14c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v4zm-3.5-.5h2v-3h-2v3z"/>`,
+        transcript: `<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>`,
+        chapters: `<path d="M3 5h2v2H3V5zm0 4h2v2H3V9zm0 4h2v2H3v-2zm0 4h2v2H3v-2zM7 5h14v2H7V5zm0 4h14v2H7V9zm0 4h14v2H7v-2zm0 4h14v2H7v-2z"/>`,
+        audioDescription: `<rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="12" y="14.5" text-anchor="middle" font-size="8" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor">AD</text>`,
+        audioDescriptionOn: `<rect x="2" y="5" width="20" height="14" rx="2" fill="currentColor"/><text x="12" y="14.5" text-anchor="middle" font-size="8" font-weight="bold" font-family="Arial, sans-serif" class="vidply-icon-ad-fg">AD</text>`,
+        signLanguage: `<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>`,
+        signLanguageOn: `<g transform="scale(1.5)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g>`,
+        signLanguagePip: `<g transform="scale(1.2) translate(1, 1)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g><polygon points="14,23 23,14 23,23" fill="currentColor"/>`,
+        signLanguagePipOn: `<g transform="scale(1.2) translate(1, 1)"><path d="M16 11.3c-.1-.9-4.8 1.3-5.4 1.1-2.6-1 5.8-1.3 5.1-2.9s-5.1 1.5-6 1.4C6.5 9.4 16.5 9.1 13.5 8c-1.9-.6-8.8 2.9-6.8.4.7-.6.7-1.9-.7-1.7-9.7 7.2-.7 12.2 8.8 7 0-1.3-3.5.4-4.1.4-2.6 0 5.6-2 5.4-3ZM3.9 7.8c3.2-4.2 3.7 1.2 6 .1s.2-.2.2-.3c.7-2.7 2.5-7.5-1.5-1.3-1.6 0 1.1-4 1-4.6C8.9-1 7.3 4.4 7.2 4.9c-1.6.7-.9-1.4-.7-1.5 3-6-.6-3.1-.9.4-2.5 1.8 0-2.8 0-3.5C2.8-.9 4 9.4 1.1 4.9S.1 4.6 0 5c-.4 2.7 2.6 7.2 3.9 2.8Z"/></g><polygon points="14,23 23,14 23,23" fill="currentColor"/>`,
+        music: `<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7zm-1.5 16c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>`,
+        moreVertical: `<path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>`,
+        move: `<path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/>`,
+        resize: `<path d="M21.71 11.29l-9-9c-.39-.39-1.02-.39-1.41 0l-9 9c-.39.39-.39 1.02 0 1.41l9 9c.39.39 1.02.39 1.41 0l9-9c.39-.38.39-1.01 0-1.41zM14 14.5V12h-4v2.5L7 11l3-3.5V10h4V7.5l3 3.5-3 3.5z"/>`,
+        clock: `<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>`
       };
-      svgWrapper = (paths) => '<svg viewBox="0 0 24 24" fill="currentColor">'.concat(paths, "</svg>");
+      svgWrapper = (paths) => `<svg viewBox="0 0 24 24" fill="currentColor">${paths}</svg>`;
       Icons = Object.fromEntries(
         Object.entries(iconPaths).map(([key, value]) => [key, svgWrapper(value)])
       );
@@ -1685,7 +1671,7 @@
          * Get a namespaced key
          */
         getKey(key) {
-          return "".concat(this.namespace, "_").concat(key);
+          return `${this.namespace}_${key}`;
         }
         /**
          * Save a value to storage
@@ -1906,7 +1892,7 @@
         }
         createElement() {
           this.element = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-captions"),
+            className: `${this.player.options.classPrefix}-captions`,
             attributes: {
               "role": "region",
               "aria-label": i18n.t("player.captions")
@@ -2063,18 +2049,18 @@
               let text = cue.text;
               text = this.parseVTTFormatting(text);
               if (isAudioPlayer) {
-                const existingCues = this.element.querySelectorAll(".".concat(this.player.options.classPrefix, "-caption-cue"));
-                existingCues.forEach((el) => el.classList.remove("".concat(this.player.options.classPrefix, "-caption-active")));
-                const cueId = "cue-".concat(cue.startTime, "-").concat(cue.endTime);
-                let cueElement = this.element.querySelector('[data-cue-id="'.concat(cueId, '"]'));
+                const existingCues = this.element.querySelectorAll(`.${this.player.options.classPrefix}-caption-cue`);
+                existingCues.forEach((el) => el.classList.remove(`${this.player.options.classPrefix}-caption-active`));
+                const cueId = `cue-${cue.startTime}-${cue.endTime}`;
+                let cueElement = this.element.querySelector(`[data-cue-id="${cueId}"]`);
                 if (!cueElement) {
                   cueElement = document.createElement("div");
-                  cueElement.className = "".concat(this.player.options.classPrefix, "-caption-cue");
+                  cueElement.className = `${this.player.options.classPrefix}-caption-cue`;
                   cueElement.setAttribute("data-cue-id", cueId);
                   cueElement.innerHTML = DOMUtils.sanitizeHTML(text);
                   this.element.appendChild(cueElement);
                 }
-                cueElement.classList.add("".concat(this.player.options.classPrefix, "-caption-active"));
+                cueElement.classList.add(`${this.player.options.classPrefix}-caption-active`);
                 requestAnimationFrame(() => {
                   if (cueElement) {
                     cueElement.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -2117,13 +2103,13 @@
             const controlsRect = controls.getBoundingClientRect();
             const wrapperRect = this.player.videoWrapper.getBoundingClientRect();
             const bottomOffset = wrapperRect.bottom - controlsRect.top + 16;
-            this.element.style.bottom = "".concat(bottomOffset, "px");
+            this.element.style.bottom = `${bottomOffset}px`;
             if (this.player.options.debug) {
               console.log("[VidPly] Caption position:", {
                 mobile,
                 isFullscreen,
                 controlsHeight: controlsRect.height,
-                bottomOffset: "".concat(bottomOffset, "px")
+                bottomOffset: `${bottomOffset}px`
               });
             }
           });
@@ -2150,7 +2136,7 @@
         hexToRgba(hex, alpha) {
           const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
           if (result) {
-            return "rgba(".concat(parseInt(result[1], 16), ", ").concat(parseInt(result[2], 16), ", ").concat(parseInt(result[3], 16), ", ").concat(alpha, ")");
+            return `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${alpha})`;
           }
           return hex;
         }
@@ -2196,7 +2182,7 @@
           }
           this.tracks = [];
           this.loadTracks();
-          this.player.log("Caption tracks refreshed, found ".concat(this.tracks.length, " tracks"), "info");
+          this.player.log(`Caption tracks refreshed, found ${this.tracks.length} tracks`, "info");
           if (wasEnabled && currentLanguage && this.tracks.length > 0) {
             const matchingIndex = this.tracks.findIndex((t) => t.language === currentLanguage);
             if (matchingIndex >= 0) {
@@ -2441,7 +2427,7 @@
               width: width ? parseInt(width) : 0,
               src: source.src,
               type: source.type,
-              name: label || (height ? "".concat(height, "p") : "Quality ".concat(index + 1))
+              name: label || (height ? `${height}p` : `Quality ${index + 1}`)
             };
           }).filter((q) => q.height > 0);
         }
@@ -2472,7 +2458,7 @@
             this.player.log("Already at this quality level", "info");
             return;
           }
-          this.player.log("Switching to quality: ".concat(quality.name), "info");
+          this.player.log(`Switching to quality: ${quality.name}`, "info");
           this.media.src = quality.src;
           const onLoadedMetadata = () => {
             this.media.removeEventListener("loadedmetadata", onLoadedMetadata);
@@ -2520,7 +2506,7 @@
       DraggableResizable = class {
         constructor(element, options = {}) {
           this.element = element;
-          this.options = __spreadValues({
+          this.options = {
             dragHandle: null,
             // Element to use as drag handle (defaults to element itself)
             resizeHandles: [],
@@ -2547,8 +2533,10 @@
             classPrefix: "draggable",
             storage: null,
             // StorageManager instance for saving position/size
-            storageKey: null
-          }, options);
+            storageKey: null,
+            // Key for localStorage (if storage is provided)
+            ...options
+          };
           this.isDragging = false;
           this.isResizing = false;
           this.resizeDirection = null;
@@ -2659,7 +2647,7 @@
           var _a, _b;
           if (e.isPrimary === false) return;
           if (e.pointerType === "mouse" && e.button !== 0) return;
-          if (e.target.classList.contains("".concat(this.options.classPrefix, "-resize-handle"))) {
+          if (e.target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
             return;
           }
           if (this.options.onDragStart && !this.options.onDragStart(e)) {
@@ -2669,7 +2657,7 @@
           this.activePointerType = e.pointerType;
           try {
             (_b = (_a = e.currentTarget) == null ? void 0 : _a.setPointerCapture) == null ? void 0 : _b.call(_a, e.pointerId);
-          } catch (e2) {
+          } catch {
           }
           this.startDragging(e.clientX, e.clientY);
           e.preventDefault();
@@ -2695,7 +2683,7 @@
           this.activePointerType = null;
         }
         onMouseDown(e) {
-          if (e.target.classList.contains("".concat(this.options.classPrefix, "-resize-handle"))) {
+          if (e.target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
             return;
           }
           if (this.options.onDragStart && !this.options.onDragStart(e)) {
@@ -2705,7 +2693,7 @@
           e.preventDefault();
         }
         onTouchStart(e) {
-          if (e.target.classList.contains("".concat(this.options.classPrefix, "-resize-handle"))) {
+          if (e.target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
             return;
           }
           if (this.options.onDragStart && !this.options.onDragStart(e)) {
@@ -2727,7 +2715,7 @@
           this.activePointerType = e.pointerType;
           try {
             (_b = (_a = e.currentTarget) == null ? void 0 : _a.setPointerCapture) == null ? void 0 : _b.call(_a, e.pointerId);
-          } catch (e2) {
+          } catch {
           }
           this.startResizing(e.clientX, e.clientY);
         }
@@ -2867,14 +2855,14 @@
               return true;
             }).join("; ");
             if (newCssText) newCssText += "; ";
-            newCssText += "left: ".concat(targetLeft, "px; top: ").concat(targetTop, "px; right: auto; bottom: auto; transform: none");
+            newCssText += `left: ${targetLeft}px; top: ${targetTop}px; right: auto; bottom: auto; transform: none`;
             this.element.style.cssText = newCssText;
           }
           const finalRect = this.element.getBoundingClientRect();
           this.dragOffsetX = clientX - finalRect.left;
           this.dragOffsetY = clientY - finalRect.top;
           this.isDragging = true;
-          this.element.classList.add("".concat(this.options.classPrefix, "-dragging"));
+          this.element.classList.add(`${this.options.classPrefix}-dragging`);
           document.body.style.cursor = "grabbing";
           document.body.style.userSelect = "none";
         }
@@ -2894,15 +2882,15 @@
             newX = Math.max(minX, Math.min(newX, maxX));
             newY = Math.max(minY, Math.min(newY, maxY));
           }
-          this.element.style.left = "".concat(newX, "px");
-          this.element.style.top = "".concat(newY, "px");
+          this.element.style.left = `${newX}px`;
+          this.element.style.top = `${newY}px`;
           if (this.options.onDrag) {
             this.options.onDrag({ x: newX, y: newY });
           }
         }
         stopDragging() {
           this.isDragging = false;
-          this.element.classList.remove("".concat(this.options.classPrefix, "-dragging"));
+          this.element.classList.remove(`${this.options.classPrefix}-dragging`);
           document.body.style.cursor = "";
           document.body.style.userSelect = "";
           this.manuallyPositioned = true;
@@ -2919,7 +2907,7 @@
           this.resizeStartHeight = rect.height;
           this.resizeStartLeft = rect.left;
           this.resizeStartTop = rect.top;
-          this.element.classList.add("".concat(this.options.classPrefix, "-resizing"));
+          this.element.classList.add(`${this.options.classPrefix}-resizing`);
           document.body.style.userSelect = "none";
           if (this.options.onResizeStart) {
             this.options.onResizeStart();
@@ -2967,17 +2955,17 @@
               newHeight = clampedHeight;
             }
           }
-          this.element.style.width = "".concat(newWidth, "px");
+          this.element.style.width = `${newWidth}px`;
           if (!this.options.maintainAspectRatio) {
-            this.element.style.height = "".concat(newHeight, "px");
+            this.element.style.height = `${newHeight}px`;
           } else {
             this.element.style.height = "auto";
           }
           if (this.resizeDirection.includes("w")) {
-            this.element.style.left = "".concat(newLeft, "px");
+            this.element.style.left = `${newLeft}px`;
           }
           if (this.resizeDirection.includes("n") && !this.options.maintainAspectRatio) {
-            this.element.style.top = "".concat(newTop, "px");
+            this.element.style.top = `${newTop}px`;
           }
           if (this.options.onResize) {
             this.options.onResize({ width: newWidth, height: newHeight, left: newLeft, top: newTop });
@@ -2986,7 +2974,7 @@
         stopResizing() {
           this.isResizing = false;
           this.resizeDirection = null;
-          this.element.classList.remove("".concat(this.options.classPrefix, "-resizing"));
+          this.element.classList.remove(`${this.options.classPrefix}-resizing`);
           document.body.style.userSelect = "";
           this.manuallyPositioned = true;
           if (this.options.onResizeEnd) {
@@ -3003,13 +2991,13 @@
         enableKeyboardDragMode() {
           this.keyboardDragMode = true;
           this.keyboardResizeMode = false;
-          this.element.classList.add("".concat(this.options.classPrefix, "-keyboard-drag"));
-          this.element.classList.remove("".concat(this.options.classPrefix, "-keyboard-resize"));
+          this.element.classList.add(`${this.options.classPrefix}-keyboard-drag`);
+          this.element.classList.remove(`${this.options.classPrefix}-keyboard-resize`);
           this.focusElement();
         }
         disableKeyboardDragMode() {
           this.keyboardDragMode = false;
-          this.element.classList.remove("".concat(this.options.classPrefix, "-keyboard-drag"));
+          this.element.classList.remove(`${this.options.classPrefix}-keyboard-drag`);
         }
         toggleKeyboardResizeMode() {
           if (this.keyboardResizeMode) {
@@ -3021,13 +3009,13 @@
         enableKeyboardResizeMode() {
           this.keyboardResizeMode = true;
           this.keyboardDragMode = false;
-          this.element.classList.add("".concat(this.options.classPrefix, "-keyboard-resize"));
-          this.element.classList.remove("".concat(this.options.classPrefix, "-keyboard-drag"));
+          this.element.classList.add(`${this.options.classPrefix}-keyboard-resize`);
+          this.element.classList.remove(`${this.options.classPrefix}-keyboard-drag`);
           this.focusElement();
         }
         disableKeyboardResizeMode() {
           this.keyboardResizeMode = false;
-          this.element.classList.remove("".concat(this.options.classPrefix, "-keyboard-resize"));
+          this.element.classList.remove(`${this.options.classPrefix}-keyboard-resize`);
         }
         enablePointerResizeMode({ focus = true } = {}) {
           if (!this.hasManagedResizeHandles()) {
@@ -3039,7 +3027,7 @@
           }
           this.pointerResizeMode = true;
           this.setManagedHandlesVisible(true);
-          this.element.classList.add("".concat(this.options.classPrefix, "-resizable"));
+          this.element.classList.add(`${this.options.classPrefix}-resizable`);
           this.enableKeyboardResizeMode();
           if (focus) {
             this.focusElement();
@@ -3054,7 +3042,7 @@
           }
           this.pointerResizeMode = false;
           this.setManagedHandlesVisible(false);
-          this.element.classList.remove("".concat(this.options.classPrefix, "-resizable"));
+          this.element.classList.remove(`${this.options.classPrefix}-resizable`);
           this.disableKeyboardResizeMode();
           if (focus) {
             this.focusElement();
@@ -3090,8 +3078,8 @@
             currentLeft = rect.left;
             currentTop = rect.top;
             this.element.style.transform = "none";
-            this.element.style.left = "".concat(currentLeft, "px");
-            this.element.style.top = "".concat(currentTop, "px");
+            this.element.style.left = `${currentLeft}px`;
+            this.element.style.top = `${currentTop}px`;
           }
           let newX = currentLeft;
           let newY = currentTop;
@@ -3109,8 +3097,8 @@
               newY += step;
               break;
           }
-          this.element.style.left = "".concat(newX, "px");
-          this.element.style.top = "".concat(newY, "px");
+          this.element.style.left = `${newX}px`;
+          this.element.style.top = `${newY}px`;
           if (this.options.onDrag) {
             this.options.onDrag({ x: newX, y: newY });
           }
@@ -3144,9 +3132,9 @@
           }
           width = Math.max(this.options.minWidth, width);
           height = Math.max(this.options.minHeight, height);
-          this.element.style.width = "".concat(width, "px");
+          this.element.style.width = `${width}px`;
           if (!this.options.maintainAspectRatio) {
-            this.element.style.height = "".concat(height, "px");
+            this.element.style.height = `${height}px`;
           } else {
             this.element.style.height = "auto";
           }
@@ -3187,10 +3175,10 @@
             });
           }
           this.element.classList.remove(
-            "".concat(this.options.classPrefix, "-dragging"),
-            "".concat(this.options.classPrefix, "-resizing"),
-            "".concat(this.options.classPrefix, "-keyboard-drag"),
-            "".concat(this.options.classPrefix, "-keyboard-resize")
+            `${this.options.classPrefix}-dragging`,
+            `${this.options.classPrefix}-resizing`,
+            `${this.options.classPrefix}-keyboard-drag`,
+            `${this.options.classPrefix}-keyboard-resize`
           );
         }
       };
@@ -3216,7 +3204,7 @@
     const textContent = isI18nKey ? i18n.t(label) || label : label;
     const text = DOMUtils.createElement("span", {
       textContent,
-      className: hasTextClass ? "".concat(classPrefix, "-settings-text") : void 0,
+      className: hasTextClass ? `${classPrefix}-settings-text` : void 0,
       attributes: {
         "aria-hidden": "true"
       }
@@ -3443,7 +3431,7 @@
                 originalTrackSrc: trackEl.getAttribute("data-orig-src") || trackEl.getAttribute("src"),
                 explicit: true
               });
-              this.player.log("Found explicit described ".concat(trackKind, " track: ").concat(trackEl.getAttribute("src"), " -> ").concat(trackDescSrc));
+              this.player.log(`Found explicit described ${trackKind} track: ${trackEl.getAttribute("src")} -> ${trackDescSrc}`);
             }
           });
         }
@@ -3561,7 +3549,7 @@
           try {
             const response = await fetch(url, { method: "HEAD" });
             return response.ok;
-          } catch (e) {
+          } catch {
             return false;
           }
         }
@@ -3579,7 +3567,7 @@
                     toDescribed ? trackInfo.describedSrc : trackInfo.originalSrc
                   );
                   return { trackInfo, exists };
-                } catch (e) {
+                } catch {
                   return { trackInfo, exists: false };
                 }
               }
@@ -3778,7 +3766,7 @@
             if (matchingTime !== null) {
               syncTime = matchingTime;
               if (this.player.options.debug) {
-                this.player.log("[VidPly] Syncing via caption: ".concat(currentTime, "s -> ").concat(syncTime, "s"));
+                this.player.log(`[VidPly] Syncing via caption: ${currentTime}s -> ${syncTime}s`);
               }
             }
           }
@@ -4365,11 +4353,11 @@
         _createHeader(hasMultipleSources, initialLang) {
           const classPrefix = this.player.options.classPrefix;
           this.header = DOMUtils.createElement("div", {
-            className: "".concat(classPrefix, "-sign-language-header"),
+            className: `${classPrefix}-sign-language-header`,
             attributes: { "tabindex": "0" }
           });
           const headerLeft = DOMUtils.createElement("div", {
-            className: "".concat(classPrefix, "-sign-language-header-left")
+            className: `${classPrefix}-sign-language-header-left`
           });
           const title = DOMUtils.createElement("h3", {
             textContent: i18n.t("player.signLanguageVideo")
@@ -4393,7 +4381,7 @@
           const classPrefix = this.player.options.classPrefix;
           const ariaLabel = i18n.t("player.signLanguageSettings");
           this.settingsButton = DOMUtils.createElement("button", {
-            className: "".concat(classPrefix, "-sign-language-settings"),
+            className: `${classPrefix}-sign-language-settings`,
             attributes: {
               "type": "button",
               "aria-label": ariaLabel,
@@ -4443,7 +4431,7 @@
          */
         _createLanguageSelector(container, initialLang) {
           const classPrefix = this.player.options.classPrefix;
-          const selectId = "".concat(classPrefix, "-sign-language-select-").concat(Date.now());
+          const selectId = `${classPrefix}-sign-language-select-${Date.now()}`;
           const options = Object.keys(this.sources).map((langCode) => ({
             value: langCode,
             text: this.getLanguageLabel(langCode),
@@ -4451,8 +4439,8 @@
           }));
           const { label, select } = createLabeledSelect({
             classPrefix,
-            labelClass: "".concat(classPrefix, "-sign-language-label"),
-            selectClass: "".concat(classPrefix, "-sign-language-select"),
+            labelClass: `${classPrefix}-sign-language-label`,
+            selectClass: `${classPrefix}-sign-language-select`,
             labelText: "settings.language",
             selectId,
             options,
@@ -4463,7 +4451,7 @@
           });
           this.selector = select;
           const selectorWrapper = DOMUtils.createElement("div", {
-            className: "".concat(classPrefix, "-sign-language-selector-wrapper")
+            className: `${classPrefix}-sign-language-selector-wrapper`
           });
           selectorWrapper.appendChild(label);
           selectorWrapper.appendChild(this.selector);
@@ -4477,7 +4465,7 @@
           const classPrefix = this.player.options.classPrefix;
           const ariaLabel = i18n.t("player.closeSignLanguage");
           const closeButton = DOMUtils.createElement("button", {
-            className: "".concat(classPrefix, "-sign-language-close"),
+            className: `${classPrefix}-sign-language-close`,
             attributes: {
               "type": "button",
               "aria-label": ariaLabel
@@ -4514,7 +4502,7 @@
           const classPrefix = this.player.options.classPrefix;
           this.resizeHandles = ["n", "s", "e", "w", "ne", "nw", "se", "sw"].map((dir) => {
             const handle = DOMUtils.createElement("div", {
-              className: "".concat(classPrefix, "-sign-resize-handle ").concat(classPrefix, "-sign-resize-").concat(dir),
+              className: `${classPrefix}-sign-resize-handle ${classPrefix}-sign-resize-${dir}`,
               attributes: {
                 "data-direction": dir,
                 "data-vidply-managed-resize": "true",
@@ -4563,7 +4551,7 @@
             maintainAspectRatio: true,
             minWidth: 150,
             minHeight: 100,
-            classPrefix: "".concat(classPrefix, "-sign"),
+            classPrefix: `${classPrefix}-sign`,
             keyboardDragKey: "d",
             keyboardResizeKey: "r",
             keyboardStep: 10,
@@ -4575,7 +4563,7 @@
               });
             },
             onDragStart: (e) => {
-              if (e.target.closest(".".concat(classPrefix, "-sign-language-close")) || e.target.closest(".".concat(classPrefix, "-sign-language-settings")) || e.target.closest(".".concat(classPrefix, "-sign-language-select")) || e.target.closest(".".concat(classPrefix, "-sign-language-label")) || e.target.closest(".".concat(classPrefix, "-sign-language-settings-menu"))) {
+              if (e.target.closest(`.${classPrefix}-sign-language-close`) || e.target.closest(`.${classPrefix}-sign-language-settings`) || e.target.closest(`.${classPrefix}-sign-language-select`) || e.target.closest(`.${classPrefix}-sign-language-label`) || e.target.closest(`.${classPrefix}-sign-language-settings-menu`)) {
                 return false;
               }
               return true;
@@ -4720,8 +4708,8 @@
           }
           left = Math.max(videoWrapperLeft, Math.min(left, videoWrapperLeft + videoWrapperWidth - wrapperWidth));
           top = Math.max(videoWrapperTop, Math.min(top, videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight));
-          this.wrapper.style.left = "".concat(left, "px");
-          this.wrapper.style.top = "".concat(top, "px");
+          this.wrapper.style.left = `${left}px`;
+          this.wrapper.style.top = `${top}px`;
           this.wrapper.style.right = "auto";
           this.wrapper.style.bottom = "auto";
         }
@@ -4743,7 +4731,7 @@
             this._positionSettingsMenu();
             this._updateDragOptionState();
             this._updateResizeOptionState();
-            focusFirstMenuItem(this.settingsMenu, ".".concat(this.player.options.classPrefix, "-sign-language-settings-item"));
+            focusFirstMenuItem(this.settingsMenu, `.${this.player.options.classPrefix}-sign-language-settings-item`);
             return;
           }
           this._createSettingsMenu();
@@ -4761,7 +4749,7 @@
               this.settingsMenuKeyHandler = null;
             }
             const classPrefix = this.player.options.classPrefix;
-            const menuItems = Array.from(this.settingsMenu.querySelectorAll(".".concat(classPrefix, "-sign-language-settings-item")));
+            const menuItems = Array.from(this.settingsMenu.querySelectorAll(`.${classPrefix}-sign-language-settings-item`));
             menuItems.forEach((item) => item.setAttribute("tabindex", "-1"));
             if (this.settingsButton) {
               this.settingsButton.setAttribute("aria-expanded", "false");
@@ -4800,12 +4788,12 @@
           var _a, _b;
           const classPrefix = this.player.options.classPrefix;
           this.settingsMenu = DOMUtils.createElement("div", {
-            className: "".concat(classPrefix, "-sign-language-settings-menu"),
+            className: `${classPrefix}-sign-language-settings-menu`,
             attributes: { "role": "menu" }
           });
           const dragOption = createMenuItem({
             classPrefix,
-            itemClass: "".concat(classPrefix, "-sign-language-settings-item"),
+            itemClass: `${classPrefix}-sign-language-settings-item`,
             icon: "move",
             label: "player.enableSignDragMode",
             hasTextClass: true,
@@ -4826,11 +4814,11 @@
           dragOption.setAttribute("aria-checked", "false");
           this._removeTooltipFromMenuItem(dragOption);
           this.dragOptionButton = dragOption;
-          this.dragOptionText = dragOption.querySelector(".".concat(classPrefix, "-settings-text"));
+          this.dragOptionText = dragOption.querySelector(`.${classPrefix}-settings-text`);
           this._updateDragOptionState();
           const resizeOption = createMenuItem({
             classPrefix,
-            itemClass: "".concat(classPrefix, "-sign-language-settings-item"),
+            itemClass: `${classPrefix}-sign-language-settings-item`,
             icon: "resize",
             label: "player.enableSignResizeMode",
             hasTextClass: true,
@@ -4852,11 +4840,11 @@
           resizeOption.setAttribute("aria-checked", "false");
           this._removeTooltipFromMenuItem(resizeOption);
           this.resizeOptionButton = resizeOption;
-          this.resizeOptionText = resizeOption.querySelector(".".concat(classPrefix, "-settings-text"));
+          this.resizeOptionText = resizeOption.querySelector(`.${classPrefix}-settings-text`);
           this._updateResizeOptionState();
           const closeOption = createMenuItem({
             classPrefix,
-            itemClass: "".concat(classPrefix, "-sign-language-settings-item"),
+            itemClass: `${classPrefix}-sign-language-settings-item`,
             icon: "close",
             label: "transcript.closeMenu",
             onClick: () => this.hideSettingsMenu()
@@ -4883,16 +4871,16 @@
           (_b = this.settingsButton) == null ? void 0 : _b.setAttribute("aria-expanded", "true");
           this._updateDragOptionState();
           this._updateResizeOptionState();
-          focusFirstMenuItem(this.settingsMenu, ".".concat(classPrefix, "-sign-language-settings-item"));
+          focusFirstMenuItem(this.settingsMenu, `.${classPrefix}-sign-language-settings-item`);
         }
         /**
          * Remove tooltip from menu item
          */
         _removeTooltipFromMenuItem(item) {
           const classPrefix = this.player.options.classPrefix;
-          const tooltip = item.querySelector(".".concat(classPrefix, "-tooltip"));
+          const tooltip = item.querySelector(`.${classPrefix}-tooltip`);
           if (tooltip) tooltip.remove();
-          const buttonText = item.querySelector(".".concat(classPrefix, "-button-text"));
+          const buttonText = item.querySelector(`.${classPrefix}-button-text`);
           if (buttonText) buttonText.remove();
         }
         /**
@@ -4905,7 +4893,7 @@
           this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
             this.settingsMenu,
             this.settingsButton,
-            ".".concat(this.player.options.classPrefix, "-sign-language-settings-item"),
+            `.${this.player.options.classPrefix}-sign-language-settings-item`,
             () => this.hideSettingsMenu({ focusButton: true })
           );
         }
@@ -4950,18 +4938,18 @@
             transformX = "translateX(-50%)";
           }
           if (menuTop !== null) {
-            this.settingsMenu.style.top = "".concat(menuTop, "px");
+            this.settingsMenu.style.top = `${menuTop}px`;
             this.settingsMenu.style.bottom = "auto";
           } else if (menuBottom !== null) {
             this.settingsMenu.style.top = "auto";
-            this.settingsMenu.style.bottom = "".concat(menuBottom, "px");
+            this.settingsMenu.style.bottom = `${menuBottom}px`;
           }
           if (menuLeft !== "auto") {
-            this.settingsMenu.style.left = "".concat(menuLeft, "px");
+            this.settingsMenu.style.left = `${menuLeft}px`;
             this.settingsMenu.style.right = "auto";
           } else {
             this.settingsMenu.style.left = "auto";
-            this.settingsMenu.style.right = "".concat(menuRight, "px");
+            this.settingsMenu.style.right = `${menuRight}px`;
           }
           this.settingsMenu.style.transform = transformX;
         }
@@ -4993,10 +4981,10 @@
          * Enable move mode visual feedback
          */
         _enableMoveMode() {
-          this.wrapper.classList.add("".concat(this.player.options.classPrefix, "-sign-move-mode"));
+          this.wrapper.classList.add(`${this.player.options.classPrefix}-sign-move-mode`);
           this._updateResizeOptionState();
           setTimeout(() => {
-            this.wrapper.classList.remove("".concat(this.player.options.classPrefix, "-sign-move-mode"));
+            this.wrapper.classList.remove(`${this.player.options.classPrefix}-sign-move-mode`);
           }, 2e3);
         }
         /**
@@ -5171,7 +5159,6 @@
       init_FormUtils();
       TranscriptManager = class {
         constructor(player) {
-          var _a, _b;
           this.player = player;
           this.transcriptWindow = null;
           this.transcriptEntries = [];
@@ -5208,7 +5195,7 @@
             fontFamily: (savedPreferences == null ? void 0 : savedPreferences.fontFamily) || this.player.options.transcriptFontFamily || "sans-serif",
             color: (savedPreferences == null ? void 0 : savedPreferences.color) || this.player.options.transcriptColor || "#ffffff",
             backgroundColor: (savedPreferences == null ? void 0 : savedPreferences.backgroundColor) || this.player.options.transcriptBackgroundColor || "#1e1e1e",
-            opacity: (_b = (_a = savedPreferences == null ? void 0 : savedPreferences.opacity) != null ? _a : this.player.options.transcriptOpacity) != null ? _b : 0.98
+            opacity: (savedPreferences == null ? void 0 : savedPreferences.opacity) ?? this.player.options.transcriptOpacity ?? 0.98
           };
           this.handlers = {
             timeupdate: () => this.updateActiveEntry(),
@@ -5315,7 +5302,7 @@
          */
         createTranscriptWindow() {
           this.transcriptWindow = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-window"),
+            className: `${this.player.options.classPrefix}-transcript-window`,
             attributes: {
               "role": "dialog",
               "aria-label": i18n.t("transcript.ariaLabel"),
@@ -5323,17 +5310,17 @@
             }
           });
           this.transcriptHeader = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-header"),
+            className: `${this.player.options.classPrefix}-transcript-header`,
             attributes: {
               "tabindex": "0"
             }
           });
           this.headerLeft = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-header-left")
+            className: `${this.player.options.classPrefix}-transcript-header-left`
           });
           const settingsAriaLabel = i18n.t("transcript.settingsMenu");
           this.settingsButton = DOMUtils.createElement("button", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-settings"),
+            className: `${this.player.options.classPrefix}-transcript-settings`,
             attributes: {
               "type": "button",
               "aria-label": settingsAriaLabel,
@@ -5369,11 +5356,11 @@
           };
           this.settingsButton.addEventListener("keydown", this.handlers.settingsKeydown);
           const title = DOMUtils.createElement("h3", {
-            textContent: "".concat(i18n.t("transcript.title"), ". ").concat(i18n.t("transcript.dragResizePrompt"))
+            textContent: `${i18n.t("transcript.title")}. ${i18n.t("transcript.dragResizePrompt")}`
           });
-          const autoscrollId = "".concat(this.player.options.classPrefix, "-transcript-autoscroll-").concat(Date.now());
+          const autoscrollId = `${this.player.options.classPrefix}-transcript-autoscroll-${Date.now()}`;
           const autoscrollLabel = DOMUtils.createElement("label", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-autoscroll-label"),
+            className: `${this.player.options.classPrefix}-transcript-autoscroll-label`,
             attributes: {
               "for": autoscrollId
             }
@@ -5389,7 +5376,7 @@
           }
           const autoscrollText = DOMUtils.createElement("span", {
             textContent: i18n.t("transcript.autoscroll"),
-            className: "".concat(this.player.options.classPrefix, "-transcript-autoscroll-text")
+            className: `${this.player.options.classPrefix}-transcript-autoscroll-text`
           });
           autoscrollLabel.appendChild(this.autoscrollCheckbox);
           autoscrollLabel.appendChild(autoscrollText);
@@ -5400,11 +5387,11 @@
           this.transcriptHeader.appendChild(title);
           this.headerLeft.appendChild(this.settingsButton);
           this.headerLeft.appendChild(autoscrollLabel);
-          const selectId = "".concat(this.player.options.classPrefix, "-transcript-language-select-").concat(Date.now());
+          const selectId = `${this.player.options.classPrefix}-transcript-language-select-${Date.now()}`;
           const { label: languageLabel, select: languageSelector } = createLabeledSelect({
             classPrefix: this.player.options.classPrefix,
-            labelClass: "".concat(this.player.options.classPrefix, "-transcript-language-label"),
-            selectClass: "".concat(this.player.options.classPrefix, "-transcript-language-select"),
+            labelClass: `${this.player.options.classPrefix}-transcript-language-label`,
+            selectClass: `${this.player.options.classPrefix}-transcript-language-select`,
             labelText: "settings.language",
             selectId,
             hidden: false
@@ -5413,7 +5400,7 @@
           this.languageLabel = languageLabel;
           this.languageSelector = languageSelector;
           const languageSelectorWrapper = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-language-wrapper"),
+            className: `${this.player.options.classPrefix}-transcript-language-wrapper`,
             attributes: {
               "style": "display: none;"
               // Hidden until we detect multiple languages
@@ -5426,7 +5413,7 @@
           this.headerLeft.appendChild(languageSelectorWrapper);
           const closeAriaLabel = i18n.t("transcript.close");
           const closeButton = DOMUtils.createElement("button", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-close"),
+            className: `${this.player.options.classPrefix}-transcript-close`,
             attributes: {
               "type": "button",
               "aria-label": closeAriaLabel
@@ -5438,7 +5425,7 @@
           this.transcriptHeader.appendChild(this.headerLeft);
           this.transcriptHeader.appendChild(closeButton);
           this.transcriptContent = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-content")
+            className: `${this.player.options.classPrefix}-transcript-content`
           });
           this.transcriptWindow.appendChild(this.transcriptHeader);
           this.transcriptWindow.appendChild(this.transcriptContent);
@@ -5495,7 +5482,7 @@
           const directions = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
           this.transcriptResizeHandles = directions.map((direction) => {
             const handle = DOMUtils.createElement("div", {
-              className: "".concat(this.player.options.classPrefix, "-transcript-resize-handle ").concat(this.player.options.classPrefix, "-transcript-resize-").concat(direction),
+              className: `${this.player.options.classPrefix}-transcript-resize-handle ${this.player.options.classPrefix}-transcript-resize-${direction}`,
               attributes: {
                 "data-direction": direction,
                 "data-vidply-managed-resize": "true",
@@ -5561,7 +5548,7 @@
             const fullscreenAvailable = Math.max(fullscreenMinWidth, window.innerWidth - 40);
             const fullscreenDesired = parseFloat(this.transcriptWindow.style.width) || 400;
             const fullscreenWidth = Math.max(fullscreenMinWidth, Math.min(fullscreenDesired, fullscreenAvailable));
-            this.transcriptWindow.style.width = "".concat(fullscreenWidth, "px");
+            this.transcriptWindow.style.width = `${fullscreenWidth}px`;
             this.transcriptWindow.style.maxWidth = "none";
             this.transcriptWindow.style.borderRadius = "8px";
             this.transcriptWindow.style.border = "1px solid var(--vidply-border)";
@@ -5602,13 +5589,13 @@
               const appliedWidth = Math.max(minWidth, Math.min(transcriptWidth, availableWidth));
               const appliedHeight = videoRect.height;
               this.transcriptWindow.style.position = "absolute";
-              this.transcriptWindow.style.left = "".concat(left, "px");
+              this.transcriptWindow.style.left = `${left}px`;
               this.transcriptWindow.style.right = "auto";
               this.transcriptWindow.style.bottom = "auto";
               this.transcriptWindow.style.top = "0";
-              this.transcriptWindow.style.height = "".concat(appliedHeight, "px");
+              this.transcriptWindow.style.height = `${appliedHeight}px`;
               this.transcriptWindow.style.maxHeight = "none";
-              this.transcriptWindow.style.width = "".concat(appliedWidth, "px");
+              this.transcriptWindow.style.width = `${appliedWidth}px`;
               this.transcriptWindow.style.maxWidth = "none";
               this.transcriptWindow.style.boxShadow = "";
             } else {
@@ -5623,13 +5610,13 @@
               const rightPosition = containerRect.right - videoWrapperRect.right + 12;
               this.transcriptWindow.style.position = "absolute";
               this.transcriptWindow.style.left = "auto";
-              this.transcriptWindow.style.right = "".concat(rightPosition, "px");
-              this.transcriptWindow.style.top = "".concat(topPosition, "px");
+              this.transcriptWindow.style.right = `${rightPosition}px`;
+              this.transcriptWindow.style.top = `${topPosition}px`;
               this.transcriptWindow.style.bottom = "auto";
-              this.transcriptWindow.style.width = "".concat(Math.max(minWidth, overlayWidth), "px");
-              this.transcriptWindow.style.maxWidth = "".concat(overlayMaxWidth, "px");
-              this.transcriptWindow.style.height = "".concat(overlayActualHeight, "px");
-              this.transcriptWindow.style.maxHeight = "".concat(overlayMaxHeight, "px");
+              this.transcriptWindow.style.width = `${Math.max(minWidth, overlayWidth)}px`;
+              this.transcriptWindow.style.maxWidth = `${overlayMaxWidth}px`;
+              this.transcriptWindow.style.height = `${overlayActualHeight}px`;
+              this.transcriptWindow.style.maxHeight = `${overlayMaxHeight}px`;
               this.transcriptWindow.style.boxShadow = "0 4px 16px rgba(0, 0, 0, 0.6)";
             }
             this.transcriptWindow.style.borderRadius = "8px";
@@ -5762,7 +5749,7 @@
           const needsLoading = tracksToLoad.some((track) => !track.cues || track.cues.length === 0);
           if (needsLoading) {
             const loadingMessage = DOMUtils.createElement("div", {
-              className: "".concat(this.player.options.classPrefix, "-transcript-loading"),
+              className: `${this.player.options.classPrefix}-transcript-loading`,
               textContent: i18n.t("transcript.loading")
             });
             this.transcriptContent.appendChild(loadingMessage);
@@ -5936,7 +5923,7 @@
         createTranscriptEntry(cue, index, type = "caption") {
           const entryText = this.stripVTTFormatting(cue.text);
           const entry = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-entry ").concat(this.player.options.classPrefix, "-transcript-").concat(type),
+            className: `${this.player.options.classPrefix}-transcript-entry ${this.player.options.classPrefix}-transcript-${type}`,
             attributes: {
               "tabindex": "0",
               "data-start": String(cue.startTime),
@@ -5945,7 +5932,7 @@
             }
           });
           const timestamp = DOMUtils.createElement("span", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-time"),
+            className: `${this.player.options.classPrefix}-transcript-time`,
             textContent: TimeUtils.formatTime(cue.startTime),
             attributes: {
               "aria-hidden": "true"
@@ -5953,7 +5940,7 @@
             }
           });
           const text = DOMUtils.createElement("span", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-text"),
+            className: `${this.player.options.classPrefix}-transcript-text`,
             textContent: entryText
           });
           entry.appendChild(timestamp);
@@ -5984,7 +5971,7 @@
          */
         showNoTranscriptMessage() {
           const message = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-empty"),
+            className: `${this.player.options.classPrefix}-transcript-empty`,
             textContent: i18n.t("transcript.noTranscript")
           });
           this.transcriptContent.appendChild(message);
@@ -6001,17 +5988,17 @@
           if (activeEntry && activeEntry !== this.currentActiveEntry) {
             if (this.currentActiveEntry) {
               this.currentActiveEntry.element.classList.remove(
-                "".concat(this.player.options.classPrefix, "-transcript-entry-active")
+                `${this.player.options.classPrefix}-transcript-entry-active`
               );
             }
             activeEntry.element.classList.add(
-              "".concat(this.player.options.classPrefix, "-transcript-entry-active")
+              `${this.player.options.classPrefix}-transcript-entry-active`
             );
             this.scrollToEntry(activeEntry.element);
             this.currentActiveEntry = activeEntry;
           } else if (!activeEntry && this.currentActiveEntry) {
             this.currentActiveEntry.element.classList.remove(
-              "".concat(this.player.options.classPrefix, "-transcript-entry-active")
+              `${this.player.options.classPrefix}-transcript-entry-active`
             );
             this.currentActiveEntry = null;
           }
@@ -6060,7 +6047,7 @@
             dragHandle: this.transcriptHeader,
             resizeHandles: this.transcriptResizeHandles,
             constrainToViewport: true,
-            classPrefix: "".concat(this.player.options.classPrefix, "-transcript"),
+            classPrefix: `${this.player.options.classPrefix}-transcript`,
             keyboardDragKey: "d",
             keyboardResizeKey: "r",
             keyboardStep: 10,
@@ -6078,12 +6065,12 @@
             },
             onDragStart: (e) => {
               const ignoreSelectors = [
-                ".".concat(this.player.options.classPrefix, "-transcript-close"),
-                ".".concat(this.player.options.classPrefix, "-transcript-settings"),
-                ".".concat(this.player.options.classPrefix, "-transcript-language-select"),
-                ".".concat(this.player.options.classPrefix, "-transcript-language-label"),
-                ".".concat(this.player.options.classPrefix, "-transcript-settings-menu"),
-                ".".concat(this.player.options.classPrefix, "-transcript-style-dialog")
+                `.${this.player.options.classPrefix}-transcript-close`,
+                `.${this.player.options.classPrefix}-transcript-settings`,
+                `.${this.player.options.classPrefix}-transcript-language-select`,
+                `.${this.player.options.classPrefix}-transcript-language-label`,
+                `.${this.player.options.classPrefix}-transcript-settings-menu`,
+                `.${this.player.options.classPrefix}-transcript-style-dialog`
               ];
               for (const selector of ignoreSelectors) {
                 if (e.target.closest(selector)) {
@@ -6199,7 +6186,7 @@
             this.positionSettingsMenuImmediate();
             this.updateResizeOptionState();
             setTimeout(() => {
-              const menuItems = this.settingsMenu.querySelectorAll(".".concat(this.player.options.classPrefix, "-transcript-settings-item"));
+              const menuItems = this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`);
               if (menuItems.length > 0) {
                 menuItems[0].setAttribute("tabindex", "0");
                 for (let i = 1; i < menuItems.length; i++) {
@@ -6211,14 +6198,14 @@
             return;
           }
           this.settingsMenu = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-settings-menu"),
+            className: `${this.player.options.classPrefix}-transcript-settings-menu`,
             attributes: {
               "role": "menu"
             }
           });
           const keyboardDragOption = createMenuItem({
             classPrefix: this.player.options.classPrefix,
-            itemClass: "".concat(this.player.options.classPrefix, "-transcript-settings-item"),
+            itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
             icon: "move",
             label: "transcript.enableDragMode",
             hasTextClass: true,
@@ -6229,16 +6216,16 @@
           });
           keyboardDragOption.setAttribute("role", "switch");
           keyboardDragOption.setAttribute("aria-checked", "false");
-          const dragTooltip = keyboardDragOption.querySelector(".".concat(this.player.options.classPrefix, "-tooltip"));
+          const dragTooltip = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
           if (dragTooltip) dragTooltip.remove();
-          const dragButtonText = keyboardDragOption.querySelector(".".concat(this.player.options.classPrefix, "-button-text"));
+          const dragButtonText = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
           if (dragButtonText) dragButtonText.remove();
           this.dragOptionButton = keyboardDragOption;
-          this.dragOptionText = keyboardDragOption.querySelector(".".concat(this.player.options.classPrefix, "-settings-text"));
+          this.dragOptionText = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
           this.updateDragOptionState();
           const styleOption = createMenuItem({
             classPrefix: this.player.options.classPrefix,
-            itemClass: "".concat(this.player.options.classPrefix, "-transcript-settings-item"),
+            itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
             icon: "settings",
             label: "transcript.styleTranscript",
             onClick: (e) => {
@@ -6250,13 +6237,13 @@
               }, 50);
             }
           });
-          const styleTooltip = styleOption.querySelector(".".concat(this.player.options.classPrefix, "-tooltip"));
+          const styleTooltip = styleOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
           if (styleTooltip) styleTooltip.remove();
-          const styleButtonText = styleOption.querySelector(".".concat(this.player.options.classPrefix, "-button-text"));
+          const styleButtonText = styleOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
           if (styleButtonText) styleButtonText.remove();
           const resizeOption = createMenuItem({
             classPrefix: this.player.options.classPrefix,
-            itemClass: "".concat(this.player.options.classPrefix, "-transcript-settings-item"),
+            itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
             icon: "resize",
             label: "transcript.enableResizeMode",
             hasTextClass: true,
@@ -6278,16 +6265,16 @@
           });
           resizeOption.setAttribute("role", "switch");
           resizeOption.setAttribute("aria-checked", "false");
-          const resizeTooltip = resizeOption.querySelector(".".concat(this.player.options.classPrefix, "-tooltip"));
+          const resizeTooltip = resizeOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
           if (resizeTooltip) resizeTooltip.remove();
-          const resizeButtonText = resizeOption.querySelector(".".concat(this.player.options.classPrefix, "-button-text"));
+          const resizeButtonText = resizeOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
           if (resizeButtonText) resizeButtonText.remove();
           this.resizeOptionButton = resizeOption;
-          this.resizeOptionText = resizeOption.querySelector(".".concat(this.player.options.classPrefix, "-settings-text"));
+          this.resizeOptionText = resizeOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
           this.updateResizeOptionState();
           const showTimestampsOption = createMenuItem({
             classPrefix: this.player.options.classPrefix,
-            itemClass: "".concat(this.player.options.classPrefix, "-transcript-settings-item"),
+            itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
             icon: "clock",
             label: "transcript.showTimestamps",
             hasTextClass: true,
@@ -6297,25 +6284,25 @@
           });
           showTimestampsOption.setAttribute("role", "switch");
           showTimestampsOption.setAttribute("aria-checked", this.showTimestamps ? "true" : "false");
-          const timestampsTooltip = showTimestampsOption.querySelector(".".concat(this.player.options.classPrefix, "-tooltip"));
+          const timestampsTooltip = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
           if (timestampsTooltip) timestampsTooltip.remove();
-          const timestampsButtonText = showTimestampsOption.querySelector(".".concat(this.player.options.classPrefix, "-button-text"));
+          const timestampsButtonText = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
           if (timestampsButtonText) timestampsButtonText.remove();
           this.showTimestampsButton = showTimestampsOption;
-          this.showTimestampsText = showTimestampsOption.querySelector(".".concat(this.player.options.classPrefix, "-settings-text"));
+          this.showTimestampsText = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
           this.updateShowTimestampsState();
           const closeOption = createMenuItem({
             classPrefix: this.player.options.classPrefix,
-            itemClass: "".concat(this.player.options.classPrefix, "-transcript-settings-item"),
+            itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
             icon: "close",
             label: "transcript.closeMenu",
             onClick: () => {
               this.hideSettingsMenu();
             }
           });
-          const closeTooltip = closeOption.querySelector(".".concat(this.player.options.classPrefix, "-tooltip"));
+          const closeTooltip = closeOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
           if (closeTooltip) closeTooltip.remove();
-          const closeButtonText = closeOption.querySelector(".".concat(this.player.options.classPrefix, "-button-text"));
+          const closeButtonText = closeOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
           if (closeButtonText) closeButtonText.remove();
           this.settingsMenu.appendChild(keyboardDragOption);
           this.settingsMenu.appendChild(resizeOption);
@@ -6342,7 +6329,7 @@
           this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
             this.settingsMenu,
             this.settingsButton,
-            ".".concat(this.player.options.classPrefix, "-transcript-settings-item"),
+            `.${this.player.options.classPrefix}-transcript-settings-item`,
             () => this.hideSettingsMenu({ focusButton: true })
           );
           this.settingsMenuVisible = true;
@@ -6352,7 +6339,7 @@
           }
           this.updateResizeOptionState();
           setTimeout(() => {
-            const menuItems = this.settingsMenu.querySelectorAll(".".concat(this.player.options.classPrefix, "-transcript-settings-item"));
+            const menuItems = this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`);
             if (menuItems.length > 0) {
               menuItems[0].setAttribute("tabindex", "0");
               for (let i = 1; i < menuItems.length; i++) {
@@ -6385,8 +6372,8 @@
           } else {
             this.settingsMenu.classList.remove("vidply-menu-above");
           }
-          this.settingsMenu.style.top = "".concat(menuTop, "px");
-          this.settingsMenu.style.left = "".concat(buttonLeft, "px");
+          this.settingsMenu.style.top = `${menuTop}px`;
+          this.settingsMenu.style.left = `${buttonLeft}px`;
           this.settingsMenu.style.right = "auto";
           this.settingsMenu.style.bottom = "auto";
         }
@@ -6412,7 +6399,7 @@
           const handler = attachMenuKeyboardNavigation(
             this.settingsMenu,
             this.settingsButton,
-            ".".concat(this.player.options.classPrefix, "-transcript-settings-item"),
+            `.${this.player.options.classPrefix}-transcript-settings-item`,
             () => this.hideSettingsMenu({ focusButton: true })
           );
           this.settingsMenuKeyHandler = handler;
@@ -6442,14 +6429,14 @@
          */
         enableMoveMode() {
           this.hideResizeModeIndicator();
-          this.transcriptWindow.classList.add("".concat(this.player.options.classPrefix, "-transcript-move-mode"));
+          this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-move-mode`);
           const tooltip = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-move-tooltip"),
+            className: `${this.player.options.classPrefix}-transcript-move-tooltip`,
             textContent: "Drag with mouse or press D for keyboard drag mode"
           });
           this.transcriptHeader.appendChild(tooltip);
           setTimeout(() => {
-            this.transcriptWindow.classList.remove("".concat(this.player.options.classPrefix, "-transcript-move-mode"));
+            this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-move-mode`);
             if (tooltip.parentNode) {
               tooltip.remove();
             }
@@ -6515,7 +6502,7 @@
         }
         updateTimestampVisibility() {
           if (!this.transcriptContent) return;
-          const timestamps = this.transcriptContent.querySelectorAll(".".concat(this.player.options.classPrefix, "-transcript-time"));
+          const timestamps = this.transcriptContent.querySelectorAll(`.${this.player.options.classPrefix}-transcript-time`);
           timestamps.forEach((timestamp) => {
             timestamp.style.display = this.showTimestamps ? "" : "none";
           });
@@ -6531,7 +6518,7 @@
           }
           this.hideResizeModeIndicator();
           const indicator = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-resize-tooltip"),
+            className: `${this.player.options.classPrefix}-transcript-resize-tooltip`,
             textContent: i18n.t("transcript.resizeModeHint") || "Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit."
           });
           this.transcriptHeader.appendChild(indicator);
@@ -6583,11 +6570,11 @@
             return;
           }
           this.styleDialog = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-style-dialog")
+            className: `${this.player.options.classPrefix}-transcript-style-dialog`
           });
           const title = DOMUtils.createElement("h4", {
             textContent: i18n.t("transcript.styleTitle"),
-            className: "".concat(this.player.options.classPrefix, "-transcript-style-title")
+            className: `${this.player.options.classPrefix}-transcript-style-title`
           });
           this.styleDialog.appendChild(title);
           const fontSizeControl = this.createStyleSelectControl(
@@ -6618,7 +6605,7 @@
           const opacityControl = this.createStyleOpacityControl(i18n.t("captions.opacity"), "opacity");
           this.styleDialog.appendChild(opacityControl);
           const closeBtn = DOMUtils.createElement("button", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-style-close"),
+            className: `${this.player.options.classPrefix}-transcript-style-close`,
             textContent: i18n.t("settings.close"),
             attributes: {
               "type": "button"
@@ -6689,9 +6676,9 @@
          */
         createStyleSelectControl(label, property, options) {
           const group = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-style-group")
+            className: `${this.player.options.classPrefix}-transcript-style-group`
           });
-          const controlId = "".concat(this.player.options.classPrefix, "-transcript-").concat(property, "-").concat(Date.now());
+          const controlId = `${this.player.options.classPrefix}-transcript-${property}-${Date.now()}`;
           const labelEl = DOMUtils.createElement("label", {
             textContent: label,
             attributes: {
@@ -6700,7 +6687,7 @@
           });
           group.appendChild(labelEl);
           const select = DOMUtils.createElement("select", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-style-select"),
+            className: `${this.player.options.classPrefix}-transcript-style-select`,
             attributes: {
               "id": controlId
             }
@@ -6730,9 +6717,9 @@
          */
         createStyleColorControl(label, property) {
           const group = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-style-group")
+            className: `${this.player.options.classPrefix}-transcript-style-group`
           });
-          const controlId = "".concat(this.player.options.classPrefix, "-transcript-").concat(property, "-").concat(Date.now());
+          const controlId = `${this.player.options.classPrefix}-transcript-${property}-${Date.now()}`;
           const labelEl = DOMUtils.createElement("label", {
             textContent: label,
             attributes: {
@@ -6746,7 +6733,7 @@
               "type": "color",
               "value": this.transcriptStyle[property]
             },
-            className: "".concat(this.player.options.classPrefix, "-transcript-style-color")
+            className: `${this.player.options.classPrefix}-transcript-style-color`
           });
           input.addEventListener("input", (e) => {
             this.transcriptStyle[property] = e.target.value;
@@ -6761,9 +6748,9 @@
          */
         createStyleOpacityControl(label, property) {
           const group = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-style-group")
+            className: `${this.player.options.classPrefix}-transcript-style-group`
           });
-          const controlId = "".concat(this.player.options.classPrefix, "-transcript-").concat(property, "-").concat(Date.now());
+          const controlId = `${this.player.options.classPrefix}-transcript-${property}-${Date.now()}`;
           const labelEl = DOMUtils.createElement("label", {
             textContent: label,
             attributes: {
@@ -6773,7 +6760,7 @@
           group.appendChild(labelEl);
           const valueDisplay = DOMUtils.createElement("span", {
             textContent: Math.round(this.transcriptStyle[property] * 100) + "%",
-            className: "".concat(this.player.options.classPrefix, "-transcript-style-value")
+            className: `${this.player.options.classPrefix}-transcript-style-value`
           });
           const input = DOMUtils.createElement("input", {
             attributes: {
@@ -6784,7 +6771,7 @@
               "step": "0.1",
               "value": String(this.transcriptStyle[property])
             },
-            className: "".concat(this.player.options.classPrefix, "-transcript-style-range")
+            className: `${this.player.options.classPrefix}-transcript-style-range`
           });
           input.addEventListener("input", (e) => {
             const value = parseFloat(e.target.value);
@@ -6794,7 +6781,7 @@
             this.savePreferences();
           });
           const inputContainer = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-transcript-style-range-container")
+            className: `${this.player.options.classPrefix}-transcript-style-range-container`
           });
           inputContainer.appendChild(input);
           inputContainer.appendChild(valueDisplay);
@@ -6820,13 +6807,13 @@
             this.transcriptContent.style.fontFamily = this.transcriptStyle.fontFamily;
             this.transcriptContent.style.color = this.transcriptStyle.color;
           }
-          const textEntries = this.transcriptWindow.querySelectorAll(".".concat(this.player.options.classPrefix, "-transcript-text"));
+          const textEntries = this.transcriptWindow.querySelectorAll(`.${this.player.options.classPrefix}-transcript-text`);
           textEntries.forEach((entry) => {
             entry.style.fontSize = this.transcriptStyle.fontSize;
             entry.style.fontFamily = this.transcriptStyle.fontFamily;
             entry.style.color = this.transcriptStyle.color;
           });
-          const timeEntries = this.transcriptWindow.querySelectorAll(".".concat(this.player.options.classPrefix, "-transcript-time"));
+          const timeEntries = this.transcriptWindow.querySelectorAll(`.${this.player.options.classPrefix}-transcript-time`);
           timeEntries.forEach((entry) => {
             entry.style.fontFamily = this.transcriptStyle.fontFamily;
           });
@@ -6988,7 +6975,7 @@
         createIframe() {
           this.player.element.style.display = "none";
           this.iframe = document.createElement("div");
-          this.iframe.id = "youtube-player-".concat(Math.random().toString(36).substr(2, 9));
+          this.iframe.id = `youtube-player-${Math.random().toString(36).substr(2, 9)}`;
           this.iframe.style.width = "100%";
           this.iframe.style.maxHeight = "100%";
           this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
@@ -7212,7 +7199,7 @@
         createIframe() {
           this.player.element.style.display = "none";
           this.iframe = document.createElement("div");
-          this.iframe.id = "vimeo-player-".concat(Math.random().toString(36).substr(2, 9));
+          this.iframe.id = `vimeo-player-${Math.random().toString(36).substr(2, 9)}`;
           this.iframe.style.width = "100%";
           this.iframe.style.maxHeight = "100%";
           this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
@@ -7314,7 +7301,7 @@
             this.player.emit("ratechange", data.playbackRate);
           });
           this.vimeo.on("error", (error) => {
-            this.player.handleError(new Error("Vimeo error: ".concat(error.message)));
+            this.player.handleError(new Error(`Vimeo error: ${error.message}`));
           });
         }
         play() {
@@ -7482,7 +7469,7 @@
               src = elementSrc;
             }
           }
-          this.player.log("Loading HLS source: ".concat(src), "log");
+          this.player.log(`Loading HLS source: ${src}`, "log");
           if (!src) {
             throw new Error("No HLS source found");
           }
@@ -7654,15 +7641,15 @@
           });
         }
         handleHlsError(data) {
-          this.player.log("HLS Error - Type: ".concat(data.type, ", Details: ").concat(data.details, ", Fatal: ").concat(data.fatal), "warn");
+          this.player.log(`HLS Error - Type: ${data.type}, Details: ${data.details}, Fatal: ${data.fatal}`, "warn");
           if (data.response) {
-            this.player.log("Response code: ".concat(data.response.code, ", URL: ").concat(data.response.url), "warn");
+            this.player.log(`Response code: ${data.response.code}, URL: ${data.response.url}`, "warn");
           }
           if (data.fatal) {
             switch (data.type) {
               case window.Hls.ErrorTypes.NETWORK_ERROR:
                 this.player.log("Fatal network error, trying to recover...", "error");
-                this.player.log("Network error details: ".concat(data.details), "error");
+                this.player.log(`Network error details: ${data.details}`, "error");
                 setTimeout(() => {
                   this.hls.startLoad();
                 }, 1e3);
@@ -7673,7 +7660,7 @@
                 break;
               default:
                 this.player.log("Fatal error, cannot recover", "error");
-                this.player.handleError(new Error("HLS Error: ".concat(data.type, " - ").concat(data.details)));
+                this.player.handleError(new Error(`HLS Error: ${data.type} - ${data.details}`));
                 this.hls.destroy();
                 break;
             }
@@ -7754,7 +7741,7 @@
               const height = Number(level.height) || 0;
               const bitrate = Number(level.bitrate) || 0;
               const kb = bitrate > 0 ? Math.round(bitrate / 1e3) : 0;
-              const name = height > 0 ? "".concat(height, "p") : kb > 0 ? "".concat(kb, " kb") : "Auto";
+              const name = height > 0 ? `${height}p` : kb > 0 ? `${kb} kb` : "Auto";
               return {
                 index,
                 height: level.height,
@@ -7845,7 +7832,7 @@
             // Use classic player for better control
             color: "%23007bff"
           });
-          return "https://w.soundcloud.com/player/?".concat(params.toString());
+          return `https://w.soundcloud.com/player/?${params.toString()}`;
         }
         async loadSoundCloudAPI() {
           if (window.SC && window.SC.Widget) {
@@ -7874,7 +7861,7 @@
             this.player.videoWrapper.classList.remove("vidply-forced-poster");
             this.player.videoWrapper.style.removeProperty("--vidply-poster-image");
           }
-          this.iframeId = "soundcloud-player-".concat(Math.random().toString(36).substr(2, 9));
+          this.iframeId = `soundcloud-player-${Math.random().toString(36).substr(2, 9)}`;
           this.iframe = document.createElement("iframe");
           this.iframe.id = this.iframeId;
           this.iframe.scrolling = "no";
@@ -7911,7 +7898,7 @@
                   resolve();
                 });
                 this.widget.bind(window.SC.Widget.Events.ERROR, (error) => {
-                  this.player.handleError(new Error("SoundCloud error: ".concat(error.message || "Unknown error")));
+                  this.player.handleError(new Error(`SoundCloud error: ${error.message || "Unknown error"}`));
                 });
               } catch (error) {
                 reject(error);
@@ -8224,7 +8211,7 @@
     // Smart menu positioning to avoid overflow
     positionMenu(menu, button, immediate = false) {
       const mobile = isMobile();
-      const isOverflowMenu = menu.classList.contains("".concat(this.player.options.classPrefix, "-overflow-menu-list"));
+      const isOverflowMenu = menu.classList.contains(`${this.player.options.classPrefix}-overflow-menu-list`);
       const isFullscreen = this.player.state.fullscreen;
       if (isFullscreen && menu.parentElement === this.player.container) {
         const doFullscreenPositioning = () => {
@@ -8238,21 +8225,21 @@
           const spaceAbove = buttonRect.top - containerRect.top;
           const spaceBelow = containerRect.bottom - buttonRect.bottom;
           if (spaceAbove >= menuRect.height + 20 || spaceAbove > spaceBelow) {
-            menu.style.bottom = "".concat(containerRect.height - buttonTop + 8, "px");
+            menu.style.bottom = `${containerRect.height - buttonTop + 8}px`;
             menu.style.top = "auto";
             menu.classList.remove("vidply-menu-below");
           } else {
-            menu.style.top = "".concat(buttonBottom + 8, "px");
+            menu.style.top = `${buttonBottom + 8}px`;
             menu.style.bottom = "auto";
             menu.classList.add("vidply-menu-below");
           }
           if (isOverflowMenu) {
             const buttonRight = buttonRect.right - containerRect.left;
-            menu.style.right = "".concat(containerRect.width - buttonRight, "px");
+            menu.style.right = `${containerRect.width - buttonRight}px`;
             menu.style.left = "auto";
             menu.style.transform = "none";
           } else {
-            menu.style.left = "".concat(buttonCenterX, "px");
+            menu.style.left = `${buttonCenterX}px`;
             menu.style.right = "auto";
             menu.style.transform = "translateX(-50%)";
           }
@@ -8265,7 +8252,7 @@
         return;
       }
       if (mobile) {
-        const isVolumeMenu = menu.classList.contains("".concat(this.player.options.classPrefix, "-volume-menu"));
+        const isVolumeMenu = menu.classList.contains(`${this.player.options.classPrefix}-volume-menu`);
         const doMobilePositioning = () => {
           const parentContainer = button.parentElement;
           if (!parentContainer) return;
@@ -8276,7 +8263,7 @@
           const viewportHeight = window.innerHeight;
           if (isVolumeMenu) {
             const buttonCenterX = buttonRect.left + buttonRect.width / 2 - parentRect.left;
-            menu.style.left = "".concat(buttonCenterX, "px");
+            menu.style.left = `${buttonCenterX}px`;
             menu.style.right = "auto";
             menu.style.transform = "translateX(-50%)";
             return;
@@ -8353,18 +8340,18 @@
           }
         }
         if (menuTop !== null) {
-          menu.style.top = "".concat(menuTop, "px");
+          menu.style.top = `${menuTop}px`;
           menu.style.bottom = "auto";
         } else if (menuBottom !== null) {
           menu.style.top = "auto";
-          menu.style.bottom = "".concat(menuBottom, "px");
+          menu.style.bottom = `${menuBottom}px`;
         }
         if (menuLeft !== "auto") {
-          menu.style.left = "".concat(menuLeft, "px");
+          menu.style.left = `${menuLeft}px`;
           menu.style.right = "auto";
         } else {
           menu.style.left = "auto";
-          menu.style.right = "".concat(menuRight, "px");
+          menu.style.right = `${menuRight}px`;
         }
         menu.style.transform = transformX;
       };
@@ -8379,7 +8366,7 @@
     // Helper method to insert menu into DOM (handles fullscreen vs normal mode)
     insertMenuIntoDOM(menu, button) {
       if (!menu.id) {
-        menu.id = "vidply-menu-".concat(Math.random().toString(36).substr(2, 9));
+        menu.id = `vidply-menu-${Math.random().toString(36).substr(2, 9)}`;
       }
       button.setAttribute("aria-controls", menu.id);
       button.setAttribute("aria-haspopup", "true");
@@ -8564,7 +8551,7 @@
     }
     // Helper method to add keyboard navigation to menus (arrow keys)
     attachMenuKeyboardNavigation(menu, button) {
-      const menuItems = Array.from(menu.querySelectorAll(".".concat(this.player.options.classPrefix, "-menu-item")));
+      const menuItems = Array.from(menu.querySelectorAll(`.${this.player.options.classPrefix}-menu-item`));
       if (menuItems.length === 0) return;
       const handleKeyDown = (e) => {
         const currentIndex = menuItems.indexOf(document.activeElement);
@@ -8620,7 +8607,7 @@
     }
     createElement() {
       this.element = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-controls"),
+        className: `${this.player.options.classPrefix}-controls`,
         attributes: {
           "role": "region",
           "aria-label": i18n.t("player.label") + " controls"
@@ -8630,7 +8617,7 @@
     createControls() {
       var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
       const progressTimeWrapper = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-progress-time-wrapper")
+        className: `${this.player.options.classPrefix}-progress-time-wrapper`
       });
       if (this.player.options.progressBar) {
         this.createProgressBar();
@@ -8641,10 +8628,10 @@
       }
       this.element.appendChild(progressTimeWrapper);
       const buttonContainer = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-controls-buttons")
+        className: `${this.player.options.classPrefix}-controls-buttons`
       });
       const leftButtons = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-controls-left")
+        className: `${this.player.options.classPrefix}-controls-left`
       });
       if (this.player.playlistManager) {
         leftButtons.appendChild(this.createPreviousButton());
@@ -8670,7 +8657,7 @@
         }
       }
       this.rightButtons = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-controls-right")
+        className: `${this.player.options.classPrefix}-controls-right`
       });
       const hasChapters = this.hasChapterTracks();
       const hasCaptions = this.hasCaptionTracks();
@@ -8773,13 +8760,13 @@
     ensureButtonTooltips(container) {
       const buttons = container.querySelectorAll("button");
       buttons.forEach((button) => {
-        if (button.querySelector(".".concat(this.player.options.classPrefix, "-tooltip"))) {
+        if (button.querySelector(`.${this.player.options.classPrefix}-tooltip`)) {
           return;
         }
-        if (button.querySelector(".".concat(this.player.options.classPrefix, "-button-text"))) {
+        if (button.querySelector(`.${this.player.options.classPrefix}-button-text`)) {
           return;
         }
-        if (button.getAttribute("role") === "menuitem" || button.classList.contains("".concat(this.player.options.classPrefix, "-settings-item")) || button.classList.contains("".concat(this.player.options.classPrefix, "-menu-item")) || button.classList.contains("".concat(this.player.options.classPrefix, "-transcript-settings-item")) || button.classList.contains("".concat(this.player.options.classPrefix, "-sign-language-settings-item")) || button.classList.contains("".concat(this.player.options.classPrefix, "-popup-settings-item"))) {
+        if (button.getAttribute("role") === "menuitem" || button.classList.contains(`${this.player.options.classPrefix}-settings-item`) || button.classList.contains(`${this.player.options.classPrefix}-menu-item`) || button.classList.contains(`${this.player.options.classPrefix}-transcript-settings-item`) || button.classList.contains(`${this.player.options.classPrefix}-sign-language-settings-item`) || button.classList.contains(`${this.player.options.classPrefix}-popup-settings-item`)) {
           return;
         }
         const ariaLabel = button.getAttribute("aria-label");
@@ -8842,7 +8829,7 @@
     }
     createProgressBar() {
       const progressContainer = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-progress-container"),
+        className: `${this.player.options.classPrefix}-progress-container`,
         attributes: {
           "role": "slider",
           "aria-label": i18n.t("player.progress"),
@@ -8853,26 +8840,26 @@
         }
       });
       this.controls.buffered = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-progress-buffered")
+        className: `${this.player.options.classPrefix}-progress-buffered`
       });
       this.controls.played = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-progress-played")
+        className: `${this.player.options.classPrefix}-progress-played`
       });
       this.controls.progressHandle = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-progress-handle")
+        className: `${this.player.options.classPrefix}-progress-handle`
       });
       this.controls.progressTooltip = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-progress-tooltip")
+        className: `${this.player.options.classPrefix}-progress-tooltip`
       });
       this.controls.progressPreview = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-progress-preview"),
+        className: `${this.player.options.classPrefix}-progress-preview`,
         attributes: {
           "aria-hidden": "true"
         }
       });
       this.controls.progressTooltip.appendChild(this.controls.progressPreview);
       this.controls.progressTooltipTime = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-progress-tooltip-time")
+        className: `${this.player.options.classPrefix}-progress-tooltip-time`
       });
       this.controls.progressTooltip.appendChild(this.controls.progressTooltipTime);
       progressContainer.appendChild(this.controls.buffered);
@@ -9000,7 +8987,7 @@
         }
       }
       if (times.length === 0) return;
-      this.player.log("Pre-generating ".concat(times.length, " thumbnails"), "debug");
+      this.player.log(`Pre-generating ${times.length} thumbnails`, "debug");
       const generateNext = (deadline) => {
         while (deadline.timeRemaining() > 50 && times.length > 0) {
           const time = times.shift();
@@ -9100,7 +9087,7 @@
         try {
           const thumbnail = await this.generatePreviewThumbnail(time);
           if (thumbnail && this.controls.progressPreview) {
-            this.controls.progressPreview.style.backgroundImage = 'url("'.concat(thumbnail, '")');
+            this.controls.progressPreview.style.backgroundImage = `url("${thumbnail}")`;
             this.controls.progressPreview.style.display = "block";
             this.controls.progressPreview.style.backgroundRepeat = "no-repeat";
             this.controls.progressPreview.style.backgroundPosition = "center";
@@ -9148,7 +9135,7 @@
           const rect = progress.getBoundingClientRect();
           const left = e.clientX - rect.left;
           this.controls.progressTooltipTime.textContent = TimeUtils.formatTime(time);
-          this.controls.progressTooltip.style.left = "".concat(left, "px");
+          this.controls.progressTooltip.style.left = `${left}px`;
           this.controls.progressTooltip.style.display = "block";
           if (!((_b = (_a = this.player) == null ? void 0 : _a.state) == null ? void 0 : _b.hasStartedPlayback)) {
             if (this.controls.progressPreview) {
@@ -9199,7 +9186,7 @@
     }
     createPlayPauseButton() {
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-play-pause"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-play-pause`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.play")
@@ -9214,7 +9201,7 @@
     }
     createRestartButton() {
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-restart"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-restart`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.restart")
@@ -9229,7 +9216,7 @@
     }
     createPreviousButton() {
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-previous"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-previous`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.previous")
@@ -9253,7 +9240,7 @@
     }
     createNextButton() {
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-next"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-next`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.next")
@@ -9276,9 +9263,9 @@
       return button;
     }
     createPlaylistToggleButton() {
-      const panelId = this.player.playlistManager ? "".concat(this.player.playlistManager.uniqueId, "-panel") : "vidply-playlist-panel";
+      const panelId = this.player.playlistManager ? `${this.player.playlistManager.uniqueId}-panel` : "vidply-playlist-panel";
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-playlist-toggle"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-playlist-toggle`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.playlist"),
@@ -9298,7 +9285,7 @@
     }
     createRewindButton() {
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-rewind"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-rewind`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.rewindSeconds", { seconds: 15 })
@@ -9312,7 +9299,7 @@
     }
     createForwardButton() {
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-forward"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-forward`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.forwardSeconds", { seconds: 15 })
@@ -9326,7 +9313,7 @@
     }
     createMuteButton() {
       const muteButton = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-mute"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-mute`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.mute")
@@ -9341,7 +9328,7 @@
     }
     createVolumeControl() {
       const muteButton = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-mute"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-mute`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.volume"),
@@ -9360,17 +9347,17 @@
       return muteButton;
     }
     showVolumeSlider(button) {
-      const existingSlider = document.querySelector(".".concat(this.player.options.classPrefix, "-volume-menu"));
+      const existingSlider = document.querySelector(`.${this.player.options.classPrefix}-volume-menu`);
       if (existingSlider) {
         existingSlider.remove();
         button.setAttribute("aria-expanded", "false");
         return;
       }
       const volumeMenu = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-volume-menu ").concat(this.player.options.classPrefix, "-menu")
+        className: `${this.player.options.classPrefix}-volume-menu ${this.player.options.classPrefix}-menu`
       });
       const volumeSlider = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-volume-slider"),
+        className: `${this.player.options.classPrefix}-volume-slider`,
         attributes: {
           "role": "slider",
           "aria-label": i18n.t("player.volume"),
@@ -9381,15 +9368,15 @@
         }
       });
       const volumeTrack = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-volume-track")
+        className: `${this.player.options.classPrefix}-volume-track`
       });
       const volumeFill = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-volume-fill")
+        className: `${this.player.options.classPrefix}-volume-fill`
       });
       const initialVolumePercent = this.player.state.volume * 100;
-      volumeFill.style.height = "".concat(initialVolumePercent, "%");
+      volumeFill.style.height = `${initialVolumePercent}%`;
       const volumeHandle = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-volume-handle")
+        className: `${this.player.options.classPrefix}-volume-handle`
       });
       volumeTrack.appendChild(volumeFill);
       volumeFill.appendChild(volumeHandle);
@@ -9475,14 +9462,14 @@
     }
     createTimeDisplay() {
       const container = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-time"),
+        className: `${this.player.options.classPrefix}-time`,
         attributes: {
           "role": "group",
           "aria-label": i18n.t("time.display")
         }
       });
       this.controls.currentTimeDisplay = DOMUtils.createElement("span", {
-        className: "".concat(this.player.options.classPrefix, "-current-time")
+        className: `${this.player.options.classPrefix}-current-time`
       });
       const currentTimeVisual = DOMUtils.createElement("span", {
         textContent: "00:00",
@@ -9505,7 +9492,7 @@
         }
       });
       this.controls.durationDisplay = DOMUtils.createElement("span", {
-        className: "".concat(this.player.options.classPrefix, "-duration")
+        className: `${this.player.options.classPrefix}-duration`
       });
       const durationVisual = DOMUtils.createElement("span", {
         textContent: "00:00",
@@ -9528,7 +9515,7 @@
     }
     createChaptersButton() {
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-chapters"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-chapters`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.chapters"),
@@ -9543,7 +9530,7 @@
       return button;
     }
     showChaptersMenu(button) {
-      const existingMenu = document.querySelector(".".concat(this.player.options.classPrefix, "-chapters-menu"));
+      const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-chapters-menu`);
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
@@ -9554,7 +9541,7 @@
         return;
       }
       const menu = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-chapters-menu ").concat(this.player.options.classPrefix, "-menu"),
+        className: `${this.player.options.classPrefix}-chapters-menu ${this.player.options.classPrefix}-menu`,
         attributes: {
           "role": "menu",
           "aria-label": i18n.t("player.chapters")
@@ -9565,7 +9552,7 @@
       );
       if (chapterTracks.length === 0) {
         const noChaptersItem = DOMUtils.createElement("div", {
-          className: "".concat(this.player.options.classPrefix, "-menu-item"),
+          className: `${this.player.options.classPrefix}-menu-item`,
           textContent: i18n.t("player.noChapters"),
           attributes: {
             "role": "menuitem"
@@ -9580,7 +9567,7 @@
         }
         if (!chapterTrack.cues || chapterTrack.cues.length === 0) {
           const loadingItem = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-menu-item"),
+            className: `${this.player.options.classPrefix}-menu-item`,
             textContent: i18n.t("player.loadingChapters"),
             attributes: {
               "role": "menuitem"
@@ -9604,7 +9591,7 @@
           for (let i = 0; i < cues.length; i++) {
             const cue = cues[i];
             const item = DOMUtils.createElement("button", {
-              className: "".concat(this.player.options.classPrefix, "-menu-item"),
+              className: `${this.player.options.classPrefix}-menu-item`,
               attributes: {
                 "type": "button",
                 "role": "menuitem",
@@ -9612,14 +9599,14 @@
               }
             });
             const timeLabel = DOMUtils.createElement("span", {
-              className: "".concat(this.player.options.classPrefix, "-chapter-time"),
+              className: `${this.player.options.classPrefix}-chapter-time`,
               textContent: TimeUtils.formatTime(cue.startTime),
               attributes: {
                 "aria-label": TimeUtils.formatDuration(cue.startTime)
               }
             });
             const titleLabel = DOMUtils.createElement("span", {
-              className: "".concat(this.player.options.classPrefix, "-chapter-title"),
+              className: `${this.player.options.classPrefix}-chapter-title`,
               textContent: cue.text
             });
             item.appendChild(timeLabel);
@@ -9633,7 +9620,7 @@
           }
           this.attachMenuKeyboardNavigation(menu, button);
           setTimeout(() => {
-            const firstItem = menu.querySelector(".".concat(this.player.options.classPrefix, "-menu-item"));
+            const firstItem = menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
             if (firstItem) {
               firstItem.focus({ preventScroll: true });
             }
@@ -9652,7 +9639,7 @@
     createQualityButton() {
       const ariaLabel = i18n.t("player.quality");
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-quality"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-quality`,
         attributes: {
           "type": "button",
           "aria-label": ariaLabel,
@@ -9662,7 +9649,7 @@
       button.appendChild(createIconElement("hd"));
       DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
       const qualityText = DOMUtils.createElement("span", {
-        className: "".concat(this.player.options.classPrefix, "-quality-text"),
+        className: `${this.player.options.classPrefix}-quality-text`,
         textContent: ""
       });
       button.appendChild(qualityText);
@@ -9675,7 +9662,7 @@
       return button;
     }
     showQualityMenu(button) {
-      const existingMenu = document.querySelector(".".concat(this.player.options.classPrefix, "-quality-menu"));
+      const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-quality-menu`);
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
@@ -9686,7 +9673,7 @@
         return;
       }
       const menu = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-quality-menu ").concat(this.player.options.classPrefix, "-menu"),
+        className: `${this.player.options.classPrefix}-quality-menu ${this.player.options.classPrefix}-menu`,
         attributes: {
           "role": "menu",
           "aria-label": i18n.t("player.quality")
@@ -9698,7 +9685,7 @@
         const isHLS = this.player.renderer.hls !== void 0;
         if (qualities.length === 0) {
           const noQualityItem = DOMUtils.createElement("div", {
-            className: "".concat(this.player.options.classPrefix, "-menu-item"),
+            className: `${this.player.options.classPrefix}-menu-item`,
             textContent: i18n.t("player.autoQuality"),
             attributes: {
               "role": "menuitem"
@@ -9710,7 +9697,7 @@
           let activeItem = null;
           if (isHLS) {
             const autoItem = DOMUtils.createElement("button", {
-              className: "".concat(this.player.options.classPrefix, "-menu-item"),
+              className: `${this.player.options.classPrefix}-menu-item`,
               textContent: i18n.t("player.auto"),
               attributes: {
                 "type": "button",
@@ -9720,7 +9707,7 @@
             });
             const isAuto = this.player.renderer.hls && this.player.renderer.hls.currentLevel === -1;
             if (isAuto) {
-              autoItem.classList.add("".concat(this.player.options.classPrefix, "-menu-item-active"));
+              autoItem.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
               autoItem.appendChild(createIconElement("check"));
               activeItem = autoItem;
             }
@@ -9734,8 +9721,8 @@
           }
           qualities.forEach((quality) => {
             const item = DOMUtils.createElement("button", {
-              className: "".concat(this.player.options.classPrefix, "-menu-item"),
-              textContent: quality.name || "".concat(quality.height, "p"),
+              className: `${this.player.options.classPrefix}-menu-item`,
+              textContent: quality.name || `${quality.height}p`,
               attributes: {
                 "type": "button",
                 "role": "menuitem",
@@ -9743,7 +9730,7 @@
               }
             });
             if (quality.index === currentQuality) {
-              item.classList.add("".concat(this.player.options.classPrefix, "-menu-item-active"));
+              item.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
               item.appendChild(createIconElement("check"));
               activeItem = item;
             }
@@ -9757,7 +9744,7 @@
           });
           this.attachMenuKeyboardNavigation(menu, button);
           setTimeout(() => {
-            const focusTarget = activeItem || menu.querySelector(".".concat(this.player.options.classPrefix, "-menu-item"));
+            const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
             if (focusTarget) {
               focusTarget.focus({ preventScroll: true });
             }
@@ -9765,7 +9752,7 @@
         }
       } else {
         const noSupportItem = DOMUtils.createElement("div", {
-          className: "".concat(this.player.options.classPrefix, "-menu-item"),
+          className: `${this.player.options.classPrefix}-menu-item`,
           textContent: i18n.t("player.noQuality"),
           style: { opacity: "0.5", cursor: "default" }
         });
@@ -9783,7 +9770,7 @@
     createCaptionStyleButton() {
       const ariaLabel = i18n.t("player.captionStyling");
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-caption-style"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-caption-style`,
         attributes: {
           "type": "button",
           "aria-label": ariaLabel,
@@ -9806,7 +9793,7 @@
       return button;
     }
     showCaptionStyleMenu(button) {
-      const existingMenu = document.querySelector(".".concat(this.player.options.classPrefix, "-caption-style-menu"));
+      const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-caption-style-menu`);
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
@@ -9817,7 +9804,7 @@
         return;
       }
       const menu = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-caption-style-menu ").concat(this.player.options.classPrefix, "-menu ").concat(this.player.options.classPrefix, "-settings-menu"),
+        className: `${this.player.options.classPrefix}-caption-style-menu ${this.player.options.classPrefix}-menu ${this.player.options.classPrefix}-settings-menu`,
         attributes: {
           "role": "menu",
           "aria-label": i18n.t("player.captionStyling")
@@ -9828,7 +9815,7 @@
       });
       if (!this.player.captionManager || this.player.captionManager.tracks.length === 0) {
         const noTracksItem = DOMUtils.createElement("div", {
-          className: "".concat(this.player.options.classPrefix, "-menu-item"),
+          className: `${this.player.options.classPrefix}-menu-item`,
           textContent: i18n.t("player.noCaptions"),
           attributes: {
             "role": "menuitem"
@@ -9882,13 +9869,13 @@
         menu.style.visibility = "visible";
       });
       this.attachMenuCloseHandler(menu, button, true);
-      focusFirstElement(menu, ".".concat(this.player.options.classPrefix, "-style-select"));
+      focusFirstElement(menu, `.${this.player.options.classPrefix}-style-select`);
     }
     createStyleControl(label, property, options) {
       const group = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-style-group")
+        className: `${this.player.options.classPrefix}-style-group`
       });
-      const controlId = "".concat(this.player.options.classPrefix, "-").concat(property, "-").concat(Date.now());
+      const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
       const labelEl = DOMUtils.createElement("label", {
         textContent: label,
         attributes: {
@@ -9903,7 +9890,7 @@
       });
       group.appendChild(labelEl);
       const select = DOMUtils.createElement("select", {
-        className: "".concat(this.player.options.classPrefix, "-style-select"),
+        className: `${this.player.options.classPrefix}-style-select`,
         attributes: {
           "id": controlId
         },
@@ -9949,9 +9936,9 @@
     }
     createColorControl(label, property) {
       const group = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-style-group")
+        className: `${this.player.options.classPrefix}-style-group`
       });
-      const controlId = "".concat(this.player.options.classPrefix, "-").concat(property, "-").concat(Date.now());
+      const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
       const labelEl = DOMUtils.createElement("label", {
         textContent: label,
         attributes: {
@@ -10002,9 +9989,9 @@
     }
     createOpacityControl(label, property) {
       const group = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-style-group")
+        className: `${this.player.options.classPrefix}-style-group`
       });
-      const controlId = "".concat(this.player.options.classPrefix, "-").concat(property, "-").concat(Date.now());
+      const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
       const labelContainer = DOMUtils.createElement("div", {
         style: {
           display: "flex",
@@ -10069,7 +10056,7 @@
     }
     createSpeedButton() {
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-speed"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-speed`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.speed"),
@@ -10078,7 +10065,7 @@
       });
       button.appendChild(createIconElement("speed"));
       const speedText = DOMUtils.createElement("span", {
-        className: "".concat(this.player.options.classPrefix, "-speed-text"),
+        className: `${this.player.options.classPrefix}-speed-text`,
         textContent: "1x"
       });
       button.appendChild(speedText);
@@ -10097,10 +10084,10 @@
         minimumFractionDigits: 0,
         maximumFractionDigits: 2
       });
-      return "".concat(speedStr, "×");
+      return `${speedStr}×`;
     }
     showSpeedMenu(button) {
-      const existingMenu = document.querySelector(".".concat(this.player.options.classPrefix, "-speed-menu"));
+      const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-speed-menu`);
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
@@ -10111,7 +10098,7 @@
         return;
       }
       const menu = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-speed-menu ").concat(this.player.options.classPrefix, "-menu"),
+        className: `${this.player.options.classPrefix}-speed-menu ${this.player.options.classPrefix}-menu`,
         attributes: {
           "role": "menu"
         }
@@ -10120,7 +10107,7 @@
       let activeItem = null;
       speeds.forEach((speed) => {
         const item = DOMUtils.createElement("button", {
-          className: "".concat(this.player.options.classPrefix, "-menu-item"),
+          className: `${this.player.options.classPrefix}-menu-item`,
           textContent: this.formatSpeedLabel(speed),
           attributes: {
             "type": "button",
@@ -10129,7 +10116,7 @@
           }
         });
         if (speed === this.player.state.playbackSpeed) {
-          item.classList.add("".concat(this.player.options.classPrefix, "-menu-item-active"));
+          item.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
           item.appendChild(createIconElement("check"));
           activeItem = item;
         }
@@ -10149,7 +10136,7 @@
       this.attachMenuKeyboardNavigation(menu, button);
       this.attachMenuCloseHandler(menu, button);
       setTimeout(() => {
-        const focusTarget = activeItem || menu.querySelector(".".concat(this.player.options.classPrefix, "-menu-item"));
+        const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
         if (focusTarget) {
           focusTarget.focus({ preventScroll: true });
         }
@@ -10157,7 +10144,7 @@
     }
     createCaptionsButton() {
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-captions-button"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-captions-button`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.captions"),
@@ -10172,7 +10159,7 @@
       return button;
     }
     showCaptionsMenu(button) {
-      const existingMenu = document.querySelector(".".concat(this.player.options.classPrefix, "-captions-menu"));
+      const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-captions-menu`);
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
@@ -10183,7 +10170,7 @@
         return;
       }
       const menu = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-captions-menu ").concat(this.player.options.classPrefix, "-menu"),
+        className: `${this.player.options.classPrefix}-captions-menu ${this.player.options.classPrefix}-menu`,
         attributes: {
           "role": "menu",
           "aria-label": i18n.t("captions.select")
@@ -10191,7 +10178,7 @@
       });
       if (!this.player.captionManager || this.player.captionManager.tracks.length === 0) {
         const noTracksItem = DOMUtils.createElement("div", {
-          className: "".concat(this.player.options.classPrefix, "-menu-item"),
+          className: `${this.player.options.classPrefix}-menu-item`,
           textContent: i18n.t("player.noCaptions"),
           attributes: {
             "role": "menuitem"
@@ -10205,7 +10192,7 @@
       }
       let activeItem = null;
       const offItem = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-menu-item"),
+        className: `${this.player.options.classPrefix}-menu-item`,
         textContent: i18n.t("captions.off"),
         attributes: {
           "type": "button",
@@ -10214,7 +10201,7 @@
         }
       });
       if (!this.player.state.captionsEnabled) {
-        offItem.classList.add("".concat(this.player.options.classPrefix, "-menu-item-active"));
+        offItem.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
         offItem.appendChild(createIconElement("check"));
         activeItem = offItem;
       }
@@ -10227,7 +10214,7 @@
       const tracks = this.player.captionManager.getAvailableTracks();
       tracks.forEach((track) => {
         const item = DOMUtils.createElement("button", {
-          className: "".concat(this.player.options.classPrefix, "-menu-item"),
+          className: `${this.player.options.classPrefix}-menu-item`,
           textContent: track.label,
           attributes: {
             "type": "button",
@@ -10237,7 +10224,7 @@
           }
         });
         if (this.player.state.captionsEnabled && this.player.captionManager.currentTrack === this.player.captionManager.tracks[track.index]) {
-          item.classList.add("".concat(this.player.options.classPrefix, "-menu-item-active"));
+          item.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
           item.appendChild(createIconElement("check"));
           activeItem = item;
         }
@@ -10252,7 +10239,7 @@
       this.attachMenuKeyboardNavigation(menu, button);
       this.attachMenuCloseHandler(menu, button);
       setTimeout(() => {
-        const focusTarget = activeItem || menu.querySelector(".".concat(this.player.options.classPrefix, "-menu-item"));
+        const focusTarget = activeItem || menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
         if (focusTarget) {
           focusTarget.focus({ preventScroll: true });
         }
@@ -10266,7 +10253,7 @@
     }
     createTranscriptButton() {
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-transcript"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-transcript`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.transcript"),
@@ -10289,7 +10276,7 @@
     createAudioDescriptionButton() {
       const ariaLabel = i18n.t("player.audioDescription");
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-audio-description"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-audio-description`,
         attributes: {
           "type": "button",
           "aria-label": ariaLabel,
@@ -10316,7 +10303,7 @@
     createSignLanguageButton() {
       const ariaLabel = i18n.t("player.signLanguage");
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-sign-language"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-sign-language`,
         attributes: {
           "type": "button",
           "aria-label": ariaLabel,
@@ -10349,7 +10336,7 @@
     createSignLanguageInMainViewButton() {
       const ariaLabel = i18n.t("signLanguage.showInMainView");
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-sign-language-main-view"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-sign-language-main-view`,
         attributes: {
           "type": "button",
           "aria-label": ariaLabel,
@@ -10378,7 +10365,7 @@
       btn.querySelector(".vidply-icon").innerHTML = createIconElement(iconName).innerHTML;
       btn.setAttribute("aria-pressed", String(isEnabled));
       btn.setAttribute("aria-label", newLabel);
-      const tooltip = btn.querySelector(".".concat(this.player.options.classPrefix, "-tooltip"));
+      const tooltip = btn.querySelector(`.${this.player.options.classPrefix}-tooltip`);
       if (tooltip) tooltip.textContent = newLabel;
     }
     /**
@@ -10394,8 +10381,8 @@
           const btn = this.createAudioDescriptionButton();
           btn.dataset.overflowPriority = "2";
           btn.dataset.overflowPriorityMobile = "3";
-          const transcriptBtn = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-transcript"));
-          const playlistBtn = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-playlist-toggle"));
+          const transcriptBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-transcript`);
+          const playlistBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
           const insertBefore = transcriptBtn || playlistBtn || null;
           if (insertBefore) {
             this.rightButtons.insertBefore(btn, insertBefore);
@@ -10418,8 +10405,8 @@
       const showPip = ["pip", "both"].includes(displayMode);
       const showMain = ["main", "both"].includes(displayMode);
       if (showSignLanguage) {
-        const qualityBtn = this.rightButtons.querySelector(".".concat(classPrefix, "-quality"));
-        const fullscreenBtn = this.rightButtons.querySelector(".".concat(classPrefix, "-fullscreen"));
+        const qualityBtn = this.rightButtons.querySelector(`.${classPrefix}-quality`);
+        const fullscreenBtn = this.rightButtons.querySelector(`.${classPrefix}-fullscreen`);
         const insertBeforeRef = qualityBtn || fullscreenBtn || null;
         let needsOverflowSetup = false;
         if (showPip && !this.controls.signLanguage) {
@@ -10463,7 +10450,7 @@
     }
     createSettingsButton() {
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-settings"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-settings`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.settings")
@@ -10477,7 +10464,7 @@
     }
     createPipButton() {
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-pip"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-pip`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.pip")
@@ -10491,7 +10478,7 @@
     }
     createFullscreenButton() {
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-fullscreen"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-fullscreen`,
         attributes: {
           "type": "button",
           "aria-label": i18n.t("player.fullscreen")
@@ -10553,13 +10540,13 @@
       const currentTime = this.player.state.currentTime || 0;
       const duration = this.player.state.duration || 0;
       const percent = duration > 0 ? Math.min(100, Math.max(0, currentTime / duration * 100)) : 0;
-      this.controls.played.style.width = "".concat(percent, "%");
+      this.controls.played.style.width = `${percent}%`;
       this.controls.progress.setAttribute("aria-valuenow", String(Math.round(percent)));
       const currentTimeText = TimeUtils.formatDuration(this.player.state.currentTime);
       const durationText = TimeUtils.formatDuration(this.player.state.duration);
       this.controls.progress.setAttribute(
         "aria-valuetext",
-        "".concat(Math.round(percent), "%, ").concat(currentTimeText, " ").concat(i18n.t("time.of"), " ").concat(durationText)
+        `${Math.round(percent)}%, ${currentTimeText} ${i18n.t("time.of")} ${durationText}`
       );
       if (this.controls.currentTimeVisual) {
         const currentTime2 = this.player.state.currentTime;
@@ -10581,7 +10568,7 @@
     updateVolumeDisplay() {
       const percent = this.player.state.volume * 100;
       if (this.controls.volumeFill) {
-        this.controls.volumeFill.style.height = "".concat(percent, "%");
+        this.controls.volumeFill.style.height = `${percent}%`;
       }
       if (this.controls.volumeSlider) {
         this.controls.volumeSlider.setAttribute("aria-valuenow", String(Math.round(percent)));
@@ -10613,11 +10600,11 @@
       if (!this.controls.buffered || !this.player.element.buffered || this.player.element.buffered.length === 0) return;
       const buffered = this.player.element.buffered.end(this.player.element.buffered.length - 1);
       const percent = buffered / this.player.state.duration * 100;
-      this.controls.buffered.style.width = "".concat(percent, "%");
+      this.controls.buffered.style.width = `${percent}%`;
     }
     updateSpeedDisplay() {
       if (this.controls.speedText) {
-        this.controls.speedText.textContent = "".concat(this.player.state.playbackSpeed, "x");
+        this.controls.speedText.textContent = `${this.player.state.playbackSpeed}x`;
       }
     }
     updateFullscreenButton() {
@@ -10639,8 +10626,8 @@
       if (this.controls.quality) return;
       if (!this.hasQualityLevels()) return;
       const qualityButton = this.createQualityButton();
-      const speedButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-speed"));
-      const captionStyleButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-caption-style"));
+      const speedButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-speed`);
+      const captionStyleButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-caption-style`);
       const insertBefore = captionStyleButton || speedButton;
       if (insertBefore) {
         this.rightButtons.insertBefore(qualityButton, insertBefore);
@@ -10659,7 +10646,7 @@
       const btn = this.createCaptionsButton();
       btn.dataset.overflowPriority = "1";
       btn.dataset.overflowPriorityMobile = "3";
-      const chaptersButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-chapters"));
+      const chaptersButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-chapters`);
       if (chaptersButton && chaptersButton.nextSibling) {
         this.rightButtons.insertBefore(btn, chaptersButton.nextSibling);
       } else if (chaptersButton) {
@@ -10678,7 +10665,7 @@
       const btn = this.createCaptionStyleButton();
       btn.dataset.overflowPriority = "3";
       btn.dataset.overflowPriorityMobile = "3";
-      const captionsButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-captions-button"));
+      const captionsButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-captions-button`);
       if (captionsButton) {
         captionsButton.after(btn);
       } else {
@@ -10695,9 +10682,9 @@
       const btn = this.createTranscriptButton();
       btn.dataset.overflowPriority = "3";
       btn.dataset.overflowPriorityMobile = "3";
-      const adButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-audio-description"));
-      const speedButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-speed"));
-      const captionStyleButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-caption-style"));
+      const adButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-audio-description`);
+      const speedButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-speed`);
+      const captionStyleButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-caption-style`);
       if (adButton) {
         adButton.after(btn);
       } else if (speedButton) {
@@ -10705,9 +10692,9 @@
       } else if (captionStyleButton) {
         captionStyleButton.after(btn);
       } else {
-        const qualityButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-quality"));
-        const pipButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-pip"));
-        const fullscreenButton = this.rightButtons.querySelector(".".concat(this.player.options.classPrefix, "-fullscreen"));
+        const qualityButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-quality`);
+        const pipButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-pip`);
+        const fullscreenButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-fullscreen`);
         const insertBefore = qualityButton || pipButton || fullscreenButton;
         if (insertBefore) {
           this.rightButtons.insertBefore(btn, insertBefore);
@@ -10760,7 +10747,7 @@
       if (this.player.captionsManager) {
         this.player.captionsManager.hide();
       }
-      const captionsContainer = (_a = this.player.container) == null ? void 0 : _a.querySelector(".".concat(this.player.options.classPrefix, "-captions"));
+      const captionsContainer = (_a = this.player.container) == null ? void 0 : _a.querySelector(`.${this.player.options.classPrefix}-captions`);
       if (captionsContainer) {
         captionsContainer.textContent = "";
         captionsContainer.style.display = "none";
@@ -10783,7 +10770,7 @@
         const currentIndex = this.player.renderer.getCurrentQuality();
         const currentQuality = qualities.find((q) => q.index === currentIndex);
         if (currentQuality) {
-          currentQualityText = currentQuality.height ? "".concat(currentQuality.height, "p") : "";
+          currentQualityText = currentQuality.height ? `${currentQuality.height}p` : "";
         }
       }
       this.controls.qualityText.textContent = currentQualityText;
@@ -10791,15 +10778,15 @@
     setupAutoHide() {
       if (this.player.element.tagName !== "VIDEO") return;
       const showControls = () => {
-        this.element.classList.add("".concat(this.player.options.classPrefix, "-controls-visible"));
-        this.player.container.classList.add("".concat(this.player.options.classPrefix, "-controls-visible"));
+        this.element.classList.add(`${this.player.options.classPrefix}-controls-visible`);
+        this.player.container.classList.add(`${this.player.options.classPrefix}-controls-visible`);
         this.player.state.controlsVisible = true;
         clearTimeout(this.hideTimeout);
         if (this.player.state.playing) {
           const delay = this.player.state.fullscreen ? this.player.options.hideControlsDelay * 1.5 : this.player.options.hideControlsDelay;
           this.hideTimeout = setTimeout(() => {
-            this.element.classList.remove("".concat(this.player.options.classPrefix, "-controls-visible"));
-            this.player.container.classList.remove("".concat(this.player.options.classPrefix, "-controls-visible"));
+            this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+            this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
             this.player.state.controlsVisible = false;
           }, delay);
         }
@@ -10823,8 +10810,8 @@
           clearTimeout(this.hideTimeout);
           this.hideTimeout = setTimeout(() => {
             if (this.player.state.playing) {
-              this.element.classList.remove("".concat(this.player.options.classPrefix, "-controls-visible"));
-              this.player.container.classList.remove("".concat(this.player.options.classPrefix, "-controls-visible"));
+              this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+              this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
               this.player.state.controlsVisible = false;
             }
           }, this.player.options.hideControlsDelay * 2);
@@ -10835,7 +10822,7 @@
     createOverflowMenuButton() {
       const ariaLabel = i18n.t("player.moreOptions");
       const button = DOMUtils.createElement("button", {
-        className: "".concat(this.player.options.classPrefix, "-button ").concat(this.player.options.classPrefix, "-overflow-menu"),
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-overflow-menu`,
         attributes: {
           "type": "button",
           "aria-label": ariaLabel,
@@ -10851,7 +10838,7 @@
       return button;
     }
     showOverflowMenu(button) {
-      const existingMenu = document.querySelector(".".concat(this.player.options.classPrefix, "-overflow-menu-list"));
+      const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-overflow-menu-list`);
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
@@ -10862,7 +10849,7 @@
         return;
       }
       const menu = DOMUtils.createElement("div", {
-        className: "".concat(this.player.options.classPrefix, "-overflow-menu-list ").concat(this.player.options.classPrefix, "-menu"),
+        className: `${this.player.options.classPrefix}-overflow-menu-list ${this.player.options.classPrefix}-menu`,
         attributes: {
           "role": "menu",
           "aria-label": i18n.t("player.moreOptions")
@@ -10871,7 +10858,7 @@
       const overflowButtons = Array.from(this.rightButtons.querySelectorAll('button[data-in-overflow="true"]'));
       if (overflowButtons.length === 0) {
         const noItemsText = DOMUtils.createElement("div", {
-          className: "".concat(this.player.options.classPrefix, "-menu-item"),
+          className: `${this.player.options.classPrefix}-menu-item`,
           textContent: i18n.t("player.noMoreOptions"),
           attributes: {
             "role": "menuitem"
@@ -10882,7 +10869,7 @@
       } else {
         overflowButtons.forEach((btn) => {
           const item = DOMUtils.createElement("button", {
-            className: "".concat(this.player.options.classPrefix, "-menu-item"),
+            className: `${this.player.options.classPrefix}-menu-item`,
             attributes: {
               "type": "button",
               "role": "menuitem",
@@ -10923,7 +10910,7 @@
         });
         this.attachMenuKeyboardNavigation(menu, button);
         setTimeout(() => {
-          const firstItem = menu.querySelector(".".concat(this.player.options.classPrefix, "-menu-item"));
+          const firstItem = menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
           if (firstItem && firstItem.tagName === "BUTTON") {
             firstItem.focus({ preventScroll: true });
           }
@@ -10951,7 +10938,7 @@
           return;
         }
         const allButtons = Array.from(this.rightButtons.children).filter(
-          (btn) => !btn.classList.contains("".concat(this.player.options.classPrefix, "-overflow-menu"))
+          (btn) => !btn.classList.contains(`${this.player.options.classPrefix}-overflow-menu`)
         );
         if (allButtons.length === 0) {
           if (this.overflowMenuButton) {
@@ -11019,7 +11006,7 @@
           const isSmallScreen2 = window.innerWidth < 768;
           const priorityAttr = isSmallScreen2 ? "overflowPriorityMobile" : "overflowPriority";
           if (this.player.options.debug) {
-            console.log("Using ".concat(isSmallScreen2 ? "mobile" : "desktop", " priorities (width: ").concat(window.innerWidth, "px)"));
+            console.log(`Using ${isSmallScreen2 ? "mobile" : "desktop"} priorities (width: ${window.innerWidth}px)`);
           }
           const sortedButtons = buttonWidths.sort((a, b) => {
             const priorityA = parseInt(a.btn.dataset[priorityAttr] || a.btn.dataset.overflowPriority || "1");
@@ -11043,7 +11030,7 @@
               currentWidth -= width;
               movedToOverflow++;
               if (this.player.options.debug) {
-                console.log("  → Hiding button: ".concat(buttonLabel, " (priority ").concat(priority, ", ").concat(isSmallScreen2 ? "mobile" : "desktop", ")"));
+                console.log(`  → Hiding button: ${buttonLabel} (priority ${priority}, ${isSmallScreen2 ? "mobile" : "desktop"})`);
               }
             } else {
               btn.dataset.inOverflow = "false";
@@ -11328,10 +11315,10 @@
           message = this.player.state.playing ? "Playing" : "Paused";
           break;
         case "volume-up":
-          message = "Volume ".concat(Math.round(this.player.state.volume * 100), "%");
+          message = `Volume ${Math.round(this.player.state.volume * 100)}%`;
           break;
         case "volume-down":
-          message = "Volume ".concat(Math.round(this.player.state.volume * 100), "%");
+          message = `Volume ${Math.round(this.player.state.volume * 100)}%`;
           break;
         case "mute":
           message = this.player.state.muted ? "Muted" : "Unmuted";
@@ -11344,7 +11331,7 @@
           break;
         case "speed-up":
         case "speed-down":
-          message = "Speed ".concat(this.player.state.playbackSpeed, "x");
+          message = `Speed ${this.player.state.playbackSpeed}x`;
           break;
       }
       if (message) {
@@ -11359,7 +11346,13 @@
         announcer.className = "vidply-sr-only";
         announcer.setAttribute("aria-live", priority);
         announcer.setAttribute("aria-atomic", "true");
-        announcer.style.cssText = "\n        position: absolute;\n        left: -10000px;\n        width: 1px;\n        height: 1px;\n        overflow: hidden;\n      ";
+        announcer.style.cssText = `
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      `;
         document.body.appendChild(announcer);
       }
       announcer.textContent = "";
@@ -11428,7 +11421,7 @@
         this.element = mediaElement;
       }
       this._originalElement = this.element;
-      this.options = __spreadValues({
+      this.options = {
         // Display
         width: null,
         height: null,
@@ -11580,8 +11573,9 @@
         onEnded: null,
         onTimeUpdate: null,
         onVolumeChange: null,
-        onError: null
-      }, options);
+        onError: null,
+        ...options
+      };
       this.options.metadataAlerts = this.options.metadataAlerts || {};
       this.options.metadataHashtags = this.options.metadataHashtags || {};
       this.noticeElement = null;
@@ -11736,7 +11730,7 @@
         }
         if (!this.noticeElement) {
           const el = document.createElement("div");
-          el.className = "".concat(this.options.classPrefix, "-notice");
+          el.className = `${this.options.classPrefix}-notice`;
           el.setAttribute("role", "status");
           el.setAttribute("aria-live", priority);
           el.setAttribute("aria-atomic", "true");
@@ -11783,16 +11777,16 @@
         if (this.options.languageFile && this.options.languageFileUrl) {
           try {
             await i18n.loadLanguageFromUrl(this.options.languageFile, this.options.languageFileUrl);
-            this.log("Custom language file loaded for ".concat(this.options.languageFile));
+            this.log(`Custom language file loaded for ${this.options.languageFile}`);
           } catch (error) {
-            console.warn("Failed to load language file for ".concat(this.options.languageFile, ":"), error);
+            console.warn(`Failed to load language file for ${this.options.languageFile}:`, error);
           }
         }
         if (!this.options.language || this.options.language === "en") {
           const htmlLang = this.detectHtmlLanguage();
           if (htmlLang) {
             this.options.language = htmlLang;
-            this.log("Auto-detected language from HTML: ".concat(htmlLang));
+            this.log(`Auto-detected language from HTML: ${htmlLang}`);
           }
         }
         if (!this.options.language) {
@@ -11957,7 +11951,7 @@
       if (i18n.builtInLanguageLoaders && i18n.builtInLanguageLoaders[normalizedLang]) {
         return normalizedLang;
       }
-      this.log('Language "'.concat(htmlLang, '" not available, using English as fallback'));
+      this.log(`Language "${htmlLang}" not available, using English as fallback`);
       return null;
     }
     // ============================================
@@ -12073,9 +12067,9 @@
       const m = Math.floor(seconds % 3600 / 60);
       const s = Math.floor(seconds % 60);
       if (h > 0) {
-        return "".concat(h, ":").concat(m.toString().padStart(2, "0"), ":").concat(s.toString().padStart(2, "0"));
+        return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
       }
-      return "".concat(m, ":").concat(s.toString().padStart(2, "0"));
+      return `${m}:${s.toString().padStart(2, "0")}`;
     }
     /**
      * Show the resume prompt overlay
@@ -12086,7 +12080,7 @@
       const formattedTime = this._formatResumeTime(savedTime);
       const promptText = i18n.t("resume.prompt", { time: formattedTime });
       this.resumePromptElement = DOMUtils.createElement("div", {
-        className: "".concat(this.options.classPrefix, "-resume-prompt"),
+        className: `${this.options.classPrefix}-resume-prompt`,
         attributes: {
           "role": "dialog",
           "aria-label": promptText,
@@ -12094,17 +12088,17 @@
         }
       });
       const promptContent = DOMUtils.createElement("div", {
-        className: "".concat(this.options.classPrefix, "-resume-prompt-content")
+        className: `${this.options.classPrefix}-resume-prompt-content`
       });
       const promptMessage = DOMUtils.createElement("p", {
-        className: "".concat(this.options.classPrefix, "-resume-prompt-message"),
+        className: `${this.options.classPrefix}-resume-prompt-message`,
         textContent: promptText
       });
       const buttonContainer = DOMUtils.createElement("div", {
-        className: "".concat(this.options.classPrefix, "-resume-prompt-buttons")
+        className: `${this.options.classPrefix}-resume-prompt-buttons`
       });
       const resumeButton = DOMUtils.createElement("button", {
-        className: "".concat(this.options.classPrefix, "-resume-prompt-button ").concat(this.options.classPrefix, "-resume-prompt-button-primary"),
+        className: `${this.options.classPrefix}-resume-prompt-button ${this.options.classPrefix}-resume-prompt-button-primary`,
         textContent: i18n.t("resume.resume"),
         attributes: {
           "type": "button"
@@ -12116,7 +12110,7 @@
         this.play();
       });
       const startOverButton = DOMUtils.createElement("button", {
-        className: "".concat(this.options.classPrefix, "-resume-prompt-button"),
+        className: `${this.options.classPrefix}-resume-prompt-button`,
         textContent: i18n.t("resume.startOver"),
         attributes: {
           "type": "button"
@@ -12167,16 +12161,16 @@
     applyTheme() {
       if (!this.container) return;
       const themeClasses = _Player.THEMES.map(
-        (t) => "".concat(this.options.classPrefix, "-theme-").concat(t)
+        (t) => `${this.options.classPrefix}-theme-${t}`
       );
       this.container.classList.remove(...themeClasses);
       const theme = this.options.theme;
       if (theme && _Player.THEMES.includes(theme)) {
-        this.container.classList.add("".concat(this.options.classPrefix, "-theme-").concat(theme));
+        this.container.classList.add(`${this.options.classPrefix}-theme-${theme}`);
       }
       if (this.options.themeVariables && typeof this.options.themeVariables === "object") {
         Object.entries(this.options.themeVariables).forEach(([key, value]) => {
-          const cssVar = key.startsWith("--vidply-") ? key : "--vidply-".concat(key);
+          const cssVar = key.startsWith("--vidply-") ? key : `--vidply-${key}`;
           this.container.style.setProperty(cssVar, value);
         });
       }
@@ -12190,7 +12184,10 @@
       const previousTheme = this.options.theme;
       this.options.theme = themeName;
       if (customVariables && Object.keys(customVariables).length > 0) {
-        this.options.themeVariables = __spreadValues(__spreadValues({}, this.options.themeVariables), customVariables);
+        this.options.themeVariables = {
+          ...this.options.themeVariables,
+          ...customVariables
+        };
       }
       this.applyTheme();
       this.emit("themechange", {
@@ -12213,7 +12210,7 @@
      */
     setThemeVariable(variableName, value) {
       if (!this.container) return;
-      const cssVar = variableName.startsWith("--vidply-") ? variableName : "--vidply-".concat(variableName);
+      const cssVar = variableName.startsWith("--vidply-") ? variableName : `--vidply-${variableName}`;
       this.container.style.setProperty(cssVar, value);
       this.options.themeVariables = this.options.themeVariables || {};
       this.options.themeVariables[variableName] = value;
@@ -12224,7 +12221,7 @@
     resetTheme() {
       if (this.container && this.options.themeVariables) {
         Object.keys(this.options.themeVariables).forEach((key) => {
-          const cssVar = key.startsWith("--vidply-") ? key : "--vidply-".concat(key);
+          const cssVar = key.startsWith("--vidply-") ? key : `--vidply-${key}`;
           this.container.style.removeProperty(cssVar);
         });
       }
@@ -12234,9 +12231,9 @@
       this.emit("themechange", { theme: "dark", previousTheme: this.options.theme });
     }
     createContainer() {
-      const playerLabel = this.instanceId > 1 ? "".concat(i18n.t("player.label"), " ").concat(this.instanceId) : i18n.t("player.label");
+      const playerLabel = this.instanceId > 1 ? `${i18n.t("player.label")} ${this.instanceId}` : i18n.t("player.label");
       this.container = DOMUtils.createElement("div", {
-        className: "".concat(this.options.classPrefix, "-player"),
+        className: `${this.options.classPrefix}-player`,
         attributes: {
           "role": "application",
           "aria-label": playerLabel,
@@ -12244,22 +12241,22 @@
         }
       });
       const mediaType = this.element.tagName.toLowerCase();
-      this.container.classList.add("".concat(this.options.classPrefix, "-").concat(mediaType));
+      this.container.classList.add(`${this.options.classPrefix}-${mediaType}`);
       if (this.options.responsive) {
-        this.container.classList.add("".concat(this.options.classPrefix, "-responsive"));
+        this.container.classList.add(`${this.options.classPrefix}-responsive`);
       }
       this.videoWrapper = DOMUtils.createElement("div", {
-        className: "".concat(this.options.classPrefix, "-video-wrapper")
+        className: `${this.options.classPrefix}-video-wrapper`
       });
       this.element.parentNode.insertBefore(this.container, this.element);
       if (this.element.tagName === "AUDIO" && this.options.poster) {
         this.trackArtworkElement = DOMUtils.createElement("div", {
-          className: "".concat(this.options.classPrefix, "-track-artwork"),
+          className: `${this.options.classPrefix}-track-artwork`,
           attributes: {
             "aria-hidden": "true"
           }
         });
-        this.trackArtworkElement.style.backgroundImage = "url(".concat(this.options.poster, ")");
+        this.trackArtworkElement.style.backgroundImage = `url(${this.options.poster})`;
         this.container.appendChild(this.trackArtworkElement);
       }
       this.container.appendChild(this.videoWrapper);
@@ -12274,10 +12271,10 @@
         this.element.playsInline = true;
       }
       if (this.options.width) {
-        this.container.style.width = typeof this.options.width === "number" ? "".concat(this.options.width, "px") : this.options.width;
+        this.container.style.width = typeof this.options.width === "number" ? `${this.options.width}px` : this.options.width;
       }
       if (this.options.height) {
-        this.container.style.height = typeof this.options.height === "number" ? "".concat(this.options.height, "px") : this.options.height;
+        this.container.style.height = typeof this.options.height === "number" ? `${this.options.height}px` : this.options.height;
       }
       if (this.options.poster && this.element.tagName === "VIDEO") {
         const resolvedPoster = this.resolvePosterPath(this.options.poster);
@@ -12356,7 +12353,7 @@
       const videoRect = this.element.getBoundingClientRect();
       const wrapperRect = this.videoWrapper.getBoundingClientRect();
       const videoCenter = videoRect.top - wrapperRect.top + videoRect.height / 2;
-      this.playButtonOverlay.style.top = "".concat(videoCenter, "px");
+      this.playButtonOverlay.style.top = `${videoCenter}px`;
     }
     async initializeRenderer() {
       var _a, _b;
@@ -12384,7 +12381,7 @@
         const module = await Promise.resolve().then(() => (init_SoundCloudRenderer(), SoundCloudRenderer_exports));
         rendererClass = module.SoundCloudRenderer || module.default;
       }
-      this.log("Using ".concat((rendererClass == null ? void 0 : rendererClass.name) || "HTML5Renderer", " renderer"));
+      this.log(`Using ${(rendererClass == null ? void 0 : rendererClass.name) || "HTML5Renderer"} renderer`);
       this.renderer = new rendererClass(this);
       await this.renderer.init();
       this.invalidateTrackCache();
@@ -12550,7 +12547,7 @@
         return;
       }
       const resolvedPoster = poster.startsWith("data:") ? poster : this.resolvePosterPath(poster);
-      this.videoWrapper.style.setProperty("--vidply-poster-image", 'url("'.concat(resolvedPoster, '")'));
+      this.videoWrapper.style.setProperty("--vidply-poster-image", `url("${resolvedPoster}")`);
       this.videoWrapper.classList.add("vidply-forced-poster");
       if (this._isAudioContent && this.container) {
         this.container.classList.add("vidply-audio-content");
@@ -12648,7 +12645,7 @@
             this.element.removeAttribute("poster");
             if (this.videoWrapper) {
               const resolvedPoster = this.resolvePosterPath(config.poster);
-              this.videoWrapper.style.setProperty("--vidply-poster-image", 'url("'.concat(resolvedPoster, '")'));
+              this.videoWrapper.style.setProperty("--vidply-poster-image", `url("${resolvedPoster}")`);
               this.videoWrapper.classList.add("vidply-forced-poster");
             }
           } else {
@@ -12947,7 +12944,7 @@
         this._enablePseudoFullscreen();
       } else {
         this.state.fullscreen = true;
-        this.container.classList.add("".concat(this.options.classPrefix, "-fullscreen"));
+        this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
         this.emit("fullscreenchange", true);
       }
     }
@@ -12967,7 +12964,7 @@
         this._disablePseudoFullscreen();
       }
       this.state.fullscreen = false;
-      this.container.classList.remove("".concat(this.options.classPrefix, "-fullscreen"));
+      this.container.classList.remove(`${this.options.classPrefix}-fullscreen`);
       this.emit("fullscreenchange", false);
     }
     toggleFullscreen() {
@@ -12981,7 +12978,7 @@
     _enablePseudoFullscreen() {
       var _a;
       this.state.fullscreen = true;
-      this.container.classList.add("".concat(this.options.classPrefix, "-fullscreen"));
+      this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
       document.body.classList.add("vidply-fullscreen-active");
       this._originalScrollX = window.scrollX || window.pageXOffset;
       this._originalScrollY = window.scrollY || window.pageYOffset;
@@ -13458,7 +13455,7 @@
           if (matchingTime !== null) {
             syncTime2 = matchingTime;
             if (this.options.debug) {
-              console.log("[VidPly] Syncing via caption: ".concat(currentTime, "s -> ").concat(syncTime2, "s"));
+              console.log(`[VidPly] Syncing via caption: ${currentTime}s -> ${syncTime2}s`);
             }
           }
         }
@@ -13699,7 +13696,7 @@
         if (matchingTime !== null) {
           syncTime = matchingTime;
           if (this.options.debug) {
-            console.log("[VidPly] Syncing via caption: ".concat(currentTime, "s -> ").concat(syncTime, "s"));
+            console.log(`[VidPly] Syncing via caption: ${currentTime}s -> ${syncTime}s`);
           }
         }
       }
@@ -14106,7 +14103,7 @@
         if (matchingTime !== null) {
           syncTime = matchingTime;
           if (this.options.debug) {
-            console.log("[VidPly] Syncing via caption: ".concat(currentTime, "s -> ").concat(syncTime, "s"));
+            console.log(`[VidPly] Syncing via caption: ${currentTime}s -> ${syncTime}s`);
           }
         }
       }
@@ -14276,20 +14273,20 @@
       this.signLanguageWrapper.setAttribute("tabindex", "0");
       this.signLanguageWrapper.setAttribute("aria-label", i18n.t("player.signLanguageDragResize"));
       this.signLanguageHeader = DOMUtils.createElement("div", {
-        className: "".concat(this.options.classPrefix, "-sign-language-header"),
+        className: `${this.options.classPrefix}-sign-language-header`,
         attributes: {
           "tabindex": "0"
         }
       });
       const headerLeft = DOMUtils.createElement("div", {
-        className: "".concat(this.options.classPrefix, "-sign-language-header-left")
+        className: `${this.options.classPrefix}-sign-language-header-left`
       });
       const title = DOMUtils.createElement("h3", {
         textContent: i18n.t("player.signLanguageVideo")
       });
       const settingsAriaLabel = i18n.t("player.signLanguageSettings");
       this.signLanguageSettingsButton = DOMUtils.createElement("button", {
-        className: "".concat(this.options.classPrefix, "-sign-language-settings"),
+        className: `${this.options.classPrefix}-sign-language-settings`,
         attributes: {
           "type": "button",
           "aria-label": settingsAriaLabel,
@@ -14336,7 +14333,7 @@
       headerLeft.appendChild(this.signLanguageSettingsButton);
       this.signLanguageSelector = null;
       if (hasMultipleSources) {
-        const selectId = "".concat(this.options.classPrefix, "-sign-language-select-").concat(Date.now());
+        const selectId = `${this.options.classPrefix}-sign-language-select-${Date.now()}`;
         const options = Object.keys(this.signLanguageSources).map((langCode) => ({
           value: langCode,
           text: this.getSignLanguageLabel(langCode),
@@ -14344,8 +14341,8 @@
         }));
         const { label: signLanguageLabel, select: signLanguageSelector } = createLabeledSelect({
           classPrefix: this.options.classPrefix,
-          labelClass: "".concat(this.options.classPrefix, "-sign-language-label"),
-          selectClass: "".concat(this.options.classPrefix, "-sign-language-select"),
+          labelClass: `${this.options.classPrefix}-sign-language-label`,
+          selectClass: `${this.options.classPrefix}-sign-language-select`,
           labelText: "settings.language",
           selectId,
           options,
@@ -14357,7 +14354,7 @@
         });
         this.signLanguageSelector = signLanguageSelector;
         const signLanguageSelectorWrapper = DOMUtils.createElement("div", {
-          className: "".concat(this.options.classPrefix, "-sign-language-selector-wrapper")
+          className: `${this.options.classPrefix}-sign-language-selector-wrapper`
         });
         signLanguageSelectorWrapper.appendChild(signLanguageLabel);
         signLanguageSelectorWrapper.appendChild(this.signLanguageSelector);
@@ -14367,7 +14364,7 @@
       headerLeft.appendChild(title);
       const closeAriaLabel = i18n.t("player.closeSignLanguage");
       const closeButton = DOMUtils.createElement("button", {
-        className: "".concat(this.options.classPrefix, "-sign-language-close"),
+        className: `${this.options.classPrefix}-sign-language-close`,
         attributes: {
           "type": "button",
           "aria-label": closeAriaLabel
@@ -14402,7 +14399,7 @@
       this.signLanguageVideo.setAttribute("playsinline", "");
       this.signLanguageResizeHandles = ["n", "s", "e", "w", "ne", "nw", "se", "sw"].map((dir) => {
         const handle = DOMUtils.createElement("div", {
-          className: "".concat(this.options.classPrefix, "-sign-resize-handle ").concat(this.options.classPrefix, "-sign-resize-").concat(dir),
+          className: `${this.options.classPrefix}-sign-resize-handle ${this.options.classPrefix}-sign-resize-${dir}`,
           attributes: {
             "data-direction": dir,
             "data-vidply-managed-resize": "true",
@@ -14527,7 +14524,7 @@
         maintainAspectRatio: true,
         minWidth: 150,
         minHeight: 100,
-        classPrefix: "".concat(this.options.classPrefix, "-sign"),
+        classPrefix: `${this.options.classPrefix}-sign`,
         keyboardDragKey: "d",
         keyboardResizeKey: "r",
         keyboardStep: 10,
@@ -14539,7 +14536,7 @@
           });
         },
         onDragStart: (e) => {
-          if (e.target.closest(".".concat(this.options.classPrefix, "-sign-language-close")) || e.target.closest(".".concat(this.options.classPrefix, "-sign-language-settings")) || e.target.closest(".".concat(this.options.classPrefix, "-sign-language-select")) || e.target.closest(".".concat(this.options.classPrefix, "-sign-language-label")) || e.target.closest(".".concat(this.options.classPrefix, "-sign-language-settings-menu"))) {
+          if (e.target.closest(`.${this.options.classPrefix}-sign-language-close`) || e.target.closest(`.${this.options.classPrefix}-sign-language-settings`) || e.target.closest(`.${this.options.classPrefix}-sign-language-select`) || e.target.closest(`.${this.options.classPrefix}-sign-language-label`) || e.target.closest(`.${this.options.classPrefix}-sign-language-settings-menu`)) {
             return false;
           }
           return true;
@@ -14610,10 +14607,10 @@
       }
     }
     enableSignLanguageMoveMode() {
-      this.signLanguageWrapper.classList.add("".concat(this.options.classPrefix, "-sign-move-mode"));
+      this.signLanguageWrapper.classList.add(`${this.options.classPrefix}-sign-move-mode`);
       this.updateSignLanguageResizeOptionState();
       setTimeout(() => {
-        this.signLanguageWrapper.classList.remove("".concat(this.options.classPrefix, "-sign-move-mode"));
+        this.signLanguageWrapper.classList.remove(`${this.options.classPrefix}-sign-move-mode`);
       }, 2e3);
     }
     toggleSignLanguageResizeMode({ focus = true } = {}) {
@@ -14702,24 +14699,24 @@
         this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
           this.signLanguageSettingsMenu,
           this.signLanguageSettingsButton,
-          ".".concat(this.options.classPrefix, "-sign-language-settings-item"),
+          `.${this.options.classPrefix}-sign-language-settings-item`,
           () => this.hideSignLanguageSettingsMenu({ focusButton: true })
         );
         this.positionSignLanguageSettingsMenu();
         this.updateSignLanguageDragOptionState();
         this.updateSignLanguageResizeOptionState();
-        focusFirstMenuItem(this.signLanguageSettingsMenu, ".".concat(this.options.classPrefix, "-sign-language-settings-item"));
+        focusFirstMenuItem(this.signLanguageSettingsMenu, `.${this.options.classPrefix}-sign-language-settings-item`);
         return;
       }
       this.signLanguageSettingsMenu = DOMUtils.createElement("div", {
-        className: "".concat(this.options.classPrefix, "-sign-language-settings-menu"),
+        className: `${this.options.classPrefix}-sign-language-settings-menu`,
         attributes: {
           "role": "menu"
         }
       });
       const keyboardDragOption = createMenuItem({
         classPrefix: this.options.classPrefix,
-        itemClass: "".concat(this.options.classPrefix, "-sign-language-settings-item"),
+        itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
         icon: "move",
         label: "player.enableSignDragMode",
         hasTextClass: true,
@@ -14730,16 +14727,16 @@
       });
       keyboardDragOption.setAttribute("role", "switch");
       keyboardDragOption.setAttribute("aria-checked", "false");
-      const dragTooltip = keyboardDragOption.querySelector(".".concat(this.options.classPrefix, "-tooltip"));
+      const dragTooltip = keyboardDragOption.querySelector(`.${this.options.classPrefix}-tooltip`);
       if (dragTooltip) dragTooltip.remove();
-      const dragButtonText = keyboardDragOption.querySelector(".".concat(this.options.classPrefix, "-button-text"));
+      const dragButtonText = keyboardDragOption.querySelector(`.${this.options.classPrefix}-button-text`);
       if (dragButtonText) dragButtonText.remove();
       this.signLanguageDragOptionButton = keyboardDragOption;
-      this.signLanguageDragOptionText = keyboardDragOption.querySelector(".".concat(this.options.classPrefix, "-settings-text"));
+      this.signLanguageDragOptionText = keyboardDragOption.querySelector(`.${this.options.classPrefix}-settings-text`);
       this.updateSignLanguageDragOptionState();
       const resizeOption = createMenuItem({
         classPrefix: this.options.classPrefix,
-        itemClass: "".concat(this.options.classPrefix, "-sign-language-settings-item"),
+        itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
         icon: "resize",
         label: "player.enableSignResizeMode",
         hasTextClass: true,
@@ -14761,25 +14758,25 @@
       });
       resizeOption.setAttribute("role", "switch");
       resizeOption.setAttribute("aria-checked", "false");
-      const resizeTooltip = resizeOption.querySelector(".".concat(this.options.classPrefix, "-tooltip"));
+      const resizeTooltip = resizeOption.querySelector(`.${this.options.classPrefix}-tooltip`);
       if (resizeTooltip) resizeTooltip.remove();
-      const resizeButtonText = resizeOption.querySelector(".".concat(this.options.classPrefix, "-button-text"));
+      const resizeButtonText = resizeOption.querySelector(`.${this.options.classPrefix}-button-text`);
       if (resizeButtonText) resizeButtonText.remove();
       this.signLanguageResizeOptionButton = resizeOption;
-      this.signLanguageResizeOptionText = resizeOption.querySelector(".".concat(this.options.classPrefix, "-settings-text"));
+      this.signLanguageResizeOptionText = resizeOption.querySelector(`.${this.options.classPrefix}-settings-text`);
       this.updateSignLanguageResizeOptionState();
       const closeOption = createMenuItem({
         classPrefix: this.options.classPrefix,
-        itemClass: "".concat(this.options.classPrefix, "-sign-language-settings-item"),
+        itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
         icon: "close",
         label: "transcript.closeMenu",
         onClick: () => {
           this.hideSignLanguageSettingsMenu();
         }
       });
-      const closeTooltip = closeOption.querySelector(".".concat(this.options.classPrefix, "-tooltip"));
+      const closeTooltip = closeOption.querySelector(`.${this.options.classPrefix}-tooltip`);
       if (closeTooltip) closeTooltip.remove();
-      const closeButtonText = closeOption.querySelector(".".concat(this.options.classPrefix, "-button-text"));
+      const closeButtonText = closeOption.querySelector(`.${this.options.classPrefix}-button-text`);
       if (closeButtonText) closeButtonText.remove();
       this.signLanguageSettingsMenu.appendChild(keyboardDragOption);
       this.signLanguageSettingsMenu.appendChild(resizeOption);
@@ -14800,7 +14797,7 @@
       this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
         this.signLanguageSettingsMenu,
         this.signLanguageSettingsButton,
-        ".".concat(this.options.classPrefix, "-sign-language-settings-item"),
+        `.${this.options.classPrefix}-sign-language-settings-item`,
         () => this.hideSignLanguageSettingsMenu({ focusButton: true })
       );
       this.signLanguageSettingsMenuVisible = true;
@@ -14809,7 +14806,7 @@
       }
       this.updateSignLanguageDragOptionState();
       this.updateSignLanguageResizeOptionState();
-      focusFirstMenuItem(this.signLanguageSettingsMenu, ".".concat(this.options.classPrefix, "-sign-language-settings-item"));
+      focusFirstMenuItem(this.signLanguageSettingsMenu, `.${this.options.classPrefix}-sign-language-settings-item`);
     }
     hideSignLanguageSettingsMenu({ focusButton = true } = {}) {
       var _a;
@@ -14855,18 +14852,18 @@
         transformX = "translateX(-50%)";
       }
       if (menuTop !== null) {
-        this.signLanguageSettingsMenu.style.top = "".concat(menuTop, "px");
+        this.signLanguageSettingsMenu.style.top = `${menuTop}px`;
         this.signLanguageSettingsMenu.style.bottom = "auto";
       } else if (menuBottom !== null) {
         this.signLanguageSettingsMenu.style.top = "auto";
-        this.signLanguageSettingsMenu.style.bottom = "".concat(menuBottom, "px");
+        this.signLanguageSettingsMenu.style.bottom = `${menuBottom}px`;
       }
       if (menuLeft !== "auto") {
-        this.signLanguageSettingsMenu.style.left = "".concat(menuLeft, "px");
+        this.signLanguageSettingsMenu.style.left = `${menuLeft}px`;
         this.signLanguageSettingsMenu.style.right = "auto";
       } else {
         this.signLanguageSettingsMenu.style.left = "auto";
-        this.signLanguageSettingsMenu.style.right = "".concat(menuRight, "px");
+        this.signLanguageSettingsMenu.style.right = `${menuRight}px`;
       }
       this.signLanguageSettingsMenu.style.transform = transformX;
     }
@@ -14886,7 +14883,7 @@
       this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
         this.signLanguageSettingsMenu,
         this.signLanguageSettingsButton,
-        ".".concat(this.options.classPrefix, "-sign-language-settings-item"),
+        `.${this.options.classPrefix}-sign-language-settings-item`,
         () => this.hideSignLanguageSettingsMenu({ focusButton: true })
       );
     }
@@ -14969,8 +14966,8 @@
       }
       left = Math.max(videoWrapperLeft, Math.min(left, videoWrapperLeft + videoWrapperWidth - wrapperWidth));
       top = Math.max(videoWrapperTop, Math.min(top, videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight));
-      this.signLanguageWrapper.style.left = "".concat(left, "px");
-      this.signLanguageWrapper.style.top = "".concat(top, "px");
+      this.signLanguageWrapper.style.left = `${left}px`;
+      this.signLanguageWrapper.style.top = `${top}px`;
       this.signLanguageWrapper.style.right = "auto";
       this.signLanguageWrapper.style.bottom = "auto";
       this.signLanguageWrapper.classList.remove(...Array.from(this.signLanguageWrapper.classList).filter((c) => c.startsWith("vidply-sign-position-")));
@@ -15103,11 +15100,11 @@
         if (this.state.fullscreen !== isFullscreen) {
           this.state.fullscreen = isFullscreen;
           if (isFullscreen) {
-            this.container.classList.add("".concat(this.options.classPrefix, "-fullscreen"));
+            this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
             document.body.classList.add("vidply-fullscreen-active");
             this._makeBackgroundInert();
           } else {
-            this.container.classList.remove("".concat(this.options.classPrefix, "-fullscreen"));
+            this.container.classList.remove(`${this.options.classPrefix}-fullscreen`);
             document.body.classList.remove("vidply-fullscreen-active");
             this._restoreBackgroundInteractivity();
             this._disablePseudoFullscreen();
@@ -15261,7 +15258,7 @@
       if (trimmed.startsWith("#") || trimmed.startsWith(".") || trimmed.startsWith("[")) {
         return trimmed;
       }
-      return "#".concat(trimmed);
+      return `#${trimmed}`;
     }
     resolveMetadataConfig(map, key) {
       if (!map || !key) {
@@ -15343,7 +15340,6 @@
       }
     }
     handleMetadataAlert(selector, options = {}) {
-      var _a;
       if (!selector) {
         return;
       }
@@ -15378,7 +15374,7 @@
       if (shouldReset) {
         this.restoreMetadataAlertContent(element, config);
       }
-      const shouldFocus = options.focus !== void 0 ? options.focus : (_a = config.focusOnShow) != null ? _a : options.reason !== "focus";
+      const shouldFocus = options.focus !== void 0 ? options.focus : config.focusOnShow ?? options.reason !== "focus";
       if (shouldShow && shouldFocus) {
         if (element.tabIndex === -1 && !element.hasAttribute("tabindex")) {
           element.setAttribute("tabindex", "-1");
@@ -15400,7 +15396,6 @@
         }
         if (continueButton && !this.metadataAlertHandlers.has(selector)) {
           const handler = () => {
-            var _a2;
             const hideOnContinue = config.hideOnContinue !== false;
             if (hideOnContinue) {
               const originalDisplay = element.dataset.vidplyAlertOriginalDisplay || "";
@@ -15414,7 +15409,7 @@
             const focusTarget = config.focusTarget || "playButton";
             this.setManagedTimeout(() => {
               this.focusMetadataTarget(focusTarget, element);
-            }, (_a2 = config.focusDelay) != null ? _a2 : 100);
+            }, config.focusDelay ?? 100);
           };
           continueButton.addEventListener("click", handler);
           this.metadataAlertHandlers.set(selector, { button: continueButton, handler });
@@ -15571,8 +15566,8 @@
       this.initialTracks = Array.isArray(options.tracks) ? options.tracks : [];
       this.currentIndex = -1;
       this.instanceId = ++playlistInstanceCounter;
-      this.uniqueId = "vidply-playlist-".concat(this.instanceId);
-      this.options = __spreadValues({
+      this.uniqueId = `vidply-playlist-${this.instanceId}`;
+      this.options = {
         autoAdvance: options.autoAdvance !== false,
         // Default true
         autoPlayFirst: options.autoPlayFirst !== false,
@@ -15580,8 +15575,10 @@
         loop: options.loop || false,
         showPanel: options.showPanel !== false,
         // Default true
-        recreatePlayers: options.recreatePlayers || false
-      }, options);
+        recreatePlayers: options.recreatePlayers || false,
+        // New: recreate player for each track type
+        ...options
+      };
       this.container = null;
       this.playlistPanel = null;
       this.trackInfoElement = null;
@@ -15651,7 +15648,7 @@
       if (this.playlistPanel && this.playlistPanel.parentNode) {
         this.playlistPanel.parentNode.removeChild(this.playlistPanel);
       }
-      const preservedPlayerOptions = ((_a = this.player) == null ? void 0 : _a.options) ? __spreadValues({}, this.player.options) : {};
+      const preservedPlayerOptions = ((_a = this.player) == null ? void 0 : _a.options) ? { ...this.player.options } : {};
       if (this.player) {
         this.player.off("ended", this.handleTrackEnd);
         this.player.off("error", this.handleTrackError);
@@ -16256,10 +16253,10 @@
       this.playlistPanel = DOMUtils.createElement("div", {
         className: "vidply-playlist-panel",
         attributes: {
-          id: "".concat(this.uniqueId, "-panel"),
+          id: `${this.uniqueId}-panel`,
           role: "region",
           "aria-label": i18n.t("playlist.title"),
-          "aria-labelledby": "".concat(this.uniqueId, "-heading")
+          "aria-labelledby": `${this.uniqueId}-heading`
         }
       });
       this.playlistPanel.style.display = this.isPanelVisible ? "none" : "none";
@@ -16278,7 +16275,7 @@
       const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : "";
       const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : "";
       const artistPart = trackArtist ? i18n.t("playlist.by") + trackArtist : "";
-      const durationPart = trackDurationReadable ? ". ".concat(trackDurationReadable) : "";
+      const durationPart = trackDurationReadable ? `. ${trackDurationReadable}` : "";
       const announcement = i18n.t("playlist.nowPlaying", {
         current: trackNumber,
         total: totalTracks,
@@ -16289,9 +16286,18 @@
         current: trackNumber,
         total: totalTracks
       });
-      const durationHtml = trackDuration ? '<span class="vidply-track-duration" aria-hidden="true">'.concat(DOMUtils.escapeHTML(trackDuration), "</span>") : "";
+      const durationHtml = trackDuration ? `<span class="vidply-track-duration" aria-hidden="true">${DOMUtils.escapeHTML(trackDuration)}</span>` : "";
       const trackDescription = track.description || "";
-      this.trackInfoElement.innerHTML = '\n      <span class="vidply-sr-only">'.concat(DOMUtils.escapeHTML(announcement), '</span>\n      <div class="vidply-track-header" aria-hidden="true">\n        <span class="vidply-track-number">').concat(DOMUtils.escapeHTML(trackOfText), "</span>\n        ").concat(durationHtml, '\n      </div>\n      <div class="vidply-track-title" aria-hidden="true">').concat(DOMUtils.escapeHTML(trackTitle), "</div>\n      ").concat(trackArtist ? '<div class="vidply-track-artist" aria-hidden="true">'.concat(DOMUtils.escapeHTML(trackArtist), "</div>") : "", "\n      ").concat(trackDescription ? '<div class="vidply-track-description" aria-hidden="true">'.concat(DOMUtils.escapeHTML(trackDescription), "</div>") : "", "\n    ");
+      this.trackInfoElement.innerHTML = `
+      <span class="vidply-sr-only">${DOMUtils.escapeHTML(announcement)}</span>
+      <div class="vidply-track-header" aria-hidden="true">
+        <span class="vidply-track-number">${DOMUtils.escapeHTML(trackOfText)}</span>
+        ${durationHtml}
+      </div>
+      <div class="vidply-track-title" aria-hidden="true">${DOMUtils.escapeHTML(trackTitle)}</div>
+      ${trackArtist ? `<div class="vidply-track-artist" aria-hidden="true">${DOMUtils.escapeHTML(trackArtist)}</div>` : ""}
+      ${trackDescription ? `<div class="vidply-track-description" aria-hidden="true">${DOMUtils.escapeHTML(trackDescription)}</div>` : ""}
+    `;
       this.trackInfoElement.style.display = "block";
       this.updateTrackArtwork(track);
     }
@@ -16323,7 +16329,7 @@
       }
       if (!this.trackArtworkElement) return;
       if (track.poster) {
-        this.trackArtworkElement.style.backgroundImage = "url(".concat(track.poster, ")");
+        this.trackArtworkElement.style.backgroundImage = `url(${track.poster})`;
         this.trackArtworkElement.style.display = "block";
       } else {
         this.trackArtworkElement.style.display = "none";
@@ -16338,15 +16344,15 @@
       const header = DOMUtils.createElement("h2", {
         className: "vidply-playlist-header",
         attributes: {
-          id: "".concat(this.uniqueId, "-heading")
+          id: `${this.uniqueId}-heading`
         }
       });
-      header.textContent = "".concat(i18n.t("playlist.title"), " (").concat(this.tracks.length, ")");
+      header.textContent = `${i18n.t("playlist.title")} (${this.tracks.length})`;
       this.playlistPanel.appendChild(header);
       const instructions = DOMUtils.createElement("div", {
         className: "vidply-sr-only",
         attributes: {
-          id: "".concat(this.uniqueId, "-keyboard-instructions")
+          id: `${this.uniqueId}-keyboard-instructions`
         }
       });
       instructions.textContent = i18n.t("playlist.keyboardInstructions");
@@ -16355,8 +16361,8 @@
         className: "vidply-playlist-list",
         attributes: {
           role: "listbox",
-          "aria-labelledby": "".concat(this.uniqueId, "-heading"),
-          "aria-describedby": "".concat(this.uniqueId, "-keyboard-instructions")
+          "aria-labelledby": `${this.uniqueId}-heading`,
+          "aria-describedby": `${this.uniqueId}-keyboard-instructions`
         }
       });
       this.tracks.forEach((track, index) => {
@@ -16382,9 +16388,9 @@
       const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : "";
       const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : "";
       const isActive = index === this.currentIndex;
-      let ariaLabel = "".concat(trackTitle).concat(trackArtist);
+      let ariaLabel = `${trackTitle}${trackArtist}`;
       if (trackDurationReadable) {
-        ariaLabel += ". ".concat(trackDurationReadable);
+        ariaLabel += `. ${trackDurationReadable}`;
       }
       const item = DOMUtils.createElement("li", {
         className: isActive ? "vidply-playlist-item vidply-playlist-item-active" : "vidply-playlist-item",
@@ -16420,7 +16426,7 @@
         className: "vidply-playlist-thumbnail"
       });
       if (track.poster) {
-        thumbnail.style.backgroundImage = "url(".concat(track.poster, ")");
+        thumbnail.style.backgroundImage = `url(${track.poster})`;
       } else {
         const icon = createIconElement("music");
         icon.classList.add("vidply-playlist-thumbnail-icon");
@@ -16613,9 +16619,9 @@
           button.setAttribute("aria-current", "true");
           button.setAttribute("aria-checked", "true");
           button.setAttribute("tabIndex", "0");
-          let ariaLabel = "".concat(trackTitle).concat(trackArtist);
+          let ariaLabel = `${trackTitle}${trackArtist}`;
           if (trackDurationReadable) {
-            ariaLabel += ". ".concat(trackDurationReadable);
+            ariaLabel += `. ${trackDurationReadable}`;
           }
           button.setAttribute("aria-label", ariaLabel);
           item.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -16624,9 +16630,9 @@
           button.removeAttribute("aria-current");
           button.setAttribute("aria-checked", "false");
           button.setAttribute("tabIndex", "-1");
-          let ariaLabel = "".concat(trackTitle).concat(trackArtist);
+          let ariaLabel = `${trackTitle}${trackArtist}`;
           if (trackDurationReadable) {
-            ariaLabel += ". ".concat(trackDurationReadable);
+            ariaLabel += `. ${trackDurationReadable}`;
           }
           button.setAttribute("aria-label", ariaLabel);
         }
@@ -16784,7 +16790,7 @@
     elements.forEach((element) => {
       const options = element.dataset.vidplyOptions ? JSON.parse(element.dataset.vidplyOptions) : {};
       const dataOptions = parseDataAttributes(element.dataset);
-      const mergedOptions = __spreadValues(__spreadValues({}, dataOptions), options);
+      const mergedOptions = { ...dataOptions, ...options };
       const lazyInit = element.dataset.vidplyLazy !== "false" && mergedOptions.lazyInit !== false;
       const lazyMargin = element.dataset.vidplyLazyMargin || mergedOptions.lazyMargin || "500px";
       if (lazyInit && "IntersectionObserver" in window) {
