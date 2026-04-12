@@ -112,15 +112,64 @@ describe('HLSRenderer', () => {
   });
 
   describe('canPlayNatively', () => {
-    it('should return false for non-Safari browsers', () => {
-      // Default user agent in jsdom is not Safari
+    it('should return false for desktop browsers (non-iOS, non-iPad desktop mode)', () => {
+      // Default jsdom: not iPhone/iPad, not MacIntel+touch
       expect(renderer.canPlayNatively()).toBe(false);
     });
 
-    it('should check native HLS support', () => {
-      // The method creates a video element and checks canPlayType
-      const result = renderer.canPlayNatively();
-      expect(typeof result).toBe('boolean');
+    it('should check native HLS support on iOS when HLS type is reported', () => {
+      const ua = navigator.userAgent;
+      const platform = navigator.platform;
+      const maxTouchPoints = navigator.maxTouchPoints;
+      try {
+        Object.defineProperty(navigator, 'userAgent', {
+          value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
+          configurable: true
+        });
+        const spy = vi.spyOn(HTMLVideoElement.prototype, 'canPlayType').mockReturnValue('maybe');
+        expect(renderer.canPlayNatively()).toBe(true);
+        spy.mockRestore();
+      } finally {
+        Object.defineProperty(navigator, 'userAgent', { value: ua, configurable: true });
+        Object.defineProperty(navigator, 'platform', { value: platform, configurable: true });
+        Object.defineProperty(navigator, 'maxTouchPoints', { value: maxTouchPoints, configurable: true });
+      }
+    });
+
+    it('should return false on iOS when canPlayType does not report HLS', () => {
+      const ua = navigator.userAgent;
+      try {
+        Object.defineProperty(navigator, 'userAgent', {
+          value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
+          configurable: true
+        });
+        const spy = vi.spyOn(HTMLVideoElement.prototype, 'canPlayType').mockReturnValue('');
+        expect(renderer.canPlayNatively()).toBe(false);
+        spy.mockRestore();
+      } finally {
+        Object.defineProperty(navigator, 'userAgent', { value: ua, configurable: true });
+      }
+    });
+
+    it('should treat iPad desktop mode as native HLS candidate when canPlayType allows', () => {
+      const ua = navigator.userAgent;
+      const platform = navigator.platform;
+      const maxTouchPoints = navigator.maxTouchPoints;
+      try {
+        Object.defineProperty(navigator, 'userAgent', {
+          value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15',
+          configurable: true
+        });
+        Object.defineProperty(navigator, 'platform', { value: 'MacIntel', configurable: true });
+        Object.defineProperty(navigator, 'maxTouchPoints', { value: 5, configurable: true });
+        const spy = vi.spyOn(HTMLVideoElement.prototype, 'canPlayType').mockReturnValue('maybe');
+        expect(renderer.canPlayNatively()).toBe(true);
+        spy.mockRestore();
+      } finally {
+        Object.defineProperty(navigator, 'userAgent', { value: ua, configurable: true });
+        Object.defineProperty(navigator, 'platform', { value: platform, configurable: true });
+        Object.defineProperty(navigator, 'maxTouchPoints', { value: maxTouchPoints, configurable: true });
+      }
     });
   });
 

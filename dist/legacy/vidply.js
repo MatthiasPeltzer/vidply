@@ -7396,9 +7396,9 @@
           }
         }
         canPlayNatively() {
-          const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
           const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-          if (!isSafari && !isIOS) {
+          const isIPadDesktopMode = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+          if (!isIOS && !isIPadDesktopMode) {
             return false;
           }
           const video = document.createElement("video");
@@ -7413,6 +7413,45 @@
               this[method] = renderer[method].bind(renderer);
             }
           });
+          this._attachNativeTextTrackListeners();
+          const html5Destroy = this.destroy;
+          this.destroy = () => {
+            this._cleanupNativeTextTrackListeners();
+            html5Destroy();
+          };
+        }
+        /**
+         * Listen for HLS-exposed text tracks so captions/transcript buttons appear on native HLS.
+         * Debounces rapid addtrack bursts (one per subtitle rendition in the manifest).
+         */
+        _attachNativeTextTrackListeners() {
+          let debounceTimer = null;
+          const checkTracks = () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+              if (this._nativeTrackListenersDestroyed) return;
+              const tracks = this.media.textTracks;
+              let count = 0;
+              for (let i = 0; i < tracks.length; i++) {
+                const k = tracks[i].kind;
+                if (k === "subtitles" || k === "captions") {
+                  count++;
+                }
+              }
+              this._hlsSubtitleTracksCount = count;
+              this.updateCaptionButtonsForHls();
+            }, 150);
+          };
+          this.media.textTracks.addEventListener("addtrack", checkTracks);
+          this.media.textTracks.addEventListener("removetrack", checkTracks);
+          this.media.addEventListener("loadedmetadata", checkTracks);
+          this._cleanupNativeTextTrackListeners = () => {
+            this._nativeTrackListenersDestroyed = true;
+            clearTimeout(debounceTimer);
+            this.media.textTracks.removeEventListener("addtrack", checkTracks);
+            this.media.textTracks.removeEventListener("removetrack", checkTracks);
+            this.media.removeEventListener("loadedmetadata", checkTracks);
+          };
         }
         async initHlsJs() {
           this.media.controls = false;

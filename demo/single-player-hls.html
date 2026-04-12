@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="VidPly video playlist demo featuring multiple videos with captions, chapters, thumbnails, track navigation, and auto-advance functionality.">
+    <title>VidPly - HLS Video</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../dist/vidply.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #444444 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            margin: 0 auto;
+            max-width: 1000px;
+        }
+
+        nav {
+            margin-bottom: 20px;
+        }
+
+        .back-link {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: white;
+            display: inline-block;
+            padding: 8px 16px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .back-link:focus {
+            outline: 3px solid white;
+            outline-offset: 4px;
+        }
+
+        header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            align-items: center;
+            background: linear-gradient(135deg, #0a406e 0%, #6BA4EE 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            display: flex;
+            font-size: 56px;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+            -webkit-text-fill-color: transparent;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        footer {
+            color: #ffffff;
+            margin-top: 60px;
+            opacity: 0.8;
+            text-align: center;
+        }
+
+        footer p {
+            color: #ffffff;
+            margin: 8px 0;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                flex-direction: column;
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <nav aria-label="Breadcrumb">
+        <a href="demo.html" class="back-link">← Back to Main Demo</a>
+    </nav>
+
+    <header>
+
+        <h1>
+            <img src="../favicon.svg" width="48" height="48" alt="" aria-hidden="true"/>
+            <span>VidPly - HLS Video</span>
+        </h1>
+
+    </header>
+
+    <main>
+        <!-- Video HLS Demo 1: Apple BipBop -->
+        <video
+                id="hls-player"
+                data-vidply
+                data-transcript-button="true"
+                width="900"
+                height="506"
+                preload="metadata"
+                poster="media/appletest.png"
+        >
+            <source src="https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8" type="application/x-mpegURL">
+        </video>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2026 VidPly - Built with Vanilla JavaScript</p>
+        <p>Released under GPL-2.0-or-later License</p>
+    </footer>
+</div>
+
+<script type="module">
+    import '../dist/prod/vidply.esm.min.js';
+</script>
+</body>
+</html>

@@ -346,7 +346,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 16186,
+      "bytes": 17969,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -572,7 +572,7 @@
       },
       "bytes": 6812
     },
-    "dist/prod/vidply.HLSRenderer-H6H7CFKN.min.js": {
+    "dist/prod/vidply.HLSRenderer-NPI3CBON.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.HTML5Renderer-PKYFSC7X.min.js",
@@ -585,10 +585,10 @@
       "entryPoint": "src/renderers/HLSRenderer.js",
       "inputs": {
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 12934
+          "bytesInOutput": 14503
         }
       },
-      "bytes": 13111
+      "bytes": 14680
     },
     "dist/prod/vidply.SoundCloudRenderer-S7DCYVO3.min.js": {
       "imports": [],
@@ -651,7 +651,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.HLSRenderer-H6H7CFKN.min.js",
+          "path": "dist/prod/vidply.HLSRenderer-NPI3CBON.min.js",
           "kind": "dynamic-import"
         },
         {
