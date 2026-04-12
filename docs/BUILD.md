@@ -293,7 +293,7 @@ npx esbuild src/index.js --bundle --outfile=dist/vidply.js
 **Explanation:**
 The player includes:
 - Complete UI controls with all buttons and menus
-- Multiple renderers (HTML5, YouTube, Vimeo, HLS)
+- Multiple renderers (HTML5, YouTube, Vimeo, HLS, DASH)
 - i18n system with 5 built-in languages
 - Full accessibility features (ARIA, keyboard navigation)
 - Transcript, playlist, and sign language features

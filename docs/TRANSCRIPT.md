@@ -381,6 +381,17 @@ The transcript feature requires at least one caption or subtitle track:
 
 **Note:** `kind="descriptions"` or `kind="chapters"` tracks are NOT used for transcripts.
 
+### Streaming Format Support
+
+| Format | Subtitle Type | Transcript Support |
+|--------|--------------|-------------------|
+| HTML5 (MP4/WebM) | WebVTT | Yes |
+| HLS (.m3u8) | WebVTT | Yes (cues load incrementally as segments are buffered) |
+| DASH (.mpd) | WebVTT | Yes (cues load incrementally as segments are buffered) |
+| DASH (.mpd) | TTML/stpp | No (TTML is rendered by dash.js natively; transcript button is hidden) |
+
+For DASH streams with TTML subtitles, captions are displayed on-screen by dash.js but the interactive transcript is not available. If you need transcript support with DASH, use WebVTT subtitle tracks.
+
 ### WebVTT Format
 
 Captions must be in WebVTT format:

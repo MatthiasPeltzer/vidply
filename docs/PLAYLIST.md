@@ -617,6 +617,18 @@ Perfect for:
 - Tutorial series
 - Conference talks
 
+### Streaming Playlist (HLS & DASH)
+
+```javascript
+playlist.loadPlaylist([
+  { src: 'https://example.com/video1/manifest.mpd', title: 'DASH Stream' },
+  { src: 'https://example.com/video2/master.m3u8', title: 'HLS Stream' },
+  { src: 'fallback.mp4', type: 'video/mp4', title: 'MP4 Fallback' }
+]);
+```
+
+VidPly auto-detects the renderer for each playlist item based on the source URL extension (`.mpd` for DASH, `.m3u8` for HLS, etc.).
+
 ### Mixed Media Playlist
 
 ```javascript

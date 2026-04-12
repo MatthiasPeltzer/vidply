@@ -5,6 +5,40 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.45] - 2026-04-12
+
+### Added
+- **MPEG-DASH Streaming**: Full DASH support via dash.js (loaded from CDN on demand)
+  - Adaptive bitrate quality selection with quality menu
+  - TTML/stpp subtitle rendering delegated to dash.js natively
+  - WebVTT subtitle support with full caption styling and interactive transcript
+  - Automatic renderer selection for `.mpd` URLs
+  - Deferred loading support (`deferLoad: true`)
+  - Robust error recovery and graceful stream teardown (`dash.reset()` before `dash.destroy()`)
+  - TTML rendering div attached before `dash.initialize()` to prevent race conditions
+  - Quality names include bitrate for disambiguation (e.g., "720p (1427 kbps)")
+  - `supportsAutoQuality()` and `isAutoQuality()` for quality auto-switching
+  - `handlesOwnCaptions()` to delegate TTML caption rendering to dash.js
+- **Unified Text Cue Updates**: New `textcuesupdate` event emitted by both HLS and DASH renderers for dynamic transcript updates
+- **HLS Cue Update Polling**: HLS renderer now emits `textcuesupdate` for incrementally loaded WebVTT subtitle segments (fixes transcript truncation)
+- New `hideSpeedForDash` option to hide playback speed control for DASH streams
+- Demo pages: `single-player-dash.html` and `dash-test.html` with multiple DASH test streams
+- Unit tests for DASHRenderer (initialization, quality management, subtitle handling, error recovery, cleanup)
+
+### Changed
+- `CaptionManager.updateCaptions()` defers to renderers that handle their own captions (TTML)
+- `TranscriptManager` listens for generic `textcuesupdate` event (replaces `dashtextcuesupdate`)
+- `preventDragOnElement` now also stops `pointerdown` propagation (fixes autoscroll checkbox in transcript)
+- Stale `TextTrack` filtering (`_vidplyStale` flag) prevents ghost tracks after stream switching
+
+### Fixed
+- Autoscroll checkbox in transcript window could not be unchecked due to `DraggableResizable` intercepting `pointerdown`
+- `SourceBuffer append failed "InvalidStateError"` errors during DASH stream switching
+- TTML rendering div race condition causing "Impossible to display subtitles" warnings
+- HLS transcript ending prematurely (e.g., bipbop at 01:11) due to incremental subtitle loading
+- Quality menu not showing differentiated levels for same-resolution, different-bitrate streams
+- Control bar buttons not updating correctly when switching between DASH streams
+
 ## [1.0.44] - 2026-04-03
 
 ### Changed

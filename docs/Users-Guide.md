@@ -15,6 +15,7 @@ VidPly is a universal, accessible media player supporting:
 | **YouTube** | Embedded with unified controls |
 | **Vimeo** | Embedded with unified controls |
 | **HLS** | Adaptive bitrate streaming |
+| **DASH** | MPEG-DASH streaming via dash.js |
 | **Playlists** | Audio, video & mixed media with thumbnails |
 | **Accessibility** | WCAG 2.2 AA compliant |
 | **Languages** | EN, ES, FR, DE, JA + custom |
@@ -114,6 +115,28 @@ Or with full URL:
 ```
 
 HLS.js is automatically loaded when `.m3u8` URLs are detected.
+
+### DASH Streaming
+
+```html
+<video data-vidply src="https://example.com/manifest.mpd"></video>
+```
+
+dash.js is automatically loaded from CDN when `.mpd` URLs are detected. DASH streams support:
+- Adaptive bitrate quality selection
+- TTML subtitles (rendered natively by dash.js)
+- WebVTT subtitles (handled by VidPly's caption system with transcript support)
+
+### DASH + HLS + MP4 Fallback
+
+```html
+<video data-vidply width="800" height="450">
+  <source src="dash/manifest.mpd" type="application/dash+xml">
+  <source src="hls/master.m3u8" type="application/x-mpegURL">
+  <source src="fallback.mp4" type="video/mp4">
+  <track kind="subtitles" src="subtitles.en.vtt" srclang="en" label="English">
+</video>
+```
 
 ---
 
@@ -696,6 +719,16 @@ player.destroy()           // Remove player
 | CORS issues | Configure CORS on streaming server |
 | Segments failing | Check segment URLs in manifest |
 
+### DASH Not Playing
+
+| Issue | Solution |
+|-------|----------|
+| Stream not loading | Verify .mpd URL is accessible |
+| CORS issues | Configure CORS on streaming server |
+| No quality levels | Check MPD has multiple representations |
+| TTML captions missing | dash.js renders TTML natively; ensure tracks are in the manifest |
+| Transcript not available | TTML tracks don't support transcript; use WebVTT for transcript |
+
 ---
 
 ## Best Practices
@@ -727,6 +760,7 @@ Try VidPly in action:
 - [Video Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-video.html)
 - [Mixed Media Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-mixed.html)
 - [HLS Streaming](https://matthiaspeltzer.github.io/vidply/demo/hls-test.html)
+- [DASH Streaming](https://matthiaspeltzer.github.io/vidply/demo/dash-test.html)
 
 ---
 
