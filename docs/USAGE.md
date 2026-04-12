@@ -215,6 +215,54 @@ if (player.renderer.switchQuality) {
 }
 ```
 
+### DASH Streaming (MPEG-DASH)
+
+```html
+<video data-vidply src="https://example.com/manifest.mpd"></video>
+```
+
+```javascript
+// Access DASH-specific features
+const player = new Player('#video');
+
+// Listen for quality changes
+player.on('dashqualitychanged', (data) => {
+  console.log('Quality changed:', data);
+});
+
+// Get available qualities
+if (player.renderer.getQualities) {
+  const qualities = player.renderer.getQualities();
+  console.log('Available qualities:', qualities);
+}
+
+// Switch quality manually
+if (player.renderer.switchQuality) {
+  player.renderer.switchQuality(2); // Switch to quality level 2
+}
+```
+
+**DASH Subtitle Handling:**
+
+- **TTML/stpp subtitles** - Rendered natively by dash.js; caption styling is handled by the stream itself. The interactive transcript is not available for TTML tracks.
+- **WebVTT subtitles** - Handled by VidPly's caption system with full support for caption styling and interactive transcripts.
+
+### DASH + HLS + MP4 Fallback
+
+For maximum compatibility across devices and browsers, provide all three formats:
+
+```html
+<video data-vidply width="800" height="450" poster="preview.jpg">
+  <source src="dash/manifest.mpd" type="application/dash+xml">
+  <source src="hls/master.m3u8" type="application/x-mpegURL">
+  <source src="fallback.mp4" type="video/mp4">
+  <track kind="subtitles" src="vtt/subtitles.de.vtt" srclang="de" label="Deutsch">
+  <track kind="subtitles" src="vtt/subtitles.en.vtt" srclang="en" label="English">
+</video>
+```
+
+VidPly auto-selects the best renderer based on the source file extension.
+
 ### Caption Track Selection
 
 When you have multiple caption tracks, clicking the CC button shows a menu to select the language:
@@ -640,7 +688,7 @@ VidPly can avoid eager network loading (useful if you have many players on one p
 ```
 
 Notes:
-- With `deferLoad: true`, VidPly does not call `media.load()` during init (and HLS will not start loading) until the user starts playback.
+- With `deferLoad: true`, VidPly does not call `media.load()` during init (and HLS/DASH will not start loading) until the user starts playback.
 - Browsers may still perform small requests depending on `preload` and their buffering strategy.
 
 ### 3. Responsive Images for Poster
@@ -686,6 +734,15 @@ const player = new Player('#video', {
 2. Check CORS headers
 3. Test in Safari (native HLS support)
 4. hls.js library will auto-load for other browsers
+
+### DASH Stream Issues
+
+1. Verify MPD URL is accessible
+2. Check CORS headers on the streaming server
+3. dash.js will auto-load from CDN when `.mpd` URLs are detected
+4. TTML subtitles are rendered by dash.js natively; WebVTT subtitles use VidPly's caption system
+5. If quality levels don't appear, check that the MPD manifest contains multiple representations
+6. Enable debug mode for dash.js logs: `{ debug: true }`
 
 ## Advanced Configuration
 

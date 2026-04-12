@@ -38,7 +38,9 @@ vidply/
 │   ├── demo.html             # Main demo
 │   ├── playlist-audio.html   # Audio playlist demo
 │   ├── playlist-video.html   # Video playlist demo
-│   └── hls-test.html         # HLS streaming demo
+│   ├── hls-test.html         # HLS streaming demo
+│   ├── dash-test.html        # DASH streaming demo
+│   └── single-player-dash.html # Single DASH player demo
 ├── dist/                     # Built files (generated)
 │   ├── prod/vidply.esm.min.js# ES Module (production)
 │   ├── legacy/vidply.min.js  # IIFE (production)
@@ -70,7 +72,8 @@ vidply/
 │   │   ├── HTML5Renderer.js  # Native HTML5 video/audio
 │   │   ├── YouTubeRenderer.js# YouTube iframe API
 │   │   ├── VimeoRenderer.js  # Vimeo Player API
-│   │   └── HLSRenderer.js    # HLS.js integration
+│   │   ├── HLSRenderer.js    # HLS.js integration
+│   │   └── DASHRenderer.js   # dash.js integration
 │   ├── styles/
 │   │   └── vidply.css        # Main stylesheet
 │   ├── utils/
@@ -152,7 +155,8 @@ Player
 │   ├── HTML5Renderer
 │   ├── YouTubeRenderer
 │   ├── VimeoRenderer
-│   └── HLSRenderer
+│   ├── HLSRenderer
+│   └── DASHRenderer
 └── PlaylistManager      # Playlist handling
 ```
 
@@ -172,6 +176,7 @@ selectRenderer(src) {
   if (isYouTubeUrl(src)) return YouTubeRenderer;
   if (isVimeoUrl(src)) return VimeoRenderer;
   if (isHLSUrl(src)) return HLSRenderer;
+  if (isDASHUrl(src)) return DASHRenderer;
   return HTML5Renderer;
 }
 ```
@@ -350,6 +355,7 @@ export const translations = {
    - `demo/playlist-audio.html` - Audio playlists
    - `demo/playlist-video.html` - Video playlists
    - `demo/hls-test.html` - HLS streaming
+   - `demo/dash-test.html` - DASH streaming
 
 ### Accessibility Testing
 
@@ -397,6 +403,9 @@ player.emit('mycustomevent', { data: 'value' });
 | `volumechange` | volume | Volume changed |
 | `playbackspeedchange` | speed | Speed changed |
 | `fullscreenchange` | isFullscreen | Fullscreen toggled |
+| `hlsmanifestparsed` | data | HLS manifest parsed |
+| `dashqualitychanged` | data | DASH quality changed |
+| `textcuesupdate` | - | New text cues available (HLS/DASH) |
 | `captionsenabled` | track | Captions enabled |
 | `captionsdisabled` | - | Captions disabled |
 | `playlisttrackchange` | item | Playlist track changed |
@@ -474,7 +483,8 @@ if (this.options.debug) {
 
 | Dependency | Purpose | Loaded |
 |------------|---------|--------|
-| HLS.js | HLS streaming | On demand |
+| HLS.js | HLS streaming | On demand (CDN) |
+| dash.js | DASH streaming | On demand (CDN) |
 | YouTube IFrame API | YouTube playback | On demand |
 | Vimeo Player API | Vimeo playback | On demand |
 

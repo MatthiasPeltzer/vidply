@@ -175,7 +175,16 @@ That's it!
 ></video>
 ```
 
-### Example 5: With Options
+### Example 5: DASH Streaming
+
+```html
+<video 
+  data-vidply 
+  src="https://example.com/video/dash/manifest.mpd"
+></video>
+```
+
+### Example 6: With Options
 
 ```html
 <video 
@@ -185,7 +194,7 @@ That's it!
 ></video>
 ```
 
-### Example 6: Manual Initialization
+### Example 7: Manual Initialization
 
 ```html
 <video id="my-video" src="video.mp4"></video>
@@ -657,6 +666,23 @@ Only include in production:
 - `dist/vidply.min.css`
 
 Total: ~62KB uncompressed, ~18KB gzipped
+
+## Streaming (HLS & DASH)
+
+VidPly auto-detects streaming formats by file extension:
+
+- **HLS** (`.m3u8`) - Uses hls.js, auto-loaded from CDN
+- **DASH** (`.mpd`) - Uses dash.js, auto-loaded from CDN
+
+```html
+<!-- HLS -->
+<video data-vidply src="https://example.com/stream.m3u8"></video>
+
+<!-- DASH -->
+<video data-vidply src="https://example.com/manifest.mpd"></video>
+```
+
+Both formats support adaptive quality selection and captions. DASH streams with embedded TTML subtitles are rendered natively by dash.js, while WebVTT subtitles are handled by VidPly's caption system and also support the interactive transcript.
 
 ## Next Steps
 

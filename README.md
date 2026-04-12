@@ -17,6 +17,7 @@ Try VidPly in action:
 - **[Video Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-video.html)** - Video playlist with thumbnails
 - **[Mixed Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-mixed.html)** - Combined audio and video playlist
 - **[HLS Streaming](https://matthiaspeltzer.github.io/vidply/demo/hls-test.html)** - Adaptive bitrate streaming demo
+- **[DASH Streaming](https://matthiaspeltzer.github.io/vidply/demo/dash-test.html)** - MPEG-DASH streaming demo
 
 ## Why VidPly?
 
@@ -35,6 +36,7 @@ Try VidPly in action:
 - **YouTube Integration** - Embed YouTube videos with unified controls
 - **Vimeo Integration** - Seamless Vimeo player integration
 - **HLS Streaming** - Adaptive bitrate streaming with quality selection and dynamic subtitle detection
+- **DASH Streaming** - MPEG-DASH support via dash.js with adaptive quality, TTML and WebVTT subtitles
 - **Preview Thumbnails** - Video preview thumbnails on progress bar hover
 - **Playlists** - Full playlist support with auto-advance and navigation
   - Audio playlists with track info
@@ -215,6 +217,29 @@ That's it! The player auto-initializes.
 <video data-vidply src="https://example.com/stream.m3u8"></video>
 ```
 
+### DASH Streaming
+
+```html
+<video data-vidply src="https://example.com/manifest.mpd"></video>
+```
+
+### DASH + HLS + MP4 Fallback
+
+For maximum device compatibility, provide all three formats:
+
+```html
+<video data-vidply width="800" height="450" poster="preview.jpg">
+  <source src="video/dash/manifest.mpd" type="application/dash+xml">
+  <source src="video/hls/master.m3u8" type="application/x-mpegURL">
+  <source src="video/fallback.mp4" type="video/mp4">
+  <track kind="subtitles" src="video/vtt/subtitles.de.vtt" srclang="de" label="Deutsch" default>
+  <track kind="subtitles" src="video/vtt/subtitles.en.vtt" srclang="en" label="English">
+  <track kind="chapters" src="video/vtt/chapters.de.vtt" srclang="de" label="Kapitel">
+</video>
+```
+
+VidPly auto-detects the source type by file extension (`.mpd` / `.m3u8` / `.mp4`) and selects the appropriate renderer.
+
 ## Configuration Options
 
 ```javascript
@@ -301,6 +326,10 @@ const player = new Player('#video', {
   onPlay: () => console.log('Playing!'),
   onPause: () => console.log('Paused!'),
   onEnded: () => console.log('Ended!'),
+  
+  // Streaming
+  hideSpeedForHls: true,     // Hide speed control for HLS streams
+  hideSpeedForDash: true,    // Hide speed control for DASH streams
   
   // Advanced
   debug: false,
@@ -512,6 +541,9 @@ player.on('timeupdate', (time) => {})
 player.on('volumechange', (volume) => {})
 player.on('playbackspeedchange', (speed) => {})
 player.on('fullscreenchange', (isFullscreen) => {})
+player.on('hlsmanifestparsed', (data) => {})
+player.on('dashqualitychanged', (data) => {})
+player.on('textcuesupdate', () => {})
 player.on('captionsenabled', (track) => {})
 player.on('captionsdisabled', () => {})
 player.on('error', (error) => {})
