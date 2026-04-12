@@ -81,10 +81,9 @@ export class CaptionManager {
 
         // Safari's native HLS can expose both SUBTITLES (WebVTT sidecar) and
         // CLOSED-CAPTIONS (inband CEA-608) groups as separate TextTrack objects
-        // with the same language and label, producing duplicate menu entries.
-        // Deduplicate by language+label, preferring the track that already has
-        // cues loaded, then preferring kind="subtitles" (WebVTT sidecar tracks
-        // are more reliably populated on native HLS than inband captions).
+        // with the same language and label. Deduplicate to one menu entry per
+        // language+label, storing the extras as alternatives. enable() will
+        // listen on all of them and use whichever delivers cues first.
         const seen = new Map();
 
         for (let i = 0; i < textTracks.length; i++) {
@@ -97,27 +96,26 @@ export class CaptionManager {
                 const existing = seen.get(dedupeKey);
 
                 if (existing) {
-                    const existingHasCues = existing.track.cues && existing.track.cues.length > 0;
-                    const newHasCues = track.cues && track.cues.length > 0;
-                    const preferNew = (!existingHasCues && newHasCues) ||
-                        (!existingHasCues && !newHasCues && existing.kind !== 'subtitles' && track.kind === 'subtitles');
-
-                    if (preferNew) {
-                        const idx = this.tracks.indexOf(existing);
-                        this.tracks[idx] = this._makeTrackEntry(track, i);
-                        seen.set(dedupeKey, this.tracks[idx]);
-                        if (existing.isDefault) {
-                            defaultTrackIndex = idx;
-                        }
-                    }
+                    existing.alternatives.push(track);
                     continue;
                 }
 
-                const entry = this._makeTrackEntry(track, i);
+                const trackElement = this.player.findTrackElement(track);
+                const isDefault = trackElement && trackElement.hasAttribute('default');
+                const entry = {
+                    track,
+                    language: track.language,
+                    label: track.label,
+                    kind: track.kind,
+                    index: i,
+                    isDefault,
+                    alternatives: []
+                };
+
                 this.tracks.push(entry);
                 seen.set(dedupeKey, entry);
 
-                if (entry.isDefault) {
+                if (isDefault) {
                     defaultTrackIndex = this.tracks.length - 1;
                 }
             }
@@ -128,19 +126,6 @@ export class CaptionManager {
                 this.enable(defaultTrackIndex);
             });
         }
-    }
-
-    _makeTrackEntry(track, index) {
-        const trackElement = this.player.findTrackElement(track);
-        const isDefault = trackElement && trackElement.hasAttribute('default');
-        return {
-            track,
-            language: track.language,
-            label: track.label,
-            kind: track.kind,
-            index,
-            isDefault
-        };
     }
 
     attachEvents() {
@@ -174,51 +159,57 @@ export class CaptionManager {
             return;
         }
 
-        // Disable current track
-        if (this.currentTrack && this.currentTrack.track) {
-            // Remove cuechange listener from old track
-            if (this.cueChangeHandler) {
-                this.currentTrack.track.removeEventListener('cuechange', this.cueChangeHandler);
-            }
-            this.currentTrack.track.mode = 'hidden';
-        }
+        // Disable current track and clean up alternative listeners
+        this._cleanupTrackListeners();
 
         // Enable selected track
         const selectedTrack = this.tracks[trackIndex];
 
         if (selectedTrack && selectedTrack.track) {
-            // Set to 'hidden' not 'showing' to prevent browser from displaying native captions
-            // We'll handle the display ourselves
-            // But we need to set mode to 'hidden' to load cues
             selectedTrack.track.mode = 'hidden';
             this.currentTrack = selectedTrack;
             this.player.state.captionsEnabled = true;
             
-            // Set lang attribute for screen readers to pronounce text correctly
             if (selectedTrack.language) {
                 this.element.setAttribute('lang', selectedTrack.language);
             }
 
-            // Remove any existing cuechange listener from this track
-            if (this.cueChangeHandler) {
-                selectedTrack.track.removeEventListener('cuechange', this.cueChangeHandler);
-            }
-
-            // Add event listener for cue changes
             this.cueChangeHandler = () => {
                 this.updateCaptions();
             };
             selectedTrack.track.addEventListener('cuechange', this.cueChangeHandler);
 
-            // Force track to load if it's not already loaded
-            // If track is not ready, wait for it to load
+            // Native HLS dedup: Safari can expose duplicate TextTrack objects
+            // for the same language (SUBTITLES vs CLOSED-CAPTIONS groups) but
+            // only one actually delivers cues. Listen on all alternatives and
+            // swap to whichever fires first with real cues.
+            if (selectedTrack.alternatives && selectedTrack.alternatives.length > 0) {
+                this._altCueChangeHandler = () => {
+                    if (this.currentTrack !== selectedTrack) return;
+                    for (const alt of selectedTrack.alternatives) {
+                        if (alt.activeCues && alt.activeCues.length > 0) {
+                            this.player.log(`Switching to alternative caption track for "${selectedTrack.label}"`, 'info');
+                            selectedTrack.track.removeEventListener('cuechange', this.cueChangeHandler);
+                            selectedTrack.alternatives.forEach(a => a.removeEventListener('cuechange', this._altCueChangeHandler));
+                            selectedTrack.track = alt;
+                            selectedTrack.track.addEventListener('cuechange', this.cueChangeHandler);
+                            this._altCueChangeHandler = null;
+                            this.updateCaptions();
+                            return;
+                        }
+                    }
+                };
+                selectedTrack.alternatives.forEach(alt => {
+                    alt.mode = 'hidden';
+                    alt.addEventListener('cuechange', this._altCueChangeHandler);
+                });
+            }
+
             const ensureTrackReady = () => {
                 if (selectedTrack.track.readyState < 2) {
-                    // Track not loaded yet, wait for load event
                     const onTrackLoad = () => {
                         selectedTrack.track.removeEventListener('load', onTrackLoad);
                         selectedTrack.track.removeEventListener('error', onTrackLoad);
-                        // Force initial update after track loads
                         requestAnimationFrame(() => {
                             if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
                                 this.updateCaptions();
@@ -228,7 +219,6 @@ export class CaptionManager {
                     selectedTrack.track.addEventListener('load', onTrackLoad, { once: true });
                     selectedTrack.track.addEventListener('error', onTrackLoad, { once: true });
                 } else {
-                    // Track already loaded, force initial update
                     requestAnimationFrame(() => {
                         if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
                             this.updateCaptions();
@@ -237,7 +227,6 @@ export class CaptionManager {
                 }
             };
 
-            // Use requestAnimationFrame to ensure track is ready
             requestAnimationFrame(() => {
                 if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
                     ensureTrackReady();
@@ -248,11 +237,24 @@ export class CaptionManager {
         }
     }
 
-    disable() {
-        if (this.currentTrack) {
+    _cleanupTrackListeners() {
+        if (this.currentTrack && this.currentTrack.track) {
+            if (this.cueChangeHandler) {
+                this.currentTrack.track.removeEventListener('cuechange', this.cueChangeHandler);
+            }
+            if (this._altCueChangeHandler && this.currentTrack.alternatives) {
+                this.currentTrack.alternatives.forEach(alt => {
+                    alt.removeEventListener('cuechange', this._altCueChangeHandler);
+                });
+            }
             this.currentTrack.track.mode = 'hidden';
-            this.currentTrack = null;
         }
+        this._altCueChangeHandler = null;
+    }
+
+    disable() {
+        this._cleanupTrackListeners();
+        this.currentTrack = null;
 
         this.element.style.display = 'none';
         this.element.innerHTML = '';
