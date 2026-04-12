@@ -102,28 +102,31 @@ var CaptionManager = class {
   loadTracks() {
     const textTracks = this.player.element.textTracks;
     let defaultTrackIndex = -1;
-    const seen = /* @__PURE__ */ new Set();
+    const seen = /* @__PURE__ */ new Map();
     for (let i = 0; i < textTracks.length; i++) {
       const track = textTracks[i];
       if (track.kind === "subtitles" || track.kind === "captions") {
+        track.mode = "hidden";
         const dedupeKey = `${track.language}|${track.label}`;
-        if (seen.has(dedupeKey)) {
-          track.mode = "hidden";
+        const existing = seen.get(dedupeKey);
+        if (existing) {
+          const existingHasCues = existing.track.cues && existing.track.cues.length > 0;
+          const newHasCues = track.cues && track.cues.length > 0;
+          const preferNew = !existingHasCues && newHasCues || !existingHasCues && !newHasCues && existing.kind !== "subtitles" && track.kind === "subtitles";
+          if (preferNew) {
+            const idx = this.tracks.indexOf(existing);
+            this.tracks[idx] = this._makeTrackEntry(track, i);
+            seen.set(dedupeKey, this.tracks[idx]);
+            if (existing.isDefault) {
+              defaultTrackIndex = idx;
+            }
+          }
           continue;
         }
-        seen.add(dedupeKey);
-        const trackElement = this.player.findTrackElement(track);
-        const isDefault = trackElement && trackElement.hasAttribute("default");
-        this.tracks.push({
-          track,
-          language: track.language,
-          label: track.label,
-          kind: track.kind,
-          index: i,
-          isDefault
-        });
-        track.mode = "hidden";
-        if (isDefault) {
+        const entry = this._makeTrackEntry(track, i);
+        this.tracks.push(entry);
+        seen.set(dedupeKey, entry);
+        if (entry.isDefault) {
           defaultTrackIndex = this.tracks.length - 1;
         }
       }
@@ -133,6 +136,18 @@ var CaptionManager = class {
         this.enable(defaultTrackIndex);
       });
     }
+  }
+  _makeTrackEntry(track, index) {
+    const trackElement = this.player.findTrackElement(track);
+    const isDefault = trackElement && trackElement.hasAttribute("default");
+    return {
+      track,
+      language: track.language,
+      label: track.label,
+      kind: track.kind,
+      index,
+      isDefault
+    };
   }
   attachEvents() {
     this.player.on("timeupdate", () => {
@@ -408,4 +423,4 @@ export {
   rafWithTimeout,
   CaptionManager
 };
-//# sourceMappingURL=vidply.chunk-EVJNJTSM.js.map
+//# sourceMappingURL=vidply.chunk-Y22KGSOI.js.map
