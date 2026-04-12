@@ -77,6 +77,7 @@ export class TranscriptManager {
     // Store event handlers for cleanup
     this.handlers = {
       timeupdate: () => this.updateActiveEntry(),
+      seeked: () => this.updateActiveEntry(),
       audiodescriptionenabled: () => {
         if (this.isVisible) {
           this.loadTranscriptData();
@@ -87,12 +88,15 @@ export class TranscriptManager {
           this.loadTranscriptData();
         }
       },
+      textcuesupdate: null,
       resize: null,
       settingsClick: null,
       settingsKeydown: null,
       documentClick: null,
       styleDialogKeydown: null
     };
+
+    this._cueUpdateTimeout = null;
     
     // Timeout management (for cleanup)
     this.timeouts = new Set();
@@ -106,10 +110,24 @@ export class TranscriptManager {
     
     // Listen for time updates to highlight active transcript entry
     this.player.on('timeupdate', this.handlers.timeupdate);
+    this.player.on('seeked', this.handlers.seeked);
     
     // Listen for audio description changes to reload transcript
     this.player.on('audiodescriptionenabled', this.handlers.audiodescriptionenabled);
     this.player.on('audiodescriptiondisabled', this.handlers.audiodescriptiondisabled);
+
+    // Listen for text cue updates (cues arrive incrementally as segments load in HLS/DASH)
+    this.handlers.textcuesupdate = () => {
+      if (!this.isVisible) return;
+      if (this._cueUpdateTimeout) {
+        this.clearManagedTimeout(this._cueUpdateTimeout);
+      }
+      this._cueUpdateTimeout = this.setManagedTimeout(() => {
+        this._cueUpdateTimeout = null;
+        this.loadTranscriptData();
+      }, 400);
+    };
+    this.player.on('textcuesupdate', this.handlers.textcuesupdate);
     
     // Reposition transcript when entering/exiting fullscreen
     this.player.on('fullscreenchange', () => {
@@ -323,6 +341,8 @@ export class TranscriptManager {
       this.autoscrollEnabled = e.target.checked;
       this.saveAutoscrollPreference();
     });
+
+    preventDragOnElement(autoscrollLabel);
 
     this.transcriptHeader.appendChild(title);
     this.headerLeft.appendChild(this.settingsButton);
@@ -762,6 +782,7 @@ export class TranscriptManager {
    */
   loadTranscriptData() {
     this.transcriptEntries = [];
+    this.currentActiveEntry = null;
     this.transcriptContent.innerHTML = '';
 
     // Get all text tracks
@@ -902,6 +923,8 @@ export class TranscriptManager {
     
     // Update language selector after loading
     this.updateLanguageSelector();
+
+    this.updateActiveEntry();
   }
 
   /**
@@ -2281,9 +2304,12 @@ export class TranscriptManager {
       this.customKeyHandler = null;
     }
 
-    // Remove timeupdate listener from player
+    // Remove timeupdate and seeked listeners from player
     if (this.handlers.timeupdate) {
       this.player.off('timeupdate', this.handlers.timeupdate);
+    }
+    if (this.handlers.seeked) {
+      this.player.off('seeked', this.handlers.seeked);
     }
     
     // Remove audio description listeners from player
@@ -2292,6 +2318,11 @@ export class TranscriptManager {
     }
     if (this.handlers.audiodescriptiondisabled) {
       this.player.off('audiodescriptiondisabled', this.handlers.audiodescriptiondisabled);
+    }
+
+    // Remove text cue update listener
+    if (this.handlers.textcuesupdate) {
+      this.player.off('textcuesupdate', this.handlers.textcuesupdate);
     }
     
     // Remove settings button event listeners

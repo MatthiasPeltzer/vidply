@@ -105,7 +105,7 @@ var CaptionManager = class {
     const seen = /* @__PURE__ */ new Map();
     for (let i = 0; i < textTracks.length; i++) {
       const track = textTracks[i];
-      if (track.kind === "subtitles" || track.kind === "captions") {
+      if ((track.kind === "subtitles" || track.kind === "captions") && !track._vidplyStale) {
         track.mode = "hidden";
         const dedupeKey = `${track.language}|${track.label}`;
         const existing = seen.get(dedupeKey);
@@ -250,6 +250,9 @@ var CaptionManager = class {
     if (!this.currentTrack || !this.currentTrack.track) {
       return;
     }
+    if (this.player.renderer?.handlesOwnCaptions?.()) {
+      return;
+    }
     if (this.currentTrack.track.mode === "disabled") {
       this.currentTrack.track.mode = "hidden";
     }
@@ -272,8 +275,12 @@ var CaptionManager = class {
       const cue = activeCues[0];
       if (this.currentCue !== cue) {
         this.currentCue = cue;
-        let text = cue.text;
+        let text = cue.text || "";
         text = this.parseVTTFormatting(text);
+        const sanitized = DOMUtils.sanitizeHTML(text);
+        if (!sanitized.trim()) {
+          return;
+        }
         if (isAudioPlayer) {
           const existingCues = this.element.querySelectorAll(`.${this.player.options.classPrefix}-caption-cue`);
           existingCues.forEach((el) => el.classList.remove(`${this.player.options.classPrefix}-caption-active`));
@@ -283,7 +290,7 @@ var CaptionManager = class {
             cueElement = document.createElement("div");
             cueElement.className = `${this.player.options.classPrefix}-caption-cue`;
             cueElement.setAttribute("data-cue-id", cueId);
-            cueElement.innerHTML = DOMUtils.sanitizeHTML(text);
+            cueElement.innerHTML = sanitized;
             this.element.appendChild(cueElement);
           }
           cueElement.classList.add(`${this.player.options.classPrefix}-caption-active`);
@@ -293,7 +300,7 @@ var CaptionManager = class {
             }
           });
         } else {
-          this.element.innerHTML = DOMUtils.sanitizeHTML(text);
+          this.element.innerHTML = sanitized;
         }
         this.element.style.display = "block";
         this.positionCaptionsOnMobile();
@@ -436,4 +443,4 @@ export {
   rafWithTimeout,
   CaptionManager
 };
-//# sourceMappingURL=vidply.chunk-NREPEDFE.js.map
+//# sourceMappingURL=vidply.chunk-RCYAEYFW.js.map

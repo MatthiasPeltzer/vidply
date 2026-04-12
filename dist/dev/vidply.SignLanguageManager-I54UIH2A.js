@@ -11,7 +11,7 @@ import {
   createMenuItem,
   focusFirstMenuItem,
   preventDragOnElement
-} from "./vidply.chunk-MQRVLOTX.js";
+} from "./vidply.chunk-YDUDBUC4.js";
 import {
   DOMUtils,
   i18n
@@ -1206,4 +1206,4 @@ var SignLanguageManager = class {
 export {
   SignLanguageManager
 };
-//# sourceMappingURL=vidply.SignLanguageManager-YQ2ETTUO.js.map
+//# sourceMappingURL=vidply.SignLanguageManager-I54UIH2A.js.map

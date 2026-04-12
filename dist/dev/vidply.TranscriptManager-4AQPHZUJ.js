@@ -17,7 +17,7 @@ import {
   createMenuItem,
   focusElement,
   preventDragOnElement
-} from "./vidply.chunk-MQRVLOTX.js";
+} from "./vidply.chunk-YDUDBUC4.js";
 import {
   DOMUtils,
   i18n
@@ -66,6 +66,7 @@ var TranscriptManager = class {
     };
     this.handlers = {
       timeupdate: () => this.updateActiveEntry(),
+      seeked: () => this.updateActiveEntry(),
       audiodescriptionenabled: () => {
         if (this.isVisible) {
           this.loadTranscriptData();
@@ -76,20 +77,34 @@ var TranscriptManager = class {
           this.loadTranscriptData();
         }
       },
+      textcuesupdate: null,
       resize: null,
       settingsClick: null,
       settingsKeydown: null,
       documentClick: null,
       styleDialogKeydown: null
     };
+    this._cueUpdateTimeout = null;
     this.timeouts = /* @__PURE__ */ new Set();
     this.init();
   }
   init() {
     this.setupMetadataHandlingOnLoad();
     this.player.on("timeupdate", this.handlers.timeupdate);
+    this.player.on("seeked", this.handlers.seeked);
     this.player.on("audiodescriptionenabled", this.handlers.audiodescriptionenabled);
     this.player.on("audiodescriptiondisabled", this.handlers.audiodescriptiondisabled);
+    this.handlers.textcuesupdate = () => {
+      if (!this.isVisible) return;
+      if (this._cueUpdateTimeout) {
+        this.clearManagedTimeout(this._cueUpdateTimeout);
+      }
+      this._cueUpdateTimeout = this.setManagedTimeout(() => {
+        this._cueUpdateTimeout = null;
+        this.loadTranscriptData();
+      }, 400);
+    };
+    this.player.on("textcuesupdate", this.handlers.textcuesupdate);
     this.player.on("fullscreenchange", () => {
       if (this.isVisible) {
         const isMobile = window.innerWidth < 768;
@@ -250,6 +265,7 @@ var TranscriptManager = class {
       this.autoscrollEnabled = e.target.checked;
       this.saveAutoscrollPreference();
     });
+    preventDragOnElement(autoscrollLabel);
     this.transcriptHeader.appendChild(title);
     this.headerLeft.appendChild(this.settingsButton);
     this.headerLeft.appendChild(autoscrollLabel);
@@ -576,6 +592,7 @@ var TranscriptManager = class {
    */
   loadTranscriptData() {
     this.transcriptEntries = [];
+    this.currentActiveEntry = null;
     this.transcriptContent.innerHTML = "";
     const textTracks = this.player.textTracks;
     let captionTrack = null;
@@ -669,6 +686,7 @@ var TranscriptManager = class {
       this.transcriptContent.setAttribute("lang", this.currentTranscriptLanguage);
     }
     this.updateLanguageSelector();
+    this.updateActiveEntry();
   }
   /**
    * Setup metadata handling on player load
@@ -1730,11 +1748,17 @@ var TranscriptManager = class {
     if (this.handlers.timeupdate) {
       this.player.off("timeupdate", this.handlers.timeupdate);
     }
+    if (this.handlers.seeked) {
+      this.player.off("seeked", this.handlers.seeked);
+    }
     if (this.handlers.audiodescriptionenabled) {
       this.player.off("audiodescriptionenabled", this.handlers.audiodescriptionenabled);
     }
     if (this.handlers.audiodescriptiondisabled) {
       this.player.off("audiodescriptiondisabled", this.handlers.audiodescriptiondisabled);
+    }
+    if (this.handlers.textcuesupdate) {
+      this.player.off("textcuesupdate", this.handlers.textcuesupdate);
     }
     if (this.settingsButton) {
       if (this.handlers.settingsClick) {
@@ -1778,4 +1802,4 @@ var TranscriptManager = class {
 export {
   TranscriptManager
 };
-//# sourceMappingURL=vidply.TranscriptManager-EVHEGUDK.js.map
+//# sourceMappingURL=vidply.TranscriptManager-4AQPHZUJ.js.map

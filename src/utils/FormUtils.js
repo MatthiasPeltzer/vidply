@@ -94,8 +94,8 @@ export function toggleLabeledSelect(label, select, show) {
  */
 export function preventDragOnElement(element) {
   if (!element) return;
-  
-  ['mousedown', 'click'].forEach(eventType => {
+
+  ['pointerdown', 'mousedown', 'click'].forEach(eventType => {
     element.addEventListener(eventType, (e) => {
       e.stopPropagation();
     });

@@ -1431,6 +1431,18 @@ video[data-vidply]:not(.vidply-initialized) {
     z-index: 1; /* Base video layer */
 }
 
+/* DASH TTML subtitle rendering overlay (used by dash.js for stpp/TTML captions) */
+.vidply-dash-ttml {
+    height: 100%;
+    left: 0;
+    overflow: hidden;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 2;
+}
+
 /* Ensure the video wrapper establishes an intrinsic height in ALL non-fullscreen modes.
    Controls are appended inside `.vidply-video-wrapper` and are positioned `absolute` by default.
    If the wrapper has no intrinsic height,

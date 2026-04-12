@@ -68,7 +68,7 @@ export class PlaylistManager {
   /**
    * Determine the media type for a track
    * @param {Object} track - Track object
-   * @returns {string} - 'audio', 'video', 'youtube', 'vimeo', 'soundcloud', 'hls'
+   * @returns {string} - 'audio', 'video', 'youtube', 'vimeo', 'soundcloud', 'hls', 'dash'
    */
   getTrackMediaType(track) {
     const src = track.src || '';
@@ -84,6 +84,9 @@ export class PlaylistManager {
     }
     if (src.includes('.m3u8')) {
       return 'hls';
+    }
+    if (src.includes('.mpd')) {
+      return 'dash';
     }
     if (track.type && track.type.startsWith('audio/')) {
       return 'audio';
@@ -149,13 +152,13 @@ export class PlaylistManager {
     
     // For video elements with local media, set poster
     if (elementType === 'video' && track.poster && 
-        (mediaType === 'video' || mediaType === 'hls')) {
+        (mediaType === 'video' || mediaType === 'hls' || mediaType === 'dash')) {
       mediaElement.setAttribute('poster', track.poster);
     }
     
-    // For external renderers (YouTube, Vimeo, SoundCloud, HLS), don't add source
+    // For external renderers (YouTube, Vimeo, SoundCloud, HLS, DASH), don't add source
     // The renderer will handle the source directly
-    const isExternalRenderer = ['youtube', 'vimeo', 'soundcloud', 'hls'].includes(mediaType);
+    const isExternalRenderer = ['youtube', 'vimeo', 'soundcloud', 'hls', 'dash'].includes(mediaType);
     
     if (!isExternalRenderer) {
       // Add source for HTML5 media
@@ -799,7 +802,8 @@ export class PlaylistManager {
            src.includes('vimeo.com') || 
            src.includes('soundcloud.com') || 
            src.includes('api.soundcloud.com') ||
-           src.includes('.m3u8');
+           src.includes('.m3u8') ||
+           src.includes('.mpd');
   }
 
   /**
@@ -807,7 +811,7 @@ export class PlaylistManager {
    */
   handleTrackError(e) {
     // Don't auto-advance for external renderer tracks
-    // External renderers (YouTube, Vimeo, SoundCloud, HLS) may trigger HTML5 errors
+    // External renderers (YouTube, Vimeo, SoundCloud, HLS, DASH) may trigger HTML5 errors
     // that should be ignored since the external renderer handles playback
     const currentTrack = this.getCurrentTrack();
     if (currentTrack && currentTrack.src && this.isExternalRendererUrl(currentTrack.src)) {

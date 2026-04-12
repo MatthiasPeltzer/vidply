@@ -89,7 +89,7 @@ export class CaptionManager {
         for (let i = 0; i < textTracks.length; i++) {
             const track = textTracks[i];
 
-            if (track.kind === 'subtitles' || track.kind === 'captions') {
+            if ((track.kind === 'subtitles' || track.kind === 'captions') && !track._vidplyStale) {
                 track.mode = 'hidden';
 
                 const dedupeKey = `${track.language}|${track.label}`;
@@ -269,25 +269,24 @@ export class CaptionManager {
             return;
         }
 
+        // When the renderer handles its own caption display (e.g. dash.js TTML
+        // rendering div), skip VidPly's caption overlay entirely.
+        if (this.player.renderer?.handlesOwnCaptions?.()) {
+            return;
+        }
+
         // Ensure track mode is set to 'hidden' (not 'disabled') to receive cue updates
         // 'hidden' mode loads cues and fires cuechange events, but doesn't show native captions
-        // If track is 'disabled', it won't have activeCues or fire events
         if (this.currentTrack.track.mode === 'disabled') {
             this.currentTrack.track.mode = 'hidden';
         }
 
-        // Ensure track is in 'hidden' mode (not 'showing') for custom caption display
         if (this.currentTrack.track.mode === 'showing') {
             this.currentTrack.track.mode = 'hidden';
         }
 
-        // Check if track has cues loaded
         if (!this.currentTrack.track.activeCues) {
-            // If no activeCues property, track might not be ready yet
-            // Try to access cues directly
             if (this.currentTrack.track.cues && this.currentTrack.track.cues.length > 0) {
-                // Track has cues but no active ones yet - this is normal
-                // Clear any existing caption
                 if (this.currentCue) {
                     this.element.innerHTML = '';
                     this.element.style.display = 'none';
@@ -303,59 +302,48 @@ export class CaptionManager {
         if (activeCues.length > 0) {
             const cue = activeCues[0];
 
-            // Only update if the cue has changed
             if (this.currentCue !== cue) {
                 this.currentCue = cue;
 
-                // Parse and display cue text
-                let text = cue.text;
-
-                // Handle VTT formatting
+                let text = cue.text || '';
                 text = this.parseVTTFormatting(text);
+                const sanitized = DOMUtils.sanitizeHTML(text);
 
-                // Audio players: transcript-style accumulation
+                if (!sanitized.trim()) {
+                    return;
+                }
+
                 if (isAudioPlayer) {
-                    // Remove highlight from previous active cue
                     const existingCues = this.element.querySelectorAll(`.${this.player.options.classPrefix}-caption-cue`);
                     existingCues.forEach(el => el.classList.remove(`${this.player.options.classPrefix}-caption-active`));
                     
-                    // Check if this cue is already displayed
                     const cueId = `cue-${cue.startTime}-${cue.endTime}`;
                     let cueElement = this.element.querySelector(`[data-cue-id="${cueId}"]`);
                     
                     if (!cueElement) {
-                        // Create new cue element
                         cueElement = document.createElement('div');
                         cueElement.className = `${this.player.options.classPrefix}-caption-cue`;
                         cueElement.setAttribute('data-cue-id', cueId);
-                        cueElement.innerHTML = DOMUtils.sanitizeHTML(text);
+                        cueElement.innerHTML = sanitized;
                         this.element.appendChild(cueElement);
                     }
                     
-                    // Highlight active cue
                     cueElement.classList.add(`${this.player.options.classPrefix}-caption-active`);
                     
-                    // Scroll to active cue smoothly - center it for better visibility
                     requestAnimationFrame(() => {
                         if (cueElement) {
                             cueElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }
                     });
                 } else {
-                    // Video players: replace content as before
-                    this.element.innerHTML = DOMUtils.sanitizeHTML(text);
+                    this.element.innerHTML = sanitized;
                 }
 
-                // Make sure it's visible when there's content
                 this.element.style.display = 'block';
-                
-                // Position captions above controls on mobile
                 this.positionCaptionsOnMobile();
-
                 this.player.emit('captionchange', cue);
             }
         } else if (this.currentCue) {
-            // Clear caption when no active cues (video players only)
             if (!isAudioPlayer) {
                 this.element.innerHTML = '';
                 this.element.style.display = 'none';
