@@ -1028,7 +1028,7 @@ export class ControlBar {
 
     /**
      * Lazily create the hidden preview video (only after playback started once)
-     * Supports both HTML5 and HLS renderers
+     * Supports HTML5, HLS, and DASH renderers
      */
     ensurePreviewVideoInitialized() {
         if (this.previewVideoInitialized) return;

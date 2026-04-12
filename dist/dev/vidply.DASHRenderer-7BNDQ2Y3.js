@@ -19,6 +19,7 @@ var DASHRenderer = class {
     this._captionDisabledHandler = null;
     this._lastKnownCueCount = 0;
     this._dashTextIsTtml = false;
+    this._pendingTimeouts = [];
   }
   async init() {
     this.player.log("Using dash.js for DASH support");
@@ -115,6 +116,14 @@ var DASHRenderer = class {
       document.head.appendChild(script);
     });
   }
+  _setTimeout(fn, delay) {
+    const id = setTimeout(() => {
+      this._pendingTimeouts = this._pendingTimeouts.filter((t) => t !== id);
+      fn();
+    }, delay);
+    this._pendingTimeouts.push(id);
+    return id;
+  }
   attachDashEvents() {
     this.dash.on(window.dashjs.MediaPlayer.events.MANIFEST_LOADED, (e) => {
       const data = e.data || e;
@@ -123,7 +132,7 @@ var DASHRenderer = class {
       if (this.player.container) {
         this.player.container.classList.remove("vidply-external-controls");
       }
-      setTimeout(() => {
+      this._setTimeout(() => {
         this._checkSubtitleTracks();
       }, 500);
     });
@@ -156,7 +165,7 @@ var DASHRenderer = class {
     this.dash.on(window.dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
       this.player.log("DASH stream initialized");
       this.player.emit("dashstreaminitialized");
-      setTimeout(() => {
+      this._setTimeout(() => {
         const qualities = this.getQualities();
         if (qualities.length > 0) {
           this.player.emit("dashmanifestparsed", { qualities });
@@ -169,7 +178,7 @@ var DASHRenderer = class {
     this.dash.on(window.dashjs.MediaPlayer.events.FRAGMENT_LOADING_COMPLETED, (e) => {
       this.player.state.buffering = false;
       if (e.request && e.request.mediaType === "text" && !this._dashTextIsTtml) {
-        setTimeout(() => {
+        this._setTimeout(() => {
           const count = this._getTotalCueCount();
           if (count > this._lastKnownCueCount) {
             this._lastKnownCueCount = count;
@@ -234,6 +243,7 @@ var DASHRenderer = class {
     if (!lang) return;
     const dashIndex = this._dashTextTracks.findIndex((dt) => {
       const dtLang = dt.lang || dt.language || dt.srclang || "";
+      if (!dtLang) return false;
       return dtLang === lang || dtLang.startsWith(lang) || lang.startsWith(dtLang);
     });
     if (dashIndex >= 0) {
@@ -604,6 +614,8 @@ var DASHRenderer = class {
     }
   }
   destroy() {
+    this._pendingTimeouts.forEach((id) => clearTimeout(id));
+    this._pendingTimeouts = [];
     this._stopCueUpdatePolling();
     this._lastKnownCueCount = 0;
     if (this._captionEnabledHandler) {
@@ -645,4 +657,4 @@ var DASHRenderer = class {
 export {
   DASHRenderer
 };
-//# sourceMappingURL=vidply.DASHRenderer-4D4HOTXP.js.map
+//# sourceMappingURL=vidply.DASHRenderer-7BNDQ2Y3.js.map

@@ -17,6 +17,7 @@ export class DASHRenderer {
     this._captionDisabledHandler = null;
     this._lastKnownCueCount = 0;
     this._dashTextIsTtml = false;
+    this._pendingTimeouts = [];
   }
 
   async init() {
@@ -136,6 +137,15 @@ export class DASHRenderer {
     });
   }
 
+  _setTimeout(fn, delay) {
+    const id = setTimeout(() => {
+      this._pendingTimeouts = this._pendingTimeouts.filter(t => t !== id);
+      fn();
+    }, delay);
+    this._pendingTimeouts.push(id);
+    return id;
+  }
+
   attachDashEvents() {
     this.dash.on(window.dashjs.MediaPlayer.events.MANIFEST_LOADED, (e) => {
       const data = e.data || e;
@@ -146,8 +156,7 @@ export class DASHRenderer {
         this.player.container.classList.remove('vidply-external-controls');
       }
 
-      // Check subtitle tracks after manifest
-      setTimeout(() => {
+      this._setTimeout(() => {
         this._checkSubtitleTracks();
       }, 500);
     });
@@ -186,8 +195,7 @@ export class DASHRenderer {
       this.player.log('DASH stream initialized');
       this.player.emit('dashstreaminitialized');
 
-      // Emit quality info once stream is ready
-      setTimeout(() => {
+      this._setTimeout(() => {
         const qualities = this.getQualities();
         if (qualities.length > 0) {
           this.player.emit('dashmanifestparsed', { qualities });
@@ -202,7 +210,7 @@ export class DASHRenderer {
     this.dash.on(window.dashjs.MediaPlayer.events.FRAGMENT_LOADING_COMPLETED, (e) => {
       this.player.state.buffering = false;
       if (e.request && e.request.mediaType === 'text' && !this._dashTextIsTtml) {
-        setTimeout(() => {
+        this._setTimeout(() => {
           const count = this._getTotalCueCount();
           if (count > this._lastKnownCueCount) {
             this._lastKnownCueCount = count;
@@ -273,6 +281,7 @@ export class DASHRenderer {
 
     const dashIndex = this._dashTextTracks.findIndex(dt => {
       const dtLang = dt.lang || dt.language || dt.srclang || '';
+      if (!dtLang) return false;
       return dtLang === lang || dtLang.startsWith(lang) || lang.startsWith(dtLang);
     });
 
@@ -712,6 +721,8 @@ export class DASHRenderer {
   }
 
   destroy() {
+    this._pendingTimeouts.forEach(id => clearTimeout(id));
+    this._pendingTimeouts = [];
     this._stopCueUpdatePolling();
     this._lastKnownCueCount = 0;
 

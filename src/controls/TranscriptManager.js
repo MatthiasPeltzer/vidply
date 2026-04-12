@@ -698,7 +698,7 @@ export class TranscriptManager {
     
     // Collect all caption/subtitle tracks with their languages
     textTracks.forEach(track => {
-      if ((track.kind === 'captions' || track.kind === 'subtitles') && track.language) {
+      if ((track.kind === 'captions' || track.kind === 'subtitles') && track.language && !track._vidplyStale) {
         if (!languages.has(track.language)) {
           languages.set(track.language, {
             language: track.language,
@@ -795,14 +795,15 @@ export class TranscriptManager {
     if (this.currentTranscriptLanguage) {
       const candidates = textTracks.filter(
         track => (track.kind === 'captions' || track.kind === 'subtitles') && 
-                 track.language === this.currentTranscriptLanguage
+                 track.language === this.currentTranscriptLanguage &&
+                 !track._vidplyStale
       );
       captionTrack = candidates.find(t => t.cues && t.cues.length > 0) || candidates[0] || null;
     }
     
     if (!captionTrack) {
       const candidates = textTracks.filter(
-        track => track.kind === 'captions' || track.kind === 'subtitles'
+        track => (track.kind === 'captions' || track.kind === 'subtitles') && !track._vidplyStale
       );
       captionTrack = candidates.find(t => t.cues && t.cues.length > 0) || candidates[0] || null;
       if (captionTrack) {

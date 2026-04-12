@@ -5699,7 +5699,7 @@
           const textTracks = this.player.textTracks;
           const languages = /* @__PURE__ */ new Map();
           textTracks.forEach((track) => {
-            if ((track.kind === "captions" || track.kind === "subtitles") && track.language) {
+            if ((track.kind === "captions" || track.kind === "subtitles") && track.language && !track._vidplyStale) {
               if (!languages.has(track.language)) {
                 languages.set(track.language, {
                   language: track.language,
@@ -5769,13 +5769,13 @@
           let captionTrack = null;
           if (this.currentTranscriptLanguage) {
             const candidates = textTracks.filter(
-              (track) => (track.kind === "captions" || track.kind === "subtitles") && track.language === this.currentTranscriptLanguage
+              (track) => (track.kind === "captions" || track.kind === "subtitles") && track.language === this.currentTranscriptLanguage && !track._vidplyStale
             );
             captionTrack = candidates.find((t) => t.cues && t.cues.length > 0) || candidates[0] || null;
           }
           if (!captionTrack) {
             const candidates = textTracks.filter(
-              (track) => track.kind === "captions" || track.kind === "subtitles"
+              (track) => (track.kind === "captions" || track.kind === "subtitles") && !track._vidplyStale
             );
             captionTrack = candidates.find((t) => t.cues && t.cues.length > 0) || candidates[0] || null;
             if (captionTrack) {
@@ -7960,6 +7960,7 @@
           this._captionDisabledHandler = null;
           this._lastKnownCueCount = 0;
           this._dashTextIsTtml = false;
+          this._pendingTimeouts = [];
         }
         async init() {
           this.player.log("Using dash.js for DASH support");
@@ -8056,6 +8057,14 @@
             document.head.appendChild(script);
           });
         }
+        _setTimeout(fn, delay) {
+          const id = setTimeout(() => {
+            this._pendingTimeouts = this._pendingTimeouts.filter((t) => t !== id);
+            fn();
+          }, delay);
+          this._pendingTimeouts.push(id);
+          return id;
+        }
         attachDashEvents() {
           this.dash.on(window.dashjs.MediaPlayer.events.MANIFEST_LOADED, (e) => {
             const data = e.data || e;
@@ -8064,7 +8073,7 @@
             if (this.player.container) {
               this.player.container.classList.remove("vidply-external-controls");
             }
-            setTimeout(() => {
+            this._setTimeout(() => {
               this._checkSubtitleTracks();
             }, 500);
           });
@@ -8097,7 +8106,7 @@
           this.dash.on(window.dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
             this.player.log("DASH stream initialized");
             this.player.emit("dashstreaminitialized");
-            setTimeout(() => {
+            this._setTimeout(() => {
               const qualities = this.getQualities();
               if (qualities.length > 0) {
                 this.player.emit("dashmanifestparsed", { qualities });
@@ -8110,7 +8119,7 @@
           this.dash.on(window.dashjs.MediaPlayer.events.FRAGMENT_LOADING_COMPLETED, (e) => {
             this.player.state.buffering = false;
             if (e.request && e.request.mediaType === "text" && !this._dashTextIsTtml) {
-              setTimeout(() => {
+              this._setTimeout(() => {
                 const count = this._getTotalCueCount();
                 if (count > this._lastKnownCueCount) {
                   this._lastKnownCueCount = count;
@@ -8175,6 +8184,7 @@
           if (!lang) return;
           const dashIndex = this._dashTextTracks.findIndex((dt) => {
             const dtLang = dt.lang || dt.language || dt.srclang || "";
+            if (!dtLang) return false;
             return dtLang === lang || dtLang.startsWith(lang) || lang.startsWith(dtLang);
           });
           if (dashIndex >= 0) {
@@ -8548,6 +8558,8 @@
           }
         }
         destroy() {
+          this._pendingTimeouts.forEach((id) => clearTimeout(id));
+          this._pendingTimeouts = [];
           this._stopCueUpdatePolling();
           this._lastKnownCueCount = 0;
           if (this._captionEnabledHandler) {
@@ -9710,7 +9722,7 @@
     }
     /**
      * Lazily create the hidden preview video (only after playback started once)
-     * Supports both HTML5 and HLS renderers
+     * Supports HTML5, HLS, and DASH renderers
      */
     ensurePreviewVideoInitialized() {
       var _a, _b;
@@ -13431,7 +13443,7 @@
      * @param {string} [config.signLanguageSrc] - Sign language video URL
      */
     /**
-     * Check if a source URL requires an external renderer (YouTube, Vimeo, SoundCloud, HLS)
+     * Check if a source URL requires an external renderer (YouTube, Vimeo, SoundCloud, HLS, DASH)
      * @param {string} src - Source URL
      * @returns {boolean}
      */

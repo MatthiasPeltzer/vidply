@@ -1605,7 +1605,7 @@ export class Player extends EventEmitter {
      * @param {string} [config.signLanguageSrc] - Sign language video URL
      */
     /**
-     * Check if a source URL requires an external renderer (YouTube, Vimeo, SoundCloud, HLS)
+     * Check if a source URL requires an external renderer (YouTube, Vimeo, SoundCloud, HLS, DASH)
      * @param {string} src - Source URL
      * @returns {boolean}
      */
@@ -1648,7 +1648,7 @@ export class Player extends EventEmitter {
             }
 
             // Only set src on HTML5 element for non-external sources
-            // External renderers (YouTube, Vimeo, SoundCloud, HLS) handle their own media loading
+            // External renderers (YouTube, Vimeo, SoundCloud, HLS, DASH) handle their own media loading
             if (!isExternalRenderer) {
                 this.element.src = config.src;
 

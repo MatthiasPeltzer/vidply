@@ -863,7 +863,7 @@ var ControlBar = class {
   }
   /**
    * Lazily create the hidden preview video (only after playback started once)
-   * Supports both HTML5 and HLS renderers
+   * Supports HTML5, HLS, and DASH renderers
    */
   ensurePreviewVideoInitialized() {
     if (this.previewVideoInitialized) return;
@@ -3801,7 +3801,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-4AQPHZUJ.js");
+    const module = await import("./vidply.TranscriptManager-65P3NXNQ.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;
@@ -4324,7 +4324,7 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.HLSRenderer-N5HHMRN3.js");
       rendererClass = module.HLSRenderer || module.default;
     } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-4D4HOTXP.js");
+      const module = await import("./vidply.DASHRenderer-7BNDQ2Y3.js");
       rendererClass = module.DASHRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-HCMKXHSX.js");
@@ -4546,7 +4546,7 @@ var Player = class _Player extends EventEmitter {
    * @param {string} [config.signLanguageSrc] - Sign language video URL
    */
   /**
-   * Check if a source URL requires an external renderer (YouTube, Vimeo, SoundCloud, HLS)
+   * Check if a source URL requires an external renderer (YouTube, Vimeo, SoundCloud, HLS, DASH)
    * @param {string} src - Source URL
    * @returns {boolean}
    */

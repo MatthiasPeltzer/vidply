@@ -7,7 +7,7 @@ A modern, feature-rich media player built with vanilla ES6 JavaScript. Combines 
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)
 ![ES6](https://img.shields.io/badge/ES6-Module-yellow.svg)
 ![WCAG](https://img.shields.io/badge/WCAG-2.2%20AA-green.svg)
-![Version](https://img.shields.io/badge/version-1.0.40-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.0.45-brightgreen.svg)
 
 ## Live Demos
 
@@ -468,7 +468,7 @@ player.switchSignLanguage('de')  // Switch to German sign language
 ### Playlists
 
 ```javascript
-import { Player, PlaylistManager } from './dist/vidply.esm.js';
+import { Player, PlaylistManager } from './dist/prod/vidply.esm.min.js';
 
 // Create player
 const player = new Player('#my-player');

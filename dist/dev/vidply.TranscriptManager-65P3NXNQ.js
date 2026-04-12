@@ -528,7 +528,7 @@ var TranscriptManager = class {
     const textTracks = this.player.textTracks;
     const languages = /* @__PURE__ */ new Map();
     textTracks.forEach((track) => {
-      if ((track.kind === "captions" || track.kind === "subtitles") && track.language) {
+      if ((track.kind === "captions" || track.kind === "subtitles") && track.language && !track._vidplyStale) {
         if (!languages.has(track.language)) {
           languages.set(track.language, {
             language: track.language,
@@ -598,13 +598,13 @@ var TranscriptManager = class {
     let captionTrack = null;
     if (this.currentTranscriptLanguage) {
       const candidates = textTracks.filter(
-        (track) => (track.kind === "captions" || track.kind === "subtitles") && track.language === this.currentTranscriptLanguage
+        (track) => (track.kind === "captions" || track.kind === "subtitles") && track.language === this.currentTranscriptLanguage && !track._vidplyStale
       );
       captionTrack = candidates.find((t) => t.cues && t.cues.length > 0) || candidates[0] || null;
     }
     if (!captionTrack) {
       const candidates = textTracks.filter(
-        (track) => track.kind === "captions" || track.kind === "subtitles"
+        (track) => (track.kind === "captions" || track.kind === "subtitles") && !track._vidplyStale
       );
       captionTrack = candidates.find((t) => t.cues && t.cues.length > 0) || candidates[0] || null;
       if (captionTrack) {
@@ -1802,4 +1802,4 @@ var TranscriptManager = class {
 export {
   TranscriptManager
 };
-//# sourceMappingURL=vidply.TranscriptManager-4AQPHZUJ.js.map
+//# sourceMappingURL=vidply.TranscriptManager-65P3NXNQ.js.map
