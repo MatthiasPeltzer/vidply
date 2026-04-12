@@ -8018,8 +8018,8 @@
           if (wrapper) {
             wrapper.appendChild(this._ttmlDiv);
           }
-          this.dash.attachTTMLRenderingDiv(this._ttmlDiv);
           this.dash.initialize(this.media, null, false);
+          this.dash.attachTTMLRenderingDiv(this._ttmlDiv);
           let src = this.player.currentSource;
           if (!src && originalSrc) {
             src = originalSrc;

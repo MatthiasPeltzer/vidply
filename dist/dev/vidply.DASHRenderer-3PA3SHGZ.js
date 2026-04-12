@@ -77,8 +77,8 @@ var DASHRenderer = class {
     if (wrapper) {
       wrapper.appendChild(this._ttmlDiv);
     }
-    this.dash.attachTTMLRenderingDiv(this._ttmlDiv);
     this.dash.initialize(this.media, null, false);
+    this.dash.attachTTMLRenderingDiv(this._ttmlDiv);
     let src = this.player.currentSource;
     if (!src && originalSrc) {
       src = originalSrc;
@@ -592,4 +592,4 @@ var DASHRenderer = class {
 export {
   DASHRenderer
 };
-//# sourceMappingURL=vidply.DASHRenderer-SXX4F4N2.js.map
+//# sourceMappingURL=vidply.DASHRenderer-3PA3SHGZ.js.map
