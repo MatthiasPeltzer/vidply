@@ -15,7 +15,7 @@ import {
   isMobile,
   rafWithTimeout,
   throttle
-} from "./vidply.chunk-RX6NLSHH.js";
+} from "./vidply.chunk-EVJNJTSM.js";
 import {
   StorageManager
 } from "./vidply.chunk-JZWZJC4C.js";
@@ -3338,7 +3338,7 @@ var AudioDescriptionManagerModule = null;
 var SignLanguageManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-XG32DISZ.js");
+    const module = await import("./vidply.AudioDescriptionManager-CEUXPCD7.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;

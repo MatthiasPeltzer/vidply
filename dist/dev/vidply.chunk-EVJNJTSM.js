@@ -102,9 +102,16 @@ var CaptionManager = class {
   loadTracks() {
     const textTracks = this.player.element.textTracks;
     let defaultTrackIndex = -1;
+    const seen = /* @__PURE__ */ new Set();
     for (let i = 0; i < textTracks.length; i++) {
       const track = textTracks[i];
       if (track.kind === "subtitles" || track.kind === "captions") {
+        const dedupeKey = `${track.language}|${track.label}`;
+        if (seen.has(dedupeKey)) {
+          track.mode = "hidden";
+          continue;
+        }
+        seen.add(dedupeKey);
         const trackElement = this.player.findTrackElement(track);
         const isDefault = trackElement && trackElement.hasAttribute("default");
         this.tracks.push({
@@ -115,13 +122,7 @@ var CaptionManager = class {
           index: i,
           isDefault
         });
-        if (track.mode === "showing") {
-          track.mode = "hidden";
-        } else if (track.mode === "disabled") {
-          track.mode = "hidden";
-        } else {
-          track.mode = "hidden";
-        }
+        track.mode = "hidden";
         if (isDefault) {
           defaultTrackIndex = this.tracks.length - 1;
         }
@@ -407,4 +408,4 @@ export {
   rafWithTimeout,
   CaptionManager
 };
-//# sourceMappingURL=vidply.chunk-RX6NLSHH.js.map
+//# sourceMappingURL=vidply.chunk-EVJNJTSM.js.map

@@ -79,11 +79,22 @@ export class CaptionManager {
         const textTracks = this.player.element.textTracks;
         let defaultTrackIndex = -1;
 
+        // Safari's native HLS can expose both SUBTITLES and CLOSED-CAPTIONS
+        // groups as separate TextTrack objects with the same language and label,
+        // producing duplicate menu entries. Deduplicate by language+label.
+        const seen = new Set();
+
         for (let i = 0; i < textTracks.length; i++) {
             const track = textTracks[i];
 
             if (track.kind === 'subtitles' || track.kind === 'captions') {
-                // Check if this track has the default attribute
+                const dedupeKey = `${track.language}|${track.label}`;
+                if (seen.has(dedupeKey)) {
+                    track.mode = 'hidden';
+                    continue;
+                }
+                seen.add(dedupeKey);
+
                 const trackElement = this.player.findTrackElement(track);
                 const isDefault = trackElement && trackElement.hasAttribute('default');
                 
@@ -96,19 +107,8 @@ export class CaptionManager {
                     isDefault: isDefault
                 });
 
-                // Set all tracks to 'hidden' mode (not 'disabled' or 'showing')
                 // 'hidden' mode loads cues and fires events, but doesn't show native captions
-                // This is important even for default tracks - we want custom caption display
-                if (track.mode === 'showing') {
-                    // If browser set it to 'showing' (e.g., for default tracks), change to 'hidden'
-                    track.mode = 'hidden';
-                } else if (track.mode === 'disabled') {
-                    // If disabled, set to 'hidden' to load cues
-                    track.mode = 'hidden';
-                } else {
-                    // Ensure it's 'hidden' (might already be, but be explicit)
-                    track.mode = 'hidden';
-                }
+                track.mode = 'hidden';
                 
                 if (isDefault) {
                     defaultTrackIndex = this.tracks.length - 1;
