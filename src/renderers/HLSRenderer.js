@@ -519,22 +519,27 @@ export class HLSRenderer {
 
   getQualities() {
     if (this.hls && this.hls.levels) {
-      return this.hls.levels.map((level, index) => {
+      // hls.js creates separate levels for each video+audio-group combination,
+      // producing duplicates (e.g. three "720p" entries). Deduplicate by
+      // resolution height, keeping the entry with the highest bitrate per height.
+      const byHeight = new Map();
+
+      this.hls.levels.forEach((level, index) => {
         const height = Number(level.height) || 0;
         const bitrate = Number(level.bitrate) || 0;
-        const kb = bitrate > 0 ? Math.round(bitrate / 1000) : 0;
+        const key = height > 0 ? height : `br_${bitrate}`;
+        const existing = byHeight.get(key);
 
-        // Video HLS typically has height -> show "720p".
-        // Audio-only HLS often has height=0 -> show bitrate label instead.
+        if (!existing || bitrate > (existing.bitrate || 0)) {
+          byHeight.set(key, { index, height: level.height, width: level.width, bitrate, level });
+        }
+      });
+
+      return Array.from(byHeight.values()).map(entry => {
+        const height = Number(entry.height) || 0;
+        const kb = entry.bitrate > 0 ? Math.round(entry.bitrate / 1000) : 0;
         const name = height > 0 ? `${height}p` : (kb > 0 ? `${kb} kb` : 'Auto');
-
-        return {
-          index,
-          height: level.height,
-          width: level.width,
-          bitrate: level.bitrate,
-          name
-        };
+        return { index: entry.index, height: entry.height, width: entry.width, bitrate: entry.bitrate, name };
       });
     }
     return [];

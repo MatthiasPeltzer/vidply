@@ -352,7 +352,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 17969,
+      "bytes": 18467,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -602,7 +602,7 @@
           "bytesInOutput": 8135
         },
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 17458
+          "bytesInOutput": 17883
         },
         "src/renderers/SoundCloudRenderer.js": {
           "bytesInOutput": 10450
@@ -629,7 +629,7 @@
           "bytesInOutput": 5574
         }
       },
-      "bytes": 704089
+      "bytes": 704514
     }
   }
 }
