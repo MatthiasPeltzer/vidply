@@ -1913,23 +1913,23 @@
               const dedupeKey = `${track.language}|${track.label}`;
               const existing = seen.get(dedupeKey);
               if (existing) {
-                const existingHasCues = existing.track.cues && existing.track.cues.length > 0;
-                const newHasCues = track.cues && track.cues.length > 0;
-                const preferNew = !existingHasCues && newHasCues || !existingHasCues && !newHasCues && existing.kind !== "subtitles" && track.kind === "subtitles";
-                if (preferNew) {
-                  const idx = this.tracks.indexOf(existing);
-                  this.tracks[idx] = this._makeTrackEntry(track, i);
-                  seen.set(dedupeKey, this.tracks[idx]);
-                  if (existing.isDefault) {
-                    defaultTrackIndex = idx;
-                  }
-                }
+                existing.alternatives.push(track);
                 continue;
               }
-              const entry = this._makeTrackEntry(track, i);
+              const trackElement = this.player.findTrackElement(track);
+              const isDefault = trackElement && trackElement.hasAttribute("default");
+              const entry = {
+                track,
+                language: track.language,
+                label: track.label,
+                kind: track.kind,
+                index: i,
+                isDefault,
+                alternatives: []
+              };
               this.tracks.push(entry);
               seen.set(dedupeKey, entry);
-              if (entry.isDefault) {
+              if (isDefault) {
                 defaultTrackIndex = this.tracks.length - 1;
               }
             }
@@ -1939,18 +1939,6 @@
               this.enable(defaultTrackIndex);
             });
           }
-        }
-        _makeTrackEntry(track, index) {
-          const trackElement = this.player.findTrackElement(track);
-          const isDefault = trackElement && trackElement.hasAttribute("default");
-          return {
-            track,
-            language: track.language,
-            label: track.label,
-            kind: track.kind,
-            index,
-            isDefault
-          };
         }
         attachEvents() {
           this.player.on("timeupdate", () => {
@@ -1974,12 +1962,7 @@
           if (this.tracks.length === 0) {
             return;
           }
-          if (this.currentTrack && this.currentTrack.track) {
-            if (this.cueChangeHandler) {
-              this.currentTrack.track.removeEventListener("cuechange", this.cueChangeHandler);
-            }
-            this.currentTrack.track.mode = "hidden";
-          }
+          this._cleanupTrackListeners();
           const selectedTrack = this.tracks[trackIndex];
           if (selectedTrack && selectedTrack.track) {
             selectedTrack.track.mode = "hidden";
@@ -1988,13 +1971,31 @@
             if (selectedTrack.language) {
               this.element.setAttribute("lang", selectedTrack.language);
             }
-            if (this.cueChangeHandler) {
-              selectedTrack.track.removeEventListener("cuechange", this.cueChangeHandler);
-            }
             this.cueChangeHandler = () => {
               this.updateCaptions();
             };
             selectedTrack.track.addEventListener("cuechange", this.cueChangeHandler);
+            if (selectedTrack.alternatives && selectedTrack.alternatives.length > 0) {
+              this._altCueChangeHandler = () => {
+                if (this.currentTrack !== selectedTrack) return;
+                for (const alt of selectedTrack.alternatives) {
+                  if (alt.activeCues && alt.activeCues.length > 0) {
+                    this.player.log(`Switching to alternative caption track for "${selectedTrack.label}"`, "info");
+                    selectedTrack.track.removeEventListener("cuechange", this.cueChangeHandler);
+                    selectedTrack.alternatives.forEach((a) => a.removeEventListener("cuechange", this._altCueChangeHandler));
+                    selectedTrack.track = alt;
+                    selectedTrack.track.addEventListener("cuechange", this.cueChangeHandler);
+                    this._altCueChangeHandler = null;
+                    this.updateCaptions();
+                    return;
+                  }
+                }
+              };
+              selectedTrack.alternatives.forEach((alt) => {
+                alt.mode = "hidden";
+                alt.addEventListener("cuechange", this._altCueChangeHandler);
+              });
+            }
             const ensureTrackReady = () => {
               if (selectedTrack.track.readyState < 2) {
                 const onTrackLoad = () => {
@@ -2024,11 +2025,23 @@
             this.player.emit("captionsenabled", selectedTrack);
           }
         }
-        disable() {
-          if (this.currentTrack) {
+        _cleanupTrackListeners() {
+          if (this.currentTrack && this.currentTrack.track) {
+            if (this.cueChangeHandler) {
+              this.currentTrack.track.removeEventListener("cuechange", this.cueChangeHandler);
+            }
+            if (this._altCueChangeHandler && this.currentTrack.alternatives) {
+              this.currentTrack.alternatives.forEach((alt) => {
+                alt.removeEventListener("cuechange", this._altCueChangeHandler);
+              });
+            }
             this.currentTrack.track.mode = "hidden";
-            this.currentTrack = null;
           }
+          this._altCueChangeHandler = null;
+        }
+        disable() {
+          this._cleanupTrackListeners();
+          this.currentTrack = null;
           this.element.style.display = "none";
           this.element.innerHTML = "";
           this.element.removeAttribute("lang");
