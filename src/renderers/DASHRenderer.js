@@ -76,8 +76,9 @@ export class DASHRenderer {
       }
     });
 
-    // Create and attach TTML rendering div BEFORE initialize() so dash.js
-    // can use it as soon as text tracks arrive from the manifest.
+    // Create the TTML rendering div before initialize() so the DOM element
+    // exists, but attach it to dash.js after initialize() because
+    // attachTTMLRenderingDiv() requires attachView() which initialize() calls.
     this._ttmlDiv = document.createElement('div');
     this._ttmlDiv.className = 'vidply-dash-ttml';
     this._ttmlDiv.style.visibility = 'hidden';
@@ -85,9 +86,9 @@ export class DASHRenderer {
     if (wrapper) {
       wrapper.appendChild(this._ttmlDiv);
     }
-    this.dash.attachTTMLRenderingDiv(this._ttmlDiv);
 
     this.dash.initialize(this.media, null, false);
+    this.dash.attachTTMLRenderingDiv(this._ttmlDiv);
 
     // Resolve source URL
     let src = this.player.currentSource;

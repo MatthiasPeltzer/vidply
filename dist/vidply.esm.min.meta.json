@@ -357,7 +357,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.js": {
-      "bytes": 20877,
+      "bytes": 20959,
       "imports": [],
       "format": "esm"
     },
@@ -600,7 +600,7 @@
       },
       "bytes": 16909
     },
-    "dist/prod/vidply.DASHRenderer-6IXYCNRE.min.js": {
+    "dist/prod/vidply.DASHRenderer-TPWMTHMX.min.js": {
       "imports": [],
       "exports": [
         "DASHRenderer"
@@ -678,7 +678,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.DASHRenderer-6IXYCNRE.min.js",
+          "path": "dist/prod/vidply.DASHRenderer-TPWMTHMX.min.js",
           "kind": "dynamic-import"
         },
         {
