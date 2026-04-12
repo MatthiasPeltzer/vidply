@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 167107,
+      "bytes": 167978,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -161,7 +161,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.js": {
-      "bytes": 19678,
+      "bytes": 18837,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -228,7 +228,7 @@
       "format": "esm"
     },
     "src/utils/FormUtils.js": {
-      "bytes": 3078,
+      "bytes": 3091,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -291,7 +291,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 83332,
+      "bytes": 84366,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -352,7 +352,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.js": {
-      "bytes": 18467,
+      "bytes": 20366,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.js",
@@ -362,13 +362,18 @@
       ],
       "format": "esm"
     },
+    "src/renderers/DASHRenderer.js": {
+      "bytes": 20877,
+      "imports": [],
+      "format": "esm"
+    },
     "src/renderers/SoundCloudRenderer.js": {
       "bytes": 10507,
       "imports": [],
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 244294,
+      "bytes": 246617,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -471,6 +476,11 @@
           "original": "../renderers/HLSRenderer.js"
         },
         {
+          "path": "src/renderers/DASHRenderer.js",
+          "kind": "dynamic-import",
+          "original": "../renderers/DASHRenderer.js"
+        },
+        {
           "path": "src/renderers/SoundCloudRenderer.js",
           "kind": "dynamic-import",
           "original": "../renderers/SoundCloudRenderer.js"
@@ -484,7 +494,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.js": {
-      "bytes": 57066,
+      "bytes": 57212,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -572,7 +582,7 @@
           "bytesInOutput": 6611
         },
         "src/controls/CaptionManager.js": {
-          "bytesInOutput": 16265
+          "bytesInOutput": 16578
         },
         "src/renderers/HTML5Renderer.js": {
           "bytesInOutput": 11200
@@ -584,7 +594,7 @@
           "bytesInOutput": 4653
         },
         "src/utils/FormUtils.js": {
-          "bytesInOutput": 1633
+          "bytesInOutput": 1648
         },
         "src/core/AudioDescriptionManager.js": {
           "bytesInOutput": 23273
@@ -593,7 +603,7 @@
           "bytesInOutput": 50576
         },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 79319
+          "bytesInOutput": 80349
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 8328
@@ -602,7 +612,10 @@
           "bytesInOutput": 8135
         },
         "src/renderers/HLSRenderer.js": {
-          "bytesInOutput": 17883
+          "bytesInOutput": 20131
+        },
+        "src/renderers/DASHRenderer.js": {
+          "bytesInOutput": 22447
         },
         "src/renderers/SoundCloudRenderer.js": {
           "bytesInOutput": 10450
@@ -611,10 +624,10 @@
           "bytesInOutput": 958
         },
         "src/core/Player.js": {
-          "bytesInOutput": 170019
+          "bytesInOutput": 171499
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 122327
+          "bytesInOutput": 123025
         },
         "src/utils/VideoFrameCapture.js": {
           "bytesInOutput": 2634
@@ -623,13 +636,13 @@
           "bytesInOutput": 7407
         },
         "src/features/PlaylistManager.js": {
-          "bytesInOutput": 46031
+          "bytesInOutput": 46160
         },
         "src/index.js": {
           "bytesInOutput": 5574
         }
       },
-      "bytes": 704514
+      "bytes": 732910
     }
   }
 }

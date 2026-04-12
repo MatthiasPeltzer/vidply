@@ -106,6 +106,7 @@ export class Player extends EventEmitter {
             // When enabled, VidPly will not start network loading during init().
             // - HTML5: does not call element.load() until the first user-initiated play()
             // - HLS (hls.js): does not load manifest/segments until the first play()
+            // - DASH (dash.js): does not attach source until the first play()
             // This is useful for pages with many players to avoid high initial bandwidth.
             deferLoad: false,
             // When enabled, clicking Audio Description / Sign Language before playback will show
@@ -132,6 +133,10 @@ export class Player extends EventEmitter {
             // When enabled, the playback speed UI is suppressed for HLS *video* streams only.
             // This is useful for live streams where speed controls don't make sense.
             hideSpeedForHlsVideo: false,
+            // When enabled, the playback speed UI is suppressed for ALL DASH streams (audio + video).
+            hideSpeedForDash: false,
+            // When enabled, the playback speed UI is suppressed for DASH *video* streams only.
+            hideSpeedForDashVideo: false,
             captionsButton: true,
             transcriptButton: true,
             fullscreenButton: true,
@@ -1310,6 +1315,9 @@ export class Player extends EventEmitter {
         } else if (src.includes('.m3u8')) {
             const module = await import('../renderers/HLSRenderer.js');
             rendererClass = module.HLSRenderer || module.default;
+        } else if (src.includes('.mpd')) {
+            const module = await import('../renderers/DASHRenderer.js');
+            rendererClass = module.DASHRenderer || module.default;
         } else if (src.includes('soundcloud.com') || src.includes('api.soundcloud.com')) {
             const module = await import('../renderers/SoundCloudRenderer.js');
             rendererClass = module.SoundCloudRenderer || module.default;
@@ -1608,7 +1616,8 @@ export class Player extends EventEmitter {
                src.includes('vimeo.com') || 
                src.includes('soundcloud.com') || 
                src.includes('api.soundcloud.com') ||
-               src.includes('.m3u8');
+               src.includes('.m3u8') ||
+               src.includes('.mpd');
     }
 
     async load(config) {
@@ -1752,14 +1761,30 @@ export class Player extends EventEmitter {
             // Check if we need to change renderer type
             const shouldChangeRenderer = this.shouldChangeRenderer(config.src);
 
-            // Destroy old renderer if changing types
-            if (shouldChangeRenderer && this.renderer) {
+            // DASH and HLS renderers manage their own source loading via MSE/hls.js
+            // and must be fully destroyed+reinitialized when switching sources,
+            // even when the renderer type stays the same.
+            const needsFullReinit = !shouldChangeRenderer && this.renderer &&
+                (this.renderer.dash || this.renderer.hls);
+
+            // Destroy old renderer if changing types or if MSE-based renderer needs reinit
+            if ((shouldChangeRenderer || needsFullReinit) && this.renderer) {
                 this.renderer.destroy();
                 this.renderer = null;
+
+                // Clean up dynamically-added caption/transcript buttons from the
+                // previous renderer. The new renderer will re-add them if its
+                // stream contains text tracks.
+                if (this.controlBar) {
+                    this.controlBar.removeHlsCaptionButtons(true);
+                }
+                if (this.transcriptManager?.isVisible) {
+                    this.transcriptManager.hideTranscript();
+                }
             }
 
             // Initialize or reinitialize renderer
-            if (!this.renderer || shouldChangeRenderer) {
+            if (!this.renderer || shouldChangeRenderer || needsFullReinit) {
                 await this.initializeRenderer();
             } else {
                 // Just reload the current renderer with the updated element
@@ -1803,29 +1828,41 @@ export class Player extends EventEmitter {
             // Restore scroll position immediately after loading to prevent auto-scroll
             window.scrollTo(scrollX, scrollY);
 
-            // Reinitialize caption manager to pick up new tracks
-            if (this.captionManager) {
-                this.captionManager.destroy();
-                this.captionManager = new CaptionManager(this);
-            }
-            
-            // Reinitialize transcript manager to pick up new tracks
-            if (this.transcriptManager) {
-                const wasTranscriptVisible = this.transcriptManager.isVisible;
-                this.transcriptManager.destroy();
-                this.transcriptManager = null;
-
-                await this.ensureTranscriptManager();
-                
-                // Only restore transcript visibility if new track has captions
-                if (wasTranscriptVisible && this.controlBar && this.controlBar.hasCaptionTracks()) {
-                    this.transcriptManager?.showTranscript();
+            // For MSE-based renderers (DASH/HLS), skip CaptionManager/TranscriptManager
+            // re-creation here. dash.js/hls.js create programmatic TextTrack objects
+            // that persist on the <video> element after destroy() and cannot be removed
+            // via standard APIs. Re-scanning element.textTracks would pick up these stale
+            // tracks. Instead, the renderer's events (TEXT_TRACKS_ADDED etc.) will call
+            // refreshTracks()/ensureCaptionsButton() once real tracks are available.
+            if (needsFullReinit) {
+                if (this.captionManager) {
+                    this.captionManager.disable();
+                    this.captionManager.tracks = [];
                 }
-            }
-            
-            // Update control bar to show/hide feature buttons based on new tracks
-            if (this.controlBar) {
-                this.updateControlBar();
+                if (this.transcriptManager?.isVisible) {
+                    this.transcriptManager.hideTranscript();
+                }
+            } else {
+                if (this.captionManager) {
+                    this.captionManager.destroy();
+                    this.captionManager = new CaptionManager(this);
+                }
+
+                if (this.transcriptManager) {
+                    const wasTranscriptVisible = this.transcriptManager.isVisible;
+                    this.transcriptManager.destroy();
+                    this.transcriptManager = null;
+
+                    await this.ensureTranscriptManager();
+                    
+                    if (wasTranscriptVisible && this.controlBar && this.controlBar.hasCaptionTracks()) {
+                        this.transcriptManager?.showTranscript();
+                    }
+                }
+                
+                if (this.controlBar) {
+                    this.updateControlBar();
+                }
             }
             
             // Restore scroll position after control bar update (may have caused micro-scrolls)
@@ -1905,6 +1942,7 @@ export class Player extends EventEmitter {
         const isYouTube = src.includes('youtube.com') || src.includes('youtu.be');
         const isVimeo = src.includes('vimeo.com');
         const isHLS = src.includes('.m3u8');
+        const isDASH = src.includes('.mpd');
         const isSoundCloud = src.includes('soundcloud.com') || src.includes('api.soundcloud.com');
 
         const currentRendererName = this.renderer.constructor.name;
@@ -1912,8 +1950,9 @@ export class Player extends EventEmitter {
         if (isYouTube && currentRendererName !== 'YouTubeRenderer') return true;
         if (isVimeo && currentRendererName !== 'VimeoRenderer') return true;
         if (isHLS && currentRendererName !== 'HLSRenderer') return true;
+        if (isDASH && currentRendererName !== 'DASHRenderer') return true;
         if (isSoundCloud && currentRendererName !== 'SoundCloudRenderer') return true;
-        if (!isYouTube && !isVimeo && !isHLS && !isSoundCloud && currentRendererName !== 'HTML5Renderer') return true;
+        if (!isYouTube && !isVimeo && !isHLS && !isDASH && !isSoundCloud && currentRendererName !== 'HTML5Renderer') return true;
 
         return false;
     }

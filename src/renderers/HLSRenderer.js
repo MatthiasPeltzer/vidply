@@ -11,6 +11,8 @@ export class HLSRenderer {
     this._hlsSourceLoaded = false;
     this._pendingSrc = null;
     this._hlsSubtitleTracksCount = undefined; // Reset on new instance
+    this._cueUpdateTimer = null;
+    this._lastKnownCueCount = 0;
   }
 
   async init() {
@@ -239,20 +241,78 @@ export class HLSRenderer {
       this.player.emit('hlssubtitletracksupdated', data);
       this._hlsSubtitleTracksCount = data.subtitleTracks.length;
       this.updateCaptionButtonsForHls();
+      if (data.subtitleTracks.length > 0) {
+        this._startCueUpdatePolling();
+      }
     });
 
     this.hls.on(window.Hls.Events.SUBTITLE_TRACK_SWITCH, (event, data) => {
       this.player.log('HLS subtitle track switched to ' + data.id);
       this.player.emit('hlssubtitletrackswitch', data);
+      this._lastKnownCueCount = 0;
+      this._startCueUpdatePolling();
     });
 
     this.hls.on(window.Hls.Events.ERROR, (event, data) => {
       this.handleHlsError(data);
     });
 
-    this.hls.on(window.Hls.Events.FRAG_BUFFERED, () => {
+    this.hls.on(window.Hls.Events.FRAG_BUFFERED, (event, data) => {
       this.player.state.buffering = false;
+      if (data.frag && data.frag.type === 'subtitle') {
+        setTimeout(() => {
+          const count = this._getTotalCueCount();
+          if (count > this._lastKnownCueCount) {
+            this._lastKnownCueCount = count;
+            this.player.emit('textcuesupdate');
+          }
+        }, 100);
+      }
     });
+  }
+
+  _getTotalCueCount() {
+    const textTracks = this.media.textTracks;
+    let total = 0;
+    if (!textTracks) return total;
+    for (let i = 0; i < textTracks.length; i++) {
+      const track = textTracks[i];
+      if ((track.kind === 'subtitles' || track.kind === 'captions') && track.cues) {
+        total += track.cues.length;
+      }
+    }
+    return total;
+  }
+
+  _startCueUpdatePolling() {
+    this._stopCueUpdatePolling();
+    let prevCueCount = 0;
+    let stableRounds = 0;
+
+    this._cueUpdateTimer = setInterval(() => {
+      const count = this._getTotalCueCount();
+
+      if (count > prevCueCount) {
+        prevCueCount = count;
+        stableRounds = 0;
+        this.player.emit('textcuesupdate');
+      } else {
+        stableRounds++;
+        if (stableRounds >= 8) {
+          this._stopCueUpdatePolling();
+          if (count > 0) {
+            this.player.emit('textcuesupdate');
+          }
+        }
+      }
+    }, 500);
+  }
+
+  _stopCueUpdatePolling() {
+    if (this._cueUpdateTimer) {
+      clearInterval(this._cueUpdateTimer);
+      this._cueUpdateTimer = null;
+    }
   }
 
   /**
@@ -552,7 +612,17 @@ export class HLSRenderer {
     return -1;
   }
 
+  supportsAutoQuality() {
+    return true;
+  }
+
+  isAutoQuality() {
+    return this.hls?.currentLevel === -1;
+  }
+
   destroy() {
+    this._stopCueUpdatePolling();
+    this._lastKnownCueCount = 0;
     if (this.hls) {
       this.hls.destroy();
       this.hls = null;

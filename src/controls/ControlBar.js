@@ -733,10 +733,13 @@ export class ControlBar {
             || this.player.element?.querySelector?.('source')?.src
             || '';
         const isHlsSource = typeof src === 'string' && src.includes('.m3u8');
+        const isDashSource = typeof src === 'string' && src.includes('.mpd');
         const isVideoElement = this.player.element?.tagName?.toLowerCase() === 'video';
         const hideSpeedForThisPlayer =
             (!!this.player.options.hideSpeedForHls && isHlsSource)
-            || (!!this.player.options.hideSpeedForHlsVideo && isHlsSource && isVideoElement);
+            || (!!this.player.options.hideSpeedForHlsVideo && isHlsSource && isVideoElement)
+            || (!!this.player.options.hideSpeedForDash && isDashSource)
+            || (!!this.player.options.hideSpeedForDashVideo && isDashSource && isVideoElement);
         if (this.player.options.speedButton && !hideSpeedForThisPlayer) {
             const btn = this.createSpeedButton();
             btn.dataset.overflowPriority = '1';
@@ -886,10 +889,10 @@ export class ControlBar {
     }
 
     hasCaptionTracks() {
-        // 1) Prefer already-loaded TextTracks
+        // 1) Prefer already-loaded TextTracks (skip stale tracks from previous dash.js)
         const textTracks = this.player.element.textTracks;
         for (let i = 0; i < textTracks.length; i++) {
-            if (textTracks[i].kind === 'captions' || textTracks[i].kind === 'subtitles') {
+            if ((textTracks[i].kind === 'captions' || textTracks[i].kind === 'subtitles') && !textTracks[i]._vidplyStale) {
                 return true;
             }
         }
@@ -1047,25 +1050,26 @@ export class ControlBar {
             return;
         }
 
-        // Check if this is an HLS stream (hls.js handles seeking internally)
-        const isHLSRenderer = renderer.hls && typeof renderer.hls.loadLevel !== 'undefined';
+        // Check if this is a streaming renderer (HLS/DASH handle seeking internally)
+        const isStreamingRenderer = (renderer.hls && typeof renderer.hls.loadLevel !== 'undefined')
+            || (renderer.dash && typeof renderer.dash.getQualityFor === 'function');
         const isHTML5Renderer = hasVideoMedia &&
             renderer.media === this.player.element &&
-            !isHLSRenderer &&
+            !isStreamingRenderer &&
             typeof renderer.seek === 'function';
 
-        // For HLS, we use the main video element directly (hls.js handles seeking)
+        // For streaming renderers (HLS/DASH), we use the main video element directly
         // For HTML5, we create a separate hidden video element
-        if (isHLSRenderer) {
-            // HLS streams: Preview thumbnails are disabled because seeking the main video
+        if (isStreamingRenderer) {
+            // Streaming: Preview thumbnails are disabled because seeking the main video
             // for thumbnail generation would cause visible playback jumps.
-            // A separate HLS instance for preview would be too resource-intensive.
+            // A separate instance for preview would be too resource-intensive.
             this.previewVideo = null;
             this.previewVideoReady = false;
             this.previewSupported = false;
             this.previewUsingMainVideo = false;
-            this.previewVideoInitialized = true; // Mark as initialized so we don't retry
-            this.player.log('Preview thumbnails disabled for HLS streams', 'info');
+            this.previewVideoInitialized = true;
+            this.player.log('Preview thumbnails disabled for streaming sources', 'info');
             return;
         }
 
@@ -2076,7 +2080,8 @@ export class ControlBar {
         if (this.player.renderer && this.player.renderer.getQualities) {
             const qualities = this.player.renderer.getQualities();
             const currentQuality = this.player.renderer.getCurrentQuality ? this.player.renderer.getCurrentQuality() : -1;
-            const isHLS = this.player.renderer.hls !== undefined;
+            const hasAutoQuality = typeof this.player.renderer.supportsAutoQuality === 'function'
+                && this.player.renderer.supportsAutoQuality();
 
             if (qualities.length === 0) {
                 // No qualities available
@@ -2092,8 +2097,8 @@ export class ControlBar {
             } else {
                 let activeItem = null;
                 
-                // Auto quality option (only for HLS)
-                if (isHLS) {
+                // Auto quality option (for renderers that support it, e.g. HLS, DASH)
+                if (hasAutoQuality) {
                     const autoItem = DOMUtils.createElement('button', {
                         className: `${this.player.options.classPrefix}-menu-item`,
                         textContent: i18n.t('player.auto'),
@@ -2105,7 +2110,8 @@ export class ControlBar {
                     });
 
                     // Check if auto is currently selected
-                    const isAuto = this.player.renderer.hls && this.player.renderer.hls.currentLevel === -1;
+                    const isAuto = typeof this.player.renderer.isAutoQuality === 'function'
+                        && this.player.renderer.isAutoQuality();
                     if (isAuto) {
                         autoItem.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
                         autoItem.appendChild(createIconElement('check'));
@@ -3180,6 +3186,11 @@ export class ControlBar {
             this.ensureQualityButton();
             this.updateQualityIndicator();
         });
+        this.player.on('dashqualitychanged', () => this.updateQualityIndicator());
+        this.player.on('dashmanifestparsed', () => {
+            this.ensureQualityButton();
+            this.updateQualityIndicator();
+        });
     }
 
     updatePlayPauseButton() {
@@ -3525,8 +3536,8 @@ export class ControlBar {
         // Get current quality
         let currentQualityText = '';
         
-        // Check if it's HLS with auto mode
-        if (this.player.renderer.hls && this.player.renderer.hls.currentLevel === -1) {
+        // Check if renderer is in auto quality mode (HLS, DASH, etc.)
+        if (typeof this.player.renderer.isAutoQuality === 'function' && this.player.renderer.isAutoQuality()) {
             currentQualityText = 'Auto';
         } else if (this.player.renderer.getCurrentQuality) {
             const currentIndex = this.player.renderer.getCurrentQuality();

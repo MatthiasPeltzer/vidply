@@ -979,7 +979,7 @@ function createLabeledSelect({
 }
 function preventDragOnElement(element) {
   if (!element) return;
-  ["mousedown", "click"].forEach((eventType) => {
+  ["pointerdown", "mousedown", "click"].forEach((eventType) => {
     element.addEventListener(eventType, (e) => {
       e.stopPropagation();
     });
@@ -998,4 +998,4 @@ export {
   createLabeledSelect,
   preventDragOnElement
 };
-//# sourceMappingURL=vidply.chunk-MQRVLOTX.js.map
+//# sourceMappingURL=vidply.chunk-YDUDBUC4.js.map

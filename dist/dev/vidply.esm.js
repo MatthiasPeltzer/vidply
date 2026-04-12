@@ -15,7 +15,7 @@ import {
   isMobile,
   rafWithTimeout,
   throttle
-} from "./vidply.chunk-NREPEDFE.js";
+} from "./vidply.chunk-RCYAEYFW.js";
 import {
   StorageManager
 } from "./vidply.chunk-JZWZJC4C.js";
@@ -30,7 +30,7 @@ import {
   focusFirstElement,
   focusFirstMenuItem,
   preventDragOnElement
-} from "./vidply.chunk-MQRVLOTX.js";
+} from "./vidply.chunk-YDUDBUC4.js";
 import {
   DOMUtils,
   i18n
@@ -658,8 +658,9 @@ var ControlBar = class {
     }
     const src = this.player.currentSource || this.player.element?.getAttribute?.("src") || this.player.element?.currentSrc || this.player.element?.src || this.player.element?.querySelector?.("source")?.getAttribute?.("src") || this.player.element?.querySelector?.("source")?.src || "";
     const isHlsSource = typeof src === "string" && src.includes(".m3u8");
+    const isDashSource = typeof src === "string" && src.includes(".mpd");
     const isVideoElement = this.player.element?.tagName?.toLowerCase() === "video";
-    const hideSpeedForThisPlayer = !!this.player.options.hideSpeedForHls && isHlsSource || !!this.player.options.hideSpeedForHlsVideo && isHlsSource && isVideoElement;
+    const hideSpeedForThisPlayer = !!this.player.options.hideSpeedForHls && isHlsSource || !!this.player.options.hideSpeedForHlsVideo && isHlsSource && isVideoElement || !!this.player.options.hideSpeedForDash && isDashSource || !!this.player.options.hideSpeedForDashVideo && isDashSource && isVideoElement;
     if (this.player.options.speedButton && !hideSpeedForThisPlayer) {
       const btn = this.createSpeedButton();
       btn.dataset.overflowPriority = "1";
@@ -767,7 +768,7 @@ var ControlBar = class {
   hasCaptionTracks() {
     const textTracks = this.player.element.textTracks;
     for (let i = 0; i < textTracks.length; i++) {
-      if (textTracks[i].kind === "captions" || textTracks[i].kind === "subtitles") {
+      if ((textTracks[i].kind === "captions" || textTracks[i].kind === "subtitles") && !textTracks[i]._vidplyStale) {
         return true;
       }
     }
@@ -879,15 +880,15 @@ var ControlBar = class {
       this.previewVideoInitialized = true;
       return;
     }
-    const isHLSRenderer = renderer.hls && typeof renderer.hls.loadLevel !== "undefined";
-    const isHTML5Renderer = hasVideoMedia && renderer.media === this.player.element && !isHLSRenderer && typeof renderer.seek === "function";
-    if (isHLSRenderer) {
+    const isStreamingRenderer = renderer.hls && typeof renderer.hls.loadLevel !== "undefined" || renderer.dash && typeof renderer.dash.getQualityFor === "function";
+    const isHTML5Renderer = hasVideoMedia && renderer.media === this.player.element && !isStreamingRenderer && typeof renderer.seek === "function";
+    if (isStreamingRenderer) {
       this.previewVideo = null;
       this.previewVideoReady = false;
       this.previewSupported = false;
       this.previewUsingMainVideo = false;
       this.previewVideoInitialized = true;
-      this.player.log("Preview thumbnails disabled for HLS streams", "info");
+      this.player.log("Preview thumbnails disabled for streaming sources", "info");
       return;
     }
     this.previewSupported = isHTML5Renderer && hasVideoMedia;
@@ -1653,7 +1654,7 @@ var ControlBar = class {
     if (this.player.renderer && this.player.renderer.getQualities) {
       const qualities = this.player.renderer.getQualities();
       const currentQuality = this.player.renderer.getCurrentQuality ? this.player.renderer.getCurrentQuality() : -1;
-      const isHLS = this.player.renderer.hls !== void 0;
+      const hasAutoQuality = typeof this.player.renderer.supportsAutoQuality === "function" && this.player.renderer.supportsAutoQuality();
       if (qualities.length === 0) {
         const noQualityItem = DOMUtils.createElement("div", {
           className: `${this.player.options.classPrefix}-menu-item`,
@@ -1666,7 +1667,7 @@ var ControlBar = class {
         menu.appendChild(noQualityItem);
       } else {
         let activeItem = null;
-        if (isHLS) {
+        if (hasAutoQuality) {
           const autoItem = DOMUtils.createElement("button", {
             className: `${this.player.options.classPrefix}-menu-item`,
             textContent: i18n.t("player.auto"),
@@ -1676,7 +1677,7 @@ var ControlBar = class {
               "tabindex": "-1"
             }
           });
-          const isAuto = this.player.renderer.hls && this.player.renderer.hls.currentLevel === -1;
+          const isAuto = typeof this.player.renderer.isAutoQuality === "function" && this.player.renderer.isAutoQuality();
           if (isAuto) {
             autoItem.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
             autoItem.appendChild(createIconElement("check"));
@@ -2495,6 +2496,11 @@ var ControlBar = class {
       this.ensureQualityButton();
       this.updateQualityIndicator();
     });
+    this.player.on("dashqualitychanged", () => this.updateQualityIndicator());
+    this.player.on("dashmanifestparsed", () => {
+      this.ensureQualityButton();
+      this.updateQualityIndicator();
+    });
   }
   updatePlayPauseButton() {
     if (!this.controls.playPause) return;
@@ -2733,7 +2739,7 @@ var ControlBar = class {
       return;
     }
     let currentQualityText = "";
-    if (this.player.renderer.hls && this.player.renderer.hls.currentLevel === -1) {
+    if (typeof this.player.renderer.isAutoQuality === "function" && this.player.renderer.isAutoQuality()) {
       currentQualityText = "Auto";
     } else if (this.player.renderer.getCurrentQuality) {
       const currentIndex = this.player.renderer.getCurrentQuality();
@@ -3338,14 +3344,14 @@ var AudioDescriptionManagerModule = null;
 var SignLanguageManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-F62UTB3X.js");
+    const module = await import("./vidply.AudioDescriptionManager-KGVPMQV2.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-YQ2ETTUO.js");
+    const module = await import("./vidply.SignLanguageManager-I54UIH2A.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
@@ -3397,6 +3403,7 @@ var Player = class _Player extends EventEmitter {
       // When enabled, VidPly will not start network loading during init().
       // - HTML5: does not call element.load() until the first user-initiated play()
       // - HLS (hls.js): does not load manifest/segments until the first play()
+      // - DASH (dash.js): does not attach source until the first play()
       // This is useful for pages with many players to avoid high initial bandwidth.
       deferLoad: false,
       // When enabled, clicking Audio Description / Sign Language before playback will show
@@ -3423,6 +3430,10 @@ var Player = class _Player extends EventEmitter {
       // When enabled, the playback speed UI is suppressed for HLS *video* streams only.
       // This is useful for live streams where speed controls don't make sense.
       hideSpeedForHlsVideo: false,
+      // When enabled, the playback speed UI is suppressed for ALL DASH streams (audio + video).
+      hideSpeedForDash: false,
+      // When enabled, the playback speed UI is suppressed for DASH *video* streams only.
+      hideSpeedForDashVideo: false,
       captionsButton: true,
       transcriptButton: true,
       fullscreenButton: true,
@@ -3790,7 +3801,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-EVHEGUDK.js");
+    const module = await import("./vidply.TranscriptManager-4AQPHZUJ.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;
@@ -4310,8 +4321,11 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.VimeoRenderer-SLEBCZTT.js");
       rendererClass = module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-L6YGUPR6.js");
+      const module = await import("./vidply.HLSRenderer-N5HHMRN3.js");
       rendererClass = module.HLSRenderer || module.default;
+    } else if (src.includes(".mpd")) {
+      const module = await import("./vidply.DASHRenderer-SXX4F4N2.js");
+      rendererClass = module.DASHRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-HCMKXHSX.js");
       rendererClass = module.SoundCloudRenderer || module.default;
@@ -4538,7 +4552,7 @@ var Player = class _Player extends EventEmitter {
    */
   isExternalRendererUrl(src) {
     if (!src) return false;
-    return src.includes("youtube.com") || src.includes("youtu.be") || src.includes("vimeo.com") || src.includes("soundcloud.com") || src.includes("api.soundcloud.com") || src.includes(".m3u8");
+    return src.includes("youtube.com") || src.includes("youtu.be") || src.includes("vimeo.com") || src.includes("soundcloud.com") || src.includes("api.soundcloud.com") || src.includes(".m3u8") || src.includes(".mpd");
   }
   async load(config) {
     try {
@@ -4631,11 +4645,18 @@ var Player = class _Player extends EventEmitter {
         this.disableSignLanguage();
       }
       const shouldChangeRenderer = this.shouldChangeRenderer(config.src);
-      if (shouldChangeRenderer && this.renderer) {
+      const needsFullReinit = !shouldChangeRenderer && this.renderer && (this.renderer.dash || this.renderer.hls);
+      if ((shouldChangeRenderer || needsFullReinit) && this.renderer) {
         this.renderer.destroy();
         this.renderer = null;
+        if (this.controlBar) {
+          this.controlBar.removeHlsCaptionButtons(true);
+        }
+        if (this.transcriptManager?.isVisible) {
+          this.transcriptManager.hideTranscript();
+        }
       }
-      if (!this.renderer || shouldChangeRenderer) {
+      if (!this.renderer || shouldChangeRenderer || needsFullReinit) {
         await this.initializeRenderer();
       } else {
         this.renderer.media = this.element;
@@ -4667,21 +4688,31 @@ var Player = class _Player extends EventEmitter {
         this._switchingRenderer = false;
       }
       window.scrollTo(scrollX, scrollY);
-      if (this.captionManager) {
-        this.captionManager.destroy();
-        this.captionManager = new CaptionManager(this);
-      }
-      if (this.transcriptManager) {
-        const wasTranscriptVisible = this.transcriptManager.isVisible;
-        this.transcriptManager.destroy();
-        this.transcriptManager = null;
-        await this.ensureTranscriptManager();
-        if (wasTranscriptVisible && this.controlBar && this.controlBar.hasCaptionTracks()) {
-          this.transcriptManager?.showTranscript();
+      if (needsFullReinit) {
+        if (this.captionManager) {
+          this.captionManager.disable();
+          this.captionManager.tracks = [];
         }
-      }
-      if (this.controlBar) {
-        this.updateControlBar();
+        if (this.transcriptManager?.isVisible) {
+          this.transcriptManager.hideTranscript();
+        }
+      } else {
+        if (this.captionManager) {
+          this.captionManager.destroy();
+          this.captionManager = new CaptionManager(this);
+        }
+        if (this.transcriptManager) {
+          const wasTranscriptVisible = this.transcriptManager.isVisible;
+          this.transcriptManager.destroy();
+          this.transcriptManager = null;
+          await this.ensureTranscriptManager();
+          if (wasTranscriptVisible && this.controlBar && this.controlBar.hasCaptionTracks()) {
+            this.transcriptManager?.showTranscript();
+          }
+        }
+        if (this.controlBar) {
+          this.updateControlBar();
+        }
       }
       window.scrollTo(scrollX, scrollY);
       if (wasSignLanguageEnabled && this.signLanguageSrc) {
@@ -4738,13 +4769,15 @@ var Player = class _Player extends EventEmitter {
     const isYouTube = src.includes("youtube.com") || src.includes("youtu.be");
     const isVimeo = src.includes("vimeo.com");
     const isHLS = src.includes(".m3u8");
+    const isDASH = src.includes(".mpd");
     const isSoundCloud = src.includes("soundcloud.com") || src.includes("api.soundcloud.com");
     const currentRendererName = this.renderer.constructor.name;
     if (isYouTube && currentRendererName !== "YouTubeRenderer") return true;
     if (isVimeo && currentRendererName !== "VimeoRenderer") return true;
     if (isHLS && currentRendererName !== "HLSRenderer") return true;
+    if (isDASH && currentRendererName !== "DASHRenderer") return true;
     if (isSoundCloud && currentRendererName !== "SoundCloudRenderer") return true;
-    if (!isYouTube && !isVimeo && !isHLS && !isSoundCloud && currentRendererName !== "HTML5Renderer") return true;
+    if (!isYouTube && !isVimeo && !isHLS && !isDASH && !isSoundCloud && currentRendererName !== "HTML5Renderer") return true;
     return false;
   }
   // Playback controls
@@ -7508,7 +7541,7 @@ var PlaylistManager = class {
   /**
    * Determine the media type for a track
    * @param {Object} track - Track object
-   * @returns {string} - 'audio', 'video', 'youtube', 'vimeo', 'soundcloud', 'hls'
+   * @returns {string} - 'audio', 'video', 'youtube', 'vimeo', 'soundcloud', 'hls', 'dash'
    */
   getTrackMediaType(track) {
     const src = track.src || "";
@@ -7523,6 +7556,9 @@ var PlaylistManager = class {
     }
     if (src.includes(".m3u8")) {
       return "hls";
+    }
+    if (src.includes(".mpd")) {
+      return "dash";
     }
     if (track.type && track.type.startsWith("audio/")) {
       return "audio";
@@ -7566,10 +7602,10 @@ var PlaylistManager = class {
     const mediaElement = document.createElement(elementType);
     const preloadValue = preservedPlayerOptions.preload || "metadata";
     mediaElement.setAttribute("preload", preloadValue);
-    if (elementType === "video" && track.poster && (mediaType === "video" || mediaType === "hls")) {
+    if (elementType === "video" && track.poster && (mediaType === "video" || mediaType === "hls" || mediaType === "dash")) {
       mediaElement.setAttribute("poster", track.poster);
     }
-    const isExternalRenderer = ["youtube", "vimeo", "soundcloud", "hls"].includes(mediaType);
+    const isExternalRenderer = ["youtube", "vimeo", "soundcloud", "hls", "dash"].includes(mediaType);
     if (!isExternalRenderer) {
       const source = document.createElement("source");
       source.src = track.src;
@@ -8016,7 +8052,7 @@ var PlaylistManager = class {
    */
   isExternalRendererUrl(src) {
     if (!src) return false;
-    return src.includes("youtube.com") || src.includes("youtu.be") || src.includes("vimeo.com") || src.includes("soundcloud.com") || src.includes("api.soundcloud.com") || src.includes(".m3u8");
+    return src.includes("youtube.com") || src.includes("youtu.be") || src.includes("vimeo.com") || src.includes("soundcloud.com") || src.includes("api.soundcloud.com") || src.includes(".m3u8") || src.includes(".mpd");
   }
   /**
    * Handle track error

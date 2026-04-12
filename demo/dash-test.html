@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="VidPly DASH streaming test page demonstrating MPEG-DASH support with .mpd files, adaptive bitrate switching, and quality selection.">
+    <title>VidPly - DASH Streaming Test</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../dist/vidply.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .demo-links {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .demo-link {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            color: #0a406e;
+            display: inline-block;
+            font-weight: 600;
+            padding: 10px 24px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .demo-link:hover {
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+
+        .demo-link:focus {
+            outline: 3px solid white;
+            outline-offset: 4px;
+        }
+
+        .demo-link[href="playlist-mixed.html"] {
+            margin-bottom: 8px;
+        }
+        
+        .container {
+            margin: 0 auto;
+            max-width: 1200px;
+        }
+        
+        nav {
+            margin-bottom: 20px;
+        }
+        
+        .back-link {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            display: inline-block;
+            padding: 10px 20px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .back-link:focus {
+            outline: 3px solid white;
+            outline-offset: 4px;
+        }
+        
+        header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        h1 {
+            align-items: center;
+            background: linear-gradient(135deg, #0a406e 0%, #6BA4EE 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            display: flex;
+            font-size: 56px;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        h1 a {
+            align-items: center;
+            background: linear-gradient(135deg, #0a406e 0%, #6BA4EE 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            display: flex;
+            font-size: 56px;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+            text-decoration: none;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            font-size: 18px;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+        
+        .status-indicators {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .status {
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 8px 16px;
+        }
+        
+        .status.pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+        
+        .status.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #b3d1b4;
+        }
+        
+        .status.error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+        
+        main {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+        
+        section {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+        }
+        
+        h2 {
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+        
+        section > p {
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+        
+        figure {
+            margin: 0 auto 24px;
+            max-width: 900px;
+        }
+        
+        .stream-selector {
+            margin-bottom: 20px;
+        }
+        
+        .stream-selector label {
+            color: #ccc;
+            display: block;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .stream-selector select {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 12px;
+            width: 100%;
+        }
+        
+        .info-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            list-style: none;
+            margin-top: 24px;
+        }
+        
+        .info-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        
+        .info-card h3 {
+            color: #fff;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .info-card .value {
+            color: #b3d1b4;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .controls-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-top: 20px;
+            padding: 20px;
+        }
+        
+        .controls-panel h3 {
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .btn {
+            background: rgba(33, 150, 243, 0.8);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 10px 20px;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: rgba(33, 150, 243, 1);
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:focus {
+            outline: 3px solid white;
+            outline-offset: 4px;
+        }
+        
+        .btn.secondary {
+            background: rgba(156, 39, 176, 0.8);
+        }
+        
+        .btn.secondary:hover {
+            background: rgba(156, 39, 176, 1);
+        }
+        
+        .quality-selector {
+            margin-top: 16px;
+        }
+        
+        .quality-selector h4 {
+            color: #ccc;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .quality-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            list-style: none;
+        }
+        
+        .quality-badge {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 6px 12px;
+            transition: all 0.2s;
+        }
+        
+        .quality-badge:hover {
+            background: rgba(0, 0, 0, 0.6);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .quality-badge:focus {
+            outline: 3px solid white;
+            outline-offset: 2px;
+        }
+        
+        .quality-badge.active {
+            background: rgba(76, 175, 80, 0.4);
+            border-color: #4caf50;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        
+        .quality-badge.active::after {
+            content: '\2713';
+            margin-left: 6px;
+        }
+        
+        .log-container {
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .log-entry {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #cccccc;
+            padding: 4px 0;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-entry.success {
+            color: #b3d1b4;
+        }
+        
+        .log-entry.error {
+            color: #ff6b6b;
+        }
+        
+        .log-entry.info {
+            color: #5eb3f6;
+        }
+        
+        .log-entry.warn {
+            color: #ffb74d;
+        }
+        
+        .log-timestamp {
+            color: #bbbbbb;
+            margin-right: 8px;
+        }
+        
+        ul {
+            line-height: 2;
+            padding-left: 20px;
+        }
+        
+        li {
+            color: #ccc;
+        }
+        
+        ol {
+            line-height: 2;
+            padding-left: 20px;
+        }
+        
+        .sr-only {
+            border: 0;
+            clip: rect(0, 0, 0, 0);
+            height: 1px;
+            margin: -1px;
+            overflow: hidden;
+            padding: 0;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+        
+        footer {
+            color: #ffffff;
+            margin-top: 60px;
+            opacity: 0.8;
+            text-align: center;
+        }
+        
+        footer p {
+            color: #ffffff;
+            margin: 8px 0;
+        }
+        
+        @media (max-width: 767px) {
+            h1 {
+                flex-direction: column;
+                font-size: 28px;
+            }
+            
+            h1 a {
+                font-size: 24px;
+            }
+            
+            section {
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <nav aria-label="Breadcrumb">
+        <a href="demo.html" class="back-link">&larr; Back to Demo</a>
+    </nav>
+    
+    <header>
+        <h1>
+            <a href="index.html"><img src="../favicon.svg" width="48" height="48" alt="" aria-hidden="true"/>
+                <span>VidPly - DASH Streaming</span></a>
+        </h1>
+        <div class="demo-links">
+            <a href="hls-test.html" class="demo-link">HLS Test</a>
+            <a href="playlist-mixed.html" class="demo-link">Mixed Media Playlist</a>
+            <a href="playlist-video.html" class="demo-link">Video Playlist</a>
+        </div>
+
+        <p class="subtitle">Test MPEG-DASH support with .mpd streams and adaptive bitrate switching</p>
+
+        <div class="status-indicators" role="status" aria-live="polite">
+            <span class="status pending" id="browser-info">Detecting browser...</span>
+            <span class="status pending" id="dash-status">Testing DASH support...</span>
+        </div>
+    </header>
+    
+    <main>
+        <!-- Main Test Section -->
+        <section aria-labelledby="test-heading">
+            <h2 id="test-heading">DASH Test Stream</h2>
+            <p>Testing MPEG-DASH adaptive bitrate streaming via dash.js</p>
+            
+            <div class="stream-selector">
+                <label for="stream-select">Select Test Stream:</label> <select id="stream-select">
+                <option value="https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd">Big Buck Bunny (Multi-Rate)</option>
+                <option value="https://livesim2.dashif.org/vod/testpic_2s/multi_subs.mpd">DASH-IF Test Picture (with Captions)</option>
+                <option value="https://dash.akamaized.net/dash264/TestCases/1c/qualcomm/2/MultiRate.mpd">Qualcomm Multi-Rate (No Captions)</option>
+            </select>
+            </div>
+            
+            <figure>
+                <video
+                        id="dash-player"
+                        width="900"
+                        height="506"
+                        preload="metadata"
+                >
+                    <source src="https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd" type="application/dash+xml">
+                </video>
+                <figcaption class="sr-only">DASH test video player</figcaption>
+            </figure>
+            
+            <!-- Info Cards -->
+            <ul class="info-grid" role="list" aria-label="Stream statistics">
+                <li class="info-card">
+                    <h3>DASH Engine</h3>
+                    <div class="value" id="dash-engine">Loading...</div>
+                </li>
+                <li class="info-card">
+                    <h3>Quality Levels</h3>
+                    <div class="value" id="quality-count">0</div>
+                </li>
+                <li class="info-card">
+                    <h3>Current Quality</h3>
+                    <div class="value" id="current-quality">-</div>
+                </li>
+                <li class="info-card">
+                    <h3>Buffer Status</h3>
+                    <div class="value" id="buffer-status">Ready</div>
+                </li>
+            </ul>
+            
+            <!-- Controls Panel -->
+            <div class="controls-panel">
+                <h3>Test Controls</h3>
+                <nav aria-label="Player controls">
+                    <div class="button-group">
+                        <button class="btn" id="btn-play">Play</button>
+                        <button class="btn" id="btn-pause">Pause</button>
+                        <button class="btn secondary" id="btn-reload">Reload Stream</button>
+                        <button class="btn secondary" id="btn-clear-log">Clear Log</button>
+                    </div>
+                </nav>
+                
+                <div id="quality-selector" class="quality-selector" style="display: none;">
+                    <h4>Available Quality Levels:</h4>
+                    <ul class="quality-list" id="quality-list" role="list" aria-label="Available quality levels">
+                        <!-- Populated dynamically -->
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Event Log -->
+            <aside aria-labelledby="log-heading">
+                <h3 id="log-heading" class="sr-only">Event Log</h3>
+                <div class="log-container" id="event-log" role="log" aria-live="polite" aria-atomic="false">
+                    <div class="log-entry info">
+                        <span class="log-timestamp">[00:00:00]</span> <span>Initializing DASH test...</span>
+                    </div>
+                </div>
+            </aside>
+        </section>
+        
+        <!-- Technical Info Section -->
+        <section aria-labelledby="tech-info-heading">
+            <h2 id="tech-info-heading">Technical Information</h2>
+            <p>How VidPly handles DASH streaming</p>
+            
+            <article class="info-card">
+                <h3>DASH Support Matrix</h3>
+                <ul>
+                    <li>Chrome/Edge - Via dash.js + Media Source Extensions</li>
+                    <li>Firefox - Via dash.js + Media Source Extensions</li>
+                    <li>Safari 8+ (macOS) - Via dash.js + MSE</li>
+                    <li>Android Chrome - Via dash.js + MSE</li>
+                    <li>Adaptive bitrate switching</li>
+                    <li>Error recovery and retry logic</li>
+                </ul>
+            </article>
+            
+            <article class="info-card" style="margin-top: 16px;">
+                <h3>How It Works</h3>
+                <ol>
+                    <li>VidPly detects the .mpd URL format</li>
+                    <li>dash.js is loaded from CDN on demand</li>
+                    <li>DASHRenderer manages stream playback via MSE</li>
+                    <li>Quality levels are automatically detected from the MPD manifest</li>
+                    <li>Adaptive bitrate adjusts based on network conditions</li>
+                    <li>Manual quality selection is also available</li>
+                </ol>
+            </article>
+        </section>
+    </main>
+    
+    <footer>
+        <p>&copy; 2026 VidPly - Built with Vanilla JavaScript</p>
+        <p>Released under GPL-2.0-or-later License</p>
+    </footer>
+</div>
+
+<script type="module">
+    import Player from '../src/index.js';
+    
+    // Detect browser
+    function detectBrowser() {
+        const ua = navigator.userAgent;
+        let browser = 'Unknown';
+        
+        if (ua.includes('Safari') && !ua.includes('Chrome')) {
+            browser = 'Safari (dash.js + MSE)';
+        } else if (ua.includes('Chrome')) {
+            browser = 'Chrome (dash.js + MSE)';
+        } else if (ua.includes('Firefox')) {
+            browser = 'Firefox (dash.js + MSE)';
+        } else if (ua.includes('Edge')) {
+            browser = 'Edge (dash.js + MSE)';
+        }
+        
+        return browser;
+    }
+    
+    // Check MSE support (required for DASH)
+    function checkMSESupport() {
+        return 'MediaSource' in window;
+    }
+    
+    // Update browser info
+    const browserInfo = document.getElementById('browser-info');
+    browserInfo.textContent = detectBrowser();
+    browserInfo.className = 'status success';
+    
+    const dashStatus = document.getElementById('dash-status');
+    const hasMSE = checkMSESupport();
+    dashStatus.textContent = hasMSE ? 'MSE Supported (DASH ready)' : 'MSE Not Supported';
+    dashStatus.className = hasMSE ? 'status success' : 'status error';
+    
+    // Logging utility
+    const eventLog = document.getElementById('event-log');
+    
+    function log(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span><span>${message}</span>`;
+        eventLog.appendChild(entry);
+        eventLog.scrollTop = eventLog.scrollHeight;
+        
+        const styles = {
+            success: 'color: #b3d1b4; font-weight: bold;',
+            error: 'color: #f44336; font-weight: bold;',
+            warn: 'color: #ff9800; font-weight: bold;',
+            info: 'color: #259af7;'
+        };
+        console.log(`%c[${timestamp}] ${message}`, styles[type] || '');
+    }
+    
+    // Clear log
+    document.getElementById('btn-clear-log').addEventListener('click', () => {
+        eventLog.innerHTML = '<div class="log-entry info"><span class="log-timestamp">[' +
+                new Date().toLocaleTimeString() + ']</span><span>Log cleared</span></div>';
+    });
+    
+    // Initialize player with debug mode
+    log('Creating player instance with debug mode enabled...', 'info');
+    
+    let player;
+    
+    try {
+        player = new Player('#dash-player', {
+            debug: true,
+            controls: true,
+            volume: 0.8,
+            autoplay: false,
+            theme: 'light'
+        });
+        
+        log('Player instance created successfully', 'success');
+        
+        window.dashPlayer = player;
+    } catch (error) {
+        log('Failed to create player: ' + error.message, 'error');
+        console.error('Player initialization error:', error);
+    }
+    
+    // Update DASH engine info
+    setTimeout(() => {
+        if (!player) {
+            log('Player not initialized', 'error');
+            return;
+        }
+        
+        const engineEl = document.getElementById('dash-engine');
+        if (player.renderer) {
+            log(`Renderer type: ${player.renderer.constructor.name}`, 'info');
+            
+            if (player.renderer.dash) {
+                const version = window.dashjs?.Version || 'unknown';
+                engineEl.textContent = 'dash.js v' + version;
+                log('Using dash.js renderer', 'success');
+            } else {
+                engineEl.textContent = player.renderer.constructor.name;
+                log(`Using ${player.renderer.constructor.name}`, 'info');
+            }
+        } else {
+            log('Renderer not yet initialized', 'warn');
+        }
+    }, 1500);
+    
+    // Only set up event listeners if player was created successfully
+    if (player) {
+        // DASH-specific events
+        player.on('dashmanifestparsed', (data) => {
+            log('DASH manifest parsed successfully!', 'success');
+            
+            const qualities = data.qualities || [];
+            log(`Found ${qualities.length} quality levels`, 'success');
+            
+            document.getElementById('quality-count').textContent = qualities.length;
+            
+            const qualityList = document.getElementById('quality-list');
+            const qualitySelector = document.getElementById('quality-selector');
+            qualityList.innerHTML = '';
+            
+            const currentQuality = player.renderer?.getCurrentQuality?.() ?? -1;
+            log(`Current quality level: ${currentQuality}`, 'info');
+            
+            qualities.forEach((quality, index) => {
+                const li = document.createElement('li');
+                const button = document.createElement('button');
+                button.className = 'quality-badge';
+                if (index === currentQuality) {
+                    button.classList.add('active');
+                }
+                const height = quality.height || 0;
+                const kbps = quality.bitrate ? Math.round(quality.bitrate / 1000) : 0;
+                button.textContent = height > 0
+                    ? `${height}p (${kbps} kbps)`
+                    : `${kbps} kbps`;
+                button.setAttribute('data-index', index);
+                button.setAttribute('role', 'button');
+                button.setAttribute('aria-label', `Switch to ${quality.name} quality`);
+                
+                button.addEventListener('click', () => {
+                    if (player.renderer && player.renderer.switchQuality) {
+                        player.renderer.switchQuality(index);
+                        log(`Switching to quality level ${index}: ${quality.name}`, 'info');
+                    }
+                });
+                
+                li.appendChild(button);
+                qualityList.appendChild(li);
+                log(`  Level ${index}: ${quality.width || '?'}x${quality.height || '?'} @ ${kbps} kbps`, 'info');
+            });
+            
+            qualitySelector.style.display = 'block';
+        });
+
+        player.on('dashmanifestloaded', () => {
+            log('DASH MPD manifest loaded from server', 'success');
+        });
+        
+        player.on('dashqualitychanged', (data) => {
+            const newIndex = data.newQuality;
+            const qualities = player.renderer?.getQualities?.() || [];
+            const quality = qualities[newIndex];
+            const qualityName = quality ? quality.name : `Level ${newIndex}`;
+            
+            log(`Quality level switched to: ${qualityName} (index: ${newIndex})`, 'success');
+            document.getElementById('current-quality').textContent = qualityName;
+            
+            document.querySelectorAll('.quality-badge').forEach((badge, idx) => {
+                badge.classList.toggle('active', idx === newIndex);
+            });
+        });
+
+        player.on('dashstreaminitialized', () => {
+            log('DASH stream initialized and ready', 'success');
+        });
+        
+        // Standard player events
+        player.on('loadedmetadata', () => {
+            log('Metadata loaded - Duration: ' + Math.round(player.getDuration()) + 's', 'success');
+        });
+        
+        player.on('play', () => {
+            log('Playback started', 'success');
+            document.getElementById('buffer-status').textContent = 'Playing';
+        });
+        
+        player.on('pause', () => {
+            log('Playback paused', 'info');
+            document.getElementById('buffer-status').textContent = 'Paused';
+        });
+        
+        player.on('waiting', () => {
+            log('Buffering...', 'warn');
+            document.getElementById('buffer-status').textContent = 'Buffering';
+            document.getElementById('buffer-status').style.color = '#ff9800';
+        });
+        
+        player.on('canplay', () => {
+            log('Ready to play', 'success');
+            document.getElementById('buffer-status').textContent = 'Ready';
+            document.getElementById('buffer-status').style.color = '#b3d1b4';
+        });
+        
+        player.on('error', (error) => {
+            log('Error: ' + error.message, 'error');
+            document.getElementById('buffer-status').textContent = 'Error';
+            document.getElementById('buffer-status').style.color = '#f44336';
+        });
+        
+        player.on('ended', () => {
+            log('Playback ended', 'info');
+            document.getElementById('buffer-status').textContent = 'Ended';
+        });
+        
+        // Control buttons
+        document.getElementById('btn-play').addEventListener('click', () => {
+            player.play();
+        });
+        
+        document.getElementById('btn-pause').addEventListener('click', () => {
+            player.pause();
+        });
+        
+        document.getElementById('btn-reload').addEventListener('click', () => {
+            log('Reloading stream...', 'info');
+            player.seek(0);
+            setTimeout(() => player.play(), 100);
+        });
+        
+        // Stream selector
+        const streamSelect = document.getElementById('stream-select');
+        
+        streamSelect.addEventListener('change', async (e) => {
+            const newUrl = e.target.value;
+            log(`Loading new stream: ${newUrl}`, 'info');
+            
+            try {
+                document.getElementById('quality-count').textContent = '0';
+                document.getElementById('current-quality').textContent = '-';
+                document.getElementById('quality-selector').style.display = 'none';
+                document.getElementById('quality-list').innerHTML = '';
+                document.getElementById('buffer-status').textContent = 'Loading...';
+                
+                await player.load({ src: newUrl });
+                
+                log('Stream switched successfully!', 'success');
+            } catch (error) {
+                log(`Failed to switch stream: ${error.message}`, 'error');
+                console.error('Stream switch error:', error);
+            }
+        });
+        
+        // Log ready state
+        player.on('ready', () => {
+            log('Player ready!', 'success');
+            log('You can now test DASH playback', 'info');
+            log('Tip: Check the console for detailed dash.js logs', 'info');
+        });
+        
+        // Initial log
+        log('Player initialized. Waiting for manifest...', 'info');
+        
+        // Check if running on local server
+        if (window.location.protocol === 'file:') {
+            log('WARNING: You are using file:// protocol!', 'warn');
+            log('DASH streams REQUIRE HTTP/HTTPS to work!', 'error');
+            log('Solution: Run "npx serve -p 3000" in terminal', 'info');
+            log('Then open: http://localhost:3000/demo/dash-test.html', 'info');
+            document.getElementById('buffer-status').textContent = 'Need Server';
+            document.getElementById('buffer-status').style.color = '#f44336';
+        } else {
+            log('Running on HTTP server: ' + window.location.origin, 'success');
+        }
+        
+        // Console helper message
+        console.log('%cVidPly DASH Test', 'font-size: 20px; font-weight: bold; color: #259af7;');
+        console.log('%cPlayer instance available as: window.dashPlayer', 'color: #b3d1b4;');
+        console.log('%cTry: window.dashPlayer.play(), window.dashPlayer.pause(), window.dashPlayer.seek(30)', 'color: #ccc;');
+    } else {
+        log('Player initialization failed. Check console for errors.', 'error');
+    }
+</script>
+</body>
+</html>

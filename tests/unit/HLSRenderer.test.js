@@ -73,6 +73,8 @@ describe('HLSRenderer', () => {
     MockHls.Events = {
       MANIFEST_PARSED: 'hlsManifestParsed',
       LEVEL_SWITCHED: 'hlsLevelSwitched',
+      SUBTITLE_TRACKS_UPDATED: 'hlsSubtitleTracksUpdated',
+      SUBTITLE_TRACK_SWITCH: 'hlsSubtitleTrackSwitch',
       ERROR: 'hlsError',
       FRAG_BUFFERED: 'hlsFragBuffered'
     };
@@ -560,6 +562,80 @@ describe('HLSRenderer', () => {
       renderer.hls = null;
       
       expect(() => renderer.destroy()).not.toThrow();
+    });
+  });
+
+  describe('cue update polling', () => {
+    beforeEach(async () => {
+      await renderer.initHlsJs();
+    });
+
+    it('should initialize cue update timer state', () => {
+      expect(renderer._cueUpdateTimer).toBeNull();
+      expect(renderer._lastKnownCueCount).toBe(0);
+    });
+
+    it('should count cues from subtitle/caption text tracks', () => {
+      const mockTextTracks = [
+        { kind: 'subtitles', cues: { length: 3 } },
+        { kind: 'captions', cues: { length: 2 } },
+        { kind: 'metadata', cues: { length: 10 } }
+      ];
+      mockTextTracks.length = 3;
+      Object.defineProperty(mockMedia, 'textTracks', { value: mockTextTracks, configurable: true });
+
+      expect(renderer._getTotalCueCount()).toBe(5);
+    });
+
+    it('should emit textcuesupdate when new cues arrive during polling', () => {
+      let cueCount = 0;
+      const mockTextTracks = [{ kind: 'subtitles', get cues() { return { length: cueCount }; } }];
+      mockTextTracks.length = 1;
+      Object.defineProperty(mockMedia, 'textTracks', { value: mockTextTracks, configurable: true });
+
+      renderer._startCueUpdatePolling();
+      cueCount = 3;
+      vi.advanceTimersByTime(500);
+
+      expect(mockPlayer.emit).toHaveBeenCalledWith('textcuesupdate');
+    });
+
+    it('should stop polling after cue count stabilises', () => {
+      const mockTextTracks = [{ kind: 'subtitles', cues: { length: 1 } }];
+      mockTextTracks.length = 1;
+      Object.defineProperty(mockMedia, 'textTracks', { value: mockTextTracks, configurable: true });
+
+      renderer._startCueUpdatePolling();
+
+      // 8 stable rounds (8 * 500ms = 4000ms) should stop polling
+      vi.advanceTimersByTime(4500);
+
+      expect(renderer._cueUpdateTimer).toBeNull();
+    });
+
+    it('should clean up polling on destroy', () => {
+      renderer._startCueUpdatePolling();
+      expect(renderer._cueUpdateTimer).not.toBeNull();
+
+      renderer.destroy();
+
+      expect(renderer._cueUpdateTimer).toBeNull();
+      expect(renderer._lastKnownCueCount).toBe(0);
+    });
+
+    it('should emit textcuesupdate on subtitle fragment buffered', async () => {
+      const hlsOnCalls = mockHls.on.mock.calls;
+      const fragBufferedHandler = hlsOnCalls.find(c => c[0] === 'hlsFragBuffered')?.[1];
+      expect(fragBufferedHandler).toBeDefined();
+
+      const mockTextTracks = [{ kind: 'subtitles', cues: { length: 2 } }];
+      mockTextTracks.length = 1;
+      Object.defineProperty(mockMedia, 'textTracks', { value: mockTextTracks, configurable: true });
+
+      fragBufferedHandler('hlsFragBuffered', { frag: { type: 'subtitle' } });
+      vi.advanceTimersByTime(150);
+
+      expect(mockPlayer.emit).toHaveBeenCalledWith('textcuesupdate');
     });
   });
 
