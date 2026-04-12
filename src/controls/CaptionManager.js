@@ -79,50 +79,68 @@ export class CaptionManager {
         const textTracks = this.player.element.textTracks;
         let defaultTrackIndex = -1;
 
-        // Safari's native HLS can expose both SUBTITLES and CLOSED-CAPTIONS
-        // groups as separate TextTrack objects with the same language and label,
-        // producing duplicate menu entries. Deduplicate by language+label.
-        const seen = new Set();
+        // Safari's native HLS can expose both SUBTITLES (WebVTT sidecar) and
+        // CLOSED-CAPTIONS (inband CEA-608) groups as separate TextTrack objects
+        // with the same language and label, producing duplicate menu entries.
+        // Deduplicate by language+label, preferring the track that already has
+        // cues loaded, then preferring kind="subtitles" (WebVTT sidecar tracks
+        // are more reliably populated on native HLS than inband captions).
+        const seen = new Map();
 
         for (let i = 0; i < textTracks.length; i++) {
             const track = textTracks[i];
 
             if (track.kind === 'subtitles' || track.kind === 'captions') {
+                track.mode = 'hidden';
+
                 const dedupeKey = `${track.language}|${track.label}`;
-                if (seen.has(dedupeKey)) {
-                    track.mode = 'hidden';
+                const existing = seen.get(dedupeKey);
+
+                if (existing) {
+                    const existingHasCues = existing.track.cues && existing.track.cues.length > 0;
+                    const newHasCues = track.cues && track.cues.length > 0;
+                    const preferNew = (!existingHasCues && newHasCues) ||
+                        (!existingHasCues && !newHasCues && existing.kind !== 'subtitles' && track.kind === 'subtitles');
+
+                    if (preferNew) {
+                        const idx = this.tracks.indexOf(existing);
+                        this.tracks[idx] = this._makeTrackEntry(track, i);
+                        seen.set(dedupeKey, this.tracks[idx]);
+                        if (existing.isDefault) {
+                            defaultTrackIndex = idx;
+                        }
+                    }
                     continue;
                 }
-                seen.add(dedupeKey);
 
-                const trackElement = this.player.findTrackElement(track);
-                const isDefault = trackElement && trackElement.hasAttribute('default');
-                
-                this.tracks.push({
-                    track: track,
-                    language: track.language,
-                    label: track.label,
-                    kind: track.kind,
-                    index: i,
-                    isDefault: isDefault
-                });
+                const entry = this._makeTrackEntry(track, i);
+                this.tracks.push(entry);
+                seen.set(dedupeKey, entry);
 
-                // 'hidden' mode loads cues and fires events, but doesn't show native captions
-                track.mode = 'hidden';
-                
-                if (isDefault) {
+                if (entry.isDefault) {
                     defaultTrackIndex = this.tracks.length - 1;
                 }
             }
         }
         
-        // If a default track was found, enable it
-        // Use a small delay to ensure tracks are ready
         if (defaultTrackIndex >= 0) {
             requestAnimationFrame(() => {
                 this.enable(defaultTrackIndex);
             });
         }
+    }
+
+    _makeTrackEntry(track, index) {
+        const trackElement = this.player.findTrackElement(track);
+        const isDefault = trackElement && trackElement.hasAttribute('default');
+        return {
+            track,
+            language: track.language,
+            label: track.label,
+            kind: track.kind,
+            index,
+            isDefault
+        };
     }
 
     attachEvents() {
