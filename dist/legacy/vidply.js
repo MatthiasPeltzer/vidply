@@ -8423,19 +8423,63 @@
         switchQuality(qualityIndex) {
           if (!this.dash) return;
           if (qualityIndex === -1) {
-            this.dash.updateSettings({
-              streaming: { abr: { autoSwitchBitrate: { video: true } } }
-            });
+            if (typeof this.dash.setAutoSwitchQualityFor === "function") {
+              this.dash.setAutoSwitchQualityFor("video", true);
+            } else {
+              this.dash.updateSettings({
+                streaming: { abr: { autoSwitchBitrate: { video: true } } }
+              });
+            }
           } else {
-            this.dash.updateSettings({
-              streaming: { abr: { autoSwitchBitrate: { video: false } } }
-            });
-            this.dash.setQualityFor("video", qualityIndex);
+            if (typeof this.dash.setAutoSwitchQualityFor === "function") {
+              this.dash.setAutoSwitchQualityFor("video", false);
+            } else {
+              this.dash.updateSettings({
+                streaming: { abr: { autoSwitchBitrate: { video: false } } }
+              });
+            }
+            if (typeof this.dash.setRepresentationForTypeByIndex === "function") {
+              this.dash.setRepresentationForTypeByIndex("video", qualityIndex);
+            } else if (typeof this.dash.setQualityFor === "function") {
+              this.dash.setQualityFor("video", qualityIndex, true);
+            }
           }
         }
         getQualities() {
           if (!this.dash) return [];
           try {
+            let reps = null;
+            if (typeof this.dash.getRepresentationsByType === "function") {
+              reps = this.dash.getRepresentationsByType("video");
+            }
+            if (reps && reps.length > 0) {
+              const heightCounts2 = {};
+              reps.forEach((r) => {
+                const h = Number(r.height) || 0;
+                heightCounts2[h] = (heightCounts2[h] || 0) + 1;
+              });
+              return reps.map((rep, index) => {
+                const height = Number(rep.height) || 0;
+                const bitrate = Number(rep.bandwidth || rep.bitrate) || 0;
+                const kb = bitrate > 0 ? Math.round(bitrate / 1e3) : 0;
+                let name;
+                if (height > 0 && heightCounts2[height] > 1 && kb > 0) {
+                  name = `${height}p (${kb} kbps)`;
+                } else if (height > 0) {
+                  name = `${height}p`;
+                } else {
+                  name = kb > 0 ? `${kb} kbps` : "Auto";
+                }
+                return {
+                  index,
+                  id: rep.id,
+                  height: rep.height,
+                  width: rep.width,
+                  bitrate,
+                  name
+                };
+              });
+            }
             const bitrateList = this.dash.getBitrateInfoListFor("video");
             if (!bitrateList || bitrateList.length === 0) return [];
             const heightCounts = {};
@@ -8468,14 +8512,21 @@
           }
         }
         getCurrentQuality() {
-          if (this.dash) {
-            try {
-              return this.dash.getQualityFor("video");
-            } catch (e) {
-              return -1;
+          var _a, _b;
+          if (!this.dash) return -1;
+          try {
+            if (typeof this.dash.getRepresentationsByType === "function") {
+              const reps = this.dash.getRepresentationsByType("video");
+              const current = (_b = (_a = this.dash).getCurrentRepresentationForType) == null ? void 0 : _b.call(_a, "video");
+              if (current && reps) {
+                const idx = reps.findIndex((r) => r.id === current.id);
+                if (idx >= 0) return idx;
+              }
             }
+            return this.dash.getQualityFor("video");
+          } catch (e) {
+            return -1;
           }
-          return -1;
         }
         handlesOwnCaptions() {
           return this._dashTextIsTtml;
@@ -8487,6 +8538,9 @@
           var _a, _b, _c;
           if (!this.dash) return true;
           try {
+            if (typeof this.dash.getAutoSwitchQualityFor === "function") {
+              return this.dash.getAutoSwitchQualityFor("video");
+            }
             const settings = this.dash.getSettings();
             return ((_c = (_b = (_a = settings == null ? void 0 : settings.streaming) == null ? void 0 : _a.abr) == null ? void 0 : _b.autoSwitchBitrate) == null ? void 0 : _c.video) !== false;
           } catch (e) {

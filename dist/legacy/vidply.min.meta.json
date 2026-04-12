@@ -363,7 +363,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.js": {
-      "bytes": 20959,
+      "bytes": 23224,
       "imports": [],
       "format": "esm"
     },
@@ -615,7 +615,7 @@
           "bytesInOutput": 20131
         },
         "src/renderers/DASHRenderer.js": {
-          "bytesInOutput": 22447
+          "bytesInOutput": 24936
         },
         "src/renderers/SoundCloudRenderer.js": {
           "bytesInOutput": 10450
@@ -642,7 +642,7 @@
           "bytesInOutput": 5574
         }
       },
-      "bytes": 732910
+      "bytes": 735399
     }
   }
 }
