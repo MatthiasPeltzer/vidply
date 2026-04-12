@@ -25,16 +25,16 @@ export class HLSRenderer {
   }
 
   canPlayNatively() {
-    // Only use native HLS on Safari/iOS where it actually works properly
-    // Chrome reports it can play HLS but doesn't have proper quality switching
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    // Use native HLS only on iOS/iPadOS (MSE unavailable); desktop macOS Safari uses hls.js
+    // for quality switching and parity with Chrome/Firefox.
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    
-    if (!isSafari && !isIOS) {
-      // Force hls.js on non-Safari browsers for proper quality switching
+    // iPad in desktop mode reports MacIntel but has touch
+    const isIPadDesktopMode = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+
+    if (!isIOS && !isIPadDesktopMode) {
       return false;
     }
-    
+
     const video = document.createElement('video');
     return video.canPlayType('application/vnd.apple.mpegurl') !== '';
   }
@@ -44,13 +44,60 @@ export class HLSRenderer {
     const HTML5Renderer = (await import('./HTML5Renderer.js')).HTML5Renderer;
     const renderer = new HTML5Renderer(this.player);
     await renderer.init();
-    
-    // Copy methods
+
+    // Copy methods from HTML5Renderer onto this instance
     Object.getOwnPropertyNames(Object.getPrototypeOf(renderer)).forEach(method => {
       if (method !== 'constructor' && typeof renderer[method] === 'function') {
         this[method] = renderer[method].bind(renderer);
       }
     });
+
+    this._attachNativeTextTrackListeners();
+
+    // The method-copy above shadows HLSRenderer.prototype.destroy with
+    // HTML5Renderer's destroy. Wrap it so our listeners are also cleaned up.
+    const html5Destroy = this.destroy;
+    this.destroy = () => {
+      this._cleanupNativeTextTrackListeners();
+      html5Destroy();
+    };
+  }
+
+  /**
+   * Listen for HLS-exposed text tracks so captions/transcript buttons appear on native HLS.
+   * Debounces rapid addtrack bursts (one per subtitle rendition in the manifest).
+   */
+  _attachNativeTextTrackListeners() {
+    let debounceTimer = null;
+
+    const checkTracks = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (this._nativeTrackListenersDestroyed) return;
+        const tracks = this.media.textTracks;
+        let count = 0;
+        for (let i = 0; i < tracks.length; i++) {
+          const k = tracks[i].kind;
+          if (k === 'subtitles' || k === 'captions') {
+            count++;
+          }
+        }
+        this._hlsSubtitleTracksCount = count;
+        this.updateCaptionButtonsForHls();
+      }, 150);
+    };
+
+    this.media.textTracks.addEventListener('addtrack', checkTracks);
+    this.media.textTracks.addEventListener('removetrack', checkTracks);
+    this.media.addEventListener('loadedmetadata', checkTracks);
+
+    this._cleanupNativeTextTrackListeners = () => {
+      this._nativeTrackListenersDestroyed = true;
+      clearTimeout(debounceTimer);
+      this.media.textTracks.removeEventListener('addtrack', checkTracks);
+      this.media.textTracks.removeEventListener('removetrack', checkTracks);
+      this.media.removeEventListener('loadedmetadata', checkTracks);
+    };
   }
 
   async initHlsJs() {
