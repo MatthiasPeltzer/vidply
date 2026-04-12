@@ -305,11 +305,11 @@ On mobile devices (< 768px breakpoint):
     
     // Get player instance
     const videoElement = document.getElementById('my-video');
-    const player = videoElement._vidplyPlayer; // Internal reference
-    
+    const player = videoElement.vidply; // Player instance stored on the media element
+
     // Or find it manually
-    const allPlayers = document.querySelectorAll('.vidply-player');
-    // const player = allPlayers[0]._vidplyPlayer;
+    const allPlayers = document.querySelectorAll('[data-vidply]');
+    // const player = allPlayers[0].vidply;
     
     // Manual toggle button
     document.getElementById('toggleTranscript').addEventListener('click', () => {
@@ -323,8 +323,9 @@ On mobile devices (< 768px breakpoint):
       // Wait a moment for player to initialize
       setTimeout(() => {
         const container = document.querySelector('.vidply-player');
-        if (container && container._vidplyPlayer) {
-          const p = container._vidplyPlayer;
+        const video = container?.querySelector('video, audio');
+        if (video && video.vidply) {
+          const p = video.vidply;
           
           p.on('timeupdate', (time) => {
             // User can see which line is active

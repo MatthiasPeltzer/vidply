@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 167978,
+      "bytes": 167980,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -291,7 +291,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 84366,
+      "bytes": 84454,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -363,7 +363,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.js": {
-      "bytes": 23224,
+      "bytes": 23534,
       "imports": [],
       "format": "esm"
     },
@@ -373,7 +373,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 246617,
+      "bytes": 246629,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -603,7 +603,7 @@
           "bytesInOutput": 50576
         },
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 80349
+          "bytesInOutput": 80420
         },
         "src/renderers/YouTubeRenderer.js": {
           "bytesInOutput": 8328
@@ -615,7 +615,7 @@
           "bytesInOutput": 20131
         },
         "src/renderers/DASHRenderer.js": {
-          "bytesInOutput": 24936
+          "bytesInOutput": 25404
         },
         "src/renderers/SoundCloudRenderer.js": {
           "bytesInOutput": 10450
@@ -624,10 +624,10 @@
           "bytesInOutput": 958
         },
         "src/core/Player.js": {
-          "bytesInOutput": 171499
+          "bytesInOutput": 171505
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 123025
+          "bytesInOutput": 123027
         },
         "src/utils/VideoFrameCapture.js": {
           "bytesInOutput": 2634
@@ -642,7 +642,7 @@
           "bytesInOutput": 5574
         }
       },
-      "bytes": 735399
+      "bytes": 735946
     }
   }
 }

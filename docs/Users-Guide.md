@@ -557,13 +557,15 @@ const player = new Player('#my-video', {
 </video>
 ```
 
-**Via JavaScript:**
+**Via JavaScript (options):**
 
 ```javascript
-import { i18n } from './dist/prod/vidply.esm.min.js';
+import Player from './dist/prod/vidply.esm.min.js';
 
-await i18n.loadLanguageFromUrl('pt', 'languages/pt.json');
-i18n.setLanguage('pt');
+const player = new Player('#my-video', {
+  language: 'pt',
+  languageFiles: { pt: 'languages/pt.json' }
+});
 ```
 
 ### Language File Format

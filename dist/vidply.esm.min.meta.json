@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 167978,
+      "bytes": 167980,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -285,7 +285,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 84366,
+      "bytes": 84454,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -357,7 +357,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.js": {
-      "bytes": 23224,
+      "bytes": 23534,
       "imports": [],
       "format": "esm"
     },
@@ -367,7 +367,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 246617,
+      "bytes": 246629,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -526,7 +526,7 @@
     }
   },
   "outputs": {
-    "dist/prod/vidply.TranscriptManager-3HEXLJ3Q.min.js": {
+    "dist/prod/vidply.TranscriptManager-US4XL3KO.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-AK4IZ5DH.min.js",
@@ -551,10 +551,10 @@
       "entryPoint": "src/controls/TranscriptManager.js",
       "inputs": {
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 68888
+          "bytesInOutput": 68959
         }
       },
-      "bytes": 69479
+      "bytes": 69550
     },
     "dist/prod/vidply.YouTubeRenderer-CTEREOSQ.min.js": {
       "imports": [],
@@ -600,7 +600,7 @@
       },
       "bytes": 16909
     },
-    "dist/prod/vidply.DASHRenderer-QRL6JJDM.min.js": {
+    "dist/prod/vidply.DASHRenderer-VPATJU4E.min.js": {
       "imports": [],
       "exports": [
         "DASHRenderer"
@@ -608,10 +608,10 @@
       "entryPoint": "src/renderers/DASHRenderer.js",
       "inputs": {
         "src/renderers/DASHRenderer.js": {
-          "bytesInOutput": 20615
+          "bytesInOutput": 21011
         }
       },
-      "bytes": 20794
+      "bytes": 21190
     },
     "dist/prod/vidply.SoundCloudRenderer-S7DCYVO3.min.js": {
       "imports": [],
@@ -662,7 +662,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.TranscriptManager-3HEXLJ3Q.min.js",
+          "path": "dist/prod/vidply.TranscriptManager-US4XL3KO.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -678,7 +678,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.DASHRenderer-QRL6JJDM.min.js",
+          "path": "dist/prod/vidply.DASHRenderer-VPATJU4E.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -700,13 +700,13 @@
           "bytesInOutput": 2474
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 115861
+          "bytesInOutput": 115863
         },
         "src/controls/KeyboardManager.js": {
           "bytesInOutput": 6807
         },
         "src/core/Player.js": {
-          "bytesInOutput": 160774
+          "bytesInOutput": 160780
         },
         "src/features/PlaylistManager.js": {
           "bytesInOutput": 43078
@@ -715,7 +715,7 @@
           "bytesInOutput": 5260
         }
       },
-      "bytes": 336182
+      "bytes": 336190
     },
     "dist/prod/vidply.chunk-AK4IZ5DH.min.js": {
       "imports": [

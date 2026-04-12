@@ -1440,7 +1440,7 @@ video[data-vidply]:not(.vidply-initialized) {
     position: absolute;
     top: 0;
     width: 100%;
-    z-index: 2;
+    z-index: var(--vidply-z-overlay);
 }
 
 /* Ensure the video wrapper establishes an intrinsic height in ALL non-fullscreen modes.
