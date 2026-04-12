@@ -64,6 +64,15 @@ describe('DASHRenderer', () => {
       ]),
       getQualityFor: vi.fn(() => 1),
       setQualityFor: vi.fn(),
+      setAutoSwitchQualityFor: vi.fn(),
+      getAutoSwitchQualityFor: vi.fn(() => true),
+      getRepresentationsByType: vi.fn(() => [
+        { id: 'v0', height: 360, width: 640, bandwidth: 800000 },
+        { id: 'v1', height: 720, width: 1280, bandwidth: 2500000 },
+        { id: 'v2', height: 1080, width: 1920, bandwidth: 5000000 }
+      ]),
+      getCurrentRepresentationForType: vi.fn(() => ({ id: 'v1' })),
+      setRepresentationForTypeByIndex: vi.fn(),
       getSettings: vi.fn(() => ({
         streaming: {
           abr: {
@@ -339,18 +348,38 @@ describe('DASHRenderer', () => {
   });
 
   describe('switchQuality', () => {
-    it('should set quality via dash.js API', async () => {
+    it('should set quality via modern dash.js API', async () => {
       await renderer.initDashJs();
 
       renderer.switchQuality(2);
 
-      expect(mockDashInstance.setQualityFor).toHaveBeenCalledWith('video', 2);
+      expect(mockDashInstance.setAutoSwitchQualityFor).toHaveBeenCalledWith('video', false);
+      expect(mockDashInstance.setRepresentationForTypeByIndex).toHaveBeenCalledWith('video', 2);
+    });
+
+    it('should fall back to legacy API when modern API unavailable', async () => {
+      delete mockDashInstance.setAutoSwitchQualityFor;
+      delete mockDashInstance.setRepresentationForTypeByIndex;
+      await renderer.initDashJs();
+
+      renderer.switchQuality(2);
+
       expect(mockDashInstance.updateSettings).toHaveBeenCalledWith({
         streaming: { abr: { autoSwitchBitrate: { video: false } } }
       });
+      expect(mockDashInstance.setQualityFor).toHaveBeenCalledWith('video', 2, true);
     });
 
     it('should enable auto quality when index is -1', async () => {
+      await renderer.initDashJs();
+
+      renderer.switchQuality(-1);
+
+      expect(mockDashInstance.setAutoSwitchQualityFor).toHaveBeenCalledWith('video', true);
+    });
+
+    it('should fall back to updateSettings for auto when modern API unavailable', async () => {
+      delete mockDashInstance.setAutoSwitchQualityFor;
       await renderer.initDashJs();
 
       renderer.switchQuality(-1);
@@ -367,7 +396,7 @@ describe('DASHRenderer', () => {
   });
 
   describe('getQualities', () => {
-    it('should return quality levels', async () => {
+    it('should return quality levels via modern API', async () => {
       await renderer.initDashJs();
 
       const qualities = renderer.getQualities();
@@ -376,6 +405,7 @@ describe('DASHRenderer', () => {
       expect(qualities[0]).toHaveProperty('index', 0);
       expect(qualities[0]).toHaveProperty('height', 360);
       expect(qualities[0]).toHaveProperty('name', '360p');
+      expect(qualities[0]).toHaveProperty('id', 'v0');
     });
 
     it('should format quality names correctly', async () => {
@@ -387,9 +417,20 @@ describe('DASHRenderer', () => {
       expect(qualities[2].name).toBe('1080p');
     });
 
+    it('should fall back to legacy getBitrateInfoListFor', async () => {
+      mockDashInstance.getRepresentationsByType = vi.fn(() => null);
+      await renderer.initDashJs();
+
+      const qualities = renderer.getQualities();
+
+      expect(qualities).toHaveLength(3);
+      expect(qualities[0]).toHaveProperty('height', 360);
+      expect(qualities[0]).toHaveProperty('name', '360p');
+    });
+
     it('should handle audio-only levels (height=0)', async () => {
-      mockDashInstance.getBitrateInfoListFor.mockReturnValue([
-        { height: 0, width: 0, bitrate: 128000 }
+      mockDashInstance.getRepresentationsByType.mockReturnValue([
+        { id: 'a0', height: 0, width: 0, bandwidth: 128000 }
       ]);
       await renderer.initDashJs();
 
@@ -406,7 +447,8 @@ describe('DASHRenderer', () => {
       expect(qualities).toEqual([]);
     });
 
-    it('should return empty array when bitrateList is empty', async () => {
+    it('should return empty array when no representations available', async () => {
+      mockDashInstance.getRepresentationsByType.mockReturnValue([]);
       mockDashInstance.getBitrateInfoListFor.mockReturnValue([]);
       await renderer.initDashJs();
 
@@ -448,6 +490,14 @@ describe('DASHRenderer', () => {
     });
 
     it('should return false when auto bitrate switching is disabled', async () => {
+      mockDashInstance.getAutoSwitchQualityFor.mockReturnValue(false);
+      await renderer.initDashJs();
+
+      expect(renderer.isAutoQuality()).toBe(false);
+    });
+
+    it('should fall back to getSettings when getAutoSwitchQualityFor unavailable', async () => {
+      delete mockDashInstance.getAutoSwitchQualityFor;
       mockDashInstance.getSettings.mockReturnValue({
         streaming: {
           abr: {

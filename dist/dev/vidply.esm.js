@@ -4324,7 +4324,7 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.HLSRenderer-N5HHMRN3.js");
       rendererClass = module.HLSRenderer || module.default;
     } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-3PA3SHGZ.js");
+      const module = await import("./vidply.DASHRenderer-4D4HOTXP.js");
       rendererClass = module.DASHRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-HCMKXHSX.js");
