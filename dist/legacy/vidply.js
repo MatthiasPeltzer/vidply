@@ -5743,14 +5743,16 @@
           const textTracks = this.player.textTracks;
           let captionTrack = null;
           if (this.currentTranscriptLanguage) {
-            captionTrack = textTracks.find(
+            const candidates = textTracks.filter(
               (track) => (track.kind === "captions" || track.kind === "subtitles") && track.language === this.currentTranscriptLanguage
             );
+            captionTrack = candidates.find((t) => t.cues && t.cues.length > 0) || candidates[0] || null;
           }
           if (!captionTrack) {
-            captionTrack = textTracks.find(
+            const candidates = textTracks.filter(
               (track) => track.kind === "captions" || track.kind === "subtitles"
             );
+            captionTrack = candidates.find((t) => t.cues && t.cues.length > 0) || candidates[0] || null;
             if (captionTrack) {
               this.currentTranscriptLanguage = captionTrack.language;
             }

@@ -3790,7 +3790,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-VCRQXB5W.js");
+    const module = await import("./vidply.TranscriptManager-EVHEGUDK.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;

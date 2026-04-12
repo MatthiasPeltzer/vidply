@@ -767,20 +767,23 @@ export class TranscriptManager {
     // Get all text tracks
     const textTracks = this.player.textTracks;
     
-    // Find track for selected language, or default to first available
+    // Find track for selected language, or default to first available.
+    // Safari native HLS can expose duplicate TextTrack objects for the same
+    // language (SUBTITLES vs CLOSED-CAPTIONS); prefer the one with cues loaded.
     let captionTrack = null;
     if (this.currentTranscriptLanguage) {
-      captionTrack = textTracks.find(
+      const candidates = textTracks.filter(
         track => (track.kind === 'captions' || track.kind === 'subtitles') && 
                  track.language === this.currentTranscriptLanguage
       );
+      captionTrack = candidates.find(t => t.cues && t.cues.length > 0) || candidates[0] || null;
     }
     
-    // Fallback to first available caption/subtitle track
     if (!captionTrack) {
-      captionTrack = textTracks.find(
+      const candidates = textTracks.filter(
         track => track.kind === 'captions' || track.kind === 'subtitles'
       );
+      captionTrack = candidates.find(t => t.cues && t.cues.length > 0) || candidates[0] || null;
       if (captionTrack) {
         this.currentTranscriptLanguage = captionTrack.language;
       }

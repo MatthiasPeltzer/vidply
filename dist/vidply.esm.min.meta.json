@@ -285,7 +285,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.js": {
-      "bytes": 83025,
+      "bytes": 83332,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -516,7 +516,7 @@
     }
   },
   "outputs": {
-    "dist/prod/vidply.TranscriptManager-457ACZUN.min.js": {
+    "dist/prod/vidply.TranscriptManager-XSAQQAZX.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-AK4IZ5DH.min.js",
@@ -541,10 +541,10 @@
       "entryPoint": "src/controls/TranscriptManager.js",
       "inputs": {
         "src/controls/TranscriptManager.js": {
-          "bytesInOutput": 67792
+          "bytesInOutput": 68002
         }
       },
-      "bytes": 68383
+      "bytes": 68593
     },
     "dist/prod/vidply.YouTubeRenderer-CTEREOSQ.min.js": {
       "imports": [],
@@ -639,7 +639,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.TranscriptManager-457ACZUN.min.js",
+          "path": "dist/prod/vidply.TranscriptManager-XSAQQAZX.min.js",
           "kind": "dynamic-import"
         },
         {
