@@ -5,7 +5,7 @@
  */
 import {
   i18n
-} from "./vidply.chunk-XAFVSP6D.js";
+} from "./vidply.chunk-4IYIPSCH.js";
 
 // src/utils/TimeUtils.js
 var TimeUtils = {
@@ -76,4 +76,4 @@ var TimeUtils = {
 export {
   TimeUtils
 };
-//# sourceMappingURL=vidply.chunk-7TDF7KK7.js.map
+//# sourceMappingURL=vidply.chunk-ZU6FUKLF.js.map

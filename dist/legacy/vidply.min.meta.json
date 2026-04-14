@@ -11,27 +11,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.js": {
-      "bytes": 7860,
+      "bytes": 7887,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.js": {
-      "bytes": 9694,
+      "bytes": 9730,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.js": {
-      "bytes": 8853,
+      "bytes": 8881,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.js": {
-      "bytes": 9100,
+      "bytes": 9132,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.js": {
-      "bytes": 9543,
+      "bytes": 9580,
       "imports": [],
       "format": "esm"
     },
@@ -89,7 +89,7 @@
       "format": "esm"
     },
     "src/icons/Icons.js": {
-      "bytes": 12483,
+      "bytes": 12557,
       "imports": [],
       "format": "esm"
     },
@@ -109,7 +109,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.js": {
-      "bytes": 167980,
+      "bytes": 169538,
       "imports": [
         {
           "path": "src/utils/DOMUtils.js",
@@ -373,7 +373,7 @@
       "format": "esm"
     },
     "src/core/Player.js": {
-      "bytes": 246629,
+      "bytes": 244009,
       "imports": [
         {
           "path": "src/utils/EventEmitter.js",
@@ -546,19 +546,19 @@
           "bytesInOutput": 8185
         },
         "src/i18n/languages/en.js": {
-          "bytesInOutput": 8813
+          "bytesInOutput": 8845
         },
         "src/i18n/languages/de.js": {
-          "bytesInOutput": 10031
+          "bytesInOutput": 10068
         },
         "src/i18n/languages/es.js": {
-          "bytesInOutput": 9862
+          "bytesInOutput": 9895
         },
         "src/i18n/languages/fr.js": {
-          "bytesInOutput": 10106
+          "bytesInOutput": 10143
         },
         "src/i18n/languages/ja.js": {
-          "bytesInOutput": 10551
+          "bytesInOutput": 10593
         },
         "src/i18n/translations.js": {
           "bytesInOutput": 874
@@ -570,7 +570,7 @@
           "bytesInOutput": 2443
         },
         "src/icons/Icons.js": {
-          "bytesInOutput": 11981
+          "bytesInOutput": 12056
         },
         "src/utils/FocusUtils.js": {
           "bytesInOutput": 592
@@ -624,10 +624,10 @@
           "bytesInOutput": 958
         },
         "src/core/Player.js": {
-          "bytesInOutput": 171505
+          "bytesInOutput": 174895
         },
         "src/controls/ControlBar.js": {
-          "bytesInOutput": 123027
+          "bytesInOutput": 124524
         },
         "src/utils/VideoFrameCapture.js": {
           "bytesInOutput": 2634
@@ -642,7 +642,7 @@
           "bytesInOutput": 5574
         }
       },
-      "bytes": 735946
+      "bytes": 741089
     }
   }
 }

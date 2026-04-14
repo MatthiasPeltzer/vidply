@@ -9,7 +9,7 @@ import {
 import {
   DOMUtils,
   i18n
-} from "./vidply.chunk-XAFVSP6D.js";
+} from "./vidply.chunk-4IYIPSCH.js";
 
 // src/utils/PerformanceUtils.js
 function debounce(func, wait = 100) {
@@ -443,4 +443,4 @@ export {
   rafWithTimeout,
   CaptionManager
 };
-//# sourceMappingURL=vidply.chunk-RCYAEYFW.js.map
+//# sourceMappingURL=vidply.chunk-LB6ZIMVJ.js.map

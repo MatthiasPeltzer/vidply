@@ -31,6 +31,7 @@ export const ja = {
     settings: '設定',
     speed: '再生速度',
     pip: 'ピクチャーインピクチャー',
+    download: 'ダウンロード',
     currentTime: '現在の時間',
     duration: '再生時間',
     progress: '進行状況',

@@ -244,6 +244,7 @@ var en = {
     settings: "Settings",
     speed: "Playback Speed",
     pip: "Picture in Picture",
+    download: "Download",
     currentTime: "Current time",
     duration: "Duration",
     progress: "Progress",
@@ -405,10 +406,10 @@ var en = {
 
 // src/i18n/translations.js
 var builtInLanguageLoaders = {
-  de: () => import("./vidply.de-BV6HZDQX.js"),
-  es: () => import("./vidply.es-CRD7N5YZ.js"),
-  fr: () => import("./vidply.fr-WIFNQTHI.js"),
-  ja: () => import("./vidply.ja-FPCJXERD.js")
+  de: () => import("./vidply.de-OLKUZNDR.js"),
+  es: () => import("./vidply.es-GZOBAJMJ.js"),
+  fr: () => import("./vidply.fr-FMZS5E5S.js"),
+  ja: () => import("./vidply.ja-VUCNBXJT.js")
 };
 function getBaseTranslations() {
   return { en };
@@ -574,4 +575,4 @@ export {
   DOMUtils,
   i18n
 };
-//# sourceMappingURL=vidply.chunk-XAFVSP6D.js.map
+//# sourceMappingURL=vidply.chunk-4IYIPSCH.js.map

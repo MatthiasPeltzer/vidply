@@ -31,6 +31,7 @@ export const es = {
     settings: 'Configuración',
     speed: 'Velocidad de reproducción',
     pip: 'Imagen en imagen',
+    download: 'Descargar',
     currentTime: 'Tiempo actual',
     duration: 'Duración',
     progress: 'Progreso',

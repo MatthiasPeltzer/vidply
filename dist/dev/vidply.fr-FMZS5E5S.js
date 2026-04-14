@@ -34,6 +34,7 @@ var fr = {
     settings: "Paramètres",
     speed: "Vitesse de lecture",
     pip: "Image dans l'image",
+    download: "Télécharger",
     currentTime: "Temps actuel",
     duration: "Durée",
     progress: "Progression",
@@ -192,4 +193,4 @@ var fr = {
 export {
   fr
 };
-//# sourceMappingURL=vidply.fr-WIFNQTHI.js.map
+//# sourceMappingURL=vidply.fr-FMZS5E5S.js.map

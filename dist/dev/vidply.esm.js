@@ -5,7 +5,7 @@
  */
 import {
   TimeUtils
-} from "./vidply.chunk-7TDF7KK7.js";
+} from "./vidply.chunk-ZU6FUKLF.js";
 import {
   HTML5Renderer
 } from "./vidply.chunk-2D4L3SNZ.js";
@@ -15,7 +15,7 @@ import {
   isMobile,
   rafWithTimeout,
   throttle
-} from "./vidply.chunk-RCYAEYFW.js";
+} from "./vidply.chunk-LB6ZIMVJ.js";
 import {
   StorageManager
 } from "./vidply.chunk-JZWZJC4C.js";
@@ -30,11 +30,11 @@ import {
   focusFirstElement,
   focusFirstMenuItem,
   preventDragOnElement
-} from "./vidply.chunk-YDUDBUC4.js";
+} from "./vidply.chunk-XOI3AMU5.js";
 import {
   DOMUtils,
   i18n
-} from "./vidply.chunk-XAFVSP6D.js";
+} from "./vidply.chunk-4IYIPSCH.js";
 
 // src/utils/EventEmitter.js
 var EventEmitter = class {
@@ -707,6 +707,15 @@ var ControlBar = class {
       btn.dataset.overflowPriority = "2";
       btn.dataset.overflowPriorityMobile = "3";
       this.rightButtons.appendChild(btn);
+    }
+    if (this.player.options.downloadButton) {
+      const downloadUrl = this.player.options.downloadUrl || this.player.element?.dataset?.vidplyDownloadUrl;
+      if (downloadUrl) {
+        const btn = this.createDownloadButton(downloadUrl);
+        btn.dataset.overflowPriority = "2";
+        btn.dataset.overflowPriorityMobile = "3";
+        this.rightButtons.appendChild(btn);
+      }
     }
     if (this.player.options.pipButton && "pictureInPictureEnabled" in document) {
       const btn = this.createPipButton();
@@ -2447,6 +2456,29 @@ var ControlBar = class {
     });
     return button;
   }
+  createDownloadButton(downloadUrl) {
+    const button = DOMUtils.createElement("button", {
+      className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-download`,
+      attributes: {
+        "type": "button",
+        "aria-label": i18n.t("player.download")
+      }
+    });
+    button.appendChild(createIconElement("download"));
+    button.addEventListener("click", () => {
+      const url = this.player.options.downloadUrl || this.player.element?.dataset?.vidplyDownloadUrl || downloadUrl;
+      if (!url) return;
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = url.split("/").pop()?.split("?")[0] || "download";
+      a.rel = "noopener";
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+    return button;
+  }
   createFullscreenButton() {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-fullscreen`,
@@ -3344,14 +3376,14 @@ var AudioDescriptionManagerModule = null;
 var SignLanguageManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-KGVPMQV2.js");
+    const module = await import("./vidply.AudioDescriptionManager-HA3UD3AE.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-I54UIH2A.js");
+    const module = await import("./vidply.SignLanguageManager-WXJM3TOW.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
@@ -3438,6 +3470,8 @@ var Player = class _Player extends EventEmitter {
       transcriptButton: true,
       fullscreenButton: true,
       pipButton: false,
+      downloadButton: false,
+      downloadUrl: null,
       // Seeking
       seekInterval: 10,
       seekIntervalLarge: 30,
@@ -3801,7 +3835,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-65P3NXNQ.js");
+    const module = await import("./vidply.TranscriptManager-HCMCD7I5.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;
@@ -4303,7 +4337,21 @@ var Player = class _Player extends EventEmitter {
     this.playButtonOverlay.style.top = `${videoCenter}px`;
   }
   async initializeRenderer() {
-    let src = this._pendingSource || this.element.src || this.element.querySelector("source")?.src;
+    let src = this._pendingSource;
+    let rendererClass = null;
+    if (!src) {
+      const sourceElements = Array.from(this.element.querySelectorAll("source"));
+      if (sourceElements.length > 1) {
+        const negotiated = this._selectBestSource(sourceElements);
+        src = negotiated.src;
+        this._fallbackSources = negotiated.fallbacks;
+      } else {
+        src = this.element.src || sourceElements[0]?.src;
+        this._fallbackSources = [];
+      }
+    } else {
+      this._fallbackSources = [];
+    }
     if (!src) {
       throw new Error("No media source found");
     }
@@ -4313,27 +4361,91 @@ var Player = class _Player extends EventEmitter {
     if (!this.originalSrc) {
       this.originalSrc = src;
     }
-    let rendererClass = HTML5Renderer;
-    if (src.includes("youtube.com") || src.includes("youtu.be")) {
-      const module = await import("./vidply.YouTubeRenderer-E6F4UGVF.js");
-      rendererClass = module.YouTubeRenderer || module.default;
-    } else if (src.includes("vimeo.com")) {
-      const module = await import("./vidply.VimeoRenderer-SLEBCZTT.js");
-      rendererClass = module.VimeoRenderer || module.default;
-    } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-N5HHMRN3.js");
-      rendererClass = module.HLSRenderer || module.default;
-    } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-7BNDQ2Y3.js");
-      rendererClass = module.DASHRenderer || module.default;
-    } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
-      const module = await import("./vidply.SoundCloudRenderer-HCMKXHSX.js");
-      rendererClass = module.SoundCloudRenderer || module.default;
-    }
+    rendererClass = await this._detectRendererClass(src);
     this.log(`Using ${rendererClass?.name || "HTML5Renderer"} renderer`);
     this.renderer = new rendererClass(this);
-    await this.renderer.init();
+    const initTimeout = this._fallbackSources?.length > 0 ? 1e4 : 0;
+    if (initTimeout > 0) {
+      let timer;
+      await Promise.race([
+        this.renderer.init(),
+        new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error(`Renderer init timed out after ${initTimeout}ms`)), initTimeout);
+        })
+      ]).finally(() => clearTimeout(timer));
+    } else {
+      await this.renderer.init();
+    }
     this.invalidateTrackCache();
+  }
+  async _detectRendererClass(src) {
+    if (src.includes("youtube.com") || src.includes("youtu.be")) {
+      const module = await import("./vidply.YouTubeRenderer-E6F4UGVF.js");
+      return module.YouTubeRenderer || module.default;
+    } else if (src.includes("vimeo.com")) {
+      const module = await import("./vidply.VimeoRenderer-SLEBCZTT.js");
+      return module.VimeoRenderer || module.default;
+    } else if (src.includes(".m3u8")) {
+      const module = await import("./vidply.HLSRenderer-N5HHMRN3.js");
+      return module.HLSRenderer || module.default;
+    } else if (src.includes(".mpd")) {
+      const module = await import("./vidply.DASHRenderer-7BNDQ2Y3.js");
+      return module.DASHRenderer || module.default;
+    } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
+      const module = await import("./vidply.SoundCloudRenderer-HCMKXHSX.js");
+      return module.SoundCloudRenderer || module.default;
+    }
+    return HTML5Renderer;
+  }
+  _selectBestSource(sourceElements) {
+    const hasMSE = typeof MediaSource !== "undefined";
+    const sources = sourceElements.map((el) => ({
+      src: el.src || el.getAttribute("src") || "",
+      type: el.type || el.getAttribute("type") || "",
+      el
+    }));
+    const canPlayNativeHLS = (() => {
+      const v = document.createElement("video");
+      return v.canPlayType("application/vnd.apple.mpegurl") !== "";
+    })();
+    let chosen = null;
+    if (hasMSE) {
+      chosen = sources.find((s) => s.src.includes(".mpd"));
+    }
+    if (!chosen) {
+      const hlsSource = sources.find((s) => s.src.includes(".m3u8"));
+      if (hlsSource && (hasMSE || canPlayNativeHLS)) {
+        chosen = hlsSource;
+      }
+    }
+    if (!chosen) {
+      chosen = sources.find((s) => !s.src.includes(".mpd") && !s.src.includes(".m3u8")) || sources[0];
+    }
+    const fallbacks = sources.filter((s) => s !== chosen).map((s) => ({ src: s.src, type: s.type }));
+    return { src: chosen.src, fallbacks };
+  }
+  async _fallbackToNextSource() {
+    if (!this._fallbackSources || this._fallbackSources.length === 0) {
+      return false;
+    }
+    const next = this._fallbackSources.shift();
+    this.log(`Falling back to next source: ${next.src}`);
+    try {
+      if (this.renderer && typeof this.renderer.destroy === "function") {
+        this.renderer.destroy();
+        this.renderer = null;
+      }
+      this.currentSource = next.src;
+      this._pendingSource = next.src;
+      this._isFallingBack = true;
+      await this.initializeRenderer();
+      this._isFallingBack = false;
+      return true;
+    } catch (err) {
+      this.log(`Fallback source failed: ${next.src}`, "warn");
+      this._isFallingBack = false;
+      return this._fallbackToNextSource();
+    }
   }
   /**
    * Get cached text tracks array
@@ -6971,8 +7083,21 @@ var Player = class _Player extends EventEmitter {
   }
   // Error handling
   handleError(error) {
-    if (this._switchingRenderer) {
+    if (this._switchingRenderer || this._isFallingBack) {
       this.log("Suppressing error during renderer switch:", error, "debug");
+      return;
+    }
+    if (this._fallbackSources && this._fallbackSources.length > 0) {
+      this.log("Renderer error, attempting fallback:", error, "warn");
+      this._fallbackToNextSource().then((success) => {
+        if (!success) {
+          this.log("All fallback sources exhausted", "error");
+          this.emit("error", error);
+          if (this.options.onError) {
+            this.options.onError.call(this, error);
+          }
+        }
+      });
       return;
     }
     this.log("Error:", error, "error");

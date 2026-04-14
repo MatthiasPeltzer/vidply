@@ -350,7 +350,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Home/End keys to jump to first/last track
   - Enter/Space to play selected track
 - **Accessibility**
-  - WCAG 2.1 Level AA compliant playlist navigation
+  - WCAG 2.2 Level AA compliant playlist navigation
   - Enhanced focus states with visible outlines (2px solid)
   - Better screen reader context with position, status, and action instructions
   - Intelligent time format announcements (adapts based on duration length)
@@ -403,7 +403,7 @@ VidPly v1.0.0 is here! A complete, production-ready video player built with vani
 - Hover tooltips on progress bar
 
 #### Accessibility
-- Full keyboard navigation (WCAG 2.1 AA compliant)
+- Full keyboard navigation (WCAG 2.2 AA compliant)
 - Screen reader support with ARIA labels
 - Customizable keyboard shortcuts
 - High contrast mode support

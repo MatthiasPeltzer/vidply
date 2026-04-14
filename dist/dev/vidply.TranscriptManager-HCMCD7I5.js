@@ -5,7 +5,7 @@
  */
 import {
   TimeUtils
-} from "./vidply.chunk-7TDF7KK7.js";
+} from "./vidply.chunk-ZU6FUKLF.js";
 import {
   StorageManager
 } from "./vidply.chunk-JZWZJC4C.js";
@@ -17,11 +17,11 @@ import {
   createMenuItem,
   focusElement,
   preventDragOnElement
-} from "./vidply.chunk-YDUDBUC4.js";
+} from "./vidply.chunk-XOI3AMU5.js";
 import {
   DOMUtils,
   i18n
-} from "./vidply.chunk-XAFVSP6D.js";
+} from "./vidply.chunk-4IYIPSCH.js";
 
 // src/controls/TranscriptManager.js
 var TranscriptManager = class {
@@ -1802,4 +1802,4 @@ var TranscriptManager = class {
 export {
   TranscriptManager
 };
-//# sourceMappingURL=vidply.TranscriptManager-65P3NXNQ.js.map
+//# sourceMappingURL=vidply.TranscriptManager-HCMCD7I5.js.map

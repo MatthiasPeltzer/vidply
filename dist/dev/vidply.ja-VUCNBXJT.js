@@ -34,6 +34,7 @@ var ja = {
     settings: "設定",
     speed: "再生速度",
     pip: "ピクチャーインピクチャー",
+    download: "ダウンロード",
     currentTime: "現在の時間",
     duration: "再生時間",
     progress: "進行状況",
@@ -192,4 +193,4 @@ var ja = {
 export {
   ja
 };
-//# sourceMappingURL=vidply.ja-FPCJXERD.js.map
+//# sourceMappingURL=vidply.ja-VUCNBXJT.js.map
