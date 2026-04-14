@@ -31,6 +31,7 @@ export const fr = {
     settings: 'Paramètres',
     speed: 'Vitesse de lecture',
     pip: 'Image dans l\'image',
+    download: 'Télécharger',
     currentTime: 'Temps actuel',
     duration: 'Durée',
     progress: 'Progression',

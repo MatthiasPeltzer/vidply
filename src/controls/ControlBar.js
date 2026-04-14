@@ -801,6 +801,18 @@ export class ControlBar {
             this.rightButtons.appendChild(btn);
         }
 
+        // Download button
+        if (this.player.options.downloadButton) {
+            const downloadUrl = this.player.options.downloadUrl
+                || this.player.element?.dataset?.vidplyDownloadUrl;
+            if (downloadUrl) {
+                const btn = this.createDownloadButton(downloadUrl);
+                btn.dataset.overflowPriority = '2';
+                btn.dataset.overflowPriorityMobile = '3';
+                this.rightButtons.appendChild(btn);
+            }
+        }
+
         // PiP button (before fullscreen)
         if (this.player.options.pipButton && 'pictureInPictureEnabled' in document) {
             const btn = this.createPipButton();
@@ -3125,6 +3137,36 @@ export class ControlBar {
 
         button.addEventListener('click', () => {
             this.player.togglePiP();
+        });
+
+        return button;
+    }
+
+    createDownloadButton(downloadUrl) {
+        const button = DOMUtils.createElement('button', {
+            className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-download`,
+            attributes: {
+                'type': 'button',
+                'aria-label': i18n.t('player.download')
+            }
+        });
+
+        button.appendChild(createIconElement('download'));
+
+        button.addEventListener('click', () => {
+            const url = this.player.options.downloadUrl
+                || this.player.element?.dataset?.vidplyDownloadUrl
+                || downloadUrl;
+            if (!url) return;
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = url.split('/').pop()?.split('?')[0] || 'download';
+            a.rel = 'noopener';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         });
 
         return button;

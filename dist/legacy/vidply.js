@@ -269,6 +269,7 @@
           settings: "Settings",
           speed: "Playback Speed",
           pip: "Picture in Picture",
+          download: "Download",
           currentTime: "Current time",
           duration: "Duration",
           progress: "Progress",
@@ -467,6 +468,7 @@
           settings: "Einstellungen",
           speed: "Wiedergabegeschwindigkeit",
           pip: "Bild-in-Bild",
+          download: "Herunterladen",
           currentTime: "Aktuelle Zeit",
           duration: "Dauer",
           progress: "Fortschritt",
@@ -665,6 +667,7 @@
           settings: "Configuración",
           speed: "Velocidad de reproducción",
           pip: "Imagen en imagen",
+          download: "Descargar",
           currentTime: "Tiempo actual",
           duration: "Duración",
           progress: "Progreso",
@@ -860,6 +863,7 @@
           settings: "Paramètres",
           speed: "Vitesse de lecture",
           pip: "Image dans l'image",
+          download: "Télécharger",
           currentTime: "Temps actuel",
           duration: "Durée",
           progress: "Progression",
@@ -1055,6 +1059,7 @@
           settings: "設定",
           speed: "再生速度",
           pip: "ピクチャーインピクチャー",
+          download: "ダウンロード",
           currentTime: "現在の時間",
           duration: "再生時間",
           progress: "進行状況",
@@ -1572,7 +1577,8 @@
         moreVertical: `<path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>`,
         move: `<path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/>`,
         resize: `<path d="M21.71 11.29l-9-9c-.39-.39-1.02-.39-1.41 0l-9 9c-.39.39-.39 1.02 0 1.41l9 9c.39.39 1.02.39 1.41 0l9-9c.39-.38.39-1.01 0-1.41zM14 14.5V12h-4v2.5L7 11l3-3.5V10h4V7.5l3 3.5-3 3.5z"/>`,
-        clock: `<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>`
+        clock: `<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>`,
+        download: `<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>`
       };
       svgWrapper = (paths) => `<svg viewBox="0 0 24 24" fill="currentColor">${paths}</svg>`;
       Icons = Object.fromEntries(
@@ -9447,7 +9453,7 @@
       });
     }
     createControls() {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o;
       const progressTimeWrapper = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-progress-time-wrapper`
       });
@@ -9564,6 +9570,15 @@
         btn.dataset.overflowPriority = "2";
         btn.dataset.overflowPriorityMobile = "3";
         this.rightButtons.appendChild(btn);
+      }
+      if (this.player.options.downloadButton) {
+        const downloadUrl = this.player.options.downloadUrl || ((_o = (_n = this.player.element) == null ? void 0 : _n.dataset) == null ? void 0 : _o.vidplyDownloadUrl);
+        if (downloadUrl) {
+          const btn = this.createDownloadButton(downloadUrl);
+          btn.dataset.overflowPriority = "2";
+          btn.dataset.overflowPriorityMobile = "3";
+          this.rightButtons.appendChild(btn);
+        }
       }
       if (this.player.options.pipButton && "pictureInPictureEnabled" in document) {
         const btn = this.createPipButton();
@@ -11309,6 +11324,30 @@
       });
       return button;
     }
+    createDownloadButton(downloadUrl) {
+      const button = DOMUtils.createElement("button", {
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-download`,
+        attributes: {
+          "type": "button",
+          "aria-label": i18n.t("player.download")
+        }
+      });
+      button.appendChild(createIconElement("download"));
+      button.addEventListener("click", () => {
+        var _a, _b, _c;
+        const url = this.player.options.downloadUrl || ((_b = (_a = this.player.element) == null ? void 0 : _a.dataset) == null ? void 0 : _b.vidplyDownloadUrl) || downloadUrl;
+        if (!url) return;
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = ((_c = url.split("/").pop()) == null ? void 0 : _c.split("?")[0]) || "download";
+        a.rel = "noopener";
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+      return button;
+    }
     createFullscreenButton() {
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-fullscreen`,
@@ -12314,6 +12353,8 @@
         transcriptButton: true,
         fullscreenButton: true,
         pipButton: false,
+        downloadButton: false,
+        downloadUrl: null,
         // Seeking
         seekInterval: 10,
         seekIntervalLarge: 30,
@@ -13199,8 +13240,22 @@
       this.playButtonOverlay.style.top = `${videoCenter}px`;
     }
     async initializeRenderer() {
-      var _a, _b;
-      let src = this._pendingSource || this.element.src || ((_a = this.element.querySelector("source")) == null ? void 0 : _a.src);
+      var _a, _b, _c;
+      let src = this._pendingSource;
+      let rendererClass = null;
+      if (!src) {
+        const sourceElements = Array.from(this.element.querySelectorAll("source"));
+        if (sourceElements.length > 1) {
+          const negotiated = this._selectBestSource(sourceElements);
+          src = negotiated.src;
+          this._fallbackSources = negotiated.fallbacks;
+        } else {
+          src = this.element.src || ((_a = sourceElements[0]) == null ? void 0 : _a.src);
+          this._fallbackSources = [];
+        }
+      } else {
+        this._fallbackSources = [];
+      }
       if (!src) {
         throw new Error("No media source found");
       }
@@ -13210,27 +13265,91 @@
       if (!this.originalSrc) {
         this.originalSrc = src;
       }
-      let rendererClass = HTML5Renderer;
-      if (src.includes("youtube.com") || src.includes("youtu.be")) {
-        const module = await Promise.resolve().then(() => (init_YouTubeRenderer(), YouTubeRenderer_exports));
-        rendererClass = module.YouTubeRenderer || module.default;
-      } else if (src.includes("vimeo.com")) {
-        const module = await Promise.resolve().then(() => (init_VimeoRenderer(), VimeoRenderer_exports));
-        rendererClass = module.VimeoRenderer || module.default;
-      } else if (src.includes(".m3u8")) {
-        const module = await Promise.resolve().then(() => (init_HLSRenderer(), HLSRenderer_exports));
-        rendererClass = module.HLSRenderer || module.default;
-      } else if (src.includes(".mpd")) {
-        const module = await Promise.resolve().then(() => (init_DASHRenderer(), DASHRenderer_exports));
-        rendererClass = module.DASHRenderer || module.default;
-      } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
-        const module = await Promise.resolve().then(() => (init_SoundCloudRenderer(), SoundCloudRenderer_exports));
-        rendererClass = module.SoundCloudRenderer || module.default;
-      }
+      rendererClass = await this._detectRendererClass(src);
       this.log(`Using ${(rendererClass == null ? void 0 : rendererClass.name) || "HTML5Renderer"} renderer`);
       this.renderer = new rendererClass(this);
-      await this.renderer.init();
+      const initTimeout = ((_c = this._fallbackSources) == null ? void 0 : _c.length) > 0 ? 1e4 : 0;
+      if (initTimeout > 0) {
+        let timer;
+        await Promise.race([
+          this.renderer.init(),
+          new Promise((_, reject) => {
+            timer = setTimeout(() => reject(new Error(`Renderer init timed out after ${initTimeout}ms`)), initTimeout);
+          })
+        ]).finally(() => clearTimeout(timer));
+      } else {
+        await this.renderer.init();
+      }
       this.invalidateTrackCache();
+    }
+    async _detectRendererClass(src) {
+      if (src.includes("youtube.com") || src.includes("youtu.be")) {
+        const module = await Promise.resolve().then(() => (init_YouTubeRenderer(), YouTubeRenderer_exports));
+        return module.YouTubeRenderer || module.default;
+      } else if (src.includes("vimeo.com")) {
+        const module = await Promise.resolve().then(() => (init_VimeoRenderer(), VimeoRenderer_exports));
+        return module.VimeoRenderer || module.default;
+      } else if (src.includes(".m3u8")) {
+        const module = await Promise.resolve().then(() => (init_HLSRenderer(), HLSRenderer_exports));
+        return module.HLSRenderer || module.default;
+      } else if (src.includes(".mpd")) {
+        const module = await Promise.resolve().then(() => (init_DASHRenderer(), DASHRenderer_exports));
+        return module.DASHRenderer || module.default;
+      } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
+        const module = await Promise.resolve().then(() => (init_SoundCloudRenderer(), SoundCloudRenderer_exports));
+        return module.SoundCloudRenderer || module.default;
+      }
+      return HTML5Renderer;
+    }
+    _selectBestSource(sourceElements) {
+      const hasMSE = typeof MediaSource !== "undefined";
+      const sources = sourceElements.map((el) => ({
+        src: el.src || el.getAttribute("src") || "",
+        type: el.type || el.getAttribute("type") || "",
+        el
+      }));
+      const canPlayNativeHLS = (() => {
+        const v = document.createElement("video");
+        return v.canPlayType("application/vnd.apple.mpegurl") !== "";
+      })();
+      let chosen = null;
+      if (hasMSE) {
+        chosen = sources.find((s) => s.src.includes(".mpd"));
+      }
+      if (!chosen) {
+        const hlsSource = sources.find((s) => s.src.includes(".m3u8"));
+        if (hlsSource && (hasMSE || canPlayNativeHLS)) {
+          chosen = hlsSource;
+        }
+      }
+      if (!chosen) {
+        chosen = sources.find((s) => !s.src.includes(".mpd") && !s.src.includes(".m3u8")) || sources[0];
+      }
+      const fallbacks = sources.filter((s) => s !== chosen).map((s) => ({ src: s.src, type: s.type }));
+      return { src: chosen.src, fallbacks };
+    }
+    async _fallbackToNextSource() {
+      if (!this._fallbackSources || this._fallbackSources.length === 0) {
+        return false;
+      }
+      const next = this._fallbackSources.shift();
+      this.log(`Falling back to next source: ${next.src}`);
+      try {
+        if (this.renderer && typeof this.renderer.destroy === "function") {
+          this.renderer.destroy();
+          this.renderer = null;
+        }
+        this.currentSource = next.src;
+        this._pendingSource = next.src;
+        this._isFallingBack = true;
+        await this.initializeRenderer();
+        this._isFallingBack = false;
+        return true;
+      } catch (err) {
+        this.log(`Fallback source failed: ${next.src}`, "warn");
+        this._isFallingBack = false;
+        return this._fallbackToNextSource();
+      }
     }
     /**
      * Get cached text tracks array
@@ -15881,8 +16000,21 @@
     }
     // Error handling
     handleError(error) {
-      if (this._switchingRenderer) {
+      if (this._switchingRenderer || this._isFallingBack) {
         this.log("Suppressing error during renderer switch:", error, "debug");
+        return;
+      }
+      if (this._fallbackSources && this._fallbackSources.length > 0) {
+        this.log("Renderer error, attempting fallback:", error, "warn");
+        this._fallbackToNextSource().then((success) => {
+          if (!success) {
+            this.log("All fallback sources exhausted", "error");
+            this.emit("error", error);
+            if (this.options.onError) {
+              this.options.onError.call(this, error);
+            }
+          }
+        });
         return;
       }
       this.log("Error:", error, "error");

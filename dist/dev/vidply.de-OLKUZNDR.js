@@ -34,6 +34,7 @@ var de = {
     settings: "Einstellungen",
     speed: "Wiedergabegeschwindigkeit",
     pip: "Bild-in-Bild",
+    download: "Herunterladen",
     currentTime: "Aktuelle Zeit",
     duration: "Dauer",
     progress: "Fortschritt",
@@ -195,4 +196,4 @@ var de = {
 export {
   de
 };
-//# sourceMappingURL=vidply.de-BV6HZDQX.js.map
+//# sourceMappingURL=vidply.de-OLKUZNDR.js.map

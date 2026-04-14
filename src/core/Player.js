@@ -141,6 +141,8 @@ export class Player extends EventEmitter {
             transcriptButton: true,
             fullscreenButton: true,
             pipButton: false,
+            downloadButton: false,
+            downloadUrl: null,
 
             // Seeking
             seekInterval: 10,
@@ -1282,53 +1284,139 @@ export class Player extends EventEmitter {
     }
 
     async initializeRenderer() {
-        // Use pending source for external renderers, or get from element for HTML5
-        let src = this._pendingSource || this.element.src || this.element.querySelector('source')?.src;
+        let src = this._pendingSource;
+        let rendererClass = null;
+
+        if (!src) {
+            const sourceElements = Array.from(this.element.querySelectorAll('source'));
+            if (sourceElements.length > 1) {
+                const negotiated = this._selectBestSource(sourceElements);
+                src = negotiated.src;
+                this._fallbackSources = negotiated.fallbacks;
+            } else {
+                src = this.element.src || sourceElements[0]?.src;
+                this._fallbackSources = [];
+            }
+        } else {
+            this._fallbackSources = [];
+        }
 
         if (!src) {
             throw new Error('No media source found');
         }
-        
-        // Store the current source for renderers to access
+
         this.currentSource = src;
-        
-        // Clear pending source after using it
         this._pendingSource = null;
 
-        // Initialize audio description sources from elements
         this.audioDescriptionManager?.initFromSourceElements(this.sourceElements, this.trackElements);
-        
-        // Store original source for audio description toggling (fallback if not set by manager)
+
         if (!this.originalSrc) {
             this.originalSrc = src;
         }
 
-        // Detect media type and lazily load heavy renderers
-        let rendererClass = HTML5Renderer;
-
-        if (src.includes('youtube.com') || src.includes('youtu.be')) {
-            const module = await import('../renderers/YouTubeRenderer.js');
-            rendererClass = module.YouTubeRenderer || module.default;
-        } else if (src.includes('vimeo.com')) {
-            const module = await import('../renderers/VimeoRenderer.js');
-            rendererClass = module.VimeoRenderer || module.default;
-        } else if (src.includes('.m3u8')) {
-            const module = await import('../renderers/HLSRenderer.js');
-            rendererClass = module.HLSRenderer || module.default;
-        } else if (src.includes('.mpd')) {
-            const module = await import('../renderers/DASHRenderer.js');
-            rendererClass = module.DASHRenderer || module.default;
-        } else if (src.includes('soundcloud.com') || src.includes('api.soundcloud.com')) {
-            const module = await import('../renderers/SoundCloudRenderer.js');
-            rendererClass = module.SoundCloudRenderer || module.default;
-        }
+        rendererClass = await this._detectRendererClass(src);
 
         this.log(`Using ${rendererClass?.name || 'HTML5Renderer'} renderer`);
         this.renderer = new rendererClass(this);
-        await this.renderer.init();
-        
-        // Invalidate cache after renderer initialization (tracks may have changed)
+
+        const initTimeout = this._fallbackSources?.length > 0 ? 10000 : 0;
+        if (initTimeout > 0) {
+            let timer;
+            await Promise.race([
+                this.renderer.init(),
+                new Promise((_, reject) => {
+                    timer = setTimeout(() => reject(new Error(`Renderer init timed out after ${initTimeout}ms`)), initTimeout);
+                }),
+            ]).finally(() => clearTimeout(timer));
+        } else {
+            await this.renderer.init();
+        }
+
         this.invalidateTrackCache();
+    }
+
+    async _detectRendererClass(src) {
+        if (src.includes('youtube.com') || src.includes('youtu.be')) {
+            const module = await import('../renderers/YouTubeRenderer.js');
+            return module.YouTubeRenderer || module.default;
+        } else if (src.includes('vimeo.com')) {
+            const module = await import('../renderers/VimeoRenderer.js');
+            return module.VimeoRenderer || module.default;
+        } else if (src.includes('.m3u8')) {
+            const module = await import('../renderers/HLSRenderer.js');
+            return module.HLSRenderer || module.default;
+        } else if (src.includes('.mpd')) {
+            const module = await import('../renderers/DASHRenderer.js');
+            return module.DASHRenderer || module.default;
+        } else if (src.includes('soundcloud.com') || src.includes('api.soundcloud.com')) {
+            const module = await import('../renderers/SoundCloudRenderer.js');
+            return module.SoundCloudRenderer || module.default;
+        }
+        return HTML5Renderer;
+    }
+
+    _selectBestSource(sourceElements) {
+        const hasMSE = typeof MediaSource !== 'undefined';
+        const sources = sourceElements.map(el => ({
+            src: el.src || el.getAttribute('src') || '',
+            type: el.type || el.getAttribute('type') || '',
+            el,
+        }));
+
+        const canPlayNativeHLS = (() => {
+            const v = document.createElement('video');
+            return v.canPlayType('application/vnd.apple.mpegurl') !== '';
+        })();
+
+        let chosen = null;
+
+        if (hasMSE) {
+            chosen = sources.find(s => s.src.includes('.mpd'));
+        }
+
+        if (!chosen) {
+            const hlsSource = sources.find(s => s.src.includes('.m3u8'));
+            if (hlsSource && (hasMSE || canPlayNativeHLS)) {
+                chosen = hlsSource;
+            }
+        }
+
+        if (!chosen) {
+            chosen = sources.find(s => !s.src.includes('.mpd') && !s.src.includes('.m3u8')) || sources[0];
+        }
+
+        const fallbacks = sources
+            .filter(s => s !== chosen)
+            .map(s => ({ src: s.src, type: s.type }));
+
+        return { src: chosen.src, fallbacks };
+    }
+
+    async _fallbackToNextSource() {
+        if (!this._fallbackSources || this._fallbackSources.length === 0) {
+            return false;
+        }
+
+        const next = this._fallbackSources.shift();
+        this.log(`Falling back to next source: ${next.src}`);
+
+        try {
+            if (this.renderer && typeof this.renderer.destroy === 'function') {
+                this.renderer.destroy();
+                this.renderer = null;
+            }
+
+            this.currentSource = next.src;
+            this._pendingSource = next.src;
+            this._isFallingBack = true;
+            await this.initializeRenderer();
+            this._isFallingBack = false;
+            return true;
+        } catch (err) {
+            this.log(`Fallback source failed: ${next.src}`, 'warn');
+            this._isFallingBack = false;
+            return this._fallbackToNextSource();
+        }
     }
 
     /**
@@ -4973,10 +5061,22 @@ export class Player extends EventEmitter {
 
     // Error handling
     handleError(error) {
-        // Suppress errors during renderer switching
-        // This prevents cascade of errors when HTML5 element is cleared for external renderers
-        if (this._switchingRenderer) {
+        if (this._switchingRenderer || this._isFallingBack) {
             this.log('Suppressing error during renderer switch:', error, 'debug');
+            return;
+        }
+
+        if (this._fallbackSources && this._fallbackSources.length > 0) {
+            this.log('Renderer error, attempting fallback:', error, 'warn');
+            this._fallbackToNextSource().then(success => {
+                if (!success) {
+                    this.log('All fallback sources exhausted', 'error');
+                    this.emit('error', error);
+                    if (this.options.onError) {
+                        this.options.onError.call(this, error);
+                    }
+                }
+            });
             return;
         }
         
