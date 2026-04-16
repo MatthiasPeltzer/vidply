@@ -346,7 +346,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 21208,
+      "bytes": 21068,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.ts",
@@ -357,7 +357,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 24698,
+      "bytes": 24558,
       "imports": [],
       "format": "esm"
     },
@@ -367,7 +367,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 252140,
+      "bytes": 252972,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -582,7 +582,7 @@
       },
       "bytes": 6933
     },
-    "dist/prod/vidply.HLSRenderer-YSDXHYDM.min.js": {
+    "dist/prod/vidply.HLSRenderer-5UAQA4DD.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.HTML5Renderer-3NGIW3DA.min.js",
@@ -595,12 +595,12 @@
       "entryPoint": "src/renderers/HLSRenderer.ts",
       "inputs": {
         "src/renderers/HLSRenderer.ts": {
-          "bytesInOutput": 17175
+          "bytesInOutput": 17039
         }
       },
-      "bytes": 17352
+      "bytes": 17216
     },
-    "dist/prod/vidply.DASHRenderer-FGI4X7JZ.min.js": {
+    "dist/prod/vidply.DASHRenderer-U5QKC66O.min.js": {
       "imports": [],
       "exports": [
         "DASHRenderer"
@@ -608,10 +608,10 @@
       "entryPoint": "src/renderers/DASHRenderer.ts",
       "inputs": {
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 21505
+          "bytesInOutput": 21369
         }
       },
-      "bytes": 21684
+      "bytes": 21548
     },
     "dist/prod/vidply.SoundCloudRenderer-SSSBPFSU.min.js": {
       "imports": [],
@@ -674,11 +674,11 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.HLSRenderer-YSDXHYDM.min.js",
+          "path": "dist/prod/vidply.HLSRenderer-5UAQA4DD.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.DASHRenderer-FGI4X7JZ.min.js",
+          "path": "dist/prod/vidply.DASHRenderer-U5QKC66O.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -706,7 +706,7 @@
           "bytesInOutput": 6853
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 168733
+          "bytesInOutput": 168989
         },
         "src/features/PlaylistManager.ts": {
           "bytesInOutput": 43331
@@ -715,7 +715,7 @@
           "bytesInOutput": 5268
         }
       },
-      "bytes": 346156
+      "bytes": 346412
     },
     "dist/prod/vidply.chunk-ALJYNEGS.min.js": {
       "imports": [
