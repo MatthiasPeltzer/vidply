@@ -1403,6 +1403,13 @@ export class Player extends EventEmitter<PlayerEventMap> {
             if (isExternalControls()) {
                 return;
             }
+            // Only show stall UI after the media has emitted `play` at least once. Browsers often fire
+            // `waiting` during initial MSE/HLS attach and first segment fetch *before* `play`; toggling
+            // our overlay then correlated with broken startup (e.g. GitHub Pages + remote streams) while
+            // same builds worked without this UI. Mid-playback rebuffer still has hasStartedPlayback set.
+            if (!this.state.hasStartedPlayback) {
+                return;
+            }
             this.container.classList.add(`${prefix}-buffering`);
             loading.setAttribute('aria-busy', 'true');
             srAnnouncer.textContent = bufferingLabel;
