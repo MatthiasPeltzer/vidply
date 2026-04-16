@@ -214,7 +214,11 @@ var HLSRenderer = class {
       this.handleHlsError(data);
     });
     this.hls.on(window.Hls.Events.FRAG_BUFFERED, (_event, data) => {
+      const wasBuffering = this.player.state.buffering === true;
       this.player.state.buffering = false;
+      if (wasBuffering) {
+        this.player.emit("canplay");
+      }
       if (data.frag && data.frag.type === "subtitle") {
         setTimeout(() => {
           const count = this._getTotalCueCount();
@@ -514,4 +518,4 @@ var HLSRenderer = class {
 export {
   HLSRenderer
 };
-//# sourceMappingURL=vidply.HLSRenderer-7F6FCZSH.js.map
+//# sourceMappingURL=vidply.HLSRenderer-2NVGMMXD.js.map

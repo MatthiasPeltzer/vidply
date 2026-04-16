@@ -7707,7 +7707,11 @@
             this.handleHlsError(data);
           });
           this.hls.on(window.Hls.Events.FRAG_BUFFERED, (_event, data) => {
+            const wasBuffering = this.player.state.buffering === true;
             this.player.state.buffering = false;
+            if (wasBuffering) {
+              this.player.emit("canplay");
+            }
             if (data.frag && data.frag.type === "subtitle") {
               setTimeout(() => {
                 const count = this._getTotalCueCount();
@@ -8211,7 +8215,11 @@
             this.handleDashError(e);
           });
           this.dash.on(dashEvents.FRAGMENT_LOADING_COMPLETED, (e) => {
+            const wasBuffering = this.player.state.buffering === true;
             this.player.state.buffering = false;
+            if (wasBuffering) {
+              this.player.emit("canplay");
+            }
             if (e.request && e.request.mediaType === "text" && !this._dashTextIsTtml) {
               this._setTimeout(() => {
                 const count = this._getTotalCueCount();
@@ -12493,6 +12501,8 @@
       __publicField(this, "timeouts");
       __publicField(this, "trackArtworkElement");
       __publicField(this, "videoWrapper");
+      /** Centered buffering spinner (see `.vidply-loading` / `.vidply-buffering` in CSS) */
+      __publicField(this, "loadingOverlayElement", null);
       this.element = typeof element === "string" ? document.querySelector(element) : element;
       if (!this.element) {
         throw new Error("VidPly: Element not found");
@@ -13386,6 +13396,7 @@
       if (this.element.tagName === "VIDEO") {
         this.createPlayButtonOverlay();
       }
+      this.createBufferingLoadingOverlay();
       this.element.vidply = this;
       _Player.instances.push(this);
       this.element.style.cursor = "pointer";
@@ -13421,6 +13432,9 @@
         this.playButtonOverlay.style.pointerEvents = "none";
       });
       this.on("pause", () => {
+        if (this.container.classList.contains(`${this.options.classPrefix}-buffering`)) {
+          return;
+        }
         this.playButtonOverlay.style.opacity = "1";
         this.playButtonOverlay.style.pointerEvents = "auto";
         this.positionPlayOverlayOnMobile();
@@ -13443,6 +13457,68 @@
       this.on("exitfullscreen", () => {
         rafWithTimeout(() => this.positionPlayOverlayOnMobile(), 100);
       });
+    }
+    /**
+     * Centered loading spinner until media can play (wired to `waiting` / `canplay` / `playing`).
+     * Skipped for external providers (YouTube, Vimeo, SoundCloud) which use native UI.
+     */
+    createBufferingLoadingOverlay() {
+      if (!this.videoWrapper) {
+        return;
+      }
+      const prefix = this.options.classPrefix;
+      const bufferingLabel = i18n.t("player.buffering");
+      const loading = DOMUtils.createElement("div", {
+        className: `${prefix}-loading`,
+        attributes: {
+          "aria-busy": "false"
+        }
+      });
+      const srAnnouncer = DOMUtils.createElement("span", {
+        className: `${prefix}-sr-only`,
+        attributes: {
+          id: `${prefix}-buffering-live-${this.instanceId}`,
+          "aria-live": "polite",
+          "aria-atomic": "true"
+        }
+      });
+      loading.appendChild(srAnnouncer);
+      this.loadingOverlayElement = loading;
+      this.videoWrapper.appendChild(loading);
+      const isExternalControls = () => {
+        var _a;
+        return (_a = this.container) == null ? void 0 : _a.classList.contains(`${prefix}-external-controls`);
+      };
+      const showBuffering = () => {
+        if (isExternalControls()) {
+          return;
+        }
+        this.container.classList.add(`${prefix}-buffering`);
+        loading.setAttribute("aria-busy", "true");
+        srAnnouncer.textContent = bufferingLabel;
+        if (this.playButtonOverlay) {
+          this.playButtonOverlay.style.opacity = "0";
+          this.playButtonOverlay.style.pointerEvents = "none";
+        }
+      };
+      const hideBuffering = () => {
+        if (!this.container.classList.contains(`${prefix}-buffering`)) {
+          return;
+        }
+        this.container.classList.remove(`${prefix}-buffering`);
+        loading.setAttribute("aria-busy", "false");
+        srAnnouncer.textContent = "";
+        if (this.playButtonOverlay && this.element.tagName === "VIDEO") {
+          if (this.state.paused && !this.state.ended) {
+            this.playButtonOverlay.style.opacity = "1";
+            this.playButtonOverlay.style.pointerEvents = "auto";
+            this.positionPlayOverlayOnMobile();
+          }
+        }
+      };
+      this.on("waiting", showBuffering);
+      this.on("canplay", hideBuffering);
+      this.on("playing", hideBuffering);
     }
     positionPlayOverlayOnMobile() {
       if (!this.playButtonOverlay || this.element.tagName !== "VIDEO") {
@@ -16373,6 +16449,10 @@
       if (this.playButtonOverlay && this.playButtonOverlay.parentNode) {
         this.playButtonOverlay.remove();
         this.playButtonOverlay = null;
+      }
+      if (this.loadingOverlayElement && this.loadingOverlayElement.parentNode) {
+        this.loadingOverlayElement.remove();
+        this.loadingOverlayElement = null;
       }
       if (this.resizeObserver) {
         this.resizeObserver.disconnect();
