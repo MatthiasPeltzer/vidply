@@ -13485,6 +13485,9 @@
         if (isExternalControls()) {
           return;
         }
+        if (!this.state.hasStartedPlayback) {
+          return;
+        }
         this.container.classList.add(`${prefix}-buffering`);
         loading.setAttribute("aria-busy", "true");
         srAnnouncer.textContent = bufferingLabel;
