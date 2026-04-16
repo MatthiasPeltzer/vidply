@@ -270,7 +270,11 @@ export class HLSRenderer implements Renderer {
     });
 
     this.hls.on(window.Hls!.Events.FRAG_BUFFERED, (_event: any, data: any) => {
+      const wasBuffering = this.player.state.buffering === true;
       this.player.state.buffering = false;
+      if (wasBuffering) {
+        this.player.emit('canplay');
+      }
       if (data.frag && data.frag.type === 'subtitle') {
         setTimeout(() => {
           const count = this._getTotalCueCount();

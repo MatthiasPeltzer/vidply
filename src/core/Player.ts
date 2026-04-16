@@ -131,6 +131,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
     timeouts: any;
     trackArtworkElement: any;
     videoWrapper: any;
+    /** Centered buffering spinner (see `.vidply-loading` / `.vidply-buffering` in CSS) */
+    loadingOverlayElement: HTMLElement | null = null;
 
     static instances: Player[] = [];
     static observeLazy: (selector: string | HTMLElement, options?: Record<string, unknown>, margin?: string) => { cancel: () => void } | null;
@@ -1265,6 +1267,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
         if (this.element.tagName === 'VIDEO') {
             this.createPlayButtonOverlay();
         }
+
+        this.createBufferingLoadingOverlay();
         
         // Store reference to player on element for easy access
         (this.element as any).vidply = this;
@@ -1324,6 +1328,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
         });
 
         this.on('pause', () => {
+            if (this.container.classList.contains(`${this.options.classPrefix}-buffering`)) {
+                return;
+            }
             this.playButtonOverlay.style.opacity = '1';
             this.playButtonOverlay.style.pointerEvents = 'auto';
             this.positionPlayOverlayOnMobile();
@@ -1354,6 +1361,76 @@ export class Player extends EventEmitter<PlayerEventMap> {
         this.on('exitfullscreen', () => {
             rafWithTimeout(() => this.positionPlayOverlayOnMobile(), 100);
         });
+    }
+
+    /**
+     * Centered loading spinner until media can play (wired to `waiting` / `canplay` / `playing`).
+     * Skipped for external providers (YouTube, Vimeo, SoundCloud) which use native UI.
+     */
+    createBufferingLoadingOverlay() {
+        if (!this.videoWrapper) {
+            return;
+        }
+
+        const prefix = this.options.classPrefix as string;
+        const bufferingLabel = i18n.t('player.buffering');
+
+        const loading = DOMUtils.createElement('div', {
+            className: `${prefix}-loading`,
+            attributes: {
+                'aria-busy': 'false'
+            }
+        });
+
+        const srAnnouncer = DOMUtils.createElement('span', {
+            className: `${prefix}-sr-only`,
+            attributes: {
+                id: `${prefix}-buffering-live-${this.instanceId}`,
+                'aria-live': 'polite',
+                'aria-atomic': 'true'
+            }
+        });
+        loading.appendChild(srAnnouncer);
+
+        this.loadingOverlayElement = loading;
+        this.videoWrapper.appendChild(loading);
+
+        const isExternalControls = () =>
+            this.container?.classList.contains(`${prefix}-external-controls`);
+
+        const showBuffering = () => {
+            if (isExternalControls()) {
+                return;
+            }
+            this.container.classList.add(`${prefix}-buffering`);
+            loading.setAttribute('aria-busy', 'true');
+            srAnnouncer.textContent = bufferingLabel;
+            if (this.playButtonOverlay) {
+                this.playButtonOverlay.style.opacity = '0';
+                this.playButtonOverlay.style.pointerEvents = 'none';
+            }
+        };
+
+        const hideBuffering = () => {
+            if (!this.container.classList.contains(`${prefix}-buffering`)) {
+                return;
+            }
+            this.container.classList.remove(`${prefix}-buffering`);
+            loading.setAttribute('aria-busy', 'false');
+            srAnnouncer.textContent = '';
+
+            if (this.playButtonOverlay && this.element.tagName === 'VIDEO') {
+                if (this.state.paused && !this.state.ended) {
+                    this.playButtonOverlay.style.opacity = '1';
+                    this.playButtonOverlay.style.pointerEvents = 'auto';
+                    this.positionPlayOverlayOnMobile();
+                }
+            }
+        };
+
+        this.on('waiting', showBuffering);
+        this.on('canplay', hideBuffering);
+        this.on('playing', hideBuffering);
     }
     
     positionPlayOverlayOnMobile() {
@@ -5374,6 +5451,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
         if (this.playButtonOverlay && this.playButtonOverlay.parentNode) {
             this.playButtonOverlay.remove();
             this.playButtonOverlay = null;
+        }
+
+        if (this.loadingOverlayElement && this.loadingOverlayElement.parentNode) {
+            this.loadingOverlayElement.remove();
+            this.loadingOverlayElement = null;
         }
 
         // Cleanup resize observer

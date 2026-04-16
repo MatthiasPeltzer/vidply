@@ -418,7 +418,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 21068,
+      "bytes": 21208,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.ts",
@@ -434,7 +434,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 24558,
+      "bytes": 24698,
       "imports": [
         {
           "path": "<runtime>",
@@ -456,7 +456,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 249131,
+      "bytes": 252140,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -700,10 +700,10 @@
           "bytesInOutput": 8572
         },
         "src/renderers/HLSRenderer.ts": {
-          "bytesInOutput": 20865
+          "bytesInOutput": 21025
         },
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 26264
+          "bytesInOutput": 26424
         },
         "src/renderers/SoundCloudRenderer.ts": {
           "bytesInOutput": 11174
@@ -712,7 +712,7 @@
           "bytesInOutput": 1002
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 179577
+          "bytesInOutput": 182394
         },
         "src/controls/ControlBar.ts": {
           "bytesInOutput": 125578
@@ -730,7 +730,7 @@
           "bytesInOutput": 5582
         }
       },
-      "bytes": 753654
+      "bytes": 756791
     }
   }
 }

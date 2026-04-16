@@ -3500,6 +3500,8 @@ var Player = class _Player extends EventEmitter {
   timeouts;
   trackArtworkElement;
   videoWrapper;
+  /** Centered buffering spinner (see `.vidply-loading` / `.vidply-buffering` in CSS) */
+  loadingOverlayElement = null;
   static instances = [];
   static observeLazy;
   constructor(element, options = {}) {
@@ -4376,6 +4378,7 @@ var Player = class _Player extends EventEmitter {
     if (this.element.tagName === "VIDEO") {
       this.createPlayButtonOverlay();
     }
+    this.createBufferingLoadingOverlay();
     this.element.vidply = this;
     _Player.instances.push(this);
     this.element.style.cursor = "pointer";
@@ -4411,6 +4414,9 @@ var Player = class _Player extends EventEmitter {
       this.playButtonOverlay.style.pointerEvents = "none";
     });
     this.on("pause", () => {
+      if (this.container.classList.contains(`${this.options.classPrefix}-buffering`)) {
+        return;
+      }
       this.playButtonOverlay.style.opacity = "1";
       this.playButtonOverlay.style.pointerEvents = "auto";
       this.positionPlayOverlayOnMobile();
@@ -4433,6 +4439,65 @@ var Player = class _Player extends EventEmitter {
     this.on("exitfullscreen", () => {
       rafWithTimeout(() => this.positionPlayOverlayOnMobile(), 100);
     });
+  }
+  /**
+   * Centered loading spinner until media can play (wired to `waiting` / `canplay` / `playing`).
+   * Skipped for external providers (YouTube, Vimeo, SoundCloud) which use native UI.
+   */
+  createBufferingLoadingOverlay() {
+    if (!this.videoWrapper) {
+      return;
+    }
+    const prefix = this.options.classPrefix;
+    const bufferingLabel = i18n.t("player.buffering");
+    const loading = DOMUtils.createElement("div", {
+      className: `${prefix}-loading`,
+      attributes: {
+        "aria-busy": "false"
+      }
+    });
+    const srAnnouncer = DOMUtils.createElement("span", {
+      className: `${prefix}-sr-only`,
+      attributes: {
+        id: `${prefix}-buffering-live-${this.instanceId}`,
+        "aria-live": "polite",
+        "aria-atomic": "true"
+      }
+    });
+    loading.appendChild(srAnnouncer);
+    this.loadingOverlayElement = loading;
+    this.videoWrapper.appendChild(loading);
+    const isExternalControls = () => this.container?.classList.contains(`${prefix}-external-controls`);
+    const showBuffering = () => {
+      if (isExternalControls()) {
+        return;
+      }
+      this.container.classList.add(`${prefix}-buffering`);
+      loading.setAttribute("aria-busy", "true");
+      srAnnouncer.textContent = bufferingLabel;
+      if (this.playButtonOverlay) {
+        this.playButtonOverlay.style.opacity = "0";
+        this.playButtonOverlay.style.pointerEvents = "none";
+      }
+    };
+    const hideBuffering = () => {
+      if (!this.container.classList.contains(`${prefix}-buffering`)) {
+        return;
+      }
+      this.container.classList.remove(`${prefix}-buffering`);
+      loading.setAttribute("aria-busy", "false");
+      srAnnouncer.textContent = "";
+      if (this.playButtonOverlay && this.element.tagName === "VIDEO") {
+        if (this.state.paused && !this.state.ended) {
+          this.playButtonOverlay.style.opacity = "1";
+          this.playButtonOverlay.style.pointerEvents = "auto";
+          this.positionPlayOverlayOnMobile();
+        }
+      }
+    };
+    this.on("waiting", showBuffering);
+    this.on("canplay", hideBuffering);
+    this.on("playing", hideBuffering);
   }
   positionPlayOverlayOnMobile() {
     if (!this.playButtonOverlay || this.element.tagName !== "VIDEO") {
@@ -4498,10 +4563,10 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.VimeoRenderer-6CLUVHOQ.js");
       return module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-7F6FCZSH.js");
+      const module = await import("./vidply.HLSRenderer-2NVGMMXD.js");
       return module.HLSRenderer || module.default;
     } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-HP7BXLGV.js");
+      const module = await import("./vidply.DASHRenderer-JGJTNVPH.js");
       return module.DASHRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-T64HDIWO.js");
@@ -7349,6 +7414,10 @@ var Player = class _Player extends EventEmitter {
     if (this.playButtonOverlay && this.playButtonOverlay.parentNode) {
       this.playButtonOverlay.remove();
       this.playButtonOverlay = null;
+    }
+    if (this.loadingOverlayElement && this.loadingOverlayElement.parentNode) {
+      this.loadingOverlayElement.remove();
+      this.loadingOverlayElement = null;
     }
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
