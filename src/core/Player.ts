@@ -1265,13 +1265,12 @@ export class Player extends EventEmitter<PlayerEventMap> {
             (this.element as HTMLVideoElement).poster = resolvedPoster;
         }
 
-        // Buffering UI first so `pause` listeners run before play-overlay `pause` (clear spinner, then show button)
-        this.createBufferingLoadingOverlay();
-
         // Create centered play button overlay (only for video)
         if (this.element.tagName === 'VIDEO') {
             this.createPlayButtonOverlay();
         }
+
+        this.createBufferingLoadingOverlay();
         
         // Store reference to player on element for easy access
         (this.element as any).vidply = this;
@@ -1364,9 +1363,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     /**
-     * Centered loading spinner during `waiting` / startup buffer.
-     * Hide: `canplay` (Player), native media `playing` (HTML5/HLS/DASH do not emit Player `playing`), and `pause` (clear when user pauses).
-     * Skipped for external providers (YouTube, Vimeo, SoundCloud).
+     * Purely additive buffering spinner. Never touches play overlay or any other UI —
+     * only toggles `vidply-buffering` on the container and manages its own `.vidply-loading` node.
+     * Skipped for external providers (YouTube, Vimeo, SoundCloud) which have native loading UI.
      */
     createBufferingLoadingOverlay() {
         if (!this.videoWrapper) {
@@ -1400,23 +1399,12 @@ export class Player extends EventEmitter<PlayerEventMap> {
             this.container?.classList.contains(`${prefix}-external-controls`);
 
         const showBuffering = () => {
-            if (isExternalControls()) {
-                return;
-            }
-            // Only show stall UI after the media has emitted `play` at least once. Browsers often fire
-            // `waiting` during initial MSE/HLS attach and first segment fetch *before* `play`; toggling
-            // our overlay then correlated with broken startup (e.g. GitHub Pages + remote streams) while
-            // same builds worked without this UI. Mid-playback rebuffer still has hasStartedPlayback set.
-            if (!this.state.hasStartedPlayback) {
+            if (isExternalControls() || !this.state.hasStartedPlayback) {
                 return;
             }
             this.container.classList.add(`${prefix}-buffering`);
             loading.setAttribute('aria-busy', 'true');
             srAnnouncer.textContent = bufferingLabel;
-            if (this.playButtonOverlay) {
-                this.playButtonOverlay.style.opacity = '0';
-                this.playButtonOverlay.style.pointerEvents = 'none';
-            }
         };
 
         const hideBuffering = () => {
@@ -1426,28 +1414,22 @@ export class Player extends EventEmitter<PlayerEventMap> {
             this.container.classList.remove(`${prefix}-buffering`);
             loading.setAttribute('aria-busy', 'false');
             srAnnouncer.textContent = '';
-            // Do not toggle play overlay here — `canplay` often fires while still paused during
-            // startup, which wrongly showed the big play button and broke MSE (HLS/DASH) playback.
         };
 
         this.on('waiting', showBuffering);
         this.on('canplay', hideBuffering);
+        this.on('pause', hideBuffering);
+        this.on('ended', hideBuffering);
 
-        // HTML5 / HLS / DASH renderers emit `play` but not Player `playing`; native `playing` is reliable.
-        this._bufferingHideOnMediaPlaying = () => {
-            if (isExternalControls()) {
-                return;
-            }
-            hideBuffering();
-        };
+        // Native `playing` — fires on the media element for all renderer types (HTML5, HLS, DASH).
+        this._bufferingHideOnMediaPlaying = hideBuffering;
         this.element.addEventListener('playing', this._bufferingHideOnMediaPlaying);
 
-        // Pause: hide spinner and let the play-overlay `pause` handler show the button (registered after this).
-        this.on('pause', () => {
-            if (isExternalControls()) {
-                return;
+        // Safety net: if timeupdate is ticking, media is clearly playing — clear any stale spinner.
+        this.on('timeupdate', () => {
+            if (this.container.classList.contains(`${prefix}-buffering`)) {
+                hideBuffering();
             }
-            hideBuffering();
         });
     }
     

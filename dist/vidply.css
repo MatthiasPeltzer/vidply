@@ -154,7 +154,7 @@
     --vidply-z-menu-fullscreen: 1000; /* Menus in fullscreen mode */
     --vidply-z-menu-high: 100; /* Volume menu */
     --vidply-z-overlay: 2; /* Play overlay, video wrapper on mobile */
-    --vidply-z-buffering: 10; /* Buffering spinner above play overlay, below controls */
+    --vidply-z-buffering: 1; /* Buffering spinner below play overlay to never block clicks */
     --vidply-z-playlist: 15; /* Playlist panel in fullscreen */
     --vidply-z-transcript: 5; /* Transcript window */
 }
