@@ -109,7 +109,7 @@ const builds = [
   // Modern ESM
   {
     name: 'ESM Bundle',
-    entryPoint: 'src/index.js',
+    entryPoint: 'src/index.ts',
     outfile: 'dist/vidply.esm.js',
     format: 'esm',
     minify: false,
@@ -117,7 +117,7 @@ const builds = [
   },
   {
     name: 'ESM Bundle (Minified)',
-    entryPoint: 'src/index.js',
+    entryPoint: 'src/index.ts',
     outfile: 'dist/vidply.esm.min.js',
     format: 'esm',
     minify: true,
@@ -127,7 +127,7 @@ const builds = [
   // Legacy IIFE (non-splitting) for older browsers
   {
     name: 'IIFE Bundle',
-    entryPoint: 'src/index.js',
+    entryPoint: 'src/index.ts',
     outfile: 'dist/legacy/vidply.js',
     format: 'iife',
     globalName: 'VidPly',
@@ -137,7 +137,7 @@ const builds = [
   },
   {
     name: 'IIFE Bundle (Minified)',
-    entryPoint: 'src/index.js',
+    entryPoint: 'src/index.ts',
     outfile: 'dist/legacy/vidply.min.js',
     format: 'iife',
     globalName: 'VidPly',

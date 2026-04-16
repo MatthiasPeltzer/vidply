@@ -6,7 +6,7 @@ export default defineConfig({
     environment: 'jsdom',
     
     // Test file patterns
-    include: ['tests/unit/**/*.test.js', 'tests/integration/**/*.test.js'],
+    include: ['tests/unit/**/*.test.{js,ts}', 'tests/integration/**/*.test.{js,ts}'],
     
     // Exclude e2e tests (handled by Playwright)
     exclude: ['tests/e2e/**/*', 'node_modules/**/*'],
@@ -19,7 +19,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       reportsDirectory: './coverage',
-      include: ['src/**/*.js'],
+      include: ['src/**/*.{js,ts}'],
       exclude: ['src/styles/**', 'src/icons/**']
     },
     

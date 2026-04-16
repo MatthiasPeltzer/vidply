@@ -5,20 +5,20 @@
  */
 import {
   TimeUtils
-} from "./vidply.chunk-ZU6FUKLF.js";
+} from "./vidply.chunk-S36ISCDT.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-2D4L3SNZ.js";
+} from "./vidply.chunk-WBI7UGH6.js";
 import {
   CaptionManager,
   debounce,
   isMobile,
   rafWithTimeout,
   throttle
-} from "./vidply.chunk-LB6ZIMVJ.js";
+} from "./vidply.chunk-ELJA4GMZ.js";
 import {
   StorageManager
-} from "./vidply.chunk-JZWZJC4C.js";
+} from "./vidply.chunk-SXDZXXZD.js";
 import {
   DraggableResizable,
   attachMenuKeyboardNavigation,
@@ -30,29 +30,26 @@ import {
   focusFirstElement,
   focusFirstMenuItem,
   preventDragOnElement
-} from "./vidply.chunk-XOI3AMU5.js";
+} from "./vidply.chunk-37V7VOIQ.js";
 import {
   DOMUtils,
   i18n
-} from "./vidply.chunk-4IYIPSCH.js";
+} from "./vidply.chunk-VLF6H5PZ.js";
 
-// src/utils/EventEmitter.js
+// src/utils/EventEmitter.ts
 var EventEmitter = class {
-  constructor() {
-    this.events = {};
-  }
+  events = {};
   on(event, listener) {
-    if (!this.events[event]) {
-      this.events[event] = [];
-    }
-    this.events[event].push(listener);
+    const listeners = this.events[event] ?? [];
+    listeners.push(listener);
+    this.events[event] = listeners;
     return this;
   }
   once(event, listener) {
-    const onceListener = (...args) => {
+    const onceListener = ((...args) => {
       listener(...args);
       this.off(event, onceListener);
-    };
+    });
     return this.on(event, onceListener);
   }
   off(event, listener) {
@@ -60,7 +57,9 @@ var EventEmitter = class {
     if (!listener) {
       delete this.events[event];
     } else {
-      this.events[event] = this.events[event].filter((l) => l !== listener);
+      this.events[event] = this.events[event].filter(
+        (l) => l !== listener
+      );
     }
     return this;
   }
@@ -77,17 +76,12 @@ var EventEmitter = class {
   }
 };
 
-// src/utils/VideoFrameCapture.js
+// src/utils/VideoFrameCapture.ts
 async function captureVideoFrame(video, time, options = {}) {
   if (!video || video.tagName !== "VIDEO") {
     return null;
   }
-  const {
-    restoreState = true,
-    quality = 0.9,
-    maxWidth,
-    maxHeight
-  } = options;
+  const { restoreState = true, quality = 0.9, maxWidth, maxHeight } = options;
   const wasPlaying = !video.paused;
   const originalTime = video.currentTime;
   const originalMuted = video.muted;
@@ -124,7 +118,7 @@ async function captureVideoFrame(video, time, options = {}) {
           }
         }
         resolve(dataURL);
-      } catch (error) {
+      } catch {
         if (restoreState) {
           video.currentTime = originalTime;
           video.muted = originalMuted;
@@ -159,8 +153,29 @@ async function captureVideoFrame(video, time, options = {}) {
   });
 }
 
-// src/controls/ControlBar.js
+// src/controls/ControlBar.ts
 var ControlBar = class {
+  player;
+  _overflowMenuItemRef;
+  controls;
+  currentPreviewTime;
+  element;
+  hideTimeout;
+  isDraggingProgress;
+  isDraggingVolume;
+  openMenu;
+  openMenuButton;
+  overflowResizeObserver;
+  previewSupported;
+  previewThumbnailCache;
+  previewThumbnailTimeout;
+  previewUsingMainVideo;
+  previewVideo;
+  previewVideoInitialized;
+  previewVideoReady;
+  rightButtons;
+  overflowMenuButton;
+  setupOverflowMenu;
   constructor(player) {
     this.player = player;
     this.element = null;
@@ -183,7 +198,7 @@ var ControlBar = class {
   }
   // Helper method to detect touch devices
   isTouchDevice() {
-    return "ontouchstart" in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+    return "ontouchstart" in window || navigator.maxTouchPoints > 0 || (navigator.msMaxTouchPoints ?? 0) > 0;
   }
   // Smart menu positioning to avoid overflow
   positionMenu(menu, button, immediate = false) {
@@ -973,6 +988,9 @@ var ControlBar = class {
     const generateNext = (deadline) => {
       while (deadline.timeRemaining() > 50 && times.length > 0) {
         const time = times.shift();
+        if (time === void 0) {
+          break;
+        }
         this.generatePreviewThumbnail(time).catch(() => {
         });
       }
@@ -2990,7 +3008,7 @@ var ControlBar = class {
       let totalWidth = 0;
       const buttonWidths = allButtons.map((btn) => {
         const style = getComputedStyle(btn);
-        const width = btn.offsetWidth + parseInt(style.marginLeft || 0) + parseInt(style.marginRight || 0);
+        const width = btn.offsetWidth + parseInt(style.marginLeft || "0") + parseInt(style.marginRight || "0");
         totalWidth += width;
         return { btn, width };
       });
@@ -3160,8 +3178,10 @@ var ControlBar = class {
   }
 };
 
-// src/controls/KeyboardManager.js
+// src/controls/KeyboardManager.ts
 var KeyboardManager = class {
+  player;
+  shortcuts;
   constructor(player) {
     this.player = player;
     this.shortcuts = player.options.keyboardShortcuts;
@@ -3179,7 +3199,8 @@ var KeyboardManager = class {
     }
   }
   handleKeydown(e) {
-    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
+    const target = e.target;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") {
       return;
     }
     const activeElement = document.activeElement;
@@ -3371,25 +3392,116 @@ var KeyboardManager = class {
   }
 };
 
-// src/core/Player.js
+// src/core/Player.ts
 var AudioDescriptionManagerModule = null;
 var SignLanguageManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-HA3UD3AE.js");
+    const module = await import("./vidply.AudioDescriptionManager-2LDAC6BR.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-WXJM3TOW.js");
+    const module = await import("./vidply.SignLanguageManager-OOZLX2GI.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 var playerInstanceCounter = 0;
 var Player = class _Player extends EventEmitter {
+  element;
+  container;
+  options;
+  state;
+  renderer;
+  controlBar;
+  captionManager;
+  keyboardManager;
+  transcriptManager;
+  playlistManager;
+  settingsDialog;
+  audioDescriptionManager;
+  signLanguageManager;
+  storage;
+  instanceId;
+  _audioDescriptionDesiredState;
+  _fallbackSources;
+  _inertElements;
+  _isAudioContent;
+  _isFallingBack;
+  _managersLoading;
+  _originalBodyBackground;
+  _originalBodyHeight;
+  _originalBodyOverflow;
+  _originalBodyPosition;
+  _originalBodyWidth;
+  _originalElement;
+  _originalHtmlBackground;
+  _originalHtmlOverflow;
+  _originalScrollX;
+  _originalScrollY;
+  _originalViewport;
+  _pendingSource;
+  _resumeChecked;
+  _saveProgressThrottled;
+  _sourceElementsCache;
+  _sourceElementsDirty;
+  _switchingRenderer;
+  _trackElementsCache;
+  _trackElementsDirty;
+  _textTracksCache;
+  _textTracksDirty;
+  audioDescriptionCaptionTracks;
+  audioDescriptionSourceElement;
+  audioDescriptionSrc;
+  currentSignLanguage;
+  currentSource;
+  debouncedPositionPlayOverlay;
+  fullscreenChangeHandler;
+  metadataAlertHandlers;
+  metadataCueChangeHandler;
+  noticeElement;
+  noticeTimeout;
+  orientationHandler;
+  orientationQuery;
+  originalAudioDescriptionSource;
+  originalSrc;
+  playButtonOverlay;
+  resizeHandler;
+  resizeObserver;
+  resumePromptElement;
+  signLanguageCustomKeyHandler;
+  signLanguageDesiredPosition;
+  signLanguageDocumentClickHandler;
+  signLanguageDocumentClickHandlerAdded;
+  signLanguageDraggable;
+  signLanguageDragOptionButton;
+  signLanguageDragOptionText;
+  signLanguageHeaderKeyHandler;
+  signLanguageHeader;
+  signLanguageHandlers;
+  signLanguageInteractionHandlers;
+  signLanguageResizeHandles;
+  signLanguageResizeOptionButton;
+  signLanguageSelector;
+  signLanguageSettingsButton;
+  signLanguageSettingsHandlers;
+  signLanguageSettingsMenu;
+  signLanguageSettingsMenuVisible;
+  signLanguageSettingsMenuJustOpened;
+  signLanguageSettingsMenuKeyHandler;
+  signLanguageResizeOptionText;
+  signLanguageSources;
+  signLanguageSrc;
+  signLanguageVideo;
+  signLanguageWrapper;
+  timeouts;
+  trackArtworkElement;
+  videoWrapper;
+  static instances = [];
+  static observeLazy;
   constructor(element, options = {}) {
     super();
     this.element = typeof element === "string" ? document.querySelector(element) : element;
@@ -3631,7 +3743,7 @@ var Player = class _Player extends EventEmitter {
     this._trackElementsCache = null;
     this._trackElementsDirty = true;
     this.timeouts = /* @__PURE__ */ new Set();
-    this.container = null;
+    this.container = document.createElement("div");
     this.renderer = null;
     this.controlBar = null;
     this.captionManager = null;
@@ -3835,7 +3947,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-HCMCD7I5.js");
+    const module = await import("./vidply.TranscriptManager-BOYEUAA4.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;
@@ -4229,7 +4341,7 @@ var Player = class _Player extends EventEmitter {
     this.videoWrapper = DOMUtils.createElement("div", {
       className: `${this.options.classPrefix}-video-wrapper`
     });
-    this.element.parentNode.insertBefore(this.container, this.element);
+    this.element.parentNode?.insertBefore(this.container, this.element);
     if (this.element.tagName === "AUDIO" && this.options.poster) {
       this.trackArtworkElement = DOMUtils.createElement("div", {
         className: `${this.options.classPrefix}-track-artwork`,
@@ -4380,19 +4492,19 @@ var Player = class _Player extends EventEmitter {
   }
   async _detectRendererClass(src) {
     if (src.includes("youtube.com") || src.includes("youtu.be")) {
-      const module = await import("./vidply.YouTubeRenderer-E6F4UGVF.js");
+      const module = await import("./vidply.YouTubeRenderer-6ONOAU4R.js");
       return module.YouTubeRenderer || module.default;
     } else if (src.includes("vimeo.com")) {
-      const module = await import("./vidply.VimeoRenderer-SLEBCZTT.js");
+      const module = await import("./vidply.VimeoRenderer-6CLUVHOQ.js");
       return module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-N5HHMRN3.js");
+      const module = await import("./vidply.HLSRenderer-7F6FCZSH.js");
       return module.HLSRenderer || module.default;
     } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-7BNDQ2Y3.js");
+      const module = await import("./vidply.DASHRenderer-HP7BXLGV.js");
       return module.DASHRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
-      const module = await import("./vidply.SoundCloudRenderer-HCMKXHSX.js");
+      const module = await import("./vidply.SoundCloudRenderer-T64HDIWO.js");
       return module.SoundCloudRenderer || module.default;
     }
     return HTML5Renderer;
@@ -5091,16 +5203,16 @@ var Player = class _Player extends EventEmitter {
     this._inertElements = [];
     let current = this.container;
     while (current && current !== document.body && current !== document.documentElement) {
-      const parent = current.parentElement;
-      if (parent) {
-        Array.from(parent.children).forEach((sibling) => {
+      const parentElement = current.parentElement;
+      if (parentElement) {
+        Array.from(parentElement.children).forEach((sibling) => {
           if (sibling !== current && sibling.nodeType === Node.ELEMENT_NODE && !sibling.hasAttribute("inert") && sibling.tagName !== "SCRIPT" && sibling.tagName !== "STYLE" && sibling.tagName !== "LINK" && sibling.tagName !== "META") {
             sibling.setAttribute("inert", "");
             this._inertElements.push(sibling);
           }
         });
       }
-      current = parent;
+      current = parentElement;
     }
   }
   /**
@@ -6609,7 +6721,8 @@ var Player = class _Player extends EventEmitter {
         });
       },
       onDragStart: (e) => {
-        if (e.target.closest(`.${this.options.classPrefix}-sign-language-close`) || e.target.closest(`.${this.options.classPrefix}-sign-language-settings`) || e.target.closest(`.${this.options.classPrefix}-sign-language-select`) || e.target.closest(`.${this.options.classPrefix}-sign-language-label`) || e.target.closest(`.${this.options.classPrefix}-sign-language-settings-menu`)) {
+        const target = e.target;
+        if (target.closest(`.${this.options.classPrefix}-sign-language-close`) || target.closest(`.${this.options.classPrefix}-sign-language-settings`) || target.closest(`.${this.options.classPrefix}-sign-language-select`) || target.closest(`.${this.options.classPrefix}-sign-language-label`) || target.closest(`.${this.options.classPrefix}-sign-language-settings-menu`)) {
           return false;
         }
         return true;
@@ -6711,7 +6824,7 @@ var Player = class _Player extends EventEmitter {
       "ar": "العربية",
       "hi": "हिन्दी"
     };
-    return langNames[langCode] || langCode.toUpperCase();
+    return langNames[String(langCode)] || String(langCode).toUpperCase();
   }
   switchSignLanguage(langCode) {
     return this.signLanguageManager?.switchLanguage(langCode);
@@ -7622,11 +7735,26 @@ var Player = class _Player extends EventEmitter {
     }
   }
 };
-Player.instances = [];
 
-// src/features/PlaylistManager.js
+// src/features/PlaylistManager.ts
 var playlistInstanceCounter = 0;
 var PlaylistManager = class {
+  player;
+  container;
+  currentIndex;
+  hostElement;
+  initialTracks;
+  instanceId;
+  isChangingTrack;
+  isPanelVisible;
+  navigationFeedback;
+  options;
+  PlayerClass;
+  playlistPanel;
+  trackArtworkElement;
+  trackInfoElement;
+  tracks;
+  uniqueId;
   constructor(player, options = {}) {
     this.player = player;
     this.tracks = [];
@@ -7733,7 +7861,7 @@ var PlaylistManager = class {
     const isExternalRenderer = ["youtube", "vimeo", "soundcloud", "hls", "dash"].includes(mediaType);
     if (!isExternalRenderer) {
       const source = document.createElement("source");
-      source.src = track.src;
+      source.src = track.src || "";
       if (track.type) {
         source.type = track.type;
       }
@@ -7741,10 +7869,10 @@ var PlaylistManager = class {
       if (track.tracks && track.tracks.length > 0) {
         track.tracks.forEach((trackConfig) => {
           const trackEl = document.createElement("track");
-          trackEl.src = trackConfig.src;
+          trackEl.src = trackConfig.src || "";
           trackEl.kind = trackConfig.kind || "captions";
           trackEl.srclang = trackConfig.srclang || "en";
-          trackEl.label = trackConfig.label || trackConfig.srclang;
+          trackEl.label = trackConfig.label || trackConfig.srclang || "";
           if (trackConfig.default) {
             trackEl.default = true;
           }
@@ -7764,7 +7892,7 @@ var PlaylistManager = class {
     this.player = new this.PlayerClass(mediaElement, playerOptions);
     this.player.playlistManager = this;
     await new Promise((resolve) => {
-      this.player.on("ready", resolve);
+      this.player.on("ready", () => resolve());
     });
     this.player.on("ended", this.handleTrackEnd);
     this.player.on("error", this.handleTrackError);
@@ -8457,7 +8585,7 @@ var PlaylistManager = class {
     const item = DOMUtils.createElement("li", {
       className: isActive ? "vidply-playlist-item vidply-playlist-item-active" : "vidply-playlist-item",
       attributes: {
-        "data-playlist-index": index,
+        "data-playlist-index": String(index),
         role: "none"
       }
     });
@@ -8466,11 +8594,10 @@ var PlaylistManager = class {
       attributes: {
         type: "button",
         role: "option",
-        tabIndex: index === 0 ? 0 : -1,
-        // Only first item is in tab order initially
+        tabIndex: index === 0 ? "0" : "-1",
         "aria-label": ariaLabel,
-        "aria-posinset": index + 1,
-        "aria-setsize": this.tracks.length,
+        "aria-posinset": String(index + 1),
+        "aria-setsize": String(this.tracks.length),
         "aria-checked": isActive ? "true" : "false"
       }
     });
@@ -8845,7 +8972,7 @@ var PlaylistManager = class {
   }
 };
 
-// src/index.js
+// src/index.ts
 var pendingPlayers = /* @__PURE__ */ new Map();
 function initializePlayers() {
   const elements = document.querySelectorAll("[data-vidply]");
@@ -8949,7 +9076,7 @@ function parseDataAttributes(dataset) {
         options[optionKey] = true;
       } else if (value === "false") {
         options[optionKey] = false;
-      } else if (!isNaN(value) && value !== "") {
+      } else if (!isNaN(Number(value)) && value !== "") {
         options[optionKey] = Number(value);
       } else {
         options[optionKey] = value;

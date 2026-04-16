@@ -1,0 +1,154 @@
+import type { Player } from '../core/Player.js';
+
+export interface KeyboardShortcuts {
+  'play-pause'?: string[];
+  'volume-up'?: string[];
+  'volume-down'?: string[];
+  'seek-forward'?: string[];
+  'seek-backward'?: string[];
+  'mute'?: string[];
+  'fullscreen'?: string[];
+  'captions'?: string[];
+  'caption-style-menu'?: string[];
+  'speed-up'?: string[];
+  'speed-down'?: string[];
+  'speed-menu'?: string[];
+  'quality-menu'?: string[];
+  'chapters-menu'?: string[];
+  'transcript-toggle'?: string[];
+}
+
+export interface PlayerOptions {
+  // Display
+  width: number | string | null;
+  height: number | string | null;
+  poster: string | null;
+  responsive: boolean;
+  fillContainer: boolean;
+  mediaType?: 'video' | 'audio';
+
+  // Playback
+  autoplay: boolean;
+  loop: boolean;
+  muted: boolean;
+  volume: number;
+  playbackSpeed: number;
+  preload: 'none' | 'metadata' | 'auto';
+  initialDuration: number;
+  deferLoad: boolean;
+  requirePlaybackForAccessibilityToggles: boolean;
+  startTime: number;
+  playsInline: boolean;
+
+  // Controls
+  controls: boolean;
+  hideControlsDelay: number;
+  playPauseButton: boolean;
+  progressBar: boolean;
+  currentTime: boolean;
+  duration: boolean;
+  volumeControl: boolean;
+  muteButton: boolean;
+  chaptersButton: boolean;
+  qualityButton: boolean;
+  captionStyleButton: boolean;
+  speedButton: boolean;
+  hideSpeedForHls: boolean;
+  hideSpeedForHlsVideo: boolean;
+  hideSpeedForDash: boolean;
+  hideSpeedForDashVideo: boolean;
+  captionsButton: boolean;
+  transcriptButton: boolean;
+  fullscreenButton: boolean;
+  pipButton: boolean;
+  downloadButton: boolean;
+  downloadUrl: string | null;
+  playlistToggleButton?: boolean;
+
+  // Seeking
+  seekInterval: number;
+  seekIntervalLarge: number;
+
+  // Captions
+  captions: boolean;
+  captionsDefault: boolean;
+  captionsFontSize: string;
+  captionsFontFamily: string;
+  captionsColor: string;
+  captionsBackgroundColor: string;
+  captionsOpacity: number;
+
+  // Audio Description
+  audioDescription: boolean;
+  audioDescriptionSrc: string | null;
+  audioDescriptionButton: boolean;
+
+  // Sign Language
+  signLanguage: boolean;
+  signLanguageSrc: string | null;
+  signLanguageButton: boolean;
+  signLanguagePosition: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+  signLanguageDisplayMode: 'pip' | 'main' | 'both';
+  signLanguageSources?: Record<string, string>;
+
+  // Transcripts
+  transcript: boolean;
+  transcriptPosition: string;
+  transcriptContainer: HTMLElement | string | null;
+
+  // Keyboard
+  keyboard: boolean;
+  keyboardShortcuts: KeyboardShortcuts;
+
+  // Accessibility
+  ariaLabels: Record<string, string>;
+  screenReaderAnnouncements: boolean;
+  highContrast: boolean;
+  focusHighlight: boolean;
+  metadataAlerts: Record<string, unknown>;
+  metadataHashtags: Record<string, unknown>;
+
+  // Languages
+  language: string;
+  languages: string[];
+  languageFiles?: Record<string, string>;
+  languageFile?: string;
+  languageFileUrl?: string;
+
+  // Resume Playback
+  resumePlayback: boolean;
+  resumeThreshold: number;
+  resumePrompt: boolean;
+
+  // Thumbnail Preview
+  thumbnailPreview: boolean;
+  thumbnailCacheSize: number;
+  thumbnailPregenerate: boolean;
+  thumbnailInterval: number;
+  thumbnailWidth: number;
+  thumbnailHeight: number;
+  thumbnailQuality: number;
+
+  // Lazy Loading
+  lazyInit: boolean;
+  lazyMargin: string;
+
+  // Theming
+  theme: 'dark' | 'light' | 'minimal' | 'high-contrast';
+  themeVariables: Record<string, string>;
+
+  // Advanced
+  debug: boolean;
+  classPrefix: string;
+  iconType: string;
+  pauseOthersOnPlay: boolean;
+
+  // Callbacks
+  onReady: ((this: Player) => void) | null;
+  onPlay: ((this: Player) => void) | null;
+  onPause: ((this: Player) => void) | null;
+  onEnded: ((this: Player) => void) | null;
+  onTimeUpdate: ((this: Player, time: number) => void) | null;
+  onVolumeChange: ((this: Player, volume: number) => void) | null;
+  onError: ((this: Player, error: unknown) => void) | null;
+}
