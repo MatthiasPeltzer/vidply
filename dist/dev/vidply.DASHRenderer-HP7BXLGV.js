@@ -198,11 +198,7 @@ var DASHRenderer = class {
       this.handleDashError(e);
     });
     this.dash.on(dashEvents.FRAGMENT_LOADING_COMPLETED, (e) => {
-      const wasBuffering = this.player.state.buffering === true;
       this.player.state.buffering = false;
-      if (wasBuffering) {
-        this.player.emit("canplay");
-      }
       if (e.request && e.request.mediaType === "text" && !this._dashTextIsTtml) {
         this._setTimeout(() => {
           const count = this._getTotalCueCount();
@@ -683,4 +679,4 @@ var DASHRenderer = class {
 export {
   DASHRenderer
 };
-//# sourceMappingURL=vidply.DASHRenderer-JGJTNVPH.js.map
+//# sourceMappingURL=vidply.DASHRenderer-HP7BXLGV.js.map

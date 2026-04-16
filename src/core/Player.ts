@@ -133,6 +133,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
     videoWrapper: any;
     /** Centered buffering spinner (see `.vidply-loading` / `.vidply-buffering` in CSS) */
     loadingOverlayElement: HTMLElement | null = null;
+    /** Native `playing` listener — must be removed in destroy() */
+    _bufferingHideOnMediaPlaying: (() => void) | null = null;
 
     static instances: Player[] = [];
     static observeLazy: (selector: string | HTMLElement, options?: Record<string, unknown>, margin?: string) => { cancel: () => void } | null;
@@ -1263,12 +1265,13 @@ export class Player extends EventEmitter<PlayerEventMap> {
             (this.element as HTMLVideoElement).poster = resolvedPoster;
         }
 
+        // Buffering UI first so `pause` listeners run before play-overlay `pause` (clear spinner, then show button)
+        this.createBufferingLoadingOverlay();
+
         // Create centered play button overlay (only for video)
         if (this.element.tagName === 'VIDEO') {
             this.createPlayButtonOverlay();
         }
-
-        this.createBufferingLoadingOverlay();
         
         // Store reference to player on element for easy access
         (this.element as any).vidply = this;
@@ -1328,9 +1331,6 @@ export class Player extends EventEmitter<PlayerEventMap> {
         });
 
         this.on('pause', () => {
-            if (this.container.classList.contains(`${this.options.classPrefix}-buffering`)) {
-                return;
-            }
             this.playButtonOverlay.style.opacity = '1';
             this.playButtonOverlay.style.pointerEvents = 'auto';
             this.positionPlayOverlayOnMobile();
@@ -1364,8 +1364,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     /**
-     * Centered loading spinner until media can play (wired to `waiting` / `canplay` / `playing`).
-     * Skipped for external providers (YouTube, Vimeo, SoundCloud) which use native UI.
+     * Centered loading spinner during `waiting` / startup buffer.
+     * Hide: `canplay` (Player), native media `playing` (HTML5/HLS/DASH do not emit Player `playing`), and `pause` (clear when user pauses).
+     * Skipped for external providers (YouTube, Vimeo, SoundCloud).
      */
     createBufferingLoadingOverlay() {
         if (!this.videoWrapper) {
@@ -1418,19 +1419,29 @@ export class Player extends EventEmitter<PlayerEventMap> {
             this.container.classList.remove(`${prefix}-buffering`);
             loading.setAttribute('aria-busy', 'false');
             srAnnouncer.textContent = '';
-
-            if (this.playButtonOverlay && this.element.tagName === 'VIDEO') {
-                if (this.state.paused && !this.state.ended) {
-                    this.playButtonOverlay.style.opacity = '1';
-                    this.playButtonOverlay.style.pointerEvents = 'auto';
-                    this.positionPlayOverlayOnMobile();
-                }
-            }
+            // Do not toggle play overlay here — `canplay` often fires while still paused during
+            // startup, which wrongly showed the big play button and broke MSE (HLS/DASH) playback.
         };
 
         this.on('waiting', showBuffering);
         this.on('canplay', hideBuffering);
-        this.on('playing', hideBuffering);
+
+        // HTML5 / HLS / DASH renderers emit `play` but not Player `playing`; native `playing` is reliable.
+        this._bufferingHideOnMediaPlaying = () => {
+            if (isExternalControls()) {
+                return;
+            }
+            hideBuffering();
+        };
+        this.element.addEventListener('playing', this._bufferingHideOnMediaPlaying);
+
+        // Pause: hide spinner and let the play-overlay `pause` handler show the button (registered after this).
+        this.on('pause', () => {
+            if (isExternalControls()) {
+                return;
+            }
+            hideBuffering();
+        });
     }
     
     positionPlayOverlayOnMobile() {
@@ -5451,6 +5462,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
         if (this.playButtonOverlay && this.playButtonOverlay.parentNode) {
             this.playButtonOverlay.remove();
             this.playButtonOverlay = null;
+        }
+
+        if (this._bufferingHideOnMediaPlaying) {
+            this.element.removeEventListener('playing', this._bufferingHideOnMediaPlaying);
+            this._bufferingHideOnMediaPlaying = null;
         }
 
         if (this.loadingOverlayElement && this.loadingOverlayElement.parentNode) {

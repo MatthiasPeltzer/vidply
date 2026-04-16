@@ -3502,6 +3502,8 @@ var Player = class _Player extends EventEmitter {
   videoWrapper;
   /** Centered buffering spinner (see `.vidply-loading` / `.vidply-buffering` in CSS) */
   loadingOverlayElement = null;
+  /** Native `playing` listener — must be removed in destroy() */
+  _bufferingHideOnMediaPlaying = null;
   static instances = [];
   static observeLazy;
   constructor(element, options = {}) {
@@ -4375,10 +4377,10 @@ var Player = class _Player extends EventEmitter {
       const resolvedPoster = this.resolvePosterPath(this.options.poster);
       this.element.poster = resolvedPoster;
     }
+    this.createBufferingLoadingOverlay();
     if (this.element.tagName === "VIDEO") {
       this.createPlayButtonOverlay();
     }
-    this.createBufferingLoadingOverlay();
     this.element.vidply = this;
     _Player.instances.push(this);
     this.element.style.cursor = "pointer";
@@ -4414,9 +4416,6 @@ var Player = class _Player extends EventEmitter {
       this.playButtonOverlay.style.pointerEvents = "none";
     });
     this.on("pause", () => {
-      if (this.container.classList.contains(`${this.options.classPrefix}-buffering`)) {
-        return;
-      }
       this.playButtonOverlay.style.opacity = "1";
       this.playButtonOverlay.style.pointerEvents = "auto";
       this.positionPlayOverlayOnMobile();
@@ -4441,8 +4440,9 @@ var Player = class _Player extends EventEmitter {
     });
   }
   /**
-   * Centered loading spinner until media can play (wired to `waiting` / `canplay` / `playing`).
-   * Skipped for external providers (YouTube, Vimeo, SoundCloud) which use native UI.
+   * Centered loading spinner during `waiting` / startup buffer.
+   * Hide: `canplay` (Player), native media `playing` (HTML5/HLS/DASH do not emit Player `playing`), and `pause` (clear when user pauses).
+   * Skipped for external providers (YouTube, Vimeo, SoundCloud).
    */
   createBufferingLoadingOverlay() {
     if (!this.videoWrapper) {
@@ -4487,17 +4487,22 @@ var Player = class _Player extends EventEmitter {
       this.container.classList.remove(`${prefix}-buffering`);
       loading.setAttribute("aria-busy", "false");
       srAnnouncer.textContent = "";
-      if (this.playButtonOverlay && this.element.tagName === "VIDEO") {
-        if (this.state.paused && !this.state.ended) {
-          this.playButtonOverlay.style.opacity = "1";
-          this.playButtonOverlay.style.pointerEvents = "auto";
-          this.positionPlayOverlayOnMobile();
-        }
-      }
     };
     this.on("waiting", showBuffering);
     this.on("canplay", hideBuffering);
-    this.on("playing", hideBuffering);
+    this._bufferingHideOnMediaPlaying = () => {
+      if (isExternalControls()) {
+        return;
+      }
+      hideBuffering();
+    };
+    this.element.addEventListener("playing", this._bufferingHideOnMediaPlaying);
+    this.on("pause", () => {
+      if (isExternalControls()) {
+        return;
+      }
+      hideBuffering();
+    });
   }
   positionPlayOverlayOnMobile() {
     if (!this.playButtonOverlay || this.element.tagName !== "VIDEO") {
@@ -4563,10 +4568,10 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.VimeoRenderer-6CLUVHOQ.js");
       return module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-2NVGMMXD.js");
+      const module = await import("./vidply.HLSRenderer-7F6FCZSH.js");
       return module.HLSRenderer || module.default;
     } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-JGJTNVPH.js");
+      const module = await import("./vidply.DASHRenderer-HP7BXLGV.js");
       return module.DASHRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-T64HDIWO.js");
@@ -7414,6 +7419,10 @@ var Player = class _Player extends EventEmitter {
     if (this.playButtonOverlay && this.playButtonOverlay.parentNode) {
       this.playButtonOverlay.remove();
       this.playButtonOverlay = null;
+    }
+    if (this._bufferingHideOnMediaPlaying) {
+      this.element.removeEventListener("playing", this._bufferingHideOnMediaPlaying);
+      this._bufferingHideOnMediaPlaying = null;
     }
     if (this.loadingOverlayElement && this.loadingOverlayElement.parentNode) {
       this.loadingOverlayElement.remove();
