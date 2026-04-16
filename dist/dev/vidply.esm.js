@@ -4377,10 +4377,10 @@ var Player = class _Player extends EventEmitter {
       const resolvedPoster = this.resolvePosterPath(this.options.poster);
       this.element.poster = resolvedPoster;
     }
-    this.createBufferingLoadingOverlay();
     if (this.element.tagName === "VIDEO") {
       this.createPlayButtonOverlay();
     }
+    this.createBufferingLoadingOverlay();
     this.element.vidply = this;
     _Player.instances.push(this);
     this.element.style.cursor = "pointer";
@@ -4440,9 +4440,9 @@ var Player = class _Player extends EventEmitter {
     });
   }
   /**
-   * Centered loading spinner during `waiting` / startup buffer.
-   * Hide: `canplay` (Player), native media `playing` (HTML5/HLS/DASH do not emit Player `playing`), and `pause` (clear when user pauses).
-   * Skipped for external providers (YouTube, Vimeo, SoundCloud).
+   * Purely additive buffering spinner. Never touches play overlay or any other UI —
+   * only toggles `vidply-buffering` on the container and manages its own `.vidply-loading` node.
+   * Skipped for external providers (YouTube, Vimeo, SoundCloud) which have native loading UI.
    */
   createBufferingLoadingOverlay() {
     if (!this.videoWrapper) {
@@ -4469,19 +4469,12 @@ var Player = class _Player extends EventEmitter {
     this.videoWrapper.appendChild(loading);
     const isExternalControls = () => this.container?.classList.contains(`${prefix}-external-controls`);
     const showBuffering = () => {
-      if (isExternalControls()) {
-        return;
-      }
-      if (!this.state.hasStartedPlayback) {
+      if (isExternalControls() || !this.state.hasStartedPlayback) {
         return;
       }
       this.container.classList.add(`${prefix}-buffering`);
       loading.setAttribute("aria-busy", "true");
       srAnnouncer.textContent = bufferingLabel;
-      if (this.playButtonOverlay) {
-        this.playButtonOverlay.style.opacity = "0";
-        this.playButtonOverlay.style.pointerEvents = "none";
-      }
     };
     const hideBuffering = () => {
       if (!this.container.classList.contains(`${prefix}-buffering`)) {
@@ -4493,18 +4486,14 @@ var Player = class _Player extends EventEmitter {
     };
     this.on("waiting", showBuffering);
     this.on("canplay", hideBuffering);
-    this._bufferingHideOnMediaPlaying = () => {
-      if (isExternalControls()) {
-        return;
-      }
-      hideBuffering();
-    };
+    this.on("pause", hideBuffering);
+    this.on("ended", hideBuffering);
+    this._bufferingHideOnMediaPlaying = hideBuffering;
     this.element.addEventListener("playing", this._bufferingHideOnMediaPlaying);
-    this.on("pause", () => {
-      if (isExternalControls()) {
-        return;
+    this.on("timeupdate", () => {
+      if (this.container.classList.contains(`${prefix}-buffering`)) {
+        hideBuffering();
       }
-      hideBuffering();
     });
   }
   positionPlayOverlayOnMobile() {
