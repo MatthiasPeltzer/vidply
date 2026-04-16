@@ -3,6 +3,7 @@
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
+"use strict";
 (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropNames = Object.getOwnPropertyNames;
@@ -16,17 +17,12 @@
   };
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
-  // src/utils/DOMUtils.js
+  // src/utils/DOMUtils.ts
   var DOMUtils;
   var init_DOMUtils = __esm({
-    "src/utils/DOMUtils.js"() {
+    "src/utils/DOMUtils.ts"() {
+      "use strict";
       DOMUtils = {
-        /**
-         * Create an element with options
-         * @param {string} tag - HTML tag name
-         * @param {Object} options - Element options
-         * @returns {HTMLElement}
-         */
         createElement(tag, options = {}) {
           const element = document.createElement(tag);
           if (options.className) {
@@ -34,7 +30,9 @@
           }
           if (options.attributes) {
             for (const [key, value] of Object.entries(options.attributes)) {
-              element.setAttribute(key, value);
+              if (value !== void 0) {
+                element.setAttribute(key, value);
+              }
             }
           }
           if (options.innerHTML) {
@@ -53,35 +51,24 @@
           }
           return element;
         },
-        /**
-         * Show element (remove display:none)
-         * @param {HTMLElement} element
-         */
         show(element) {
           (element == null ? void 0 : element.style) && (element.style.display = "");
         },
-        /**
-         * Hide element
-         * @param {HTMLElement} element
-         */
         hide(element) {
           (element == null ? void 0 : element.style) && (element.style.display = "none");
         },
-        /**
-         * Fade in element using CSS transitions (GPU accelerated)
-         * @param {HTMLElement} element
-         * @param {number} duration - Duration in ms
-         * @param {Function} [onComplete] - Callback when complete
-         */
         fadeIn(element, duration = 300, onComplete) {
           if (!element) return;
           element.style.opacity = "0";
           element.style.display = "";
           element.style.transition = `opacity ${duration}ms ease`;
-          element.offsetHeight;
+          void element.offsetHeight;
           element.style.opacity = "1";
           if (onComplete) {
+            let called = false;
             const cleanup = () => {
+              if (called) return;
+              called = true;
               element.removeEventListener("transitionend", cleanup);
               onComplete();
             };
@@ -89,17 +76,14 @@
             setTimeout(cleanup, duration + 50);
           }
         },
-        /**
-         * Fade out element using CSS transitions (GPU accelerated)
-         * @param {HTMLElement} element
-         * @param {number} duration - Duration in ms
-         * @param {Function} [onComplete] - Callback when complete
-         */
         fadeOut(element, duration = 300, onComplete) {
           if (!element) return;
           element.style.transition = `opacity ${duration}ms ease`;
           element.style.opacity = "0";
+          let called = false;
           const cleanup = () => {
+            if (called) return;
+            called = true;
             element.removeEventListener("transitionend", cleanup);
             element.style.display = "none";
             if (onComplete) onComplete();
@@ -107,11 +91,6 @@
           element.addEventListener("transitionend", cleanup, { once: true });
           setTimeout(cleanup, duration + 50);
         },
-        /**
-         * Get element's offset position and dimensions
-         * @param {HTMLElement} element
-         * @returns {Object} { top, left, width, height }
-         */
         offset(element) {
           if (!element) return { top: 0, left: 0, width: 0, height: 0 };
           const rect = element.getBoundingClientRect();
@@ -122,11 +101,6 @@
             height: rect.height
           };
         },
-        /**
-         * Escape HTML special characters
-         * @param {string} str - String to escape
-         * @returns {string} Escaped string
-         */
         escapeHTML(str) {
           const escapeMap = {
             "&": "&amp;",
@@ -137,24 +111,12 @@
           };
           return str.replace(/[&<>"']/g, (char) => escapeMap[char]);
         },
-        /**
-         * Basic HTML sanitization for VTT captions
-         * Allows safe formatting tags, removes dangerous content
-         * @param {string} html - HTML string to sanitize
-         * @returns {string} Sanitized HTML
-         */
         sanitizeHTML(html) {
           const safeHtml = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "").replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "").replace(/on\w+\s*=/gi, "").replace(/javascript:/gi, "");
           const temp = document.createElement("div");
           temp.innerHTML = safeHtml;
           return temp.innerHTML;
         },
-        /**
-         * Create a tooltip element (aria-hidden)
-         * @param {string} text - Tooltip text
-         * @param {string} classPrefix - Class prefix
-         * @returns {HTMLElement}
-         */
         createTooltip(text, classPrefix = "vidply") {
           return this.createElement("span", {
             className: `${classPrefix}-tooltip`,
@@ -162,12 +124,6 @@
             attributes: { "aria-hidden": "true" }
           });
         },
-        /**
-         * Attach a tooltip to an element with hover/focus behavior
-         * @param {HTMLElement} element - Target element
-         * @param {string} text - Tooltip text
-         * @param {string} classPrefix - Class prefix
-         */
         attachTooltip(element, text, classPrefix = "vidply") {
           var _a;
           if (!element || !text) return;
@@ -182,12 +138,6 @@
           element.addEventListener("focus", show);
           element.addEventListener("blur", hide);
         },
-        /**
-         * Create button text element (visible when CSS disabled)
-         * @param {string} text - Button text
-         * @param {string} classPrefix - Class prefix
-         * @returns {HTMLElement}
-         */
         createButtonText(text, classPrefix = "vidply") {
           return this.createElement("span", {
             className: `${classPrefix}-button-text`,
@@ -195,39 +145,18 @@
             attributes: { "aria-hidden": "true" }
           });
         },
-        /**
-         * Add class to element (null-safe)
-         * @param {HTMLElement} element
-         * @param {string} className
-         */
         addClass(element, className) {
           var _a;
           (_a = element == null ? void 0 : element.classList) == null ? void 0 : _a.add(className);
         },
-        /**
-         * Remove class from element (null-safe)
-         * @param {HTMLElement} element
-         * @param {string} className
-         */
         removeClass(element, className) {
           var _a;
           (_a = element == null ? void 0 : element.classList) == null ? void 0 : _a.remove(className);
         },
-        /**
-         * Toggle class on element (null-safe)
-         * @param {HTMLElement} element
-         * @param {string} className
-         */
         toggleClass(element, className) {
           var _a;
           (_a = element == null ? void 0 : element.classList) == null ? void 0 : _a.toggle(className);
         },
-        /**
-         * Check if element has class (null-safe)
-         * @param {HTMLElement} element
-         * @param {string} className
-         * @returns {boolean}
-         */
         hasClass(element, className) {
           var _a;
           return ((_a = element == null ? void 0 : element.classList) == null ? void 0 : _a.contains(className)) ?? false;
@@ -236,10 +165,11 @@
     }
   });
 
-  // src/i18n/languages/en.js
+  // src/i18n/languages/en.ts
   var en;
   var init_en = __esm({
-    "src/i18n/languages/en.js"() {
+    "src/i18n/languages/en.ts"() {
+      "use strict";
       en = {
         player: {
           label: "Video Player",
@@ -431,14 +361,15 @@
     }
   });
 
-  // src/i18n/languages/de.js
+  // src/i18n/languages/de.ts
   var de_exports = {};
   __export(de_exports, {
     de: () => de
   });
   var de;
   var init_de = __esm({
-    "src/i18n/languages/de.js"() {
+    "src/i18n/languages/de.ts"() {
+      "use strict";
       de = {
         player: {
           label: "Videoplayer",
@@ -630,14 +561,15 @@
     }
   });
 
-  // src/i18n/languages/es.js
+  // src/i18n/languages/es.ts
   var es_exports = {};
   __export(es_exports, {
     es: () => es
   });
   var es;
   var init_es = __esm({
-    "src/i18n/languages/es.js"() {
+    "src/i18n/languages/es.ts"() {
+      "use strict";
       es = {
         player: {
           label: "Reproductor de video",
@@ -826,14 +758,15 @@
     }
   });
 
-  // src/i18n/languages/fr.js
+  // src/i18n/languages/fr.ts
   var fr_exports = {};
   __export(fr_exports, {
     fr: () => fr
   });
   var fr;
   var init_fr = __esm({
-    "src/i18n/languages/fr.js"() {
+    "src/i18n/languages/fr.ts"() {
+      "use strict";
       fr = {
         player: {
           label: "Lecteur vidéo",
@@ -1022,14 +955,15 @@
     }
   });
 
-  // src/i18n/languages/ja.js
+  // src/i18n/languages/ja.ts
   var ja_exports = {};
   __export(ja_exports, {
     ja: () => ja
   });
   var ja;
   var init_ja = __esm({
-    "src/i18n/languages/ja.js"() {
+    "src/i18n/languages/ja.ts"() {
+      "use strict";
       ja = {
         player: {
           label: "ビデオプレーヤー",
@@ -1218,7 +1152,7 @@
     }
   });
 
-  // src/i18n/translations.js
+  // src/i18n/translations.ts
   function getBaseTranslations() {
     return { en };
   }
@@ -1233,7 +1167,8 @@
   }
   var builtInLanguageLoaders, translations;
   var init_translations = __esm({
-    "src/i18n/translations.js"() {
+    "src/i18n/translations.ts"() {
+      "use strict";
       init_en();
       builtInLanguageLoaders = {
         de: () => Promise.resolve().then(() => (init_de(), de_exports)),
@@ -1245,13 +1180,18 @@
     }
   });
 
-  // src/i18n/i18n.js
+  // src/i18n/i18n.ts
   var I18n, i18n;
   var init_i18n = __esm({
-    "src/i18n/i18n.js"() {
+    "src/i18n/i18n.ts"() {
+      "use strict";
       init_translations();
       I18n = class {
         constructor() {
+          __publicField(this, "currentLanguage");
+          __publicField(this, "translations");
+          __publicField(this, "loadingPromises");
+          __publicField(this, "builtInLanguageLoaders");
           this.currentLanguage = "en";
           this.translations = getBaseTranslations();
           this.loadingPromises = /* @__PURE__ */ new Map();
@@ -1268,11 +1208,6 @@
         getLanguage() {
           return this.currentLanguage;
         }
-        /**
-         * Ensure a language is available, loading built-ins on demand.
-         * @param {string} lang Language code
-         * @returns {Promise<string|null>} Normalized language code if available
-         */
         async ensureLanguage(lang) {
           const normalizedLang = (lang || "").toLowerCase();
           if (!normalizedLang) return this.currentLanguage;
@@ -1321,24 +1256,20 @@
             }
           }
           if (typeof value === "string") {
+            let result = value;
             Object.entries(replacements).forEach(([placeholder, replacement]) => {
-              value = value.replace(new RegExp(`{${placeholder}}`, "g"), replacement);
+              result = result.replace(new RegExp(`\\{${placeholder}\\}`, "g"), String(replacement));
             });
+            return result;
           }
-          return value;
+          return typeof value === "string" ? value : key;
         }
-        addTranslation(lang, translations2) {
+        addTranslation(lang, newTranslations) {
           if (!this.translations[lang]) {
             this.translations[lang] = {};
           }
-          Object.assign(this.translations[lang], translations2);
+          Object.assign(this.translations[lang], newTranslations);
         }
-        /**
-         * Load a language file from a URL (JSON or YAML)
-         * @param {string} langCode - Language code (e.g., 'pt', 'it')
-         * @param {string} url - URL to the language file (JSON or YAML)
-         * @returns {Promise<void>}
-         */
         async loadLanguageFromUrl(langCode, url) {
           if (this.loadingPromises.has(url)) {
             return this.loadingPromises.get(url);
@@ -1350,27 +1281,27 @@
                 throw new Error(`Failed to load language file: ${response.statusText}`);
               }
               const contentType = response.headers.get("content-type") || "";
-              let translations2;
+              let loadedTranslations;
               const buffer = await response.arrayBuffer();
               const utf8Text = new TextDecoder("utf-8").decode(buffer);
               if (contentType.includes("application/json") || url.endsWith(".json")) {
-                translations2 = JSON.parse(utf8Text);
+                loadedTranslations = JSON.parse(utf8Text);
               } else if (contentType.includes("text/yaml") || contentType.includes("application/x-yaml") || url.endsWith(".yaml") || url.endsWith(".yml")) {
                 try {
-                  translations2 = JSON.parse(utf8Text);
-                } catch (e) {
+                  loadedTranslations = JSON.parse(utf8Text);
+                } catch {
                   if (typeof window !== "undefined" && window.jsyaml) {
-                    translations2 = window.jsyaml.load(utf8Text);
+                    loadedTranslations = window.jsyaml.load(utf8Text);
                   } else {
                     console.warn("YAML parsing requires js-yaml library. Please include it or use JSON format.");
                     throw new Error("YAML parsing not available. Please use JSON format or include js-yaml library.");
                   }
                 }
               } else {
-                translations2 = JSON.parse(utf8Text);
+                loadedTranslations = JSON.parse(utf8Text);
               }
-              this.addTranslation(langCode, translations2);
-              return translations2;
+              this.addTranslation(langCode, loadedTranslations);
+              return loadedTranslations;
             } catch (error) {
               console.error(`Error loading language file from ${url}:`, error);
               throw error;
@@ -1381,11 +1312,6 @@
           this.loadingPromises.set(url, loadPromise);
           return loadPromise;
         }
-        /**
-         * Load multiple language files from URLs
-         * @param {Object} languageMap - Object mapping language codes to URLs
-         * @returns {Promise<void>}
-         */
         async loadLanguagesFromUrls(languageMap) {
           const promises = Object.entries(languageMap).map(
             ([langCode, url]) => this.loadLanguageFromUrl(langCode, url)
@@ -1397,15 +1323,13 @@
     }
   });
 
-  // src/utils/TimeUtils.js
+  // src/utils/TimeUtils.ts
   var TimeUtils;
   var init_TimeUtils = __esm({
-    "src/utils/TimeUtils.js"() {
+    "src/utils/TimeUtils.ts"() {
+      "use strict";
       init_i18n();
       TimeUtils = {
-        /**
-         * Format seconds to time string (HH:MM:SS or MM:SS)
-         */
         formatTime(seconds, alwaysShowHours = false) {
           if (!isFinite(seconds) || seconds < 0) {
             return alwaysShowHours ? "00:00:00" : "00:00";
@@ -1419,9 +1343,6 @@
           }
           return `${pad(minutes)}:${pad(secs)}`;
         },
-        /**
-         * Parse time string to seconds
-         */
         parseTime(timeString) {
           const parts = timeString.split(":").map((p) => parseInt(p, 10));
           if (parts.length === 3) {
@@ -1433,9 +1354,6 @@
           }
           return 0;
         },
-        /**
-         * Format seconds to readable duration
-         */
         formatDuration(seconds) {
           if (!isFinite(seconds) || seconds < 0) {
             return i18n.t("time.seconds", { count: 0 });
@@ -1458,9 +1376,6 @@
           }
           return parts.join(", ");
         },
-        /**
-         * Format percentage
-         */
         formatPercentage(value, total) {
           if (total === 0) return 0;
           return Math.round(value / total * 100);
@@ -1469,7 +1384,7 @@
     }
   });
 
-  // src/icons/Icons.js
+  // src/icons/Icons.ts
   function getIcon(name) {
     return Icons[name] || Icons.play;
   }
@@ -1538,7 +1453,8 @@
   }
   var iconPaths, svgWrapper, Icons;
   var init_Icons = __esm({
-    "src/icons/Icons.js"() {
+    "src/icons/Icons.ts"() {
+      "use strict";
       iconPaths = {
         play: `<path d="M8 5v14l11-7z"/>`,
         pause: `<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>`,
@@ -1587,7 +1503,7 @@
     }
   });
 
-  // src/utils/FocusUtils.js
+  // src/utils/FocusUtils.ts
   function focusElement(element, { delay = 0, preventScroll = true } = {}) {
     if (!element) return;
     requestAnimationFrame(() => {
@@ -1606,27 +1522,28 @@
     }
   }
   var init_FocusUtils = __esm({
-    "src/utils/FocusUtils.js"() {
+    "src/utils/FocusUtils.ts"() {
+      "use strict";
     }
   });
 
-  // src/utils/PerformanceUtils.js
+  // src/utils/PerformanceUtils.ts
   function debounce(func, wait = 100) {
     let timeout;
     return function executedFunction(...args) {
       const later = () => {
         clearTimeout(timeout);
-        func(...args);
+        func.apply(this, args);
       };
       clearTimeout(timeout);
       timeout = setTimeout(later, wait);
     };
   }
   function throttle(func, limit = 100) {
-    let inThrottle;
+    let inThrottle = false;
     return function executedFunction(...args) {
       if (!inThrottle) {
-        func(...args);
+        func.apply(this, args);
         inThrottle = true;
         setTimeout(() => inThrottle = false, limit);
       }
@@ -1647,41 +1564,36 @@
     setTimeout(execute, timeout);
   }
   var init_PerformanceUtils = __esm({
-    "src/utils/PerformanceUtils.js"() {
+    "src/utils/PerformanceUtils.ts"() {
+      "use strict";
     }
   });
 
-  // src/utils/StorageManager.js
+  // src/utils/StorageManager.ts
   var _StorageManager, StorageManager;
   var init_StorageManager = __esm({
-    "src/utils/StorageManager.js"() {
+    "src/utils/StorageManager.ts"() {
+      "use strict";
       _StorageManager = class _StorageManager {
         constructor(namespace = "vidply") {
+          __publicField(this, "namespace");
+          __publicField(this, "storage");
           this.namespace = namespace;
           this.storage = this.isStorageAvailable() ? localStorage : null;
         }
-        /**
-         * Check if localStorage is available
-         */
         isStorageAvailable() {
           try {
             const test = "__storage_test__";
             localStorage.setItem(test, test);
             localStorage.removeItem(test);
             return true;
-          } catch (e) {
+          } catch {
             return false;
           }
         }
-        /**
-         * Get a namespaced key
-         */
         getKey(key) {
           return `${this.namespace}_${key}`;
         }
-        /**
-         * Save a value to storage
-         */
         set(key, value) {
           if (!this.storage) return false;
           try {
@@ -1693,9 +1605,6 @@
             return false;
           }
         }
-        /**
-         * Get a value from storage
-         */
         get(key, defaultValue = null) {
           if (!this.storage) return defaultValue;
           try {
@@ -1707,9 +1616,6 @@
             return defaultValue;
           }
         }
-        /**
-         * Remove a value from storage
-         */
         remove(key) {
           if (!this.storage) return false;
           try {
@@ -1721,9 +1627,6 @@
             return false;
           }
         }
-        /**
-         * Clear all namespaced values
-         */
         clear() {
           if (!this.storage) return false;
           try {
@@ -1739,61 +1642,30 @@
             return false;
           }
         }
-        /**
-         * Save transcript preferences
-         */
         saveTranscriptPreferences(preferences) {
           return this.set("transcript_preferences", preferences);
         }
-        /**
-         * Get transcript preferences
-         */
         getTranscriptPreferences() {
           return this.get("transcript_preferences", null);
         }
-        /**
-         * Save caption preferences
-         */
         saveCaptionPreferences(preferences) {
           return this.set("caption_preferences", preferences);
         }
-        /**
-         * Get caption preferences
-         */
         getCaptionPreferences() {
           return this.get("caption_preferences", null);
         }
-        /**
-         * Save player preferences (volume, speed, etc.)
-         */
         savePlayerPreferences(preferences) {
           return this.set("player_preferences", preferences);
         }
-        /**
-         * Get player preferences
-         */
         getPlayerPreferences() {
           return this.get("player_preferences", null);
         }
-        /**
-         * Save sign language preferences (position and size)
-         */
         saveSignLanguagePreferences(preferences) {
           return this.set("sign_language_preferences", preferences);
         }
-        /**
-         * Get sign language preferences
-         */
         getSignLanguagePreferences() {
           return this.get("sign_language_preferences", null);
         }
-        /**
-         * Save watch progress for a video
-         * @param {string} videoId - Unique identifier for the video
-         * @param {number} currentTime - Current playback position in seconds
-         * @param {number} duration - Total duration of the video in seconds
-         * @returns {boolean} Whether the save was successful
-         */
         saveWatchProgress(videoId, currentTime, duration) {
           if (!videoId || !duration || duration <= 0) return false;
           const allProgress = this.get("watch_progress", {});
@@ -1814,21 +1686,11 @@
           }
           return this.set("watch_progress", allProgress);
         }
-        /**
-         * Get watch progress for a video
-         * @param {string} videoId - Unique identifier for the video
-         * @returns {Object|null} Watch progress object or null if not found
-         */
         getWatchProgress(videoId) {
           if (!videoId) return null;
           const allProgress = this.get("watch_progress", {});
           return allProgress[videoId] || null;
         }
-        /**
-         * Clear watch progress for a video
-         * @param {string} videoId - Unique identifier for the video
-         * @returns {boolean} Whether the clear was successful
-         */
         clearWatchProgress(videoId) {
           if (!videoId) return false;
           const allProgress = this.get("watch_progress", {});
@@ -1839,27 +1701,31 @@
           return true;
         }
       };
-      // ============================================
-      // Watch Progress Methods
-      // ============================================
-      /**
-       * Maximum number of watch progress entries to store
-       */
       __publicField(_StorageManager, "MAX_WATCH_PROGRESS_ENTRIES", 100);
       StorageManager = _StorageManager;
     }
   });
 
-  // src/controls/CaptionManager.js
+  // src/controls/CaptionManager.ts
   var CaptionManager;
   var init_CaptionManager = __esm({
-    "src/controls/CaptionManager.js"() {
+    "src/controls/CaptionManager.ts"() {
+      "use strict";
       init_DOMUtils();
       init_i18n();
       init_StorageManager();
       init_PerformanceUtils();
       CaptionManager = class {
         constructor(player) {
+          __publicField(this, "player");
+          __publicField(this, "_altCueChangeHandler");
+          __publicField(this, "cueChangeHandler");
+          __publicField(this, "currentCue");
+          __publicField(this, "currentTrack");
+          __publicField(this, "debouncedPositionCaptions");
+          __publicField(this, "element");
+          __publicField(this, "storage");
+          __publicField(this, "tracks");
           this.player = player;
           this.element = null;
           this.tracks = [];
@@ -2250,16 +2116,20 @@
     }
   });
 
-  // src/renderers/HTML5Renderer.js
+  // src/renderers/HTML5Renderer.ts
   var HTML5Renderer_exports = {};
   __export(HTML5Renderer_exports, {
     HTML5Renderer: () => HTML5Renderer
   });
   var HTML5Renderer;
   var init_HTML5Renderer = __esm({
-    "src/renderers/HTML5Renderer.js"() {
+    "src/renderers/HTML5Renderer.ts"() {
+      "use strict";
       HTML5Renderer = class {
         constructor(player) {
+          __publicField(this, "player");
+          __publicField(this, "media");
+          __publicField(this, "_didDeferredLoad");
           this.player = player;
           this.media = player.element;
           this._didDeferredLoad = false;
@@ -2368,7 +2238,7 @@
               this.player.emit("progress", buffered);
             }
           });
-          this.media.addEventListener("error", (e) => {
+          this.media.addEventListener("error", (_e) => {
             this.player.handleError(this.media.error);
           });
           this.media.addEventListener("ratechange", () => {
@@ -2462,7 +2332,7 @@
           }
           return sources.map((source, index) => {
             const label = source.getAttribute("data-quality") || source.getAttribute("data-label") || source.getAttribute("label") || "";
-            const height = source.getAttribute("data-height") || this.extractHeightFromLabel(label);
+            const height = source.getAttribute("data-height") || String(this.extractHeightFromLabel(label));
             const width = source.getAttribute("data-width") || "";
             return {
               index,
@@ -2542,18 +2412,44 @@
     }
   });
 
-  // src/utils/DraggableResizable.js
+  // src/utils/DraggableResizable.ts
   var DraggableResizable;
   var init_DraggableResizable = __esm({
-    "src/utils/DraggableResizable.js"() {
+    "src/utils/DraggableResizable.ts"() {
+      "use strict";
       DraggableResizable = class {
         constructor(element, options = {}) {
+          __publicField(this, "element");
+          __publicField(this, "options");
+          __publicField(this, "isDragging");
+          __publicField(this, "isResizing");
+          __publicField(this, "resizeDirection");
+          __publicField(this, "dragOffsetX");
+          __publicField(this, "dragOffsetY");
+          __publicField(this, "positionOffsetX");
+          __publicField(this, "positionOffsetY");
+          __publicField(this, "initialMouseX");
+          __publicField(this, "initialMouseY");
+          __publicField(this, "needsPositionConversion");
+          __publicField(this, "resizeStartX");
+          __publicField(this, "resizeStartY");
+          __publicField(this, "resizeStartWidth");
+          __publicField(this, "resizeStartHeight");
+          __publicField(this, "resizeStartLeft");
+          __publicField(this, "resizeStartTop");
+          __publicField(this, "keyboardDragMode");
+          __publicField(this, "keyboardResizeMode");
+          __publicField(this, "pointerResizeMode");
+          __publicField(this, "manuallyPositioned");
+          __publicField(this, "resizeHandlesManaged");
+          __publicField(this, "resizeIndicatorElement");
+          __publicField(this, "handlers");
+          __publicField(this, "activePointerId");
+          __publicField(this, "activePointerType");
           this.element = element;
           this.options = {
             dragHandle: null,
-            // Element to use as drag handle (defaults to element itself)
             resizeHandles: [],
-            // Array of resize handle elements
             onDragStart: null,
             onDrag: null,
             onDragEnd: null,
@@ -2561,7 +2457,6 @@
             onResize: null,
             onResizeEnd: null,
             constrainToViewport: true,
-            // Allow movement outside viewport?
             minWidth: 150,
             minHeight: 100,
             maintainAspectRatio: false,
@@ -2575,9 +2470,7 @@
             onPointerResizeToggle: null,
             classPrefix: "draggable",
             storage: null,
-            // StorageManager instance for saving position/size
             storageKey: null,
-            // Key for localStorage (if storage is provided)
             ...options
           };
           this.isDragging = false;
@@ -2690,7 +2583,8 @@
           var _a, _b;
           if (e.isPrimary === false) return;
           if (e.pointerType === "mouse" && e.button !== 0) return;
-          if (e.target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
+          const target = e.target;
+          if (target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
             return;
           }
           if (this.options.onDragStart && !this.options.onDragStart(e)) {
@@ -2726,7 +2620,8 @@
           this.activePointerType = null;
         }
         onMouseDown(e) {
-          if (e.target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
+          const target = e.target;
+          if (target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
             return;
           }
           if (this.options.onDragStart && !this.options.onDragStart(e)) {
@@ -2736,7 +2631,8 @@
           e.preventDefault();
         }
         onTouchStart(e) {
-          if (e.target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
+          const target = e.target;
+          if (target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
             return;
           }
           if (this.options.onDragStart && !this.options.onDragStart(e)) {
@@ -2768,8 +2664,8 @@
           e.stopPropagation();
           const handle = e.target;
           this.resizeDirection = handle.getAttribute("data-direction");
-          const clientX = e.clientX || ((_b = (_a = e.touches) == null ? void 0 : _a[0]) == null ? void 0 : _b.clientX);
-          const clientY = e.clientY || ((_d = (_c = e.touches) == null ? void 0 : _c[0]) == null ? void 0 : _d.clientY);
+          const clientX = "clientX" in e ? e.clientX : (_b = (_a = e.touches) == null ? void 0 : _a[0]) == null ? void 0 : _b.clientX;
+          const clientY = "clientY" in e ? e.clientY : (_d = (_c = e.touches) == null ? void 0 : _c[0]) == null ? void 0 : _d.clientY;
           this.startResizing(clientX, clientY);
         }
         onMouseMove(e) {
@@ -2964,35 +2860,36 @@
           let newHeight = this.resizeStartHeight;
           let newLeft = this.resizeStartLeft;
           let newTop = this.resizeStartTop;
-          if (this.resizeDirection.includes("e")) {
+          const resizeDirection = this.resizeDirection ?? "";
+          if (resizeDirection.includes("e")) {
             newWidth = Math.max(this.options.minWidth, this.resizeStartWidth + deltaX);
           }
-          if (this.resizeDirection.includes("w")) {
+          if (resizeDirection.includes("w")) {
             const proposedWidth = Math.max(this.options.minWidth, this.resizeStartWidth - deltaX);
             newLeft = this.resizeStartLeft + (this.resizeStartWidth - proposedWidth);
             newWidth = proposedWidth;
           }
           const maxWidthOption = typeof this.options.maxWidth === "function" ? this.options.maxWidth() : this.options.maxWidth;
-          if (Number.isFinite(maxWidthOption)) {
+          if (typeof maxWidthOption === "number" && Number.isFinite(maxWidthOption)) {
             const clampedWidth = Math.min(newWidth, maxWidthOption);
-            if (clampedWidth !== newWidth && this.resizeDirection.includes("w")) {
+            if (clampedWidth !== newWidth && resizeDirection.includes("w")) {
               newLeft += newWidth - clampedWidth;
             }
             newWidth = clampedWidth;
           }
           if (!this.options.maintainAspectRatio) {
-            if (this.resizeDirection.includes("s")) {
+            if (resizeDirection.includes("s")) {
               newHeight = Math.max(this.options.minHeight, this.resizeStartHeight + deltaY);
             }
-            if (this.resizeDirection.includes("n")) {
+            if (resizeDirection.includes("n")) {
               const proposedHeight = Math.max(this.options.minHeight, this.resizeStartHeight - deltaY);
               newTop = this.resizeStartTop + (this.resizeStartHeight - proposedHeight);
               newHeight = proposedHeight;
             }
             const maxHeightOption = typeof this.options.maxHeight === "function" ? this.options.maxHeight() : this.options.maxHeight;
-            if (Number.isFinite(maxHeightOption)) {
+            if (typeof maxHeightOption === "number" && Number.isFinite(maxHeightOption)) {
               const clampedHeight = Math.min(newHeight, maxHeightOption);
-              if (clampedHeight !== newHeight && this.resizeDirection.includes("n")) {
+              if (clampedHeight !== newHeight && resizeDirection.includes("n")) {
                 newTop += newHeight - clampedHeight;
               }
               newHeight = clampedHeight;
@@ -3004,10 +2901,10 @@
           } else {
             this.element.style.height = "auto";
           }
-          if (this.resizeDirection.includes("w")) {
+          if (resizeDirection.includes("w")) {
             this.element.style.left = `${newLeft}px`;
           }
-          if (this.resizeDirection.includes("n") && !this.options.maintainAspectRatio) {
+          if (resizeDirection.includes("n") && !this.options.maintainAspectRatio) {
             this.element.style.top = `${newTop}px`;
           }
           if (this.options.onResize) {
@@ -3228,16 +3125,24 @@
     }
   });
 
-  // src/utils/MenuUtils.js
-  function createMenuItem({ classPrefix, itemClass, icon, label, ariaLabel, onClick, hasTextClass = false }) {
+  // src/utils/MenuUtils.ts
+  function createMenuItem({
+    classPrefix,
+    itemClass,
+    icon,
+    label,
+    ariaLabel,
+    onClick,
+    hasTextClass = false
+  }) {
     const isI18nKeyForAria = typeof label === "string" && (label.startsWith("transcript.") || label.startsWith("player.") || label.startsWith("settings."));
     const ariaLabelText = ariaLabel || (isI18nKeyForAria ? i18n.t(label) || label : label);
     const button = DOMUtils.createElement("button", {
       className: itemClass,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": ariaLabelText,
-        "tabindex": "-1"
+        tabindex: "-1"
       }
     });
     if (icon) {
@@ -3248,9 +3153,7 @@
     const text = DOMUtils.createElement("span", {
       textContent,
       className: hasTextClass ? `${classPrefix}-settings-text` : void 0,
-      attributes: {
-        "aria-hidden": "true"
-      }
+      attributes: { "aria-hidden": "true" }
     });
     button.appendChild(text);
     if (onClick) {
@@ -3259,13 +3162,13 @@
     return button;
   }
   function attachMenuKeyboardNavigation(menu, button, itemSelector, onClose) {
-    if (!menu) return;
+    if (!menu) return void 0;
     const menuItems = Array.from(menu.querySelectorAll(itemSelector));
-    if (menuItems.length === 0) return;
+    if (menuItems.length === 0) return void 0;
     const handleKeyDown = (e) => {
       const currentIndex = menuItems.indexOf(document.activeElement);
       switch (e.key) {
-        case "ArrowDown":
+        case "ArrowDown": {
           e.preventDefault();
           e.stopPropagation();
           const nextIndex = (currentIndex + 1) % menuItems.length;
@@ -3275,7 +3178,8 @@
           menuItems[nextIndex].focus({ preventScroll: false });
           menuItems[nextIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
           break;
-        case "ArrowUp":
+        }
+        case "ArrowUp": {
           e.preventDefault();
           e.stopPropagation();
           const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
@@ -3285,7 +3189,8 @@
           menuItems[prevIndex].focus({ preventScroll: false });
           menuItems[prevIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
           break;
-        case "Home":
+        }
+        case "Home": {
           e.preventDefault();
           e.stopPropagation();
           menuItems.forEach((item, idx) => {
@@ -3294,7 +3199,8 @@
           menuItems[0].focus({ preventScroll: false });
           menuItems[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
           break;
-        case "End":
+        }
+        case "End": {
           e.preventDefault();
           e.stopPropagation();
           const lastIndex = menuItems.length - 1;
@@ -3304,8 +3210,9 @@
           menuItems[lastIndex].focus({ preventScroll: false });
           menuItems[lastIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
           break;
+        }
         case "Enter":
-        case " ":
+        case " ": {
           e.preventDefault();
           e.stopPropagation();
           if (document.activeElement && menuItems.includes(document.activeElement)) {
@@ -3319,6 +3226,7 @@
             }
           }
           break;
+        }
         case "Escape":
           e.preventDefault();
           e.stopPropagation();
@@ -3345,7 +3253,8 @@
     }, delay);
   }
   var init_MenuUtils = __esm({
-    "src/utils/MenuUtils.js"() {
+    "src/utils/MenuUtils.ts"() {
+      "use strict";
       init_DOMUtils();
       init_Icons();
       init_i18n();
@@ -3353,7 +3262,7 @@
     }
   });
 
-  // src/utils/FormUtils.js
+  // src/utils/FormUtils.ts
   function createLabeledSelect({
     classPrefix,
     labelClass,
@@ -3361,7 +3270,7 @@
     labelText,
     selectId,
     hidden = false,
-    onChange = null,
+    onChange = void 0,
     options = []
   }) {
     const isI18nKey = typeof labelText === "string" && (labelText.startsWith("transcript.") || labelText.startsWith("player.") || labelText.startsWith("settings.") || labelText.startsWith("captions."));
@@ -3370,23 +3279,23 @@
       className: labelClass,
       textContent: labelTextContent,
       attributes: {
-        "for": selectId,
-        "style": hidden ? "display: none;" : void 0
+        for: selectId,
+        style: hidden ? "display: none;" : void 0
       }
     });
     const select = DOMUtils.createElement("select", {
       className: selectClass,
       attributes: {
-        "id": selectId,
-        "style": hidden ? "display: none;" : void 0
+        id: selectId,
+        style: hidden ? "display: none;" : void 0
       }
     });
     options.forEach((opt) => {
       const option = DOMUtils.createElement("option", {
         textContent: opt.text,
         attributes: {
-          "value": opt.value,
-          "selected": opt.selected ? "selected" : void 0
+          value: opt.value,
+          selected: opt.selected ? "selected" : void 0
         }
       });
       select.appendChild(option);
@@ -3405,23 +3314,32 @@
     });
   }
   var init_FormUtils = __esm({
-    "src/utils/FormUtils.js"() {
+    "src/utils/FormUtils.ts"() {
+      "use strict";
       init_DOMUtils();
       init_i18n();
     }
   });
 
-  // src/core/AudioDescriptionManager.js
+  // src/core/AudioDescriptionManager.ts
   var AudioDescriptionManager_exports = {};
   __export(AudioDescriptionManager_exports, {
     AudioDescriptionManager: () => AudioDescriptionManager
   });
   var AudioDescriptionManager;
   var init_AudioDescriptionManager = __esm({
-    "src/core/AudioDescriptionManager.js"() {
+    "src/core/AudioDescriptionManager.ts"() {
+      "use strict";
       init_CaptionManager();
       AudioDescriptionManager = class {
         constructor(player) {
+          __publicField(this, "player");
+          __publicField(this, "captionTracks");
+          __publicField(this, "desiredState");
+          __publicField(this, "enabled");
+          __publicField(this, "originalSource");
+          __publicField(this, "sourceElement");
+          __publicField(this, "src");
           this.player = player;
           this.enabled = false;
           this.desiredState = false;
@@ -3737,6 +3655,9 @@
           }
           sourceElements.forEach((sourceEl) => sourceEl.remove());
           sourcesToUpdate.forEach((sourceInfo) => {
+            if (!sourceInfo.src) {
+              return;
+            }
             const newSource = document.createElement("source");
             newSource.setAttribute("src", sourceInfo.src);
             if (sourceInfo.type) {
@@ -3907,6 +3828,9 @@
             this.player.element.poster = posterValue;
           }
           const originalSrcToUse = this.originalSource || this.player.originalSrc;
+          if (!originalSrcToUse) {
+            return;
+          }
           this.player.element.src = originalSrcToUse;
           this.player.element.load();
           await this._waitForMediaReady(currentTime > 0 || wasPlaying);
@@ -3966,14 +3890,15 @@
     }
   });
 
-  // src/core/SignLanguageManager.js
+  // src/core/SignLanguageManager.ts
   var SignLanguageManager_exports = {};
   __export(SignLanguageManager_exports, {
     SignLanguageManager: () => SignLanguageManager
   });
   var SignLanguageManager;
   var init_SignLanguageManager = __esm({
-    "src/core/SignLanguageManager.js"() {
+    "src/core/SignLanguageManager.ts"() {
+      "use strict";
       init_DOMUtils();
       init_Icons();
       init_i18n();
@@ -3982,6 +3907,38 @@
       init_FormUtils();
       SignLanguageManager = class {
         constructor(player) {
+          __publicField(this, "player");
+          __publicField(this, "_mainViewMutedBefore");
+          __publicField(this, "_mainViewUsingSourceSwap");
+          __publicField(this, "currentLanguage");
+          __publicField(this, "customKeyHandler");
+          __publicField(this, "desiredPosition");
+          __publicField(this, "draggable");
+          __publicField(this, "dragOptionButton");
+          __publicField(this, "dragOptionText");
+          __publicField(this, "handlers");
+          __publicField(this, "header");
+          __publicField(this, "inMainView");
+          __publicField(this, "interactionHandlers");
+          __publicField(this, "mainViewOriginalSources");
+          __publicField(this, "mainViewOriginalSrc");
+          __publicField(this, "resizeHandles");
+          __publicField(this, "resizeOptionButton");
+          __publicField(this, "resizeOptionText");
+          __publicField(this, "selector");
+          __publicField(this, "settingsButton");
+          __publicField(this, "settingsHandlers");
+          __publicField(this, "settingsMenu");
+          __publicField(this, "settingsMenuJustOpened");
+          __publicField(this, "settingsMenuKeyHandler");
+          __publicField(this, "settingsMenuVisible");
+          __publicField(this, "sources");
+          __publicField(this, "src");
+          __publicField(this, "enabled");
+          __publicField(this, "documentClickHandler");
+          __publicField(this, "documentClickHandlerAdded");
+          __publicField(this, "video");
+          __publicField(this, "wrapper");
           this.player = player;
           this.src = player.options.signLanguageSrc;
           this.sources = player.options.signLanguageSources || {};
@@ -4056,17 +4013,19 @@
           this._createHeader(hasMultipleSources, initialLang);
           this._createVideo(initialSrc);
           this._createResizeHandles();
-          this.wrapper.appendChild(this.header);
-          this.wrapper.appendChild(this.video);
-          this.resizeHandles.forEach((handle) => this.wrapper.appendChild(handle));
+          const wrapper = this.wrapper;
+          wrapper.appendChild(this.header);
+          wrapper.appendChild(this.video);
+          this.resizeHandles.forEach((handle) => wrapper.appendChild(handle));
           this._applyInitialSize();
-          this.player.container.appendChild(this.wrapper);
+          this.player.container.appendChild(wrapper);
           requestAnimationFrame(() => {
             this.constrainPosition();
           });
-          this.video.currentTime = this.player.state.currentTime;
+          const video = this.video;
+          video.currentTime = this.player.state.currentTime;
           if (!this.player.state.paused) {
-            this.video.play();
+            video.play();
           }
           this._setupInteraction();
           this._setupEventHandlers(hasMultipleSources);
@@ -4137,8 +4096,9 @@
             this.mainViewOriginalSources = sourceElements;
             this.mainViewOriginalSources.forEach((source) => source.remove());
             const signSource = document.createElement("source");
-            signSource.setAttribute("src", signSrc);
-            const type = this._inferVideoType(signSrc);
+            const signSrcValue = signSrc ?? "";
+            signSource.setAttribute("src", signSrcValue);
+            const type = this._inferVideoType(signSrcValue);
             if (type) {
               signSource.setAttribute("type", type);
             }
@@ -4150,11 +4110,11 @@
             }
             this._mainViewUsingSourceSwap = true;
           } else {
-            el.src = signSrc;
+            el.src = signSrc ?? "";
             this._mainViewUsingSourceSwap = false;
           }
           el.muted = true;
-          this.player.currentSource = signSrc;
+          this.player.currentSource = signSrc ?? "";
           if (typeof this.player.invalidateTrackCache === "function") {
             this.player.invalidateTrackCache();
           }
@@ -4183,7 +4143,7 @@
          * Disable sign language in main view: restore main video src.
          */
         async disableInMainView() {
-          var _a, _b;
+          var _a, _b, _c;
           if (!this.inMainView) return;
           if (!this.mainViewOriginalSrc && !this.mainViewOriginalSources) {
             this.inMainView = false;
@@ -4213,7 +4173,7 @@
             el.src = this.mainViewOriginalSrc;
           }
           el.muted = this._mainViewMutedBefore;
-          this.player.currentSource = this.mainViewOriginalSrc || el.querySelector("source") && el.querySelector("source").src || "";
+          this.player.currentSource = this.mainViewOriginalSrc || ((_a = el.querySelector("source")) == null ? void 0 : _a.src) || "";
           if (typeof this.player.invalidateTrackCache === "function") {
             this.player.invalidateTrackCache();
           }
@@ -4226,7 +4186,7 @@
             try {
               await this.player.play();
             } catch (e) {
-              (_b = (_a = this.player).log) == null ? void 0 : _b.call(_a, "Sign language main view: play after restore failed", e, "warn");
+              (_c = (_b = this.player).log) == null ? void 0 : _c.call(_b, "Sign language main view: play after restore failed", e, "warn");
             }
           }
           this.mainViewOriginalSrc = null;
@@ -4533,7 +4493,7 @@
         _createVideo(src) {
           this.video = document.createElement("video");
           this.video.className = "vidply-sign-language-video";
-          this.video.src = src;
+          this.video.src = src ?? "";
           this.video.setAttribute("aria-label", i18n.t("player.signLanguage"));
           this.video.muted = true;
           this.video.setAttribute("playsinline", "");
@@ -4606,7 +4566,8 @@
               });
             },
             onDragStart: (e) => {
-              if (e.target.closest(`.${classPrefix}-sign-language-close`) || e.target.closest(`.${classPrefix}-sign-language-settings`) || e.target.closest(`.${classPrefix}-sign-language-select`) || e.target.closest(`.${classPrefix}-sign-language-label`) || e.target.closest(`.${classPrefix}-sign-language-settings-menu`)) {
+              const target = e.target;
+              if (target.closest(`.${classPrefix}-sign-language-close`) || target.closest(`.${classPrefix}-sign-language-settings`) || target.closest(`.${classPrefix}-sign-language-select`) || target.closest(`.${classPrefix}-sign-language-label`) || target.closest(`.${classPrefix}-sign-language-settings-menu`)) {
                 return false;
               }
               return true;
@@ -4622,8 +4583,9 @@
          * Setup custom keyboard handler
          */
         _setupCustomKeyHandler() {
+          var _a;
           this.customKeyHandler = (e) => {
-            var _a, _b, _c, _d;
+            var _a2, _b, _c, _d, _e;
             const key = e.key.toLowerCase();
             if (this.settingsMenuVisible) return;
             if (key === "home") {
@@ -4642,30 +4604,30 @@
               e.preventDefault();
               e.stopPropagation();
               if (this.toggleResizeMode()) {
-                this.wrapper.focus({ preventScroll: true });
+                (_a2 = this.wrapper) == null ? void 0 : _a2.focus({ preventScroll: true });
               }
               return;
             }
             if (key === "escape") {
               e.preventDefault();
               e.stopPropagation();
-              if ((_a = this.draggable) == null ? void 0 : _a.pointerResizeMode) {
+              if ((_b = this.draggable) == null ? void 0 : _b.pointerResizeMode) {
                 this.draggable.disablePointerResizeMode();
                 return;
               }
-              if ((_b = this.draggable) == null ? void 0 : _b.keyboardDragMode) {
+              if ((_c = this.draggable) == null ? void 0 : _c.keyboardDragMode) {
                 this.draggable.disableKeyboardDragMode();
                 return;
               }
               this.disable();
-              if ((_d = (_c = this.player.controlBar) == null ? void 0 : _c.controls) == null ? void 0 : _d.signLanguage) {
+              if ((_e = (_d = this.player.controlBar) == null ? void 0 : _d.controls) == null ? void 0 : _e.signLanguage) {
                 setTimeout(() => {
                   this.player.controlBar.controls.signLanguage.focus({ preventScroll: true });
                 }, 0);
               }
             }
           };
-          this.wrapper.addEventListener("keydown", this.customKeyHandler);
+          (_a = this.wrapper) == null ? void 0 : _a.addEventListener("keydown", this.customKeyHandler);
         }
         /**
          * Setup event handlers
@@ -4809,10 +4771,11 @@
           if (this.documentClickHandlerAdded) return;
           this.documentClickHandler = (e) => {
             if (this.settingsMenuJustOpened) return;
-            if (this.settingsButton && (this.settingsButton === e.target || this.settingsButton.contains(e.target))) {
+            const targetNode = e.target;
+            if (this.settingsButton && (this.settingsButton === targetNode || targetNode && this.settingsButton.contains(targetNode))) {
               return;
             }
-            if (this.settingsMenu && this.settingsMenu.contains(e.target)) {
+            if (this.settingsMenu && targetNode && this.settingsMenu.contains(targetNode)) {
               return;
             }
             if (this.settingsMenuVisible) {
@@ -4820,7 +4783,9 @@
             }
           };
           setTimeout(() => {
-            document.addEventListener("mousedown", this.documentClickHandler, true);
+            const documentClickHandler = this.documentClickHandler;
+            if (!documentClickHandler) return;
+            document.addEventListener("mousedown", documentClickHandler, true);
             this.documentClickHandlerAdded = true;
           }, 300);
         }
@@ -4938,7 +4903,7 @@
             this.settingsButton,
             `.${this.player.options.classPrefix}-sign-language-settings-item`,
             () => this.hideSettingsMenu({ focusButton: true })
-          );
+          ) ?? null;
         }
         /**
          * Position settings menu immediately
@@ -5024,10 +4989,12 @@
          * Enable move mode visual feedback
          */
         _enableMoveMode() {
-          this.wrapper.classList.add(`${this.player.options.classPrefix}-sign-move-mode`);
+          var _a;
+          (_a = this.wrapper) == null ? void 0 : _a.classList.add(`${this.player.options.classPrefix}-sign-move-mode`);
           this._updateResizeOptionState();
           setTimeout(() => {
-            this.wrapper.classList.remove(`${this.player.options.classPrefix}-sign-move-mode`);
+            var _a2;
+            (_a2 = this.wrapper) == null ? void 0 : _a2.classList.remove(`${this.player.options.classPrefix}-sign-move-mode`);
           }, 2e3);
         }
         /**
@@ -5183,14 +5150,15 @@
     }
   });
 
-  // src/controls/TranscriptManager.js
+  // src/controls/TranscriptManager.ts
   var TranscriptManager_exports = {};
   __export(TranscriptManager_exports, {
     TranscriptManager: () => TranscriptManager
   });
   var TranscriptManager;
   var init_TranscriptManager = __esm({
-    "src/controls/TranscriptManager.js"() {
+    "src/controls/TranscriptManager.ts"() {
+      "use strict";
       init_DOMUtils();
       init_TimeUtils();
       init_Icons();
@@ -5202,6 +5170,51 @@
       init_FormUtils();
       TranscriptManager = class {
         constructor(player) {
+          __publicField(this, "player");
+          __publicField(this, "_cueUpdateTimeout");
+          __publicField(this, "autoscrollCheckbox");
+          __publicField(this, "autoscrollEnabled");
+          __publicField(this, "availableTranscriptLanguages");
+          __publicField(this, "currentActiveEntry");
+          __publicField(this, "currentTranscriptLanguage");
+          __publicField(this, "customKeyHandler");
+          __publicField(this, "documentClickHandlerAdded");
+          __publicField(this, "draggableResizable");
+          __publicField(this, "dragOptionButton");
+          __publicField(this, "dragOptionText");
+          __publicField(this, "handlers");
+          __publicField(this, "headerLeft");
+          __publicField(this, "isVisible");
+          __publicField(this, "languageLabel");
+          __publicField(this, "languageSelector");
+          __publicField(this, "languageSelectorHandler");
+          __publicField(this, "languageSelectorWrapper");
+          __publicField(this, "liveRegion");
+          __publicField(this, "metadataCueChangeHandler");
+          __publicField(this, "metadataCues");
+          __publicField(this, "resizeModeIndicatorTimeout");
+          __publicField(this, "resizeModeIndicator");
+          __publicField(this, "resizeOptionButton");
+          __publicField(this, "resizeOptionText");
+          __publicField(this, "settingsButton");
+          __publicField(this, "settingsMenuJustOpened");
+          __publicField(this, "settingsMenuKeyHandler");
+          __publicField(this, "settingsMenu");
+          __publicField(this, "settingsMenuVisible");
+          __publicField(this, "showTimestamps");
+          __publicField(this, "showTimestampsButton");
+          __publicField(this, "showTimestampsText");
+          __publicField(this, "storage");
+          __publicField(this, "styleDialog");
+          __publicField(this, "styleDialogJustOpened");
+          __publicField(this, "styleDialogVisible");
+          __publicField(this, "timeouts");
+          __publicField(this, "transcriptContent");
+          __publicField(this, "transcriptEntries");
+          __publicField(this, "transcriptHeader");
+          __publicField(this, "transcriptResizeHandles");
+          __publicField(this, "transcriptStyle");
+          __publicField(this, "transcriptWindow");
           this.player = player;
           this.transcriptWindow = null;
           this.transcriptEntries = [];
@@ -5523,7 +5536,7 @@
             }
           };
           this.documentClickHandlerAdded = false;
-          let resizeTimeout;
+          let resizeTimeout = null;
           this.handlers.resize = () => {
             if (resizeTimeout) {
               this.clearManagedTimeout(resizeTimeout);
@@ -5557,12 +5570,13 @@
          * Position transcript window next to video
          */
         positionTranscript() {
-          if (!this.transcriptWindow || !this.player.videoWrapper || !this.isVisible) return;
+          const playerWithVideoWrapper = this.player;
+          if (!this.transcriptWindow || !playerWithVideoWrapper.videoWrapper || !this.isVisible) return;
           if (this.draggableResizable && this.draggableResizable.manuallyPositioned) {
             return;
           }
           const isMobile2 = window.innerWidth < 768;
-          const videoRect = this.player.videoWrapper.getBoundingClientRect();
+          const videoRect = playerWithVideoWrapper.videoWrapper.getBoundingClientRect();
           const isFullscreen = this.player.state.fullscreen;
           if (isMobile2 && !isFullscreen) {
             this.transcriptWindow.style.position = "relative";
@@ -5591,7 +5605,7 @@
             if (this.transcriptHeader) {
               this.transcriptHeader.style.cursor = "default";
             }
-            const videoWrapper = this.player.videoWrapper;
+            const videoWrapper = playerWithVideoWrapper.videoWrapper;
             if (videoWrapper && videoWrapper.nextSibling !== this.transcriptWindow) {
               videoWrapper.parentNode.insertBefore(this.transcriptWindow, videoWrapper.nextSibling);
             }
@@ -5662,7 +5676,7 @@
               const overlayMaxHeight = 280;
               const overlayWidth = Math.min(overlayMaxWidth, videoRect.width - 40);
               const overlayHeight = Math.min(overlayMaxHeight, videoRect.height - 120);
-              const videoWrapperRect = this.player.videoWrapper.getBoundingClientRect();
+              const videoWrapperRect = playerWithVideoWrapper.videoWrapper.getBoundingClientRect();
               const controlsHeight = 70;
               const overlayActualHeight = Math.max(180, overlayHeight);
               const topPosition = videoWrapperRect.bottom - containerRect.top - controlsHeight - overlayActualHeight;
@@ -5792,17 +5806,19 @@
           if (this.currentTranscriptLanguage) {
             descriptionTrack = textTracks.find(
               (track) => track.kind === "descriptions" && track.language === this.currentTranscriptLanguage
-            );
+            ) || null;
           }
           if (!descriptionTrack) {
-            descriptionTrack = textTracks.find((track) => track.kind === "descriptions");
+            descriptionTrack = textTracks.find((track) => track.kind === "descriptions") || null;
           }
           const metadataTrack = textTracks.find((track) => track.kind === "metadata");
           if (!captionTrack && !descriptionTrack && !metadataTrack) {
             this.showNoTranscriptMessage();
             return;
           }
-          const tracksToLoad = [captionTrack, descriptionTrack, metadataTrack].filter(Boolean);
+          const tracksToLoad = [captionTrack, descriptionTrack, metadataTrack].filter(
+            (track) => Boolean(track)
+          );
           tracksToLoad.forEach((track) => {
             if (track.mode === "disabled") {
               track.mode = "hidden";
@@ -5925,7 +5941,8 @@
          * Parses metadata text and emits events or triggers actions
          */
         handleMetadataCue(cue) {
-          const text = cue.text.trim();
+          const cueText = cue.text || "";
+          const text = cueText.trim();
           if (this.player.options.debug) {
             console.log("[VidPly Metadata] Processing cue:", {
               time: cue.startTime,
@@ -5984,7 +6001,7 @@
          * Create a single transcript entry element
          */
         createTranscriptEntry(cue, index, type = "caption") {
-          const entryText = this.stripVTTFormatting(cue.text);
+          const entryText = this.stripVTTFormatting(cue.text || "");
           const entry = DOMUtils.createElement("div", {
             className: `${this.player.options.classPrefix}-transcript-entry ${this.player.options.classPrefix}-transcript-${type}`,
             attributes: {
@@ -6979,17 +6996,26 @@
     }
   });
 
-  // src/renderers/YouTubeRenderer.js
+  // src/renderers/YouTubeRenderer.ts
   var YouTubeRenderer_exports = {};
   __export(YouTubeRenderer_exports, {
     YouTubeRenderer: () => YouTubeRenderer
   });
   var YouTubeRenderer;
   var init_YouTubeRenderer = __esm({
-    "src/renderers/YouTubeRenderer.js"() {
+    "src/renderers/YouTubeRenderer.ts"() {
+      "use strict";
       YouTubeRenderer = class {
         constructor(player) {
+          __publicField(this, "player");
+          __publicField(this, "media");
+          __publicField(this, "youtube");
+          __publicField(this, "videoId");
+          __publicField(this, "isReady");
+          __publicField(this, "iframe");
+          __publicField(this, "timeUpdateInterval");
           this.player = player;
+          this.media = player.element;
           this.youtube = null;
           this.videoId = null;
           this.isReady = false;
@@ -7038,21 +7064,30 @@
             };
             tag.onerror = () => reject(new Error("Failed to load YouTube API"));
             const firstScriptTag = document.getElementsByTagName("script")[0];
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            if (firstScriptTag == null ? void 0 : firstScriptTag.parentNode) {
+              firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            } else {
+              document.head.appendChild(tag);
+            }
           });
         }
         createIframe() {
+          var _a;
           this.player.element.style.display = "none";
           this.iframe = document.createElement("div");
           this.iframe.id = `youtube-player-${Math.random().toString(36).substr(2, 9)}`;
           this.iframe.style.width = "100%";
           this.iframe.style.maxHeight = "100%";
-          this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
+          (_a = this.player.element.parentNode) == null ? void 0 : _a.insertBefore(this.iframe, this.player.element);
         }
         async initializePlayer() {
           return new Promise((resolve) => {
+            if (!window.YT || !this.iframe) {
+              resolve();
+              return;
+            }
             this.youtube = new window.YT.Player(this.iframe.id, {
-              videoId: this.videoId,
+              videoId: this.videoId ?? void 0,
               width: "100%",
               height: "100%",
               playerVars: {
@@ -7071,7 +7106,7 @@
                 start: this.player.options.startTime || 0
               },
               events: {
-                onReady: (event) => {
+                onReady: (_event) => {
                   this.isReady = true;
                   this.attachEvents();
                   if (this.player.container) {
@@ -7101,7 +7136,9 @@
           }
         }
         handleStateChange(event) {
-          const states = window.YT.PlayerState;
+          var _a;
+          const states = (_a = window.YT) == null ? void 0 : _a.PlayerState;
+          if (!states) return;
           switch (event.data) {
             case states.PLAYING:
               this.player.state.playing = true;
@@ -7213,17 +7250,25 @@
     }
   });
 
-  // src/renderers/VimeoRenderer.js
+  // src/renderers/VimeoRenderer.ts
   var VimeoRenderer_exports = {};
   __export(VimeoRenderer_exports, {
     VimeoRenderer: () => VimeoRenderer
   });
   var VimeoRenderer;
   var init_VimeoRenderer = __esm({
-    "src/renderers/VimeoRenderer.js"() {
+    "src/renderers/VimeoRenderer.ts"() {
+      "use strict";
       VimeoRenderer = class {
         constructor(player) {
+          __publicField(this, "player");
+          __publicField(this, "media");
+          __publicField(this, "vimeo");
+          __publicField(this, "videoId");
+          __publicField(this, "isReady");
+          __publicField(this, "iframe");
           this.player = player;
+          this.media = player.element;
           this.vimeo = null;
           this.videoId = null;
           this.isReady = false;
@@ -7266,20 +7311,21 @@
           });
         }
         createIframe() {
+          var _a;
           this.player.element.style.display = "none";
           this.iframe = document.createElement("div");
           this.iframe.id = `vimeo-player-${Math.random().toString(36).substr(2, 9)}`;
           this.iframe.style.width = "100%";
           this.iframe.style.maxHeight = "100%";
-          this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
+          (_a = this.player.element.parentNode) == null ? void 0 : _a.insertBefore(this.iframe, this.player.element);
         }
         async initializePlayer() {
+          var _a;
           const options = {
             id: this.videoId,
             width: "100%",
             height: "100%",
             controls: true,
-            // Use Vimeo native controls
             autoplay: this.player.options.autoplay,
             muted: this.player.options.muted,
             loop: this.player.options.loop,
@@ -7288,10 +7334,13 @@
           if (this.player.options.startTime > 0) {
             options.startTime = this.player.options.startTime;
           }
+          if (!window.Vimeo || !this.iframe) {
+            return;
+          }
           this.vimeo = new window.Vimeo.Player(this.iframe.id, options);
           await this.vimeo.ready();
           this.isReady = true;
-          const vimeoIframe = this.iframe.querySelector("iframe");
+          const vimeoIframe = (_a = this.iframe) == null ? void 0 : _a.querySelector("iframe");
           if (vimeoIframe) {
             vimeoIframe.style.width = "100%";
             vimeoIframe.style.height = "100%";
@@ -7438,16 +7487,28 @@
     }
   });
 
-  // src/renderers/HLSRenderer.js
+  // src/renderers/HLSRenderer.ts
   var HLSRenderer_exports = {};
   __export(HLSRenderer_exports, {
     HLSRenderer: () => HLSRenderer
   });
   var HLSRenderer;
   var init_HLSRenderer = __esm({
-    "src/renderers/HLSRenderer.js"() {
+    "src/renderers/HLSRenderer.ts"() {
+      "use strict";
       HLSRenderer = class {
         constructor(player) {
+          __publicField(this, "player");
+          __publicField(this, "media");
+          __publicField(this, "hls");
+          __publicField(this, "_hlsSourceLoaded");
+          __publicField(this, "_pendingSrc");
+          __publicField(this, "_hlsSubtitleTracksCount");
+          __publicField(this, "_cueUpdateTimer");
+          __publicField(this, "_lastKnownCueCount");
+          __publicField(this, "_nativeTrackListenersDestroyed");
+          __publicField(this, "_didDeferredLoad");
+          __publicField(this, "_cleanupNativeTextTrackListeners");
           this.player = player;
           this.media = player.element;
           this.hls = null;
@@ -7456,6 +7517,8 @@
           this._hlsSubtitleTracksCount = void 0;
           this._cueUpdateTimer = null;
           this._lastKnownCueCount = 0;
+          this._cleanupNativeTextTrackListeners = () => {
+          };
         }
         async init() {
           if (this.canPlayNatively()) {
@@ -7496,7 +7559,7 @@
          * Debounces rapid addtrack bursts (one per subtitle rendition in the manifest).
          */
         _attachNativeTextTrackListeners() {
-          let debounceTimer = null;
+          let debounceTimer;
           const checkTracks = () => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
@@ -7525,14 +7588,16 @@
           };
         }
         async initHlsJs() {
+          var _a;
           this.media.controls = false;
           this.media.removeAttribute("controls");
           if (!window.Hls) {
             await this.loadHlsJs();
           }
-          if (!window.Hls.isSupported()) {
+          if (!((_a = window.Hls) == null ? void 0 : _a.isSupported())) {
             throw new Error("HLS is not supported in this browser");
           }
+          const HlsCtor = window.Hls;
           const sourceElements = Array.from(this.media.querySelectorAll("source"));
           let originalSrc = null;
           if (sourceElements.length > 0) {
@@ -7540,7 +7605,7 @@
             sourceElements.forEach((source) => source.remove());
             this.player.log("Removed <source> elements for HTML5 validity (hls.js uses src attribute)");
           }
-          this.hls = new window.Hls({
+          this.hls = new HlsCtor({
             debug: this.player.options.debug,
             // When deferLoad is enabled, do not start loading until the first play().
             autoStartLoad: !this.player.options.deferLoad,
@@ -7602,7 +7667,7 @@
           });
         }
         attachHlsEvents() {
-          this.hls.on(window.Hls.Events.MANIFEST_PARSED, (event, data) => {
+          this.hls.on(window.Hls.Events.MANIFEST_PARSED, (_event, data) => {
             this.player.log("HLS manifest loaded, found " + data.levels.length + " quality levels");
             this.player.emit("hlsmanifestparsed", data);
             if (this.player.container) {
@@ -7619,11 +7684,11 @@
               }
             }, 500);
           });
-          this.hls.on(window.Hls.Events.LEVEL_SWITCHED, (event, data) => {
+          this.hls.on(window.Hls.Events.LEVEL_SWITCHED, (_event, data) => {
             this.player.log("HLS level switched to " + data.level);
             this.player.emit("hlslevelswitched", data);
           });
-          this.hls.on(window.Hls.Events.SUBTITLE_TRACKS_UPDATED, (event, data) => {
+          this.hls.on(window.Hls.Events.SUBTITLE_TRACKS_UPDATED, (_event, data) => {
             this.player.log("HLS subtitle tracks updated, found " + data.subtitleTracks.length + " tracks");
             this.player.emit("hlssubtitletracksupdated", data);
             this._hlsSubtitleTracksCount = data.subtitleTracks.length;
@@ -7632,16 +7697,16 @@
               this._startCueUpdatePolling();
             }
           });
-          this.hls.on(window.Hls.Events.SUBTITLE_TRACK_SWITCH, (event, data) => {
+          this.hls.on(window.Hls.Events.SUBTITLE_TRACK_SWITCH, (_event, data) => {
             this.player.log("HLS subtitle track switched to " + data.id);
             this.player.emit("hlssubtitletrackswitch", data);
             this._lastKnownCueCount = 0;
             this._startCueUpdatePolling();
           });
-          this.hls.on(window.Hls.Events.ERROR, (event, data) => {
+          this.hls.on(window.Hls.Events.ERROR, (_event, data) => {
             this.handleHlsError(data);
           });
-          this.hls.on(window.Hls.Events.FRAG_BUFFERED, (event, data) => {
+          this.hls.on(window.Hls.Events.FRAG_BUFFERED, (_event, data) => {
             this.player.state.buffering = false;
             if (data.frag && data.frag.type === "subtitle") {
               setTimeout(() => {
@@ -7944,16 +8009,31 @@
     }
   });
 
-  // src/renderers/DASHRenderer.js
+  // src/renderers/DASHRenderer.ts
   var DASHRenderer_exports = {};
   __export(DASHRenderer_exports, {
     DASHRenderer: () => DASHRenderer
   });
   var DASHRenderer;
   var init_DASHRenderer = __esm({
-    "src/renderers/DASHRenderer.js"() {
+    "src/renderers/DASHRenderer.ts"() {
+      "use strict";
       DASHRenderer = class {
         constructor(player) {
+          __publicField(this, "player");
+          __publicField(this, "media");
+          __publicField(this, "dash");
+          __publicField(this, "_dashSourceLoaded");
+          __publicField(this, "_pendingSrc");
+          __publicField(this, "_dashSubtitleTracksCount");
+          __publicField(this, "_dashTextTracks");
+          __publicField(this, "_cueUpdateTimer");
+          __publicField(this, "_captionEnabledHandler");
+          __publicField(this, "_captionDisabledHandler");
+          __publicField(this, "_lastKnownCueCount");
+          __publicField(this, "_dashTextIsTtml");
+          __publicField(this, "_pendingTimeouts");
+          __publicField(this, "_ttmlDiv");
           this.player = player;
           this.media = player.element;
           this.dash = null;
@@ -7967,6 +8047,7 @@
           this._lastKnownCueCount = 0;
           this._dashTextIsTtml = false;
           this._pendingTimeouts = [];
+          this._ttmlDiv = null;
         }
         async init() {
           this.player.log("Using dash.js for DASH support");
@@ -7985,7 +8066,11 @@
             sourceElements.forEach((source) => source.remove());
             this.player.log("Removed <source> elements for HTML5 validity (dash.js uses MSE)");
           }
-          this.dash = window.dashjs.MediaPlayer().create();
+          const dashjs = window.dashjs;
+          if (!dashjs) {
+            throw new Error("dash.js not available");
+          }
+          this.dash = dashjs.MediaPlayer().create();
           this.dash.updateSettings({
             debug: {
               logLevel: this.player.options.debug ? 4 : 0
@@ -8072,7 +8157,10 @@
           return id;
         }
         attachDashEvents() {
-          this.dash.on(window.dashjs.MediaPlayer.events.MANIFEST_LOADED, (e) => {
+          const dashjs = window.dashjs;
+          if (!dashjs) return;
+          const dashEvents = dashjs.MediaPlayer.events;
+          this.dash.on(dashEvents.MANIFEST_LOADED, (e) => {
             const data = e.data || e;
             this.player.log("DASH manifest loaded");
             this.player.emit("dashmanifestloaded", data);
@@ -8083,13 +8171,13 @@
               this._checkSubtitleTracks();
             }, 500);
           });
-          this.dash.on(window.dashjs.MediaPlayer.events.QUALITY_CHANGE_RENDERED, (e) => {
+          this.dash.on(dashEvents.QUALITY_CHANGE_RENDERED, (e) => {
             if (e.mediaType === "video") {
               this.player.log("DASH quality changed to index " + e.newQuality);
               this.player.emit("dashqualitychanged", e);
             }
           });
-          this.dash.on(window.dashjs.MediaPlayer.events.TEXT_TRACKS_ADDED, (e) => {
+          this.dash.on(dashEvents.TEXT_TRACKS_ADDED, (e) => {
             const tracks = e.tracks || [];
             this._dashTextTracks = tracks;
             this._dashTextIsTtml = tracks.some(
@@ -8109,7 +8197,7 @@
               }
             }
           });
-          this.dash.on(window.dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
+          this.dash.on(dashEvents.STREAM_INITIALIZED, () => {
             this.player.log("DASH stream initialized");
             this.player.emit("dashstreaminitialized");
             this._setTimeout(() => {
@@ -8119,10 +8207,10 @@
               }
             }, 300);
           });
-          this.dash.on(window.dashjs.MediaPlayer.events.ERROR, (e) => {
+          this.dash.on(dashEvents.ERROR, (e) => {
             this.handleDashError(e);
           });
-          this.dash.on(window.dashjs.MediaPlayer.events.FRAGMENT_LOADING_COMPLETED, (e) => {
+          this.dash.on(dashEvents.FRAGMENT_LOADING_COMPLETED, (e) => {
             this.player.state.buffering = false;
             if (e.request && e.request.mediaType === "text" && !this._dashTextIsTtml) {
               this._setTimeout(() => {
@@ -8607,7 +8695,7 @@
     }
   });
 
-  // src/renderers/SoundCloudRenderer.js
+  // src/renderers/SoundCloudRenderer.ts
   var SoundCloudRenderer_exports = {};
   __export(SoundCloudRenderer_exports, {
     SoundCloudRenderer: () => SoundCloudRenderer,
@@ -8615,15 +8703,26 @@
   });
   var SoundCloudRenderer, SoundCloudRenderer_default;
   var init_SoundCloudRenderer = __esm({
-    "src/renderers/SoundCloudRenderer.js"() {
+    "src/renderers/SoundCloudRenderer.ts"() {
+      "use strict";
       SoundCloudRenderer = class {
         constructor(player) {
+          __publicField(this, "player");
+          __publicField(this, "media");
+          __publicField(this, "widget");
+          __publicField(this, "trackUrl");
+          __publicField(this, "isReady");
+          __publicField(this, "iframe");
+          __publicField(this, "iframeId");
+          __publicField(this, "_previousVolume");
           this.player = player;
+          this.media = player.element;
           this.widget = null;
           this.trackUrl = null;
           this.isReady = false;
           this.iframe = null;
           this.iframeId = null;
+          this._previousVolume = 100;
         }
         async init() {
           var _a;
@@ -8657,9 +8756,10 @@
          * - https://api.soundcloud.com/tracks/123456
          */
         getEmbedUrl() {
-          const encodedUrl = encodeURIComponent(this.trackUrl);
+          const trackUrl = this.trackUrl;
+          const encodedUrl = encodeURIComponent(trackUrl);
           const params = new URLSearchParams({
-            url: this.trackUrl,
+            url: trackUrl,
             auto_play: this.player.options.autoplay ? "true" : "false",
             hide_related: "true",
             show_comments: "false",
@@ -8673,7 +8773,7 @@
           return `https://w.soundcloud.com/player/?${params.toString()}`;
         }
         async loadSoundCloudAPI() {
-          if (window.SC && window.SC.Widget) {
+          if (typeof window.SC !== "undefined") {
             return Promise.resolve();
           }
           return new Promise((resolve, reject) => {
@@ -8681,7 +8781,7 @@
             script.src = "https://w.soundcloud.com/player/api.js";
             script.onload = () => {
               setTimeout(() => {
-                if (window.SC && window.SC.Widget) {
+                if (typeof window.SC !== "undefined") {
                   resolve();
                 } else {
                   reject(new Error("SoundCloud Widget API not available"));
@@ -8693,6 +8793,7 @@
           });
         }
         createIframe() {
+          var _a;
           this.player.element.style.display = "none";
           this.player.element.removeAttribute("poster");
           if (this.player.videoWrapper) {
@@ -8714,13 +8815,18 @@
             this.iframe.classList.add("vidply-soundcloud-iframe");
           }
           this.iframe.style.maxHeight = "100%";
-          this.player.element.parentNode.insertBefore(this.iframe, this.player.element);
+          (_a = this.player.element.parentNode) == null ? void 0 : _a.insertBefore(this.iframe, this.player.element);
         }
         async initializeWidget() {
           return new Promise((resolve, reject) => {
-            this.iframe.addEventListener("load", () => {
+            const iframe = this.iframe;
+            if (!iframe || typeof window.SC === "undefined") {
+              reject(new Error("SoundCloud widget cannot initialize"));
+              return;
+            }
+            iframe.addEventListener("load", () => {
               try {
-                this.widget = window.SC.Widget(this.iframe);
+                this.widget = window.SC.Widget(iframe);
                 this.widget.bind(window.SC.Widget.Events.READY, () => {
                   this.isReady = true;
                   this.attachEvents();
@@ -8886,23 +8992,22 @@
     }
   });
 
-  // src/utils/EventEmitter.js
+  // src/utils/EventEmitter.ts
   var EventEmitter = class {
     constructor() {
-      this.events = {};
+      __publicField(this, "events", {});
     }
     on(event, listener) {
-      if (!this.events[event]) {
-        this.events[event] = [];
-      }
-      this.events[event].push(listener);
+      const listeners = this.events[event] ?? [];
+      listeners.push(listener);
+      this.events[event] = listeners;
       return this;
     }
     once(event, listener) {
-      const onceListener = (...args) => {
+      const onceListener = ((...args) => {
         listener(...args);
         this.off(event, onceListener);
-      };
+      });
       return this.on(event, onceListener);
     }
     off(event, listener) {
@@ -8910,7 +9015,9 @@
       if (!listener) {
         delete this.events[event];
       } else {
-        this.events[event] = this.events[event].filter((l) => l !== listener);
+        this.events[event] = this.events[event].filter(
+          (l) => l !== listener
+        );
       }
       return this;
     }
@@ -8927,10 +9034,10 @@
     }
   };
 
-  // src/core/Player.js
+  // src/core/Player.ts
   init_DOMUtils();
 
-  // src/controls/ControlBar.js
+  // src/controls/ControlBar.ts
   init_DOMUtils();
   init_TimeUtils();
   init_Icons();
@@ -8938,17 +9045,12 @@
   init_FocusUtils();
   init_PerformanceUtils();
 
-  // src/utils/VideoFrameCapture.js
+  // src/utils/VideoFrameCapture.ts
   async function captureVideoFrame(video, time, options = {}) {
     if (!video || video.tagName !== "VIDEO") {
       return null;
     }
-    const {
-      restoreState = true,
-      quality = 0.9,
-      maxWidth,
-      maxHeight
-    } = options;
+    const { restoreState = true, quality = 0.9, maxWidth, maxHeight } = options;
     const wasPlaying = !video.paused;
     const originalTime = video.currentTime;
     const originalMuted = video.muted;
@@ -8985,7 +9087,7 @@
             }
           }
           resolve(dataURL);
-        } catch (error) {
+        } catch {
           if (restoreState) {
             video.currentTime = originalTime;
             video.muted = originalMuted;
@@ -9020,9 +9122,30 @@
     });
   }
 
-  // src/controls/ControlBar.js
+  // src/controls/ControlBar.ts
   var ControlBar = class {
     constructor(player) {
+      __publicField(this, "player");
+      __publicField(this, "_overflowMenuItemRef");
+      __publicField(this, "controls");
+      __publicField(this, "currentPreviewTime");
+      __publicField(this, "element");
+      __publicField(this, "hideTimeout");
+      __publicField(this, "isDraggingProgress");
+      __publicField(this, "isDraggingVolume");
+      __publicField(this, "openMenu");
+      __publicField(this, "openMenuButton");
+      __publicField(this, "overflowResizeObserver");
+      __publicField(this, "previewSupported");
+      __publicField(this, "previewThumbnailCache");
+      __publicField(this, "previewThumbnailTimeout");
+      __publicField(this, "previewUsingMainVideo");
+      __publicField(this, "previewVideo");
+      __publicField(this, "previewVideoInitialized");
+      __publicField(this, "previewVideoReady");
+      __publicField(this, "rightButtons");
+      __publicField(this, "overflowMenuButton");
+      __publicField(this, "setupOverflowMenu");
       this.player = player;
       this.element = null;
       this.controls = {};
@@ -9044,7 +9167,7 @@
     }
     // Helper method to detect touch devices
     isTouchDevice() {
-      return "ontouchstart" in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+      return "ontouchstart" in window || navigator.maxTouchPoints > 0 || (navigator.msMaxTouchPoints ?? 0) > 0;
     }
     // Smart menu positioning to avoid overflow
     positionMenu(menu, button, immediate = false) {
@@ -9839,6 +9962,9 @@
       const generateNext = (deadline) => {
         while (deadline.timeRemaining() > 50 && times.length > 0) {
           const time = times.shift();
+          if (time === void 0) {
+            break;
+          }
           this.generatePreviewThumbnail(time).catch(() => {
           });
         }
@@ -11860,7 +11986,7 @@
         let totalWidth = 0;
         const buttonWidths = allButtons.map((btn) => {
           const style = getComputedStyle(btn);
-          const width = btn.offsetWidth + parseInt(style.marginLeft || 0) + parseInt(style.marginRight || 0);
+          const width = btn.offsetWidth + parseInt(style.marginLeft || "0") + parseInt(style.marginRight || "0");
           totalWidth += width;
           return { btn, width };
         });
@@ -12031,12 +12157,14 @@
     }
   };
 
-  // src/core/Player.js
+  // src/core/Player.ts
   init_CaptionManager();
 
-  // src/controls/KeyboardManager.js
+  // src/controls/KeyboardManager.ts
   var KeyboardManager = class {
     constructor(player) {
+      __publicField(this, "player");
+      __publicField(this, "shortcuts");
       this.player = player;
       this.shortcuts = player.options.keyboardShortcuts;
       this.init();
@@ -12054,7 +12182,8 @@
     }
     handleKeydown(e) {
       var _a, _b;
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
+      const target = e.target;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") {
         return;
       }
       const activeElement = document.activeElement;
@@ -12246,7 +12375,7 @@
     }
   };
 
-  // src/core/Player.js
+  // src/core/Player.ts
   init_HTML5Renderer();
   init_Icons();
   init_i18n();
@@ -12275,6 +12404,95 @@
   var _Player = class _Player extends EventEmitter {
     constructor(element, options = {}) {
       super();
+      __publicField(this, "element");
+      __publicField(this, "container");
+      __publicField(this, "options");
+      __publicField(this, "state");
+      __publicField(this, "renderer");
+      __publicField(this, "controlBar");
+      __publicField(this, "captionManager");
+      __publicField(this, "keyboardManager");
+      __publicField(this, "transcriptManager");
+      __publicField(this, "playlistManager");
+      __publicField(this, "settingsDialog");
+      __publicField(this, "audioDescriptionManager");
+      __publicField(this, "signLanguageManager");
+      __publicField(this, "storage");
+      __publicField(this, "instanceId");
+      __publicField(this, "_audioDescriptionDesiredState");
+      __publicField(this, "_fallbackSources");
+      __publicField(this, "_inertElements");
+      __publicField(this, "_isAudioContent");
+      __publicField(this, "_isFallingBack");
+      __publicField(this, "_managersLoading");
+      __publicField(this, "_originalBodyBackground");
+      __publicField(this, "_originalBodyHeight");
+      __publicField(this, "_originalBodyOverflow");
+      __publicField(this, "_originalBodyPosition");
+      __publicField(this, "_originalBodyWidth");
+      __publicField(this, "_originalElement");
+      __publicField(this, "_originalHtmlBackground");
+      __publicField(this, "_originalHtmlOverflow");
+      __publicField(this, "_originalScrollX");
+      __publicField(this, "_originalScrollY");
+      __publicField(this, "_originalViewport");
+      __publicField(this, "_pendingSource");
+      __publicField(this, "_resumeChecked");
+      __publicField(this, "_saveProgressThrottled");
+      __publicField(this, "_sourceElementsCache");
+      __publicField(this, "_sourceElementsDirty");
+      __publicField(this, "_switchingRenderer");
+      __publicField(this, "_trackElementsCache");
+      __publicField(this, "_trackElementsDirty");
+      __publicField(this, "_textTracksCache");
+      __publicField(this, "_textTracksDirty");
+      __publicField(this, "audioDescriptionCaptionTracks");
+      __publicField(this, "audioDescriptionSourceElement");
+      __publicField(this, "audioDescriptionSrc");
+      __publicField(this, "currentSignLanguage");
+      __publicField(this, "currentSource");
+      __publicField(this, "debouncedPositionPlayOverlay");
+      __publicField(this, "fullscreenChangeHandler");
+      __publicField(this, "metadataAlertHandlers");
+      __publicField(this, "metadataCueChangeHandler");
+      __publicField(this, "noticeElement");
+      __publicField(this, "noticeTimeout");
+      __publicField(this, "orientationHandler");
+      __publicField(this, "orientationQuery");
+      __publicField(this, "originalAudioDescriptionSource");
+      __publicField(this, "originalSrc");
+      __publicField(this, "playButtonOverlay");
+      __publicField(this, "resizeHandler");
+      __publicField(this, "resizeObserver");
+      __publicField(this, "resumePromptElement");
+      __publicField(this, "signLanguageCustomKeyHandler");
+      __publicField(this, "signLanguageDesiredPosition");
+      __publicField(this, "signLanguageDocumentClickHandler");
+      __publicField(this, "signLanguageDocumentClickHandlerAdded");
+      __publicField(this, "signLanguageDraggable");
+      __publicField(this, "signLanguageDragOptionButton");
+      __publicField(this, "signLanguageDragOptionText");
+      __publicField(this, "signLanguageHeaderKeyHandler");
+      __publicField(this, "signLanguageHeader");
+      __publicField(this, "signLanguageHandlers");
+      __publicField(this, "signLanguageInteractionHandlers");
+      __publicField(this, "signLanguageResizeHandles");
+      __publicField(this, "signLanguageResizeOptionButton");
+      __publicField(this, "signLanguageSelector");
+      __publicField(this, "signLanguageSettingsButton");
+      __publicField(this, "signLanguageSettingsHandlers");
+      __publicField(this, "signLanguageSettingsMenu");
+      __publicField(this, "signLanguageSettingsMenuVisible");
+      __publicField(this, "signLanguageSettingsMenuJustOpened");
+      __publicField(this, "signLanguageSettingsMenuKeyHandler");
+      __publicField(this, "signLanguageResizeOptionText");
+      __publicField(this, "signLanguageSources");
+      __publicField(this, "signLanguageSrc");
+      __publicField(this, "signLanguageVideo");
+      __publicField(this, "signLanguageWrapper");
+      __publicField(this, "timeouts");
+      __publicField(this, "trackArtworkElement");
+      __publicField(this, "videoWrapper");
       this.element = typeof element === "string" ? document.querySelector(element) : element;
       if (!this.element) {
         throw new Error("VidPly: Element not found");
@@ -12514,7 +12732,7 @@
       this._trackElementsCache = null;
       this._trackElementsDirty = true;
       this.timeouts = /* @__PURE__ */ new Set();
-      this.container = null;
+      this.container = document.createElement("div");
       this.renderer = null;
       this.controlBar = null;
       this.captionManager = null;
@@ -13115,6 +13333,7 @@
       this.emit("themechange", { theme: "dark", previousTheme: this.options.theme });
     }
     createContainer() {
+      var _a;
       const playerLabel = this.instanceId > 1 ? `${i18n.t("player.label")} ${this.instanceId}` : i18n.t("player.label");
       this.container = DOMUtils.createElement("div", {
         className: `${this.options.classPrefix}-player`,
@@ -13132,7 +13351,7 @@
       this.videoWrapper = DOMUtils.createElement("div", {
         className: `${this.options.classPrefix}-video-wrapper`
       });
-      this.element.parentNode.insertBefore(this.container, this.element);
+      (_a = this.element.parentNode) == null ? void 0 : _a.insertBefore(this.container, this.element);
       if (this.element.tagName === "AUDIO" && this.options.poster) {
         this.trackArtworkElement = DOMUtils.createElement("div", {
           className: `${this.options.classPrefix}-track-artwork`,
@@ -13997,16 +14216,16 @@
       this._inertElements = [];
       let current = this.container;
       while (current && current !== document.body && current !== document.documentElement) {
-        const parent = current.parentElement;
-        if (parent) {
-          Array.from(parent.children).forEach((sibling) => {
+        const parentElement = current.parentElement;
+        if (parentElement) {
+          Array.from(parentElement.children).forEach((sibling) => {
             if (sibling !== current && sibling.nodeType === Node.ELEMENT_NODE && !sibling.hasAttribute("inert") && sibling.tagName !== "SCRIPT" && sibling.tagName !== "STYLE" && sibling.tagName !== "LINK" && sibling.tagName !== "META") {
               sibling.setAttribute("inert", "");
               this._inertElements.push(sibling);
             }
           });
         }
-        current = parent;
+        current = parentElement;
       }
     }
     /**
@@ -15520,7 +15739,8 @@
           });
         },
         onDragStart: (e) => {
-          if (e.target.closest(`.${this.options.classPrefix}-sign-language-close`) || e.target.closest(`.${this.options.classPrefix}-sign-language-settings`) || e.target.closest(`.${this.options.classPrefix}-sign-language-select`) || e.target.closest(`.${this.options.classPrefix}-sign-language-label`) || e.target.closest(`.${this.options.classPrefix}-sign-language-settings-menu`)) {
+          const target = e.target;
+          if (target.closest(`.${this.options.classPrefix}-sign-language-close`) || target.closest(`.${this.options.classPrefix}-sign-language-settings`) || target.closest(`.${this.options.classPrefix}-sign-language-select`) || target.closest(`.${this.options.classPrefix}-sign-language-label`) || target.closest(`.${this.options.classPrefix}-sign-language-settings-menu`)) {
             return false;
           }
           return true;
@@ -15622,7 +15842,7 @@
         "ar": "العربية",
         "hi": "हिन्दी"
       };
-      return langNames[langCode] || langCode.toUpperCase();
+      return langNames[String(langCode)] || String(langCode).toUpperCase();
     }
     switchSignLanguage(langCode) {
       var _a;
@@ -16540,6 +16760,8 @@
       }
     }
   };
+  __publicField(_Player, "instances", []);
+  __publicField(_Player, "observeLazy");
   // ============================================
   // Theme Methods
   // ============================================
@@ -16548,9 +16770,8 @@
    */
   __publicField(_Player, "THEMES", ["dark", "light", "minimal", "high-contrast"]);
   var Player = _Player;
-  Player.instances = [];
 
-  // src/features/PlaylistManager.js
+  // src/features/PlaylistManager.ts
   init_DOMUtils();
   init_Icons();
   init_i18n();
@@ -16558,6 +16779,22 @@
   var playlistInstanceCounter = 0;
   var PlaylistManager = class {
     constructor(player, options = {}) {
+      __publicField(this, "player");
+      __publicField(this, "container");
+      __publicField(this, "currentIndex");
+      __publicField(this, "hostElement");
+      __publicField(this, "initialTracks");
+      __publicField(this, "instanceId");
+      __publicField(this, "isChangingTrack");
+      __publicField(this, "isPanelVisible");
+      __publicField(this, "navigationFeedback");
+      __publicField(this, "options");
+      __publicField(this, "PlayerClass");
+      __publicField(this, "playlistPanel");
+      __publicField(this, "trackArtworkElement");
+      __publicField(this, "trackInfoElement");
+      __publicField(this, "tracks");
+      __publicField(this, "uniqueId");
       this.player = player;
       this.tracks = [];
       this.initialTracks = Array.isArray(options.tracks) ? options.tracks : [];
@@ -16664,7 +16901,7 @@
       const isExternalRenderer = ["youtube", "vimeo", "soundcloud", "hls", "dash"].includes(mediaType);
       if (!isExternalRenderer) {
         const source = document.createElement("source");
-        source.src = track.src;
+        source.src = track.src || "";
         if (track.type) {
           source.type = track.type;
         }
@@ -16672,10 +16909,10 @@
         if (track.tracks && track.tracks.length > 0) {
           track.tracks.forEach((trackConfig) => {
             const trackEl = document.createElement("track");
-            trackEl.src = trackConfig.src;
+            trackEl.src = trackConfig.src || "";
             trackEl.kind = trackConfig.kind || "captions";
             trackEl.srclang = trackConfig.srclang || "en";
-            trackEl.label = trackConfig.label || trackConfig.srclang;
+            trackEl.label = trackConfig.label || trackConfig.srclang || "";
             if (trackConfig.default) {
               trackEl.default = true;
             }
@@ -16695,7 +16932,7 @@
       this.player = new this.PlayerClass(mediaElement, playerOptions);
       this.player.playlistManager = this;
       await new Promise((resolve) => {
-        this.player.on("ready", resolve);
+        this.player.on("ready", () => resolve());
       });
       this.player.on("ended", this.handleTrackEnd);
       this.player.on("error", this.handleTrackError);
@@ -17395,7 +17632,7 @@
       const item = DOMUtils.createElement("li", {
         className: isActive ? "vidply-playlist-item vidply-playlist-item-active" : "vidply-playlist-item",
         attributes: {
-          "data-playlist-index": index,
+          "data-playlist-index": String(index),
           role: "none"
         }
       });
@@ -17404,11 +17641,10 @@
         attributes: {
           type: "button",
           role: "option",
-          tabIndex: index === 0 ? 0 : -1,
-          // Only first item is in tab order initially
+          tabIndex: index === 0 ? "0" : "-1",
           "aria-label": ariaLabel,
-          "aria-posinset": index + 1,
-          "aria-setsize": this.tracks.length,
+          "aria-posinset": String(index + 1),
+          "aria-setsize": String(this.tracks.length),
           "aria-checked": isActive ? "true" : "false"
         }
       });
@@ -17783,7 +18019,7 @@
     }
   };
 
-  // src/index.js
+  // src/index.ts
   var pendingPlayers = /* @__PURE__ */ new Map();
   function initializePlayers() {
     const elements = document.querySelectorAll("[data-vidply]");
@@ -17887,7 +18123,7 @@
           options[optionKey] = true;
         } else if (value === "false") {
           options[optionKey] = false;
-        } else if (!isNaN(value) && value !== "") {
+        } else if (!isNaN(Number(value)) && value !== "") {
           options[optionKey] = Number(value);
         } else {
           options[optionKey] = value;

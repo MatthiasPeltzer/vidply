@@ -5,6 +5,7 @@
   "type": "module",
   "main": "dist/prod/vidply.esm.min.js",
   "module": "dist/prod/vidply.esm.min.js",
+  "types": "dist/types/index.d.ts",
   "files": [
     "dist",
     "src"
@@ -24,7 +25,9 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "test:all": "vitest run && playwright test"
+    "test:all": "vitest run && playwright test",
+    "typecheck": "tsc --noEmit",
+    "types": "tsc --emitDeclarationOnly"
   },
   "keywords": [
     "video",
@@ -41,7 +44,8 @@
     "subtitles",
     "vanilla",
     "es6",
-    "javascript"
+    "javascript",
+    "typescript"
   ],
   "author": "Matthias Peltzer",
   "license": "GPL-2.0-or-later",
@@ -64,6 +68,7 @@
     "esbuild": "^0.28.0",
     "jsdom": "^29.0.2",
     "terser": "^5.46.1",
+    "typescript": "^6.0.2",
     "vitest": "^4.1.4"
   }
 }

@@ -11,7 +11,7 @@ console.log('👀 Watching for changes...\n');
 
 // ESM build context
 const esmContext = await esbuild.context({
-  entryPoints: ['src/index.js'],
+  entryPoints: ['src/index.ts'],
   bundle: true,
   format: 'esm',
   outfile: 'dist/vidply.esm.js',
@@ -22,7 +22,7 @@ const esmContext = await esbuild.context({
 
 // IIFE build context
 const iifeContext = await esbuild.context({
-  entryPoints: ['src/index.js'],
+  entryPoints: ['src/index.ts'],
   bundle: true,
   format: 'iife',
   globalName: 'VidPly',

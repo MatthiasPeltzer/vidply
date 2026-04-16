@@ -433,9 +433,8 @@ const playlist = new PlaylistManager(player, { tracks });</code></pre>
   </div>
 
   <script type="module">
-    // Use source files directly for development (includes latest SoundCloud renderer)
-    import Player from '../src/index.js';
-    import { PlaylistManager } from '../src/features/PlaylistManager.js';
+    // Use built ESM bundle so demos work after TS migration
+    import Player, { PlaylistManager } from '../dist/prod/vidply.esm.min.js';
 
     console.log('🎬 Starting mixed media player initialization...');
 
