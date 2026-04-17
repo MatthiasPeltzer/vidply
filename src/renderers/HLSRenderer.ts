@@ -269,17 +269,30 @@ export class HLSRenderer implements Renderer {
       this.handleHlsError(data);
     });
 
-    this.hls.on(window.Hls!.Events.FRAG_BUFFERED, (_event: any, data: any) => {
+    this.hls.on(window.Hls!.Events.FRAG_BUFFERED, (_event: any, _data: any) => {
       this.player.state.buffering = false;
-      if (data.frag && data.frag.type === 'subtitle') {
-        setTimeout(() => {
-          const count = this._getTotalCueCount();
-          if (count > this._lastKnownCueCount) {
-            this._lastKnownCueCount = count;
-            this.player.emit('textcuesupdate');
-          }
-        }, 100);
+    });
+
+    // Subtitle fragments do NOT go through the media source buffer, so
+    // FRAG_BUFFERED is unreliable for them. SUBTITLE_FRAG_PROCESSED fires
+    // immediately after hls.js has parsed the WebVTT and appended cues to
+    // the TextTrack via `addCueToTrack`, which is exactly when we need to
+    // refresh captions/transcript UIs.
+    this.hls.on(window.Hls!.Events.SUBTITLE_FRAG_PROCESSED, (_event: any, data: any) => {
+      if (!data || !data.success) return;
+      const count = this._getTotalCueCount();
+      if (count > this._lastKnownCueCount) {
+        this._lastKnownCueCount = count;
+        this.player.emit('textcuesupdate');
       }
+    });
+
+    // Some streams (e.g. IMSC1/TTML rendered externally by hls.js) deliver
+    // their cues via CUES_PARSED instead of through a native TextTrack. Echo
+    // that through to the transcript so it can refresh regardless of the
+    // underlying subtitle format.
+    this.hls.on(window.Hls!.Events.CUES_PARSED, (_event: any, _data: any) => {
+      this.player.emit('textcuesupdate');
     });
   }
 
