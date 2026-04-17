@@ -418,7 +418,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 21068,
+      "bytes": 21825,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.ts",
@@ -700,7 +700,7 @@
           "bytesInOutput": 8572
         },
         "src/renderers/HLSRenderer.ts": {
-          "bytesInOutput": 20865
+          "bytesInOutput": 20997
         },
         "src/renderers/DASHRenderer.ts": {
           "bytesInOutput": 26264
@@ -730,7 +730,7 @@
           "bytesInOutput": 5582
         }
       },
-      "bytes": 756662
+      "bytes": 756794
     }
   }
 }

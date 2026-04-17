@@ -4560,7 +4560,7 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.VimeoRenderer-6CLUVHOQ.js");
       return module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-7F6FCZSH.js");
+      const module = await import("./vidply.HLSRenderer-IVT5CQQ4.js");
       return module.HLSRenderer || module.default;
     } else if (src.includes(".mpd")) {
       const module = await import("./vidply.DASHRenderer-HP7BXLGV.js");

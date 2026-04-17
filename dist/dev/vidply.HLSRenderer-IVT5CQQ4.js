@@ -213,17 +213,19 @@ var HLSRenderer = class {
     this.hls.on(window.Hls.Events.ERROR, (_event, data) => {
       this.handleHlsError(data);
     });
-    this.hls.on(window.Hls.Events.FRAG_BUFFERED, (_event, data) => {
+    this.hls.on(window.Hls.Events.FRAG_BUFFERED, (_event, _data) => {
       this.player.state.buffering = false;
-      if (data.frag && data.frag.type === "subtitle") {
-        setTimeout(() => {
-          const count = this._getTotalCueCount();
-          if (count > this._lastKnownCueCount) {
-            this._lastKnownCueCount = count;
-            this.player.emit("textcuesupdate");
-          }
-        }, 100);
+    });
+    this.hls.on(window.Hls.Events.SUBTITLE_FRAG_PROCESSED, (_event, data) => {
+      if (!data || !data.success) return;
+      const count = this._getTotalCueCount();
+      if (count > this._lastKnownCueCount) {
+        this._lastKnownCueCount = count;
+        this.player.emit("textcuesupdate");
       }
+    });
+    this.hls.on(window.Hls.Events.CUES_PARSED, (_event, _data) => {
+      this.player.emit("textcuesupdate");
     });
   }
   _getTotalCueCount() {
@@ -514,4 +516,4 @@ var HLSRenderer = class {
 export {
   HLSRenderer
 };
-//# sourceMappingURL=vidply.HLSRenderer-7F6FCZSH.js.map
+//# sourceMappingURL=vidply.HLSRenderer-IVT5CQQ4.js.map
