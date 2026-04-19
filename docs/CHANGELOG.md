@@ -5,6 +5,66 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-04-19
+
+### Fixed
+- **HLS subtitle synchronization**: Sync `hls.js` subtitle track on language switch and react to `textcuesupdate` so the active caption track always matches the user's selection.
+- **HLS subtitle fragments**: Listen for `Hls.Events.SUBTITLE_FRAG_PROCESSED` and re-emit `textcuesupdate` so transcripts and live captions update as new subtitle fragments are downloaded (no more truncated transcripts on long streams).
+
+## [1.1.1] - 2026-04-18
+
+### Added
+- **Buffering Spinner**: Centered, accessible loading spinner that appears whenever the media is buffering (`waiting`, `seeking`, initial `loadstart`) and disappears on `canplay`/`playing`. Implemented for HTML5, HLS and DASH renderers.
+  - Toggled via the `vidply-buffering` class on the player container; uses the `.vidply-loading` element created by `Player.createBufferingLoadingOverlay()`.
+  - z-index sits below the play overlay (`--vidply-z-buffering: 1`) so the spinner never blocks pointer interaction.
+  - Respects `prefers-reduced-motion` (no rotation animation when reduced motion is preferred).
+
+## [1.1.0] - 2026-04-17
+
+### Changed
+- **TypeScript Migration**: Converted the entire `src/` tree from ES modules (`.js`) to strict TypeScript (`.ts`).
+  - All renderers, managers, controls, i18n, utilities and `core/Player` are now `.ts`.
+  - `tsconfig.json` is set to `strict: true` with `noImplicitAny`, `strictNullChecks`, `noImplicitReturns`.
+  - Build pipeline updated: esbuild bundles TypeScript directly to ESM and IIFE; `tsc --emitDeclarationOnly` writes type declarations to `dist/types/`.
+  - `package.json` exposes `types: "dist/types/index.d.ts"` so consumers get full IntelliSense without an extra `@types` package.
+  - New scripts: `npm run build:types`, `npm run typecheck`.
+- All internal imports use extensionless paths (e.g. `import { Player } from './core/Player'`) and rely on `tsconfig` `moduleResolution`.
+
+### Added
+- **Buffering Spinner (initial implementation)**: Centered loading spinner shown until the media can play, replacing the previous static "Loading…" text.
+
+### Migration Notes
+- No public API changes for end-users. If you imported individual files from `src/` directly (e.g. `src/renderers/HTML5Renderer.js`), update the path to `.ts` (or drop the extension entirely) and ensure your bundler can resolve TypeScript.
+- TypeScript consumers can now import types directly:
+  ```typescript
+  import type { PlayerOptions, RendererType } from 'vidply';
+  ```
+
+## [1.0.51] - 2026-04-15
+
+### Added
+- **Download Button**: New optional control in the control bar for downloading the current media file.
+  - Enabled via `downloadButton: true` (default `false`) or `data-vidply-download-button="true"`.
+  - Custom URL via `downloadUrl: '...'` / `data-vidply-download-url="..."`. Falls back to the current media `src` when omitted.
+  - Fully internationalized (`player.download` translation key) and keyboard accessible.
+
+## [1.0.50] - 2026-04-14
+
+### Added
+- **SoundCloud Renderer**: First-class SoundCloud playback through the SoundCloud Widget API.
+  - Auto-detected for any URL containing `soundcloud.com` (no `data-renderer` needed).
+  - Unified play/pause, seek, volume, mute and progress controls; integrates with the VidPly UI just like YouTube/Vimeo.
+  - Privacy Layer (in `mpc-vidply`) covers SoundCloud out of the box (GDPR consent before the iframe loads).
+- **Apple HLS Native TextTrack Bridge**: On iOS / iPadOS where `hls.js` cannot run, captions, transcript and quality controls now work through the native HLS `TextTrack` API.
+  - Listens for `addtrack` / `removetrack` / `loadedmetadata` (debounced) so subtitle renditions surface in the captions menu and transcript panel.
+  - Re-uses the same captions/transcript UI as `hls.js` for a consistent UX.
+  - `canPlayNatively()` now restricts the native path to iOS / iPadOS only; desktop macOS Safari uses `hls.js` for full feature parity (quality menu, advanced caption styling).
+- **Fullscreen Menu Button on iOS**: Settings/menu button stays visible in iOS fullscreen mode.
+
+### Fixed
+- Captions and transcript no longer disappear on iOS HLS streams.
+- Quality menu appears on iOS HLS streams when multiple renditions are exposed.
+
 ## [1.0.45] - 2026-04-12
 
 ### Added

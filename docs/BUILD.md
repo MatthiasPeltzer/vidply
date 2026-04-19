@@ -16,14 +16,16 @@ npm install
 ```
 
 This will install:
-- `esbuild` - Fast JavaScript bundler
+- `esbuild` - Fast TypeScript / JavaScript bundler
+- `typescript` - Strict type-checking and `.d.ts` emission
 - `clean-css` - CSS minifier
+- `vitest` + `@playwright/test` - Unit / e2e test runners
 
 ## Build Commands
 
 ### Build Everything
 
-Build both JavaScript and CSS:
+Build TypeScript bundles, type declarations and CSS:
 
 ```bash
 npm run build
@@ -36,13 +38,31 @@ This creates:
 - `dist/prod/vidply.esm.min.js` - ES Module (production, minified)
 - `dist/legacy/vidply.js` - IIFE bundle (development)
 - `dist/legacy/vidply.min.js` - IIFE bundle (production, minified)
+- `dist/types/index.d.ts` - TypeScript declarations (entry)
+- `dist/types/**/*.d.ts` - Per-module declarations
 - `dist/vidply.css` - Unminified styles
 - `dist/vidply.min.css` - Minified styles
 
 ### Build JavaScript Only
 
+Bundle TypeScript with esbuild:
+
 ```bash
 npm run build:js
+```
+
+### Build TypeScript Declarations Only
+
+Emit `.d.ts` files via `tsc --emitDeclarationOnly`:
+
+```bash
+npm run build:types
+```
+
+### Type-check (no emit)
+
+```bash
+npm run typecheck
 ```
 
 ### Build CSS Only
@@ -160,12 +180,19 @@ Approximate sizes (minified + gzip):
 
 ### build/build.js
 
-Main JavaScript build script:
-- Bundles all source files
+Main TypeScript bundling script (esbuild):
+- Bundles all `src/**/*.ts` source files
 - Creates ES Module and IIFE formats
 - Generates both dev and production versions
 - Adds license banner
 - Creates source maps for debugging
+
+### tsc (build:types)
+
+Runs the TypeScript compiler in declaration-only mode using `tsconfig.build.json`:
+- Emits `.d.ts` files to `dist/types/`
+- Used by IDEs, `tsc` consumers and bundlers (vite, webpack, rollup) for type information
+- Referenced from `package.json#types`
 
 ### build/build-css.js
 
@@ -273,8 +300,18 @@ npm run build
 node --version
 
 # 3. Try using npx directly
-npx esbuild src/index.js --bundle --outfile=dist/vidply.js
+npx esbuild src/index.ts --bundle --outfile=dist/vidply.js
 ```
+
+**Type-check failures:**
+
+If `npm run typecheck` reports errors, run:
+
+```bash
+npx tsc --noEmit --pretty
+```
+
+to see full TypeScript diagnostics with source context.
 
 ### Source Maps Not Working
 
@@ -292,8 +329,8 @@ npx esbuild src/index.js --bundle --outfile=dist/vidply.js
 
 **Explanation:**
 The player includes:
-- Complete UI controls with all buttons and menus
-- Multiple renderers (HTML5, YouTube, Vimeo, HLS, DASH)
+- Complete UI controls with all buttons and menus (incl. download, buffering spinner)
+- Multiple renderers (HTML5, YouTube, Vimeo, SoundCloud, HLS, DASH)
 - i18n system with 5 built-in languages
 - Full accessibility features (ARIA, keyboard navigation)
 - Transcript, playlist, and sign language features
@@ -302,7 +339,7 @@ The player includes:
 - The minified + gzipped size (~18 KB) is already optimized for production
 - Modern browsers will cache the files after first load
 - Consider using a CDN for better caching across sites
-- For custom builds excluding unused features, modify `src/index.js` before building
+- For custom builds excluding unused features, modify `src/index.ts` before building
 
 ### Permission Denied on Build Scripts
 

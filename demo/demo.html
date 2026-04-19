@@ -319,12 +319,14 @@
       <p class="subtitle">Universal, Accessible Video & Audio Player</p>
       
       <ul class="features" aria-label="Key features">
-        <li class="feature-badge">Vanilla ES6</li>
-        <li class="feature-badge">WCAG Compliant</li>
+        <li class="feature-badge">Strict TypeScript</li>
+        <li class="feature-badge">WCAG 2.2 AA</li>
         <li class="feature-badge">Responsive</li>
         <li class="feature-badge">Multi-Language</li>
         <li class="feature-badge">Captions</li>
         <li class="feature-badge">Descriptions</li>
+        <li class="feature-badge">HLS &amp; DASH</li>
+        <li class="feature-badge">SoundCloud</li>
       </ul>
 
       <nav aria-label="Other demo pages">
@@ -623,7 +625,7 @@
       <!-- Features Overview -->
       <section aria-labelledby="features-overview">
         <h2 id="features-overview">Feature Overview</h2>
-        <p>VidPly blends modern playback controls, accessibility tooling, text track innovations, and playlist utilities into a single vanilla JS solution.</p>
+        <p>VidPly blends modern playback controls, accessibility tooling, text-track innovations, streaming, and playlist utilities into a single dependency-free TypeScript player that ships as vanilla ES modules.</p>
 
         <ul class="feature-grid">
           <li class="feature-card">
@@ -639,6 +641,8 @@
               <li>Seek Forward/Backward</li>
               <li>Responsive Design</li>
               <li>Lazy Loading</li>
+              <li>Buffering Spinner</li>
+              <li>Optional Download Button</li>
             </ul>
           </li>
 
@@ -656,31 +660,34 @@
           </li>
 
           <li class="feature-card">
-            <h3>Captions & Text</h3>
+            <h3>Captions &amp; Text</h3>
             <ul>
               <li>WebVTT Support</li>
+              <li>DASH TTML / stpp Subtitles</li>
+              <li>Native iOS HLS TextTrack Bridge</li>
               <li>Multiple Languages</li>
               <li>Customizable Styling</li>
               <li>Font Size/Family</li>
               <li>Color Options</li>
               <li>Background Opacity</li>
-              <li>Chapters & Descriptions</li>
+              <li>Chapters &amp; Descriptions</li>
               <li>Interactive Transcript</li>
-              <li>Draggable & Resizable Windows</li>
+              <li>Draggable &amp; Resizable Windows</li>
             </ul>
           </li>
 
           <li class="feature-card">
-            <h3>Formats & Playlists</h3>
+            <h3>Formats &amp; Playlists</h3>
             <ul>
               <li>MP4 Video</li>
               <li>WebM Video</li>
               <li>MP3 Audio</li>
               <li>OGG Audio/Video</li>
-              <li>HLS Streaming (.m3u8)</li>
+              <li>HLS Streaming (.m3u8) — hls.js + native iOS</li>
               <li>DASH Streaming (.mpd)</li>
               <li>YouTube Videos</li>
               <li>Vimeo Videos</li>
+              <li>SoundCloud Tracks &amp; Sets</li>
               <li>Mixed Media Playlists</li>
             </ul>
           </li>
@@ -724,12 +731,12 @@
           <details>
               <summary>JavaScript API</summary>
               <div class="code-block">
-                  <p>Control players programmatically with a simple, intuitive API.</p>
-            <pre><code class="language-javascript">// Import from built version
-import Player from '../dist/vidply.esm.js';
+                  <p>Control players programmatically with a simple, intuitive API. The bundle is authored in strict TypeScript and ships <code>dist/types/index.d.ts</code> alongside the ESM build, so editors get full type-checking and autocompletion.</p>
+            <pre><code class="language-javascript">// Production (minified ESM)
+import Player from '../dist/prod/vidply.esm.min.js';
 
-// Or from source
-// import Player from '../src/index.js';
+// Or from source (TypeScript)
+// import Player from '../src/index';
 
 // Create a new player instance
 const player = new Player('#my-video', {
@@ -741,7 +748,9 @@ const player = new Player('#my-video', {
   captionsDefault: true,
   keyboard: true,
   responsive: true,
-  language: 'en'
+  language: 'en',
+  downloadButton: false,   // optional download UI
+  // downloadUrl: '/files/movie.mp4', // override the file the button serves
 });
 
 // Control playback
@@ -768,6 +777,15 @@ player.on('pause', () => console.log('Paused!'));
 player.on('timeupdate', (time) => console.log('Time:', time));
 player.on('ended', () => console.log('Video ended!'));
 
+// HLS / DASH / native iOS HLS — same event for live caption updates
+player.on('textcuesupdate', (cues) => console.log('Caption cues:', cues));
+
+// Buffering state (waiting / seeking / loadstart all surface through here)
+player.on('buffering', (isBuffering) => console.log('Buffering:', isBuffering));
+
+// Renderer-driven media (YouTube / Vimeo / SoundCloud, HLS, DASH)
+// is auto-detected from the &lt;source&gt; URL — no extra config required.
+
 // Cleanup
 player.destroy();</code></pre>
               </div>
@@ -777,7 +795,7 @@ player.destroy();</code></pre>
     </main>
     
     <footer>
-        <p>&copy; 2026 VidPly - Built with Vanilla JavaScript</p>
+        <p>&copy; 2026 VidPly - Built with strict TypeScript &amp; vanilla ES modules</p>
       <p>Released under GPL-2.0-or-later License</p>
     </footer>
   </div>

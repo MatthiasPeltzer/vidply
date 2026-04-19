@@ -25,11 +25,21 @@
 
 ### 3. Import the Player
 
+For production builds:
+
 ```html
 <script type="module">
-  import Player from './src/index.js';
+  import Player from './dist/prod/vidply.esm.min.js';
   // Player auto-initializes elements with data-vidply attribute
 </script>
+```
+
+For development with raw TypeScript sources (e.g. via `vite` or `tsx`):
+
+```typescript
+import Player from './src/index';
+
+const player = new Player('#video');
 ```
 
 ## Common Use Cases
@@ -182,7 +192,7 @@ document.getElementById('speedSelect').addEventListener('change', (e) => {
 });
 ```
 
-### YouTube/Vimeo Integration
+### YouTube/Vimeo/SoundCloud Integration
 
 ```html
 <!-- YouTube -->
@@ -190,6 +200,9 @@ document.getElementById('speedSelect').addEventListener('change', (e) => {
 
 <!-- Vimeo -->
 <video data-vidply src="https://vimeo.com/76979871"></video>
+
+<!-- SoundCloud -->
+<audio data-vidply src="https://soundcloud.com/artist/track-name"></audio>
 
 <!-- These will automatically use the appropriate renderer -->
 ```
@@ -204,9 +217,14 @@ document.getElementById('speedSelect').addEventListener('change', (e) => {
 // Access HLS-specific features
 const player = new Player('#video');
 
-// Listen for quality levels
+// Listen for quality levels (hls.js path)
 player.on('hlsmanifestparsed', (data) => {
   console.log('Available qualities:', data.levels);
+});
+
+// Listen for live cue updates (works for both hls.js and native iOS HLS)
+player.on('textcuesupdate', () => {
+  console.log('New subtitle cues available');
 });
 
 // Switch quality manually (if using HLS renderer)
@@ -214,6 +232,8 @@ if (player.renderer.switchQuality) {
   player.renderer.switchQuality(2); // Switch to quality level 2
 }
 ```
+
+> On iOS / iPadOS where MSE is unavailable, VidPly uses the browser's native HLS support but still surfaces captions and quality through the same VidPly UI via the native `TextTrack` API bridge.
 
 ### DASH Streaming (MPEG-DASH)
 
@@ -262,6 +282,47 @@ For maximum compatibility across devices and browsers, provide all three formats
 ```
 
 VidPly auto-selects the best renderer based on the source file extension.
+
+### Download Button
+
+Show a download button in the control bar so visitors can save the media file:
+
+```html
+<video
+  data-vidply
+  data-vidply-download-button="true"
+  data-vidply-download-url="/files/video.mp4"
+  src="/streams/video/manifest.mpd">
+</video>
+```
+
+```javascript
+const player = new Player('#video', {
+  downloadButton: true,
+  downloadUrl: '/files/video.mp4' // optional; defaults to current src
+});
+```
+
+For streaming sources (`.mpd`, `.m3u8`) it is strongly recommended to provide an explicit `downloadUrl` pointing to a single MP4/MP3/WebM file — manifests are not directly downloadable.
+
+### Buffering Spinner
+
+A centered loading spinner appears automatically while the player is buffering (`waiting`, `seeking`, initial `loadstart`) and disappears on `canplay` / `playing`. It is enabled for HTML5, HLS and DASH renderers and respects `prefers-reduced-motion`.
+
+You can theme it via CSS variables:
+
+```css
+.vidply-player {
+  --vidply-spinner-color: #ffffff;
+  --vidply-spinner-size: 56px;
+}
+```
+
+The container exposes a `.vidply-buffering` class while loading; you can hook into it from CSS:
+
+```css
+.vidply-player.vidply-buffering .my-overlay { opacity: 0.3; }
+```
 
 ### Caption Track Selection
 

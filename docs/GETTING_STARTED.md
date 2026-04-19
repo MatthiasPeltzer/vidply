@@ -24,8 +24,10 @@ npm install
 ```
 
 This installs:
-- `esbuild` - Fast JavaScript bundler
+- `esbuild` - Fast TypeScript/JavaScript bundler
+- `typescript` - Strict type-checking and `.d.ts` emission
 - `clean-css` - CSS minifier
+- `vitest` + `@playwright/test` - Unit and end-to-end testing
 
 ### 3. Build the Player
 
@@ -36,6 +38,7 @@ npm run build
 This creates production-ready files in `dist/`:
 - `prod/vidply.esm.min.js` - Minified ES Module (recommended for production)
 - `legacy/vidply.min.js` - Minified IIFE bundle (global `VidPly`)
+- `types/index.d.ts` - TypeScript type declarations for IDE / `tsc` consumers
 - `vidply.min.css` - Minified styles (~12KB)
 
 ### 4. View the Demo
@@ -175,7 +178,25 @@ That's it!
 ></video>
 ```
 
-### Example 5: DASH Streaming
+### Example 5: SoundCloud Track
+
+```html
+<audio
+  data-vidply
+  src="https://soundcloud.com/artist/track-name"
+></audio>
+```
+
+### Example 6: HLS Streaming
+
+```html
+<video 
+  data-vidply 
+  src="https://example.com/stream.m3u8"
+></video>
+```
+
+### Example 7: DASH Streaming
 
 ```html
 <video 
@@ -184,7 +205,18 @@ That's it!
 ></video>
 ```
 
-### Example 6: With Options
+### Example 8: With Download Button
+
+```html
+<video
+  data-vidply
+  data-vidply-download-button="true"
+  data-vidply-download-url="/files/lecture.mp4"
+  src="/streams/lecture/manifest.mpd">
+</video>
+```
+
+### Example 9: With Options
 
 ```html
 <video 
@@ -194,27 +226,28 @@ That's it!
 ></video>
 ```
 
-### Example 7: Manual Initialization
+### Example 10: Manual Initialization
 
 ```html
 <video id="my-video" src="video.mp4"></video>
 
 <script type="module">
-  import Player from './src/index.js';
-  
+  import Player from './dist/prod/vidply.esm.min.js';
+
   const player = new Player('#my-video', {
     controls: true,
     autoplay: false,
     volume: 0.8,
     language: 'en'
   });
-  
-  // Control the player
+
   player.on('ready', () => {
     console.log('Player is ready!');
   });
 </script>
 ```
+
+> Working with TypeScript? Import directly from the source tree (`import Player from 'vidply'`) — VidPly ships its own `.d.ts` declarations, so you'll get full type-safety on `PlayerOptions`, events and renderer APIs.
 
 ## Configuration
 
@@ -656,6 +689,8 @@ vidply/
 │   ├── legacy/
 │   │   ├── vidply.js           # IIFE (dev)
 │   │   └── vidply.min.js       # IIFE (prod)
+│   ├── types/
+│   │   └── index.d.ts          # TypeScript declarations
 │   ├── vidply.css              # Styles (dev)
 │   └── vidply.min.css          # Styles (prod)
 └── ...
@@ -671,8 +706,9 @@ Total: ~62KB uncompressed, ~18KB gzipped
 
 VidPly auto-detects streaming formats by file extension:
 
-- **HLS** (`.m3u8`) - Uses hls.js, auto-loaded from CDN
-- **DASH** (`.mpd`) - Uses dash.js, auto-loaded from CDN
+- **HLS** (`.m3u8`) - Uses `hls.js` on Chrome / Firefox / Edge / desktop Safari (auto-loaded from CDN). On iOS / iPadOS the native `<video>` HLS support is used and bridged into VidPly's caption / transcript / quality UI via the `TextTrack` API.
+- **DASH** (`.mpd`) - Uses `dash.js`, auto-loaded from CDN.
+- **SoundCloud** - Auto-detected for any URL containing `soundcloud.com`; the SoundCloud Widget API is loaded on demand.
 
 ```html
 <!-- HLS -->
@@ -680,9 +716,12 @@ VidPly auto-detects streaming formats by file extension:
 
 <!-- DASH -->
 <video data-vidply src="https://example.com/manifest.mpd"></video>
+
+<!-- SoundCloud -->
+<audio data-vidply src="https://soundcloud.com/artist/track-name"></audio>
 ```
 
-Both formats support adaptive quality selection and captions. DASH streams with embedded TTML subtitles are rendered natively by dash.js, while WebVTT subtitles are handled by VidPly's caption system and also support the interactive transcript.
+All formats support adaptive quality selection and captions. DASH streams with embedded TTML subtitles are rendered natively by dash.js, while WebVTT subtitles are handled by VidPly's caption system and also support the interactive transcript.
 
 ## Next Steps
 
