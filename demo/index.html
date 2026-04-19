@@ -200,13 +200,14 @@
         <p class="subtitle">Universal, Accessible Video & Audio Player</p>
         
         <ul class="badges" aria-label="Key features">
-            <li class="badge">Vanilla ES6</li>
-            <li class="badge">WCAG Compliant</li>
+            <li class="badge">Strict TypeScript</li>
+            <li class="badge">WCAG 2.2 AA</li>
             <li class="badge">Responsive</li>
             <li class="badge">Multi-Language</li>
-            <li class="badge">Captions</li>
-            <li class="badge">HLS & DASH</li>
-            <li class="badge">v1.0.45</li>
+            <li class="badge">Captions &amp; Transcripts</li>
+            <li class="badge">HLS &amp; DASH</li>
+            <li class="badge">SoundCloud</li>
+            <li class="badge">v1.1.3</li>
         </ul>
     </header>
     
@@ -238,19 +239,22 @@
         <section aria-labelledby="core-features">
             <h2 id="core-features">Core Features</h2>
             <ul>
-                <li>Lightweight - Zero Dependencies</li>
-                <li>Easy Integration - Single Attribute</li>
+                <li>Lightweight - Zero runtime dependencies (hls.js / dash.js loaded only when needed)</li>
+                <li>Authored in strict TypeScript - ships ES modules + .d.ts type declarations</li>
+                <li>Easy Integration - Single <code>data-vidply</code> attribute</li>
                 <li>Responsive Design - Mobile/Tablet/Desktop</li>
-                <li>Video & Audio Playlists (including Mixed Media)</li>
+                <li>Video &amp; Audio Playlists (including Mixed Media)</li>
                 <li>Preview Thumbnails on Progress Bar Hover</li>
                 <li>Customizable Playback Speed (0.25x-2x)</li>
-                <li>Volume Control & Mute Toggle</li>
+                <li>Volume Control &amp; Mute Toggle</li>
                 <li>Progress Bar with Seek</li>
                 <li>Fullscreen Mode (iOS Compatible)</li>
                 <li>Picture-in-Picture Support</li>
-                <li>HLS Streaming with Quality Selection & Dynamic Subtitles</li>
-                <li>DASH Streaming (MPEG-DASH) with Quality Selection & TTML/WebVTT Subtitles</li>
-                <li>YouTube & Vimeo Integration</li>
+                <li>Centered Buffering Spinner during loading / waiting / seeking</li>
+                <li>Optional Download Button for self-hosted media</li>
+                <li>HLS Streaming - hls.js on most browsers, native HLS bridge on iOS/iPadOS Safari (no MSE), with quality selection and dynamic subtitles in both modes</li>
+                <li>DASH Streaming (MPEG-DASH) with Quality Selection &amp; TTML/stpp / WebVTT Subtitles</li>
+                <li>YouTube, Vimeo &amp; SoundCloud Integration (Widget API wrapper)</li>
                 <li>Lazy Loading for Performance Optimization</li>
             </ul>
         </section>
@@ -261,13 +265,13 @@
                 <li>WCAG 2.2 AA Compliant</li>
                 <li>Full Keyboard Navigation</li>
                 <li>Screen Reader Support</li>
-                <li>Multi-Language Captions (WebVTT)</li>
+                <li>Multi-Language Captions (WebVTT, plus DASH TTML/stpp and native iOS HLS TextTracks)</li>
                 <li>Customizable Caption Styling</li>
-                <li>Interactive Transcript Window</li>
+                <li>Interactive Transcript Window (works for HTML5, HLS - incl. native iOS - and DASH)</li>
                 <li>Sign Language Video Overlay</li>
                 <li>Audio Description Swapping</li>
                 <li>Chapter Navigation</li>
-                <li>Draggable & Resizable Windows</li>
+                <li>Draggable &amp; Resizable Windows (target sizes meet WCAG 2.2 dragging-movement criteria)</li>
             </ul>
         </section>
         
@@ -298,7 +302,7 @@
     </main>
     
     <footer>
-        <p>&copy; 2026 VidPly - Built with Vanilla JavaScript</p>
+        <p>&copy; 2026 VidPly - Built with strict TypeScript &amp; vanilla ES modules</p>
         <p>Released under GPL-2.0-or-later License</p>
     </footer>
 </div>

@@ -14,10 +14,14 @@ VidPly is a universal, accessible media player supporting:
 | **Audio** | MP3, OGG, WAV |
 | **YouTube** | Embedded with unified controls |
 | **Vimeo** | Embedded with unified controls |
-| **HLS** | Adaptive bitrate streaming |
+| **SoundCloud** | Embedded via Widget API with unified controls |
+| **HLS** | Adaptive bitrate streaming (`hls.js` on most browsers, native on iOS / iPadOS) |
 | **DASH** | MPEG-DASH streaming via dash.js |
+| **Buffering Spinner** | Centered loading spinner during waiting/seeking |
+| **Download Button** | Optional control with custom URL support |
 | **Playlists** | Audio, video & mixed media with thumbnails |
 | **Accessibility** | WCAG 2.2 AA compliant |
+| **TypeScript** | Strict TS sources + bundled `.d.ts` declarations |
 | **Languages** | EN, ES, FR, DE, JA + custom |
 
 ---
@@ -108,13 +112,31 @@ Or with full URL:
 <video data-vidply src="https://vimeo.com/VIDEO_ID"></video>
 ```
 
+### SoundCloud
+
+```html
+<audio data-vidply src="https://soundcloud.com/artist/track-name"></audio>
+```
+
+The SoundCloud Widget API is auto-detected for any URL containing `soundcloud.com`. The widget is loaded on demand and integrates with the standard VidPly play / pause / seek / volume controls.
+
+When using `mpc-vidply` in TYPO3, the **Privacy Layer** displays a GDPR consent overlay before the SoundCloud iframe is loaded — visitors must accept loading external content first.
+
 ### HLS Streaming
 
 ```html
 <video data-vidply src="https://example.com/stream.m3u8"></video>
 ```
 
-HLS.js is automatically loaded when `.m3u8` URLs are detected.
+`hls.js` is automatically loaded from CDN when `.m3u8` URLs are detected. Behavior per platform:
+
+| Platform | HLS engine | Captions / Transcript / Quality |
+|----------|------------|---------------------------------|
+| Chrome / Firefox / Edge | `hls.js` | Full VidPly UI |
+| Desktop macOS Safari | `hls.js` (for parity with other browsers) | Full VidPly UI |
+| iOS / iPadOS Safari | Native `<video>` HLS | Full VidPly UI via the native `TextTrack` API bridge |
+
+> Even on iOS where `hls.js` cannot run (no MSE), VidPly still wires the captions menu, interactive transcript and quality menu into the browser's native HLS text tracks — you don't lose any UI controls.
 
 ### DASH Streaming
 
@@ -247,7 +269,9 @@ const player = new Player('#my-video', {
   captionsButton: true,
   fullscreenButton: true,
   pipButton: true,
-  
+  downloadButton: false,        // Show a download button in the control bar
+  downloadUrl: null,            // Optional explicit download URL (defaults to current src)
+
   // Language
   language: 'en',
   
@@ -285,6 +309,56 @@ const player = new Player('#my-video', {
 | `deferLoad` | bool | false | Avoid starting network loading during init; load on user play / explicit load |
 | `initialDuration` | number | 0 | Initial duration in seconds (UI only, before media metadata is loaded) |
 | `requirePlaybackForAccessibilityToggles` | bool | false | If true: AD/SL before playback shows a notice instead of implicitly loading/playing |
+
+---
+
+## Download Button
+
+Show an opt-in download button in the control bar:
+
+```html
+<video
+  data-vidply
+  data-vidply-download-button="true"
+  data-vidply-download-url="/files/lecture.mp4"
+  src="/streams/lecture/manifest.mpd">
+</video>
+```
+
+```javascript
+const player = new Player('#video', {
+  downloadButton: true,
+  downloadUrl: '/files/lecture.mp4' // optional; falls back to current src
+});
+```
+
+The button is keyboard accessible, fully internationalized (`player.download` translation key) and uses `aria-label` so screen readers announce it correctly.
+
+> Hint for streaming sources: `downloadUrl` is normally the URL of an MP4/MP3 fallback because users typically can't download a `.mpd` or `.m3u8` manifest as a single file.
+
+---
+
+## Buffering Spinner
+
+A centered loading spinner appears automatically while the media is buffering (`waiting` / `seeking` / initial `loadstart`) and disappears on `canplay` / `playing`. It works for HTML5, HLS and DASH renderers and respects `prefers-reduced-motion`.
+
+You can theme it via CSS variables:
+
+```css
+.vidply-player {
+  --vidply-spinner-color: #ffffff;
+  --vidply-spinner-size: 56px;
+  --vidply-z-buffering: 1; /* sits below the play overlay */
+}
+```
+
+The container exposes a `.vidply-buffering` class while loading, which you can use to style or hook into:
+
+```css
+.vidply-player.vidply-buffering .my-skin-overlay {
+  opacity: 0.3;
+}
+```
 
 ---
 

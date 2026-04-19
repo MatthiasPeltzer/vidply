@@ -2,12 +2,13 @@
 
 **Universal, Accessible Video & Audio Player**
 
-A modern, feature-rich media player built with vanilla ES6 JavaScript. Combines the best accessibility features from AblePlayer with the streaming capabilities of MediaElement.js. Fully internationalized with support for 5 languages and complete WCAG 2.2 AA compliance.
+A modern, feature-rich media player authored in strict TypeScript and shipped as a zero-dependency ES module. Combines the best accessibility features from AblePlayer with the streaming capabilities of MediaElement.js. Fully internationalized with support for 5 languages and complete WCAG 2.2 AA compliance.
 
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)
-![ES6](https://img.shields.io/badge/ES6-Module-yellow.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)
+![ESM](https://img.shields.io/badge/ESM-Module-yellow.svg)
 ![WCAG](https://img.shields.io/badge/WCAG-2.2%20AA-green.svg)
-![Version](https://img.shields.io/badge/version-1.0.45-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.1.3-brightgreen.svg)
 
 ## Live Demos
 
@@ -21,11 +22,12 @@ Try VidPly in action:
 
 ## Why VidPly?
 
-- **Zero Dependencies** - Pure vanilla JavaScript, no frameworks required
+- **Zero Dependencies** - Pure vanilla JavaScript / TypeScript, no frameworks required
+- **TypeScript Native** - Authored in strict TypeScript with shipped type declarations (`dist/types/index.d.ts`)
 - **Accessibility First** - WCAG 2.2 AA compliant with full keyboard and screen reader support
 - **Multilingual** - Built-in translations for 5 languages with easy extensibility
 - **Fully Customizable** - CSS variables and comprehensive API
-- **Modern Build** - ES6 modules with tree-shaking support
+- **Modern Build** - ES modules with tree-shaking, code-splitting and source maps
 - **Production Ready** - Thoroughly tested with real-world media content
 
 ## Features
@@ -35,8 +37,13 @@ Try VidPly in action:
 - **Multiple Formats** - MP3, OGG, WAV (audio) / MP4, WebM (video)
 - **YouTube Integration** - Embed YouTube videos with unified controls
 - **Vimeo Integration** - Seamless Vimeo player integration
+- **SoundCloud Integration** - Play SoundCloud tracks and sets via the Widget API with unified controls
 - **HLS Streaming** - Adaptive bitrate streaming with quality selection and dynamic subtitle detection
+  - Uses `hls.js` on Chrome / Firefox / Edge / desktop Safari for full feature parity (quality menu, captions, transcript)
+  - Falls back to native HLS on iOS / iPadOS where MSE is unavailable; native text tracks are still surfaced through the VidPly captions and transcript UI
 - **DASH Streaming** - MPEG-DASH support via dash.js with adaptive quality, TTML and WebVTT subtitles
+- **Buffering Spinner** - Centered loading spinner shown automatically while media is buffering (HTML5, HLS, DASH)
+- **Download Button** - Optional download control with custom URL support (`downloadButton` + `downloadUrl`)
 - **Preview Thumbnails** - Video preview thumbnails on progress bar hover
 - **Playlists** - Full playlist support with auto-advance and navigation
   - Audio playlists with track info
@@ -148,10 +155,10 @@ This creates minified files in the `dist/` folder.
 </script>
 ```
 
-### Option 3: Development (Source Files)
+### Option 3: Development (TypeScript Sources)
 
-```javascript
-import Player from './src/index.js';
+```typescript
+import Player from './src/index';
 
 const player = new Player('#my-video', {
   controls: true,
@@ -160,6 +167,8 @@ const player = new Player('#my-video', {
   language: 'en'
 });
 ```
+
+> The library is authored in strict TypeScript. Type declarations ship to `dist/types/index.d.ts` so consumers using `tsc` or `vite` get full IntelliSense without any extra `@types` package.
 
 ## Quick Start
 
@@ -223,6 +232,32 @@ That's it! The player auto-initializes.
 <video data-vidply src="https://example.com/manifest.mpd"></video>
 ```
 
+### SoundCloud
+
+```html
+<audio data-vidply src="https://soundcloud.com/artist/track"></audio>
+```
+
+### Download Button
+
+Enable the download button and (optionally) provide a custom URL:
+
+```html
+<video
+  data-vidply
+  data-vidply-download-button="true"
+  data-vidply-download-url="/files/lecture.mp4"
+  src="/streams/lecture/manifest.mpd">
+</video>
+```
+
+```javascript
+const player = new Player('#my-video', {
+  downloadButton: true,
+  downloadUrl: '/files/lecture.mp4' // optional, falls back to current src
+});
+```
+
 ### DASH + HLS + MP4 Fallback
 
 For maximum device compatibility, provide all three formats:
@@ -274,7 +309,9 @@ const player = new Player('#video', {
   signLanguageButton: true,
   fullscreenButton: true,
   pipButton: true,
-  
+  downloadButton: false,        // Show a download button in the control bar
+  downloadUrl: null,            // Optional explicit download URL (falls back to current src)
+
   // Captions
   captions: true,
   captionsDefault: false,
@@ -613,8 +650,8 @@ VidPly provides extensive CSS variables for easy customization:
 
 #### Option 2: JavaScript API
 
-```javascript
-import { i18n } from './src/i18n/i18n.js';
+```typescript
+import { i18n } from './src/i18n/i18n';
 
 // Load language file from URL
 await i18n.loadLanguageFromUrl('pt', 'languages/pt.json');
@@ -631,8 +668,8 @@ i18n.setLanguage('pt');
 
 #### Option 3: Add Translations Programmatically
 
-```javascript
-import { i18n } from './src/i18n/i18n.js';
+```typescript
+import { i18n } from './src/i18n/i18n';
 
 i18n.addTranslation('pt', {
   player: {
@@ -671,14 +708,16 @@ The player supports both JSON and YAML formats for language files.
 
 ## Build Process
 
-VidPly uses a modern build system with esbuild for JavaScript and clean-css for CSS.
+VidPly uses a modern build system with esbuild for TypeScript bundling, the TypeScript compiler for `.d.ts` declarations, and clean-css for CSS.
 
 ### Available Scripts
 
 ```bash
-npm run build        # Build everything (JS + CSS)
-npm run build:js     # Build JavaScript only
+npm run build        # Build everything (JS + types + CSS)
+npm run build:js     # Bundle TypeScript with esbuild (ESM + IIFE)
+npm run build:types  # Emit type declarations to dist/types/
 npm run build:css    # Build CSS only
+npm run typecheck    # Run tsc --noEmit
 npm run watch        # Watch mode for development
 npm run clean        # Clean dist directory
 npm run dev          # Start dev server
@@ -693,6 +732,7 @@ npm run test:all     # Run all tests
 - `dist/prod/vidply.esm.min.js` - ES Module (production)
 - `dist/legacy/vidply.js` - IIFE (development)
 - `dist/legacy/vidply.min.js` - IIFE (production)
+- `dist/types/index.d.ts` - TypeScript declarations
 - `dist/vidply.css` - Styles (unminified)
 - `dist/vidply.min.css` - Styles (minified)
 

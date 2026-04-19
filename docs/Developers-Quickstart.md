@@ -29,65 +29,71 @@ Dev server runs at `http://localhost:3000`
 
 ```
 vidply/
-├── build/                    # Build scripts
-│   ├── build.js              # JavaScript build (esbuild)
-│   ├── build-css.js          # CSS build (clean-css)
-│   ├── watch.js              # Watch mode
-│   └── clean.js              # Clean dist
-├── demo/                     # Demo pages
-│   ├── demo.html             # Main demo
-│   ├── playlist-audio.html   # Audio playlist demo
-│   ├── playlist-video.html   # Video playlist demo
-│   ├── hls-test.html         # HLS streaming demo
-│   ├── dash-test.html        # DASH streaming demo
-│   └── single-player-dash.html # Single DASH player demo
-├── dist/                     # Built files (generated)
-│   ├── prod/vidply.esm.min.js# ES Module (production)
-│   ├── legacy/vidply.min.js  # IIFE (production)
-│   └── vidply.min.css        # Styles (production)
-├── docs/                     # Documentation
-├── src/                      # Source code
+├── build/                       # Build scripts
+│   ├── build.js                 # TypeScript bundling (esbuild → ESM + IIFE)
+│   ├── build-css.js             # CSS build (clean-css)
+│   ├── watch.js                 # Watch mode
+│   └── clean.js                 # Clean dist
+├── demo/                        # Demo pages
+│   ├── demo.html                # Main demo
+│   ├── playlist-audio.html      # Audio playlist demo
+│   ├── playlist-video.html      # Video playlist demo
+│   ├── hls-test.html            # HLS streaming demo
+│   ├── dash-test.html           # DASH streaming demo
+│   └── single-player-dash.html  # Single DASH player demo
+├── dist/                        # Built files (generated)
+│   ├── prod/vidply.esm.min.js   # ES Module (production)
+│   ├── legacy/vidply.min.js     # IIFE (production)
+│   ├── types/index.d.ts         # TypeScript declarations
+│   └── vidply.min.css           # Styles (production)
+├── docs/                        # Documentation
+├── src/                         # Source code (strict TypeScript)
 │   ├── core/
-│   │   └── Player.js         # Main Player class
+│   │   └── Player.ts            # Main Player class
 │   ├── controls/
-│   │   ├── ControlBar.js     # Control bar UI
-│   │   ├── CaptionManager.js # Caption handling
-│   │   ├── KeyboardManager.js# Keyboard shortcuts
-│   │   ├── SettingsDialog.js # Settings menu
-│   │   └── TranscriptManager.js
+│   │   ├── ControlBar.ts        # Control bar UI (incl. download button, buffering spinner)
+│   │   ├── CaptionManager.ts    # Caption handling
+│   │   ├── KeyboardManager.ts   # Keyboard shortcuts
+│   │   ├── SettingsDialog.ts    # Settings menu
+│   │   └── TranscriptManager.ts
 │   ├── features/
-│   │   └── PlaylistManager.js# Playlist support
+│   │   └── PlaylistManager.ts   # Playlist support
 │   ├── i18n/
-│   │   ├── i18n.js           # i18n system
-│   │   ├── translations.js   # Translation loader
-│   │   └── languages/        # Built-in languages
-│   │       ├── en.js
-│   │       ├── de.js
-│   │       ├── es.js
-│   │       ├── fr.js
-│   │       └── ja.js
+│   │   ├── i18n.ts              # i18n system
+│   │   ├── translations.ts      # Translation loader
+│   │   └── languages/           # Built-in languages
+│   │       ├── en.ts
+│   │       ├── de.ts
+│   │       ├── es.ts
+│   │       ├── fr.ts
+│   │       └── ja.ts
 │   ├── icons/
-│   │   └── Icons.js          # SVG icon definitions
+│   │   └── Icons.ts             # SVG icon definitions
 │   ├── renderers/
-│   │   ├── HTML5Renderer.js  # Native HTML5 video/audio
-│   │   ├── YouTubeRenderer.js# YouTube iframe API
-│   │   ├── VimeoRenderer.js  # Vimeo Player API
-│   │   ├── HLSRenderer.js    # HLS.js integration
-│   │   └── DASHRenderer.js   # dash.js integration
+│   │   ├── HTML5Renderer.ts     # Native HTML5 video/audio
+│   │   ├── YouTubeRenderer.ts   # YouTube iframe API
+│   │   ├── VimeoRenderer.ts     # Vimeo Player API
+│   │   ├── SoundCloudRenderer.ts# SoundCloud Widget API
+│   │   ├── HLSRenderer.ts       # hls.js integration + native iOS bridge
+│   │   └── DASHRenderer.ts      # dash.js integration
 │   ├── styles/
-│   │   └── vidply.css        # Main stylesheet
+│   │   └── vidply.css           # Main stylesheet
+│   ├── types/                   # Shared TypeScript types
+│   │   ├── options.ts           # PlayerOptions
+│   │   └── globals.d.ts         # Ambient declarations (Hls, dashjs, …)
 │   ├── utils/
-│   │   ├── DOMUtils.js       # DOM helpers
-│   │   ├── EventEmitter.js   # Event system
-│   │   ├── TimeUtils.js      # Time formatting
-│   │   ├── FocusUtils.js     # Focus management
-│   │   ├── MenuUtils.js      # Menu helpers
-│   │   ├── StorageManager.js # localStorage wrapper
+│   │   ├── DOMUtils.ts          # DOM helpers
+│   │   ├── EventEmitter.ts      # Event system
+│   │   ├── TimeUtils.ts         # Time formatting
+│   │   ├── FocusUtils.ts        # Focus management
+│   │   ├── MenuUtils.ts         # Menu helpers
+│   │   ├── StorageManager.ts    # localStorage wrapper
 │   │   └── ...
-│   └── index.js              # Main entry point
-├── index.html                # Development page
+│   └── index.ts                 # Main entry point
+├── index.html                   # Development page
+├── tsconfig.json                # Strict TypeScript config
 ├── package.json
-└── server.js                 # Dev server
+└── server.js                    # Dev server
 ```
 
 ---
@@ -96,21 +102,25 @@ vidply/
 
 | Script | Description |
 |--------|-------------|
-| `npm run build` | Build everything (JS + CSS) |
-| `npm run build:js` | Build JavaScript only |
+| `npm run build` | Build everything (TypeScript bundles + types + CSS) |
+| `npm run build:js` | Bundle TypeScript with esbuild (ESM + IIFE) |
+| `npm run build:types` | Emit `.d.ts` type declarations to `dist/types/` |
 | `npm run build:css` | Build CSS only |
+| `npm run typecheck` | `tsc --noEmit` strict type-check across `src/` |
 | `npm run watch` | Watch mode (auto-rebuild) |
 | `npm run dev` | Start dev server |
 | `npm run clean` | Clean dist directory |
 | `npm run start` | Build + start dev server |
+| `npm run test` | Vitest unit tests |
+| `npm run test:e2e` | Playwright end-to-end tests |
 
 ---
 
 ## 🏗️ Build System
 
-### JavaScript (esbuild)
+### TypeScript bundles (esbuild)
 
-`build/build.js` produces:
+`build/build.js` consumes the TypeScript sources directly (esbuild handles transpilation) and produces:
 
 | File | Format | Use |
 |------|--------|-----|
@@ -124,6 +134,15 @@ vidply/
 - Tree shaking
 - Source maps (development)
 - Minification (production)
+
+### Type declarations (tsc)
+
+`npm run build:types` runs `tsc --emitDeclarationOnly` against `tsconfig.build.json` and emits:
+
+| File | Use |
+|------|-----|
+| `dist/types/index.d.ts` | Public type entry, referenced from `package.json#types` |
+| `dist/types/**/*.d.ts` | Per-module declarations for tree-shakable named imports |
 
 ### CSS (clean-css)
 
@@ -146,8 +165,10 @@ Player
 │   ├── PlayButton
 │   ├── ProgressBar
 │   ├── VolumeControl
+│   ├── DownloadButton    # opt-in via downloadButton/downloadUrl
 │   ├── SettingsButton
 │   └── FullscreenButton
+├── BufferingOverlay     # Centered loading spinner (.vidply-loading)
 ├── CaptionManager       # Captions/subtitles
 ├── KeyboardManager      # Keyboard shortcuts
 ├── TranscriptManager    # Interactive transcript
@@ -155,7 +176,8 @@ Player
 │   ├── HTML5Renderer
 │   ├── YouTubeRenderer
 │   ├── VimeoRenderer
-│   ├── HLSRenderer
+│   ├── SoundCloudRenderer
+│   ├── HLSRenderer       # hls.js + native iOS TextTrack bridge
 │   └── DASHRenderer
 └── PlaylistManager      # Playlist handling
 ```
@@ -170,16 +192,19 @@ User Action → KeyboardManager/ControlBar → Player → Renderer → DOM
 
 ### Renderer Selection
 
-```javascript
-// src/core/Player.js
-selectRenderer(src) {
+```typescript
+// src/core/Player.ts
+selectRenderer(src: string): RendererCtor {
   if (isYouTubeUrl(src)) return YouTubeRenderer;
   if (isVimeoUrl(src)) return VimeoRenderer;
-  if (isHLSUrl(src)) return HLSRenderer;
+  if (src.includes('soundcloud.com')) return SoundCloudRenderer;
+  if (isHLSUrl(src)) return HLSRenderer;   // hls.js (or native HLS on iOS/iPadOS)
   if (isDASHUrl(src)) return DASHRenderer;
   return HTML5Renderer;
 }
 ```
+
+> The HLS renderer self-decides whether to use `hls.js` (Chrome / Firefox / Edge / desktop Safari) or the native `<video>` HLS support (iOS / iPadOS where MSE is unavailable). On the native path it bridges the browser's `TextTrack` API into VidPly's caption / transcript / quality UI so feature parity is preserved.
 
 ---
 
@@ -187,31 +212,31 @@ selectRenderer(src) {
 
 ### New Control Button
 
-1. **Add to ControlBar** (`src/controls/ControlBar.js`):
+1. **Add to ControlBar** (`src/controls/ControlBar.ts`):
 
-```javascript
-createMyButton() {
+```typescript
+createMyButton(): HTMLButtonElement {
   const button = document.createElement('button');
   button.className = 'vidply-button vidply-my-button';
-  button.setAttribute('aria-label', this.i18n.t('player.myButton'));
+  button.setAttribute('aria-label', i18n.t('player.myButton'));
   button.innerHTML = Icons.myIcon;
   button.addEventListener('click', () => this.player.myAction());
   return button;
 }
 ```
 
-2. **Add icon** (`src/icons/Icons.js`):
+2. **Add icon** (`src/icons/Icons.ts`):
 
-```javascript
+```typescript
 export const Icons = {
   // ...existing icons
   myIcon: `<svg>...</svg>`,
-};
+} as const;
 ```
 
-3. **Add translation** (`src/i18n/languages/en.js`):
+3. **Add translation** (`src/i18n/languages/en.ts`):
 
-```javascript
+```typescript
 export default {
   player: {
     // ...existing
@@ -220,41 +245,40 @@ export default {
 };
 ```
 
-4. **Add to Player API** (`src/core/Player.js`):
+4. **Add to Player API** (`src/core/Player.ts`):
 
-```javascript
-myAction() {
-  // Implementation
+```typescript
+myAction(): void {
   this.emit('myaction');
 }
 ```
 
 ### New Renderer
 
-1. **Create renderer** (`src/renderers/MyRenderer.js`):
+1. **Create renderer** (`src/renderers/MyRenderer.ts`):
 
-```javascript
+```typescript
+import type { Player } from '../core/Player';
+
 export class MyRenderer {
-  constructor(player, container) {
-    this.player = player;
-    this.container = container;
-  }
-  
-  async load(src) { /* ... */ }
-  play() { /* ... */ }
-  pause() { /* ... */ }
-  seek(time) { /* ... */ }
-  setVolume(vol) { /* ... */ }
-  getCurrentTime() { /* ... */ }
-  getDuration() { /* ... */ }
-  destroy() { /* ... */ }
+  constructor(public player: Player) {}
+
+  async init(): Promise<void> { /* ... */ }
+  async load(src: string): Promise<void> { /* ... */ }
+  play(): void { /* ... */ }
+  pause(): void { /* ... */ }
+  seek(time: number): void { /* ... */ }
+  setVolume(vol: number): void { /* ... */ }
+  getCurrentTime(): number { /* ... */ }
+  getDuration(): number { /* ... */ }
+  destroy(): void { /* ... */ }
 }
 ```
 
 2. **Register in Player**:
 
-```javascript
-import { MyRenderer } from '../renderers/MyRenderer.js';
+```typescript
+import { MyRenderer } from '../renderers/MyRenderer';
 
 // In selectRenderer()
 if (isMyServiceUrl(src)) return MyRenderer;
@@ -262,9 +286,9 @@ if (isMyServiceUrl(src)) return MyRenderer;
 
 ### New Language
 
-1. **Create language file** (`src/i18n/languages/pt.js`):
+1. **Create language file** (`src/i18n/languages/pt.ts`):
 
-```javascript
+```typescript
 export default {
   player: {
     play: 'Reproduzir',
@@ -274,14 +298,14 @@ export default {
 };
 ```
 
-2. **Register** (`src/i18n/translations.js`):
+2. **Register** (`src/i18n/translations.ts`):
 
-```javascript
-import pt from './languages/pt.js';
+```typescript
+import pt from './languages/pt';
 
 export const translations = {
   en, de, es, fr, ja,
-  pt,  // Add new language
+  pt,
 };
 ```
 
@@ -417,14 +441,13 @@ player.emit('mycustomevent', { data: 'value' });
 
 ### Enable Debug Mode
 
-```javascript
+```typescript
 const player = new Player('#video', { debug: true });
 ```
 
 ### Console Logging
 
-```javascript
-// In development, use:
+```typescript
 if (this.options.debug) {
   console.log('[VidPly]', message, data);
 }
@@ -462,14 +485,16 @@ if (this.options.debug) {
 
 | What | Where |
 |------|-------|
-| Entry point | `src/index.js` |
-| Player class | `src/core/Player.js` |
-| Control bar | `src/controls/ControlBar.js` |
-| Captions | `src/controls/CaptionManager.js` |
-| Keyboard | `src/controls/KeyboardManager.js` |
-| i18n | `src/i18n/i18n.js` |
+| Entry point | `src/index.ts` |
+| Player class | `src/core/Player.ts` |
+| Player options type | `src/types/options.ts` |
+| Control bar | `src/controls/ControlBar.ts` |
+| Captions | `src/controls/CaptionManager.ts` |
+| Keyboard | `src/controls/KeyboardManager.ts` |
+| i18n | `src/i18n/i18n.ts` |
 | Styles | `src/styles/vidply.css` |
-| Icons | `src/icons/Icons.js` |
+| Icons | `src/icons/Icons.ts` |
+| TypeScript config | `tsconfig.json` |
 
 ### Build Output
 
@@ -483,10 +508,11 @@ if (this.options.debug) {
 
 | Dependency | Purpose | Loaded |
 |------------|---------|--------|
-| HLS.js | HLS streaming | On demand (CDN) |
+| hls.js | HLS streaming (Chrome / Firefox / Edge / desktop Safari) | On demand (CDN) |
 | dash.js | DASH streaming | On demand (CDN) |
 | YouTube IFrame API | YouTube playback | On demand |
 | Vimeo Player API | Vimeo playback | On demand |
+| SoundCloud Widget API | SoundCloud playback | On demand |
 
 ---
 
@@ -503,13 +529,14 @@ if (this.options.debug) {
 
 ### Code Style
 
-- ES6+ JavaScript
+- Strict TypeScript (`strict: true`, `noImplicitAny`, `strictNullChecks`)
 - BEM CSS naming
 - Meaningful variable names
-- Comment complex logic
-- Include ARIA attributes
+- Comment non-obvious intent (not _what_ the code does)
+- Include ARIA attributes on every interactive element
+- Run `npm run typecheck` and `npm run test` before committing
 
 ---
 
-**Version:** 1.0.45 | **License:** GPL-2.0-or-later
+**Version:** 1.1.3 | **License:** GPL-2.0-or-later
 

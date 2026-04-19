@@ -384,12 +384,15 @@ The transcript feature requires at least one caption or subtitle track:
 
 ### Streaming Format Support
 
-| Format | Subtitle Type | Transcript Support |
-|--------|--------------|-------------------|
+| Platform / Format | Subtitle Type | Transcript Support |
+|---|---|---|
 | HTML5 (MP4/WebM) | WebVTT | Yes |
-| HLS (.m3u8) | WebVTT | Yes (cues load incrementally as segments are buffered) |
+| HLS (.m3u8) — `hls.js` (Chrome / Firefox / Edge / desktop Safari) | WebVTT | Yes (cues load incrementally as segments are buffered; `Hls.Events.SUBTITLE_FRAG_PROCESSED` re-emits `textcuesupdate`) |
+| HLS (.m3u8) — Native HLS on iOS / iPadOS Safari | WebVTT (via native `TextTrack` API) | Yes — VidPly bridges the browser's native HLS text tracks into the captions menu, transcript panel and quality menu |
 | DASH (.mpd) | WebVTT | Yes (cues load incrementally as segments are buffered) |
-| DASH (.mpd) | TTML/stpp | No (TTML is rendered by dash.js natively; transcript button is hidden) |
+| DASH (.mpd) | TTML / stpp | No (TTML is rendered by dash.js natively; transcript button is hidden) |
+
+> **iOS / iPadOS:** Even though `hls.js` cannot run on iOS (no MSE), VidPly listens for `addtrack` / `removetrack` / `loadedmetadata` on the native `HTMLMediaElement.textTracks` collection and surfaces every subtitle rendition through the same captions menu and interactive transcript as on desktop. Transcript-on-iOS now works for live and adaptive HLS streams.
 
 For DASH streams with TTML subtitles, captions are displayed on-screen by dash.js but the interactive transcript is not available. If you need transcript support with DASH, use WebVTT subtitle tracks.
 
