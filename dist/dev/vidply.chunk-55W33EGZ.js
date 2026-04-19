@@ -146,8 +146,32 @@ var CaptionManager = class {
       });
     }
   }
+  /**
+   * Sync hls.js subtitle rendition to match the given language.
+   * Matches by lang, language, or falls back to name/label.
+   */
+  _syncHlsSubtitleTrack(targetLang, targetLabel) {
+    const renderer = this.player.renderer;
+    if (!renderer?.hls || !renderer.hls.subtitleTracks?.length) return;
+    const tracks = renderer.hls.subtitleTracks;
+    let hlsIndex = tracks.findIndex(
+      (t) => t.lang === targetLang
+    );
+    if (hlsIndex < 0 && targetLabel) {
+      hlsIndex = tracks.findIndex(
+        (t) => t.name === targetLabel
+      );
+    }
+    if (hlsIndex >= 0 && renderer.hls.subtitleTrack !== hlsIndex) {
+      renderer.hls.subtitleTrack = hlsIndex;
+      this.player.log(`HLS subtitle track set to index ${hlsIndex} (${targetLang})`, "info");
+    }
+  }
   attachEvents() {
     this.player.on("timeupdate", () => {
+      this.updateCaptions();
+    });
+    this.player.on("textcuesupdate", () => {
       this.updateCaptions();
     });
     this.player.on("captionschange", () => {
@@ -228,6 +252,7 @@ var CaptionManager = class {
           ensureTrackReady();
         }
       });
+      this._syncHlsSubtitleTrack(selectedTrack.language, selectedTrack.label);
       this.player.emit("captionsenabled", selectedTrack);
     }
   }
@@ -452,4 +477,4 @@ export {
   rafWithTimeout,
   CaptionManager
 };
-//# sourceMappingURL=vidply.chunk-ELJA4GMZ.js.map
+//# sourceMappingURL=vidply.chunk-55W33EGZ.js.map

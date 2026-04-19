@@ -1812,8 +1812,33 @@
             });
           }
         }
+        /**
+         * Sync hls.js subtitle rendition to match the given language.
+         * Matches by lang, language, or falls back to name/label.
+         */
+        _syncHlsSubtitleTrack(targetLang, targetLabel) {
+          var _a;
+          const renderer = this.player.renderer;
+          if (!(renderer == null ? void 0 : renderer.hls) || !((_a = renderer.hls.subtitleTracks) == null ? void 0 : _a.length)) return;
+          const tracks = renderer.hls.subtitleTracks;
+          let hlsIndex = tracks.findIndex(
+            (t) => t.lang === targetLang
+          );
+          if (hlsIndex < 0 && targetLabel) {
+            hlsIndex = tracks.findIndex(
+              (t) => t.name === targetLabel
+            );
+          }
+          if (hlsIndex >= 0 && renderer.hls.subtitleTrack !== hlsIndex) {
+            renderer.hls.subtitleTrack = hlsIndex;
+            this.player.log(`HLS subtitle track set to index ${hlsIndex} (${targetLang})`, "info");
+          }
+        }
         attachEvents() {
           this.player.on("timeupdate", () => {
+            this.updateCaptions();
+          });
+          this.player.on("textcuesupdate", () => {
             this.updateCaptions();
           });
           this.player.on("captionschange", () => {
@@ -1894,6 +1919,7 @@
                 ensureTrackReady();
               }
             });
+            this._syncHlsSubtitleTrack(selectedTrack.language, selectedTrack.label);
             this.player.emit("captionsenabled", selectedTrack);
           }
         }
