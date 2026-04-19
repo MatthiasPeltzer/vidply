@@ -177,7 +177,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.ts": {
-      "bytes": 19261,
+      "bytes": 20551,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -670,7 +670,7 @@
           "bytesInOutput": 4824
         },
         "src/controls/CaptionManager.ts": {
-          "bytesInOutput": 17022
+          "bytesInOutput": 18185
         },
         "src/renderers/HTML5Renderer.ts": {
           "bytesInOutput": 11361
@@ -730,7 +730,7 @@
           "bytesInOutput": 5582
         }
       },
-      "bytes": 756794
+      "bytes": 757957
     }
   }
 }

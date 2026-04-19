@@ -139,8 +139,37 @@ export class CaptionManager {
         }
     }
 
+    /**
+     * Sync hls.js subtitle rendition to match the given language.
+     * Matches by lang, language, or falls back to name/label.
+     */
+    private _syncHlsSubtitleTrack(targetLang: string, targetLabel?: string) {
+        const renderer = (this.player as any).renderer;
+        if (!renderer?.hls || !renderer.hls.subtitleTracks?.length) return;
+
+        const tracks = renderer.hls.subtitleTracks;
+        let hlsIndex = tracks.findIndex(
+            (t: any) => t.lang === targetLang
+        );
+        // Fallback: match by name/label
+        if (hlsIndex < 0 && targetLabel) {
+            hlsIndex = tracks.findIndex(
+                (t: any) => t.name === targetLabel
+            );
+        }
+        if (hlsIndex >= 0 && renderer.hls.subtitleTrack !== hlsIndex) {
+            renderer.hls.subtitleTrack = hlsIndex;
+            this.player.log(`HLS subtitle track set to index ${hlsIndex} (${targetLang})`, 'info');
+        }
+    }
+
     attachEvents() {
         this.player.on('timeupdate', () => {
+            this.updateCaptions();
+        });
+
+        // When hls.js finishes loading new subtitle cues, refresh captions
+        this.player.on('textcuesupdate', () => {
             this.updateCaptions();
         });
 
@@ -243,6 +272,9 @@ export class CaptionManager {
                     ensureTrackReady();
                 }
             });
+
+            // Sync hls.js subtitle rendition to match the selected track language
+            this._syncHlsSubtitleTrack(selectedTrack.language, selectedTrack.label);
 
             this.player.emit('captionsenabled', selectedTrack);
         }
