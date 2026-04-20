@@ -35,6 +35,9 @@ var es = {
     speed: "Velocidad de reproducción",
     pip: "Imagen en imagen",
     download: "Descargar",
+    downloadWithFormat: "Descargar {format}",
+    downloadWithSize: "Descargar ({size})",
+    downloadWithFormatSize: "Descargar {format} ({size})",
     currentTime: "Tiempo actual",
     duration: "Duración",
     progress: "Progreso",
@@ -193,4 +196,4 @@ var es = {
 export {
   es
 };
-//# sourceMappingURL=vidply.es-OBOYSHKU.js.map
+//# sourceMappingURL=vidply.es-ZRONPOWE.js.map

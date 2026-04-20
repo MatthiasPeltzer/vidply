@@ -9,6 +9,12 @@ import {i18n} from '../i18n/i18n.js';
 import {focusElement, focusFirstElement} from '../utils/FocusUtils.js';
 import {isMobile} from '../utils/PerformanceUtils.js';
 import {captureVideoFrame} from '../utils/VideoFrameCapture.js';
+import {
+    buildDownloadLabel,
+    fetchContentLength,
+    inferFormatFromMime,
+    inferFormatFromUrl
+} from '../utils/DownloadInfo.js';
 import type { Player } from '../core/Player.js';
 
 export class ControlBar {
@@ -3168,19 +3174,38 @@ export class ControlBar {
     }
 
     createDownloadButton(downloadUrl: string) {
+        const dataset = this.player.element?.dataset || ({} as DOMStringMap);
+
+        const format = this.resolveDownloadFormat(downloadUrl);
+        const initialSize = this.resolveInitialDownloadSize();
+
+        const baseLabel = i18n.t('player.download');
+        const initialLabel = buildDownloadLabel({
+            baseLabel,
+            format,
+            sizeBytes: initialSize,
+            locale: i18n.getLanguage(),
+            withFormatSizeTemplate: i18n.t('player.downloadWithFormatSize'),
+            withFormatTemplate: i18n.t('player.downloadWithFormat'),
+            withSizeTemplate: i18n.t('player.downloadWithSize')
+        });
+
         const button = DOMUtils.createElement('button', {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-download`,
             attributes: {
                 'type': 'button',
-                'aria-label': i18n.t('player.download')
+                'aria-label': initialLabel
             }
-        });
+        }) as HTMLButtonElement;
+
+        if (format) button.dataset.vidplyDownloadFormat = format;
+        if (initialSize != null) button.dataset.vidplyDownloadSize = String(initialSize);
 
         button.appendChild(createIconElement('download'));
 
         button.addEventListener('click', () => {
             const url = this.player.options.downloadUrl
-                || this.player.element?.dataset?.vidplyDownloadUrl
+                || dataset.vidplyDownloadUrl
                 || downloadUrl;
             if (!url) return;
 
@@ -3194,7 +3219,82 @@ export class ControlBar {
             document.body.removeChild(a);
         });
 
+        // If size wasn't provided, try a HEAD request and update the label/tooltip when it resolves.
+        const shouldFetchSize = this.player.options.downloadFetchSize !== false && initialSize == null;
+        if (shouldFetchSize) {
+            fetchContentLength(downloadUrl).then(sizeBytes => {
+                if (sizeBytes == null) return;
+                const newLabel = buildDownloadLabel({
+                    baseLabel,
+                    format,
+                    sizeBytes,
+                    locale: i18n.getLanguage(),
+                    withFormatSizeTemplate: i18n.t('player.downloadWithFormatSize'),
+                    withFormatTemplate: i18n.t('player.downloadWithFormat'),
+                    withSizeTemplate: i18n.t('player.downloadWithSize')
+                });
+                button.dataset.vidplyDownloadSize = String(sizeBytes);
+                this.updateDownloadButtonLabel(button, newLabel);
+            });
+        }
+
         return button;
+    }
+
+    /**
+     * Resolve the human-readable file format (e.g. "MP4") for the download
+     * button from options, data attributes, the matching <source type>, or
+     * the URL extension. Returns null when nothing can be determined.
+     */
+    resolveDownloadFormat(downloadUrl: string): string | null {
+        const dataset = this.player.element?.dataset || ({} as DOMStringMap);
+
+        const explicit = this.player.options.downloadFormat
+            || dataset.vidplyDownloadFormat
+            || null;
+        if (explicit) return explicit;
+
+        const sourceEls = this.player.element?.querySelectorAll
+            ? Array.from(this.player.element.querySelectorAll('source')) as HTMLSourceElement[]
+            : [];
+        const matching = sourceEls.find(s => (s.getAttribute('src') || s.src || '') === downloadUrl);
+        const candidate = matching || sourceEls[0];
+        if (candidate) {
+            const fromMime = inferFormatFromMime(candidate.getAttribute('type'));
+            if (fromMime) return fromMime;
+        }
+
+        return inferFormatFromUrl(downloadUrl);
+    }
+
+    /**
+     * Resolve a known file size from options or data attributes (in bytes).
+     * Returns null if no value was provided and a HEAD request should run.
+     */
+    resolveInitialDownloadSize(): number | null {
+        const dataset = this.player.element?.dataset || ({} as DOMStringMap);
+        const optionSize = this.player.options.downloadFileSize;
+        if (typeof optionSize === 'number' && Number.isFinite(optionSize) && optionSize > 0) {
+            return optionSize;
+        }
+        const datasetSize = dataset.vidplyDownloadSize;
+        if (datasetSize) {
+            const n = Number(datasetSize);
+            if (Number.isFinite(n) && n > 0) return n;
+        }
+        return null;
+    }
+
+    /**
+     * Update both aria-label and the visible tooltip text for the download button.
+     */
+    updateDownloadButtonLabel(button: HTMLButtonElement, label: string): void {
+        if (!button || !label) return;
+        button.setAttribute('aria-label', label);
+        const tooltip = button.querySelector(`.${this.player.options.classPrefix}-tooltip`);
+        if (tooltip) {
+            tooltip.textContent = label;
+        }
     }
 
     createFullscreenButton() {

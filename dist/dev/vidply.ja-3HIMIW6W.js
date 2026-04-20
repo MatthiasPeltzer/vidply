@@ -35,6 +35,9 @@ var ja = {
     speed: "再生速度",
     pip: "ピクチャーインピクチャー",
     download: "ダウンロード",
+    downloadWithFormat: "{format} をダウンロード",
+    downloadWithSize: "ダウンロード ({size})",
+    downloadWithFormatSize: "{format} をダウンロード ({size})",
     currentTime: "現在の時間",
     duration: "再生時間",
     progress: "進行状況",
@@ -193,4 +196,4 @@ var ja = {
 export {
   ja
 };
-//# sourceMappingURL=vidply.ja-ILEIPUNW.js.map
+//# sourceMappingURL=vidply.ja-3HIMIW6W.js.map

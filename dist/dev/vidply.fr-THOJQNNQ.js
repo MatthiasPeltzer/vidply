@@ -35,6 +35,9 @@ var fr = {
     speed: "Vitesse de lecture",
     pip: "Image dans l'image",
     download: "Télécharger",
+    downloadWithFormat: "Télécharger {format}",
+    downloadWithSize: "Télécharger ({size})",
+    downloadWithFormatSize: "Télécharger {format} ({size})",
     currentTime: "Temps actuel",
     duration: "Durée",
     progress: "Progression",
@@ -193,4 +196,4 @@ var fr = {
 export {
   fr
 };
-//# sourceMappingURL=vidply.fr-WDRPLLB6.js.map
+//# sourceMappingURL=vidply.fr-THOJQNNQ.js.map

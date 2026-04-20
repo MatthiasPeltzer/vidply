@@ -63,6 +63,9 @@ export interface PlayerOptions {
   pipButton: boolean;
   downloadButton: boolean;
   downloadUrl: string | null;
+  downloadFormat: string | null;
+  downloadFileSize: number | null;
+  downloadFetchSize: boolean;
   playlistToggleButton?: boolean;
 
   // Seeking

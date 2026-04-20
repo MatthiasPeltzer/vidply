@@ -6,7 +6,7 @@
 import {
   DOMUtils,
   i18n
-} from "./vidply.chunk-VLF6H5PZ.js";
+} from "./vidply.chunk-L7X3OIB5.js";
 
 // src/icons/Icons.ts
 var iconPaths = {
@@ -1036,4 +1036,4 @@ export {
   createLabeledSelect,
   preventDragOnElement
 };
-//# sourceMappingURL=vidply.chunk-37V7VOIQ.js.map
+//# sourceMappingURL=vidply.chunk-3GEMRDJL.js.map
