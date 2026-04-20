@@ -11,11 +11,11 @@ import {
   createMenuItem,
   focusFirstMenuItem,
   preventDragOnElement
-} from "./vidply.chunk-37V7VOIQ.js";
+} from "./vidply.chunk-3GEMRDJL.js";
 import {
   DOMUtils,
   i18n
-} from "./vidply.chunk-VLF6H5PZ.js";
+} from "./vidply.chunk-L7X3OIB5.js";
 
 // src/core/SignLanguageManager.ts
 var SignLanguageManager = class {
@@ -1245,4 +1245,4 @@ var SignLanguageManager = class {
 export {
   SignLanguageManager
 };
-//# sourceMappingURL=vidply.SignLanguageManager-OOZLX2GI.js.map
+//# sourceMappingURL=vidply.SignLanguageManager-Q6VSBQXH.js.map

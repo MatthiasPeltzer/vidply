@@ -240,6 +240,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
             pipButton: false,
             downloadButton: false,
             downloadUrl: null,
+            downloadFormat: null,
+            downloadFileSize: null,
+            downloadFetchSize: true,
 
             // Seeking
             seekInterval: 10,

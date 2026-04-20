@@ -17,27 +17,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.ts": {
-      "bytes": 7887,
+      "bytes": 8036,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.ts": {
-      "bytes": 9730,
+      "bytes": 9906,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.ts": {
-      "bytes": 8881,
+      "bytes": 9033,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.ts": {
-      "bytes": 9132,
+      "bytes": 9296,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.ts": {
-      "bytes": 9580,
+      "bytes": 9765,
       "imports": [],
       "format": "esm"
     },
@@ -119,8 +119,13 @@
       "imports": [],
       "format": "esm"
     },
+    "src/utils/DownloadInfo.ts": {
+      "bytes": 4066,
+      "imports": [],
+      "format": "esm"
+    },
     "src/controls/ControlBar.ts": {
-      "bytes": 171635,
+      "bytes": 175883,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -156,6 +161,11 @@
           "path": "src/utils/VideoFrameCapture.ts",
           "kind": "import-statement",
           "original": "../utils/VideoFrameCapture.js"
+        },
+        {
+          "path": "src/utils/DownloadInfo.ts",
+          "kind": "import-statement",
+          "original": "../utils/DownloadInfo.js"
         },
         {
           "path": "<runtime>",
@@ -456,7 +466,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 252491,
+      "bytes": 252598,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -634,19 +644,19 @@
           "bytesInOutput": 5660
         },
         "src/i18n/languages/en.ts": {
-          "bytesInOutput": 8865
+          "bytesInOutput": 9029
         },
         "src/i18n/languages/de.ts": {
-          "bytesInOutput": 10088
+          "bytesInOutput": 10267
         },
         "src/i18n/languages/es.ts": {
-          "bytesInOutput": 9915
+          "bytesInOutput": 10082
         },
         "src/i18n/languages/fr.ts": {
-          "bytesInOutput": 10163
+          "bytesInOutput": 10342
         },
         "src/i18n/languages/ja.ts": {
-          "bytesInOutput": 10613
+          "bytesInOutput": 10813
         },
         "src/i18n/translations.ts": {
           "bytesInOutput": 894
@@ -712,13 +722,16 @@
           "bytesInOutput": 1002
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 182585
+          "bytesInOutput": 182680
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 125578
+          "bytesInOutput": 129151
         },
         "src/utils/VideoFrameCapture.ts": {
           "bytesInOutput": 2598
+        },
+        "src/utils/DownloadInfo.ts": {
+          "bytesInOutput": 3297
         },
         "src/controls/KeyboardManager.ts": {
           "bytesInOutput": 7509
@@ -730,7 +743,7 @@
           "bytesInOutput": 5582
         }
       },
-      "bytes": 757957
+      "bytes": 765843
     }
   }
 }

@@ -5,9 +5,9 @@
  */
 import {
   CaptionManager
-} from "./vidply.chunk-55W33EGZ.js";
+} from "./vidply.chunk-N5IZUHIU.js";
 import "./vidply.chunk-SXDZXXZD.js";
-import "./vidply.chunk-VLF6H5PZ.js";
+import "./vidply.chunk-L7X3OIB5.js";
 
 // src/core/AudioDescriptionManager.ts
 var AudioDescriptionManager = class {
@@ -569,4 +569,4 @@ var AudioDescriptionManager = class {
 export {
   AudioDescriptionManager
 };
-//# sourceMappingURL=vidply.AudioDescriptionManager-AXPP5OKO.js.map
+//# sourceMappingURL=vidply.AudioDescriptionManager-XHNC7UZC.js.map

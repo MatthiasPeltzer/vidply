@@ -200,6 +200,9 @@
           speed: "Playback Speed",
           pip: "Picture in Picture",
           download: "Download",
+          downloadWithFormat: "Download {format}",
+          downloadWithSize: "Download ({size})",
+          downloadWithFormatSize: "Download {format} ({size})",
           currentTime: "Current time",
           duration: "Duration",
           progress: "Progress",
@@ -400,6 +403,9 @@
           speed: "Wiedergabegeschwindigkeit",
           pip: "Bild-in-Bild",
           download: "Herunterladen",
+          downloadWithFormat: "Herunterladen {format}",
+          downloadWithSize: "Herunterladen ({size})",
+          downloadWithFormatSize: "Herunterladen {format} ({size})",
           currentTime: "Aktuelle Zeit",
           duration: "Dauer",
           progress: "Fortschritt",
@@ -600,6 +606,9 @@
           speed: "Velocidad de reproducción",
           pip: "Imagen en imagen",
           download: "Descargar",
+          downloadWithFormat: "Descargar {format}",
+          downloadWithSize: "Descargar ({size})",
+          downloadWithFormatSize: "Descargar {format} ({size})",
           currentTime: "Tiempo actual",
           duration: "Duración",
           progress: "Progreso",
@@ -797,6 +806,9 @@
           speed: "Vitesse de lecture",
           pip: "Image dans l'image",
           download: "Télécharger",
+          downloadWithFormat: "Télécharger {format}",
+          downloadWithSize: "Télécharger ({size})",
+          downloadWithFormatSize: "Télécharger {format} ({size})",
           currentTime: "Temps actuel",
           duration: "Durée",
           progress: "Progression",
@@ -994,6 +1006,9 @@
           speed: "再生速度",
           pip: "ピクチャーインピクチャー",
           download: "ダウンロード",
+          downloadWithFormat: "{format} をダウンロード",
+          downloadWithSize: "ダウンロード ({size})",
+          downloadWithFormatSize: "{format} をダウンロード ({size})",
           currentTime: "現在の時間",
           duration: "再生時間",
           progress: "進行状況",
@@ -9150,6 +9165,119 @@
     });
   }
 
+  // src/utils/DownloadInfo.ts
+  var MIME_TO_FORMAT = {
+    "video/mp4": "MP4",
+    "video/webm": "WebM",
+    "video/ogg": "Ogg",
+    "video/quicktime": "MOV",
+    "video/x-matroska": "MKV",
+    "video/x-msvideo": "AVI",
+    "audio/mpeg": "MP3",
+    "audio/mp3": "MP3",
+    "audio/mp4": "M4A",
+    "audio/x-m4a": "M4A",
+    "audio/aac": "AAC",
+    "audio/ogg": "Ogg",
+    "audio/opus": "Opus",
+    "audio/wav": "WAV",
+    "audio/x-wav": "WAV",
+    "audio/wave": "WAV",
+    "audio/flac": "FLAC",
+    "audio/x-flac": "FLAC",
+    "audio/webm": "WebM"
+  };
+  var EXT_TO_FORMAT = {
+    mp4: "MP4",
+    m4v: "MP4",
+    mov: "MOV",
+    webm: "WebM",
+    mkv: "MKV",
+    avi: "AVI",
+    ogv: "Ogg",
+    ogg: "Ogg",
+    oga: "Ogg",
+    mp3: "MP3",
+    m4a: "M4A",
+    aac: "AAC",
+    opus: "Opus",
+    wav: "WAV",
+    flac: "FLAC"
+  };
+  function inferFormatFromMime(mime) {
+    if (!mime) return null;
+    const trimmed = mime.split(";")[0].trim().toLowerCase();
+    return MIME_TO_FORMAT[trimmed] || null;
+  }
+  function inferFormatFromUrl(url) {
+    if (!url) return null;
+    try {
+      const cleaned = url.split("?")[0].split("#")[0];
+      const lastSegment = cleaned.split("/").pop() || "";
+      const dotIndex = lastSegment.lastIndexOf(".");
+      if (dotIndex < 0 || dotIndex === lastSegment.length - 1) return null;
+      const ext = lastSegment.slice(dotIndex + 1).toLowerCase();
+      return EXT_TO_FORMAT[ext] || null;
+    } catch {
+      return null;
+    }
+  }
+  function formatBytes(bytes, locale = "en") {
+    if (!isFinite(bytes) || bytes < 0) return null;
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    let value = bytes;
+    let unitIndex = 0;
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex++;
+    }
+    const fractionDigits = unitIndex < 2 ? 0 : 1;
+    let formatted;
+    try {
+      formatted = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits
+      }).format(value);
+    } catch {
+      formatted = value.toFixed(fractionDigits);
+    }
+    return `${formatted} ${units[unitIndex]}`;
+  }
+  async function fetchContentLength(url) {
+    if (!url || typeof fetch !== "function") return null;
+    try {
+      const response = await fetch(url, {
+        method: "HEAD",
+        credentials: "omit",
+        cache: "no-store"
+      });
+      if (!response.ok) return null;
+      const header = response.headers.get("Content-Length");
+      if (!header) return null;
+      const size = Number(header);
+      return Number.isFinite(size) && size > 0 ? size : null;
+    } catch (error) {
+      if (typeof console !== "undefined" && console.debug) {
+        console.debug("[vidply] HEAD request for download size failed:", error);
+      }
+      return null;
+    }
+  }
+  function buildDownloadLabel(parts) {
+    const { baseLabel, format, sizeBytes, locale = "en" } = parts;
+    const sizeStr = sizeBytes != null ? formatBytes(sizeBytes, locale) : null;
+    if (format && sizeStr) {
+      return parts.withFormatSizeTemplate.replace("{format}", format).replace("{size}", sizeStr);
+    }
+    if (format) {
+      return parts.withFormatTemplate.replace("{format}", format);
+    }
+    if (sizeStr) {
+      return parts.withSizeTemplate.replace("{size}", sizeStr);
+    }
+    return baseLabel;
+  }
+
   // src/controls/ControlBar.ts
   var ControlBar = class {
     constructor(player) {
@@ -11479,28 +11607,109 @@
       return button;
     }
     createDownloadButton(downloadUrl) {
+      var _a;
+      const dataset = ((_a = this.player.element) == null ? void 0 : _a.dataset) || {};
+      const format = this.resolveDownloadFormat(downloadUrl);
+      const initialSize = this.resolveInitialDownloadSize();
+      const baseLabel = i18n.t("player.download");
+      const initialLabel = buildDownloadLabel({
+        baseLabel,
+        format,
+        sizeBytes: initialSize,
+        locale: i18n.getLanguage(),
+        withFormatSizeTemplate: i18n.t("player.downloadWithFormatSize"),
+        withFormatTemplate: i18n.t("player.downloadWithFormat"),
+        withSizeTemplate: i18n.t("player.downloadWithSize")
+      });
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-download`,
         attributes: {
           "type": "button",
-          "aria-label": i18n.t("player.download")
+          "aria-label": initialLabel
         }
       });
+      if (format) button.dataset.vidplyDownloadFormat = format;
+      if (initialSize != null) button.dataset.vidplyDownloadSize = String(initialSize);
       button.appendChild(createIconElement("download"));
       button.addEventListener("click", () => {
-        var _a, _b, _c;
-        const url = this.player.options.downloadUrl || ((_b = (_a = this.player.element) == null ? void 0 : _a.dataset) == null ? void 0 : _b.vidplyDownloadUrl) || downloadUrl;
+        var _a2;
+        const url = this.player.options.downloadUrl || dataset.vidplyDownloadUrl || downloadUrl;
         if (!url) return;
         const a = document.createElement("a");
         a.href = url;
-        a.download = ((_c = url.split("/").pop()) == null ? void 0 : _c.split("?")[0]) || "download";
+        a.download = ((_a2 = url.split("/").pop()) == null ? void 0 : _a2.split("?")[0]) || "download";
         a.rel = "noopener";
         a.style.display = "none";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
       });
+      const shouldFetchSize = this.player.options.downloadFetchSize !== false && initialSize == null;
+      if (shouldFetchSize) {
+        fetchContentLength(downloadUrl).then((sizeBytes) => {
+          if (sizeBytes == null) return;
+          const newLabel = buildDownloadLabel({
+            baseLabel,
+            format,
+            sizeBytes,
+            locale: i18n.getLanguage(),
+            withFormatSizeTemplate: i18n.t("player.downloadWithFormatSize"),
+            withFormatTemplate: i18n.t("player.downloadWithFormat"),
+            withSizeTemplate: i18n.t("player.downloadWithSize")
+          });
+          button.dataset.vidplyDownloadSize = String(sizeBytes);
+          this.updateDownloadButtonLabel(button, newLabel);
+        });
+      }
       return button;
+    }
+    /**
+     * Resolve the human-readable file format (e.g. "MP4") for the download
+     * button from options, data attributes, the matching <source type>, or
+     * the URL extension. Returns null when nothing can be determined.
+     */
+    resolveDownloadFormat(downloadUrl) {
+      var _a, _b;
+      const dataset = ((_a = this.player.element) == null ? void 0 : _a.dataset) || {};
+      const explicit = this.player.options.downloadFormat || dataset.vidplyDownloadFormat || null;
+      if (explicit) return explicit;
+      const sourceEls = ((_b = this.player.element) == null ? void 0 : _b.querySelectorAll) ? Array.from(this.player.element.querySelectorAll("source")) : [];
+      const matching = sourceEls.find((s) => (s.getAttribute("src") || s.src || "") === downloadUrl);
+      const candidate = matching || sourceEls[0];
+      if (candidate) {
+        const fromMime = inferFormatFromMime(candidate.getAttribute("type"));
+        if (fromMime) return fromMime;
+      }
+      return inferFormatFromUrl(downloadUrl);
+    }
+    /**
+     * Resolve a known file size from options or data attributes (in bytes).
+     * Returns null if no value was provided and a HEAD request should run.
+     */
+    resolveInitialDownloadSize() {
+      var _a;
+      const dataset = ((_a = this.player.element) == null ? void 0 : _a.dataset) || {};
+      const optionSize = this.player.options.downloadFileSize;
+      if (typeof optionSize === "number" && Number.isFinite(optionSize) && optionSize > 0) {
+        return optionSize;
+      }
+      const datasetSize = dataset.vidplyDownloadSize;
+      if (datasetSize) {
+        const n = Number(datasetSize);
+        if (Number.isFinite(n) && n > 0) return n;
+      }
+      return null;
+    }
+    /**
+     * Update both aria-label and the visible tooltip text for the download button.
+     */
+    updateDownloadButtonLabel(button, label) {
+      if (!button || !label) return;
+      button.setAttribute("aria-label", label);
+      const tooltip = button.querySelector(`.${this.player.options.classPrefix}-tooltip`);
+      if (tooltip) {
+        tooltip.textContent = label;
+      }
     }
     createFullscreenButton() {
       const button = DOMUtils.createElement("button", {
@@ -12605,6 +12814,9 @@
         pipButton: false,
         downloadButton: false,
         downloadUrl: null,
+        downloadFormat: null,
+        downloadFileSize: null,
+        downloadFetchSize: true,
         // Seeking
         seekInterval: 10,
         seekIntervalLarge: 30,
