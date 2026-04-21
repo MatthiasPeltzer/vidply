@@ -851,20 +851,26 @@ var ControlBar = class {
     const isAudio = this.player.element.tagName.toLowerCase() === "audio";
     if (pipEnabled && !(this.player.options.floating && isAudio)) {
       const btn = this.createPipButton();
-      btn.dataset.overflowPriority = "3";
-      btn.dataset.overflowPriorityMobile = "3";
-      this.rightButtons.appendChild(btn);
-    }
-    const isAudioPlayer = this.player.element.tagName.toLowerCase() === "audio";
-    if (this.player.options.fullscreenButton && !isAudioPlayer) {
-      const btn = this.createFullscreenButton();
-      btn.dataset.overflowPriority = "1";
-      btn.dataset.overflowPriorityMobile = "3";
+      if (this.player.options.floating) {
+        btn.dataset.skipOverflow = "true";
+        btn.dataset.overflowPriority = "1";
+        btn.dataset.overflowPriorityMobile = "1";
+      } else {
+        btn.dataset.overflowPriority = "3";
+        btn.dataset.overflowPriorityMobile = "3";
+      }
       this.rightButtons.appendChild(btn);
     }
     this.overflowMenuButton = this.createOverflowMenuButton();
     this.overflowMenuButton.style.display = "none";
     this.rightButtons.appendChild(this.overflowMenuButton);
+    const isAudioPlayer = this.player.element.tagName.toLowerCase() === "audio";
+    if (this.player.options.fullscreenButton && !isAudioPlayer) {
+      const btn = this.createFullscreenButton();
+      btn.dataset.overflowPriority = "1";
+      btn.dataset.overflowPriorityMobile = "1";
+      this.rightButtons.appendChild(btn);
+    }
     buttonContainer.appendChild(leftButtons);
     buttonContainer.appendChild(this.rightButtons);
     this.element.appendChild(buttonContainer);
@@ -2580,8 +2586,10 @@ var ControlBar = class {
   createPipButton() {
     const floating = this.player.options.floating === true;
     const labelKey = floating ? "player.floatingPlayer" : "player.pip";
+    const prefix = this.player.options.classPrefix;
+    const className = floating ? `${prefix}-button ${prefix}-pip ${prefix}-pip-floating` : `${prefix}-button ${prefix}-pip`;
     const button = DOMUtils.createElement("button", {
-      className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-pip`,
+      className,
       attributes: {
         "type": "button",
         "aria-label": i18n.t(labelKey),
@@ -3173,7 +3181,7 @@ var ControlBar = class {
         return;
       }
       const allButtons = Array.from(this.rightButtons.children).filter(
-        (btn) => !btn.classList.contains(`${this.player.options.classPrefix}-overflow-menu`)
+        (btn) => !btn.classList.contains(`${this.player.options.classPrefix}-overflow-menu`) && btn.dataset.skipOverflow !== "true"
       );
       if (allButtons.length === 0) {
         if (this.overflowMenuButton) {
@@ -3622,7 +3630,7 @@ async function loadSignLanguageManager() {
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-TX2A5RMA.js");
+    const module = await import("./vidply.FloatingPlayerManager-5EA4BYSR.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -3807,7 +3815,7 @@ var Player = class _Player extends EventEmitter {
       pipButton: false,
       floating: false,
       floatingPosition: "bottom-right",
-      floatingMinViewportWidth: 640,
+      floatingMinViewportWidth: 768,
       downloadButton: false,
       downloadUrl: null,
       downloadFormat: null,

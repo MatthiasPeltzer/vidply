@@ -248,7 +248,7 @@ export class FloatingPlayerManager {
         // UI; floating support for playlists is out of scope for this v1.
         if (this.player.playlistManager) return false;
 
-        const minWidth = this.player.options.floatingMinViewportWidth ?? 640;
+        const minWidth = this.player.options.floatingMinViewportWidth ?? 768;
         if (window.innerWidth < minWidth) return false;
 
         // Auto-float only engages when the user is actively watching.
@@ -283,7 +283,7 @@ export class FloatingPlayerManager {
         window.addEventListener(FLOATING_CLAIM_EVENT, this._onClaim as EventListener);
 
         this._onResize = () => {
-            const minWidth = this.player.options.floatingMinViewportWidth ?? 640;
+            const minWidth = this.player.options.floatingMinViewportWidth ?? 768;
             if (this.player.state.floating && window.innerWidth < minWidth) {
                 this.exit('auto');
             }

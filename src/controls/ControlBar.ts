@@ -850,25 +850,43 @@ export class ControlBar {
         const isAudio = this.player.element.tagName.toLowerCase() === 'audio';
         if (pipEnabled && !(this.player.options.floating && isAudio)) {
             const btn = this.createPipButton();
-            btn.dataset.overflowPriority = '3';
-            btn.dataset.overflowPriorityMobile = '3';
+            if (this.player.options.floating) {
+                // The floating feature has a hard viewport minimum (default
+                // 768px). Below that, the feature is disabled by the
+                // FloatingPlayerManager, so the button must neither sit in
+                // the main control bar (hidden via CSS media query) nor be
+                // shuffled into the overflow menu. Mark it so the overflow
+                // detector leaves it alone, regardless of the screen size.
+                btn.dataset.skipOverflow = 'true';
+                btn.dataset.overflowPriority = '1';
+                btn.dataset.overflowPriorityMobile = '1';
+            } else {
+                btn.dataset.overflowPriority = '3';
+                btn.dataset.overflowPriorityMobile = '3';
+            }
             this.rightButtons.appendChild(btn);
         }
 
-        // 8. Fullscreen button (last)
-        // Don't show fullscreen button for audio players
+        // Create overflow menu button (initially hidden). Added before the
+        // fullscreen button so that, on mobile viewports where the overflow
+        // menu is visible, fullscreen sits immediately to its right as the
+        // last control in the bar.
+        this.overflowMenuButton = this.createOverflowMenuButton();
+        this.overflowMenuButton.style.display = 'none';
+        this.rightButtons.appendChild(this.overflowMenuButton);
+
+        // 8. Fullscreen button (very last)
+        // Don't show fullscreen button for audio players. Fullscreen is a
+        // core action users reach for often, so it stays in the main bar
+        // on every viewport (priority 1 on desktop AND mobile) rather than
+        // being shuffled into the overflow menu.
         const isAudioPlayer = this.player.element.tagName.toLowerCase() === 'audio';
         if (this.player.options.fullscreenButton && !isAudioPlayer) {
             const btn = this.createFullscreenButton();
             btn.dataset.overflowPriority = '1';
-            btn.dataset.overflowPriorityMobile = '3';
+            btn.dataset.overflowPriorityMobile = '1';
             this.rightButtons.appendChild(btn);
         }
-
-        // Create overflow menu button (initially hidden)
-        this.overflowMenuButton = this.createOverflowMenuButton();
-        this.overflowMenuButton.style.display = 'none';
-        this.rightButtons.appendChild(this.overflowMenuButton);
 
         buttonContainer.appendChild(leftButtons);
         buttonContainer.appendChild(this.rightButtons);
@@ -3164,8 +3182,15 @@ export class ControlBar {
     createPipButton() {
         const floating = this.player.options.floating === true;
         const labelKey = floating ? 'player.floatingPlayer' : 'player.pip';
+        const prefix = this.player.options.classPrefix;
+        // When floating is enabled, add an extra marker class so the CSS
+        // media query can hide the button below the feature's minimum
+        // viewport width without affecting the native-PiP variant.
+        const className = floating
+            ? `${prefix}-button ${prefix}-pip ${prefix}-pip-floating`
+            : `${prefix}-button ${prefix}-pip`;
         const button = DOMUtils.createElement('button', {
-            className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-pip`,
+            className,
             attributes: {
                 'type': 'button',
                 'aria-label': i18n.t(labelKey),
@@ -3973,9 +3998,13 @@ export class ControlBar {
                 return;
             }
 
-            // Get all buttons (except the overflow menu button itself)
+            // Get all buttons (except the overflow menu button itself and
+            // buttons that opt out via data-skip-overflow="true", e.g. the
+            // floating-player PiP button which has its own viewport media
+            // query and must never appear in the overflow menu list).
             const allButtons = (Array.from(this.rightButtons.children) as HTMLElement[]).filter(
                 btn => !btn.classList.contains(`${this.player.options.classPrefix}-overflow-menu`)
+                    && btn.dataset.skipOverflow !== 'true'
             );
 
             if (allButtons.length === 0) {
