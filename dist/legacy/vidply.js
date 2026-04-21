@@ -5563,7 +5563,6 @@
             className: `${this.classPrefix}-floating-resize-handle ${this.classPrefix}-floating-resize-${dir}`,
             attributes: {
               "data-direction": dir,
-              "data-vidply-managed-resize": "true",
               "aria-hidden": "true"
             }
           }));

@@ -350,7 +350,7 @@
       "format": "esm"
     },
     "src/core/FloatingPlayerManager.ts": {
-      "bytes": 23458,
+      "bytes": 23810,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -737,7 +737,7 @@
           "bytesInOutput": 52701
         },
         "src/core/FloatingPlayerManager.ts": {
-          "bytesInOutput": 21061
+          "bytesInOutput": 21009
         },
         "src/controls/TranscriptManager.ts": {
           "bytesInOutput": 82980
@@ -782,7 +782,7 @@
           "bytesInOutput": 5766
         }
       },
-      "bytes": 792882
+      "bytes": 792830
     }
   }
 }

@@ -295,7 +295,7 @@
       "format": "esm"
     },
     "src/core/FloatingPlayerManager.ts": {
-      "bytes": 23458,
+      "bytes": 23810,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -567,7 +567,7 @@
     }
   },
   "outputs": {
-    "dist/prod/vidply.FloatingPlayerManager-JVNKAK4N.min.js": {
+    "dist/prod/vidply.FloatingPlayerManager-NRKSWDTL.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-QGVFMQUO.min.js",
@@ -584,10 +584,10 @@
       "entryPoint": "src/core/FloatingPlayerManager.ts",
       "inputs": {
         "src/core/FloatingPlayerManager.ts": {
-          "bytesInOutput": 16913
+          "bytesInOutput": 16867
         }
       },
-      "bytes": 17266
+      "bytes": 17220
     },
     "dist/prod/vidply.TranscriptManager-L5E737CR.min.js": {
       "imports": [
@@ -733,7 +733,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.FloatingPlayerManager-JVNKAK4N.min.js",
+          "path": "dist/prod/vidply.FloatingPlayerManager-NRKSWDTL.min.js",
           "kind": "dynamic-import"
         },
         {

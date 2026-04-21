@@ -421,12 +421,17 @@ export class FloatingPlayerManager {
     }
 
     _createResizeHandles() {
+        // Resize handles are always-on for the floating shell. Do NOT set
+        // `data-vidply-managed-resize="true"`: that flag is used by the
+        // transcript / sign-language overlays to gate the handles behind
+        // an "R" keypress, and DraggableResizable hides managed handles
+        // during init() — which would leave the shell with no visible or
+        // hittable edges/corners.
         const dirs = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
         this.resizeHandles = dirs.map(dir => DOMUtils.createElement('div', {
             className: `${this.classPrefix}-floating-resize-handle ${this.classPrefix}-floating-resize-${dir}`,
             attributes: {
                 'data-direction': dir,
-                'data-vidply-managed-resize': 'true',
                 'aria-hidden': 'true'
             }
         }));
