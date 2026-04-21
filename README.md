@@ -274,17 +274,19 @@ manually pin/unpin the floating player via the PiP button in the control bar.
 The native browser Picture-in-Picture API is automatically suppressed while
 floating is enabled, so users get a single, consistent experience.
 
+Enable via the `data-vidply-options` JSON blob:
+
 ```html
 <video
   data-vidply
-  data-vidply-floating="true"
-  data-vidply-floating-position="bottom-right"
-  data-vidply-floating-min-viewport-width="768"
+  data-vidply-options='{"floating": true, "floatingPosition": "bottom-right", "floatingMinViewportWidth": 768}'
   src="video.mp4"
   width="800" height="450">
   <track kind="subtitles" src="captions.vtt" srclang="en" label="English">
 </video>
 ```
+
+Or programmatically:
 
 ```javascript
 const player = new Player('#my-video', {

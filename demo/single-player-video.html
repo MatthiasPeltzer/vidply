@@ -108,10 +108,12 @@
 
         <p style="color: #ffffff; max-width: 760px; margin: 0 auto;">
             This demo showcases the optional <strong>custom floating player</strong>
-            (<code>data-vidply-floating="true"</code>). Scroll down so the video leaves the viewport
-            and it pops into a draggable, resizable floating shell in the bottom-right corner;
-            scroll back up and it docks again. You can also click the PiP button in the control
-            bar to manually pin/unpin the floating window. (Available on viewports ≥ 768&nbsp;px.)
+            (enabled via <code>data-vidply-options='{"floating":true,...}'</code>).
+            Scroll down so the video leaves the viewport and it pops into a
+            draggable, resizable floating shell in the bottom-right corner; scroll
+            back up and it docks again. You can also click the PiP button in the
+            control bar to manually pin/unpin the floating window.
+            (Available on viewports ≥ 768&nbsp;px.)
         </p>
 
     </header>
@@ -128,10 +130,7 @@
                 data-audio-description-button="true"
                 data-transcript-button="true"
                 data-vidply-download-url="media/wwa.mp4"
-                data-vidply-floating="true"
-                data-vidply-floating-position="bottom-right"
-                data-vidply-floating-min-viewport-width="768"
-                data-vidply-options='{"noAspectRatio":true,"signLanguageDisplayMode":"pip","downloadButton":true,"pipButton":true}'
+                data-vidply-options='{"noAspectRatio":true,"signLanguageDisplayMode":"pip","downloadButton":true,"pipButton":true,"floating":true,"floatingPosition":"bottom-right","floatingMinViewportWidth":768}'
                 width="800"
                 height="450"
                 poster="media/wwa_hq_thumbnail.jpg"

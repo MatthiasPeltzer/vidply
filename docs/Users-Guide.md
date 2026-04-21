@@ -364,14 +364,15 @@ so the user gets a single, consistent experience across browsers.
 - **Audio players are skipped** - The floating feature only applies to `<video>` players.
 - **Desktop only by default** - Below `floatingMinViewportWidth` (default 768 px) the feature is disabled and the floating PiP button is hidden in the main control bar (it never falls into the overflow menu).
 
-### Enable via HTML
+### Enable via HTML (data-vidply-options JSON)
+
+Floating options are passed via the `data-vidply-options` JSON blob (the same
+channel TYPO3 / `mpc_vidply` uses):
 
 ```html
 <video
   data-vidply
-  data-vidply-floating="true"
-  data-vidply-floating-position="bottom-right"
-  data-vidply-floating-min-viewport-width="768"
+  data-vidply-options='{"floating": true, "floatingPosition": "bottom-right", "floatingMinViewportWidth": 768}'
   src="video.mp4"
   width="800" height="450">
   <track kind="subtitles" src="captions.vtt" srclang="en" label="English">
