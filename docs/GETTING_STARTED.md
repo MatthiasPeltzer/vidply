@@ -227,9 +227,7 @@ browser PiP is suppressed automatically while floating is enabled.
 ```html
 <video
   data-vidply
-  data-vidply-floating="true"
-  data-vidply-floating-position="bottom-right"
-  data-vidply-floating-min-viewport-width="768"
+  data-vidply-options='{"floating": true, "floatingPosition": "bottom-right", "floatingMinViewportWidth": 768}'
   src="video.mp4"
   width="800" height="450">
   <track kind="subtitles" src="captions.vtt" srclang="en" label="English">
