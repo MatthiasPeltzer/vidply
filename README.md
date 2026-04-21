@@ -8,7 +8,7 @@ A modern, feature-rich media player authored in strict TypeScript and shipped as
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)
 ![ESM](https://img.shields.io/badge/ESM-Module-yellow.svg)
 ![WCAG](https://img.shields.io/badge/WCAG-2.2%20AA-green.svg)
-![Version](https://img.shields.io/badge/version-1.1.3-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.1.4-brightgreen.svg)
 
 ## Live Demos
 
@@ -81,7 +81,14 @@ Try VidPly in action:
 - **Volume Control** - 0-100% with mute
 - **Loop Playback** - Single or playlist loop
 - **Fullscreen Mode** - Native fullscreen API with smart playlist overlay
-- **Picture-in-Picture** - PiP support
+- **Picture-in-Picture** - Native browser PiP support (toggled via the standard PiP button)
+- **Custom Floating Player (Miniplayer)** - Optional in-page floating window that
+  - automatically floats when the original player scrolls out of the viewport and docks back when it scrolls in
+  - can be pinned/unpinned manually via the PiP button (manual pin overrides scroll behavior)
+  - is fully draggable and resizable, with persistent geometry per player
+  - keeps VidPly captions, transport controls and fullscreen working inside the floating shell
+  - suppresses native browser PiP automatically while enabled
+  - is desktop-only (disabled below 768 px viewport width by default)
 
 ### Internationalization
 Built-in support for 5 languages:
@@ -258,6 +265,41 @@ const player = new Player('#my-video', {
 });
 ```
 
+### Custom Floating Player (Miniplayer)
+
+Enable the in-page floating player ("own PiP"). When the original video scrolls
+out of the viewport, VidPly pops up a draggable, resizable floating shell in the
+chosen corner; when the original scrolls back in, it docks again. Users can also
+manually pin/unpin the floating player via the PiP button in the control bar.
+The native browser Picture-in-Picture API is automatically suppressed while
+floating is enabled, so users get a single, consistent experience.
+
+```html
+<video
+  data-vidply
+  data-vidply-floating="true"
+  data-vidply-floating-position="bottom-right"
+  data-vidply-floating-min-viewport-width="768"
+  src="video.mp4"
+  width="800" height="450">
+  <track kind="subtitles" src="captions.vtt" srclang="en" label="English">
+</video>
+```
+
+```javascript
+const player = new Player('#my-video', {
+  floating: true,
+  floatingPosition: 'bottom-right', // or 'bottom-left' | 'top-right' | 'top-left'
+  floatingMinViewportWidth: 768     // disable feature below this viewport width
+});
+```
+
+Notes:
+- Audio-only players (`<audio>`) ignore the floating option.
+- Closing the floating window pauses playback and prevents auto-float again until the next user-initiated `play`.
+- The floating window persists its size/position per player via local storage.
+- Below `floatingMinViewportWidth` (default 768 px) the PiP button is hidden and the floating feature is disabled.
+
 ### DASH + HLS + MP4 Fallback
 
 For maximum device compatibility, provide all three formats:
@@ -311,6 +353,11 @@ const player = new Player('#video', {
   pipButton: true,
   downloadButton: false,        // Show a download button in the control bar
   downloadUrl: null,            // Optional explicit download URL (falls back to current src)
+
+  // Custom Floating Player (in-page miniplayer / "own PiP")
+  floating: false,                          // Enable the custom floating player; also disables native browser PiP
+  floatingPosition: 'bottom-right',         // 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
+  floatingMinViewportWidth: 768,            // Floating feature is hidden below this viewport width (px)
 
   // Captions
   captions: true,

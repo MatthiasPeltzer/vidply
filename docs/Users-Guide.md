@@ -272,6 +272,11 @@ const player = new Player('#my-video', {
   downloadButton: false,        // Show a download button in the control bar
   downloadUrl: null,            // Optional explicit download URL (defaults to current src)
 
+  // Custom Floating Player (in-page miniplayer / "own PiP")
+  floating: false,                          // Enable the custom floating player; also disables native browser PiP
+  floatingPosition: 'bottom-right',         // 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
+  floatingMinViewportWidth: 768,            // Floating feature is hidden below this viewport width (px)
+
   // Language
   language: 'en',
   
@@ -335,6 +340,60 @@ const player = new Player('#video', {
 The button is keyboard accessible, fully internationalized (`player.download` translation key) and uses `aria-label` so screen readers announce it correctly.
 
 > Hint for streaming sources: `downloadUrl` is normally the URL of an MP4/MP3 fallback because users typically can't download a `.mpd` or `.m3u8` manifest as a single file.
+
+---
+
+## Custom Floating Player (Miniplayer)
+
+VidPly ships an optional in-page floating player ("own PiP") that pops up in a
+configurable corner of the viewport, can be dragged and resized, and keeps
+VidPly's own caption rendering, transport controls and fullscreen working
+inside the floating shell.
+
+While `floating` is enabled, the native browser Picture-in-Picture API is
+suppressed automatically (`disablepictureinpicture` + `disableremoteplayback`)
+so the user gets a single, consistent experience across browsers.
+
+### Behavior
+
+- **Auto-float on scroll-out** - When the original player scrolls out of the viewport, the video pops into the floating shell. When it scrolls back in, the video docks back to its original container.
+- **Manual pin/unpin** - The PiP button in the control bar manually pins the floating shell. Manual pin/unpin overrides scroll-based auto-floating until the next user-initiated `play`.
+- **Close button** - The X button in the floating shell pauses the video, returns it to its original container and suppresses auto-float for the rest of the play session.
+- **Drag & resize** - The floating shell can be dragged by its header and resized via the corner/edge handles. Geometry is persisted per player via local storage.
+- **Reduced control bar** - Inside the floating shell only essential controls are shown: play/pause, rewind, forward, volume, captions, PiP and fullscreen. Tooltips open above the buttons; captions are sized at `90%` and capped to `95%` width.
+- **Audio players are skipped** - The floating feature only applies to `<video>` players.
+- **Desktop only by default** - Below `floatingMinViewportWidth` (default 768 px) the feature is disabled and the floating PiP button is hidden in the main control bar (it never falls into the overflow menu).
+
+### Enable via HTML
+
+```html
+<video
+  data-vidply
+  data-vidply-floating="true"
+  data-vidply-floating-position="bottom-right"
+  data-vidply-floating-min-viewport-width="768"
+  src="video.mp4"
+  width="800" height="450">
+  <track kind="subtitles" src="captions.vtt" srclang="en" label="English">
+</video>
+```
+
+### Enable via JavaScript
+
+```javascript
+const player = new Player('#video', {
+  floating: true,
+  floatingPosition: 'bottom-right', // or 'bottom-left' | 'top-right' | 'top-left'
+  floatingMinViewportWidth: 768
+});
+```
+
+### Accessibility
+
+- The floating shell is announced as a `role="dialog"` with a translated `aria-label` (`player.floatingPlayerDialog`).
+- The PiP toggle uses `aria-pressed` to expose the pinned state.
+- Focus is returned to the originating button when the floating shell is closed via keyboard.
+- All built-in languages (en, de, es, fr, ja) include translations for `player.floatingPlayer`, `player.floatingPlayerClose`, `player.floatingPlayerEnter`, `player.floatingPlayerExit` and `player.floatingPlayerDialog`.
 
 ---
 

@@ -166,12 +166,14 @@ Player
 │   ├── ProgressBar
 │   ├── VolumeControl
 │   ├── DownloadButton    # opt-in via downloadButton/downloadUrl
+│   ├── PipButton         # native PiP, or pin/unpin custom floating player when floating: true
 │   ├── SettingsButton
 │   └── FullscreenButton
 ├── BufferingOverlay     # Centered loading spinner (.vidply-loading)
 ├── CaptionManager       # Captions/subtitles
 ├── KeyboardManager      # Keyboard shortcuts
 ├── TranscriptManager    # Interactive transcript
+├── FloatingPlayerManager # Custom in-page miniplayer ("own PiP"), opt-in via floating: true
 ├── Renderer             # Media playback
 │   ├── HTML5Renderer
 │   ├── YouTubeRenderer
@@ -538,5 +540,5 @@ if (this.options.debug) {
 
 ---
 
-**Version:** 1.1.3 | **License:** GPL-2.0-or-later
+**Version:** 1.1.4 | **License:** GPL-2.0-or-later
 

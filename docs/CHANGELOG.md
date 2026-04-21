@@ -5,6 +5,32 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2026-04-20
+
+### Added
+- **Custom Floating Player ("Own PiP" / Miniplayer)**: Optional in-page floating player that replaces the native browser Picture-in-Picture experience.
+  - Auto-floats when the original player scrolls out of the viewport (via `IntersectionObserver`) and auto-docks when it scrolls back in.
+  - Manual pin/unpin via the existing PiP button. Manual pin/unpin overrides scroll-based behavior until the next user-initiated `play`.
+  - Close button pauses playback, returns the video to its original container and suppresses auto-float for the rest of the play session.
+  - Fully draggable and resizable (`DraggableResizable` utility); geometry is persisted per player via `StorageManager`.
+  - Reduced control bar inside the floating shell: only play/pause, rewind, forward, volume, captions, PiP and fullscreen are visible. Tooltips open above the buttons; captions are clamped to `font-size: 90%` and `width: 95%`.
+  - Native browser PiP is automatically suppressed (`disablePictureInPicture` + `disableRemotePlayback`) while floating is enabled, giving users a single, consistent experience across browsers.
+  - Desktop-only by default: the feature is hidden below `floatingMinViewportWidth` (default `768px`) and the floating PiP button is excluded from the overflow menu so it never appears on mobile.
+  - Audio (`<audio>`) players are skipped automatically.
+  - Sign-language overlay is force-closed while the floating shell is active and re-enabled on exit.
+  - Accessible: floating shell uses `role="dialog"` with translated `aria-label`; PiP toggle uses `aria-pressed`; focus is restored to the originating button on close.
+- **New options**:
+  - `floating: boolean` (default `false`) / `data-vidply-floating="true"`
+  - `floatingPosition: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'` (default `'bottom-right'`) / `data-vidply-floating-position="..."`
+  - `floatingMinViewportWidth: number` (default `768`) / `data-vidply-floating-min-viewport-width="..."`
+- **New translation keys**: `player.floatingPlayer`, `player.floatingPlayerClose`, `player.floatingPlayerEnter`, `player.floatingPlayerExit`, `player.floatingPlayerDialog` for all built-in languages (en, de, es, fr, ja).
+- **Unit tests**: 20 new Vitest tests in `tests/unit/FloatingPlayerManager.test.js` covering enter/exit, manual pin/unpin, scroll-out auto-float, manual-unpin suppression, viewport guard and cleanup.
+
+### Changed
+- **Fullscreen button is now permanently outside the overflow menu** on every viewport (`overflowPriorityMobile = 1`) and is appended after the overflow menu button in the DOM order, so on mobile the rightmost control is always Fullscreen with the overflow menu directly to its left.
+- `.vidply-controls-right` now uses `justify-content: flex-end` so right-side buttons reliably right-align even when the container stretches to full width on mobile.
+- `.vidply-overflow-menu` no longer forces `margin-left: auto` / `order: 999`; the new DOM order plus flex-end alignment handles positioning naturally.
+
 ## [1.1.3] - 2026-04-19
 
 ### Fixed

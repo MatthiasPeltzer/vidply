@@ -305,6 +305,39 @@ const player = new Player('#video', {
 
 For streaming sources (`.mpd`, `.m3u8`) it is strongly recommended to provide an explicit `downloadUrl` pointing to a single MP4/MP3/WebM file — manifests are not directly downloadable.
 
+### Custom Floating Player (Miniplayer)
+
+Enable the in-page floating player ("own PiP"). When the original video scrolls
+out of the viewport, VidPly pops up a draggable, resizable floating shell in the
+chosen corner; when the original scrolls back in, it docks again. The PiP
+button toggles a manual pin/unpin. Native browser PiP is suppressed automatically
+while floating is enabled, so users get a single consistent experience.
+
+```html
+<video
+  data-vidply
+  data-vidply-floating="true"
+  data-vidply-floating-position="bottom-right"
+  data-vidply-floating-min-viewport-width="768"
+  src="video.mp4">
+  <track kind="subtitles" src="en.vtt" srclang="en" label="English">
+</video>
+```
+
+```javascript
+const player = new Player('#video', {
+  floating: true,
+  floatingPosition: 'bottom-right', // or 'bottom-left' | 'top-right' | 'top-left'
+  floatingMinViewportWidth: 768
+});
+```
+
+Notes:
+- Audio-only players ignore `floating`.
+- Closing the floating shell pauses playback and prevents auto-float again until the next user-initiated `play`.
+- The floating shell exposes a reduced control bar (play/pause, rewind, forward, volume, captions, PiP, fullscreen) and persists its size/position per player.
+- Below `floatingMinViewportWidth` (default `768`) the feature is disabled and the floating PiP button is hidden — it never appears in the overflow menu either.
+
 ### Buffering Spinner
 
 A centered loading spinner appears automatically while the player is buffering (`waiting`, `seeking`, initial `loadstart`) and disappears on `canplay` / `playing`. It is enabled for HTML5, HLS and DASH renderers and respects `prefers-reduced-motion`.
