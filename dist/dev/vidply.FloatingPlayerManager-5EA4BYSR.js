@@ -184,7 +184,7 @@ var FloatingPlayerManager = class {
     if (!this.player.element || this.player.element.tagName !== "VIDEO") return false;
     if (this.player.state.fullscreen) return false;
     if (this.player.playlistManager) return false;
-    const minWidth = this.player.options.floatingMinViewportWidth ?? 640;
+    const minWidth = this.player.options.floatingMinViewportWidth ?? 768;
     if (window.innerWidth < minWidth) return false;
     if (reason === "auto") {
       if (this._autoDismissedThisPlay) return false;
@@ -211,7 +211,7 @@ var FloatingPlayerManager = class {
     };
     window.addEventListener(FLOATING_CLAIM_EVENT, this._onClaim);
     this._onResize = () => {
-      const minWidth = this.player.options.floatingMinViewportWidth ?? 640;
+      const minWidth = this.player.options.floatingMinViewportWidth ?? 768;
       if (this.player.state.floating && window.innerWidth < minWidth) {
         this.exit("auto");
       }
@@ -512,4 +512,4 @@ var FloatingPlayerManager = class {
 export {
   FloatingPlayerManager
 };
-//# sourceMappingURL=vidply.FloatingPlayerManager-TX2A5RMA.js.map
+//# sourceMappingURL=vidply.FloatingPlayerManager-5EA4BYSR.js.map

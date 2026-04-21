@@ -250,7 +250,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
             pipButton: false,
             floating: false,
             floatingPosition: 'bottom-right',
-            floatingMinViewportWidth: 640,
+            floatingMinViewportWidth: 768,
             downloadButton: false,
             downloadUrl: null,
             downloadFormat: null,

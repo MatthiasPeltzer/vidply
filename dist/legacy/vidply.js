@@ -5406,7 +5406,7 @@
           if (!this.player.element || this.player.element.tagName !== "VIDEO") return false;
           if (this.player.state.fullscreen) return false;
           if (this.player.playlistManager) return false;
-          const minWidth = this.player.options.floatingMinViewportWidth ?? 640;
+          const minWidth = this.player.options.floatingMinViewportWidth ?? 768;
           if (window.innerWidth < minWidth) return false;
           if (reason === "auto") {
             if (this._autoDismissedThisPlay) return false;
@@ -5433,7 +5433,7 @@
           };
           window.addEventListener(FLOATING_CLAIM_EVENT, this._onClaim);
           this._onResize = () => {
-            const minWidth = this.player.options.floatingMinViewportWidth ?? 640;
+            const minWidth = this.player.options.floatingMinViewportWidth ?? 768;
             if (this.player.state.floating && window.innerWidth < minWidth) {
               this.exit("auto");
             }
@@ -10408,20 +10408,26 @@
       const isAudio = this.player.element.tagName.toLowerCase() === "audio";
       if (pipEnabled && !(this.player.options.floating && isAudio)) {
         const btn = this.createPipButton();
-        btn.dataset.overflowPriority = "3";
-        btn.dataset.overflowPriorityMobile = "3";
-        this.rightButtons.appendChild(btn);
-      }
-      const isAudioPlayer = this.player.element.tagName.toLowerCase() === "audio";
-      if (this.player.options.fullscreenButton && !isAudioPlayer) {
-        const btn = this.createFullscreenButton();
-        btn.dataset.overflowPriority = "1";
-        btn.dataset.overflowPriorityMobile = "3";
+        if (this.player.options.floating) {
+          btn.dataset.skipOverflow = "true";
+          btn.dataset.overflowPriority = "1";
+          btn.dataset.overflowPriorityMobile = "1";
+        } else {
+          btn.dataset.overflowPriority = "3";
+          btn.dataset.overflowPriorityMobile = "3";
+        }
         this.rightButtons.appendChild(btn);
       }
       this.overflowMenuButton = this.createOverflowMenuButton();
       this.overflowMenuButton.style.display = "none";
       this.rightButtons.appendChild(this.overflowMenuButton);
+      const isAudioPlayer = this.player.element.tagName.toLowerCase() === "audio";
+      if (this.player.options.fullscreenButton && !isAudioPlayer) {
+        const btn = this.createFullscreenButton();
+        btn.dataset.overflowPriority = "1";
+        btn.dataset.overflowPriorityMobile = "1";
+        this.rightButtons.appendChild(btn);
+      }
       buttonContainer.appendChild(leftButtons);
       buttonContainer.appendChild(this.rightButtons);
       this.element.appendChild(buttonContainer);
@@ -12142,8 +12148,10 @@
     createPipButton() {
       const floating = this.player.options.floating === true;
       const labelKey = floating ? "player.floatingPlayer" : "player.pip";
+      const prefix = this.player.options.classPrefix;
+      const className = floating ? `${prefix}-button ${prefix}-pip ${prefix}-pip-floating` : `${prefix}-button ${prefix}-pip`;
       const button = DOMUtils.createElement("button", {
-        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-pip`,
+        className,
         attributes: {
           "type": "button",
           "aria-label": i18n.t(labelKey),
@@ -12740,7 +12748,7 @@
           return;
         }
         const allButtons = Array.from(this.rightButtons.children).filter(
-          (btn) => !btn.classList.contains(`${this.player.options.classPrefix}-overflow-menu`)
+          (btn) => !btn.classList.contains(`${this.player.options.classPrefix}-overflow-menu`) && btn.dataset.skipOverflow !== "true"
         );
         if (allButtons.length === 0) {
           if (this.overflowMenuButton) {
@@ -13385,7 +13393,7 @@
         pipButton: false,
         floating: false,
         floatingPosition: "bottom-right",
-        floatingMinViewportWidth: 640,
+        floatingMinViewportWidth: 768,
         downloadButton: false,
         downloadUrl: null,
         downloadFormat: null,

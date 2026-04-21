@@ -1818,6 +1818,15 @@ video[data-vidply]:not(.vidply-initialized) {
     position: relative;
 }
 
+/* Right-side controls always align their buttons to the end of the group.
+ * On mobile, .vidply-controls-right gets width: 100% which splits the bar
+ * 50/50 with .vidply-controls-left; without flex-end the buttons would
+ * cluster at the left edge of the right half (i.e. near the middle of
+ * the control bar) instead of the actual right edge. */
+.vidply-controls-right {
+    justify-content: flex-end;
+}
+
 
 /* Buttons */
 .vidply-button {
@@ -2224,11 +2233,16 @@ video[data-vidply]:not(.vidply-initialized) {
     white-space: nowrap;
 }
 
-/* Overflow menu button - always on the right */
-.vidply-overflow-menu {
-    margin-left: auto;
-    order: 999; /* Ensure it's always last */
-}
+/* Overflow menu button.
+ * Historically this rule used `margin-left: auto; order: 999;` to force
+ * the button visually to the end of the flex row, regardless of where it
+ * sat in the DOM. We now intentionally insert the overflow menu BEFORE
+ * the fullscreen button so that, on mobile, the layout is
+ * [overflow][fullscreen] with fullscreen as the rightmost control.
+ * Forcing `order: 999` here would send the overflow menu past the
+ * fullscreen button again and break that arrangement, so we rely on
+ * plain DOM order plus `.vidply-controls-right { justify-content: flex-end }`
+ * to keep things right-aligned. */
 
 /* Overflow menu list - prevent overflow to the right */
 .vidply-overflow-menu-list {
@@ -5711,11 +5725,17 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Belt-and-braces mobile guard. The JS FloatingPlayerManager already
- * refuses to enter below options.floatingMinViewportWidth, but if a shell
- * happens to be open when the viewport crosses the breakpoint we hide it
- * until the JS resize handler runs and calls exit('auto'). */
-@media (width <= 639.98px) {
-    .vidply-floating-shell {
+ * refuses to enter below options.floatingMinViewportWidth (768px default),
+ * but if a shell happens to be open when the viewport crosses the
+ * breakpoint we hide it until the JS resize handler runs and calls
+ * exit('auto'). The floating-mode PiP button is hidden at the same
+ * breakpoint so users cannot invoke an unavailable feature.
+ *
+ * The button also carries data-skip-overflow="true" so the control-bar
+ * overflow detector never shuffles it into the overflow menu list. */
+@media (width <= 767.98px) {
+    .vidply-floating-shell,
+    .vidply-pip-floating {
         display: none !important;
     }
 }
