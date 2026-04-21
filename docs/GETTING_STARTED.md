@@ -216,7 +216,29 @@ That's it!
 </video>
 ```
 
-### Example 9: With Options
+### Example 9: With the Custom Floating Player
+
+Enable the in-page floating player ("own PiP"). When the original scrolls out of
+the viewport, VidPly pops the video into a draggable, resizable floating shell
+in the chosen corner; when it scrolls back in, the player docks again. The PiP
+button in the control bar manually pins/unpins the floating shell. Native
+browser PiP is suppressed automatically while floating is enabled.
+
+```html
+<video
+  data-vidply
+  data-vidply-floating="true"
+  data-vidply-floating-position="bottom-right"
+  data-vidply-floating-min-viewport-width="768"
+  src="video.mp4"
+  width="800" height="450">
+  <track kind="subtitles" src="captions.vtt" srclang="en" label="English">
+</video>
+```
+
+> Audio players ignore `floating`. The feature is hidden below `floatingMinViewportWidth` (default `768px`) and the floating PiP button never appears in the overflow menu.
+
+### Example 10: With Options
 
 ```html
 <video 
@@ -226,7 +248,7 @@ That's it!
 ></video>
 ```
 
-### Example 10: Manual Initialization
+### Example 11: Manual Initialization
 
 ```html
 <video id="my-video" src="video.mp4"></video>

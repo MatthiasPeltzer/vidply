@@ -106,6 +106,14 @@
             <span>VidPly - Single Video</span>
         </h1>
 
+        <p style="color: #ffffff; max-width: 760px; margin: 0 auto;">
+            This demo showcases the optional <strong>custom floating player</strong>
+            (<code>data-vidply-floating="true"</code>). Scroll down so the video leaves the viewport
+            and it pops into a draggable, resizable floating shell in the bottom-right corner;
+            scroll back up and it docks again. You can also click the PiP button in the control
+            bar to manually pin/unpin the floating window. (Available on viewports ≥ 768&nbsp;px.)
+        </p>
+
     </header>
 
     <main>
@@ -120,7 +128,10 @@
                 data-audio-description-button="true"
                 data-transcript-button="true"
                 data-vidply-download-url="media/wwa.mp4"
-                data-vidply-options='{"noAspectRatio":true,"signLanguageDisplayMode":"pip","downloadButton":true}'
+                data-vidply-floating="true"
+                data-vidply-floating-position="bottom-right"
+                data-vidply-floating-min-viewport-width="768"
+                data-vidply-options='{"noAspectRatio":true,"signLanguageDisplayMode":"pip","downloadButton":true,"pipButton":true}'
                 width="800"
                 height="450"
                 poster="media/wwa_hq_thumbnail.jpg"
@@ -145,6 +156,19 @@
             <track kind="chapters" src="media/wwa_chapters_ja.vtt" srclang="ja" label="日本語 チャプター">
         </video>
 
+        <section style="background: rgba(255, 255, 255, 0.08); border-radius: 8px; color: #ffffff; padding: 24px;">
+            <h2 style="margin-bottom: 12px;">Try the floating player</h2>
+            <p style="line-height: 1.6;">
+                Start playback, then scroll down. As soon as the video leaves the viewport,
+                VidPly pops the player into a floating window in the bottom-right corner. Drag
+                it by the header, resize it from any edge or corner, or close it via the X
+                button. Scrolling the original back into view auto-docks the player. The PiP
+                button in the control bar pins/unpins the floating shell manually and overrides
+                scroll-based behavior until the next time you press play.
+            </p>
+        </section>
+
+        <div aria-hidden="true" style="height: 1200px;"></div>
     </main>
 
     <footer>
