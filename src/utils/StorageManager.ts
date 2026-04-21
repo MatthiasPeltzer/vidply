@@ -119,6 +119,14 @@ export class StorageManager {
     return this.get<Record<string, unknown>>('sign_language_preferences', null);
   }
 
+  saveFloatingPreferences(preferences: Record<string, unknown>): boolean {
+    return this.set('floating_preferences', preferences);
+  }
+
+  getFloatingPreferences(): Record<string, unknown> | null {
+    return this.get<Record<string, unknown>>('floating_preferences', null);
+  }
+
   saveWatchProgress(videoId: string, currentTime: number, duration: number): boolean {
     if (!videoId || !duration || duration <= 0) return false;
 

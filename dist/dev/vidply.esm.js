@@ -5,7 +5,7 @@
  */
 import {
   TimeUtils
-} from "./vidply.chunk-K4SPHJGY.js";
+} from "./vidply.chunk-5SDVVGOD.js";
 import {
   HTML5Renderer
 } from "./vidply.chunk-WBI7UGH6.js";
@@ -15,26 +15,28 @@ import {
   isMobile,
   rafWithTimeout,
   throttle
-} from "./vidply.chunk-N5IZUHIU.js";
+} from "./vidply.chunk-2RIPRXWI.js";
 import {
   StorageManager
-} from "./vidply.chunk-SXDZXXZD.js";
+} from "./vidply.chunk-X6PJOVWZ.js";
 import {
-  DraggableResizable,
   attachMenuKeyboardNavigation,
-  createIconElement,
   createLabeledSelect,
   createMenuItem,
-  createPlayOverlay,
   focusElement,
   focusFirstElement,
   focusFirstMenuItem,
   preventDragOnElement
-} from "./vidply.chunk-3GEMRDJL.js";
+} from "./vidply.chunk-COW6OPNQ.js";
+import {
+  DraggableResizable,
+  createIconElement,
+  createPlayOverlay
+} from "./vidply.chunk-D6GBU4V6.js";
 import {
   DOMUtils,
   i18n
-} from "./vidply.chunk-L7X3OIB5.js";
+} from "./vidply.chunk-FDUUJHK6.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -845,7 +847,9 @@ var ControlBar = class {
         this.rightButtons.appendChild(btn);
       }
     }
-    if (this.player.options.pipButton && "pictureInPictureEnabled" in document) {
+    const pipEnabled = this.player.options.pipButton && (this.player.options.floating || "pictureInPictureEnabled" in document);
+    const isAudio = this.player.element.tagName.toLowerCase() === "audio";
+    if (pipEnabled && !(this.player.options.floating && isAudio)) {
       const btn = this.createPipButton();
       btn.dataset.overflowPriority = "3";
       btn.dataset.overflowPriorityMobile = "3";
@@ -2574,17 +2578,32 @@ var ControlBar = class {
     return button;
   }
   createPipButton() {
+    const floating = this.player.options.floating === true;
+    const labelKey = floating ? "player.floatingPlayer" : "player.pip";
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-pip`,
       attributes: {
         "type": "button",
-        "aria-label": i18n.t("player.pip")
+        "aria-label": i18n.t(labelKey),
+        "aria-pressed": "false"
       }
     });
     button.appendChild(createIconElement("pip"));
     button.addEventListener("click", () => {
-      this.player.togglePiP();
+      if (floating) {
+        if (this.player.floatingPlayerManager) {
+          this.player.floatingPlayerManager.togglePinned(button);
+        }
+      } else {
+        this.player.togglePiP();
+      }
     });
+    if (floating) {
+      this.player.on("floatingchange", (state) => {
+        button.setAttribute("aria-pressed", state === "pinned" ? "true" : "false");
+        button.classList.toggle(`${this.player.options.classPrefix}-pip-active`, !!state);
+      });
+    }
     return button;
   }
   createDownloadButton(downloadUrl) {
@@ -3586,19 +3605,27 @@ var KeyboardManager = class {
 // src/core/Player.ts
 var AudioDescriptionManagerModule = null;
 var SignLanguageManagerModule = null;
+var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-XHNC7UZC.js");
+    const module = await import("./vidply.AudioDescriptionManager-DCZFE3N2.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-Q6VSBQXH.js");
+    const module = await import("./vidply.SignLanguageManager-4NOFV4EZ.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
+}
+async function loadFloatingPlayerManager() {
+  if (!FloatingPlayerManagerModule) {
+    const module = await import("./vidply.FloatingPlayerManager-TX2A5RMA.js");
+    FloatingPlayerManagerModule = module.FloatingPlayerManager;
+  }
+  return FloatingPlayerManagerModule;
 }
 var playerInstanceCounter = 0;
 var Player = class _Player extends EventEmitter {
@@ -3615,6 +3642,7 @@ var Player = class _Player extends EventEmitter {
   settingsDialog;
   audioDescriptionManager;
   signLanguageManager;
+  floatingPlayerManager;
   storage;
   instanceId;
   _audioDescriptionDesiredState;
@@ -3777,6 +3805,9 @@ var Player = class _Player extends EventEmitter {
       transcriptButton: true,
       fullscreenButton: true,
       pipButton: false,
+      floating: false,
+      floatingPosition: "bottom-right",
+      floatingMinViewportWidth: 640,
       downloadButton: false,
       downloadUrl: null,
       downloadFormat: null,
@@ -3913,6 +3944,7 @@ var Player = class _Player extends EventEmitter {
       playbackSpeed: this.options.playbackSpeed,
       fullscreen: false,
       pip: false,
+      floating: null,
       captionsEnabled: this.options.captionsDefault,
       currentCaption: null,
       controlsVisible: true,
@@ -4080,6 +4112,16 @@ var Player = class _Player extends EventEmitter {
       await i18n.ensureLanguage(this.options.language);
       i18n.setLanguage(this.options.language);
       this.createContainer();
+      if (this.options.floating && this.element && this.element.tagName === "VIDEO") {
+        try {
+          this.element.disablePictureInPicture = true;
+          this.element.disableRemotePlayback = true;
+          this.element.setAttribute("disablepictureinpicture", "");
+          this.element.setAttribute("disableremoteplayback", "");
+        } catch (err) {
+          this.log(`Failed to disable native PiP: ${err}`, "warn");
+        }
+      }
       const src = this.element.src || this.element.querySelector("source")?.src;
       if (src) {
         await this.initializeRenderer();
@@ -4145,7 +4187,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-R6TW4S7Y.js");
+    const module = await import("./vidply.TranscriptManager-7TS37MMM.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;
@@ -4200,6 +4242,25 @@ var Player = class _Player extends EventEmitter {
     return this.signLanguageManager;
   }
   /**
+   * Lazy-load and instantiate the floating (in-page PiP) manager. Only
+   * created when `options.floating === true` and the media element is a
+   * <video>. Audio-only players never float.
+   */
+  async ensureFloatingPlayerManager() {
+    if (this.floatingPlayerManager) {
+      return this.floatingPlayerManager;
+    }
+    if (!this.options.floating) {
+      return null;
+    }
+    if (!this.element || this.element.tagName !== "VIDEO") {
+      return null;
+    }
+    const FloatingManager = await loadFloatingPlayerManager();
+    this.floatingPlayerManager = new FloatingManager(this);
+    return this.floatingPlayerManager;
+  }
+  /**
    * Initialize feature managers if needed (called during init)
    */
   async initFeatureManagers() {
@@ -4212,6 +4273,9 @@ var Player = class _Player extends EventEmitter {
     }
     if (this.options.signLanguageButton || this.options.signLanguageSrc || this.signLanguageSrc || this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0) {
       promises.push(this.ensureSignLanguageManager());
+    }
+    if (this.options.floating && this.element && this.element.tagName === "VIDEO") {
+      promises.push(this.ensureFloatingPlayerManager());
     }
     if (promises.length > 0) {
       await Promise.all(promises);
@@ -5529,6 +5593,12 @@ var Player = class _Player extends EventEmitter {
   }
   // Picture-in-Picture
   enterPiP() {
+    if (this.options.floating) {
+      if (this.floatingPlayerManager) {
+        this.floatingPlayerManager.togglePinned();
+      }
+      return;
+    }
     if (this.element.requestPictureInPicture) {
       this.element.requestPictureInPicture();
       this.state.pip = true;
@@ -5536,6 +5606,12 @@ var Player = class _Player extends EventEmitter {
     }
   }
   exitPiP() {
+    if (this.options.floating) {
+      if (this.floatingPlayerManager && this.state.floating) {
+        this.floatingPlayerManager.exit("manual");
+      }
+      return;
+    }
     if (document.pictureInPictureElement) {
       document.exitPictureInPicture();
       this.state.pip = false;
@@ -5543,6 +5619,12 @@ var Player = class _Player extends EventEmitter {
     }
   }
   togglePiP() {
+    if (this.options.floating) {
+      if (this.floatingPlayerManager) {
+        this.floatingPlayerManager.togglePinned();
+      }
+      return;
+    }
     if (this.state.pip) {
       this.exitPiP();
     } else {
@@ -7602,6 +7684,14 @@ var Player = class _Player extends EventEmitter {
       this.transcriptManager.destroy();
     }
     this.cleanupSignLanguage();
+    if (this.floatingPlayerManager) {
+      try {
+        this.floatingPlayerManager.destroy();
+      } catch (err) {
+        this.log(`FloatingPlayerManager.destroy failed: ${err}`, "warn");
+      }
+      this.floatingPlayerManager = null;
+    }
     if (this.playButtonOverlay && this.playButtonOverlay.parentNode) {
       this.playButtonOverlay.remove();
       this.playButtonOverlay = null;
@@ -9325,6 +9415,10 @@ function parseDataAttributes(dataset) {
     "responsive": "responsive",
     "pipButton": "pipButton",
     "fullscreenButton": "fullscreenButton",
+    // Floating Player (custom in-page PiP)
+    "floating": "floating",
+    "floatingPosition": "floatingPosition",
+    "floatingMinViewportWidth": "floatingMinViewportWidth",
     // Layout
     // Lazy Loading
     "lazyInit": "lazyInit",

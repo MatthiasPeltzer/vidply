@@ -199,6 +199,11 @@
           settings: "Settings",
           speed: "Playback Speed",
           pip: "Picture in Picture",
+          floatingPlayer: "Floating player",
+          floatingPlayerClose: "Close floating player",
+          floatingPlayerEnter: "Pop out video",
+          floatingPlayerExit: "Dock video",
+          floatingPlayerDialog: "Floating video player. Press D to drag, R to resize, Escape to close.",
           download: "Download",
           downloadWithFormat: "Download {format}",
           downloadWithSize: "Download ({size})",
@@ -402,6 +407,11 @@
           settings: "Einstellungen",
           speed: "Wiedergabegeschwindigkeit",
           pip: "Bild-in-Bild",
+          floatingPlayer: "Schwebender Player",
+          floatingPlayerClose: "Schwebenden Player schließen",
+          floatingPlayerEnter: "Video ausklappen",
+          floatingPlayerExit: "Video andocken",
+          floatingPlayerDialog: "Schwebender Videoplayer. D zum Verschieben, R zum Größenändern, Escape zum Schließen.",
           download: "Herunterladen",
           downloadWithFormat: "Herunterladen {format}",
           downloadWithSize: "Herunterladen ({size})",
@@ -605,6 +615,11 @@
           settings: "Configuración",
           speed: "Velocidad de reproducción",
           pip: "Imagen en imagen",
+          floatingPlayer: "Reproductor flotante",
+          floatingPlayerClose: "Cerrar reproductor flotante",
+          floatingPlayerEnter: "Sacar el vídeo",
+          floatingPlayerExit: "Anclar el vídeo",
+          floatingPlayerDialog: "Reproductor de vídeo flotante. Pulsa D para mover, R para redimensionar, Escape para cerrar.",
           download: "Descargar",
           downloadWithFormat: "Descargar {format}",
           downloadWithSize: "Descargar ({size})",
@@ -805,6 +820,11 @@
           settings: "Paramètres",
           speed: "Vitesse de lecture",
           pip: "Image dans l'image",
+          floatingPlayer: "Lecteur flottant",
+          floatingPlayerClose: "Fermer le lecteur flottant",
+          floatingPlayerEnter: "Détacher la vidéo",
+          floatingPlayerExit: "Rattacher la vidéo",
+          floatingPlayerDialog: "Lecteur vidéo flottant. Appuyez sur D pour déplacer, R pour redimensionner, Échap pour fermer.",
           download: "Télécharger",
           downloadWithFormat: "Télécharger {format}",
           downloadWithSize: "Télécharger ({size})",
@@ -1005,6 +1025,11 @@
           settings: "設定",
           speed: "再生速度",
           pip: "ピクチャーインピクチャー",
+          floatingPlayer: "フローティングプレーヤー",
+          floatingPlayerClose: "フローティングプレーヤーを閉じる",
+          floatingPlayerEnter: "ビデオを切り離す",
+          floatingPlayerExit: "ビデオを戻す",
+          floatingPlayerDialog: "フローティング動画プレーヤー。Dキーで移動、Rキーでサイズ変更、Escで閉じる。",
           download: "ダウンロード",
           downloadWithFormat: "{format} をダウンロード",
           downloadWithSize: "ダウンロード ({size})",
@@ -1680,6 +1705,12 @@
         }
         getSignLanguagePreferences() {
           return this.get("sign_language_preferences", null);
+        }
+        saveFloatingPreferences(preferences) {
+          return this.set("floating_preferences", preferences);
+        }
+        getFloatingPreferences() {
+          return this.get("floating_preferences", null);
         }
         saveWatchProgress(videoId, currentTime, duration) {
           if (!videoId || !duration || duration <= 0) return false;
@@ -5186,6 +5217,520 @@
         destroy() {
           this.cleanup();
           this.enabled = false;
+        }
+      };
+    }
+  });
+
+  // src/core/FloatingPlayerManager.ts
+  var FloatingPlayerManager_exports = {};
+  __export(FloatingPlayerManager_exports, {
+    FloatingPlayerManager: () => FloatingPlayerManager
+  });
+  var FLOATING_CLAIM_EVENT, DEFAULT_WIDTH, MIN_WIDTH, EDGE_MARGIN, FloatingPlayerManager;
+  var init_FloatingPlayerManager = __esm({
+    "src/core/FloatingPlayerManager.ts"() {
+      "use strict";
+      init_DOMUtils();
+      init_DraggableResizable();
+      init_Icons();
+      init_i18n();
+      FLOATING_CLAIM_EVENT = "vidply:floating-claim";
+      DEFAULT_WIDTH = 400;
+      MIN_WIDTH = 240;
+      EDGE_MARGIN = 16;
+      FloatingPlayerManager = class {
+        constructor(player) {
+          __publicField(this, "player");
+          __publicField(this, "classPrefix");
+          __publicField(this, "shell");
+          __publicField(this, "dragHandle");
+          __publicField(this, "closeButton");
+          __publicField(this, "resizeHandles");
+          __publicField(this, "placeholder");
+          __publicField(this, "draggable");
+          __publicField(this, "originalParent");
+          __publicField(this, "originalNextSibling");
+          __publicField(this, "intersectionObserver");
+          __publicField(this, "observerTarget");
+          __publicField(this, "lastRatio");
+          __publicField(this, "_autoDismissedThisPlay");
+          __publicField(this, "_playListenerAttached");
+          __publicField(this, "_onPlayAfterDismiss");
+          __publicField(this, "_onClaim");
+          __publicField(this, "_onResize");
+          __publicField(this, "_onKeyDown");
+          __publicField(this, "_onEnterFullscreen");
+          __publicField(this, "_destroyed");
+          __publicField(this, "_triggerFocusEl");
+          __publicField(this, "_claimId");
+          this.player = player;
+          this.classPrefix = player.options.classPrefix || "vidply";
+          this.shell = null;
+          this.dragHandle = null;
+          this.closeButton = null;
+          this.resizeHandles = [];
+          this.placeholder = null;
+          this.draggable = null;
+          this.originalParent = null;
+          this.originalNextSibling = null;
+          this.intersectionObserver = null;
+          this.observerTarget = null;
+          this.lastRatio = 1;
+          this._autoDismissedThisPlay = false;
+          this._playListenerAttached = false;
+          this._onPlayAfterDismiss = null;
+          this._onClaim = null;
+          this._onResize = null;
+          this._onKeyDown = null;
+          this._onEnterFullscreen = null;
+          this._destroyed = false;
+          this._triggerFocusEl = null;
+          this._claimId = `floating-${player.instanceId}-${Date.now()}`;
+          this._setupClaimListener();
+          this._setupFullscreenGuard();
+          this._startObserving();
+        }
+        // ---------------------------------------------------------------
+        // Public API
+        // ---------------------------------------------------------------
+        togglePinned(triggerEl) {
+          if (this._destroyed) return;
+          if (this.player.state.floating === "pinned") {
+            this._autoDismissedThisPlay = true;
+            this._armPlayListenerToClearDismiss();
+            this.exit("manual");
+            return;
+          }
+          this._autoDismissedThisPlay = false;
+          this._triggerFocusEl = triggerEl || this._activeElement();
+          this.enter("pinned");
+        }
+        enter(reason) {
+          if (this._destroyed) return;
+          if (this.player.state.floating === reason) return;
+          if (!this._canFloat(reason)) {
+            return;
+          }
+          if (this.player.state.floating && this.player.state.floating !== reason) {
+            this.player.state.floating = reason;
+            this.player.emit("floatingchange", reason);
+            return;
+          }
+          this._claimSingleton();
+          this._ensureShell();
+          this._mountIntoShell();
+          this._applyInitialGeometry();
+          this.player.state.floating = reason;
+          this.player.emit("floatingchange", reason);
+          queueMicrotask(() => {
+            if (this.closeButton && this.player.state.floating) {
+              try {
+                this.closeButton.focus({ preventScroll: true });
+              } catch {
+              }
+            }
+          });
+        }
+        exit(reason = "manual") {
+          if (this._destroyed && reason !== "destroy") return;
+          if (!this.player.state.floating) return;
+          this._unmountFromShell();
+          this._teardownShell();
+          const priorTrigger = this._triggerFocusEl;
+          this._triggerFocusEl = null;
+          this.player.state.floating = null;
+          this.player.emit("floatingchange", null);
+          if ((reason === "manual" || reason === "dismiss") && priorTrigger) {
+            try {
+              priorTrigger.focus({ preventScroll: true });
+            } catch {
+            }
+          }
+        }
+        /**
+         * Close button: pause, dismiss, and prevent auto-float until the next
+         * user-initiated play event.
+         */
+        dismiss() {
+          if (this._destroyed) return;
+          this._autoDismissedThisPlay = true;
+          this._armPlayListenerToClearDismiss();
+          try {
+            this.player.pause();
+          } catch {
+          }
+          this.exit("dismiss");
+        }
+        destroy() {
+          if (this._destroyed) return;
+          this._destroyed = true;
+          if (this.player.state && this.player.state.floating) {
+            try {
+              this.exit("destroy");
+            } catch {
+            }
+          }
+          if (this.intersectionObserver) {
+            try {
+              this.intersectionObserver.disconnect();
+            } catch {
+            }
+            this.intersectionObserver = null;
+          }
+          this.observerTarget = null;
+          if (this._onClaim) {
+            window.removeEventListener(FLOATING_CLAIM_EVENT, this._onClaim);
+            this._onClaim = null;
+          }
+          if (this._onResize) {
+            window.removeEventListener("resize", this._onResize);
+            this._onResize = null;
+          }
+          if (this._onEnterFullscreen) {
+            this.player.off("enterfullscreen", this._onEnterFullscreen);
+            this._onEnterFullscreen = null;
+          }
+          if (this._onPlayAfterDismiss && this._playListenerAttached) {
+            this.player.off("play", this._onPlayAfterDismiss);
+            this._playListenerAttached = false;
+            this._onPlayAfterDismiss = null;
+          }
+        }
+        // ---------------------------------------------------------------
+        // Internal: guards
+        // ---------------------------------------------------------------
+        _canFloat(reason) {
+          if (!this.player.options.floating) return false;
+          if (!this.player.container) return false;
+          if (!this.player.element || this.player.element.tagName !== "VIDEO") return false;
+          if (this.player.state.fullscreen) return false;
+          if (this.player.playlistManager) return false;
+          const minWidth = this.player.options.floatingMinViewportWidth ?? 640;
+          if (window.innerWidth < minWidth) return false;
+          if (reason === "auto") {
+            if (this._autoDismissedThisPlay) return false;
+            if (this.player.state.paused) return false;
+            if (!this.player.state.hasStartedPlayback) return false;
+          }
+          return true;
+        }
+        _claimSingleton() {
+          try {
+            window.dispatchEvent(new CustomEvent(FLOATING_CLAIM_EVENT, {
+              detail: { claimId: this._claimId }
+            }));
+          } catch {
+          }
+        }
+        _setupClaimListener() {
+          this._onClaim = (event) => {
+            const detail = event.detail;
+            if (!detail || detail.claimId === this._claimId) return;
+            if (this.player.state.floating) {
+              this.exit("claim");
+            }
+          };
+          window.addEventListener(FLOATING_CLAIM_EVENT, this._onClaim);
+          this._onResize = () => {
+            const minWidth = this.player.options.floatingMinViewportWidth ?? 640;
+            if (this.player.state.floating && window.innerWidth < minWidth) {
+              this.exit("auto");
+            }
+          };
+          window.addEventListener("resize", this._onResize);
+        }
+        _setupFullscreenGuard() {
+          this._onEnterFullscreen = () => {
+            if (this.player.state.floating) {
+              this.exit("manual");
+            }
+          };
+          this.player.on("enterfullscreen", this._onEnterFullscreen);
+        }
+        _armPlayListenerToClearDismiss() {
+          if (this._playListenerAttached) return;
+          this._onPlayAfterDismiss = () => {
+            this._autoDismissedThisPlay = false;
+            if (this._onPlayAfterDismiss) {
+              this.player.off("play", this._onPlayAfterDismiss);
+            }
+            this._playListenerAttached = false;
+            this._onPlayAfterDismiss = null;
+          };
+          this.player.on("play", this._onPlayAfterDismiss);
+          this._playListenerAttached = true;
+        }
+        // ---------------------------------------------------------------
+        // Internal: IntersectionObserver for scroll-triggered auto-float
+        // ---------------------------------------------------------------
+        _startObserving() {
+          if (!("IntersectionObserver" in window)) return;
+          if (!this.player.container) return;
+          this.observerTarget = this.player.container;
+          this.intersectionObserver = new IntersectionObserver((entries) => {
+            const entry = entries[entries.length - 1];
+            if (!entry) return;
+            this.lastRatio = entry.intersectionRatio;
+            if (this.player.options.debug) {
+              try {
+                console.log("[vidply:floating] intersection", {
+                  ratio: Number(entry.intersectionRatio.toFixed(3)),
+                  state: this.player.state.floating,
+                  paused: this.player.state.paused,
+                  hasStartedPlayback: this.player.state.hasStartedPlayback,
+                  dismissed: this._autoDismissedThisPlay
+                });
+              } catch {
+              }
+            }
+            if (this.player.state.floating === "auto") {
+              if (entry.intersectionRatio > 0.5) {
+                this.exit("auto");
+              }
+              return;
+            }
+            if (this.player.state.floating === "pinned") {
+              return;
+            }
+            if (entry.intersectionRatio < 0.1 && this._canFloat("auto")) {
+              this.enter("auto");
+            }
+          }, { threshold: [0, 0.1, 0.5, 0.9] });
+          this.intersectionObserver.observe(this.observerTarget);
+        }
+        _retargetObserver(target) {
+          if (!this.intersectionObserver) return;
+          if (this.observerTarget) {
+            try {
+              this.intersectionObserver.unobserve(this.observerTarget);
+            } catch {
+            }
+          }
+          this.observerTarget = target;
+          try {
+            this.intersectionObserver.observe(target);
+          } catch {
+          }
+        }
+        // ---------------------------------------------------------------
+        // Internal: shell DOM
+        // ---------------------------------------------------------------
+        _ensureShell() {
+          if (this.shell) return;
+          this.shell = DOMUtils.createElement("div", {
+            className: `${this.classPrefix}-floating-shell`,
+            attributes: {
+              "role": "dialog",
+              "aria-modal": "false",
+              "aria-label": i18n.t("player.floatingPlayer"),
+              "data-vidply-floating": "true",
+              "tabindex": "-1"
+            }
+          });
+          this.dragHandle = DOMUtils.createElement("div", {
+            className: `${this.classPrefix}-floating-drag-handle`,
+            attributes: { "aria-hidden": "true" }
+          });
+          this.shell.appendChild(this.dragHandle);
+          this.closeButton = DOMUtils.createElement("button", {
+            className: `${this.classPrefix}-floating-close`,
+            attributes: {
+              "type": "button",
+              "aria-label": i18n.t("player.floatingPlayerClose"),
+              "title": i18n.t("player.floatingPlayerClose")
+            }
+          });
+          this.closeButton.appendChild(createIconElement("close"));
+          this.closeButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            this.dismiss();
+          });
+          this.shell.appendChild(this.closeButton);
+          this._createResizeHandles();
+          this.resizeHandles.forEach((handle) => this.shell.appendChild(handle));
+          this._onKeyDown = (event) => {
+            if (event.key === "Escape") {
+              event.stopPropagation();
+              this.dismiss();
+            }
+          };
+          this.shell.addEventListener("keydown", this._onKeyDown);
+        }
+        _createResizeHandles() {
+          const dirs = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
+          this.resizeHandles = dirs.map((dir) => DOMUtils.createElement("div", {
+            className: `${this.classPrefix}-floating-resize-handle ${this.classPrefix}-floating-resize-${dir}`,
+            attributes: {
+              "data-direction": dir,
+              "data-vidply-managed-resize": "true",
+              "aria-hidden": "true"
+            }
+          }));
+        }
+        _teardownShell() {
+          if (this.draggable) {
+            try {
+              this.draggable.destroy();
+            } catch {
+            }
+            this.draggable = null;
+          }
+          if (this.shell) {
+            if (this._onKeyDown) {
+              this.shell.removeEventListener("keydown", this._onKeyDown);
+              this._onKeyDown = null;
+            }
+            if (this.shell.parentNode) {
+              this.shell.parentNode.removeChild(this.shell);
+            }
+          }
+          this.shell = null;
+          this.dragHandle = null;
+          this.closeButton = null;
+          this.resizeHandles = [];
+        }
+        // ---------------------------------------------------------------
+        // Internal: mount / unmount the player.container
+        // ---------------------------------------------------------------
+        _mountIntoShell() {
+          const container = this.player.container;
+          if (!container || !container.parentNode) return;
+          if (!this.shell) return;
+          const rect = container.getBoundingClientRect();
+          this.originalParent = container.parentNode;
+          this.originalNextSibling = container.nextSibling;
+          this.placeholder = DOMUtils.createElement("div", {
+            className: `${this.classPrefix}-floating-placeholder`,
+            attributes: { "aria-hidden": "true" }
+          });
+          this.placeholder.style.width = `${Math.max(1, rect.width)}px`;
+          this.placeholder.style.height = `${Math.max(1, rect.height)}px`;
+          this.originalParent.insertBefore(this.placeholder, container);
+          this.shell.appendChild(container);
+          document.body.appendChild(this.shell);
+          container.classList.add(`${this.classPrefix}-is-floating`);
+          this._retargetObserver(this.placeholder);
+        }
+        _unmountFromShell() {
+          const container = this.player.container;
+          if (container) {
+            container.classList.remove(`${this.classPrefix}-is-floating`);
+            container.style.removeProperty("width");
+            container.style.removeProperty("height");
+          }
+          if (this.placeholder && this.placeholder.parentNode) {
+            if (container) {
+              this.placeholder.parentNode.insertBefore(container, this.placeholder);
+            }
+            this.placeholder.parentNode.removeChild(this.placeholder);
+          } else if (container && this.originalParent) {
+            if (this.originalNextSibling && this.originalNextSibling.parentNode === this.originalParent) {
+              this.originalParent.insertBefore(container, this.originalNextSibling);
+            } else {
+              this.originalParent.appendChild(container);
+            }
+          }
+          this.placeholder = null;
+          this.originalParent = null;
+          this.originalNextSibling = null;
+          if (container) {
+            this._retargetObserver(container);
+          }
+        }
+        // ---------------------------------------------------------------
+        // Internal: initial geometry + drag/resize wiring
+        // ---------------------------------------------------------------
+        _applyInitialGeometry() {
+          var _a, _b, _c;
+          if (!this.shell) return;
+          const prefs = ((_b = (_a = this.player.storage) == null ? void 0 : _a.getFloatingPreferences) == null ? void 0 : _b.call(_a)) || {};
+          const vw = window.innerWidth;
+          const vh = window.innerHeight;
+          let width = prefs.width && prefs.width >= MIN_WIDTH ? prefs.width : DEFAULT_WIDTH;
+          width = Math.min(width, Math.max(MIN_WIDTH, vw - EDGE_MARGIN * 2));
+          const containerRect = (_c = this.player.container) == null ? void 0 : _c.getBoundingClientRect();
+          const aspect = containerRect && containerRect.height > 0 ? containerRect.width / containerRect.height : 16 / 9;
+          const defaultHeight = Math.round(width / aspect);
+          let height = prefs.height && prefs.height >= 100 ? prefs.height : defaultHeight;
+          height = Math.min(height, Math.max(100, vh - EDGE_MARGIN * 2));
+          let left;
+          let top;
+          if (typeof prefs.left === "number" && typeof prefs.top === "number") {
+            left = Math.max(EDGE_MARGIN, Math.min(prefs.left, vw - width - EDGE_MARGIN));
+            top = Math.max(EDGE_MARGIN, Math.min(prefs.top, vh - height - EDGE_MARGIN));
+          } else {
+            const pos = this.player.options.floatingPosition || "bottom-right";
+            switch (pos) {
+              case "bottom-left":
+                left = EDGE_MARGIN;
+                top = vh - height - EDGE_MARGIN;
+                break;
+              case "top-right":
+                left = vw - width - EDGE_MARGIN;
+                top = EDGE_MARGIN;
+                break;
+              case "top-left":
+                left = EDGE_MARGIN;
+                top = EDGE_MARGIN;
+                break;
+              case "bottom-right":
+              default:
+                left = vw - width - EDGE_MARGIN;
+                top = vh - height - EDGE_MARGIN;
+                break;
+            }
+          }
+          this.shell.style.width = `${width}px`;
+          this.shell.style.height = `${height}px`;
+          this.shell.style.left = `${left}px`;
+          this.shell.style.top = `${top}px`;
+          this._initDraggable();
+        }
+        _initDraggable() {
+          if (!this.shell) return;
+          if (this.draggable) return;
+          this.draggable = new DraggableResizable(this.shell, {
+            dragHandle: this.dragHandle,
+            resizeHandles: this.resizeHandles,
+            constrainToViewport: true,
+            maintainAspectRatio: true,
+            minWidth: MIN_WIDTH,
+            minHeight: 100,
+            maxWidth: () => Math.max(MIN_WIDTH, window.innerWidth - EDGE_MARGIN * 2),
+            maxHeight: () => Math.max(100, window.innerHeight - EDGE_MARGIN * 2),
+            classPrefix: `${this.classPrefix}-floating`,
+            keyboardDragKey: "d",
+            keyboardResizeKey: "r",
+            keyboardStep: 10,
+            keyboardStepLarge: 50,
+            pointerResizeIndicatorText: i18n.t("player.floatingPlayerDialog"),
+            onDragEnd: () => this._savePrefs(),
+            onResizeEnd: () => this._savePrefs(),
+            onDragStart: (event) => {
+              const target = event.target;
+              if (!target) return true;
+              if (target.closest(`.${this.classPrefix}-floating-close`)) return false;
+              if (target.closest(`.${this.classPrefix}-controls`)) return false;
+              if (target.closest(`.${this.classPrefix}-floating-resize-handle`)) return false;
+              return true;
+            }
+          });
+        }
+        _savePrefs() {
+          var _a;
+          if (!this.shell || !((_a = this.player.storage) == null ? void 0 : _a.saveFloatingPreferences)) return;
+          const rect = this.shell.getBoundingClientRect();
+          this.player.storage.saveFloatingPreferences({
+            width: Math.round(rect.width),
+            height: Math.round(rect.height),
+            left: Math.round(rect.left),
+            top: Math.round(rect.top)
+          });
+        }
+        _activeElement() {
+          const active = document.activeElement;
+          return active && active instanceof HTMLElement ? active : null;
         }
       };
     }
@@ -9859,7 +10404,9 @@
           this.rightButtons.appendChild(btn);
         }
       }
-      if (this.player.options.pipButton && "pictureInPictureEnabled" in document) {
+      const pipEnabled = this.player.options.pipButton && (this.player.options.floating || "pictureInPictureEnabled" in document);
+      const isAudio = this.player.element.tagName.toLowerCase() === "audio";
+      if (pipEnabled && !(this.player.options.floating && isAudio)) {
         const btn = this.createPipButton();
         btn.dataset.overflowPriority = "3";
         btn.dataset.overflowPriorityMobile = "3";
@@ -11593,17 +12140,32 @@
       return button;
     }
     createPipButton() {
+      const floating = this.player.options.floating === true;
+      const labelKey = floating ? "player.floatingPlayer" : "player.pip";
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-pip`,
         attributes: {
           "type": "button",
-          "aria-label": i18n.t("player.pip")
+          "aria-label": i18n.t(labelKey),
+          "aria-pressed": "false"
         }
       });
       button.appendChild(createIconElement("pip"));
       button.addEventListener("click", () => {
-        this.player.togglePiP();
+        if (floating) {
+          if (this.player.floatingPlayerManager) {
+            this.player.floatingPlayerManager.togglePinned(button);
+          }
+        } else {
+          this.player.togglePiP();
+        }
       });
+      if (floating) {
+        this.player.on("floatingchange", (state) => {
+          button.setAttribute("aria-pressed", state === "pinned" ? "true" : "false");
+          button.classList.toggle(`${this.player.options.classPrefix}-pip-active`, !!state);
+        });
+      }
       return button;
     }
     createDownloadButton(downloadUrl) {
@@ -12623,6 +13185,7 @@
   init_PerformanceUtils();
   var AudioDescriptionManagerModule = null;
   var SignLanguageManagerModule = null;
+  var FloatingPlayerManagerModule = null;
   async function loadAudioDescriptionManager() {
     if (!AudioDescriptionManagerModule) {
       const module = await Promise.resolve().then(() => (init_AudioDescriptionManager(), AudioDescriptionManager_exports));
@@ -12636,6 +13199,13 @@
       SignLanguageManagerModule = module.SignLanguageManager;
     }
     return SignLanguageManagerModule;
+  }
+  async function loadFloatingPlayerManager() {
+    if (!FloatingPlayerManagerModule) {
+      const module = await Promise.resolve().then(() => (init_FloatingPlayerManager(), FloatingPlayerManager_exports));
+      FloatingPlayerManagerModule = module.FloatingPlayerManager;
+    }
+    return FloatingPlayerManagerModule;
   }
   var playerInstanceCounter = 0;
   var _Player = class _Player extends EventEmitter {
@@ -12654,6 +13224,7 @@
       __publicField(this, "settingsDialog");
       __publicField(this, "audioDescriptionManager");
       __publicField(this, "signLanguageManager");
+      __publicField(this, "floatingPlayerManager");
       __publicField(this, "storage");
       __publicField(this, "instanceId");
       __publicField(this, "_audioDescriptionDesiredState");
@@ -12812,6 +13383,9 @@
         transcriptButton: true,
         fullscreenButton: true,
         pipButton: false,
+        floating: false,
+        floatingPosition: "bottom-right",
+        floatingMinViewportWidth: 640,
         downloadButton: false,
         downloadUrl: null,
         downloadFormat: null,
@@ -12948,6 +13522,7 @@
         playbackSpeed: this.options.playbackSpeed,
         fullscreen: false,
         pip: false,
+        floating: null,
         captionsEnabled: this.options.captionsDefault,
         currentCaption: null,
         controlsVisible: true,
@@ -13141,6 +13716,16 @@
         await i18n.ensureLanguage(this.options.language);
         i18n.setLanguage(this.options.language);
         this.createContainer();
+        if (this.options.floating && this.element && this.element.tagName === "VIDEO") {
+          try {
+            this.element.disablePictureInPicture = true;
+            this.element.disableRemotePlayback = true;
+            this.element.setAttribute("disablepictureinpicture", "");
+            this.element.setAttribute("disableremoteplayback", "");
+          } catch (err) {
+            this.log(`Failed to disable native PiP: ${err}`, "warn");
+          }
+        }
         const src = this.element.src || ((_a = this.element.querySelector("source")) == null ? void 0 : _a.src);
         if (src) {
           await this.initializeRenderer();
@@ -13261,6 +13846,25 @@
       return this.signLanguageManager;
     }
     /**
+     * Lazy-load and instantiate the floating (in-page PiP) manager. Only
+     * created when `options.floating === true` and the media element is a
+     * <video>. Audio-only players never float.
+     */
+    async ensureFloatingPlayerManager() {
+      if (this.floatingPlayerManager) {
+        return this.floatingPlayerManager;
+      }
+      if (!this.options.floating) {
+        return null;
+      }
+      if (!this.element || this.element.tagName !== "VIDEO") {
+        return null;
+      }
+      const FloatingManager = await loadFloatingPlayerManager();
+      this.floatingPlayerManager = new FloatingManager(this);
+      return this.floatingPlayerManager;
+    }
+    /**
      * Initialize feature managers if needed (called during init)
      */
     async initFeatureManagers() {
@@ -13273,6 +13877,9 @@
       }
       if (this.options.signLanguageButton || this.options.signLanguageSrc || this.signLanguageSrc || this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0) {
         promises.push(this.ensureSignLanguageManager());
+      }
+      if (this.options.floating && this.element && this.element.tagName === "VIDEO") {
+        promises.push(this.ensureFloatingPlayerManager());
       }
       if (promises.length > 0) {
         await Promise.all(promises);
@@ -14591,6 +15198,12 @@
     }
     // Picture-in-Picture
     enterPiP() {
+      if (this.options.floating) {
+        if (this.floatingPlayerManager) {
+          this.floatingPlayerManager.togglePinned();
+        }
+        return;
+      }
       if (this.element.requestPictureInPicture) {
         this.element.requestPictureInPicture();
         this.state.pip = true;
@@ -14598,6 +15211,12 @@
       }
     }
     exitPiP() {
+      if (this.options.floating) {
+        if (this.floatingPlayerManager && this.state.floating) {
+          this.floatingPlayerManager.exit("manual");
+        }
+        return;
+      }
       if (document.pictureInPictureElement) {
         document.exitPictureInPicture();
         this.state.pip = false;
@@ -14605,6 +15224,12 @@
       }
     }
     togglePiP() {
+      if (this.options.floating) {
+        if (this.floatingPlayerManager) {
+          this.floatingPlayerManager.togglePinned();
+        }
+        return;
+      }
       if (this.state.pip) {
         this.exitPiP();
       } else {
@@ -16675,6 +17300,14 @@
         this.transcriptManager.destroy();
       }
       this.cleanupSignLanguage();
+      if (this.floatingPlayerManager) {
+        try {
+          this.floatingPlayerManager.destroy();
+        } catch (err) {
+          this.log(`FloatingPlayerManager.destroy failed: ${err}`, "warn");
+        }
+        this.floatingPlayerManager = null;
+      }
       if (this.playButtonOverlay && this.playButtonOverlay.parentNode) {
         this.playButtonOverlay.remove();
         this.playButtonOverlay = null;
@@ -18421,6 +19054,10 @@
       "responsive": "responsive",
       "pipButton": "pipButton",
       "fullscreenButton": "fullscreenButton",
+      // Floating Player (custom in-page PiP)
+      "floating": "floating",
+      "floatingPosition": "floatingPosition",
+      "floatingMinViewportWidth": "floatingMinViewportWidth",
       // Layout
       // Lazy Loading
       "lazyInit": "lazyInit",

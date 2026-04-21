@@ -21,6 +21,7 @@ import type {PlayerEventMap} from '../types/events.js';
 
 let AudioDescriptionManagerModule: any = null;
 let SignLanguageManagerModule: any = null;
+let FloatingPlayerManagerModule: any = null;
 
 async function loadAudioDescriptionManager() {
     if (!AudioDescriptionManagerModule) {
@@ -36,6 +37,14 @@ async function loadSignLanguageManager() {
         SignLanguageManagerModule = module.SignLanguageManager;
     }
     return SignLanguageManagerModule;
+}
+
+async function loadFloatingPlayerManager() {
+    if (!FloatingPlayerManagerModule) {
+        const module = await import('./FloatingPlayerManager.js');
+        FloatingPlayerManagerModule = module.FloatingPlayerManager;
+    }
+    return FloatingPlayerManagerModule;
 }
 
 // Static counter for unique player instances
@@ -55,6 +64,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
     settingsDialog: any;
     audioDescriptionManager: any;
     signLanguageManager: any;
+    floatingPlayerManager: any;
     storage: StorageManager;
     instanceId: number;
     _audioDescriptionDesiredState: boolean | undefined;
@@ -238,6 +248,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
             transcriptButton: true,
             fullscreenButton: true,
             pipButton: false,
+            floating: false,
+            floatingPosition: 'bottom-right',
+            floatingMinViewportWidth: 640,
             downloadButton: false,
             downloadUrl: null,
             downloadFormat: null,
@@ -380,6 +393,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
             playbackSpeed: this.options.playbackSpeed,
             fullscreen: false,
             pip: false,
+            floating: null,
             captionsEnabled: this.options.captionsDefault,
             currentCaption: null,
             controlsVisible: true,
@@ -576,6 +590,21 @@ export class Player extends EventEmitter<PlayerEventMap> {
             // Create container
             this.createContainer();
 
+            // Suppress native Picture-in-Picture when the custom floating
+            // player is enabled. This removes Chrome's hover PiP button and
+            // the "Picture in Picture" entry in the video context menu, and
+            // prevents the remote playback indicator from hijacking playback.
+            if (this.options.floating && this.element && this.element.tagName === 'VIDEO') {
+                try {
+                    (this.element as any).disablePictureInPicture = true;
+                    (this.element as any).disableRemotePlayback = true;
+                    this.element.setAttribute('disablepictureinpicture', '');
+                    this.element.setAttribute('disableremoteplayback', '');
+                } catch (err) {
+                    this.log(`Failed to disable native PiP: ${err}`, 'warn');
+                }
+            }
+
             // Detect and initialize renderer (only if source exists)
             const src: any = this.element.src || this.element.querySelector('source')?.src;
             if (src) {
@@ -745,6 +774,26 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     /**
+     * Lazy-load and instantiate the floating (in-page PiP) manager. Only
+     * created when `options.floating === true` and the media element is a
+     * <video>. Audio-only players never float.
+     */
+    async ensureFloatingPlayerManager() {
+        if (this.floatingPlayerManager) {
+            return this.floatingPlayerManager;
+        }
+        if (!this.options.floating) {
+            return null;
+        }
+        if (!this.element || this.element.tagName !== 'VIDEO') {
+            return null;
+        }
+        const FloatingManager = await loadFloatingPlayerManager();
+        this.floatingPlayerManager = new FloatingManager(this);
+        return this.floatingPlayerManager;
+    }
+
+    /**
      * Initialize feature managers if needed (called during init)
      */
     async initFeatureManagers() {
@@ -766,7 +815,12 @@ export class Player extends EventEmitter<PlayerEventMap> {
             (this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0)) {
             promises.push(this.ensureSignLanguageManager());
         }
-        
+
+        // Load floating (custom in-page PiP) manager if enabled
+        if (this.options.floating && this.element && this.element.tagName === 'VIDEO') {
+            promises.push(this.ensureFloatingPlayerManager());
+        }
+
         if (promises.length > 0) {
             await Promise.all(promises);
         }
@@ -2573,6 +2627,16 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
     // Picture-in-Picture
     enterPiP() {
+        // When the custom floating player is enabled, the control bar PiP
+        // button is rebound to floatingPlayerManager.togglePinned(). This
+        // direct API is redirected too so external callers don't accidentally
+        // trigger native PiP after we disabled it.
+        if (this.options.floating) {
+            if (this.floatingPlayerManager) {
+                this.floatingPlayerManager.togglePinned();
+            }
+            return;
+        }
         if ((this.element as any).requestPictureInPicture) {
             (this.element as any).requestPictureInPicture();
             this.state.pip = true;
@@ -2581,6 +2645,12 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     exitPiP() {
+        if (this.options.floating) {
+            if (this.floatingPlayerManager && this.state.floating) {
+                this.floatingPlayerManager.exit('manual');
+            }
+            return;
+        }
         if (document.pictureInPictureElement) {
             document.exitPictureInPicture();
             this.state.pip = false;
@@ -2589,6 +2659,12 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     togglePiP() {
+        if (this.options.floating) {
+            if (this.floatingPlayerManager) {
+                this.floatingPlayerManager.togglePinned();
+            }
+            return;
+        }
         if (this.state.pip) {
             this.exitPiP();
         } else {
@@ -5449,6 +5525,17 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
         // Cleanup sign language video and listeners
         this.cleanupSignLanguage();
+
+        // Cleanup floating player manager (disconnects IntersectionObserver,
+        // returns the container to its original parent if still floating)
+        if (this.floatingPlayerManager) {
+            try {
+                this.floatingPlayerManager.destroy();
+            } catch (err) {
+                this.log(`FloatingPlayerManager.destroy failed: ${err}`, 'warn');
+            }
+            this.floatingPlayerManager = null;
+        }
 
         // Cleanup play overlay button
         if (this.playButtonOverlay && this.playButtonOverlay.parentNode) {

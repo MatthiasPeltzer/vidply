@@ -17,27 +17,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.ts": {
-      "bytes": 8036,
+      "bytes": 8309,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.ts": {
-      "bytes": 9906,
+      "bytes": 10257,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.ts": {
-      "bytes": 9033,
+      "bytes": 9361,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.ts": {
-      "bytes": 9296,
+      "bytes": 9642,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.ts": {
-      "bytes": 9765,
+      "bytes": 10146,
       "imports": [],
       "format": "esm"
     },
@@ -125,7 +125,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 175883,
+      "bytes": 177201,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -176,7 +176,7 @@
       "format": "esm"
     },
     "src/utils/StorageManager.ts": {
-      "bytes": 4655,
+      "bytes": 4935,
       "imports": [
         {
           "path": "<runtime>",
@@ -187,7 +187,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.ts": {
-      "bytes": 20551,
+      "bytes": 21106,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -349,6 +349,37 @@
       ],
       "format": "esm"
     },
+    "src/core/FloatingPlayerManager.ts": {
+      "bytes": 23458,
+      "imports": [
+        {
+          "path": "src/utils/DOMUtils.ts",
+          "kind": "import-statement",
+          "original": "../utils/DOMUtils.js"
+        },
+        {
+          "path": "src/utils/DraggableResizable.ts",
+          "kind": "import-statement",
+          "original": "../utils/DraggableResizable.js"
+        },
+        {
+          "path": "src/icons/Icons.ts",
+          "kind": "import-statement",
+          "original": "../icons/Icons.js"
+        },
+        {
+          "path": "src/i18n/i18n.ts",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        },
+        {
+          "path": "<runtime>",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
     "src/controls/TranscriptManager.ts": {
       "bytes": 87906,
       "imports": [
@@ -466,7 +497,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 252598,
+      "bytes": 262231,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -549,6 +580,11 @@
           "original": "./SignLanguageManager.js"
         },
         {
+          "path": "src/core/FloatingPlayerManager.ts",
+          "kind": "dynamic-import",
+          "original": "./FloatingPlayerManager.js"
+        },
+        {
           "path": "src/controls/TranscriptManager.ts",
           "kind": "dynamic-import",
           "original": "../controls/TranscriptManager.js"
@@ -618,7 +654,7 @@
       "format": "esm"
     },
     "src/index.ts": {
-      "bytes": 8572,
+      "bytes": 8754,
       "imports": [
         {
           "path": "src/core/Player.ts",
@@ -644,19 +680,19 @@
           "bytesInOutput": 5660
         },
         "src/i18n/languages/en.ts": {
-          "bytesInOutput": 9029
+          "bytesInOutput": 9327
         },
         "src/i18n/languages/de.ts": {
-          "bytesInOutput": 10267
+          "bytesInOutput": 10603
         },
         "src/i18n/languages/es.ts": {
-          "bytesInOutput": 10082
+          "bytesInOutput": 10423
         },
         "src/i18n/languages/fr.ts": {
-          "bytesInOutput": 10342
+          "bytesInOutput": 10689
         },
         "src/i18n/languages/ja.ts": {
-          "bytesInOutput": 10813
+          "bytesInOutput": 11219
         },
         "src/i18n/translations.ts": {
           "bytesInOutput": 894
@@ -677,7 +713,7 @@
           "bytesInOutput": 1014
         },
         "src/utils/StorageManager.ts": {
-          "bytesInOutput": 4824
+          "bytesInOutput": 5047
         },
         "src/controls/CaptionManager.ts": {
           "bytesInOutput": 18185
@@ -699,6 +735,9 @@
         },
         "src/core/SignLanguageManager.ts": {
           "bytesInOutput": 52701
+        },
+        "src/core/FloatingPlayerManager.ts": {
+          "bytesInOutput": 21061
         },
         "src/controls/TranscriptManager.ts": {
           "bytesInOutput": 82980
@@ -722,10 +761,10 @@
           "bytesInOutput": 1002
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 182680
+          "bytesInOutput": 185309
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 129151
+          "bytesInOutput": 129971
         },
         "src/utils/VideoFrameCapture.ts": {
           "bytesInOutput": 2598
@@ -740,10 +779,10 @@
           "bytesInOutput": 46843
         },
         "src/index.ts": {
-          "bytesInOutput": 5582
+          "bytesInOutput": 5766
         }
       },
-      "bytes": 765843
+      "bytes": 792528
     }
   }
 }
