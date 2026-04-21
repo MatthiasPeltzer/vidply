@@ -3630,7 +3630,7 @@ async function loadSignLanguageManager() {
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-5EA4BYSR.js");
+    const module = await import("./vidply.FloatingPlayerManager-AEMEBLF7.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
