@@ -149,12 +149,12 @@
 
     /* Z-Index Layering System */
     --vidply-z-base: 1; /* Video, base elements */
+    --vidply-z-buffering: 1; /* Buffering spinner below play overlay to never block clicks */
     --vidply-z-controls: 30; /* Control bar */
     --vidply-z-menu: 20; /* Menus in normal mode */
     --vidply-z-menu-fullscreen: 1000; /* Menus in fullscreen mode */
     --vidply-z-menu-high: 100; /* Volume menu */
     --vidply-z-overlay: 2; /* Play overlay, video wrapper on mobile */
-    --vidply-z-buffering: 1; /* Buffering spinner below play overlay to never block clicks */
     --vidply-z-playlist: 15; /* Playlist panel in fullscreen */
     --vidply-z-transcript: 5; /* Transcript window */
 }
@@ -171,8 +171,8 @@
 /* Light Theme */
 .vidply-theme-light {
     /* Base colors - invert black/white */
-    --vidply-active-bg: rgba(0, 0, 0, 0.12);
-    --vidply-bg-controls: linear-gradient(180deg, rgb(255 255 255 / 0) 0%, rgb(240 240 240 / 95%) 100%);
+    --vidply-active-bg: rgb(0 0 0 / 12%);
+    --vidply-bg-controls: linear-gradient(180deg, rgb(255 255 255 / 0%) 0%, rgb(240 240 240 / 95%) 100%);
     --vidply-bg-dialog: rgb(245 245 245 / 98%);
     --vidply-bg-dialog-dark: rgb(235 235 235 / 98%);
     
@@ -185,23 +185,23 @@
     --vidply-bg-transcript: rgb(248 248 248 / 98%);
     --vidply-black: #fff;
     --vidply-black-rgb: 255, 255, 255;
-    --vidply-border: rgba(0, 0, 0, 0.15);
+    --vidply-border: rgb(0 0 0 / 15%);
     
     /* Text colors */
-    --vidply-border-hover: rgba(0, 0, 0, 0.25);
-    --vidply-border-light: rgba(0, 0, 0, 0.1);
-    --vidply-hover-bg: rgba(0, 0, 0, 0.08);
+    --vidply-border-hover: rgb(0 0 0 / 25%);
+    --vidply-border-light: rgb(0 0 0 / 10%);
+    --vidply-hover-bg: rgb(0 0 0 / 8%);
     --vidply-scrollbar-thumb: #888;
     --vidply-scrollbar-thumb-hover: #666;
     
     /* Border colors */
     --vidply-scrollbar-track: #e0e0e0;
     --vidply-scrollbar-track-transcript: #ddd;
-    --vidply-shadow-lg: 0 0.75rem 3rem rgba(0, 0, 0, 0.2);
+    --vidply-shadow-lg: 0 0.75rem 3rem rgb(0 0 0 / 20%);
     
     /* State colors */
-    --vidply-shadow-md: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
-    --vidply-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+    --vidply-shadow-md: 0 0.25rem 0.75rem rgb(0 0 0 / 15%);
+    --vidply-shadow-sm: 0 0.125rem 0.25rem rgb(0 0 0 / 10%);
     
     /* Scrollbar */
     --vidply-text-disabled: #999;
@@ -217,13 +217,13 @@
 
 /* Light theme specific overrides for controls - use opaque background, not transparent gradient */
 .vidply-theme-light .vidply-controls {
-    background: linear-gradient(180deg, rgba(240, 240, 240, 0.85) 0%, rgba(235, 235, 235, 0.98) 100%) !important;
+    background: linear-gradient(180deg, rgb(240 240 240 / 85%) 0%, rgb(235 235 235 / 98%) 100%) !important;
 }
 
 /* Light theme - Mobile control bar override */
 @media (width <= 48rem), (width < 48rem) {
     .vidply-theme-light .vidply-controls {
-        background: rgba(240, 240, 240, 0.98) !important;
+        background: rgb(240 240 240 / 98%) !important;
     }
 }
 
@@ -232,12 +232,12 @@
 .vidply-theme-light:fullscreen .vidply-controls,
 .vidply-player.vidply-theme-light.vidply-fullscreen .vidply-controls,
 .vidply-player.vidply-theme-light:fullscreen .vidply-controls {
-    background: linear-gradient(180deg, rgba(240, 240, 240, 0.85) 0%, rgba(235, 235, 235, 0.98) 100%) !important;
+    background: linear-gradient(180deg, rgb(240 240 240 / 85%) 0%, rgb(235 235 235 / 98%) 100%) !important;
 }
 
 /* Light theme - Audio player control bar */
 .vidply-theme-light.vidply-audio .vidply-controls {
-    background: rgba(240, 240, 240, 0.98) !important;
+    background: rgb(240 240 240 / 98%) !important;
 }
 
 .vidply-theme-light .vidply-button svg,
@@ -266,36 +266,36 @@
 /* Light theme - Button focus states */
 .vidply-theme-light .vidply-button:focus,
 .vidply-theme-light .vidply-button:focus-visible {
-    box-shadow: 0 0 0 4px rgba(10, 64, 110, 0.3) !important;
+    box-shadow: 0 0 0 4px rgb(10 64 110 / 30%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: 2px !important;
 }
 
 .vidply-theme-light .vidply-button:hover {
-    background: rgba(0, 0, 0, 0.1) !important;
+    background: rgb(0 0 0 / 10%) !important;
 }
 
 .vidply-theme-light .vidply-icon-button:focus,
 .vidply-theme-light .vidply-icon-button:focus-visible {
-    box-shadow: 0 0 0 4px rgba(10, 64, 110, 0.3) !important;
+    box-shadow: 0 0 0 4px rgb(10 64 110 / 30%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: 2px !important;
 }
 
 .vidply-theme-light .vidply-icon-button:hover {
-    background: rgba(0, 0, 0, 0.1) !important;
+    background: rgb(0 0 0 / 10%) !important;
 }
 
 /* Light theme - Transcript window (WCAG AA compliant) */
 .vidply-theme-light .vidply-transcript-window {
     background: #f8f8f8;
-    border-color: rgba(0, 0, 0, 0.2);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border-color: rgb(0 0 0 / 20%);
+    box-shadow: 0 4px 20px rgb(0 0 0 / 15%);
 }
 
 .vidply-theme-light .vidply-transcript-header {
     background: #e8e8e8;
-    border-bottom-color: rgba(0, 0, 0, 0.12);
+    border-bottom-color: rgb(0 0 0 / 12%);
 }
 
 .vidply-theme-light .vidply-transcript-header h3 {
@@ -307,7 +307,7 @@
 }
 
 .vidply-theme-light .vidply-transcript-content {
-    background: #ffffff;
+    background: #fff;
 }
 
 /* Light theme - Transcript entries (correct class names) */
@@ -316,18 +316,18 @@
 }
 
 .vidply-theme-light .vidply-transcript-entry:hover {
-    background: rgba(0, 0, 0, 0.08) !important;
+    background: rgb(0 0 0 / 8%) !important;
 }
 
 .vidply-theme-light .vidply-transcript-entry:focus,
 .vidply-theme-light .vidply-transcript-entry:focus-visible {
-    background: rgba(10, 64, 110, 0.1) !important;
+    background: rgb(10 64 110 / 10%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: -2px !important;
 }
 
 .vidply-theme-light .vidply-transcript-entry-active {
-    background: rgba(10, 64, 110, 0.12);
+    background: rgb(10 64 110 / 12%);
     border-left-color: #0a406e;
 }
 
@@ -351,7 +351,7 @@
 
 /* Light theme - Description entries in transcript */
 .vidply-theme-light .vidply-transcript-description {
-    background: rgba(10, 64, 110, 0.08) !important;
+    background: rgb(10 64 110 / 8%) !important;
     border-left-color: #0a406e !important;
 }
 
@@ -368,7 +368,7 @@
 }
 
 .vidply-theme-light .vidply-transcript-description.vidply-transcript-entry-active {
-    background: rgba(10, 64, 110, 0.15) !important;
+    background: rgb(10 64 110 / 15%) !important;
 }
 
 .vidply-theme-light .vidply-transcript-description.vidply-transcript-entry-active .vidply-transcript-text {
@@ -409,7 +409,7 @@
 .vidply-theme-light .vidply-transcript-header .vidply-icon-button:focus-visible,
 .vidply-theme-light .vidply-transcript-header button:focus,
 .vidply-theme-light .vidply-transcript-header button:focus-visible {
-    box-shadow: 0 0 0 4px rgba(10, 64, 110, 0.3) !important;
+    box-shadow: 0 0 0 4px rgb(10 64 110 / 30%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: 2px !important;
 }
@@ -417,20 +417,20 @@
 /* Light theme - Language dropdown in transcript */
 .vidply-theme-light .vidply-transcript-header select,
 .vidply-theme-light .vidply-transcript-language-select {
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.25);
+    background: #fff;
+    border: 1px solid rgb(0 0 0 / 25%);
     color: #1a1a1a;
 }
 
 .vidply-theme-light .vidply-transcript-header select:hover,
 .vidply-theme-light .vidply-transcript-language-select:hover {
-    border-color: rgba(0, 0, 0, 0.4);
+    border-color: rgb(0 0 0 / 40%);
 }
 
 .vidply-theme-light .vidply-transcript-header select:focus,
 .vidply-theme-light .vidply-transcript-language-select:focus {
     border-color: #0a406e !important;
-    box-shadow: 0 0 0 3px rgba(10, 64, 110, 0.4) !important;
+    box-shadow: 0 0 0 3px rgb(10 64 110 / 40%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: 0 !important;
 }
@@ -443,8 +443,8 @@
 /* Light theme - Menus and dropdowns */
 .vidply-theme-light .vidply-menu {
     background: #fafafa;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgb(0 0 0 / 15%);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
 }
 
 .vidply-theme-light .vidply-menu-item {
@@ -452,36 +452,36 @@
 }
 
 .vidply-theme-light .vidply-menu-item:hover {
-    background: rgba(0, 0, 0, 0.1) !important;
+    background: rgb(0 0 0 / 10%) !important;
 }
 
 .vidply-theme-light .vidply-menu-item:focus,
 .vidply-theme-light .vidply-menu-item:focus-visible {
-    background: rgba(10, 64, 110, 0.12) !important;
+    background: rgb(10 64 110 / 12%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: -2px !important;
 }
 
 .vidply-theme-light .vidply-menu-item.vidply-active,
 .vidply-theme-light .vidply-menu-item[aria-checked="true"] {
-    background: rgba(10, 64, 110, 0.1);
+    background: rgb(10 64 110 / 10%);
     color: #0a406e;
 }
 
 .vidply-theme-light .vidply-menu-header {
-    border-bottom-color: rgba(0, 0, 0, 0.1);
+    border-bottom-color: rgb(0 0 0 / 10%);
     color: #555;
 }
 
 .vidply-theme-light .vidply-menu-divider {
-    background: rgba(0, 0, 0, 0.1);
+    background: rgb(0 0 0 / 10%);
 }
 
 /* Light theme - Caption style menu (WCAG compliant) */
 .vidply-theme-light .vidply-caption-style-menu {
     background: #f5f5f5;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgb(0 0 0 / 20%);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
 }
 
 .vidply-theme-light .vidply-caption-style-menu label {
@@ -490,38 +490,38 @@
 }
 
 .vidply-theme-light .vidply-caption-style-menu select {
-    background: #ffffff !important;
-    border: 1px solid rgba(0, 0, 0, 0.3) !important;
+    background: #fff !important;
+    border: 1px solid rgb(0 0 0 / 30%) !important;
     color: #1a1a1a !important;
 }
 
 .vidply-theme-light .vidply-caption-style-menu select:hover {
-    border-color: rgba(0, 0, 0, 0.5) !important;
+    border-color: rgb(0 0 0 / 50%) !important;
 }
 
 .vidply-theme-light .vidply-caption-style-menu select:focus,
 .vidply-theme-light .vidply-caption-style-menu select:focus-visible {
     border-color: #0a406e !important;
-    box-shadow: 0 0 0 3px rgba(10, 64, 110, 0.4) !important;
+    box-shadow: 0 0 0 3px rgb(10 64 110 / 40%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: 0 !important;
 }
 
 /* Light theme - Style select dropdowns specifically */
 .vidply-theme-light .vidply-style-select {
-    background: #ffffff !important;
-    border: 1px solid rgba(0, 0, 0, 0.3) !important;
+    background: #fff !important;
+    border: 1px solid rgb(0 0 0 / 30%) !important;
     color: #1a1a1a !important;
 }
 
 .vidply-theme-light .vidply-style-select:hover {
-    border-color: rgba(0, 0, 0, 0.5) !important;
+    border-color: rgb(0 0 0 / 50%) !important;
 }
 
 .vidply-theme-light .vidply-style-select:focus,
 .vidply-theme-light .vidply-style-select:focus-visible {
     border-color: #0a406e !important;
-    box-shadow: 0 0 0 3px rgba(10, 64, 110, 0.4) !important;
+    box-shadow: 0 0 0 3px rgb(10 64 110 / 40%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: 0 !important;
 }
@@ -529,7 +529,7 @@
 /* Light theme - Settings menu (including caption style popup) */
 .vidply-theme-light .vidply-settings-menu {
     background: #f5f5f5;
-    border: 1px solid rgba(0, 0, 0, 0.2);
+    border: 1px solid rgb(0 0 0 / 20%);
 }
 
 .vidply-theme-light .vidply-style-group {
@@ -547,41 +547,41 @@
 }
 
 .vidply-theme-light .vidply-transcript-style-group select {
-    background: #ffffff !important;
-    border: 1px solid rgba(0, 0, 0, 0.3) !important;
+    background: #fff !important;
+    border: 1px solid rgb(0 0 0 / 30%) !important;
     color: #1a1a1a !important;
 }
 
 /* Light theme - All select dropdowns */
 .vidply-theme-light select {
-    background-color: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.3);
+    background-color: #fff;
+    border: 1px solid rgb(0 0 0 / 30%);
     color: #1a1a1a;
 }
 
 .vidply-theme-light select:focus,
 .vidply-theme-light select:focus-visible {
     border-color: #0a406e !important;
-    box-shadow: 0 0 0 3px rgba(10, 64, 110, 0.4) !important;
+    box-shadow: 0 0 0 3px rgb(10 64 110 / 40%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: 0 !important;
 }
 
 .vidply-theme-light select option {
-    background: #ffffff;
+    background: #fff;
     color: #1a1a1a;
 }
 
 /* Light theme - Volume menu */
 .vidply-theme-light .vidply-volume-menu {
     background: #fafafa;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid rgb(0 0 0 / 15%);
 }
 
 /* Light theme - Chapters menu */
 .vidply-theme-light .vidply-chapters-menu {
     background: #fafafa;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid rgb(0 0 0 / 15%);
 }
 
 .vidply-theme-light .vidply-chapter-item {
@@ -589,18 +589,18 @@
 }
 
 .vidply-theme-light .vidply-chapter-item:hover {
-    background: rgba(0, 0, 0, 0.1) !important;
+    background: rgb(0 0 0 / 10%) !important;
 }
 
 .vidply-theme-light .vidply-chapter-item:focus,
 .vidply-theme-light .vidply-chapter-item:focus-visible {
-    background: rgba(10, 64, 110, 0.1) !important;
+    background: rgb(10 64 110 / 10%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: -2px !important;
 }
 
 .vidply-theme-light .vidply-chapter-item.vidply-active {
-    background: rgba(10, 64, 110, 0.1);
+    background: rgb(10 64 110 / 10%);
 }
 
 .vidply-theme-light .vidply-chapter-time {
@@ -610,61 +610,61 @@
 /* Light theme - Speed menu */
 .vidply-theme-light .vidply-speed-menu {
     background: #fafafa;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid rgb(0 0 0 / 15%);
 }
 
 /* Light theme - Quality menu */
 .vidply-theme-light .vidply-quality-menu {
     background: #fafafa;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid rgb(0 0 0 / 15%);
 }
 
 /* Light theme - Captions display (for audio players) */
 .vidply-theme-light .vidply-captions {
     background: #f5f5f5 !important;
-    border-color: rgba(0, 0, 0, 0.15) !important;
+    border-color: rgb(0 0 0 / 15%) !important;
     color: #1a1a1a !important;
 }
 
 .vidply-theme-light.vidply-audio .vidply-captions,
 .vidply-theme-light .vidply-player.vidply-audio .vidply-captions {
     background: #f5f5f5 !important;
-    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgb(0 0 0 / 15%) !important;
     color: #1a1a1a !important;
 }
 
 /* Light theme - Captions menu */
 .vidply-theme-light .vidply-captions-menu {
     background: #fafafa;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid rgb(0 0 0 / 15%);
 }
 
 /* Light theme - Settings dialog */
 .vidply-theme-light .vidply-settings-dialog {
     background: #f8f8f8;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid rgb(0 0 0 / 15%);
 }
 
 .vidply-theme-light .vidply-settings-header {
     background: #f0f0f0;
-    border-bottom-color: rgba(0, 0, 0, 0.1);
+    border-bottom-color: rgb(0 0 0 / 10%);
     color: #1a1a1a;
 }
 
 .vidply-theme-light .vidply-settings-content {
-    background: #ffffff;
+    background: #fff;
 }
 
 /* Light theme - Playlist */
 .vidply-theme-light .vidply-playlist-panel {
     background: #f5f5f5;
-    border-color: rgba(0, 0, 0, 0.15);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-color: rgb(0 0 0 / 15%);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 10%);
 }
 
 .vidply-theme-light .vidply-playlist-header {
     background: #e8e8e8 !important;
-    border-bottom-color: rgba(0, 0, 0, 0.15) !important;
+    border-bottom-color: rgb(0 0 0 / 15%) !important;
     color: #1a1a1a !important;
 }
 
@@ -673,17 +673,17 @@
 }
 
 .vidply-theme-light .vidply-playlist-item {
-    background: #ffffff;
-    border-color: rgba(0, 0, 0, 0.08);
+    background: #fff;
+    border-color: rgb(0 0 0 / 8%);
 }
 
 .vidply-theme-light .vidply-playlist-item:hover {
-    background: rgba(0, 0, 0, 0.05) !important;
+    background: rgb(0 0 0 / 5%) !important;
 }
 
 .vidply-theme-light .vidply-playlist-item:focus,
 .vidply-theme-light .vidply-playlist-item:focus-visible {
-    background: rgba(10, 64, 110, 0.1) !important;
+    background: rgb(10 64 110 / 10%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: -2px !important;
 }
@@ -693,19 +693,19 @@
 }
 
 .vidply-theme-light .vidply-playlist-item-button:hover {
-    background: rgba(0, 0, 0, 0.05) !important;
+    background: rgb(0 0 0 / 5%) !important;
 }
 
 .vidply-theme-light .vidply-playlist-item-button:focus,
 .vidply-theme-light .vidply-playlist-item-button:focus-visible {
-    background: rgba(10, 64, 110, 0.08) !important;
+    background: rgb(10 64 110 / 8%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: -2px !important;
 }
 
 .vidply-theme-light .vidply-playlist-item-active,
 .vidply-theme-light .vidply-playlist-item.vidply-playlist-item-active {
-    background: rgba(10, 64, 110, 0.08);
+    background: rgb(10 64 110 / 8%);
     border-color: #0a406e;
 }
 
@@ -716,7 +716,7 @@
 
 .vidply-theme-light .vidply-playlist-item-active .vidply-playlist-item-button:hover,
 .vidply-theme-light .vidply-playlist-item.vidply-playlist-item-active .vidply-playlist-item-button:hover {
-    background: rgba(10, 64, 110, 0.12) !important;
+    background: rgb(10 64 110 / 12%) !important;
 }
 
 .vidply-theme-light .vidply-playlist-item-title {
@@ -736,7 +736,7 @@
 }
 
 .vidply-theme-light .vidply-playlist-duration-badge {
-    background: rgba(0, 0, 0, 0.7);
+    background: rgb(0 0 0 / 70%);
     color: #fff;
 }
 
@@ -759,7 +759,7 @@
 /* Light theme - Track info */
 .vidply-theme-light .vidply-track-info {
     background: #f0f0f0 !important;
-    border-bottom-color: rgba(0, 0, 0, 0.1);
+    border-bottom-color: rgb(0 0 0 / 10%);
 }
 
 .vidply-theme-light .vidply-track-header,
@@ -782,12 +782,12 @@
 
 /* Light theme - Sign language window */
 .vidply-theme-light .vidply-sign-language-wrapper {
-    border-color: rgba(0, 0, 0, 0.2);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border-color: rgb(0 0 0 / 20%);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
 }
 
 .vidply-theme-light .vidply-sign-language-header {
-    background: rgba(240, 240, 240, 0.95);
+    background: rgb(240 240 240 / 95%);
     color: #1a1a1a;
 }
 
@@ -848,13 +848,13 @@
 
 /* Light theme - Resume prompt */
 .vidply-theme-light .vidply-resume-prompt {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgb(255 255 255 / 90%);
 }
 
 .vidply-theme-light .vidply-resume-prompt-content {
-    background: #ffffff;
-    border-color: rgba(0, 0, 0, 0.15);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+    background: #fff;
+    border-color: rgb(0 0 0 / 15%);
+    box-shadow: 0 4px 24px rgb(0 0 0 / 20%);
 }
 
 .vidply-theme-light .vidply-resume-prompt-message {
@@ -863,7 +863,7 @@
 
 .vidply-theme-light .vidply-resume-prompt-button {
     background: #f0f0f0;
-    border-color: rgba(0, 0, 0, 0.15);
+    border-color: rgb(0 0 0 / 15%);
     color: #333;
 }
 
@@ -873,7 +873,7 @@
 
 .vidply-theme-light .vidply-resume-prompt-button:focus,
 .vidply-theme-light .vidply-resume-prompt-button:focus-visible {
-    box-shadow: 0 0 0 4px rgba(10, 64, 110, 0.3) !important;
+    box-shadow: 0 0 0 4px rgb(10 64 110 / 30%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: 2px !important;
 }
@@ -890,7 +890,7 @@
 
 .vidply-theme-light .vidply-resume-prompt-button-primary:focus,
 .vidply-theme-light .vidply-resume-prompt-button-primary:focus-visible {
-    box-shadow: 0 0 0 4px rgba(10, 64, 110, 0.4) !important;
+    box-shadow: 0 0 0 4px rgb(10 64 110 / 40%) !important;
     outline: 2px solid #063557 !important;
     outline-offset: 2px !important;
 }
@@ -909,15 +909,15 @@
 }
 
 .vidply-theme-light .vidply-labeled-select select {
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.3);
+    background: #fff;
+    border: 1px solid rgb(0 0 0 / 30%);
     color: #1a1a1a;
 }
 
 .vidply-theme-light .vidply-labeled-select select:focus,
 .vidply-theme-light .vidply-labeled-select select:focus-visible {
     border-color: #0a406e !important;
-    box-shadow: 0 0 0 3px rgba(10, 64, 110, 0.4) !important;
+    box-shadow: 0 0 0 3px rgb(10 64 110 / 40%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: 0 !important;
 }
@@ -948,7 +948,7 @@
     color: #1a1a1a;
 }
 
-.vidply-theme-light [class*="vidply-"] span:not(.vidply-tooltip):not([class*="icon"]) {
+.vidply-theme-light [class*="vidply-"] span:not(.vidply-tooltip, [class*="icon"]) {
     color: inherit;
 }
 
@@ -968,7 +968,7 @@
 /* Light theme - Control bar buttons focus */
 .vidply-theme-light .vidply-control-bar button:focus,
 .vidply-theme-light .vidply-control-bar button:focus-visible {
-    box-shadow: 0 0 0 4px rgba(10, 64, 110, 0.3) !important;
+    box-shadow: 0 0 0 4px rgb(10 64 110 / 30%) !important;
     outline: 2px solid #0a406e !important;
     outline-offset: 2px !important;
 }
@@ -1006,9 +1006,9 @@
 /* Minimal Theme - Simplified, transparent controls */
 .vidply-theme-minimal {
     /* More transparent backgrounds */
-    --vidply-bg-controls: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.6) 100%);
-    --vidply-bg-dialog: rgba(0, 0, 0, 0.9);
-    --vidply-bg-menu: rgba(0, 0, 0, 0.85);
+    --vidply-bg-controls: linear-gradient(180deg, transparent 0%, rgb(0 0 0 / 60%) 100%);
+    --vidply-bg-dialog: rgb(0 0 0 / 90%);
+    --vidply-bg-menu: rgb(0 0 0 / 85%);
     
     /* Simpler borders */
     --vidply-border: transparent;
@@ -1037,37 +1037,37 @@
 /* High Contrast Theme - For accessibility */
 .vidply-theme-high-contrast {
     /* Maximum contrast colors */
-    --vidply-bg-controls: #000000;
-    --vidply-bg-dialog: #000000;
-    --vidply-bg-menu: #000000;
-    --vidply-border: #ffffff;
-    --vidply-border-focus: #ffff00;
-    --vidply-border-hover: #ffff00;
+    --vidply-bg-controls: #000;
+    --vidply-bg-dialog: #000;
+    --vidply-bg-menu: #000;
+    --vidply-border: #fff;
+    --vidply-border-focus: #ff0;
+    --vidply-border-hover: #ff0;
     
     /* Bright accent for visibility */
-    --vidply-border-light: #ffffff;
-    --vidply-focus-outline: 0.1875rem solid #ffff00;
-    --vidply-focus-outline-player: 0.25rem solid #ffff00;
+    --vidply-border-light: #fff;
+    --vidply-focus-outline: 0.1875rem solid #ff0;
+    --vidply-focus-outline-player: 0.25rem solid #ff0;
     
     /* Strong borders */
-    --vidply-primary: #ffff00;
-    --vidply-primary-light: #ffff00;
+    --vidply-primary: #ff0;
+    --vidply-primary-light: #ff0;
     --vidply-primary-rgb: 255, 255, 0;
-    --vidply-text-muted: #ffff00;
+    --vidply-text-muted: #ff0;
     
     /* Larger focus indicators */
-    --vidply-text-primary: #ffffff;
-    --vidply-text-secondary: #ffffff;
+    --vidply-text-primary: #fff;
+    --vidply-text-secondary: #fff;
 }
 
 .vidply-theme-high-contrast .vidply-controls {
-    background: #000000;
-    border-top: 2px solid #ffffff;
+    background: #000;
+    border-top: 2px solid #fff;
 }
 
 .vidply-theme-high-contrast .vidply-button,
 .vidply-theme-high-contrast .vidply-icon-button {
-    border: 1px solid #ffffff;
+    border: 1px solid #fff;
 }
 
 .vidply-theme-high-contrast .vidply-button:focus,
@@ -1077,12 +1077,12 @@
 }
 
 .vidply-theme-high-contrast .vidply-progress-played {
-    background: #ffff00;
+    background: #ff0;
 }
 
 .vidply-theme-high-contrast .vidply-menu-item:focus {
-    background: #ffff00;
-    color: #000000;
+    background: #ff0;
+    color: #000;
 }
 
 /* Utility Classes */
@@ -1567,14 +1567,11 @@ video[data-vidply]:not(.vidply-initialized) {
     /* Override mobile rules in fullscreen mode - critical for iOS */
     .vidply-player.vidply-fullscreen .vidply-video-wrapper,
     .vidply-player:fullscreen .vidply-video-wrapper {
-        bottom: 0 !important;
+        inset: 0 !important;
         display: flex !important;
         height: 100% !important;
-        left: 0 !important;
         min-height: 0 !important;
         position: absolute !important;
-        right: 0 !important;
-        top: 0 !important;
     }
     
     .vidply-player.vidply-fullscreen video,
@@ -1956,7 +1953,7 @@ video[data-vidply]:not(.vidply-initialized) {
 
 /* Audio Description icon active state - background and inverted foreground */
 .vidply-icon-ad-bg {
-    fill: currentColor;
+    fill: currentcolor;
 }
 
 /* Audio Description icon - inverted text/foreground when active */
@@ -2068,12 +2065,9 @@ video[data-vidply]:not(.vidply-initialized) {
 .vidply-menu-backdrop {
     animation: fadeIn 0.2s ease;
     background: rgb(0 0 0 / 50%);
-    bottom: 0;
+    inset: 0;
     display: none;
-    left: 0;
     position: fixed;
-    right: 0;
-    top: 0;
     z-index: 19;
 }
 
@@ -2109,8 +2103,7 @@ video[data-vidply]:not(.vidply-initialized) {
     max-height: 15.625rem;
     min-width: 12.5rem;
     -webkit-overflow-scrolling: touch;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden auto;
     padding: 0.5rem 0;
     pointer-events: auto; /* Ensure menus are clickable/touchable */
     position: absolute;
@@ -2136,8 +2129,7 @@ video[data-vidply]:not(.vidply-initialized) {
 /* Volume menu popup - narrow and centered on button */
 .vidply-volume-menu {
     min-width: unset;
-    overflow-x: hidden;
-    overflow-y: hidden;
+    overflow: hidden;
     padding: 1rem 0.25rem;
     pointer-events: auto; /* Ensure volume menu is touchable */
     right: 50%;
@@ -2328,7 +2320,7 @@ video[data-vidply]:not(.vidply-initialized) {
 .vidply-style-select,
 .vidply-style-group input[type="color"],
 .vidply-style-group input[type="range"] {
-    -webkit-appearance: none;
+    appearance: none;
     appearance: none;
 }
 
@@ -2363,7 +2355,7 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 .vidply-style-group input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
+    appearance: none;
     appearance: none;
     background: var(--vidply-primary);
     border: 0.125rem solid var(--vidply-white);
@@ -2532,13 +2524,10 @@ video[data-vidply]:not(.vidply-initialized) {
     animation: vidply-fade-in 0.2s ease;
     backdrop-filter: blur(0.5rem);
     background: var(--vidply-bg-overlay);
-    bottom: 0;
+    inset: 0;
     display: flex;
     justify-content: center;
-    left: 0;
     position: absolute;
-    right: 0;
-    top: 0;
     z-index: 20;
 }
 
@@ -2717,11 +2706,12 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Webkit/Safari prefix for backdrop */
-.vidply-player:-webkit-full-screen::backdrop {
+.vidply-player:full-screen::backdrop {
     background: #000;
 }
 
 /* Hide fixed/sticky positioned elements when any vidply player is fullscreen */
+
 /* This ensures headers, nav bars, and other fixed elements don't appear above the player */
 :root:has(.vidply-player:fullscreen) .fixed-top,
 :root:has(.vidply-player:fullscreen) .fixed-bottom,
@@ -2732,11 +2722,11 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Same for webkit fullscreen */
-:root:has(.vidply-player:-webkit-full-screen) .fixed-top,
-:root:has(.vidply-player:-webkit-full-screen) .fixed-bottom,
-:root:has(.vidply-player:-webkit-full-screen) .sticky-top,
-:root:has(.vidply-player:-webkit-full-screen) [style*="position: fixed"],
-:root:has(.vidply-player:-webkit-full-screen) [style*="position:fixed"] {
+:root:has(.vidply-player:full-screen) .fixed-top,
+:root:has(.vidply-player:full-screen) .fixed-bottom,
+:root:has(.vidply-player:full-screen) .sticky-top,
+:root:has(.vidply-player:full-screen) [style*="position: fixed"],
+:root:has(.vidply-player:full-screen) [style*="position:fixed"] {
     display: none !important;
 }
 
@@ -2768,6 +2758,7 @@ html:has(.vidply-player.vidply-fullscreen) {
 }
 
 /* Hide all other video players when one is in fullscreen mode */
+
 /* This prevents stacking context issues where other players show through */
 body.vidply-fullscreen-active .vidply-player:not(.vidply-fullscreen) {
     visibility: hidden !important;
@@ -2781,30 +2772,27 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 /* Pseudo-fullscreen for iOS and browsers without Fullscreen API support */
 .vidply-player.vidply-fullscreen:not(:fullscreen) {
     background: #000;
-    bottom: 0;
-    left: 0;
+    inset: 0;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
-    position: fixed !important;
-    right: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0) !important;
 
     /* Critical iOS fixes */
-    top: 0;
-    transform: translate3d(0, 0, 0);
-    z-index: 999999;
+    padding-left: env(safe-area-inset-left, 0) !important;
+    padding-right: env(safe-area-inset-right, 0) !important;
+    position: fixed !important;
 
     /* Override the 100vh !important from the portrait/landscape rules.
        On iOS Safari 100vh equals the "largest viewport" (URL bar hidden)
        which is taller than the visible area. Removing the explicit height
        lets top:0 + bottom:0 on the fixed element size to the actual
        visual viewport so controls stay on-screen. */
-    height: auto !important;
-    width: 100% !important;
 
     /* Respect notch / home-indicator safe areas on modern iPhones */
-    padding-bottom: env(safe-area-inset-bottom, 0) !important;
-    padding-left: env(safe-area-inset-left, 0) !important;
-    padding-right: env(safe-area-inset-right, 0) !important;
+    transform: translate3d(0, 0, 0);
+    width: 100% !important;
+    z-index: 999999;
 }
 
 /* Fix controls in fullscreen LANDSCAPE mode - overlay them on video */
@@ -2949,15 +2937,12 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     .vidply-player.vidply-fullscreen .vidply-video-wrapper,
     .vidply-player:fullscreen .vidply-video-wrapper {
         align-items: center !important;
-        bottom: 0 !important;
+        inset: 0 !important;
         display: flex !important;
         flex: 1 !important; /* Take remaining space */
         height: 100% !important;
         justify-content: center !important;
-        left: 0 !important;
         position: absolute !important;
-        right: 0 !important;
-        top: 0 !important;
     }
     
     .vidply-player.vidply-fullscreen video,
@@ -2987,14 +2972,11 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     .vidply-player.vidply-fullscreen .vidply-video-wrapper,
     .vidply-player:fullscreen .vidply-video-wrapper {
         align-items: center !important;
-        bottom: 0 !important;
+        inset: 0 !important;
         display: flex !important;
         height: 100% !important;
         justify-content: center !important;
-        left: 0 !important;
         position: absolute !important;
-        right: 0 !important;
-        top: 0 !important;
         width: 100% !important;
         z-index: 1 !important;
     }
@@ -3034,14 +3016,11 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 /* Transcript in Fullscreen */
 .vidply-player.vidply-fullscreen .vidply-transcript-window,
 .vidply-player:fullscreen .vidply-transcript-window {
-    bottom: 5rem !important;
+    inset: auto 1.25rem 5rem auto !important;
     height: auto !important;
-    left: auto !important;
     max-height: calc(100vh - 11.25rem) !important;
     max-width: 26.25rem;
     position: fixed !important;
-    right: 1.25rem !important;
-    top: auto !important;
     width: 26.25rem;
 }
 
@@ -3163,13 +3142,10 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     /* Bottom sheet style for menus - positioned within controls */
     .vidply-menu {
         border-radius: 0.5rem;
-        bottom: calc(100% + 0.25rem);
-        left: 50%;
+        inset: auto auto calc(100% + 0.25rem) 50%;
         max-height: 15.625rem;
         min-width: 12.5rem;
         position: absolute;
-        right: auto;
-        top: auto;
         transform: translateX(-50%);
         width: auto;
         z-index: 15;
@@ -3213,8 +3189,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 
     /* Keep controls in one horizontal row on mobile */
     .vidply-controls-buttons {
-        flex-direction: row;
-        flex-wrap: nowrap;
+        flex-flow: row nowrap;
         gap: 0.5rem;
         width: 100%;
     }
@@ -3271,8 +3246,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
         bottom: 4.375rem; /* Directly above controls */
         max-height: 30vh; /* Less height in landscape */
         -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
-        overflow-x: auto;
-        overflow-y: hidden;
+        overflow: auto hidden;
         padding: 0.625rem 0;
         touch-action: pan-x; /* Allow horizontal scrolling on touch devices */
     }
@@ -3280,8 +3254,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     /* Landscape playlist list - horizontal row */
     .vidply-player.vidply-fullscreen .vidply-playlist-list,
     .vidply-player:fullscreen .vidply-playlist-list {
-        flex-direction: row;
-        flex-wrap: nowrap;
+        flex-flow: row nowrap;
         gap: 0.5rem;
         padding: 0 0.625rem;
     }
@@ -3385,13 +3358,10 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 /* Optional: Add a subtle overlay for better text readability if needed */
 .vidply-track-artwork::after {
     background: linear-gradient(180deg, transparent 0%, var(--vidply-black-30) 100%);
-    bottom: 0;
+    inset: 0;
     content: '';
-    left: 0;
     pointer-events: none;
     position: absolute;
-    right: 0;
-    top: 0;
 }
 
 .vidply-track-info {
@@ -3539,8 +3509,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     left: 0;
     max-height: 50vh; /* Take up to half the screen */
     opacity: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden auto;
     pointer-events: auto; /* Always allow touch/pointer events for scrolling */
     position: absolute !important; /* Force absolute positioning over video */
     right: 0;
@@ -3577,8 +3546,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     flex-direction: row;
     gap: 0.75rem;
     -webkit-overflow-scrolling: touch;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: auto hidden;
     padding: 0.5rem 1rem;
     scroll-snap-type: x mandatory;
 }
@@ -4695,7 +4663,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 .vidply-transcript-style-range {
-    -webkit-appearance: none;
+    appearance: none;
     appearance: none;
     background: var(--vidply-white-20);
     border-radius: 0.1875rem;
@@ -4716,7 +4684,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 .vidply-transcript-style-range::-webkit-slider-thumb {
-    -webkit-appearance: none;
+    appearance: none;
     appearance: none;
     background: var(--vidply-primary-light);
     border: 0.125rem solid var(--vidply-white);
@@ -5259,8 +5227,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
         bottom: 6.25rem; /* Directly above controls with extra space */
         max-height: 35vh; /* Compact height */
         -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
-        overflow-x: auto; /* Horizontal scrolling */
-        overflow-y: hidden; /* No vertical scrolling */
+        overflow: auto hidden; /* Horizontal scrolling */ /* No vertical scrolling */
         padding: 0.75rem 0; /* Vertical padding only */
         position: absolute !important; /* Force absolute over video */
         touch-action: pan-x; /* Allow horizontal scrolling on touch devices */
@@ -5269,8 +5236,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     /* Mobile playlist list - horizontal row, no wrapping */
     .vidply-player.vidply-fullscreen .vidply-playlist-list,
     .vidply-player:fullscreen .vidply-playlist-list {
-        flex-direction: row; /* Items side by side */
-        flex-wrap: nowrap; /* Never wrap */
+        flex-flow: row nowrap; /* Items side by side */ /* Never wrap */
         gap: 0.5rem;
         -webkit-overflow-scrolling: touch;
         padding: 0 0.75rem;
@@ -5380,7 +5346,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 .vidply-resume-prompt {
     align-items: center;
     animation: vidply-resume-fade-in 0.2s ease-out;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgb(0 0 0 / 85%);
     display: flex;
     inset: 0;
     justify-content: center;
@@ -5392,16 +5358,17 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
 }
 
 .vidply-resume-prompt-content {
-    background: var(--vidply-bg-secondary, rgba(40, 40, 40, 0.95));
-    border: 1px solid var(--vidply-border-light, rgba(255, 255, 255, 0.1));
+    background: var(--vidply-bg-secondary, rgb(40 40 40 / 95%));
+    border: 1px solid var(--vidply-border-light, rgb(255 255 255 / 10%));
     border-radius: 0.75rem;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 24px rgb(0 0 0 / 40%);
     max-width: 90%;
     padding: 1.5rem 2rem;
     text-align: center;
@@ -5409,7 +5376,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 .vidply-resume-prompt-message {
-    color: var(--vidply-text-primary, #ffffff);
+    color: var(--vidply-text-primary, #fff);
     font-size: 1rem;
     line-height: 1.4;
     margin: 0 0 1.25rem;
@@ -5422,10 +5389,10 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 .vidply-resume-prompt-button {
-    background: var(--vidply-bg-tertiary, rgba(255, 255, 255, 0.1));
-    border: 1px solid var(--vidply-border-light, rgba(255, 255, 255, 0.2));
+    background: var(--vidply-bg-tertiary, rgb(255 255 255 / 10%));
+    border: 1px solid var(--vidply-border-light, rgb(255 255 255 / 20%));
     border-radius: 0.5rem;
-    color: var(--vidply-text-primary, #ffffff);
+    color: var(--vidply-text-primary, #fff);
     cursor: pointer;
     font-family: inherit;
     font-size: 0.875rem;
@@ -5435,13 +5402,13 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 .vidply-resume-prompt-button:hover {
-    background: var(--vidply-bg-hover, rgba(255, 255, 255, 0.15));
-    border-color: var(--vidply-border-hover, rgba(255, 255, 255, 0.3));
+    background: var(--vidply-bg-hover, rgb(255 255 255 / 15%));
+    border-color: var(--vidply-border-hover, rgb(255 255 255 / 30%));
 }
 
 .vidply-resume-prompt-button:focus {
     border-color: var(--vidply-focus-color, #4a9eff);
-    box-shadow: 0 0 0 2px var(--vidply-focus-ring, rgba(74, 158, 255, 0.4));
+    box-shadow: 0 0 0 2px var(--vidply-focus-ring, rgb(74 158 255 / 40%));
     outline: none;
 }
 
@@ -5477,6 +5444,285 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 
     .vidply-resume-prompt-button {
         width: 100%;
+    }
+}
+
+/* =========================================================================
+ * Floating Player (custom in-page PiP)
+ * The shell is a position:fixed wrapper that the player.container is
+ * transplanted into when the user pops out the video or when the original
+ * slot scrolls out of view while playing. A placeholder of the same size
+ * keeps page layout intact while the video is floating.
+ * ========================================================================= */
+
+.vidply-floating-placeholder {
+    background: transparent;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+.vidply-floating-shell {
+    background: #000;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.75rem 2.5rem rgb(0 0 0 / 50%), 0 0 0 0.0625rem rgb(255 255 255 / 8%);
+    box-sizing: border-box;
+    left: auto;
+    overflow: visible;
+    padding: 0;
+    position: fixed;
+    top: auto;
+    touch-action: none;
+    z-index: 2147483000;
+}
+
+/* The embedded player.container fills the shell */
+.vidply-floating-shell > .vidply-player {
+    border-radius: inherit;
+    height: 100%;
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Docked-back styles: ensure no stray inline flags remain when the player
+ * returns to its original slot. */
+.vidply-player.vidply-is-floating {
+    height: 100%;
+    width: 100%;
+}
+
+/* Drag handle strip along the top of the shell. We keep it slim so it
+ * does not intrude on the player controls, which sit on the bottom edge
+ * of the embedded player. */
+.vidply-floating-drag-handle {
+    cursor: grab;
+    height: 1.75rem;
+    left: 0;
+    pointer-events: auto;
+    position: absolute;
+    right: 2.5rem; /* leave space for the close button */
+    top: 0;
+    touch-action: none;
+    z-index: 3;
+}
+
+.vidply-floating-shell.vidply-floating-dragging .vidply-floating-drag-handle {
+    cursor: grabbing;
+}
+
+/* Close (X) button */
+.vidply-floating-close {
+    align-items: center;
+    background: rgb(0 0 0 / 65%);
+    border: 0;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    height: 2rem;
+    justify-content: center;
+    padding: 0;
+    position: absolute;
+    right: 0.375rem;
+    top: 0.375rem;
+    transition: background 0.15s ease, transform 0.15s ease;
+    width: 2rem;
+    z-index: 5;
+}
+
+.vidply-floating-close .vidply-icon svg {
+    height: 1.625rem;
+    width: 1.625rem;
+}
+
+.vidply-floating-close:hover,
+.vidply-floating-close:focus {
+    background: rgb(0 0 0 / 85%);
+}
+
+.vidply-floating-close:focus-visible {
+    outline: 0.125rem solid var(--vidply-primary-light, #4ea3ff);
+    outline-offset: 0.125rem;
+}
+
+.vidply-floating-close:active {
+    transform: scale(0.92);
+}
+
+/* Resize handles (sides + corners) */
+.vidply-floating-resize-handle {
+    position: absolute;
+    touch-action: none;
+    z-index: 4;
+}
+
+.vidply-floating-resize-n,
+.vidply-floating-resize-s {
+    cursor: ns-resize;
+    height: 0.5rem;
+    left: 1rem;
+    right: 1rem;
+}
+
+.vidply-floating-resize-e,
+.vidply-floating-resize-w {
+    bottom: 1rem;
+    cursor: ew-resize;
+    top: 1rem;
+    width: 0.5rem;
+}
+
+.vidply-floating-resize-n { top: -0.25rem; }
+.vidply-floating-resize-s { bottom: -0.25rem; }
+.vidply-floating-resize-e { right: -0.25rem; }
+.vidply-floating-resize-w { left: -0.25rem; }
+
+.vidply-floating-resize-ne,
+.vidply-floating-resize-nw,
+.vidply-floating-resize-se,
+.vidply-floating-resize-sw {
+    height: 1rem;
+    width: 1rem;
+}
+
+.vidply-floating-resize-ne {
+    cursor: nesw-resize;
+    right: -0.5rem;
+    top: -0.5rem;
+}
+
+.vidply-floating-resize-nw {
+    cursor: nwse-resize;
+    left: -0.5rem;
+    top: -0.5rem;
+}
+
+.vidply-floating-resize-se {
+    bottom: -0.5rem;
+    cursor: nwse-resize;
+    right: -0.5rem;
+}
+
+.vidply-floating-resize-sw {
+    bottom: -0.5rem;
+    cursor: nesw-resize;
+    left: -0.5rem;
+}
+
+/* Corner handle indicator (visual hint on hover) */
+.vidply-floating-shell .vidply-floating-resize-handle::after {
+    background: var(--vidply-primary-light, #4ea3ff);
+    border-radius: 50%;
+    content: '';
+    height: 0.375rem;
+    left: 50%;
+    opacity: 0;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.2s ease;
+    width: 0.375rem;
+}
+
+.vidply-floating-shell:hover .vidply-floating-resize-handle::after,
+.vidply-floating-resize-handle:hover::after {
+    opacity: 0.8;
+}
+
+/* Interaction states */
+.vidply-floating-shell.vidply-floating-dragging,
+.vidply-floating-shell.vidply-floating-resizing {
+    box-shadow: 0 0 0 0.125rem var(--vidply-primary-light, #4ea3ff), 0 0.75rem 2.5rem rgb(0 0 0 / 60%);
+    transition: none !important;
+    user-select: none;
+}
+
+.vidply-floating-shell.vidply-floating-keyboard-drag,
+.vidply-floating-shell.vidply-floating-keyboard-resize {
+    box-shadow: 0 0 0 0.1875rem var(--vidply-primary, #2677c9), 0 0.25rem 0.75rem rgb(0 0 0 / 60%);
+}
+
+/* Visible pressed state for the control-bar PiP button when floating */
+.vidply-pip.vidply-pip-active {
+    color: var(--vidply-primary-light, #4ea3ff);
+}
+
+/* Reduced control bar while the player is floating.
+ *
+ * The floating shell is narrow and we only need the essential playback
+ * controls inside it. Hide every button in the .vidply-controls-buttons
+ * row by default, then re-enable only the whitelisted ones:
+ * play/pause, rewind, forward, volume (mute), captions, pip, fullscreen.
+ *
+ * We target .vidply-is-floating on the player container (applied by
+ * FloatingPlayerManager while the shell owns the player) so styles scope
+ * to the floating player only and revert automatically on dock.
+ *
+ * !important is required to beat the inline styles that the overflow
+ * detector writes directly on the buttons. */
+.vidply-is-floating .vidply-controls-buttons .vidply-button {
+    display: none !important;
+}
+
+.vidply-is-floating .vidply-controls-buttons .vidply-play-pause,
+.vidply-is-floating .vidply-controls-buttons .vidply-rewind,
+.vidply-is-floating .vidply-controls-buttons .vidply-forward,
+.vidply-is-floating .vidply-controls-buttons .vidply-mute,
+.vidply-is-floating .vidply-controls-buttons .vidply-captions-button,
+.vidply-is-floating .vidply-controls-buttons .vidply-pip,
+.vidply-is-floating .vidply-controls-buttons .vidply-fullscreen {
+    display: inline-flex !important;
+}
+
+/* Caption sizing inside the floating shell.
+ *
+ * The miniplayer is much narrower than a normal embed, so the default
+ * 100%/90% caption metrics are too large and get clipped. Force a
+ * compact 90% font-size / 95% width whenever the player is floating,
+ * overriding both the desktop and mobile caption rules. */
+.vidply-is-floating .vidply-captions {
+    font-size: 90% !important;
+    max-width: 95% !important;
+    width: 95% !important;
+}
+
+/* Tooltip placement inside the floating shell.
+ *
+ * The shell sits on top of the viewport with controls at its bottom edge,
+ * so the default "tooltip below the button" would overflow the shell and
+ * get clipped. Mirror the fullscreen behaviour and flip tooltips above
+ * the button, arrow pointing down. */
+.vidply-is-floating .vidply-tooltip {
+    bottom: calc(100% + 0.5rem);
+    top: auto;
+    transform: translateX(-50%) translateY(0.25rem);
+}
+
+.vidply-is-floating .vidply-tooltip-visible {
+    transform: translateX(-50%) translateY(0);
+}
+
+.vidply-is-floating .vidply-tooltip::before {
+    border-color: #e0e0e0 transparent transparent;
+    border-width: 0.375rem 0.375rem 0;
+    bottom: -0.375rem;
+    top: auto;
+}
+
+/* Respect reduced motion: avoid transitions that animate the shell */
+@media (prefers-reduced-motion: reduce) {
+    .vidply-floating-shell,
+    .vidply-floating-close {
+        transition: none !important;
+    }
+}
+
+/* Belt-and-braces mobile guard. The JS FloatingPlayerManager already
+ * refuses to enter below options.floatingMinViewportWidth, but if a shell
+ * happens to be open when the viewport crosses the breakpoint we hide it
+ * until the JS resize handler runs and calls exit('auto'). */
+@media (width <= 639.98px) {
+    .vidply-floating-shell {
+        display: none !important;
     }
 }
 

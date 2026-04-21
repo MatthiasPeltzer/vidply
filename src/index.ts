@@ -144,6 +144,11 @@ function parseDataAttributes(dataset: DOMStringMap): Record<string, any> {
     'pipButton': 'pipButton',
     'fullscreenButton': 'fullscreenButton',
 
+    // Floating Player (custom in-page PiP)
+    'floating': 'floating',
+    'floatingPosition': 'floatingPosition',
+    'floatingMinViewportWidth': 'floatingMinViewportWidth',
+
     // Layout
     
     // Lazy Loading

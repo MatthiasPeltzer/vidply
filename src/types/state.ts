@@ -13,6 +13,7 @@ export interface PlayerState {
   playbackSpeed: number;
   fullscreen: boolean;
   pip: boolean;
+  floating: null | 'pinned' | 'auto';
   captionsEnabled: boolean;
   currentCaption: string | null;
   controlsVisible: boolean;

@@ -61,6 +61,9 @@ export interface PlayerOptions {
   transcriptButton: boolean;
   fullscreenButton: boolean;
   pipButton: boolean;
+  floating: boolean;
+  floatingPosition: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+  floatingMinViewportWidth: number;
   downloadButton: boolean;
   downloadUrl: string | null;
   downloadFormat: string | null;

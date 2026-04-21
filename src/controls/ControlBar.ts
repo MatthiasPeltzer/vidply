@@ -842,7 +842,13 @@ export class ControlBar {
         }
 
         // PiP button (before fullscreen)
-        if (this.player.options.pipButton && 'pictureInPictureEnabled' in document) {
+        // When options.floating is enabled, the same button drives our custom
+        // in-page floating player; the native PiP capability check is skipped
+        // because requestPictureInPicture is not used in that mode.
+        const pipEnabled = this.player.options.pipButton &&
+            (this.player.options.floating || 'pictureInPictureEnabled' in document);
+        const isAudio = this.player.element.tagName.toLowerCase() === 'audio';
+        if (pipEnabled && !(this.player.options.floating && isAudio)) {
             const btn = this.createPipButton();
             btn.dataset.overflowPriority = '3';
             btn.dataset.overflowPriorityMobile = '3';
@@ -3156,19 +3162,37 @@ export class ControlBar {
     }
 
     createPipButton() {
+        const floating = this.player.options.floating === true;
+        const labelKey = floating ? 'player.floatingPlayer' : 'player.pip';
         const button = DOMUtils.createElement('button', {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-pip`,
             attributes: {
                 'type': 'button',
-                'aria-label': i18n.t('player.pip')
+                'aria-label': i18n.t(labelKey),
+                'aria-pressed': 'false'
             }
-        });
+        }) as HTMLButtonElement;
 
         button.appendChild(createIconElement('pip'));
 
         button.addEventListener('click', () => {
-            this.player.togglePiP();
+            if (floating) {
+                if (this.player.floatingPlayerManager) {
+                    this.player.floatingPlayerManager.togglePinned(button);
+                }
+            } else {
+                this.player.togglePiP();
+            }
         });
+
+        if (floating) {
+            // Keep aria-pressed in sync with the floating state so screen
+            // readers announce the toggled state correctly.
+            this.player.on('floatingchange', (state: any) => {
+                button.setAttribute('aria-pressed', state === 'pinned' ? 'true' : 'false');
+                button.classList.toggle(`${this.player.options.classPrefix}-pip-active`, !!state);
+            });
+        }
 
         return button;
     }
