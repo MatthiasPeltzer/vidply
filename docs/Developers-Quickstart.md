@@ -540,5 +540,5 @@ if (this.options.debug) {
 
 ---
 
-**Version:** 1.1.6 | **License:** GPL-2.0-or-later
+**Version:** 1.1.7 | **License:** GPL-2.0-or-later
 
