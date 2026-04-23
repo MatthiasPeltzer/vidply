@@ -791,6 +791,17 @@
     color: #fff;
 }
 
+/* Light theme - Tooltip arrow (must match tooltip background) */
+.vidply-theme-light .vidply-tooltip::before {
+    border-color: transparent transparent #333;
+}
+
+.vidply-theme-light .vidply-player.vidply-fullscreen .vidply-tooltip::before,
+.vidply-theme-light .vidply-player:fullscreen .vidply-tooltip::before,
+.vidply-theme-light .vidply-is-floating .vidply-tooltip::before {
+    border-color: #333 transparent transparent;
+}
+
 /* Light theme - Time display */
 .vidply-theme-light .vidply-time,
 .vidply-theme-light .vidply-time *,
