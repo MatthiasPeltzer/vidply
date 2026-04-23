@@ -8,7 +8,7 @@ A modern, feature-rich media player authored in strict TypeScript and shipped as
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)
 ![ESM](https://img.shields.io/badge/ESM-Module-yellow.svg)
 ![WCAG](https://img.shields.io/badge/WCAG-2.2%20AA-green.svg)
-![Version](https://img.shields.io/badge/version-1.1.4-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.1.6-brightgreen.svg)
 
 ## Live Demos
 
