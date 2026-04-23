@@ -802,9 +802,9 @@
     border-color: transparent transparent #333;
 }
 
-.vidply-theme-light .vidply-player.vidply-fullscreen .vidply-tooltip::before,
-.vidply-theme-light .vidply-player:fullscreen .vidply-tooltip::before,
-.vidply-theme-light .vidply-is-floating .vidply-tooltip::before {
+.vidply-theme-light.vidply-fullscreen .vidply-tooltip::before,
+.vidply-theme-light:fullscreen .vidply-tooltip::before,
+.vidply-theme-light.vidply-is-floating .vidply-tooltip::before {
     border-color: #333 transparent transparent;
 }
 
