@@ -12396,7 +12396,8 @@
             iconName = "volumeHigh";
           }
           icon.innerHTML = createIconElement(iconName).innerHTML;
-          const newMuteAriaLabel = this.player.state.muted ? i18n.t("player.unmute") : i18n.t("player.mute");
+          const volumePercent = this.player.state.muted ? 0 : Math.round(percent);
+          const newMuteAriaLabel = this.isTouchDevice() ? this.player.state.muted ? i18n.t("player.unmute") : i18n.t("player.mute") : `${i18n.t("player.volume")} ${volumePercent}%`;
           this.controls.mute.setAttribute("aria-label", newMuteAriaLabel);
           DOMUtils.attachTooltip(this.controls.mute, newMuteAriaLabel, this.player.options.classPrefix);
         }

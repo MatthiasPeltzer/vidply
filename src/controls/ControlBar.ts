@@ -3495,8 +3495,13 @@ export class ControlBar {
 
                 icon.innerHTML = createIconElement(iconName).innerHTML;
 
-                const newMuteAriaLabel =
-                    this.player.state.muted ? i18n.t('player.unmute') : i18n.t('player.mute');
+                // On touch devices the button toggles mute directly, so label reflects that action.
+                // On desktop the button opens the volume slider, so the label stays "Volume"
+                // and we append the current percentage for quick visual feedback.
+                const volumePercent = this.player.state.muted ? 0 : Math.round(percent);
+                const newMuteAriaLabel = this.isTouchDevice()
+                    ? (this.player.state.muted ? i18n.t('player.unmute') : i18n.t('player.mute'))
+                    : `${i18n.t('player.volume')} ${volumePercent}%`;
                 this.controls.mute.setAttribute('aria-label', newMuteAriaLabel);
                 // Update tooltip to match aria-label
                 DOMUtils.attachTooltip(this.controls.mute, newMuteAriaLabel, this.player.options.classPrefix);

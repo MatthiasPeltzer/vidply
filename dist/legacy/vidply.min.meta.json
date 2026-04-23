@@ -125,7 +125,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 178984,
+      "bytes": 179450,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -764,7 +764,7 @@
           "bytesInOutput": 185309
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 130325
+          "bytesInOutput": 130480
         },
         "src/utils/VideoFrameCapture.ts": {
           "bytesInOutput": 2598
@@ -782,7 +782,7 @@
           "bytesInOutput": 5766
         }
       },
-      "bytes": 792830
+      "bytes": 792985
     }
   }
 }
