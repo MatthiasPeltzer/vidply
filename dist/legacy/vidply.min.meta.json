@@ -475,7 +475,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 24676,
+      "bytes": 24686,
       "imports": [
         {
           "path": "<runtime>",
@@ -752,7 +752,7 @@
           "bytesInOutput": 21297
         },
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 26407
+          "bytesInOutput": 26417
         },
         "src/renderers/SoundCloudRenderer.ts": {
           "bytesInOutput": 11174
@@ -782,7 +782,7 @@
           "bytesInOutput": 5766
         }
       },
-      "bytes": 795159
+      "bytes": 795169
     }
   }
 }

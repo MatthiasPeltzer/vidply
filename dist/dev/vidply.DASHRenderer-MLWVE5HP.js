@@ -131,7 +131,7 @@ var DASHRenderer = class {
   async loadDashJs() {
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/dashjs@latest/dist/dash.all.min.js";
+      script.src = "https://cdn.jsdelivr.net/npm/dashjs@5.1.1/dist/modern/umd/dash.all.min.js";
       script.onload = () => resolve();
       script.onerror = () => reject(new Error("Failed to load dash.js"));
       document.head.appendChild(script);
@@ -681,4 +681,4 @@ var DASHRenderer = class {
 export {
   DASHRenderer
 };
-//# sourceMappingURL=vidply.DASHRenderer-2N6RX7PU.js.map
+//# sourceMappingURL=vidply.DASHRenderer-MLWVE5HP.js.map

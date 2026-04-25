@@ -393,7 +393,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 24676,
+      "bytes": 24686,
       "imports": [],
       "format": "esm"
     },
@@ -667,7 +667,7 @@
       },
       "bytes": 17600
     },
-    "dist/prod/vidply.DASHRenderer-RAQ3EPGA.min.js": {
+    "dist/prod/vidply.DASHRenderer-QI2LJLOH.min.js": {
       "imports": [],
       "exports": [
         "DASHRenderer"
@@ -675,10 +675,10 @@
       "entryPoint": "src/renderers/DASHRenderer.ts",
       "inputs": {
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 21476
+          "bytesInOutput": 21486
         }
       },
-      "bytes": 21655
+      "bytes": 21665
     },
     "dist/prod/vidply.SoundCloudRenderer-SSSBPFSU.min.js": {
       "imports": [],
@@ -753,7 +753,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.DASHRenderer-RAQ3EPGA.min.js",
+          "path": "dist/prod/vidply.DASHRenderer-QI2LJLOH.min.js",
           "kind": "dynamic-import"
         },
         {
