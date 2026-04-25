@@ -8705,6 +8705,14 @@
               logLevel: this.player.options.debug ? 4 : 0
             },
             streaming: {
+              // Override dash.js default of 'lowestStartupDelay'. For audio
+              // AdaptationSets that tie on selectionPriority and role=main (e.g.
+              // Axinom's three en/en-low/en-high tracks), 'lowestStartupDelay'
+              // falls through to 'highestEfficiency' which, for audio, has no
+              // meaningful pixels-per-bit metric and collapses to "highest
+              // bitrate". 'firstTrack' respects manifest order instead, which is
+              // both predictable and closer to the MPD author's intent.
+              selectionModeForInitialTrack: "firstTrack",
               buffer: {
                 bufferTimeAtTopQuality: 30,
                 bufferTimeAtTopQualityLongForm: 60,
