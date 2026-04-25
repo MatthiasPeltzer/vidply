@@ -66,7 +66,8 @@ var DASHRenderer = class {
         buffer: {
           bufferTimeAtTopQuality: 30,
           bufferTimeAtTopQualityLongForm: 60,
-          stableBufferTime: 12,
+          // dash.js 5.x: use bufferTimeDefault (replaces removed stableBufferTime)
+          bufferTimeDefault: 12,
           bufferToKeep: 20,
           bufferPruningInterval: 10
         },
@@ -679,4 +680,4 @@ var DASHRenderer = class {
 export {
   DASHRenderer
 };
-//# sourceMappingURL=vidply.DASHRenderer-HP7BXLGV.js.map
+//# sourceMappingURL=vidply.DASHRenderer-356M2HHK.js.map

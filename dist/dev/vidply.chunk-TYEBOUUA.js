@@ -127,7 +127,7 @@ var CaptionManager = class {
         const entry = {
           track,
           language: track.language,
-          label: track.label,
+          label: this.deriveTrackLabel(track.label, track.language),
           kind: track.kind,
           index: i,
           isDefault,
@@ -145,6 +145,35 @@ var CaptionManager = class {
         this.enable(defaultTrackIndex);
       });
     }
+  }
+  /**
+   * Derive a human-readable label for a TextTrack when the source manifest
+   * (DASH AdaptationSet, HLS rendition, etc.) didn't provide one. dash.js
+   * falls back to the AdaptationSet @id (typically a digit like "2", "3")
+   * when no <Label> child element is present, which surfaces as cryptic
+   * "2"/"3" entries in the captions menu. We replace such placeholder
+   * labels with a localized language name via Intl.DisplayNames.
+   */
+  deriveTrackLabel(rawLabel, language) {
+    const cleanLabel = (rawLabel ?? "").trim();
+    const cleanLang = (language ?? "").trim();
+    const looksLikePlaceholder = cleanLabel === "" || /^\d+$/.test(cleanLabel);
+    if (!looksLikePlaceholder) {
+      return cleanLabel;
+    }
+    if (cleanLang) {
+      try {
+        const uiLang = i18n.getLanguage() || "en";
+        const displayNames = new Intl.DisplayNames([uiLang, "en"], { type: "language" });
+        const name = displayNames.of(cleanLang);
+        if (name && name.toLowerCase() !== cleanLang.toLowerCase()) {
+          return name;
+        }
+      } catch {
+      }
+      return cleanLang.toUpperCase();
+    }
+    return cleanLabel;
   }
   /**
    * Sync hls.js subtitle rendition to match the given language.
@@ -477,4 +506,4 @@ export {
   rafWithTimeout,
   CaptionManager
 };
-//# sourceMappingURL=vidply.chunk-2RIPRXWI.js.map
+//# sourceMappingURL=vidply.chunk-TYEBOUUA.js.map
