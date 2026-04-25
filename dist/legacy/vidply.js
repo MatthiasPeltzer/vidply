@@ -8766,7 +8766,7 @@
         async loadDashJs() {
           return new Promise((resolve, reject) => {
             const script = document.createElement("script");
-            script.src = "https://cdn.jsdelivr.net/npm/dashjs@latest/dist/dash.all.min.js";
+            script.src = "https://cdn.jsdelivr.net/npm/dashjs@5.1.1/dist/modern/umd/dash.all.min.js";
             script.onload = () => resolve();
             script.onerror = () => reject(new Error("Failed to load dash.js"));
             document.head.appendChild(script);

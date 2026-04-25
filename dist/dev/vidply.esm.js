@@ -4830,7 +4830,7 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.HLSRenderer-7XRBH6P3.js");
       return module.HLSRenderer || module.default;
     } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-2N6RX7PU.js");
+      const module = await import("./vidply.DASHRenderer-MLWVE5HP.js");
       return module.DASHRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-T64HDIWO.js");
