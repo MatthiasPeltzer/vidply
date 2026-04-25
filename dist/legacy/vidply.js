@@ -8134,6 +8134,12 @@
           this._cleanupNativeTextTrackListeners = () => {
           };
         }
+        // True once hls.js is driving playback via MSE. Native HLS playback on
+        // iOS / iPadOS keeps a real HTTP URL on the <video> and does not need the
+        // streaming path to be forced.
+        get isStreaming() {
+          return this.hls !== null && this.hls !== void 0;
+        }
         async init() {
           if (this.canPlayNatively()) {
             this.player.log("Using native HLS support");
@@ -8639,6 +8645,7 @@
           __publicField(this, "player");
           __publicField(this, "media");
           __publicField(this, "dash");
+          __publicField(this, "isStreaming", true);
           __publicField(this, "_dashSourceLoaded");
           __publicField(this, "_pendingSrc");
           __publicField(this, "_dashSubtitleTracksCount");
@@ -10616,7 +10623,7 @@
         this.previewVideoInitialized = true;
         return;
       }
-      const isStreamingRenderer = renderer.hls && typeof renderer.hls.loadLevel !== "undefined" || renderer.dash && typeof renderer.dash.getQualityFor === "function";
+      const isStreamingRenderer = renderer.isStreaming === true || renderer.hls && typeof renderer.hls.loadLevel !== "undefined" || renderer.dash && (typeof renderer.dash.getQualityFor === "function" || typeof renderer.dash.getCurrentRepresentationForType === "function" || typeof renderer.dash.getRepresentationsByType === "function" || typeof renderer.dash.attachSource === "function");
       const isHTML5Renderer = hasVideoMedia && renderer.media === this.player.element && !isStreamingRenderer && typeof renderer.seek === "function";
       if (isStreamingRenderer) {
         this.previewVideo = null;

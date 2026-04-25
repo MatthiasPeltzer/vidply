@@ -125,7 +125,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 179450,
+      "bytes": 180440,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -459,7 +459,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 21825,
+      "bytes": 22111,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.ts",
@@ -475,7 +475,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 24644,
+      "bytes": 24676,
       "imports": [
         {
           "path": "<runtime>",
@@ -749,10 +749,10 @@
           "bytesInOutput": 8572
         },
         "src/renderers/HLSRenderer.ts": {
-          "bytesInOutput": 20997
+          "bytesInOutput": 21297
         },
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 26355
+          "bytesInOutput": 26407
         },
         "src/renderers/SoundCloudRenderer.ts": {
           "bytesInOutput": 11174
@@ -764,7 +764,7 @@
           "bytesInOutput": 185456
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 130480
+          "bytesInOutput": 130702
         },
         "src/utils/VideoFrameCapture.ts": {
           "bytesInOutput": 2598
@@ -782,7 +782,7 @@
           "bytesInOutput": 5766
         }
       },
-      "bytes": 794585
+      "bytes": 795159
     }
   }
 }
