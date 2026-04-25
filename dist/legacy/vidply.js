@@ -1863,17 +1863,23 @@
          * (DASH AdaptationSet, HLS rendition, etc.) didn't provide one. dash.js
          * falls back to the AdaptationSet @id (typically a digit like "2", "3")
          * when no <Label> child element is present, which surfaces as cryptic
-         * "2"/"3" entries in the captions menu. We replace such placeholder
-         * labels with a localized language name via Intl.DisplayNames.
+         * "2"/"3" entries in the captions menu.
+         *
+         * dash.js 5.x additionally derives the label as `element.id ?? element.lang`.
+         * When neither is present in the MPD, the value is JS `null`, and the
+         * browser's TextTrack API stringifies it to the literal "null". We treat
+         * "null"/"undefined" (any casing) as placeholders too, and fall back to a
+         * localized language name via Intl.DisplayNames.
          */
         deriveTrackLabel(rawLabel, language) {
           const cleanLabel = (rawLabel ?? "").trim();
           const cleanLang = (language ?? "").trim();
-          const looksLikePlaceholder = cleanLabel === "" || /^\d+$/.test(cleanLabel);
+          const looksLikePlaceholder = cleanLabel === "" || /^\d+$/.test(cleanLabel) || /^(null|undefined)$/i.test(cleanLabel);
           if (!looksLikePlaceholder) {
             return cleanLabel;
           }
-          if (cleanLang) {
+          const cleanLangIsUsable = cleanLang !== "" && !/^(null|undefined)$/i.test(cleanLang);
+          if (cleanLangIsUsable) {
             try {
               const uiLang = i18n.getLanguage() || "en";
               const displayNames = new Intl.DisplayNames([uiLang, "en"], { type: "language" });
@@ -1885,7 +1891,7 @@
             }
             return cleanLang.toUpperCase();
           }
-          return cleanLabel;
+          return i18n.t("player.captions");
         }
         /**
          * Sync hls.js subtitle rendition to match the given language.
