@@ -165,7 +165,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.ts": {
-      "bytes": 22620,
+      "bytes": 23269,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -705,7 +705,7 @@
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.chunk-4DQXH2ZK.min.js",
+          "path": "dist/prod/vidply.chunk-6OJPJD4H.min.js",
           "kind": "import-statement"
         },
         {
@@ -725,7 +725,7 @@
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.AudioDescriptionManager-MNLXUQHD.min.js",
+          "path": "dist/prod/vidply.AudioDescriptionManager-4TFVBYZU.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -890,10 +890,10 @@
       },
       "bytes": 9524
     },
-    "dist/prod/vidply.AudioDescriptionManager-MNLXUQHD.min.js": {
+    "dist/prod/vidply.AudioDescriptionManager-4TFVBYZU.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-4DQXH2ZK.min.js",
+          "path": "dist/prod/vidply.chunk-6OJPJD4H.min.js",
           "kind": "import-statement"
         },
         {
@@ -916,7 +916,7 @@
       },
       "bytes": 20244
     },
-    "dist/prod/vidply.chunk-4DQXH2ZK.min.js": {
+    "dist/prod/vidply.chunk-6OJPJD4H.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-ZDIQYKKX.min.js",
@@ -939,10 +939,10 @@
           "bytesInOutput": 834
         },
         "src/controls/CaptionManager.ts": {
-          "bytesInOutput": 16112
+          "bytesInOutput": 16537
         }
       },
-      "bytes": 17353
+      "bytes": 17778
     },
     "dist/prod/vidply.chunk-ZDIQYKKX.min.js": {
       "imports": [],
