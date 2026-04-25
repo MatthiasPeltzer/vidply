@@ -78,7 +78,8 @@ export class DASHRenderer implements Renderer {
         buffer: {
           bufferTimeAtTopQuality: 30,
           bufferTimeAtTopQualityLongForm: 60,
-          stableBufferTime: 12,
+          // dash.js 5.x: use bufferTimeDefault (replaces removed stableBufferTime)
+          bufferTimeDefault: 12,
           bufferToKeep: 20,
           bufferPruningInterval: 10
         },

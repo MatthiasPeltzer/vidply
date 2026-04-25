@@ -2120,6 +2120,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
                         if (typeof this.renderer._hlsSourceLoaded === 'boolean') {
                             this.renderer._hlsSourceLoaded = false;
                         }
+                        if (typeof (this.renderer as { _dashSourceLoaded?: boolean })._dashSourceLoaded === 'boolean') {
+                            (this.renderer as { _dashSourceLoaded: boolean })._dashSourceLoaded = false;
+                        }
                         if ('_pendingSrc' in this.renderer) {
                             // For HLS, store pending src for the first play() call
                             this.renderer._pendingSrc = this._pendingSource || this.currentSource || null;

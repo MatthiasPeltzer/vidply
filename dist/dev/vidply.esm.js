@@ -15,7 +15,7 @@ import {
   isMobile,
   rafWithTimeout,
   throttle
-} from "./vidply.chunk-2RIPRXWI.js";
+} from "./vidply.chunk-TYEBOUUA.js";
 import {
   StorageManager
 } from "./vidply.chunk-X6PJOVWZ.js";
@@ -3617,7 +3617,7 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-DCZFE3N2.js");
+    const module = await import("./vidply.AudioDescriptionManager-WYYRQ54Z.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
@@ -4830,7 +4830,7 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.HLSRenderer-IVT5CQQ4.js");
       return module.HLSRenderer || module.default;
     } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-HP7BXLGV.js");
+      const module = await import("./vidply.DASHRenderer-356M2HHK.js");
       return module.DASHRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-T64HDIWO.js");
@@ -5224,6 +5224,9 @@ var Player = class _Player extends EventEmitter {
             }
             if (typeof this.renderer._hlsSourceLoaded === "boolean") {
               this.renderer._hlsSourceLoaded = false;
+            }
+            if (typeof this.renderer._dashSourceLoaded === "boolean") {
+              this.renderer._dashSourceLoaded = false;
             }
             if ("_pendingSrc" in this.renderer) {
               this.renderer._pendingSrc = this._pendingSource || this.currentSource || null;

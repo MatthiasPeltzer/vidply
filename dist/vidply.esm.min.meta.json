@@ -165,7 +165,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.ts": {
-      "bytes": 21106,
+      "bytes": 22620,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -393,7 +393,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 24558,
+      "bytes": 24644,
       "imports": [],
       "format": "esm"
     },
@@ -403,7 +403,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 262231,
+      "bytes": 262486,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -667,7 +667,7 @@
       },
       "bytes": 17336
     },
-    "dist/prod/vidply.DASHRenderer-U5QKC66O.min.js": {
+    "dist/prod/vidply.DASHRenderer-56ZUY2OB.min.js": {
       "imports": [],
       "exports": [
         "DASHRenderer"
@@ -675,10 +675,10 @@
       "entryPoint": "src/renderers/DASHRenderer.ts",
       "inputs": {
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 21369
+          "bytesInOutput": 21454
         }
       },
-      "bytes": 21548
+      "bytes": 21633
     },
     "dist/prod/vidply.SoundCloudRenderer-SSSBPFSU.min.js": {
       "imports": [],
@@ -705,7 +705,7 @@
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.chunk-MOAZJSWV.min.js",
+          "path": "dist/prod/vidply.chunk-4DQXH2ZK.min.js",
           "kind": "import-statement"
         },
         {
@@ -725,7 +725,7 @@
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.AudioDescriptionManager-JJFZSG7G.min.js",
+          "path": "dist/prod/vidply.AudioDescriptionManager-MNLXUQHD.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -753,7 +753,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.DASHRenderer-U5QKC66O.min.js",
+          "path": "dist/prod/vidply.DASHRenderer-56ZUY2OB.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -784,7 +784,7 @@
           "bytesInOutput": 6853
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 171412
+          "bytesInOutput": 171553
         },
         "src/features/PlaylistManager.ts": {
           "bytesInOutput": 43331
@@ -793,7 +793,7 @@
           "bytesInOutput": 5444
         }
       },
-      "bytes": 356756
+      "bytes": 356897
     },
     "dist/prod/vidply.chunk-DPEZK7YT.min.js": {
       "imports": [
@@ -890,10 +890,10 @@
       },
       "bytes": 9524
     },
-    "dist/prod/vidply.AudioDescriptionManager-JJFZSG7G.min.js": {
+    "dist/prod/vidply.AudioDescriptionManager-MNLXUQHD.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-MOAZJSWV.min.js",
+          "path": "dist/prod/vidply.chunk-4DQXH2ZK.min.js",
           "kind": "import-statement"
         },
         {
@@ -916,7 +916,7 @@
       },
       "bytes": 20244
     },
-    "dist/prod/vidply.chunk-MOAZJSWV.min.js": {
+    "dist/prod/vidply.chunk-4DQXH2ZK.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-ZDIQYKKX.min.js",
@@ -939,10 +939,10 @@
           "bytesInOutput": 834
         },
         "src/controls/CaptionManager.ts": {
-          "bytesInOutput": 14924
+          "bytesInOutput": 16112
         }
       },
-      "bytes": 16165
+      "bytes": 17353
     },
     "dist/prod/vidply.chunk-ZDIQYKKX.min.js": {
       "imports": [],
