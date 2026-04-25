@@ -1114,9 +1114,24 @@ export class ControlBar {
             return;
         }
 
-        // Check if this is a streaming renderer (HLS/DASH handle seeking internally)
-        const isStreamingRenderer = (renderer.hls && typeof renderer.hls.loadLevel !== 'undefined')
-            || (renderer.dash && typeof renderer.dash.getQualityFor === 'function');
+        // Check if this is a streaming renderer (HLS/DASH handle seeking internally).
+        // Prefer the renderer's own `isStreaming` flag (stable across dash.js /
+        // hls.js API changes). Fall back to probing instance methods for
+        // backwards compatibility with older renderers. For DASH we probe
+        // multiple methods because dash.js 5.x removed getQualityFor /
+        // setQualityFor in favour of getRepresentationsByType /
+        // getCurrentRepresentationForType. Missing this check causes the
+        // preview thumbnail path to copy the dash.js MediaSource blob URL
+        // onto a second <video> element, which Firefox rejects with
+        // "Security Error: Content at … may not load data from blob:…".
+        const isStreamingRenderer = renderer.isStreaming === true
+            || (renderer.hls && typeof renderer.hls.loadLevel !== 'undefined')
+            || (renderer.dash && (
+                typeof renderer.dash.getQualityFor === 'function' ||
+                typeof renderer.dash.getCurrentRepresentationForType === 'function' ||
+                typeof renderer.dash.getRepresentationsByType === 'function' ||
+                typeof renderer.dash.attachSource === 'function'
+            ));
         const isHTML5Renderer = hasVideoMedia &&
             renderer.media === this.player.element &&
             !isStreamingRenderer &&

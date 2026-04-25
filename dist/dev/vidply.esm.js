@@ -1027,7 +1027,7 @@ var ControlBar = class {
       this.previewVideoInitialized = true;
       return;
     }
-    const isStreamingRenderer = renderer.hls && typeof renderer.hls.loadLevel !== "undefined" || renderer.dash && typeof renderer.dash.getQualityFor === "function";
+    const isStreamingRenderer = renderer.isStreaming === true || renderer.hls && typeof renderer.hls.loadLevel !== "undefined" || renderer.dash && (typeof renderer.dash.getQualityFor === "function" || typeof renderer.dash.getCurrentRepresentationForType === "function" || typeof renderer.dash.getRepresentationsByType === "function" || typeof renderer.dash.attachSource === "function");
     const isHTML5Renderer = hasVideoMedia && renderer.media === this.player.element && !isStreamingRenderer && typeof renderer.seek === "function";
     if (isStreamingRenderer) {
       this.previewVideo = null;
@@ -4827,10 +4827,10 @@ var Player = class _Player extends EventEmitter {
       const module = await import("./vidply.VimeoRenderer-6CLUVHOQ.js");
       return module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-IVT5CQQ4.js");
+      const module = await import("./vidply.HLSRenderer-7XRBH6P3.js");
       return module.HLSRenderer || module.default;
     } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-356M2HHK.js");
+      const module = await import("./vidply.DASHRenderer-2N6RX7PU.js");
       return module.DASHRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
       const module = await import("./vidply.SoundCloudRenderer-T64HDIWO.js");

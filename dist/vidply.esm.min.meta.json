@@ -114,7 +114,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 179450,
+      "bytes": 180440,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -382,7 +382,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 21825,
+      "bytes": 22111,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.ts",
@@ -393,7 +393,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 24644,
+      "bytes": 24676,
       "imports": [],
       "format": "esm"
     },
@@ -649,7 +649,7 @@
       },
       "bytes": 6933
     },
-    "dist/prod/vidply.HLSRenderer-DBXM4KLR.min.js": {
+    "dist/prod/vidply.HLSRenderer-ZT2YDQNA.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.HTML5Renderer-3NGIW3DA.min.js",
@@ -662,12 +662,12 @@
       "entryPoint": "src/renderers/HLSRenderer.ts",
       "inputs": {
         "src/renderers/HLSRenderer.ts": {
-          "bytesInOutput": 17159
+          "bytesInOutput": 17423
         }
       },
-      "bytes": 17336
+      "bytes": 17600
     },
-    "dist/prod/vidply.DASHRenderer-56ZUY2OB.min.js": {
+    "dist/prod/vidply.DASHRenderer-RAQ3EPGA.min.js": {
       "imports": [],
       "exports": [
         "DASHRenderer"
@@ -675,10 +675,10 @@
       "entryPoint": "src/renderers/DASHRenderer.ts",
       "inputs": {
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 21454
+          "bytesInOutput": 21476
         }
       },
-      "bytes": 21633
+      "bytes": 21655
     },
     "dist/prod/vidply.SoundCloudRenderer-SSSBPFSU.min.js": {
       "imports": [],
@@ -749,11 +749,11 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.HLSRenderer-DBXM4KLR.min.js",
+          "path": "dist/prod/vidply.HLSRenderer-ZT2YDQNA.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.DASHRenderer-56ZUY2OB.min.js",
+          "path": "dist/prod/vidply.DASHRenderer-RAQ3EPGA.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -778,7 +778,7 @@
           "bytesInOutput": 3075
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 122190
+          "bytesInOutput": 122412
         },
         "src/controls/KeyboardManager.ts": {
           "bytesInOutput": 6853
@@ -793,7 +793,7 @@
           "bytesInOutput": 5444
         }
       },
-      "bytes": 356897
+      "bytes": 357119
     },
     "dist/prod/vidply.chunk-DPEZK7YT.min.js": {
       "imports": [

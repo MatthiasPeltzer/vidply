@@ -5,6 +5,14 @@ export class HLSRenderer implements Renderer {
   player: Player;
   media: HTMLMediaElement;
   hls: any;
+
+  // True once hls.js is driving playback via MSE. Native HLS playback on
+  // iOS / iPadOS keeps a real HTTP URL on the <video> and does not need the
+  // streaming path to be forced.
+  get isStreaming(): boolean {
+    return this.hls !== null && this.hls !== undefined;
+  }
+
   _hlsSourceLoaded: boolean;
   _pendingSrc: string | null;
   _hlsSubtitleTracksCount: number | undefined;

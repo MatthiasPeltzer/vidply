@@ -9,6 +9,7 @@ var DASHRenderer = class {
   player;
   media;
   dash;
+  isStreaming = true;
   _dashSourceLoaded;
   _pendingSrc;
   _dashSubtitleTracksCount;
@@ -680,4 +681,4 @@ var DASHRenderer = class {
 export {
   DASHRenderer
 };
-//# sourceMappingURL=vidply.DASHRenderer-356M2HHK.js.map
+//# sourceMappingURL=vidply.DASHRenderer-2N6RX7PU.js.map

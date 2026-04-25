@@ -13,6 +13,7 @@ export class DASHRenderer implements Renderer {
   player: Player;
   media: HTMLMediaElement;
   dash: any;
+  readonly isStreaming = true;
   _dashSourceLoaded: boolean;
   _pendingSrc: string | null;
   _dashSubtitleTracksCount: number | undefined;
