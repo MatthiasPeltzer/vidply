@@ -1351,15 +1351,28 @@ export class Player extends EventEmitter<PlayerEventMap> {
         });
 
         this.on('timeupdate', () => {
-            // Hide poster when video has started playing (currentTime > 0)
-            if (this.state.currentTime > 0) {
+            // Hide poster when video has started playing (currentTime > 0).
+            // We additionally gate on `hasStartedPlayback` to ignore
+            // background `currentTime` movements that the user did not
+            // initiate — most notably dash.js's startup gap-jump which
+            // synthesizes a small seek (often ~0.08s) right after MSE
+            // attach to skip a manifest gap. Without this guard, that
+            // synthetic seek hides the poster before the user has ever
+            // pressed play, defeating the showPosterOverlay() call we
+            // make from DASHRenderer.init() to keep the artwork visible
+            // on top of the (transparent) <video> element.
+            if (this.state.hasStartedPlayback && this.state.currentTime > 0) {
                 this.hidePosterOverlay();
             }
         });
 
-        // Also hide poster on loadeddata event (when first frame is loaded)
+        // Also hide poster on loadeddata event (when first frame is loaded).
+        // Same hasStartedPlayback gate as above: dash.js loads init+startup
+        // segments at attachSource time, which triggers loadeddata before
+        // the user clicks play. Hiding the poster there reveals the first
+        // decoded frame instead of the artwork the publisher chose.
         this.element.addEventListener('loadeddata', () => {
-            if (this.state.playing || this.state.currentTime > 0) {
+            if (this.state.hasStartedPlayback && (this.state.playing || this.state.currentTime > 0)) {
                 this.hidePosterOverlay();
             }
         }, { once: true });
@@ -1456,7 +1469,16 @@ export class Player extends EventEmitter<PlayerEventMap> {
             this.container?.classList.contains(`${prefix}-external-controls`);
 
         const showBuffering = () => {
-            if (isExternalControls() || !this.state.hasStartedPlayback) {
+            // Skip for external providers (YouTube, Vimeo, SoundCloud — they own
+            // their own loading UI). Otherwise allow the spinner whenever:
+            //  - the user has already started playback (normal mid-playback buffering), OR
+            //  - the user is currently seeking (e.g. scrubbed the seekbar before
+            //    pressing play, or after stop()) — they explicitly asked the
+            //    player to fetch data, so giving feedback is the right thing.
+            if (isExternalControls()) {
+                return;
+            }
+            if (!this.state.hasStartedPlayback && !this.state.seeking) {
                 return;
             }
             this.container.classList.add(`${prefix}-buffering`);
@@ -2310,6 +2332,15 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     seek(time: any) {
+        // Any user-initiated seek (seekbar drag/click, keyboard arrow,
+        // skip buttons) flows through this method, so it's the right place
+        // to drop the poster overlay: scrubbing communicates "I want to see
+        // a different frame", and keeping the artwork on top would hide
+        // exactly the frame the user is asking for. dash.js's internal
+        // startup gap-jump bypasses this method and sets
+        // media.currentTime directly, so the poster stays put for that
+        // case (which is what we want — the user hasn't engaged yet).
+        this.hidePosterOverlay();
         if (this.renderer) {
             this.renderer.seek(time);
         }

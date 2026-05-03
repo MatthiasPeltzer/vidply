@@ -1,7 +1,7 @@
 {
   "inputs": {
     "src/utils/EventEmitter.ts": {
-      "bytes": 1469,
+      "bytes": 1519,
       "imports": [
         {
           "path": "<runtime>",
@@ -12,7 +12,7 @@
       "format": "esm"
     },
     "src/utils/DOMUtils.ts": {
-      "bytes": 5313,
+      "bytes": 5496,
       "imports": [],
       "format": "esm"
     },
@@ -42,7 +42,7 @@
       "format": "esm"
     },
     "src/i18n/translations.ts": {
-      "bytes": 1139,
+      "bytes": 1167,
       "imports": [
         {
           "path": "src/i18n/languages/en.ts",
@@ -73,7 +73,7 @@
       "format": "esm"
     },
     "src/i18n/i18n.ts": {
-      "bytes": 5525,
+      "bytes": 5696,
       "imports": [
         {
           "path": "src/i18n/translations.ts",
@@ -89,7 +89,7 @@
       "format": "esm"
     },
     "src/utils/TimeUtils.ts": {
-      "bytes": 1907,
+      "bytes": 1974,
       "imports": [
         {
           "path": "src/i18n/i18n.ts",
@@ -100,27 +100,27 @@
       "format": "esm"
     },
     "src/icons/Icons.ts": {
-      "bytes": 11718,
+      "bytes": 11843,
       "imports": [],
       "format": "esm"
     },
     "src/utils/FocusUtils.ts": {
-      "bytes": 673,
+      "bytes": 699,
       "imports": [],
       "format": "esm"
     },
     "src/utils/PerformanceUtils.ts": {
-      "bytes": 1113,
+      "bytes": 1153,
       "imports": [],
       "format": "esm"
     },
     "src/utils/VideoFrameCapture.ts": {
-      "bytes": 2674,
+      "bytes": 2770,
       "imports": [],
       "format": "esm"
     },
     "src/utils/DownloadInfo.ts": {
-      "bytes": 4066,
+      "bytes": 4214,
       "imports": [],
       "format": "esm"
     },
@@ -176,7 +176,7 @@
       "format": "esm"
     },
     "src/utils/StorageManager.ts": {
-      "bytes": 4935,
+      "bytes": 5105,
       "imports": [
         {
           "path": "<runtime>",
@@ -186,8 +186,19 @@
       ],
       "format": "esm"
     },
+    "src/utils/TrackLabelUtils.ts": {
+      "bytes": 1993,
+      "imports": [
+        {
+          "path": "src/i18n/i18n.ts",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        }
+      ],
+      "format": "esm"
+    },
     "src/controls/CaptionManager.ts": {
-      "bytes": 23269,
+      "bytes": 21203,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -210,6 +221,11 @@
           "original": "../utils/PerformanceUtils.js"
         },
         {
+          "path": "src/utils/TrackLabelUtils.ts",
+          "kind": "import-statement",
+          "original": "../utils/TrackLabelUtils.js"
+        },
+        {
           "path": "<runtime>",
           "kind": "import-statement",
           "external": true
@@ -229,7 +245,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.ts": {
-      "bytes": 11656,
+      "bytes": 12038,
       "imports": [
         {
           "path": "<runtime>",
@@ -251,7 +267,7 @@
       "format": "esm"
     },
     "src/utils/MenuUtils.ts": {
-      "bytes": 5060,
+      "bytes": 5232,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -277,7 +293,7 @@
       "format": "esm"
     },
     "src/utils/FormUtils.ts": {
-      "bytes": 2259,
+      "bytes": 2354,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -309,7 +325,7 @@
       "format": "esm"
     },
     "src/core/SignLanguageManager.ts": {
-      "bytes": 53477,
+      "bytes": 54946,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -350,7 +366,7 @@
       "format": "esm"
     },
     "src/core/FloatingPlayerManager.ts": {
-      "bytes": 23810,
+      "bytes": 24446,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -381,7 +397,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.ts": {
-      "bytes": 87906,
+      "bytes": 96077,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -429,6 +445,11 @@
           "original": "../utils/FormUtils.js"
         },
         {
+          "path": "src/utils/TrackLabelUtils.ts",
+          "kind": "import-statement",
+          "original": "../utils/TrackLabelUtils.js"
+        },
+        {
           "path": "<runtime>",
           "kind": "import-statement",
           "external": true
@@ -459,7 +480,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 22111,
+      "bytes": 30096,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.ts",
@@ -475,7 +496,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 25253,
+      "bytes": 34958,
       "imports": [
         {
           "path": "<runtime>",
@@ -497,7 +518,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 262486,
+      "bytes": 264694,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -623,7 +644,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 58748,
+      "bytes": 60501,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -715,8 +736,11 @@
         "src/utils/StorageManager.ts": {
           "bytesInOutput": 5047
         },
+        "src/utils/TrackLabelUtils.ts": {
+          "bytesInOutput": 971
+        },
         "src/controls/CaptionManager.ts": {
-          "bytesInOutput": 20008
+          "bytesInOutput": 18249
         },
         "src/renderers/HTML5Renderer.ts": {
           "bytesInOutput": 11361
@@ -740,7 +764,7 @@
           "bytesInOutput": 21009
         },
         "src/controls/TranscriptManager.ts": {
-          "bytesInOutput": 82980
+          "bytesInOutput": 89080
         },
         "src/renderers/YouTubeRenderer.ts": {
           "bytesInOutput": 9093
@@ -749,10 +773,10 @@
           "bytesInOutput": 8572
         },
         "src/renderers/HLSRenderer.ts": {
-          "bytesInOutput": 21297
+          "bytesInOutput": 26402
         },
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 27024
+          "bytesInOutput": 34094
         },
         "src/renderers/SoundCloudRenderer.ts": {
           "bytesInOutput": 11174
@@ -761,7 +785,7 @@
           "bytesInOutput": 1002
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 185456
+          "bytesInOutput": 185619
         },
         "src/controls/ControlBar.ts": {
           "bytesInOutput": 130702
@@ -782,7 +806,7 @@
           "bytesInOutput": 5766
         }
       },
-      "bytes": 796237
+      "bytes": 813922
     }
   }
 }

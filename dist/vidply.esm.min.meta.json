@@ -1,12 +1,12 @@
 {
   "inputs": {
     "src/utils/EventEmitter.ts": {
-      "bytes": 1469,
+      "bytes": 1519,
       "imports": [],
       "format": "esm"
     },
     "src/utils/DOMUtils.ts": {
-      "bytes": 5313,
+      "bytes": 5496,
       "imports": [],
       "format": "esm"
     },
@@ -36,7 +36,7 @@
       "format": "esm"
     },
     "src/i18n/translations.ts": {
-      "bytes": 1139,
+      "bytes": 1167,
       "imports": [
         {
           "path": "src/i18n/languages/en.ts",
@@ -67,7 +67,7 @@
       "format": "esm"
     },
     "src/i18n/i18n.ts": {
-      "bytes": 5525,
+      "bytes": 5696,
       "imports": [
         {
           "path": "src/i18n/translations.ts",
@@ -78,7 +78,7 @@
       "format": "esm"
     },
     "src/utils/TimeUtils.ts": {
-      "bytes": 1907,
+      "bytes": 1974,
       "imports": [
         {
           "path": "src/i18n/i18n.ts",
@@ -89,27 +89,27 @@
       "format": "esm"
     },
     "src/icons/Icons.ts": {
-      "bytes": 11718,
+      "bytes": 11843,
       "imports": [],
       "format": "esm"
     },
     "src/utils/FocusUtils.ts": {
-      "bytes": 673,
+      "bytes": 699,
       "imports": [],
       "format": "esm"
     },
     "src/utils/PerformanceUtils.ts": {
-      "bytes": 1113,
+      "bytes": 1153,
       "imports": [],
       "format": "esm"
     },
     "src/utils/VideoFrameCapture.ts": {
-      "bytes": 2674,
+      "bytes": 2770,
       "imports": [],
       "format": "esm"
     },
     "src/utils/DownloadInfo.ts": {
-      "bytes": 4066,
+      "bytes": 4214,
       "imports": [],
       "format": "esm"
     },
@@ -160,12 +160,23 @@
       "format": "esm"
     },
     "src/utils/StorageManager.ts": {
-      "bytes": 4935,
+      "bytes": 5105,
       "imports": [],
       "format": "esm"
     },
+    "src/utils/TrackLabelUtils.ts": {
+      "bytes": 1993,
+      "imports": [
+        {
+          "path": "src/i18n/i18n.ts",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        }
+      ],
+      "format": "esm"
+    },
     "src/controls/CaptionManager.ts": {
-      "bytes": 23269,
+      "bytes": 21203,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -186,6 +197,11 @@
           "path": "src/utils/PerformanceUtils.ts",
           "kind": "import-statement",
           "original": "../utils/PerformanceUtils.js"
+        },
+        {
+          "path": "src/utils/TrackLabelUtils.ts",
+          "kind": "import-statement",
+          "original": "../utils/TrackLabelUtils.js"
         }
       ],
       "format": "esm"
@@ -196,7 +212,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.ts": {
-      "bytes": 11656,
+      "bytes": 12038,
       "imports": [],
       "format": "esm"
     },
@@ -206,7 +222,7 @@
       "format": "esm"
     },
     "src/utils/MenuUtils.ts": {
-      "bytes": 5060,
+      "bytes": 5232,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -232,7 +248,7 @@
       "format": "esm"
     },
     "src/utils/FormUtils.ts": {
-      "bytes": 2259,
+      "bytes": 2354,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -259,7 +275,7 @@
       "format": "esm"
     },
     "src/core/SignLanguageManager.ts": {
-      "bytes": 53477,
+      "bytes": 54946,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -295,7 +311,7 @@
       "format": "esm"
     },
     "src/core/FloatingPlayerManager.ts": {
-      "bytes": 23810,
+      "bytes": 24446,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -321,7 +337,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.ts": {
-      "bytes": 87906,
+      "bytes": 96077,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -367,6 +383,11 @@
           "path": "src/utils/FormUtils.ts",
           "kind": "import-statement",
           "original": "../utils/FormUtils.js"
+        },
+        {
+          "path": "src/utils/TrackLabelUtils.ts",
+          "kind": "import-statement",
+          "original": "../utils/TrackLabelUtils.js"
         }
       ],
       "format": "esm"
@@ -382,7 +403,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 22111,
+      "bytes": 30096,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.ts",
@@ -393,7 +414,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 25253,
+      "bytes": 34958,
       "imports": [],
       "format": "esm"
     },
@@ -403,7 +424,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 262486,
+      "bytes": 264694,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -524,7 +545,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 58748,
+      "bytes": 60501,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -589,14 +610,14 @@
       },
       "bytes": 17220
     },
-    "dist/prod/vidply.TranscriptManager-L5E737CR.min.js": {
+    "dist/prod/vidply.TranscriptManager-R3V6RGBY.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-DPEZK7YT.min.js",
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.chunk-ZDIQYKKX.min.js",
+          "path": "dist/prod/vidply.chunk-EUCPYISY.min.js",
           "kind": "import-statement"
         },
         {
@@ -618,10 +639,10 @@
       "entryPoint": "src/controls/TranscriptManager.ts",
       "inputs": {
         "src/controls/TranscriptManager.ts": {
-          "bytesInOutput": 70080
+          "bytesInOutput": 75153
         }
       },
-      "bytes": 70720
+      "bytes": 75813
     },
     "dist/prod/vidply.YouTubeRenderer-G2EWGQR6.min.js": {
       "imports": [],
@@ -649,7 +670,7 @@
       },
       "bytes": 6933
     },
-    "dist/prod/vidply.HLSRenderer-ZT2YDQNA.min.js": {
+    "dist/prod/vidply.HLSRenderer-2VRDPDWQ.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.HTML5Renderer-3NGIW3DA.min.js",
@@ -662,12 +683,12 @@
       "entryPoint": "src/renderers/HLSRenderer.ts",
       "inputs": {
         "src/renderers/HLSRenderer.ts": {
-          "bytesInOutput": 17423
+          "bytesInOutput": 21794
         }
       },
-      "bytes": 17600
+      "bytes": 21971
     },
-    "dist/prod/vidply.DASHRenderer-AGZ27ACW.min.js": {
+    "dist/prod/vidply.DASHRenderer-4FE737CJ.min.js": {
       "imports": [],
       "exports": [
         "DASHRenderer"
@@ -675,10 +696,10 @@
       "entryPoint": "src/renderers/DASHRenderer.ts",
       "inputs": {
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 22045
+          "bytesInOutput": 28160
         }
       },
-      "bytes": 22224
+      "bytes": 28339
     },
     "dist/prod/vidply.SoundCloudRenderer-SSSBPFSU.min.js": {
       "imports": [],
@@ -705,11 +726,11 @@
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.chunk-6OJPJD4H.min.js",
+          "path": "dist/prod/vidply.chunk-WMYBYPWZ.min.js",
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.chunk-ZDIQYKKX.min.js",
+          "path": "dist/prod/vidply.chunk-EUCPYISY.min.js",
           "kind": "import-statement"
         },
         {
@@ -725,7 +746,7 @@
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.AudioDescriptionManager-4TFVBYZU.min.js",
+          "path": "dist/prod/vidply.AudioDescriptionManager-DRNAHA67.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -737,7 +758,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.TranscriptManager-L5E737CR.min.js",
+          "path": "dist/prod/vidply.TranscriptManager-R3V6RGBY.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -749,11 +770,11 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.HLSRenderer-ZT2YDQNA.min.js",
+          "path": "dist/prod/vidply.HLSRenderer-2VRDPDWQ.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.DASHRenderer-AGZ27ACW.min.js",
+          "path": "dist/prod/vidply.DASHRenderer-4FE737CJ.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -784,7 +805,7 @@
           "bytesInOutput": 6853
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 171553
+          "bytesInOutput": 171708
         },
         "src/features/PlaylistManager.ts": {
           "bytesInOutput": 43331
@@ -793,7 +814,7 @@
           "bytesInOutput": 5444
         }
       },
-      "bytes": 357119
+      "bytes": 357274
     },
     "dist/prod/vidply.chunk-DPEZK7YT.min.js": {
       "imports": [
@@ -890,14 +911,14 @@
       },
       "bytes": 9524
     },
-    "dist/prod/vidply.AudioDescriptionManager-4TFVBYZU.min.js": {
+    "dist/prod/vidply.AudioDescriptionManager-DRNAHA67.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-6OJPJD4H.min.js",
+          "path": "dist/prod/vidply.chunk-WMYBYPWZ.min.js",
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.chunk-ZDIQYKKX.min.js",
+          "path": "dist/prod/vidply.chunk-EUCPYISY.min.js",
           "kind": "import-statement"
         },
         {
@@ -916,10 +937,10 @@
       },
       "bytes": 20244
     },
-    "dist/prod/vidply.chunk-6OJPJD4H.min.js": {
+    "dist/prod/vidply.chunk-WMYBYPWZ.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-ZDIQYKKX.min.js",
+          "path": "dist/prod/vidply.chunk-EUCPYISY.min.js",
           "kind": "import-statement"
         },
         {
@@ -939,22 +960,31 @@
           "bytesInOutput": 834
         },
         "src/controls/CaptionManager.ts": {
-          "bytesInOutput": 16537
+          "bytesInOutput": 14958
         }
       },
-      "bytes": 17778
+      "bytes": 16219
     },
-    "dist/prod/vidply.chunk-ZDIQYKKX.min.js": {
-      "imports": [],
+    "dist/prod/vidply.chunk-EUCPYISY.min.js": {
+      "imports": [
+        {
+          "path": "dist/prod/vidply.chunk-KXQK2NF7.min.js",
+          "kind": "import-statement"
+        }
+      ],
       "exports": [
-        "StorageManager"
+        "StorageManager",
+        "deriveTrackLabel"
       ],
       "inputs": {
         "src/utils/StorageManager.ts": {
           "bytesInOutput": 3987
+        },
+        "src/utils/TrackLabelUtils.ts": {
+          "bytesInOutput": 802
         }
       },
-      "bytes": 4167
+      "bytes": 5079
     },
     "dist/prod/vidply.SignLanguageManager-6FBSQB4U.min.js": {
       "imports": [
