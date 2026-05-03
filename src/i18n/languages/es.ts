@@ -72,7 +72,16 @@ export const es = {
     disableSignResizeModeAria: 'Desactivar modo de cambio de tamaño con teclado usando teclas de flecha. Atajo: tecla R',
     resizeHandle: 'Cambiar tamaño esquina {direction}',
     moreOptions: 'Más opciones',
-    noMoreOptions: 'No hay opciones adicionales disponibles'
+    noMoreOptions: 'No hay opciones adicionales disponibles',
+    playing: 'Reproduciendo',
+    paused: 'En pausa',
+    muted: 'Silenciado',
+    unmuted: 'Sonido activado',
+    captionsOn: 'Subtítulos activados',
+    captionsOff: 'Subtítulos desactivados',
+    volumePercent: 'Volumen {percent} por ciento',
+    volumePercentMuted: 'Silenciado',
+    speedRate: 'Velocidad {rate}x'
   },
   captions: {
     off: 'Desactivado',
@@ -145,7 +154,8 @@ export const es = {
     showTimestamps: 'Mostrar marcas de tiempo',
     hideTimestamps: 'Ocultar marcas de tiempo',
     showTimestampsAria: 'Mostrar marcas de tiempo en la transcripción',
-    hideTimestampsAria: 'Ocultar marcas de tiempo en la transcripción'
+    hideTimestampsAria: 'Ocultar marcas de tiempo en la transcripción',
+    seekTo: 'Saltar a {time}'
   },
   settings: {
     title: 'Configuración',

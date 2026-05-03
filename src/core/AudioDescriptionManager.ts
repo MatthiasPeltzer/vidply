@@ -229,11 +229,26 @@ export class AudioDescriptionManager {
     }
 
     /**
-     * Validate that a track URL exists
+     * Validate that a track URL exists. Bounded by the player's lifecycle
+     * AbortController + an 8s timeout so a torn-down player cannot leak
+     * the request.
      */
-    async _validateTrackExists(url: string) {
+    async _validateTrackExists(url: string): Promise<boolean> {
+        if (typeof url !== 'string' || !url) return false;
+        const signals: AbortSignal[] = [];
+        const lifecycle = (this.player as { lifecycleSignal?: AbortSignal }).lifecycleSignal;
+        if (lifecycle) signals.push(lifecycle);
+        if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+            signals.push(AbortSignal.timeout(8000));
+        }
+        let signal: AbortSignal | undefined;
+        if (signals.length === 1) signal = signals[0];
+        else if (signals.length > 1) {
+            const anyFn = (AbortSignal as { any?: (s: AbortSignal[]) => AbortSignal }).any;
+            signal = anyFn ? anyFn(signals) : signals[0];
+        }
         try {
-            const response = await fetch(url, { method: 'HEAD' });
+            const response = await fetch(url, { method: 'HEAD', signal });
             return response.ok;
         } catch {
             return false;

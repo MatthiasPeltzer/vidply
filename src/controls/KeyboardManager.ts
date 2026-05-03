@@ -2,11 +2,14 @@
  * Keyboard Accessibility Manager
  */
 
+import { i18n } from '../i18n/i18n.js';
 import type { Player } from '../core/Player.js';
+import type { KeyboardShortcuts } from '../types/options.js';
 
 export class KeyboardManager {
   player: Player;
-  shortcuts: any;
+  shortcuts: KeyboardShortcuts;
+  private announcer: HTMLElement | null = null;
 
   constructor(player: Player) {
     this.player = player;
@@ -207,34 +210,48 @@ export class KeyboardManager {
     }
   }
 
-  announceAction(action: string) {
+  announceAction(action: string): void {
     if (!this.player.options.screenReaderAnnouncements) return;
 
+    // Every announcement now goes through i18n.t so the screen-reader
+    // hears the player's configured language instead of always English.
+    // Missing keys fall back to the same English literal used previously,
+    // so behavior is unchanged for unconfigured locales.
     let message = '';
 
     switch (action) {
       case 'play-pause':
-        message = this.player.state.playing ? 'Playing' : 'Paused';
+        message = this.player.state.playing
+          ? i18n.t('player.playing')
+          : i18n.t('player.paused');
         break;
       case 'volume-up':
-        message = `Volume ${Math.round(this.player.state.volume * 100)}%`;
+      case 'volume-down': {
+        const percent = Math.round(this.player.state.volume * 100);
+        message = i18n.t('player.volumePercent', { percent });
         break;
-      case 'volume-down':
-        message = `Volume ${Math.round(this.player.state.volume * 100)}%`;
-        break;
+      }
       case 'mute':
-        message = this.player.state.muted ? 'Muted' : 'Unmuted';
+        message = this.player.state.muted
+          ? i18n.t('player.muted')
+          : i18n.t('player.unmuted');
         break;
       case 'fullscreen':
-        message = this.player.state.fullscreen ? 'Fullscreen' : 'Exit fullscreen';
+        message = this.player.state.fullscreen
+          ? i18n.t('player.fullscreen')
+          : i18n.t('player.exitFullscreen');
         break;
       case 'captions':
-        message = this.player.state.captionsEnabled ? 'Captions on' : 'Captions off';
+        message = this.player.state.captionsEnabled
+          ? i18n.t('player.captionsOn')
+          : i18n.t('player.captionsOff');
         break;
       case 'speed-up':
-      case 'speed-down':
-        message = `Speed ${this.player.state.playbackSpeed}x`;
+      case 'speed-down': {
+        const rate = this.player.state.playbackSpeed;
+        message = i18n.t('player.speedRate', { rate: String(rate) });
         break;
+      }
     }
 
     if (message) {
@@ -242,41 +259,53 @@ export class KeyboardManager {
     }
   }
 
-  announce(message: string, priority = 'polite') {
-    // Create or get announcement element
-    let announcer = document.getElementById('vidply-announcer');
-    
-    if (!announcer) {
-      announcer = document.createElement('div');
-      announcer.id = 'vidply-announcer';
-      announcer.className = 'vidply-sr-only';
-      announcer.setAttribute('aria-live', priority);
-      announcer.setAttribute('aria-atomic', 'true');
-      announcer.style.cssText = `
+  /**
+   * Live-region announcer scoped to *this* player instance so multi-player
+   * pages do not cross-talk through a shared `#vidply-announcer` id. The
+   * region is appended to `document.body` so it is reachable regardless of
+   * the embedding container's stacking / overflow context.
+   */
+  announce(message: string, priority: 'polite' | 'assertive' = 'polite'): void {
+    if (!this.announcer) {
+      const id = `vidply-announcer-${this.player.instanceId}`;
+      this.announcer = document.createElement('div');
+      this.announcer.id = id;
+      this.announcer.className = 'vidply-sr-only';
+      this.announcer.setAttribute('aria-live', priority);
+      this.announcer.setAttribute('aria-atomic', 'true');
+      this.announcer.style.cssText = `
         position: absolute;
         left: -10000px;
         width: 1px;
         height: 1px;
         overflow: hidden;
       `;
-      document.body.appendChild(announcer);
+      document.body.appendChild(this.announcer);
+    } else {
+      this.announcer.setAttribute('aria-live', priority);
     }
 
-    // Clear and set new message
-    announcer.textContent = '';
+    this.announcer.textContent = '';
+    const announcer = this.announcer;
     setTimeout(() => {
-      announcer.textContent = message;
+      if (announcer) announcer.textContent = message;
     }, 100);
   }
 
-  updateShortcut(action: string, keys: string[]) {
+  updateShortcut(action: string, keys: string[]): void {
     if (Array.isArray(keys)) {
-      this.shortcuts[action] = keys;
+      (this.shortcuts as Record<string, string[]>)[action] = keys;
     }
   }
 
-  destroy() {
-    // Event listeners are automatically removed when the container is destroyed
+  destroy(): void {
+    // Container-attached keydown listener is removed when the container is
+    // destroyed by Player.destroy(). The live-region announcer, however,
+    // lives on `document.body` so we must remove it explicitly.
+    if (this.announcer && this.announcer.parentNode) {
+      this.announcer.parentNode.removeChild(this.announcer);
+    }
+    this.announcer = null;
   }
 }
 

@@ -11,8 +11,8 @@ VidPly provides comprehensive keyboard navigation for accessibility and power us
 | <kbd>F</kbd> | Fullscreen | Toggle fullscreen mode |
 | <kbd>←</kbd> | Seek Backward | Skip backward 10 seconds |
 | <kbd>→</kbd> | Seek Forward | Skip forward 10 seconds |
-| <kbd>↑</kbd> | Volume Up | Increase volume by 5% |
-| <kbd>↓</kbd> | Volume Down | Decrease volume by 5% |
+| <kbd>↑</kbd> | Volume Up | Increase volume by 10% |
+| <kbd>↓</kbd> | Volume Down | Decrease volume by 10% |
 | <kbd>C</kbd> | Captions Menu | Open captions/subtitles menu |
 | <kbd>S</kbd> | Speed Menu | Open playback speed menu |
 | <kbd>Q</kbd> | Quality Menu | Open quality selection menu |
@@ -57,10 +57,10 @@ When any menu is open (captions, speed, quality, chapters, or caption style), yo
   Toggles audio mute. The volume button icon changes to reflect the muted state.
 
 - **Volume Up** (<kbd>↑</kbd>)  
-  Increases volume by 5%. Maximum volume is 100%.
+  Increases volume by 10%. Maximum volume is 100%.
 
 - **Volume Down** (<kbd>↓</kbd>)  
-  Decreases volume by 5%. Minimum volume is 0%.
+  Decreases volume by 10%. Minimum volume is 0%.
 
 ### Speed Controls
 

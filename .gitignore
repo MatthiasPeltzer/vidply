@@ -3,7 +3,6 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
 
 # IDE
 .vscode/
@@ -19,6 +18,11 @@ Thumbs.db
 # Logs
 logs/
 *.log
+
+# Build output
+# Tracked package-lock.json is intentional for reproducible CI builds.
+# `dist/` is intentionally NOT ignored: it ships in the npm package and on GitHub Pages.
+.tsbuildinfo
 
 # Testing
 coverage/
@@ -36,4 +40,10 @@ test-results/
 tmp/
 temp/
 *.tmp
+
+# npm auth (publish tokens must come from CI env, not the working tree)
 /.npmrc
+
+# Local development helpers (path traversal vulns; see SECURITY.md)
+/server.js
+/server.cjs

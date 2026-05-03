@@ -143,6 +143,28 @@ export interface PlayerOptions {
   theme: 'dark' | 'light' | 'minimal' | 'high-contrast';
   themeVariables: Record<string, string>;
 
+  // Streaming script URLs (allow consumers to pin / self-host)
+  hlsScriptUrl?: string;
+  hlsScriptIntegrity?: string;
+  dashScriptUrl?: string;
+  dashScriptIntegrity?: string;
+
+  /**
+   * Controls how metadata-cue directives (FOCUS:..., #hashtag) drive DOM
+   * side effects (focus() and metadata alerts). Opt-in — DOM mutation is
+   * disabled by default to keep cue-driven side effects from being a
+   * vector for caption-source authors.
+   *
+   *   false       — (default) emit `metadata:focus` / `metadata:hashtags`
+   *                 events, but never call .focus() or open alerts. Safe.
+   *   'container' — perform DOM side effects, but resolve selectors only
+   *                 against descendants of the player container.
+   *   true | 'global' — legacy behavior: resolve selectors against the
+   *                 entire document. Useful for cross-page deep linking,
+   *                 but accepts content authors as trusted.
+   */
+  metadataDirectives?: boolean | 'container' | 'global';
+
   // Advanced
   debug: boolean;
   classPrefix: string;

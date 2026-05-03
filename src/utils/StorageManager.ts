@@ -1,8 +1,61 @@
+/**
+ * Type guard helpers used by the validated `get()` overload below.
+ * Each guard accepts an unknown JSON value and tells TypeScript whether
+ * it matches the expected runtime shape.
+ */
+export type Validator<T> = (value: unknown) => value is T;
+
 interface WatchProgressEntry {
   currentTime: number;
   duration: number;
   percentage: number;
   updatedAt: number;
+}
+
+/**
+ * Loose alias for stored preference payloads. Numeric/string-typed fields
+ * are validated at the boundary (`isPlainObject`) and clamped where it
+ * matters (volume, playbackSpeed). Individual properties are typed as
+ * `any` so legacy call sites can keep their flow without refactor; this
+ * is a deliberate, contained `any`.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type StoredPreferences = Record<string, any>;
+
+function clamp(n: number, min: number, max: number): number {
+  if (!Number.isFinite(n)) return min;
+  if (n < min) return min;
+  if (n > max) return max;
+  return n;
+}
+
+function isFiniteNonNegative(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+
+function isWatchProgressEntry(value: unknown): value is WatchProgressEntry {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    isFiniteNonNegative(v.currentTime) &&
+    isFiniteNonNegative(v.duration) &&
+    typeof v.percentage === 'number' &&
+    Number.isFinite(v.percentage) &&
+    typeof v.updatedAt === 'number' &&
+    Number.isFinite(v.updatedAt)
+  );
+}
+
+const PROTO_FORBIDDEN_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+
+function shallowSanitize<T extends Record<string, unknown>>(input: T): T {
+  const out: Record<string, unknown> = Object.create(null);
+  for (const [key, value] of Object.entries(input)) {
+    if (PROTO_FORBIDDEN_KEYS.has(key)) continue;
+    if (PROTO_FORBIDDEN_KEYS.has(String(key))) continue;
+    out[key] = value;
+  }
+  return out as T;
 }
 
 export class StorageManager {
@@ -16,8 +69,14 @@ export class StorageManager {
     this.storage = this.isStorageAvailable() ? localStorage : null;
   }
 
+  /**
+   * `localStorage` access can throw in private-browsing modes (Safari) and
+   * is undefined in non-DOM environments. Both are tolerated here so the
+   * Player still works (without persistence) when storage is unavailable.
+   */
   isStorageAvailable(): boolean {
     try {
+      if (typeof localStorage === 'undefined') return false;
       const test = '__storage_test__';
       localStorage.setItem(test, test);
       localStorage.removeItem(test);
@@ -44,13 +103,24 @@ export class StorageManager {
     }
   }
 
-  get<T = unknown>(key: string, defaultValue: T | null = null): T | null {
+  /**
+   * Generic get. Accepts an optional `validator` so callers can assert the
+   * runtime shape of the parsed JSON before trusting it. Falls back to
+   * `defaultValue` if the payload fails validation.
+   */
+  get<T = unknown>(key: string, defaultValue: T | null = null, validator?: Validator<T>): T | null {
     if (!this.storage) return defaultValue;
 
     try {
       const namespacedKey = this.getKey(key);
-      const value = this.storage.getItem(namespacedKey);
-      return value ? (JSON.parse(value) as T) : defaultValue;
+      const raw = this.storage.getItem(namespacedKey);
+      if (raw === null) return defaultValue;
+      const parsed: unknown = JSON.parse(raw);
+      if (validator && !validator(parsed)) {
+        console.warn(`[VidPly] Discarding malformed localStorage payload for "${key}"`);
+        return defaultValue;
+      }
+      return parsed as T;
     } catch (e) {
       console.warn('Failed to read from localStorage:', e);
       return defaultValue;
@@ -74,10 +144,11 @@ export class StorageManager {
     if (!this.storage) return false;
 
     try {
-      const keys = Object.keys(this.storage);
+      const storage = this.storage;
+      const keys = Object.keys(storage);
       keys.forEach(key => {
         if (key.startsWith(this.namespace)) {
-          this.storage!.removeItem(key);
+          storage.removeItem(key);
         }
       });
       return true;
@@ -87,56 +158,90 @@ export class StorageManager {
     }
   }
 
-  saveTranscriptPreferences(preferences: Record<string, unknown>): boolean {
-    return this.set('transcript_preferences', preferences);
+  saveTranscriptPreferences(preferences: StoredPreferences): boolean {
+    return this.set('transcript_preferences', shallowSanitize(preferences));
   }
 
-  getTranscriptPreferences(): Record<string, unknown> | null {
-    return this.get<Record<string, unknown>>('transcript_preferences', null);
+  getTranscriptPreferences(): StoredPreferences | null {
+    return this.get<StoredPreferences>(
+      'transcript_preferences',
+      null,
+      isPlainObject as Validator<StoredPreferences>
+    );
   }
 
-  saveCaptionPreferences(preferences: Record<string, unknown>): boolean {
-    return this.set('caption_preferences', preferences);
+  saveCaptionPreferences(preferences: StoredPreferences): boolean {
+    return this.set('caption_preferences', shallowSanitize(preferences));
   }
 
-  getCaptionPreferences(): Record<string, unknown> | null {
-    return this.get<Record<string, unknown>>('caption_preferences', null);
+  getCaptionPreferences(): StoredPreferences | null {
+    return this.get<StoredPreferences>('caption_preferences', null, isPlainObject as Validator<StoredPreferences>);
   }
 
-  savePlayerPreferences(preferences: Record<string, unknown>): boolean {
-    return this.set('player_preferences', preferences);
+  savePlayerPreferences(preferences: StoredPreferences): boolean {
+    // Numeric ranges are clamped here so a tampered storage payload cannot
+    // ship a `volume: 1e9` straight to a renderer.
+    const sanitized = shallowSanitize(preferences);
+    if (typeof sanitized.volume === 'number') {
+      sanitized.volume = clamp(sanitized.volume, 0, 1);
+    }
+    if (typeof sanitized.playbackSpeed === 'number') {
+      sanitized.playbackSpeed = clamp(sanitized.playbackSpeed, 0.1, 4);
+    }
+    return this.set('player_preferences', sanitized);
   }
 
-  getPlayerPreferences(): Record<string, unknown> | null {
-    return this.get<Record<string, unknown>>('player_preferences', null);
+  getPlayerPreferences(): StoredPreferences | null {
+    const value = this.get<StoredPreferences>('player_preferences', null, isPlainObject as Validator<StoredPreferences>);
+    if (!value) return null;
+    if (typeof value.volume === 'number') {
+      value.volume = clamp(value.volume, 0, 1);
+    }
+    if (typeof value.playbackSpeed === 'number') {
+      value.playbackSpeed = clamp(value.playbackSpeed, 0.1, 4);
+    }
+    return value;
   }
 
-  saveSignLanguagePreferences(preferences: Record<string, unknown>): boolean {
-    return this.set('sign_language_preferences', preferences);
+  saveSignLanguagePreferences(preferences: StoredPreferences): boolean {
+    return this.set('sign_language_preferences', shallowSanitize(preferences));
   }
 
-  getSignLanguagePreferences(): Record<string, unknown> | null {
-    return this.get<Record<string, unknown>>('sign_language_preferences', null);
+  getSignLanguagePreferences(): StoredPreferences | null {
+    return this.get<StoredPreferences>('sign_language_preferences', null, isPlainObject as Validator<StoredPreferences>);
   }
 
-  saveFloatingPreferences(preferences: Record<string, unknown>): boolean {
-    return this.set('floating_preferences', preferences);
+  saveFloatingPreferences(preferences: StoredPreferences): boolean {
+    return this.set('floating_preferences', shallowSanitize(preferences));
   }
 
-  getFloatingPreferences(): Record<string, unknown> | null {
-    return this.get<Record<string, unknown>>('floating_preferences', null);
+  getFloatingPreferences(): StoredPreferences | null {
+    return this.get<StoredPreferences>('floating_preferences', null, isPlainObject as Validator<StoredPreferences>);
   }
 
+  /**
+   * Persist watch progress for a video id. Numeric inputs are validated +
+   * clamped so a caller cannot poison the store with `Infinity`/negatives.
+   */
   saveWatchProgress(videoId: string, currentTime: number, duration: number): boolean {
-    if (!videoId || !duration || duration <= 0) return false;
+    if (typeof videoId !== 'string' || !videoId) return false;
+    if (!Number.isFinite(currentTime) || !Number.isFinite(duration) || duration <= 0) return false;
 
-    const allProgress = this.get<Record<string, WatchProgressEntry>>('watch_progress', {})!;
-    const percentage = (currentTime / duration) * 100;
+    const safeDuration = clamp(duration, 0.001, 24 * 60 * 60); // cap to 24h to neutralize gigantic numbers
+    const safeCurrent = clamp(currentTime, 0, safeDuration);
+
+    const allProgress = this.get<Record<string, WatchProgressEntry>>(
+      'watch_progress',
+      Object.create(null),
+      isWatchProgressMap
+    ) ?? Object.create(null) as Record<string, WatchProgressEntry>;
+
+    const percentage = (safeCurrent / safeDuration) * 100;
 
     allProgress[videoId] = {
-      currentTime,
-      duration,
-      percentage,
+      currentTime: safeCurrent,
+      duration: safeDuration,
+      percentage: clamp(percentage, 0, 100),
       updatedAt: Date.now()
     };
 
@@ -154,17 +259,38 @@ export class StorageManager {
 
   getWatchProgress(videoId: string): WatchProgressEntry | null {
     if (!videoId) return null;
-    const allProgress = this.get<Record<string, WatchProgressEntry>>('watch_progress', {})!;
-    return allProgress[videoId] || null;
+    const allProgress = this.get<Record<string, WatchProgressEntry>>(
+      'watch_progress',
+      Object.create(null),
+      isWatchProgressMap
+    ) ?? Object.create(null) as Record<string, WatchProgressEntry>;
+    const entry = allProgress[videoId];
+    return entry && isWatchProgressEntry(entry) ? entry : null;
   }
 
   clearWatchProgress(videoId: string): boolean {
     if (!videoId) return false;
-    const allProgress = this.get<Record<string, WatchProgressEntry>>('watch_progress', {})!;
+    const allProgress = this.get<Record<string, WatchProgressEntry>>(
+      'watch_progress',
+      Object.create(null),
+      isWatchProgressMap
+    ) ?? Object.create(null) as Record<string, WatchProgressEntry>;
     if (allProgress[videoId]) {
       delete allProgress[videoId];
       return this.set('watch_progress', allProgress);
     }
     return true;
   }
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isWatchProgressMap(value: unknown): value is Record<string, WatchProgressEntry> {
+  if (!isPlainObject(value)) return false;
+  for (const entry of Object.values(value)) {
+    if (!isWatchProgressEntry(entry)) return false;
+  }
+  return true;
 }

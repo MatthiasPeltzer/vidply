@@ -12,6 +12,12 @@ export class SettingsDialog {
   element: any;
   isOpen: boolean;
   overlay: any;
+  /**
+   * Trigger element captured on `show()` so we can return focus to the
+   * exact button the user activated when the dialog closes.
+   */
+  private _triggerElement: HTMLElement | null = null;
+  private _keydownHandler: ((e: KeyboardEvent) => void) | null = null;
 
   constructor(player: Player) {
     this.player = player;
@@ -110,12 +116,16 @@ export class SettingsDialog {
       }
     });
 
-    // Escape key to close
-    document.addEventListener('keydown', (e: KeyboardEvent) => {
+    // Escape key to close. The handler is stored so `destroy()` can
+    // remove it; the player's lifecycle AbortSignal is also forwarded so
+    // teardown of the player tears down the listener with us.
+    this._keydownHandler = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && this.isOpen) {
         this.hide();
       }
-    });
+    };
+    const lifecycleSignal = (this.player as { lifecycleSignal?: AbortSignal }).lifecycleSignal;
+    document.addEventListener('keydown', this._keydownHandler, lifecycleSignal ? { signal: lifecycleSignal } : undefined);
   }
 
   formatSpeedLabel(speed: number) {
@@ -396,10 +406,14 @@ export class SettingsDialog {
   }
 
   show() {
+    // Capture the element that opened the dialog so focus can be restored
+    // to it when the dialog closes.
+    const active = (typeof document !== 'undefined' ? document.activeElement : null) as HTMLElement | null;
+    this._triggerElement = active && typeof active.focus === 'function' ? active : null;
+
     this.overlay.style.display = 'flex';
     this.isOpen = true;
     
-    // Focus the close button
     const closeButton = this.element.querySelector(`.${this.player.options.classPrefix}-settings-close`);
     if (closeButton) {
       closeButton.focus();
@@ -412,16 +426,33 @@ export class SettingsDialog {
     this.overlay.style.display = 'none';
     this.isOpen = false;
     
-    // Return focus to settings button
-    this.player.container.focus();
+    // Return focus to whichever element opened the dialog. Falls back to
+    // the player container if the trigger was removed from the DOM in the
+    // meantime.
+    const trigger = this._triggerElement;
+    this._triggerElement = null;
+    if (trigger && document.contains(trigger)) {
+      try {
+        trigger.focus({ preventScroll: true });
+      } catch {
+        this.player.container.focus();
+      }
+    } else if (this.player.container) {
+      this.player.container.focus();
+    }
     
     this.player.emit('settingsclose');
   }
 
   destroy() {
+    if (this._keydownHandler) {
+      document.removeEventListener('keydown', this._keydownHandler);
+      this._keydownHandler = null;
+    }
     if (this.overlay && this.overlay.parentNode) {
       this.overlay.parentNode.removeChild(this.overlay);
     }
+    this._triggerElement = null;
   }
 }
 

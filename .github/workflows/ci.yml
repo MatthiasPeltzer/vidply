@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build & test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20.19', '22']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+          cache-dependency-path: libs/vidply/package-lock.json
+
+      - name: Install
+        working-directory: libs/vidply
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: libs/vidply
+        run: npm run typecheck
+
+      - name: Unit + integration tests
+        working-directory: libs/vidply
+        run: npm run test
+
+      - name: Build
+        working-directory: libs/vidply
+        run: npm run build
+
+      - name: README ↔ types drift check
+        working-directory: libs/vidply
+        run: node tests/check-readme-types.mjs

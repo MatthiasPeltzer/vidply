@@ -1,5 +1,5 @@
 /*!
- * Universal, Accessible Video Player
+ * VidPly v1.1.9 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
@@ -111,11 +111,87 @@
           };
           return str.replace(/[&<>"']/g, (char) => escapeMap[char]);
         },
-        sanitizeHTML(html) {
-          const safeHtml = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "").replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "").replace(/on\w+\s*=/gi, "").replace(/javascript:/gi, "");
-          const temp = document.createElement("div");
-          temp.innerHTML = safeHtml;
-          return temp.innerHTML;
+        /**
+         * Render a WebVTT cue's text safely.
+         *
+         * The previous implementation ran a regex-based blacklist over the cue
+         * string and assigned the result to `innerHTML`, which is a known-unsafe
+         * pattern (mutation-XSS bypasses, attribute-name tricks, etc.). Caption
+         * text on most sites is fetched verbatim from external `.vtt` files that
+         * the embedding page has no control over (third-party HLS/DASH manifests,
+         * user-supplied playlists, ...) so this code path is reachable by
+         * untrusted authors.
+         *
+         * The new implementation tokenizes only the WebVTT inline tags allowed by
+         * the spec (`<b>`, `<i>`, `<u>`, `<c[.class]>`, `<v authorName>`) and
+         * builds the resulting DOM via `document.createElement` /
+         * `document.createTextNode`. Anything else (script, iframe, attributes,
+         * URL schemes, character refs, ...) is rendered as literal text.
+         *
+         * Cue input is hard-capped at 10,000 characters before parsing to
+         * eliminate ReDoS and runaway-DOM concerns.
+         */
+        renderVTTToDOM(text) {
+          const MAX_CUE_LENGTH = 1e4;
+          const safeInput = text.length > MAX_CUE_LENGTH ? text.slice(0, MAX_CUE_LENGTH) : text;
+          const fragment = document.createDocumentFragment();
+          const stack = [];
+          const append = (node) => {
+            const target = stack.length > 0 ? stack[stack.length - 1] : fragment;
+            target.appendChild(node);
+          };
+          const tagPattern = /<(\/)?([a-z])(?:\.([\w.-]{1,200}))?(?:\s+([^<>]{0,500}))?>/i;
+          let cursor = 0;
+          while (cursor < safeInput.length) {
+            const remaining = safeInput.slice(cursor);
+            const match = tagPattern.exec(remaining);
+            if (!match || match.index === void 0) {
+              append(document.createTextNode(remaining));
+              break;
+            }
+            if (match.index > 0) {
+              append(document.createTextNode(remaining.slice(0, match.index)));
+            }
+            const [, closing, tagLetter, classList, voiceName] = match;
+            const tag = (tagLetter || "").toLowerCase();
+            if (closing) {
+              if (stack.length > 0 && stack[stack.length - 1].dataset.vttTag === tag) {
+                stack.pop();
+              }
+            } else if (tag === "b" || tag === "i" || tag === "u") {
+              const elementTag = tag === "b" ? "strong" : tag === "i" ? "em" : "u";
+              const node = document.createElement(elementTag);
+              node.dataset.vttTag = tag;
+              append(node);
+              stack.push(node);
+            } else if (tag === "c") {
+              const span = document.createElement("span");
+              span.dataset.vttTag = tag;
+              span.classList.add("caption-class");
+              if (classList) {
+                for (const cls of classList.split(".").filter(Boolean)) {
+                  if (/^[\w-]+$/.test(cls)) {
+                    span.classList.add(`caption-class-${cls}`);
+                  }
+                }
+              }
+              append(span);
+              stack.push(span);
+            } else if (tag === "v") {
+              const span = document.createElement("span");
+              span.dataset.vttTag = tag;
+              span.classList.add("caption-voice");
+              if (voiceName) {
+                span.dataset.voice = voiceName.trim().slice(0, 200);
+              }
+              append(span);
+              stack.push(span);
+            } else {
+              append(document.createTextNode(match[0]));
+            }
+            cursor += match.index + match[0].length;
+          }
+          return fragment;
         },
         createTooltip(text, classPrefix = "vidply") {
           return this.createElement("span", {
@@ -243,7 +319,17 @@
           disableSignResizeModeAria: "Disable keyboard resize mode with arrow keys. Shortcut: R key",
           resizeHandle: "Resize {direction} corner",
           moreOptions: "More options",
-          noMoreOptions: "No additional options available"
+          noMoreOptions: "No additional options available",
+          // Screen-reader announcements (used by KeyboardManager.announceAction)
+          playing: "Playing",
+          paused: "Paused",
+          muted: "Muted",
+          unmuted: "Unmuted",
+          captionsOn: "Captions on",
+          captionsOff: "Captions off",
+          volumePercent: "Volume {percent} percent",
+          volumePercentMuted: "Muted",
+          speedRate: "Speed {rate}x"
         },
         captions: {
           off: "Off",
@@ -316,7 +402,8 @@
           showTimestamps: "Show timestamps",
           hideTimestamps: "Hide timestamps",
           showTimestampsAria: "Show timestamps in transcript",
-          hideTimestampsAria: "Hide timestamps in transcript"
+          hideTimestampsAria: "Hide timestamps in transcript",
+          seekTo: "Seek to {time}"
         },
         settings: {
           title: "Settings",
@@ -451,7 +538,16 @@
           disableSignResizeModeAria: "Tastatur-Größenänderungsmodus mit Pfeiltasten deaktivieren. Tastenkombination: R-Taste",
           resizeHandle: "Größenänderung {direction}-Ecke",
           moreOptions: "Weitere Optionen",
-          noMoreOptions: "Keine weiteren Optionen verfügbar"
+          noMoreOptions: "Keine weiteren Optionen verfügbar",
+          playing: "Wird abgespielt",
+          paused: "Pausiert",
+          muted: "Stummgeschaltet",
+          unmuted: "Ton an",
+          captionsOn: "Untertitel an",
+          captionsOff: "Untertitel aus",
+          volumePercent: "Lautstärke {percent} Prozent",
+          volumePercentMuted: "Stummgeschaltet",
+          speedRate: "Geschwindigkeit {rate}x"
         },
         captions: {
           off: "Aus",
@@ -524,7 +620,8 @@
           showTimestamps: "Zeitstempel anzeigen",
           hideTimestamps: "Zeitstempel ausblenden",
           showTimestampsAria: "Zeitstempel im Transkript anzeigen",
-          hideTimestampsAria: "Zeitstempel im Transkript ausblenden"
+          hideTimestampsAria: "Zeitstempel im Transkript ausblenden",
+          seekTo: "Springe zu {time}"
         },
         settings: {
           title: "Einstellungen",
@@ -656,7 +753,16 @@
           disableSignResizeModeAria: "Desactivar modo de cambio de tamaño con teclado usando teclas de flecha. Atajo: tecla R",
           resizeHandle: "Cambiar tamaño esquina {direction}",
           moreOptions: "Más opciones",
-          noMoreOptions: "No hay opciones adicionales disponibles"
+          noMoreOptions: "No hay opciones adicionales disponibles",
+          playing: "Reproduciendo",
+          paused: "En pausa",
+          muted: "Silenciado",
+          unmuted: "Sonido activado",
+          captionsOn: "Subtítulos activados",
+          captionsOff: "Subtítulos desactivados",
+          volumePercent: "Volumen {percent} por ciento",
+          volumePercentMuted: "Silenciado",
+          speedRate: "Velocidad {rate}x"
         },
         captions: {
           off: "Desactivado",
@@ -729,7 +835,8 @@
           showTimestamps: "Mostrar marcas de tiempo",
           hideTimestamps: "Ocultar marcas de tiempo",
           showTimestampsAria: "Mostrar marcas de tiempo en la transcripción",
-          hideTimestampsAria: "Ocultar marcas de tiempo en la transcripción"
+          hideTimestampsAria: "Ocultar marcas de tiempo en la transcripción",
+          seekTo: "Saltar a {time}"
         },
         settings: {
           title: "Configuración",
@@ -861,7 +968,16 @@
           disableSignResizeModeAria: "Désactiver le mode redimensionnement clavier avec les touches fléchées. Raccourci : touche R",
           resizeHandle: "Redimensionner coin {direction}",
           moreOptions: "Plus d'options",
-          noMoreOptions: "Aucune option supplémentaire disponible"
+          noMoreOptions: "Aucune option supplémentaire disponible",
+          playing: "Lecture en cours",
+          paused: "En pause",
+          muted: "Muet",
+          unmuted: "Son activé",
+          captionsOn: "Sous-titres activés",
+          captionsOff: "Sous-titres désactivés",
+          volumePercent: "Volume {percent} pour cent",
+          volumePercentMuted: "Muet",
+          speedRate: "Vitesse {rate}x"
         },
         captions: {
           off: "Désactivé",
@@ -934,7 +1050,8 @@
           showTimestamps: "Afficher les horodatages",
           hideTimestamps: "Masquer les horodatages",
           showTimestampsAria: "Afficher les horodatages dans la transcription",
-          hideTimestampsAria: "Masquer les horodatages dans la transcription"
+          hideTimestampsAria: "Masquer les horodatages dans la transcription",
+          seekTo: "Aller à {time}"
         },
         settings: {
           title: "Paramètres",
@@ -1066,7 +1183,16 @@
           disableSignResizeModeAria: "矢印キーでキーボードサイズ変更モードを無効にする。ショートカット：Rキー",
           resizeHandle: "{direction}コーナーのサイズ変更",
           moreOptions: "その他のオプション",
-          noMoreOptions: "追加のオプションはありません"
+          noMoreOptions: "追加のオプションはありません",
+          playing: "再生中",
+          paused: "一時停止中",
+          muted: "ミュート中",
+          unmuted: "ミュート解除",
+          captionsOn: "字幕オン",
+          captionsOff: "字幕オフ",
+          volumePercent: "音量 {percent} パーセント",
+          volumePercentMuted: "ミュート",
+          speedRate: "速度 {rate}x"
         },
         captions: {
           off: "オフ",
@@ -1139,7 +1265,8 @@
           showTimestamps: "タイムスタンプを表示",
           hideTimestamps: "タイムスタンプを非表示",
           showTimestampsAria: "文字起こしにタイムスタンプを表示",
-          hideTimestampsAria: "文字起こしのタイムスタンプを非表示"
+          hideTimestampsAria: "文字起こしのタイムスタンプを非表示",
+          seekTo: "{time} へ移動"
         },
         settings: {
           title: "設定",
@@ -1221,11 +1348,30 @@
   });
 
   // src/i18n/i18n.ts
-  var I18n, i18n;
+  function escapeRegExp(input) {
+    return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+  function deepSanitizeTranslations(input) {
+    if (!input || typeof input !== "object" || Array.isArray(input)) {
+      return /* @__PURE__ */ Object.create(null);
+    }
+    const out = /* @__PURE__ */ Object.create(null);
+    for (const [key, value] of Object.entries(input)) {
+      if (PROTO_FORBIDDEN_KEYS.has(key)) continue;
+      if (value && typeof value === "object" && !Array.isArray(value)) {
+        out[key] = deepSanitizeTranslations(value);
+      } else {
+        out[key] = value;
+      }
+    }
+    return out;
+  }
+  var PROTO_FORBIDDEN_KEYS, I18n, i18n;
   var init_i18n = __esm({
     "src/i18n/i18n.ts"() {
       "use strict";
       init_translations();
+      PROTO_FORBIDDEN_KEYS = /* @__PURE__ */ new Set(["__proto__", "prototype", "constructor"]);
       I18n = class {
         constructor() {
           __publicField(this, "currentLanguage");
@@ -1233,7 +1379,8 @@
           __publicField(this, "loadingPromises");
           __publicField(this, "builtInLanguageLoaders");
           this.currentLanguage = "en";
-          this.translations = getBaseTranslations();
+          this.translations = /* @__PURE__ */ Object.create(null);
+          Object.assign(this.translations, getBaseTranslations());
           this.loadingPromises = /* @__PURE__ */ new Map();
           this.builtInLanguageLoaders = getBuiltInLanguageLoaders();
         }
@@ -1265,7 +1412,7 @@
             try {
               const loaded = await loadBuiltInTranslation(normalizedLang);
               if (loaded) {
-                this.translations[normalizedLang] = loaded;
+                this.translations[normalizedLang] = deepSanitizeTranslations(loaded);
               }
             } catch (error) {
               console.warn(`Language "${normalizedLang}" failed to load:`, error);
@@ -1297,26 +1444,46 @@
           }
           if (typeof value === "string") {
             let result = value;
-            Object.entries(replacements).forEach(([placeholder, replacement]) => {
-              result = result.replace(new RegExp(`\\{${placeholder}\\}`, "g"), String(replacement));
-            });
+            for (const [placeholder, replacement] of Object.entries(replacements)) {
+              if (PROTO_FORBIDDEN_KEYS.has(placeholder)) continue;
+              const safe = escapeRegExp(placeholder);
+              result = result.replace(new RegExp(`\\{${safe}\\}`, "g"), String(replacement));
+            }
             return result;
           }
           return typeof value === "string" ? value : key;
         }
         addTranslation(lang, newTranslations) {
-          if (!this.translations[lang]) {
-            this.translations[lang] = {};
+          if (PROTO_FORBIDDEN_KEYS.has(lang)) {
+            console.warn(`[VidPly] Refusing to register language with forbidden name "${lang}"`);
+            return;
           }
-          Object.assign(this.translations[lang], newTranslations);
+          if (!this.translations[lang]) {
+            this.translations[lang] = /* @__PURE__ */ Object.create(null);
+          }
+          const sanitized = deepSanitizeTranslations(newTranslations);
+          Object.assign(this.translations[lang], sanitized);
         }
-        async loadLanguageFromUrl(langCode, url) {
+        /**
+         * Load a translation file from a URL. Bounded by an `AbortSignal.timeout`
+         * (default 8s) plus an optional caller-supplied signal — typically the
+         * Player's lifecycle controller — so a torn-down player does not keep
+         * the request alive.
+         */
+        async loadLanguageFromUrl(langCode, url, options = {}) {
           if (this.loadingPromises.has(url)) {
             return this.loadingPromises.get(url);
           }
           const loadPromise = (async () => {
+            var _a;
+            const signals = [];
+            if (options.signal) signals.push(options.signal);
+            if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+              signals.push(AbortSignal.timeout(options.timeoutMs ?? 8e3));
+            }
+            const signal = signals.length === 0 ? void 0 : signals.length === 1 ? signals[0] : ((_a = AbortSignal.any) == null ? void 0 : _a.call(AbortSignal, signals)) ?? signals[0];
             try {
-              const response = await fetch(url);
+              const response = await fetch(url, { signal });
               if (!response.ok) {
                 throw new Error(`Failed to load language file: ${response.statusText}`);
               }
@@ -1352,9 +1519,9 @@
           this.loadingPromises.set(url, loadPromise);
           return loadPromise;
         }
-        async loadLanguagesFromUrls(languageMap) {
+        async loadLanguagesFromUrls(languageMap, options = {}) {
           const promises = Object.entries(languageMap).map(
-            ([langCode, url]) => this.loadLanguageFromUrl(langCode, url)
+            ([langCode, url]) => this.loadLanguageFromUrl(langCode, url, options)
           );
           await Promise.all(promises);
         }
@@ -1610,10 +1777,44 @@
   });
 
   // src/utils/StorageManager.ts
-  var _StorageManager, StorageManager;
+  function clamp(n, min, max) {
+    if (!Number.isFinite(n)) return min;
+    if (n < min) return min;
+    if (n > max) return max;
+    return n;
+  }
+  function isFiniteNonNegative(value) {
+    return typeof value === "number" && Number.isFinite(value) && value >= 0;
+  }
+  function isWatchProgressEntry(value) {
+    if (!value || typeof value !== "object") return false;
+    const v = value;
+    return isFiniteNonNegative(v.currentTime) && isFiniteNonNegative(v.duration) && typeof v.percentage === "number" && Number.isFinite(v.percentage) && typeof v.updatedAt === "number" && Number.isFinite(v.updatedAt);
+  }
+  function shallowSanitize(input) {
+    const out = /* @__PURE__ */ Object.create(null);
+    for (const [key, value] of Object.entries(input)) {
+      if (PROTO_FORBIDDEN_KEYS2.has(key)) continue;
+      if (PROTO_FORBIDDEN_KEYS2.has(String(key))) continue;
+      out[key] = value;
+    }
+    return out;
+  }
+  function isPlainObject(value) {
+    return !!value && typeof value === "object" && !Array.isArray(value);
+  }
+  function isWatchProgressMap(value) {
+    if (!isPlainObject(value)) return false;
+    for (const entry of Object.values(value)) {
+      if (!isWatchProgressEntry(entry)) return false;
+    }
+    return true;
+  }
+  var PROTO_FORBIDDEN_KEYS2, _StorageManager, StorageManager;
   var init_StorageManager = __esm({
     "src/utils/StorageManager.ts"() {
       "use strict";
+      PROTO_FORBIDDEN_KEYS2 = /* @__PURE__ */ new Set(["__proto__", "prototype", "constructor"]);
       _StorageManager = class _StorageManager {
         constructor(namespace = "vidply") {
           __publicField(this, "namespace");
@@ -1621,8 +1822,14 @@
           this.namespace = namespace;
           this.storage = this.isStorageAvailable() ? localStorage : null;
         }
+        /**
+         * `localStorage` access can throw in private-browsing modes (Safari) and
+         * is undefined in non-DOM environments. Both are tolerated here so the
+         * Player still works (without persistence) when storage is unavailable.
+         */
         isStorageAvailable() {
           try {
+            if (typeof localStorage === "undefined") return false;
             const test = "__storage_test__";
             localStorage.setItem(test, test);
             localStorage.removeItem(test);
@@ -1645,12 +1852,23 @@
             return false;
           }
         }
-        get(key, defaultValue = null) {
+        /**
+         * Generic get. Accepts an optional `validator` so callers can assert the
+         * runtime shape of the parsed JSON before trusting it. Falls back to
+         * `defaultValue` if the payload fails validation.
+         */
+        get(key, defaultValue = null, validator) {
           if (!this.storage) return defaultValue;
           try {
             const namespacedKey = this.getKey(key);
-            const value = this.storage.getItem(namespacedKey);
-            return value ? JSON.parse(value) : defaultValue;
+            const raw = this.storage.getItem(namespacedKey);
+            if (raw === null) return defaultValue;
+            const parsed = JSON.parse(raw);
+            if (validator && !validator(parsed)) {
+              console.warn(`[VidPly] Discarding malformed localStorage payload for "${key}"`);
+              return defaultValue;
+            }
+            return parsed;
           } catch (e) {
             console.warn("Failed to read from localStorage:", e);
             return defaultValue;
@@ -1670,10 +1888,11 @@
         clear() {
           if (!this.storage) return false;
           try {
-            const keys = Object.keys(this.storage);
+            const storage = this.storage;
+            const keys = Object.keys(storage);
             keys.forEach((key) => {
               if (key.startsWith(this.namespace)) {
-                this.storage.removeItem(key);
+                storage.removeItem(key);
               }
             });
             return true;
@@ -1683,43 +1902,73 @@
           }
         }
         saveTranscriptPreferences(preferences) {
-          return this.set("transcript_preferences", preferences);
+          return this.set("transcript_preferences", shallowSanitize(preferences));
         }
         getTranscriptPreferences() {
-          return this.get("transcript_preferences", null);
+          return this.get(
+            "transcript_preferences",
+            null,
+            isPlainObject
+          );
         }
         saveCaptionPreferences(preferences) {
-          return this.set("caption_preferences", preferences);
+          return this.set("caption_preferences", shallowSanitize(preferences));
         }
         getCaptionPreferences() {
-          return this.get("caption_preferences", null);
+          return this.get("caption_preferences", null, isPlainObject);
         }
         savePlayerPreferences(preferences) {
-          return this.set("player_preferences", preferences);
+          const sanitized = shallowSanitize(preferences);
+          if (typeof sanitized.volume === "number") {
+            sanitized.volume = clamp(sanitized.volume, 0, 1);
+          }
+          if (typeof sanitized.playbackSpeed === "number") {
+            sanitized.playbackSpeed = clamp(sanitized.playbackSpeed, 0.1, 4);
+          }
+          return this.set("player_preferences", sanitized);
         }
         getPlayerPreferences() {
-          return this.get("player_preferences", null);
+          const value = this.get("player_preferences", null, isPlainObject);
+          if (!value) return null;
+          if (typeof value.volume === "number") {
+            value.volume = clamp(value.volume, 0, 1);
+          }
+          if (typeof value.playbackSpeed === "number") {
+            value.playbackSpeed = clamp(value.playbackSpeed, 0.1, 4);
+          }
+          return value;
         }
         saveSignLanguagePreferences(preferences) {
-          return this.set("sign_language_preferences", preferences);
+          return this.set("sign_language_preferences", shallowSanitize(preferences));
         }
         getSignLanguagePreferences() {
-          return this.get("sign_language_preferences", null);
+          return this.get("sign_language_preferences", null, isPlainObject);
         }
         saveFloatingPreferences(preferences) {
-          return this.set("floating_preferences", preferences);
+          return this.set("floating_preferences", shallowSanitize(preferences));
         }
         getFloatingPreferences() {
-          return this.get("floating_preferences", null);
+          return this.get("floating_preferences", null, isPlainObject);
         }
+        /**
+         * Persist watch progress for a video id. Numeric inputs are validated +
+         * clamped so a caller cannot poison the store with `Infinity`/negatives.
+         */
         saveWatchProgress(videoId, currentTime, duration) {
-          if (!videoId || !duration || duration <= 0) return false;
-          const allProgress = this.get("watch_progress", {});
-          const percentage = currentTime / duration * 100;
+          if (typeof videoId !== "string" || !videoId) return false;
+          if (!Number.isFinite(currentTime) || !Number.isFinite(duration) || duration <= 0) return false;
+          const safeDuration = clamp(duration, 1e-3, 24 * 60 * 60);
+          const safeCurrent = clamp(currentTime, 0, safeDuration);
+          const allProgress = this.get(
+            "watch_progress",
+            /* @__PURE__ */ Object.create(null),
+            isWatchProgressMap
+          ) ?? /* @__PURE__ */ Object.create(null);
+          const percentage = safeCurrent / safeDuration * 100;
           allProgress[videoId] = {
-            currentTime,
-            duration,
-            percentage,
+            currentTime: safeCurrent,
+            duration: safeDuration,
+            percentage: clamp(percentage, 0, 100),
             updatedAt: Date.now()
           };
           const entries = Object.entries(allProgress);
@@ -1734,12 +1983,21 @@
         }
         getWatchProgress(videoId) {
           if (!videoId) return null;
-          const allProgress = this.get("watch_progress", {});
-          return allProgress[videoId] || null;
+          const allProgress = this.get(
+            "watch_progress",
+            /* @__PURE__ */ Object.create(null),
+            isWatchProgressMap
+          ) ?? /* @__PURE__ */ Object.create(null);
+          const entry = allProgress[videoId];
+          return entry && isWatchProgressEntry(entry) ? entry : null;
         }
         clearWatchProgress(videoId) {
           if (!videoId) return false;
-          const allProgress = this.get("watch_progress", {});
+          const allProgress = this.get(
+            "watch_progress",
+            /* @__PURE__ */ Object.create(null),
+            isWatchProgressMap
+          ) ?? /* @__PURE__ */ Object.create(null);
           if (allProgress[videoId]) {
             delete allProgress[videoId];
             return this.set("watch_progress", allProgress);
@@ -2017,7 +2275,7 @@
           this._cleanupTrackListeners();
           this.currentTrack = null;
           this.element.style.display = "none";
-          this.element.innerHTML = "";
+          this.element.replaceChildren();
           this.element.removeAttribute("lang");
           this.currentCue = null;
           this.player.state.captionsEnabled = false;
@@ -2040,7 +2298,7 @@
           if (!this.currentTrack.track.activeCues) {
             if (this.currentTrack.track.cues && this.currentTrack.track.cues.length > 0) {
               if (this.currentCue) {
-                this.element.innerHTML = "";
+                this.element.replaceChildren();
                 this.element.style.display = "none";
                 this.currentCue = null;
               }
@@ -2053,12 +2311,11 @@
             const cue = activeCues[0];
             if (this.currentCue !== cue) {
               this.currentCue = cue;
-              let text = cue.text || "";
-              text = this.parseVTTFormatting(text);
-              const sanitized = DOMUtils.sanitizeHTML(text);
-              if (!sanitized.trim()) {
+              const rawText = cue.text || "";
+              if (!rawText.trim()) {
                 return;
               }
+              const fragment = DOMUtils.renderVTTToDOM(rawText);
               if (isAudioPlayer) {
                 const existingCues = this.element.querySelectorAll(`.${this.player.options.classPrefix}-caption-cue`);
                 existingCues.forEach((el) => el.classList.remove(`${this.player.options.classPrefix}-caption-active`));
@@ -2068,8 +2325,10 @@
                   cueElement = document.createElement("div");
                   cueElement.className = `${this.player.options.classPrefix}-caption-cue`;
                   cueElement.setAttribute("data-cue-id", cueId);
-                  cueElement.innerHTML = sanitized;
+                  cueElement.replaceChildren(fragment);
                   this.element.appendChild(cueElement);
+                } else {
+                  cueElement.replaceChildren(fragment);
                 }
                 cueElement.classList.add(`${this.player.options.classPrefix}-caption-active`);
                 requestAnimationFrame(() => {
@@ -2078,7 +2337,7 @@
                   }
                 });
               } else {
-                this.element.innerHTML = sanitized;
+                this.element.replaceChildren(fragment);
               }
               this.element.style.display = "block";
               this.positionCaptionsOnMobile();
@@ -2086,7 +2345,7 @@
             }
           } else if (this.currentCue) {
             if (!isAudioPlayer) {
-              this.element.innerHTML = "";
+              this.element.replaceChildren();
               this.element.style.display = "none";
             }
             this.currentCue = null;
@@ -2125,14 +2384,11 @@
             }
           });
         }
-        parseVTTFormatting(text) {
-          text = text.replace(/<c[^>]*>(.*?)<\/c>/g, '<span class="caption-class">$1</span>');
-          text = text.replace(/<b>(.*?)<\/b>/g, "<strong>$1</strong>");
-          text = text.replace(/<i>(.*?)<\/i>/g, "<em>$1</em>");
-          text = text.replace(/<u>(.*?)<\/u>/g, "<u>$1</u>");
-          text = text.replace(/<v\s+([^>]+)>(.*?)<\/v>/g, '<span class="caption-voice" data-voice="$1">$2</span>');
-          return text;
-        }
+        // VTT formatting is parsed via DOMUtils.renderVTTToDOM() which returns
+        // a DocumentFragment built with createElement / createTextNode. The
+        // previous regex-based parseVTTFormatting helper was removed because
+        // it produced strings that were assigned to `innerHTML`, which is
+        // unsafe for cue text from third-party WebVTT sources.
         updateStyles() {
           if (!this.element) return;
           const options = this.player.options;
@@ -2154,19 +2410,19 @@
         setCaptionStyle(property, value) {
           switch (property) {
             case "fontSize":
-              this.player.options.captionsFontSize = value;
+              this.player.options.captionsFontSize = String(value);
               break;
             case "fontFamily":
-              this.player.options.captionsFontFamily = value;
+              this.player.options.captionsFontFamily = String(value);
               break;
             case "color":
-              this.player.options.captionsColor = value;
+              this.player.options.captionsColor = String(value);
               break;
             case "backgroundColor":
-              this.player.options.captionsBackgroundColor = value;
+              this.player.options.captionsBackgroundColor = String(value);
               break;
             case "opacity":
-              this.player.options.captionsOpacity = value;
+              this.player.options.captionsOpacity = Number(value);
               break;
           }
           this.updateStyles();
@@ -3606,11 +3862,26 @@
           return null;
         }
         /**
-         * Validate that a track URL exists
+         * Validate that a track URL exists. Bounded by the player's lifecycle
+         * AbortController + an 8s timeout so a torn-down player cannot leak
+         * the request.
          */
         async _validateTrackExists(url) {
+          if (typeof url !== "string" || !url) return false;
+          const signals = [];
+          const lifecycle = this.player.lifecycleSignal;
+          if (lifecycle) signals.push(lifecycle);
+          if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+            signals.push(AbortSignal.timeout(8e3));
+          }
+          let signal;
+          if (signals.length === 1) signal = signals[0];
+          else if (signals.length > 1) {
+            const anyFn = AbortSignal.any;
+            signal = anyFn ? anyFn(signals) : signals[0];
+          }
           try {
-            const response = await fetch(url, { method: "HEAD" });
+            const response = await fetch(url, { method: "HEAD", signal });
             return response.ok;
           } catch {
             return false;
@@ -4368,7 +4639,10 @@
             this.video.src = this.sources[langCode];
             this.video.currentTime = currentTime;
             if (wasPlaying) {
-              this.video.play().catch(() => {
+              this.video.play().catch((e) => {
+                if (typeof console !== "undefined" && console.debug) {
+                  console.debug("[VidPly] sign-language play() rejected:", e);
+                }
               });
             }
           }
@@ -6461,8 +6735,9 @@
             (u) => u.lang === lang || u.lang.startsWith(lang) || lang.startsWith(u.lang)
           );
           if (!entry) return null;
+          const signal = this._buildFetchSignal(1e4);
           try {
-            const res = await fetch(entry.url);
+            const res = await fetch(entry.url, { signal });
             if (!res.ok) return null;
             let text = await res.text();
             if (text.trimStart().startsWith("#EXTM3U")) {
@@ -6470,7 +6745,7 @@
               if (!vttUri) return null;
               const baseUrl = entry.url.substring(0, entry.url.lastIndexOf("/") + 1);
               const vttUrl = vttUri.startsWith("http") ? vttUri : new URL(vttUri, baseUrl).href;
-              const vttRes = await fetch(vttUrl);
+              const vttRes = await fetch(vttUrl, { signal: this._buildFetchSignal(1e4) });
               if (!vttRes.ok) return null;
               text = await vttRes.text();
             }
@@ -6480,6 +6755,22 @@
           } catch {
             return null;
           }
+        }
+        /**
+         * Build an AbortSignal that fires when either the player is destroyed
+         * or `timeoutMs` elapses, whichever happens first.
+         */
+        _buildFetchSignal(timeoutMs) {
+          const signals = [];
+          const lifecycle = this.player.lifecycleSignal;
+          if (lifecycle) signals.push(lifecycle);
+          if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+            signals.push(AbortSignal.timeout(timeoutMs));
+          }
+          if (signals.length === 0) return void 0;
+          if (signals.length === 1) return signals[0];
+          const anyFn = AbortSignal.any;
+          return anyFn ? anyFn(signals) : signals[0];
         }
         /**
          * Load transcript data from caption/subtitle tracks
@@ -6745,13 +7036,16 @@
          */
         createTranscriptEntry(cue, index, type = "caption") {
           const entryText = this.stripVTTFormatting(cue.text || "");
-          const entry = DOMUtils.createElement("div", {
+          const seekLabelTemplate = i18n.t("transcript.seekTo") || "Seek to {time}";
+          const ariaLabel = seekLabelTemplate.replace("{time}", TimeUtils.formatTime(cue.startTime)).replace("{text}", entryText);
+          const entry = DOMUtils.createElement("button", {
             className: `${this.player.options.classPrefix}-transcript-entry ${this.player.options.classPrefix}-transcript-${type}`,
             attributes: {
-              "tabindex": "0",
+              "type": "button",
               "data-start": String(cue.startTime),
               "data-end": String(cue.endTime),
-              "data-type": type
+              "data-type": type,
+              "aria-label": `${ariaLabel} — ${entryText}`
             }
           });
           const timestamp = DOMUtils.createElement("span", {
@@ -6775,12 +7069,6 @@
             }
           };
           entry.addEventListener("click", seekToTime);
-          entry.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              seekToTime();
-            }
-          });
           return entry;
         }
         /**
@@ -8428,10 +8716,30 @@
           this.attachHlsEvents();
           this.attachMediaEvents();
         }
+        /**
+         * Load hls.js. Pinned to an exact version by default (no more `@latest`).
+         * Embedders who self-host or who want SRI protection can override via:
+         *   - `options.hlsScriptUrl` (URL to load from)
+         *   - `options.hlsScriptIntegrity` (Subresource Integrity hash, e.g.
+         *     `sha384-XXXX`)
+         *
+         * Generate the SRI hash with:
+         *   curl -sSL <url> | openssl dgst -sha384 -binary | openssl base64 -A
+         * and prefix with `sha384-`. SRI is opt-in because hash drift would
+         * silently break playback for consumers who upgrade hls.js.
+         */
         async loadHlsJs() {
+          const defaultUrl = "https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js";
+          const url = this.player.options.hlsScriptUrl || defaultUrl;
+          const integrity = this.player.options.hlsScriptIntegrity;
           return new Promise((resolve, reject) => {
             const script = document.createElement("script");
-            script.src = "https://cdn.jsdelivr.net/npm/hls.js@latest";
+            script.src = url;
+            if (integrity) {
+              script.integrity = integrity;
+              script.crossOrigin = "anonymous";
+              script.referrerPolicy = "no-referrer";
+            }
             script.onload = () => resolve();
             script.onerror = () => reject(new Error("Failed to load hls.js"));
             document.head.appendChild(script);
@@ -9034,10 +9342,24 @@
           this.attachMediaEvents();
           this._setupCaptionSync();
         }
+        /**
+         * Load dash.js. Pinned to an exact version (the previous default
+         * `5.1.1` is preserved) and overridable via `options.dashScriptUrl`
+         * (URL) / `options.dashScriptIntegrity` (SRI hash). See
+         * HLSRenderer.loadHlsJs() for the SRI computation command.
+         */
         async loadDashJs() {
+          const defaultUrl = "https://cdn.jsdelivr.net/npm/dashjs@5.1.1/dist/modern/umd/dash.all.min.js";
+          const url = this.player.options.dashScriptUrl || defaultUrl;
+          const integrity = this.player.options.dashScriptIntegrity;
           return new Promise((resolve, reject) => {
             const script = document.createElement("script");
-            script.src = "https://cdn.jsdelivr.net/npm/dashjs@5.1.1/dist/modern/umd/dash.all.min.js";
+            script.src = url;
+            if (integrity) {
+              script.integrity = integrity;
+              script.crossOrigin = "anonymous";
+              script.referrerPolicy = "no-referrer";
+            }
             script.onload = () => resolve();
             script.onerror = () => reject(new Error("Failed to load dash.js"));
             document.head.appendChild(script);
@@ -9745,12 +10067,29 @@
           await this.initializeWidget();
         }
         /**
-         * Validate SoundCloud URL
-         * @param {string} url 
-         * @returns {boolean}
+         * Validate a SoundCloud URL by parsing it with the URL constructor and
+         * checking the protocol + hostname against an explicit allow-list.
+         * Substring checks like `url.includes('soundcloud.com')` accept things
+         * like `https://evil.com/?leak=soundcloud.com` or
+         * `https://soundcloud.com.attacker.example`.
          */
         isValidSoundCloudUrl(url) {
-          return url.includes("soundcloud.com") || url.includes("api.soundcloud.com");
+          if (typeof url !== "string" || !url) return false;
+          let parsed;
+          try {
+            parsed = new URL(url);
+          } catch {
+            return false;
+          }
+          if (parsed.protocol !== "https:") return false;
+          const allowedHosts = /* @__PURE__ */ new Set([
+            "soundcloud.com",
+            "www.soundcloud.com",
+            "m.soundcloud.com",
+            "api.soundcloud.com",
+            "api-v2.soundcloud.com"
+          ]);
+          return allowedHosts.has(parsed.hostname.toLowerCase());
         }
         /**
          * Check if URL is a playlist/set
@@ -10092,17 +10431,26 @@
             video.currentTime = originalTime;
             video.muted = originalMuted;
             if (wasPlaying && !video.paused) {
-              video.play().catch(() => {
+              video.play().catch((e) => {
+                if (typeof console !== "undefined" && console.debug) {
+                  console.debug("[VidPly] preview play() rejected:", e);
+                }
               });
             }
           }
           resolve(dataURL);
-        } catch {
+        } catch (e) {
+          if (typeof console !== "undefined" && console.debug) {
+            console.debug("[VidPly] frame capture failed:", e);
+          }
           if (restoreState) {
             video.currentTime = originalTime;
             video.muted = originalMuted;
             if (wasPlaying && !video.paused) {
-              video.play().catch(() => {
+              video.play().catch((err) => {
+                if (typeof console !== "undefined" && console.debug) {
+                  console.debug("[VidPly] preview play() rejected:", err);
+                }
               });
             }
           }
@@ -10210,13 +10558,25 @@
     }
     return `${formatted} ${units[unitIndex]}`;
   }
-  async function fetchContentLength(url) {
+  async function fetchContentLength(url, options = {}) {
     if (!url || typeof fetch !== "function") return null;
+    const signals = [];
+    if (options.signal) signals.push(options.signal);
+    if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+      signals.push(AbortSignal.timeout(options.timeoutMs ?? 8e3));
+    }
+    let combinedSignal;
+    if (signals.length === 1) combinedSignal = signals[0];
+    else if (signals.length > 1) {
+      const anyFn = AbortSignal.any;
+      combinedSignal = anyFn ? anyFn(signals) : signals[0];
+    }
     try {
       const response = await fetch(url, {
         method: "HEAD",
         credentials: "omit",
-        cache: "no-store"
+        cache: "no-store",
+        signal: combinedSignal
       });
       if (!response.ok) return null;
       const header = response.headers.get("Content-Length");
@@ -11263,12 +11623,38 @@
         }
       });
       progress.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowLeft") {
-          e.preventDefault();
-          this.player.seekBackward(5);
-        } else if (e.key === "ArrowRight") {
-          e.preventDefault();
-          this.player.seekForward(5);
+        const smallStep = this.player.options.seekInterval || 5;
+        const largeStep = this.player.options.seekIntervalLarge || 30;
+        const duration = Number(this.player.state.duration);
+        switch (e.key) {
+          case "ArrowLeft":
+            e.preventDefault();
+            this.player.seekBackward(smallStep);
+            break;
+          case "ArrowRight":
+            e.preventDefault();
+            this.player.seekForward(smallStep);
+            break;
+          case "PageUp":
+            e.preventDefault();
+            this.player.seekForward(largeStep);
+            break;
+          case "PageDown":
+            e.preventDefault();
+            this.player.seekBackward(largeStep);
+            break;
+          case "Home":
+            e.preventDefault();
+            this.player.seek(0);
+            break;
+          case "End":
+            e.preventDefault();
+            if (Number.isFinite(duration) && duration > 0) {
+              this.player.seek(Math.max(0, duration - 0.1));
+            }
+            break;
+          default:
+            break;
         }
       });
       progress.addEventListener("touchstart", (e) => {
@@ -11461,6 +11847,7 @@
       const volumeMenu = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-volume-menu ${this.player.options.classPrefix}-menu`
       });
+      const initialPercent = Math.round(this.player.state.volume * 100);
       const volumeSlider = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-volume-slider`,
         attributes: {
@@ -11468,7 +11855,8 @@
           "aria-label": i18n.t("player.volume"),
           "aria-valuemin": "0",
           "aria-valuemax": "100",
-          "aria-valuenow": String(Math.round(this.player.state.volume * 100)),
+          "aria-valuenow": String(initialPercent),
+          "aria-valuetext": this.player.state.muted ? i18n.t("player.muted") : i18n.t("player.volumePercent", { percent: initialPercent }),
           "tabindex": "0"
         }
       });
@@ -11908,13 +12296,31 @@
         }
         return;
       }
+      const menuLabelId = `${this.player.options.classPrefix}-caption-style-label-${this.player.instanceId || ""}`;
       const menu = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-caption-style-menu ${this.player.options.classPrefix}-menu ${this.player.options.classPrefix}-settings-menu`,
         attributes: {
-          "role": "menu",
-          "aria-label": i18n.t("player.captionStyling")
+          "role": "dialog",
+          "aria-modal": "false",
+          "aria-labelledby": menuLabelId
         }
       });
+      const visuallyHiddenLabel = DOMUtils.createElement("h2", {
+        textContent: i18n.t("player.captionStyling"),
+        attributes: { id: menuLabelId, class: `${this.player.options.classPrefix}-sr-only` },
+        style: {
+          position: "absolute",
+          width: "1px",
+          height: "1px",
+          padding: "0",
+          margin: "-1px",
+          overflow: "hidden",
+          clip: "rect(0,0,0,0)",
+          whiteSpace: "nowrap",
+          border: "0"
+        }
+      });
+      menu.appendChild(visuallyHiddenLabel);
       menu.addEventListener("click", (e) => {
         e.stopPropagation();
       });
@@ -11923,7 +12329,7 @@
           className: `${this.player.options.classPrefix}-menu-item`,
           textContent: i18n.t("player.noCaptions"),
           attributes: {
-            "role": "menuitem"
+            "role": "status"
           },
           style: { opacity: "0.5", cursor: "default", padding: "12px 16px" }
         });
@@ -12803,7 +13209,12 @@
         this.controls.volumeFill.style.height = `${percent}%`;
       }
       if (this.controls.volumeSlider) {
-        this.controls.volumeSlider.setAttribute("aria-valuenow", String(Math.round(percent)));
+        const rounded = Math.round(percent);
+        this.controls.volumeSlider.setAttribute("aria-valuenow", String(rounded));
+        this.controls.volumeSlider.setAttribute(
+          "aria-valuetext",
+          this.player.state.muted ? i18n.t("player.muted") : i18n.t("player.volumePercent", { percent: rounded })
+        );
       }
       if (this.controls.mute) {
         const icon = this.controls.mute.querySelector(".vidply-icon");
@@ -12824,9 +13235,6 @@
           this.controls.mute.setAttribute("aria-label", newMuteAriaLabel);
           DOMUtils.attachTooltip(this.controls.mute, newMuteAriaLabel, this.player.options.classPrefix);
         }
-      }
-      if (this.controls.volumeSlider) {
-        this.controls.volumeSlider.setAttribute("aria-valuenow", String(Math.round(percent)));
       }
     }
     updateBuffered() {
@@ -13391,10 +13799,12 @@
   init_CaptionManager();
 
   // src/controls/KeyboardManager.ts
+  init_i18n();
   var KeyboardManager = class {
     constructor(player) {
       __publicField(this, "player");
       __publicField(this, "shortcuts");
+      __publicField(this, "announcer", null);
       this.player = player;
       this.shortcuts = player.options.keyboardShortcuts;
       this.init();
@@ -13548,52 +13958,63 @@
       let message = "";
       switch (action) {
         case "play-pause":
-          message = this.player.state.playing ? "Playing" : "Paused";
+          message = this.player.state.playing ? i18n.t("player.playing") : i18n.t("player.paused");
           break;
         case "volume-up":
-          message = `Volume ${Math.round(this.player.state.volume * 100)}%`;
+        case "volume-down": {
+          const percent = Math.round(this.player.state.volume * 100);
+          message = i18n.t("player.volumePercent", { percent });
           break;
-        case "volume-down":
-          message = `Volume ${Math.round(this.player.state.volume * 100)}%`;
-          break;
+        }
         case "mute":
-          message = this.player.state.muted ? "Muted" : "Unmuted";
+          message = this.player.state.muted ? i18n.t("player.muted") : i18n.t("player.unmuted");
           break;
         case "fullscreen":
-          message = this.player.state.fullscreen ? "Fullscreen" : "Exit fullscreen";
+          message = this.player.state.fullscreen ? i18n.t("player.fullscreen") : i18n.t("player.exitFullscreen");
           break;
         case "captions":
-          message = this.player.state.captionsEnabled ? "Captions on" : "Captions off";
+          message = this.player.state.captionsEnabled ? i18n.t("player.captionsOn") : i18n.t("player.captionsOff");
           break;
         case "speed-up":
-        case "speed-down":
-          message = `Speed ${this.player.state.playbackSpeed}x`;
+        case "speed-down": {
+          const rate = this.player.state.playbackSpeed;
+          message = i18n.t("player.speedRate", { rate: String(rate) });
           break;
+        }
       }
       if (message) {
         this.announce(message);
       }
     }
+    /**
+     * Live-region announcer scoped to *this* player instance so multi-player
+     * pages do not cross-talk through a shared `#vidply-announcer` id. The
+     * region is appended to `document.body` so it is reachable regardless of
+     * the embedding container's stacking / overflow context.
+     */
     announce(message, priority = "polite") {
-      let announcer = document.getElementById("vidply-announcer");
-      if (!announcer) {
-        announcer = document.createElement("div");
-        announcer.id = "vidply-announcer";
-        announcer.className = "vidply-sr-only";
-        announcer.setAttribute("aria-live", priority);
-        announcer.setAttribute("aria-atomic", "true");
-        announcer.style.cssText = `
+      if (!this.announcer) {
+        const id = `vidply-announcer-${this.player.instanceId}`;
+        this.announcer = document.createElement("div");
+        this.announcer.id = id;
+        this.announcer.className = "vidply-sr-only";
+        this.announcer.setAttribute("aria-live", priority);
+        this.announcer.setAttribute("aria-atomic", "true");
+        this.announcer.style.cssText = `
         position: absolute;
         left: -10000px;
         width: 1px;
         height: 1px;
         overflow: hidden;
       `;
-        document.body.appendChild(announcer);
+        document.body.appendChild(this.announcer);
+      } else {
+        this.announcer.setAttribute("aria-live", priority);
       }
-      announcer.textContent = "";
+      this.announcer.textContent = "";
+      const announcer = this.announcer;
       setTimeout(() => {
-        announcer.textContent = message;
+        if (announcer) announcer.textContent = message;
       }, 100);
     }
     updateShortcut(action, keys) {
@@ -13602,6 +14023,10 @@
       }
     }
     destroy() {
+      if (this.announcer && this.announcer.parentNode) {
+        this.announcer.parentNode.removeChild(this.announcer);
+      }
+      this.announcer = null;
     }
   };
 
@@ -13638,26 +14063,89 @@
     }
     return FloatingPlayerManagerModule;
   }
+  var ALLOWED_MEDIA_TYPES = ["video", "audio"];
+  var PROTO_FORBIDDEN_KEYS3 = /* @__PURE__ */ new Set(["__proto__", "prototype", "constructor"]);
+  function isValidThemeVariableName(name) {
+    return /^--vidply-[A-Za-z0-9_-]{1,64}$/.test(name);
+  }
+  function isValidThemeVariableValue(value) {
+    if (typeof value !== "string") return false;
+    if (value.length > 200) return false;
+    return !/[<>{};@\\]/.test(value);
+  }
+  function sanitizePosterUrl(input) {
+    if (typeof input !== "string" || input.length === 0 || input.length > 4096) {
+      return null;
+    }
+    const trimmed = input.trim();
+    if (!trimmed) return null;
+    if (/[\s"'<>\\]/.test(trimmed)) return null;
+    if (trimmed.startsWith("/") || trimmed.startsWith("./") || trimmed.startsWith("../")) {
+      return trimmed;
+    }
+    try {
+      const url = new URL(trimmed, typeof window !== "undefined" ? window.location.href : "http://localhost/");
+      if (url.protocol === "https:" || url.protocol === "http:") {
+        return url.href;
+      }
+      if (url.protocol === "data:" && /^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);/i.test(trimmed)) {
+        return trimmed;
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
+  function cssEscapeUrl(url) {
+    return url.replace(/["()\\]/g, (m) => `\\${m}`);
+  }
   var playerInstanceCounter = 0;
   var _Player = class _Player extends EventEmitter {
     constructor(element, options = {}) {
       super();
       __publicField(this, "element");
       __publicField(this, "container");
+      /**
+       * Runtime options. The `& Record<string, any>` intersection covers a
+       * handful of internal-only dynamic keys that have not yet been
+       * promoted into the public {@link PlayerOptions} interface, and keeps
+       * the broad call-site surface from needing a synchronous refactor.
+       */
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       __publicField(this, "options");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       __publicField(this, "state");
+      // Manager properties stay loosely typed: there is a deeply intertwined
+      // network of circular imports between Player, ControlBar, CaptionManager,
+      // etc. that a piecemeal `any -> X | null` migration would break in
+      // dozens of call sites. Tightening these is tracked separately.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       __publicField(this, "renderer");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       __publicField(this, "controlBar");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       __publicField(this, "captionManager");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       __publicField(this, "keyboardManager");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       __publicField(this, "transcriptManager");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       __publicField(this, "playlistManager");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       __publicField(this, "settingsDialog");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       __publicField(this, "audioDescriptionManager");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       __publicField(this, "signLanguageManager");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       __publicField(this, "floatingPlayerManager");
       __publicField(this, "storage");
       __publicField(this, "instanceId");
+      /** AbortController whose signal feeds every window/document listener and
+       *  every user-influenced fetch the Player creates. `destroy()` calls
+       *  `abort()` so a torn-down player can never leak listeners or pending
+       *  network calls. */
+      __publicField(this, "_lifecycleController", new AbortController());
       __publicField(this, "_audioDescriptionDesiredState");
       __publicField(this, "_fallbackSources");
       __publicField(this, "_inertElements");
@@ -13743,7 +14231,11 @@
       playerInstanceCounter++;
       this.instanceId = playerInstanceCounter;
       if (this.element.tagName !== "VIDEO" && this.element.tagName !== "AUDIO") {
-        const mediaType = options.mediaType || "video";
+        const requested = typeof options.mediaType === "string" ? options.mediaType.toLowerCase() : "video";
+        const mediaType = ALLOWED_MEDIA_TYPES.includes(requested) ? requested : "video";
+        if (mediaType !== requested) {
+          console.warn(`[VidPly] Ignoring unsafe mediaType "${requested}", falling back to "video"`);
+        }
         const mediaElement = document.createElement(mediaType);
         Array.from(this.element.attributes).forEach((attr) => {
           if (attr.name !== "id" && attr.name !== "class" && !attr.name.startsWith("data-")) {
@@ -13754,8 +14246,7 @@
         tracks.forEach((track) => {
           mediaElement.appendChild(track.cloneNode(true));
         });
-        this.element.innerHTML = "";
-        this.element.appendChild(mediaElement);
+        this.element.replaceChildren(mediaElement);
         this.element = mediaElement;
       }
       this._originalElement = this.element;
@@ -14068,6 +14559,10 @@
         }
       });
       this.init();
+    }
+    /** Convenience getter for sub-systems that take an AbortSignal. */
+    get lifecycleSignal() {
+      return this._lifecycleController.signal;
     }
     /**
      * Show a small in-player notice (non-blocking), also announced to screen readers.
@@ -14553,10 +15048,19 @@
         this.container.classList.add(`${this.options.classPrefix}-theme-${theme}`);
       }
       if (this.options.themeVariables && typeof this.options.themeVariables === "object") {
-        Object.entries(this.options.themeVariables).forEach(([key, value]) => {
-          const cssVar = key.startsWith("--vidply-") ? key : `--vidply-${key}`;
-          this.container.style.setProperty(cssVar, value);
-        });
+        for (const [rawKey, rawValue] of Object.entries(this.options.themeVariables)) {
+          if (PROTO_FORBIDDEN_KEYS3.has(rawKey)) continue;
+          const cssVar = rawKey.startsWith("--vidply-") ? rawKey : `--vidply-${rawKey}`;
+          if (!isValidThemeVariableName(cssVar)) {
+            this.log(`[VidPly] Ignoring invalid theme variable name: ${rawKey}`, "warn");
+            continue;
+          }
+          if (!isValidThemeVariableValue(rawValue)) {
+            this.log(`[VidPly] Ignoring invalid theme variable value for ${cssVar}`, "warn");
+            continue;
+          }
+          this.container.style.setProperty(cssVar, rawValue);
+        }
       }
     }
     /**
@@ -14595,8 +15099,14 @@
     setThemeVariable(variableName, value) {
       if (!this.container) return;
       const cssVar = variableName.startsWith("--vidply-") ? variableName : `--vidply-${variableName}`;
+      if (!isValidThemeVariableName(cssVar) || !isValidThemeVariableValue(value)) {
+        this.log(`[VidPly] Ignoring unsafe setThemeVariable(${variableName})`, "warn");
+        return;
+      }
       this.container.style.setProperty(cssVar, value);
-      this.options.themeVariables = this.options.themeVariables || {};
+      if (!this.options.themeVariables) {
+        this.options.themeVariables = {};
+      }
       this.options.themeVariables[variableName] = value;
     }
     /**
@@ -14635,14 +15145,19 @@
       });
       (_a = this.element.parentNode) == null ? void 0 : _a.insertBefore(this.container, this.element);
       if (this.element.tagName === "AUDIO" && this.options.poster) {
-        this.trackArtworkElement = DOMUtils.createElement("div", {
-          className: `${this.options.classPrefix}-track-artwork`,
-          attributes: {
-            "aria-hidden": "true"
-          }
-        });
-        this.trackArtworkElement.style.backgroundImage = `url(${this.options.poster})`;
-        this.container.appendChild(this.trackArtworkElement);
+        const safePoster = sanitizePosterUrl(this.options.poster);
+        if (safePoster) {
+          this.trackArtworkElement = DOMUtils.createElement("div", {
+            className: `${this.options.classPrefix}-track-artwork`,
+            attributes: {
+              "aria-hidden": "true"
+            }
+          });
+          this.trackArtworkElement.style.backgroundImage = `url("${cssEscapeUrl(safePoster)}")`;
+          this.container.appendChild(this.trackArtworkElement);
+        } else {
+          this.log(`[VidPly] Ignored unsafe poster URL`, "warn");
+        }
       }
       this.container.appendChild(this.videoWrapper);
       this.videoWrapper.appendChild(this.element);
@@ -14662,8 +15177,10 @@
         this.container.style.height = typeof this.options.height === "number" ? `${this.options.height}px` : this.options.height;
       }
       if (this.options.poster && this.element.tagName === "VIDEO") {
-        const resolvedPoster = this.resolvePosterPath(this.options.poster);
-        this.element.poster = resolvedPoster;
+        const resolvedPoster = sanitizePosterUrl(this.resolvePosterPath(this.options.poster));
+        if (resolvedPoster) {
+          this.element.poster = resolvedPoster;
+        }
       }
       if (this.element.tagName === "VIDEO") {
         this.createPlayButtonOverlay();
@@ -14676,7 +15193,7 @@
         if (e.target === this.element) {
           this.toggle();
         }
-      });
+      }, { signal: this.lifecycleSignal });
       this.on("play", () => {
         this.state.hasStartedPlayback = true;
         this.hidePosterOverlay();
@@ -14716,7 +15233,7 @@
       this.debouncedPositionPlayOverlay = debounce(() => {
         this.positionPlayOverlayOnMobile();
       }, 150);
-      window.addEventListener("resize", this.debouncedPositionPlayOverlay);
+      window.addEventListener("resize", this.debouncedPositionPlayOverlay, { signal: this.lifecycleSignal });
       this.on("loadedmetadata", () => {
         this.positionPlayOverlayOnMobile();
       });
@@ -15392,22 +15909,36 @@
         this.play();
       }
     }
+    /**
+     * Seek to a non-negative finite second offset. Non-finite or non-numeric
+     * inputs are silently dropped instead of being forwarded to the renderer
+     * where they would set `currentTime = NaN` on a HTMLMediaElement.
+     */
     seek(time) {
+      if (typeof time !== "number" || !Number.isFinite(time)) return;
+      const safeTime = time < 0 ? 0 : time;
       this.hidePosterOverlay();
       if (this.renderer) {
-        this.renderer.seek(time);
+        this.renderer.seek(safeTime);
       }
     }
     seekForward(interval = this.options.seekInterval) {
-      const targetTime = this.state.currentTime + interval;
+      const step = Number.isFinite(interval) ? interval : 5;
+      const targetTime = this.state.currentTime + step;
       const seekTime = this.state.duration > 0 ? Math.min(targetTime, this.state.duration) : targetTime;
       this.seek(seekTime);
     }
     seekBackward(interval = this.options.seekInterval) {
-      this.seek(Math.max(this.state.currentTime - interval, 0));
+      const step = Number.isFinite(interval) ? interval : 5;
+      this.seek(Math.max(this.state.currentTime - step, 0));
     }
     // Volume controls
+    /**
+     * Set the volume to a finite number in [0, 1]. Non-numeric or NaN
+     * input is silently ignored.
+     */
     setVolume(volume) {
+      if (typeof volume !== "number" || !Number.isFinite(volume)) return;
       const newVolume = Math.max(0, Math.min(1, volume));
       if (this.renderer) {
         this.renderer.setVolume(newVolume);
@@ -15449,7 +15980,11 @@
       }
     }
     // Playback speed
+    /**
+     * Set playback speed in [0.25, 2]. Silently rejects non-finite input.
+     */
     setPlaybackSpeed(speed) {
+      if (typeof speed !== "number" || !Number.isFinite(speed)) return;
       const newSpeed = Math.max(0.25, Math.min(2, speed));
       if (this.renderer) {
         this.renderer.setPlaybackSpeed(newSpeed);
@@ -15695,15 +16230,25 @@
       }
     }
     /**
-     * Check if a track file exists
-     * @param {string} url - Track file URL
-     * @returns {Promise<boolean>} - True if file exists
+     * Check if a track file exists. Bounded by an 8s `AbortSignal.timeout`
+     * and the player's lifecycle controller so a slow / hung server cannot
+     * keep a request alive past `destroy()`.
      */
     async validateTrackExists(url) {
+      var _a;
+      if (typeof url !== "string" || !url) return false;
+      const signals = [this.lifecycleSignal];
+      if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+        signals.push(AbortSignal.timeout(8e3));
+      }
+      const signal = signals.length === 1 ? signals[0] : ((_a = AbortSignal.any) == null ? void 0 : _a.call(AbortSignal, signals)) ?? signals[0];
       try {
-        const response = await fetch(url, { method: "HEAD", cache: "no-cache" });
+        const response = await fetch(url, { method: "HEAD", cache: "no-cache", signal });
         return response.ok;
       } catch (error) {
+        if (this.options.debug) {
+          this.log(`validateTrackExists("${url}") failed: ${(error == null ? void 0 : error.message) ?? error}`, "warn");
+        }
         return false;
       }
     }
@@ -17258,7 +17803,7 @@
           }
         };
         setTimeout(() => {
-          document.addEventListener("mousedown", this.signLanguageDocumentClickHandler, true);
+          document.addEventListener("mousedown", this.signLanguageDocumentClickHandler, { capture: true, signal: this.lifecycleSignal });
           this.signLanguageDocumentClickHandlerAdded = true;
         }, 300);
       }
@@ -17660,7 +18205,7 @@
             }
           }
         };
-        window.addEventListener("resize", this.resizeHandler);
+        window.addEventListener("resize", this.resizeHandler, { signal: this.lifecycleSignal });
       }
       if (window.matchMedia) {
         this.orientationHandler = (e) => {
@@ -17714,14 +18259,24 @@
           }
         }
       };
-      document.addEventListener("fullscreenchange", this.fullscreenChangeHandler);
-      document.addEventListener("webkitfullscreenchange", this.fullscreenChangeHandler);
-      document.addEventListener("mozfullscreenchange", this.fullscreenChangeHandler);
-      document.addEventListener("MSFullscreenChange", this.fullscreenChangeHandler);
+      const opts = { signal: this.lifecycleSignal };
+      document.addEventListener("fullscreenchange", this.fullscreenChangeHandler, opts);
+      document.addEventListener("webkitfullscreenchange", this.fullscreenChangeHandler, opts);
+      document.addEventListener("mozfullscreenchange", this.fullscreenChangeHandler, opts);
+      document.addEventListener("MSFullscreenChange", this.fullscreenChangeHandler, opts);
     }
-    // Cleanup
+    // Cleanup. Aborts the lifecycle controller (which removes every
+    // window/document listener wired with `{ signal }` plus every
+    // user-influenced fetch we threaded the signal into), cascade-destroys
+    // every manager we own, and finally removes this instance from the
+    // global `Player.instances` registry.
     destroy() {
       this.log("Destroying player");
+      try {
+        this._lifecycleController.abort();
+      } catch (err) {
+        this.log(`AbortController.abort failed: ${err}`, "warn");
+      }
       if (this.renderer) {
         this.renderer.destroy();
       }
@@ -17738,6 +18293,38 @@
         this.transcriptManager.destroy();
       }
       this.cleanupSignLanguage();
+      if (this.audioDescriptionManager && typeof this.audioDescriptionManager.destroy === "function") {
+        try {
+          this.audioDescriptionManager.destroy();
+        } catch (err) {
+          this.log(`AudioDescriptionManager.destroy failed: ${err}`, "warn");
+        }
+        this.audioDescriptionManager = null;
+      }
+      if (this.signLanguageManager && typeof this.signLanguageManager.destroy === "function") {
+        try {
+          this.signLanguageManager.destroy();
+        } catch (err) {
+          this.log(`SignLanguageManager.destroy failed: ${err}`, "warn");
+        }
+        this.signLanguageManager = null;
+      }
+      if (this.playlistManager && typeof this.playlistManager.destroy === "function") {
+        try {
+          this.playlistManager.destroy();
+        } catch (err) {
+          this.log(`PlaylistManager.destroy failed: ${err}`, "warn");
+        }
+        this.playlistManager = null;
+      }
+      if (this.settingsDialog && typeof this.settingsDialog.destroy === "function") {
+        try {
+          this.settingsDialog.destroy();
+        } catch (err) {
+          this.log(`SettingsDialog.destroy failed: ${err}`, "warn");
+        }
+        this.settingsDialog = null;
+      }
       if (this.floatingPlayerManager) {
         try {
           this.floatingPlayerManager.destroy();
@@ -17762,10 +18349,8 @@
         this.resizeObserver.disconnect();
         this.resizeObserver = null;
       }
-      if (this.resizeHandler) {
-        window.removeEventListener("resize", this.resizeHandler);
-        this.resizeHandler = null;
-      }
+      this.resizeHandler = null;
+      this.fullscreenChangeHandler = null;
       if (this.orientationQuery && this.orientationHandler) {
         if (this.orientationQuery.removeEventListener) {
           this.orientationQuery.removeEventListener("change", this.orientationHandler);
@@ -17774,13 +18359,6 @@
         }
         this.orientationQuery = null;
         this.orientationHandler = null;
-      }
-      if (this.fullscreenChangeHandler) {
-        document.removeEventListener("fullscreenchange", this.fullscreenChangeHandler);
-        document.removeEventListener("webkitfullscreenchange", this.fullscreenChangeHandler);
-        document.removeEventListener("mozfullscreenchange", this.fullscreenChangeHandler);
-        document.removeEventListener("MSFullscreenChange", this.fullscreenChangeHandler);
-        this.fullscreenChangeHandler = null;
       }
       this.timeouts.forEach((timeoutId) => clearTimeout(timeoutId));
       this.timeouts.clear();
@@ -17799,6 +18377,10 @@
           }
         });
         this.metadataAlertHandlers.clear();
+      }
+      const idx = _Player.instances.indexOf(this);
+      if (idx >= 0) {
+        _Player.instances.splice(idx, 1);
       }
       if (this.container && this.container.parentNode) {
         this.container.parentNode.insertBefore(this.element, this.container);
@@ -17849,17 +18431,39 @@
       this.on("loadedmetadata", setupMetadata);
     }
     normalizeMetadataSelector(selector) {
-      if (!selector) {
+      if (typeof selector !== "string") {
         return null;
       }
       const trimmed = selector.trim();
       if (!trimmed) {
         return null;
       }
+      if (trimmed.length > 200) {
+        return null;
+      }
       if (trimmed.startsWith("#") || trimmed.startsWith(".") || trimmed.startsWith("[")) {
         return trimmed;
       }
       return `#${trimmed}`;
+    }
+    /**
+     * Resolve a metadata-cue selector inside the configured directive scope.
+     * Returns `null` when directives are disabled or the selector doesn't
+     * resolve.
+     */
+    resolveMetadataElement(selector) {
+      const mode = this.options.metadataDirectives;
+      if (!mode) return null;
+      if (!selector) return null;
+      try {
+        if (mode === true || mode === "global") {
+          return document.querySelector(selector);
+        }
+        const root = this.container || this.element.parentElement || document;
+        return root.querySelector(selector);
+      } catch {
+        return null;
+      }
     }
     resolveMetadataConfig(map, key) {
       if (!map || !key) {
@@ -17945,7 +18549,7 @@
         return;
       }
       const config = this.resolveMetadataConfig(this.options.metadataAlerts, selector) || {};
-      const element = options.element || document.querySelector(selector);
+      const element = options.element || this.resolveMetadataElement(selector);
       if (!element) {
         if (this.options.debug) {
           this.log("[Metadata] Alert element not found:", selector);
@@ -18035,7 +18639,7 @@
         if (!selector) {
           return;
         }
-        const element = document.querySelector(selector);
+        const element = this.resolveMetadataElement(selector);
         if (!element) {
           if (this.options.debug) {
             this.log("[Metadata] Hashtag target not found:", selector);
@@ -18098,11 +18702,11 @@
         }
         this.emit("metadata:pause", { time: cue.startTime, text });
       }
-      const focusMatch = text.match(/FOCUS:([\w#-]+)/);
+      const focusMatch = text.match(/FOCUS:([\w#-]{1,128})/);
       if (focusMatch) {
         const targetSelector = focusMatch[1];
         const normalizedSelector = this.normalizeMetadataSelector(targetSelector);
-        const targetElement = normalizedSelector ? document.querySelector(normalizedSelector) : null;
+        const targetElement = this.resolveMetadataElement(normalizedSelector);
         if (targetElement) {
           if (this.options.debug) {
             this.log("[Metadata] Focusing element:", normalizedSelector);
@@ -18113,7 +18717,7 @@
           this.setManagedTimeout(() => {
             targetElement.focus({ preventScroll: true });
           }, 10);
-        } else if (this.options.debug) {
+        } else if (this.options.debug && this.options.metadataDirectives) {
           this.log("[Metadata] Element not found:", normalizedSelector || targetSelector);
         }
         this.emit("metadata:focus", {
@@ -18123,24 +18727,27 @@
           element: targetElement,
           text
         });
-        if (normalizedSelector) {
+        if (this.options.metadataDirectives && normalizedSelector) {
           this.handleMetadataAlert(normalizedSelector, {
             element: targetElement,
             reason: "focus"
           });
         }
       }
-      const hashtags = text.match(/#[\w-]+/g);
-      if (hashtags) {
+      const hashtags = text.match(/#[\w-]{1,64}/g);
+      if (hashtags && hashtags.length > 0) {
+        const safeTags = hashtags.slice(0, 32);
         if (this.options.debug) {
-          this.log("[Metadata] Hashtags found:", hashtags);
+          this.log("[Metadata] Hashtags found:", safeTags);
         }
         this.emit("metadata:hashtags", {
           time: cue.startTime,
-          hashtags,
+          hashtags: safeTags,
           text
         });
-        this.handleMetadataHashtags(hashtags);
+        if (this.options.metadataDirectives) {
+          this.handleMetadataHashtags(safeTags);
+        }
       }
     }
   };
@@ -18273,6 +18880,7 @@
       if (this.player) {
         this.player.off("ended", this.handleTrackEnd);
         this.player.off("error", this.handleTrackError);
+        this.player.playlistManager = null;
         this.player.destroy();
       }
       this.hostElement.innerHTML = "";
@@ -19405,10 +20013,33 @@
 
   // src/index.ts
   var pendingPlayers = /* @__PURE__ */ new Map();
+  var FORBIDDEN_KEYS = /* @__PURE__ */ new Set(["__proto__", "prototype", "constructor"]);
+  function sanitizeOptionsObject(input) {
+    if (!input || typeof input !== "object" || Array.isArray(input)) {
+      return {};
+    }
+    const out = /* @__PURE__ */ Object.create(null);
+    for (const [key, value] of Object.entries(input)) {
+      if (FORBIDDEN_KEYS.has(key)) continue;
+      out[key] = value;
+    }
+    return out;
+  }
+  function parseInlineOptions(element) {
+    const raw = element.dataset.vidplyOptions;
+    if (!raw) return {};
+    try {
+      const parsed = JSON.parse(raw);
+      return sanitizeOptionsObject(parsed);
+    } catch (err) {
+      console.warn("[VidPly] Ignored malformed data-vidply-options:", err);
+      return {};
+    }
+  }
   function initializePlayers() {
     const elements = document.querySelectorAll("[data-vidply]");
     elements.forEach((element) => {
-      const options = element.dataset.vidplyOptions ? JSON.parse(element.dataset.vidplyOptions) : {};
+      const options = parseInlineOptions(element);
       const dataOptions = parseDataAttributes(element.dataset);
       const mergedOptions = { ...dataOptions, ...options };
       const lazyInit = element.dataset.vidplyLazy !== "false" && mergedOptions.lazyInit !== false;
@@ -19426,18 +20057,18 @@
       new Player(element, options);
       return;
     }
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          observer.unobserve(entry.target);
-          pendingPlayers.delete(entry.target);
-          new Player(entry.target, options);
-        }
-      });
-    }, {
-      rootMargin: margin,
-      threshold: 0
-    });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            observer.unobserve(entry.target);
+            pendingPlayers.delete(entry.target);
+            new Player(entry.target, options);
+          }
+        });
+      },
+      { rootMargin: margin, threshold: 0 }
+    );
     observer.observe(element);
     pendingPlayers.set(element, { observer, options });
   }
@@ -19448,7 +20079,7 @@
       pendingPlayers.delete(element);
     }
   }
-  Player.observeLazy = function(selector, options = {}, margin = "200px") {
+  Player.observeLazy = function observeLazy(selector, options = {}, margin = "200px") {
     const element = typeof selector === "string" ? document.querySelector(selector) : selector;
     if (!element) {
       console.warn("VidPly: Element not found for lazy observation");
@@ -19459,75 +20090,69 @@
       return {
         cancel: () => cancelLazyInit(element)
       };
-    } else {
-      new Player(element, options);
-      return null;
     }
+    new Player(element, options);
+    return null;
   };
   function parseDataAttributes(dataset) {
-    const options = {};
+    const options = /* @__PURE__ */ Object.create(null);
     const attributeMap = {
-      // Sign Language
-      "signLanguageSrc": "signLanguageSrc",
-      "signLanguageButton": "signLanguageButton",
-      "signLanguagePosition": "signLanguagePosition",
-      "signLanguageDisplayMode": "signLanguageDisplayMode",
-      // Audio Description
-      "audioDescriptionSrc": "audioDescriptionSrc",
-      "audioDescriptionButton": "audioDescriptionButton",
-      // Other common options
-      "autoplay": "autoplay",
-      "loop": "loop",
-      "muted": "muted",
-      "controls": "controls",
-      "poster": "poster",
-      "width": "width",
-      "height": "height",
-      "language": "language",
-      "captions": "captions",
-      "captionsDefault": "captionsDefault",
-      "transcript": "transcript",
-      "transcriptButton": "transcriptButton",
-      "keyboard": "keyboard",
-      "responsive": "responsive",
-      "pipButton": "pipButton",
-      "fullscreenButton": "fullscreenButton",
-      // Floating Player (custom in-page PiP)
-      "floating": "floating",
-      "floatingPosition": "floatingPosition",
-      "floatingMinViewportWidth": "floatingMinViewportWidth",
-      // Layout
-      // Lazy Loading
-      "lazyInit": "lazyInit",
-      "lazyMargin": "lazyMargin",
-      // Theming
-      "theme": "theme"
+      signLanguageSrc: "signLanguageSrc",
+      signLanguageButton: "signLanguageButton",
+      signLanguagePosition: "signLanguagePosition",
+      signLanguageDisplayMode: "signLanguageDisplayMode",
+      audioDescriptionSrc: "audioDescriptionSrc",
+      audioDescriptionButton: "audioDescriptionButton",
+      autoplay: "autoplay",
+      loop: "loop",
+      muted: "muted",
+      controls: "controls",
+      poster: "poster",
+      width: "width",
+      height: "height",
+      language: "language",
+      captions: "captions",
+      captionsDefault: "captionsDefault",
+      transcript: "transcript",
+      transcriptButton: "transcriptButton",
+      keyboard: "keyboard",
+      responsive: "responsive",
+      pipButton: "pipButton",
+      fullscreenButton: "fullscreenButton",
+      floating: "floating",
+      floatingPosition: "floatingPosition",
+      floatingMinViewportWidth: "floatingMinViewportWidth",
+      lazyInit: "lazyInit",
+      lazyMargin: "lazyMargin",
+      theme: "theme"
     };
-    Object.keys(attributeMap).forEach((dataKey) => {
-      const optionKey = attributeMap[dataKey];
+    for (const [dataKey, optionKey] of Object.entries(attributeMap)) {
+      if (FORBIDDEN_KEYS.has(optionKey)) continue;
       const value = dataset[dataKey];
-      if (value !== void 0) {
-        if (value === "true") {
-          options[optionKey] = true;
-        } else if (value === "false") {
-          options[optionKey] = false;
-        } else if (!isNaN(Number(value)) && value !== "") {
-          options[optionKey] = Number(value);
-        } else {
-          options[optionKey] = value;
-        }
+      if (value === void 0) continue;
+      if (value === "true") {
+        options[optionKey] = true;
+      } else if (value === "false") {
+        options[optionKey] = false;
+      } else if (value !== "" && !Number.isNaN(Number(value))) {
+        options[optionKey] = Number(value);
+      } else {
+        options[optionKey] = value;
       }
-    });
-    const signLanguageSources = {};
-    Object.keys(dataset).forEach((key) => {
+    }
+    const signLanguageSources = /* @__PURE__ */ Object.create(null);
+    for (const key of Object.keys(dataset)) {
       if (key.startsWith("signLanguageSrc") && key !== "signLanguageSrc") {
         const langMatch = key.match(/^signLanguageSrc([A-Z][a-z]*)$/);
         if (langMatch) {
           const langCode = langMatch[1].toLowerCase();
-          signLanguageSources[langCode] = dataset[key];
+          const value = dataset[key];
+          if (value !== void 0) {
+            signLanguageSources[langCode] = value;
+          }
         }
       }
-    });
+    }
     if (Object.keys(signLanguageSources).length > 0) {
       options.signLanguageSources = signLanguageSources;
       if (dataset.signLanguageSrc && !options.signLanguageSrc) {
@@ -19536,7 +20161,10 @@
     }
     if (dataset.vidplyLanguageFiles) {
       try {
-        options.languageFiles = JSON.parse(dataset.vidplyLanguageFiles);
+        const parsed = JSON.parse(dataset.vidplyLanguageFiles);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          options.languageFiles = sanitizeOptionsObject(parsed);
+        }
       } catch (e) {
         console.warn("Invalid JSON in data-vidply-language-files:", e);
       }
@@ -19544,10 +20172,10 @@
     if (dataset.vidplyLanguageFile) {
       try {
         const parsed = JSON.parse(dataset.vidplyLanguageFile);
-        if (typeof parsed === "object" && parsed !== null) {
-          options.languageFiles = parsed;
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          options.languageFiles = sanitizeOptionsObject(parsed);
         }
-      } catch (e) {
+      } catch {
         if (dataset.vidplyLanguageFileCode && dataset.vidplyLanguageFileUrl) {
           options.languageFile = dataset.vidplyLanguageFileCode;
           options.languageFileUrl = dataset.vidplyLanguageFileUrl;

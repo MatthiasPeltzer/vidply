@@ -75,7 +75,16 @@ export const de = {
         disableSignResizeModeAria: 'Tastatur-Größenänderungsmodus mit Pfeiltasten deaktivieren. Tastenkombination: R-Taste',
         resizeHandle: 'Größenänderung {direction}-Ecke',
         moreOptions: 'Weitere Optionen',
-        noMoreOptions: 'Keine weiteren Optionen verfügbar'
+        noMoreOptions: 'Keine weiteren Optionen verfügbar',
+        playing: 'Wird abgespielt',
+        paused: 'Pausiert',
+        muted: 'Stummgeschaltet',
+        unmuted: 'Ton an',
+        captionsOn: 'Untertitel an',
+        captionsOff: 'Untertitel aus',
+        volumePercent: 'Lautstärke {percent} Prozent',
+        volumePercentMuted: 'Stummgeschaltet',
+        speedRate: 'Geschwindigkeit {rate}x'
     },
     captions: {
         off: 'Aus',
@@ -148,7 +157,8 @@ export const de = {
         showTimestamps: 'Zeitstempel anzeigen',
         hideTimestamps: 'Zeitstempel ausblenden',
         showTimestampsAria: 'Zeitstempel im Transkript anzeigen',
-        hideTimestampsAria: 'Zeitstempel im Transkript ausblenden'
+        hideTimestampsAria: 'Zeitstempel im Transkript ausblenden',
+        seekTo: 'Springe zu {time}'
     },
     settings: {
         title: 'Einstellungen',

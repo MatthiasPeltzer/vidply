@@ -19,6 +19,8 @@
     "build:css": "node build/build-css.js",
     "watch": "node build/watch.js",
     "clean": "node build/clean.js",
+    "lint": "eslint \"src/**/*.{ts,js}\" \"tests/**/*.{ts,js,mjs}\"",
+    "lint:fix": "eslint --fix \"src/**/*.{ts,js}\" \"tests/**/*.{ts,js,mjs}\"",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -28,7 +30,9 @@
     "test:e2e:debug": "playwright test --debug",
     "test:all": "vitest run && playwright test",
     "typecheck": "tsc --noEmit",
-    "types": "tsc --emitDeclarationOnly"
+    "types": "tsc --emitDeclarationOnly",
+    "verify": "npm run typecheck && npm run lint && npm run test && node tests/check-readme-types.mjs",
+    "prepublishOnly": "npm run clean && npm run build && npm run test:all"
   },
   "keywords": [
     "video",
@@ -64,15 +68,24 @@
     "email": "vidply@mpeltzer.de"
   },
   "homepage": "https://matthiaspeltzer.github.io/vidply/",
+  "engines": {
+    "node": ">=20.19"
+  },
   "publishConfig": {
     "access": "public"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.1",
     "@playwright/test": "^1.59.1",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
     "@vitest/coverage-v8": "^4.1.5",
     "clean-css": "^5.3.3",
     "esbuild": "^0.28.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-jsx-a11y": "^6.10.0",
     "jsdom": "^29.0.2",
+    "prettier": "^3.3.0",
     "terser": "^5.46.2",
     "typescript": "^6.0.3",
     "vitest": "^4.1.5"

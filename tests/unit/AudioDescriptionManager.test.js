@@ -397,11 +397,16 @@ describe('AudioDescriptionManager', () => {
 
     it('should return true for successful HEAD request', async () => {
       global.fetch = vi.fn().mockResolvedValue({ ok: true });
-      
+
       const result = await manager._validateTrackExists('/test.vtt');
-      
+
       expect(result).toBe(true);
-      expect(global.fetch).toHaveBeenCalledWith('/test.vtt', { method: 'HEAD' });
+      // The call also passes an AbortSignal (lifecycle + 8s timeout).
+      // Loosen the assertion to the URL + method only.
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      const [url, init] = global.fetch.mock.calls[0];
+      expect(url).toBe('/test.vtt');
+      expect(init.method).toBe('HEAD');
     });
 
     it('should return false for failed HEAD request', async () => {

@@ -439,7 +439,13 @@ export class SignLanguageManager {
             this.video.src = this.sources[langCode];
             this.video.currentTime = currentTime;
             if (wasPlaying) {
-                this.video.play().catch(() => {});
+                // Autoplay can be rejected by browser policy; debug-log
+                // unknown errors instead of silently swallowing.
+                this.video.play().catch((e: unknown) => {
+                    if (typeof console !== 'undefined' && console.debug) {
+                        console.debug('[VidPly] sign-language play() rejected:', e);
+                    }
+                });
             }
         }
 

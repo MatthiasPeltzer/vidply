@@ -5770,3 +5770,44 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     }
 }
 
+/* ===========================================================
+ * Forced-colors / Windows High Contrast Mode safety net.
+ *
+ * Many of our focus rules above set `outline: none` and rely on a
+ * background/border/box-shadow change for the focus indicator. Those
+ * indicators disappear in WHCM because user agents map them away. This
+ * block restores a clearly visible focus outline for every interactive
+ * element in forced-colors mode using the `Highlight` system color, so
+ * keyboard users continue to see where focus is.
+ * ----------------------------------------------------------- */
+@media (forced-colors: active) {
+    .vidply-player :focus,
+    .vidply-player :focus-visible,
+    .vidply-player button:focus,
+    .vidply-player button:focus-visible,
+    .vidply-player [role="slider"]:focus,
+    .vidply-player [role="slider"]:focus-visible,
+    .vidply-player select:focus,
+    .vidply-player select:focus-visible,
+    .vidply-player input:focus,
+    .vidply-player input:focus-visible,
+    .vidply-player [tabindex]:focus,
+    .vidply-player [tabindex]:focus-visible,
+    .vidply-popup-settings-item:focus,
+    .vidply-popup-settings-item:focus-visible,
+    .vidply-playlist-item-button:focus,
+    .vidply-playlist-item-button:focus-visible,
+    .vidply-sign-language-settings-item:focus,
+    .vidply-sign-language-settings-item:focus-visible,
+    .vidply-resume-prompt-button:focus,
+    .vidply-resume-prompt-button:focus-visible,
+    .vidply-style-select:focus,
+    .vidply-style-select:focus-visible,
+    .vidply-style-group input[type="color"]:focus,
+    .vidply-style-group input[type="color"]:focus-visible {
+        outline: 2px solid Highlight !important;
+        outline-offset: 2px !important;
+        forced-color-adjust: none;
+    }
+}
+

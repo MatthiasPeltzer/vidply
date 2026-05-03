@@ -72,7 +72,16 @@ export const ja = {
     disableSignResizeModeAria: '矢印キーでキーボードサイズ変更モードを無効にする。ショートカット：Rキー',
     resizeHandle: '{direction}コーナーのサイズ変更',
     moreOptions: 'その他のオプション',
-    noMoreOptions: '追加のオプションはありません'
+    noMoreOptions: '追加のオプションはありません',
+    playing: '再生中',
+    paused: '一時停止中',
+    muted: 'ミュート中',
+    unmuted: 'ミュート解除',
+    captionsOn: '字幕オン',
+    captionsOff: '字幕オフ',
+    volumePercent: '音量 {percent} パーセント',
+    volumePercentMuted: 'ミュート',
+    speedRate: '速度 {rate}x'
   },
   captions: {
     off: 'オフ',
@@ -145,7 +154,8 @@ export const ja = {
     showTimestamps: 'タイムスタンプを表示',
     hideTimestamps: 'タイムスタンプを非表示',
     showTimestampsAria: '文字起こしにタイムスタンプを表示',
-    hideTimestampsAria: '文字起こしのタイムスタンプを非表示'
+    hideTimestampsAria: '文字起こしのタイムスタンプを非表示',
+    seekTo: '{time} へ移動'
   },
   settings: {
     title: '設定',

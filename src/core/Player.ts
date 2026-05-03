@@ -18,12 +18,25 @@ import {createLabeledSelect, preventDragOnElement} from '../utils/FormUtils.js';
 import {debounce, throttle, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
 import {captureVideoFrame} from '../utils/VideoFrameCapture.js';
 import type {PlayerEventMap} from '../types/events.js';
+import type {PlayerOptions} from '../types/options.js';
+import type {PlayerState} from '../types/state.js';
+import type {Renderer} from '../types/renderer.js';
+import type {AudioDescriptionManager} from './AudioDescriptionManager.js';
+import type {SignLanguageManager} from './SignLanguageManager.js';
+import type {FloatingPlayerManager} from './FloatingPlayerManager.js';
 
-let AudioDescriptionManagerModule: any = null;
-let SignLanguageManagerModule: any = null;
-let FloatingPlayerManagerModule: any = null;
+// Typed dynamic loaders. Each loader returns the constructor for the
+// lazily-imported manager so call sites get full IntelliSense and
+// `noImplicitAny` is satisfied.
+type AudioDescriptionManagerCtor = typeof AudioDescriptionManager;
+type SignLanguageManagerCtor = typeof SignLanguageManager;
+type FloatingPlayerManagerCtor = typeof FloatingPlayerManager;
 
-async function loadAudioDescriptionManager() {
+let AudioDescriptionManagerModule: AudioDescriptionManagerCtor | null = null;
+let SignLanguageManagerModule: SignLanguageManagerCtor | null = null;
+let FloatingPlayerManagerModule: FloatingPlayerManagerCtor | null = null;
+
+async function loadAudioDescriptionManager(): Promise<AudioDescriptionManagerCtor> {
     if (!AudioDescriptionManagerModule) {
         const module = await import('./AudioDescriptionManager.js');
         AudioDescriptionManagerModule = module.AudioDescriptionManager;
@@ -31,7 +44,7 @@ async function loadAudioDescriptionManager() {
     return AudioDescriptionManagerModule;
 }
 
-async function loadSignLanguageManager() {
+async function loadSignLanguageManager(): Promise<SignLanguageManagerCtor> {
     if (!SignLanguageManagerModule) {
         const module = await import('./SignLanguageManager.js');
         SignLanguageManagerModule = module.SignLanguageManager;
@@ -39,12 +52,73 @@ async function loadSignLanguageManager() {
     return SignLanguageManagerModule;
 }
 
-async function loadFloatingPlayerManager() {
+async function loadFloatingPlayerManager(): Promise<FloatingPlayerManagerCtor> {
     if (!FloatingPlayerManagerModule) {
         const module = await import('./FloatingPlayerManager.js');
         FloatingPlayerManagerModule = module.FloatingPlayerManager;
     }
     return FloatingPlayerManagerModule;
+}
+
+const ALLOWED_MEDIA_TYPES = ['video', 'audio'] as const;
+type AllowedMediaType = (typeof ALLOWED_MEDIA_TYPES)[number];
+
+const PROTO_FORBIDDEN_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+
+/**
+ * Validate a CSS variable name and value before they reach `setProperty`.
+ * The browser will silently drop unparseable values, so the bigger risk is
+ * an attacker injecting `;` or `:` to escape into another declaration. We
+ * therefore restrict variable names to `--vidply-` plus `[A-Za-z0-9_-]+`
+ * and values to a printable subset that excludes structural CSS characters.
+ */
+function isValidThemeVariableName(name: string): boolean {
+    return /^--vidply-[A-Za-z0-9_-]{1,64}$/.test(name);
+}
+function isValidThemeVariableValue(value: unknown): value is string {
+    if (typeof value !== 'string') return false;
+    if (value.length > 200) return false;
+    // Reject characters that allow declaration / rule escapes.
+    return !/[<>{};@\\]/.test(value);
+}
+
+/**
+ * Validate a poster/artwork URL before interpolating it into a CSS
+ * `url(...)` value or assigning it to `<video>.poster`. Allows `https:`,
+ * `data:image/<png|jpeg|webp|gif|svg+xml>;...`, root-relative paths
+ * starting with `/`, and same-origin relative paths.
+ */
+function sanitizePosterUrl(input: unknown): string | null {
+    if (typeof input !== 'string' || input.length === 0 || input.length > 4096) {
+        return null;
+    }
+    const trimmed = input.trim();
+    if (!trimmed) return null;
+    if (/[\s"'<>\\]/.test(trimmed)) return null;
+
+    if (trimmed.startsWith('/') || trimmed.startsWith('./') || trimmed.startsWith('../')) {
+        return trimmed;
+    }
+    try {
+        const url = new URL(trimmed, typeof window !== 'undefined' ? window.location.href : 'http://localhost/');
+        if (url.protocol === 'https:' || url.protocol === 'http:') {
+            return url.href;
+        }
+        if (url.protocol === 'data:' && /^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);/i.test(trimmed)) {
+            return trimmed;
+        }
+    } catch {
+        return null;
+    }
+    return null;
+}
+
+/**
+ * CSS-escape an already-validated URL for safe interpolation into a
+ * `url(...)` value. Defense in depth alongside `sanitizePosterUrl`.
+ */
+function cssEscapeUrl(url: string): string {
+    return url.replace(/["()\\]/g, (m) => `\\${m}`);
 }
 
 // Static counter for unique player instances
@@ -53,20 +127,49 @@ let playerInstanceCounter = 0;
 export class Player extends EventEmitter<PlayerEventMap> {
     element: HTMLMediaElement;
     container!: HTMLElement;
-    options: any;
-    state: any;
+    /**
+     * Runtime options. The `& Record<string, any>` intersection covers a
+     * handful of internal-only dynamic keys that have not yet been
+     * promoted into the public {@link PlayerOptions} interface, and keeps
+     * the broad call-site surface from needing a synchronous refactor.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    options: PlayerOptions & Record<string, any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    state: PlayerState & Record<string, any>;
+    // Manager properties stay loosely typed: there is a deeply intertwined
+    // network of circular imports between Player, ControlBar, CaptionManager,
+    // etc. that a piecemeal `any -> X | null` migration would break in
+    // dozens of call sites. Tightening these is tracked separately.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     renderer: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     controlBar: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     captionManager: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     keyboardManager: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     transcriptManager: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     playlistManager: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     settingsDialog: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     audioDescriptionManager: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     signLanguageManager: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     floatingPlayerManager: any;
     storage: StorageManager;
     instanceId: number;
+    /** AbortController whose signal feeds every window/document listener and
+     *  every user-influenced fetch the Player creates. `destroy()` calls
+     *  `abort()` so a torn-down player can never leak listeners or pending
+     *  network calls. */
+    private _lifecycleController: AbortController = new AbortController();
+    /** Convenience getter for sub-systems that take an AbortSignal. */
+    get lifecycleSignal(): AbortSignal { return this._lifecycleController.signal; }
     _audioDescriptionDesiredState: boolean | undefined;
     _fallbackSources: any;
     _inertElements: any;
@@ -161,9 +264,18 @@ export class Player extends EventEmitter<PlayerEventMap> {
         playerInstanceCounter++;
         this.instanceId = playerInstanceCounter;
 
-        // Auto-create media element if a non-media element is provided
+        // Auto-create media element if a non-media element is provided.
+        // mediaType is restricted to a hard-coded allow-list so an attacker
+        // cannot smuggle, say, `script` or `object` via a `data-vidply-options`
+        // attribute they control.
         if (this.element.tagName !== 'VIDEO' && this.element.tagName !== 'AUDIO') {
-            const mediaType = (options.mediaType || 'video') as string;
+            const requested = typeof options.mediaType === 'string' ? options.mediaType.toLowerCase() : 'video';
+            const mediaType: AllowedMediaType = (ALLOWED_MEDIA_TYPES as readonly string[]).includes(requested)
+                ? (requested as AllowedMediaType)
+                : 'video';
+            if (mediaType !== requested) {
+                console.warn(`[VidPly] Ignoring unsafe mediaType "${requested}", falling back to "video"`);
+            }
             const mediaElement = document.createElement(mediaType);
 
             // Copy attributes from the div to the media element
@@ -174,14 +286,13 @@ export class Player extends EventEmitter<PlayerEventMap> {
             });
 
             // Copy any track elements from the div
-            const tracks: any = this.element.querySelectorAll('track');
-            tracks.forEach((track: any) => {
+            const tracks = this.element.querySelectorAll('track');
+            tracks.forEach((track: HTMLTrackElement) => {
                 mediaElement.appendChild(track.cloneNode(true));
             });
 
             // Clear the div and insert the media element
-            this.element.innerHTML = '';
-            this.element.appendChild(mediaElement);
+            this.element.replaceChildren(mediaElement);
 
             // Update element reference to the actual media element
             this.element = mediaElement as HTMLMediaElement;
@@ -1153,13 +1264,24 @@ export class Player extends EventEmitter<PlayerEventMap> {
             this.container.classList.add(`${this.options.classPrefix}-theme-${theme}`);
         }
 
-        // Apply custom variable overrides
+        // Apply custom variable overrides. Each name+value pair is
+        // independently validated; bad entries are logged and skipped so
+        // a single malformed override cannot poison sibling declarations
+        // or turn into a CSS injection vector.
         if (this.options.themeVariables && typeof this.options.themeVariables === 'object') {
-            Object.entries(this.options.themeVariables).forEach(([key, value]) => {
-                // Ensure key has proper prefix
-                const cssVar = key.startsWith('--vidply-') ? key : `--vidply-${key}`;
-                this.container.style.setProperty(cssVar, value as string);
-            });
+            for (const [rawKey, rawValue] of Object.entries(this.options.themeVariables)) {
+                if (PROTO_FORBIDDEN_KEYS.has(rawKey)) continue;
+                const cssVar = rawKey.startsWith('--vidply-') ? rawKey : `--vidply-${rawKey}`;
+                if (!isValidThemeVariableName(cssVar)) {
+                    this.log(`[VidPly] Ignoring invalid theme variable name: ${rawKey}`, 'warn');
+                    continue;
+                }
+                if (!isValidThemeVariableValue(rawValue)) {
+                    this.log(`[VidPly] Ignoring invalid theme variable value for ${cssVar}`, 'warn');
+                    continue;
+                }
+                this.container.style.setProperty(cssVar, rawValue);
+            }
         }
     }
 
@@ -1206,17 +1328,23 @@ export class Player extends EventEmitter<PlayerEventMap> {
      * @param {string} variableName - Variable name (with or without --vidply- prefix)
      * @param {string} value - CSS value
      */
-    setThemeVariable(variableName: any, value: any) {
+    setThemeVariable(variableName: string, value: string): void {
         if (!this.container) return;
 
-        const cssVar = variableName.startsWith('--vidply-') 
-            ? variableName 
+        const cssVar = variableName.startsWith('--vidply-')
+            ? variableName
             : `--vidply-${variableName}`;
-        
+
+        if (!isValidThemeVariableName(cssVar) || !isValidThemeVariableValue(value)) {
+            this.log(`[VidPly] Ignoring unsafe setThemeVariable(${variableName})`, 'warn');
+            return;
+        }
+
         this.container.style.setProperty(cssVar, value);
-        
-        // Store in options for persistence
-        this.options.themeVariables = this.options.themeVariables || {};
+
+        if (!this.options.themeVariables) {
+            this.options.themeVariables = {};
+        }
         this.options.themeVariables[variableName] = value;
     }
 
@@ -1274,16 +1402,22 @@ export class Player extends EventEmitter<PlayerEventMap> {
         this.element.parentNode?.insertBefore(this.container, this.element);
         
         // Create track artwork element for single audio files (before video wrapper)
-        // This shows the poster/artwork above the audio player (similar to playlists)
+        // This shows the poster/artwork above the audio player (similar to playlists).
+        // Poster URL is validated and CSS-escaped before interpolation.
         if (this.element.tagName === 'AUDIO' && this.options.poster) {
-            this.trackArtworkElement = DOMUtils.createElement('div', {
-                className: `${this.options.classPrefix}-track-artwork`,
-                attributes: {
-                    'aria-hidden': 'true'
-                }
-            });
-            this.trackArtworkElement.style.backgroundImage = `url(${this.options.poster})`;
-            this.container.appendChild(this.trackArtworkElement);
+            const safePoster = sanitizePosterUrl(this.options.poster);
+            if (safePoster) {
+                this.trackArtworkElement = DOMUtils.createElement('div', {
+                    className: `${this.options.classPrefix}-track-artwork`,
+                    attributes: {
+                        'aria-hidden': 'true'
+                    }
+                });
+                this.trackArtworkElement.style.backgroundImage = `url("${cssEscapeUrl(safePoster)}")`;
+                this.container.appendChild(this.trackArtworkElement);
+            } else {
+                this.log(`[VidPly] Ignored unsafe poster URL`, 'warn');
+            }
         }
         
         this.container.appendChild(this.videoWrapper);
@@ -1316,10 +1450,14 @@ export class Player extends EventEmitter<PlayerEventMap> {
                 : this.options.height;
         }
 
-        // Set poster (convert relative paths to absolute URLs)
+        // Set poster (convert relative paths to absolute URLs). The
+        // resolvePosterPath() output is then re-validated to ensure no
+        // disallowed scheme survived.
         if (this.options.poster && this.element.tagName === 'VIDEO') {
-            const resolvedPoster = this.resolvePosterPath(this.options.poster);
-            (this.element as HTMLVideoElement).poster = resolvedPoster;
+            const resolvedPoster = sanitizePosterUrl(this.resolvePosterPath(this.options.poster));
+            if (resolvedPoster) {
+                (this.element as HTMLVideoElement).poster = resolvedPoster;
+            }
         }
 
         // Create centered play button overlay (only for video)
@@ -1335,14 +1473,16 @@ export class Player extends EventEmitter<PlayerEventMap> {
         // Add to static instances array
         Player.instances.push(this);
 
-        // Make video/audio element clickable to toggle play/pause
+        // Make video/audio element clickable to toggle play/pause. The
+        // listener is wired to the Player's lifecycle AbortController so
+        // destroy() removes it without an explicit removeEventListener
+        // pair.
         this.element.style.cursor = 'pointer';
         this.element.addEventListener('click', (e) => {
-            // Prevent if clicking on native controls (shouldn't happen but just in case)
             if (e.target === this.element) {
                 this.toggle();
             }
-        });
+        }, { signal: this.lifecycleSignal });
 
         this.on('play', () => {
             this.state.hasStartedPlayback = true;
@@ -1416,7 +1556,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
             this.positionPlayOverlayOnMobile();
         }, 150);
         
-        window.addEventListener('resize', this.debouncedPositionPlayOverlay);
+        window.addEventListener('resize', this.debouncedPositionPlayOverlay, { signal: this.lifecycleSignal });
         
         this.on('loadedmetadata', () => {
             this.positionPlayOverlayOnMobile();
@@ -2331,7 +2471,14 @@ export class Player extends EventEmitter<PlayerEventMap> {
         }
     }
 
-    seek(time: any) {
+    /**
+     * Seek to a non-negative finite second offset. Non-finite or non-numeric
+     * inputs are silently dropped instead of being forwarded to the renderer
+     * where they would set `currentTime = NaN` on a HTMLMediaElement.
+     */
+    seek(time: number): void {
+        if (typeof time !== 'number' || !Number.isFinite(time)) return;
+        const safeTime = time < 0 ? 0 : time;
         // Any user-initiated seek (seekbar drag/click, keyboard arrow,
         // skip buttons) flows through this method, so it's the right place
         // to drop the poster overlay: scrubbing communicates "I want to see
@@ -2342,23 +2489,30 @@ export class Player extends EventEmitter<PlayerEventMap> {
         // case (which is what we want — the user hasn't engaged yet).
         this.hidePosterOverlay();
         if (this.renderer) {
-            this.renderer.seek(time);
+            this.renderer.seek(safeTime);
         }
     }
 
-    seekForward(interval = this.options.seekInterval) {
-        const targetTime = this.state.currentTime + interval;
+    seekForward(interval: number = (this.options.seekInterval as number)): void {
+        const step = Number.isFinite(interval) ? interval : 5;
+        const targetTime = this.state.currentTime + step;
         // Only cap to duration if duration is known (> 0), otherwise let the media element handle it
         const seekTime = this.state.duration > 0 ? Math.min(targetTime, this.state.duration) : targetTime;
         this.seek(seekTime);
     }
 
-    seekBackward(interval = this.options.seekInterval) {
-        this.seek(Math.max(this.state.currentTime - interval, 0));
+    seekBackward(interval: number = (this.options.seekInterval as number)): void {
+        const step = Number.isFinite(interval) ? interval : 5;
+        this.seek(Math.max(this.state.currentTime - step, 0));
     }
 
     // Volume controls
-    setVolume(volume: any) {
+    /**
+     * Set the volume to a finite number in [0, 1]. Non-numeric or NaN
+     * input is silently ignored.
+     */
+    setVolume(volume: number): void {
+        if (typeof volume !== 'number' || !Number.isFinite(volume)) return;
         const newVolume = Math.max(0, Math.min(1, volume));
         if (this.renderer) {
             this.renderer.setVolume(newVolume);
@@ -2408,7 +2562,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     // Playback speed
-    setPlaybackSpeed(speed: any) {
+    /**
+     * Set playback speed in [0.25, 2]. Silently rejects non-finite input.
+     */
+    setPlaybackSpeed(speed: number): void {
+        if (typeof speed !== 'number' || !Number.isFinite(speed)) return;
         const newSpeed = Math.max(0.25, Math.min(2, speed));
         if (this.renderer) {
             this.renderer.setPlaybackSpeed(newSpeed);
@@ -2730,15 +2888,24 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     /**
-     * Check if a track file exists
-     * @param {string} url - Track file URL
-     * @returns {Promise<boolean>} - True if file exists
+     * Check if a track file exists. Bounded by an 8s `AbortSignal.timeout`
+     * and the player's lifecycle controller so a slow / hung server cannot
+     * keep a request alive past `destroy()`.
      */
-    async validateTrackExists(url: any) {
+    async validateTrackExists(url: string): Promise<boolean> {
+        if (typeof url !== 'string' || !url) return false;
+        const signals: AbortSignal[] = [this.lifecycleSignal];
+        if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+            signals.push(AbortSignal.timeout(8000));
+        }
+        const signal = signals.length === 1 ? signals[0] : (AbortSignal as { any?: (signals: AbortSignal[]) => AbortSignal }).any?.(signals) ?? signals[0];
         try {
-            const response = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
+            const response = await fetch(url, { method: 'HEAD', cache: 'no-cache', signal });
             return response.ok;
-        } catch (error: any) {
+        } catch (error: unknown) {
+            if (this.options.debug) {
+                this.log(`validateTrackExists("${url}") failed: ${(error as Error)?.message ?? error}`, 'warn');
+            }
             return false;
         }
     }
@@ -4901,7 +5068,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
                 }
             };
             setTimeout(() => {
-                document.addEventListener('mousedown', this.signLanguageDocumentClickHandler, true); // Use mousedown in capture phase
+                document.addEventListener('mousedown', this.signLanguageDocumentClickHandler, { capture: true, signal: this.lifecycleSignal });
                 this.signLanguageDocumentClickHandlerAdded = true;
             }, 300);
         }
@@ -5436,7 +5603,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
                 }
             };
 
-            window.addEventListener('resize', this.resizeHandler);
+            window.addEventListener('resize', this.resizeHandler, { signal: this.lifecycleSignal });
         }
 
         // Also listen for orientation changes on mobile
@@ -5526,16 +5693,31 @@ export class Player extends EventEmitter<PlayerEventMap> {
             }
         };
 
-        // Add listeners for all vendor-prefixed fullscreenchange events
-        document.addEventListener('fullscreenchange', this.fullscreenChangeHandler);
-        document.addEventListener('webkitfullscreenchange', this.fullscreenChangeHandler);
-        document.addEventListener('mozfullscreenchange', this.fullscreenChangeHandler);
-        document.addEventListener('MSFullscreenChange', this.fullscreenChangeHandler);
+        // Add listeners for all vendor-prefixed fullscreenchange events.
+        // All four wire to the Player's lifecycle AbortController so
+        // destroy() removes them in a single shot.
+        const opts = { signal: this.lifecycleSignal };
+        document.addEventListener('fullscreenchange', this.fullscreenChangeHandler, opts);
+        document.addEventListener('webkitfullscreenchange', this.fullscreenChangeHandler, opts);
+        document.addEventListener('mozfullscreenchange', this.fullscreenChangeHandler, opts);
+        document.addEventListener('MSFullscreenChange', this.fullscreenChangeHandler, opts);
     }
 
-    // Cleanup
-    destroy() {
+    // Cleanup. Aborts the lifecycle controller (which removes every
+    // window/document listener wired with `{ signal }` plus every
+    // user-influenced fetch we threaded the signal into), cascade-destroys
+    // every manager we own, and finally removes this instance from the
+    // global `Player.instances` registry.
+    destroy(): void {
         this.log('Destroying player');
+
+        // Abort all listeners + in-flight fetches first so callbacks
+        // running concurrently with destroy() see a torn-down player.
+        try {
+            this._lifecycleController.abort();
+        } catch (err) {
+            this.log(`AbortController.abort failed: ${err}`, 'warn');
+        }
 
         if (this.renderer) {
             this.renderer.destroy();
@@ -5560,6 +5742,43 @@ export class Player extends EventEmitter<PlayerEventMap> {
         // Cleanup sign language video and listeners
         this.cleanupSignLanguage();
 
+        // Cascade-destroy lazy-loaded managers that own their own listeners.
+        if (this.audioDescriptionManager && typeof this.audioDescriptionManager.destroy === 'function') {
+            try {
+                this.audioDescriptionManager.destroy();
+            } catch (err) {
+                this.log(`AudioDescriptionManager.destroy failed: ${err}`, 'warn');
+            }
+            this.audioDescriptionManager = null;
+        }
+
+        if (this.signLanguageManager && typeof this.signLanguageManager.destroy === 'function') {
+            try {
+                this.signLanguageManager.destroy();
+            } catch (err) {
+                this.log(`SignLanguageManager.destroy failed: ${err}`, 'warn');
+            }
+            this.signLanguageManager = null;
+        }
+
+        if (this.playlistManager && typeof this.playlistManager.destroy === 'function') {
+            try {
+                this.playlistManager.destroy();
+            } catch (err) {
+                this.log(`PlaylistManager.destroy failed: ${err}`, 'warn');
+            }
+            this.playlistManager = null;
+        }
+
+        if (this.settingsDialog && typeof this.settingsDialog.destroy === 'function') {
+            try {
+                this.settingsDialog.destroy();
+            } catch (err) {
+                this.log(`SettingsDialog.destroy failed: ${err}`, 'warn');
+            }
+            this.settingsDialog = null;
+        }
+
         // Cleanup floating player manager (disconnects IntersectionObserver,
         // returns the container to its original parent if still floating)
         if (this.floatingPlayerManager) {
@@ -5577,6 +5796,10 @@ export class Player extends EventEmitter<PlayerEventMap> {
             this.playButtonOverlay = null;
         }
 
+        // The buffering listener is attached to `this.element` directly and
+        // therefore not covered by the lifecycle controller (which only
+        // covers window/document/element listeners that opted in via
+        // `{ signal }`); it is removed explicitly here.
         if (this._bufferingHideOnMediaPlaying) {
             this.element.removeEventListener('playing', this._bufferingHideOnMediaPlaying);
             this._bufferingHideOnMediaPlaying = null;
@@ -5587,19 +5810,21 @@ export class Player extends EventEmitter<PlayerEventMap> {
             this.loadingOverlayElement = null;
         }
 
-        // Cleanup resize observer
+        // Cleanup resize observer (not covered by AbortController)
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;
         }
 
-        // Cleanup window resize handler
-        if (this.resizeHandler) {
-            window.removeEventListener('resize', this.resizeHandler);
-            this.resizeHandler = null;
-        }
+        // The remaining window/document handlers (resize, fullscreenchange,
+        // sign-language mousedown, lifecycle media element click) are
+        // already torn down by `this._lifecycleController.abort()` above.
+        this.resizeHandler = null;
+        this.fullscreenChangeHandler = null;
 
-        // Cleanup orientation change handler
+        // Cleanup orientation change handler. matchMedia listeners are
+        // *not* covered by the AbortController on every browser; remove
+        // explicitly.
         if (this.orientationQuery && this.orientationHandler) {
             if (this.orientationQuery.removeEventListener) {
                 this.orientationQuery.removeEventListener('change', this.orientationHandler);
@@ -5610,23 +5835,14 @@ export class Player extends EventEmitter<PlayerEventMap> {
             this.orientationHandler = null;
         }
 
-        // Cleanup fullscreen change handler
-        if (this.fullscreenChangeHandler) {
-            document.removeEventListener('fullscreenchange', this.fullscreenChangeHandler);
-            document.removeEventListener('webkitfullscreenchange', this.fullscreenChangeHandler);
-            document.removeEventListener('mozfullscreenchange', this.fullscreenChangeHandler);
-            document.removeEventListener('MSFullscreenChange', this.fullscreenChangeHandler);
-            this.fullscreenChangeHandler = null;
-        }
-
         // Cleanup all managed timeouts
-        this.timeouts.forEach((timeoutId: any) => clearTimeout(timeoutId));
+        this.timeouts.forEach((timeoutId: ReturnType<typeof setTimeout>) => clearTimeout(timeoutId));
         this.timeouts.clear();
 
         // Cleanup metadata handling
         if (this.metadataCueChangeHandler) {
             const textTracks = this.textTracks;
-            const metadataTrack = textTracks.find((track: any) => track.kind === 'metadata');
+            const metadataTrack = textTracks.find((track: TextTrack) => track.kind === 'metadata');
             if (metadataTrack) {
                 metadataTrack.removeEventListener('cuechange', this.metadataCueChangeHandler);
             }
@@ -5634,12 +5850,19 @@ export class Player extends EventEmitter<PlayerEventMap> {
         }
 
         if (this.metadataAlertHandlers && this.metadataAlertHandlers.size > 0) {
-            this.metadataAlertHandlers.forEach(({ button, handler }: any) => {
+            this.metadataAlertHandlers.forEach(({ button, handler }: { button: HTMLElement | null; handler: EventListener | null }) => {
                 if (button && handler) {
                     button.removeEventListener('click', handler);
                 }
             });
             this.metadataAlertHandlers.clear();
+        }
+
+        // Drop ourselves from the global registry so multi-player pages can
+        // detect leaks via Player.instances.length === expected.
+        const idx = Player.instances.indexOf(this);
+        if (idx >= 0) {
+            Player.instances.splice(idx, 1);
         }
 
         // Remove container
@@ -5709,18 +5932,47 @@ export class Player extends EventEmitter<PlayerEventMap> {
         this.on('loadedmetadata', setupMetadata);
     }
 
-    normalizeMetadataSelector(selector: any) {
-        if (!selector) {
+    normalizeMetadataSelector(selector: unknown): string | null {
+        if (typeof selector !== 'string') {
             return null;
         }
         const trimmed = selector.trim();
         if (!trimmed) {
             return null;
         }
+        // Reject selectors longer than 200 chars to bound any quadratic
+        // matching cost in the engine.
+        if (trimmed.length > 200) {
+            return null;
+        }
         if (trimmed.startsWith('#') || trimmed.startsWith('.') || trimmed.startsWith('[')) {
             return trimmed;
         }
         return `#${trimmed}`;
+    }
+
+    /**
+     * Resolve a metadata-cue selector inside the configured directive scope.
+     * Returns `null` when directives are disabled or the selector doesn't
+     * resolve.
+     */
+    private resolveMetadataElement(selector: string | null): HTMLElement | null {
+        const mode = this.options.metadataDirectives;
+        if (!mode) return null;
+        if (!selector) return null;
+        try {
+            if (mode === true || mode === 'global') {
+                return document.querySelector(selector) as HTMLElement | null;
+            }
+            // 'container' (default for opted-in users): scope lookups to the
+            // player container, so a malicious caption cannot focus a
+            // login-form input or trigger a dialog elsewhere on the page.
+            const root = this.container || this.element.parentElement || document;
+            return (root as ParentNode).querySelector(selector) as HTMLElement | null;
+        } catch {
+            // Bad selector — never surface to the page.
+            return null;
+        }
     }
 
     resolveMetadataConfig(map: any, key: any) {
@@ -5820,7 +6072,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
         }
 
         const config: any = this.resolveMetadataConfig(this.options.metadataAlerts, selector) || {};
-        const element = options.element || document.querySelector(selector);
+        // Container-scoped resolution by default; only fall back to a
+        // global lookup when `metadataDirectives === 'global' | true`.
+        const element = options.element || this.resolveMetadataElement(selector);
 
         if (!element) {
             if (this.options.debug) {
@@ -5928,12 +6182,12 @@ export class Player extends EventEmitter<PlayerEventMap> {
                 return;
             }
 
-            const selector: any = this.normalizeMetadataSelector(config.alert || config.selector || config.target);
+            const selector: string | null = this.normalizeMetadataSelector(config.alert || config.selector || config.target);
             if (!selector) {
                 return;
             }
 
-            const element = document.querySelector(selector);
+            const element = this.resolveMetadataElement(selector);
             if (!element) {
                 if (this.options.debug) {
                     this.log('[Metadata] Hashtag target not found:', selector);
@@ -6012,38 +6266,36 @@ export class Player extends EventEmitter<PlayerEventMap> {
             this.emit('metadata:pause', { time: cue.startTime, text: text });
         }
 
-        // Parse for focus directives
-        const focusMatch = text.match(/FOCUS:([\w#-]+)/);
+        // Parse for focus directives. The DOM side-effects (.focus() + alert)
+        // are gated on `options.metadataDirectives`; the public event always
+        // fires so consumers can opt into custom handling.
+        const focusMatch = text.match(/FOCUS:([\w#-]{1,128})/);
         if (focusMatch) {
             const targetSelector = focusMatch[1];
             const normalizedSelector = this.normalizeMetadataSelector(targetSelector);
-            // Automatically focus the target element
-            const targetElement = normalizedSelector ? document.querySelector(normalizedSelector) : null;
+            const targetElement = this.resolveMetadataElement(normalizedSelector);
             if (targetElement) {
                 if (this.options.debug) {
                     this.log('[Metadata] Focusing element:', normalizedSelector);
                 }
-                // Make element focusable if it isn't already
                 if (targetElement.tabIndex === -1 && !targetElement.hasAttribute('tabindex')) {
                     targetElement.setAttribute('tabindex', '-1');
                 }
-                // Use setTimeout to ensure DOM is ready
                 this.setManagedTimeout(() => {
                     targetElement.focus({ preventScroll: true });
                 }, 10);
-            } else if (this.options.debug) {
+            } else if (this.options.debug && this.options.metadataDirectives) {
                 this.log('[Metadata] Element not found:', normalizedSelector || targetSelector);
             }
-            // Also emit event for developers who want to listen
-            this.emit('metadata:focus', { 
-                time: cue.startTime, 
+            this.emit('metadata:focus', {
+                time: cue.startTime,
                 target: targetSelector,
                 selector: normalizedSelector,
                 element: targetElement,
-                text: text 
+                text: text
             });
 
-            if (normalizedSelector) {
+            if (this.options.metadataDirectives && normalizedSelector) {
                 this.handleMetadataAlert(normalizedSelector, {
                     element: targetElement,
                     reason: 'focus'
@@ -6052,18 +6304,22 @@ export class Player extends EventEmitter<PlayerEventMap> {
         }
 
         // Parse for hashtag references
-        const hashtags: any = text.match(/#[\w-]+/g);
-        if (hashtags) {
+        const hashtags = text.match(/#[\w-]{1,64}/g);
+        if (hashtags && hashtags.length > 0) {
+            // Cap at 32 hashtags per cue to bound subsequent work.
+            const safeTags = hashtags.slice(0, 32);
             if (this.options.debug) {
-                this.log('[Metadata] Hashtags found:', hashtags);
+                this.log('[Metadata] Hashtags found:', safeTags);
             }
             this.emit('metadata:hashtags', {
                 time: cue.startTime,
-                hashtags: hashtags,
+                hashtags: safeTags,
                 text: text
             });
 
-            this.handleMetadataHashtags(hashtags);
+            if (this.options.metadataDirectives) {
+                this.handleMetadataHashtags(safeTags);
+            }
         }
     }
 }

@@ -119,16 +119,99 @@ export const DOMUtils = {
     return str.replace(/[&<>"']/g, char => escapeMap[char]);
   },
 
-  sanitizeHTML(html: string): string {
-    const safeHtml = html
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-      .replace(/on\w+\s*=/gi, '')
-      .replace(/javascript:/gi, '');
+  /**
+   * Render a WebVTT cue's text safely.
+   *
+   * The previous implementation ran a regex-based blacklist over the cue
+   * string and assigned the result to `innerHTML`, which is a known-unsafe
+   * pattern (mutation-XSS bypasses, attribute-name tricks, etc.). Caption
+   * text on most sites is fetched verbatim from external `.vtt` files that
+   * the embedding page has no control over (third-party HLS/DASH manifests,
+   * user-supplied playlists, ...) so this code path is reachable by
+   * untrusted authors.
+   *
+   * The new implementation tokenizes only the WebVTT inline tags allowed by
+   * the spec (`<b>`, `<i>`, `<u>`, `<c[.class]>`, `<v authorName>`) and
+   * builds the resulting DOM via `document.createElement` /
+   * `document.createTextNode`. Anything else (script, iframe, attributes,
+   * URL schemes, character refs, ...) is rendered as literal text.
+   *
+   * Cue input is hard-capped at 10,000 characters before parsing to
+   * eliminate ReDoS and runaway-DOM concerns.
+   */
+  renderVTTToDOM(text: string): DocumentFragment {
+    const MAX_CUE_LENGTH = 10_000;
+    const safeInput = text.length > MAX_CUE_LENGTH ? text.slice(0, MAX_CUE_LENGTH) : text;
+    const fragment = document.createDocumentFragment();
+    const stack: HTMLElement[] = [];
 
-    const temp = document.createElement('div');
-    temp.innerHTML = safeHtml;
-    return temp.innerHTML;
+    const append = (node: Node): void => {
+      const target = stack.length > 0 ? stack[stack.length - 1] : fragment;
+      target.appendChild(node);
+    };
+
+    const tagPattern = /<(\/)?([a-z])(?:\.([\w.-]{1,200}))?(?:\s+([^<>]{0,500}))?>/i;
+    let cursor = 0;
+
+    while (cursor < safeInput.length) {
+      const remaining = safeInput.slice(cursor);
+      const match = tagPattern.exec(remaining);
+      if (!match || match.index === undefined) {
+        append(document.createTextNode(remaining));
+        break;
+      }
+
+      if (match.index > 0) {
+        append(document.createTextNode(remaining.slice(0, match.index)));
+      }
+
+      const [, closing, tagLetter, classList, voiceName] = match;
+      const tag = (tagLetter || '').toLowerCase();
+
+      if (closing) {
+        if (stack.length > 0 && stack[stack.length - 1].dataset.vttTag === tag) {
+          stack.pop();
+        }
+      } else if (tag === 'b' || tag === 'i' || tag === 'u') {
+        const elementTag = tag === 'b' ? 'strong' : tag === 'i' ? 'em' : 'u';
+        const node = document.createElement(elementTag);
+        node.dataset.vttTag = tag;
+        append(node);
+        stack.push(node);
+      } else if (tag === 'c') {
+        const span = document.createElement('span');
+        span.dataset.vttTag = tag;
+        span.classList.add('caption-class');
+        if (classList) {
+          for (const cls of classList.split('.').filter(Boolean)) {
+            if (/^[\w-]+$/.test(cls)) {
+              span.classList.add(`caption-class-${cls}`);
+            }
+          }
+        }
+        append(span);
+        stack.push(span);
+      } else if (tag === 'v') {
+        const span = document.createElement('span');
+        span.dataset.vttTag = tag;
+        span.classList.add('caption-voice');
+        if (voiceName) {
+          // Voice name is text; never an attribute. data-voice mirrors the
+          // historical hook used by `caption-voice` styles.
+          span.dataset.voice = voiceName.trim().slice(0, 200);
+        }
+        append(span);
+        stack.push(span);
+      } else {
+        // Unknown tag — render literally as escaped text so authors can see
+        // the bug without it becoming an injection vector.
+        append(document.createTextNode(match[0]));
+      }
+
+      cursor += match.index + match[0].length;
+    }
+
+    return fragment;
   },
 
   createTooltip(text: string, classPrefix = 'vidply'): HTMLElement {

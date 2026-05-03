@@ -241,10 +241,31 @@ export class HLSRenderer implements Renderer {
     this.attachMediaEvents();
   }
 
-  async loadHlsJs() {
+  /**
+   * Load hls.js. Pinned to an exact version by default (no more `@latest`).
+   * Embedders who self-host or who want SRI protection can override via:
+   *   - `options.hlsScriptUrl` (URL to load from)
+   *   - `options.hlsScriptIntegrity` (Subresource Integrity hash, e.g.
+   *     `sha384-XXXX`)
+   *
+   * Generate the SRI hash with:
+   *   curl -sSL <url> | openssl dgst -sha384 -binary | openssl base64 -A
+   * and prefix with `sha384-`. SRI is opt-in because hash drift would
+   * silently break playback for consumers who upgrade hls.js.
+   */
+  async loadHlsJs(): Promise<void> {
+    const defaultUrl = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js';
+    const url: string = (this.player.options.hlsScriptUrl as string | undefined) || defaultUrl;
+    const integrity = this.player.options.hlsScriptIntegrity as string | undefined;
+
     return new Promise<void>((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
+      script.src = url;
+      if (integrity) {
+        script.integrity = integrity;
+        script.crossOrigin = 'anonymous';
+        script.referrerPolicy = 'no-referrer';
+      }
       script.onload = () => resolve();
       script.onerror = () => reject(new Error('Failed to load hls.js'));
       document.head.appendChild(script);

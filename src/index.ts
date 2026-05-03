@@ -5,25 +5,67 @@
 
 import { Player } from './core/Player.js';
 import { PlaylistManager } from './features/PlaylistManager.js';
+import type { PlayerOptions } from './types/options.js';
 
-// Map to track pending lazy-initialized players
-const pendingPlayers = new Map<HTMLElement, { observer: IntersectionObserver; options: Record<string, any> }>();
+export type LazyHandle = { cancel: () => void } | null;
 
-// Auto-initialize players
-function initializePlayers() {
+interface PendingLazyEntry {
+  observer: IntersectionObserver;
+  options: Partial<PlayerOptions>;
+}
+
+const pendingPlayers = new Map<HTMLElement, PendingLazyEntry>();
+
+const FORBIDDEN_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+
+/**
+ * Filter `__proto__` / `constructor` / `prototype` keys from an attacker-
+ * influenced JSON object before merging it into the player options. This
+ * avoids prototype-pollution turning a malformed `data-vidply-options`
+ * attribute into a global gadget.
+ */
+function sanitizeOptionsObject(input: unknown): Partial<PlayerOptions> {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return {};
+  }
+  const out: Record<string, unknown> = Object.create(null);
+  for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
+    if (FORBIDDEN_KEYS.has(key)) continue;
+    out[key] = value;
+  }
+  return out as Partial<PlayerOptions>;
+}
+
+/**
+ * Parse a `data-vidply-options` JSON string. Robust against malformed input
+ * — a single broken attribute on one element no longer aborts the auto-init
+ * loop for every other player on the page.
+ */
+function parseInlineOptions(element: HTMLElement): Partial<PlayerOptions> {
+  const raw = element.dataset.vidplyOptions;
+  if (!raw) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return sanitizeOptionsObject(parsed);
+  } catch (err) {
+    console.warn('[VidPly] Ignored malformed data-vidply-options:', err);
+    return {};
+  }
+}
+
+function initializePlayers(): void {
   const elements = document.querySelectorAll<HTMLElement>('[data-vidply]');
-  
-  elements.forEach(element => {
-    const options: Record<string, any> = element.dataset.vidplyOptions 
-      ? JSON.parse(element.dataset.vidplyOptions)
-      : {};
-    
+
+  elements.forEach((element) => {
+    const options = parseInlineOptions(element);
     const dataOptions = parseDataAttributes(element.dataset);
-    const mergedOptions = { ...dataOptions, ...options };
-    
-    const lazyInit = element.dataset.vidplyLazy !== 'false' && mergedOptions.lazyInit !== false;
-    const lazyMargin = element.dataset.vidplyLazyMargin || mergedOptions.lazyMargin || '500px';
-    
+    const mergedOptions: Partial<PlayerOptions> = { ...dataOptions, ...options };
+
+    const lazyInit =
+      element.dataset.vidplyLazy !== 'false' && mergedOptions.lazyInit !== false;
+    const lazyMargin =
+      element.dataset.vidplyLazyMargin || (mergedOptions.lazyMargin as string) || '500px';
+
     if (lazyInit && 'IntersectionObserver' in window) {
       observeForLazyInit(element, mergedOptions, lazyMargin);
     } else {
@@ -32,50 +74,35 @@ function initializePlayers() {
   });
 }
 
-/**
- * Set up IntersectionObserver to lazily initialize a player when visible
- * @param {HTMLElement} element - The video element to observe
- * @param {Object} options - Player options
- * @param {string} margin - Root margin for IntersectionObserver
- */
-function observeForLazyInit(element: HTMLElement, options: Record<string, any>, margin: string) {
-  // Check if element has very small dimensions - CSS may not have loaded yet
-  // In this case, initialize immediately as IntersectionObserver won't work reliably
+function observeForLazyInit(
+  element: HTMLElement,
+  options: Partial<PlayerOptions>,
+  margin: string
+): void {
   const rect = element.getBoundingClientRect();
   if (rect.height < 20) {
     new Player(element, options);
     return;
   }
-  
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        // Stop observing once triggered
-        observer.unobserve(entry.target);
-        
-        // Remove from pending map
-        pendingPlayers.delete(entry.target as HTMLElement);
-        
-        // Initialize the player
-        new Player(entry.target as HTMLElement, options);
-      }
-    });
-  }, {
-    rootMargin: margin,
-    threshold: 0
-  });
-  
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          observer.unobserve(entry.target);
+          pendingPlayers.delete(entry.target as HTMLElement);
+          new Player(entry.target as HTMLElement, options);
+        }
+      });
+    },
+    { rootMargin: margin, threshold: 0 }
+  );
+
   observer.observe(element);
-  
-  // Store for potential cleanup
   pendingPlayers.set(element, { observer, options });
 }
 
-/**
- * Cancel lazy initialization for an element
- * @param {HTMLElement} element - The element to cancel lazy init for
- */
-function cancelLazyInit(element: HTMLElement) {
+function cancelLazyInit(element: HTMLElement): void {
   const pending = pendingPlayers.get(element);
   if (pending) {
     pending.observer.unobserve(element);
@@ -84,166 +111,148 @@ function cancelLazyInit(element: HTMLElement) {
 }
 
 /**
- * Manually trigger lazy observation for an element
- * Useful for programmatic setup outside of auto-initialization
- * @param {string|HTMLElement} selector - Element or selector
- * @param {Object} options - Player options
- * @param {string} margin - Root margin (default: '200px')
- * @returns {Object|null} Reference to cancel lazy init, or null if immediate init
+ * Manually trigger lazy observation for an element. Real, typed static
+ * method on the Player class.
  */
-(Player as any).observeLazy = function(selector: string | HTMLElement, options: Record<string, any> = {}, margin = '200px') {
-  const element = typeof selector === 'string' ? document.querySelector(selector) as HTMLElement | null : selector;
-  
+Player.observeLazy = function observeLazy(
+  selector: string | HTMLElement,
+  options: Record<string, unknown> = {},
+  margin = '200px'
+): LazyHandle {
+  const element =
+    typeof selector === 'string'
+      ? (document.querySelector(selector) as HTMLElement | null)
+      : selector;
+
   if (!element) {
     console.warn('VidPly: Element not found for lazy observation');
     return null;
   }
-  
+
   if ('IntersectionObserver' in window) {
-    observeForLazyInit(element, options, margin);
+    observeForLazyInit(element, options as Partial<PlayerOptions>, margin);
     return {
       cancel: () => cancelLazyInit(element)
     };
-  } else {
-    new Player(element, options);
-    return null;
   }
+  new Player(element, options as Partial<PlayerOptions>);
+  return null;
 };
 
-// Helper function to parse data attributes into options
-function parseDataAttributes(dataset: DOMStringMap): Record<string, any> {
-  const options: Record<string, any> = {};
-  
-  // Map of data attribute names to option keys (camelCase conversion)
-  const attributeMap: Record<string, string> = {
-    // Sign Language
-    'signLanguageSrc': 'signLanguageSrc',
-    'signLanguageButton': 'signLanguageButton',
-    'signLanguagePosition': 'signLanguagePosition',
-    'signLanguageDisplayMode': 'signLanguageDisplayMode',
-    
-    // Audio Description
-    'audioDescriptionSrc': 'audioDescriptionSrc',
-    'audioDescriptionButton': 'audioDescriptionButton',
-    
-    // Other common options
-    'autoplay': 'autoplay',
-    'loop': 'loop',
-    'muted': 'muted',
-    'controls': 'controls',
-    'poster': 'poster',
-    'width': 'width',
-    'height': 'height',
-    'language': 'language',
-    'captions': 'captions',
-    'captionsDefault': 'captionsDefault',
-    'transcript': 'transcript',
-    'transcriptButton': 'transcriptButton',
-    'keyboard': 'keyboard',
-    'responsive': 'responsive',
-    'pipButton': 'pipButton',
-    'fullscreenButton': 'fullscreenButton',
+function parseDataAttributes(dataset: DOMStringMap): Partial<PlayerOptions> {
+  const options: Record<string, unknown> = Object.create(null);
 
-    // Floating Player (custom in-page PiP)
-    'floating': 'floating',
-    'floatingPosition': 'floatingPosition',
-    'floatingMinViewportWidth': 'floatingMinViewportWidth',
-
-    // Layout
-    
-    // Lazy Loading
-    'lazyInit': 'lazyInit',
-    'lazyMargin': 'lazyMargin',
-    
-    // Theming
-    'theme': 'theme'
+  const attributeMap: Record<string, keyof PlayerOptions> = {
+    signLanguageSrc: 'signLanguageSrc',
+    signLanguageButton: 'signLanguageButton',
+    signLanguagePosition: 'signLanguagePosition',
+    signLanguageDisplayMode: 'signLanguageDisplayMode',
+    audioDescriptionSrc: 'audioDescriptionSrc',
+    audioDescriptionButton: 'audioDescriptionButton',
+    autoplay: 'autoplay',
+    loop: 'loop',
+    muted: 'muted',
+    controls: 'controls',
+    poster: 'poster',
+    width: 'width',
+    height: 'height',
+    language: 'language',
+    captions: 'captions',
+    captionsDefault: 'captionsDefault',
+    transcript: 'transcript',
+    transcriptButton: 'transcriptButton',
+    keyboard: 'keyboard',
+    responsive: 'responsive',
+    pipButton: 'pipButton',
+    fullscreenButton: 'fullscreenButton',
+    floating: 'floating',
+    floatingPosition: 'floatingPosition',
+    floatingMinViewportWidth: 'floatingMinViewportWidth',
+    lazyInit: 'lazyInit',
+    lazyMargin: 'lazyMargin',
+    theme: 'theme'
   };
-  
-  // Parse each data attribute
-  Object.keys(attributeMap).forEach(dataKey => {
-    const optionKey = attributeMap[dataKey];
+
+  for (const [dataKey, optionKey] of Object.entries(attributeMap)) {
+    if (FORBIDDEN_KEYS.has(optionKey as string)) continue;
     const value = dataset[dataKey];
-    
-    if (value !== undefined) {
-      // Convert string values to appropriate types
-      if (value === 'true') {
-        options[optionKey] = true;
-      } else if (value === 'false') {
-        options[optionKey] = false;
-      } else if (!isNaN(Number(value)) && value !== '') {
-        options[optionKey] = Number(value);
-      } else {
-        options[optionKey] = value;
-      }
+    if (value === undefined) continue;
+    if (value === 'true') {
+      options[optionKey] = true;
+    } else if (value === 'false') {
+      options[optionKey] = false;
+    } else if (value !== '' && !Number.isNaN(Number(value))) {
+      options[optionKey] = Number(value);
+    } else {
+      options[optionKey] = value;
     }
-  });
-  
-  // Parse sign language sources with language codes (e.g., data-sign-language-src-en, data-sign-language-src-de)
-  // In dataset, hyphens become camelCase: data-sign-language-src-en -> signLanguageSrcEn
-  const signLanguageSources: Record<string, any> = {};
-  Object.keys(dataset).forEach(key => {
+  }
+
+  const signLanguageSources: Record<string, string> = Object.create(null);
+  for (const key of Object.keys(dataset)) {
     if (key.startsWith('signLanguageSrc') && key !== 'signLanguageSrc') {
-      // Extract language code from key (e.g., 'signLanguageSrcEn' -> 'en', 'signLanguageSrcDe' -> 'de')
-      // Handle both single and multi-word language codes
       const langMatch = key.match(/^signLanguageSrc([A-Z][a-z]*)$/);
       if (langMatch) {
         const langCode = langMatch[1].toLowerCase();
-        signLanguageSources[langCode] = dataset[key];
+        const value = dataset[key];
+        if (value !== undefined) {
+          signLanguageSources[langCode] = value;
+        }
       }
     }
-  });
-  
+  }
+
   if (Object.keys(signLanguageSources).length > 0) {
     options.signLanguageSources = signLanguageSources;
-    // If there's also a single signLanguageSrc, use it as default/fallback
     if (dataset.signLanguageSrc && !options.signLanguageSrc) {
       options.signLanguageSrc = dataset.signLanguageSrc;
     }
   }
-  
-  // Handle language file attributes
-  // Support for multiple language files: data-vidply-language-files='{"pt": "path/to/pt.json", "it": "path/to/it.json"}'
+
   if (dataset.vidplyLanguageFiles) {
     try {
-      options.languageFiles = JSON.parse(dataset.vidplyLanguageFiles);
+      const parsed = JSON.parse(dataset.vidplyLanguageFiles);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        options.languageFiles = sanitizeOptionsObject(parsed) as Record<string, string>;
+      }
     } catch (e) {
       console.warn('Invalid JSON in data-vidply-language-files:', e);
     }
   }
-  
-  // Support for single language file: data-vidply-language-file='{"pt": "path/to/pt.json"}'
-  // or data-vidply-language-file-code="pt" + data-vidply-language-file-url="path/to/pt.json"
+
   if (dataset.vidplyLanguageFile) {
     try {
       const parsed = JSON.parse(dataset.vidplyLanguageFile);
-      // If it's an object, treat it as languageFiles
-      if (typeof parsed === 'object' && parsed !== null) {
-        options.languageFiles = parsed;
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        options.languageFiles = sanitizeOptionsObject(parsed) as Record<string, string>;
       }
-    } catch (e) {
-      // If parsing fails, check for separate code and URL attributes
+    } catch {
       if (dataset.vidplyLanguageFileCode && dataset.vidplyLanguageFileUrl) {
         options.languageFile = dataset.vidplyLanguageFileCode;
         options.languageFileUrl = dataset.vidplyLanguageFileUrl;
       }
     }
   } else if (dataset.vidplyLanguageFileCode && dataset.vidplyLanguageFileUrl) {
-    // Support separate attributes for single language file
     options.languageFile = dataset.vidplyLanguageFileCode;
     options.languageFileUrl = dataset.vidplyLanguageFileUrl;
   }
-  
-  return options;
+
+  return options as Partial<PlayerOptions>;
 }
 
-// Auto-initialize on DOM ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializePlayers);
 } else {
   initializePlayers();
 }
 
-// Export for manual initialization
 export { Player, PlaylistManager };
+export type { PlayerOptions } from './types/options.js';
+export type {
+  PlayerEventMap,
+  PlaylistTrack,
+  FloatingChangeDetail
+} from './types/events.js';
+export type { PlayerState } from './types/state.js';
+export type { Renderer, QualityLevel } from './types/renderer.js';
 export default Player;
-

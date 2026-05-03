@@ -483,11 +483,13 @@ describe('SettingsDialog', () => {
       expect(mockPlayer.emit).toHaveBeenCalledWith('settingsclose');
     });
 
-    it('should focus container', () => {
+    it('should focus container when no opener was captured', () => {
+      // hide() restores focus to the element that opened the dialog.
+      // When no opener was tracked (e.g. show() never ran in
+      // this test) we fall back to focusing the container.
       const focusSpy = vi.spyOn(container, 'focus');
-      
+      dialog._triggerElement = null;
       dialog.hide();
-      
       expect(focusSpy).toHaveBeenCalled();
     });
   });

@@ -5,6 +5,47 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.9] - 2026-05-03
+
+### Security
+- **Captions XSS hardening (AUDIT-001)**: Cue text is now rendered with `textContent` exclusively. The legacy regex-based `DOMUtils.sanitizeHTML` + `innerHTML` path has been removed; VTT-specific markup (`<c>`, `<b>`, `<i>`, `<u>`, `<v>`) is parsed into a structured DOM whitelist instead.
+- **Strict URL allow-listing for SoundCloud (AUDIT-005)**: `SoundCloudRenderer.isValidSoundCloudUrl` now parses with the URL constructor and validates `hostname` + `https:` scheme.
+- **Pinned hls.js / dash.js with optional SRI (AUDIT-006)**: Renderers now load exact versions of `hls.js` (1.5.18) and `dash.js` (5.1.1). The CDN URL and the `integrity` attribute are configurable via the new `hlsScriptUrl` / `hlsScriptIntegrity` / `dashScriptUrl` / `dashScriptIntegrity` options. SRI is opt-in to avoid hash drift breaking installs on dependency upgrades; SECURITY.md documents how to compute the hash.
+- **Auto-init JSON.parse hardening (AUDIT-004)**: `data-vidply-options` is parsed inside try/catch with structured warning instead of throwing.
+- **mediaType allow-list (AUDIT-014)**: Constructor now refuses anything other than `video` / `audio`.
+- **Metadata directives are now opt-in (AUDIT-013)**: `FOCUS:` / `#hashtag` cue directives require `metadataDirectives: true` and are scoped to the player container by default.
+- **Path-traversal hardening of dev servers (AUDIT-002)**: `server.js` and `server.cjs` resolve paths under a fixed root and reject escapes; both files are also added to `.gitignore`.
+- **AbortController for user-influenced fetches (AUDIT-017)**: Transcript downloads, language file loads, download metadata HEAD, and `validateTrackExists` are now bounded by a per-player `AbortController` with `AbortSignal.timeout`.
+- **Safe localStorage payloads (AUDIT-023)**: `StorageManager` validates parsed JSON shape and clamps numeric ranges for positions/volume.
+- **Prototype-pollution hardening (AUDIT-022)**: i18n translations now use `Object.create(null)` and reject `__proto__` / `constructor` keys.
+
+### Accessibility
+- **Localized SR announcements (AUDIT-007)**: `KeyboardManager.announceAction` now goes through i18n; new keys `player.playing`, `player.paused`, `player.muted`, `player.unmuted`, `player.captionsOn`, `player.captionsOff`, `player.exitFullscreen`, `player.volumePercent`, `player.speedRate` for en/de/es/fr/ja.
+- **Caption styling no longer abuses `role="menu"` (AUDIT-008)**: panel is now a labelled `role="dialog"` with focus trap and Escape close.
+- **Per-instance live region (AUDIT-032)**: announcer id now includes the player `instanceId`.
+- **Transcript rows are real `<button>` elements with localized labels (AUDIT-033)**.
+- **`aria-valuetext` on volume slider (AUDIT-038)** and `Page{Up,Down}`, `Home`, `End` keys on the progress slider (AUDIT-039).
+- **Settings dialog focus restore (AUDIT-031)**: focus now returns to the trigger element on close.
+- **Demo `lang="ja"` fix (AUDIT-030)**: `demo/demo-jp.html` now declares the correct BCP 47 tag.
+
+### Code Quality
+- **Listener / instance-registry leaks fixed on `destroy()` (AUDIT-003)**: `Player` and `ControlBar` now register every `window` / `document` listener through a per-instance `AbortController`, splice from `Player.instances`, and cascade-destroy `playlistManager` / `audioDescriptionManager`.
+- **`Player` typing tightened (AUDIT-019, AUDIT-036)**: instance fields now use `PlayerOptions` / `PlayerState` / `Renderer`; `seek` / `setVolume` / `setPlaybackSpeed` / `load` accept `number` / typed configs and clamp via `Number.isFinite`.
+- **`(Player as any).observeLazy` → static method (AUDIT-020)**.
+- **Dynamic feature loaders typed (AUDIT-018)**.
+- **i18n placeholder regex escaped (AUDIT-021)**.
+- **Empty catches now log under `options.debug` (AUDIT-037)**.
+
+### Documentation
+- **Versioned README/CHANGELOG (AUDIT-027)**, browser matrix aligned with esbuild target (AUDIT-028), defaults reconciled (AUDIT-029), `playlisttrackchange` / `floatingchange` events documented (AUDIT-010, AUDIT-011), wrong API name corrected (AUDIT-009).
+- **New `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (AUDIT-048)**, `engines.node` declared (AUDIT-034), `prepublishOnly` script added (AUDIT-045), banner reproducibility fix (AUDIT-046).
+- KEYBOARD.md volume step corrected to 10% (AUDIT-043). README "searchable" transcript claim removed pending implementation (AUDIT-042). README touch-target language matched to CSS (AUDIT-040).
+
+## [1.1.8] - 2026-05-02
+
+### Note
+Internal release used during the audit-driven hardening sprint; superseded by 1.1.9. No public API changes between 1.1.7 and 1.1.8.
+
 ## [1.1.7] - 2026-04-20
 
 ### Added
