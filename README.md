@@ -8,7 +8,7 @@ A modern, feature-rich media player authored in strict TypeScript and shipped as
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)
 ![ESM](https://img.shields.io/badge/ESM-Module-yellow.svg)
 ![WCAG](https://img.shields.io/badge/WCAG-2.2%20AA-green.svg)
-![Version](https://img.shields.io/badge/version-1.1.7-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.1.9-brightgreen.svg)
 
 ## Live Demos
 
@@ -59,21 +59,21 @@ Try VidPly in action:
 ### Accessibility Features (WCAG 2.2 AA Compliant)
 - **Full Keyboard Navigation** - All features accessible via keyboard, custom shortcuts, menu navigation with Arrow keys
 - **Screen Reader Support** - Complete ARIA labels (`aria-controls`, `aria-expanded`, `aria-haspopup`), live regions
-- **Interactive Transcripts** - Click-to-seek, searchable, auto-scroll with proper semantic HTML
+- **Interactive Transcripts** - Click-to-seek and auto-scroll with proper semantic HTML
 - **Sign Language Overlay** - Picture-in-picture with drag/resize, keyboard accessible
 - **Audio Description** - Alternate audio track with visual content descriptions
 - **Caption Styling** - Fully customizable (font, size, color, opacity, edge style)
 - **High Contrast Mode** - Windows HCM support, color-independent design
 - **Focus Management** - Logical focus order, programmatic focus handling, visible indicators
-- **Touch Accessibility** - 44x44px minimum touch targets, swipeable interfaces
+- **Touch Accessibility** - Buttons sized at or above the WCAG 2.2 AA 24×24 CSS-pixel minimum (SC 2.5.8); swipeable interfaces
 
 ### Captions & Subtitles
 - **WebVTT Support** - Standard caption format
 - **Multiple Languages** - Multi-track support
 - **Caption Selector** - Easy track switching with CC button
-- **Caption Styling** - Dedicated styling menu (font, size, color, opacity)
+- **Caption Styling** - Dedicated styling dialog (font, size, color, opacity)
 - **Chapter Navigation** - Jump to video chapters
-- **Interactive Transcripts** - Full-text searchable transcript panel
+- **Interactive Transcripts** - Click-to-seek transcript panel (browser Find-in-page works for searching)
 
 ### Playback Features
 - **Adjustable Speed** - 0.25x to 2x playback
@@ -342,7 +342,10 @@ const player = new Player('#video', {
   hideControlsDelay: 3000,
   playPauseButton: true,
   progressBar: true,
+  currentTime: true,
+  duration: true,
   volumeControl: true,
+  muteButton: true,
   chaptersButton: true,
   qualityButton: true,
   captionStyleButton: true,
@@ -352,14 +355,21 @@ const player = new Player('#video', {
   audioDescriptionButton: true,
   signLanguageButton: true,
   fullscreenButton: true,
-  pipButton: true,
+  pipButton: false,
   downloadButton: false,        // Show a download button in the control bar
   downloadUrl: null,            // Optional explicit download URL (falls back to current src)
+  downloadFormat: null,         // Optional override for the displayed download format (e.g. "MP4")
+  downloadFileSize: null,       // Optional override for the displayed file size (bytes)
+  downloadFetchSize: true,      // Issue a HEAD request to detect file size when not provided
 
   // Custom Floating Player (in-page miniplayer / "own PiP")
   floating: false,                          // Enable the custom floating player; also disables native browser PiP
   floatingPosition: 'bottom-right',         // 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
   floatingMinViewportWidth: 768,            // Floating feature is hidden below this viewport width (px)
+
+  // Seeking
+  seekInterval: 10,
+  seekIntervalLarge: 30,
 
   // Captions
   captions: true,
@@ -369,61 +379,108 @@ const player = new Player('#video', {
   captionsColor: '#FFFFFF',
   captionsBackgroundColor: '#000000',
   captionsOpacity: 0.8,
-  
+
   // Audio Description
   audioDescription: true,
   audioDescriptionSrc: null, // URL to audio-described version
-  audioDescriptionButton: true,
-  
+
   // Sign Language
   signLanguage: true,
   signLanguageSrc: null, // URL to sign language video
-  signLanguageButton: true,
   signLanguagePosition: 'bottom-right', // 'bottom-right', 'bottom-left', 'top-right', 'top-left'
-  
+  signLanguageDisplayMode: 'both',      // 'pip' (overlay) | 'main' (source swap) | 'both'
+  signLanguageSources: undefined,       // { en: '/sl/en.mp4', de: '/sl/de.mp4', ... }
+
   // Transcripts
   transcript: false,
-  transcriptButton: true,
   transcriptPosition: 'external',
   transcriptContainer: null,
   
-  // Keyboard
+  // Keyboard (defaults; do not assign the same key to two actions)
   keyboard: true,
   keyboardShortcuts: {
     'play-pause': [' ', 'p', 'k'],
-    'seek-forward': ['ArrowRight', 'l'],
-    'seek-backward': ['ArrowLeft', 'j'],
+    'seek-forward': ['ArrowRight'],
+    'seek-backward': ['ArrowLeft'],
     'volume-up': ['ArrowUp'],
     'volume-down': ['ArrowDown'],
     'mute': ['m'],
     'fullscreen': ['f'],
-    'captions': ['c']
+    'captions': ['c'],
+    'caption-style-menu': ['a'],
+    'speed-up': ['>'],
+    'speed-down': ['<'],
+    'speed-menu': ['s'],
+    'quality-menu': ['q'],
+    'chapters-menu': ['j'],
+    'transcript-toggle': ['t']
   },
   
   // Accessibility
   screenReaderAnnouncements: true,
   focusHighlight: true,
-  
+  highContrast: false,
+  ariaLabels: {},                 // Override individual ARIA labels by i18n key
+  metadataAlerts: {},             // Map of metadata-cue keys to alert handlers (opt-in)
+  metadataHashtags: {},           // Map of metadata-cue hashtags to handler config (opt-in)
+
   // Internationalization
   language: 'en',
-  
+  languages: ['en'],
+  languageFiles: undefined,       // { pt: '/i18n/pt.json', it: '/i18n/it.json' }
+  languageFile: undefined,        // Single language code to load
+  languageFileUrl: undefined,     // URL for the single language file
+
+  // Resume Playback
+  resumePlayback: true,           // Save and offer to resume playback position
+  resumeThreshold: 10,            // Seconds; do not offer resume if less than this was watched
+  resumePrompt: true,             // false = silently auto-resume
+
+  // Thumbnail Preview
+  thumbnailPreview: true,
+  thumbnailCacheSize: 50,
+  thumbnailPregenerate: true,
+  thumbnailInterval: 10,
+  thumbnailWidth: 160,
+  thumbnailHeight: 90,
+  thumbnailQuality: 0.8,
+
+  // Lazy Loading
+  lazyInit: true,
+  lazyMargin: '200px',
+
+  // Theming
+  theme: 'dark',                  // 'dark' | 'light' | 'minimal' | 'high-contrast'
+  themeVariables: {},             // Custom --vidply-* CSS variable overrides
+
   // Callbacks
   onReady: () => console.log('Ready!'),
   onPlay: () => console.log('Playing!'),
   onPause: () => console.log('Paused!'),
   onEnded: () => console.log('Ended!'),
-  
+  onTimeUpdate: (t) => {},
+  onVolumeChange: (v) => {},
+  onError: (err) => console.error(err),
+
   // Streaming
-  hideSpeedForHls: true,     // Hide speed control for HLS streams
-  hideSpeedForDash: true,    // Hide speed control for DASH streams
-  
+  hideSpeedForHls: false,         // Hide speed control for ALL HLS streams
+  hideSpeedForHlsVideo: false,    // Hide speed control only for HLS video (e.g. live streams)
+  hideSpeedForDash: false,        // Hide speed control for ALL DASH streams
+  hideSpeedForDashVideo: false,   // Hide speed control only for DASH video
+
   // Advanced
   debug: false,
   pauseOthersOnPlay: true,
-  
+  classPrefix: 'vidply',          // CSS class prefix and event/storage namespace
+  iconType: 'svg',
+  initialDuration: 0,             // Optional duration shown before metadata is loaded
+  requirePlaybackForAccessibilityToggles: false, // If true, AD/SL toggles before play show a notice instead of starting playback
+  fillContainer: false,
+  playsInline: true,              // Inline playback on iOS
+
   // Performance
-  preload: 'metadata',    // 'none', 'metadata', or 'auto'
-  deferLoad: false        // Delay loading until user plays (good for many players)
+  preload: 'metadata',            // 'none', 'metadata', or 'auto'
+  deferLoad: false                // Delay loading until user plays (good for many players)
 });
 ```
 
@@ -513,7 +570,7 @@ player.transcriptManager.toggleTranscript()   // Toggle transcript visibility
 
 // Drag & Resize Modes (Desktop only, mobile breakpoint: 768px)
 player.transcriptManager.toggleKeyboardDragMode()   // Toggle drag mode (D key)
-player.transcriptManager.togglePointerResizeMode()  // Toggle resize mode (R key)
+player.transcriptManager.toggleResizeMode()         // Toggle resize mode (R key)
 
 // Settings Menu
 player.transcriptManager.showSettingsMenu()    // Show settings dropdown
@@ -593,7 +650,8 @@ playlist.hasPrevious()  // Check if previous track exists
 
 // Listen for track changes
 player.on('playlisttrackchange', (e) => {
-  console.log('Now playing:', e.item.title);
+  // e: { index: number, item: PlaylistTrack, total: number, previousIndex?: number }
+  console.log(`Now playing track ${e.index + 1} / ${e.total}:`, e.item.title);
 });
 ```
 
@@ -789,12 +847,23 @@ See [BUILD.md](docs/BUILD.md) for detailed build documentation.
 
 ## Browser Support
 
-- Chrome 90+
-- Firefox 88+
+The library ships two bundles. Pick the one that matches your audience:
+
+**Modern ESM bundle** (`dist/prod/vidply.esm.min.js`) — recommended.
+- Chrome 100+
+- Firefox 100+
+- Safari 15+
+- Edge 100+
+- iOS Safari 15+
+- Android Chrome 100+
+
+**Legacy IIFE bundle** (`dist/legacy/vidply.min.js`) — for older browser support.
+- Chrome 80+
+- Firefox 78+
 - Safari 14+
-- Edge 90+
-- iOS Safari 14+
-- Android Chrome 90+
+- Edge 88+
+
+The TypeScript declarations target ES2022; both bundles are produced with esbuild + Terser. See [BUILD.md](docs/BUILD.md) for the exact targets.
 
 ## License
 

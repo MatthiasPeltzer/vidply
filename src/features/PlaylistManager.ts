@@ -175,13 +175,24 @@ export class PlaylistManager {
       this.playlistPanel.parentNode.removeChild(this.playlistPanel);
     }
     
-    // Preserve existing player options so recreated players behave consistently
-    const preservedPlayerOptions = this.player?.options ? { ...this.player.options } : {};
+    // Preserve existing player options so recreated players behave
+    // consistently. Cast through `any` because the source `PlayerOptions`
+    // intersection includes a string-indexed bag the spread loses.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const preservedPlayerOptions: any = this.player?.options ? { ...this.player.options } : {};
 
     // Remove event listeners before destroying
     if (this.player) {
       this.player.off('ended', this.handleTrackEnd);
       this.player.off('error', this.handleTrackError);
+      // Detach the back-reference *before* destroying the player.
+      // Player.destroy() cascade-destroys its `playlistManager`, but here
+      // we're swapping the player out and the PlaylistManager owns a UI
+      // (panel, track info, artwork) that must survive the swap. Without
+      // this detach, the cascade would clear() the panel and the playlist
+      // visually disappears when the user clicks an audio track in a
+      // mixed playlist.
+      this.player.playlistManager = null;
       this.player.destroy();
     }
     

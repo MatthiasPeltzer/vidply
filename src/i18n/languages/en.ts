@@ -75,7 +75,17 @@ export const en = {
     disableSignResizeModeAria: 'Disable keyboard resize mode with arrow keys. Shortcut: R key',
     resizeHandle: 'Resize {direction} corner',
     moreOptions: 'More options',
-    noMoreOptions: 'No additional options available'
+    noMoreOptions: 'No additional options available',
+    // Screen-reader announcements (used by KeyboardManager.announceAction)
+    playing: 'Playing',
+    paused: 'Paused',
+    muted: 'Muted',
+    unmuted: 'Unmuted',
+    captionsOn: 'Captions on',
+    captionsOff: 'Captions off',
+    volumePercent: 'Volume {percent} percent',
+    volumePercentMuted: 'Muted',
+    speedRate: 'Speed {rate}x'
   },
   captions: {
     off: 'Off',
@@ -148,7 +158,8 @@ export const en = {
     showTimestamps: 'Show timestamps',
     hideTimestamps: 'Hide timestamps',
     showTimestampsAria: 'Show timestamps in transcript',
-    hideTimestampsAria: 'Hide timestamps in transcript'
+    hideTimestampsAria: 'Hide timestamps in transcript',
+    seekTo: 'Seek to {time}'
   },
   settings: {
     title: 'Settings',

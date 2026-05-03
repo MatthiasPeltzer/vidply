@@ -1,24 +1,24 @@
 /*!
- * Universal, Accessible Video Player
+ * VidPly v1.1.9 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 import {
   TimeUtils
-} from "./vidply.chunk-2JX2WPYK.js";
+} from "./vidply.chunk-72KNYNGY.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-X6WYABPH.js";
+} from "./vidply.chunk-62UNNRXT.js";
 import {
   CaptionManager,
   debounce,
   isMobile,
   rafWithTimeout,
   throttle
-} from "./vidply.chunk-BSNG3GAN.js";
+} from "./vidply.chunk-OHMV6VEU.js";
 import {
   StorageManager
-} from "./vidply.chunk-6CNIG4E4.js";
+} from "./vidply.chunk-GIUG2TII.js";
 import {
   attachMenuKeyboardNavigation,
   createLabeledSelect,
@@ -27,16 +27,16 @@ import {
   focusFirstElement,
   focusFirstMenuItem,
   preventDragOnElement
-} from "./vidply.chunk-U5K2F46L.js";
+} from "./vidply.chunk-NPTAWEHA.js";
 import {
   DraggableResizable,
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-D47TSGMP.js";
+} from "./vidply.chunk-DKHFUB3O.js";
 import {
   DOMUtils,
   i18n
-} from "./vidply.chunk-X3Y5J67K.js";
+} from "./vidply.chunk-M2XYCK66.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -115,17 +115,26 @@ async function captureVideoFrame(video, time, options = {}) {
           video.currentTime = originalTime;
           video.muted = originalMuted;
           if (wasPlaying && !video.paused) {
-            video.play().catch(() => {
+            video.play().catch((e) => {
+              if (typeof console !== "undefined" && console.debug) {
+                console.debug("[VidPly] preview play() rejected:", e);
+              }
             });
           }
         }
         resolve(dataURL);
-      } catch {
+      } catch (e) {
+        if (typeof console !== "undefined" && console.debug) {
+          console.debug("[VidPly] frame capture failed:", e);
+        }
         if (restoreState) {
           video.currentTime = originalTime;
           video.muted = originalMuted;
           if (wasPlaying && !video.paused) {
-            video.play().catch(() => {
+            video.play().catch((err) => {
+              if (typeof console !== "undefined" && console.debug) {
+                console.debug("[VidPly] preview play() rejected:", err);
+              }
             });
           }
         }
@@ -233,13 +242,25 @@ function formatBytes(bytes, locale = "en") {
   }
   return `${formatted} ${units[unitIndex]}`;
 }
-async function fetchContentLength(url) {
+async function fetchContentLength(url, options = {}) {
   if (!url || typeof fetch !== "function") return null;
+  const signals = [];
+  if (options.signal) signals.push(options.signal);
+  if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+    signals.push(AbortSignal.timeout(options.timeoutMs ?? 8e3));
+  }
+  let combinedSignal;
+  if (signals.length === 1) combinedSignal = signals[0];
+  else if (signals.length > 1) {
+    const anyFn = AbortSignal.any;
+    combinedSignal = anyFn ? anyFn(signals) : signals[0];
+  }
   try {
     const response = await fetch(url, {
       method: "HEAD",
       credentials: "omit",
-      cache: "no-store"
+      cache: "no-store",
+      signal: combinedSignal
     });
     if (!response.ok) return null;
     const header = response.headers.get("Content-Length");
@@ -1280,12 +1301,38 @@ var ControlBar = class {
       }
     });
     progress.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        this.player.seekBackward(5);
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        this.player.seekForward(5);
+      const smallStep = this.player.options.seekInterval || 5;
+      const largeStep = this.player.options.seekIntervalLarge || 30;
+      const duration = Number(this.player.state.duration);
+      switch (e.key) {
+        case "ArrowLeft":
+          e.preventDefault();
+          this.player.seekBackward(smallStep);
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          this.player.seekForward(smallStep);
+          break;
+        case "PageUp":
+          e.preventDefault();
+          this.player.seekForward(largeStep);
+          break;
+        case "PageDown":
+          e.preventDefault();
+          this.player.seekBackward(largeStep);
+          break;
+        case "Home":
+          e.preventDefault();
+          this.player.seek(0);
+          break;
+        case "End":
+          e.preventDefault();
+          if (Number.isFinite(duration) && duration > 0) {
+            this.player.seek(Math.max(0, duration - 0.1));
+          }
+          break;
+        default:
+          break;
       }
     });
     progress.addEventListener("touchstart", (e) => {
@@ -1478,6 +1525,7 @@ var ControlBar = class {
     const volumeMenu = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-volume-menu ${this.player.options.classPrefix}-menu`
     });
+    const initialPercent = Math.round(this.player.state.volume * 100);
     const volumeSlider = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-volume-slider`,
       attributes: {
@@ -1485,7 +1533,8 @@ var ControlBar = class {
         "aria-label": i18n.t("player.volume"),
         "aria-valuemin": "0",
         "aria-valuemax": "100",
-        "aria-valuenow": String(Math.round(this.player.state.volume * 100)),
+        "aria-valuenow": String(initialPercent),
+        "aria-valuetext": this.player.state.muted ? i18n.t("player.muted") : i18n.t("player.volumePercent", { percent: initialPercent }),
         "tabindex": "0"
       }
     });
@@ -1925,13 +1974,31 @@ var ControlBar = class {
       }
       return;
     }
+    const menuLabelId = `${this.player.options.classPrefix}-caption-style-label-${this.player.instanceId || ""}`;
     const menu = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-caption-style-menu ${this.player.options.classPrefix}-menu ${this.player.options.classPrefix}-settings-menu`,
       attributes: {
-        "role": "menu",
-        "aria-label": i18n.t("player.captionStyling")
+        "role": "dialog",
+        "aria-modal": "false",
+        "aria-labelledby": menuLabelId
       }
     });
+    const visuallyHiddenLabel = DOMUtils.createElement("h2", {
+      textContent: i18n.t("player.captionStyling"),
+      attributes: { id: menuLabelId, class: `${this.player.options.classPrefix}-sr-only` },
+      style: {
+        position: "absolute",
+        width: "1px",
+        height: "1px",
+        padding: "0",
+        margin: "-1px",
+        overflow: "hidden",
+        clip: "rect(0,0,0,0)",
+        whiteSpace: "nowrap",
+        border: "0"
+      }
+    });
+    menu.appendChild(visuallyHiddenLabel);
     menu.addEventListener("click", (e) => {
       e.stopPropagation();
     });
@@ -1940,7 +2007,7 @@ var ControlBar = class {
         className: `${this.player.options.classPrefix}-menu-item`,
         textContent: i18n.t("player.noCaptions"),
         attributes: {
-          "role": "menuitem"
+          "role": "status"
         },
         style: { opacity: "0.5", cursor: "default", padding: "12px 16px" }
       });
@@ -2815,7 +2882,12 @@ var ControlBar = class {
       this.controls.volumeFill.style.height = `${percent}%`;
     }
     if (this.controls.volumeSlider) {
-      this.controls.volumeSlider.setAttribute("aria-valuenow", String(Math.round(percent)));
+      const rounded = Math.round(percent);
+      this.controls.volumeSlider.setAttribute("aria-valuenow", String(rounded));
+      this.controls.volumeSlider.setAttribute(
+        "aria-valuetext",
+        this.player.state.muted ? i18n.t("player.muted") : i18n.t("player.volumePercent", { percent: rounded })
+      );
     }
     if (this.controls.mute) {
       const icon = this.controls.mute.querySelector(".vidply-icon");
@@ -2836,9 +2908,6 @@ var ControlBar = class {
         this.controls.mute.setAttribute("aria-label", newMuteAriaLabel);
         DOMUtils.attachTooltip(this.controls.mute, newMuteAriaLabel, this.player.options.classPrefix);
       }
-    }
-    if (this.controls.volumeSlider) {
-      this.controls.volumeSlider.setAttribute("aria-valuenow", String(Math.round(percent)));
     }
   }
   updateBuffered() {
@@ -3401,6 +3470,7 @@ var ControlBar = class {
 var KeyboardManager = class {
   player;
   shortcuts;
+  announcer = null;
   constructor(player) {
     this.player = player;
     this.shortcuts = player.options.keyboardShortcuts;
@@ -3554,52 +3624,63 @@ var KeyboardManager = class {
     let message = "";
     switch (action) {
       case "play-pause":
-        message = this.player.state.playing ? "Playing" : "Paused";
+        message = this.player.state.playing ? i18n.t("player.playing") : i18n.t("player.paused");
         break;
       case "volume-up":
-        message = `Volume ${Math.round(this.player.state.volume * 100)}%`;
+      case "volume-down": {
+        const percent = Math.round(this.player.state.volume * 100);
+        message = i18n.t("player.volumePercent", { percent });
         break;
-      case "volume-down":
-        message = `Volume ${Math.round(this.player.state.volume * 100)}%`;
-        break;
+      }
       case "mute":
-        message = this.player.state.muted ? "Muted" : "Unmuted";
+        message = this.player.state.muted ? i18n.t("player.muted") : i18n.t("player.unmuted");
         break;
       case "fullscreen":
-        message = this.player.state.fullscreen ? "Fullscreen" : "Exit fullscreen";
+        message = this.player.state.fullscreen ? i18n.t("player.fullscreen") : i18n.t("player.exitFullscreen");
         break;
       case "captions":
-        message = this.player.state.captionsEnabled ? "Captions on" : "Captions off";
+        message = this.player.state.captionsEnabled ? i18n.t("player.captionsOn") : i18n.t("player.captionsOff");
         break;
       case "speed-up":
-      case "speed-down":
-        message = `Speed ${this.player.state.playbackSpeed}x`;
+      case "speed-down": {
+        const rate = this.player.state.playbackSpeed;
+        message = i18n.t("player.speedRate", { rate: String(rate) });
         break;
+      }
     }
     if (message) {
       this.announce(message);
     }
   }
+  /**
+   * Live-region announcer scoped to *this* player instance so multi-player
+   * pages do not cross-talk through a shared `#vidply-announcer` id. The
+   * region is appended to `document.body` so it is reachable regardless of
+   * the embedding container's stacking / overflow context.
+   */
   announce(message, priority = "polite") {
-    let announcer = document.getElementById("vidply-announcer");
-    if (!announcer) {
-      announcer = document.createElement("div");
-      announcer.id = "vidply-announcer";
-      announcer.className = "vidply-sr-only";
-      announcer.setAttribute("aria-live", priority);
-      announcer.setAttribute("aria-atomic", "true");
-      announcer.style.cssText = `
+    if (!this.announcer) {
+      const id = `vidply-announcer-${this.player.instanceId}`;
+      this.announcer = document.createElement("div");
+      this.announcer.id = id;
+      this.announcer.className = "vidply-sr-only";
+      this.announcer.setAttribute("aria-live", priority);
+      this.announcer.setAttribute("aria-atomic", "true");
+      this.announcer.style.cssText = `
         position: absolute;
         left: -10000px;
         width: 1px;
         height: 1px;
         overflow: hidden;
       `;
-      document.body.appendChild(announcer);
+      document.body.appendChild(this.announcer);
+    } else {
+      this.announcer.setAttribute("aria-live", priority);
     }
-    announcer.textContent = "";
+    this.announcer.textContent = "";
+    const announcer = this.announcer;
     setTimeout(() => {
-      announcer.textContent = message;
+      if (announcer) announcer.textContent = message;
     }, 100);
   }
   updateShortcut(action, keys) {
@@ -3608,6 +3689,10 @@ var KeyboardManager = class {
     }
   }
   destroy() {
+    if (this.announcer && this.announcer.parentNode) {
+      this.announcer.parentNode.removeChild(this.announcer);
+    }
+    this.announcer = null;
   }
 };
 
@@ -3617,43 +3702,110 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-L64R32MN.js");
+    const module = await import("./vidply.AudioDescriptionManager-HBJBLXZO.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-YBCD53DN.js");
+    const module = await import("./vidply.SignLanguageManager-ODJKTFVU.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-ZPNIHHC2.js");
+    const module = await import("./vidply.FloatingPlayerManager-LL5EFUHE.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
+}
+var ALLOWED_MEDIA_TYPES = ["video", "audio"];
+var PROTO_FORBIDDEN_KEYS = /* @__PURE__ */ new Set(["__proto__", "prototype", "constructor"]);
+function isValidThemeVariableName(name) {
+  return /^--vidply-[A-Za-z0-9_-]{1,64}$/.test(name);
+}
+function isValidThemeVariableValue(value) {
+  if (typeof value !== "string") return false;
+  if (value.length > 200) return false;
+  return !/[<>{};@\\]/.test(value);
+}
+function sanitizePosterUrl(input) {
+  if (typeof input !== "string" || input.length === 0 || input.length > 4096) {
+    return null;
+  }
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+  if (/[\s"'<>\\]/.test(trimmed)) return null;
+  if (trimmed.startsWith("/") || trimmed.startsWith("./") || trimmed.startsWith("../")) {
+    return trimmed;
+  }
+  try {
+    const url = new URL(trimmed, typeof window !== "undefined" ? window.location.href : "http://localhost/");
+    if (url.protocol === "https:" || url.protocol === "http:") {
+      return url.href;
+    }
+    if (url.protocol === "data:" && /^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);/i.test(trimmed)) {
+      return trimmed;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+function cssEscapeUrl(url) {
+  return url.replace(/["()\\]/g, (m) => `\\${m}`);
 }
 var playerInstanceCounter = 0;
 var Player = class _Player extends EventEmitter {
   element;
   container;
+  /**
+   * Runtime options. The `& Record<string, any>` intersection covers a
+   * handful of internal-only dynamic keys that have not yet been
+   * promoted into the public {@link PlayerOptions} interface, and keeps
+   * the broad call-site surface from needing a synchronous refactor.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   options;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state;
+  // Manager properties stay loosely typed: there is a deeply intertwined
+  // network of circular imports between Player, ControlBar, CaptionManager,
+  // etc. that a piecemeal `any -> X | null` migration would break in
+  // dozens of call sites. Tightening these is tracked separately.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   renderer;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   controlBar;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   captionManager;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   keyboardManager;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transcriptManager;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   playlistManager;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   settingsDialog;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   audioDescriptionManager;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   signLanguageManager;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   floatingPlayerManager;
   storage;
   instanceId;
+  /** AbortController whose signal feeds every window/document listener and
+   *  every user-influenced fetch the Player creates. `destroy()` calls
+   *  `abort()` so a torn-down player can never leak listeners or pending
+   *  network calls. */
+  _lifecycleController = new AbortController();
+  /** Convenience getter for sub-systems that take an AbortSignal. */
+  get lifecycleSignal() {
+    return this._lifecycleController.signal;
+  }
   _audioDescriptionDesiredState;
   _fallbackSources;
   _inertElements;
@@ -3743,7 +3895,11 @@ var Player = class _Player extends EventEmitter {
     playerInstanceCounter++;
     this.instanceId = playerInstanceCounter;
     if (this.element.tagName !== "VIDEO" && this.element.tagName !== "AUDIO") {
-      const mediaType = options.mediaType || "video";
+      const requested = typeof options.mediaType === "string" ? options.mediaType.toLowerCase() : "video";
+      const mediaType = ALLOWED_MEDIA_TYPES.includes(requested) ? requested : "video";
+      if (mediaType !== requested) {
+        console.warn(`[VidPly] Ignoring unsafe mediaType "${requested}", falling back to "video"`);
+      }
       const mediaElement = document.createElement(mediaType);
       Array.from(this.element.attributes).forEach((attr) => {
         if (attr.name !== "id" && attr.name !== "class" && !attr.name.startsWith("data-")) {
@@ -3754,8 +3910,7 @@ var Player = class _Player extends EventEmitter {
       tracks.forEach((track) => {
         mediaElement.appendChild(track.cloneNode(true));
       });
-      this.element.innerHTML = "";
-      this.element.appendChild(mediaElement);
+      this.element.replaceChildren(mediaElement);
       this.element = mediaElement;
     }
     this._originalElement = this.element;
@@ -4196,7 +4351,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-SYNY5NLY.js");
+    const module = await import("./vidply.TranscriptManager-5KB4TXSR.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;
@@ -4533,10 +4688,19 @@ var Player = class _Player extends EventEmitter {
       this.container.classList.add(`${this.options.classPrefix}-theme-${theme}`);
     }
     if (this.options.themeVariables && typeof this.options.themeVariables === "object") {
-      Object.entries(this.options.themeVariables).forEach(([key, value]) => {
-        const cssVar = key.startsWith("--vidply-") ? key : `--vidply-${key}`;
-        this.container.style.setProperty(cssVar, value);
-      });
+      for (const [rawKey, rawValue] of Object.entries(this.options.themeVariables)) {
+        if (PROTO_FORBIDDEN_KEYS.has(rawKey)) continue;
+        const cssVar = rawKey.startsWith("--vidply-") ? rawKey : `--vidply-${rawKey}`;
+        if (!isValidThemeVariableName(cssVar)) {
+          this.log(`[VidPly] Ignoring invalid theme variable name: ${rawKey}`, "warn");
+          continue;
+        }
+        if (!isValidThemeVariableValue(rawValue)) {
+          this.log(`[VidPly] Ignoring invalid theme variable value for ${cssVar}`, "warn");
+          continue;
+        }
+        this.container.style.setProperty(cssVar, rawValue);
+      }
     }
   }
   /**
@@ -4575,8 +4739,14 @@ var Player = class _Player extends EventEmitter {
   setThemeVariable(variableName, value) {
     if (!this.container) return;
     const cssVar = variableName.startsWith("--vidply-") ? variableName : `--vidply-${variableName}`;
+    if (!isValidThemeVariableName(cssVar) || !isValidThemeVariableValue(value)) {
+      this.log(`[VidPly] Ignoring unsafe setThemeVariable(${variableName})`, "warn");
+      return;
+    }
     this.container.style.setProperty(cssVar, value);
-    this.options.themeVariables = this.options.themeVariables || {};
+    if (!this.options.themeVariables) {
+      this.options.themeVariables = {};
+    }
     this.options.themeVariables[variableName] = value;
   }
   /**
@@ -4614,14 +4784,19 @@ var Player = class _Player extends EventEmitter {
     });
     this.element.parentNode?.insertBefore(this.container, this.element);
     if (this.element.tagName === "AUDIO" && this.options.poster) {
-      this.trackArtworkElement = DOMUtils.createElement("div", {
-        className: `${this.options.classPrefix}-track-artwork`,
-        attributes: {
-          "aria-hidden": "true"
-        }
-      });
-      this.trackArtworkElement.style.backgroundImage = `url(${this.options.poster})`;
-      this.container.appendChild(this.trackArtworkElement);
+      const safePoster = sanitizePosterUrl(this.options.poster);
+      if (safePoster) {
+        this.trackArtworkElement = DOMUtils.createElement("div", {
+          className: `${this.options.classPrefix}-track-artwork`,
+          attributes: {
+            "aria-hidden": "true"
+          }
+        });
+        this.trackArtworkElement.style.backgroundImage = `url("${cssEscapeUrl(safePoster)}")`;
+        this.container.appendChild(this.trackArtworkElement);
+      } else {
+        this.log(`[VidPly] Ignored unsafe poster URL`, "warn");
+      }
     }
     this.container.appendChild(this.videoWrapper);
     this.videoWrapper.appendChild(this.element);
@@ -4641,8 +4816,10 @@ var Player = class _Player extends EventEmitter {
       this.container.style.height = typeof this.options.height === "number" ? `${this.options.height}px` : this.options.height;
     }
     if (this.options.poster && this.element.tagName === "VIDEO") {
-      const resolvedPoster = this.resolvePosterPath(this.options.poster);
-      this.element.poster = resolvedPoster;
+      const resolvedPoster = sanitizePosterUrl(this.resolvePosterPath(this.options.poster));
+      if (resolvedPoster) {
+        this.element.poster = resolvedPoster;
+      }
     }
     if (this.element.tagName === "VIDEO") {
       this.createPlayButtonOverlay();
@@ -4655,7 +4832,7 @@ var Player = class _Player extends EventEmitter {
       if (e.target === this.element) {
         this.toggle();
       }
-    });
+    }, { signal: this.lifecycleSignal });
     this.on("play", () => {
       this.state.hasStartedPlayback = true;
       this.hidePosterOverlay();
@@ -4695,7 +4872,7 @@ var Player = class _Player extends EventEmitter {
     this.debouncedPositionPlayOverlay = debounce(() => {
       this.positionPlayOverlayOnMobile();
     }, 150);
-    window.addEventListener("resize", this.debouncedPositionPlayOverlay);
+    window.addEventListener("resize", this.debouncedPositionPlayOverlay, { signal: this.lifecycleSignal });
     this.on("loadedmetadata", () => {
       this.positionPlayOverlayOnMobile();
     });
@@ -4824,19 +5001,19 @@ var Player = class _Player extends EventEmitter {
   }
   async _detectRendererClass(src) {
     if (src.includes("youtube.com") || src.includes("youtu.be")) {
-      const module = await import("./vidply.YouTubeRenderer-6ONOAU4R.js");
+      const module = await import("./vidply.YouTubeRenderer-7APWP7QB.js");
       return module.YouTubeRenderer || module.default;
     } else if (src.includes("vimeo.com")) {
-      const module = await import("./vidply.VimeoRenderer-6CLUVHOQ.js");
+      const module = await import("./vidply.VimeoRenderer-6TFEO244.js");
       return module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-527HJEUS.js");
+      const module = await import("./vidply.HLSRenderer-7OXYEQEN.js");
       return module.HLSRenderer || module.default;
     } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-EURB6YTJ.js");
+      const module = await import("./vidply.DASHRenderer-BIP67ZUY.js");
       return module.DASHRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
-      const module = await import("./vidply.SoundCloudRenderer-T64HDIWO.js");
+      const module = await import("./vidply.SoundCloudRenderer-YIXFB2DB.js");
       return module.SoundCloudRenderer || module.default;
     }
     return HTML5Renderer;
@@ -5366,22 +5543,36 @@ var Player = class _Player extends EventEmitter {
       this.play();
     }
   }
+  /**
+   * Seek to a non-negative finite second offset. Non-finite or non-numeric
+   * inputs are silently dropped instead of being forwarded to the renderer
+   * where they would set `currentTime = NaN` on a HTMLMediaElement.
+   */
   seek(time) {
+    if (typeof time !== "number" || !Number.isFinite(time)) return;
+    const safeTime = time < 0 ? 0 : time;
     this.hidePosterOverlay();
     if (this.renderer) {
-      this.renderer.seek(time);
+      this.renderer.seek(safeTime);
     }
   }
   seekForward(interval = this.options.seekInterval) {
-    const targetTime = this.state.currentTime + interval;
+    const step = Number.isFinite(interval) ? interval : 5;
+    const targetTime = this.state.currentTime + step;
     const seekTime = this.state.duration > 0 ? Math.min(targetTime, this.state.duration) : targetTime;
     this.seek(seekTime);
   }
   seekBackward(interval = this.options.seekInterval) {
-    this.seek(Math.max(this.state.currentTime - interval, 0));
+    const step = Number.isFinite(interval) ? interval : 5;
+    this.seek(Math.max(this.state.currentTime - step, 0));
   }
   // Volume controls
+  /**
+   * Set the volume to a finite number in [0, 1]. Non-numeric or NaN
+   * input is silently ignored.
+   */
   setVolume(volume) {
+    if (typeof volume !== "number" || !Number.isFinite(volume)) return;
     const newVolume = Math.max(0, Math.min(1, volume));
     if (this.renderer) {
       this.renderer.setVolume(newVolume);
@@ -5423,7 +5614,11 @@ var Player = class _Player extends EventEmitter {
     }
   }
   // Playback speed
+  /**
+   * Set playback speed in [0.25, 2]. Silently rejects non-finite input.
+   */
   setPlaybackSpeed(speed) {
+    if (typeof speed !== "number" || !Number.isFinite(speed)) return;
     const newSpeed = Math.max(0.25, Math.min(2, speed));
     if (this.renderer) {
       this.renderer.setPlaybackSpeed(newSpeed);
@@ -5668,15 +5863,24 @@ var Player = class _Player extends EventEmitter {
     }
   }
   /**
-   * Check if a track file exists
-   * @param {string} url - Track file URL
-   * @returns {Promise<boolean>} - True if file exists
+   * Check if a track file exists. Bounded by an 8s `AbortSignal.timeout`
+   * and the player's lifecycle controller so a slow / hung server cannot
+   * keep a request alive past `destroy()`.
    */
   async validateTrackExists(url) {
+    if (typeof url !== "string" || !url) return false;
+    const signals = [this.lifecycleSignal];
+    if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+      signals.push(AbortSignal.timeout(8e3));
+    }
+    const signal = signals.length === 1 ? signals[0] : AbortSignal.any?.(signals) ?? signals[0];
     try {
-      const response = await fetch(url, { method: "HEAD", cache: "no-cache" });
+      const response = await fetch(url, { method: "HEAD", cache: "no-cache", signal });
       return response.ok;
     } catch (error) {
+      if (this.options.debug) {
+        this.log(`validateTrackExists("${url}") failed: ${error?.message ?? error}`, "warn");
+      }
       return false;
     }
   }
@@ -7224,7 +7428,7 @@ var Player = class _Player extends EventEmitter {
         }
       };
       setTimeout(() => {
-        document.addEventListener("mousedown", this.signLanguageDocumentClickHandler, true);
+        document.addEventListener("mousedown", this.signLanguageDocumentClickHandler, { capture: true, signal: this.lifecycleSignal });
         this.signLanguageDocumentClickHandlerAdded = true;
       }, 300);
     }
@@ -7622,7 +7826,7 @@ var Player = class _Player extends EventEmitter {
           }
         }
       };
-      window.addEventListener("resize", this.resizeHandler);
+      window.addEventListener("resize", this.resizeHandler, { signal: this.lifecycleSignal });
     }
     if (window.matchMedia) {
       this.orientationHandler = (e) => {
@@ -7676,14 +7880,24 @@ var Player = class _Player extends EventEmitter {
         }
       }
     };
-    document.addEventListener("fullscreenchange", this.fullscreenChangeHandler);
-    document.addEventListener("webkitfullscreenchange", this.fullscreenChangeHandler);
-    document.addEventListener("mozfullscreenchange", this.fullscreenChangeHandler);
-    document.addEventListener("MSFullscreenChange", this.fullscreenChangeHandler);
+    const opts = { signal: this.lifecycleSignal };
+    document.addEventListener("fullscreenchange", this.fullscreenChangeHandler, opts);
+    document.addEventListener("webkitfullscreenchange", this.fullscreenChangeHandler, opts);
+    document.addEventListener("mozfullscreenchange", this.fullscreenChangeHandler, opts);
+    document.addEventListener("MSFullscreenChange", this.fullscreenChangeHandler, opts);
   }
-  // Cleanup
+  // Cleanup. Aborts the lifecycle controller (which removes every
+  // window/document listener wired with `{ signal }` plus every
+  // user-influenced fetch we threaded the signal into), cascade-destroys
+  // every manager we own, and finally removes this instance from the
+  // global `Player.instances` registry.
   destroy() {
     this.log("Destroying player");
+    try {
+      this._lifecycleController.abort();
+    } catch (err) {
+      this.log(`AbortController.abort failed: ${err}`, "warn");
+    }
     if (this.renderer) {
       this.renderer.destroy();
     }
@@ -7700,6 +7914,38 @@ var Player = class _Player extends EventEmitter {
       this.transcriptManager.destroy();
     }
     this.cleanupSignLanguage();
+    if (this.audioDescriptionManager && typeof this.audioDescriptionManager.destroy === "function") {
+      try {
+        this.audioDescriptionManager.destroy();
+      } catch (err) {
+        this.log(`AudioDescriptionManager.destroy failed: ${err}`, "warn");
+      }
+      this.audioDescriptionManager = null;
+    }
+    if (this.signLanguageManager && typeof this.signLanguageManager.destroy === "function") {
+      try {
+        this.signLanguageManager.destroy();
+      } catch (err) {
+        this.log(`SignLanguageManager.destroy failed: ${err}`, "warn");
+      }
+      this.signLanguageManager = null;
+    }
+    if (this.playlistManager && typeof this.playlistManager.destroy === "function") {
+      try {
+        this.playlistManager.destroy();
+      } catch (err) {
+        this.log(`PlaylistManager.destroy failed: ${err}`, "warn");
+      }
+      this.playlistManager = null;
+    }
+    if (this.settingsDialog && typeof this.settingsDialog.destroy === "function") {
+      try {
+        this.settingsDialog.destroy();
+      } catch (err) {
+        this.log(`SettingsDialog.destroy failed: ${err}`, "warn");
+      }
+      this.settingsDialog = null;
+    }
     if (this.floatingPlayerManager) {
       try {
         this.floatingPlayerManager.destroy();
@@ -7724,10 +7970,8 @@ var Player = class _Player extends EventEmitter {
       this.resizeObserver.disconnect();
       this.resizeObserver = null;
     }
-    if (this.resizeHandler) {
-      window.removeEventListener("resize", this.resizeHandler);
-      this.resizeHandler = null;
-    }
+    this.resizeHandler = null;
+    this.fullscreenChangeHandler = null;
     if (this.orientationQuery && this.orientationHandler) {
       if (this.orientationQuery.removeEventListener) {
         this.orientationQuery.removeEventListener("change", this.orientationHandler);
@@ -7736,13 +7980,6 @@ var Player = class _Player extends EventEmitter {
       }
       this.orientationQuery = null;
       this.orientationHandler = null;
-    }
-    if (this.fullscreenChangeHandler) {
-      document.removeEventListener("fullscreenchange", this.fullscreenChangeHandler);
-      document.removeEventListener("webkitfullscreenchange", this.fullscreenChangeHandler);
-      document.removeEventListener("mozfullscreenchange", this.fullscreenChangeHandler);
-      document.removeEventListener("MSFullscreenChange", this.fullscreenChangeHandler);
-      this.fullscreenChangeHandler = null;
     }
     this.timeouts.forEach((timeoutId) => clearTimeout(timeoutId));
     this.timeouts.clear();
@@ -7761,6 +7998,10 @@ var Player = class _Player extends EventEmitter {
         }
       });
       this.metadataAlertHandlers.clear();
+    }
+    const idx = _Player.instances.indexOf(this);
+    if (idx >= 0) {
+      _Player.instances.splice(idx, 1);
     }
     if (this.container && this.container.parentNode) {
       this.container.parentNode.insertBefore(this.element, this.container);
@@ -7811,17 +8052,39 @@ var Player = class _Player extends EventEmitter {
     this.on("loadedmetadata", setupMetadata);
   }
   normalizeMetadataSelector(selector) {
-    if (!selector) {
+    if (typeof selector !== "string") {
       return null;
     }
     const trimmed = selector.trim();
     if (!trimmed) {
       return null;
     }
+    if (trimmed.length > 200) {
+      return null;
+    }
     if (trimmed.startsWith("#") || trimmed.startsWith(".") || trimmed.startsWith("[")) {
       return trimmed;
     }
     return `#${trimmed}`;
+  }
+  /**
+   * Resolve a metadata-cue selector inside the configured directive scope.
+   * Returns `null` when directives are disabled or the selector doesn't
+   * resolve.
+   */
+  resolveMetadataElement(selector) {
+    const mode = this.options.metadataDirectives;
+    if (!mode) return null;
+    if (!selector) return null;
+    try {
+      if (mode === true || mode === "global") {
+        return document.querySelector(selector);
+      }
+      const root = this.container || this.element.parentElement || document;
+      return root.querySelector(selector);
+    } catch {
+      return null;
+    }
   }
   resolveMetadataConfig(map, key) {
     if (!map || !key) {
@@ -7906,7 +8169,7 @@ var Player = class _Player extends EventEmitter {
       return;
     }
     const config = this.resolveMetadataConfig(this.options.metadataAlerts, selector) || {};
-    const element = options.element || document.querySelector(selector);
+    const element = options.element || this.resolveMetadataElement(selector);
     if (!element) {
       if (this.options.debug) {
         this.log("[Metadata] Alert element not found:", selector);
@@ -7996,7 +8259,7 @@ var Player = class _Player extends EventEmitter {
       if (!selector) {
         return;
       }
-      const element = document.querySelector(selector);
+      const element = this.resolveMetadataElement(selector);
       if (!element) {
         if (this.options.debug) {
           this.log("[Metadata] Hashtag target not found:", selector);
@@ -8059,11 +8322,11 @@ var Player = class _Player extends EventEmitter {
       }
       this.emit("metadata:pause", { time: cue.startTime, text });
     }
-    const focusMatch = text.match(/FOCUS:([\w#-]+)/);
+    const focusMatch = text.match(/FOCUS:([\w#-]{1,128})/);
     if (focusMatch) {
       const targetSelector = focusMatch[1];
       const normalizedSelector = this.normalizeMetadataSelector(targetSelector);
-      const targetElement = normalizedSelector ? document.querySelector(normalizedSelector) : null;
+      const targetElement = this.resolveMetadataElement(normalizedSelector);
       if (targetElement) {
         if (this.options.debug) {
           this.log("[Metadata] Focusing element:", normalizedSelector);
@@ -8074,7 +8337,7 @@ var Player = class _Player extends EventEmitter {
         this.setManagedTimeout(() => {
           targetElement.focus({ preventScroll: true });
         }, 10);
-      } else if (this.options.debug) {
+      } else if (this.options.debug && this.options.metadataDirectives) {
         this.log("[Metadata] Element not found:", normalizedSelector || targetSelector);
       }
       this.emit("metadata:focus", {
@@ -8084,24 +8347,27 @@ var Player = class _Player extends EventEmitter {
         element: targetElement,
         text
       });
-      if (normalizedSelector) {
+      if (this.options.metadataDirectives && normalizedSelector) {
         this.handleMetadataAlert(normalizedSelector, {
           element: targetElement,
           reason: "focus"
         });
       }
     }
-    const hashtags = text.match(/#[\w-]+/g);
-    if (hashtags) {
+    const hashtags = text.match(/#[\w-]{1,64}/g);
+    if (hashtags && hashtags.length > 0) {
+      const safeTags = hashtags.slice(0, 32);
       if (this.options.debug) {
-        this.log("[Metadata] Hashtags found:", hashtags);
+        this.log("[Metadata] Hashtags found:", safeTags);
       }
       this.emit("metadata:hashtags", {
         time: cue.startTime,
-        hashtags,
+        hashtags: safeTags,
         text
       });
-      this.handleMetadataHashtags(hashtags);
+      if (this.options.metadataDirectives) {
+        this.handleMetadataHashtags(safeTags);
+      }
     }
   }
 };
@@ -8219,6 +8485,7 @@ var PlaylistManager = class {
     if (this.player) {
       this.player.off("ended", this.handleTrackEnd);
       this.player.off("error", this.handleTrackError);
+      this.player.playlistManager = null;
       this.player.destroy();
     }
     this.hostElement.innerHTML = "";
@@ -9344,10 +9611,33 @@ var PlaylistManager = class {
 
 // src/index.ts
 var pendingPlayers = /* @__PURE__ */ new Map();
+var FORBIDDEN_KEYS = /* @__PURE__ */ new Set(["__proto__", "prototype", "constructor"]);
+function sanitizeOptionsObject(input) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    return {};
+  }
+  const out = /* @__PURE__ */ Object.create(null);
+  for (const [key, value] of Object.entries(input)) {
+    if (FORBIDDEN_KEYS.has(key)) continue;
+    out[key] = value;
+  }
+  return out;
+}
+function parseInlineOptions(element) {
+  const raw = element.dataset.vidplyOptions;
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return sanitizeOptionsObject(parsed);
+  } catch (err) {
+    console.warn("[VidPly] Ignored malformed data-vidply-options:", err);
+    return {};
+  }
+}
 function initializePlayers() {
   const elements = document.querySelectorAll("[data-vidply]");
   elements.forEach((element) => {
-    const options = element.dataset.vidplyOptions ? JSON.parse(element.dataset.vidplyOptions) : {};
+    const options = parseInlineOptions(element);
     const dataOptions = parseDataAttributes(element.dataset);
     const mergedOptions = { ...dataOptions, ...options };
     const lazyInit = element.dataset.vidplyLazy !== "false" && mergedOptions.lazyInit !== false;
@@ -9365,18 +9655,18 @@ function observeForLazyInit(element, options, margin) {
     new Player(element, options);
     return;
   }
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        observer.unobserve(entry.target);
-        pendingPlayers.delete(entry.target);
-        new Player(entry.target, options);
-      }
-    });
-  }, {
-    rootMargin: margin,
-    threshold: 0
-  });
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          observer.unobserve(entry.target);
+          pendingPlayers.delete(entry.target);
+          new Player(entry.target, options);
+        }
+      });
+    },
+    { rootMargin: margin, threshold: 0 }
+  );
   observer.observe(element);
   pendingPlayers.set(element, { observer, options });
 }
@@ -9387,7 +9677,7 @@ function cancelLazyInit(element) {
     pendingPlayers.delete(element);
   }
 }
-Player.observeLazy = function(selector, options = {}, margin = "200px") {
+Player.observeLazy = function observeLazy(selector, options = {}, margin = "200px") {
   const element = typeof selector === "string" ? document.querySelector(selector) : selector;
   if (!element) {
     console.warn("VidPly: Element not found for lazy observation");
@@ -9398,75 +9688,69 @@ Player.observeLazy = function(selector, options = {}, margin = "200px") {
     return {
       cancel: () => cancelLazyInit(element)
     };
-  } else {
-    new Player(element, options);
-    return null;
   }
+  new Player(element, options);
+  return null;
 };
 function parseDataAttributes(dataset) {
-  const options = {};
+  const options = /* @__PURE__ */ Object.create(null);
   const attributeMap = {
-    // Sign Language
-    "signLanguageSrc": "signLanguageSrc",
-    "signLanguageButton": "signLanguageButton",
-    "signLanguagePosition": "signLanguagePosition",
-    "signLanguageDisplayMode": "signLanguageDisplayMode",
-    // Audio Description
-    "audioDescriptionSrc": "audioDescriptionSrc",
-    "audioDescriptionButton": "audioDescriptionButton",
-    // Other common options
-    "autoplay": "autoplay",
-    "loop": "loop",
-    "muted": "muted",
-    "controls": "controls",
-    "poster": "poster",
-    "width": "width",
-    "height": "height",
-    "language": "language",
-    "captions": "captions",
-    "captionsDefault": "captionsDefault",
-    "transcript": "transcript",
-    "transcriptButton": "transcriptButton",
-    "keyboard": "keyboard",
-    "responsive": "responsive",
-    "pipButton": "pipButton",
-    "fullscreenButton": "fullscreenButton",
-    // Floating Player (custom in-page PiP)
-    "floating": "floating",
-    "floatingPosition": "floatingPosition",
-    "floatingMinViewportWidth": "floatingMinViewportWidth",
-    // Layout
-    // Lazy Loading
-    "lazyInit": "lazyInit",
-    "lazyMargin": "lazyMargin",
-    // Theming
-    "theme": "theme"
+    signLanguageSrc: "signLanguageSrc",
+    signLanguageButton: "signLanguageButton",
+    signLanguagePosition: "signLanguagePosition",
+    signLanguageDisplayMode: "signLanguageDisplayMode",
+    audioDescriptionSrc: "audioDescriptionSrc",
+    audioDescriptionButton: "audioDescriptionButton",
+    autoplay: "autoplay",
+    loop: "loop",
+    muted: "muted",
+    controls: "controls",
+    poster: "poster",
+    width: "width",
+    height: "height",
+    language: "language",
+    captions: "captions",
+    captionsDefault: "captionsDefault",
+    transcript: "transcript",
+    transcriptButton: "transcriptButton",
+    keyboard: "keyboard",
+    responsive: "responsive",
+    pipButton: "pipButton",
+    fullscreenButton: "fullscreenButton",
+    floating: "floating",
+    floatingPosition: "floatingPosition",
+    floatingMinViewportWidth: "floatingMinViewportWidth",
+    lazyInit: "lazyInit",
+    lazyMargin: "lazyMargin",
+    theme: "theme"
   };
-  Object.keys(attributeMap).forEach((dataKey) => {
-    const optionKey = attributeMap[dataKey];
+  for (const [dataKey, optionKey] of Object.entries(attributeMap)) {
+    if (FORBIDDEN_KEYS.has(optionKey)) continue;
     const value = dataset[dataKey];
-    if (value !== void 0) {
-      if (value === "true") {
-        options[optionKey] = true;
-      } else if (value === "false") {
-        options[optionKey] = false;
-      } else if (!isNaN(Number(value)) && value !== "") {
-        options[optionKey] = Number(value);
-      } else {
-        options[optionKey] = value;
-      }
+    if (value === void 0) continue;
+    if (value === "true") {
+      options[optionKey] = true;
+    } else if (value === "false") {
+      options[optionKey] = false;
+    } else if (value !== "" && !Number.isNaN(Number(value))) {
+      options[optionKey] = Number(value);
+    } else {
+      options[optionKey] = value;
     }
-  });
-  const signLanguageSources = {};
-  Object.keys(dataset).forEach((key) => {
+  }
+  const signLanguageSources = /* @__PURE__ */ Object.create(null);
+  for (const key of Object.keys(dataset)) {
     if (key.startsWith("signLanguageSrc") && key !== "signLanguageSrc") {
       const langMatch = key.match(/^signLanguageSrc([A-Z][a-z]*)$/);
       if (langMatch) {
         const langCode = langMatch[1].toLowerCase();
-        signLanguageSources[langCode] = dataset[key];
+        const value = dataset[key];
+        if (value !== void 0) {
+          signLanguageSources[langCode] = value;
+        }
       }
     }
-  });
+  }
   if (Object.keys(signLanguageSources).length > 0) {
     options.signLanguageSources = signLanguageSources;
     if (dataset.signLanguageSrc && !options.signLanguageSrc) {
@@ -9475,7 +9759,10 @@ function parseDataAttributes(dataset) {
   }
   if (dataset.vidplyLanguageFiles) {
     try {
-      options.languageFiles = JSON.parse(dataset.vidplyLanguageFiles);
+      const parsed = JSON.parse(dataset.vidplyLanguageFiles);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        options.languageFiles = sanitizeOptionsObject(parsed);
+      }
     } catch (e) {
       console.warn("Invalid JSON in data-vidply-language-files:", e);
     }
@@ -9483,10 +9770,10 @@ function parseDataAttributes(dataset) {
   if (dataset.vidplyLanguageFile) {
     try {
       const parsed = JSON.parse(dataset.vidplyLanguageFile);
-      if (typeof parsed === "object" && parsed !== null) {
-        options.languageFiles = parsed;
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        options.languageFiles = sanitizeOptionsObject(parsed);
       }
-    } catch (e) {
+    } catch {
       if (dataset.vidplyLanguageFileCode && dataset.vidplyLanguageFileUrl) {
         options.languageFile = dataset.vidplyLanguageFileCode;
         options.languageFileUrl = dataset.vidplyLanguageFileUrl;

@@ -1,5 +1,34 @@
+/**
+ * Public payload for the `playlisttrackchange` event. Mirrors what
+ * `PlaylistManager` actually emits at runtime so consumers can rely on
+ * the index/total/item triple.
+ */
+export interface PlaylistTrack {
+  src?: string;
+  title?: string;
+  artist?: string;
+  poster?: string;
+  duration?: number;
+  type?: string;
+  captions?: Array<{ src: string; lang: string; label?: string; default?: boolean }>;
+  audioDescription?: string;
+  signLanguage?: string;
+  signLanguageSources?: Record<string, string>;
+  [key: string]: unknown;
+}
+
+/**
+ * Reason the player entered/left the floating ("own PiP") mode.
+ *  - 'pinned' — explicitly toggled by the user via the PiP button.
+ *  - 'auto'   — auto-floated because the player scrolled out of view.
+ *  - null     — floating was disabled / player returned to its slot.
+ */
+export type FloatingChangeDetail = 'pinned' | 'auto' | null;
+
 export interface PlayerEventMap {
-  [key: string]: any;
+  // Note: an open `[key: string]: any` index signature was deliberately
+  // omitted so typos in event names now fail typecheck instead of being
+  // silently treated as `any`.
 
   // Playback
   ready: void;
@@ -15,7 +44,7 @@ export interface PlayerEventMap {
   durationchange: number;
   ratechange: number;
   loadedmetadata: void;
-  progress: TimeRanges;
+  progress: TimeRanges | number;
   volumechange: number | void;
   playbackspeedchange: number;
 
@@ -28,6 +57,8 @@ export interface PlayerEventMap {
   enterfullscreen: void;
   exitfullscreen: void;
   pipchange: boolean;
+  /** Floating ("own PiP") player toggled. */
+  floatingchange: FloatingChangeDetail;
 
   // Captions
   captionsenabled: TextTrack;
@@ -59,8 +90,13 @@ export interface PlayerEventMap {
   signlanguagelanguagechanged: string;
 
   // Playlist
-  playlisttrackchange: { index: number; track: unknown; previousIndex?: number };
-  playlisttrackselect: { index: number; track: unknown };
+  playlisttrackchange: {
+    index: number;
+    item: PlaylistTrack;
+    total: number;
+    previousIndex?: number;
+  };
+  playlisttrackselect: { index: number; item: PlaylistTrack };
 
   // Metadata (chapter cues)
   metadata: { type: string; data: unknown };
@@ -69,7 +105,7 @@ export interface PlayerEventMap {
   'metadata:hashtags': { hashtags: string[]; time?: number };
 
   // Error
-  error: { code: number; message: string; details?: unknown };
+  error: { code: number; message: string; details?: unknown } | unknown;
 
   // HLS-specific
   hlsmanifestparsed: unknown;

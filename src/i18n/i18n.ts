@@ -6,6 +6,39 @@ declare global {
   }
 }
 
+const PROTO_FORBIDDEN_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+
+/**
+ * Escape RegExp meta-characters so a placeholder name like
+ * `{name.first}` does not turn into a wildcard or backreference when
+ * compiled into a `RegExp`.
+ */
+function escapeRegExp(input: string): string {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Recursively copy a translation object onto a null-prototype map and
+ * drop forbidden keys (`__proto__`, `prototype`, `constructor`) so a
+ * malicious translation file cannot pollute Object.prototype on its way
+ * through `Object.assign`.
+ */
+function deepSanitizeTranslations(input: unknown): TranslationData {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return Object.create(null) as TranslationData;
+  }
+  const out: Record<string, unknown> = Object.create(null);
+  for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
+    if (PROTO_FORBIDDEN_KEYS.has(key)) continue;
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      out[key] = deepSanitizeTranslations(value);
+    } else {
+      out[key] = value;
+    }
+  }
+  return out as TranslationData;
+}
+
 class I18n {
   currentLanguage: string;
   translations: Record<string, TranslationData>;
@@ -14,7 +47,8 @@ class I18n {
 
   constructor() {
     this.currentLanguage = 'en';
-    this.translations = getBaseTranslations();
+    this.translations = Object.create(null) as Record<string, TranslationData>;
+    Object.assign(this.translations, getBaseTranslations());
     this.loadingPromises = new Map();
     this.builtInLanguageLoaders = getBuiltInLanguageLoaders();
   }
@@ -53,7 +87,7 @@ class I18n {
       try {
         const loaded = await loadBuiltInTranslation(normalizedLang);
         if (loaded) {
-          this.translations[normalizedLang] = loaded;
+          this.translations[normalizedLang] = deepSanitizeTranslations(loaded);
         }
       } catch (error) {
         console.warn(`Language "${normalizedLang}" failed to load:`, error);
@@ -90,9 +124,11 @@ class I18n {
 
     if (typeof value === 'string') {
       let result = value;
-      Object.entries(replacements).forEach(([placeholder, replacement]) => {
-        result = result.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), String(replacement));
-      });
+      for (const [placeholder, replacement] of Object.entries(replacements)) {
+        if (PROTO_FORBIDDEN_KEYS.has(placeholder)) continue;
+        const safe = escapeRegExp(placeholder);
+        result = result.replace(new RegExp(`\\{${safe}\\}`, 'g'), String(replacement));
+      }
       return result;
     }
 
@@ -100,20 +136,46 @@ class I18n {
   }
 
   addTranslation(lang: string, newTranslations: TranslationData): void {
-    if (!this.translations[lang]) {
-      this.translations[lang] = {};
+    if (PROTO_FORBIDDEN_KEYS.has(lang)) {
+      console.warn(`[VidPly] Refusing to register language with forbidden name "${lang}"`);
+      return;
     }
-    Object.assign(this.translations[lang], newTranslations);
+    if (!this.translations[lang]) {
+      this.translations[lang] = Object.create(null) as TranslationData;
+    }
+    const sanitized = deepSanitizeTranslations(newTranslations);
+    Object.assign(this.translations[lang], sanitized);
   }
 
-  async loadLanguageFromUrl(langCode: string, url: string): Promise<unknown> {
+  /**
+   * Load a translation file from a URL. Bounded by an `AbortSignal.timeout`
+   * (default 8s) plus an optional caller-supplied signal — typically the
+   * Player's lifecycle controller — so a torn-down player does not keep
+   * the request alive.
+   */
+  async loadLanguageFromUrl(
+    langCode: string,
+    url: string,
+    options: { signal?: AbortSignal; timeoutMs?: number } = {}
+  ): Promise<unknown> {
     if (this.loadingPromises.has(url)) {
       return this.loadingPromises.get(url);
     }
 
     const loadPromise = (async () => {
+      const signals: AbortSignal[] = [];
+      if (options.signal) signals.push(options.signal);
+      if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+        signals.push(AbortSignal.timeout(options.timeoutMs ?? 8000));
+      }
+      const signal = signals.length === 0
+        ? undefined
+        : signals.length === 1
+          ? signals[0]
+          : (AbortSignal as { any?: (sigs: AbortSignal[]) => AbortSignal }).any?.(signals) ?? signals[0];
+
       try {
-        const response = await fetch(url);
+        const response = await fetch(url, { signal });
         if (!response.ok) {
           throw new Error(`Failed to load language file: ${response.statusText}`);
         }
@@ -160,9 +222,12 @@ class I18n {
     return loadPromise;
   }
 
-  async loadLanguagesFromUrls(languageMap: Record<string, string>): Promise<void> {
+  async loadLanguagesFromUrls(
+    languageMap: Record<string, string>,
+    options: { signal?: AbortSignal; timeoutMs?: number } = {}
+  ): Promise<void> {
     const promises = Object.entries(languageMap).map(([langCode, url]) =>
-      this.loadLanguageFromUrl(langCode, url)
+      this.loadLanguageFromUrl(langCode, url, options)
     );
     await Promise.all(promises);
   }

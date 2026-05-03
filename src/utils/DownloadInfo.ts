@@ -93,13 +93,36 @@ export function formatBytes(bytes: number, locale: string = 'en'): string | null
   return `${formatted} ${units[unitIndex]}`;
 }
 
-export async function fetchContentLength(url: string): Promise<number | null> {
+export interface FetchContentLengthOptions {
+  signal?: AbortSignal;
+  timeoutMs?: number;
+}
+
+export async function fetchContentLength(
+  url: string,
+  options: FetchContentLengthOptions = {}
+): Promise<number | null> {
   if (!url || typeof fetch !== 'function') return null;
+
+  // Compose abort signals: caller's lifecycle signal + a per-call timeout.
+  const signals: AbortSignal[] = [];
+  if (options.signal) signals.push(options.signal);
+  if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+    signals.push(AbortSignal.timeout(options.timeoutMs ?? 8000));
+  }
+  let combinedSignal: AbortSignal | undefined;
+  if (signals.length === 1) combinedSignal = signals[0];
+  else if (signals.length > 1) {
+    const anyFn = (AbortSignal as { any?: (s: AbortSignal[]) => AbortSignal }).any;
+    combinedSignal = anyFn ? anyFn(signals) : signals[0];
+  }
+
   try {
     const response = await fetch(url, {
       method: 'HEAD',
       credentials: 'omit',
-      cache: 'no-store'
+      cache: 'no-store',
+      signal: combinedSignal
     });
     if (!response.ok) return null;
     const header = response.headers.get('Content-Length');
@@ -107,7 +130,7 @@ export async function fetchContentLength(url: string): Promise<number | null> {
     const size = Number(header);
     return Number.isFinite(size) && size > 0 ? size : null;
   } catch (error) {
-    // CORS, network errors, or HEAD not allowed: silently give up.
+    // CORS, network errors, abort, or HEAD not allowed: silently give up.
     if (typeof console !== 'undefined' && console.debug) {
       console.debug('[vidply] HEAD request for download size failed:', error);
     }

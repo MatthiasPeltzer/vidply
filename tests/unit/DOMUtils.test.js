@@ -219,39 +219,74 @@ describe('DOMUtils', () => {
     });
   });
 
-  describe('sanitizeHTML', () => {
-    it('should remove script tags', () => {
-      const input = '<p>Hello</p><script>alert("xss")</script><p>World</p>';
-      const result = DOMUtils.sanitizeHTML(input);
-      expect(result).not.toContain('<script');
-      expect(result).toContain('<p>Hello</p>');
-      expect(result).toContain('<p>World</p>');
+  describe('renderVTTToDOM', () => {
+    const wrap = (text) => {
+      const host = document.createElement('div');
+      host.appendChild(DOMUtils.renderVTTToDOM(text));
+      return host;
+    };
+
+    it('renders plain text as a text node', () => {
+      const host = wrap('Hello world');
+      expect(host.textContent).toBe('Hello world');
+      expect(host.children).toHaveLength(0);
     });
 
-    it('should remove iframe tags', () => {
-      const input = '<p>Test</p><iframe src="evil.com"></iframe>';
-      const result = DOMUtils.sanitizeHTML(input);
-      expect(result).not.toContain('<iframe');
+    it('escapes HTML so unknown tags become literal text', () => {
+      const host = wrap('<p>Hello</p><script>alert("xss")</script>');
+      expect(host.querySelector('script')).toBeNull();
+      expect(host.querySelector('p')).toBeNull();
+      // The literal characters survive as text content.
+      expect(host.textContent).toContain('<script>');
+      expect(host.textContent).toContain('alert("xss")');
     });
 
-    it('should remove event handlers', () => {
-      const input = '<img src="x" onerror="alert(1)">';
-      const result = DOMUtils.sanitizeHTML(input);
-      expect(result).not.toContain('onerror');
+    it('strips iframe entirely (rendered as text, not element)', () => {
+      const host = wrap('<p>Test</p><iframe src="evil.com"></iframe>');
+      expect(host.querySelector('iframe')).toBeNull();
     });
 
-    it('should remove javascript: protocol', () => {
-      const input = '<a href="javascript:alert(1)">Click</a>';
-      const result = DOMUtils.sanitizeHTML(input);
-      expect(result).not.toContain('javascript:');
+    it('does not preserve event-handler attributes', () => {
+      // The <img> tag is not in the allow-list so no element is created
+      // — the unrecognised markup survives as escaped text content, which
+      // is harmless because no DOM event handler can fire on a text node.
+      const host = wrap('<img src="x" onerror="alert(1)">');
+      expect(host.querySelector('img')).toBeNull();
+      expect(host.querySelector('[onerror]')).toBeNull();
     });
 
-    it('should preserve safe formatting tags', () => {
-      const input = '<b>Bold</b> <i>Italic</i> <u>Underline</u>';
-      const result = DOMUtils.sanitizeHTML(input);
-      expect(result).toContain('<b>Bold</b>');
-      expect(result).toContain('<i>Italic</i>');
-      expect(result).toContain('<u>Underline</u>');
+    it('does not preserve javascript: URLs', () => {
+      // Same rationale: the <a> tag is rejected; what remains is text.
+      const host = wrap('<a href="javascript:alert(1)">Click</a>');
+      expect(host.querySelector('a')).toBeNull();
+      expect(host.querySelector('[href]')).toBeNull();
+    });
+
+    it('renders <b>, <i>, <u> as semantic elements', () => {
+      const host = wrap('<b>Bold</b> <i>Italic</i> <u>Underline</u>');
+      expect(host.querySelector('strong')?.textContent).toBe('Bold');
+      expect(host.querySelector('em')?.textContent).toBe('Italic');
+      expect(host.querySelector('u')?.textContent).toBe('Underline');
+    });
+
+    it('renders <c.foo> as a class-prefixed span', () => {
+      const host = wrap('<c.shout>HEY</c>');
+      const span = host.querySelector('span.caption-class');
+      expect(span?.textContent).toBe('HEY');
+      expect(span?.classList.contains('caption-class-shout')).toBe(true);
+    });
+
+    it('renders <v Speaker> as caption-voice with data-voice', () => {
+      const host = wrap('<v Joe>Hello!</v>');
+      const span = host.querySelector('span.caption-voice');
+      expect(span?.textContent).toBe('Hello!');
+      expect(span?.dataset.voice).toBe('Joe');
+    });
+
+    it('caps cue input length to prevent ReDoS / runaway DOM', () => {
+      const long = 'a'.repeat(50_000);
+      const host = wrap(long);
+      expect(host.textContent.length).toBeLessThanOrEqual(10_000);
     });
   });
 

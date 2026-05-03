@@ -202,10 +202,25 @@ export class DASHRenderer implements Renderer {
     this._setupCaptionSync();
   }
 
-  async loadDashJs() {
+  /**
+   * Load dash.js. Pinned to an exact version (the previous default
+   * `5.1.1` is preserved) and overridable via `options.dashScriptUrl`
+   * (URL) / `options.dashScriptIntegrity` (SRI hash). See
+   * HLSRenderer.loadHlsJs() for the SRI computation command.
+   */
+  async loadDashJs(): Promise<void> {
+    const defaultUrl = 'https://cdn.jsdelivr.net/npm/dashjs@5.1.1/dist/modern/umd/dash.all.min.js';
+    const url: string = (this.player.options.dashScriptUrl as string | undefined) || defaultUrl;
+    const integrity = this.player.options.dashScriptIntegrity as string | undefined;
+
     return new Promise<void>((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/dashjs@5.1.1/dist/modern/umd/dash.all.min.js';
+      script.src = url;
+      if (integrity) {
+        script.integrity = integrity;
+        script.crossOrigin = 'anonymous';
+        script.referrerPolicy = 'no-referrer';
+      }
       script.onload = () => resolve();
       script.onerror = () => reject(new Error('Failed to load dash.js'));
       document.head.appendChild(script);

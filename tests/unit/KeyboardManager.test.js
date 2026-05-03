@@ -411,10 +411,12 @@ describe('KeyboardManager', () => {
     it('should announce volume level', () => {
       mockPlayer.state.volume = 0.75;
       const announceSpy = vi.spyOn(manager, 'announce');
-      
+
       manager.announceAction('volume-up');
-      
-      expect(announceSpy).toHaveBeenCalledWith('Volume 75%');
+
+      // The announcement is i18n'd via player.volumePercent
+      // ("Volume {percent} percent" in en).
+      expect(announceSpy).toHaveBeenCalledWith('Volume 75 percent');
     });
 
     it('should announce muted state', () => {
@@ -447,10 +449,12 @@ describe('KeyboardManager', () => {
     it('should announce exit fullscreen state', () => {
       mockPlayer.state.fullscreen = false;
       const announceSpy = vi.spyOn(manager, 'announce');
-      
+
       manager.announceAction('fullscreen');
-      
-      expect(announceSpy).toHaveBeenCalledWith('Exit fullscreen');
+
+      // The announcement reuses the existing i18n key
+      // `player.exitFullscreen`, which is "Exit Fullscreen" in en.
+      expect(announceSpy).toHaveBeenCalledWith('Exit Fullscreen');
     });
 
     it('should announce captions on', () => {
@@ -482,36 +486,41 @@ describe('KeyboardManager', () => {
   });
 
   describe('announce', () => {
+    // The announcer is created per-player-instance with an id of
+    // `vidply-announcer-{instanceId}` instead of a singleton id, so
+    // multi-player pages do not cross-talk through a shared element.
+    const announcerSelector = () =>
+      document.querySelector(`[id^="vidply-announcer-"]`);
+
     it('should create announcer element if not exists', () => {
       manager.announce('Test message');
       vi.advanceTimersByTime(200);
-      
-      const announcer = document.getElementById('vidply-announcer');
-      expect(announcer).not.toBeNull();
+
+      expect(announcerSelector()).not.toBeNull();
     });
 
     it('should set aria-live attribute', () => {
       manager.announce('Test message');
       vi.advanceTimersByTime(200);
-      
-      const announcer = document.getElementById('vidply-announcer');
+
+      const announcer = announcerSelector();
       expect(announcer.getAttribute('aria-live')).toBe('polite');
     });
 
     it('should set aria-atomic attribute', () => {
       manager.announce('Test message');
       vi.advanceTimersByTime(200);
-      
-      const announcer = document.getElementById('vidply-announcer');
+
+      const announcer = announcerSelector();
       expect(announcer.getAttribute('aria-atomic')).toBe('true');
     });
 
     it('should set message after delay', () => {
       manager.announce('Test message');
-      
-      const announcer = document.getElementById('vidply-announcer');
+
+      const announcer = announcerSelector();
       expect(announcer.textContent).toBe('');
-      
+
       vi.advanceTimersByTime(200);
       expect(announcer.textContent).toBe('Test message');
     });
@@ -519,11 +528,11 @@ describe('KeyboardManager', () => {
     it('should reuse existing announcer element', () => {
       manager.announce('First message');
       vi.advanceTimersByTime(200);
-      
+
       manager.announce('Second message');
       vi.advanceTimersByTime(200);
-      
-      const announcers = document.querySelectorAll('#vidply-announcer');
+
+      const announcers = document.querySelectorAll('[id^="vidply-announcer-"]');
       expect(announcers.length).toBe(1);
     });
   });

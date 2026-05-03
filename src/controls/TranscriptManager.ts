@@ -927,8 +927,12 @@ export class TranscriptManager {
     );
     if (!entry) return null;
 
+    // Build a combined AbortSignal: the player's lifecycle controller plus
+    // a 10s timeout per individual fetch.
+    const signal = this._buildFetchSignal(10_000);
+
     try {
-      const res = await fetch(entry.url);
+      const res = await fetch(entry.url, { signal });
       if (!res.ok) return null;
       let text = await res.text();
 
@@ -941,7 +945,7 @@ export class TranscriptManager {
         if (!vttUri) return null;
         const baseUrl = entry.url.substring(0, entry.url.lastIndexOf('/') + 1);
         const vttUrl = vttUri.startsWith('http') ? vttUri : new URL(vttUri, baseUrl).href;
-        const vttRes = await fetch(vttUrl);
+        const vttRes = await fetch(vttUrl, { signal: this._buildFetchSignal(10_000) });
         if (!vttRes.ok) return null;
         text = await vttRes.text();
       }
@@ -952,6 +956,23 @@ export class TranscriptManager {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Build an AbortSignal that fires when either the player is destroyed
+   * or `timeoutMs` elapses, whichever happens first.
+   */
+  private _buildFetchSignal(timeoutMs: number): AbortSignal | undefined {
+    const signals: AbortSignal[] = [];
+    const lifecycle = (this.player as { lifecycleSignal?: AbortSignal }).lifecycleSignal;
+    if (lifecycle) signals.push(lifecycle);
+    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+      signals.push(AbortSignal.timeout(timeoutMs));
+    }
+    if (signals.length === 0) return undefined;
+    if (signals.length === 1) return signals[0];
+    const anyFn = (AbortSignal as { any?: (sigs: AbortSignal[]) => AbortSignal }).any;
+    return anyFn ? anyFn(signals) : signals[0];
   }
 
   /**
@@ -1296,14 +1317,22 @@ export class TranscriptManager {
    */
   createTranscriptEntry(cue: TranscriptCue, index: number, type: 'caption' | 'description' = 'caption') {
     const entryText = this.stripVTTFormatting(((cue as TextTrackCue & { text?: string }).text) || '');
-    
-    const entry = DOMUtils.createElement('div', {
+
+    // Use a real <button> so screen readers/AT report "button", Enter and
+    // Space activate it natively, and forms-mode users can find it.
+    const seekLabelTemplate = i18n.t('transcript.seekTo') || 'Seek to {time}';
+    const ariaLabel = seekLabelTemplate
+      .replace('{time}', TimeUtils.formatTime(cue.startTime))
+      .replace('{text}', entryText);
+
+    const entry = DOMUtils.createElement('button', {
       className: `${this.player.options.classPrefix}-transcript-entry ${this.player.options.classPrefix}-transcript-${type}`,
       attributes: {
-        'tabindex': '0',
+        'type': 'button',
         'data-start': String(cue.startTime),
         'data-end': String(cue.endTime),
-        'data-type': type
+        'data-type': type,
+        'aria-label': `${ariaLabel} — ${entryText}`
       }
     });
 
@@ -1323,7 +1352,8 @@ export class TranscriptManager {
     entry.appendChild(timestamp);
     entry.appendChild(text);
 
-    // Click to seek
+    // Click to seek. <button> elements activate on Enter/Space natively,
+    // so a custom keydown handler is no longer needed.
     const seekToTime = () => {
       this.player.seek(cue.startTime);
       if (this.player.state.paused) {
@@ -1332,12 +1362,6 @@ export class TranscriptManager {
     };
 
     entry.addEventListener('click', seekToTime);
-    entry.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        seekToTime();
-      }
-    });
 
     return entry;
   }

@@ -97,10 +97,18 @@ async function terserMinifyDirectory(dir, isLegacy = false, filePattern = null) 
   return totalSaved;
 }
 
-// Banner comment
+// Banner comment.
+// Reproducible across builds: prefer SOURCE_DATE_EPOCH (set by CI) and fall
+// back to the version in package.json so two builds of the same git ref
+// produce identical bundles.
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
+const epoch = process.env.SOURCE_DATE_EPOCH;
+const bannerYear = epoch
+  ? new Date(parseInt(epoch, 10) * 1000).getUTCFullYear()
+  : (process.env.VIDPLY_COPYRIGHT_YEAR || new Date().getUTCFullYear());
 const banner = `/*!
- * Universal, Accessible Video Player
- * (c) ${new Date().getFullYear()} Matthias Peltzer
+ * VidPly v${pkg.version} - Universal, Accessible Video Player
+ * (c) ${bannerYear} Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */`;
 

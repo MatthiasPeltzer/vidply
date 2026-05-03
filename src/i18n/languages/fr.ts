@@ -72,7 +72,16 @@ export const fr = {
     disableSignResizeModeAria: 'Désactiver le mode redimensionnement clavier avec les touches fléchées. Raccourci : touche R',
     resizeHandle: 'Redimensionner coin {direction}',
     moreOptions: 'Plus d\'options',
-    noMoreOptions: 'Aucune option supplémentaire disponible'
+    noMoreOptions: 'Aucune option supplémentaire disponible',
+    playing: 'Lecture en cours',
+    paused: 'En pause',
+    muted: 'Muet',
+    unmuted: 'Son activé',
+    captionsOn: 'Sous-titres activés',
+    captionsOff: 'Sous-titres désactivés',
+    volumePercent: 'Volume {percent} pour cent',
+    volumePercentMuted: 'Muet',
+    speedRate: 'Vitesse {rate}x'
   },
   captions: {
     off: 'Désactivé',
@@ -145,7 +154,8 @@ export const fr = {
     showTimestamps: 'Afficher les horodatages',
     hideTimestamps: 'Masquer les horodatages',
     showTimestampsAria: 'Afficher les horodatages dans la transcription',
-    hideTimestampsAria: 'Masquer les horodatages dans la transcription'
+    hideTimestampsAria: 'Masquer les horodatages dans la transcription',
+    seekTo: 'Aller à {time}'
   },
   settings: {
     title: 'Paramètres',

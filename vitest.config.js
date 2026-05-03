@@ -17,10 +17,17 @@ export default defineConfig({
     // Coverage configuration
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'html', 'lcov'],
       reportsDirectory: './coverage',
       include: ['src/**/*.{js,ts}'],
-      exclude: ['src/styles/**', 'src/icons/**']
+      exclude: ['src/styles/**', 'src/icons/**', 'src/types/**'],
+      // Floors aligned with the current public test surface; raise as the suite grows.
+      thresholds: {
+        statements: 60,
+        branches: 55,
+        functions: 60,
+        lines: 60
+      }
     },
     
     // Setup files to run before each test file

@@ -54,17 +54,31 @@ export async function captureVideoFrame(
           video.currentTime = originalTime;
           video.muted = originalMuted;
           if (wasPlaying && !video.paused) {
-            video.play().catch(() => {});
+            // Autoplay can be rejected by browser policy. We log at debug
+            // level so the noise doesn't reach production consoles, but
+            // unexpected errors are still observable.
+            video.play().catch((e: unknown) => {
+              if (typeof console !== 'undefined' && console.debug) {
+                console.debug('[VidPly] preview play() rejected:', e);
+              }
+            });
           }
         }
 
         resolve(dataURL);
-      } catch {
+      } catch (e) {
+        if (typeof console !== 'undefined' && console.debug) {
+          console.debug('[VidPly] frame capture failed:', e);
+        }
         if (restoreState) {
           video.currentTime = originalTime;
           video.muted = originalMuted;
           if (wasPlaying && !video.paused) {
-            video.play().catch(() => {});
+            video.play().catch((err: unknown) => {
+              if (typeof console !== 'undefined' && console.debug) {
+                console.debug('[VidPly] preview play() rejected:', err);
+              }
+            });
           }
         }
         resolve(null);

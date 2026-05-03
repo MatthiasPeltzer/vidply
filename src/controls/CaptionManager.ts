@@ -301,7 +301,7 @@ export class CaptionManager {
         this.currentTrack = null;
 
         this.element.style.display = 'none';
-        this.element.innerHTML = '';
+        this.element.replaceChildren();
         this.element.removeAttribute('lang');
         this.currentCue = null;
         this.player.state.captionsEnabled = false;
@@ -332,7 +332,7 @@ export class CaptionManager {
         if (!this.currentTrack.track.activeCues) {
             if (this.currentTrack.track.cues && this.currentTrack.track.cues.length > 0) {
                 if (this.currentCue) {
-                    this.element.innerHTML = '';
+                    this.element.replaceChildren();
                     this.element.style.display = 'none';
                     this.currentCue = null;
                 }
@@ -349,38 +349,39 @@ export class CaptionManager {
             if (this.currentCue !== cue) {
                 this.currentCue = cue;
 
-                let text = cue.text || '';
-                text = this.parseVTTFormatting(text);
-                const sanitized = DOMUtils.sanitizeHTML(text);
-
-                if (!sanitized.trim()) {
+                const rawText = cue.text || '';
+                if (!rawText.trim()) {
                     return;
                 }
+
+                const fragment = DOMUtils.renderVTTToDOM(rawText);
 
                 if (isAudioPlayer) {
                     const existingCues = this.element.querySelectorAll(`.${this.player.options.classPrefix}-caption-cue`);
                     existingCues.forEach((el: Element) => el.classList.remove(`${this.player.options.classPrefix}-caption-active`));
-                    
+
                     const cueId = `cue-${cue.startTime}-${cue.endTime}`;
                     let cueElement = this.element.querySelector(`[data-cue-id="${cueId}"]`);
-                    
+
                     if (!cueElement) {
                         cueElement = document.createElement('div');
                         cueElement.className = `${this.player.options.classPrefix}-caption-cue`;
                         cueElement.setAttribute('data-cue-id', cueId);
-                        cueElement.innerHTML = sanitized;
+                        cueElement.replaceChildren(fragment);
                         this.element.appendChild(cueElement);
+                    } else {
+                        cueElement.replaceChildren(fragment);
                     }
-                    
+
                     cueElement.classList.add(`${this.player.options.classPrefix}-caption-active`);
-                    
+
                     requestAnimationFrame(() => {
                         if (cueElement) {
                             cueElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }
                     });
                 } else {
-                    this.element.innerHTML = sanitized;
+                    this.element.replaceChildren(fragment);
                 }
 
                 this.element.style.display = 'block';
@@ -389,7 +390,7 @@ export class CaptionManager {
             }
         } else if (this.currentCue) {
             if (!isAudioPlayer) {
-                this.element.innerHTML = '';
+                this.element.replaceChildren();
                 this.element.style.display = 'none';
             }
             this.currentCue = null;
@@ -438,18 +439,11 @@ export class CaptionManager {
         });
     }
 
-    parseVTTFormatting(text: string) {
-        // Basic VTT tag support
-        text = text.replace(/<c[^>]*>(.*?)<\/c>/g, '<span class="caption-class">$1</span>');
-        text = text.replace(/<b>(.*?)<\/b>/g, '<strong>$1</strong>');
-        text = text.replace(/<i>(.*?)<\/i>/g, '<em>$1</em>');
-        text = text.replace(/<u>(.*?)<\/u>/g, '<u>$1</u>');
-
-        // Voice tags
-        text = text.replace(/<v\s+([^>]+)>(.*?)<\/v>/g, '<span class="caption-voice" data-voice="$1">$2</span>');
-
-        return text;
-    }
+    // VTT formatting is parsed via DOMUtils.renderVTTToDOM() which returns
+    // a DocumentFragment built with createElement / createTextNode. The
+    // previous regex-based parseVTTFormatting helper was removed because
+    // it produced strings that were assigned to `innerHTML`, which is
+    // unsafe for cue text from third-party WebVTT sources.
 
     updateStyles() {
         if (!this.element) return;
@@ -474,21 +468,25 @@ export class CaptionManager {
     }
 
     setCaptionStyle(property: string, value: string | number) {
+        // The persisted preference shape is mixed (string for font/colors,
+        // number for opacity). Cast through the player's loose options
+        // index so we don't have to split this method into 5 strongly-typed
+        // overloads when the underlying string-keyed bag is itself loose.
         switch (property) {
             case 'fontSize':
-                this.player.options.captionsFontSize = value;
+                this.player.options.captionsFontSize = String(value);
                 break;
             case 'fontFamily':
-                this.player.options.captionsFontFamily = value;
+                this.player.options.captionsFontFamily = String(value);
                 break;
             case 'color':
-                this.player.options.captionsColor = value;
+                this.player.options.captionsColor = String(value);
                 break;
             case 'backgroundColor':
-                this.player.options.captionsBackgroundColor = value;
+                this.player.options.captionsBackgroundColor = String(value);
                 break;
             case 'opacity':
-                this.player.options.captionsOpacity = value;
+                this.player.options.captionsOpacity = Number(value);
                 break;
         }
 

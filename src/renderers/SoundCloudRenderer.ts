@@ -41,12 +41,29 @@ export class SoundCloudRenderer implements Renderer {
   }
 
   /**
-   * Validate SoundCloud URL
-   * @param {string} url 
-   * @returns {boolean}
+   * Validate a SoundCloud URL by parsing it with the URL constructor and
+   * checking the protocol + hostname against an explicit allow-list.
+   * Substring checks like `url.includes('soundcloud.com')` accept things
+   * like `https://evil.com/?leak=soundcloud.com` or
+   * `https://soundcloud.com.attacker.example`.
    */
-  isValidSoundCloudUrl(url: string) {
-    return url.includes('soundcloud.com') || url.includes('api.soundcloud.com');
+  isValidSoundCloudUrl(url: string): boolean {
+    if (typeof url !== 'string' || !url) return false;
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return false;
+    }
+    if (parsed.protocol !== 'https:') return false;
+    const allowedHosts = new Set([
+      'soundcloud.com',
+      'www.soundcloud.com',
+      'm.soundcloud.com',
+      'api.soundcloud.com',
+      'api-v2.soundcloud.com'
+    ]);
+    return allowedHosts.has(parsed.hostname.toLowerCase());
   }
 
   /**

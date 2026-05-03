@@ -1467,14 +1467,43 @@ export class ControlBar {
             }
         });
 
-        // Keyboard navigation
+        // Keyboard navigation. Mirrors WAI-ARIA Authoring Practices for
+        // sliders: PageUp/PageDown step by `seekIntervalLarge` (default 30s),
+        // Home/End jump to the start/end of the media.
         progress.addEventListener('keydown', (e: KeyboardEvent) => {
-            if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                this.player.seekBackward(5);
-            } else if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                this.player.seekForward(5);
+            const smallStep = (this.player.options.seekInterval as number | undefined) || 5;
+            const largeStep = (this.player.options.seekIntervalLarge as number | undefined) || 30;
+            const duration = Number(this.player.state.duration);
+
+            switch (e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    this.player.seekBackward(smallStep);
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    this.player.seekForward(smallStep);
+                    break;
+                case 'PageUp':
+                    e.preventDefault();
+                    this.player.seekForward(largeStep);
+                    break;
+                case 'PageDown':
+                    e.preventDefault();
+                    this.player.seekBackward(largeStep);
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    this.player.seek(0);
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    if (Number.isFinite(duration) && duration > 0) {
+                        this.player.seek(Math.max(0, duration - 0.1));
+                    }
+                    break;
+                default:
+                    break;
             }
         });
 
@@ -1725,6 +1754,7 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-volume-menu ${this.player.options.classPrefix}-menu`
         });
 
+        const initialPercent = Math.round(this.player.state.volume * 100);
         const volumeSlider = DOMUtils.createElement('div', {
             className: `${this.player.options.classPrefix}-volume-slider`,
             attributes: {
@@ -1732,7 +1762,10 @@ export class ControlBar {
                 'aria-label': i18n.t('player.volume'),
                 'aria-valuemin': '0',
                 'aria-valuemax': '100',
-                'aria-valuenow': String(Math.round(this.player.state.volume * 100)),
+                'aria-valuenow': String(initialPercent),
+                'aria-valuetext': this.player.state.muted
+                    ? i18n.t('player.muted')
+                    : i18n.t('player.volumePercent', { percent: initialPercent }),
                 'tabindex': '0'
             }
         });
@@ -2324,13 +2357,35 @@ export class ControlBar {
             return;
         }
 
+        // The caption-style panel contains form controls (selects, color
+        // inputs, sliders), not single-action menuitems. Modeling it as a
+        // dialog yields correct semantics for AT and matches the
+        // SettingsDialog pattern.
+        const menuLabelId = `${this.player.options.classPrefix}-caption-style-label-${this.player.instanceId || ''}`;
         const menu = DOMUtils.createElement('div', {
             className: `${this.player.options.classPrefix}-caption-style-menu ${this.player.options.classPrefix}-menu ${this.player.options.classPrefix}-settings-menu`,
             attributes: {
-                'role': 'menu',
-                'aria-label': i18n.t('player.captionStyling')
+                'role': 'dialog',
+                'aria-modal': 'false',
+                'aria-labelledby': menuLabelId
             }
         });
+        const visuallyHiddenLabel = DOMUtils.createElement('h2', {
+            textContent: i18n.t('player.captionStyling'),
+            attributes: { id: menuLabelId, class: `${this.player.options.classPrefix}-sr-only` },
+            style: {
+                position: 'absolute',
+                width: '1px',
+                height: '1px',
+                padding: '0',
+                margin: '-1px',
+                overflow: 'hidden',
+                clip: 'rect(0,0,0,0)',
+                whiteSpace: 'nowrap',
+                border: '0'
+            }
+        });
+        menu.appendChild(visuallyHiddenLabel);
 
         // Prevent menu from closing when clicking inside
         menu.addEventListener('click', (e) => {
@@ -2344,7 +2399,7 @@ export class ControlBar {
                 className: `${this.player.options.classPrefix}-menu-item`,
                 textContent: i18n.t('player.noCaptions'),
                 attributes: {
-                    'role': 'menuitem'
+                    'role': 'status'
                 },
                 style: {opacity: '0.5', cursor: 'default', padding: '12px 16px'}
             });
@@ -3228,7 +3283,7 @@ export class ControlBar {
         if (floating) {
             // Keep aria-pressed in sync with the floating state so screen
             // readers announce the toggled state correctly.
-            this.player.on('floatingchange', (state: any) => {
+            this.player.on('floatingchange', (state: 'pinned' | 'auto' | null) => {
                 button.setAttribute('aria-pressed', state === 'pinned' ? 'true' : 'false');
                 button.classList.toggle(`${this.player.options.classPrefix}-pip-active`, !!state);
             });
@@ -3487,9 +3542,16 @@ export class ControlBar {
             this.controls.volumeFill.style.height = `${percent}%`;
         }
         
-        // Update volume slider aria-valuenow if it exists
+        // Update volume slider aria-valuenow + aria-valuetext if it exists.
         if (this.controls.volumeSlider) {
-            this.controls.volumeSlider.setAttribute('aria-valuenow', String(Math.round(percent)));
+            const rounded = Math.round(percent);
+            this.controls.volumeSlider.setAttribute('aria-valuenow', String(rounded));
+            this.controls.volumeSlider.setAttribute(
+                'aria-valuetext',
+                this.player.state.muted
+                    ? i18n.t('player.muted')
+                    : i18n.t('player.volumePercent', { percent: rounded })
+            );
         }
 
         // Update mute button icon (should always work even if slider not shown)
@@ -3523,10 +3585,6 @@ export class ControlBar {
             }
         }
 
-        // Update volume slider attribute if it exists
-        if (this.controls.volumeSlider) {
-            this.controls.volumeSlider.setAttribute('aria-valuenow', String(Math.round(percent)));
-        }
     }
 
     updateBuffered() {
