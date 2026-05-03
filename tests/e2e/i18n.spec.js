@@ -189,12 +189,16 @@ for (const lang of languages) {
     test('should have volume control with correct label', async ({ page }) => {
       const player = page.locator('.vidply-player').first();
       const t = translations[lang.code] || translations.en;
-      // Volume button or Mute button depending on device/config
+      // Desktop volume button label is suffixed with the current percentage
+      // (e.g. "Volume 100%" / "Lautstärke 100%") so screen readers announce
+      // the level. Touch devices use the bare mute / unmute labels. Match by
+      // prefix to cover both forms.
       const volumeButton = player.locator(
-        `button[aria-label="${t.volume}"], button[aria-label="${translations.en.volume}"], ` +
-        `button[aria-label="${t.mute}"], button[aria-label="${translations.en.mute}"]`
+        `button[aria-label^="${t.volume}"], button[aria-label^="${translations.en.volume}"], ` +
+        `button[aria-label^="${t.mute}"], button[aria-label^="${translations.en.mute}"], ` +
+        `button[aria-label^="${t.unmute}"], button[aria-label^="${translations.en.unmute}"]`
       );
-      await expect(volumeButton).toBeVisible();
+      await expect(volumeButton.first()).toBeVisible();
     });
 
     test('should have captions button with correct label', async ({ page }) => {
@@ -338,11 +342,18 @@ test.describe('German Demo Page - Multiple Players', () => {
   test('each player should have volume control', async ({ page }) => {
     const players = page.locator('.vidply-player');
     const count = await players.count();
-    
+
     for (let i = 0; i < count; i++) {
       const player = players.nth(i);
-      const volumeButton = player.locator('button[aria-label="Lautstärke"], button[aria-label="Volume"], button[aria-label="Stumm"], button[aria-label="Mute"]');
-      await expect(volumeButton).toBeVisible();
+      // Desktop label is "Lautstärke X%" / "Volume X%" (suffixed with the
+      // current percentage); touch label is "Stumm" / "Ton ein" / "Mute" /
+      // "Unmute". Match by prefix so the level suffix doesn't break the test.
+      const volumeButton = player.locator(
+        'button[aria-label^="Lautstärke"], button[aria-label^="Volume"], ' +
+        'button[aria-label^="Stumm"], button[aria-label^="Mute"], ' +
+        'button[aria-label^="Ton ein"], button[aria-label^="Unmute"]'
+      );
+      await expect(volumeButton.first()).toBeVisible();
     }
   });
 

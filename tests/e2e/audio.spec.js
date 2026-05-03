@@ -64,9 +64,16 @@ test.describe('Audio Player', () => {
 
   test('should have volume control', async ({ page }) => {
     const audioPlayer = page.locator('.vidply-player.vidply-audio, .vidply-player:has(audio)');
-    
+
     if (await audioPlayer.count() > 0) {
-      const volumeControl = audioPlayer.first().locator('button[aria-label="Volume"], button[aria-label="Lautstärke"], button[aria-label="Mute"], button[aria-label="Stumm"]');
+      // Desktop label is suffixed with the current percentage (e.g.
+      // "Volume 100%" / "Lautstärke 100%"); touch is bare mute/unmute. Match
+      // by prefix in either language.
+      const volumeControl = audioPlayer.first().locator(
+        'button[aria-label^="Volume"], button[aria-label^="Lautstärke"], ' +
+        'button[aria-label^="Mute"], button[aria-label^="Stumm"], ' +
+        'button[aria-label^="Unmute"], button[aria-label^="Ton ein"]'
+      );
       await expect(volumeControl.first()).toBeVisible();
     }
   });
