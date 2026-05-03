@@ -18,7 +18,7 @@ npm test
 
 You need:
 
-- **Node.js ≥ 20.19** (matches the resolved dep tree).
+- **Node.js ≥ 24** (matches the resolved dep tree; pinned via `.nvmrc`).
 - **npm ≥ 10**.
 - A modern browser for `npm run dev` (`http://localhost:3000`).
 
