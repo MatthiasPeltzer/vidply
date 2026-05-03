@@ -2,21 +2,27 @@
 
 **Universal, Accessible Video & Audio Player**
 
-A modern, feature-rich media player authored in strict TypeScript and shipped as a zero-dependency ES module. Combines the best accessibility features from AblePlayer with the streaming capabilities of MediaElement.js. Fully internationalized with support for 5 languages and complete WCAG 2.2 AA compliance.
+A modern, feature-rich media player authored in strict TypeScript and shipped as a zero-dependency ES module. Combines
+the best accessibility features from AblePlayer with the streaming capabilities of MediaElement.js. Fully
+internationalized with support for 5 languages and complete WCAG 2.2 AA compliance.
 
 ![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)
 ![ESM](https://img.shields.io/badge/ESM-Module-yellow.svg)
 ![WCAG](https://img.shields.io/badge/WCAG-2.2%20AA-green.svg)
-![Version](https://img.shields.io/badge/version-1.1.9-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-1.1.10-brightgreen.svg)
 
 ## Live Demos
 
 Try VidPly in action:
+
 - **[Main Demo](https://matthiaspeltzer.github.io/vidply/demo/demo.html)** - Full-featured video player showcase
-- **[Audio Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-audio.html)** - Audio player with playlist support
-- **[Video Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-video.html)** - Video playlist with thumbnails
-- **[Mixed Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-mixed.html)** - Combined audio and video playlist
+- **[Audio Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-audio.html)** - Audio player with playlist
+  support
+- **[Video Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-video.html)** - Video playlist with
+  thumbnails
+- **[Mixed Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-mixed.html)** - Combined audio and video
+  playlist
 - **[HLS Streaming](https://matthiaspeltzer.github.io/vidply/demo/hls-test.html)** - Adaptive bitrate streaming demo
 - **[DASH Streaming](https://matthiaspeltzer.github.io/vidply/demo/dash-test.html)** - MPEG-DASH streaming demo
 
@@ -33,14 +39,17 @@ Try VidPly in action:
 ## Features
 
 ### Core Media Support
+
 - **Audio & Video Playback** - Native HTML5 support for both media types
 - **Multiple Formats** - MP3, OGG, WAV (audio) / MP4, WebM (video)
 - **YouTube Integration** - Embed YouTube videos with unified controls
 - **Vimeo Integration** - Seamless Vimeo player integration
 - **SoundCloud Integration** - Play SoundCloud tracks and sets via the Widget API with unified controls
 - **HLS Streaming** - Adaptive bitrate streaming with quality selection and dynamic subtitle detection
-  - Uses `hls.js` on Chrome / Firefox / Edge / desktop Safari for full feature parity (quality menu, captions, transcript)
-  - Falls back to native HLS on iOS / iPadOS where MSE is unavailable; native text tracks are still surfaced through the VidPly captions and transcript UI
+  - Uses `hls.js` on Chrome / Firefox / Edge / desktop Safari for full feature parity (quality menu, captions,
+    transcript)
+  - Falls back to native HLS on iOS / iPadOS where MSE is unavailable; native text tracks are still surfaced through the
+    VidPly captions and transcript UI
 - **DASH Streaming** - MPEG-DASH support via dash.js with adaptive quality, TTML and WebVTT subtitles
 - **Buffering Spinner** - Centered loading spinner shown automatically while media is buffering (HTML5, HLS, DASH)
 - **Download Button** - Optional download control with custom URL support (`downloadButton` + `downloadUrl`)
@@ -57,6 +66,7 @@ Try VidPly in action:
     - Responsive card layout
 
 ### Accessibility Features (WCAG 2.2 AA Compliant)
+
 - **Full Keyboard Navigation** - All features accessible via keyboard, custom shortcuts, menu navigation with Arrow keys
 - **Screen Reader Support** - Complete ARIA labels (`aria-controls`, `aria-expanded`, `aria-haspopup`), live regions
 - **Interactive Transcripts** - Click-to-seek and auto-scroll with proper semantic HTML
@@ -65,9 +75,11 @@ Try VidPly in action:
 - **Caption Styling** - Fully customizable (font, size, color, opacity, edge style)
 - **High Contrast Mode** - Windows HCM support, color-independent design
 - **Focus Management** - Logical focus order, programmatic focus handling, visible indicators
-- **Touch Accessibility** - Buttons sized at or above the WCAG 2.2 AA 24×24 CSS-pixel minimum (SC 2.5.8); swipeable interfaces
+- **Touch Accessibility** - Buttons sized at or above the WCAG 2.2 AA 24×24 CSS-pixel minimum (SC 2.5.8); swipeable
+  interfaces
 
 ### Captions & Subtitles
+
 - **WebVTT Support** - Standard caption format
 - **Multiple Languages** - Multi-track support
 - **Caption Selector** - Easy track switching with CC button
@@ -76,6 +88,7 @@ Try VidPly in action:
 - **Interactive Transcripts** - Click-to-seek transcript panel (browser Find-in-page works for searching)
 
 ### Playback Features
+
 - **Adjustable Speed** - 0.25x to 2x playback
 - **Seek Controls** - Forward/backward navigation
 - **Volume Control** - 0-100% with mute
@@ -91,7 +104,9 @@ Try VidPly in action:
   - is desktop-only (disabled below 768 px viewport width by default)
 
 ### Internationalization
+
 Built-in support for 5 languages:
+
 - English (en)
 - Spanish (es) - Español
 - French (fr) - Français
@@ -99,13 +114,15 @@ Built-in support for 5 languages:
 - Japanese (ja) - 日本語
 
 All UI elements are fully translated, including:
+
 - Control buttons and menus
 - Time display and duration formatting
 - Keyboard shortcuts
 - Error messages and notifications
 - ARIA labels for screen readers
 
-**Custom Translations**: Easily add your own languages by loading JSON or YAML translation files via data attributes or JavaScript options. The player automatically detects the HTML `lang` attribute and loads matching translations.
+**Custom Translations**: Easily add your own languages by loading JSON or YAML translation files via data attributes or
+JavaScript options. The player automatically detects the HTML `lang` attribute and loads matching translations.
 
 ## Installation
 
@@ -175,7 +192,8 @@ const player = new Player('#my-video', {
 });
 ```
 
-> The library is authored in strict TypeScript. Type declarations ship to `dist/types/index.d.ts` so consumers using `tsc` or `vite` get full IntelliSense without any extra `@types` package.
+> The library is authored in strict TypeScript. Type declarations ship to `dist/types/index.d.ts` so consumers using
+`tsc` or `vite` get full IntelliSense without any extra `@types` package.
 
 ## Quick Start
 
@@ -297,6 +315,7 @@ const player = new Player('#my-video', {
 ```
 
 Notes:
+
 - Audio-only players (`<audio>`) ignore the floating option.
 - Closing the floating window pauses playback and prevents auto-float again until the next user-initiated `play`.
 - The floating window persists its size/position per player via local storage.
@@ -486,24 +505,24 @@ const player = new Player('#video', {
 
 ## Keyboard Shortcuts
 
-| Key | Action |
-|-----|--------|
-| <kbd>Space</kbd> / <kbd>P</kbd> / <kbd>K</kbd> | Play/Pause |
-| <kbd>F</kbd> | Toggle Fullscreen |
-| <kbd>M</kbd> | Mute/Unmute |
-| <kbd>↑</kbd> / <kbd>↓</kbd> | Volume Up/Down |
-| <kbd>←</kbd> / <kbd>→</kbd> | Seek -10s / +10s |
-| <kbd>C</kbd> | Toggle Captions (or open menu if multiple) |
-| <kbd>A</kbd> | Open Caption Style Menu |
-| <kbd><</kbd> / <kbd>></kbd> | Decrease/Increase Speed |
-| <kbd>S</kbd> | Open Speed Menu |
-| <kbd>Q</kbd> | Open Quality Menu |
-| <kbd>J</kbd> | Open Chapters Menu |
-| <kbd>T</kbd> | Toggle Transcript |
-| <kbd>D</kbd> | Toggle Drag Mode (Transcript/Sign Language) |
-| <kbd>R</kbd> | Toggle Resize Mode (Transcript/Sign Language) |
-| <kbd>Escape</kbd> | Exit Drag/Resize Mode or Close Menus |
-| <kbd>Home</kbd> | Reset Transcript/Sign Language Position |
+| Key                                            | Action                                        |
+|------------------------------------------------|-----------------------------------------------|
+| <kbd>Space</kbd> / <kbd>P</kbd> / <kbd>K</kbd> | Play/Pause                                    |
+| <kbd>F</kbd>                                   | Toggle Fullscreen                             |
+| <kbd>M</kbd>                                   | Mute/Unmute                                   |
+| <kbd>↑</kbd> / <kbd>↓</kbd>                    | Volume Up/Down                                |
+| <kbd>←</kbd> / <kbd>→</kbd>                    | Seek -10s / +10s                              |
+| <kbd>C</kbd>                                   | Toggle Captions (or open menu if multiple)    |
+| <kbd>A</kbd>                                   | Open Caption Style Menu                       |
+| <kbd><</kbd> / <kbd>></kbd>                    | Decrease/Increase Speed                       |
+| <kbd>S</kbd>                                   | Open Speed Menu                               |
+| <kbd>Q</kbd>                                   | Open Quality Menu                             |
+| <kbd>J</kbd>                                   | Open Chapters Menu                            |
+| <kbd>T</kbd>                                   | Toggle Transcript                             |
+| <kbd>D</kbd>                                   | Toggle Drag Mode (Transcript/Sign Language)   |
+| <kbd>R</kbd>                                   | Toggle Resize Mode (Transcript/Sign Language) |
+| <kbd>Escape</kbd>                              | Exit Drag/Resize Mode or Close Menus          |
+| <kbd>Home</kbd>                                | Reset Transcript/Sign Language Position       |
 
 ## API Reference
 
@@ -529,7 +548,10 @@ player.unmute()         // Unmute audio
 player.toggleMute()     // Toggle mute state
 ```
 
-**Note on Mobile Devices:** On touch devices (iOS, Android, tablets), only a **mute/unmute button** is shown instead of the volume slider. Mobile browsers control HTML5 video volume through **hardware device volume buttons** - this is standard behavior that cannot be overridden by web apps for security reasons. The mute button provides quick silencing functionality while hardware buttons control actual volume levels.
+**Note on Mobile Devices:** On touch devices (iOS, Android, tablets), only a **mute/unmute button** is shown instead of
+the volume slider. Mobile browsers control HTML5 video volume through **hardware device volume buttons** - this is
+standard behavior that cannot be overridden by web apps for security reasons. The mute button provides quick silencing
+functionality while hardware buttons control actual volume levels.
 
 ### Playback Speed
 
@@ -546,7 +568,9 @@ player.exitFullscreen()   // Exit fullscreen
 player.toggleFullscreen() // Toggle fullscreen
 ```
 
-**Note on iOS/Mobile Safari:** Since iOS doesn't support the Fullscreen API on container elements, VidPly automatically falls back to a "pseudo-fullscreen" mode that positions the player to fill the entire viewport using CSS. This provides a fullscreen-like experience on iOS devices while maintaining all player functionality.
+**Note on iOS/Mobile Safari:** Since iOS doesn't support the Fullscreen API on container elements, VidPly automatically
+falls back to a "pseudo-fullscreen" mode that positions the player to fill the entire viewport using CSS. This provides
+a fullscreen-like experience on iOS devices while maintaining all player functionality.
 
 ### Captions
 
@@ -815,7 +839,8 @@ The player supports both JSON and YAML formats for language files.
 
 ## Build Process
 
-VidPly uses a modern build system with esbuild for TypeScript bundling, the TypeScript compiler for `.d.ts` declarations, and clean-css for CSS.
+VidPly uses a modern build system with esbuild for TypeScript bundling, the TypeScript compiler for `.d.ts`
+declarations, and clean-css for CSS.
 
 ### Available Scripts
 
@@ -850,6 +875,7 @@ See [BUILD.md](docs/BUILD.md) for detailed build documentation.
 The library ships two bundles. Pick the one that matches your audience:
 
 **Modern ESM bundle** (`dist/prod/vidply.esm.min.js`) — recommended.
+
 - Chrome 100+
 - Firefox 100+
 - Safari 15+
@@ -858,12 +884,14 @@ The library ships two bundles. Pick the one that matches your audience:
 - Android Chrome 100+
 
 **Legacy IIFE bundle** (`dist/legacy/vidply.min.js`) — for older browser support.
+
 - Chrome 80+
 - Firefox 78+
 - Safari 14+
 - Edge 88+
 
-The TypeScript declarations target ES2022; both bundles are produced with esbuild + Terser. See [BUILD.md](docs/BUILD.md) for the exact targets.
+The TypeScript declarations target ES2022; both bundles are produced with esbuild + Terser.
+See [BUILD.md](docs/BUILD.md) for the exact targets.
 
 ## License
 
@@ -885,10 +913,12 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## Documentation
 
 ### Guides
+
 - **[User's Guide](docs/Users-Guide.md)** - Complete integration guide for web developers
 - **[Developer Quickstart](docs/Developers-Quickstart.md)** - Quick reference for contributors
 
 ### Reference
+
 - [Getting Started Guide](docs/GETTING_STARTED.md) - Basic setup and usage
 - [Usage Guide](docs/USAGE.md) - Detailed usage examples
 - [Playlist Guide](docs/PLAYLIST.md) - Audio/video playlists with fullscreen support
@@ -900,6 +930,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## Credits
 
 Inspired by:
+
 - [AblePlayer](https://github.com/ableplayer/ableplayer) - Accessibility features
 - [MediaElement.js](https://github.com/mediaelement/mediaelement) - Streaming support
 
