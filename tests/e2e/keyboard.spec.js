@@ -66,8 +66,11 @@ test.describe('Keyboard Navigation', () => {
         await page.waitForTimeout(300);
 
         // Just verify no errors occurred - the mute state is internal
-        // The volume/mute button should still be visible
-        const volumeOrMuteButton = page.locator('button[aria-label="Volume"], button[aria-label="Mute"]');
+        // The volume/mute button should still be visible. Desktop label is
+        // "Volume X%"; touch is "Mute"/"Unmute".
+        const volumeOrMuteButton = page.locator(
+            'button[aria-label^="Volume"], button[aria-label^="Mute"], button[aria-label^="Unmute"]'
+        );
         await expect(volumeOrMuteButton.first()).toBeVisible();
     });
 
@@ -266,7 +269,9 @@ test.describe('Additional Keyboard Shortcuts', () => {
     });
 
     test('should increase volume with Up arrow when focused on volume', async ({page}) => {
-        const volumeButton = page.locator('button[aria-label="Volume"], button[aria-label="Mute"]');
+        const volumeButton = page.locator(
+            'button[aria-label^="Volume"], button[aria-label^="Mute"], button[aria-label^="Unmute"]'
+        );
         await volumeButton.first().focus();
 
         // Press up arrow
@@ -278,7 +283,9 @@ test.describe('Additional Keyboard Shortcuts', () => {
     });
 
     test('should decrease volume with Down arrow when focused on volume', async ({page}) => {
-        const volumeButton = page.locator('button[aria-label="Volume"], button[aria-label="Mute"]');
+        const volumeButton = page.locator(
+            'button[aria-label^="Volume"], button[aria-label^="Mute"], button[aria-label^="Unmute"]'
+        );
         await volumeButton.first().focus();
 
         // Press down arrow

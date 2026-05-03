@@ -153,14 +153,18 @@ describe('DASHRenderer', () => {
       expect(renderer._dashSourceLoaded).toBe(true);
     });
 
-    it('should defer loading when deferLoad is true', async () => {
+    it('should always attach source at init even when deferLoad is true', async () => {
+      // The manifest is always fetched at init (regardless of deferLoad) so
+      // duration / quality levels / seekbar are available before first play.
+      // Deferring attachSource would leave duration unknown and seek requests
+      // unserviceable. See DASHRenderer.initDashJs() for the full rationale.
       mockPlayer.options.deferLoad = true;
       renderer = new DASHRenderer(mockPlayer);
 
       await renderer.initDashJs();
 
-      expect(mockDashInstance.attachSource).not.toHaveBeenCalled();
-      expect(renderer._dashSourceLoaded).toBe(false);
+      expect(mockDashInstance.attachSource).toHaveBeenCalledWith(mockPlayer.currentSource);
+      expect(renderer._dashSourceLoaded).toBe(true);
       expect(renderer._pendingSrc).toBe(mockPlayer.currentSource);
     });
 

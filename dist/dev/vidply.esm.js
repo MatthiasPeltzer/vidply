@@ -1,24 +1,24 @@
 /*!
- * VidPly v1.1.9 - Universal, Accessible Video Player
+ * VidPly v1.1.11 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 import {
   TimeUtils
-} from "./vidply.chunk-72KNYNGY.js";
+} from "./vidply.chunk-F2M5CEX5.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-62UNNRXT.js";
+} from "./vidply.chunk-LFQ4AUF4.js";
 import {
   CaptionManager,
   debounce,
   isMobile,
   rafWithTimeout,
   throttle
-} from "./vidply.chunk-OHMV6VEU.js";
+} from "./vidply.chunk-RFPTZLQM.js";
 import {
   StorageManager
-} from "./vidply.chunk-GIUG2TII.js";
+} from "./vidply.chunk-JIH7UYAR.js";
 import {
   attachMenuKeyboardNavigation,
   createLabeledSelect,
@@ -27,16 +27,16 @@ import {
   focusFirstElement,
   focusFirstMenuItem,
   preventDragOnElement
-} from "./vidply.chunk-NPTAWEHA.js";
+} from "./vidply.chunk-LUXYUIUH.js";
 import {
   DraggableResizable,
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-DKHFUB3O.js";
+} from "./vidply.chunk-C2KWIWG3.js";
 import {
   DOMUtils,
   i18n
-} from "./vidply.chunk-M2XYCK66.js";
+} from "./vidply.chunk-TLYGMVKV.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -3702,21 +3702,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-HBJBLXZO.js");
+    const module = await import("./vidply.AudioDescriptionManager-UMFJYMVY.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-ODJKTFVU.js");
+    const module = await import("./vidply.SignLanguageManager-43LNT3XU.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-LL5EFUHE.js");
+    const module = await import("./vidply.FloatingPlayerManager-UDWCWFPF.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -4351,7 +4351,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-5KB4TXSR.js");
+    const module = await import("./vidply.TranscriptManager-O7ZGVK4L.js");
     const Manager = module.TranscriptManager || module.default;
     if (!Manager) {
       return null;
@@ -5001,19 +5001,19 @@ var Player = class _Player extends EventEmitter {
   }
   async _detectRendererClass(src) {
     if (src.includes("youtube.com") || src.includes("youtu.be")) {
-      const module = await import("./vidply.YouTubeRenderer-7APWP7QB.js");
+      const module = await import("./vidply.YouTubeRenderer-QZJEQLGF.js");
       return module.YouTubeRenderer || module.default;
     } else if (src.includes("vimeo.com")) {
-      const module = await import("./vidply.VimeoRenderer-6TFEO244.js");
+      const module = await import("./vidply.VimeoRenderer-YXNW2WO5.js");
       return module.VimeoRenderer || module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-7OXYEQEN.js");
+      const module = await import("./vidply.HLSRenderer-TP3RQFL3.js");
       return module.HLSRenderer || module.default;
     } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-BIP67ZUY.js");
+      const module = await import("./vidply.DASHRenderer-SHQPZLMZ.js");
       return module.DASHRenderer || module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
-      const module = await import("./vidply.SoundCloudRenderer-YIXFB2DB.js");
+      const module = await import("./vidply.SoundCloudRenderer-2PVYPY4U.js");
       return module.SoundCloudRenderer || module.default;
     }
     return HTML5Renderer;

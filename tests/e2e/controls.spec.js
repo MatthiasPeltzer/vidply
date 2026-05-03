@@ -86,14 +86,16 @@ test.describe('Caption Styling', () => {
 
   test('should open caption style menu when clicked', async ({ page }) => {
     const styleButton = page.locator('button[aria-label="Caption styling"]');
-    
+
     if (await styleButton.isVisible()) {
       await styleButton.click();
       await page.waitForTimeout(300);
 
-      // Style menu should show options
-      const styleMenu = page.locator('[role="menu"]');
-      await expect(styleMenu.first()).toBeVisible({ timeout: 3000 });
+      // The caption-style panel contains form controls (selects, color
+      // inputs, sliders), not single-action menuitems, so the renderer
+      // exposes it as a labelled dialog rather than a menu.
+      const stylePanel = page.locator('.vidply-caption-style-menu[role="dialog"]');
+      await expect(stylePanel.first()).toBeVisible({ timeout: 3000 });
     }
   });
 });

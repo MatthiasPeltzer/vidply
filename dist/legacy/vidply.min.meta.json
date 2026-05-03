@@ -12,32 +12,32 @@
       "format": "esm"
     },
     "src/utils/DOMUtils.ts": {
-      "bytes": 8818,
+      "bytes": 8552,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/en.ts": {
-      "bytes": 8692,
+      "bytes": 8480,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.ts": {
-      "bytes": 10654,
+      "bytes": 10443,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.ts": {
-      "bytes": 9724,
+      "bytes": 9516,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.ts": {
-      "bytes": 9987,
+      "bytes": 9779,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.ts": {
-      "bytes": 10503,
+      "bytes": 10295,
       "imports": [],
       "format": "esm"
     },
@@ -73,7 +73,7 @@
       "format": "esm"
     },
     "src/i18n/i18n.ts": {
-      "bytes": 8347,
+      "bytes": 8111,
       "imports": [
         {
           "path": "src/i18n/translations.ts",
@@ -115,17 +115,17 @@
       "format": "esm"
     },
     "src/utils/VideoFrameCapture.ts": {
-      "bytes": 3488,
+      "bytes": 3378,
       "imports": [],
       "format": "esm"
     },
     "src/utils/DownloadInfo.ts": {
-      "bytes": 5024,
+      "bytes": 4853,
       "imports": [],
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 183160,
+      "bytes": 178778,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -176,7 +176,7 @@
       "format": "esm"
     },
     "src/utils/StorageManager.ts": {
-      "bytes": 10143,
+      "bytes": 9847,
       "imports": [
         {
           "path": "<runtime>",
@@ -198,7 +198,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.ts": {
-      "bytes": 21354,
+      "bytes": 20800,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -234,7 +234,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.ts": {
-      "bytes": 10412,
+      "bytes": 10101,
       "imports": [
         {
           "path": "src/i18n/i18n.ts",
@@ -314,7 +314,7 @@
       "format": "esm"
     },
     "src/core/AudioDescriptionManager.ts": {
-      "bytes": 29351,
+      "bytes": 28603,
       "imports": [
         {
           "path": "src/controls/CaptionManager.ts",
@@ -330,7 +330,7 @@
       "format": "esm"
     },
     "src/core/SignLanguageManager.ts": {
-      "bytes": 55300,
+      "bytes": 53825,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -402,7 +402,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.ts": {
-      "bytes": 97451,
+      "bytes": 94833,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -485,7 +485,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 31071,
+      "bytes": 30211,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.ts",
@@ -501,7 +501,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 35629,
+      "bytes": 34604,
       "imports": [
         {
           "path": "<runtime>",
@@ -512,7 +512,7 @@
       "format": "esm"
     },
     "src/renderers/SoundCloudRenderer.ts": {
-      "bytes": 11773,
+      "bytes": 11387,
       "imports": [
         {
           "path": "<runtime>",
@@ -523,7 +523,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 278176,
+      "bytes": 271850,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -649,7 +649,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 61215,
+      "bytes": 59451,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -680,7 +680,7 @@
       "format": "esm"
     },
     "src/index.ts": {
-      "bytes": 8447,
+      "bytes": 8189,
       "imports": [
         {
           "path": "src/core/Player.ts",
@@ -811,7 +811,7 @@
           "bytesInOutput": 6584
         }
       },
-      "bytes": 842602
+      "bytes": 842603
     }
   }
 }

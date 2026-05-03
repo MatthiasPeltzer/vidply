@@ -75,6 +75,8 @@ describe('HLSRenderer', () => {
       LEVEL_SWITCHED: 'hlsLevelSwitched',
       SUBTITLE_TRACKS_UPDATED: 'hlsSubtitleTracksUpdated',
       SUBTITLE_TRACK_SWITCH: 'hlsSubtitleTrackSwitch',
+      SUBTITLE_FRAG_PROCESSED: 'hlsSubtitleFragProcessed',
+      CUES_PARSED: 'hlsCuesParsed',
       ERROR: 'hlsError',
       FRAG_BUFFERED: 'hlsFragBuffered'
     };
@@ -203,14 +205,20 @@ describe('HLSRenderer', () => {
       expect(renderer._hlsSourceLoaded).toBe(true);
     });
 
-    it('should defer loading when deferLoad is true', async () => {
+    it('should always load manifest at init even when deferLoad is true', async () => {
+      // The manifest is always loaded at init (regardless of deferLoad) so
+      // duration / quality levels / subtitle tracks are available in the UI
+      // before first play. Media fragment downloads are still deferred via
+      // hls.js's `autoStartLoad: false` config; startLoad() is what is
+      // postponed to play() / ensureLoaded().
       mockPlayer.options.deferLoad = true;
       renderer = new HLSRenderer(mockPlayer);
-      
+
       await renderer.initHlsJs();
-      
-      expect(mockHls.loadSource).not.toHaveBeenCalled();
-      expect(renderer._hlsSourceLoaded).toBe(false);
+
+      expect(mockHls.loadSource).toHaveBeenCalledWith(mockPlayer.currentSource);
+      expect(mockHls.startLoad).not.toHaveBeenCalled();
+      expect(renderer._hlsSourceLoaded).toBe(true);
       expect(renderer._pendingSrc).toBe(mockPlayer.currentSource);
     });
 
@@ -623,17 +631,20 @@ describe('HLSRenderer', () => {
       expect(renderer._lastKnownCueCount).toBe(0);
     });
 
-    it('should emit textcuesupdate on subtitle fragment buffered', async () => {
+    it('should emit textcuesupdate on subtitle fragment processed', () => {
+      // Subtitle fragments do NOT go through the media SourceBuffer, so
+      // FRAG_BUFFERED is unreliable for them. The renderer instead listens to
+      // SUBTITLE_FRAG_PROCESSED, which fires after hls.js has parsed the
+      // WebVTT and appended cues to the TextTrack.
       const hlsOnCalls = mockHls.on.mock.calls;
-      const fragBufferedHandler = hlsOnCalls.find(c => c[0] === 'hlsFragBuffered')?.[1];
-      expect(fragBufferedHandler).toBeDefined();
+      const subtitleFragHandler = hlsOnCalls.find(c => c[0] === 'hlsSubtitleFragProcessed')?.[1];
+      expect(subtitleFragHandler).toBeDefined();
 
       const mockTextTracks = [{ kind: 'subtitles', cues: { length: 2 } }];
       mockTextTracks.length = 1;
       Object.defineProperty(mockMedia, 'textTracks', { value: mockTextTracks, configurable: true });
 
-      fragBufferedHandler('hlsFragBuffered', { frag: { type: 'subtitle' } });
-      vi.advanceTimersByTime(150);
+      subtitleFragHandler('hlsSubtitleFragProcessed', { success: true });
 
       expect(mockPlayer.emit).toHaveBeenCalledWith('textcuesupdate');
     });

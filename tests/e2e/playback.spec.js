@@ -31,9 +31,13 @@ test.describe('Video Playback', () => {
     });
 
     test('should have volume control', async ({page}) => {
-        // On desktop: button with aria-label="Volume" that opens slider
-        // On mobile: button with aria-label="Mute"
-        const volumeButton = page.locator('button[aria-label="Volume"], button[aria-label="Mute"]');
+        // On desktop: button label starts with the volume word and is suffixed
+        // with the current percentage (e.g. "Volume 100%") so screen readers
+        // announce the current level. On touch devices the same button is a
+        // pure mute toggle and reads "Mute" / "Unmute".
+        const volumeButton = page.locator(
+            'button[aria-label^="Volume"], button[aria-label^="Mute"], button[aria-label^="Unmute"]'
+        );
         await expect(volumeButton.first()).toBeVisible();
     });
 
@@ -80,9 +84,11 @@ test.describe('Video Playback', () => {
     });
 
     test('should have mute/volume button', async ({page}) => {
-        // On desktop: "Volume" button (mute via right-click or slider)
-        // On mobile: "Mute" button (direct toggle)
-        const volumeOrMuteButton = page.locator('button[aria-label="Volume"], button[aria-label="Mute"]');
+        // Desktop label: "Volume X%" (suffixed with current level for AT).
+        // Touch label: "Mute" / "Unmute" (direct toggle).
+        const volumeOrMuteButton = page.locator(
+            'button[aria-label^="Volume"], button[aria-label^="Mute"], button[aria-label^="Unmute"]'
+        );
         await expect(volumeOrMuteButton.first()).toBeVisible();
 
         // Click opens volume slider on desktop
@@ -114,8 +120,11 @@ test.describe('Video Accessibility', () => {
         const playButton = page.locator('button[aria-label="Play"]');
         await expect(playButton).toBeVisible();
 
-        // Check volume/mute button has accessible label
-        const volumeOrMuteButton = page.locator('button[aria-label="Volume"], button[aria-label="Mute"]');
+        // Check volume/mute button has accessible label.
+        // Desktop label is "Volume X%"; touch is "Mute"/"Unmute".
+        const volumeOrMuteButton = page.locator(
+            'button[aria-label^="Volume"], button[aria-label^="Mute"], button[aria-label^="Unmute"]'
+        );
         await expect(volumeOrMuteButton.first()).toBeVisible();
 
         // Check progress slider has accessible label

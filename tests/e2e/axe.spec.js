@@ -6,9 +6,9 @@ import AxeBuilder from '@axe-core/playwright';
 
 const PAGES = [
   '/demo/',
-  '/demo/single-player.html',
+  '/demo/single-player-video.html',
   '/demo/single-player-audio.html',
-  '/demo/playlist.html'
+  '/demo/playlist-video.html'
 ];
 
 for (const path of PAGES) {
