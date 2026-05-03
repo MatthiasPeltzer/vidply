@@ -17,11 +17,41 @@ const playerSrc = readFileSync(join(repoRoot, 'src', 'core', 'Player.ts'), 'utf8
 
 // Crude but effective: match `player.foo(` and `player.bar.baz(`.
 const calls = [...readme.matchAll(/\bplayer\.([a-zA-Z][\w.]*)\s*\(/g)].map((m) => m[1]);
-// Methods declared in Player.ts (export class Player ... { foo(...) { } }).
-const methodPattern = /^\s*(?:async\s+)?(?:static\s+)?([a-zA-Z][\w$]*)\s*\([^)]*\)\s*[:{]/gm;
-const playerMethods = new Set(
-  [...playerSrc.matchAll(methodPattern)].map((m) => m[1]).filter((n) => n !== 'constructor' && n !== 'if' && n !== 'for' && n !== 'switch' && n !== 'while' && n !== 'return' && n !== 'function')
-);
+
+// Methods declared on a class body (export class Foo ... { method(...) { } }).
+//
+// Notable design points:
+// - `(?:<[^\n>]*>\s*)?` allows TypeScript generic method declarations like
+//   `on<K extends keyof TEvents>(event: K, ...): this { ... }`.
+// - `\([^\n]*\)` greedily matches the parameter list within a single line, so
+//   default values that themselves contain parens (e.g.
+//   `interval: number = (this.options.seekInterval as number)`) don't
+//   prematurely terminate the match the way `[^)]*` would. Multi-line
+//   parameter lists are out of scope; the codebase keeps signatures on one line.
+const methodPattern =
+  /^\s*(?:public\s+|private\s+|protected\s+)?(?:async\s+)?(?:static\s+)?(?:get\s+|set\s+)?([a-zA-Z][\w$]*)\s*(?:<[^\n>]*>\s*)?\([^\n]*\)\s*[:{]/gm;
+
+const ignoredKeywords = new Set([
+  'constructor', 'if', 'for', 'switch', 'while', 'return',
+  'function', 'catch', 'do', 'else', 'try'
+]);
+
+const collectMethods = (src) =>
+  new Set(
+    [...src.matchAll(methodPattern)]
+      .map((m) => m[1])
+      .filter((n) => !ignoredKeywords.has(n))
+  );
+
+// Player.ts methods + inherited EventEmitter methods. Player extends
+// EventEmitter, so on/off/once/emit/removeAllListeners are all valid on
+// player instances and must count as known.
+const playerMethods = collectMethods(playerSrc);
+const eventEmitterPath = join(repoRoot, 'src', 'utils', 'EventEmitter.ts');
+if (existsSync(eventEmitterPath)) {
+  const eventEmitterSrc = readFileSync(eventEmitterPath, 'utf8');
+  for (const m of collectMethods(eventEmitterSrc)) playerMethods.add(m);
+}
 
 // Manager sub-objects: load src/controls/* and core/* and collect method names by file.
 const managerFiles = [
@@ -39,10 +69,7 @@ for (const [key, path] of managerFiles) {
   const fullPath = join(repoRoot, path);
   if (!existsSync(fullPath)) continue;
   const src = readFileSync(fullPath, 'utf8');
-  managers.set(
-    key,
-    new Set([...src.matchAll(methodPattern)].map((m) => m[1]).filter((n) => n !== 'constructor'))
-  );
+  managers.set(key, collectMethods(src));
 }
 
 const errors = [];
