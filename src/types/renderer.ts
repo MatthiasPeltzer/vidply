@@ -37,4 +37,18 @@ export interface Renderer {
   getCurrentQuality?(): number;
   supportsAutoQuality?(): boolean;
   isAutoQuality?(): boolean;
+  handlesOwnCaptions?(): boolean;
+
+  /**
+   * Ask the streaming renderer to activate the text track whose language
+   * matches `lang`, so segment downloads begin and cues become available.
+   * Returns true if the renderer switched, false if no match was found.
+   */
+  activateTextTrackForLanguage?(lang: string): boolean;
+
+  /**
+   * Return absolute URLs for each text track so the transcript can fetch the
+   * complete VTT file instead of relying on partial segment-based cues.
+   */
+  getTextTrackURLs?(): { lang: string; url: string }[];
 }

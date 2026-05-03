@@ -20,6 +20,14 @@ export class HLSRenderer implements Renderer {
   _lastKnownCueCount: number;
   _nativeTrackListenersDestroyed?: boolean;
   _didDeferredLoad?: boolean;
+  _manifestUrl: string | null;
+  /**
+   * True when the most recent startLoad() call was triggered by a seek on a
+   * paused media element (not by play()). The FRAG_BUFFERED handler uses this
+   * to call stopLoad() once the seek target is buffered, so hls.js does not
+   * keep pre-fetching subsequent segments while the user is still paused.
+   */
+  _loadingForSeekOnly?: boolean;
   _cleanupNativeTextTrackListeners: () => void;
 
   constructor(player: Player) {
@@ -31,6 +39,7 @@ export class HLSRenderer implements Renderer {
     this._hlsSubtitleTracksCount = undefined;
     this._cueUpdateTimer = null;
     this._lastKnownCueCount = 0;
+    this._manifestUrl = null;
     this._cleanupNativeTextTrackListeners = () => {};
   }
 
@@ -150,14 +159,28 @@ export class HLSRenderer implements Renderer {
     // Create hls.js instance with better error recovery
     this.hls = new HlsCtor({
       debug: this.player.options.debug,
-      // When deferLoad is enabled, do not start loading until the first play().
-      autoStartLoad: !this.player.options.deferLoad,
+      // Never let hls.js auto-start segment loading. loadSource() alone fetches
+      // the manifest (needed for duration, quality levels, subtitle tracks) but
+      // startLoad() is what kicks off media fragment downloads. We defer that
+      // to the first play() (or ensureLoaded() for playlists) so paused HLS
+      // players don't pre-download the entire stream the way hls.js does by
+      // default. This matches dash.js behavior where initialize(media, null, false)
+      // only loads the init segment + minimal startup buffer.
+      autoStartLoad: false,
       enableWorker: true,
       lowLatencyMode: false,
       backBufferLength: 90,
-      maxBufferLength: 30,
-      maxMaxBufferLength: 600,
-      maxBufferSize: 60 * 1000 * 1000,
+      // Buffer ceilings tuned to roughly match dash.js defaults so HLS and DASH
+      // behave similarly in terms of pre-fetched data:
+      //  - maxBufferLength (12s) ≈ dash.js bufferTimeDefault: 12
+      //  - maxMaxBufferLength (60s) ≈ dash.js bufferTimeAtTopQualityLongForm: 60
+      //  - maxBufferSize (30 MB) — byte cap, hit first on high-bitrate streams.
+      // For typical 6s segments this keeps ~2 segments buffered ahead during
+      // playback. Combined with stopLoad() on pause(), zero segments are
+      // pre-fetched when paused.
+      maxBufferLength: 12,
+      maxMaxBufferLength: 60,
+      maxBufferSize: 30 * 1000 * 1000,
       maxBufferHole: 0.5,
       // Network retry settings
       manifestLoadingTimeOut: 10000,
@@ -204,13 +227,14 @@ export class HLSRenderer implements Renderer {
       throw new Error('No HLS source found');
     }
     
-    if (this.player.options.deferLoad) {
-      // Defer manifest/segment loading until first play()
-      this._pendingSrc = src;
-    } else {
-      this.hls.loadSource(src);
-      this._hlsSourceLoaded = true;
-    }
+    // Always load the manifest immediately so duration/quality levels/subtitle
+    // tracks are available in the UI before playback. Because autoStartLoad is
+    // false, this does NOT trigger media fragment downloads; startLoad() in
+    // play() / ensureLoaded() does.
+    this._pendingSrc = src;
+    this._manifestUrl = src;
+    this.hls.loadSource(src);
+    this._hlsSourceLoaded = true;
 
     // Attach events
     this.attachHlsEvents();
@@ -279,6 +303,32 @@ export class HLSRenderer implements Renderer {
 
     this.hls.on(window.Hls!.Events.FRAG_BUFFERED, (_event: any, _data: any) => {
       this.player.state.buffering = false;
+
+      // Seek-only loading: the user scrubbed the seekbar on a paused (or
+      // never-played) media element. We only want hls.js to fetch enough
+      // fragments to render the seek target frame and then stop, instead of
+      // continuing to pre-fetch upcoming segments.
+      //
+      // FRAG_BUFFERED fires per track (audio and video have separate
+      // SourceBuffers in hls.js), so the first event may fire after just the
+      // audio fragment is appended — at which point media.buffered does not
+      // yet cover the seek position because the video track is still loading.
+      // Stopping there would abort the video fetch and leave the player on a
+      // frozen frame. Checking _isTimeBuffered(currentTime) makes sure both
+      // tracks actually cover the playhead before we call stopLoad.
+      //
+      // Playback resuming before this fires clears the flag so a later
+      // mid-playback fragment doesn't accidentally stop the loader.
+      if (!this.media.paused) {
+        this._loadingForSeekOnly = false;
+      } else if (this._loadingForSeekOnly && this._isTimeBuffered(this.media.currentTime)) {
+        this._loadingForSeekOnly = false;
+        try {
+          this.hls.stopLoad();
+        } catch (e) {
+          // ignore
+        }
+      }
     });
 
     // Subtitle fragments do NOT go through the media source buffer, so
@@ -317,6 +367,24 @@ export class HLSRenderer implements Renderer {
     return total;
   }
 
+  /**
+   * Return true if `time` falls inside any TimeRange the SourceBuffer already
+   * holds, with a small tolerance to absorb GOP boundaries. Used by the
+   * seeking handler to decide whether to surface a 'waiting' event for the
+   * spinner UI.
+   */
+  _isTimeBuffered(time: number): boolean {
+    const buffered = this.media.buffered;
+    if (!buffered || buffered.length === 0) return false;
+    const tolerance = 0.25;
+    for (let i = 0; i < buffered.length; i++) {
+      if (time >= buffered.start(i) - tolerance && time <= buffered.end(i) + tolerance) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   _startCueUpdatePolling() {
     this._stopCueUpdatePolling();
     let prevCueCount = 0;
@@ -352,16 +420,28 @@ export class HLSRenderer implements Renderer {
    * Update caption buttons based on HLS subtitle tracks
    * Handles the case where control bar may not exist yet
    */
-  updateCaptionButtonsForHls() {
+  updateCaptionButtonsForHls(retryCount = 0) {
     const tracksCount = this._hlsSubtitleTracksCount || 0;
     
     const doUpdate = () => {
       this.player.invalidateTrackCache();
       
       if (tracksCount > 0) {
-        // HLS has subtitle tracks - refresh managers and add buttons
         if (this.player.captionManager) {
-          this.player.captionManager.refreshTracks();
+          const found = this.player.captionManager.refreshTracks();
+
+          // hls.js fires SUBTITLE_TRACKS_UPDATED when it knows about the
+          // tracks, but the browser TextTrackList may not yet enumerate
+          // the new TextTrack objects synchronously. Retry with increasing
+          // delays until the tracks appear.
+          if (found === 0 && retryCount < 5) {
+            const delay = (retryCount + 1) * 200;
+            this.player.log(`HLS caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`, 'info');
+            setTimeout(() => {
+              this.updateCaptionButtonsForHls(retryCount + 1);
+            }, delay);
+            return;
+          }
         }
         
         if (this.player.transcriptManager?.isVisible) {
@@ -375,7 +455,6 @@ export class HLSRenderer implements Renderer {
           this.player.controlBar.ensureTranscriptButton();
         }
       } else {
-        // No HLS subtitle tracks - clean up
         if (this.player.captionManager) {
           this.player.captionManager.refreshTracks();
         }
@@ -395,7 +474,6 @@ export class HLSRenderer implements Renderer {
       return;
     }
     
-    // Control bar doesn't exist yet - wait for ready event
     const onReady = () => {
       this.player.off('ready', onReady);
       doUpdate();
@@ -475,6 +553,41 @@ export class HLSRenderer implements Renderer {
       this.player.emit('waiting');
     });
 
+    this.media.addEventListener('seeking', () => {
+      this.player.state.seeking = true;
+      this.player.emit('seeking');
+
+      // Browsers fire `waiting` when playback can't continue due to missing
+      // data, but they DO NOT fire it when seeking on a paused element. With
+      // hls.js + stopLoad-on-pause, scrubbing while paused triggers a real
+      // segment download, but the spinner stays hidden because no `waiting`
+      // event reaches the buffering UI. Detect a seek into an unbuffered
+      // range here and surface it as 'waiting' so the spinner appears. The
+      // spinner is cleared again by the existing `canplay` / `seeked` paths.
+      if (!this._isTimeBuffered(this.media.currentTime)) {
+        this.player.state.buffering = true;
+        this.player.emit('waiting');
+      }
+    });
+
+    this.media.addEventListener('seeked', () => {
+      this.player.state.seeking = false;
+      this.player.emit('seeked');
+
+      // After a seek finishes while paused, hls.js otherwise keeps fetching
+      // subsequent segments to fill maxBufferLength. The user explicitly chose
+      // not to play, so calling stopLoad() halts the loader once the segment(s)
+      // required to render the new playhead frame are buffered. play() and
+      // future seeks re-arm via startLoad(-1).
+      if (this.media.paused && this.hls) {
+        try {
+          this.hls.stopLoad();
+        } catch (e) {
+          // ignore
+        }
+      }
+    });
+
     this.media.addEventListener('canplay', () => {
       this.player.state.buffering = false;
       this.player.emit('canplay');
@@ -519,38 +632,28 @@ export class HLSRenderer implements Renderer {
   }
 
   /**
-   * Ensure the HLS manifest/initial loading is started without starting playback.
-   * This makes playlist selection behave more like single-video initialization.
+   * Begin fetching media fragments without starting playback. Used by the
+   * playlist manager when a track is selected so playback can start quickly
+   * once the user hits play. The manifest was already loaded in initHlsJs();
+   * this call is just the equivalent of "press play without playing".
    */
   ensureLoaded() {
-    if (!this.player.options.deferLoad) {
-      return;
-    }
-
-    // Native HLS path delegates to HTML5Renderer; if we got here and have no hls.js instance,
-    // there's nothing to do.
+    // Native HLS path delegates to HTML5Renderer; if we got here and have no
+    // hls.js instance, there is nothing to do.
     if (!this.hls) {
       return;
     }
 
-    if (this._hlsSourceLoaded) {
-      return;
-    }
-
-    const src = this._pendingSrc || this.player._pendingSource || this.player.currentSource;
-    if (!src) {
+    if (this._didDeferredLoad) {
       return;
     }
 
     try {
-      this.hls.loadSource(src);
-      this._hlsSourceLoaded = true;
-      // Start loading so manifest is parsed and levels/tracks become available.
-      // Note: this may fetch initial fragments depending on stream/config.
-      this.hls.startLoad();
+      this.hls.startLoad(-1);
     } catch (e) {
       // ignore
     }
+    this._didDeferredLoad = true;
   }
 
   play() {
@@ -558,20 +661,21 @@ export class HLSRenderer implements Renderer {
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
 
-    // If deferLoad is enabled, start HLS loading only on the first user play request.
-    if (this.player.options.deferLoad && this.hls && !this._hlsSourceLoaded) {
-      const src = this._pendingSrc || this.player.currentSource;
-      if (src) {
-        try {
-          this.hls.loadSource(src);
-          this.hls.startLoad();
-          this._hlsSourceLoaded = true;
-        } catch (e) {
-          // ignore and let media.play() surface errors if any
-        }
+    // (Re)start segment loading on every play. Cheap when already loading
+    // (hls.js no-ops); needed after pause() called stopLoad() so the buffer
+    // resumes filling. Passing -1 lets hls.js pick the starting position from
+    // the current playhead instead of forcing one. Clearing the seek-only
+    // flag here ensures FRAG_BUFFERED does not stop the loader mid-playback.
+    if (this.hls) {
+      this._loadingForSeekOnly = false;
+      try {
+        this.hls.startLoad(-1);
+      } catch (e) {
+        // ignore and let media.play() surface errors if any
       }
+      this._didDeferredLoad = true;
     }
-    
+
     const promise = this.media.play();
     
     // Restore scroll position immediately to prevent auto-scroll
@@ -586,10 +690,39 @@ export class HLSRenderer implements Renderer {
 
   pause() {
     this.media.pause();
+    // Stop downloading further segments while paused. Already buffered data
+    // stays in the SourceBuffer so resume is instant for short pauses; longer
+    // pauses (or stop() = pause() + seek(0)) save bandwidth by not pre-fetching
+    // content the user may never watch. play() / seek() re-arm via startLoad().
+    if (this.hls) {
+      try {
+        this.hls.stopLoad();
+      } catch (e) {
+        // ignore
+      }
+    }
   }
 
   seek(time: number) {
     this.media.currentTime = time;
+    // If we're paused with the loader stopped and the user seeks outside the
+    // currently buffered range, hls.js needs to fetch new fragments to render
+    // the target frame. Calling startLoad(-1) here is safe regardless: when
+    // already loading, hls.js no-ops; when stopped, it resumes from the new
+    // currentTime so the seek shows a real frame instead of a frozen one.
+    // The _loadingForSeekOnly flag tells FRAG_BUFFERED to stop the loader
+    // again once the target segment is buffered, so paused/never-played
+    // players don't keep pre-fetching beyond the seek point.
+    if (this.hls) {
+      if (this.media.paused) {
+        this._loadingForSeekOnly = true;
+      }
+      try {
+        this.hls.startLoad(-1);
+      } catch (e) {
+        // ignore
+      }
+    }
   }
 
   setVolume(volume: number) {
@@ -645,6 +778,46 @@ export class HLSRenderer implements Renderer {
     return -1;
   }
 
+  activateTextTrackForLanguage(lang: string): boolean {
+    if (!this.hls || !lang) return false;
+
+    const tracks = this.hls.subtitleTracks;
+    if (!tracks || tracks.length === 0) return false;
+
+    const idx = tracks.findIndex((t: any) => {
+      const tLang = t.lang || t.language || '';
+      return tLang === lang || tLang.startsWith(lang) || lang.startsWith(tLang);
+    });
+
+    if (idx < 0) return false;
+
+    this.player.log(`Activating HLS subtitle track index ${idx} for language "${lang}"`);
+    this.hls.subtitleTrack = idx;
+
+    this._lastKnownCueCount = 0;
+    this._startCueUpdatePolling();
+    return true;
+  }
+
+  getTextTrackURLs(): { lang: string; url: string }[] {
+    if (!this.hls || !this._manifestUrl) return [];
+    try {
+      const tracks = this.hls.subtitleTracks;
+      if (!tracks || tracks.length === 0) return [];
+
+      const results: { lang: string; url: string }[] = [];
+      for (const track of tracks) {
+        const lang = track.lang || track.language || '';
+        const playlistUrl = track.url;
+        if (!lang || !playlistUrl) continue;
+        results.push({ lang, url: playlistUrl });
+      }
+      return results;
+    } catch {
+      return [];
+    }
+  }
+
   supportsAutoQuality() {
     return true;
   }
@@ -656,6 +829,7 @@ export class HLSRenderer implements Renderer {
   destroy() {
     this._stopCueUpdatePolling();
     this._lastKnownCueCount = 0;
+    this._manifestUrl = null;
     if (this.hls) {
       this.hls.destroy();
       this.hls = null;

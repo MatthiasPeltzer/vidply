@@ -1752,6 +1752,35 @@
     }
   });
 
+  // src/utils/TrackLabelUtils.ts
+  function deriveTrackLabel(rawLabel, language, fallbackKey = "player.captions") {
+    const cleanLabel = (rawLabel ?? "").trim();
+    const cleanLang = (language ?? "").trim();
+    const looksLikePlaceholder = cleanLabel === "" || /^\d+$/.test(cleanLabel) || /^(null|undefined)$/i.test(cleanLabel);
+    if (!looksLikePlaceholder) {
+      return cleanLabel;
+    }
+    const cleanLangIsUsable = cleanLang !== "" && !/^(null|undefined)$/i.test(cleanLang);
+    if (cleanLangIsUsable) {
+      try {
+        const displayNames = new Intl.DisplayNames([cleanLang, "en"], { type: "language" });
+        const name = displayNames.of(cleanLang);
+        if (name && name.toLowerCase() !== cleanLang.toLowerCase()) {
+          return name;
+        }
+      } catch {
+      }
+      return cleanLang.toUpperCase();
+    }
+    return i18n.t(fallbackKey);
+  }
+  var init_TrackLabelUtils = __esm({
+    "src/utils/TrackLabelUtils.ts"() {
+      "use strict";
+      init_i18n();
+    }
+  });
+
   // src/controls/CaptionManager.ts
   var CaptionManager;
   var init_CaptionManager = __esm({
@@ -1761,6 +1790,7 @@
       init_i18n();
       init_StorageManager();
       init_PerformanceUtils();
+      init_TrackLabelUtils();
       CaptionManager = class {
         constructor(player) {
           __publicField(this, "player");
@@ -1839,7 +1869,7 @@
               const entry = {
                 track,
                 language: track.language,
-                label: this.deriveTrackLabel(track.label, track.language),
+                label: deriveTrackLabel(track.label, track.language),
                 kind: track.kind,
                 index: i,
                 isDefault,
@@ -1857,41 +1887,6 @@
               this.enable(defaultTrackIndex);
             });
           }
-        }
-        /**
-         * Derive a human-readable label for a TextTrack when the source manifest
-         * (DASH AdaptationSet, HLS rendition, etc.) didn't provide one. dash.js
-         * falls back to the AdaptationSet @id (typically a digit like "2", "3")
-         * when no <Label> child element is present, which surfaces as cryptic
-         * "2"/"3" entries in the captions menu.
-         *
-         * dash.js 5.x additionally derives the label as `element.id ?? element.lang`.
-         * When neither is present in the MPD, the value is JS `null`, and the
-         * browser's TextTrack API stringifies it to the literal "null". We treat
-         * "null"/"undefined" (any casing) as placeholders too, and fall back to a
-         * localized language name via Intl.DisplayNames.
-         */
-        deriveTrackLabel(rawLabel, language) {
-          const cleanLabel = (rawLabel ?? "").trim();
-          const cleanLang = (language ?? "").trim();
-          const looksLikePlaceholder = cleanLabel === "" || /^\d+$/.test(cleanLabel) || /^(null|undefined)$/i.test(cleanLabel);
-          if (!looksLikePlaceholder) {
-            return cleanLabel;
-          }
-          const cleanLangIsUsable = cleanLang !== "" && !/^(null|undefined)$/i.test(cleanLang);
-          if (cleanLangIsUsable) {
-            try {
-              const uiLang = i18n.getLanguage() || "en";
-              const displayNames = new Intl.DisplayNames([uiLang, "en"], { type: "language" });
-              const name = displayNames.of(cleanLang);
-              if (name && name.toLowerCase() !== cleanLang.toLowerCase()) {
-                return name;
-              }
-            } catch {
-            }
-            return cleanLang.toUpperCase();
-          }
-          return i18n.t("player.captions");
         }
         /**
          * Sync hls.js subtitle rendition to match the given language.
@@ -5788,6 +5783,7 @@
       init_MenuUtils();
       init_DraggableResizable();
       init_FormUtils();
+      init_TrackLabelUtils();
       TranscriptManager = class {
         constructor(player) {
           __publicField(this, "player");
@@ -5835,6 +5831,8 @@
           __publicField(this, "transcriptResizeHandles");
           __publicField(this, "transcriptStyle");
           __publicField(this, "transcriptWindow");
+          __publicField(this, "_dashActiveLang");
+          __publicField(this, "_vttCache");
           this.player = player;
           this.transcriptWindow = null;
           this.transcriptEntries = [];
@@ -5894,6 +5892,8 @@
             styleDialogKeydown: null
           };
           this._cueUpdateTimeout = null;
+          this._dashActiveLang = null;
+          this._vttCache = /* @__PURE__ */ new Map();
           this.timeouts = /* @__PURE__ */ new Set();
           this.init();
         }
@@ -5905,6 +5905,7 @@
           this.player.on("audiodescriptiondisabled", this.handlers.audiodescriptiondisabled);
           this.handlers.textcuesupdate = () => {
             if (!this.isVisible) return;
+            if (this.currentTranscriptLanguage && this._vttCache.has(this.currentTranscriptLanguage)) return;
             if (this._cueUpdateTimeout) {
               this.clearManagedTimeout(this._cueUpdateTimeout);
             }
@@ -5927,6 +5928,21 @@
           });
         }
         /**
+         * For streaming renderers (DASH), tell the renderer to activate the text
+         * track for `lang` so dash.js starts downloading subtitle segments and
+         * populating cues.  Skips the call if the language is already active.
+         */
+        _requestStreamingTrack(lang) {
+          if (!lang) return;
+          const renderer = this.player.renderer;
+          if ((renderer == null ? void 0 : renderer.isStreaming) && typeof renderer.activateTextTrackForLanguage === "function") {
+            if (this._dashActiveLang !== lang) {
+              this._dashActiveLang = lang;
+              renderer.activateTextTrackForLanguage(lang);
+            }
+          }
+        }
+        /**
          * Toggle transcript window visibility
          */
         toggleTranscript() {
@@ -5945,6 +5961,7 @@
             this.transcriptWindow.style.display = "flex";
             this.isVisible = true;
             this.loadTranscriptData();
+            this._requestStreamingTrack(this.currentTranscriptLanguage);
             this.updateLanguageSelector();
             if (this.player.controlBar && typeof this.player.controlBar.updateTranscriptButton === "function") {
               this.player.controlBar.updateTranscriptButton();
@@ -5954,6 +5971,7 @@
           }
           this.createTranscriptWindow();
           this.loadTranscriptData();
+          this._requestStreamingTrack(this.currentTranscriptLanguage);
           if (this.transcriptWindow) {
             this.transcriptWindow.style.display = "flex";
             if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
@@ -6339,11 +6357,14 @@
           const textTracks = this.player.textTracks;
           const languages = /* @__PURE__ */ new Map();
           textTracks.forEach((track) => {
-            if ((track.kind === "captions" || track.kind === "subtitles") && track.language && !track._vidplyStale) {
-              if (!languages.has(track.language)) {
-                languages.set(track.language, {
-                  language: track.language,
-                  label: track.label || track.language,
+            if ((track.kind === "captions" || track.kind === "subtitles") && !track._vidplyStale) {
+              const lang = (track.language ?? "").trim();
+              const label = deriveTrackLabel(track.label, track.language, "player.captions");
+              const key = lang || label;
+              if (key && !languages.has(key)) {
+                languages.set(key, {
+                  language: lang,
+                  label,
                   track
                 });
               }
@@ -6368,12 +6389,15 @@
             this.languageSelectorWrapper.style.display = "flex";
           }
           this.availableTranscriptLanguages.forEach((langInfo, index) => {
+            const attrs = {
+              "value": langInfo.language || langInfo.label
+            };
+            if (langInfo.language) {
+              attrs["lang"] = langInfo.language;
+            }
             const option = DOMUtils.createElement("option", {
               textContent: langInfo.label,
-              attributes: {
-                "value": langInfo.language,
-                "lang": langInfo.language
-              }
+              attributes: attrs
             });
             this.languageSelector.appendChild(option);
           });
@@ -6391,6 +6415,7 @@
           }
           this.languageSelectorHandler = (e) => {
             this.currentTranscriptLanguage = e.target.value;
+            this._requestStreamingTrack(this.currentTranscriptLanguage);
             this.loadTranscriptData();
             if (this.transcriptContent && this.currentTranscriptLanguage) {
               this.transcriptContent.setAttribute("lang", this.currentTranscriptLanguage);
@@ -6398,10 +6423,69 @@
           };
           this.languageSelector.addEventListener("change", this.languageSelectorHandler);
         }
+        _parseVTT(vttText) {
+          const cues = [];
+          const blocks = vttText.replace(/\r\n/g, "\n").split(/\n\n+/);
+          for (const block of blocks) {
+            const lines = block.trim().split("\n");
+            let tsLine = -1;
+            for (let i = 0; i < lines.length; i++) {
+              if (lines[i].includes("-->")) {
+                tsLine = i;
+                break;
+              }
+            }
+            if (tsLine < 0) continue;
+            const match = lines[tsLine].match(
+              /(\d{1,2}:)?(\d{2}):(\d{2})\.(\d{3})\s*-->\s*(\d{1,2}:)?(\d{2}):(\d{2})\.(\d{3})/
+            );
+            if (!match) continue;
+            const startTime = (match[1] ? parseInt(match[1]) * 3600 : 0) + parseInt(match[2]) * 60 + parseInt(match[3]) + parseInt(match[4]) / 1e3;
+            const endTime = (match[5] ? parseInt(match[5]) * 3600 : 0) + parseInt(match[6]) * 60 + parseInt(match[7]) + parseInt(match[8]) / 1e3;
+            const text = lines.slice(tsLine + 1).join("\n").trim();
+            if (!text) continue;
+            cues.push({
+              cue: { startTime, endTime, text, id: "" },
+              type: "caption"
+            });
+          }
+          return cues;
+        }
+        async _loadVttTranscript(lang) {
+          const cached = this._vttCache.get(lang);
+          if (cached) return cached;
+          const renderer = this.player.renderer;
+          if (!(renderer == null ? void 0 : renderer.isStreaming) || typeof renderer.getTextTrackURLs !== "function") return null;
+          const urls = renderer.getTextTrackURLs();
+          const entry = urls.find(
+            (u) => u.lang === lang || u.lang.startsWith(lang) || lang.startsWith(u.lang)
+          );
+          if (!entry) return null;
+          try {
+            const res = await fetch(entry.url);
+            if (!res.ok) return null;
+            let text = await res.text();
+            if (text.trimStart().startsWith("#EXTM3U")) {
+              const vttUri = text.split("\n").map((l) => l.trim()).find((l) => l && !l.startsWith("#"));
+              if (!vttUri) return null;
+              const baseUrl = entry.url.substring(0, entry.url.lastIndexOf("/") + 1);
+              const vttUrl = vttUri.startsWith("http") ? vttUri : new URL(vttUri, baseUrl).href;
+              const vttRes = await fetch(vttUrl);
+              if (!vttRes.ok) return null;
+              text = await vttRes.text();
+            }
+            const cues = this._parseVTT(text);
+            if (cues.length > 0) this._vttCache.set(lang, cues);
+            return cues;
+          } catch {
+            return null;
+          }
+        }
         /**
          * Load transcript data from caption/subtitle tracks
          */
         loadTranscriptData() {
+          var _a, _b;
           this.transcriptEntries = [];
           this.currentActiveEntry = null;
           this.transcriptContent.innerHTML = "";
@@ -6444,30 +6528,69 @@
               track.mode = "hidden";
             }
           });
-          const needsLoading = tracksToLoad.some((track) => !track.cues || track.cues.length === 0);
-          if (needsLoading) {
+          const renderer = this.player.renderer;
+          const isStreaming = (renderer == null ? void 0 : renderer.isStreaming) && typeof renderer.getTextTrackURLs === "function";
+          const lang = this.currentTranscriptLanguage || ((captionTrack == null ? void 0 : captionTrack.language) ?? "");
+          if (isStreaming && lang) {
             const loadingMessage = DOMUtils.createElement("div", {
               className: `${this.player.options.classPrefix}-transcript-loading`,
               textContent: i18n.t("transcript.loading")
             });
             this.transcriptContent.appendChild(loadingMessage);
-            let loaded = 0;
-            const onLoad = () => {
-              loaded++;
-              if (loaded >= tracksToLoad.length) {
-                this.loadTranscriptData();
-              }
-            };
-            tracksToLoad.forEach((track) => {
-              track.addEventListener("load", onLoad, { once: true });
+            this._loadVttTranscript(lang).then((vttCues) => {
+              if (!this.isVisible) return;
+              this._renderTranscriptCues(
+                vttCues && vttCues.length > 0 ? vttCues : null,
+                captionTrack,
+                descriptionTrack,
+                metadataTrack
+              );
             });
-            this.setManagedTimeout(() => {
-              this.loadTranscriptData();
-            }, 500);
             return;
           }
+          const primaryTrack = captionTrack;
+          const primaryNeedsCues = primaryTrack && (!primaryTrack.cues || primaryTrack.cues.length === 0);
+          if (primaryNeedsCues) {
+            const loadingMessage = DOMUtils.createElement("div", {
+              className: `${this.player.options.classPrefix}-transcript-loading`,
+              textContent: i18n.t("transcript.loading")
+            });
+            this.transcriptContent.appendChild(loadingMessage);
+            const hasSidecarElement = (_b = (_a = this.player).findTrackElement) == null ? void 0 : _b.call(_a, primaryTrack);
+            if (hasSidecarElement) {
+              primaryTrack.addEventListener("load", () => {
+                this.loadTranscriptData();
+              }, { once: true });
+              this.setManagedTimeout(() => {
+                this.loadTranscriptData();
+              }, 1e3);
+            } else {
+              let attempts = 0;
+              const poll = () => {
+                attempts++;
+                if (!this.isVisible) return;
+                if (primaryTrack.cues && primaryTrack.cues.length > 0) {
+                  this.loadTranscriptData();
+                  return;
+                }
+                if (attempts < 40) {
+                  this.setManagedTimeout(poll, 500);
+                }
+              };
+              this.setManagedTimeout(poll, 300);
+            }
+            return;
+          }
+          this._renderTranscriptCues(null, captionTrack, descriptionTrack, metadataTrack);
+        }
+        _renderTranscriptCues(vttCues, captionTrack, descriptionTrack, metadataTrack) {
+          this.transcriptEntries = [];
+          this.currentActiveEntry = null;
+          this.transcriptContent.innerHTML = "";
           const allCues = [];
-          if (captionTrack && captionTrack.cues) {
+          if (vttCues && vttCues.length > 0) {
+            allCues.push(...vttCues);
+          } else if (captionTrack && captionTrack.cues) {
             Array.from(captionTrack.cues).forEach((cue) => {
               allCues.push({ cue, type: "caption" });
             });
@@ -7607,6 +7730,7 @@
           this.resizeOptionButton = null;
           this.resizeOptionText = null;
           this.liveRegion = null;
+          this._vttCache.clear();
         }
         announceLive(message) {
           if (!this.liveRegion) return;
@@ -8128,6 +8252,14 @@
           __publicField(this, "_lastKnownCueCount");
           __publicField(this, "_nativeTrackListenersDestroyed");
           __publicField(this, "_didDeferredLoad");
+          __publicField(this, "_manifestUrl");
+          /**
+           * True when the most recent startLoad() call was triggered by a seek on a
+           * paused media element (not by play()). The FRAG_BUFFERED handler uses this
+           * to call stopLoad() once the seek target is buffered, so hls.js does not
+           * keep pre-fetching subsequent segments while the user is still paused.
+           */
+          __publicField(this, "_loadingForSeekOnly");
           __publicField(this, "_cleanupNativeTextTrackListeners");
           this.player = player;
           this.media = player.element;
@@ -8137,6 +8269,7 @@
           this._hlsSubtitleTracksCount = void 0;
           this._cueUpdateTimer = null;
           this._lastKnownCueCount = 0;
+          this._manifestUrl = null;
           this._cleanupNativeTextTrackListeners = () => {
           };
         }
@@ -8233,14 +8366,28 @@
           }
           this.hls = new HlsCtor({
             debug: this.player.options.debug,
-            // When deferLoad is enabled, do not start loading until the first play().
-            autoStartLoad: !this.player.options.deferLoad,
+            // Never let hls.js auto-start segment loading. loadSource() alone fetches
+            // the manifest (needed for duration, quality levels, subtitle tracks) but
+            // startLoad() is what kicks off media fragment downloads. We defer that
+            // to the first play() (or ensureLoaded() for playlists) so paused HLS
+            // players don't pre-download the entire stream the way hls.js does by
+            // default. This matches dash.js behavior where initialize(media, null, false)
+            // only loads the init segment + minimal startup buffer.
+            autoStartLoad: false,
             enableWorker: true,
             lowLatencyMode: false,
             backBufferLength: 90,
-            maxBufferLength: 30,
-            maxMaxBufferLength: 600,
-            maxBufferSize: 60 * 1e3 * 1e3,
+            // Buffer ceilings tuned to roughly match dash.js defaults so HLS and DASH
+            // behave similarly in terms of pre-fetched data:
+            //  - maxBufferLength (12s) ≈ dash.js bufferTimeDefault: 12
+            //  - maxMaxBufferLength (60s) ≈ dash.js bufferTimeAtTopQualityLongForm: 60
+            //  - maxBufferSize (30 MB) — byte cap, hit first on high-bitrate streams.
+            // For typical 6s segments this keeps ~2 segments buffered ahead during
+            // playback. Combined with stopLoad() on pause(), zero segments are
+            // pre-fetched when paused.
+            maxBufferLength: 12,
+            maxMaxBufferLength: 60,
+            maxBufferSize: 30 * 1e3 * 1e3,
             maxBufferHole: 0.5,
             // Network retry settings
             manifestLoadingTimeOut: 1e4,
@@ -8274,12 +8421,10 @@
           if (!src) {
             throw new Error("No HLS source found");
           }
-          if (this.player.options.deferLoad) {
-            this._pendingSrc = src;
-          } else {
-            this.hls.loadSource(src);
-            this._hlsSourceLoaded = true;
-          }
+          this._pendingSrc = src;
+          this._manifestUrl = src;
+          this.hls.loadSource(src);
+          this._hlsSourceLoaded = true;
           this.attachHlsEvents();
           this.attachMediaEvents();
         }
@@ -8334,6 +8479,15 @@
           });
           this.hls.on(window.Hls.Events.FRAG_BUFFERED, (_event, _data) => {
             this.player.state.buffering = false;
+            if (!this.media.paused) {
+              this._loadingForSeekOnly = false;
+            } else if (this._loadingForSeekOnly && this._isTimeBuffered(this.media.currentTime)) {
+              this._loadingForSeekOnly = false;
+              try {
+                this.hls.stopLoad();
+              } catch (e) {
+              }
+            }
           });
           this.hls.on(window.Hls.Events.SUBTITLE_FRAG_PROCESSED, (_event, data) => {
             if (!data || !data.success) return;
@@ -8358,6 +8512,23 @@
             }
           }
           return total;
+        }
+        /**
+         * Return true if `time` falls inside any TimeRange the SourceBuffer already
+         * holds, with a small tolerance to absorb GOP boundaries. Used by the
+         * seeking handler to decide whether to surface a 'waiting' event for the
+         * spinner UI.
+         */
+        _isTimeBuffered(time) {
+          const buffered = this.media.buffered;
+          if (!buffered || buffered.length === 0) return false;
+          const tolerance = 0.25;
+          for (let i = 0; i < buffered.length; i++) {
+            if (time >= buffered.start(i) - tolerance && time <= buffered.end(i) + tolerance) {
+              return true;
+            }
+          }
+          return false;
         }
         _startCueUpdatePolling() {
           this._stopCueUpdatePolling();
@@ -8390,14 +8561,22 @@
          * Update caption buttons based on HLS subtitle tracks
          * Handles the case where control bar may not exist yet
          */
-        updateCaptionButtonsForHls() {
+        updateCaptionButtonsForHls(retryCount = 0) {
           const tracksCount = this._hlsSubtitleTracksCount || 0;
           const doUpdate = () => {
             var _a, _b;
             this.player.invalidateTrackCache();
             if (tracksCount > 0) {
               if (this.player.captionManager) {
-                this.player.captionManager.refreshTracks();
+                const found = this.player.captionManager.refreshTracks();
+                if (found === 0 && retryCount < 5) {
+                  const delay = (retryCount + 1) * 200;
+                  this.player.log(`HLS caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`, "info");
+                  setTimeout(() => {
+                    this.updateCaptionButtonsForHls(retryCount + 1);
+                  }, delay);
+                  return;
+                }
               }
               if ((_a = this.player.transcriptManager) == null ? void 0 : _a.isVisible) {
                 this.player.transcriptManager.loadTranscriptData();
@@ -8488,6 +8667,24 @@
             this.player.state.buffering = true;
             this.player.emit("waiting");
           });
+          this.media.addEventListener("seeking", () => {
+            this.player.state.seeking = true;
+            this.player.emit("seeking");
+            if (!this._isTimeBuffered(this.media.currentTime)) {
+              this.player.state.buffering = true;
+              this.player.emit("waiting");
+            }
+          });
+          this.media.addEventListener("seeked", () => {
+            this.player.state.seeking = false;
+            this.player.emit("seeked");
+            if (this.media.paused && this.hls) {
+              try {
+                this.hls.stopLoad();
+              } catch (e) {
+              }
+            }
+          });
           this.media.addEventListener("canplay", () => {
             this.player.state.buffering = false;
             this.player.emit("canplay");
@@ -8525,43 +8722,34 @@
           }
         }
         /**
-         * Ensure the HLS manifest/initial loading is started without starting playback.
-         * This makes playlist selection behave more like single-video initialization.
+         * Begin fetching media fragments without starting playback. Used by the
+         * playlist manager when a track is selected so playback can start quickly
+         * once the user hits play. The manifest was already loaded in initHlsJs();
+         * this call is just the equivalent of "press play without playing".
          */
         ensureLoaded() {
-          if (!this.player.options.deferLoad) {
-            return;
-          }
           if (!this.hls) {
             return;
           }
-          if (this._hlsSourceLoaded) {
-            return;
-          }
-          const src = this._pendingSrc || this.player._pendingSource || this.player.currentSource;
-          if (!src) {
+          if (this._didDeferredLoad) {
             return;
           }
           try {
-            this.hls.loadSource(src);
-            this._hlsSourceLoaded = true;
-            this.hls.startLoad();
+            this.hls.startLoad(-1);
           } catch (e) {
           }
+          this._didDeferredLoad = true;
         }
         play() {
           const scrollX = window.scrollX;
           const scrollY = window.scrollY;
-          if (this.player.options.deferLoad && this.hls && !this._hlsSourceLoaded) {
-            const src = this._pendingSrc || this.player.currentSource;
-            if (src) {
-              try {
-                this.hls.loadSource(src);
-                this.hls.startLoad();
-                this._hlsSourceLoaded = true;
-              } catch (e) {
-              }
+          if (this.hls) {
+            this._loadingForSeekOnly = false;
+            try {
+              this.hls.startLoad(-1);
+            } catch (e) {
             }
+            this._didDeferredLoad = true;
           }
           const promise = this.media.play();
           window.scrollTo(scrollX, scrollY);
@@ -8573,9 +8761,24 @@
         }
         pause() {
           this.media.pause();
+          if (this.hls) {
+            try {
+              this.hls.stopLoad();
+            } catch (e) {
+            }
+          }
         }
         seek(time) {
           this.media.currentTime = time;
+          if (this.hls) {
+            if (this.media.paused) {
+              this._loadingForSeekOnly = true;
+            }
+            try {
+              this.hls.startLoad(-1);
+            } catch (e) {
+            }
+          }
         }
         setVolume(volume) {
           this.media.volume = volume;
@@ -8618,6 +8821,38 @@
           }
           return -1;
         }
+        activateTextTrackForLanguage(lang) {
+          if (!this.hls || !lang) return false;
+          const tracks = this.hls.subtitleTracks;
+          if (!tracks || tracks.length === 0) return false;
+          const idx = tracks.findIndex((t) => {
+            const tLang = t.lang || t.language || "";
+            return tLang === lang || tLang.startsWith(lang) || lang.startsWith(tLang);
+          });
+          if (idx < 0) return false;
+          this.player.log(`Activating HLS subtitle track index ${idx} for language "${lang}"`);
+          this.hls.subtitleTrack = idx;
+          this._lastKnownCueCount = 0;
+          this._startCueUpdatePolling();
+          return true;
+        }
+        getTextTrackURLs() {
+          if (!this.hls || !this._manifestUrl) return [];
+          try {
+            const tracks = this.hls.subtitleTracks;
+            if (!tracks || tracks.length === 0) return [];
+            const results = [];
+            for (const track of tracks) {
+              const lang = track.lang || track.language || "";
+              const playlistUrl = track.url;
+              if (!lang || !playlistUrl) continue;
+              results.push({ lang, url: playlistUrl });
+            }
+            return results;
+          } catch {
+            return [];
+          }
+        }
         supportsAutoQuality() {
           return true;
         }
@@ -8628,6 +8863,7 @@
         destroy() {
           this._stopCueUpdatePolling();
           this._lastKnownCueCount = 0;
+          this._manifestUrl = null;
           if (this.hls) {
             this.hls.destroy();
             this.hls = null;
@@ -8663,6 +8899,7 @@
           __publicField(this, "_dashTextIsTtml");
           __publicField(this, "_pendingTimeouts");
           __publicField(this, "_ttmlDiv");
+          __publicField(this, "_manifestUrl");
           this.player = player;
           this.media = player.element;
           this.dash = null;
@@ -8677,6 +8914,7 @@
           this._dashTextIsTtml = false;
           this._pendingTimeouts = [];
           this._ttmlDiv = null;
+          this._manifestUrl = null;
         }
         async init() {
           this.player.log("Using dash.js for DASH support");
@@ -8713,10 +8951,30 @@
               // bitrate". 'firstTrack' respects manifest order instead, which is
               // both predictable and closer to the MPD author's intent.
               selectionModeForInitialTrack: "firstTrack",
+              // NOTE on pre-play preload: we deliberately do NOT set
+              // streaming.scheduling.scheduleWhilePaused = false here. While that
+              // is the documented dash.js way to suppress segment downloads while
+              // paused / before the first play, in our setup (dash.js 5.1.1 +
+              // dash.initialize(media, null, false) + attachSource at init) it
+              // tears down the SourceBuffers mid-init with
+              // "SourceBuffer has been removed from the parent media source"
+              // exceptions, which leaves the player unable to seek or play. The
+              // PR #3785 fix that was supposed to handle the initial-playback /
+              // autoPlay=false case is fragile against our usage pattern.
+              // Instead we keep dash.js's default scheduling (scheduleWhilePaused
+              // stays at its default `true`) and let the buffer caps below limit
+              // how much is fetched before play. With a single ~6s segment size,
+              // the visible network preload is one init segment per track plus
+              // 1–2 media segments — the same "first two chunks" behavior the
+              // user previously confirmed as acceptable for DASH.
               buffer: {
                 bufferTimeAtTopQuality: 30,
                 bufferTimeAtTopQualityLongForm: 60,
-                // dash.js 5.x: use bufferTimeDefault (replaces removed stableBufferTime)
+                // dash.js 5.x: use bufferTimeDefault (replaces removed stableBufferTime).
+                // Keep at 12s — going lower (0 / 1) was tested but dash.js still
+                // loads the first segment regardless because it's needed to make
+                // the MediaSource playable, so the savings are negligible while
+                // hurting mid-playback resilience on slow networks.
                 bufferTimeDefault: 12,
                 bufferToKeep: 20,
                 bufferPruningInterval: 10
@@ -8767,12 +9025,11 @@
           if (!src) {
             throw new Error("No DASH source found");
           }
-          if (this.player.options.deferLoad) {
-            this._pendingSrc = src;
-          } else {
-            this.dash.attachSource(src);
-            this._dashSourceLoaded = true;
-          }
+          this._pendingSrc = src;
+          this._manifestUrl = src;
+          this.dash.attachSource(src);
+          this._dashSourceLoaded = true;
+          this.player.showPosterOverlay();
           this.attachDashEvents();
           this.attachMediaEvents();
           this._setupCaptionSync();
@@ -8877,6 +9134,23 @@
           return total;
         }
         /**
+         * Return true if `time` falls inside any TimeRange the SourceBuffer already
+         * holds, with a small tolerance to absorb GOP boundaries. Used by the
+         * seeking handler to decide whether to surface a 'waiting' event for the
+         * spinner UI when the user scrubs while paused.
+         */
+        _isTimeBuffered(time) {
+          const buffered = this.media.buffered;
+          if (!buffered || buffered.length === 0) return false;
+          const tolerance = 0.25;
+          for (let i = 0; i < buffered.length; i++) {
+            if (time >= buffered.start(i) - tolerance && time <= buffered.end(i) + tolerance) {
+              return true;
+            }
+          }
+          return false;
+        }
+        /**
          * Sync VidPly caption track switches with dash.js so it loads
          * subtitle segments for the selected language.
          */
@@ -8977,14 +9251,22 @@
           this._dashSubtitleTracksCount = count;
           this.updateCaptionButtonsForDash();
         }
-        updateCaptionButtonsForDash() {
+        updateCaptionButtonsForDash(retryCount = 0) {
           const tracksCount = this._dashSubtitleTracksCount || 0;
           const doUpdate = () => {
             var _a, _b;
             this.player.invalidateTrackCache();
             if (tracksCount > 0) {
               if (this.player.captionManager) {
-                this.player.captionManager.refreshTracks();
+                const found = this.player.captionManager.refreshTracks();
+                if (found === 0 && retryCount < 5) {
+                  const delay = (retryCount + 1) * 200;
+                  this.player.log(`DASH caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`, "info");
+                  this._setTimeout(() => {
+                    this.updateCaptionButtonsForDash(retryCount + 1);
+                  }, delay);
+                  return;
+                }
               }
               if (!this._dashTextIsTtml && ((_a = this.player.transcriptManager) == null ? void 0 : _a.isVisible)) {
                 this.player.transcriptManager.loadTranscriptData();
@@ -9076,6 +9358,10 @@
           this.media.addEventListener("seeking", () => {
             this.player.state.seeking = true;
             this.player.emit("seeking");
+            if (!this._isTimeBuffered(this.media.currentTime)) {
+              this.player.state.buffering = true;
+              this.player.emit("waiting");
+            }
           });
           this.media.addEventListener("seeked", () => {
             this.player.state.seeking = false;
@@ -9273,6 +9559,91 @@
         handlesOwnCaptions() {
           return this._dashTextIsTtml;
         }
+        /**
+         * Tell dash.js to activate the text track for `lang` so it begins
+         * downloading subtitle segments and populating cues for that language.
+         */
+        activateTextTrackForLanguage(lang) {
+          if (!this.dash || !this._dashTextTracks.length || !lang) return false;
+          let dashIndex = this._dashTextTracks.findIndex((dt) => {
+            const dtLang = dt.lang || dt.language || dt.srclang || "";
+            if (!dtLang) return false;
+            return dtLang === lang || dtLang.startsWith(lang) || lang.startsWith(dtLang);
+          });
+          if (dashIndex < 0) {
+            dashIndex = this._dashTextTracks.findIndex((dt) => {
+              const dtLabel = (dt.label || dt.labels || "").toString().toLowerCase();
+              return dtLabel.includes(lang.toLowerCase());
+            });
+          }
+          if (dashIndex < 0) return false;
+          this.player.log(`Activating DASH text track index ${dashIndex} for transcript language "${lang}"`);
+          try {
+            this.dash.setTextTrack(dashIndex);
+          } catch (err) {
+          }
+          if (this.media.paused) {
+            const pos = this.media.currentTime;
+            const wasMuted = this.media.muted;
+            this.media.muted = true;
+            const playPromise = this.media.play();
+            const doPause = () => {
+              if (this.media && !this.media.paused) {
+                this.media.pause();
+                this.media.muted = wasMuted;
+                if (Math.abs(this.media.currentTime - pos) > 0.5) {
+                  this.media.currentTime = pos;
+                }
+              }
+            };
+            if (playPromise && typeof playPromise.then === "function") {
+              playPromise.then(() => {
+                this._setTimeout(doPause, 250);
+              }).catch(() => {
+                this.media.muted = wasMuted;
+              });
+            } else {
+              this._setTimeout(doPause, 250);
+            }
+          }
+          if (!this._dashTextIsTtml) {
+            this._lastKnownCueCount = 0;
+            this._startCueUpdatePolling();
+          }
+          return true;
+        }
+        getTextTrackURLs() {
+          var _a, _b, _c;
+          if (!this.dash || !this._manifestUrl) return [];
+          try {
+            const manifest = (_b = (_a = this.dash).getManifest) == null ? void 0 : _b.call(_a);
+            if (!manifest) return [];
+            const baseUrl = this._manifestUrl.substring(0, this._manifestUrl.lastIndexOf("/") + 1);
+            const results = [];
+            const periods = manifest.Period || manifest.period || (manifest.periods ? manifest.periods : [manifest]);
+            for (const period of Array.isArray(periods) ? periods : [periods]) {
+              const adaptSets = period.AdaptationSet || period.adaptationSet || period.AdaptationSet_asArray || [];
+              for (const as of Array.isArray(adaptSets) ? adaptSets : [adaptSets]) {
+                const ct = as.contentType || as.ContentType || "";
+                const mime = as.mimeType || as.MimeType || "";
+                if (ct !== "text" && !/text\/vtt|application\/ttml/i.test(mime)) continue;
+                const lang = as.lang || as.language || "";
+                const reps = as.Representation || as.representation || as.Representation_asArray || [];
+                for (const rep of Array.isArray(reps) ? reps : [reps]) {
+                  const bu = rep.BaseURL || rep.baseURL || rep.BaseURL_asArray;
+                  const rawUrl = Array.isArray(bu) ? ((_c = bu[0]) == null ? void 0 : _c.__text) || bu[0] : (bu == null ? void 0 : bu.__text) || bu;
+                  if (!rawUrl) continue;
+                  const url = rawUrl.startsWith("http") ? rawUrl : new URL(rawUrl, baseUrl).href;
+                  results.push({ lang, url });
+                  break;
+                }
+              }
+            }
+            return results;
+          } catch {
+            return [];
+          }
+        }
         supportsAutoQuality() {
           return true;
         }
@@ -9328,6 +9699,7 @@
           }
           this._dashTextTracks = [];
           this._dashTextIsTtml = false;
+          this._manifestUrl = null;
         }
       };
     }
@@ -14310,12 +14682,12 @@
         this.hidePosterOverlay();
       });
       this.on("timeupdate", () => {
-        if (this.state.currentTime > 0) {
+        if (this.state.hasStartedPlayback && this.state.currentTime > 0) {
           this.hidePosterOverlay();
         }
       });
       this.element.addEventListener("loadeddata", () => {
-        if (this.state.playing || this.state.currentTime > 0) {
+        if (this.state.hasStartedPlayback && (this.state.playing || this.state.currentTime > 0)) {
           this.hidePosterOverlay();
         }
       }, { once: true });
@@ -14388,7 +14760,10 @@
         return (_a = this.container) == null ? void 0 : _a.classList.contains(`${prefix}-external-controls`);
       };
       const showBuffering = () => {
-        if (isExternalControls() || !this.state.hasStartedPlayback) {
+        if (isExternalControls()) {
+          return;
+        }
+        if (!this.state.hasStartedPlayback && !this.state.seeking) {
           return;
         }
         this.container.classList.add(`${prefix}-buffering`);
@@ -15018,6 +15393,7 @@
       }
     }
     seek(time) {
+      this.hidePosterOverlay();
       if (this.renderer) {
         this.renderer.seek(time);
       }

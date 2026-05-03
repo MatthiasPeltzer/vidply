@@ -6,6 +6,7 @@ import {DOMUtils} from '../utils/DOMUtils.js';
 import {i18n} from '../i18n/i18n.js';
 import {StorageManager} from '../utils/StorageManager.js';
 import {debounce, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
+import {deriveTrackLabel} from '../utils/TrackLabelUtils.js';
 import type { Player } from '../core/Player.js';
 
 export class CaptionManager {
@@ -116,7 +117,7 @@ export class CaptionManager {
                 const entry = {
                     track,
                     language: track.language,
-                    label: this.deriveTrackLabel(track.label, track.language),
+                    label: deriveTrackLabel(track.label, track.language),
                     kind: track.kind,
                     index: i,
                     isDefault,
@@ -137,53 +138,6 @@ export class CaptionManager {
                 this.enable(defaultTrackIndex);
             });
         }
-    }
-
-    /**
-     * Derive a human-readable label for a TextTrack when the source manifest
-     * (DASH AdaptationSet, HLS rendition, etc.) didn't provide one. dash.js
-     * falls back to the AdaptationSet @id (typically a digit like "2", "3")
-     * when no <Label> child element is present, which surfaces as cryptic
-     * "2"/"3" entries in the captions menu.
-     *
-     * dash.js 5.x additionally derives the label as `element.id ?? element.lang`.
-     * When neither is present in the MPD, the value is JS `null`, and the
-     * browser's TextTrack API stringifies it to the literal "null". We treat
-     * "null"/"undefined" (any casing) as placeholders too, and fall back to a
-     * localized language name via Intl.DisplayNames.
-     */
-    private deriveTrackLabel(rawLabel: string | null | undefined, language: string | null | undefined): string {
-        const cleanLabel = (rawLabel ?? '').trim();
-        const cleanLang = (language ?? '').trim();
-
-        const looksLikePlaceholder =
-            cleanLabel === '' ||
-            /^\d+$/.test(cleanLabel) ||
-            /^(null|undefined)$/i.test(cleanLabel);
-        if (!looksLikePlaceholder) {
-            return cleanLabel;
-        }
-
-        const cleanLangIsUsable =
-            cleanLang !== '' && !/^(null|undefined)$/i.test(cleanLang);
-
-        if (cleanLangIsUsable) {
-            try {
-                const uiLang = i18n.getLanguage() || 'en';
-                const displayNames = new Intl.DisplayNames([uiLang, 'en'], { type: 'language' });
-                const name = displayNames.of(cleanLang);
-                if (name && name.toLowerCase() !== cleanLang.toLowerCase()) {
-                    return name;
-                }
-            } catch {
-                // Intl.DisplayNames may be unavailable — fall through to the code.
-            }
-            return cleanLang.toUpperCase();
-        }
-
-        // No usable label and no usable language — return a generic fallback
-        // so the menu never displays "null" or an empty menu item.
-        return i18n.t('player.captions');
     }
 
     /**
