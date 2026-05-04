@@ -1,10 +1,29 @@
 import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
 
+/**
+ * Subset of the SoundCloud Widget event payloads we actually consume.
+ * The Widget API is callback-shaped and does not export TS types, so we
+ * narrow `unknown` arguments locally as they enter our handlers.
+ */
+interface SCSoundInfo {
+  duration: number;
+  title?: string;
+}
+
+interface SCProgressData {
+  currentPosition: number;
+  loadedProgress?: number;
+}
+
+interface SCWidgetError {
+  message?: string;
+}
+
 export class SoundCloudRenderer implements Renderer {
   player: Player;
   media: HTMLMediaElement;
-  widget: any;
+  widget: SCWidget | null;
   trackUrl: string | null;
   isReady: boolean;
   iframe: HTMLIFrameElement | null;
@@ -24,7 +43,7 @@ export class SoundCloudRenderer implements Renderer {
 
   async init() {
     // Extract track URL - use currentSource which works for external renderers
-    this.trackUrl = this.player.currentSource || this.player.element.src || this.player.element.querySelector('source')?.src;
+    this.trackUrl = this.player.currentSource || this.player.element.src || this.player.element.querySelector('source')?.src || null;
     
     if (!this.trackUrl || !this.isValidSoundCloudUrl(this.trackUrl)) {
       throw new Error('Invalid SoundCloud URL');
@@ -81,9 +100,10 @@ export class SoundCloudRenderer implements Renderer {
    * - https://api.soundcloud.com/tracks/123456
    */
   getEmbedUrl() {
-    const trackUrl = this.trackUrl!;
-    // SoundCloud widget needs the track URL encoded
-    const encodedUrl = encodeURIComponent(trackUrl);
+    const trackUrl = this.trackUrl;
+    if (!trackUrl) {
+      throw new Error('SoundCloudRenderer.getEmbedUrl(): trackUrl is not set');
+    }
     
     // Build widget URL with parameters
     const params = new URLSearchParams({
@@ -169,33 +189,42 @@ export class SoundCloudRenderer implements Renderer {
         return;
       }
 
+      const SC = window.SC;
+      if (!SC) {
+        reject(new Error('SoundCloud widget cannot initialize'));
+        return;
+      }
+
       // Wait for iframe to load
       iframe.addEventListener('load', () => {
         try {
-          this.widget = window.SC!.Widget(iframe);
-          
-          this.widget.bind(window.SC!.Widget.Events.READY, () => {
+          const widget = SC.Widget(iframe);
+          this.widget = widget;
+
+          widget.bind(SC.Widget.Events.READY, () => {
             this.isReady = true;
             this.attachEvents();
-            
+
             // Hide VidPly controls - SoundCloud has its own
             if (this.player.container) {
               this.player.container.classList.add('vidply-external-controls');
             }
-            
+
             // Get initial sound info
-            this.widget.getCurrentSound((sound: any) => {
-              if (sound) {
-                this.player.state.duration = sound.duration / 1000; // Convert ms to seconds
+            widget.getCurrentSound((sound: unknown) => {
+              const info = sound as SCSoundInfo | null;
+              if (info) {
+                this.player.state.duration = info.duration / 1000; // ms -> s
                 this.player.emit('loadedmetadata');
               }
             });
-            
+
             resolve();
           });
-          
-          this.widget.bind(window.SC!.Widget.Events.ERROR, (error: any) => {
-            this.player.handleError(new Error(`SoundCloud error: ${error.message || 'Unknown error'}`));
+
+          widget.bind(SC.Widget.Events.ERROR, (...args: unknown[]) => {
+            const error = args[0] as SCWidgetError | undefined;
+            this.player.handleError(new Error(`SoundCloud error: ${error?.message || 'Unknown error'}`));
           });
         } catch (error) {
           reject(error);
@@ -212,66 +241,71 @@ export class SoundCloudRenderer implements Renderer {
   }
 
   attachEvents() {
-    if (!this.widget) return;
-    
-    const Events = window.SC!.Widget.Events;
+    const widget = this.widget;
+    const SC = window.SC;
+    if (!widget || !SC) return;
 
-    this.widget.bind(Events.PLAY, () => {
+    const Events = SC.Widget.Events;
+
+    widget.bind(Events.PLAY, () => {
       this.player.state.playing = true;
       this.player.state.paused = false;
       this.player.state.ended = false;
       this.player.emit('play');
-      
+
       if (this.player.options.onPlay) {
         this.player.options.onPlay.call(this.player);
       }
     });
 
-    this.widget.bind(Events.PAUSE, () => {
+    widget.bind(Events.PAUSE, () => {
       this.player.state.playing = false;
       this.player.state.paused = true;
       this.player.emit('pause');
-      
+
       if (this.player.options.onPause) {
         this.player.options.onPause.call(this.player);
       }
     });
 
-    this.widget.bind(Events.FINISH, () => {
+    widget.bind(Events.FINISH, () => {
       this.player.state.playing = false;
       this.player.state.paused = true;
       this.player.state.ended = true;
       this.player.emit('ended');
-      
+
       if (this.player.options.onEnded) {
         this.player.options.onEnded.call(this.player);
       }
-      
+
       if (this.player.options.loop) {
         this.seek(0);
         this.play();
       }
     });
 
-    this.widget.bind(Events.PLAY_PROGRESS, (data: any) => {
+    widget.bind(Events.PLAY_PROGRESS, (...args: unknown[]) => {
+      const data = args[0] as SCProgressData;
       // data.currentPosition is in milliseconds
       const currentTime = data.currentPosition / 1000;
       this.player.state.currentTime = currentTime;
       this.player.emit('timeupdate', currentTime);
-      
+
       if (this.player.options.onTimeUpdate) {
         this.player.options.onTimeUpdate.call(this.player, currentTime);
       }
     });
 
-    this.widget.bind(Events.SEEK, (data: any) => {
+    widget.bind(Events.SEEK, (...args: unknown[]) => {
+      const data = args[0] as SCProgressData;
       this.player.state.currentTime = data.currentPosition / 1000;
       this.player.emit('seeked');
     });
 
-    this.widget.bind(Events.LOAD_PROGRESS, (data: any) => {
+    widget.bind(Events.LOAD_PROGRESS, (...args: unknown[]) => {
+      const data = args[0] as SCProgressData;
       // data.loadedProgress is 0-1
-      if (this.player.state.duration) {
+      if (this.player.state.duration && data.loadedProgress !== undefined) {
         const buffered = data.loadedProgress * this.player.state.duration;
         this.player.emit('progress', buffered);
       }
@@ -314,34 +348,36 @@ export class SoundCloudRenderer implements Renderer {
   }
 
   setMuted(muted: boolean) {
-    if (this.isReady && this.widget) {
+    const widget = this.widget;
+    if (this.isReady && widget) {
       // SoundCloud doesn't have a native mute, use volume instead
       if (muted) {
         // Store current volume before muting
-        this.widget.getVolume((vol: number) => {
+        widget.getVolume((vol: number) => {
           this._previousVolume = vol;
-          this.widget.setVolume(0);
+          widget.setVolume(0);
         });
       } else {
-        this.widget.setVolume(this._previousVolume || 100);
+        widget.setVolume(this._previousVolume || 100);
       }
       this.player.state.muted = muted;
     }
   }
 
-  setPlaybackSpeed(speed: number) {
+  setPlaybackSpeed(_speed: number) {
     // SoundCloud Widget API doesn't support playback speed
     this.player.log('SoundCloud does not support playback speed control', 'warn');
   }
 
   /**
-   * Get current track info
-   * @returns {Promise<Object>}
+   * Get current track info. Returns the raw sound payload from the
+   * SoundCloud Widget API (shape is best described as `unknown` since
+   * the API exposes many optional fields we don't formally type).
    */
-  getCurrentSound() {
-    return new Promise<any | null>((resolve) => {
+  getCurrentSound(): Promise<unknown | null> {
+    return new Promise<unknown | null>((resolve) => {
       if (this.isReady && this.widget) {
-        this.widget.getCurrentSound((sound: any) => {
+        this.widget.getCurrentSound((sound: unknown) => {
           resolve(sound);
         });
       } else {
@@ -352,8 +388,8 @@ export class SoundCloudRenderer implements Renderer {
 
   destroy() {
     // Unbind all events
-    if (this.widget) {
-      const Events = window.SC!.Widget.Events;
+    if (this.widget && window.SC) {
+      const Events = window.SC.Widget.Events;
       try {
         this.widget.unbind(Events.READY);
         this.widget.unbind(Events.PLAY);
@@ -363,7 +399,7 @@ export class SoundCloudRenderer implements Renderer {
         this.widget.unbind(Events.SEEK);
         this.widget.unbind(Events.LOAD_PROGRESS);
         this.widget.unbind(Events.ERROR);
-      } catch (e) {
+      } catch {
         // Ignore unbind errors
       }
     }

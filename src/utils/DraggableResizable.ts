@@ -56,7 +56,21 @@ export class DraggableResizable {
   manuallyPositioned: boolean;
   resizeHandlesManaged: Map<HTMLElement, boolean>;
   resizeIndicatorElement: HTMLElement | null;
-  handlers: Record<string, (e: any) => void>;
+  handlers: {
+    mousedown: (e: MouseEvent) => void;
+    mousemove: (e: MouseEvent) => void;
+    mouseup: () => void;
+    touchstart: (e: TouchEvent) => void;
+    touchmove: (e: TouchEvent) => void;
+    touchend: () => void;
+    pointerdown: (e: PointerEvent) => void;
+    pointermove: (e: PointerEvent) => void;
+    pointerup: (e: PointerEvent) => void;
+    pointercancel: (e: PointerEvent) => void;
+    keydown: (e: KeyboardEvent) => void;
+    resizeHandleMousedown: (e: MouseEvent | TouchEvent) => void;
+    resizeHandlePointerDown: (e: PointerEvent) => void;
+  };
   activePointerId: number | null;
   activePointerType: string | null;
 
@@ -790,7 +804,7 @@ export class DraggableResizable {
     if (typeof this.element.focus === 'function') {
       try {
         this.element.focus({ preventScroll: true });
-      } catch (e) {
+      } catch {
         // Some browsers do not support the preventScroll option; fallback without it
         this.element.focus();
       }

@@ -4,7 +4,7 @@ import type { Player } from '../core/Player.js';
 export class YouTubeRenderer implements Renderer {
   player: Player;
   media: HTMLMediaElement;
-  youtube: any;
+  youtube: YTPlayer | null;
   videoId: string | null;
   isReady: boolean;
   iframe: HTMLDivElement | null;
@@ -145,20 +145,22 @@ export class YouTubeRenderer implements Renderer {
   attachEvents() {
     // Set up polling for time updates (YouTube doesn't provide timeupdate events)
     this.timeUpdateInterval = setInterval(() => {
-      if (this.isReady && this.youtube) {
-        const currentTime = this.youtube.getCurrentTime();
-        const duration = this.youtube.getDuration();
-        
+      const youtube = this.youtube;
+      if (this.isReady && youtube) {
+        const currentTime = youtube.getCurrentTime();
+        const duration = youtube.getDuration();
+
         this.player.state.currentTime = currentTime;
         this.player.state.duration = duration;
-        
+
         this.player.emit('timeupdate', currentTime);
       }
     }, 250);
 
     // Initial metadata
-    if (this.youtube.getDuration) {
-      this.player.state.duration = this.youtube.getDuration();
+    const youtube = this.youtube;
+    if (youtube && youtube.getDuration) {
+      this.player.state.duration = youtube.getDuration();
       this.player.emit('loadedmetadata');
     }
   }
@@ -196,12 +198,12 @@ export class YouTubeRenderer implements Renderer {
         this.player.state.paused = true;
         this.player.state.ended = true;
         this.player.emit('ended');
-        
+
         if (this.player.options.onEnded) {
           this.player.options.onEnded.call(this.player);
         }
-        
-        if (this.player.options.loop) {
+
+        if (this.player.options.loop && this.youtube) {
           this.youtube.seekTo(0);
           this.youtube.playVideo();
         }

@@ -6,14 +6,28 @@
 import { CaptionManager } from '../controls/CaptionManager.js';
 import type { Player } from './Player.js';
 
+/**
+ * Caption-track entry tracked by the audio-description manager. Each
+ * entry pairs a `<track>` element with its described/original source
+ * URLs so the manager can swap the rendered captions when the user
+ * toggles audio description.
+ */
+interface CaptionTrackInfo {
+    trackElement: HTMLTrackElement;
+    originalSrc: string | null;
+    describedSrc: string;
+    originalTrackSrc: string | null;
+    explicit: boolean;
+}
+
 export class AudioDescriptionManager {
     player: Player;
-    captionTracks: any[];
+    captionTracks: CaptionTrackInfo[];
     desiredState: boolean;
     enabled: boolean;
-    originalSource: any;
-    sourceElement: any;
-    src: any;
+    originalSource: string | null;
+    sourceElement: Element | null;
+    src: string | null;
 
     constructor(player: Player) {
         this.player = player;
@@ -71,9 +85,10 @@ export class AudioDescriptionManager {
         trackElements.forEach((trackEl: Element) => {
             const trackKind = trackEl.getAttribute('kind');
             const trackDescSrc = trackEl.getAttribute('data-desc-src');
-            
-            if ((trackKind === 'captions' || trackKind === 'subtitles' || 
-                 trackKind === 'chapters' || trackKind === 'descriptions') && trackDescSrc) {
+
+            if ((trackKind === 'captions' || trackKind === 'subtitles' ||
+                 trackKind === 'chapters' || trackKind === 'descriptions') &&
+                 trackDescSrc && trackEl instanceof HTMLTrackElement) {
                 this.captionTracks.push({
                     trackElement: trackEl,
                     originalSrc: trackEl.getAttribute('src'),
@@ -93,7 +108,7 @@ export class AudioDescriptionManager {
         const hasSourceElementsWithDesc = this.player.sourceElements.some(
             (el: Element) => el.getAttribute('data-desc-src')
         );
-        return !!(this.src || hasSourceElementsWithDesc || this.captionTracks.length > 0);
+        return Boolean(this.src || hasSourceElementsWithDesc || this.captionTracks.length > 0);
     }
 
     /**
@@ -260,16 +275,16 @@ export class AudioDescriptionManager {
      */
     async _swapCaptionTracks(toDescribed = true) {
         if (this.captionTracks.length === 0) return [];
-        
-        const swappedTracks: any[] = [];
+
+        const swappedTracks: CaptionTrackInfo[] = [];
         
         const validationPromises = this.captionTracks.map(async (trackInfo) => {
             if (trackInfo.trackElement && trackInfo.describedSrc) {
                 if (trackInfo.explicit === true) {
+                    const url = toDescribed ? trackInfo.describedSrc : trackInfo.originalSrc;
+                    if (!url) return { trackInfo, exists: false };
                     try {
-                        const exists = await this._validateTrackExists(
-                            toDescribed ? trackInfo.describedSrc : trackInfo.originalSrc
-                        );
+                        const exists = await this._validateTrackExists(url);
                         return { trackInfo, exists };
                     } catch {
                         return { trackInfo, exists: false };
@@ -300,7 +315,7 @@ export class AudioDescriptionManager {
             // Store track info and remove
             const tracksToReadd = tracksToSwap.map(({ trackInfo }) => {
                 const attributes: Record<string, string> = {};
-                Array.from(trackInfo.trackElement.attributes).forEach((attr: any) => {
+                Array.from(trackInfo.trackElement.attributes).forEach((attr: Attr) => {
                     attributes[attr.name] = attr.value;
                 });
                 
@@ -323,10 +338,14 @@ export class AudioDescriptionManager {
             await new Promise<void>(resolve => {
                 setTimeout(() => {
                     tracksToReadd.forEach(({ trackInfo, parent, nextSibling, attributes }) => {
-                        swappedTracks.push(trackInfo);
-                        
-                        const newTrackElement = document.createElement('track');
                         const newSrc = toDescribed ? trackInfo.describedSrc : trackInfo.originalSrc;
+                        if (!newSrc) {
+                            // Skip tracks without a usable src; no swap can occur.
+                            return;
+                        }
+                        swappedTracks.push(trackInfo);
+
+                        const newTrackElement = document.createElement('track');
                         newTrackElement.setAttribute('src', newSrc);
                         
                         Object.keys(attributes).forEach(attrName => {
@@ -353,11 +372,12 @@ export class AudioDescriptionManager {
                     const setupNewTracks = () => {
                         this.player.setManagedTimeout(() => {
                             swappedTracks.forEach((trackInfo) => {
-                                const newTextTrack = trackInfo.trackElement.track;
+                                const trackElement = trackInfo.trackElement;
+                                const newTextTrack = trackElement.track;
                                 if (newTextTrack) {
                                     const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
                                     newTextTrack.mode = 'hidden';
-                                    
+
                                     const restoreMode = () => {
                                         if (modeInfo.wasShowing || modeInfo.wasHidden) {
                                             newTextTrack.mode = 'hidden';
@@ -365,12 +385,15 @@ export class AudioDescriptionManager {
                                             newTextTrack.mode = 'disabled';
                                         }
                                     };
-                                    
-                                    if (newTextTrack.readyState >= 2) {
+
+                                    // `readyState` and the `load`/`error`
+                                    // events live on `<track>`, not on
+                                    // the underlying TextTrack object.
+                                    if (trackElement.readyState >= 2) {
                                         restoreMode();
                                     } else {
-                                        newTextTrack.addEventListener('load', restoreMode, { once: true });
-                                        newTextTrack.addEventListener('error', restoreMode, { once: true });
+                                        trackElement.addEventListener('load', restoreMode, { once: true });
+                                        trackElement.addEventListener('error', restoreMode, { once: true });
                                     }
                                 }
                             });
@@ -405,7 +428,7 @@ export class AudioDescriptionManager {
             
             if (descSrcAttr) {
                 const type = sourceEl.getAttribute('type');
-                let origSrc = sourceEl.getAttribute('data-orig-src') || currentSrc;
+                const origSrc = sourceEl.getAttribute('data-orig-src') || currentSrc;
                 
                 sourcesToUpdate.push({
                     src: toDescribed ? descSrcAttr : origSrc,
@@ -590,6 +613,7 @@ export class AudioDescriptionManager {
         }
         
         // Set src (this method should only be called when this.src exists)
+        if (!this.src) return;
         this.player.element.src = this.src;
         
         // Wait and restore
@@ -716,7 +740,7 @@ export class AudioDescriptionManager {
     /**
      * Update sources (called when playlist changes)
      */
-    updateSources(audioDescriptionSrc: string) {
+    updateSources(audioDescriptionSrc: string | null | undefined) {
         this.src = audioDescriptionSrc || null;
         // Reset state for new playlist item
         this.enabled = false;

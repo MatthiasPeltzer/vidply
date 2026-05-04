@@ -4,7 +4,7 @@ import type { Player } from '../core/Player.js';
 export class VimeoRenderer implements Renderer {
   player: Player;
   media: HTMLMediaElement;
-  vimeo: any;
+  vimeo: VimeoPlayer | null;
   videoId: string | null;
   isReady: boolean;
   iframe: HTMLDivElement | null;
@@ -83,7 +83,7 @@ export class VimeoRenderer implements Renderer {
   }
 
   async initializePlayer() {
-    const options: Record<string, any> = {
+    const options: Record<string, unknown> = {
       id: this.videoId,
       width: '100%',
       height: '100%',
@@ -134,80 +134,89 @@ export class VimeoRenderer implements Renderer {
   }
 
   attachEvents() {
-    this.vimeo.on('play', () => {
+    const vimeo = this.vimeo;
+    if (!vimeo) return;
+
+    // Vimeo's on() callback signature is (...args: unknown[]) => void, so
+    // each handler narrows its own payload before reading fields.
+    vimeo.on('play', () => {
       this.player.state.playing = true;
       this.player.state.paused = false;
       this.player.state.ended = false;
       this.player.emit('play');
-      
+
       if (this.player.options.onPlay) {
         this.player.options.onPlay.call(this.player);
       }
     });
 
-    this.vimeo.on('pause', () => {
+    vimeo.on('pause', () => {
       this.player.state.playing = false;
       this.player.state.paused = true;
       this.player.emit('pause');
-      
+
       if (this.player.options.onPause) {
         this.player.options.onPause.call(this.player);
       }
     });
 
-    this.vimeo.on('ended', () => {
+    vimeo.on('ended', () => {
       this.player.state.playing = false;
       this.player.state.paused = true;
       this.player.state.ended = true;
       this.player.emit('ended');
-      
+
       if (this.player.options.onEnded) {
         this.player.options.onEnded.call(this.player);
       }
     });
 
-    this.vimeo.on('timeupdate', (data: { seconds: number; duration: number }) => {
+    vimeo.on('timeupdate', (...args: unknown[]) => {
+      const data = args[0] as { seconds: number; duration: number };
       this.player.state.currentTime = data.seconds;
       this.player.state.duration = data.duration;
       this.player.emit('timeupdate', data.seconds);
-      
+
       if (this.player.options.onTimeUpdate) {
         this.player.options.onTimeUpdate.call(this.player, data.seconds);
       }
     });
 
-    this.vimeo.on('volumechange', (data: { volume: number }) => {
+    vimeo.on('volumechange', (...args: unknown[]) => {
+      const data = args[0] as { volume: number };
       this.player.state.volume = data.volume;
       this.player.emit('volumechange', data.volume);
     });
 
-    this.vimeo.on('bufferstart', () => {
+    vimeo.on('bufferstart', () => {
       this.player.state.buffering = true;
       this.player.emit('waiting');
     });
 
-    this.vimeo.on('bufferend', () => {
+    vimeo.on('bufferend', () => {
       this.player.state.buffering = false;
       this.player.emit('canplay');
     });
 
-    this.vimeo.on('seeking', () => {
+    vimeo.on('seeking', () => {
       this.player.state.seeking = true;
       this.player.emit('seeking');
     });
 
-    this.vimeo.on('seeked', () => {
+    vimeo.on('seeked', () => {
       this.player.state.seeking = false;
       this.player.emit('seeked');
     });
 
-    this.vimeo.on('playbackratechange', (data: { playbackRate: number }) => {
+    vimeo.on('playbackratechange', (...args: unknown[]) => {
+      const data = args[0] as { playbackRate: number };
       this.player.state.playbackSpeed = data.playbackRate;
       this.player.emit('ratechange', data.playbackRate);
     });
 
-    this.vimeo.on('error', (error: Error) => {
-      this.player.handleError(new Error(`Vimeo error: ${error.message}`));
+    vimeo.on('error', (...args: unknown[]) => {
+      const error = args[0] as { message?: string } | undefined;
+      this.player.handleError(new Error(`Vimeo error: ${error?.message ?? 'unknown'}`));
     });
   }
 

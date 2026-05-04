@@ -188,7 +188,7 @@ export class HTML5Renderer implements Renderer {
         if (this.media.readyState === 0) {
           this.media.load();
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
       this._didDeferredLoad = true;
@@ -236,7 +236,7 @@ export class HTML5Renderer implements Renderer {
       if (this.media.readyState === 0) {
         this.media.load();
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
     this._didDeferredLoad = true;
@@ -341,7 +341,7 @@ export class HTML5Renderer implements Renderer {
       
       // Resume playback if it was playing
       if (wasPlaying) {
-        this.media.play().catch(err => {
+        this.media.play().catch(() => {
           this.player.log('Failed to resume playback after quality switch', 'warn');
         });
       }

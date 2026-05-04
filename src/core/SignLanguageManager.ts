@@ -11,37 +11,59 @@ import { createMenuItem, attachMenuKeyboardNavigation, focusFirstMenuItem } from
 import { createLabeledSelect, preventDragOnElement } from '../utils/FormUtils.js';
 import type { Player } from './Player.js';
 
+/**
+ * Bag of player-event handlers the sign-language overlay binds to so it
+ * can mirror the main player's playback state.
+ */
+interface SignLanguageHandlers {
+    play: () => void;
+    pause: () => void;
+    timeupdate: () => void;
+    ratechange: () => void;
+    captionChange?: () => void;
+}
+
+interface SignLanguageSettingsHandlers {
+    click: (e: MouseEvent) => void;
+    keydown: (e: KeyboardEvent) => void;
+}
+
+interface SignLanguageInteractionHandlers {
+    draggable: DraggableResizable | null;
+    customKeyHandler: ((e: KeyboardEvent) => void) | null;
+}
+
 export class SignLanguageManager {
     player: Player;
-    _mainViewMutedBefore: any;
-    _mainViewUsingSourceSwap: any;
+    _mainViewMutedBefore: boolean;
+    _mainViewUsingSourceSwap: boolean;
     currentLanguage: string | null;
-    customKeyHandler: any;
-    desiredPosition: any;
-    draggable: any;
-    dragOptionButton: any;
-    dragOptionText: any;
-    handlers: any;
-    header: any;
-    inMainView: any;
-    interactionHandlers: any;
+    customKeyHandler: ((e: KeyboardEvent) => void) | null;
+    desiredPosition: string;
+    draggable: DraggableResizable | null;
+    dragOptionButton: HTMLElement | null;
+    dragOptionText: Element | null;
+    handlers: SignLanguageHandlers | null;
+    header: HTMLElement | null;
+    inMainView: boolean;
+    interactionHandlers: SignLanguageInteractionHandlers | null;
     mainViewOriginalSources: HTMLSourceElement[] | null;
     mainViewOriginalSrc: string | null;
-    resizeHandles: any[];
-    resizeOptionButton: any;
-    resizeOptionText: any;
+    resizeHandles: HTMLElement[];
+    resizeOptionButton: HTMLElement | null;
+    resizeOptionText: Element | null;
     selector: HTMLSelectElement | null;
     settingsButton: HTMLButtonElement | null;
-    settingsHandlers: any;
-    settingsMenu: any;
-    settingsMenuJustOpened: any;
+    settingsHandlers: SignLanguageSettingsHandlers | null;
+    settingsMenu: HTMLElement | null;
+    settingsMenuJustOpened: boolean;
     settingsMenuKeyHandler: ((event: KeyboardEvent) => void) | null;
-    settingsMenuVisible: any;
+    settingsMenuVisible: boolean;
     sources: Record<string, string>;
     src: string | null;
-    enabled: any;
+    enabled: boolean;
     documentClickHandler: ((event: MouseEvent) => void) | null;
-    documentClickHandlerAdded: any;
+    documentClickHandlerAdded: boolean;
     video: HTMLVideoElement | null;
     wrapper: HTMLElement | null;
 
@@ -94,7 +116,7 @@ export class SignLanguageManager {
      * Check if sign language is available
      */
     isAvailable() {
-        return Object.keys(this.sources).length > 0 || !!this.src;
+        return Object.keys(this.sources).length > 0 || Boolean(this.src);
     }
 
     /**
@@ -102,7 +124,7 @@ export class SignLanguageManager {
      */
     enable() {
         const hasMultipleSources = Object.keys(this.sources).length > 0;
-        const hasSingleSource = !!this.src;
+        const hasSingleSource = Boolean(this.src);
         
         if (!hasMultipleSources && !hasSingleSource) {
             console.warn('No sign language video source provided');
@@ -143,10 +165,16 @@ export class SignLanguageManager {
         this._createVideo(initialSrc);
         this._createResizeHandles();
         
-        // Assemble
-        const wrapper = this.wrapper!;
+        // Assemble. The create methods mutate this.wrapper/this.video, but
+        // TypeScript still sees them as null due to the earlier
+        // `if (this.wrapper) return` narrowing, so re-read via a typed alias.
+        const wrapper = this.wrapper as HTMLElement | null;
+        const video = this.video as HTMLVideoElement | null;
+        if (!wrapper || !video) {
+            return;
+        }
         wrapper.appendChild(this.header as Node);
-        wrapper.appendChild(this.video as Node);
+        wrapper.appendChild(video);
         this.resizeHandles.forEach(handle => wrapper.appendChild(handle));
         
         // Set initial size
@@ -161,7 +189,6 @@ export class SignLanguageManager {
         });
         
         // Sync with main video
-        const video = this.video!;
         video.currentTime = this.player.state.currentTime;
         if (!this.player.state.paused) {
             video.play();
@@ -218,7 +245,7 @@ export class SignLanguageManager {
      */
     async enableInMainView() {
         const hasMultipleSources = Object.keys(this.sources).length > 0;
-        const hasSingleSource = !!this.src;
+        const hasSingleSource = Boolean(this.src);
         if (!hasMultipleSources && !hasSingleSource) return;
         if (!this.player.element || this.player.element.tagName !== 'VIDEO') return;
         if (this.inMainView) return;
@@ -321,7 +348,6 @@ export class SignLanguageManager {
         const el = this.player.element as HTMLVideoElement;
         const currentTime = this.player.state.currentTime;
         const wasPlaying = this.player.state.playing;
-        const posterValue = el.poster || el.getAttribute('poster') || this.player.options.poster;
 
         if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
             (Array.from(el.querySelectorAll('source')) as HTMLSourceElement[]).forEach((source: HTMLSourceElement) => source.remove());
@@ -691,9 +717,10 @@ export class SignLanguageManager {
         
         closeButton.addEventListener('click', () => {
             this.disable();
-            if (this.player.controlBar?.controls?.signLanguage) {
+            const signLanguageButton = this.player.controlBar?.controls?.signLanguage;
+            if (signLanguageButton) {
                 setTimeout(() => {
-                    this.player.controlBar.controls.signLanguage.focus({ preventScroll: true });
+                    signLanguageButton.focus({ preventScroll: true });
                 }, 0);
             }
         });
@@ -737,13 +764,15 @@ export class SignLanguageManager {
      * Apply initial size
      */
     _applyInitialSize() {
+        const wrapper = this.wrapper;
+        if (!wrapper) return;
         const saved = this.player.storage.getSignLanguagePreferences() as { size?: { width?: string } } | null;
         if (saved?.size?.width) {
-            this.wrapper!.style.width = saved.size.width;
+            wrapper.style.width = saved.size.width;
         } else {
-            this.wrapper!.style.width = '280px';
+            wrapper.style.width = '280px';
         }
-        this.wrapper!.style.height = 'auto';
+        wrapper.style.height = 'auto';
     }
 
     /**
@@ -766,9 +795,12 @@ export class SignLanguageManager {
 
         if (this.draggable) return;
 
+        const wrapper = this.wrapper;
+        if (!wrapper) return;
+
         const classPrefix = this.player.options.classPrefix;
         
-        this.draggable = new DraggableResizable(this.wrapper!, {
+        this.draggable = new DraggableResizable(wrapper, {
             // Allow dragging from anywhere on the sign-language window (better for touch).
             // We still block dragging when interacting with controls via `onDragStart` below.
             dragHandle: this.wrapper,
@@ -852,9 +884,10 @@ export class SignLanguageManager {
                     return;
                 }
                 this.disable();
-                if (this.player.controlBar?.controls?.signLanguage) {
+                const signLanguageButton = this.player.controlBar?.controls?.signLanguage;
+                if (signLanguageButton) {
                     setTimeout(() => {
-                        this.player.controlBar.controls.signLanguage.focus({ preventScroll: true });
+                        signLanguageButton.focus({ preventScroll: true });
                     }, 0);
                 }
             }
@@ -920,8 +953,8 @@ export class SignLanguageManager {
         const videoWrapperWidth = videoWrapperRect.width;
         const videoWrapperHeight = videoWrapperRect.height;
         
-        let wrapperWidth = wrapperRect.width || 280;
-        let wrapperHeight = wrapperRect.height || ((280 * 9) / 16);
+        const wrapperWidth = wrapperRect.width || 280;
+        const wrapperHeight = wrapperRect.height || ((280 * 9) / 16);
         
         let left, top;
         const margin = 16;
@@ -1169,12 +1202,14 @@ export class SignLanguageManager {
      * Attach menu keyboard navigation
      */
     _attachMenuKeyboardNavigation() {
+        const menu = this.settingsMenu;
+        if (!menu) return;
         if (this.settingsMenuKeyHandler) {
-            this.settingsMenu.removeEventListener('keydown', this.settingsMenuKeyHandler);
+            menu.removeEventListener('keydown', this.settingsMenuKeyHandler);
         }
-        
+
         this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
-            this.settingsMenu,
+            menu,
             this.settingsButton,
             `.${this.player.options.classPrefix}-sign-language-settings-item`,
             () => this.hideSettingsMenu({ focusButton: true })
@@ -1310,7 +1345,7 @@ export class SignLanguageManager {
     _updateDragOptionState() {
         if (!this.dragOptionButton) return;
         
-        const isEnabled = !!(this.draggable?.keyboardDragMode);
+        const isEnabled = Boolean(this.draggable?.keyboardDragMode);
         const text = isEnabled
             ? i18n.t('player.disableSignDragMode')
             : i18n.t('player.enableSignDragMode');
@@ -1332,7 +1367,7 @@ export class SignLanguageManager {
     _updateResizeOptionState() {
         if (!this.resizeOptionButton) return;
         
-        const isEnabled = !!(this.draggable?.pointerResizeMode);
+        const isEnabled = Boolean(this.draggable?.pointerResizeMode);
         const text = isEnabled
             ? i18n.t('player.disableSignResizeMode')
             : i18n.t('player.enableSignResizeMode');

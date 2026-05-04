@@ -6,21 +6,40 @@ interface DashTextTrack {
   language?: string;
   srclang?: string;
   kind?: string;
+  label?: string;
+  labels?: string;
+  isTTML?: boolean;
+  codec?: string;
+  mimeType?: string;
   [key: string]: unknown;
 }
+
+/**
+ * Shape of payloads emitted by VidPly's `captionsenabled` event when
+ * routed into a DASH renderer. These come from CaptionManager and carry
+ * both the language and the underlying TextTrack reference.
+ */
+interface CaptionTrackSelection {
+  language?: string;
+  label?: string;
+  track?: TextTrack;
+}
+
+type CaptionEnabledHandler = (track: CaptionTrackSelection) => void;
+type CaptionDisabledHandler = () => void;
 
 export class DASHRenderer implements Renderer {
   player: Player;
   media: HTMLMediaElement;
-  dash: any;
+  dash: DashMediaPlayerInstance | null;
   readonly isStreaming = true;
   _dashSourceLoaded: boolean;
   _pendingSrc: string | null;
   _dashSubtitleTracksCount: number | undefined;
   _dashTextTracks: DashTextTrack[];
   _cueUpdateTimer: ReturnType<typeof setInterval> | null;
-  _captionEnabledHandler: ((...args: any[]) => void) | null;
-  _captionDisabledHandler: ((...args: any[]) => void) | null;
+  _captionEnabledHandler: CaptionEnabledHandler | null;
+  _captionDisabledHandler: CaptionDisabledHandler | null;
   _lastKnownCueCount: number;
   _dashTextIsTtml: boolean;
   _pendingTimeouts: ReturnType<typeof setTimeout>[];
@@ -238,11 +257,13 @@ export class DASHRenderer implements Renderer {
 
   attachDashEvents() {
     const dashjs = window.dashjs;
-    if (!dashjs) return;
+    const dash = this.dash;
+    if (!dashjs || !dash) return;
     const dashEvents = dashjs.MediaPlayer.events;
 
-    this.dash.on(dashEvents.MANIFEST_LOADED, (e: any) => {
-      const data = e.data || e;
+    dash.on(dashEvents.MANIFEST_LOADED, (...args: unknown[]) => {
+      const e = args[0] as { data?: unknown } | undefined;
+      const data = e?.data ?? e;
       this.player.log('DASH manifest loaded');
       this.player.emit('dashmanifestloaded', data);
 
@@ -255,17 +276,19 @@ export class DASHRenderer implements Renderer {
       }, 500);
     });
 
-    this.dash.on(dashEvents.QUALITY_CHANGE_RENDERED, (e: any) => {
+    dash.on(dashEvents.QUALITY_CHANGE_RENDERED, (...args: unknown[]) => {
+      const e = args[0] as { mediaType?: string; newQuality?: number };
       if (e.mediaType === 'video') {
         this.player.log('DASH quality changed to index ' + e.newQuality);
         this.player.emit('dashqualitychanged', e);
       }
     });
 
-    this.dash.on(dashEvents.TEXT_TRACKS_ADDED, (e: any) => {
-      const tracks = e.tracks || [];
+    dash.on(dashEvents.TEXT_TRACKS_ADDED, (...args: unknown[]) => {
+      const e = args[0] as { tracks?: DashTextTrack[] } | undefined;
+      const tracks = e?.tracks ?? [];
       this._dashTextTracks = tracks;
-      this._dashTextIsTtml = tracks.some((t: any) =>
+      this._dashTextIsTtml = tracks.some((t) =>
         t.isTTML || /stpp|ttml/i.test(t.codec || '') || /ttml/i.test(t.mimeType || '')
       );
       this.player.log(`DASH text tracks added: ${tracks.length} tracks, format: ${this._dashTextIsTtml ? 'TTML' : 'WebVTT'}`);
@@ -275,8 +298,8 @@ export class DASHRenderer implements Renderer {
 
       if (tracks.length > 0) {
         try {
-          this.dash.setTextTrack(0);
-        } catch (err) {
+          dash.setTextTrack(0);
+        } catch {
           // ignore if not ready yet
         }
         if (!this._dashTextIsTtml) {
@@ -285,7 +308,7 @@ export class DASHRenderer implements Renderer {
       }
     });
 
-    this.dash.on(dashEvents.STREAM_INITIALIZED, () => {
+    dash.on(dashEvents.STREAM_INITIALIZED, () => {
       this.player.log('DASH stream initialized');
       this.player.emit('dashstreaminitialized');
 
@@ -297,13 +320,14 @@ export class DASHRenderer implements Renderer {
       }, 300);
     });
 
-    this.dash.on(dashEvents.ERROR, (e: any) => {
-      this.handleDashError(e);
+    dash.on(dashEvents.ERROR, (...args: unknown[]) => {
+      this.handleDashError(args[0]);
     });
 
-    this.dash.on(dashEvents.FRAGMENT_LOADING_COMPLETED, (e: any) => {
+    dash.on(dashEvents.FRAGMENT_LOADING_COMPLETED, (...args: unknown[]) => {
+      const e = args[0] as { request?: { mediaType?: string } } | undefined;
       this.player.state.buffering = false;
-      if (e.request && e.request.mediaType === 'text' && !this._dashTextIsTtml) {
+      if (e?.request?.mediaType === 'text' && !this._dashTextIsTtml) {
         this._setTimeout(() => {
           const count = this._getTotalCueCount();
           if (count > this._lastKnownCueCount) {
@@ -374,7 +398,7 @@ export class DASHRenderer implements Renderer {
         this._ttmlDiv.style.visibility = 'hidden';
       }
       if (this.dash) {
-        try { this.dash.setTextTrack(-1); } catch (e) { /* ignore */ }
+        try { this.dash.setTextTrack(-1); } catch { /* ignore */ }
       }
     };
     this.player.on('captionsenabled', this._captionEnabledHandler);
@@ -385,7 +409,7 @@ export class DASHRenderer implements Renderer {
    * Map a VidPly caption track to the corresponding dash.js track index
    * and switch dash.js to load segments for that language.
    */
-  _syncDashTextTrack(selectedTrack: any) {
+  _syncDashTextTrack(selectedTrack: CaptionTrackSelection) {
     if (!this.dash || !this._dashTextTracks.length) return;
 
     const lang = selectedTrack.language;
@@ -401,7 +425,7 @@ export class DASHRenderer implements Renderer {
       this.player.log(`Syncing DASH text track to index ${dashIndex} (${lang})`);
       try {
         this.dash.setTextTrack(dashIndex);
-      } catch (err) { /* ignore */ }
+      } catch { /* ignore */ }
       if (!this._dashTextIsTtml) {
         this._lastKnownCueCount = 0;
         this._startCueUpdatePolling();
@@ -627,18 +651,19 @@ export class DASHRenderer implements Renderer {
     });
   }
 
-  handleDashError(e: any) {
-    const error = e.error || e;
+  handleDashError(e: unknown) {
+    const wrapped = e as { error?: { code?: number; message?: string }; code?: number; message?: string } | undefined;
+    const error = wrapped?.error ?? wrapped;
     if (!error) return;
     const code = error.code ?? '';
     const message = error.message || '';
     this.player.log(`DASH Error - Code: ${code}, Message: ${message}`, 'warn');
 
-    if (code && code >= 100) {
+    if (typeof code === 'number' && code >= 100) {
       this.player.log('Fatal DASH error', 'error');
       this.player.handleError(new Error(`DASH Error: ${code} - ${message}`));
     } else {
-      this.player.log('Non-fatal DASH error: ' + (message || error), 'warn');
+      this.player.log('Non-fatal DASH error: ' + (message || String(error)), 'warn');
     }
   }
 
@@ -663,7 +688,7 @@ export class DASHRenderer implements Renderer {
     try {
       this.dash.attachSource(src);
       this._dashSourceLoaded = true;
-    } catch (e) {
+    } catch {
       // ignore
     }
   }
@@ -688,7 +713,7 @@ export class DASHRenderer implements Renderer {
         try {
           this.dash.attachSource(src);
           this._dashSourceLoaded = true;
-        } catch (e) {
+        } catch {
           // ignore and let media.play() surface errors if any
         }
       }
@@ -771,12 +796,12 @@ export class DASHRenderer implements Renderer {
 
       if (reps && reps.length > 0) {
         const heightCounts: Record<number, number> = {};
-        reps.forEach((r: any) => {
+        reps.forEach((r: DashRepresentation) => {
           const h = Number(r.height) || 0;
           heightCounts[h] = (heightCounts[h] || 0) + 1;
         });
 
-        return reps.map((rep: any, index: number) => {
+        return reps.map((rep: DashRepresentation, index: number) => {
           const height = Number(rep.height) || 0;
           const bitrate = Number(rep.bandwidth || rep.bitrate) || 0;
           const kb = bitrate > 0 ? Math.round(bitrate / 1000) : 0;
@@ -804,12 +829,12 @@ export class DASHRenderer implements Renderer {
       if (!bitrateList || bitrateList.length === 0) return [];
 
       const heightCounts: Record<number, number> = {};
-      bitrateList.forEach((info: any) => {
+      bitrateList.forEach((info: DashBitrateInfo) => {
         const h = Number(info.height) || 0;
         heightCounts[h] = (heightCounts[h] || 0) + 1;
       });
 
-      return bitrateList.map((info: any, index: number) => {
+      return bitrateList.map((info: DashBitrateInfo, index: number) => {
         const height = Number(info.height) || 0;
         const bitrate = Number(info.bitrate) || 0;
         const kb = bitrate > 0 ? Math.round(bitrate / 1000) : 0;
@@ -829,7 +854,7 @@ export class DASHRenderer implements Renderer {
           name
         };
       });
-    } catch (e) {
+    } catch {
       return [];
     }
   }
@@ -841,12 +866,12 @@ export class DASHRenderer implements Renderer {
         const reps = this.dash.getRepresentationsByType('video');
         const current = this.dash.getCurrentRepresentationForType?.('video');
         if (current && reps) {
-          const idx = reps.findIndex((r: any) => r.id === current.id);
+          const idx = reps.findIndex((r: DashRepresentation) => r.id === current.id);
           if (idx >= 0) return idx;
         }
       }
       return this.dash.getQualityFor('video');
-    } catch (e) {
+    } catch {
       return -1;
     }
   }
@@ -880,7 +905,7 @@ export class DASHRenderer implements Renderer {
     this.player.log(`Activating DASH text track index ${dashIndex} for transcript language "${lang}"`);
     try {
       this.dash.setTextTrack(dashIndex);
-    } catch (err) { /* ignore */ }
+    } catch { /* ignore */ }
 
     // dash.js's text scheduler only fetches segments while the video is
     // playing.  When paused, a brief play–pause cycle forces the scheduler
@@ -921,25 +946,43 @@ export class DASHRenderer implements Renderer {
   getTextTrackURLs(): { lang: string; url: string }[] {
     if (!this.dash || !this._manifestUrl) return [];
     try {
-      const manifest = this.dash.getManifest?.();
+      // dash.js manifest objects are loosely shaped (XML-derived), so we
+      // walk them through index-keyed records and narrow as we go.
+      type ManifestNode = Record<string, unknown>;
+      const manifest = this.dash.getManifest?.() as ManifestNode | undefined;
       if (!manifest) return [];
 
       const baseUrl = this._manifestUrl.substring(0, this._manifestUrl.lastIndexOf('/') + 1);
       const results: { lang: string; url: string }[] = [];
 
-      const periods = manifest.Period || manifest.period || (manifest.periods ? manifest.periods : [manifest]);
-      for (const period of Array.isArray(periods) ? periods : [periods]) {
-        const adaptSets = period.AdaptationSet || period.adaptationSet || period.AdaptationSet_asArray || [];
-        for (const as of Array.isArray(adaptSets) ? adaptSets : [adaptSets]) {
-          const ct = as.contentType || as.ContentType || '';
-          const mime = as.mimeType || as.MimeType || '';
+      const rawPeriods = manifest.Period || manifest.period || manifest.periods || manifest;
+      const periods = (Array.isArray(rawPeriods) ? rawPeriods : [rawPeriods]) as ManifestNode[];
+      for (const period of periods) {
+        const rawAdaptSets = period.AdaptationSet || period.adaptationSet || period.AdaptationSet_asArray || [];
+        const adaptSets = (Array.isArray(rawAdaptSets) ? rawAdaptSets : [rawAdaptSets]) as ManifestNode[];
+        for (const as of adaptSets) {
+          const ct = String(as.contentType || as.ContentType || '');
+          const mime = String(as.mimeType || as.MimeType || '');
           if (ct !== 'text' && !/text\/vtt|application\/ttml/i.test(mime)) continue;
 
-          const lang = as.lang || as.language || '';
-          const reps = as.Representation || as.representation || as.Representation_asArray || [];
-          for (const rep of Array.isArray(reps) ? reps : [reps]) {
-            const bu = rep.BaseURL || rep.baseURL || rep.BaseURL_asArray;
-            const rawUrl = Array.isArray(bu) ? (bu[0]?.__text || bu[0]) : (bu?.__text || bu);
+          const lang = String(as.lang || as.language || '');
+          const rawReps = as.Representation || as.representation || as.Representation_asArray || [];
+          const reps = (Array.isArray(rawReps) ? rawReps : [rawReps]) as ManifestNode[];
+          for (const rep of reps) {
+            const bu = (rep.BaseURL || rep.baseURL || rep.BaseURL_asArray) as
+              | string
+              | { __text?: string }
+              | Array<string | { __text?: string }>
+              | undefined;
+            let rawUrl: string | undefined;
+            if (Array.isArray(bu)) {
+              const first = bu[0];
+              rawUrl = typeof first === 'string' ? first : first?.__text;
+            } else if (typeof bu === 'string') {
+              rawUrl = bu;
+            } else {
+              rawUrl = bu?.__text;
+            }
             if (!rawUrl) continue;
             const url = rawUrl.startsWith('http') ? rawUrl : new URL(rawUrl, baseUrl).href;
             results.push({ lang, url });
@@ -963,9 +1006,9 @@ export class DASHRenderer implements Renderer {
       if (typeof this.dash.getAutoSwitchQualityFor === 'function') {
         return this.dash.getAutoSwitchQualityFor('video');
       }
-      const settings = this.dash.getSettings();
+      const settings = this.dash.getSettings?.();
       return settings?.streaming?.abr?.autoSwitchBitrate?.video !== false;
-    } catch (e) {
+    } catch {
       return true;
     }
   }
@@ -1012,10 +1055,10 @@ export class DASHRenderer implements Renderer {
         // reset() cleanly detaches from MediaSource and cancels pending
         // buffer operations before destroy() releases all resources.
         this.dash.reset();
-      } catch (e) { /* ignore teardown errors */ }
+      } catch { /* ignore teardown errors */ }
       try {
         this.dash.destroy();
-      } catch (e) { /* ignore teardown errors */ }
+      } catch { /* ignore teardown errors */ }
       this.dash = null;
     }
     this._dashTextTracks = [];

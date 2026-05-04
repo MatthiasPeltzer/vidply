@@ -1,7 +1,14 @@
-type EventMap = Record<string, any>;
+type DefaultEventMap = Record<string, unknown>;
 type Listener<T> = T extends void ? () => void : (data: T) => void;
 
-export class EventEmitter<TEvents extends EventMap = EventMap> {
+/**
+ * Generic typed event emitter. The `TEvents` parameter is constrained
+ * via the self-referential `Record<keyof TEvents, unknown>` so concrete
+ * event maps (like `PlayerEventMap`) can be used directly without
+ * adding a noisy `[key: string]: unknown` index signature, which would
+ * defeat the typo-protection that strongly typed event maps provide.
+ */
+export class EventEmitter<TEvents extends Record<keyof TEvents, unknown> = DefaultEventMap> {
   private events: Partial<Record<keyof TEvents, Array<(...args: unknown[]) => void>>> = {};
 
   on<K extends keyof TEvents>(event: K, listener: Listener<TEvents[K]>): this {
@@ -20,12 +27,13 @@ export class EventEmitter<TEvents extends EventMap = EventMap> {
   }
 
   off<K extends keyof TEvents>(event: K, listener?: Listener<TEvents[K]>): this {
-    if (!this.events[event]) return this;
+    const listeners = this.events[event];
+    if (!listeners) return this;
 
     if (!listener) {
       delete this.events[event];
     } else {
-      this.events[event] = this.events[event]!.filter(
+      this.events[event] = listeners.filter(
         l => l !== (listener as unknown)
       );
     }
@@ -34,9 +42,10 @@ export class EventEmitter<TEvents extends EventMap = EventMap> {
   }
 
   emit<K extends keyof TEvents>(event: K, ...args: unknown[]): this {
-    if (!this.events[event]) return this;
+    const listeners = this.events[event];
+    if (!listeners) return this;
 
-    this.events[event]!.forEach(listener => {
+    listeners.forEach(listener => {
       listener(...args);
     });
 

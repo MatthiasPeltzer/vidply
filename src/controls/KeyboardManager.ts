@@ -106,7 +106,7 @@ export class KeyboardManager {
     }
   }
 
-  executeAction(action: string, event: KeyboardEvent): boolean {
+  executeAction(action: string, _event: KeyboardEvent): boolean {
     switch (action) {
       case 'play-pause':
         this.player.toggle();
@@ -137,15 +137,11 @@ export class KeyboardManager {
         return true;
 
       case 'captions':
-        // If only one caption track, toggle on/off
-        // If multiple tracks, open caption menu
         if (this.player.captionManager && this.player.captionManager.tracks.length > 1) {
-          // Get captions button from control bar
-          const captionsButton = this.player.controlBar && this.player.controlBar.controls.captions;
-          if (captionsButton) {
+          const captionsButton = this.player.controlBar?.controls.captions;
+          if (captionsButton && this.player.controlBar) {
             this.player.controlBar.showCaptionsMenu(captionsButton);
           } else {
-            // Fallback to toggle if button doesn't exist
             this.player.toggleCaptions();
           }
         } else {

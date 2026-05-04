@@ -223,12 +223,14 @@ export class FloatingPlayerManager {
             window.removeEventListener('resize', this._onResize);
             this._onResize = null;
         }
-        if (this._onEnterFullscreen) {
-            this.player.off('enterfullscreen', this._onEnterFullscreen as any);
+        const enterFs = this._onEnterFullscreen;
+        if (enterFs) {
+            this.player.off('enterfullscreen', enterFs);
             this._onEnterFullscreen = null;
         }
-        if (this._onPlayAfterDismiss && this._playListenerAttached) {
-            this.player.off('play', this._onPlayAfterDismiss as any);
+        const playAfterDismiss = this._onPlayAfterDismiss;
+        if (playAfterDismiss && this._playListenerAttached) {
+            this.player.off('play', playAfterDismiss);
             this._playListenerAttached = false;
             this._onPlayAfterDismiss = null;
         }
@@ -292,25 +294,28 @@ export class FloatingPlayerManager {
     }
 
     _setupFullscreenGuard() {
-        this._onEnterFullscreen = () => {
+        const onEnterFullscreen = () => {
             if (this.player.state.floating) {
                 this.exit('manual');
             }
         };
-        this.player.on('enterfullscreen', this._onEnterFullscreen as any);
+        this._onEnterFullscreen = onEnterFullscreen;
+        this.player.on('enterfullscreen', onEnterFullscreen);
     }
 
     _armPlayListenerToClearDismiss() {
         if (this._playListenerAttached) return;
-        this._onPlayAfterDismiss = () => {
+        const onPlayAfterDismiss = () => {
             this._autoDismissedThisPlay = false;
-            if (this._onPlayAfterDismiss) {
-                this.player.off('play', this._onPlayAfterDismiss as any);
+            const handler = this._onPlayAfterDismiss;
+            if (handler) {
+                this.player.off('play', handler);
             }
             this._playListenerAttached = false;
             this._onPlayAfterDismiss = null;
         };
-        this.player.on('play', this._onPlayAfterDismiss as any);
+        this._onPlayAfterDismiss = onPlayAfterDismiss;
+        this.player.on('play', onPlayAfterDismiss);
         this._playListenerAttached = true;
     }
 
@@ -409,7 +414,8 @@ export class FloatingPlayerManager {
         this.shell.appendChild(this.closeButton);
 
         this._createResizeHandles();
-        this.resizeHandles.forEach(handle => this.shell!.appendChild(handle));
+        const shell = this.shell;
+        this.resizeHandles.forEach(handle => shell.appendChild(handle));
 
         this._onKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {

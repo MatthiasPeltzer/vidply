@@ -9,27 +9,45 @@ import {debounce, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
 import {deriveTrackLabel} from '../utils/TrackLabelUtils.js';
 import type { Player } from '../core/Player.js';
 
+/**
+ * Deduplicated subtitle/captions entry shown in the captions menu. Native HLS
+ * on Safari can expose the same language as both `SUBTITLES` (WebVTT sidecar)
+ * and `CLOSED-CAPTIONS` (inband CEA-608) groups; the duplicates are kept in
+ * `alternatives` so we can listen on all of them and use whichever delivers
+ * cues first.
+ */
+export type CaptionTrackEntry = {
+    track: TextTrack;
+    language: string;
+    label: string;
+    kind: string;
+    index: number;
+    isDefault: boolean;
+    alternatives: TextTrack[];
+};
+
+type CueChangeHandler = () => void;
+
 export class CaptionManager {
     player: Player;
-    _altCueChangeHandler: any;
-    cueChangeHandler: any;
-    currentCue: any;
-    currentTrack: any;
-    debouncedPositionCaptions: any;
-    element: any;
+    _altCueChangeHandler: CueChangeHandler | null = null;
+    cueChangeHandler: CueChangeHandler | null = null;
+    currentCue: VTTCue | null;
+    currentTrack: CaptionTrackEntry | null;
+    debouncedPositionCaptions!: () => void;
+    element!: HTMLElement;
     storage: StorageManager;
-    tracks: any[];
+    tracks: CaptionTrackEntry[];
 
     constructor(player: Player) {
         this.player = player;
-        this.element = null;
         this.tracks = [];
         this.currentTrack = null;
         this.currentCue = null;
-        
+
         // Storage manager
         this.storage = new StorageManager('vidply');
-        
+
         // Load saved preferences
         this.loadSavedPreferences();
 
@@ -39,12 +57,11 @@ export class CaptionManager {
     loadSavedPreferences() {
         const saved = this.storage.getCaptionPreferences();
         if (saved) {
-            // Override player options with saved preferences
-            if (saved.fontSize) this.player.options.captionsFontSize = saved.fontSize;
-            if (saved.fontFamily) this.player.options.captionsFontFamily = saved.fontFamily;
-            if (saved.color) this.player.options.captionsColor = saved.color;
-            if (saved.backgroundColor) this.player.options.captionsBackgroundColor = saved.backgroundColor;
-            if (saved.opacity !== undefined) this.player.options.captionsOpacity = saved.opacity;
+            if (typeof saved.fontSize === 'string') this.player.options.captionsFontSize = saved.fontSize;
+            if (typeof saved.fontFamily === 'string') this.player.options.captionsFontFamily = saved.fontFamily;
+            if (typeof saved.color === 'string') this.player.options.captionsColor = saved.color;
+            if (typeof saved.backgroundColor === 'string') this.player.options.captionsBackgroundColor = saved.backgroundColor;
+            if (typeof saved.opacity === 'number') this.player.options.captionsOpacity = saved.opacity;
         }
     }
     
@@ -112,16 +129,16 @@ export class CaptionManager {
                     continue;
                 }
 
-                const trackElement = this.player.findTrackElement(track);
-                const isDefault = trackElement && trackElement.hasAttribute('default');
-                const entry = {
+                const trackElement = this.player.findTrackElement(track) as Element | undefined;
+                const isDefault = trackElement ? trackElement.hasAttribute('default') : false;
+                const entry: CaptionTrackEntry = {
                     track,
                     language: track.language,
                     label: deriveTrackLabel(track.label, track.language),
                     kind: track.kind,
                     index: i,
                     isDefault,
-                    alternatives: [] as TextTrack[]
+                    alternatives: []
                 };
 
                 this.tracks.push(entry);
@@ -145,17 +162,17 @@ export class CaptionManager {
      * Matches by lang, language, or falls back to name/label.
      */
     private _syncHlsSubtitleTrack(targetLang: string, targetLabel?: string) {
-        const renderer = (this.player as any).renderer;
+        const renderer = this.player.renderer;
         if (!renderer?.hls || !renderer.hls.subtitleTracks?.length) return;
 
-        const tracks = renderer.hls.subtitleTracks;
+        const tracks = renderer.hls.subtitleTracks as Array<{ lang?: string; name?: string }>;
         let hlsIndex = tracks.findIndex(
-            (t: any) => t.lang === targetLang
+            (t) => t.lang === targetLang
         );
         // Fallback: match by name/label
         if (hlsIndex < 0 && targetLabel) {
             hlsIndex = tracks.findIndex(
-                (t: any) => t.name === targetLabel
+                (t) => t.name === targetLabel
             );
         }
         if (hlsIndex >= 0 && renderer.hls.subtitleTrack !== hlsIndex) {
@@ -210,55 +227,67 @@ export class CaptionManager {
             selectedTrack.track.mode = 'hidden';
             this.currentTrack = selectedTrack;
             this.player.state.captionsEnabled = true;
-            
+
             if (selectedTrack.language) {
                 this.element.setAttribute('lang', selectedTrack.language);
             }
 
-            this.cueChangeHandler = () => {
+            // Bind handlers to locals so the non-null narrowing survives both
+            // closure captures and `this.X = …` reassignments. Without this,
+            // `addEventListener(this.cueChangeHandler)` widens to `… | null`
+            // and stops type-checking even though we just assigned a function.
+            const cueChangeHandler: CueChangeHandler = () => {
                 this.updateCaptions();
             };
-            selectedTrack.track.addEventListener('cuechange', this.cueChangeHandler);
+            this.cueChangeHandler = cueChangeHandler;
+            selectedTrack.track.addEventListener('cuechange', cueChangeHandler);
 
             // Native HLS dedup: Safari can expose duplicate TextTrack objects
             // for the same language (SUBTITLES vs CLOSED-CAPTIONS groups) but
             // only one actually delivers cues. Listen on all alternatives and
             // swap to whichever fires first with real cues.
             if (selectedTrack.alternatives && selectedTrack.alternatives.length > 0) {
-                this._altCueChangeHandler = () => {
+                const altCueChangeHandler: CueChangeHandler = () => {
                     if (this.currentTrack !== selectedTrack) return;
                     for (const alt of selectedTrack.alternatives) {
                         if (alt.activeCues && alt.activeCues.length > 0) {
                             this.player.log(`Switching to alternative caption track for "${selectedTrack.label}"`, 'info');
-                            selectedTrack.track.removeEventListener('cuechange', this.cueChangeHandler);
-                            selectedTrack.alternatives.forEach((a: TextTrack) => a.removeEventListener('cuechange', this._altCueChangeHandler));
+                            selectedTrack.track.removeEventListener('cuechange', cueChangeHandler);
+                            selectedTrack.alternatives.forEach((a) => a.removeEventListener('cuechange', altCueChangeHandler));
                             selectedTrack.track = alt;
-                            selectedTrack.track.addEventListener('cuechange', this.cueChangeHandler);
+                            selectedTrack.track.addEventListener('cuechange', cueChangeHandler);
                             this._altCueChangeHandler = null;
                             this.updateCaptions();
                             return;
                         }
                     }
                 };
-                selectedTrack.alternatives.forEach((alt: TextTrack) => {
+                this._altCueChangeHandler = altCueChangeHandler;
+                selectedTrack.alternatives.forEach((alt) => {
                     alt.mode = 'hidden';
-                    alt.addEventListener('cuechange', this._altCueChangeHandler);
+                    alt.addEventListener('cuechange', altCueChangeHandler);
                 });
             }
 
+            // The "ready" sense actually lives on the underlying <track> HTML
+            // element — not on the TextTrack itself, which has no `readyState`
+            // or `load` event. Look the element up so this is type-safe and
+            // also fires the load callback in browsers where TextTrack alone
+            // would never have done so.
+            const trackElement = this.player.findTrackElement(selectedTrack.track) as HTMLTrackElement | undefined;
             const ensureTrackReady = () => {
-                if (selectedTrack.track.readyState < 2) {
+                if (trackElement && trackElement.readyState < 2) {
                     const onTrackLoad = () => {
-                        selectedTrack.track.removeEventListener('load', onTrackLoad);
-                        selectedTrack.track.removeEventListener('error', onTrackLoad);
+                        trackElement.removeEventListener('load', onTrackLoad);
+                        trackElement.removeEventListener('error', onTrackLoad);
                         requestAnimationFrame(() => {
                             if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
                                 this.updateCaptions();
                             }
                         });
                     };
-                    selectedTrack.track.addEventListener('load', onTrackLoad, { once: true });
-                    selectedTrack.track.addEventListener('error', onTrackLoad, { once: true });
+                    trackElement.addEventListener('load', onTrackLoad, { once: true });
+                    trackElement.addEventListener('error', onTrackLoad, { once: true });
                 } else {
                     requestAnimationFrame(() => {
                         if (this.currentTrack && this.currentTrack.track === selectedTrack.track) {
@@ -283,12 +312,14 @@ export class CaptionManager {
 
     _cleanupTrackListeners() {
         if (this.currentTrack && this.currentTrack.track) {
-            if (this.cueChangeHandler) {
-                this.currentTrack.track.removeEventListener('cuechange', this.cueChangeHandler);
+            const cueChangeHandler = this.cueChangeHandler;
+            if (cueChangeHandler) {
+                this.currentTrack.track.removeEventListener('cuechange', cueChangeHandler);
             }
-            if (this._altCueChangeHandler && this.currentTrack.alternatives) {
-                this.currentTrack.alternatives.forEach((alt: TextTrack) => {
-                    alt.removeEventListener('cuechange', this._altCueChangeHandler);
+            const altCueChangeHandler = this._altCueChangeHandler;
+            if (altCueChangeHandler && this.currentTrack.alternatives) {
+                this.currentTrack.alternatives.forEach((alt) => {
+                    alt.removeEventListener('cuechange', altCueChangeHandler);
                 });
             }
             this.currentTrack.track.mode = 'hidden';
@@ -344,7 +375,10 @@ export class CaptionManager {
         const isAudioPlayer = this.player.element.tagName.toLowerCase() === 'audio';
 
         if (activeCues.length > 0) {
-            const cue = activeCues[0];
+            // VTT/SRT subtitle tracks deliver `VTTCue` instances (which extend
+            // TextTrackCue with `.text`). The lib.dom typing widens this to
+            // `TextTrackCue`, so cast at the boundary.
+            const cue = activeCues[0] as VTTCue;
 
             if (this.currentCue !== cue) {
                 this.currentCue = cue;
@@ -423,6 +457,7 @@ export class CaptionManager {
             }
             
             const controlsRect = controls.getBoundingClientRect();
+            if (!this.player.videoWrapper) return;
             const wrapperRect = this.player.videoWrapper.getBoundingClientRect();
             const bottomOffset = wrapperRect.bottom - controlsRect.top + 16;
             
@@ -496,7 +531,7 @@ export class CaptionManager {
     }
 
     getAvailableTracks() {
-        return this.tracks.map((t: any, index: number) => ({
+        return this.tracks.map((t, index) => ({
             index,
             language: t.language,
             label: t.label || t.language,
@@ -527,7 +562,7 @@ export class CaptionManager {
         
         // Try to restore previous track if it exists
         if (wasEnabled && currentLanguage && this.tracks.length > 0) {
-            const matchingIndex = this.tracks.findIndex((t: any) => t.language === currentLanguage);
+            const matchingIndex = this.tracks.findIndex((t) => t.language === currentLanguage);
             if (matchingIndex >= 0) {
                 this.enable(matchingIndex);
             }

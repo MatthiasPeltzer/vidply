@@ -27,7 +27,7 @@ type PlaylistTrack = {
   audioDescriptionSrc?: string | null;
   audioDescriptionDuration?: number | string | null;
   signLanguageSrc?: string | null;
-  signLanguageSources?: Record<string, unknown>;
+  signLanguageSources?: Record<string, string>;
   duration?: number | string | null;
   title?: string;
   artist?: string;
@@ -35,60 +35,90 @@ type PlaylistTrack = {
   [key: string]: unknown;
 };
 
+/**
+ * Construction signature for the host Player class. The playlist
+ * manager receives this via options so it can recreate players when
+ * tracks of incompatible media types (e.g. audio after video) load.
+ */
+type PlayerConstructor = new (
+  element: string | HTMLElement,
+  options?: Record<string, unknown>
+) => Player;
+
+/**
+ * Internal options bag for the manager. Extra keys from the caller
+ * (we accept `Record<string, unknown>`) are merged in via the
+ * `[key: string]: unknown` index so consumers can pass through
+ * additional player options without losing typing on the known ones.
+ */
+interface PlaylistManagerOptions {
+  autoAdvance: boolean;
+  autoPlayFirst: boolean;
+  loop: boolean;
+  showPanel: boolean;
+  recreatePlayers: boolean;
+  hostElement?: HTMLElement | null;
+  PlayerClass?: PlayerConstructor | null;
+  tracks?: PlaylistTrack[];
+  [key: string]: unknown;
+}
+
 // Static counter for unique IDs
 let playlistInstanceCounter = 0;
 
 export class PlaylistManager {
   player: Player;
-  container: any;
+  container: HTMLElement | null;
   currentIndex: number;
-  hostElement: any;
-  initialTracks: any[];
+  hostElement: HTMLElement | null;
+  initialTracks: PlaylistTrack[];
   instanceId: number;
   isChangingTrack: boolean;
   isPanelVisible: boolean;
-  navigationFeedback: any;
-  options: any;
-  PlayerClass: any;
-  playlistPanel: any;
-  trackArtworkElement: any;
-  trackInfoElement: any;
-  tracks: any[];
+  navigationFeedback: HTMLElement | null;
+  options: PlaylistManagerOptions;
+  PlayerClass: PlayerConstructor | null;
+  playlistPanel: HTMLElement | null;
+  trackArtworkElement: HTMLElement | null;
+  trackInfoElement: HTMLElement | null;
+  tracks: PlaylistTrack[];
   uniqueId: string;
 
   constructor(player: Player, options: Record<string, unknown> = {}) {
     this.player = player;
     this.tracks = [];
-    this.initialTracks = Array.isArray(options.tracks) ? options.tracks : [];
+    this.initialTracks = Array.isArray(options.tracks) ? (options.tracks as PlaylistTrack[]) : [];
     this.currentIndex = -1;
-    
+
     // Generate unique instance ID for this playlist
     this.instanceId = ++playlistInstanceCounter;
     this.uniqueId = `vidply-playlist-${this.instanceId}`;
-    
-    // Options
+
+    // Options. Spread the caller's bag last so we still support arbitrary
+    // pass-through keys, but defaults stay typed.
     this.options = {
+      ...options,
       autoAdvance: options.autoAdvance !== false, // Default true
       autoPlayFirst: options.autoPlayFirst !== false, // Default true - auto-play first track on load
-      loop: options.loop || false,
+      loop: Boolean(options.loop) || false,
       showPanel: options.showPanel !== false, // Default true
-      recreatePlayers: options.recreatePlayers || false, // New: recreate player for each track type
-      ...options
+      recreatePlayers: Boolean(options.recreatePlayers) || false,
     };
-    
+
     // UI elements
     this.container = null;
     this.playlistPanel = null;
     this.trackInfoElement = null;
+    this.trackArtworkElement = null;
     this.navigationFeedback = null; // Live region for keyboard navigation feedback
     this.isPanelVisible = this.options.showPanel !== false;
-    
+
     // Track change guard to prevent cascade of next() calls
     this.isChangingTrack = false;
-    
+
     // Store the host element for player recreation
-    this.hostElement = options.hostElement || null;
-    this.PlayerClass = options.PlayerClass || null;
+    this.hostElement = (options.hostElement as HTMLElement | null | undefined) ?? null;
+    this.PlayerClass = (options.PlayerClass as PlayerConstructor | null | undefined) ?? null;
     
     // Bind methods
     this.handleTrackEnd = this.handleTrackEnd.bind(this);
@@ -176,10 +206,11 @@ export class PlaylistManager {
     }
     
     // Preserve existing player options so recreated players behave
-    // consistently. Cast through `any` because the source `PlayerOptions`
-    // intersection includes a string-indexed bag the spread loses.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const preservedPlayerOptions: any = this.player?.options ? { ...this.player.options } : {};
+    // consistently. We use a loose `Record<string, unknown>` because
+    // PlayerOptions includes optional fields and an open string-indexed
+    // bag of pass-through values that the spread flattens.
+    const preservedPlayerOptions: Record<string, unknown> =
+      this.player?.options ? { ...this.player.options } : {};
 
     // Remove event listeners before destroying
     if (this.player) {
@@ -202,7 +233,7 @@ export class PlaylistManager {
     // Create new media element with appropriate type
     const mediaElement = document.createElement(elementType);
     // Respect configured preload (playlists should behave like single videos even with deferLoad)
-    const preloadValue = preservedPlayerOptions.preload || 'metadata';
+    const preloadValue = (preservedPlayerOptions.preload as string | undefined) || 'metadata';
     mediaElement.setAttribute('preload', preloadValue);
     
     // For video elements with local media, set poster
@@ -316,7 +347,7 @@ export class PlaylistManager {
     // For HTML5, the source is already set on the element
     if (isExternalRenderer) {
       this.player.load({
-        src: track.src,
+        src: track.src ?? '',
         type: track.type,
         poster: track.poster,
         tracks: track.tracks || [],
@@ -324,9 +355,8 @@ export class PlaylistManager {
         signLanguageSrc: track.signLanguageSrc || null
       });
     } else {
-      // For HTML5 media, also load to set up accessibility features
       this.player.load({
-        src: track.src,
+        src: track.src ?? '',
         type: track.type,
         poster: track.poster,
         tracks: track.tracks || [],
@@ -545,9 +575,8 @@ export class PlaylistManager {
       }
     }
     
-    // Load track into player (normal path)
     const loadPromise = this.player.load({
-      src: track.src,
+      src: track.src ?? '',
       type: track.type,
       poster: track.poster,
       tracks: track.tracks || [],
@@ -603,7 +632,7 @@ export class PlaylistManager {
       // Poster for video element
       if (this.player?.element?.tagName === 'VIDEO') {
         if (track.poster) {
-          const posterUrl = typeof this.player.resolvePosterPath === 'function'
+          const posterUrl: string = typeof this.player.resolvePosterPath === 'function'
             ? this.player.resolvePosterPath(track.poster)
             : track.poster;
           (this.player.element as HTMLVideoElement).poster = posterUrl;
@@ -668,7 +697,7 @@ export class PlaylistManager {
         try {
           this.player.audioDescriptionManager.captionTracks = [];
           this.player.audioDescriptionManager.initFromSourceElements(this.player.sourceElements, this.player.trackElements);
-        } catch (e) {
+        } catch {
           // ignore
         }
       }
@@ -680,7 +709,7 @@ export class PlaylistManager {
           this.player.captionManager.tracks = [];
           this.player.captionManager.currentTrack = null;
           this.player.captionManager.loadTracks();
-        } catch (e) {
+        } catch {
           // ignore
         }
       }
@@ -692,7 +721,7 @@ export class PlaylistManager {
       if (typeof this.player.updateControlBar === 'function') {
         this.player.updateControlBar();
       }
-    } catch (e) {
+    } catch {
       // ignore preview errors; selection should still work
     }
 
@@ -711,7 +740,7 @@ export class PlaylistManager {
    * @param {number} index - Track index
    * @param {boolean} userInitiated - Whether this was triggered by user action (default: false)
    */
-  async play(index: number, userInitiated = false) {
+  async play(index: number, _userInitiated = false) {
     if (index < 0 || index >= this.tracks.length) {
       console.warn('VidPly Playlist: Invalid track index', index);
       return;
@@ -758,15 +787,14 @@ export class PlaylistManager {
     // If audio description was toggled before the first play, load the described source directly.
     let srcToLoad = track.src;
     if (this.player?.audioDescriptionManager?.desiredState && track.audioDescriptionSrc) {
-      // Preserve original for later toggling back
-      this.player.originalSrc = track.src;
-      this.player.audioDescriptionManager.originalSource = track.src;
+      this.player.originalSrc = track.src ?? null;
+      this.player.audioDescriptionManager.originalSource = track.src ?? null;
       this.player.audioDescriptionManager.src = track.audioDescriptionSrc;
       srcToLoad = track.audioDescriptionSrc;
     }
 
     this.player.load({
-      src: srcToLoad,
+      src: srcToLoad ?? '',
       type: track.type,
       poster: track.poster,
       tracks: track.tracks || [],
@@ -980,34 +1008,35 @@ export class PlaylistManager {
    * Outside fullscreen: respect original panel visibility setting
    */
   updatePlaylistVisibilityInFullscreen() {
-    if (!this.playlistPanel || !this.tracks.length) return;
-    
+    const playlistPanel = this.playlistPanel;
+    if (!playlistPanel || !this.tracks.length) return;
+
     const isFullscreen = this.player.state.fullscreen;
     const isPlaying = this.player.state.playing;
-    
+
     if (isFullscreen) {
       // In fullscreen: show only when not playing (paused or not started)
       // Check playing state explicitly since paused might not be set initially
       if (!isPlaying) {
-        this.playlistPanel.classList.add('vidply-playlist-fullscreen-visible');
-        this.playlistPanel.style.display = 'block';
+        playlistPanel.classList.add('vidply-playlist-fullscreen-visible');
+        playlistPanel.style.display = 'block';
       } else {
-        this.playlistPanel.classList.remove('vidply-playlist-fullscreen-visible');
+        playlistPanel.classList.remove('vidply-playlist-fullscreen-visible');
         // Add a smooth fade out with delay to match CSS transition
         setTimeout(() => {
           // Double-check state hasn't changed before hiding
           if (this.player.state.playing && this.player.state.fullscreen) {
-            this.playlistPanel.style.display = 'none';
+            playlistPanel.style.display = 'none';
           }
         }, 300); // Match CSS transition duration
       }
     } else {
       // Outside fullscreen: restore original behavior
-      this.playlistPanel.classList.remove('vidply-playlist-fullscreen-visible');
+      playlistPanel.classList.remove('vidply-playlist-fullscreen-visible');
       if (this.isPanelVisible && this.tracks.length > 0) {
-        this.playlistPanel.style.display = 'block';
+        playlistPanel.style.display = 'block';
       } else {
-        this.playlistPanel.style.display = 'none';
+        playlistPanel.style.display = 'none';
       }
     }
   }
@@ -1223,7 +1252,7 @@ export class PlaylistManager {
    * Create playlist item element
    */
   createPlaylistItem(track: PlaylistTrack, index: number) {
-    const trackPosition = i18n.t('playlist.trackOf', {
+    const _trackPosition = i18n.t('playlist.trackOf', {
       current: index + 1,
       total: this.tracks.length
     });
@@ -1400,6 +1429,7 @@ export class PlaylistManager {
    * Handle keyboard navigation in playlist items
    */
   handlePlaylistItemKeydown(e: KeyboardEvent, index: number) {
+    if (!this.playlistPanel) return;
     const buttons: HTMLElement[] = Array.from(this.playlistPanel.querySelectorAll('.vidply-playlist-item-button'));
     let newIndex = -1;
     let announcement = '';
@@ -1529,7 +1559,7 @@ export class PlaylistManager {
       if (!button) return;
       
       const track = this.tracks[index];
-      const trackPosition = i18n.t('playlist.trackOf', {
+      const _trackPosition = i18n.t('playlist.trackOf', {
         current: index + 1,
         total: this.tracks.length
       });
@@ -1680,19 +1710,20 @@ export class PlaylistManager {
    * @returns {boolean} - New visibility state
    */
   togglePanel(show?: boolean) {
-    if (!this.playlistPanel) return false;
-    
+    const playlistPanel = this.playlistPanel;
+    if (!playlistPanel) return false;
+
     // Determine new state
-    const shouldShow = show !== undefined ? show : this.playlistPanel.style.display === 'none';
-    
+    const shouldShow = show !== undefined ? show : playlistPanel.style.display === 'none';
+
     if (shouldShow) {
-      this.playlistPanel.style.display = 'block';
+      playlistPanel.style.display = 'block';
       this.isPanelVisible = true;
-      
+
       // Focus first item if playlist has tracks
       if (this.tracks.length > 0) {
         setTimeout(() => {
-          const firstItem = this.playlistPanel.querySelector('.vidply-playlist-item[tabindex="0"]');
+          const firstItem = playlistPanel.querySelector<HTMLElement>('.vidply-playlist-item[tabindex="0"]');
           if (firstItem) {
             firstItem.focus({ preventScroll: true });
           }
@@ -1705,7 +1736,7 @@ export class PlaylistManager {
         this.player.controlBar.controls.playlistToggle.setAttribute('aria-pressed', 'true');
       }
     } else {
-      this.playlistPanel.style.display = 'none';
+      playlistPanel.style.display = 'none';
       this.isPanelVisible = false;
       
       // Update toggle button state if it exists

@@ -6,12 +6,13 @@ import { DOMUtils } from '../utils/DOMUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 import type { Player } from '../core/Player.js';
+import type { CaptionManager } from './CaptionManager.js';
 
 export class SettingsDialog {
   player: Player;
-  element: any;
+  element!: HTMLElement;
   isOpen: boolean;
-  overlay: any;
+  overlay!: HTMLElement;
   /**
    * Trigger element captured on `show()` so we can return focus to the
    * exact button the user activated when the dialog closes.
@@ -21,9 +22,8 @@ export class SettingsDialog {
 
   constructor(player: Player) {
     this.player = player;
-    this.element = null;
     this.isOpen = false;
-    
+
     this.init();
   }
 
@@ -222,9 +222,9 @@ export class SettingsDialog {
     });
     trackSelect.appendChild(offOption);
 
-    // Available tracks
-    const tracks = this.player.captionManager.getAvailableTracks();
-    tracks.forEach((track: any) => {
+    const tracks: ReturnType<CaptionManager['getAvailableTracks']> =
+      this.player.captionManager?.getAvailableTracks() ?? [];
+    tracks.forEach((track) => {
       const attributes: Record<string, string> = { 'value': String(track.index) };
       if (track.language) {
         attributes['lang'] = track.language;
@@ -241,7 +241,7 @@ export class SettingsDialog {
       if (index === -1) {
         this.player.disableCaptions();
       } else {
-        this.player.captionManager.switchTrack(index);
+        this.player.captionManager?.switchTrack(index);
       }
     });
 
@@ -306,7 +306,7 @@ export class SettingsDialog {
     });
 
     select.addEventListener('change', (e) => {
-      this.player.captionManager.setCaptionStyle(property, (e.target as HTMLSelectElement).value);
+      this.player.captionManager?.setCaptionStyle(property, (e.target as HTMLSelectElement).value);
     });
 
     wrapper.appendChild(labelEl);
@@ -332,12 +332,12 @@ export class SettingsDialog {
       attributes: {
         'type': 'color',
         'id': `${this.player.options.classPrefix}-caption-${property}`,
-        'value': this.player.options[`captions${property.charAt(0).toUpperCase() + property.slice(1)}`]
+        'value': String(this.player.options[`captions${property.charAt(0).toUpperCase() + property.slice(1)}`] ?? '')
       }
     });
 
     input.addEventListener('change', (e) => {
-      this.player.captionManager.setCaptionStyle(property, (e.target as HTMLInputElement).value);
+      this.player.captionManager?.setCaptionStyle(property, (e.target as HTMLInputElement).value);
     });
 
     wrapper.appendChild(labelEl);
@@ -378,7 +378,7 @@ export class SettingsDialog {
     input.addEventListener('input', (e) => {
       const value = parseFloat((e.target as HTMLInputElement).value);
       valueDisplay.textContent = value.toFixed(1);
-      this.player.captionManager.setCaptionStyle(property, value);
+      this.player.captionManager?.setCaptionStyle(property, value);
     });
 
     wrapper.appendChild(labelEl);
@@ -414,7 +414,7 @@ export class SettingsDialog {
     this.overlay.style.display = 'flex';
     this.isOpen = true;
     
-    const closeButton = this.element.querySelector(`.${this.player.options.classPrefix}-settings-close`);
+    const closeButton = this.element.querySelector<HTMLElement>(`.${this.player.options.classPrefix}-settings-close`);
     if (closeButton) {
       closeButton.focus();
     }

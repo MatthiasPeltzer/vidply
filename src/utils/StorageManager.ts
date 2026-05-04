@@ -15,12 +15,10 @@ interface WatchProgressEntry {
 /**
  * Loose alias for stored preference payloads. Numeric/string-typed fields
  * are validated at the boundary (`isPlainObject`) and clamped where it
- * matters (volume, playbackSpeed). Individual properties are typed as
- * `any` so legacy call sites can keep their flow without refactor; this
- * is a deliberate, contained `any`.
+ * matters (volume, playbackSpeed). Individual properties remain `unknown`
+ * so callers must narrow before use.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type StoredPreferences = Record<string, any>;
+export type StoredPreferences = Record<string, unknown>;
 
 function clamp(n: number, min: number, max: number): number {
   if (!Number.isFinite(n)) return min;
@@ -284,7 +282,7 @@ export class StorageManager {
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
 function isWatchProgressMap(value: unknown): value is Record<string, WatchProgressEntry> {
