@@ -17,27 +17,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.ts": {
-      "bytes": 8480,
+      "bytes": 8752,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.ts": {
-      "bytes": 10443,
+      "bytes": 10817,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.ts": {
-      "bytes": 9516,
+      "bytes": 9880,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.ts": {
-      "bytes": 9779,
+      "bytes": 10162,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.ts": {
-      "bytes": 10295,
+      "bytes": 10672,
       "imports": [],
       "format": "esm"
     },
@@ -125,7 +125,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 179128,
+      "bytes": 182109,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -198,7 +198,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.ts": {
-      "bytes": 22736,
+      "bytes": 22797,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -260,6 +260,22 @@
       ],
       "format": "esm"
     },
+    "src/core/AudioDescriptionManager.ts": {
+      "bytes": 29610,
+      "imports": [
+        {
+          "path": "src/controls/CaptionManager.ts",
+          "kind": "import-statement",
+          "original": "../controls/CaptionManager.js"
+        },
+        {
+          "path": "<runtime>",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
     "src/utils/DraggableResizable.ts": {
       "bytes": 32045,
       "imports": [
@@ -313,24 +329,8 @@
       ],
       "format": "esm"
     },
-    "src/core/AudioDescriptionManager.ts": {
-      "bytes": 29610,
-      "imports": [
-        {
-          "path": "src/controls/CaptionManager.ts",
-          "kind": "import-statement",
-          "original": "../controls/CaptionManager.js"
-        },
-        {
-          "path": "<runtime>",
-          "kind": "import-statement",
-          "external": true
-        }
-      ],
-      "format": "esm"
-    },
     "src/core/SignLanguageManager.ts": {
-      "bytes": 55109,
+      "bytes": 58513,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -371,7 +371,7 @@
       "format": "esm"
     },
     "src/core/FloatingPlayerManager.ts": {
-      "bytes": 24621,
+      "bytes": 24698,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -402,7 +402,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.ts": {
-      "bytes": 95642,
+      "bytes": 95986,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -523,7 +523,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 229861,
+      "bytes": 136720,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -571,19 +571,9 @@
           "original": "../utils/StorageManager.js"
         },
         {
-          "path": "src/utils/DraggableResizable.ts",
+          "path": "../utils/DraggableResizable.js",
           "kind": "import-statement",
-          "original": "../utils/DraggableResizable.js"
-        },
-        {
-          "path": "src/utils/MenuUtils.ts",
-          "kind": "import-statement",
-          "original": "../utils/MenuUtils.js"
-        },
-        {
-          "path": "src/utils/FormUtils.ts",
-          "kind": "import-statement",
-          "original": "../utils/FormUtils.js"
+          "external": true
         },
         {
           "path": "src/utils/PerformanceUtils.ts",
@@ -706,19 +696,19 @@
           "bytesInOutput": 8991
         },
         "src/i18n/languages/en.ts": {
-          "bytesInOutput": 9765
+          "bytesInOutput": 10061
         },
         "src/i18n/languages/de.ts": {
-          "bytesInOutput": 11010
+          "bytesInOutput": 11392
         },
         "src/i18n/languages/es.ts": {
-          "bytesInOutput": 10836
+          "bytesInOutput": 11224
         },
         "src/i18n/languages/fr.ts": {
-          "bytesInOutput": 11084
+          "bytesInOutput": 11491
         },
         "src/i18n/languages/ja.ts": {
-          "bytesInOutput": 11626
+          "bytesInOutput": 12027
         },
         "src/i18n/translations.ts": {
           "bytesInOutput": 894
@@ -745,10 +735,13 @@
           "bytesInOutput": 971
         },
         "src/controls/CaptionManager.ts": {
-          "bytesInOutput": 18628
+          "bytesInOutput": 18691
         },
         "src/renderers/HTML5Renderer.ts": {
           "bytesInOutput": 11350
+        },
+        "src/core/AudioDescriptionManager.ts": {
+          "bytesInOutput": 24753
         },
         "src/utils/DraggableResizable.ts": {
           "bytesInOutput": 30150
@@ -759,17 +752,14 @@
         "src/utils/FormUtils.ts": {
           "bytesInOutput": 1672
         },
-        "src/core/AudioDescriptionManager.ts": {
-          "bytesInOutput": 24753
-        },
         "src/core/SignLanguageManager.ts": {
-          "bytesInOutput": 53105
+          "bytesInOutput": 55909
         },
         "src/core/FloatingPlayerManager.ts": {
-          "bytesInOutput": 21224
+          "bytesInOutput": 21302
         },
         "src/controls/TranscriptManager.ts": {
-          "bytesInOutput": 92541
+          "bytesInOutput": 92880
         },
         "src/renderers/YouTubeRenderer.ts": {
           "bytesInOutput": 9181
@@ -790,10 +780,10 @@
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 195549
+          "bytesInOutput": 116578
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 133599
+          "bytesInOutput": 135713
         },
         "src/utils/VideoFrameCapture.ts": {
           "bytesInOutput": 3154
@@ -811,7 +801,7 @@
           "bytesInOutput": 6584
         }
       },
-      "bytes": 851380
+      "bytes": 779681
     }
   }
 }

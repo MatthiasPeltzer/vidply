@@ -64,6 +64,14 @@ export class ControlBar {
     previewVideoReady: boolean = false;
     rightButtons!: HTMLElement;
     overflowMenuButton: HTMLElement | null = null;
+    /** Track of the currently open volume slider so a single pair of
+     *  document listeners (installed once in {@link init}) can update the
+     *  right element while dragging without being re-registered per open. */
+    _activeVolumeTrack: HTMLElement | null = null;
+    /** Track of the currently rendered progress bar so document-level
+     *  mousemove/mouseup handlers installed once in {@link init} can resolve
+     *  the geometry without re-registering per drag. */
+    _progressBarRect: DOMRect | null = null;
 
     constructor(player: Player) {
         this.player = player;
@@ -88,6 +96,46 @@ export class ControlBar {
         this.attachEvents();
         this.setupAutoHide();
         this.setupOverflowDetection();
+        this.setupGlobalDragListeners();
+    }
+
+    /**
+     * Install a single pair of document-level mousemove/mouseup handlers
+     * that both the progress bar drag and the volume slider drag reuse.
+     *
+     * This replaces the previous pattern where {@link showVolumeSlider}
+     * and {@link setupProgressBarEvents} each attached their own
+     * `document.addEventListener` calls on every call — the volume variant
+     * in particular accumulated two extra document listeners on every menu
+     * open for the life of the page. All listeners here are tied to the
+     * Player's lifecycle AbortController so `destroy()` removes them.
+     */
+    setupGlobalDragListeners() {
+        const signal = this.player.lifecycleSignal;
+
+        document.addEventListener('mousemove', (e: MouseEvent) => {
+            if (this.isDraggingProgress && this._progressBarRect) {
+                const rect = this._progressBarRect;
+                const percent = rect.width > 0
+                    ? Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+                    : 0;
+                const duration = this.player.state.duration || 0;
+                this.player.seek(percent * duration);
+                return;
+            }
+            if (this.isDraggingVolume && this._activeVolumeTrack) {
+                const rect = this._activeVolumeTrack.getBoundingClientRect();
+                const percent = Math.max(0, Math.min(1, 1 - ((e.clientY - rect.top) / rect.height)));
+                this.player.setVolume(percent);
+            }
+        }, { signal });
+
+        document.addEventListener('mouseup', () => {
+            this.isDraggingProgress = false;
+            this._progressBarRect = null;
+            this.isDraggingVolume = false;
+            this._activeVolumeTrack = null;
+        }, { signal });
     }
 
     // Helper method to detect touch devices
@@ -528,8 +576,9 @@ export class ControlBar {
                 }
             };
 
-            document.addEventListener('click', documentClickHandler);
-            document.addEventListener('keydown', documentEscapeHandler);
+            const signal = this.player.lifecycleSignal;
+            document.addEventListener('click', documentClickHandler, { signal });
+            document.addEventListener('keydown', documentEscapeHandler, { signal });
         }, 100);
     }
 
@@ -1451,22 +1500,15 @@ export class ControlBar {
             return {percent, time};
         };
 
-        // Mouse events
+        // Mouse events. Document-wide mousemove/mouseup are installed once
+        // in {@link setupGlobalDragListeners}; here we only cache the
+        // progress rect on mousedown so the global handler can resolve
+        // positions without re-querying layout on every pointer move.
         progress.addEventListener('mousedown', (e: MouseEvent) => {
             this.isDraggingProgress = true;
+            this._progressBarRect = progress.getBoundingClientRect();
             const {time} = updateProgress(e.clientX);
             this.player.seek(time);
-        });
-
-        document.addEventListener('mousemove', (e: MouseEvent) => {
-            if (this.isDraggingProgress) {
-                const {time} = updateProgress(e.clientX);
-                this.player.seek(time);
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            this.isDraggingProgress = false;
         });
 
         // Hover tooltip
@@ -1832,29 +1874,22 @@ export class ControlBar {
         volumeSlider.appendChild(volumeTrack);
         volumeMenu.appendChild(volumeSlider);
 
-        // Volume slider events
+        // Volume slider events. Document-level mousemove/mouseup are
+        // installed once in {@link setupGlobalDragListeners}; here we only
+        // mark the active track + drag state so the global handler can
+        // translate cursor position into a volume value.
         const updateVolume = (clientY: number) => {
             const rect = volumeTrack.getBoundingClientRect();
             const percent = Math.max(0, Math.min(1, 1 - ((clientY - rect.top) / rect.height)));
             this.player.setVolume(percent);
         };
 
-        // Mouse events
         volumeSlider.addEventListener('mousedown', (e) => {
             e.stopPropagation();
             e.preventDefault();
             this.isDraggingVolume = true;
+            this._activeVolumeTrack = volumeTrack;
             updateVolume(e.clientY);
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (this.isDraggingVolume) {
-                updateVolume(e.clientY);
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            this.isDraggingVolume = false;
         });
 
         // Touch events for iOS and mobile devices
@@ -1862,6 +1897,7 @@ export class ControlBar {
             e.stopPropagation();
             e.preventDefault();
             this.isDraggingVolume = true;
+            this._activeVolumeTrack = volumeTrack;
             const touch = e.touches[0];
             updateVolume(touch.clientY);
         }, { passive: false });
@@ -1878,10 +1914,12 @@ export class ControlBar {
             e.stopPropagation();
             e.preventDefault();
             this.isDraggingVolume = false;
+            this._activeVolumeTrack = null;
         }, { passive: false });
 
         volumeSlider.addEventListener('touchcancel', () => {
             this.isDraggingVolume = false;
+            this._activeVolumeTrack = null;
         });
 
         // Keyboard volume control
@@ -4295,7 +4333,14 @@ export class ControlBar {
     }
 
     setupOverflowDetection() {
-        const checkOverflow = () => this.checkOverflow();
+        const signal = this.player.lifecycleSignal;
+        // Every deferred callback checks the lifecycle signal first so a
+        // player destroyed within the 500ms initial-check window does not
+        // poke at a torn-down ControlBar.
+        const checkOverflow = () => {
+            if (signal.aborted) return;
+            this.checkOverflow();
+        };
 
         // Check on resize
         const resizeObserver = new ResizeObserver(() => {
@@ -4303,10 +4348,11 @@ export class ControlBar {
         });
         resizeObserver.observe(this.rightButtons);
 
-        // Check on window resize
+        // Check on window resize. Tied to the player's lifecycle so the
+        // listener is removed when the player is destroyed.
         window.addEventListener('resize', () => {
             requestAnimationFrame(checkOverflow);
-        });
+        }, { signal });
 
         // Check on fullscreen changes (important for desktop/tablet fullscreen)
         this.player.on('fullscreenchange', () => {

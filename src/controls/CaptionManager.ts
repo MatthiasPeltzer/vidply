@@ -200,7 +200,9 @@ export class CaptionManager {
             this.positionCaptionsOnMobile();
         }, 150);
         
-        window.addEventListener('resize', this.debouncedPositionCaptions);
+        window.addEventListener('resize', this.debouncedPositionCaptions, {
+            signal: this.player.lifecycleSignal
+        });
         
         // Recalculate on fullscreen change with RAF
         this.player.on('enterfullscreen', () => {

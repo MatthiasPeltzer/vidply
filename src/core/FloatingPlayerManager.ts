@@ -282,7 +282,8 @@ export class FloatingPlayerManager {
                 this.exit('claim');
             }
         };
-        window.addEventListener(FLOATING_CLAIM_EVENT, this._onClaim as EventListener);
+        const signal = this.player.lifecycleSignal;
+        window.addEventListener(FLOATING_CLAIM_EVENT, this._onClaim as EventListener, { signal });
 
         this._onResize = () => {
             const minWidth = this.player.options.floatingMinViewportWidth ?? 768;
@@ -290,7 +291,7 @@ export class FloatingPlayerManager {
                 this.exit('auto');
             }
         };
-        window.addEventListener('resize', this._onResize);
+        window.addEventListener('resize', this._onResize, { signal });
     }
 
     _setupFullscreenGuard() {
