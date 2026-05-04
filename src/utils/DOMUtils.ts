@@ -1,7 +1,14 @@
+/**
+ * Options accepted by {@link DOMUtils.createElement}.
+ *
+ * `innerHTML` is deliberately **not** exposed here. Code that needs to
+ * inject raw markup must do so explicitly at the call site where the
+ * source of the markup is auditable; DOMUtils is the "safe by default"
+ * surface.
+ */
 export interface CreateElementOptions {
   className?: string;
   attributes?: Record<string, string | undefined>;
-  innerHTML?: string;
   textContent?: string;
   style?: Partial<CSSStyleDeclaration>;
   children?: (Node | null | undefined)[];
@@ -25,10 +32,6 @@ function createElementImpl(tag: string, options: CreateElementOptions = {}): HTM
         element.setAttribute(key, value);
       }
     }
-  }
-
-  if (options.innerHTML) {
-    element.innerHTML = options.innerHTML;
   }
 
   if (options.textContent) {

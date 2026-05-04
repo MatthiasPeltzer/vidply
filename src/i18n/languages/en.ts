@@ -153,6 +153,8 @@ export const en = {
     resizeModeHint: 'Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit.',
     resizeModeEnabled: 'Resize mode enabled. Drag edges or corners to adjust. Press Esc or R to exit.',
     resizeModeDisabled: 'Resize mode disabled.',
+    dragModeBadge: 'Drag mode: arrow keys to move, Esc to exit',
+    resizeModeBadge: 'Resize mode: drag edges or corners, Esc to exit',
     positionReset: 'Transcript position reset.',
     styleTranscript: 'Open transcript style settings',
     closeMenu: 'Close Menu',

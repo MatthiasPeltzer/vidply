@@ -1,3 +1,5 @@
+import { shallowSanitize } from './Sanitize.js';
+
 /**
  * Type guard helpers used by the validated `get()` overload below.
  * Each guard accepts an unknown JSON value and tells TypeScript whether
@@ -42,18 +44,6 @@ function isWatchProgressEntry(value: unknown): value is WatchProgressEntry {
     typeof v.updatedAt === 'number' &&
     Number.isFinite(v.updatedAt)
   );
-}
-
-const PROTO_FORBIDDEN_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
-
-function shallowSanitize<T extends Record<string, unknown>>(input: T): T {
-  const out: Record<string, unknown> = Object.create(null);
-  for (const [key, value] of Object.entries(input)) {
-    if (PROTO_FORBIDDEN_KEYS.has(key)) continue;
-    if (PROTO_FORBIDDEN_KEYS.has(String(key))) continue;
-    out[key] = value;
-  }
-  return out as T;
 }
 
 export class StorageManager {

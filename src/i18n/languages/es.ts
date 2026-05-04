@@ -149,6 +149,8 @@ export const es = {
     resizeModeHint: 'Controladores habilitados. Arrastra bordes o esquinas para ajustar. Pulsa Esc o R para salir.',
     resizeModeEnabled: 'Modo de cambio de tamaño activado. Arrastra bordes o esquinas. Pulsa Esc o R para salir.',
     resizeModeDisabled: 'Modo de cambio de tamaño desactivado.',
+    dragModeBadge: 'Modo mover: flechas para mover, Esc para salir',
+    resizeModeBadge: 'Modo redimensionar: arrastra bordes o esquinas, Esc para salir',
     positionReset: 'Posición de la transcripción restablecida.',
     styleTranscript: 'Abrir configuración de estilo de transcripción',
     closeMenu: 'Cerrar menú',

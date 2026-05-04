@@ -40,7 +40,15 @@ const iconPaths: Record<string, string> = {
   download: `<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>`
 };
 
-const svgWrapper = (paths: string) => `<svg viewBox="0 0 24 24" fill="currentColor">${paths}</svg>`;
+// The `xmlns` declaration is mandatory for `DOMParser.parseFromString`
+// with `image/svg+xml`: without it, XML parsing leaves the child
+// elements (`<path>`, `<rect>`, `<g>`, `<text>`, `<polygon>`) in the
+// null namespace, so the browser can't render them as SVG shapes.
+// The old `innerHTML`-based path worked by accident because the HTML
+// parser treats `<svg>` as a special token and places its descendants
+// in the SVG namespace automatically.
+const svgWrapper = (paths: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">${paths}</svg>`;
 
 export const Icons: Record<string, string> = Object.fromEntries(
   Object.entries(iconPaths).map(([key, value]) => [key, svgWrapper(value)])
@@ -50,11 +58,45 @@ export function getIcon(name: string): string {
   return Icons[name] || Icons.play;
 }
 
+/**
+ * Parse every icon once at module load into an SVG template element and
+ * clone it per call. This replaces the previous `wrapper.innerHTML = …`
+ * approach: `innerHTML` is disallowed by strict CSP (`require-trusted-types-for`)
+ * and is slower because the browser has to re-tokenise the same string on
+ * every icon render.
+ *
+ * The icon SVG strings are trusted constants defined in this module, so
+ * parsing via `DOMParser` is safe.
+ */
+const iconTemplates: Record<string, SVGSVGElement> = (() => {
+  const parser = new DOMParser();
+  const templates: Record<string, SVGSVGElement> = {};
+  for (const [key, paths] of Object.entries(iconPaths)) {
+    const doc = parser.parseFromString(svgWrapper(paths), 'image/svg+xml');
+    const root = doc.documentElement;
+    // A parse failure produces a `<parsererror>` element as the
+    // document root; reject that and skip the entry rather than
+    // storing a broken template that would render as nothing.
+    if (
+      root &&
+      root.nodeName.toLowerCase() === 'svg' &&
+      !root.querySelector('parsererror')
+    ) {
+      templates[key] = root as unknown as SVGSVGElement;
+    }
+  }
+  return templates;
+})();
+
 export function createIconElement(name: string, className = ''): HTMLElement {
   const wrapper = document.createElement('span');
   wrapper.className = `vidply-icon ${className}`.trim();
-  wrapper.innerHTML = getIcon(name);
   wrapper.setAttribute('aria-hidden', 'true');
+
+  const template = iconTemplates[name] || iconTemplates.play;
+  if (template) {
+    wrapper.appendChild(template.cloneNode(true));
+  }
   return wrapper;
 }
 
@@ -69,7 +111,7 @@ export function createPlayOverlay(): SVGSVGElement {
   svg.style.cursor = 'pointer';
 
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-  const filterId = `vidply-play-shadow-${Math.random().toString(36).substr(2, 9)}`;
+  const filterId = `vidply-play-shadow-${Math.random().toString(36).slice(2, 11)}`;
   const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
   filter.setAttribute('id', filterId);
   filter.setAttribute('x', '-50%');

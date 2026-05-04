@@ -30,9 +30,6 @@
         }
       }
     }
-    if (options.innerHTML) {
-      element.innerHTML = options.innerHTML;
-    }
     if (options.textContent) {
       element.textContent = options.textContent;
     }
@@ -402,6 +399,8 @@
           resizeModeHint: "Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit.",
           resizeModeEnabled: "Resize mode enabled. Drag edges or corners to adjust. Press Esc or R to exit.",
           resizeModeDisabled: "Resize mode disabled.",
+          dragModeBadge: "Drag mode: arrow keys to move, Esc to exit",
+          resizeModeBadge: "Resize mode: drag edges or corners, Esc to exit",
           positionReset: "Transcript position reset.",
           styleTranscript: "Open transcript style settings",
           closeMenu: "Close Menu",
@@ -624,6 +623,8 @@
           resizeModeHint: "Griffe aktiviert. Ziehen Sie Kanten oder Ecken zum Anpassen. Esc oder R zum Beenden.",
           resizeModeEnabled: "Resize-Modus aktiviert. Kanten oder Ecken ziehen; Esc oder R beendet.",
           resizeModeDisabled: "Resize-Modus deaktiviert.",
+          dragModeBadge: "Verschiebemodus: Pfeiltasten zum Bewegen, Esc zum Beenden",
+          resizeModeBadge: "Resize-Modus: Kanten oder Ecken ziehen, Esc zum Beenden",
           positionReset: "Transkriptposition zurückgesetzt.",
           styleTranscript: "Transkript-Stileinstellungen öffnen",
           closeMenu: "Menü schließen",
@@ -843,6 +844,8 @@
           resizeModeHint: "Controladores habilitados. Arrastra bordes o esquinas para ajustar. Pulsa Esc o R para salir.",
           resizeModeEnabled: "Modo de cambio de tamaño activado. Arrastra bordes o esquinas. Pulsa Esc o R para salir.",
           resizeModeDisabled: "Modo de cambio de tamaño desactivado.",
+          dragModeBadge: "Modo mover: flechas para mover, Esc para salir",
+          resizeModeBadge: "Modo redimensionar: arrastra bordes o esquinas, Esc para salir",
           positionReset: "Posición de la transcripción restablecida.",
           styleTranscript: "Abrir configuración de estilo de transcripción",
           closeMenu: "Cerrar menú",
@@ -1062,6 +1065,8 @@
           resizeModeHint: "Poignées activées. Faites glisser les bords ou les coins pour ajuster. Appuyez sur Échap ou R pour quitter.",
           resizeModeEnabled: "Mode redimensionnement activé. Faites glisser les bords ou coins. Appuyez sur Échap ou R pour quitter.",
           resizeModeDisabled: "Mode redimensionnement désactivé.",
+          dragModeBadge: "Mode déplacement : flèches pour déplacer, Échap pour quitter",
+          resizeModeBadge: "Mode redimensionnement : faites glisser les bords ou les coins, Échap pour quitter",
           positionReset: "Position de la transcription réinitialisée.",
           styleTranscript: "Ouvrir les paramètres de style de transcription",
           closeMenu: "Fermer le menu",
@@ -1281,6 +1286,8 @@
           resizeModeHint: "リサイズハンドルが有効になりました。辺や角をドラッグして調整します。Esc または R で終了します。",
           resizeModeEnabled: "サイズ変更モードを有効にしました。辺や角をドラッグして調整します。Esc または R で終了します。",
           resizeModeDisabled: "サイズ変更モードを無効にしました。",
+          dragModeBadge: "移動モード：矢印キーで移動、Escで終了",
+          resizeModeBadge: "サイズ変更モード：辺や角をドラッグ、Escで終了",
           positionReset: "文字起こしの位置をリセットしました。",
           styleTranscript: "文字起こしスタイル設定を開く",
           closeMenu: "メニューを閉じる",
@@ -1372,31 +1379,59 @@
     }
   });
 
-  // src/i18n/i18n.ts
-  function escapeRegExp(input) {
-    return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // src/utils/Sanitize.ts
+  function isForbiddenKey(key) {
+    return PROTO_FORBIDDEN_KEYS.has(String(key));
   }
-  function deepSanitizeTranslations(input) {
+  function shallowSanitize(input) {
+    const out = /* @__PURE__ */ Object.create(null);
+    for (const [key, value] of Object.entries(input)) {
+      if (isForbiddenKey(key)) continue;
+      out[key] = value;
+    }
+    return out;
+  }
+  function deepSanitize(input) {
     if (!input || typeof input !== "object" || Array.isArray(input)) {
+      if (input && typeof input === "object") {
+        return input;
+      }
       return /* @__PURE__ */ Object.create(null);
     }
     const out = /* @__PURE__ */ Object.create(null);
     for (const [key, value] of Object.entries(input)) {
-      if (PROTO_FORBIDDEN_KEYS.has(key)) continue;
+      if (isForbiddenKey(key)) continue;
       if (value && typeof value === "object" && !Array.isArray(value)) {
-        out[key] = deepSanitizeTranslations(value);
+        out[key] = deepSanitize(value);
       } else {
         out[key] = value;
       }
     }
     return out;
   }
-  var PROTO_FORBIDDEN_KEYS, I18n, i18n;
+  var PROTO_FORBIDDEN_KEYS;
+  var init_Sanitize = __esm({
+    "src/utils/Sanitize.ts"() {
+      "use strict";
+      PROTO_FORBIDDEN_KEYS = Object.freeze(
+        /* @__PURE__ */ new Set(["__proto__", "prototype", "constructor"])
+      );
+    }
+  });
+
+  // src/i18n/i18n.ts
+  function escapeRegExp(input) {
+    return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+  function deepSanitizeTranslations(input) {
+    return deepSanitize(input);
+  }
+  var I18n, i18n;
   var init_i18n = __esm({
     "src/i18n/i18n.ts"() {
       "use strict";
       init_translations();
-      PROTO_FORBIDDEN_KEYS = /* @__PURE__ */ new Set(["__proto__", "prototype", "constructor"]);
+      init_Sanitize();
       I18n = class {
         constructor() {
           __publicField(this, "currentLanguage");
@@ -1470,7 +1505,7 @@
           if (typeof value === "string") {
             let result = value;
             for (const [placeholder, replacement] of Object.entries(replacements)) {
-              if (PROTO_FORBIDDEN_KEYS.has(placeholder)) continue;
+              if (isForbiddenKey(placeholder)) continue;
               const safe = escapeRegExp(placeholder);
               result = result.replace(new RegExp(`\\{${safe}\\}`, "g"), String(replacement));
             }
@@ -1479,7 +1514,7 @@
           return typeof value === "string" ? value : key;
         }
         addTranslation(lang, newTranslations) {
-          if (PROTO_FORBIDDEN_KEYS.has(lang)) {
+          if (isForbiddenKey(lang)) {
             console.warn(`[VidPly] Refusing to register language with forbidden name "${lang}"`);
             return;
           }
@@ -1617,14 +1652,14 @@
   });
 
   // src/icons/Icons.ts
-  function getIcon(name) {
-    return Icons[name] || Icons.play;
-  }
   function createIconElement(name, className = "") {
     const wrapper = document.createElement("span");
     wrapper.className = `vidply-icon ${className}`.trim();
-    wrapper.innerHTML = getIcon(name);
     wrapper.setAttribute("aria-hidden", "true");
+    const template = iconTemplates[name] || iconTemplates.play;
+    if (template) {
+      wrapper.appendChild(template.cloneNode(true));
+    }
     return wrapper;
   }
   function createPlayOverlay() {
@@ -1637,7 +1672,7 @@
     svg.setAttribute("role", "presentation");
     svg.style.cursor = "pointer";
     const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-    const filterId = `vidply-play-shadow-${Math.random().toString(36).substr(2, 9)}`;
+    const filterId = `vidply-play-shadow-${Math.random().toString(36).slice(2, 11)}`;
     const filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
     filter.setAttribute("id", filterId);
     filter.setAttribute("x", "-50%");
@@ -1683,7 +1718,7 @@
     svg.appendChild(playTriangle);
     return svg;
   }
-  var iconPaths, svgWrapper, Icons;
+  var iconPaths, svgWrapper, Icons, iconTemplates;
   var init_Icons = __esm({
     "src/icons/Icons.ts"() {
       "use strict";
@@ -1728,10 +1763,22 @@
         clock: `<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>`,
         download: `<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>`
       };
-      svgWrapper = (paths) => `<svg viewBox="0 0 24 24" fill="currentColor">${paths}</svg>`;
+      svgWrapper = (paths) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">${paths}</svg>`;
       Icons = Object.fromEntries(
         Object.entries(iconPaths).map(([key, value]) => [key, svgWrapper(value)])
       );
+      iconTemplates = (() => {
+        const parser = new DOMParser();
+        const templates = {};
+        for (const [key, paths] of Object.entries(iconPaths)) {
+          const doc = parser.parseFromString(svgWrapper(paths), "image/svg+xml");
+          const root = doc.documentElement;
+          if (root && root.nodeName.toLowerCase() === "svg" && !root.querySelector("parsererror")) {
+            templates[key] = root;
+          }
+        }
+        return templates;
+      })();
     }
   });
 
@@ -1816,15 +1863,6 @@
     const v = value;
     return isFiniteNonNegative(v.currentTime) && isFiniteNonNegative(v.duration) && typeof v.percentage === "number" && Number.isFinite(v.percentage) && typeof v.updatedAt === "number" && Number.isFinite(v.updatedAt);
   }
-  function shallowSanitize(input) {
-    const out = /* @__PURE__ */ Object.create(null);
-    for (const [key, value] of Object.entries(input)) {
-      if (PROTO_FORBIDDEN_KEYS2.has(key)) continue;
-      if (PROTO_FORBIDDEN_KEYS2.has(String(key))) continue;
-      out[key] = value;
-    }
-    return out;
-  }
   function isPlainObject(value) {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
   }
@@ -1835,11 +1873,11 @@
     }
     return true;
   }
-  var PROTO_FORBIDDEN_KEYS2, _StorageManager, StorageManager;
+  var _StorageManager, StorageManager;
   var init_StorageManager = __esm({
     "src/utils/StorageManager.ts"() {
       "use strict";
-      PROTO_FORBIDDEN_KEYS2 = /* @__PURE__ */ new Set(["__proto__", "prototype", "constructor"]);
+      init_Sanitize();
       _StorageManager = class _StorageManager {
         constructor(namespace = "vidply") {
           __publicField(this, "namespace");
@@ -4104,6 +4142,65 @@
     }
   });
 
+  // src/utils/FormUtils.ts
+  function createLabeledSelect({
+    classPrefix: _classPrefix,
+    labelClass,
+    selectClass,
+    labelText,
+    selectId,
+    hidden = false,
+    onChange = void 0,
+    options = []
+  }) {
+    const isI18nKey = typeof labelText === "string" && (labelText.startsWith("transcript.") || labelText.startsWith("player.") || labelText.startsWith("settings.") || labelText.startsWith("captions."));
+    const labelTextContent = isI18nKey ? i18n.t(labelText) || labelText : labelText;
+    const label = DOMUtils.createElement("label", {
+      className: labelClass,
+      textContent: labelTextContent,
+      attributes: {
+        for: selectId,
+        style: hidden ? "display: none;" : void 0
+      }
+    });
+    const select = DOMUtils.createElement("select", {
+      className: selectClass,
+      attributes: {
+        id: selectId,
+        style: hidden ? "display: none;" : void 0
+      }
+    });
+    options.forEach((opt) => {
+      const option = DOMUtils.createElement("option", {
+        textContent: opt.text,
+        attributes: {
+          value: opt.value,
+          selected: opt.selected ? "selected" : void 0
+        }
+      });
+      select.appendChild(option);
+    });
+    if (onChange) {
+      select.addEventListener("change", onChange);
+    }
+    return { label, select };
+  }
+  function preventDragOnElement(element) {
+    if (!element) return;
+    ["pointerdown", "mousedown", "click"].forEach((eventType) => {
+      element.addEventListener(eventType, (e) => {
+        e.stopPropagation();
+      });
+    });
+  }
+  var init_FormUtils = __esm({
+    "src/utils/FormUtils.ts"() {
+      "use strict";
+      init_DOMUtils();
+      init_i18n();
+    }
+  });
+
   // src/utils/MenuUtils.ts
   function createMenuItem({
     classPrefix,
@@ -4241,62 +4338,442 @@
     }
   });
 
-  // src/utils/FormUtils.ts
-  function createLabeledSelect({
-    classPrefix: _classPrefix,
-    labelClass,
-    selectClass,
-    labelText,
-    selectId,
-    hidden = false,
-    onChange = void 0,
-    options = []
-  }) {
-    const isI18nKey = typeof labelText === "string" && (labelText.startsWith("transcript.") || labelText.startsWith("player.") || labelText.startsWith("settings.") || labelText.startsWith("captions."));
-    const labelTextContent = isI18nKey ? i18n.t(labelText) || labelText : labelText;
-    const label = DOMUtils.createElement("label", {
-      className: labelClass,
-      textContent: labelTextContent,
-      attributes: {
-        for: selectId,
-        style: hidden ? "display: none;" : void 0
-      }
-    });
-    const select = DOMUtils.createElement("select", {
-      className: selectClass,
-      attributes: {
-        id: selectId,
-        style: hidden ? "display: none;" : void 0
-      }
-    });
-    options.forEach((opt) => {
-      const option = DOMUtils.createElement("option", {
-        textContent: opt.text,
-        attributes: {
-          value: opt.value,
-          selected: opt.selected ? "selected" : void 0
-        }
-      });
-      select.appendChild(option);
-    });
-    if (onChange) {
-      select.addEventListener("change", onChange);
+  // src/utils/DraggablePanelMenu.ts
+  function updateToggleMenuItem(button, textElement, state) {
+    if (!button) return;
+    button.setAttribute("aria-checked", state.enabled ? "true" : "false");
+    button.setAttribute("aria-label", state.enabled ? state.enabledAria : state.disabledAria);
+    if (textElement) {
+      textElement.textContent = state.enabled ? state.enabledText : state.disabledText;
     }
-    return { label, select };
   }
-  function preventDragOnElement(element) {
-    if (!element) return;
-    ["pointerdown", "mousedown", "click"].forEach((eventType) => {
-      element.addEventListener(eventType, (e) => {
-        e.stopPropagation();
-      });
+  function positionSettingsMenu(menu, button, opts = {}) {
+    if (!menu || !button) return;
+    const { align = "left", gap = 4, spaceReserve = 20 } = opts;
+    const parentContainer = button.parentElement;
+    if (!parentContainer) return;
+    const buttonRect = button.getBoundingClientRect();
+    const parentRect = parentContainer.getBoundingClientRect();
+    const menuRect = menu.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const buttonBottom = buttonRect.bottom - parentRect.top;
+    const buttonTop = buttonRect.top - parentRect.top;
+    const buttonLeftOffset = buttonRect.left - parentRect.left;
+    const buttonCenterX = buttonLeftOffset + buttonRect.width / 2;
+    const spaceAbove = buttonRect.top;
+    const spaceBelow = viewportHeight - buttonRect.bottom;
+    let menuTop = buttonBottom + gap;
+    let menuBottomPx = null;
+    if (spaceBelow < menuRect.height + spaceReserve && spaceAbove > spaceBelow) {
+      if (align === "center") {
+        const parentHeight = parentRect.bottom - parentRect.top;
+        menuBottomPx = parentHeight - buttonTop + gap;
+        menuTop = null;
+      } else {
+        menuTop = buttonTop - menuRect.height - gap;
+      }
+      menu.classList.add("vidply-menu-above");
+    } else {
+      menu.classList.remove("vidply-menu-above");
+    }
+    let leftValue;
+    let rightValue;
+    let transform;
+    if (align === "center") {
+      const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
+      if (menuLeftAbsolute < 10) {
+        leftValue = "0";
+        rightValue = "auto";
+        transform = "translateX(0)";
+      } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
+        leftValue = "auto";
+        rightValue = "0";
+        transform = "translateX(0)";
+      } else {
+        leftValue = `${buttonCenterX}px`;
+        rightValue = "auto";
+        transform = "translateX(-50%)";
+      }
+    } else {
+      leftValue = `${buttonLeftOffset}px`;
+      rightValue = "auto";
+      transform = "translateX(0)";
+    }
+    if (menuTop !== null) {
+      menu.style.top = `${menuTop}px`;
+      menu.style.bottom = "auto";
+    } else if (menuBottomPx !== null) {
+      menu.style.top = "auto";
+      menu.style.bottom = `${menuBottomPx}px`;
+    }
+    menu.style.left = leftValue;
+    menu.style.right = rightValue;
+    menu.style.transform = transform;
+  }
+  function positionSettingsMenuDeferred(menu, button, opts = {}) {
+    requestAnimationFrame(() => {
+      setTimeout(() => positionSettingsMenu(menu, button, opts), 10);
     });
   }
-  var init_FormUtils = __esm({
-    "src/utils/FormUtils.ts"() {
+  var init_DraggablePanelMenu = __esm({
+    "src/utils/DraggablePanelMenu.ts"() {
+      "use strict";
+    }
+  });
+
+  // src/utils/DraggablePanel.ts
+  var DraggablePanel;
+  var init_DraggablePanel = __esm({
+    "src/utils/DraggablePanel.ts"() {
       "use strict";
       init_DOMUtils();
       init_i18n();
+      init_MenuUtils();
+      init_DraggablePanelMenu();
+      DraggablePanel = class {
+        constructor(opts) {
+          __publicField(this, "opts");
+          /** Populated lazily on first `show()`. */
+          __publicField(this, "settingsMenu", null);
+          __publicField(this, "settingsMenuVisible", false);
+          __publicField(this, "dragOptionButton", null);
+          __publicField(this, "dragOptionText", null);
+          __publicField(this, "resizeOptionButton", null);
+          __publicField(this, "resizeOptionText", null);
+          __publicField(this, "_justOpened", false);
+          __publicField(this, "_justOpenedTimer", null);
+          __publicField(this, "_keyHandler", null);
+          __publicField(this, "_documentClick", null);
+          __publicField(this, "_documentClickAdded", false);
+          __publicField(this, "_modeBadge", null);
+          this.opts = opts;
+        }
+        /** True while the just-opened debounce window (prevents the same
+         *  click that opened the menu from also closing it via document
+         *  `mousedown` / `click`). */
+        get justOpened() {
+          return this._justOpened;
+        }
+        get classPrefix() {
+          return this.opts.player.options.classPrefix;
+        }
+        get menuClass() {
+          return `${this.classPrefix}-${this.opts.namespace}-settings-menu`;
+        }
+        get itemClass() {
+          return `${this.classPrefix}-${this.opts.namespace}-settings-item`;
+        }
+        /**
+         * Show the menu. First call creates the DOM; subsequent calls reuse
+         * it. Refreshes menu item state from the current draggable.
+         */
+        show() {
+          this._markJustOpened(350);
+          this._ensureDocumentClickHandler();
+          if (this.settingsMenu) {
+            this.settingsMenu.style.display = "block";
+            this.settingsMenuVisible = true;
+            this.opts.settingsButton.setAttribute("aria-expanded", "true");
+            this._attachKeyboardNavigation();
+            this._positionImmediate();
+            this.refreshState();
+            focusFirstMenuItem(this.settingsMenu, `.${this.itemClass}`);
+            return;
+          }
+          this._createMenu();
+        }
+        /**
+         * Hide the menu. By default returns focus to the settings button;
+         * callers can opt out when the next interaction should land
+         * elsewhere (e.g. on the wrapper after enabling drag mode).
+         */
+        hide({ focusButton = true } = {}) {
+          if (!this.settingsMenu) return;
+          this.settingsMenu.style.display = "none";
+          this.settingsMenuVisible = false;
+          this._clearJustOpened();
+          if (this._keyHandler) {
+            this.settingsMenu.removeEventListener("keydown", this._keyHandler, true);
+            this._keyHandler = null;
+          }
+          const items = this.settingsMenu.querySelectorAll(`.${this.itemClass}`);
+          items.forEach((item) => item.setAttribute("tabindex", "-1"));
+          const { settingsButton } = this.opts;
+          settingsButton.setAttribute("aria-expanded", "false");
+          if (focusButton) {
+            settingsButton.focus({ preventScroll: true });
+          }
+        }
+        toggle() {
+          if (this.settingsMenuVisible) {
+            this.hide();
+          } else {
+            this.show();
+          }
+        }
+        /** Set a short "just opened" guard so the document-click handler
+         *  attached for outside-dismissal ignores the originating click. */
+        markJustOpenedForClick() {
+          if (this._documentClick) {
+            this._markJustOpened(100);
+          }
+        }
+        /** Refresh the drag and resize toggle item state from the draggable. */
+        refreshState() {
+          this.refreshDragState();
+          this.refreshResizeState();
+        }
+        refreshDragState() {
+          const draggable = this.opts.getDraggable();
+          updateToggleMenuItem(this.dragOptionButton, this.dragOptionText, {
+            enabled: Boolean(draggable == null ? void 0 : draggable.keyboardDragMode),
+            enabledText: i18n.t(this.opts.i18nKeys.disableDrag),
+            disabledText: i18n.t(this.opts.i18nKeys.enableDrag),
+            enabledAria: i18n.t(this.opts.i18nKeys.disableDragAria),
+            disabledAria: i18n.t(this.opts.i18nKeys.enableDragAria)
+          });
+        }
+        refreshResizeState() {
+          const draggable = this.opts.getDraggable();
+          updateToggleMenuItem(this.resizeOptionButton, this.resizeOptionText, {
+            enabled: Boolean(draggable == null ? void 0 : draggable.pointerResizeMode),
+            enabledText: i18n.t(this.opts.i18nKeys.disableResize),
+            disabledText: i18n.t(this.opts.i18nKeys.enableResize),
+            enabledAria: i18n.t(this.opts.i18nKeys.disableResizeAria),
+            disabledAria: i18n.t(this.opts.i18nKeys.enableResizeAria)
+          });
+        }
+        /**
+         * Show a persistent mode-feedback badge (e.g. "Drag mode: arrow
+         * keys to move, Esc to exit") anchored to the host element
+         * returned by `getBadgeHost`. Replaces any previous badge. The
+         * badge is a real DOM element (not a CSS pseudo-element) so its
+         * text is translatable, selectable, visible under high-contrast
+         * themes, and reflected in browser translation overlays.
+         *
+         * Marked `aria-hidden` because the accompanying live-region
+         * announcement (the manager's responsibility) already conveys the
+         * state change to assistive tech.
+         */
+        showBadge(text) {
+          var _a, _b;
+          const host = (_b = (_a = this.opts).getBadgeHost) == null ? void 0 : _b.call(_a);
+          if (!host) return;
+          this.hideBadge();
+          const className = this.opts.badgeClass ?? `${this.classPrefix}-${this.opts.namespace}-mode-badge`;
+          const badge = DOMUtils.createElement("span", {
+            className,
+            textContent: text,
+            attributes: { "aria-hidden": "true" }
+          });
+          host.appendChild(badge);
+          this._modeBadge = badge;
+        }
+        /** Remove the mode-feedback badge if one is showing. */
+        hideBadge() {
+          if (this._modeBadge && this._modeBadge.parentNode) {
+            this._modeBadge.remove();
+          }
+          this._modeBadge = null;
+        }
+        /** RAF-deferred reposition (e.g. after a panel resize). */
+        reposition() {
+          positionSettingsMenuDeferred(this.settingsMenu, this.opts.settingsButton, {
+            align: this.opts.menuAlign,
+            gap: this.opts.menuGap ?? 4,
+            spaceReserve: this.opts.menuSpaceReserve ?? 20
+          });
+        }
+        /**
+         * Tear down any DOM/listeners owned by this panel. Safe to call
+         * multiple times. Callers must still drop their own references.
+         */
+        destroy() {
+          if (this._justOpenedTimer) {
+            clearTimeout(this._justOpenedTimer);
+            this._justOpenedTimer = null;
+          }
+          this._justOpened = false;
+          this.hideBadge();
+          if (this.settingsMenu) {
+            if (this._keyHandler) {
+              this.settingsMenu.removeEventListener("keydown", this._keyHandler, true);
+            }
+            this.settingsMenu.remove();
+            this.settingsMenu = null;
+          }
+          this._keyHandler = null;
+          this.settingsMenuVisible = false;
+          this.dragOptionButton = null;
+          this.dragOptionText = null;
+          this.resizeOptionButton = null;
+          this.resizeOptionText = null;
+          this._documentClick = null;
+          this._documentClickAdded = false;
+        }
+        _createMenu() {
+          const { player, settingsButton, i18nKeys } = this.opts;
+          const menu = DOMUtils.createElement("div", {
+            className: this.menuClass,
+            attributes: { role: "menu" }
+          });
+          this.settingsMenu = menu;
+          const dragOption = createMenuItem({
+            classPrefix: this.classPrefix,
+            itemClass: this.itemClass,
+            icon: "move",
+            label: i18nKeys.enableDrag,
+            hasTextClass: true,
+            onClick: (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              this.opts.onDragItemClick(this);
+              this.refreshState();
+            }
+          });
+          dragOption.setAttribute("role", "switch");
+          dragOption.setAttribute("aria-checked", "false");
+          dragOption.setAttribute("data-setting", "keyboard-drag");
+          this._stripInlineTooltip(dragOption);
+          this.dragOptionButton = dragOption;
+          this.dragOptionText = dragOption.querySelector(`.${this.classPrefix}-settings-text`);
+          const resizeOption = createMenuItem({
+            classPrefix: this.classPrefix,
+            itemClass: this.itemClass,
+            icon: "resize",
+            label: i18nKeys.enableResize,
+            hasTextClass: true,
+            onClick: (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              this.opts.onResizeItemClick(this);
+              this.refreshState();
+            }
+          });
+          resizeOption.setAttribute("role", "switch");
+          resizeOption.setAttribute("aria-checked", "false");
+          this._stripInlineTooltip(resizeOption);
+          this.resizeOptionButton = resizeOption;
+          this.resizeOptionText = resizeOption.querySelector(`.${this.classPrefix}-settings-text`);
+          menu.appendChild(dragOption);
+          menu.appendChild(resizeOption);
+          if (this.opts.buildExtraItems) {
+            this.opts.buildExtraItems({
+              menu,
+              itemClass: this.itemClass,
+              classPrefix: this.classPrefix,
+              stripInlineTooltip: (item) => this._stripInlineTooltip(item)
+            });
+          }
+          const closeOption = createMenuItem({
+            classPrefix: this.classPrefix,
+            itemClass: this.itemClass,
+            icon: "close",
+            label: i18nKeys.closeMenu,
+            onClick: () => this.hide()
+          });
+          this._stripInlineTooltip(closeOption);
+          menu.appendChild(closeOption);
+          menu.style.visibility = "hidden";
+          menu.style.display = "block";
+          const parent = this.opts.getMenuParent();
+          if (settingsButton.parentNode) {
+            settingsButton.insertAdjacentElement("afterend", menu);
+          } else if (parent) {
+            parent.appendChild(menu);
+          }
+          this._positionImmediate();
+          requestAnimationFrame(() => {
+            if (this.settingsMenu) {
+              this.settingsMenu.style.visibility = "visible";
+            }
+          });
+          this._attachKeyboardNavigation();
+          this.settingsMenuVisible = true;
+          settingsButton.setAttribute("aria-expanded", "true");
+          this.refreshState();
+          focusFirstMenuItem(menu, `.${this.itemClass}`);
+          void player;
+        }
+        _attachKeyboardNavigation() {
+          const menu = this.settingsMenu;
+          if (!menu) return;
+          if (this._keyHandler) {
+            menu.removeEventListener("keydown", this._keyHandler, true);
+          }
+          const handler = attachMenuKeyboardNavigation(
+            menu,
+            this.opts.settingsButton,
+            `.${this.itemClass}`,
+            () => this.hide({ focusButton: true })
+          );
+          this._keyHandler = handler ?? null;
+        }
+        _positionImmediate() {
+          positionSettingsMenu(this.settingsMenu, this.opts.settingsButton, {
+            align: this.opts.menuAlign,
+            gap: this.opts.menuGap ?? 4,
+            spaceReserve: this.opts.menuSpaceReserve ?? 20
+          });
+        }
+        /**
+         * Remove tooltip and duplicate button-text nodes from a menu item.
+         * `createMenuItem` is used both for toolbar buttons (which want a
+         * tooltip) and for settings-menu rows (which show the same text
+         * inline). This strips the duplicated pieces so screen readers
+         * don't read the label twice.
+         */
+        _stripInlineTooltip(item) {
+          const tooltip = item.querySelector(`.${this.classPrefix}-tooltip`);
+          if (tooltip) tooltip.remove();
+          const buttonText = item.querySelector(`.${this.classPrefix}-button-text`);
+          if (buttonText) buttonText.remove();
+        }
+        _markJustOpened(durationMs) {
+          this._justOpened = true;
+          if (this._justOpenedTimer) {
+            clearTimeout(this._justOpenedTimer);
+          }
+          this._justOpenedTimer = setTimeout(() => {
+            this._justOpened = false;
+            this._justOpenedTimer = null;
+          }, durationMs);
+        }
+        _clearJustOpened() {
+          this._justOpened = false;
+          if (this._justOpenedTimer) {
+            clearTimeout(this._justOpenedTimer);
+            this._justOpenedTimer = null;
+          }
+        }
+        _ensureDocumentClickHandler() {
+          if (this._documentClickAdded) return;
+          this._documentClick = (event) => {
+            if (this._justOpened) return;
+            const target = event.target;
+            const { settingsButton } = this.opts;
+            if (settingsButton === target || target && settingsButton.contains(target)) {
+              return;
+            }
+            if (this.settingsMenu && target && this.settingsMenu.contains(target)) {
+              return;
+            }
+            if (this.settingsMenuVisible) {
+              this.hide();
+            }
+          };
+          setTimeout(() => {
+            const handler = this._documentClick;
+            if (!handler) return;
+            document.addEventListener("mousedown", handler, {
+              capture: true,
+              signal: this.opts.player.lifecycleSignal
+            });
+            this._documentClickAdded = true;
+          }, 300);
+        }
+      };
     }
   });
 
@@ -4313,8 +4790,8 @@
       init_Icons();
       init_i18n();
       init_DraggableResizable();
-      init_MenuUtils();
       init_FormUtils();
+      init_DraggablePanel();
       SignLanguageManager = class {
         constructor(player) {
           __publicField(this, "player");
@@ -4324,8 +4801,6 @@
           __publicField(this, "customKeyHandler");
           __publicField(this, "desiredPosition");
           __publicField(this, "draggable");
-          __publicField(this, "dragOptionButton");
-          __publicField(this, "dragOptionText");
           __publicField(this, "handlers");
           __publicField(this, "header");
           __publicField(this, "inMainView");
@@ -4333,28 +4808,21 @@
           __publicField(this, "mainViewOriginalSources");
           __publicField(this, "mainViewOriginalSrc");
           __publicField(this, "resizeHandles");
-          __publicField(this, "resizeOptionButton");
-          __publicField(this, "resizeOptionText");
           __publicField(this, "selector");
           __publicField(this, "settingsButton");
           __publicField(this, "settingsHandlers");
-          __publicField(this, "settingsMenu");
-          __publicField(this, "settingsMenuJustOpened");
-          __publicField(this, "settingsMenuKeyHandler");
-          __publicField(this, "settingsMenuVisible");
           __publicField(this, "sources");
           __publicField(this, "src");
           __publicField(this, "enabled");
-          __publicField(this, "documentClickHandler");
-          __publicField(this, "documentClickHandlerAdded");
           __publicField(this, "video");
           __publicField(this, "wrapper");
-          /** Visible badge appended to the wrapper while keyboard drag or
-           *  pointer resize mode is active. Replaces the previous
-           *  `::after { content: 'DRAG MODE …' }` CSS approach so the hint is
-           *  real DOM content: translatable, announced by AT, selectable, and
-           *  survives high-contrast themes that strip pseudo-elements. */
-          __publicField(this, "modeBadge");
+          /**
+           * Encapsulates the settings-menu DOM, lifecycle (show/hide/outside-
+           * click/keyboard nav/positioning), and the drag/resize toggle items.
+           * Owned here but lazily created once {@link _setupSettingsButton}
+           * instantiates the button it needs to anchor from.
+           */
+          __publicField(this, "_panel", null);
           this.player = player;
           this.src = player.options.signLanguageSrc;
           this.sources = player.options.signLanguageSources || {};
@@ -4365,7 +4833,6 @@
           this.video = null;
           this.selector = null;
           this.settingsButton = null;
-          this.settingsMenu = null;
           this.resizeHandles = [];
           this.enabled = false;
           this.inMainView = false;
@@ -4373,21 +4840,50 @@
           this.mainViewOriginalSources = null;
           this._mainViewUsingSourceSwap = false;
           this._mainViewMutedBefore = false;
-          this.settingsMenuVisible = false;
-          this.settingsMenuJustOpened = false;
-          this.documentClickHandlerAdded = false;
           this.handlers = null;
           this.settingsHandlers = null;
           this.interactionHandlers = null;
           this.draggable = null;
-          this.documentClickHandler = null;
-          this.settingsMenuKeyHandler = null;
           this.customKeyHandler = null;
-          this.dragOptionButton = null;
-          this.dragOptionText = null;
-          this.resizeOptionButton = null;
-          this.resizeOptionText = null;
-          this.modeBadge = null;
+        }
+        // Back-compat getters for external callers (Player.ts exposes these
+        // under `signLanguageSettingsMenu` / `signLanguageSettingsMenuVisible`)
+        // and for internal readers of the shared menu-item state (which is now
+        // panel-owned). Setters are no-ops by design — the panel is the
+        // authoritative owner of these values.
+        get settingsMenu() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.settingsMenu) ?? null;
+        }
+        set settingsMenu(_v) {
+        }
+        get settingsMenuVisible() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.settingsMenuVisible) ?? false;
+        }
+        set settingsMenuVisible(_v) {
+        }
+        get settingsMenuJustOpened() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.justOpened) ?? false;
+        }
+        set settingsMenuJustOpened(_v) {
+        }
+        get dragOptionButton() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.dragOptionButton) ?? null;
+        }
+        get dragOptionText() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.dragOptionText) ?? null;
+        }
+        get resizeOptionButton() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.resizeOptionButton) ?? null;
+        }
+        get resizeOptionText() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.resizeOptionText) ?? null;
         }
         /**
          * Check if sign language is available
@@ -4796,12 +5292,10 @@
           const closeButton = this._createCloseButton();
           this.header.appendChild(headerLeft);
           this.header.appendChild(closeButton);
-          this.settingsMenuVisible = false;
-          this.settingsMenu = null;
-          this.settingsMenuJustOpened = false;
         }
         /**
-         * Create settings button
+         * Create settings button and wire it to a {@link DraggablePanel}
+         * that owns the drag/resize settings menu and its lifecycle.
          */
         _createSettingsButton(container) {
           const classPrefix = this.player.options.classPrefix;
@@ -4816,21 +5310,60 @@
           });
           this.settingsButton.appendChild(createIconElement("settings"));
           DOMUtils.attachTooltip(this.settingsButton, ariaLabel, classPrefix);
+          this._panel = new DraggablePanel({
+            player: this.player,
+            namespace: "sign-language",
+            settingsButton: this.settingsButton,
+            getDraggable: () => this.draggable,
+            i18nKeys: {
+              enableDrag: "player.enableSignDragMode",
+              disableDrag: "player.disableSignDragMode",
+              enableDragAria: "player.enableSignDragModeAria",
+              disableDragAria: "player.disableSignDragModeAria",
+              enableResize: "player.enableSignResizeMode",
+              disableResize: "player.disableSignResizeMode",
+              enableResizeAria: "player.enableSignResizeModeAria",
+              disableResizeAria: "player.disableSignResizeModeAria",
+              closeMenu: "transcript.closeMenu"
+            },
+            menuAlign: "center",
+            getMenuParent: () => this.wrapper,
+            getBadgeHost: () => this.wrapper,
+            // Existing CSS uses `.vidply-sign-mode-badge` (shorter than
+            // the namespace default) — pin the class so the styling
+            // keeps applying without having to duplicate the rule.
+            badgeClass: `${this.player.options.classPrefix}-sign-mode-badge`,
+            onDragItemClick: (panel) => {
+              var _a;
+              this.toggleKeyboardDragMode();
+              panel.hide({ focusButton: false });
+              if ((_a = this.draggable) == null ? void 0 : _a.keyboardDragMode) {
+                setTimeout(() => {
+                  var _a2, _b;
+                  (_b = (_a2 = this.wrapper) == null ? void 0 : _a2.focus) == null ? void 0 : _b.call(_a2, { preventScroll: true });
+                }, 20);
+              }
+            },
+            onResizeItemClick: (panel) => {
+              const enabled = this.toggleResizeMode({ focus: false });
+              if (enabled) {
+                panel.hide({ focusButton: false });
+                setTimeout(() => {
+                  var _a, _b;
+                  (_b = (_a = this.wrapper) == null ? void 0 : _a.focus) == null ? void 0 : _b.call(_a, { preventScroll: true });
+                }, 20);
+              } else {
+                panel.hide({ focusButton: true });
+              }
+            }
+          });
           this.settingsHandlers = {
             click: (e) => {
+              var _a, _b;
               e.preventDefault();
               e.stopPropagation();
-              if (this.documentClickHandler) {
-                this.settingsMenuJustOpened = true;
-                setTimeout(() => {
-                  this.settingsMenuJustOpened = false;
-                }, 100);
-              }
-              if (this.settingsMenuVisible) {
-                this.hideSettingsMenu();
-              } else {
-                this.showSettingsMenu();
-              }
+              (_a = this._panel) == null ? void 0 : _a.markJustOpenedForClick();
+              (_b = this._panel) == null ? void 0 : _b.toggle();
             },
             keydown: (e) => {
               if (e.key === "d" || e.key === "D") {
@@ -5159,288 +5692,33 @@
           this.wrapper.style.bottom = "auto";
         }
         /**
-         * Show settings menu
+         * Show the settings menu. Delegates to the shared {@link DraggablePanel},
+         * which owns the DOM, outside-click dismissal, keyboard navigation and
+         * positioning. Kept as a named method so external callers (other
+         * managers, tests) that referenced the legacy API keep working.
          */
         showSettingsMenu() {
           var _a;
-          this.settingsMenuJustOpened = true;
-          setTimeout(() => {
-            this.settingsMenuJustOpened = false;
-          }, 350);
-          this._addDocumentClickHandler();
-          if (this.settingsMenu) {
-            this.settingsMenu.style.display = "block";
-            this.settingsMenuVisible = true;
-            (_a = this.settingsButton) == null ? void 0 : _a.setAttribute("aria-expanded", "true");
-            this._attachMenuKeyboardNavigation();
-            this._positionSettingsMenu();
-            this._updateDragOptionState();
-            this._updateResizeOptionState();
-            focusFirstMenuItem(this.settingsMenu, `.${this.player.options.classPrefix}-sign-language-settings-item`);
-            return;
-          }
-          this._createSettingsMenu();
+          (_a = this._panel) == null ? void 0 : _a.show();
         }
-        /**
-         * Hide settings menu
-         */
+        /** @see {@link showSettingsMenu} */
         hideSettingsMenu({ focusButton = true } = {}) {
-          if (this.settingsMenu) {
-            this.settingsMenu.style.display = "none";
-            this.settingsMenuVisible = false;
-            this.settingsMenuJustOpened = false;
-            if (this.settingsMenuKeyHandler) {
-              this.settingsMenu.removeEventListener("keydown", this.settingsMenuKeyHandler);
-              this.settingsMenuKeyHandler = null;
-            }
-            const classPrefix = this.player.options.classPrefix;
-            const menuItems = Array.from(this.settingsMenu.querySelectorAll(`.${classPrefix}-sign-language-settings-item`));
-            menuItems.forEach((item) => item.setAttribute("tabindex", "-1"));
-            if (this.settingsButton) {
-              this.settingsButton.setAttribute("aria-expanded", "false");
-              if (focusButton) {
-                this.settingsButton.focus({ preventScroll: true });
-              }
-            }
-          }
+          var _a;
+          (_a = this._panel) == null ? void 0 : _a.hide({ focusButton });
         }
-        /**
-         * Add document click handler
-         */
-        _addDocumentClickHandler() {
-          if (this.documentClickHandlerAdded) return;
-          this.documentClickHandler = (e) => {
-            if (this.settingsMenuJustOpened) return;
-            const targetNode = e.target;
-            if (this.settingsButton && (this.settingsButton === targetNode || targetNode && this.settingsButton.contains(targetNode))) {
-              return;
-            }
-            if (this.settingsMenu && targetNode && this.settingsMenu.contains(targetNode)) {
-              return;
-            }
-            if (this.settingsMenuVisible) {
-              this.hideSettingsMenu();
-            }
-          };
-          setTimeout(() => {
-            const documentClickHandler = this.documentClickHandler;
-            if (!documentClickHandler) return;
-            document.addEventListener("mousedown", documentClickHandler, {
-              capture: true,
-              signal: this.player.lifecycleSignal
-            });
-            this.documentClickHandlerAdded = true;
-          }, 300);
-        }
-        /**
-         * Create settings menu
-         */
-        _createSettingsMenu() {
-          var _a, _b;
-          const classPrefix = this.player.options.classPrefix;
-          this.settingsMenu = DOMUtils.createElement("div", {
-            className: `${classPrefix}-sign-language-settings-menu`,
-            attributes: { "role": "menu" }
-          });
-          const dragOption = createMenuItem({
-            classPrefix,
-            itemClass: `${classPrefix}-sign-language-settings-item`,
-            icon: "move",
-            label: "player.enableSignDragMode",
-            hasTextClass: true,
-            onClick: () => {
-              var _a2;
-              this.toggleKeyboardDragMode();
-              this.hideSettingsMenu({ focusButton: false });
-              if ((_a2 = this.draggable) == null ? void 0 : _a2.keyboardDragMode) {
-                setTimeout(() => {
-                  var _a3, _b2;
-                  (_b2 = (_a3 = this.wrapper) == null ? void 0 : _a3.focus) == null ? void 0 : _b2.call(_a3, { preventScroll: true });
-                }, 20);
-              }
-            }
-          });
-          dragOption.setAttribute("data-setting", "keyboard-drag");
-          dragOption.setAttribute("role", "switch");
-          dragOption.setAttribute("aria-checked", "false");
-          this._removeTooltipFromMenuItem(dragOption);
-          this.dragOptionButton = dragOption;
-          this.dragOptionText = dragOption.querySelector(`.${classPrefix}-settings-text`);
-          this._updateDragOptionState();
-          const resizeOption = createMenuItem({
-            classPrefix,
-            itemClass: `${classPrefix}-sign-language-settings-item`,
-            icon: "resize",
-            label: "player.enableSignResizeMode",
-            hasTextClass: true,
-            onClick: (event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              const enabled = this.toggleResizeMode({ focus: false });
-              if (enabled) {
-                this.hideSettingsMenu({ focusButton: false });
-                setTimeout(() => {
-                  if (this.wrapper) this.wrapper.focus({ preventScroll: true });
-                }, 20);
-              } else {
-                this.hideSettingsMenu({ focusButton: true });
-              }
-            }
-          });
-          resizeOption.setAttribute("role", "switch");
-          resizeOption.setAttribute("aria-checked", "false");
-          this._removeTooltipFromMenuItem(resizeOption);
-          this.resizeOptionButton = resizeOption;
-          this.resizeOptionText = resizeOption.querySelector(`.${classPrefix}-settings-text`);
-          this._updateResizeOptionState();
-          const closeOption = createMenuItem({
-            classPrefix,
-            itemClass: `${classPrefix}-sign-language-settings-item`,
-            icon: "close",
-            label: "transcript.closeMenu",
-            onClick: () => this.hideSettingsMenu()
-          });
-          this._removeTooltipFromMenuItem(closeOption);
-          this.settingsMenu.appendChild(dragOption);
-          this.settingsMenu.appendChild(resizeOption);
-          this.settingsMenu.appendChild(closeOption);
-          this.settingsMenu.style.visibility = "hidden";
-          this.settingsMenu.style.display = "block";
-          if ((_a = this.settingsButton) == null ? void 0 : _a.parentNode) {
-            this.settingsButton.insertAdjacentElement("afterend", this.settingsMenu);
-          } else if (this.wrapper) {
-            this.wrapper.appendChild(this.settingsMenu);
-          }
-          this._positionSettingsMenuImmediate();
-          requestAnimationFrame(() => {
-            if (this.settingsMenu) {
-              this.settingsMenu.style.visibility = "visible";
-            }
-          });
-          this._attachMenuKeyboardNavigation();
-          this.settingsMenuVisible = true;
-          (_b = this.settingsButton) == null ? void 0 : _b.setAttribute("aria-expanded", "true");
-          this._updateDragOptionState();
-          this._updateResizeOptionState();
-          focusFirstMenuItem(this.settingsMenu, `.${classPrefix}-sign-language-settings-item`);
-        }
-        /**
-         * Remove tooltip from menu item
-         */
-        _removeTooltipFromMenuItem(item) {
-          const classPrefix = this.player.options.classPrefix;
-          const tooltip = item.querySelector(`.${classPrefix}-tooltip`);
-          if (tooltip) tooltip.remove();
-          const buttonText = item.querySelector(`.${classPrefix}-button-text`);
-          if (buttonText) buttonText.remove();
-        }
-        /**
-         * Attach menu keyboard navigation
-         */
-        _attachMenuKeyboardNavigation() {
-          const menu = this.settingsMenu;
-          if (!menu) return;
-          if (this.settingsMenuKeyHandler) {
-            menu.removeEventListener("keydown", this.settingsMenuKeyHandler);
-          }
-          this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
-            menu,
-            this.settingsButton,
-            `.${this.player.options.classPrefix}-sign-language-settings-item`,
-            () => this.hideSettingsMenu({ focusButton: true })
-          ) ?? null;
-        }
-        /**
-         * Position settings menu immediately
-         */
-        _positionSettingsMenuImmediate() {
-          if (!this.settingsMenu || !this.settingsButton) return;
-          const buttonRect = this.settingsButton.getBoundingClientRect();
-          const menuRect = this.settingsMenu.getBoundingClientRect();
-          const viewportWidth = window.innerWidth;
-          const viewportHeight = window.innerHeight;
-          const parentContainer = this.settingsButton.parentElement;
-          if (!parentContainer) return;
-          const parentRect = parentContainer.getBoundingClientRect();
-          const buttonCenterX = buttonRect.left + buttonRect.width / 2 - parentRect.left;
-          const buttonBottom = buttonRect.bottom - parentRect.top;
-          const buttonTop = buttonRect.top - parentRect.top;
-          const spaceAbove = buttonRect.top;
-          const spaceBelow = viewportHeight - buttonRect.bottom;
-          let menuTop = buttonBottom + 8;
-          let menuBottom = null;
-          if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
-            menuTop = null;
-            const parentHeight = parentRect.bottom - parentRect.top;
-            menuBottom = parentHeight - buttonTop + 8;
-            this.settingsMenu.classList.add("vidply-menu-above");
-          } else {
-            this.settingsMenu.classList.remove("vidply-menu-above");
-          }
-          let menuLeft = buttonCenterX - menuRect.width / 2;
-          let menuRight = "auto";
-          let transformX = "translateX(0)";
-          const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
-          if (menuLeftAbsolute < 10) {
-            menuLeft = 0;
-          } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
-            menuLeft = "auto";
-            menuRight = 0;
-          } else {
-            menuLeft = buttonCenterX;
-            transformX = "translateX(-50%)";
-          }
-          if (menuTop !== null) {
-            this.settingsMenu.style.top = `${menuTop}px`;
-            this.settingsMenu.style.bottom = "auto";
-          } else if (menuBottom !== null) {
-            this.settingsMenu.style.top = "auto";
-            this.settingsMenu.style.bottom = `${menuBottom}px`;
-          }
-          if (menuLeft !== "auto") {
-            this.settingsMenu.style.left = `${menuLeft}px`;
-            this.settingsMenu.style.right = "auto";
-          } else {
-            this.settingsMenu.style.left = "auto";
-            this.settingsMenu.style.right = `${menuRight}px`;
-          }
-          this.settingsMenu.style.transform = transformX;
-        }
-        /**
-         * Position settings menu with RAF
-         */
-        _positionSettingsMenu() {
-          requestAnimationFrame(() => {
-            setTimeout(() => {
-              this._positionSettingsMenuImmediate();
-            }, 10);
-          });
-        }
-        /**
-         * Show a translatable mode badge above the sign-language wrapper.
-         * The badge is a real DOM element (not a CSS `::after` pseudo), so it
-         * is picked up by browser translation tools, honored by high-contrast
-         * themes, and translated via the i18n catalogue. Announcements for
-         * assistive tech go through the shared KeyboardManager live region
-         * to avoid AT reading both the badge text and the live-region copy.
-         */
+        // Badge management moved into {@link DraggablePanel}; these
+        // delegates keep the legacy names so internal call sites and
+        // subclassers (if any) continue to work. Announcements for
+        // assistive tech still go through the shared KeyboardManager
+        // live region so AT doesn't read both the badge text and the
+        // live-region copy.
         _showModeBadge(text) {
-          if (!this.wrapper) return;
-          this._hideModeBadge();
-          const classPrefix = this.player.options.classPrefix;
-          const badge = DOMUtils.createElement("span", {
-            className: `${classPrefix}-sign-mode-badge`,
-            textContent: text,
-            attributes: { "aria-hidden": "true" }
-          });
-          this.wrapper.appendChild(badge);
-          this.modeBadge = badge;
+          var _a;
+          (_a = this._panel) == null ? void 0 : _a.showBadge(text);
         }
         _hideModeBadge() {
-          if (this.modeBadge && this.modeBadge.parentNode) {
-            this.modeBadge.remove();
-          }
-          this.modeBadge = null;
+          var _a;
+          (_a = this._panel) == null ? void 0 : _a.hideBadge();
         }
         /**
          * Toggle keyboard drag mode
@@ -5487,35 +5765,16 @@
           this._updateResizeOptionState();
           return true;
         }
-        /**
-         * Update drag option state
-         */
+        // Thin delegates to the panel's refreshState. Kept as named methods
+        // so the existing internal call sites (e.g. `toggleKeyboardDragMode`)
+        // read naturally without a double-dot chain to the panel.
         _updateDragOptionState() {
           var _a;
-          if (!this.dragOptionButton) return;
-          const isEnabled = Boolean((_a = this.draggable) == null ? void 0 : _a.keyboardDragMode);
-          const text = isEnabled ? i18n.t("player.disableSignDragMode") : i18n.t("player.enableSignDragMode");
-          const ariaLabel = isEnabled ? i18n.t("player.disableSignDragModeAria") : i18n.t("player.enableSignDragModeAria");
-          this.dragOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
-          this.dragOptionButton.setAttribute("aria-label", ariaLabel);
-          if (this.dragOptionText) {
-            this.dragOptionText.textContent = text;
-          }
+          (_a = this._panel) == null ? void 0 : _a.refreshDragState();
         }
-        /**
-         * Update resize option state
-         */
         _updateResizeOptionState() {
           var _a;
-          if (!this.resizeOptionButton) return;
-          const isEnabled = Boolean((_a = this.draggable) == null ? void 0 : _a.pointerResizeMode);
-          const text = isEnabled ? i18n.t("player.disableSignResizeMode") : i18n.t("player.enableSignResizeMode");
-          const ariaLabel = isEnabled ? i18n.t("player.disableSignResizeModeAria") : i18n.t("player.enableSignResizeModeAria");
-          this.resizeOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
-          this.resizeOptionButton.setAttribute("aria-label", ariaLabel);
-          if (this.resizeOptionText) {
-            this.resizeOptionText.textContent = text;
-          }
+          (_a = this._panel) == null ? void 0 : _a.refreshResizeState();
         }
         /**
          * Save preferences
@@ -5572,10 +5831,9 @@
           if (this.settingsMenuVisible) {
             this.hideSettingsMenu({ focusButton: false });
           }
-          if (this.documentClickHandler && this.documentClickHandlerAdded) {
-            document.removeEventListener("mousedown", this.documentClickHandler, true);
-            this.documentClickHandlerAdded = false;
-            this.documentClickHandler = null;
+          if (this._panel) {
+            this._panel.destroy();
+            this._panel = null;
           }
           if (this.settingsHandlers && this.settingsButton) {
             this.settingsButton.removeEventListener("click", this.settingsHandlers.click);
@@ -5614,7 +5872,6 @@
           this.wrapper = null;
           this.video = null;
           this.settingsButton = null;
-          this.settingsMenu = null;
         }
         /**
          * Destroy
@@ -6017,6 +6274,8 @@
           });
           this.placeholder.style.width = `${Math.max(1, rect.width)}px`;
           this.placeholder.style.height = `${Math.max(1, rect.height)}px`;
+          const placeholderIcon = createIconElement("pip", `${this.classPrefix}-floating-placeholder-icon`);
+          this.placeholder.appendChild(placeholderIcon);
           this.originalParent.insertBefore(this.placeholder, container);
           this.shell.appendChild(container);
           document.body.appendChild(this.shell);
@@ -6165,6 +6424,7 @@
       init_MenuUtils();
       init_DraggableResizable();
       init_FormUtils();
+      init_DraggablePanel();
       init_TrackLabelUtils();
       TranscriptManager = class {
         constructor(player) {
@@ -6176,10 +6436,14 @@
           __publicField(this, "currentActiveEntry");
           __publicField(this, "currentTranscriptLanguage");
           __publicField(this, "customKeyHandler", null);
+          /**
+           * True once the style-dialog's outside-click listener has been
+           * attached. The settings-menu's outside-click listener is now
+           * owned by {@link DraggablePanel} and tracked there; this flag
+           * covers the dialog half of the shared `handlers.documentClick`.
+           */
           __publicField(this, "documentClickHandlerAdded", false);
           __publicField(this, "draggableResizable");
-          __publicField(this, "dragOptionButton", null);
-          __publicField(this, "dragOptionText", null);
           __publicField(this, "handlers", {});
           __publicField(this, "headerLeft", null);
           __publicField(this, "isVisible");
@@ -6190,15 +6454,7 @@
           __publicField(this, "liveRegion");
           __publicField(this, "metadataCueChangeHandler", null);
           __publicField(this, "metadataCues");
-          __publicField(this, "resizeModeIndicatorTimeout");
-          __publicField(this, "resizeModeIndicator");
-          __publicField(this, "resizeOptionButton");
-          __publicField(this, "resizeOptionText");
           __publicField(this, "settingsButton");
-          __publicField(this, "settingsMenuJustOpened");
-          __publicField(this, "settingsMenuKeyHandler", null);
-          __publicField(this, "settingsMenu");
-          __publicField(this, "settingsMenuVisible");
           __publicField(this, "showTimestamps");
           __publicField(this, "showTimestampsButton", null);
           __publicField(this, "showTimestampsText", null);
@@ -6215,6 +6471,13 @@
           __publicField(this, "transcriptWindow");
           __publicField(this, "_dashActiveLang");
           __publicField(this, "_vttCache");
+          /**
+           * Owns the settings-menu DOM scaffold, its outside-click
+           * dismissal, keyboard navigation, viewport-aware positioning,
+           * and the drag-mode / resize-mode toggle items. Instantiated
+           * lazily once the header is built in {@link createTranscriptHeader}.
+           */
+          __publicField(this, "_panel", null);
           this.player = player;
           this.transcriptWindow = null;
           this.transcriptEntries = [];
@@ -6223,16 +6486,7 @@
           this.isVisible = false;
           this.storage = new StorageManager("vidply");
           this.draggableResizable = null;
-          this.settingsMenuVisible = false;
-          this.settingsMenu = null;
           this.settingsButton = null;
-          this.settingsMenuJustOpened = false;
-          this.resizeOptionButton = null;
-          this.resizeOptionText = null;
-          this.dragOptionButton = null;
-          this.dragOptionText = null;
-          this.resizeModeIndicator = null;
-          this.resizeModeIndicatorTimeout = null;
           this.transcriptResizeHandles = [];
           this.liveRegion = null;
           this.styleDialog = null;
@@ -6281,13 +6535,53 @@
             settingsClick: null,
             settingsKeydown: null,
             documentClick: null,
-            styleDialogKeydown: null
+            styleDialogKeydown: null,
+            floatingchange: null
           };
           this._cueUpdateTimeout = null;
           this._dashActiveLang = null;
           this._vttCache = /* @__PURE__ */ new Map();
           this.timeouts = /* @__PURE__ */ new Set();
           this.init();
+        }
+        // Back-compat getters for panel-owned state. External callers and
+        // internal reads (e.g. `this.settingsMenuVisible` inside other
+        // transcript methods) keep reading the same properties; the
+        // setters are no-ops because the panel is now the authoritative
+        // owner of those values.
+        get settingsMenu() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.settingsMenu) ?? null;
+        }
+        set settingsMenu(_v) {
+        }
+        get settingsMenuVisible() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.settingsMenuVisible) ?? false;
+        }
+        set settingsMenuVisible(_v) {
+        }
+        get settingsMenuJustOpened() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.justOpened) ?? false;
+        }
+        set settingsMenuJustOpened(_v) {
+        }
+        get dragOptionButton() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.dragOptionButton) ?? null;
+        }
+        get dragOptionText() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.dragOptionText) ?? null;
+        }
+        get resizeOptionButton() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.resizeOptionButton) ?? null;
+        }
+        get resizeOptionText() {
+          var _a;
+          return ((_a = this._panel) == null ? void 0 : _a.resizeOptionText) ?? null;
         }
         init() {
           this.setupMetadataHandlingOnLoad();
@@ -6318,6 +6612,12 @@
               }
             }
           });
+          this.handlers.floatingchange = (state) => {
+            if (state && this.isVisible) {
+              this.hideTranscript();
+            }
+          };
+          this.player.on("floatingchange", this.handlers.floatingchange);
         }
         /**
          * For streaming renderers (DASH), tell the renderer to activate the text
@@ -6348,6 +6648,10 @@
          * Show transcript window
          */
         showTranscript() {
+          var _a;
+          if ((_a = this.player.state) == null ? void 0 : _a.floating) {
+            return;
+          }
           this.player.invalidateTrackCache();
           if (this.transcriptWindow) {
             this.transcriptWindow.style.display = "flex";
@@ -6431,14 +6735,93 @@
           });
           this.settingsButton.appendChild(createIconElement("settings"));
           DOMUtils.attachTooltip(this.settingsButton, settingsAriaLabel, this.player.options.classPrefix);
+          this._panel = new DraggablePanel({
+            player: this.player,
+            namespace: "transcript",
+            settingsButton: this.settingsButton,
+            getDraggable: () => this.draggableResizable,
+            i18nKeys: {
+              enableDrag: "transcript.enableDragMode",
+              disableDrag: "transcript.disableDragMode",
+              enableDragAria: "transcript.enableDragModeAria",
+              disableDragAria: "transcript.disableDragModeAria",
+              enableResize: "transcript.enableResizeMode",
+              disableResize: "transcript.disableResizeMode",
+              enableResizeAria: "transcript.enableResizeModeAria",
+              disableResizeAria: "transcript.disableResizeModeAria",
+              closeMenu: "transcript.closeMenu"
+            },
+            menuAlign: "left",
+            getMenuParent: () => this.headerLeft ?? this.transcriptHeader ?? this.transcriptWindow,
+            // The transcript window itself is the anchor for the mode badge
+            // so it sits above the panel regardless of where the settings
+            // menu was opened from. The default class name is derived from
+            // the namespace → `{classPrefix}-transcript-mode-badge`.
+            getBadgeHost: () => this.transcriptWindow,
+            onDragItemClick: (panel) => {
+              this.toggleKeyboardDragMode();
+              panel.hide();
+            },
+            onResizeItemClick: (panel) => {
+              const enabled = this.toggleResizeMode({ focus: false });
+              if (enabled) {
+                panel.hide({ focusButton: false });
+                setTimeout(() => {
+                  var _a;
+                  (_a = this.transcriptWindow) == null ? void 0 : _a.focus({ preventScroll: true });
+                }, 20);
+              } else {
+                panel.hide({ focusButton: true });
+              }
+            },
+            buildExtraItems: ({ menu, itemClass, classPrefix, stripInlineTooltip }) => {
+              const styleOption = createMenuItem({
+                classPrefix,
+                itemClass,
+                icon: "settings",
+                label: "transcript.styleTranscript",
+                onClick: (e) => {
+                  var _a;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  (_a = this._panel) == null ? void 0 : _a.hide();
+                  setTimeout(() => {
+                    this.showStyleDialog();
+                  }, 50);
+                }
+              });
+              stripInlineTooltip(styleOption);
+              menu.appendChild(styleOption);
+              const timestampsOption = createMenuItem({
+                classPrefix,
+                itemClass,
+                icon: "clock",
+                label: "transcript.showTimestamps",
+                hasTextClass: true,
+                onClick: () => {
+                  this.toggleShowTimestamps();
+                }
+              });
+              timestampsOption.setAttribute("role", "switch");
+              timestampsOption.setAttribute(
+                "aria-checked",
+                this.showTimestamps ? "true" : "false"
+              );
+              stripInlineTooltip(timestampsOption);
+              this.showTimestampsButton = timestampsOption;
+              this.showTimestampsText = timestampsOption.querySelector(
+                `.${classPrefix}-settings-text`
+              );
+              this.updateShowTimestampsState();
+              menu.appendChild(timestampsOption);
+            }
+          });
           this.handlers.settingsClick = (e) => {
+            var _a, _b;
             e.preventDefault();
             e.stopPropagation();
-            if (this.settingsMenuVisible) {
-              this.hideSettingsMenu();
-            } else {
-              this.showSettingsMenu();
-            }
+            (_a = this._panel) == null ? void 0 : _a.markJustOpenedForClick();
+            (_b = this._panel) == null ? void 0 : _b.toggle();
           };
           this.settingsButton.addEventListener("click", this.handlers.settingsClick);
           this.handlers.settingsKeydown = (e) => {
@@ -6548,23 +6931,11 @@
             this.positionTranscript();
           }
           this.handlers.documentClick = (e) => {
-            const target = e.target;
-            if (this.settingsMenuJustOpened) {
-              return;
-            }
             if (this.styleDialogJustOpened) {
               return;
             }
-            if (this.settingsButton && this.settingsButton.contains(target)) {
-              return;
-            }
-            if (this.settingsMenu && this.settingsMenu.contains(target)) {
-              return;
-            }
-            if (this.settingsMenuVisible) {
-              this.hideSettingsMenu();
-            }
-            if (this.styleDialogVisible && this.styleDialog && !this.styleDialog.contains(target)) {
+            const target = e.target;
+            if (this.styleDialogVisible && this.styleDialog && target && !this.styleDialog.contains(target)) {
               this.hideStyleDialog();
             }
           };
@@ -7387,22 +7758,30 @@
           }
         }
         /**
-         * Toggle keyboard drag mode
+         * Toggle keyboard drag mode. Mirrors the sign-language flow: a
+         * persistent badge is shown on the transcript window while the mode
+         * is active, and a live-region announcement is made on each state
+         * change.
          */
         toggleKeyboardDragMode() {
-          var _a;
+          var _a, _b, _c;
           if (this.draggableResizable) {
             const wasEnabled = this.draggableResizable.keyboardDragMode;
             this.draggableResizable.toggleKeyboardDragMode();
             const isEnabled = this.draggableResizable.keyboardDragMode;
             if (!wasEnabled && isEnabled) {
               this.enableMoveMode();
+              (_a = this._panel) == null ? void 0 : _a.showBadge(i18n.t("transcript.dragModeBadge"));
+              this.announceLive(i18n.t("transcript.dragModeEnabled"));
+            } else if (wasEnabled && !isEnabled) {
+              (_b = this._panel) == null ? void 0 : _b.hideBadge();
+              this.announceLive(i18n.t("transcript.dragModeDisabled"));
             }
             this.updateDragOptionState();
             if (this.settingsMenuVisible) {
               this.hideSettingsMenu();
             }
-            (_a = this.transcriptWindow) == null ? void 0 : _a.focus({ preventScroll: true });
+            (_c = this.transcriptWindow) == null ? void 0 : _c.focus({ preventScroll: true });
           }
         }
         /**
@@ -7416,294 +7795,44 @@
           }
         }
         /**
-         * Show settings menu
+         * Show the settings menu. Delegates to the shared {@link DraggablePanel};
+         * kept as a named method so external callers (tests, other managers)
+         * that referenced the legacy API keep working.
          */
         showSettingsMenu() {
-          this.settingsMenuJustOpened = true;
-          setTimeout(() => {
-            this.settingsMenuJustOpened = false;
-          }, 350);
-          if (!this.documentClickHandlerAdded) {
-            setTimeout(() => {
-              const documentClick = this.handlers.documentClick;
-              if (documentClick) {
-                document.addEventListener("click", documentClick, {
-                  signal: this.player.lifecycleSignal
-                });
-              }
-              this.documentClickHandlerAdded = true;
-            }, 300);
-          }
-          if (this.settingsMenu) {
-            this.settingsMenu.style.display = "block";
-            this.settingsMenuVisible = true;
-            if (this.settingsButton) {
-              this.settingsButton.setAttribute("aria-expanded", "true");
-            }
-            this.attachSettingsMenuKeyboardNavigation();
-            this.positionSettingsMenuImmediate();
-            this.updateResizeOptionState();
-            setTimeout(() => {
-              const menu = this.settingsMenu;
-              if (!menu) return;
-              const menuItems = menu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`);
-              if (menuItems.length > 0) {
-                menuItems[0].setAttribute("tabindex", "0");
-                for (let i = 1; i < menuItems.length; i++) {
-                  menuItems[i].setAttribute("tabindex", "-1");
-                }
-                menuItems[0].focus({ preventScroll: true });
-              }
-            }, 50);
-            return;
-          }
-          this.settingsMenu = DOMUtils.createElement("div", {
-            className: `${this.player.options.classPrefix}-transcript-settings-menu`,
-            attributes: {
-              "role": "menu"
-            }
-          });
-          const keyboardDragOption = createMenuItem({
-            classPrefix: this.player.options.classPrefix,
-            itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
-            icon: "move",
-            label: "transcript.enableDragMode",
-            hasTextClass: true,
-            onClick: () => {
-              this.toggleKeyboardDragMode();
-              this.hideSettingsMenu();
-            }
-          });
-          keyboardDragOption.setAttribute("role", "switch");
-          keyboardDragOption.setAttribute("aria-checked", "false");
-          const dragTooltip = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
-          if (dragTooltip) dragTooltip.remove();
-          const dragButtonText = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
-          if (dragButtonText) dragButtonText.remove();
-          this.dragOptionButton = keyboardDragOption;
-          this.dragOptionText = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
-          this.updateDragOptionState();
-          const styleOption = createMenuItem({
-            classPrefix: this.player.options.classPrefix,
-            itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
-            icon: "settings",
-            label: "transcript.styleTranscript",
-            onClick: (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              this.hideSettingsMenu();
-              setTimeout(() => {
-                this.showStyleDialog();
-              }, 50);
-            }
-          });
-          const styleTooltip = styleOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
-          if (styleTooltip) styleTooltip.remove();
-          const styleButtonText = styleOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
-          if (styleButtonText) styleButtonText.remove();
-          const resizeOption = createMenuItem({
-            classPrefix: this.player.options.classPrefix,
-            itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
-            icon: "resize",
-            label: "transcript.enableResizeMode",
-            hasTextClass: true,
-            onClick: (event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              const enabled = this.toggleResizeMode({ focus: false });
-              if (enabled) {
-                this.hideSettingsMenu({ focusButton: false });
-                setTimeout(() => {
-                  if (this.transcriptWindow) {
-                    this.transcriptWindow.focus({ preventScroll: true });
-                  }
-                }, 20);
-              } else {
-                this.hideSettingsMenu({ focusButton: true });
-              }
-            }
-          });
-          resizeOption.setAttribute("role", "switch");
-          resizeOption.setAttribute("aria-checked", "false");
-          const resizeTooltip = resizeOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
-          if (resizeTooltip) resizeTooltip.remove();
-          const resizeButtonText = resizeOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
-          if (resizeButtonText) resizeButtonText.remove();
-          this.resizeOptionButton = resizeOption;
-          this.resizeOptionText = resizeOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
-          this.updateResizeOptionState();
-          const showTimestampsOption = createMenuItem({
-            classPrefix: this.player.options.classPrefix,
-            itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
-            icon: "clock",
-            label: "transcript.showTimestamps",
-            hasTextClass: true,
-            onClick: () => {
-              this.toggleShowTimestamps();
-            }
-          });
-          showTimestampsOption.setAttribute("role", "switch");
-          showTimestampsOption.setAttribute("aria-checked", this.showTimestamps ? "true" : "false");
-          const timestampsTooltip = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
-          if (timestampsTooltip) timestampsTooltip.remove();
-          const timestampsButtonText = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
-          if (timestampsButtonText) timestampsButtonText.remove();
-          this.showTimestampsButton = showTimestampsOption;
-          this.showTimestampsText = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
-          this.updateShowTimestampsState();
-          const closeOption = createMenuItem({
-            classPrefix: this.player.options.classPrefix,
-            itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
-            icon: "close",
-            label: "transcript.closeMenu",
-            onClick: () => {
-              this.hideSettingsMenu();
-            }
-          });
-          const closeTooltip = closeOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
-          if (closeTooltip) closeTooltip.remove();
-          const closeButtonText = closeOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
-          if (closeButtonText) closeButtonText.remove();
-          const settingsMenu = this.settingsMenu;
-          if (!settingsMenu) return;
-          settingsMenu.appendChild(keyboardDragOption);
-          settingsMenu.appendChild(resizeOption);
-          settingsMenu.appendChild(styleOption);
-          settingsMenu.appendChild(showTimestampsOption);
-          settingsMenu.appendChild(closeOption);
-          settingsMenu.style.visibility = "hidden";
-          settingsMenu.style.display = "block";
-          if (this.settingsButton && this.settingsButton.parentNode) {
-            this.settingsButton.insertAdjacentElement("afterend", settingsMenu);
-          } else if (this.headerLeft) {
-            this.headerLeft.appendChild(settingsMenu);
-          } else if (this.transcriptHeader) {
-            this.transcriptHeader.appendChild(settingsMenu);
-          } else if (this.transcriptWindow) {
-            this.transcriptWindow.appendChild(settingsMenu);
-          }
-          this.positionSettingsMenuImmediate();
-          requestAnimationFrame(() => {
-            if (this.settingsMenu) {
-              this.settingsMenu.style.visibility = "visible";
-            }
-          });
-          this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
-            settingsMenu,
-            this.settingsButton,
-            `.${this.player.options.classPrefix}-transcript-settings-item`,
-            () => this.hideSettingsMenu({ focusButton: true })
-          );
-          this.settingsMenuVisible = true;
-          settingsMenu.style.display = "block";
-          if (this.settingsButton) {
-            this.settingsButton.setAttribute("aria-expanded", "true");
-          }
-          this.updateResizeOptionState();
-          setTimeout(() => {
-            const menuItems = settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`);
-            if (menuItems.length > 0) {
-              menuItems[0].setAttribute("tabindex", "0");
-              for (let i = 1; i < menuItems.length; i++) {
-                menuItems[i].setAttribute("tabindex", "-1");
-              }
-              menuItems[0].focus({ preventScroll: true });
-            }
-          }, 50);
+          var _a;
+          (_a = this._panel) == null ? void 0 : _a.show();
         }
-        /**
-         * Position settings menu relative to settings button (immediate/synchronous)
-         */
-        positionSettingsMenuImmediate() {
-          if (!this.settingsMenu || !this.settingsButton) return;
-          const container = this.settingsButton.parentElement;
-          if (!container) return;
-          const buttonRect = this.settingsButton.getBoundingClientRect();
-          const containerRect = container.getBoundingClientRect();
-          const menuRect = this.settingsMenu.getBoundingClientRect();
-          const viewportHeight = window.innerHeight;
-          const buttonLeft = buttonRect.left - containerRect.left;
-          const buttonBottom = buttonRect.bottom - containerRect.top;
-          const buttonTop = buttonRect.top - containerRect.top;
-          const spaceBelow = viewportHeight - buttonRect.bottom;
-          const spaceAbove = buttonRect.top;
-          let menuTop = buttonBottom + 4;
-          if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
-            menuTop = buttonTop - menuRect.height - 4;
-            this.settingsMenu.classList.add("vidply-menu-above");
-          } else {
-            this.settingsMenu.classList.remove("vidply-menu-above");
-          }
-          this.settingsMenu.style.top = `${menuTop}px`;
-          this.settingsMenu.style.left = `${buttonLeft}px`;
-          this.settingsMenu.style.right = "auto";
-          this.settingsMenu.style.bottom = "auto";
-        }
-        /**
-         * Position settings menu relative to settings button (async for repositioning)
-         */
+        /** @see {@link showSettingsMenu} */
         positionSettingsMenu() {
-          if (!this.settingsMenu || !this.settingsButton) return;
-          requestAnimationFrame(() => {
-            setTimeout(() => {
-              this.positionSettingsMenuImmediate();
-            }, 10);
-          });
+          var _a;
+          (_a = this._panel) == null ? void 0 : _a.reposition();
         }
-        /**
-         * Attach keyboard navigation to settings menu
-         */
-        attachSettingsMenuKeyboardNavigation() {
-          if (!this.settingsMenu) return;
-          if (this.settingsMenuKeyHandler) {
-            this.settingsMenu.removeEventListener("keydown", this.settingsMenuKeyHandler, true);
-          }
-          const handler = attachMenuKeyboardNavigation(
-            this.settingsMenu,
-            this.settingsButton,
-            `.${this.player.options.classPrefix}-transcript-settings-item`,
-            () => this.hideSettingsMenu({ focusButton: true })
-          );
-          this.settingsMenuKeyHandler = handler;
-        }
-        /**
-         * Hide settings menu
-         */
+        /** @see {@link showSettingsMenu} */
         hideSettingsMenu({ focusButton = true } = {}) {
-          if (this.settingsMenu) {
-            this.settingsMenu.style.display = "none";
-            this.settingsMenuVisible = false;
-            this.settingsMenuJustOpened = false;
-            if (this.settingsMenuKeyHandler) {
-              this.settingsMenu.removeEventListener("keydown", this.settingsMenuKeyHandler, true);
-              this.settingsMenuKeyHandler = null;
-            }
-            if (this.settingsButton) {
-              this.settingsButton.setAttribute("aria-expanded", "false");
-              if (focusButton) {
-                this.settingsButton.focus({ preventScroll: true });
-              }
-            }
-          }
+          var _a;
+          (_a = this._panel) == null ? void 0 : _a.hide({ focusButton });
         }
         /**
          * Enable move mode (gives visual feedback)
          */
+        /**
+         * Brief pulse animation on the transcript window to confirm entry
+         * into keyboard drag mode. The textual hint that used to also flash
+         * here has been replaced by a persistent {@link DraggablePanel}
+         * badge (see `toggleKeyboardDragMode`), so this method only owns
+         * the 1s visual cue now.
+         */
         enableMoveMode() {
-          var _a, _b;
-          this.hideResizeModeIndicator();
-          (_a = this.transcriptWindow) == null ? void 0 : _a.classList.add(`${this.player.options.classPrefix}-transcript-move-mode`);
-          const tooltip = DOMUtils.createElement("div", {
-            className: `${this.player.options.classPrefix}-transcript-move-tooltip`,
-            textContent: "Drag with mouse or press D for keyboard drag mode"
-          });
-          (_b = this.transcriptHeader) == null ? void 0 : _b.appendChild(tooltip);
+          var _a;
+          (_a = this.transcriptWindow) == null ? void 0 : _a.classList.add(
+            `${this.player.options.classPrefix}-transcript-move-mode`
+          );
           setTimeout(() => {
             var _a2;
-            (_a2 = this.transcriptWindow) == null ? void 0 : _a2.classList.remove(`${this.player.options.classPrefix}-transcript-move-mode`);
-            if (tooltip.parentNode) {
-              tooltip.remove();
-            }
+            (_a2 = this.transcriptWindow) == null ? void 0 : _a2.classList.remove(
+              `${this.player.options.classPrefix}-transcript-move-mode`
+            );
           }, 2e3);
         }
         /**
@@ -7720,31 +7849,17 @@
           this.draggableResizable.enablePointerResizeMode({ focus });
           return true;
         }
+        // Thin delegates to the panel's refreshState. Kept as named methods
+        // so the existing internal call sites (e.g. `toggleKeyboardDragMode`
+        // and `toggleResizeMode`) read naturally without having to chain
+        // through the optional panel reference every time.
         updateDragOptionState() {
-          if (!this.dragOptionButton) {
-            return;
-          }
-          const isEnabled = Boolean(this.draggableResizable && this.draggableResizable.keyboardDragMode);
-          const text = isEnabled ? i18n.t("transcript.disableDragMode") : i18n.t("transcript.enableDragMode");
-          const ariaLabel = isEnabled ? i18n.t("transcript.disableDragModeAria") : i18n.t("transcript.enableDragModeAria");
-          this.dragOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
-          this.dragOptionButton.setAttribute("aria-label", ariaLabel);
-          if (this.dragOptionText) {
-            this.dragOptionText.textContent = text;
-          }
+          var _a;
+          (_a = this._panel) == null ? void 0 : _a.refreshDragState();
         }
         updateResizeOptionState() {
-          if (!this.resizeOptionButton) {
-            return;
-          }
-          const isEnabled = Boolean(this.draggableResizable && this.draggableResizable.pointerResizeMode);
-          const text = isEnabled ? i18n.t("transcript.disableResizeMode") : i18n.t("transcript.enableResizeMode");
-          const ariaLabel = isEnabled ? i18n.t("transcript.disableResizeModeAria") : i18n.t("transcript.enableResizeModeAria");
-          this.resizeOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
-          this.resizeOptionButton.setAttribute("aria-label", ariaLabel);
-          if (this.resizeOptionText) {
-            this.resizeOptionText.textContent = text;
-          }
+          var _a;
+          (_a = this._panel) == null ? void 0 : _a.refreshResizeState();
         }
         toggleShowTimestamps() {
           this.showTimestamps = !this.showTimestamps;
@@ -7776,38 +7891,27 @@
           savedPreferences.showTimestamps = this.showTimestamps;
           this.storage.saveTranscriptPreferences(savedPreferences);
         }
+        // Legacy shims kept for any external callers that still invoke the
+        // old transient-tooltip API. The persistent badge owned by the
+        // {@link DraggablePanel} now replaces the 3-second indicator, so
+        // these simply forward to the panel. Safe to remove once the next
+        // consumer sweep confirms no external references.
         showResizeModeIndicator() {
-          if (!this.transcriptHeader) {
-            return;
-          }
-          this.hideResizeModeIndicator();
-          const indicator = DOMUtils.createElement("div", {
-            className: `${this.player.options.classPrefix}-transcript-resize-tooltip`,
-            textContent: i18n.t("transcript.resizeModeHint") || "Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit."
-          });
-          this.transcriptHeader.appendChild(indicator);
-          this.resizeModeIndicator = indicator;
-          this.resizeModeIndicatorTimeout = this.setManagedTimeout(() => {
-            this.hideResizeModeIndicator();
-          }, 3e3);
+          var _a;
+          (_a = this._panel) == null ? void 0 : _a.showBadge(i18n.t("transcript.resizeModeBadge"));
         }
         hideResizeModeIndicator() {
-          if (this.resizeModeIndicatorTimeout) {
-            this.clearManagedTimeout(this.resizeModeIndicatorTimeout);
-            this.resizeModeIndicatorTimeout = null;
-          }
-          if (this.resizeModeIndicator && this.resizeModeIndicator.parentNode) {
-            this.resizeModeIndicator.remove();
-          }
-          this.resizeModeIndicator = null;
+          var _a;
+          (_a = this._panel) == null ? void 0 : _a.hideBadge();
         }
         onPointerResizeModeChange(enabled) {
+          var _a, _b;
           this.updateResizeOptionState();
           if (enabled) {
-            this.showResizeModeIndicator();
+            (_a = this._panel) == null ? void 0 : _a.showBadge(i18n.t("transcript.resizeModeBadge"));
             this.announceLive(i18n.t("transcript.resizeModeEnabled"));
           } else {
-            this.hideResizeModeIndicator();
+            (_b = this._panel) == null ? void 0 : _b.hideBadge();
             this.announceLive(i18n.t("transcript.resizeModeDisabled"));
           }
         }
@@ -7815,6 +7919,17 @@
          * Show style dialog
          */
         showStyleDialog() {
+          if (!this.documentClickHandlerAdded) {
+            setTimeout(() => {
+              const documentClick = this.handlers.documentClick;
+              if (documentClick) {
+                document.addEventListener("click", documentClick, {
+                  signal: this.player.lifecycleSignal
+                });
+              }
+              this.documentClickHandlerAdded = true;
+            }, 300);
+          }
           if (this.styleDialog) {
             this.styleDialog.style.display = "block";
             this.styleDialogVisible = true;
@@ -8120,6 +8235,10 @@
          */
         destroy() {
           this.hideResizeModeIndicator();
+          if (this._panel) {
+            this._panel.destroy();
+            this._panel = null;
+          }
           if (this.draggableResizable) {
             if (this.draggableResizable.pointerResizeMode) {
               this.draggableResizable.disablePointerResizeMode();
@@ -8146,6 +8265,9 @@
           }
           if (this.handlers.textcuesupdate) {
             this.player.off("textcuesupdate", this.handlers.textcuesupdate);
+          }
+          if (this.handlers.floatingchange) {
+            this.player.off("floatingchange", this.handlers.floatingchange);
           }
           if (this.settingsButton) {
             if (this.handlers.settingsClick) {
@@ -8174,11 +8296,8 @@
           this.transcriptHeader = null;
           this.transcriptContent = null;
           this.transcriptEntries = [];
-          this.settingsMenu = null;
           this.styleDialog = null;
           this.transcriptResizeHandles = [];
-          this.resizeOptionButton = null;
-          this.resizeOptionText = null;
           this.liveRegion = null;
           this._vttCache.clear();
         }
@@ -14335,40 +14454,8 @@
   init_i18n();
   init_StorageManager();
   init_PerformanceUtils();
-  var AudioDescriptionManagerModule = null;
-  var SignLanguageManagerModule = null;
-  var FloatingPlayerManagerModule = null;
-  async function loadAudioDescriptionManager() {
-    if (!AudioDescriptionManagerModule) {
-      const module = await Promise.resolve().then(() => (init_AudioDescriptionManager(), AudioDescriptionManager_exports));
-      AudioDescriptionManagerModule = module.AudioDescriptionManager;
-    }
-    return AudioDescriptionManagerModule;
-  }
-  async function loadSignLanguageManager() {
-    if (!SignLanguageManagerModule) {
-      const module = await Promise.resolve().then(() => (init_SignLanguageManager(), SignLanguageManager_exports));
-      SignLanguageManagerModule = module.SignLanguageManager;
-    }
-    return SignLanguageManagerModule;
-  }
-  async function loadFloatingPlayerManager() {
-    if (!FloatingPlayerManagerModule) {
-      const module = await Promise.resolve().then(() => (init_FloatingPlayerManager(), FloatingPlayerManager_exports));
-      FloatingPlayerManagerModule = module.FloatingPlayerManager;
-    }
-    return FloatingPlayerManagerModule;
-  }
-  var ALLOWED_MEDIA_TYPES = ["video", "audio"];
-  var PROTO_FORBIDDEN_KEYS3 = /* @__PURE__ */ new Set(["__proto__", "prototype", "constructor"]);
-  function isValidThemeVariableName(name) {
-    return /^--vidply-[A-Za-z0-9_-]{1,64}$/.test(name);
-  }
-  function isValidThemeVariableValue(value) {
-    if (typeof value !== "string") return false;
-    if (value.length > 200) return false;
-    return !/[<>{};@\\]/.test(value);
-  }
+
+  // src/utils/UrlSafe.ts
   function sanitizePosterUrl(input) {
     if (typeof input !== "string" || input.length === 0 || input.length > 4096) {
       return null;
@@ -14395,6 +14482,1113 @@
   function cssEscapeUrl(url) {
     return url.replace(/["()\\]/g, (m) => `\\${m}`);
   }
+  function toCssBackgroundImage(input) {
+    const safe = sanitizePosterUrl(input);
+    if (!safe) return null;
+    return `url("${cssEscapeUrl(safe)}")`;
+  }
+
+  // src/core/LazyInit.ts
+  var pendingByElement = /* @__PURE__ */ new WeakMap();
+  function observeForLazyInit(element, options, margin, factory) {
+    const existing = pendingByElement.get(element);
+    if (existing) {
+      existing.observer.unobserve(element);
+      pendingByElement.delete(element);
+    }
+    const rect = element.getBoundingClientRect();
+    if (rect.height < 20) {
+      factory(element, options);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            observer.unobserve(entry.target);
+            pendingByElement.delete(entry.target);
+            factory(entry.target, options);
+          }
+        });
+      },
+      { rootMargin: margin, threshold: 0 }
+    );
+    observer.observe(element);
+    pendingByElement.set(element, { observer, options });
+  }
+  function cancelLazyInit(element) {
+    const pending = pendingByElement.get(element);
+    if (pending) {
+      pending.observer.unobserve(element);
+      pendingByElement.delete(element);
+    }
+  }
+
+  // src/core/PseudoFullscreen.ts
+  var PseudoFullscreenController = class {
+    constructor(player) {
+      __publicField(this, "player");
+      // All of the "remember current style / scroll / viewport" slots used
+      // to restore state on exit. Kept private so the rest of the code
+      // base cannot poke into them.
+      __publicField(this, "originalScrollX");
+      __publicField(this, "originalScrollY");
+      __publicField(this, "originalBodyOverflow");
+      __publicField(this, "originalBodyPosition");
+      __publicField(this, "originalBodyWidth");
+      __publicField(this, "originalBodyHeight");
+      __publicField(this, "originalHtmlOverflow");
+      __publicField(this, "originalBodyBackground");
+      __publicField(this, "originalHtmlBackground");
+      __publicField(this, "originalViewport");
+      __publicField(this, "inertElements", []);
+      this.player = player;
+    }
+    enable() {
+      var _a;
+      const { player } = this;
+      player.state.fullscreen = true;
+      player.container.classList.add(`${player.options.classPrefix}-fullscreen`);
+      document.body.classList.add("vidply-fullscreen-active");
+      this.originalScrollX = window.scrollX || window.pageXOffset;
+      this.originalScrollY = window.scrollY || window.pageYOffset;
+      this.originalBodyOverflow = document.body.style.overflow;
+      this.originalBodyPosition = document.body.style.position;
+      this.originalBodyWidth = document.body.style.width;
+      this.originalBodyHeight = document.body.style.height;
+      this.originalHtmlOverflow = document.documentElement.style.overflow;
+      this.originalBodyBackground = document.body.style.background;
+      this.originalHtmlBackground = document.documentElement.style.background;
+      document.body.style.overflow = "hidden";
+      document.body.style.width = "100%";
+      document.body.style.height = "100%";
+      document.body.style.background = "#000";
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.style.background = "#000";
+      this.originalViewport = (_a = document.querySelector('meta[name="viewport"]')) == null ? void 0 : _a.getAttribute("content");
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (viewport) {
+        viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+      }
+      window.scrollTo(0, 0);
+      this.makeBackgroundInert();
+      player.emit("fullscreenchange", true);
+      player.emit("enterfullscreen");
+    }
+    /**
+     * Make every sibling of the player container (walking up to the body)
+     * `inert`. Scripts/styles are skipped so layout-time mutations still
+     * work. Elements that were already inert are left alone so we don't
+     * accidentally clear another author's inert marker on exit.
+     *
+     * Public because the real Fullscreen API handler also calls it — we
+     * need the same inert treatment when the browser grants real
+     * fullscreen, not only in the pseudo-fallback path.
+     */
+    makeBackgroundInert() {
+      this.inertElements = [];
+      let current = this.player.container;
+      while (current && current !== document.body && current !== document.documentElement) {
+        const parentElement = current.parentElement;
+        if (parentElement) {
+          Array.from(parentElement.children).forEach((sibling) => {
+            if (sibling !== current && sibling.nodeType === Node.ELEMENT_NODE && !sibling.hasAttribute("inert") && sibling.tagName !== "SCRIPT" && sibling.tagName !== "STYLE" && sibling.tagName !== "LINK" && sibling.tagName !== "META") {
+              sibling.setAttribute("inert", "");
+              this.inertElements.push(sibling);
+            }
+          });
+        }
+        current = parentElement;
+      }
+    }
+    /** Public counterpart of {@link makeBackgroundInert}. */
+    restoreBackgroundInteractivity() {
+      if (this.inertElements.length > 0) {
+        for (const el of this.inertElements) {
+          el.removeAttribute("inert");
+        }
+        this.inertElements = [];
+      }
+    }
+    disable() {
+      document.body.classList.remove("vidply-fullscreen-active");
+      this.restoreBackgroundInteractivity();
+      if (this.originalBodyOverflow !== void 0) {
+        document.body.style.overflow = this.originalBodyOverflow;
+        this.originalBodyOverflow = void 0;
+      }
+      if (this.originalBodyPosition !== void 0) {
+        document.body.style.position = this.originalBodyPosition;
+        this.originalBodyPosition = void 0;
+      }
+      if (this.originalBodyWidth !== void 0) {
+        document.body.style.width = this.originalBodyWidth;
+        this.originalBodyWidth = void 0;
+      }
+      if (this.originalBodyHeight !== void 0) {
+        document.body.style.height = this.originalBodyHeight;
+        this.originalBodyHeight = void 0;
+      }
+      if (this.originalHtmlOverflow !== void 0) {
+        document.documentElement.style.overflow = this.originalHtmlOverflow;
+        this.originalHtmlOverflow = void 0;
+      }
+      if (this.originalBodyBackground !== void 0) {
+        document.body.style.background = this.originalBodyBackground;
+        this.originalBodyBackground = void 0;
+      }
+      if (this.originalHtmlBackground !== void 0) {
+        document.documentElement.style.background = this.originalHtmlBackground;
+        this.originalHtmlBackground = void 0;
+      }
+      if (this.originalViewport !== void 0) {
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport && this.originalViewport !== null) {
+          viewport.setAttribute("content", this.originalViewport);
+        }
+        this.originalViewport = void 0;
+      }
+      if (this.originalScrollX !== void 0 && this.originalScrollY !== void 0) {
+        window.scrollTo(this.originalScrollX, this.originalScrollY);
+        this.originalScrollX = void 0;
+        this.originalScrollY = void 0;
+      }
+      this.player.emit("exitfullscreen");
+    }
+  };
+
+  // src/core/ThemeManager.ts
+  init_Sanitize();
+  var PLAYER_THEMES = ["dark", "light", "minimal", "high-contrast"];
+  function isValidThemeVariableName(name) {
+    return /^--vidply-[A-Za-z0-9_-]{1,64}$/.test(name);
+  }
+  function isValidThemeVariableValue(value) {
+    if (typeof value !== "string") return false;
+    if (value.length > 200) return false;
+    return !/[<>{};@\\]/.test(value);
+  }
+  var ThemeManager = class {
+    constructor(player) {
+      __publicField(this, "player");
+      this.player = player;
+    }
+    /**
+     * Apply `options.theme` and validate-and-apply every entry in
+     * `options.themeVariables` to the container. Bad entries are logged
+     * and skipped so a single malformed override cannot poison siblings.
+     */
+    apply() {
+      const player = this.player;
+      if (!player.container) return;
+      const themeClasses = PLAYER_THEMES.map((t) => `${player.options.classPrefix}-theme-${t}`);
+      player.container.classList.remove(...themeClasses);
+      const theme = player.options.theme;
+      if (theme && PLAYER_THEMES.includes(theme)) {
+        player.container.classList.add(`${player.options.classPrefix}-theme-${theme}`);
+      }
+      if (player.options.themeVariables && typeof player.options.themeVariables === "object") {
+        for (const [rawKey, rawValue] of Object.entries(player.options.themeVariables)) {
+          if (isForbiddenKey(rawKey)) continue;
+          const cssVar = rawKey.startsWith("--vidply-") ? rawKey : `--vidply-${rawKey}`;
+          if (!isValidThemeVariableName(cssVar)) {
+            player.log(`[VidPly] Ignoring invalid theme variable name: ${rawKey}`, "warn");
+            continue;
+          }
+          if (!isValidThemeVariableValue(rawValue)) {
+            player.log(`[VidPly] Ignoring invalid theme variable value for ${cssVar}`, "warn");
+            continue;
+          }
+          player.container.style.setProperty(cssVar, rawValue);
+        }
+      }
+    }
+    /**
+     * Swap the active theme at runtime. Emits `themechange` with the old
+     * and new names so external consumers (e.g. telemetry) can react.
+     */
+    set(themeName, customVariables = {}) {
+      const player = this.player;
+      const previousTheme = player.options.theme;
+      player.options.theme = themeName;
+      if (customVariables && Object.keys(customVariables).length > 0) {
+        player.options.themeVariables = {
+          ...player.options.themeVariables,
+          ...customVariables
+        };
+      }
+      this.apply();
+      player.emit("themechange", {
+        theme: themeName,
+        previousTheme,
+        customVariables: player.options.themeVariables
+      });
+    }
+    get() {
+      return this.player.options.theme;
+    }
+    /** Set a single CSS variable override, validating the (name, value)
+     *  pair before it reaches the DOM. Callers must pass a string value. */
+    setVariable(variableName, value) {
+      const player = this.player;
+      if (!player.container) return;
+      const cssVar = variableName.startsWith("--vidply-") ? variableName : `--vidply-${variableName}`;
+      if (!isValidThemeVariableName(cssVar) || !isValidThemeVariableValue(value)) {
+        player.log(`[VidPly] Ignoring unsafe setThemeVariable(${variableName})`, "warn");
+        return;
+      }
+      player.container.style.setProperty(cssVar, value);
+      if (!player.options.themeVariables) {
+        player.options.themeVariables = {};
+      }
+      player.options.themeVariables[variableName] = value;
+    }
+    /**
+     * Reset to the default theme (dark) and clear every override that was
+     * applied through `options.themeVariables`.
+     */
+    reset() {
+      const player = this.player;
+      if (player.container && player.options.themeVariables) {
+        Object.keys(player.options.themeVariables).forEach((key) => {
+          const cssVar = key.startsWith("--vidply-") ? key : `--vidply-${key}`;
+          player.container.style.removeProperty(cssVar);
+        });
+      }
+      const previousTheme = player.options.theme;
+      player.options.theme = "dark";
+      player.options.themeVariables = {};
+      this.apply();
+      player.emit("themechange", { theme: "dark", previousTheme });
+    }
+  };
+
+  // src/core/PosterManager.ts
+  var PosterManager = class {
+    constructor(player) {
+      __publicField(this, "player");
+      this.player = player;
+    }
+    /**
+     * Convert a relative poster path into an absolute URL. Absolute URLs
+     * (http/https) and root-relative paths (`/foo`) are returned as-is.
+     * Falls back to the raw string on any parse error — a malformed URL
+     * is still better than throwing and breaking the caller.
+     */
+    resolvePath(posterPath) {
+      if (!posterPath) return "";
+      if (posterPath.match(/^(https?:|\/)/)) {
+        return posterPath;
+      }
+      try {
+        const posterUrl = new URL(posterPath, window.location.href);
+        return posterUrl.href;
+      } catch {
+        return posterPath;
+      }
+    }
+    /**
+     * Capture a frame from the underlying video as a data URL suitable
+     * for use as `<video>.poster`. Returns `null` when the element is
+     * not a video, the renderer isn't ready, or the capture fails.
+     *
+     * When the control bar has a hidden "preview video" element (used
+     * for the seek hover thumbnail), we prefer that so we don't disturb
+     * the user's current playback position.
+     */
+    async generateFromVideo(time = 10) {
+      const player = this.player;
+      if (player.element.tagName !== "VIDEO") return null;
+      const renderer = player.renderer;
+      if (!renderer || !renderer.media || renderer.media.tagName !== "VIDEO") {
+        return null;
+      }
+      const video = renderer.media;
+      if (!video.duration || video.duration < time) {
+        time = Math.min(time, Math.max(1, video.duration * 0.1));
+      }
+      let videoToUse = video;
+      if (player.controlBar && player.controlBar.previewVideo && player.controlBar.previewSupported) {
+        videoToUse = player.controlBar.previewVideo;
+      }
+      const restoreState = videoToUse === video;
+      return await captureVideoFrame(videoToUse, time, {
+        restoreState,
+        quality: 0.9
+      });
+    }
+    /**
+     * Auto-generate a poster from the video at the 10-second mark if the
+     * content doesn't already have one. No-op for audio elements and for
+     * media that ships with a poster attribute or option.
+     */
+    async autoGenerate() {
+      const player = this.player;
+      const hasPoster = player.element.getAttribute("poster") || player.element.poster || player.options.poster;
+      if (hasPoster) return;
+      if (player.element.tagName !== "VIDEO") return;
+      if (!player.state.duration || player.state.duration === 0) {
+        await new Promise((resolve) => {
+          const onLoadedMetadata = () => {
+            player.element.removeEventListener("loadedmetadata", onLoadedMetadata);
+            resolve();
+          };
+          if (player.element.readyState >= 1) {
+            resolve();
+          } else {
+            player.element.addEventListener("loadedmetadata", onLoadedMetadata);
+          }
+        });
+      }
+      const posterDataURL = await this.generateFromVideo(10);
+      if (posterDataURL) {
+        player.element.poster = posterDataURL;
+        player.log("Auto-generated poster from video frame at 10 seconds", "info");
+        this.showOverlay();
+      }
+    }
+    /**
+     * Apply the poster as a CSS background on the video wrapper. This is
+     * used to keep the poster visible behind the play button when the
+     * browser wouldn't render `<video>.poster` itself (e.g. during
+     * fallback / transitional states).
+     */
+    showOverlay() {
+      const player = this.player;
+      if (!player.videoWrapper || player.element.tagName !== "VIDEO") return;
+      const poster = player.element.getAttribute("poster") || player.element.poster || player.options.poster;
+      if (!poster) return;
+      const resolvedPoster = poster.startsWith("data:") ? poster : this.resolvePath(poster);
+      player.videoWrapper.style.setProperty("--vidply-poster-image", `url("${resolvedPoster}")`);
+      player.videoWrapper.classList.add("vidply-forced-poster");
+      if (player._isAudioContent && player.container) {
+        player.container.classList.add("vidply-audio-content");
+      } else if (player.container) {
+        player.container.classList.remove("vidply-audio-content");
+      }
+    }
+    hideOverlay() {
+      const player = this.player;
+      if (!player.videoWrapper) return;
+      player.videoWrapper.classList.remove("vidply-forced-poster");
+      player.videoWrapper.style.removeProperty("--vidply-poster-image");
+    }
+  };
+
+  // src/core/ResumeManager.ts
+  init_DOMUtils();
+  init_i18n();
+  init_PerformanceUtils();
+  var ResumeManager = class {
+    constructor(player) {
+      __publicField(this, "player");
+      __publicField(this, "saveProgressThrottled", null);
+      __publicField(this, "resumeChecked", false);
+      __publicField(this, "listenersAttached", false);
+      this.player = player;
+    }
+    /**
+     * Wire up the progress-save + resume-check listeners. Safe to call
+     * multiple times: repeat calls are no-ops so a re-init path during
+     * source switching doesn't stack duplicate listeners.
+     */
+    init() {
+      if (this.listenersAttached) return;
+      this.listenersAttached = true;
+      this.saveProgressThrottled = throttle(() => this.saveProgress(), 5e3);
+      this.player.on("timeupdate", () => {
+        var _a;
+        if (this.player.state.playing && this.player.state.duration > 0) {
+          (_a = this.saveProgressThrottled) == null ? void 0 : _a.call(this);
+        }
+      });
+      this.player.on("loadedmetadata", () => {
+        if (!this.resumeChecked) {
+          this.resumeChecked = true;
+          this.checkForResume();
+        }
+      });
+      this.player.on("ended", () => {
+        const videoId = this.player.getVideoId();
+        if (videoId) {
+          this.player.storage.clearWatchProgress(videoId);
+        }
+      });
+    }
+    /**
+     * Persist current playback progress to storage. No-op when the
+     * feature is disabled, when the video is too short / at the very
+     * start, or when playback is effectively complete.
+     */
+    saveProgress() {
+      const player = this.player;
+      if (!player.options.resumePlayback) return;
+      const videoId = player.getVideoId();
+      if (!videoId) return;
+      const currentTime = player.state.currentTime;
+      const duration = player.state.duration;
+      if (duration < 30 || currentTime < player.options.resumeThreshold) {
+        return;
+      }
+      const percentage = currentTime / duration * 100;
+      if (percentage > 95) return;
+      player.storage.saveWatchProgress(videoId, currentTime, duration);
+    }
+    /**
+     * Check for a previously-saved resume point for the current video
+     * and either auto-resume or show the prompt depending on
+     * `options.resumePrompt`. Safe to call manually, e.g. after an
+     * external source change.
+     */
+    checkForResume() {
+      const player = this.player;
+      if (!player.options.resumePlayback) return;
+      const videoId = player.getVideoId();
+      if (!videoId) return;
+      const progress = player.storage.getWatchProgress(videoId);
+      if (!progress) return;
+      const { currentTime, duration, percentage } = progress;
+      const threshold = player.options.resumeThreshold;
+      if (currentTime < threshold || percentage > 95) {
+        player.storage.clearWatchProgress(videoId);
+        return;
+      }
+      if (player.state.duration > 0 && Math.abs(player.state.duration - duration) > 5) {
+        player.storage.clearWatchProgress(videoId);
+        return;
+      }
+      if (player.options.resumePrompt) {
+        this.showPrompt(currentTime);
+      } else {
+        player.seek(currentTime);
+      }
+    }
+    /**
+     * Format a time value as `mm:ss` (or `hh:mm:ss` once we cross an
+     * hour) for display in the resume prompt label. No localisation is
+     * needed because the surrounding prompt text is already localised
+     * by i18n.
+     */
+    formatTime(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor(seconds % 3600 / 60);
+      const s = Math.floor(seconds % 60);
+      if (h > 0) {
+        return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+      }
+      return `${m}:${s.toString().padStart(2, "0")}`;
+    }
+    showPrompt(savedTime) {
+      const player = this.player;
+      if (player.state.resumePromptVisible || !player.container) return;
+      const formattedTime = this.formatTime(savedTime);
+      const promptText = i18n.t("resume.prompt", { time: formattedTime });
+      player.resumePromptElement = DOMUtils.createElement("div", {
+        className: `${player.options.classPrefix}-resume-prompt`,
+        attributes: {
+          role: "dialog",
+          "aria-label": promptText,
+          "aria-modal": "true"
+        }
+      });
+      const promptContent = DOMUtils.createElement("div", {
+        className: `${player.options.classPrefix}-resume-prompt-content`
+      });
+      const promptMessage = DOMUtils.createElement("p", {
+        className: `${player.options.classPrefix}-resume-prompt-message`,
+        textContent: promptText
+      });
+      const buttonContainer = DOMUtils.createElement("div", {
+        className: `${player.options.classPrefix}-resume-prompt-buttons`
+      });
+      const resumeButton = DOMUtils.createElement("button", {
+        className: `${player.options.classPrefix}-resume-prompt-button ${player.options.classPrefix}-resume-prompt-button-primary`,
+        textContent: i18n.t("resume.resume"),
+        attributes: { type: "button" }
+      });
+      resumeButton.addEventListener("click", () => {
+        this.hidePrompt();
+        player.seek(savedTime);
+        player.play();
+      });
+      const startOverButton = DOMUtils.createElement("button", {
+        className: `${player.options.classPrefix}-resume-prompt-button`,
+        textContent: i18n.t("resume.startOver"),
+        attributes: { type: "button" }
+      });
+      startOverButton.addEventListener("click", () => {
+        this.hidePrompt();
+        const videoId = player.getVideoId();
+        if (videoId) player.storage.clearWatchProgress(videoId);
+        player.seek(0);
+        player.play();
+      });
+      const handleKeydown = (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          this.hidePrompt();
+        }
+      };
+      player.resumePromptElement.addEventListener("keydown", handleKeydown);
+      buttonContainer.appendChild(resumeButton);
+      buttonContainer.appendChild(startOverButton);
+      promptContent.appendChild(promptMessage);
+      promptContent.appendChild(buttonContainer);
+      player.resumePromptElement.appendChild(promptContent);
+      player.container.appendChild(player.resumePromptElement);
+      player.state.resumePromptVisible = true;
+      requestAnimationFrame(() => {
+        resumeButton.focus();
+      });
+      player.emit("resumepromptshow", { savedTime });
+    }
+    hidePrompt() {
+      const player = this.player;
+      if (!player.resumePromptElement) return;
+      player.resumePromptElement.remove();
+      player.resumePromptElement = null;
+      player.state.resumePromptVisible = false;
+      player.emit("resumeprompthide");
+    }
+  };
+
+  // src/core/ResponsiveManager.ts
+  var ResponsiveManager = class {
+    constructor(player) {
+      __publicField(this, "player");
+      __publicField(this, "orientationQuery", null);
+      __publicField(this, "orientationHandler", null);
+      this.player = player;
+    }
+    setup() {
+      this.setupResizeTracking();
+      this.setupOrientationTracking();
+      this.setupFullscreenTracking();
+    }
+    setupResizeTracking() {
+      const player = this.player;
+      if (typeof ResizeObserver !== "undefined") {
+        player.resizeObserver = new ResizeObserver((entries) => {
+          for (const entry of entries) {
+            const width = entry.contentRect.width;
+            const controlBar = player.controlBar;
+            if (controlBar && typeof controlBar.updateControlsForViewport === "function") {
+              controlBar.updateControlsForViewport(width);
+            }
+            if (player.transcriptManager && player.transcriptManager.isVisible) {
+              player.transcriptManager.positionTranscript();
+            }
+          }
+        });
+        player.resizeObserver.observe(player.container);
+        return;
+      }
+      player.resizeHandler = () => {
+        const width = player.container.clientWidth;
+        const controlBar = player.controlBar;
+        if (controlBar && typeof controlBar.updateControlsForViewport === "function") {
+          controlBar.updateControlsForViewport(width);
+        }
+        if (player.transcriptManager && player.transcriptManager.isVisible) {
+          if (!player.transcriptManager.draggableResizable || !player.transcriptManager.draggableResizable.manuallyPositioned) {
+            player.transcriptManager.positionTranscript();
+          }
+        }
+      };
+      window.addEventListener("resize", player.resizeHandler, { signal: player.lifecycleSignal });
+    }
+    setupOrientationTracking() {
+      const player = this.player;
+      if (!window.matchMedia) return;
+      this.orientationHandler = () => {
+        setTimeout(() => {
+          if (player.transcriptManager && player.transcriptManager.isVisible) {
+            if (!player.transcriptManager.draggableResizable || !player.transcriptManager.draggableResizable.manuallyPositioned) {
+              player.transcriptManager.positionTranscript();
+            }
+          }
+        }, 100);
+      };
+      const orientationQuery = window.matchMedia("(orientation: portrait)");
+      if (orientationQuery.addEventListener) {
+        orientationQuery.addEventListener("change", this.orientationHandler, {
+          signal: player.lifecycleSignal
+        });
+      } else if (orientationQuery.addListener) {
+        orientationQuery.addListener(this.orientationHandler);
+      }
+      this.orientationQuery = orientationQuery;
+      player.orientationQuery = orientationQuery;
+      player.orientationHandler = this.orientationHandler;
+    }
+    setupFullscreenTracking() {
+      const player = this.player;
+      player.fullscreenChangeHandler = () => {
+        const doc = document;
+        const isFullscreen = Boolean(
+          document.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement
+        );
+        if (player.state.fullscreen === isFullscreen) return;
+        player.state.fullscreen = isFullscreen;
+        if (!player.pseudoFullscreen) {
+          player.pseudoFullscreen = new PseudoFullscreenController(player);
+        }
+        if (isFullscreen) {
+          player.container.classList.add(`${player.options.classPrefix}-fullscreen`);
+          document.body.classList.add("vidply-fullscreen-active");
+          player.pseudoFullscreen.makeBackgroundInert();
+        } else {
+          player.container.classList.remove(`${player.options.classPrefix}-fullscreen`);
+          document.body.classList.remove("vidply-fullscreen-active");
+          player.pseudoFullscreen.restoreBackgroundInteractivity();
+          player._disablePseudoFullscreen();
+        }
+        player.emit("fullscreenchange", isFullscreen);
+        if (player.controlBar) {
+          player.controlBar.updateFullscreenButton();
+        }
+        if (player.signLanguageWrapper && player.signLanguageWrapper.style.display !== "none") {
+          const isMobileDevice = window.innerWidth < 768;
+          if (isMobileDevice) {
+            player.setupSignLanguageInteraction();
+          }
+          player.setManagedTimeout(() => {
+            requestAnimationFrame(() => {
+              player.storage.saveSignLanguagePreferences({ size: null });
+              if (player.signLanguageWrapper) {
+                player.signLanguageWrapper.style.width = isFullscreen ? "400px" : "280px";
+              }
+              player.constrainSignLanguagePosition();
+            });
+          }, 500);
+        }
+      };
+      const opts = { signal: player.lifecycleSignal };
+      document.addEventListener("fullscreenchange", player.fullscreenChangeHandler, opts);
+      document.addEventListener("webkitfullscreenchange", player.fullscreenChangeHandler, opts);
+      document.addEventListener("mozfullscreenchange", player.fullscreenChangeHandler, opts);
+      document.addEventListener("MSFullscreenChange", player.fullscreenChangeHandler, opts);
+    }
+    /**
+     * Tear down listeners that aren't covered by the Player's
+     * lifecycle AbortController. The `window.resize` and
+     * `document.fullscreenchange` listeners are already cleaned up
+     * via `{signal}`; only the ResizeObserver and old-Safari
+     * matchMedia listener need an explicit removal.
+     */
+    cleanup() {
+      const player = this.player;
+      if (player.resizeObserver) {
+        player.resizeObserver.disconnect();
+        player.resizeObserver = null;
+      }
+      player.resizeHandler = null;
+      player.fullscreenChangeHandler = null;
+      if (this.orientationQuery && this.orientationHandler) {
+        if (this.orientationQuery.removeEventListener) {
+          this.orientationQuery.removeEventListener("change", this.orientationHandler);
+        } else if (this.orientationQuery.removeListener) {
+          this.orientationQuery.removeListener(this.orientationHandler);
+        }
+        this.orientationQuery = null;
+        this.orientationHandler = null;
+      }
+      player.orientationQuery = null;
+      player.orientationHandler = null;
+    }
+  };
+
+  // src/core/MetadataAlertsManager.ts
+  var MetadataAlertsManager = class {
+    constructor(player) {
+      __publicField(this, "player");
+      __publicField(this, "cueChangeHandler", null);
+      __publicField(this, "alertHandlers", /* @__PURE__ */ new Map());
+      this.player = player;
+    }
+    /** The `cuechange` handler this manager installed on the metadata
+     *  track. Exposed so Player can mirror it onto itself for legacy
+     *  access (some tests poke at `player.metadataCueChangeHandler`). */
+    get cuechangeListener() {
+      return this.cueChangeHandler;
+    }
+    setupHandling() {
+      const player = this.player;
+      const setupMetadata = () => {
+        const textTracks = player.textTracks;
+        const metadataTrack = textTracks.find((track) => track.kind === "metadata");
+        if (!metadataTrack) {
+          if (player.options.debug) player.log("[Metadata] No metadata track found");
+          return;
+        }
+        if (metadataTrack.mode === "disabled") {
+          metadataTrack.mode = "hidden";
+        }
+        if (this.cueChangeHandler) {
+          metadataTrack.removeEventListener("cuechange", this.cueChangeHandler);
+        }
+        this.cueChangeHandler = () => {
+          const activeCues = Array.from(metadataTrack.activeCues || []);
+          if (activeCues.length > 0 && player.options.debug) {
+            player.log("[Metadata] Active cues:", activeCues.map((c) => ({
+              start: c.startTime,
+              end: c.endTime,
+              text: c.text
+            })));
+          }
+          activeCues.forEach((cue) => this.handleCue(cue));
+        };
+        metadataTrack.addEventListener("cuechange", this.cueChangeHandler);
+        player.metadataCueChangeHandler = this.cueChangeHandler;
+        if (player.options.debug) {
+          const cueCount = metadataTrack.cues ? metadataTrack.cues.length : 0;
+          player.log("[Metadata] Track enabled,", cueCount, "cues available");
+        }
+      };
+      setupMetadata();
+      player.on("loadedmetadata", setupMetadata);
+    }
+    /**
+     * Sanitise a user-supplied selector string. Returns `null` for
+     * anything that isn't obviously safe: non-string input, empty
+     * after trimming, or too long to bound selector-engine cost.
+     */
+    normalizeSelector(selector) {
+      if (typeof selector !== "string") return null;
+      const trimmed = selector.trim();
+      if (!trimmed) return null;
+      if (trimmed.length > 200) return null;
+      if (trimmed.startsWith("#") || trimmed.startsWith(".") || trimmed.startsWith("[")) {
+        return trimmed;
+      }
+      return `#${trimmed}`;
+    }
+    resolveConfig(map, key) {
+      if (!map || !key) return null;
+      if (Object.prototype.hasOwnProperty.call(map, key)) {
+        return map[key];
+      }
+      const withoutHash = key.replace(/^#/, "");
+      if (Object.prototype.hasOwnProperty.call(map, withoutHash)) {
+        return map[withoutHash];
+      }
+      return null;
+    }
+    /**
+     * Remember the original title/message text before a hashtag cue
+     * overwrites them, so `restoreContent` can roll back on the next
+     * cue boundary. Idempotent — a second call for the same element
+     * does not overwrite the already-cached value.
+     */
+    cacheContent(element, config = {}) {
+      var _a, _b;
+      if (!element) return;
+      const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
+      const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
+      const titleEl = element.querySelector(titleSelector);
+      if (titleEl && !titleEl.dataset.vidplyAlertTitleOriginal) {
+        titleEl.dataset.vidplyAlertTitleOriginal = ((_a = titleEl.textContent) == null ? void 0 : _a.trim()) ?? "";
+      }
+      const messageEl = element.querySelector(messageSelector);
+      if (messageEl && !messageEl.dataset.vidplyAlertMessageOriginal) {
+        messageEl.dataset.vidplyAlertMessageOriginal = ((_b = messageEl.textContent) == null ? void 0 : _b.trim()) ?? "";
+      }
+    }
+    restoreContent(element, config = {}) {
+      if (!element) return;
+      const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
+      const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
+      const titleEl = element.querySelector(titleSelector);
+      if (titleEl && titleEl.dataset.vidplyAlertTitleOriginal) {
+        titleEl.textContent = titleEl.dataset.vidplyAlertTitleOriginal;
+      }
+      const messageEl = element.querySelector(messageSelector);
+      if (messageEl && messageEl.dataset.vidplyAlertMessageOriginal) {
+        messageEl.textContent = messageEl.dataset.vidplyAlertMessageOriginal;
+      }
+    }
+    /**
+     * Move focus to one of the well-known targets understood by the
+     * alert system, or to a named selector. Never silently errors — an
+     * unresolved target is simply a no-op.
+     */
+    focusTarget(target, fallbackElement = null) {
+      var _a, _b, _c;
+      if (!target || target === "none") return;
+      if (target === "alert" && fallbackElement) {
+        fallbackElement.focus({ preventScroll: true });
+        return;
+      }
+      const player = this.player;
+      if (target === "player") {
+        (_a = player.container) == null ? void 0 : _a.focus({ preventScroll: true });
+        return;
+      }
+      if (target === "media") {
+        player.element.focus({ preventScroll: true });
+        return;
+      }
+      if (target === "playButton") {
+        const playButton = (_c = (_b = player.controlBar) == null ? void 0 : _b.controls) == null ? void 0 : _c.playPause;
+        playButton == null ? void 0 : playButton.focus({ preventScroll: true });
+        return;
+      }
+      if (typeof target === "string") {
+        const targetElement = document.querySelector(target);
+        if (targetElement) {
+          if (targetElement.tabIndex === -1 && !targetElement.hasAttribute("tabindex")) {
+            targetElement.setAttribute("tabindex", "-1");
+          }
+          targetElement.focus({ preventScroll: true });
+        }
+      }
+    }
+    /**
+     * The public alert entry point. Pulls config out of
+     * `options.metadataAlerts`, locates the DOM element, and applies
+     * show/focus/continue logic per configuration.
+     */
+    handleAlert(selector, options = {}) {
+      const player = this.player;
+      if (!selector) return void 0;
+      const config = this.resolveConfig(player.options.metadataAlerts, selector) || {};
+      const element = options.element || this.resolveElement(selector);
+      if (!element) {
+        if (player.options.debug) player.log("[Metadata] Alert element not found:", selector);
+        return void 0;
+      }
+      if (player.options.debug) {
+        player.log("[Metadata] Handling alert", selector, { reason: options.reason, config });
+      }
+      this.cacheContent(element, config);
+      if (!element.dataset.vidplyAlertOriginalDisplay) {
+        element.dataset.vidplyAlertOriginalDisplay = element.style.display || "";
+      }
+      if (!element.dataset.vidplyAlertDisplay) {
+        element.dataset.vidplyAlertDisplay = config.display || "block";
+      }
+      const shouldShow = options.show !== void 0 ? options.show : config.show !== false;
+      if (shouldShow) {
+        const displayValue = config.display || element.dataset.vidplyAlertDisplay || "block";
+        element.style.display = displayValue;
+        element.hidden = false;
+        element.removeAttribute("hidden");
+        element.setAttribute("aria-hidden", "false");
+        element.setAttribute("data-vidply-alert-active", "true");
+      }
+      const shouldReset = config.resetContent !== false && options.reason === "focus";
+      if (shouldReset) this.restoreContent(element, config);
+      const shouldFocus = options.focus !== void 0 ? options.focus : config.focusOnShow ?? options.reason !== "focus";
+      if (shouldShow && shouldFocus) {
+        if (element.tabIndex === -1 && !element.hasAttribute("tabindex")) {
+          element.setAttribute("tabindex", "-1");
+        }
+        element.focus({ preventScroll: true });
+      }
+      if (shouldShow && config.autoScroll !== false && options.autoScroll !== false) {
+        element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      const continueSelector = config.continueButton;
+      if (continueSelector) {
+        let continueButton = null;
+        if (continueSelector === "self") {
+          continueButton = element;
+        } else if (element.matches(continueSelector)) {
+          continueButton = element;
+        } else {
+          continueButton = element.querySelector(continueSelector) || document.querySelector(continueSelector);
+        }
+        if (continueButton && !this.alertHandlers.has(selector)) {
+          const handler = () => {
+            const hideOnContinue = config.hideOnContinue !== false;
+            if (hideOnContinue) {
+              const originalDisplay = element.dataset.vidplyAlertOriginalDisplay || "";
+              element.style.display = config.hideDisplay || originalDisplay || "none";
+              element.setAttribute("aria-hidden", "true");
+              element.removeAttribute("data-vidply-alert-active");
+            }
+            if (config.resume !== false && player.state.paused) {
+              player.play();
+            }
+            const focusTarget = config.focusTarget || "playButton";
+            player.setManagedTimeout(() => {
+              this.focusTarget(focusTarget, element);
+            }, config.focusDelay ?? 100);
+          };
+          continueButton.addEventListener("click", handler);
+          this.alertHandlers.set(selector, { button: continueButton, handler });
+        }
+      }
+      return element;
+    }
+    handleHashtags(hashtags) {
+      if (!Array.isArray(hashtags) || hashtags.length === 0) return;
+      const player = this.player;
+      const configMap = player.options.metadataHashtags;
+      if (!configMap) return;
+      hashtags.forEach((tag) => {
+        const config = this.resolveConfig(configMap, tag);
+        if (!config) return;
+        const selector = this.normalizeSelector(config.alert || config.selector || config.target);
+        if (!selector) return;
+        const element = this.resolveElement(selector);
+        if (!element) {
+          if (player.options.debug) player.log("[Metadata] Hashtag target not found:", selector);
+          return;
+        }
+        if (player.options.debug) {
+          player.log("[Metadata] Handling hashtag", tag, { selector, config });
+        }
+        this.cacheContent(element, config);
+        if (config.title) {
+          const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
+          const titleEl = element.querySelector(titleSelector);
+          if (titleEl) titleEl.textContent = config.title;
+        }
+        if (config.message) {
+          const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
+          const messageEl = element.querySelector(messageSelector);
+          if (messageEl) messageEl.textContent = config.message;
+        }
+        const show = config.show !== false;
+        const focus = config.focus !== void 0 ? config.focus : false;
+        this.handleAlert(selector, {
+          element,
+          show,
+          focus,
+          autoScroll: config.autoScroll,
+          reason: "hashtag"
+        });
+      });
+    }
+    /**
+     * Parse a single metadata cue for directives (`PAUSE`, `FOCUS:x`,
+     * `#hashtag`), emit the corresponding public events, and execute
+     * DOM side-effects only when `options.metadataDirectives` is set.
+     */
+    handleCue(cue) {
+      const player = this.player;
+      const text = cue.text.trim();
+      if (player.options.debug) {
+        player.log("[Metadata] Processing cue:", { time: cue.startTime, text });
+      }
+      player.emit("metadata", {
+        time: cue.startTime,
+        endTime: cue.endTime,
+        text,
+        cue
+      });
+      if (text.includes("PAUSE")) {
+        if (!player.state.paused) {
+          if (player.options.debug) player.log("[Metadata] Pausing video at", cue.startTime);
+          player.pause();
+        }
+        player.emit("metadata:pause", { time: cue.startTime, text });
+      }
+      const focusMatch = text.match(/FOCUS:([\w#-]{1,128})/);
+      if (focusMatch) {
+        const targetSelector = focusMatch[1];
+        const normalizedSelector = this.normalizeSelector(targetSelector);
+        const targetElement = this.resolveElement(normalizedSelector);
+        if (targetElement) {
+          if (player.options.debug) player.log("[Metadata] Focusing element:", normalizedSelector);
+          if (targetElement.tabIndex === -1 && !targetElement.hasAttribute("tabindex")) {
+            targetElement.setAttribute("tabindex", "-1");
+          }
+          player.setManagedTimeout(() => {
+            targetElement.focus({ preventScroll: true });
+          }, 10);
+        } else if (player.options.debug && player.options.metadataDirectives) {
+          player.log("[Metadata] Element not found:", normalizedSelector || targetSelector);
+        }
+        player.emit("metadata:focus", {
+          time: cue.startTime,
+          target: targetSelector,
+          selector: normalizedSelector,
+          element: targetElement,
+          text
+        });
+        if (player.options.metadataDirectives && normalizedSelector) {
+          this.handleAlert(normalizedSelector, {
+            element: targetElement,
+            reason: "focus"
+          });
+        }
+      }
+      const hashtags = text.match(/#[\w-]{1,64}/g);
+      if (hashtags && hashtags.length > 0) {
+        const safeTags = hashtags.slice(0, 32);
+        if (player.options.debug) player.log("[Metadata] Hashtags found:", safeTags);
+        player.emit("metadata:hashtags", {
+          time: cue.startTime,
+          hashtags: safeTags,
+          text
+        });
+        if (player.options.metadataDirectives) this.handleHashtags(safeTags);
+      }
+    }
+    /**
+     * Resolve a metadata-cue selector inside the configured directive
+     * scope. Returns `null` when directives are disabled or the
+     * selector doesn't resolve. Container-scoped resolution is the
+     * default so a malicious caption cannot focus a login-form input
+     * or trigger a dialog elsewhere on the page.
+     */
+    resolveElement(selector) {
+      const player = this.player;
+      const mode = player.options.metadataDirectives;
+      if (!mode) return null;
+      if (!selector) return null;
+      try {
+        if (mode === true || mode === "global") {
+          return document.querySelector(selector);
+        }
+        const root = player.container || player.element.parentElement || document;
+        return root.querySelector(selector);
+      } catch {
+        return null;
+      }
+    }
+    /** Tear down the per-alert click handlers and the cuechange
+     *  listener. Called from Player.destroy(). */
+    cleanup() {
+      if (this.alertHandlers.size > 0) {
+        this.alertHandlers.forEach(({ button, handler }) => {
+          if (button && handler) button.removeEventListener("click", handler);
+        });
+        this.alertHandlers.clear();
+      }
+      this.cueChangeHandler = null;
+    }
+  };
+
+  // src/core/Player.ts
+  var AudioDescriptionManagerModule = null;
+  var SignLanguageManagerModule = null;
+  var FloatingPlayerManagerModule = null;
+  async function loadAudioDescriptionManager() {
+    if (!AudioDescriptionManagerModule) {
+      const module = await Promise.resolve().then(() => (init_AudioDescriptionManager(), AudioDescriptionManager_exports));
+      AudioDescriptionManagerModule = module.AudioDescriptionManager;
+    }
+    return AudioDescriptionManagerModule;
+  }
+  async function loadSignLanguageManager() {
+    if (!SignLanguageManagerModule) {
+      const module = await Promise.resolve().then(() => (init_SignLanguageManager(), SignLanguageManager_exports));
+      SignLanguageManagerModule = module.SignLanguageManager;
+    }
+    return SignLanguageManagerModule;
+  }
+  async function loadFloatingPlayerManager() {
+    if (!FloatingPlayerManagerModule) {
+      const module = await Promise.resolve().then(() => (init_FloatingPlayerManager(), FloatingPlayerManager_exports));
+      FloatingPlayerManagerModule = module.FloatingPlayerManager;
+    }
+    return FloatingPlayerManagerModule;
+  }
+  var ALLOWED_MEDIA_TYPES = ["video", "audio"];
   var playerInstanceCounter = 0;
   var _Player = class _Player extends EventEmitter {
     constructor(element, options = {}) {
@@ -14422,24 +15616,31 @@
       __publicField(this, "instanceId");
       __publicField(this, "_audioDescriptionDesiredState");
       __publicField(this, "_fallbackSources", null);
-      __publicField(this, "_inertElements", []);
       __publicField(this, "_isAudioContent");
       __publicField(this, "_isFallingBack");
       __publicField(this, "_managersLoading", null);
-      __publicField(this, "_originalBodyBackground");
-      __publicField(this, "_originalBodyHeight");
-      __publicField(this, "_originalBodyOverflow");
-      __publicField(this, "_originalBodyPosition");
-      __publicField(this, "_originalBodyWidth");
       __publicField(this, "_originalElement");
-      __publicField(this, "_originalHtmlBackground");
-      __publicField(this, "_originalHtmlOverflow");
-      __publicField(this, "_originalScrollX");
-      __publicField(this, "_originalScrollY");
-      __publicField(this, "_originalViewport");
+      /** Lazily-created on first pseudo-fullscreen entry. Owns the scroll /
+       *  inert / viewport bookkeeping that used to live as `_original*`
+       *  fields directly on the player. */
+      __publicField(this, "pseudoFullscreen", null);
+      /** Owns `applyTheme`/`setTheme`/`setThemeVariable`/`resetTheme`. Player
+       *  keeps delegating public methods so the existing API is unchanged. */
+      __publicField(this, "themeManager");
+      /** Owns poster resolution, canvas-capture, and overlay show/hide. */
+      __publicField(this, "posterManager");
+      /** Owns resume-playback prompt + progress persistence. Lazily
+       *  created the first time `initResumePlayback` is called so sites
+       *  that don't enable the feature don't pay the DOM / listener cost. */
+      __publicField(this, "resumeManager", null);
+      /** Owns resize-observer, orientation matchMedia, and the
+       *  cross-vendor fullscreenchange listeners. */
+      __publicField(this, "responsiveManager");
+      /** Owns `kind=metadata` text-track directives (PAUSE, FOCUS,
+       *  #hashtag) + the per-selector alert UI. Lazily created on first
+       *  `setupMetadataHandling()` call. */
+      __publicField(this, "metadataAlertsManager", null);
       __publicField(this, "_pendingSource", null);
-      __publicField(this, "_resumeChecked");
-      __publicField(this, "_saveProgressThrottled", null);
       __publicField(this, "_sourceElementsCache", null);
       __publicField(this, "_sourceElementsDirty", true);
       __publicField(this, "_switchingRenderer");
@@ -14454,7 +15655,8 @@
       __publicField(this, "currentSource", null);
       __publicField(this, "debouncedPositionPlayOverlay", null);
       __publicField(this, "fullscreenChangeHandler", null);
-      __publicField(this, "metadataAlertHandlers", /* @__PURE__ */ new Map());
+      /** Mirrored from `MetadataAlertsManager` so the TextTrack cleanup
+       *  path in `destroy()` can still find it by a fixed field name. */
       __publicField(this, "metadataCueChangeHandler", null);
       __publicField(this, "noticeElement", null);
       __publicField(this, "noticeTimeout", null);
@@ -14686,6 +15888,9 @@
       this.noticeElement = null;
       this.noticeTimeout = null;
       this.storage = new StorageManager("vidply");
+      this.themeManager = new ThemeManager(this);
+      this.posterManager = new PosterManager(this);
+      this.responsiveManager = new ResponsiveManager(this);
       const savedPrefs = this.storage.getPlayerPreferences();
       if (savedPrefs) {
         if (typeof savedPrefs.volume === "number") this.options.volume = savedPrefs.volume;
@@ -14717,8 +15922,6 @@
         resumePromptVisible: false
       };
       this.resumePromptElement = null;
-      this._saveProgressThrottled = null;
-      this._resumeChecked = false;
       this.originalSrc = null;
       this.audioDescriptionSrc = this.options.audioDescriptionSrc;
       this.signLanguageSrc = this.options.signLanguageSrc;
@@ -14743,7 +15946,6 @@
       this.keyboardManager = null;
       this.settingsDialog = null;
       this.metadataCueChangeHandler = null;
-      this.metadataAlertHandlers = /* @__PURE__ */ new Map();
       this.audioDescriptionManager = null;
       this.signLanguageManager = null;
       this._managersLoading = null;
@@ -14822,6 +16024,40 @@
         }
       });
       this.init();
+    }
+    /**
+     * Manually schedule a lazy-initialised player for `selector` /
+     * `element`. The player is constructed the first time the element
+     * scrolls within `margin` of the viewport; if `IntersectionObserver`
+     * is unavailable the player is constructed immediately.
+     *
+     * Returns a handle whose `cancel()` method removes the pending
+     * observation, or `null` if no observation was scheduled (element
+     * missing or eager fallback took effect).
+     *
+     * Implemented as a real static method (rather than a post-construction
+     * assignment from `index.ts`) so the API belongs to the `Player`
+     * symbol itself — which makes it easier to tree-shake and reason about.
+     */
+    static observeLazy(selector, options = {}, margin = "200px") {
+      const element = typeof selector === "string" ? document.querySelector(selector) : selector;
+      if (!element) {
+        console.warn("VidPly: Element not found for lazy observation");
+        return null;
+      }
+      if ("IntersectionObserver" in window) {
+        observeForLazyInit(
+          element,
+          options,
+          margin,
+          (target, opts) => {
+            new _Player(target, opts);
+          }
+        );
+        return { cancel: () => cancelLazyInit(element) };
+      }
+      new _Player(element, options);
+      return null;
     }
     /** Convenience getter for subsystems that take an AbortSignal. */
     get lifecycleSignal() {
@@ -15137,28 +16373,16 @@
       return null;
     }
     /**
-     * Initialize resume playback functionality
+     * Initialise the resume-playback feature. Lazily constructs a
+     * `ResumeManager` on first use so disabled pages don't pay the DOM
+     * / listener cost. Repeat calls are safe — the manager's own
+     * `init()` is idempotent.
      */
     initResumePlayback() {
-      this._saveProgressThrottled = throttle(() => this.saveProgress(), 5e3);
-      this.on("timeupdate", () => {
-        var _a;
-        if (this.state.playing && this.state.duration > 0) {
-          (_a = this._saveProgressThrottled) == null ? void 0 : _a.call(this);
-        }
-      });
-      this.on("loadedmetadata", () => {
-        if (!this._resumeChecked) {
-          this._resumeChecked = true;
-          this.checkForResume();
-        }
-      });
-      this.on("ended", () => {
-        const videoId = this.getVideoId();
-        if (videoId) {
-          this.storage.clearWatchProgress(videoId);
-        }
-      });
+      if (!this.resumeManager) {
+        this.resumeManager = new ResumeManager(this);
+      }
+      this.resumeManager.init();
     }
     /**
      * Get a unique identifier for the current video
@@ -15195,238 +16419,40 @@
       }
       return "v_" + Math.abs(hash).toString(36);
     }
-    /**
-     * Save current playback progress
-     */
+    // Resume-playback delegates. Implementations live in
+    // `core/ResumeManager.ts`; these stubs keep the public API.
     saveProgress() {
-      if (!this.options.resumePlayback) return;
-      const videoId = this.getVideoId();
-      if (!videoId) return;
-      const currentTime = this.state.currentTime;
-      const duration = this.state.duration;
-      if (duration < 30 || currentTime < this.options.resumeThreshold) {
-        return;
-      }
-      const percentage = currentTime / duration * 100;
-      if (percentage > 95) {
-        return;
-      }
-      this.storage.saveWatchProgress(videoId, currentTime, duration);
+      var _a;
+      (_a = this.resumeManager) == null ? void 0 : _a.saveProgress();
     }
-    // ============================================
-    // Theme Methods
-    // ============================================
-    /**
-     * Check if there's saved progress and potentially show a resume prompt
-     */
     checkForResume() {
-      if (!this.options.resumePlayback) return;
-      const videoId = this.getVideoId();
-      if (!videoId) return;
-      const progress = this.storage.getWatchProgress(videoId);
-      if (!progress) return;
-      const { currentTime, duration, percentage } = progress;
-      if (currentTime < this.options.resumeThreshold || percentage > 95) {
-        this.storage.clearWatchProgress(videoId);
-        return;
-      }
-      if (this.state.duration > 0 && Math.abs(this.state.duration - duration) > 5) {
-        this.storage.clearWatchProgress(videoId);
-        return;
-      }
-      if (this.options.resumePrompt) {
-        this.showResumePrompt(currentTime);
-      } else {
-        this.seek(currentTime);
-      }
+      var _a;
+      (_a = this.resumeManager) == null ? void 0 : _a.checkForResume();
     }
-    /**
-     * Format time for display (mm:ss or hh:mm:ss)
-     * @param {number} seconds - Time in seconds
-     * @returns {string} Formatted time string
-     */
-    _formatResumeTime(seconds) {
-      const h = Math.floor(seconds / 3600);
-      const m = Math.floor(seconds % 3600 / 60);
-      const s = Math.floor(seconds % 60);
-      if (h > 0) {
-        return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-      }
-      return `${m}:${s.toString().padStart(2, "0")}`;
-    }
-    /**
-     * Show the resume prompt overlay
-     * @param {number} savedTime - Time to resume from
-     */
     showResumePrompt(savedTime) {
-      if (this.state.resumePromptVisible || !this.container) return;
-      const formattedTime = this._formatResumeTime(savedTime);
-      const promptText = i18n.t("resume.prompt", { time: formattedTime });
-      this.resumePromptElement = DOMUtils.createElement("div", {
-        className: `${this.options.classPrefix}-resume-prompt`,
-        attributes: {
-          "role": "dialog",
-          "aria-label": promptText,
-          "aria-modal": "true"
-        }
-      });
-      const promptContent = DOMUtils.createElement("div", {
-        className: `${this.options.classPrefix}-resume-prompt-content`
-      });
-      const promptMessage = DOMUtils.createElement("p", {
-        className: `${this.options.classPrefix}-resume-prompt-message`,
-        textContent: promptText
-      });
-      const buttonContainer = DOMUtils.createElement("div", {
-        className: `${this.options.classPrefix}-resume-prompt-buttons`
-      });
-      const resumeButton = DOMUtils.createElement("button", {
-        className: `${this.options.classPrefix}-resume-prompt-button ${this.options.classPrefix}-resume-prompt-button-primary`,
-        textContent: i18n.t("resume.resume"),
-        attributes: {
-          "type": "button"
-        }
-      });
-      resumeButton.addEventListener("click", () => {
-        this.hideResumePrompt();
-        this.seek(savedTime);
-        this.play();
-      });
-      const startOverButton = DOMUtils.createElement("button", {
-        className: `${this.options.classPrefix}-resume-prompt-button`,
-        textContent: i18n.t("resume.startOver"),
-        attributes: {
-          "type": "button"
-        }
-      });
-      startOverButton.addEventListener("click", () => {
-        this.hideResumePrompt();
-        const videoId = this.getVideoId();
-        if (videoId) {
-          this.storage.clearWatchProgress(videoId);
-        }
-        this.seek(0);
-        this.play();
-      });
-      const handleKeydown = (e) => {
-        if (e.key === "Escape") {
-          e.preventDefault();
-          e.stopPropagation();
-          this.hideResumePrompt();
-        }
-      };
-      this.resumePromptElement.addEventListener("keydown", handleKeydown);
-      buttonContainer.appendChild(resumeButton);
-      buttonContainer.appendChild(startOverButton);
-      promptContent.appendChild(promptMessage);
-      promptContent.appendChild(buttonContainer);
-      this.resumePromptElement.appendChild(promptContent);
-      this.container.appendChild(this.resumePromptElement);
-      this.state.resumePromptVisible = true;
-      requestAnimationFrame(() => {
-        resumeButton.focus();
-      });
-      this.emit("resumepromptshow", { savedTime });
+      var _a;
+      (_a = this.resumeManager) == null ? void 0 : _a.showPrompt(savedTime);
     }
-    /**
-     * Hide the resume prompt overlay
-     */
     hideResumePrompt() {
-      if (!this.resumePromptElement) return;
-      this.resumePromptElement.remove();
-      this.resumePromptElement = null;
-      this.state.resumePromptVisible = false;
-      this.emit("resumeprompthide");
+      var _a;
+      (_a = this.resumeManager) == null ? void 0 : _a.hidePrompt();
     }
-    /**
-     * Apply the current theme to the player container
-     */
+    // Theme delegates. All four keep their original names so external
+    // callers keep working; the real work is in `core/ThemeManager.ts`.
     applyTheme() {
-      if (!this.container) return;
-      const themeClasses = _Player.THEMES.map(
-        (t) => `${this.options.classPrefix}-theme-${t}`
-      );
-      this.container.classList.remove(...themeClasses);
-      const theme = this.options.theme;
-      if (theme && _Player.THEMES.includes(theme)) {
-        this.container.classList.add(`${this.options.classPrefix}-theme-${theme}`);
-      }
-      if (this.options.themeVariables && typeof this.options.themeVariables === "object") {
-        for (const [rawKey, rawValue] of Object.entries(this.options.themeVariables)) {
-          if (PROTO_FORBIDDEN_KEYS3.has(rawKey)) continue;
-          const cssVar = rawKey.startsWith("--vidply-") ? rawKey : `--vidply-${rawKey}`;
-          if (!isValidThemeVariableName(cssVar)) {
-            this.log(`[VidPly] Ignoring invalid theme variable name: ${rawKey}`, "warn");
-            continue;
-          }
-          if (!isValidThemeVariableValue(rawValue)) {
-            this.log(`[VidPly] Ignoring invalid theme variable value for ${cssVar}`, "warn");
-            continue;
-          }
-          this.container.style.setProperty(cssVar, rawValue);
-        }
-      }
+      this.themeManager.apply();
     }
-    /**
-     * Set the player theme at runtime
-     * @param {string} themeName - Theme name: 'dark', 'light', 'minimal', 'high-contrast'
-     * @param {Object} customVariables - Optional CSS variable overrides
-     */
     setTheme(themeName, customVariables = {}) {
-      const previousTheme = this.options.theme;
-      this.options.theme = themeName;
-      if (customVariables && Object.keys(customVariables).length > 0) {
-        this.options.themeVariables = {
-          ...this.options.themeVariables,
-          ...customVariables
-        };
-      }
-      this.applyTheme();
-      this.emit("themechange", {
-        theme: themeName,
-        previousTheme,
-        customVariables: this.options.themeVariables
-      });
+      this.themeManager.set(themeName, customVariables);
     }
-    /**
-     * Get the current theme name
-     * @returns {string} Current theme name
-     */
     getTheme() {
-      return this.options.theme;
+      return this.themeManager.get();
     }
-    /**
-     * Set a single CSS variable override
-     * @param {string} variableName - Variable name (with or without --vidply-prefix)
-     * @param {string} value - CSS value
-     */
     setThemeVariable(variableName, value) {
-      if (!this.container) return;
-      const cssVar = variableName.startsWith("--vidply-") ? variableName : `--vidply-${variableName}`;
-      if (!isValidThemeVariableName(cssVar) || !isValidThemeVariableValue(value)) {
-        this.log(`[VidPly] Ignoring unsafe setThemeVariable(${variableName})`, "warn");
-        return;
-      }
-      this.container.style.setProperty(cssVar, value);
-      if (!this.options.themeVariables) {
-        this.options.themeVariables = {};
-      }
-      this.options.themeVariables[variableName] = value;
+      this.themeManager.setVariable(variableName, value);
     }
-    /**
-     * Reset theme to default (dark) and clear custom variables
-     */
     resetTheme() {
-      if (this.container && this.options.themeVariables) {
-        Object.keys(this.options.themeVariables).forEach((key) => {
-          const cssVar = key.startsWith("--vidply-") ? key : `--vidply-${key}`;
-          this.container.style.removeProperty(cssVar);
-        });
-      }
-      this.options.theme = "dark";
-      this.options.themeVariables = {};
-      this.applyTheme();
-      this.emit("themechange", { theme: "dark", previousTheme: this.options.theme });
+      this.themeManager.reset();
     }
     createContainer() {
       var _a;
@@ -15787,106 +16813,21 @@
     findTrackElement(track) {
       return this.trackElements.find((el) => el.track === track);
     }
-    /**
-     * Convert relative poster path to absolute URL
-     * @param {string} posterPath - Poster path (relative or absolute)
-     * @returns {string} Absolute URL
-     */
+    // Poster delegates. Implementations live in `core/PosterManager.ts`.
     resolvePosterPath(posterPath) {
-      if (!posterPath) {
-        return "";
-      }
-      if (posterPath.match(/^(https?:|\/)/)) {
-        return posterPath;
-      }
-      try {
-        const posterUrl = new URL(posterPath, window.location.href);
-        return posterUrl.href;
-      } catch {
-        return posterPath;
-      }
+      return this.posterManager.resolvePath(posterPath);
     }
-    /**
-     * Generate a poster image from video frame at specified time
-     * @param {number} time - Time in seconds (default: 10)
-     * @returns {Promise<string|null>} Data URL of the poster image or null if failed
-     */
     async generatePosterFromVideo(time = 10) {
-      if (this.element.tagName !== "VIDEO") {
-        return null;
-      }
-      const renderer = this.renderer;
-      if (!renderer || !renderer.media || renderer.media.tagName !== "VIDEO") {
-        return null;
-      }
-      const video = renderer.media;
-      if (!video.duration || video.duration < time) {
-        time = Math.min(time, Math.max(1, video.duration * 0.1));
-      }
-      let videoToUse = video;
-      if (this.controlBar && this.controlBar.previewVideo && this.controlBar.previewSupported) {
-        videoToUse = this.controlBar.previewVideo;
-      }
-      const restoreState = videoToUse === video;
-      return await captureVideoFrame(videoToUse, time, {
-        restoreState,
-        quality: 0.9
-      });
+      return this.posterManager.generateFromVideo(time);
     }
-    /**
-     * Auto-generate poster from video if none is provided
-     */
     async autoGeneratePoster() {
-      const hasPoster = this.element.getAttribute("poster") || this.element.poster || this.options.poster;
-      if (hasPoster) {
-        return;
-      }
-      if (this.element.tagName !== "VIDEO") {
-        return;
-      }
-      if (!this.state.duration || this.state.duration === 0) {
-        await new Promise((resolve) => {
-          const onLoadedMetadata = () => {
-            this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
-            resolve();
-          };
-          if (this.element.readyState >= 1) {
-            resolve();
-          } else {
-            this.element.addEventListener("loadedmetadata", onLoadedMetadata);
-          }
-        });
-      }
-      const posterDataURL = await this.generatePosterFromVideo(10);
-      if (posterDataURL) {
-        this.element.poster = posterDataURL;
-        this.log("Auto-generated poster from video frame at 10 seconds", "info");
-        this.showPosterOverlay();
-      }
+      return this.posterManager.autoGenerate();
     }
     showPosterOverlay() {
-      if (!this.videoWrapper || this.element.tagName !== "VIDEO") {
-        return;
-      }
-      const poster = this.element.getAttribute("poster") || this.element.poster || this.options.poster;
-      if (!poster) {
-        return;
-      }
-      const resolvedPoster = poster.startsWith("data:") ? poster : this.resolvePosterPath(poster);
-      this.videoWrapper.style.setProperty("--vidply-poster-image", `url("${resolvedPoster}")`);
-      this.videoWrapper.classList.add("vidply-forced-poster");
-      if (this._isAudioContent && this.container) {
-        this.container.classList.add("vidply-audio-content");
-      } else if (this.container) {
-        this.container.classList.remove("vidply-audio-content");
-      }
+      this.posterManager.showOverlay();
     }
     hidePosterOverlay() {
-      if (!this.videoWrapper) {
-        return;
-      }
-      this.videoWrapper.classList.remove("vidply-forced-poster");
-      this.videoWrapper.style.removeProperty("--vidply-poster-image");
+      this.posterManager.hideOverlay();
     }
     /**
      * Set a managed timeout that will be cleaned up on destroy
@@ -16344,112 +17285,19 @@
         this.enterFullscreen();
       }
     }
-    // Pseudo-fullscreen fallback for iOS and browsers without Fullscreen API
+    // Pseudo-fullscreen fallback for iOS and browsers without Fullscreen API.
+    // All of the real DOM + scroll + inert bookkeeping lives in
+    // `PseudoFullscreenController`; Player keeps these thin delegates so
+    // call sites elsewhere in the class stay readable.
     _enablePseudoFullscreen() {
-      var _a;
-      this.state.fullscreen = true;
-      this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
-      document.body.classList.add("vidply-fullscreen-active");
-      this._originalScrollX = window.scrollX || window.pageXOffset;
-      this._originalScrollY = window.scrollY || window.pageYOffset;
-      this._originalBodyOverflow = document.body.style.overflow;
-      this._originalBodyPosition = document.body.style.position;
-      this._originalBodyWidth = document.body.style.width;
-      this._originalBodyHeight = document.body.style.height;
-      this._originalHtmlOverflow = document.documentElement.style.overflow;
-      this._originalBodyBackground = document.body.style.background;
-      this._originalHtmlBackground = document.documentElement.style.background;
-      document.body.style.overflow = "hidden";
-      document.body.style.width = "100%";
-      document.body.style.height = "100%";
-      document.body.style.background = "#000";
-      document.documentElement.style.overflow = "hidden";
-      document.documentElement.style.background = "#000";
-      this._originalViewport = (_a = document.querySelector('meta[name="viewport"]')) == null ? void 0 : _a.getAttribute("content");
-      const viewport = document.querySelector('meta[name="viewport"]');
-      if (viewport) {
-        viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+      if (!this.pseudoFullscreen) {
+        this.pseudoFullscreen = new PseudoFullscreenController(this);
       }
-      window.scrollTo(0, 0);
-      this._makeBackgroundInert();
-      this.emit("fullscreenchange", true);
-      this.emit("enterfullscreen");
-    }
-    /**
-     * Makes all page content except the fullscreen player inert (non-focusable)
-     * This prevents keyboard navigation from focusing on hidden background elements
-     */
-    _makeBackgroundInert() {
-      this._inertElements = [];
-      let current = this.container;
-      while (current && current !== document.body && current !== document.documentElement) {
-        const parentElement = current.parentElement;
-        if (parentElement) {
-          Array.from(parentElement.children).forEach((sibling) => {
-            if (sibling !== current && sibling.nodeType === Node.ELEMENT_NODE && !sibling.hasAttribute("inert") && sibling.tagName !== "SCRIPT" && sibling.tagName !== "STYLE" && sibling.tagName !== "LINK" && sibling.tagName !== "META") {
-              sibling.setAttribute("inert", "");
-              this._inertElements.push(sibling);
-            }
-          });
-        }
-        current = parentElement;
-      }
-    }
-    /**
-     * Restores interactivity to elements that were made inert during fullscreen
-     */
-    _restoreBackgroundInteractivity() {
-      if (this._inertElements) {
-        this._inertElements.forEach((el) => {
-          el.removeAttribute("inert");
-        });
-        this._inertElements = [];
-      }
+      this.pseudoFullscreen.enable();
     }
     _disablePseudoFullscreen() {
-      document.body.classList.remove("vidply-fullscreen-active");
-      this._restoreBackgroundInteractivity();
-      if (this._originalBodyOverflow !== void 0) {
-        document.body.style.overflow = this._originalBodyOverflow;
-        delete this._originalBodyOverflow;
-      }
-      if (this._originalBodyPosition !== void 0) {
-        document.body.style.position = this._originalBodyPosition;
-        delete this._originalBodyPosition;
-      }
-      if (this._originalBodyWidth !== void 0) {
-        document.body.style.width = this._originalBodyWidth;
-        delete this._originalBodyWidth;
-      }
-      if (this._originalBodyHeight !== void 0) {
-        document.body.style.height = this._originalBodyHeight;
-        delete this._originalBodyHeight;
-      }
-      if (this._originalHtmlOverflow !== void 0) {
-        document.documentElement.style.overflow = this._originalHtmlOverflow;
-        delete this._originalHtmlOverflow;
-      }
-      if (this._originalBodyBackground !== void 0) {
-        document.body.style.background = this._originalBodyBackground;
-        delete this._originalBodyBackground;
-      }
-      if (this._originalHtmlBackground !== void 0) {
-        document.documentElement.style.background = this._originalHtmlBackground;
-        delete this._originalHtmlBackground;
-      }
-      if (this._originalViewport !== void 0) {
-        const viewport = document.querySelector('meta[name="viewport"]');
-        if (viewport && this._originalViewport !== null) {
-          viewport.setAttribute("content", this._originalViewport);
-        }
-        delete this._originalViewport;
-      }
-      if (this._originalScrollX !== void 0 && this._originalScrollY !== void 0) {
-        window.scrollTo(this._originalScrollX, this._originalScrollY);
-        delete this._originalScrollX;
-        delete this._originalScrollY;
-      }
-      this.emit("exitfullscreen");
+      var _a;
+      (_a = this.pseudoFullscreen) == null ? void 0 : _a.disable();
     }
     // Picture-in-Picture
     enterPiP() {
@@ -16739,100 +17587,14 @@
         console.log("[VidPly]", ...messages);
       }
     }
-    // Set up responsive handlers
+    /**
+     * Wire up resize / orientation / fullscreen listeners. Delegates to
+     * `ResponsiveManager`; Player keeps the method name for backward
+     * compatibility with external callers that start the feature
+     * manually after swapping the container.
+     */
     setupResponsiveHandlers() {
-      if (typeof ResizeObserver !== "undefined") {
-        this.resizeObserver = new ResizeObserver((entries) => {
-          for (const entry of entries) {
-            const width = entry.contentRect.width;
-            const controlBar = this.controlBar;
-            if (controlBar && typeof controlBar.updateControlsForViewport === "function") {
-              controlBar.updateControlsForViewport(width);
-            }
-            if (this.transcriptManager && this.transcriptManager.isVisible) {
-              this.transcriptManager.positionTranscript();
-            }
-          }
-        });
-        this.resizeObserver.observe(this.container);
-      } else {
-        this.resizeHandler = () => {
-          const width = this.container.clientWidth;
-          const controlBar = this.controlBar;
-          if (controlBar && typeof controlBar.updateControlsForViewport === "function") {
-            controlBar.updateControlsForViewport(width);
-          }
-          if (this.transcriptManager && this.transcriptManager.isVisible) {
-            if (!this.transcriptManager.draggableResizable || !this.transcriptManager.draggableResizable.manuallyPositioned) {
-              this.transcriptManager.positionTranscript();
-            }
-          }
-        };
-        window.addEventListener("resize", this.resizeHandler, { signal: this.lifecycleSignal });
-      }
-      if (window.matchMedia) {
-        this.orientationHandler = () => {
-          setTimeout(() => {
-            if (this.transcriptManager && this.transcriptManager.isVisible) {
-              if (!this.transcriptManager.draggableResizable || !this.transcriptManager.draggableResizable.manuallyPositioned) {
-                this.transcriptManager.positionTranscript();
-              }
-            }
-          }, 100);
-        };
-        const orientationQuery = window.matchMedia("(orientation: portrait)");
-        if (orientationQuery.addEventListener) {
-          orientationQuery.addEventListener("change", this.orientationHandler, {
-            signal: this.lifecycleSignal
-          });
-        } else if (orientationQuery.addListener) {
-          orientationQuery.addListener(this.orientationHandler);
-        }
-        this.orientationQuery = orientationQuery;
-      }
-      this.fullscreenChangeHandler = () => {
-        const doc = document;
-        const isFullscreen = Boolean(
-          document.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement
-        );
-        if (this.state.fullscreen !== isFullscreen) {
-          this.state.fullscreen = isFullscreen;
-          if (isFullscreen) {
-            this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
-            document.body.classList.add("vidply-fullscreen-active");
-            this._makeBackgroundInert();
-          } else {
-            this.container.classList.remove(`${this.options.classPrefix}-fullscreen`);
-            document.body.classList.remove("vidply-fullscreen-active");
-            this._restoreBackgroundInteractivity();
-            this._disablePseudoFullscreen();
-          }
-          this.emit("fullscreenchange", isFullscreen);
-          if (this.controlBar) {
-            this.controlBar.updateFullscreenButton();
-          }
-          if (this.signLanguageWrapper && this.signLanguageWrapper.style.display !== "none") {
-            const isMobile2 = window.innerWidth < 768;
-            if (isMobile2) {
-              this.setupSignLanguageInteraction();
-            }
-            this.setManagedTimeout(() => {
-              requestAnimationFrame(() => {
-                this.storage.saveSignLanguagePreferences({ size: null });
-                if (this.signLanguageWrapper) {
-                  this.signLanguageWrapper.style.width = isFullscreen ? "400px" : "280px";
-                }
-                this.constrainSignLanguagePosition();
-              });
-            }, 500);
-          }
-        }
-      };
-      const opts = { signal: this.lifecycleSignal };
-      document.addEventListener("fullscreenchange", this.fullscreenChangeHandler, opts);
-      document.addEventListener("webkitfullscreenchange", this.fullscreenChangeHandler, opts);
-      document.addEventListener("mozfullscreenchange", this.fullscreenChangeHandler, opts);
-      document.addEventListener("MSFullscreenChange", this.fullscreenChangeHandler, opts);
+      this.responsiveManager.setup();
     }
     // Cleanup. Aborts the lifecycle controller (which removes every
     // window/document listener wired with `{ signal }` plus every
@@ -16840,6 +17602,7 @@
     // every manager we own, and finally removes this instance from the
     // global `Player.instances` registry.
     destroy() {
+      var _a, _b;
       this.log("Destroying player");
       try {
         this._lifecycleController.abort();
@@ -16914,21 +17677,7 @@
         this.loadingOverlayElement.remove();
         this.loadingOverlayElement = null;
       }
-      if (this.resizeObserver) {
-        this.resizeObserver.disconnect();
-        this.resizeObserver = null;
-      }
-      this.resizeHandler = null;
-      this.fullscreenChangeHandler = null;
-      if (this.orientationQuery && this.orientationHandler) {
-        if (this.orientationQuery.removeEventListener) {
-          this.orientationQuery.removeEventListener("change", this.orientationHandler);
-        } else if (this.orientationQuery.removeListener) {
-          this.orientationQuery.removeListener(this.orientationHandler);
-        }
-        this.orientationQuery = null;
-        this.orientationHandler = null;
-      }
+      (_a = this.responsiveManager) == null ? void 0 : _a.cleanup();
       this.timeouts.forEach((timeoutId) => clearTimeout(timeoutId));
       this.timeouts.clear();
       if (this.metadataCueChangeHandler) {
@@ -16939,14 +17688,7 @@
         }
         this.metadataCueChangeHandler = null;
       }
-      if (this.metadataAlertHandlers && this.metadataAlertHandlers.size > 0) {
-        this.metadataAlertHandlers.forEach(({ button, handler }) => {
-          if (button && handler) {
-            button.removeEventListener("click", handler);
-          }
-        });
-        this.metadataAlertHandlers.clear();
-      }
+      (_b = this.metadataAlertsManager) == null ? void 0 : _b.cleanup();
       const idx = _Player.instances.indexOf(this);
       if (idx >= 0) {
         _Player.instances.splice(idx, 1);
@@ -16958,375 +17700,61 @@
       this.removeAllListeners();
     }
     /**
-     * Set up metadata track handling
-     * This enables metadata tracks and listens for cue changes to trigger actions
+     * Set up metadata track handling. Delegates to
+     * `MetadataAlertsManager` — Player lazily constructs it so pages
+     * without metadata tracks pay no cost.
      */
     setupMetadataHandling() {
-      const setupMetadata = () => {
-        const textTracks = this.textTracks;
-        const metadataTrack = textTracks.find((track) => track.kind === "metadata");
-        if (metadataTrack) {
-          if (metadataTrack.mode === "disabled") {
-            metadataTrack.mode = "hidden";
-          }
-          if (this.metadataCueChangeHandler) {
-            metadataTrack.removeEventListener("cuechange", this.metadataCueChangeHandler);
-          }
-          this.metadataCueChangeHandler = () => {
-            const activeCues = Array.from(metadataTrack.activeCues || []);
-            if (activeCues.length > 0) {
-              if (this.options.debug) {
-                this.log("[Metadata] Active cues:", activeCues.map((c) => ({
-                  start: c.startTime,
-                  end: c.endTime,
-                  text: c.text
-                })));
-              }
-            }
-            activeCues.forEach((cue) => {
-              this.handleMetadataCue(cue);
-            });
-          };
-          metadataTrack.addEventListener("cuechange", this.metadataCueChangeHandler);
-          if (this.options.debug) {
-            const cueCount = metadataTrack.cues ? metadataTrack.cues.length : 0;
-            this.log("[Metadata] Track enabled,", cueCount, "cues available");
-          }
-        } else if (this.options.debug) {
-          this.log("[Metadata] No metadata track found");
-        }
-      };
-      setupMetadata();
-      this.on("loadedmetadata", setupMetadata);
+      if (!this.metadataAlertsManager) {
+        this.metadataAlertsManager = new MetadataAlertsManager(this);
+      }
+      this.metadataAlertsManager.setupHandling();
     }
+    // Thin delegates for the metadata-alert system. Implementations
+    // live in `core/MetadataAlertsManager.ts`; Player keeps the names
+    // so call sites inside `handleMetadataCue` and external callers
+    // (e.g. TranscriptManager integration tests) keep working.
     normalizeMetadataSelector(selector) {
-      if (typeof selector !== "string") {
-        return null;
-      }
-      const trimmed = selector.trim();
-      if (!trimmed) {
-        return null;
-      }
-      if (trimmed.length > 200) {
-        return null;
-      }
-      if (trimmed.startsWith("#") || trimmed.startsWith(".") || trimmed.startsWith("[")) {
-        return trimmed;
-      }
-      return `#${trimmed}`;
+      return (this.metadataAlertsManager ?? this._ensureMetadataManager()).normalizeSelector(selector);
     }
     resolveMetadataConfig(map, key) {
-      if (!map || !key) {
-        return null;
-      }
-      if (Object.prototype.hasOwnProperty.call(map, key)) {
-        return map[key];
-      }
-      const withoutHash = key.replace(/^#/, "");
-      if (Object.prototype.hasOwnProperty.call(map, withoutHash)) {
-        return map[withoutHash];
-      }
-      return null;
+      return (this.metadataAlertsManager ?? this._ensureMetadataManager()).resolveConfig(map, key);
     }
     cacheMetadataAlertContent(element, config = {}) {
-      var _a, _b;
-      if (!element) {
-        return;
-      }
-      const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
-      const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
-      const titleEl = element.querySelector(titleSelector);
-      if (titleEl && !titleEl.dataset.vidplyAlertTitleOriginal) {
-        titleEl.dataset.vidplyAlertTitleOriginal = ((_a = titleEl.textContent) == null ? void 0 : _a.trim()) ?? "";
-      }
-      const messageEl = element.querySelector(messageSelector);
-      if (messageEl && !messageEl.dataset.vidplyAlertMessageOriginal) {
-        messageEl.dataset.vidplyAlertMessageOriginal = ((_b = messageEl.textContent) == null ? void 0 : _b.trim()) ?? "";
-      }
+      (this.metadataAlertsManager ?? this._ensureMetadataManager()).cacheContent(element, config);
     }
     restoreMetadataAlertContent(element, config = {}) {
-      if (!element) {
-        return;
-      }
-      const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
-      const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
-      const titleEl = element.querySelector(titleSelector);
-      if (titleEl && titleEl.dataset.vidplyAlertTitleOriginal) {
-        titleEl.textContent = titleEl.dataset.vidplyAlertTitleOriginal;
-      }
-      const messageEl = element.querySelector(messageSelector);
-      if (messageEl && messageEl.dataset.vidplyAlertMessageOriginal) {
-        messageEl.textContent = messageEl.dataset.vidplyAlertMessageOriginal;
-      }
+      (this.metadataAlertsManager ?? this._ensureMetadataManager()).restoreContent(element, config);
     }
     focusMetadataTarget(target, fallbackElement = null) {
-      var _a, _b;
-      if (!target || target === "none") {
-        return;
+      (this.metadataAlertsManager ?? this._ensureMetadataManager()).focusTarget(target, fallbackElement);
+    }
+    /** Internal helper: lazily creates the manager for external
+     *  entry points that didn't come via `setupMetadataHandling`. */
+    _ensureMetadataManager() {
+      if (!this.metadataAlertsManager) {
+        this.metadataAlertsManager = new MetadataAlertsManager(this);
       }
-      if (target === "alert" && fallbackElement) {
-        fallbackElement.focus({ preventScroll: true });
-        return;
-      }
-      if (target === "player") {
-        if (this.container) {
-          this.container.focus({ preventScroll: true });
-        }
-        return;
-      }
-      if (target === "media") {
-        this.element.focus({ preventScroll: true });
-        return;
-      }
-      if (target === "playButton") {
-        const playButton = (_b = (_a = this.controlBar) == null ? void 0 : _a.controls) == null ? void 0 : _b.playPause;
-        if (playButton) {
-          playButton.focus({ preventScroll: true });
-        }
-        return;
-      }
-      if (typeof target === "string") {
-        const targetElement = document.querySelector(target);
-        if (targetElement) {
-          if (targetElement.tabIndex === -1 && !targetElement.hasAttribute("tabindex")) {
-            targetElement.setAttribute("tabindex", "-1");
-          }
-          targetElement.focus({ preventScroll: true });
-        }
-      }
+      return this.metadataAlertsManager;
     }
     handleMetadataAlert(selector, options = {}) {
-      if (!selector) {
-        return;
-      }
-      const config = this.resolveMetadataConfig(this.options.metadataAlerts, selector) || {};
-      const element = options.element || this.resolveMetadataElement(selector);
-      if (!element) {
-        if (this.options.debug) {
-          this.log("[Metadata] Alert element not found:", selector);
-        }
-        return;
-      }
-      if (this.options.debug) {
-        this.log("[Metadata] Handling alert", selector, { reason: options.reason, config });
-      }
-      this.cacheMetadataAlertContent(element, config);
-      if (!element.dataset.vidplyAlertOriginalDisplay) {
-        element.dataset.vidplyAlertOriginalDisplay = element.style.display || "";
-      }
-      if (!element.dataset.vidplyAlertDisplay) {
-        element.dataset.vidplyAlertDisplay = config.display || "block";
-      }
-      const shouldShow = options.show !== void 0 ? options.show : config.show !== false;
-      if (shouldShow) {
-        const displayValue = config.display || element.dataset.vidplyAlertDisplay || "block";
-        element.style.display = displayValue;
-        element.hidden = false;
-        element.removeAttribute("hidden");
-        element.setAttribute("aria-hidden", "false");
-        element.setAttribute("data-vidply-alert-active", "true");
-      }
-      const shouldReset = config.resetContent !== false && options.reason === "focus";
-      if (shouldReset) {
-        this.restoreMetadataAlertContent(element, config);
-      }
-      const shouldFocus = options.focus !== void 0 ? options.focus : config.focusOnShow ?? options.reason !== "focus";
-      if (shouldShow && shouldFocus) {
-        if (element.tabIndex === -1 && !element.hasAttribute("tabindex")) {
-          element.setAttribute("tabindex", "-1");
-        }
-        element.focus({ preventScroll: true });
-      }
-      if (shouldShow && config.autoScroll !== false && options.autoScroll !== false) {
-        element.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
-      const continueSelector = config.continueButton;
-      if (continueSelector) {
-        let continueButton = null;
-        if (continueSelector === "self") {
-          continueButton = element;
-        } else if (element.matches(continueSelector)) {
-          continueButton = element;
-        } else {
-          continueButton = element.querySelector(continueSelector) || document.querySelector(continueSelector);
-        }
-        if (continueButton && !this.metadataAlertHandlers.has(selector)) {
-          const handler = () => {
-            const hideOnContinue = config.hideOnContinue !== false;
-            if (hideOnContinue) {
-              const originalDisplay = element.dataset.vidplyAlertOriginalDisplay || "";
-              element.style.display = config.hideDisplay || originalDisplay || "none";
-              element.setAttribute("aria-hidden", "true");
-              element.removeAttribute("data-vidply-alert-active");
-            }
-            if (config.resume !== false && this.state.paused) {
-              this.play();
-            }
-            const focusTarget = config.focusTarget || "playButton";
-            this.setManagedTimeout(() => {
-              this.focusMetadataTarget(focusTarget, element);
-            }, config.focusDelay ?? 100);
-          };
-          continueButton.addEventListener("click", handler);
-          this.metadataAlertHandlers.set(selector, { button: continueButton, handler });
-        }
-      }
-      return element;
+      return (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleAlert(selector, options);
     }
     handleMetadataHashtags(hashtags) {
-      if (!Array.isArray(hashtags) || hashtags.length === 0) {
-        return;
-      }
-      const configMap = this.options.metadataHashtags;
-      if (!configMap) {
-        return;
-      }
-      hashtags.forEach((tag) => {
-        const config = this.resolveMetadataConfig(configMap, tag);
-        if (!config) {
-          return;
-        }
-        const selector = this.normalizeMetadataSelector(config.alert || config.selector || config.target);
-        if (!selector) {
-          return;
-        }
-        const element = this.resolveMetadataElement(selector);
-        if (!element) {
-          if (this.options.debug) {
-            this.log("[Metadata] Hashtag target not found:", selector);
-          }
-          return;
-        }
-        if (this.options.debug) {
-          this.log("[Metadata] Handling hashtag", tag, { selector, config });
-        }
-        this.cacheMetadataAlertContent(element, config);
-        if (config.title) {
-          const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
-          const titleEl = element.querySelector(titleSelector);
-          if (titleEl) {
-            titleEl.textContent = config.title;
-          }
-        }
-        if (config.message) {
-          const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
-          const messageEl = element.querySelector(messageSelector);
-          if (messageEl) {
-            messageEl.textContent = config.message;
-          }
-        }
-        const show = config.show !== false;
-        const focus = config.focus !== void 0 ? config.focus : false;
-        this.handleMetadataAlert(selector, {
-          element,
-          show,
-          focus,
-          autoScroll: config.autoScroll,
-          reason: "hashtag"
-        });
-      });
+      (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleHashtags(hashtags);
     }
-    /**
-     * Handle individual metadata cues
-     * Parses metadata text and emits events or triggers actions
-     */
     handleMetadataCue(cue) {
-      const text = cue.text.trim();
-      if (this.options.debug) {
-        this.log("[Metadata] Processing cue:", {
-          time: cue.startTime,
-          text
-        });
-      }
-      this.emit("metadata", {
-        time: cue.startTime,
-        endTime: cue.endTime,
-        text,
-        cue
-      });
-      if (text.includes("PAUSE")) {
-        if (!this.state.paused) {
-          if (this.options.debug) {
-            this.log("[Metadata] Pausing video at", cue.startTime);
-          }
-          this.pause();
-        }
-        this.emit("metadata:pause", { time: cue.startTime, text });
-      }
-      const focusMatch = text.match(/FOCUS:([\w#-]{1,128})/);
-      if (focusMatch) {
-        const targetSelector = focusMatch[1];
-        const normalizedSelector = this.normalizeMetadataSelector(targetSelector);
-        const targetElement = this.resolveMetadataElement(normalizedSelector);
-        if (targetElement) {
-          if (this.options.debug) {
-            this.log("[Metadata] Focusing element:", normalizedSelector);
-          }
-          if (targetElement.tabIndex === -1 && !targetElement.hasAttribute("tabindex")) {
-            targetElement.setAttribute("tabindex", "-1");
-          }
-          this.setManagedTimeout(() => {
-            targetElement.focus({ preventScroll: true });
-          }, 10);
-        } else if (this.options.debug && this.options.metadataDirectives) {
-          this.log("[Metadata] Element not found:", normalizedSelector || targetSelector);
-        }
-        this.emit("metadata:focus", {
-          time: cue.startTime,
-          target: targetSelector,
-          selector: normalizedSelector,
-          element: targetElement,
-          text
-        });
-        if (this.options.metadataDirectives && normalizedSelector) {
-          this.handleMetadataAlert(normalizedSelector, {
-            element: targetElement,
-            reason: "focus"
-          });
-        }
-      }
-      const hashtags = text.match(/#[\w-]{1,64}/g);
-      if (hashtags && hashtags.length > 0) {
-        const safeTags = hashtags.slice(0, 32);
-        if (this.options.debug) {
-          this.log("[Metadata] Hashtags found:", safeTags);
-        }
-        this.emit("metadata:hashtags", {
-          time: cue.startTime,
-          hashtags: safeTags,
-          text
-        });
-        if (this.options.metadataDirectives) {
-          this.handleMetadataHashtags(safeTags);
-        }
-      }
-    }
-    /**
-     * Resolve a metadata-cue selector inside the configured directive scope.
-     * Returns `null` when directives are disabled or the selector doesn't
-     * resolve.
-     */
-    resolveMetadataElement(selector) {
-      const mode = this.options.metadataDirectives;
-      if (!mode) return null;
-      if (!selector) return null;
-      try {
-        if (mode === true || mode === "global") {
-          return document.querySelector(selector);
-        }
-        const root = this.container || this.element.parentElement || document;
-        return root.querySelector(selector);
-      } catch {
-        return null;
-      }
+      (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleCue(cue);
     }
   };
   __publicField(_Player, "instances", []);
-  __publicField(_Player, "observeLazy");
   /**
-   * Available theme names
+   * Available theme names. Kept as a static field for backward
+   * compatibility with external callers that used
+   * `Player.THEMES.includes(x)`; the canonical source is
+   * `PLAYER_THEMES` in `./ThemeManager.ts`.
    */
-  __publicField(_Player, "THEMES", ["dark", "light", "minimal", "high-contrast"]);
+  __publicField(_Player, "THEMES", PLAYER_THEMES);
   var Player = _Player;
 
   // src/features/PlaylistManager.ts
@@ -17728,9 +18156,14 @@
       try {
         if (((_b = (_a = this.player) == null ? void 0 : _a.element) == null ? void 0 : _b.tagName) === "VIDEO") {
           if (track.poster) {
-            const posterUrl = typeof this.player.resolvePosterPath === "function" ? this.player.resolvePosterPath(track.poster) : track.poster;
-            this.player.element.poster = posterUrl;
-            (_d = (_c = this.player).applyPosterAspectRatio) == null ? void 0 : _d.call(_c, posterUrl);
+            const resolved = typeof this.player.resolvePosterPath === "function" ? this.player.resolvePosterPath(track.poster) : track.poster;
+            const posterUrl = sanitizePosterUrl(resolved);
+            if (posterUrl) {
+              this.player.element.poster = posterUrl;
+              (_d = (_c = this.player).applyPosterAspectRatio) == null ? void 0 : _d.call(_c, posterUrl);
+            } else {
+              this.player.element.removeAttribute("poster");
+            }
           } else {
             this.player.element.removeAttribute("poster");
           }
@@ -18125,10 +18558,12 @@
         }
       }
       if (!this.trackArtworkElement) return;
-      if (track.poster) {
-        this.trackArtworkElement.style.backgroundImage = `url(${track.poster})`;
+      const safeBackground = track.poster ? toCssBackgroundImage(track.poster) : null;
+      if (safeBackground) {
+        this.trackArtworkElement.style.backgroundImage = safeBackground;
         this.trackArtworkElement.style.display = "block";
       } else {
+        this.trackArtworkElement.style.backgroundImage = "";
         this.trackArtworkElement.style.display = "none";
       }
     }
@@ -18221,8 +18656,9 @@
       const thumbnail = DOMUtils.createElement("span", {
         className: "vidply-playlist-thumbnail"
       });
-      if (track.poster) {
-        thumbnail.style.backgroundImage = `url(${track.poster})`;
+      const safeThumbnail = track.poster ? toCssBackgroundImage(track.poster) : null;
+      if (safeThumbnail) {
+        thumbnail.style.backgroundImage = safeThumbnail;
       } else {
         const icon = createIconElement("music");
         icon.classList.add("vidply-playlist-thumbnail-icon");
@@ -18582,15 +19018,14 @@
   };
 
   // src/index.ts
-  var pendingPlayers = /* @__PURE__ */ new Map();
-  var FORBIDDEN_KEYS = /* @__PURE__ */ new Set(["__proto__", "prototype", "constructor"]);
+  init_Sanitize();
   function sanitizeOptionsObject(input) {
     if (!input || typeof input !== "object" || Array.isArray(input)) {
       return {};
     }
     const out = /* @__PURE__ */ Object.create(null);
     for (const [key, value] of Object.entries(input)) {
-      if (FORBIDDEN_KEYS.has(key)) continue;
+      if (isForbiddenKey(key)) continue;
       out[key] = value;
     }
     return out;
@@ -18615,55 +19050,19 @@
       const lazyInit = element.dataset.vidplyLazy !== "false" && mergedOptions.lazyInit !== false;
       const lazyMargin = element.dataset.vidplyLazyMargin || mergedOptions.lazyMargin || "500px";
       if (lazyInit && "IntersectionObserver" in window) {
-        observeForLazyInit(element, mergedOptions, lazyMargin);
+        observeForLazyInit(
+          element,
+          mergedOptions,
+          lazyMargin,
+          (target, opts) => {
+            new Player(target, opts);
+          }
+        );
       } else {
         new Player(element, mergedOptions);
       }
     });
   }
-  function observeForLazyInit(element, options, margin) {
-    const rect = element.getBoundingClientRect();
-    if (rect.height < 20) {
-      new Player(element, options);
-      return;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            observer.unobserve(entry.target);
-            pendingPlayers.delete(entry.target);
-            new Player(entry.target, options);
-          }
-        });
-      },
-      { rootMargin: margin, threshold: 0 }
-    );
-    observer.observe(element);
-    pendingPlayers.set(element, { observer, options });
-  }
-  function cancelLazyInit(element) {
-    const pending = pendingPlayers.get(element);
-    if (pending) {
-      pending.observer.unobserve(element);
-      pendingPlayers.delete(element);
-    }
-  }
-  Player.observeLazy = function observeLazy(selector, options = {}, margin = "200px") {
-    const element = typeof selector === "string" ? document.querySelector(selector) : selector;
-    if (!element) {
-      console.warn("VidPly: Element not found for lazy observation");
-      return null;
-    }
-    if ("IntersectionObserver" in window) {
-      observeForLazyInit(element, options, margin);
-      return {
-        cancel: () => cancelLazyInit(element)
-      };
-    }
-    new Player(element, options);
-    return null;
-  };
   function parseDataAttributes(dataset) {
     const options = /* @__PURE__ */ Object.create(null);
     const attributeMap = {
@@ -18697,7 +19096,7 @@
       theme: "theme"
     };
     for (const [dataKey, optionKey] of Object.entries(attributeMap)) {
-      if (FORBIDDEN_KEYS.has(optionKey)) continue;
+      if (isForbiddenKey(optionKey)) continue;
       const value = dataset[dataKey];
       if (value === void 0) continue;
       if (value === "true") {

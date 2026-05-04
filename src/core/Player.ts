@@ -13,8 +13,24 @@ import {createPlayOverlay} from '../icons/Icons.js';
 import {i18n} from '../i18n/i18n.js';
 import {StorageManager} from '../utils/StorageManager.js';
 import {DraggableResizable} from '../utils/DraggableResizable.js';
-import {debounce, throttle, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
-import {captureVideoFrame} from '../utils/VideoFrameCapture.js';
+import {debounce, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
+import {sanitizePosterUrl, cssEscapeUrl} from '../utils/UrlSafe.js';
+import {observeForLazyInit, cancelLazyInit, type LazyHandle} from './LazyInit.js';
+import {PseudoFullscreenController} from './PseudoFullscreen.js';
+import {ThemeManager, PLAYER_THEMES, type ThemeName} from './ThemeManager.js';
+import {PosterManager} from './PosterManager.js';
+import {ResumeManager} from './ResumeManager.js';
+import {ResponsiveManager} from './ResponsiveManager.js';
+import {
+  MetadataAlertsManager,
+  type MetadataAlertConfig as _MetadataAlertConfig,
+  type MetadataAlertOptions as _MetadataAlertOptions
+} from './MetadataAlertsManager.js';
+
+// Re-export the interfaces so external users who imported them from
+// `core/Player.js` keep working.
+export type MetadataAlertConfig = _MetadataAlertConfig;
+export type MetadataAlertOptions = _MetadataAlertOptions;
 import type {PlayerEventMap} from '../types/events.js';
 import type {PlayerOptions} from '../types/options.js';
 import type {PlayerState} from '../types/state.js';
@@ -64,45 +80,6 @@ async function loadFloatingPlayerManager(): Promise<FloatingPlayerManagerCtor> {
 const ALLOWED_MEDIA_TYPES = ['video', 'audio'] as const;
 type AllowedMediaType = (typeof ALLOWED_MEDIA_TYPES)[number];
 
-/** Per-selector metadata alert configuration. */
-export interface MetadataAlertConfig {
-  titleSelector?: string;
-  messageSelector?: string;
-  title?: string;
-  message?: string;
-  focus?: boolean;
-  focusOnShow?: boolean;
-  focusTarget?: string;
-  focusDelay?: number;
-  label?: string;
-  role?: string;
-  show?: boolean;
-  display?: string;
-  hideDisplay?: string;
-  autoScroll?: boolean;
-  selector?: string;
-  alert?: string;
-  target?: string;
-  continueButton?: string;
-  hideOnContinue?: boolean;
-  resume?: boolean;
-  resetContent?: boolean;
-  notification?: string;
-  persist?: boolean;
-
-  [key: string]: unknown;
-}
-
-/** Options accepted by `Player.handleMetadataAlert`. */
-export interface MetadataAlertOptions {
-  element?: HTMLElement | null;
-  reason?: string;
-  cue?: VTTCue | null;
-  show?: boolean;
-  focus?: boolean;
-  autoScroll?: boolean;
-}
-
 /** Configuration accepted by Player.load() when switching to new media. */
 export interface PlayerLoadConfig {
   src: string;
@@ -123,77 +100,60 @@ export interface PlayerLoadConfig {
   [key: string]: unknown;
 }
 
-const PROTO_FORBIDDEN_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
-
-/**
- * Validate a CSS variable name and value before they reach `setProperty`.
- * The browser will silently drop unparseable values, so the bigger risk is
- * an attacker injecting `;` or `:` to escape into another declaration. We
- * therefore restrict variable names to `--vidply-` plus `[A-Za-z0-9_-]+`
- * and values to a printable subset that excludes structural CSS characters.
- */
-function isValidThemeVariableName(name: string): boolean {
-  return /^--vidply-[A-Za-z0-9_-]{1,64}$/.test(name);
-}
-
-function isValidThemeVariableValue(value: unknown): value is string {
-  if (typeof value !== 'string') return false;
-  if (value.length > 200) return false;
-  // Reject characters that allow declaration / rule escapes.
-  return !/[<>{};@\\]/.test(value);
-}
-
-/**
- * Validate a poster/artwork URL before interpolating it into a CSS
- * `url(...)` value or assigning it to `<video>.poster`. Allows `https:`,
- * `data:image/<png|jpeg|webp|gif|svg+xml>;...`, root-relative paths
- * starting with `/`, and same-origin relative paths.
- */
-function sanitizePosterUrl(input: unknown): string | null {
-  if (typeof input !== 'string' || input.length === 0 || input.length > 4096) {
-    return null;
-  }
-  const trimmed = input.trim();
-  if (!trimmed) return null;
-  if (/[\s"'<>\\]/.test(trimmed)) return null;
-
-  if (trimmed.startsWith('/') || trimmed.startsWith('./') || trimmed.startsWith('../')) {
-    return trimmed;
-  }
-  try {
-    const url = new URL(trimmed, typeof window !== 'undefined' ? window.location.href : 'http://localhost/');
-    if (url.protocol === 'https:' || url.protocol === 'http:') {
-      return url.href;
-    }
-    if (url.protocol === 'data:' && /^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);/i.test(trimmed)) {
-      return trimmed;
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
-
-/**
- * CSS-escape an already-validated URL for safe interpolation into a
- * `url(...)` value. Defense in depth alongside `sanitizePosterUrl`.
- */
-function cssEscapeUrl(url: string): string {
-  return url.replace(/["()\\]/g, (m) => `\\${m}`);
-}
-
 // Static counter for unique player instances
 let playerInstanceCounter = 0;
 
 export class Player extends EventEmitter<PlayerEventMap> {
   static instances: Player[] = [];
-  static observeLazy: (selector: string | HTMLElement, options?: Record<string, unknown>, margin?: string) => {
-    cancel: () => void
-  } | null;
   /**
-   * Available theme names
+   * Available theme names. Kept as a static field for backward
+   * compatibility with external callers that used
+   * `Player.THEMES.includes(x)`; the canonical source is
+   * `PLAYER_THEMES` in `./ThemeManager.ts`.
    */
-  static THEMES = ['dark', 'light', 'minimal', 'high-contrast'];
+  static readonly THEMES: readonly ThemeName[] = PLAYER_THEMES;
+
+  /**
+   * Manually schedule a lazy-initialised player for `selector` /
+   * `element`. The player is constructed the first time the element
+   * scrolls within `margin` of the viewport; if `IntersectionObserver`
+   * is unavailable the player is constructed immediately.
+   *
+   * Returns a handle whose `cancel()` method removes the pending
+   * observation, or `null` if no observation was scheduled (element
+   * missing or eager fallback took effect).
+   *
+   * Implemented as a real static method (rather than a post-construction
+   * assignment from `index.ts`) so the API belongs to the `Player`
+   * symbol itself — which makes it easier to tree-shake and reason about.
+   */
+  static observeLazy(
+    selector: string | HTMLElement,
+    options: Partial<PlayerOptions> = {},
+    margin = '200px'
+  ): LazyHandle {
+    const element =
+      typeof selector === 'string'
+        ? (document.querySelector(selector) as HTMLElement | null)
+        : selector;
+
+    if (!element) {
+      console.warn('VidPly: Element not found for lazy observation');
+      return null;
+    }
+
+    if ('IntersectionObserver' in window) {
+      observeForLazyInit<Partial<PlayerOptions>>(
+        element,
+        options,
+        margin,
+        (target, opts) => { new Player(target, opts); }
+      );
+      return { cancel: () => cancelLazyInit(element) };
+    }
+    new Player(element, options);
+    return null;
+  }
   element: HTMLMediaElement;
   container!: HTMLElement;
   /**
@@ -217,24 +177,31 @@ export class Player extends EventEmitter<PlayerEventMap> {
   instanceId: number;
   _audioDescriptionDesiredState: boolean | undefined;
   _fallbackSources: Array<{ src: string; type?: string; [key: string]: unknown }> | null = null;
-  _inertElements: Element[] = [];
   _isAudioContent: boolean | undefined;
   _isFallingBack: boolean | undefined;
   _managersLoading: Promise<unknown> | null = null;
-  _originalBodyBackground?: string;
-  _originalBodyHeight?: string;
-  _originalBodyOverflow?: string;
-  _originalBodyPosition?: string;
-  _originalBodyWidth?: string;
   _originalElement!: HTMLElement;
-  _originalHtmlBackground?: string;
-  _originalHtmlOverflow?: string;
-  _originalScrollX?: number;
-  _originalScrollY?: number;
-  _originalViewport?: string | null;
+  /** Lazily-created on first pseudo-fullscreen entry. Owns the scroll /
+   *  inert / viewport bookkeeping that used to live as `_original*`
+   *  fields directly on the player. */
+  pseudoFullscreen: PseudoFullscreenController | null = null;
+  /** Owns `applyTheme`/`setTheme`/`setThemeVariable`/`resetTheme`. Player
+   *  keeps delegating public methods so the existing API is unchanged. */
+  themeManager!: ThemeManager;
+  /** Owns poster resolution, canvas-capture, and overlay show/hide. */
+  posterManager!: PosterManager;
+  /** Owns resume-playback prompt + progress persistence. Lazily
+   *  created the first time `initResumePlayback` is called so sites
+   *  that don't enable the feature don't pay the DOM / listener cost. */
+  resumeManager: ResumeManager | null = null;
+  /** Owns resize-observer, orientation matchMedia, and the
+   *  cross-vendor fullscreenchange listeners. */
+  responsiveManager!: ResponsiveManager;
+  /** Owns `kind=metadata` text-track directives (PAUSE, FOCUS,
+   *  #hashtag) + the per-selector alert UI. Lazily created on first
+   *  `setupMetadataHandling()` call. */
+  metadataAlertsManager: MetadataAlertsManager | null = null;
   _pendingSource: string | null = null;
-  _resumeChecked: boolean | undefined;
-  _saveProgressThrottled: (() => void) | null = null;
   _sourceElementsCache: HTMLSourceElement[] | null = null;
   _sourceElementsDirty: boolean = true;
   _switchingRenderer: boolean | undefined;
@@ -249,7 +216,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
   currentSource: string | null = null;
   debouncedPositionPlayOverlay: ((...args: unknown[]) => void) | null = null;
   fullscreenChangeHandler: (() => void) | null = null;
-  metadataAlertHandlers: Map<string, { button: HTMLElement | null; handler: EventListener | null }> = new Map();
+  /** Mirrored from `MetadataAlertsManager` so the TextTrack cleanup
+   *  path in `destroy()` can still find it by a fixed field name. */
   metadataCueChangeHandler: (() => void) | null = null;
   noticeElement: HTMLElement | null = null;
   noticeTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -511,6 +479,13 @@ export class Player extends EventEmitter<PlayerEventMap> {
     // Storage manager
     this.storage = new StorageManager('vidply');
 
+    // Theme manager — cheap to construct (no DOM work in ctor) so we
+    // wire it up immediately. `applyTheme()` is called later once the
+    // container exists.
+    this.themeManager = new ThemeManager(this);
+    this.posterManager = new PosterManager(this);
+    this.responsiveManager = new ResponsiveManager(this);
+
     // Load saved player preferences
     const savedPrefs = this.storage.getPlayerPreferences();
     if (savedPrefs) {
@@ -545,10 +520,10 @@ export class Player extends EventEmitter<PlayerEventMap> {
       resumePromptVisible: false
     };
 
-    // Resume playback properties
+    // Resume playback: prompt DOM element lives here so
+    // `ResumeManager` can attach/detach it without leaking container
+    // state back into the manager.
     this.resumePromptElement = null;
-    this._saveProgressThrottled = null;
-    this._resumeChecked = false;
 
     // Store original source for toggling
     this.originalSrc = null;
@@ -585,7 +560,6 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
     // Metadata handling
     this.metadataCueChangeHandler = null;
-    this.metadataAlertHandlers = new Map();
 
     // Feature managers (lazy-loaded)
     this.audioDescriptionManager = null;
@@ -1067,33 +1041,16 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   /**
-   * Initialize resume playback functionality
+   * Initialise the resume-playback feature. Lazily constructs a
+   * `ResumeManager` on first use so disabled pages don't pay the DOM
+   * / listener cost. Repeat calls are safe — the manager's own
+   * `init()` is idempotent.
    */
-  initResumePlayback() {
-    // Create throttled save progress function (save every 5 seconds)
-    this._saveProgressThrottled = throttle(() => this.saveProgress(), 5000);
-
-    this.on('timeupdate', () => {
-      if (this.state.playing && this.state.duration > 0) {
-        this._saveProgressThrottled?.();
-      }
-    });
-
-    // Check for resume on loadedmetadata
-    this.on('loadedmetadata', () => {
-      if (!this._resumeChecked) {
-        this._resumeChecked = true;
-        this.checkForResume();
-      }
-    });
-
-    // Clear progress when video ends
-    this.on('ended', () => {
-      const videoId = this.getVideoId();
-      if (videoId) {
-        this.storage.clearWatchProgress(videoId);
-      }
-    });
+  initResumePlayback(): void {
+    if (!this.resumeManager) {
+      this.resumeManager = new ResumeManager(this);
+    }
+    this.resumeManager.init();
   }
 
   /**
@@ -1141,314 +1098,31 @@ export class Player extends EventEmitter<PlayerEventMap> {
     return 'v_' + Math.abs(hash).toString(36);
   }
 
-  /**
-   * Save current playback progress
-   */
-  saveProgress() {
-    if (!this.options.resumePlayback) return;
+  // Resume-playback delegates. Implementations live in
+  // `core/ResumeManager.ts`; these stubs keep the public API.
+  saveProgress(): void { this.resumeManager?.saveProgress(); }
 
-    const videoId = this.getVideoId();
-    if (!videoId) return;
+  checkForResume(): void { this.resumeManager?.checkForResume(); }
 
-    const currentTime = this.state.currentTime;
-    const duration = this.state.duration;
+  showResumePrompt(savedTime: number): void { this.resumeManager?.showPrompt(savedTime); }
 
-    // Don't save if video is too short or at the very beginning
-    if (duration < 30 || currentTime < this.options.resumeThreshold) {
-      return;
-    }
+  hideResumePrompt(): void { this.resumeManager?.hidePrompt(); }
 
-    // Don't save if near the end (> 95% complete)
-    const percentage = (currentTime / duration) * 100;
-    if (percentage > 95) {
-      return;
-    }
+  // Theme delegates. All four keep their original names so external
+  // callers keep working; the real work is in `core/ThemeManager.ts`.
+  applyTheme(): void { this.themeManager.apply(); }
 
-    this.storage.saveWatchProgress(videoId, currentTime, duration);
+  setTheme(themeName: ThemeName, customVariables: Record<string, string> = {}): void {
+    this.themeManager.set(themeName, customVariables);
   }
 
-  // ============================================
-  // Theme Methods
-  // ============================================
+  getTheme(): ThemeName | undefined { return this.themeManager.get(); }
 
-  /**
-   * Check if there's saved progress and potentially show a resume prompt
-   */
-  checkForResume() {
-    if (!this.options.resumePlayback) return;
-
-    const videoId = this.getVideoId();
-    if (!videoId) return;
-
-    const progress = this.storage.getWatchProgress(videoId);
-    if (!progress) return;
-
-    const {currentTime, duration, percentage} = progress;
-
-    // Don't resume if below threshold or near the end
-    if (currentTime < this.options.resumeThreshold || percentage > 95) {
-      this.storage.clearWatchProgress(videoId);
-      return;
-    }
-
-    // Check if duration matches (video might have changed)
-    if (this.state.duration > 0 && Math.abs(this.state.duration - duration) > 5) {
-      this.storage.clearWatchProgress(videoId);
-      return;
-    }
-
-    if (this.options.resumePrompt) {
-      this.showResumePrompt(currentTime);
-    } else {
-      // Auto-resume silently
-      this.seek(currentTime);
-    }
-  }
-
-  /**
-   * Format time for display (mm:ss or hh:mm:ss)
-   * @param {number} seconds - Time in seconds
-   * @returns {string} Formatted time string
-   */
-  _formatResumeTime(seconds: number) {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-
-    if (h > 0) {
-      return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    }
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  }
-
-  /**
-   * Show the resume prompt overlay
-   * @param {number} savedTime - Time to resume from
-   */
-  showResumePrompt(savedTime: number) {
-    if (this.state.resumePromptVisible || !this.container) return;
-
-    const formattedTime = this._formatResumeTime(savedTime);
-    const promptText = i18n.t('resume.prompt', {time: formattedTime});
-
-    // Create prompt element
-    this.resumePromptElement = DOMUtils.createElement('div', {
-      className: `${this.options.classPrefix}-resume-prompt`,
-      attributes: {
-        'role': 'dialog',
-        'aria-label': promptText,
-        'aria-modal': 'true'
-      }
-    });
-
-    const promptContent = DOMUtils.createElement('div', {
-      className: `${this.options.classPrefix}-resume-prompt-content`
-    });
-
-    const promptMessage = DOMUtils.createElement('p', {
-      className: `${this.options.classPrefix}-resume-prompt-message`,
-      textContent: promptText
-    });
-
-    const buttonContainer = DOMUtils.createElement('div', {
-      className: `${this.options.classPrefix}-resume-prompt-buttons`
-    });
-
-    // Resume button
-    const resumeButton = DOMUtils.createElement('button', {
-      className: `${this.options.classPrefix}-resume-prompt-button ${this.options.classPrefix}-resume-prompt-button-primary`,
-      textContent: i18n.t('resume.resume'),
-      attributes: {
-        'type': 'button'
-      }
-    });
-
-    resumeButton.addEventListener('click', () => {
-      this.hideResumePrompt();
-      this.seek(savedTime);
-      this.play();
-    });
-
-    // Start Over button
-    const startOverButton = DOMUtils.createElement('button', {
-      className: `${this.options.classPrefix}-resume-prompt-button`,
-      textContent: i18n.t('resume.startOver'),
-      attributes: {
-        'type': 'button'
-      }
-    });
-
-    startOverButton.addEventListener('click', () => {
-      this.hideResumePrompt();
-      const videoId = this.getVideoId();
-      if (videoId) {
-        this.storage.clearWatchProgress(videoId);
-      }
-      this.seek(0);
-      this.play();
-    });
-
-    const handleKeydown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        this.hideResumePrompt();
-      }
-    };
-    this.resumePromptElement.addEventListener('keydown', handleKeydown);
-
-    // Assemble prompt
-    buttonContainer.appendChild(resumeButton);
-    buttonContainer.appendChild(startOverButton);
-    promptContent.appendChild(promptMessage);
-    promptContent.appendChild(buttonContainer);
-    this.resumePromptElement.appendChild(promptContent);
-
-    // Add to container
-    this.container.appendChild(this.resumePromptElement);
-    this.state.resumePromptVisible = true;
-
-    // Focus the resume button
-    requestAnimationFrame(() => {
-      resumeButton.focus();
-    });
-
-    this.emit('resumepromptshow', {savedTime});
-  }
-
-  /**
-   * Hide the resume prompt overlay
-   */
-  hideResumePrompt() {
-    if (!this.resumePromptElement) return;
-
-    this.resumePromptElement.remove();
-    this.resumePromptElement = null;
-    this.state.resumePromptVisible = false;
-
-    this.emit('resumeprompthide');
-  }
-
-  /**
-   * Apply the current theme to the player container
-   */
-  applyTheme() {
-    if (!this.container) return;
-
-    // Remove existing theme classes
-    const themeClasses = Player.THEMES.map(
-      t => `${this.options.classPrefix}-theme-${t}`
-    );
-    this.container.classList.remove(...themeClasses);
-
-    // Apply selected theme class
-    const theme = this.options.theme;
-    if (theme && Player.THEMES.includes(theme)) {
-      this.container.classList.add(`${this.options.classPrefix}-theme-${theme}`);
-    }
-
-    // Apply custom variable overrides. Each name+value pair is
-    // independently validated; bad entries are logged and skipped, so
-    // a single malformed override cannot poison sibling declarations
-    // or turn into a CSS injection vector.
-    if (this.options.themeVariables && typeof this.options.themeVariables === 'object') {
-      for (const [rawKey, rawValue] of Object.entries(this.options.themeVariables)) {
-        if (PROTO_FORBIDDEN_KEYS.has(rawKey)) continue;
-        const cssVar = rawKey.startsWith('--vidply-') ? rawKey : `--vidply-${rawKey}`;
-        if (!isValidThemeVariableName(cssVar)) {
-          this.log(`[VidPly] Ignoring invalid theme variable name: ${rawKey}`, 'warn');
-          continue;
-        }
-        if (!isValidThemeVariableValue(rawValue)) {
-          this.log(`[VidPly] Ignoring invalid theme variable value for ${cssVar}`, 'warn');
-          continue;
-        }
-        this.container.style.setProperty(cssVar, rawValue);
-      }
-    }
-  }
-
-  /**
-   * Set the player theme at runtime
-   * @param {string} themeName - Theme name: 'dark', 'light', 'minimal', 'high-contrast'
-   * @param {Object} customVariables - Optional CSS variable overrides
-   */
-  setTheme(themeName: 'dark' | 'light' | 'minimal' | 'high-contrast', customVariables: Record<string, string> = {}) {
-    const previousTheme = this.options.theme;
-
-    this.options.theme = themeName;
-
-    // Merge custom variables
-    if (customVariables && Object.keys(customVariables).length > 0) {
-      this.options.themeVariables = {
-        ...this.options.themeVariables,
-        ...customVariables
-      };
-    }
-
-    // Apply the theme
-    this.applyTheme();
-
-    // Emit theme change event
-    this.emit('themechange', {
-      theme: themeName,
-      previousTheme,
-      customVariables: this.options.themeVariables
-    });
-  }
-
-  /**
-   * Get the current theme name
-   * @returns {string} Current theme name
-   */
-  getTheme() {
-    return this.options.theme;
-  }
-
-  /**
-   * Set a single CSS variable override
-   * @param {string} variableName - Variable name (with or without --vidply-prefix)
-   * @param {string} value - CSS value
-   */
   setThemeVariable(variableName: string, value: string): void {
-    if (!this.container) return;
-
-    const cssVar = variableName.startsWith('--vidply-')
-      ? variableName
-      : `--vidply-${variableName}`;
-
-    if (!isValidThemeVariableName(cssVar) || !isValidThemeVariableValue(value)) {
-      this.log(`[VidPly] Ignoring unsafe setThemeVariable(${variableName})`, 'warn');
-      return;
-    }
-
-    this.container.style.setProperty(cssVar, value);
-
-    if (!this.options.themeVariables) {
-      this.options.themeVariables = {};
-    }
-    this.options.themeVariables[variableName] = value;
+    this.themeManager.setVariable(variableName, value);
   }
 
-  /**
-   * Reset theme to default (dark) and clear custom variables
-   */
-  resetTheme() {
-    // Clear custom variables from container
-    if (this.container && this.options.themeVariables) {
-      Object.keys(this.options.themeVariables).forEach(key => {
-        const cssVar = key.startsWith('--vidply-') ? key : `--vidply-${key}`;
-        this.container.style.removeProperty(cssVar);
-      });
-    }
-
-    // Reset to defaults
-    this.options.theme = 'dark';
-    this.options.themeVariables = {};
-
-    this.applyTheme();
-    this.emit('themechange', {theme: 'dark', previousTheme: this.options.theme});
-  }
+  resetTheme(): void { this.themeManager.reset(); }
 
   createContainer() {
     // Create main container with unique label for multiple players on same page
@@ -1941,154 +1615,22 @@ export class Player extends EventEmitter<PlayerEventMap> {
     return this.trackElements.find((el) => el.track === track);
   }
 
-  /**
-   * Convert relative poster path to absolute URL
-   * @param {string} posterPath - Poster path (relative or absolute)
-   * @returns {string} Absolute URL
-   */
+  // Poster delegates. Implementations live in `core/PosterManager.ts`.
   resolvePosterPath(posterPath: string | null | undefined): string {
-    if (!posterPath) {
-      return '';
-    }
-
-    if (posterPath.match(/^(https?:|\/)/)) {
-      return posterPath;
-    }
-
-    try {
-      const posterUrl = new URL(posterPath, window.location.href);
-      return posterUrl.href;
-    } catch {
-      return posterPath;
-    }
+    return this.posterManager.resolvePath(posterPath);
   }
 
-  /**
-   * Generate a poster image from video frame at specified time
-   * @param {number} time - Time in seconds (default: 10)
-   * @returns {Promise<string|null>} Data URL of the poster image or null if failed
-   */
-  async generatePosterFromVideo(time = 10) {
-    // Only for HTML5 video
-    if (this.element.tagName !== 'VIDEO') {
-      return null;
-    }
-
-    // Check if renderer supports this (HTML5Renderer only)
-    const renderer = this.renderer;
-    if (!renderer || !renderer.media || renderer.media.tagName !== 'VIDEO') {
-      return null;
-    }
-
-    const video = renderer.media as HTMLVideoElement;
-
-    if (!video.duration || video.duration < time) {
-      time = Math.min(time, Math.max(1, video.duration * 0.1));
-    }
-
-    let videoToUse: HTMLVideoElement = video;
-    if (this.controlBar && this.controlBar.previewVideo && this.controlBar.previewSupported) {
-      videoToUse = this.controlBar.previewVideo as HTMLVideoElement;
-    }
-
-    // Use shared frame capture utility
-    // For main video, restore state; for preview video, no need
-    const restoreState = videoToUse === video;
-    return await captureVideoFrame(videoToUse, time, {
-      restoreState,
-      quality: 0.9
-    });
+  async generatePosterFromVideo(time = 10): Promise<string | null> {
+    return this.posterManager.generateFromVideo(time);
   }
 
-  /**
-   * Auto-generate poster from video if none is provided
-   */
-  async autoGeneratePoster() {
-    // Check if poster already exists
-    const hasPoster =
-      this.element.getAttribute('poster') ||
-      (this.element as HTMLVideoElement).poster ||
-      this.options.poster;
-
-    if (hasPoster) {
-      return;
-    }
-
-    // Only for HTML5 video
-    if (this.element.tagName !== 'VIDEO') {
-      return;
-    }
-
-    // Wait for metadata to be loaded
-    if (!this.state.duration || this.state.duration === 0) {
-      // Wait for loadedmetadata event
-      await new Promise<void>((resolve) => {
-        const onLoadedMetadata = () => {
-          this.element.removeEventListener('loadedmetadata', onLoadedMetadata);
-          resolve();
-        };
-
-        if (this.element.readyState >= 1) {
-          resolve();
-        } else {
-          this.element.addEventListener('loadedmetadata', onLoadedMetadata);
-        }
-      });
-    }
-
-    // Generate poster from second 10
-    const posterDataURL = await this.generatePosterFromVideo(10);
-
-    if (posterDataURL) {
-      // Set as poster
-      (this.element as HTMLVideoElement).poster = posterDataURL;
-      this.log('Auto-generated poster from video frame at 10 seconds', 'info');
-
-      // Show the poster overlay
-      this.showPosterOverlay();
-    }
+  async autoGeneratePoster(): Promise<void> {
+    return this.posterManager.autoGenerate();
   }
 
-  showPosterOverlay() {
-    if (!this.videoWrapper || this.element.tagName !== 'VIDEO') {
-      return;
-    }
+  showPosterOverlay(): void { this.posterManager.showOverlay(); }
 
-    const poster =
-      this.element.getAttribute('poster') ||
-      (this.element as HTMLVideoElement).poster ||
-      this.options.poster;
-
-    if (!poster) {
-      return;
-    }
-
-    // Resolve relative paths to absolute URLs (skip for data URLs)
-    const resolvedPoster = poster.startsWith('data:')
-      ? poster
-      : this.resolvePosterPath(poster);
-    this.videoWrapper.style.setProperty('--vidply-poster-image', `url("${resolvedPoster}")`);
-    this.videoWrapper.classList.add('vidply-forced-poster');
-
-    // Apply audio content class (16:3 aspect ratio) for audio in video player
-    if (this._isAudioContent && this.container) {
-      this.container.classList.add('vidply-audio-content');
-    } else if (this.container) {
-      this.container.classList.remove('vidply-audio-content');
-    }
-  }
-
-  hidePosterOverlay() {
-    if (!this.videoWrapper) {
-      return;
-    }
-
-    this.videoWrapper.classList.remove('vidply-forced-poster');
-    this.videoWrapper.style.removeProperty('--vidply-poster-image');
-
-    // Note: vidply-audio-content is not removed here because it should persist
-    // for the duration of audio content playback, not just poster display
-  }
+  hidePosterOverlay(): void { this.posterManager.hideOverlay(); }
 
   /**
    * Set a managed timeout that will be cleaned up on destroy
@@ -2718,146 +2260,19 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
   }
 
-  // Pseudo-fullscreen fallback for iOS and browsers without Fullscreen API
+  // Pseudo-fullscreen fallback for iOS and browsers without Fullscreen API.
+  // All of the real DOM + scroll + inert bookkeeping lives in
+  // `PseudoFullscreenController`; Player keeps these thin delegates so
+  // call sites elsewhere in the class stay readable.
   _enablePseudoFullscreen() {
-    this.state.fullscreen = true;
-    this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
-
-    // Add body class for CSS targeting (fallback for browsers without :has() support)
-    document.body.classList.add('vidply-fullscreen-active');
-
-    // Store current scroll position for restoration later
-    this._originalScrollX = window.scrollX || window.pageXOffset;
-    this._originalScrollY = window.scrollY || window.pageYOffset;
-
-    // Prevent body scrolling while in pseudo-fullscreen
-    this._originalBodyOverflow = document.body.style.overflow;
-    this._originalBodyPosition = document.body.style.position;
-    this._originalBodyWidth = document.body.style.width;
-    this._originalBodyHeight = document.body.style.height;
-    this._originalHtmlOverflow = document.documentElement.style.overflow;
-    this._originalBodyBackground = document.body.style.background;
-    this._originalHtmlBackground = document.documentElement.style.background;
-
-    document.body.style.overflow = 'hidden';
-    document.body.style.width = '100%';
-    document.body.style.height = '100%';
-    document.body.style.background = '#000';
-    document.documentElement.style.overflow = 'hidden';
-    document.documentElement.style.background = '#000';
-
-    // On iOS, also lock the viewport and scroll to top
-    this._originalViewport = document.querySelector('meta[name="viewport"]')?.getAttribute('content');
-    const viewport = document.querySelector('meta[name="viewport"]');
-    if (viewport) {
-      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+    if (!this.pseudoFullscreen) {
+      this.pseudoFullscreen = new PseudoFullscreenController(this);
     }
-
-    // Scroll to top on iOS to prevent positioning issues
-    window.scrollTo(0, 0);
-
-    // Make all other page content inert to prevent keyboard focus escaping to background
-    this._makeBackgroundInert();
-
-    this.emit('fullscreenchange', true);
-    this.emit('enterfullscreen');
-  }
-
-  /**
-   * Makes all page content except the fullscreen player inert (non-focusable)
-   * This prevents keyboard navigation from focusing on hidden background elements
-   */
-  _makeBackgroundInert() {
-    this._inertElements = [];
-
-    // Find all siblings and ancestors' siblings that should be made inert
-    let current: HTMLElement | null = this.container;
-    while (current && current !== document.body && current !== document.documentElement) {
-      const parentElement: HTMLElement | null = current.parentElement;
-      if (parentElement) {
-        // Make all siblings inert
-        Array.from(parentElement.children).forEach((sibling: Element) => {
-          if (sibling !== current &&
-            sibling.nodeType === Node.ELEMENT_NODE &&
-            !sibling.hasAttribute('inert') &&
-            sibling.tagName !== 'SCRIPT' &&
-            sibling.tagName !== 'STYLE' &&
-            sibling.tagName !== 'LINK' &&
-            sibling.tagName !== 'META') {
-            sibling.setAttribute('inert', '');
-            this._inertElements.push(sibling);
-          }
-        });
-      }
-      current = parentElement;
-    }
-  }
-
-  /**
-   * Restores interactivity to elements that were made inert during fullscreen
-   */
-  _restoreBackgroundInteractivity() {
-    if (this._inertElements) {
-      this._inertElements.forEach((el) => {
-        el.removeAttribute('inert');
-      });
-      this._inertElements = [];
-    }
+    this.pseudoFullscreen.enable();
   }
 
   _disablePseudoFullscreen() {
-    // Remove body class for CSS targeting
-    document.body.classList.remove('vidply-fullscreen-active');
-
-    // Restore interactivity to background elements
-    this._restoreBackgroundInteractivity();
-
-    // Restore body scrolling
-    if (this._originalBodyOverflow !== undefined) {
-      document.body.style.overflow = this._originalBodyOverflow;
-      delete this._originalBodyOverflow;
-    }
-    if (this._originalBodyPosition !== undefined) {
-      document.body.style.position = this._originalBodyPosition;
-      delete this._originalBodyPosition;
-    }
-    if (this._originalBodyWidth !== undefined) {
-      document.body.style.width = this._originalBodyWidth;
-      delete this._originalBodyWidth;
-    }
-    if (this._originalBodyHeight !== undefined) {
-      document.body.style.height = this._originalBodyHeight;
-      delete this._originalBodyHeight;
-    }
-    if (this._originalHtmlOverflow !== undefined) {
-      document.documentElement.style.overflow = this._originalHtmlOverflow;
-      delete this._originalHtmlOverflow;
-    }
-    if (this._originalBodyBackground !== undefined) {
-      document.body.style.background = this._originalBodyBackground;
-      delete this._originalBodyBackground;
-    }
-    if (this._originalHtmlBackground !== undefined) {
-      document.documentElement.style.background = this._originalHtmlBackground;
-      delete this._originalHtmlBackground;
-    }
-
-    if (this._originalViewport !== undefined) {
-      const viewport = document.querySelector('meta[name="viewport"]');
-      if (viewport && this._originalViewport !== null) {
-        viewport.setAttribute('content', this._originalViewport);
-      }
-      delete this._originalViewport;
-    }
-
-    // Restore scroll position
-    if (this._originalScrollX !== undefined && this._originalScrollY !== undefined) {
-      window.scrollTo(this._originalScrollX, this._originalScrollY);
-      delete this._originalScrollX;
-      delete this._originalScrollY;
-    }
-
-    this.emit('exitfullscreen');
+    this.pseudoFullscreen?.disable();
   }
 
   // Picture-in-Picture
@@ -3213,152 +2628,14 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
   }
 
-  // Set up responsive handlers
-  setupResponsiveHandlers() {
-    // Use ResizeObserver for efficient resize tracking
-    if (typeof ResizeObserver !== 'undefined') {
-      this.resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          const width = entry.contentRect.width;
-
-          const controlBar = this.controlBar as (ControlBar & {
-            updateControlsForViewport?: (w: number) => void
-          }) | null;
-          if (controlBar && typeof controlBar.updateControlsForViewport === 'function') {
-            controlBar.updateControlsForViewport(width);
-          }
-
-          if (this.transcriptManager && this.transcriptManager.isVisible) {
-            this.transcriptManager.positionTranscript();
-          }
-        }
-      });
-
-      this.resizeObserver.observe(this.container);
-    } else {
-      this.resizeHandler = () => {
-        const width = this.container.clientWidth;
-
-        const controlBar = this.controlBar as (ControlBar & { updateControlsForViewport?: (w: number) => void }) | null;
-        if (controlBar && typeof controlBar.updateControlsForViewport === 'function') {
-          controlBar.updateControlsForViewport(width);
-        }
-
-        if (this.transcriptManager && this.transcriptManager.isVisible) {
-          // Only auto-position if user hasn't manually moved it
-          if (!this.transcriptManager.draggableResizable || !this.transcriptManager.draggableResizable.manuallyPositioned) {
-            this.transcriptManager.positionTranscript();
-          }
-        }
-      };
-
-      window.addEventListener('resize', this.resizeHandler, {signal: this.lifecycleSignal});
-    }
-
-    // Also listen for orientation changes on mobile
-    if (window.matchMedia) {
-      this.orientationHandler = () => {
-        // Wait for layout to settle
-        setTimeout(() => {
-          if (this.transcriptManager && this.transcriptManager.isVisible) {
-            // Only auto-position if user hasn't manually moved it
-            if (!this.transcriptManager.draggableResizable || !this.transcriptManager.draggableResizable.manuallyPositioned) {
-              this.transcriptManager.positionTranscript();
-            }
-          }
-        }, 100);
-      };
-
-      const orientationQuery = window.matchMedia('(orientation: portrait)');
-      if (orientationQuery.addEventListener) {
-        // Modern MediaQueryList supports AddEventListenerOptions including
-        // `signal`, so teardown happens automatically via the player's
-        // lifecycle AbortController.
-        orientationQuery.addEventListener('change', this.orientationHandler, {
-          signal: this.lifecycleSignal
-        });
-      } else if (orientationQuery.addListener) {
-        // Fallback for older browsers; destroy() still explicitly removes
-        // this listener below.
-        orientationQuery.addListener(this.orientationHandler);
-      }
-
-      this.orientationQuery = orientationQuery;
-    }
-
-    // Listen for native fullscreen change events (e.g., when user presses ESC)
-    this.fullscreenChangeHandler = () => {
-      const doc = document as Document & {
-        webkitFullscreenElement?: Element | null;
-        mozFullScreenElement?: Element | null;
-        msFullscreenElement?: Element | null;
-      };
-      const isFullscreen = Boolean(
-        document.fullscreenElement ||
-        doc.webkitFullscreenElement ||
-        doc.mozFullScreenElement ||
-        doc.msFullscreenElement
-      );
-
-      // Only update if state has changed
-      if (this.state.fullscreen !== isFullscreen) {
-        this.state.fullscreen = isFullscreen;
-
-        if (isFullscreen) {
-          this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
-          // Add body class for CSS targeting (fallback for browsers without :has() support)
-          document.body.classList.add('vidply-fullscreen-active');
-          // Make background content inert to prevent keyboard focus escaping
-          this._makeBackgroundInert();
-        } else {
-          this.container.classList.remove(`${this.options.classPrefix}-fullscreen`);
-          // Remove body class for CSS targeting
-          document.body.classList.remove('vidply-fullscreen-active');
-          // Restore background interactivity
-          this._restoreBackgroundInteractivity();
-          // Clean up pseudo-fullscreen state when exiting
-          this._disablePseudoFullscreen();
-        }
-
-        this.emit('fullscreenchange', isFullscreen);
-
-        // Update fullscreen button icon
-        if (this.controlBar) {
-          this.controlBar.updateFullscreenButton();
-        }
-
-        // Reposition sign language video after fullscreen transition
-        if (this.signLanguageWrapper && this.signLanguageWrapper.style.display !== 'none') {
-          // Re-setup drag/drop when entering/exiting fullscreen on mobile devices
-          // This enables drag/resize when entering fullscreen on mobile
-          const isMobile = window.innerWidth < 768;
-          if (isMobile) {
-            this.setupSignLanguageInteraction();
-          }
-
-          // Defer width adjustment until after the fullscreen transition
-          // and any related CSS animations have settled.
-          this.setManagedTimeout(() => {
-            requestAnimationFrame(() => {
-              this.storage.saveSignLanguagePreferences({size: null});
-              if (this.signLanguageWrapper) {
-                this.signLanguageWrapper.style.width = isFullscreen ? '400px' : '280px';
-              }
-              this.constrainSignLanguagePosition();
-            });
-          }, 500);
-        }
-      }
-    };
-
-    // Add listeners for all vendor-prefixed fullscreenchange events.
-    // All four wire to the Player's lifecycle AbortController so
-    // destroy() removes them in a single shot.
-    const opts = {signal: this.lifecycleSignal};
-    document.addEventListener('fullscreenchange', this.fullscreenChangeHandler, opts);
-    document.addEventListener('webkitfullscreenchange', this.fullscreenChangeHandler, opts);
-    document.addEventListener('mozfullscreenchange', this.fullscreenChangeHandler, opts);
-    document.addEventListener('MSFullscreenChange', this.fullscreenChangeHandler, opts);
+  /**
+   * Wire up resize / orientation / fullscreen listeners. Delegates to
+   * `ResponsiveManager`; Player keeps the method name for backward
+   * compatibility with external callers that start the feature
+   * manually after swapping the container.
+   */
+  setupResponsiveHandlers(): void {
+    this.responsiveManager.setup();
   }
 
   // Cleanup. Aborts the lifecycle controller (which removes every
@@ -3468,36 +2745,22 @@ export class Player extends EventEmitter<PlayerEventMap> {
       this.loadingOverlayElement = null;
     }
 
-    // Cleanup resize observer (not covered by AbortController)
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-      this.resizeObserver = null;
-    }
-
-    // The remaining window/document handlers (resize, fullscreenchange,
-    // sign-language mousedown, lifecycle media element click) are
-    // already torn down by `this._lifecycleController.abort()` above.
-    this.resizeHandler = null;
-    this.fullscreenChangeHandler = null;
-
-    // Cleanup orientation change handler. matchMedia listeners are
-    // *not* covered by the AbortController on every browser; remove
-    // explicitly.
-    if (this.orientationQuery && this.orientationHandler) {
-      if (this.orientationQuery.removeEventListener) {
-        this.orientationQuery.removeEventListener('change', this.orientationHandler);
-      } else if (this.orientationQuery.removeListener) {
-        this.orientationQuery.removeListener(this.orientationHandler);
-      }
-      this.orientationQuery = null;
-      this.orientationHandler = null;
-    }
+    // Responsive tracking owns the resize-observer + orientation
+    // matchMedia + fullscreenchange listeners. The window/document
+    // handlers attached with `{signal}` have already been torn down
+    // by `this._lifecycleController.abort()` above; `cleanup()`
+    // handles the two exceptions (ResizeObserver + legacy Safari
+    // matchMedia listener).
+    this.responsiveManager?.cleanup();
 
     // Clean up all managed timeouts
     this.timeouts.forEach((timeoutId: ReturnType<typeof setTimeout>) => clearTimeout(timeoutId));
     this.timeouts.clear();
 
-    // Cleanup metadata handling
+    // Cleanup metadata handling. The manager owns the alert button
+    // click listeners; the `cuechange` listener is also tracked on
+    // `player.metadataCueChangeHandler` for the TextTrack teardown
+    // path below.
     if (this.metadataCueChangeHandler) {
       const textTracks = this.textTracks;
       const metadataTrack = textTracks.find((track: TextTrack) => track.kind === 'metadata');
@@ -3506,18 +2769,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       }
       this.metadataCueChangeHandler = null;
     }
-
-    if (this.metadataAlertHandlers && this.metadataAlertHandlers.size > 0) {
-      this.metadataAlertHandlers.forEach(({button, handler}: {
-        button: HTMLElement | null;
-        handler: EventListener | null
-      }) => {
-        if (button && handler) {
-          button.removeEventListener('click', handler);
-        }
-      });
-      this.metadataAlertHandlers.clear();
-    }
+    this.metadataAlertsManager?.cleanup();
 
     // Drop ourselves from the global registry so multi-player pages can
     // detect leaks via Player.instances.length === expected.
@@ -3536,451 +2788,64 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   /**
-   * Set up metadata track handling
-   * This enables metadata tracks and listens for cue changes to trigger actions
+   * Set up metadata track handling. Delegates to
+   * `MetadataAlertsManager` — Player lazily constructs it so pages
+   * without metadata tracks pay no cost.
    */
-  setupMetadataHandling() {
-    const setupMetadata = () => {
-      const textTracks = this.textTracks;
-      const metadataTrack = textTracks.find((track) => track.kind === 'metadata');
-
-      if (metadataTrack) {
-        // Enable the metadata track so cuechange events fire
-        // Use 'hidden' mode so it doesn't display anything, but events still work
-        if (metadataTrack.mode === 'disabled') {
-          metadataTrack.mode = 'hidden';
-        }
-
-        // Remove existing listener if any
-        if (this.metadataCueChangeHandler) {
-          metadataTrack.removeEventListener('cuechange', this.metadataCueChangeHandler);
-        }
-
-        // Add event listener for cue changes
-        this.metadataCueChangeHandler = () => {
-          const activeCues = Array.from(metadataTrack.activeCues || []) as VTTCue[];
-          if (activeCues.length > 0) {
-            if (this.options.debug) {
-              this.log('[Metadata] Active cues:', activeCues.map((c) => ({
-                start: c.startTime,
-                end: c.endTime,
-                text: c.text
-              })));
-            }
-          }
-          activeCues.forEach(cue => {
-            this.handleMetadataCue(cue);
-          });
-        };
-
-        metadataTrack.addEventListener('cuechange', this.metadataCueChangeHandler);
-
-        // Debug: Log metadata track setup
-        if (this.options.debug) {
-          const cueCount = metadataTrack.cues ? metadataTrack.cues.length : 0;
-          this.log('[Metadata] Track enabled,', cueCount, 'cues available');
-        }
-      } else if (this.options.debug) {
-        this.log('[Metadata] No metadata track found');
-      }
-    };
-
-    // Try immediately
-    setupMetadata();
-
-    // Also try after loadedmetadata event (tracks might not be ready yet)
-    this.on('loadedmetadata', setupMetadata);
+  setupMetadataHandling(): void {
+    if (!this.metadataAlertsManager) {
+      this.metadataAlertsManager = new MetadataAlertsManager(this);
+    }
+    this.metadataAlertsManager.setupHandling();
   }
 
+  // Thin delegates for the metadata-alert system. Implementations
+  // live in `core/MetadataAlertsManager.ts`; Player keeps the names
+  // so call sites inside `handleMetadataCue` and external callers
+  // (e.g. TranscriptManager integration tests) keep working.
   normalizeMetadataSelector(selector: unknown): string | null {
-    if (typeof selector !== 'string') {
-      return null;
-    }
-    const trimmed = selector.trim();
-    if (!trimmed) {
-      return null;
-    }
-    // Reject selectors longer than 200 chars to bound any quadratic
-    // matching cost in the engine.
-    if (trimmed.length > 200) {
-      return null;
-    }
-    if (trimmed.startsWith('#') || trimmed.startsWith('.') || trimmed.startsWith('[')) {
-      return trimmed;
-    }
-    return `#${trimmed}`;
+    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).normalizeSelector(selector);
   }
 
-  resolveMetadataConfig(map: Record<string, unknown> | null | undefined, key: string | null | undefined): MetadataAlertConfig | null {
-    if (!map || !key) {
-      return null;
-    }
-    if (Object.prototype.hasOwnProperty.call(map, key)) {
-      return map[key] as MetadataAlertConfig;
-    }
-    const withoutHash = key.replace(/^#/, '');
-    if (Object.prototype.hasOwnProperty.call(map, withoutHash)) {
-      return map[withoutHash] as MetadataAlertConfig;
-    }
-    return null;
+  resolveMetadataConfig(
+    map: Record<string, unknown> | null | undefined,
+    key: string | null | undefined
+  ): MetadataAlertConfig | null {
+    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).resolveConfig(map, key);
   }
 
-  cacheMetadataAlertContent(element: HTMLElement | null | undefined, config: MetadataAlertConfig = {}) {
-    if (!element) {
-      return;
-    }
-    const titleSelector = config.titleSelector || '[data-vidply-alert-title], h3, header';
-    const messageSelector = config.messageSelector || '[data-vidply-alert-message], p';
-
-    const titleEl = element.querySelector<HTMLElement>(titleSelector);
-    if (titleEl && !titleEl.dataset.vidplyAlertTitleOriginal) {
-      titleEl.dataset.vidplyAlertTitleOriginal = titleEl.textContent?.trim() ?? '';
-    }
-
-    const messageEl = element.querySelector<HTMLElement>(messageSelector);
-    if (messageEl && !messageEl.dataset.vidplyAlertMessageOriginal) {
-      messageEl.dataset.vidplyAlertMessageOriginal = messageEl.textContent?.trim() ?? '';
-    }
+  cacheMetadataAlertContent(element: HTMLElement | null | undefined, config: MetadataAlertConfig = {}): void {
+    (this.metadataAlertsManager ?? this._ensureMetadataManager()).cacheContent(element, config);
   }
 
-  restoreMetadataAlertContent(element: HTMLElement | null | undefined, config: MetadataAlertConfig = {}) {
-    if (!element) {
-      return;
-    }
-    const titleSelector = config.titleSelector || '[data-vidply-alert-title], h3, header';
-    const messageSelector = config.messageSelector || '[data-vidply-alert-message], p';
-
-    const titleEl = element.querySelector<HTMLElement>(titleSelector);
-    if (titleEl && titleEl.dataset.vidplyAlertTitleOriginal) {
-      titleEl.textContent = titleEl.dataset.vidplyAlertTitleOriginal;
-    }
-
-    const messageEl = element.querySelector<HTMLElement>(messageSelector);
-    if (messageEl && messageEl.dataset.vidplyAlertMessageOriginal) {
-      messageEl.textContent = messageEl.dataset.vidplyAlertMessageOriginal;
-    }
+  restoreMetadataAlertContent(element: HTMLElement | null | undefined, config: MetadataAlertConfig = {}): void {
+    (this.metadataAlertsManager ?? this._ensureMetadataManager()).restoreContent(element, config);
   }
 
-  focusMetadataTarget(target: string | null | undefined, fallbackElement: HTMLElement | null = null) {
-    if (!target || target === 'none') {
-      return;
-    }
-
-    if (target === 'alert' && fallbackElement) {
-      fallbackElement.focus({preventScroll: true});
-      return;
-    }
-
-    if (target === 'player') {
-      if (this.container) {
-        this.container.focus({preventScroll: true});
-      }
-      return;
-    }
-
-    if (target === 'media') {
-      this.element.focus({preventScroll: true});
-      return;
-    }
-
-    if (target === 'playButton') {
-      const playButton = this.controlBar?.controls?.playPause;
-      if (playButton) {
-        playButton.focus({preventScroll: true});
-      }
-      return;
-    }
-
-    if (typeof target === 'string') {
-      const targetElement = document.querySelector(target) as HTMLElement | null;
-      if (targetElement) {
-        if (targetElement.tabIndex === -1 && !targetElement.hasAttribute('tabindex')) {
-          targetElement.setAttribute('tabindex', '-1');
-        }
-        targetElement.focus({preventScroll: true});
-      }
-    }
+  focusMetadataTarget(target: string | null | undefined, fallbackElement: HTMLElement | null = null): void {
+    (this.metadataAlertsManager ?? this._ensureMetadataManager()).focusTarget(target, fallbackElement);
   }
 
-  handleMetadataAlert(selector: string, options: MetadataAlertOptions = {}) {
-    if (!selector) {
-      return;
+  /** Internal helper: lazily creates the manager for external
+   *  entry points that didn't come via `setupMetadataHandling`. */
+  private _ensureMetadataManager(): MetadataAlertsManager {
+    if (!this.metadataAlertsManager) {
+      this.metadataAlertsManager = new MetadataAlertsManager(this);
     }
-
-    const config: MetadataAlertConfig = this.resolveMetadataConfig(this.options.metadataAlerts as Record<string, unknown> | null | undefined, selector) || {};
-    // Container-scoped resolution by default; only fall back to a
-    // global lookup when `metadataDirectives === 'global' | true`.
-    const element = options.element || this.resolveMetadataElement(selector);
-
-    if (!element) {
-      if (this.options.debug) {
-        this.log('[Metadata] Alert element not found:', selector);
-      }
-      return;
-    }
-
-    if (this.options.debug) {
-      this.log('[Metadata] Handling alert', selector, {reason: options.reason, config});
-    }
-
-    this.cacheMetadataAlertContent(element, config);
-
-    if (!element.dataset.vidplyAlertOriginalDisplay) {
-      element.dataset.vidplyAlertOriginalDisplay = element.style.display || '';
-    }
-
-    if (!element.dataset.vidplyAlertDisplay) {
-      element.dataset.vidplyAlertDisplay = config.display || 'block';
-    }
-
-    const shouldShow = options.show !== undefined ? options.show : (config.show !== false);
-    if (shouldShow) {
-      const displayValue = config.display || element.dataset.vidplyAlertDisplay || 'block';
-      element.style.display = displayValue;
-      element.hidden = false;
-      element.removeAttribute('hidden');
-      element.setAttribute('aria-hidden', 'false');
-      element.setAttribute('data-vidply-alert-active', 'true');
-    }
-
-    const shouldReset = config.resetContent !== false && options.reason === 'focus';
-    if (shouldReset) {
-      this.restoreMetadataAlertContent(element, config);
-    }
-
-    const shouldFocus = options.focus !== undefined
-      ? options.focus
-      : (config.focusOnShow ?? (options.reason !== 'focus'));
-
-    if (shouldShow && shouldFocus) {
-      if (element.tabIndex === -1 && !element.hasAttribute('tabindex')) {
-        element.setAttribute('tabindex', '-1');
-      }
-      element.focus({preventScroll: true});
-    }
-
-    if (shouldShow && config.autoScroll !== false && options.autoScroll !== false) {
-      element.scrollIntoView({behavior: 'smooth', block: 'nearest'});
-    }
-
-    const continueSelector = config.continueButton;
-    if (continueSelector) {
-      let continueButton: HTMLElement | null = null;
-      if (continueSelector === 'self') {
-        continueButton = element;
-      } else if (element.matches(continueSelector)) {
-        continueButton = element;
-      } else {
-        continueButton = element.querySelector<HTMLElement>(continueSelector) || document.querySelector<HTMLElement>(continueSelector);
-      }
-
-      if (continueButton && !this.metadataAlertHandlers.has(selector)) {
-        const handler = () => {
-          const hideOnContinue = config.hideOnContinue !== false;
-          if (hideOnContinue) {
-            const originalDisplay = element.dataset.vidplyAlertOriginalDisplay || '';
-            element.style.display = config.hideDisplay || originalDisplay || 'none';
-            element.setAttribute('aria-hidden', 'true');
-            element.removeAttribute('data-vidply-alert-active');
-          }
-
-          if (config.resume !== false && this.state.paused) {
-            this.play();
-          }
-
-          const focusTarget = config.focusTarget || 'playButton';
-          this.setManagedTimeout(() => {
-            this.focusMetadataTarget(focusTarget, element);
-          }, config.focusDelay ?? 100);
-        };
-
-        continueButton.addEventListener('click', handler);
-        this.metadataAlertHandlers.set(selector, {button: continueButton, handler});
-      }
-    }
-
-    return element;
+    return this.metadataAlertsManager;
   }
 
-  handleMetadataHashtags(hashtags: string[] | null | undefined) {
-    if (!Array.isArray(hashtags) || hashtags.length === 0) {
-      return;
-    }
-
-    const configMap = this.options.metadataHashtags as Record<string, unknown> | null | undefined;
-    if (!configMap) {
-      return;
-    }
-
-    hashtags.forEach(tag => {
-      const config = this.resolveMetadataConfig(configMap, tag);
-      if (!config) {
-        return;
-      }
-
-      const selector: string | null = this.normalizeMetadataSelector(config.alert || config.selector || config.target);
-      if (!selector) {
-        return;
-      }
-
-      const element = this.resolveMetadataElement(selector);
-      if (!element) {
-        if (this.options.debug) {
-          this.log('[Metadata] Hashtag target not found:', selector);
-        }
-        return;
-      }
-
-      if (this.options.debug) {
-        this.log('[Metadata] Handling hashtag', tag, {selector, config});
-      }
-
-      this.cacheMetadataAlertContent(element, config);
-
-      if (config.title) {
-        const titleSelector = config.titleSelector || '[data-vidply-alert-title], h3, header';
-        const titleEl = element.querySelector<HTMLElement>(titleSelector);
-        if (titleEl) {
-          titleEl.textContent = config.title;
-        }
-      }
-
-      if (config.message) {
-        const messageSelector = config.messageSelector || '[data-vidply-alert-message], p';
-        const messageEl = element.querySelector<HTMLElement>(messageSelector);
-        if (messageEl) {
-          messageEl.textContent = config.message;
-        }
-      }
-
-      const show = config.show !== false;
-      const focus = config.focus !== undefined ? config.focus : false;
-
-      this.handleMetadataAlert(selector, {
-        element,
-        show,
-        focus,
-        autoScroll: config.autoScroll,
-        reason: 'hashtag'
-      });
-    });
+  handleMetadataAlert(selector: string, options: MetadataAlertOptions = {}): HTMLElement | undefined {
+    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleAlert(selector, options);
   }
 
-  /**
-   * Handle individual metadata cues
-   * Parses metadata text and emits events or triggers actions
-   */
-  handleMetadataCue(cue: VTTCue | TextTrackCue) {
-    const text = (cue as VTTCue).text.trim();
-
-    // Debug logging
-    if (this.options.debug) {
-      this.log('[Metadata] Processing cue:', {
-        time: cue.startTime,
-        text: text
-      });
-    }
-
-    // Emit a generic metadata event that developers can listen to
-    this.emit('metadata', {
-      time: cue.startTime,
-      endTime: cue.endTime,
-      text: text,
-      cue: cue
-    });
-
-    // Parse for specific commands (examples based on wwa_meta.vtt format)
-    if (text.includes('PAUSE')) {
-      // Automatically pause the video
-      if (!this.state.paused) {
-        if (this.options.debug) {
-          this.log('[Metadata] Pausing video at', cue.startTime);
-        }
-        this.pause();
-      }
-      // Also emit event for developers who want to listen
-      this.emit('metadata:pause', {time: cue.startTime, text: text});
-    }
-
-    // Parse for focus directives. The DOM side-effects (.focus() + alert)
-    // are gated on `options.metadataDirectives`; the public event always
-    // fires so consumers can opt into custom handling.
-    const focusMatch = text.match(/FOCUS:([\w#-]{1,128})/);
-    if (focusMatch) {
-      const targetSelector = focusMatch[1];
-      const normalizedSelector = this.normalizeMetadataSelector(targetSelector);
-      const targetElement = this.resolveMetadataElement(normalizedSelector);
-      if (targetElement) {
-        if (this.options.debug) {
-          this.log('[Metadata] Focusing element:', normalizedSelector);
-        }
-        if (targetElement.tabIndex === -1 && !targetElement.hasAttribute('tabindex')) {
-          targetElement.setAttribute('tabindex', '-1');
-        }
-        this.setManagedTimeout(() => {
-          targetElement.focus({preventScroll: true});
-        }, 10);
-      } else if (this.options.debug && this.options.metadataDirectives) {
-        this.log('[Metadata] Element not found:', normalizedSelector || targetSelector);
-      }
-      this.emit('metadata:focus', {
-        time: cue.startTime,
-        target: targetSelector,
-        selector: normalizedSelector,
-        element: targetElement,
-        text: text
-      });
-
-      if (this.options.metadataDirectives && normalizedSelector) {
-        this.handleMetadataAlert(normalizedSelector, {
-          element: targetElement,
-          reason: 'focus'
-        });
-      }
-    }
-
-    // Parse for hashtag references
-    const hashtags = text.match(/#[\w-]{1,64}/g);
-    if (hashtags && hashtags.length > 0) {
-      // Cap at 32 hashtags per cue to bound subsequent work.
-      const safeTags = hashtags.slice(0, 32);
-      if (this.options.debug) {
-        this.log('[Metadata] Hashtags found:', safeTags);
-      }
-      this.emit('metadata:hashtags', {
-        time: cue.startTime,
-        hashtags: safeTags,
-        text: text
-      });
-
-      if (this.options.metadataDirectives) {
-        this.handleMetadataHashtags(safeTags);
-      }
-    }
+  handleMetadataHashtags(hashtags: string[] | null | undefined): void {
+    (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleHashtags(hashtags);
   }
 
-  /**
-   * Resolve a metadata-cue selector inside the configured directive scope.
-   * Returns `null` when directives are disabled or the selector doesn't
-   * resolve.
-   */
-  private resolveMetadataElement(selector: string | null): HTMLElement | null {
-    const mode = this.options.metadataDirectives;
-    if (!mode) return null;
-    if (!selector) return null;
-    try {
-      if (mode === true || mode === 'global') {
-        return document.querySelector(selector) as HTMLElement | null;
-      }
-      // 'container' (default for opted-in users): scope lookups to the
-      // player container, so a malicious caption cannot focus a
-      // login-form input or trigger a dialog elsewhere on the page.
-      const root = this.container || this.element.parentElement || document;
-      return (root as ParentNode).querySelector(selector) as HTMLElement | null;
-    } catch {
-      // Bad selector — never surface to the page.
-      return null;
-    }
+  handleMetadataCue(cue: VTTCue | TextTrackCue): void {
+    (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleCue(cue);
   }
+
 }
 

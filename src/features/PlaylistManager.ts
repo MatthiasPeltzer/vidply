@@ -7,6 +7,7 @@ import { DOMUtils } from '../utils/DOMUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 import { TimeUtils } from '../utils/TimeUtils.js';
+import { sanitizePosterUrl, toCssBackgroundImage } from '../utils/UrlSafe.js';
 import type { Player } from '../core/Player.js';
 
 type PlaylistTextTrack = {
@@ -629,14 +630,22 @@ export class PlaylistManager {
     // This ensures poster + feature buttons (chapters/captions/transcript/sign-language)
     // can be updated instantly even before any media network activity happens.
     try {
-      // Poster for video element
+      // Poster for video element — validate the URL from the manifest
+      // before we hand it to `<video>.poster`. Without the allow-list an
+      // attacker-controlled `javascript:` or `data:text/html` value could
+      // reach the attribute.
       if (this.player?.element?.tagName === 'VIDEO') {
         if (track.poster) {
-          const posterUrl: string = typeof this.player.resolvePosterPath === 'function'
+          const resolved: string = typeof this.player.resolvePosterPath === 'function'
             ? this.player.resolvePosterPath(track.poster)
             : track.poster;
-          (this.player.element as HTMLVideoElement).poster = posterUrl;
-          (this.player as Player & { applyPosterAspectRatio?: (url: string) => void }).applyPosterAspectRatio?.(posterUrl);
+          const posterUrl = sanitizePosterUrl(resolved);
+          if (posterUrl) {
+            (this.player.element as HTMLVideoElement).poster = posterUrl;
+            (this.player as Player & { applyPosterAspectRatio?: (url: string) => void }).applyPosterAspectRatio?.(posterUrl);
+          } else {
+            this.player.element.removeAttribute('poster');
+          }
         } else {
           this.player.element.removeAttribute('poster');
         }
@@ -1184,12 +1193,17 @@ export class PlaylistManager {
 
     if (!this.trackArtworkElement) return;
     
-    // If track has a poster/artwork, show it
-    if (track.poster) {
-      this.trackArtworkElement.style.backgroundImage = `url(${track.poster})`;
+    // A track manifest is attacker-influenced data — a value like
+    // `x); background: url(evil.svg` must not be allowed to break out
+    // of the declaration. `toCssBackgroundImage` returns null when the
+    // URL fails validation, so we leave the element hidden instead of
+    // assigning a dangerous value.
+    const safeBackground = track.poster ? toCssBackgroundImage(track.poster) : null;
+    if (safeBackground) {
+      this.trackArtworkElement.style.backgroundImage = safeBackground;
       this.trackArtworkElement.style.display = 'block';
     } else {
-      // No artwork available, hide the element
+      this.trackArtworkElement.style.backgroundImage = '';
       this.trackArtworkElement.style.display = 'none';
     }
   }
@@ -1318,10 +1332,13 @@ export class PlaylistManager {
       className: 'vidply-playlist-thumbnail'
     });
     
-    if (track.poster) {
-      thumbnail.style.backgroundImage = `url(${track.poster})`;
+    // Same rule as trackArtworkElement below: only set backgroundImage
+    // when the manifest URL passes the allow-list so a hostile feed
+    // cannot break out of the CSS `url(...)` declaration.
+    const safeThumbnail = track.poster ? toCssBackgroundImage(track.poster) : null;
+    if (safeThumbnail) {
+      thumbnail.style.backgroundImage = safeThumbnail;
     } else {
-      // Show music/speaker icon for audio tracks
       const icon = createIconElement('music');
       icon.classList.add('vidply-playlist-thumbnail-icon');
       thumbnail.appendChild(icon);

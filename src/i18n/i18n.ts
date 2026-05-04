@@ -1,12 +1,11 @@
 import { getBaseTranslations, getBuiltInLanguageLoaders, loadBuiltInTranslation, type TranslationData } from './translations.js';
+import { deepSanitize, isForbiddenKey } from '../utils/Sanitize.js';
 
 declare global {
   interface Window {
     jsyaml?: { load(input: string): unknown };
   }
 }
-
-const PROTO_FORBIDDEN_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
 
 /**
  * Escape RegExp meta-characters so a placeholder name like
@@ -24,19 +23,7 @@ function escapeRegExp(input: string): string {
  * through `Object.assign`.
  */
 function deepSanitizeTranslations(input: unknown): TranslationData {
-  if (!input || typeof input !== 'object' || Array.isArray(input)) {
-    return Object.create(null) as TranslationData;
-  }
-  const out: Record<string, unknown> = Object.create(null);
-  for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
-    if (PROTO_FORBIDDEN_KEYS.has(key)) continue;
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-      out[key] = deepSanitizeTranslations(value);
-    } else {
-      out[key] = value;
-    }
-  }
-  return out as TranslationData;
+  return deepSanitize<TranslationData>(input);
 }
 
 class I18n {
@@ -125,7 +112,7 @@ class I18n {
     if (typeof value === 'string') {
       let result = value;
       for (const [placeholder, replacement] of Object.entries(replacements)) {
-        if (PROTO_FORBIDDEN_KEYS.has(placeholder)) continue;
+        if (isForbiddenKey(placeholder)) continue;
         const safe = escapeRegExp(placeholder);
         result = result.replace(new RegExp(`\\{${safe}\\}`, 'g'), String(replacement));
       }
@@ -136,7 +123,7 @@ class I18n {
   }
 
   addTranslation(lang: string, newTranslations: TranslationData): void {
-    if (PROTO_FORBIDDEN_KEYS.has(lang)) {
+    if (isForbiddenKey(lang)) {
       console.warn(`[VidPly] Refusing to register language with forbidden name "${lang}"`);
       return;
     }

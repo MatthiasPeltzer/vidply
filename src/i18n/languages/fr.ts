@@ -149,6 +149,8 @@ export const fr = {
     resizeModeHint: 'Poignées activées. Faites glisser les bords ou les coins pour ajuster. Appuyez sur Échap ou R pour quitter.',
     resizeModeEnabled: 'Mode redimensionnement activé. Faites glisser les bords ou coins. Appuyez sur Échap ou R pour quitter.',
     resizeModeDisabled: 'Mode redimensionnement désactivé.',
+    dragModeBadge: 'Mode déplacement : flèches pour déplacer, Échap pour quitter',
+    resizeModeBadge: 'Mode redimensionnement : faites glisser les bords ou les coins, Échap pour quitter',
     positionReset: 'Position de la transcription réinitialisée.',
     styleTranscript: 'Ouvrir les paramètres de style de transcription',
     closeMenu: 'Fermer le menu',

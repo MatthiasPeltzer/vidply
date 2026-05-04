@@ -7,8 +7,8 @@ import { DOMUtils } from '../utils/DOMUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 import { DraggableResizable } from '../utils/DraggableResizable.js';
-import { createMenuItem, attachMenuKeyboardNavigation, focusFirstMenuItem } from '../utils/MenuUtils.js';
 import { createLabeledSelect, preventDragOnElement } from '../utils/FormUtils.js';
+import { DraggablePanel } from '../utils/DraggablePanel.js';
 import type { Player } from './Player.js';
 
 /**
@@ -41,8 +41,6 @@ export class SignLanguageManager {
     customKeyHandler: ((e: KeyboardEvent) => void) | null;
     desiredPosition: string;
     draggable: DraggableResizable | null;
-    dragOptionButton: HTMLElement | null;
-    dragOptionText: Element | null;
     handlers: SignLanguageHandlers | null;
     header: HTMLElement | null;
     inMainView: boolean;
@@ -50,28 +48,61 @@ export class SignLanguageManager {
     mainViewOriginalSources: HTMLSourceElement[] | null;
     mainViewOriginalSrc: string | null;
     resizeHandles: HTMLElement[];
-    resizeOptionButton: HTMLElement | null;
-    resizeOptionText: Element | null;
     selector: HTMLSelectElement | null;
     settingsButton: HTMLButtonElement | null;
     settingsHandlers: SignLanguageSettingsHandlers | null;
-    settingsMenu: HTMLElement | null;
-    settingsMenuJustOpened: boolean;
-    settingsMenuKeyHandler: ((event: KeyboardEvent) => void) | null;
-    settingsMenuVisible: boolean;
     sources: Record<string, string>;
     src: string | null;
     enabled: boolean;
-    documentClickHandler: ((event: MouseEvent) => void) | null;
-    documentClickHandlerAdded: boolean;
     video: HTMLVideoElement | null;
     wrapper: HTMLElement | null;
-    /** Visible badge appended to the wrapper while keyboard drag or
-     *  pointer resize mode is active. Replaces the previous
-     *  `::after { content: 'DRAG MODE …' }` CSS approach so the hint is
-     *  real DOM content: translatable, announced by AT, selectable, and
-     *  survives high-contrast themes that strip pseudo-elements. */
-    modeBadge: HTMLElement | null;
+
+    /**
+     * Encapsulates the settings-menu DOM, lifecycle (show/hide/outside-
+     * click/keyboard nav/positioning), and the drag/resize toggle items.
+     * Owned here but lazily created once {@link _setupSettingsButton}
+     * instantiates the button it needs to anchor from.
+     */
+    private _panel: DraggablePanel | null = null;
+
+    // Back-compat getters for external callers (Player.ts exposes these
+    // under `signLanguageSettingsMenu` / `signLanguageSettingsMenuVisible`)
+    // and for internal readers of the shared menu-item state (which is now
+    // panel-owned). Setters are no-ops by design — the panel is the
+    // authoritative owner of these values.
+    get settingsMenu(): HTMLElement | null {
+        return this._panel?.settingsMenu ?? null;
+    }
+    set settingsMenu(_v: HTMLElement | null) {
+        // panel-owned; ignored to keep legacy API surface inert.
+    }
+
+    get settingsMenuVisible(): boolean {
+        return this._panel?.settingsMenuVisible ?? false;
+    }
+    set settingsMenuVisible(_v: boolean) {
+        // panel-owned.
+    }
+
+    get settingsMenuJustOpened(): boolean {
+        return this._panel?.justOpened ?? false;
+    }
+    set settingsMenuJustOpened(_v: boolean) {
+        // panel-owned.
+    }
+
+    get dragOptionButton(): HTMLElement | null {
+        return this._panel?.dragOptionButton ?? null;
+    }
+    get dragOptionText(): Element | null {
+        return this._panel?.dragOptionText ?? null;
+    }
+    get resizeOptionButton(): HTMLElement | null {
+        return this._panel?.resizeOptionButton ?? null;
+    }
+    get resizeOptionText(): Element | null {
+        return this._panel?.resizeOptionText ?? null;
+    }
 
     constructor(player: Player) {
         this.player = player;
@@ -88,7 +119,6 @@ export class SignLanguageManager {
         this.video = null;
         this.selector = null;
         this.settingsButton = null;
-        this.settingsMenu = null;
         this.resizeHandles = [];
         
         // State
@@ -98,25 +128,13 @@ export class SignLanguageManager {
         this.mainViewOriginalSources = null;
         this._mainViewUsingSourceSwap = false;
         this._mainViewMutedBefore = false;
-        this.settingsMenuVisible = false;
-        this.settingsMenuJustOpened = false;
-        this.documentClickHandlerAdded = false;
         
         // Handlers
         this.handlers = null;
         this.settingsHandlers = null;
         this.interactionHandlers = null;
         this.draggable = null;
-        this.documentClickHandler = null;
-        this.settingsMenuKeyHandler = null;
         this.customKeyHandler = null;
-        
-        // Menu option references
-        this.dragOptionButton = null;
-        this.dragOptionText = null;
-        this.resizeOptionButton = null;
-        this.resizeOptionText = null;
-        this.modeBadge = null;
     }
 
     /**
@@ -610,15 +628,11 @@ export class SignLanguageManager {
         
         this.header.appendChild(headerLeft);
         this.header.appendChild(closeButton);
-        
-        // Initialize settings menu state
-        this.settingsMenuVisible = false;
-        this.settingsMenu = null;
-        this.settingsMenuJustOpened = false;
     }
 
     /**
-     * Create settings button
+     * Create settings button and wire it to a {@link DraggablePanel}
+     * that owns the drag/resize settings menu and its lifecycle.
      */
     _createSettingsButton(container: HTMLElement) {
         const classPrefix = this.player.options.classPrefix;
@@ -634,20 +648,66 @@ export class SignLanguageManager {
         }) as HTMLButtonElement;
         this.settingsButton.appendChild(createIconElement('settings'));
         DOMUtils.attachTooltip(this.settingsButton, ariaLabel, classPrefix);
-        
+
+        // The panel ties the settings-menu DOM, outside-click dismissal,
+        // keyboard navigation, and drag/resize toggle items together
+        // with the shared lifecycle signal. The manager still owns the
+        // side effects that happen when a mode actually toggles (badge,
+        // announcement, focus target), so the click callbacks below run
+        // the manager's own toggle methods.
+        this._panel = new DraggablePanel({
+            player: this.player,
+            namespace: 'sign-language',
+            settingsButton: this.settingsButton,
+            getDraggable: () => this.draggable,
+            i18nKeys: {
+                enableDrag: 'player.enableSignDragMode',
+                disableDrag: 'player.disableSignDragMode',
+                enableDragAria: 'player.enableSignDragModeAria',
+                disableDragAria: 'player.disableSignDragModeAria',
+                enableResize: 'player.enableSignResizeMode',
+                disableResize: 'player.disableSignResizeMode',
+                enableResizeAria: 'player.enableSignResizeModeAria',
+                disableResizeAria: 'player.disableSignResizeModeAria',
+                closeMenu: 'transcript.closeMenu',
+            },
+            menuAlign: 'center',
+            getMenuParent: () => this.wrapper,
+            getBadgeHost: () => this.wrapper,
+            // Existing CSS uses `.vidply-sign-mode-badge` (shorter than
+            // the namespace default) — pin the class so the styling
+            // keeps applying without having to duplicate the rule.
+            badgeClass: `${this.player.options.classPrefix}-sign-mode-badge`,
+            onDragItemClick: (panel) => {
+                this.toggleKeyboardDragMode();
+                // Keep focus off the settings button so arrow keys go to
+                // the draggable overlay.
+                panel.hide({ focusButton: false });
+                if (this.draggable?.keyboardDragMode) {
+                    setTimeout(() => {
+                        this.wrapper?.focus?.({ preventScroll: true });
+                    }, 20);
+                }
+            },
+            onResizeItemClick: (panel) => {
+                const enabled = this.toggleResizeMode({ focus: false });
+                if (enabled) {
+                    panel.hide({ focusButton: false });
+                    setTimeout(() => {
+                        this.wrapper?.focus?.({ preventScroll: true });
+                    }, 20);
+                } else {
+                    panel.hide({ focusButton: true });
+                }
+            },
+        });
+
         this.settingsHandlers = {
             click: (e: MouseEvent) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (this.documentClickHandler) {
-                    this.settingsMenuJustOpened = true;
-                    setTimeout(() => { this.settingsMenuJustOpened = false; }, 100);
-                }
-                if (this.settingsMenuVisible) {
-                    this.hideSettingsMenu();
-                } else {
-                    this.showSettingsMenu();
-                }
+                this._panel?.markJustOpenedForClick();
+                this._panel?.toggle();
             },
             keydown: (e: KeyboardEvent) => {
                 if (e.key === 'd' || e.key === 'D') {
@@ -1024,338 +1084,32 @@ export class SignLanguageManager {
     }
 
     /**
-     * Show settings menu
+     * Show the settings menu. Delegates to the shared {@link DraggablePanel},
+     * which owns the DOM, outside-click dismissal, keyboard navigation and
+     * positioning. Kept as a named method so external callers (other
+     * managers, tests) that referenced the legacy API keep working.
      */
     showSettingsMenu() {
-        this.settingsMenuJustOpened = true;
-        setTimeout(() => { this.settingsMenuJustOpened = false; }, 350);
-        
-        this._addDocumentClickHandler();
-        
-        if (this.settingsMenu) {
-            this.settingsMenu.style.display = 'block';
-            this.settingsMenuVisible = true;
-            this.settingsButton?.setAttribute('aria-expanded', 'true');
-            this._attachMenuKeyboardNavigation();
-            this._positionSettingsMenu();
-            this._updateDragOptionState();
-            this._updateResizeOptionState();
-            focusFirstMenuItem(this.settingsMenu, `.${this.player.options.classPrefix}-sign-language-settings-item`);
-            return;
-        }
-        
-        this._createSettingsMenu();
+        this._panel?.show();
     }
 
-    /**
-     * Hide settings menu
-     */
+    /** @see {@link showSettingsMenu} */
     hideSettingsMenu({ focusButton = true } = {}) {
-        if (this.settingsMenu) {
-            this.settingsMenu.style.display = 'none';
-            this.settingsMenuVisible = false;
-            this.settingsMenuJustOpened = false;
-            
-            if (this.settingsMenuKeyHandler) {
-                this.settingsMenu.removeEventListener('keydown', this.settingsMenuKeyHandler);
-                this.settingsMenuKeyHandler = null;
-            }
-            
-            const classPrefix = this.player.options.classPrefix;
-            const menuItems: HTMLElement[] = Array.from(this.settingsMenu.querySelectorAll(`.${classPrefix}-sign-language-settings-item`));
-            menuItems.forEach(item => item.setAttribute('tabindex', '-1'));
-            
-            if (this.settingsButton) {
-                this.settingsButton.setAttribute('aria-expanded', 'false');
-                if (focusButton) {
-                    this.settingsButton.focus({ preventScroll: true });
-                }
-            }
-        }
+        this._panel?.hide({ focusButton });
     }
 
-    /**
-     * Add document click handler
-     */
-    _addDocumentClickHandler() {
-        if (this.documentClickHandlerAdded) return;
-        
-        this.documentClickHandler = (e: MouseEvent) => {
-            if (this.settingsMenuJustOpened) return;
-            
-            const targetNode = e.target as Node | null;
-            if (this.settingsButton &&
-                (this.settingsButton === targetNode || (targetNode && this.settingsButton.contains(targetNode)))) {
-                return;
-            }
-            
-            if (this.settingsMenu && targetNode && this.settingsMenu.contains(targetNode)) {
-                return;
-            }
-            
-            if (this.settingsMenuVisible) {
-                this.hideSettingsMenu();
-            }
-        };
-        
-        setTimeout(() => {
-            const documentClickHandler = this.documentClickHandler;
-            if (!documentClickHandler) return;
-            document.addEventListener('mousedown', documentClickHandler, {
-                capture: true,
-                signal: this.player.lifecycleSignal
-            });
-            this.documentClickHandlerAdded = true;
-        }, 300);
-    }
-
-    /**
-     * Create settings menu
-     */
-    _createSettingsMenu() {
-        const classPrefix = this.player.options.classPrefix;
-        
-        this.settingsMenu = DOMUtils.createElement('div', {
-            className: `${classPrefix}-sign-language-settings-menu`,
-            attributes: { 'role': 'menu' }
-        });
-
-        // Drag option
-        const dragOption = createMenuItem({
-            classPrefix,
-            itemClass: `${classPrefix}-sign-language-settings-item`,
-            icon: 'move',
-            label: 'player.enableSignDragMode',
-            hasTextClass: true,
-            onClick: () => {
-                this.toggleKeyboardDragMode();
-                // Keep focus off the settings button so arrow keys go to the draggable overlay.
-                this.hideSettingsMenu({ focusButton: false });
-                // If we just enabled keyboard drag mode, focus the overlay.
-                if (this.draggable?.keyboardDragMode) {
-                    setTimeout(() => {
-                        this.wrapper?.focus?.({ preventScroll: true });
-                    }, 20);
-                }
-            }
-        });
-        // Allow CSS to hide this option on touch/mobile where dragging is always enabled
-        dragOption.setAttribute('data-setting', 'keyboard-drag');
-        dragOption.setAttribute('role', 'switch');
-        dragOption.setAttribute('aria-checked', 'false');
-        this._removeTooltipFromMenuItem(dragOption);
-        this.dragOptionButton = dragOption;
-        this.dragOptionText = dragOption.querySelector(`.${classPrefix}-settings-text`);
-        this._updateDragOptionState();
-
-        // Resize option
-        const resizeOption = createMenuItem({
-            classPrefix,
-            itemClass: `${classPrefix}-sign-language-settings-item`,
-            icon: 'resize',
-            label: 'player.enableSignResizeMode',
-            hasTextClass: true,
-            onClick: (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                
-                const enabled = this.toggleResizeMode({ focus: false });
-                
-                if (enabled) {
-                    this.hideSettingsMenu({ focusButton: false });
-                    setTimeout(() => {
-                        if (this.wrapper) this.wrapper.focus({ preventScroll: true });
-                    }, 20);
-                } else {
-                    this.hideSettingsMenu({ focusButton: true });
-                }
-            }
-        });
-        resizeOption.setAttribute('role', 'switch');
-        resizeOption.setAttribute('aria-checked', 'false');
-        this._removeTooltipFromMenuItem(resizeOption);
-        this.resizeOptionButton = resizeOption;
-        this.resizeOptionText = resizeOption.querySelector(`.${classPrefix}-settings-text`);
-        this._updateResizeOptionState();
-
-        // Close option
-        const closeOption = createMenuItem({
-            classPrefix,
-            itemClass: `${classPrefix}-sign-language-settings-item`,
-            icon: 'close',
-            label: 'transcript.closeMenu',
-            onClick: () => this.hideSettingsMenu()
-        });
-        this._removeTooltipFromMenuItem(closeOption);
-
-        this.settingsMenu.appendChild(dragOption);
-        this.settingsMenu.appendChild(resizeOption);
-        this.settingsMenu.appendChild(closeOption);
-
-        // Position and show
-        this.settingsMenu.style.visibility = 'hidden';
-        this.settingsMenu.style.display = 'block';
-        
-        if (this.settingsButton?.parentNode) {
-            this.settingsButton.insertAdjacentElement('afterend', this.settingsMenu);
-        } else if (this.wrapper) {
-            this.wrapper.appendChild(this.settingsMenu);
-        }
-        
-        this._positionSettingsMenuImmediate();
-        
-        requestAnimationFrame(() => {
-            if (this.settingsMenu) {
-                this.settingsMenu.style.visibility = 'visible';
-            }
-        });
-        
-        this._attachMenuKeyboardNavigation();
-        
-        this.settingsMenuVisible = true;
-        this.settingsButton?.setAttribute('aria-expanded', 'true');
-        this._updateDragOptionState();
-        this._updateResizeOptionState();
-        
-        focusFirstMenuItem(this.settingsMenu, `.${classPrefix}-sign-language-settings-item`);
-    }
-
-    /**
-     * Remove tooltip from menu item
-     */
-    _removeTooltipFromMenuItem(item: HTMLElement) {
-        const classPrefix = this.player.options.classPrefix;
-        const tooltip = item.querySelector(`.${classPrefix}-tooltip`);
-        if (tooltip) tooltip.remove();
-        const buttonText = item.querySelector(`.${classPrefix}-button-text`);
-        if (buttonText) buttonText.remove();
-    }
-
-    /**
-     * Attach menu keyboard navigation
-     */
-    _attachMenuKeyboardNavigation() {
-        const menu = this.settingsMenu;
-        if (!menu) return;
-        if (this.settingsMenuKeyHandler) {
-            menu.removeEventListener('keydown', this.settingsMenuKeyHandler);
-        }
-
-        this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
-            menu,
-            this.settingsButton,
-            `.${this.player.options.classPrefix}-sign-language-settings-item`,
-            () => this.hideSettingsMenu({ focusButton: true })
-        ) ?? null;
-    }
-
-    /**
-     * Position settings menu immediately
-     */
-    _positionSettingsMenuImmediate() {
-        if (!this.settingsMenu || !this.settingsButton) return;
-        
-        const buttonRect = this.settingsButton.getBoundingClientRect();
-        const menuRect = this.settingsMenu.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        
-        const parentContainer = this.settingsButton.parentElement;
-        if (!parentContainer) return;
-        
-        const parentRect = parentContainer.getBoundingClientRect();
-        
-        const buttonCenterX = buttonRect.left + buttonRect.width / 2 - parentRect.left;
-        const buttonBottom = buttonRect.bottom - parentRect.top;
-        const buttonTop = buttonRect.top - parentRect.top;
-        
-        const spaceAbove = buttonRect.top;
-        const spaceBelow = viewportHeight - buttonRect.bottom;
-        
-        let menuTop: number | null = buttonBottom + 8;
-        let menuBottom = null;
-        
-        if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
-            menuTop = null;
-            const parentHeight = parentRect.bottom - parentRect.top;
-            menuBottom = parentHeight - buttonTop + 8;
-            this.settingsMenu.classList.add('vidply-menu-above');
-        } else {
-            this.settingsMenu.classList.remove('vidply-menu-above');
-        }
-        
-        let menuLeft: number | string = buttonCenterX - menuRect.width / 2;
-        let menuRight: number | string = 'auto';
-        let transformX = 'translateX(0)';
-        
-        const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
-        if (menuLeftAbsolute < 10) {
-            menuLeft = 0;
-        } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
-            menuLeft = 'auto';
-            menuRight = 0;
-        } else {
-            menuLeft = buttonCenterX;
-            transformX = 'translateX(-50%)';
-        }
-        
-        if (menuTop !== null) {
-            this.settingsMenu.style.top = `${menuTop}px`;
-            this.settingsMenu.style.bottom = 'auto';
-        } else if (menuBottom !== null) {
-            this.settingsMenu.style.top = 'auto';
-            this.settingsMenu.style.bottom = `${menuBottom}px`;
-        }
-        
-        if (menuLeft !== 'auto') {
-            this.settingsMenu.style.left = `${menuLeft}px`;
-            this.settingsMenu.style.right = 'auto';
-        } else {
-            this.settingsMenu.style.left = 'auto';
-            this.settingsMenu.style.right = `${menuRight}px`;
-        }
-        
-        this.settingsMenu.style.transform = transformX;
-    }
-
-    /**
-     * Position settings menu with RAF
-     */
-    _positionSettingsMenu() {
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                this._positionSettingsMenuImmediate();
-            }, 10);
-        });
-    }
-
-    /**
-     * Show a translatable mode badge above the sign-language wrapper.
-     * The badge is a real DOM element (not a CSS `::after` pseudo), so it
-     * is picked up by browser translation tools, honored by high-contrast
-     * themes, and translated via the i18n catalogue. Announcements for
-     * assistive tech go through the shared KeyboardManager live region
-     * to avoid AT reading both the badge text and the live-region copy.
-     */
+    // Badge management moved into {@link DraggablePanel}; these
+    // delegates keep the legacy names so internal call sites and
+    // subclassers (if any) continue to work. Announcements for
+    // assistive tech still go through the shared KeyboardManager
+    // live region so AT doesn't read both the badge text and the
+    // live-region copy.
     _showModeBadge(text: string) {
-        if (!this.wrapper) return;
-        this._hideModeBadge();
-
-        const classPrefix = this.player.options.classPrefix;
-        const badge = DOMUtils.createElement('span', {
-            className: `${classPrefix}-sign-mode-badge`,
-            textContent: text,
-            attributes: { 'aria-hidden': 'true' }
-        });
-        this.wrapper.appendChild(badge);
-        this.modeBadge = badge;
+        this._panel?.showBadge(text);
     }
 
     _hideModeBadge() {
-        if (this.modeBadge && this.modeBadge.parentNode) {
-            this.modeBadge.remove();
-        }
-        this.modeBadge = null;
+        this._panel?.hideBadge();
     }
 
     /**
@@ -1408,48 +1162,15 @@ export class SignLanguageManager {
         return true;
     }
 
-    /**
-     * Update drag option state
-     */
+    // Thin delegates to the panel's refreshState. Kept as named methods
+    // so the existing internal call sites (e.g. `toggleKeyboardDragMode`)
+    // read naturally without a double-dot chain to the panel.
     _updateDragOptionState() {
-        if (!this.dragOptionButton) return;
-        
-        const isEnabled = Boolean(this.draggable?.keyboardDragMode);
-        const text = isEnabled
-            ? i18n.t('player.disableSignDragMode')
-            : i18n.t('player.enableSignDragMode');
-        const ariaLabel = isEnabled
-            ? i18n.t('player.disableSignDragModeAria')
-            : i18n.t('player.enableSignDragModeAria');
-
-        this.dragOptionButton.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
-        this.dragOptionButton.setAttribute('aria-label', ariaLabel);
-
-        if (this.dragOptionText) {
-            this.dragOptionText.textContent = text;
-        }
+        this._panel?.refreshDragState();
     }
 
-    /**
-     * Update resize option state
-     */
     _updateResizeOptionState() {
-        if (!this.resizeOptionButton) return;
-        
-        const isEnabled = Boolean(this.draggable?.pointerResizeMode);
-        const text = isEnabled
-            ? i18n.t('player.disableSignResizeMode')
-            : i18n.t('player.enableSignResizeMode');
-        const ariaLabel = isEnabled
-            ? i18n.t('player.disableSignResizeModeAria')
-            : i18n.t('player.enableSignResizeModeAria');
-
-        this.resizeOptionButton.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
-        this.resizeOptionButton.setAttribute('aria-label', ariaLabel);
-
-        if (this.resizeOptionText) {
-            this.resizeOptionText.textContent = text;
-        }
+        this._panel?.refreshResizeState();
     }
 
     /**
@@ -1510,12 +1231,15 @@ export class SignLanguageManager {
         if (this.settingsMenuVisible) {
             this.hideSettingsMenu({ focusButton: false });
         }
-        
-        // Remove document click handler
-        if (this.documentClickHandler && this.documentClickHandlerAdded) {
-            document.removeEventListener('mousedown', this.documentClickHandler, true);
-            this.documentClickHandlerAdded = false;
-            this.documentClickHandler = null;
+
+        // The panel owns its outside-click listener (bound to the
+        // player's lifecycleSignal) and will drop that listener
+        // automatically during player teardown. We still destroy the
+        // panel here so its DOM is removed synchronously when the
+        // wrapper goes away.
+        if (this._panel) {
+            this._panel.destroy();
+            this._panel = null;
         }
         
         // Remove settings handlers
@@ -1569,7 +1293,6 @@ export class SignLanguageManager {
         this.wrapper = null;
         this.video = null;
         this.settingsButton = null;
-        this.settingsMenu = null;
     }
 
     /**
