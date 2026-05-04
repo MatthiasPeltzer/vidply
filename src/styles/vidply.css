@@ -2351,7 +2351,6 @@ video[data-vidply]:not(.vidply-initialized) {
 .vidply-style-group input[type="color"],
 .vidply-style-group input[type="range"] {
   appearance: none;
-  appearance: none;
 }
 
 .vidply-style-select {
@@ -2385,7 +2384,6 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 .vidply-style-group input[type="range"]::-webkit-slider-thumb {
-  appearance: none;
   appearance: none;
   background: var(--vidply-primary);
   border: 0.125rem solid var(--vidply-white);
@@ -3478,7 +3476,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 /* iOS Safari fix: Ensure playlist panel doesn't cause overflow issues */
 @supports (-webkit-touch-callout: none) {
   /* Remove transform in normal mode that creates stacking context issues on iOS */
+
   /* The transform was only for hardware acceleration, but causes layout issues */
+
   /* Fullscreen mode overrides with its own transform, so this is safe */
   .vidply-playlist-panel {
     transform: none;
@@ -4569,7 +4569,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   align-items: center;
   background: var(--vidply-primary);
   border-radius: 0.25rem;
-  color: #fff;
+  color: #fff !important;
   display: flex;
   font-size: 0.75rem;
   font-weight: 600;
@@ -4698,7 +4698,6 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 
 .vidply-transcript-style-range {
   appearance: none;
-  appearance: none;
   background: var(--vidply-white-20);
   border-radius: 0.1875rem;
   cursor: pointer;
@@ -4718,7 +4717,6 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 .vidply-transcript-style-range::-webkit-slider-thumb {
-  appearance: none;
   appearance: none;
   background: var(--vidply-primary-light);
   border: 0.125rem solid var(--vidply-white);
@@ -5505,6 +5503,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
  * _unmountFromShell() — no extra state to reset. */
 .vidply-floating-placeholder {
   align-items: center;
+
   /* Tinted, neutral overlay that reads on both light and dark pages.
      * color-mix with `currentColor` would be nicer but not universally
      * supported yet; a slate tone blends well against most themes. */
@@ -5512,7 +5511,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   border: 0.0625rem dashed rgb(128 128 128 / 25%);
   border-radius: 0.5rem;
   box-sizing: border-box;
-  color: currentColor;
+  color: currentcolor;
   display: flex;
   justify-content: center;
   pointer-events: none;
