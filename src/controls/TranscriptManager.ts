@@ -8,12 +8,13 @@ import { TimeUtils } from '../utils/TimeUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 import { StorageManager } from '../utils/StorageManager.js';
-import { focusElement, focusFirstElement } from '../utils/FocusUtils.js';
-import { createMenuItem, attachMenuKeyboardNavigation, focusFirstMenuItem } from '../utils/MenuUtils.js';
+import { focusElement } from '../utils/FocusUtils.js';
+import { createMenuItem, attachMenuKeyboardNavigation } from '../utils/MenuUtils.js';
 import { DraggableResizable } from '../utils/DraggableResizable.js';
-import { createLabeledSelect, toggleLabeledSelect, preventDragOnElement } from '../utils/FormUtils.js';
+import { createLabeledSelect, preventDragOnElement } from '../utils/FormUtils.js';
 import { deriveTrackLabel } from '../utils/TrackLabelUtils.js';
 import type { Player } from '../core/Player.js';
+import type { Renderer } from '../types/renderer.js';
 
 type TranscriptCue = TextTrackCue;
 type TranscriptTrack = TextTrack & { _vidplyStale?: boolean };
@@ -34,52 +35,76 @@ type TranscriptEntry = {
   endTime: number;
 };
 
+interface TranscriptStyleOptions {
+  fontSize: string;
+  fontFamily: string;
+  color: string;
+  backgroundColor: string;
+  opacity: number;
+  [key: string]: unknown;
+}
+
+interface TranscriptHandlers {
+  timeupdate: () => void;
+  seeked: () => void;
+  audiodescriptionenabled: () => void;
+  audiodescriptiondisabled: () => void;
+  textcuesupdate: (() => void) | null;
+  resize: (() => void) | null;
+  settingsClick: ((e: MouseEvent) => void) | null;
+  settingsKeydown: ((e: KeyboardEvent) => void) | null;
+  documentClick: ((e: MouseEvent) => void) | null;
+  styleDialogKeydown: ((e: KeyboardEvent) => void) | null;
+}
+
+type TimerHandle = ReturnType<typeof setTimeout>;
+
 export class TranscriptManager {
     player: Player;
-    _cueUpdateTimeout: any;
-    autoscrollCheckbox: any;
-    autoscrollEnabled: any;
-    availableTranscriptLanguages: any;
-    currentActiveEntry: any;
-    currentTranscriptLanguage: any;
-    customKeyHandler: any;
-    documentClickHandlerAdded: any;
-    draggableResizable: any;
-    dragOptionButton: any;
-    dragOptionText: any;
-    handlers: any;
-    headerLeft: any;
+    _cueUpdateTimeout: TimerHandle | null;
+    autoscrollCheckbox: HTMLInputElement | null = null;
+    autoscrollEnabled: boolean;
+    availableTranscriptLanguages: TranscriptLanguageInfo[];
+    currentActiveEntry: TranscriptEntry | null;
+    currentTranscriptLanguage: string | null;
+    customKeyHandler: ((e: KeyboardEvent) => void) | null = null;
+    documentClickHandlerAdded: boolean = false;
+    draggableResizable: DraggableResizable | null;
+    dragOptionButton: HTMLElement | null = null;
+    dragOptionText: Element | null = null;
+    handlers: TranscriptHandlers = {} as TranscriptHandlers;
+    headerLeft: HTMLElement | null = null;
     isVisible: boolean;
-    languageLabel: any;
-    languageSelector: any;
-    languageSelectorHandler: any;
-    languageSelectorWrapper: any;
-    liveRegion: any;
-    metadataCueChangeHandler: any;
-    metadataCues: any[];
-    resizeModeIndicatorTimeout: any;
-    resizeModeIndicator: any;
-    resizeOptionButton: any;
-    resizeOptionText: any;
-    settingsButton: any;
-    settingsMenuJustOpened: any;
-    settingsMenuKeyHandler: any;
-    settingsMenu: any;
-    settingsMenuVisible: any;
-    showTimestamps: any;
-    showTimestampsButton: any;
-    showTimestampsText: any;
+    languageLabel: HTMLElement | null;
+    languageSelector: HTMLSelectElement | null;
+    languageSelectorHandler: ((e: Event) => void) | null;
+    languageSelectorWrapper: HTMLElement | null = null;
+    liveRegion: HTMLElement | null;
+    metadataCueChangeHandler: (() => void) | null = null;
+    metadataCues: TextTrackCue[];
+    resizeModeIndicatorTimeout: TimerHandle | null;
+    resizeModeIndicator: HTMLElement | null;
+    resizeOptionButton: HTMLElement | null;
+    resizeOptionText: Element | null;
+    settingsButton: HTMLButtonElement | null;
+    settingsMenuJustOpened: boolean;
+    settingsMenuKeyHandler: ((e: KeyboardEvent) => void) | null | undefined = null;
+    settingsMenu: HTMLElement | null;
+    settingsMenuVisible: boolean;
+    showTimestamps: boolean;
+    showTimestampsButton: HTMLElement | null = null;
+    showTimestampsText: Element | null = null;
     storage: StorageManager;
-    styleDialog: any;
-    styleDialogJustOpened: any;
-    styleDialogVisible: any;
-    timeouts: any;
-    transcriptContent: any;
-    transcriptEntries: any[];
-    transcriptHeader: any;
-    transcriptResizeHandles: any[];
-    transcriptStyle: any;
-    transcriptWindow: any;
+    styleDialog: HTMLElement | null;
+    styleDialogJustOpened: boolean;
+    styleDialogVisible: boolean;
+    timeouts: Set<TimerHandle>;
+    transcriptContent: HTMLElement | null = null;
+    transcriptEntries: TranscriptEntry[];
+    transcriptHeader: HTMLElement | null = null;
+    transcriptResizeHandles: HTMLElement[];
+    transcriptStyle: TranscriptStyleOptions;
+    transcriptWindow: HTMLElement | null;
     _dashActiveLang: string | null;
     _vttCache: Map<string, TranscriptCueItem[]>;
 
@@ -125,22 +150,28 @@ export class TranscriptManager {
     this.availableTranscriptLanguages = [];
     this.languageSelectorHandler = null;
     
-    // Load saved preferences from localStorage
     const savedPreferences = this.storage.getTranscriptPreferences();
     
-    // Autoscroll state (default: true)
-    this.autoscrollEnabled = savedPreferences?.autoscroll !== undefined ? savedPreferences.autoscroll : true;
+    this.autoscrollEnabled = typeof savedPreferences?.autoscroll === 'boolean' ? savedPreferences.autoscroll : true;
     
-    // Show timestamps state (default: false)
-    this.showTimestamps = savedPreferences?.showTimestamps !== undefined ? savedPreferences.showTimestamps : false;
+    this.showTimestamps = typeof savedPreferences?.showTimestamps === 'boolean' ? savedPreferences.showTimestamps : false;
     
-    // Transcript styling options (with defaults, then player options, then saved preferences)
+    const savedFontSize = typeof savedPreferences?.fontSize === 'string' ? savedPreferences.fontSize : undefined;
+    const savedFontFamily = typeof savedPreferences?.fontFamily === 'string' ? savedPreferences.fontFamily : undefined;
+    const savedColor = typeof savedPreferences?.color === 'string' ? savedPreferences.color : undefined;
+    const savedBackgroundColor = typeof savedPreferences?.backgroundColor === 'string' ? savedPreferences.backgroundColor : undefined;
+    const savedOpacity = typeof savedPreferences?.opacity === 'number' ? savedPreferences.opacity : undefined;
+    const optFontSize = typeof this.player.options.transcriptFontSize === 'string' ? this.player.options.transcriptFontSize : undefined;
+    const optFontFamily = typeof this.player.options.transcriptFontFamily === 'string' ? this.player.options.transcriptFontFamily : undefined;
+    const optColor = typeof this.player.options.transcriptColor === 'string' ? this.player.options.transcriptColor : undefined;
+    const optBackgroundColor = typeof this.player.options.transcriptBackgroundColor === 'string' ? this.player.options.transcriptBackgroundColor : undefined;
+    const optOpacity = typeof this.player.options.transcriptOpacity === 'number' ? this.player.options.transcriptOpacity : undefined;
     this.transcriptStyle = {
-      fontSize: savedPreferences?.fontSize || this.player.options.transcriptFontSize || '100%',
-      fontFamily: savedPreferences?.fontFamily || this.player.options.transcriptFontFamily || 'sans-serif',
-      color: savedPreferences?.color || this.player.options.transcriptColor || '#ffffff',
-      backgroundColor: savedPreferences?.backgroundColor || this.player.options.transcriptBackgroundColor || '#1e1e1e',
-      opacity: savedPreferences?.opacity ?? this.player.options.transcriptOpacity ?? 0.98
+      fontSize: savedFontSize || optFontSize || '100%',
+      fontFamily: savedFontFamily || optFontFamily || 'sans-serif',
+      color: savedColor || optColor || '#ffffff',
+      backgroundColor: savedBackgroundColor || optBackgroundColor || '#1e1e1e',
+      opacity: savedOpacity ?? optOpacity ?? 0.98
     };
     
     // Store event handlers for cleanup
@@ -228,7 +259,7 @@ export class TranscriptManager {
    */
   private _requestStreamingTrack(lang: string | null) {
     if (!lang) return;
-    const renderer = this.player.renderer as any;
+    const renderer = this.player.renderer as Renderer | null | undefined;
     if (renderer?.isStreaming && typeof renderer.activateTextTrackForLanguage === 'function') {
       if (this._dashActiveLang !== lang) {
         this._dashActiveLang = lang;
@@ -273,22 +304,18 @@ export class TranscriptManager {
       return;
     }
 
-    // Create transcript window
     this.createTranscriptWindow();
     this.loadTranscriptData();
     this._requestStreamingTrack(this.currentTranscriptLanguage);
     
-    // Show the window
-    if (this.transcriptWindow) {
-      this.transcriptWindow.style.display = 'flex';
+    const transcriptWindow = this.transcriptWindow as HTMLElement | null;
+    if (transcriptWindow) {
+      transcriptWindow.style.display = 'flex';
       
-      // Only auto-position if user hasn't manually positioned it
-      // This prevents overwriting saved positions from localStorage
       if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
         this.setManagedTimeout(() => this.positionTranscript(), 0);
       }
       
-      // Focus the settings button for keyboard accessibility
       focusElement(this.settingsButton, { delay: 150 });
     }
     this.isVisible = true;
@@ -453,21 +480,21 @@ export class TranscriptManager {
     this.languageLabel = languageLabel;
     this.languageSelector = languageSelector;
     
-    // Wrap label and select in a container for vertical stacking
     const languageSelectorWrapper = DOMUtils.createElement('div', {
       className: `${this.player.options.classPrefix}-transcript-language-wrapper`,
       attributes: {
-        'style': 'display: none;' // Hidden until we detect multiple languages
+        'style': 'display: none;'
       }
     });
-    languageSelectorWrapper.appendChild(this.languageLabel);
-    languageSelectorWrapper.appendChild(this.languageSelector);
+    languageSelectorWrapper.appendChild(languageLabel);
+    languageSelectorWrapper.appendChild(languageSelector);
     this.languageSelectorWrapper = languageSelectorWrapper;
     
-    // Prevent drag when interacting with wrapper
     preventDragOnElement(languageSelectorWrapper);
     
-    this.headerLeft.appendChild(languageSelectorWrapper);
+    if (this.headerLeft) {
+      this.headerLeft.appendChild(languageSelectorWrapper);
+    }
 
     const closeAriaLabel = i18n.t('transcript.close');
     const closeButton = DOMUtils.createElement('button', {
@@ -519,34 +546,29 @@ export class TranscriptManager {
     // Setup document click handler to close settings menu and style dialog
     // DON'T add it yet - it will be added when the menu is first opened
     this.handlers.documentClick = (e: MouseEvent) => {
-      // Ignore if menu was just opened (prevents immediate closing)
+      const target = e.target as Node | null;
       if (this.settingsMenuJustOpened) {
         return;
       }
       
-      // Ignore if style dialog was just opened (prevents immediate closing)
       if (this.styleDialogJustOpened) {
         return;
       }
       
-      // Ignore clicks on the settings button itself
-      if (this.settingsButton && this.settingsButton.contains(e.target)) {
+      if (this.settingsButton && this.settingsButton.contains(target)) {
         return;
       }
       
-      // Ignore clicks on the settings menu items
-      if (this.settingsMenu && this.settingsMenu.contains(e.target)) {
+      if (this.settingsMenu && this.settingsMenu.contains(target)) {
         return;
       }
       
-      // Close settings menu if clicking outside
       if (this.settingsMenuVisible) {
         this.hideSettingsMenu();
       }
       
-      // Close style dialog if clicking outside (but not on settings button)
       if (this.styleDialogVisible && this.styleDialog && 
-          !this.styleDialog.contains(e.target)) {
+          !this.styleDialog.contains(target)) {
         this.hideStyleDialog();
       }
     };
@@ -570,7 +592,8 @@ export class TranscriptManager {
   }
   
   createResizeHandles() {
-    if (!this.transcriptWindow) return;
+    const transcriptWindow = this.transcriptWindow;
+    if (!transcriptWindow) return;
 
     const directions: Array<'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'> = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
     this.transcriptResizeHandles = directions.map(direction => {
@@ -584,7 +607,7 @@ export class TranscriptManager {
       });
 
       handle.style.display = 'none';
-      this.transcriptWindow.appendChild(handle);
+      transcriptWindow.appendChild(handle);
       return handle;
     });
   }
@@ -641,7 +664,7 @@ export class TranscriptManager {
       
       // Insert directly after video wrapper to appear right under controls
       const videoWrapper = playerWithVideoWrapper.videoWrapper;
-      if (videoWrapper && videoWrapper.nextSibling !== this.transcriptWindow) {
+      if (videoWrapper && videoWrapper.parentNode && videoWrapper.nextSibling !== this.transcriptWindow) {
         videoWrapper.parentNode.insertBefore(this.transcriptWindow, videoWrapper.nextSibling);
       }
     } else if (isFullscreen) {
@@ -813,14 +836,13 @@ export class TranscriptManager {
    * Update language selector dropdown
    */
   updateLanguageSelector() {
-    if (!this.languageSelector) return;
+    const languageSelector = this.languageSelector;
+    if (!languageSelector) return;
     
     this.availableTranscriptLanguages = this.getAvailableTranscriptLanguages();
     
-    // Clear existing options
-    this.languageSelector.innerHTML = '';
+    languageSelector.innerHTML = '';
     
-    // Only show selector if there are 2+ languages
     if (this.availableTranscriptLanguages.length < 2) {
       if (this.languageSelectorWrapper) {
         this.languageSelectorWrapper.style.display = 'none';
@@ -828,12 +850,11 @@ export class TranscriptManager {
       return;
     }
     
-    // Show selector wrapper
     if (this.languageSelectorWrapper) {
       this.languageSelectorWrapper.style.display = 'flex';
     }
     
-    this.availableTranscriptLanguages.forEach((langInfo: TranscriptLanguageInfo, index: number) => {
+    this.availableTranscriptLanguages.forEach((langInfo: TranscriptLanguageInfo) => {
       const attrs: Record<string, string> = {
         'value': langInfo.language || langInfo.label
       };
@@ -844,40 +865,40 @@ export class TranscriptManager {
         textContent: langInfo.label,
         attributes: attrs
       });
-      this.languageSelector.appendChild(option);
+      languageSelector.appendChild(option);
     });
     
-    // Set current selection
     if (this.currentTranscriptLanguage) {
-      this.languageSelector.value = this.currentTranscriptLanguage;
+      languageSelector.value = this.currentTranscriptLanguage;
     } else if (this.availableTranscriptLanguages.length > 0) {
-      // Default to first language or active track
       const activeTrack = this.player.textTracks.find(
         (track: TranscriptTrack) => (track.kind === 'captions' || track.kind === 'subtitles') && track.mode === 'showing'
       );
-      this.currentTranscriptLanguage = activeTrack ? activeTrack.language : this.availableTranscriptLanguages[0].language;
-      this.languageSelector.value = this.currentTranscriptLanguage;
+      const fallbackLang = this.availableTranscriptLanguages[0].language;
+      this.currentTranscriptLanguage = activeTrack ? activeTrack.language : fallbackLang;
+      if (this.currentTranscriptLanguage) {
+        languageSelector.value = this.currentTranscriptLanguage;
+      }
     }
     
-    // Remove existing change listener if any
     if (this.languageSelectorHandler) {
-      this.languageSelector.removeEventListener('change', this.languageSelectorHandler);
+      languageSelector.removeEventListener('change', this.languageSelectorHandler);
     }
     
     // Handle language change — tell the streaming renderer to switch tracks
     // first so dash.js starts downloading cues for the new language, then
     // render whatever is available (textcuesupdate will re-render later).
-    this.languageSelectorHandler = (e: Event) => {
+    const handler = (e: Event) => {
       this.currentTranscriptLanguage = (e.target as HTMLSelectElement).value;
       this._requestStreamingTrack(this.currentTranscriptLanguage);
       this.loadTranscriptData();
       
-      // Set lang attribute for screen readers to pronounce text correctly
       if (this.transcriptContent && this.currentTranscriptLanguage) {
         this.transcriptContent.setAttribute('lang', this.currentTranscriptLanguage);
       }
     };
-    this.languageSelector.addEventListener('change', this.languageSelectorHandler);
+    this.languageSelectorHandler = handler;
+    languageSelector.addEventListener('change', handler);
   }
 
   private _parseVTT(vttText: string): TranscriptCueItem[] {
@@ -918,7 +939,7 @@ export class TranscriptManager {
     const cached = this._vttCache.get(lang);
     if (cached) return cached;
 
-    const renderer = this.player.renderer as any;
+    const renderer = this.player.renderer as Renderer | null | undefined;
     if (!renderer?.isStreaming || typeof renderer.getTextTrackURLs !== 'function') return null;
 
     const urls: { lang: string; url: string }[] = renderer.getTextTrackURLs();
@@ -981,7 +1002,9 @@ export class TranscriptManager {
   loadTranscriptData() {
     this.transcriptEntries = [];
     this.currentActiveEntry = null;
-    this.transcriptContent.innerHTML = '';
+    if (this.transcriptContent) {
+      this.transcriptContent.innerHTML = '';
+    }
 
     // Get all text tracks
     const textTracks = this.player.textTracks as TranscriptTrack[];
@@ -1042,7 +1065,7 @@ export class TranscriptManager {
 
     // For streaming renderers, fetch the complete VTT file directly rather
     // than relying on dash.js's partial segment-based cues.
-    const renderer = this.player.renderer as any;
+    const renderer = this.player.renderer as Renderer | null | undefined;
     const isStreaming = renderer?.isStreaming && typeof renderer.getTextTrackURLs === 'function';
     const lang = this.currentTranscriptLanguage || (captionTrack?.language ?? '');
 
@@ -1051,7 +1074,7 @@ export class TranscriptManager {
         className: `${this.player.options.classPrefix}-transcript-loading`,
         textContent: i18n.t('transcript.loading')
       });
-      this.transcriptContent.appendChild(loadingMessage);
+      this.transcriptContent?.appendChild(loadingMessage);
 
       this._loadVttTranscript(lang).then(vttCues => {
         if (!this.isVisible) return;
@@ -1074,7 +1097,7 @@ export class TranscriptManager {
         className: `${this.player.options.classPrefix}-transcript-loading`,
         textContent: i18n.t('transcript.loading')
       });
-      this.transcriptContent.appendChild(loadingMessage);
+      this.transcriptContent?.appendChild(loadingMessage);
 
       const hasSidecarElement = this.player.findTrackElement?.(primaryTrack);
       if (hasSidecarElement) {
@@ -1111,7 +1134,10 @@ export class TranscriptManager {
   ) {
     this.transcriptEntries = [];
     this.currentActiveEntry = null;
-    this.transcriptContent.innerHTML = '';
+    const transcriptContent = this.transcriptContent;
+    if (transcriptContent) {
+      transcriptContent.innerHTML = '';
+    }
 
     const allCues: TranscriptCueItem[] = [];
 
@@ -1145,7 +1171,7 @@ export class TranscriptManager {
         startTime: item.cue.startTime,
         endTime: item.cue.endTime
       });
-      this.transcriptContent.appendChild(entry);
+      transcriptContent?.appendChild(entry);
     });
     
     this.applyTranscriptStyles();
@@ -1187,10 +1213,10 @@ export class TranscriptManager {
           if (activeCues.length > 0) {
             // Debug logging (can be removed in production)
             if (this.player.options.debug) {
-              console.log('[VidPly Metadata] Active cues:', activeCues.map((c: any) => ({
+              console.log('[VidPly Metadata] Active cues:', activeCues.map((c) => ({
                 start: c.startTime,
                 end: c.endTime,
-                text: c.text
+                text: (c as VTTCue).text
               })));
             }
           }
@@ -1385,7 +1411,7 @@ export class TranscriptManager {
       className: `${this.player.options.classPrefix}-transcript-empty`,
       textContent: i18n.t('transcript.noTranscript')
     });
-    this.transcriptContent.appendChild(message);
+    this.transcriptContent?.appendChild(message);
   }
 
   /**
@@ -1559,7 +1585,7 @@ export class TranscriptManager {
         e.stopPropagation();
         const enabled = this.toggleResizeMode();
         if (enabled) {
-          this.transcriptWindow.focus({ preventScroll: true });
+          this.transcriptWindow?.focus({ preventScroll: true });
         }
         return;
       }
@@ -1588,7 +1614,10 @@ export class TranscriptManager {
       }
     };
     
-    this.transcriptWindow.addEventListener('keydown', this.customKeyHandler);
+    const customKeyHandler = this.customKeyHandler;
+    if (this.transcriptWindow && customKeyHandler) {
+      this.transcriptWindow.addEventListener('keydown', customKeyHandler);
+    }
   }
 
 
@@ -1612,8 +1641,7 @@ export class TranscriptManager {
         this.hideSettingsMenu();
       }
       
-      // Focus the window for keyboard navigation
-      this.transcriptWindow.focus({ preventScroll: true });
+      this.transcriptWindow?.focus({ preventScroll: true });
     }
   }
 
@@ -1641,7 +1669,10 @@ export class TranscriptManager {
     // Add document click handler on FIRST menu open (not at window creation)
     if (!this.documentClickHandlerAdded) {
       setTimeout(() => {
-        document.addEventListener('click', this.handlers.documentClick);
+        const documentClick = this.handlers.documentClick;
+        if (documentClick) {
+          document.addEventListener('click', documentClick);
+        }
         this.documentClickHandlerAdded = true;
       }, 300);
     }
@@ -1659,7 +1690,9 @@ export class TranscriptManager {
       this.updateResizeOptionState();
       // Focus first menu item after positioning
       setTimeout(() => {
-        const menuItems = this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`);
+        const menu = this.settingsMenu;
+        if (!menu) return;
+        const menuItems = menu.querySelectorAll<HTMLElement>(`.${this.player.options.classPrefix}-transcript-settings-item`);
         if (menuItems.length > 0) {
           menuItems[0].setAttribute('tabindex', '0');
           for (let i = 1; i < menuItems.length; i++) {
@@ -1798,59 +1831,52 @@ export class TranscriptManager {
     const closeButtonText = closeOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
     if (closeButtonText) closeButtonText.remove();
 
-    this.settingsMenu.appendChild(keyboardDragOption);
-    this.settingsMenu.appendChild(resizeOption);
-    this.settingsMenu.appendChild(styleOption);
-    this.settingsMenu.appendChild(showTimestampsOption);
-    this.settingsMenu.appendChild(closeOption);
+    const settingsMenu = this.settingsMenu;
+    if (!settingsMenu) return;
+    settingsMenu.appendChild(keyboardDragOption);
+    settingsMenu.appendChild(resizeOption);
+    settingsMenu.appendChild(styleOption);
+    settingsMenu.appendChild(showTimestampsOption);
+    settingsMenu.appendChild(closeOption);
 
-    // Position menu first (before it's visible) to prevent jumping
-    // Set menu to invisible temporarily
-    this.settingsMenu.style.visibility = 'hidden';
-    this.settingsMenu.style.display = 'block';
+    settingsMenu.style.visibility = 'hidden';
+    settingsMenu.style.display = 'block';
     
-    // Insert menu right after settings button for proper positioning
     if (this.settingsButton && this.settingsButton.parentNode) {
-      this.settingsButton.insertAdjacentElement('afterend', this.settingsMenu);
+      this.settingsButton.insertAdjacentElement('afterend', settingsMenu);
     } else if (this.headerLeft) {
-      this.headerLeft.appendChild(this.settingsMenu);
+      this.headerLeft.appendChild(settingsMenu);
     } else if (this.transcriptHeader) {
-      this.transcriptHeader.appendChild(this.settingsMenu);
-    } else {
-      this.transcriptWindow.appendChild(this.settingsMenu);
+      this.transcriptHeader.appendChild(settingsMenu);
+    } else if (this.transcriptWindow) {
+      this.transcriptWindow.appendChild(settingsMenu);
     }
     
-    // Position the menu relative to the settings button (immediately while hidden)
     this.positionSettingsMenuImmediate();
     
-    // Make menu visible after positioning
     requestAnimationFrame(() => {
       if (this.settingsMenu) {
         this.settingsMenu.style.visibility = 'visible';
       }
     });
     
-    // Add keyboard navigation
     this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
-      this.settingsMenu,
+      settingsMenu,
       this.settingsButton,
       `.${this.player.options.classPrefix}-transcript-settings-item`,
       () => this.hideSettingsMenu({ focusButton: true })
     );
     
-    // Set the menu as visible and display it
     this.settingsMenuVisible = true;
-    this.settingsMenu.style.display = 'block';
+    settingsMenu.style.display = 'block';
     
-    // Update aria-expanded
     if (this.settingsButton) {
       this.settingsButton.setAttribute('aria-expanded', 'true');
     }
     this.updateResizeOptionState();
     
-    // Focus first menu item after visibility is set
     setTimeout(() => {
-      const menuItems = this.settingsMenu.querySelectorAll(`.${this.player.options.classPrefix}-transcript-settings-item`);
+      const menuItems = settingsMenu.querySelectorAll<HTMLElement>(`.${this.player.options.classPrefix}-transcript-settings-item`);
       if (menuItems.length > 0) {
         menuItems[0].setAttribute('tabindex', '0');
         for (let i = 1; i < menuItems.length; i++) {
@@ -1973,19 +1999,16 @@ export class TranscriptManager {
   enableMoveMode() {
     this.hideResizeModeIndicator();
 
-    // Add visual feedback for move mode
-    this.transcriptWindow.classList.add(`${this.player.options.classPrefix}-transcript-move-mode`);
+    this.transcriptWindow?.classList.add(`${this.player.options.classPrefix}-transcript-move-mode`);
     
-    // Show tooltip about keyboard drag option
     const tooltip = DOMUtils.createElement('div', {
       className: `${this.player.options.classPrefix}-transcript-move-tooltip`,
       textContent: 'Drag with mouse or press D for keyboard drag mode'
     });
-    this.transcriptHeader.appendChild(tooltip);
+    this.transcriptHeader?.appendChild(tooltip);
     
-    // Remove after 2 seconds
     setTimeout(() => {
-      this.transcriptWindow.classList.remove(`${this.player.options.classPrefix}-transcript-move-mode`);
+      this.transcriptWindow?.classList.remove(`${this.player.options.classPrefix}-transcript-move-mode`);
       if (tooltip.parentNode) {
         tooltip.remove();
       }
@@ -2014,7 +2037,7 @@ export class TranscriptManager {
       return;
     }
     
-    const isEnabled = !!(this.draggableResizable && this.draggableResizable.keyboardDragMode);
+    const isEnabled = Boolean(this.draggableResizable && this.draggableResizable.keyboardDragMode);
     const text = isEnabled
       ? i18n.t('transcript.disableDragMode')
       : i18n.t('transcript.enableDragMode');
@@ -2035,7 +2058,7 @@ export class TranscriptManager {
       return;
     }
     
-    const isEnabled = !!(this.draggableResizable && this.draggableResizable.pointerResizeMode);
+    const isEnabled = Boolean(this.draggableResizable && this.draggableResizable.pointerResizeMode);
     const text = isEnabled
       ? i18n.t('transcript.disableResizeMode')
       : i18n.t('transcript.enableResizeMode');
@@ -2081,8 +2104,8 @@ export class TranscriptManager {
   updateTimestampVisibility() {
     if (!this.transcriptContent) return;
     
-    const timestamps = this.transcriptContent.querySelectorAll(`.${this.player.options.classPrefix}-transcript-time`);
-    timestamps.forEach((timestamp: HTMLElement) => {
+    const timestamps = this.transcriptContent.querySelectorAll<HTMLElement>(`.${this.player.options.classPrefix}-transcript-time`);
+    timestamps.forEach((timestamp) => {
       timestamp.style.display = this.showTimestamps ? '' : 'none';
     });
   }
@@ -2158,9 +2181,10 @@ export class TranscriptManager {
         this.styleDialogJustOpened = false;
       }, 350);
       
-      // Focus first control
       setTimeout(() => {
-        const firstSelect = this.styleDialog.querySelector('select, input');
+        const dialog = this.styleDialog;
+        if (!dialog) return;
+        const firstSelect = dialog.querySelector<HTMLElement>('select, input');
         if (firstSelect) {
           firstSelect.focus({ preventScroll: true });
         }
@@ -2168,19 +2192,17 @@ export class TranscriptManager {
       return;
     }
 
-    // Create style dialog
-    this.styleDialog = DOMUtils.createElement('div', {
+    const styleDialog = DOMUtils.createElement('div', {
       className: `${this.player.options.classPrefix}-transcript-style-dialog`
     });
+    this.styleDialog = styleDialog;
 
-    // Dialog title
     const title = DOMUtils.createElement('h4', {
       textContent: i18n.t('transcript.styleTitle'),
       className: `${this.player.options.classPrefix}-transcript-style-title`
     });
-    this.styleDialog.appendChild(title);
+    styleDialog.appendChild(title);
 
-    // Font Size
     const fontSizeControl = this.createStyleSelectControl(
       i18n.t('captions.fontSize'),
       'fontSize',
@@ -2191,9 +2213,8 @@ export class TranscriptManager {
         { label: i18n.t('fontSizes.xlarge'), value: '120%' }
       ]
     );
-    this.styleDialog.appendChild(fontSizeControl);
+    styleDialog.appendChild(fontSizeControl);
 
-    // Font Family
     const fontFamilyControl = this.createStyleSelectControl(
       i18n.t('captions.fontFamily'),
       'fontFamily',
@@ -2203,21 +2224,17 @@ export class TranscriptManager {
         { label: i18n.t('fontFamilies.monospace'), value: 'monospace' }
       ]
     );
-    this.styleDialog.appendChild(fontFamilyControl);
+    styleDialog.appendChild(fontFamilyControl);
 
-    // Text Color
     const colorControl = this.createStyleColorControl(i18n.t('captions.color'), 'color');
-    this.styleDialog.appendChild(colorControl);
+    styleDialog.appendChild(colorControl);
 
-    // Background Color
     const bgColorControl = this.createStyleColorControl(i18n.t('captions.backgroundColor'), 'backgroundColor');
-    this.styleDialog.appendChild(bgColorControl);
+    styleDialog.appendChild(bgColorControl);
 
-    // Opacity
     const opacityControl = this.createStyleOpacityControl(i18n.t('captions.opacity'), 'opacity');
-    this.styleDialog.appendChild(opacityControl);
+    styleDialog.appendChild(opacityControl);
 
-    // Close button
     const closeBtn = DOMUtils.createElement('button', {
       className: `${this.player.options.classPrefix}-transcript-style-close`,
       textContent: i18n.t('settings.close'),
@@ -2226,14 +2243,11 @@ export class TranscriptManager {
       }
     });
     closeBtn.addEventListener('click', () => this.hideStyleDialog());
-    this.styleDialog.appendChild(closeBtn);
+    styleDialog.appendChild(closeBtn);
 
-    // Keyboard navigation for style dialog
-    this.handlers.styleDialogKeydown = (e: KeyboardEvent) => {
-      // Only handle keys when dialog is visible
+    const styleKeyHandler = (e: KeyboardEvent) => {
       if (!this.styleDialogVisible) return;
       
-      // ESC to close
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
@@ -2241,16 +2255,13 @@ export class TranscriptManager {
         return;
       }
       
-      // Tab navigation (allow default behavior but trap focus)
       if (e.key === 'Tab') {
-        // Get all focusable elements
-        const focusableElements = this.styleDialog.querySelectorAll(
+        const focusableElements = styleDialog.querySelectorAll<HTMLElement>(
           'select, input, button'
         );
         const firstElement = focusableElements[0];
         const lastElement = focusableElements[focusableElements.length - 1];
         
-        // Trap focus within dialog
         if (e.shiftKey && document.activeElement === firstElement) {
           e.preventDefault();
           lastElement.focus({ preventScroll: true });
@@ -2260,31 +2271,27 @@ export class TranscriptManager {
         }
       }
     };
-    document.addEventListener('keydown', this.handlers.styleDialogKeydown);
+    this.handlers.styleDialogKeydown = styleKeyHandler;
+    document.addEventListener('keydown', styleKeyHandler);
 
-    // Append to header left container (same as settings menu) for correct positioning
     if (this.headerLeft) {
-      this.headerLeft.appendChild(this.styleDialog);
-    } else {
-      this.transcriptHeader.appendChild(this.styleDialog);
+      this.headerLeft.appendChild(styleDialog);
+    } else if (this.transcriptHeader) {
+      this.transcriptHeader.appendChild(styleDialog);
     }
     
-    // Apply current styles
     this.applyTranscriptStyles();
     
-    // Important: Set visible state and display before focusing
     this.styleDialogVisible = true;
-    this.styleDialog.style.display = 'block';
+    styleDialog.style.display = 'block';
     
-    // Set flag to prevent immediate closing from document click
     this.styleDialogJustOpened = true;
     setTimeout(() => {
       this.styleDialogJustOpened = false;
     }, 350);
     
-    // Focus first control for keyboard accessibility
     setTimeout(() => {
-      const firstSelect = this.styleDialog.querySelector('select, input');
+      const firstSelect = styleDialog.querySelector<HTMLElement>('select, input');
       if (firstSelect) {
         firstSelect.focus({ preventScroll: true });
       }
@@ -2344,14 +2351,14 @@ export class TranscriptManager {
           'value': opt.value
         }
       });
-      if (this.transcriptStyle[property] === opt.value) {
-        (option as HTMLOptionElement).selected = true;
+      if (this.transcriptStyle[property as 'fontSize' | 'fontFamily'] === opt.value) {
+        option.selected = true;
       }
       select.appendChild(option);
     });
 
     select.addEventListener('change', (e) => {
-      this.transcriptStyle[property] = (e.target as HTMLSelectElement).value;
+      this.transcriptStyle[property as 'fontSize' | 'fontFamily'] = (e.target as HTMLSelectElement).value;
       this.applyTranscriptStyles();
       this.savePreferences();
     });
@@ -2383,13 +2390,13 @@ export class TranscriptManager {
       attributes: {
         'id': controlId,
         'type': 'color',
-        'value': this.transcriptStyle[property]
+        'value': this.transcriptStyle[property as 'color' | 'backgroundColor']
       },
       className: `${this.player.options.classPrefix}-transcript-style-color`
     });
 
     input.addEventListener('input', (e) => {
-      this.transcriptStyle[property] = (e.target as HTMLInputElement).value;
+      this.transcriptStyle[property as 'color' | 'backgroundColor'] = (e.target as HTMLInputElement).value;
       this.applyTranscriptStyles();
       this.savePreferences();
     });
@@ -2417,8 +2424,9 @@ export class TranscriptManager {
     });
     group.appendChild(labelEl);
 
+    const opacityProperty = property as 'opacity';
     const valueDisplay = DOMUtils.createElement('span', {
-      textContent: Math.round(this.transcriptStyle[property] * 100) + '%',
+      textContent: Math.round(this.transcriptStyle[opacityProperty] * 100) + '%',
       className: `${this.player.options.classPrefix}-transcript-style-value`
     });
 
@@ -2429,14 +2437,14 @@ export class TranscriptManager {
         'min': '0',
         'max': '1',
         'step': '0.1',
-        'value': String(this.transcriptStyle[property])
+        'value': String(this.transcriptStyle[opacityProperty])
       },
       className: `${this.player.options.classPrefix}-transcript-style-range`
     });
 
     input.addEventListener('input', (e) => {
       const value = parseFloat((e.target as HTMLInputElement).value);
-      this.transcriptStyle[property] = value;
+      this.transcriptStyle[opacityProperty] = value;
       valueDisplay.textContent = Math.round(value * 100) + '%';
       this.applyTranscriptStyles();
       this.savePreferences();
@@ -2477,17 +2485,15 @@ export class TranscriptManager {
       this.transcriptContent.style.color = this.transcriptStyle.color;
     }
 
-    // Apply to all text entries (important: override CSS defaults)
-    const textEntries = this.transcriptWindow.querySelectorAll(`.${this.player.options.classPrefix}-transcript-text`);
-    textEntries.forEach((entry: HTMLElement) => {
+    const textEntries = this.transcriptWindow.querySelectorAll<HTMLElement>(`.${this.player.options.classPrefix}-transcript-text`);
+    textEntries.forEach((entry) => {
       entry.style.fontSize = this.transcriptStyle.fontSize;
       entry.style.fontFamily = this.transcriptStyle.fontFamily;
       entry.style.color = this.transcriptStyle.color;
     });
     
-    // Apply to timestamp entries as well
-    const timeEntries = this.transcriptWindow.querySelectorAll(`.${this.player.options.classPrefix}-transcript-time`);
-    timeEntries.forEach((entry: HTMLElement) => {
+    const timeEntries = this.transcriptWindow.querySelectorAll<HTMLElement>(`.${this.player.options.classPrefix}-transcript-time`);
+    timeEntries.forEach((entry) => {
       entry.style.fontFamily = this.transcriptStyle.fontFamily;
     });
   }
@@ -2590,8 +2596,7 @@ export class TranscriptManager {
     this.timeouts.forEach((timeoutId: ReturnType<typeof setTimeout>) => clearTimeout(timeoutId));
     this.timeouts.clear();
 
-    // Clear handlers
-    this.handlers = null;
+    this.handlers = {} as TranscriptHandlers;
 
     // Remove DOM element
     if (this.transcriptWindow && this.transcriptWindow.parentNode) {

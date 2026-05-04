@@ -19,7 +19,7 @@ export interface LabeledSelectOptions {
 }
 
 export function createLabeledSelect({
-  classPrefix,
+  classPrefix: _classPrefix,
   labelClass,
   selectClass,
   labelText,
@@ -27,7 +27,7 @@ export function createLabeledSelect({
   hidden = false,
   onChange = undefined,
   options = []
-}: LabeledSelectOptions): { label: HTMLElement; select: HTMLElement } {
+}: LabeledSelectOptions): { label: HTMLLabelElement; select: HTMLSelectElement } {
   const isI18nKey =
     typeof labelText === 'string' &&
     (labelText.startsWith('transcript.') ||

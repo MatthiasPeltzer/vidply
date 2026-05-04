@@ -1,6 +1,6 @@
 // Flat ESLint config (ESLint 9+).
-// Bans `: any` / `as any` in src/, allows narrow exceptions only when paired
-// with a `// eslint-disable-next-line` justification. See CONTRIBUTING.md.
+// Bans `: any` / `as any` in src/ via the recommended `no-explicit-any` rule
+// (no per-config override needed — the source is fully `any`-free).
 
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
@@ -77,7 +77,6 @@ export default [
     rules: {
       ...tseslint.configs.recommended.rules,
       // Hard bans that materialize the audit's strictness goals.
-      '@typescript-eslint/no-explicit-any': ['error', { ignoreRestArgs: false }],
       '@typescript-eslint/no-non-null-assertion': 'warn',
       '@typescript-eslint/ban-ts-comment': [
         'error',
@@ -120,7 +119,6 @@ export default [
       '@typescript-eslint': tseslint
     },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
       'no-console': 'off'
     }
   }

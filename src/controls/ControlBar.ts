@@ -16,37 +16,62 @@ import {
     inferFormatFromUrl
 } from '../utils/DownloadInfo.js';
 import type { Player } from '../core/Player.js';
+import type { CaptionManager } from './CaptionManager.js';
+import type { QualityLevel } from '../types/renderer.js';
+
+type TimerHandle = ReturnType<typeof setTimeout>;
+
+/**
+ * Stores per-button event handlers added by `attachMenuCloseHandler` so they
+ * can be removed when a different menu opens. Using a WeakMap keeps the
+ * tagging out of the DOM element itself (which both removes the previous
+ * `(button as any)._vidplyXHandler` casts and lets the GC reclaim the entry
+ * automatically once the button is detached).
+ */
+type MenuButtonHandlers = {
+    blur?: (e: FocusEvent) => void;
+    mousedown?: () => void;
+};
+const menuButtonHandlers: WeakMap<HTMLElement, MenuButtonHandlers> = new WeakMap();
+
+function getMenuButtonHandlers(button: HTMLElement): MenuButtonHandlers {
+    let entry = menuButtonHandlers.get(button);
+    if (!entry) {
+        entry = {};
+        menuButtonHandlers.set(button, entry);
+    }
+    return entry;
+}
 
 export class ControlBar {
     player: Player;
-    _overflowMenuItemRef: any;
-    controls: any;
-    currentPreviewTime: any;
-    element: any;
-    hideTimeout: any;
+    _overflowMenuItemRef: HTMLElement | null = null;
+    controls: Record<string, HTMLElement>;
+    currentPreviewTime: number | null;
+    element!: HTMLElement;
+    hideTimeout: TimerHandle | undefined;
     isDraggingProgress: boolean;
     isDraggingVolume: boolean;
-    openMenu: any;
-    openMenuButton: any;
-    overflowResizeObserver: any;
-    previewSupported: any;
-    previewThumbnailCache: any;
-    previewThumbnailTimeout: any;
-    previewUsingMainVideo: any;
-    previewVideo: any;
-    previewVideoInitialized: any;
-    previewVideoReady: any;
-    rightButtons: any;
-    overflowMenuButton: any;
-    setupOverflowMenu: any;
+    openMenu: HTMLElement | null;
+    openMenuButton: HTMLElement | null;
+    overflowResizeObserver: ResizeObserver | null = null;
+    previewSupported: boolean = false;
+    previewThumbnailCache: Map<number, string> = new Map();
+    previewThumbnailTimeout: TimerHandle | null = null;
+    previewUsingMainVideo: boolean = false;
+    previewVideo: HTMLVideoElement | null = null;
+    previewVideoInitialized: boolean = false;
+    previewVideoReady: boolean = false;
+    rightButtons!: HTMLElement;
+    overflowMenuButton: HTMLElement | null = null;
 
     constructor(player: Player) {
         this.player = player;
-        this.element = null;
         this.controls = {};
-        this.hideTimeout = null;
+        this.hideTimeout = undefined;
         this.isDraggingProgress = false;
         this.isDraggingVolume = false;
+        this.currentPreviewTime = null;
         this.openMenu = null; // Track currently open menu
         this.openMenuButton = null; // Track button that opened the menu
 
@@ -86,7 +111,6 @@ export class ControlBar {
                 const buttonRect = button.getBoundingClientRect();
                 const menuRect = menu.getBoundingClientRect();
                 const containerRect = this.player.container.getBoundingClientRect();
-                const viewportHeight = window.innerHeight;
                 
                 // Position relative to player container
                 const buttonCenterX = buttonRect.left + buttonRect.width / 2 - containerRect.left;
@@ -326,14 +350,15 @@ export class ControlBar {
     attachMenuCloseHandler(menu: HTMLElement, button: HTMLElement, preventCloseOnInteraction = false) {
         // Close any previously open menu and clean up its handlers
         if (this.openMenu && this.openMenu !== menu && this.openMenuButton) {
-            // Remove previous button's blur handler if it exists
-            if (this.openMenuButton._vidplyBlurHandler) {
-                this.openMenuButton.removeEventListener('blur', this.openMenuButton._vidplyBlurHandler);
-                delete this.openMenuButton._vidplyBlurHandler;
+            // Remove previously-attached handlers for this button if any.
+            const previousHandlers = menuButtonHandlers.get(this.openMenuButton);
+            if (previousHandlers?.blur) {
+                this.openMenuButton.removeEventListener('blur', previousHandlers.blur);
+                delete previousHandlers.blur;
             }
-            if (this.openMenuButton._vidplyMousedownHandler) {
-                this.openMenuButton.removeEventListener('mousedown', this.openMenuButton._vidplyMousedownHandler);
-                delete this.openMenuButton._vidplyMousedownHandler;
+            if (previousHandlers?.mousedown) {
+                this.openMenuButton.removeEventListener('mousedown', previousHandlers.mousedown);
+                delete previousHandlers.mousedown;
             }
             
             // Close previous menu without returning focus
@@ -374,7 +399,7 @@ export class ControlBar {
             }, 200);
         };
         button.addEventListener('mousedown', handleButtonMousedown);
-        (button as any)._vidplyMousedownHandler = handleButtonMousedown; // Store for cleanup
+        getMenuButtonHandlers(button).mousedown = handleButtonMousedown;
         
         const handleButtonBlur = (e: FocusEvent) => {
             // If blur handler is disabled (during click) or this is a click, don't close the menu
@@ -406,7 +431,7 @@ export class ControlBar {
                     }
                     
                     // Don't close if focus moved to sign language or transcript windows
-                    const signLanguageWrapper = (this.player as any).signLanguageWrapper;
+                    const signLanguageWrapper = this.player.signLanguageWrapper;
                     const transcriptWindow = this.player.transcriptManager?.transcriptWindow;
                     if ((signLanguageWrapper && signLanguageWrapper.contains(activeElement)) ||
                         (transcriptWindow && transcriptWindow.contains(activeElement))) {
@@ -414,11 +439,16 @@ export class ControlBar {
                     }
                     
                     // If focus moved to another button in the control bar, close the menu
-                    const controlBarButtons = this.element.querySelectorAll('button');
-                    const isFocusOnAnotherButton = Array.from(controlBarButtons).includes(activeElement) && activeElement !== button;
-                    
+                    const controlBarButtons = Array.from(this.element.querySelectorAll('button')) as Element[];
+                    const isFocusOnAnotherButton = activeElement !== null
+                        && controlBarButtons.includes(activeElement)
+                        && activeElement !== button;
+
                     // Also check relatedTarget in case activeElement hasn't updated yet
-                    const isRelatedTargetAnotherButton = relatedTarget && Array.from(controlBarButtons).includes(relatedTarget) && relatedTarget !== button;
+                    const isRelatedTargetAnotherButton = relatedTarget !== null
+                        && relatedTarget instanceof Element
+                        && controlBarButtons.includes(relatedTarget)
+                        && relatedTarget !== button;
                     
                     // Close menu if focus moved to another control bar button (without returning focus)
                     if (isFocusOnAnotherButton || isRelatedTargetAnotherButton) {
@@ -443,14 +473,17 @@ export class ControlBar {
                         }
                         button.removeEventListener('blur', handleButtonBlur);
                         button.removeEventListener('mousedown', handleButtonMousedown);
-                        delete (button as any)._vidplyBlurHandler;
-                        delete (button as any)._vidplyMousedownHandler;
+                        const handlers = menuButtonHandlers.get(button);
+                        if (handlers) {
+                            delete handlers.blur;
+                            delete handlers.mousedown;
+                        }
                     }
                 }, 10); // Small delay to ensure focus has fully moved
             });
         };
         button.addEventListener('blur', handleButtonBlur);
-        (button as any)._vidplyBlurHandler = handleButtonBlur; // Store for cleanup
+        getMenuButtonHandlers(button).blur = handleButtonBlur;
         
         const closeMenuAndUpdateAria = () => {
             this.closeMenuAndReturnFocus(menu, button);
@@ -753,7 +786,7 @@ export class ControlBar {
         // IMPORTANT: Don't rely on renderer.constructor.name here.
         // In production builds, class names are minified (e.g. "class s"), which would break the check.
         // Instead, detect HLS by the current source URL.
-        const src = (this.player as any).currentSource
+        const src = this.player.currentSource
             || this.player.element?.getAttribute?.('src')
             || this.player.element?.currentSrc
             || this.player.element?.src
@@ -764,10 +797,10 @@ export class ControlBar {
         const isDashSource = typeof src === 'string' && src.includes('.mpd');
         const isVideoElement = this.player.element?.tagName?.toLowerCase() === 'video';
         const hideSpeedForThisPlayer =
-            (!!this.player.options.hideSpeedForHls && isHlsSource)
-            || (!!this.player.options.hideSpeedForHlsVideo && isHlsSource && isVideoElement)
-            || (!!this.player.options.hideSpeedForDash && isDashSource)
-            || (!!this.player.options.hideSpeedForDashVideo && isDashSource && isVideoElement);
+            (Boolean(this.player.options.hideSpeedForHls) && isHlsSource)
+            || (Boolean(this.player.options.hideSpeedForHlsVideo) && isHlsSource && isVideoElement)
+            || (Boolean(this.player.options.hideSpeedForDash) && isDashSource)
+            || (Boolean(this.player.options.hideSpeedForDashVideo) && isDashSource && isVideoElement);
         if (this.player.options.speedButton && !hideSpeedForThisPlayer) {
             const btn = this.createSpeedButton();
             btn.dataset.overflowPriority = '1';
@@ -946,7 +979,8 @@ export class ControlBar {
         // 3) Playlist metadata fallback (works even when we intentionally defer loading)
         const current = this.player.playlistManager?.getCurrentTrack?.();
         if (current?.tracks && Array.isArray(current.tracks)) {
-            return current.tracks.some((t: any) => t?.kind === 'chapters');
+            const tracks = current.tracks as Array<{ kind?: string }>;
+            return tracks.some(t => t?.kind === 'chapters');
         }
 
         return false;
@@ -969,7 +1003,8 @@ export class ControlBar {
 
         // 3) Playlist metadata fallback
         const current = this.player.playlistManager?.getCurrentTrack?.();
-        if (current?.tracks?.some((t: any) => t?.kind === 'captions' || t?.kind === 'subtitles')) {
+        const playlistTracks = (current?.tracks ?? []) as Array<{ kind?: string }>;
+        if (playlistTracks.some(t => t?.kind === 'captions' || t?.kind === 'subtitles')) {
             return true;
         }
 
@@ -987,7 +1022,7 @@ export class ControlBar {
 
     hasAudioDescription() {
         // Check for audio-described video source OR description tracks
-        if ((this.player as any).audioDescriptionSrc && (this.player as any).audioDescriptionSrc.length > 0) {
+        if (this.player.audioDescriptionSrc && this.player.audioDescriptionSrc.length > 0) {
             return true;
         }
         
@@ -998,8 +1033,8 @@ export class ControlBar {
 
     hasSignLanguage() {
         // Check for single source or multiple sources
-        const hasSingleSource = (this.player as any).signLanguageSrc && (this.player as any).signLanguageSrc.length > 0;
-        const hasMultipleSources = (this.player as any).signLanguageSources && Object.keys((this.player as any).signLanguageSources).length > 0;
+        const hasSingleSource = this.player.signLanguageSrc && this.player.signLanguageSrc.length > 0;
+        const hasMultipleSources = this.player.signLanguageSources && Object.keys(this.player.signLanguageSources).length > 0;
         return hasSingleSource || hasMultipleSources;
     }
 
@@ -1275,44 +1310,48 @@ export class ControlBar {
             return null;
         }
 
+        // Stash a non-null local: TypeScript loses the `previewVideo !== null`
+        // narrowing across awaits and inner closures.
+        const previewVideo = this.previewVideo;
+
         // Wait for preview video to be ready if not yet loaded
         if (!this.previewVideoReady) {
-            if (this.previewVideo.readyState < 2) {
+            if (previewVideo.readyState < 2) {
                 // Wait for at least HAVE_CURRENT_DATA (2) to ensure we can capture frames
                 await new Promise<void>((resolve, reject) => {
                     const timeout = setTimeout(() => {
                         reject(new Error('Preview video data load timeout'));
                     }, 10000);
-                    
+
                     const cleanup = () => {
                         clearTimeout(timeout);
-                        this.previewVideo.removeEventListener('loadeddata', checkReady);
-                        this.previewVideo.removeEventListener('canplay', checkReady);
-                        this.previewVideo.removeEventListener('error', onError);
+                        previewVideo.removeEventListener('loadeddata', checkReady);
+                        previewVideo.removeEventListener('canplay', checkReady);
+                        previewVideo.removeEventListener('error', onError);
                     };
-                    
+
                     const checkReady = () => {
-                        if (this.previewVideo.readyState >= 2) {
+                        if (previewVideo.readyState >= 2) {
                             cleanup();
                             this.previewVideoReady = true;
                             resolve();
                         }
                     };
-                    
+
                     const onError = () => {
                         cleanup();
                         reject(new Error('Preview video failed to load'));
                     };
-                    
+
                     // Try loadeddata first (faster), fallback to canplay
-                    if (this.previewVideo.readyState >= 1) {
-                        this.previewVideo.addEventListener('loadeddata', checkReady);
+                    if (previewVideo.readyState >= 1) {
+                        previewVideo.addEventListener('loadeddata', checkReady);
                     }
-                    this.previewVideo.addEventListener('canplay', checkReady);
-                    this.previewVideo.addEventListener('error', onError);
-                    
+                    previewVideo.addEventListener('canplay', checkReady);
+                    previewVideo.addEventListener('error', onError);
+
                     // If already ready, resolve immediately
-                    if (this.previewVideo.readyState >= 2) {
+                    if (previewVideo.readyState >= 2) {
                         checkReady();
                     }
                 }).catch((): null => {
@@ -1336,8 +1375,8 @@ export class ControlBar {
         const quality = this.player.options.thumbnailQuality || 0.8;
         const maxWidth = this.player.options.thumbnailWidth || 160;
         const maxHeight = this.player.options.thumbnailHeight || 90;
-        
-        const dataURL = await captureVideoFrame(this.previewVideo, time, {
+
+        const dataURL = await captureVideoFrame(previewVideo, time, {
             restoreState,
             quality,
             maxWidth,
@@ -1350,7 +1389,9 @@ export class ControlBar {
             if (this.previewThumbnailCache.size >= maxCacheSize) {
                 // Delete oldest entry (first key in insertion order)
                 const firstKey = this.previewThumbnailCache.keys().next().value;
-                this.previewThumbnailCache.delete(firstKey);
+                if (firstKey !== undefined) {
+                    this.previewThumbnailCache.delete(firstKey);
+                }
             }
             this.previewThumbnailCache.set(cacheKey, dataURL);
         }
@@ -2234,8 +2275,8 @@ export class ControlBar {
                     }
 
                     autoItem.addEventListener('click', () => {
-                        if (this.player.renderer.switchQuality) {
-                            this.player.renderer.switchQuality(-1); // -1 for auto
+                        if (this.player.renderer?.switchQuality) {
+                            this.player.renderer.switchQuality(-1);
                         }
                         this.closeMenuAndReturnFocus(menu, button);
                     });
@@ -2244,7 +2285,7 @@ export class ControlBar {
                 }
 
                 // Quality options
-                qualities.forEach((quality: any) => {
+                (qualities as QualityLevel[]).forEach((quality) => {
                     const item = DOMUtils.createElement('button', {
                         className: `${this.player.options.classPrefix}-menu-item`,
                         textContent: quality.name || `${quality.height}p`,
@@ -2263,7 +2304,7 @@ export class ControlBar {
                     }
 
                     item.addEventListener('click', () => {
-                        if (this.player.renderer.switchQuality) {
+                        if (this.player.renderer?.switchQuality && quality.index !== undefined) {
                             this.player.renderer.switchQuality(quality.index);
                         }
                         this.closeMenuAndReturnFocus(menu, button);
@@ -2489,7 +2530,7 @@ export class ControlBar {
         focusFirstElement(menu, `.${this.player.options.classPrefix}-style-select`);
     }
 
-    createStyleControl(label: string, property: string, options: Array<{label: string; value: any}>) {
+    createStyleControl(label: string, property: string, options: Array<{label: string; value: string}>) {
         const group = DOMUtils.createElement('div', {
             className: `${this.player.options.classPrefix}-style-group`
         });
@@ -2528,7 +2569,7 @@ export class ControlBar {
         });
 
         const currentValue = this.player.options[property];
-        options.forEach((opt: {label: string; value: any}) => {
+        options.forEach((opt) => {
             const option = DOMUtils.createElement('option', {
                 textContent: opt.label,
                 attributes: {value: opt.value}
@@ -2589,7 +2630,7 @@ export class ControlBar {
             attributes: {
                 'id': controlId,
                 type: 'color',
-                value: this.player.options[property]
+                value: String(this.player.options[property] ?? '')
             },
             style: {
                 width: '100%',
@@ -2654,7 +2695,7 @@ export class ControlBar {
         });
 
         const valueEl = DOMUtils.createElement('span', {
-            textContent: Math.round(this.player.options[property] * 100) + '%',
+            textContent: Math.round(Number(this.player.options[property] ?? 0) * 100) + '%',
             style: {
                 fontSize: '12px',
                 color: 'rgba(255,255,255,0.7)'
@@ -2918,9 +2959,12 @@ export class ControlBar {
 
         menu.appendChild(offItem);
 
-        // Available tracks
-        const tracks = this.player.captionManager.getAvailableTracks();
-        tracks.forEach((track: any) => {
+        // Available tracks. `this.player.captionManager` is loosely typed
+        // (any) on Player today, so re-anchor the return type via the real
+        // CaptionManager class to keep `track` strongly typed below.
+        const tracks: ReturnType<CaptionManager['getAvailableTracks']> =
+            this.player.captionManager.getAvailableTracks();
+        tracks.forEach((track) => {
             const item = DOMUtils.createElement('button', {
                 className: `${this.player.options.classPrefix}-menu-item`,
                 textContent: track.label,
@@ -2932,16 +2976,16 @@ export class ControlBar {
                 }
             });
 
-            // Check if this is the current track
-            if (this.player.state.captionsEnabled &&
-                this.player.captionManager.currentTrack === this.player.captionManager.tracks[track.index]) {
+            const captionManager = this.player.captionManager;
+            if (captionManager && this.player.state.captionsEnabled &&
+                captionManager.currentTrack === captionManager.tracks[track.index]) {
                 item.classList.add(`${this.player.options.classPrefix}-menu-item-active`);
                 item.appendChild(createIconElement('check'));
                 activeItem = item;
             }
 
             item.addEventListener('click', () => {
-                this.player.captionManager.switchTrack(track.index);
+                this.player.captionManager?.switchTrack(track.index);
                 this.updateCaptionsButton();
                 this.closeMenuAndReturnFocus(menu, button);
             });
@@ -2971,6 +3015,7 @@ export class ControlBar {
         if (!this.controls.captions) return;
 
         const icon = this.controls.captions.querySelector('.vidply-icon');
+        if (!icon) return;
         const isEnabled = this.player.state.captionsEnabled;
 
         icon.innerHTML = isEnabled ?
@@ -3037,9 +3082,11 @@ export class ControlBar {
         const icon = this.controls.audioDescription.querySelector('.vidply-icon');
         const isEnabled = this.player.state.audioDescriptionEnabled;
 
-        icon.innerHTML = isEnabled ?
-            createIconElement('audioDescriptionOn').innerHTML :
-            createIconElement('audioDescription').innerHTML;
+        if (icon) {
+            icon.innerHTML = isEnabled ?
+                createIconElement('audioDescriptionOn').innerHTML :
+                createIconElement('audioDescription').innerHTML;
+        }
 
         this.controls.audioDescription.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
         // Keep aria-label static - let aria-checked convey the state for switch role
@@ -3075,9 +3122,11 @@ export class ControlBar {
         const icon = this.controls.signLanguage.querySelector('.vidply-icon');
         const isEnabled = this.player.state.signLanguageEnabled;
 
-        icon.innerHTML = isEnabled ?
-            createIconElement('signLanguagePipOn').innerHTML :
-            createIconElement('signLanguagePip').innerHTML;
+        if (icon) {
+            icon.innerHTML = isEnabled ?
+                createIconElement('signLanguagePipOn').innerHTML :
+                createIconElement('signLanguagePip').innerHTML;
+        }
 
         this.controls.signLanguage.setAttribute('aria-expanded', isEnabled ? 'true' : 'false');
         this.controls.signLanguage.setAttribute('aria-label',
@@ -3123,7 +3172,10 @@ export class ControlBar {
         const newLabel = isEnabled ? i18n.t('signLanguage.hideInMainView') : i18n.t('signLanguage.showInMainView');
         const iconName = isEnabled ? 'signLanguageOn' : 'signLanguage';
 
-        btn.querySelector('.vidply-icon').innerHTML = createIconElement(iconName).innerHTML;
+        const icon = btn.querySelector('.vidply-icon');
+        if (icon) {
+            icon.innerHTML = createIconElement(iconName).innerHTML;
+        }
         btn.setAttribute('aria-pressed', String(isEnabled));
         btn.setAttribute('aria-label', newLabel);
         
@@ -3155,8 +3207,8 @@ export class ControlBar {
                 } else {
                     this.rightButtons.appendChild(btn);
                 }
-                // Re-setup overflow menu after adding button
-                this.setupOverflowMenu();
+                // Re-evaluate overflow now that a new button was added.
+                this.checkOverflow();
             }
             // Show button
             if (this.controls.audioDescription) {
@@ -3214,7 +3266,7 @@ export class ControlBar {
             }
             
             if (needsOverflowSetup) {
-                this.setupOverflowMenu();
+                this.checkOverflow();
             }
             
             // Show/hide buttons based on displayMode
@@ -3285,7 +3337,7 @@ export class ControlBar {
             // readers announce the toggled state correctly.
             this.player.on('floatingchange', (state: 'pinned' | 'auto' | null) => {
                 button.setAttribute('aria-pressed', state === 'pinned' ? 'true' : 'false');
-                button.classList.toggle(`${this.player.options.classPrefix}-pip-active`, !!state);
+                button.classList.toggle(`${this.player.options.classPrefix}-pip-active`, Boolean(state));
             });
         }
 
@@ -3485,9 +3537,11 @@ export class ControlBar {
         const icon = this.controls.playPause.querySelector('.vidply-icon');
         const isPlaying = this.player.state.playing;
 
-        icon.innerHTML = isPlaying ?
-            createIconElement('pause').innerHTML :
-            createIconElement('play').innerHTML;
+        if (icon) {
+            icon.innerHTML = isPlaying ?
+                createIconElement('pause').innerHTML :
+                createIconElement('play').innerHTML;
+        }
 
         const newAriaLabel = isPlaying ? i18n.t('player.pause') : i18n.t('player.play');
         this.controls.playPause.setAttribute('aria-label', newAriaLabel);
@@ -3607,9 +3661,11 @@ export class ControlBar {
         const icon = this.controls.fullscreen.querySelector('.vidply-icon');
         const isFullscreen = this.player.state.fullscreen;
 
-        icon.innerHTML = isFullscreen ?
-            createIconElement('fullscreenExit').innerHTML :
-            createIconElement('fullscreen').innerHTML;
+        if (icon) {
+            icon.innerHTML = isFullscreen ?
+                createIconElement('fullscreenExit').innerHTML :
+                createIconElement('fullscreen').innerHTML;
+        }
 
         this.controls.fullscreen.setAttribute('aria-label',
             isFullscreen ? i18n.t('player.exitFullscreen') : i18n.t('player.fullscreen')
@@ -3770,21 +3826,21 @@ export class ControlBar {
         // Remove captions button if it exists
         if (this.controls.captions) {
             this.controls.captions.remove();
-            this.controls.captions = null;
+            delete this.controls.captions;
             this.player.log('Captions button removed - no subtitle tracks', 'info');
         }
-        
+
         // Remove caption style button if it exists
         if (this.controls.captionStyle) {
             this.controls.captionStyle.remove();
-            this.controls.captionStyle = null;
+            delete this.controls.captionStyle;
             this.player.log('Caption style button removed - no subtitle tracks', 'info');
         }
-        
+
         // Remove transcript button if it exists
         if (this.controls.transcript) {
             this.controls.transcript.remove();
-            this.controls.transcript = null;
+            delete this.controls.transcript;
             this.player.log('Transcript button removed - no subtitle tracks', 'info');
         }
     }
@@ -3798,12 +3854,12 @@ export class ControlBar {
         for (let i = 0; i < textTracks.length; i++) {
             textTracks[i].mode = 'disabled';
         }
-        
-        // Clear caption display
-        if ((this.player as any).captionsManager) {
-            (this.player as any).captionsManager.hide();
-        }
-        
+
+        // NOTE: A previous (`captionsManager`) cast lived here. The property
+        // does not exist on Player and the only related manager (`captionManager`)
+        // has no `hide()` method, so the block was unreachable dead code. The
+        // captions container is cleared below, which was the actual intent.
+
         // Clear the captions container if it exists
         const captionsContainer = this.player.container?.querySelector(`.${this.player.options.classPrefix}-captions`);
         if (captionsContainer) {
@@ -3835,7 +3891,7 @@ export class ControlBar {
             currentQualityText = 'Auto';
         } else if (this.player.renderer.getCurrentQuality) {
             const currentIndex = this.player.renderer.getCurrentQuality();
-            const currentQuality = qualities.find((q: any) => q.index === currentIndex);
+            const currentQuality = (qualities as QualityLevel[]).find((q) => q.index === currentIndex);
             if (currentQuality) {
                 currentQualityText = currentQuality.height ? `${currentQuality.height}p` : '';
             }
@@ -4001,7 +4057,7 @@ export class ControlBar {
                 item.appendChild(labelSpan);
 
                 // When clicked, trigger the original button's click
-                item.addEventListener('click', (e) => {
+                item.addEventListener('click', () => {
                     // Store the overflow menu item as the positioning reference
                     // This allows submenus to position relative to the visible menu item
                     this._overflowMenuItemRef = item;
@@ -4059,201 +4115,187 @@ export class ControlBar {
         this.attachMenuCloseHandler(menu, button);
     }
 
-    setupOverflowDetection() {
-        // Check for overflow after layout is stable
-        const checkOverflow = () => {
-            // Check screen size and orientation
-            const isDesktop = window.innerWidth >= 768;
-            const isLandscape = window.innerHeight < window.innerWidth;
-            const isFullscreen = this.player.state.fullscreen;
-            const isLandscapeFullscreen = isLandscape && isFullscreen;
-            
-            if (!this.rightButtons || this.rightButtons.children.length === 0) {
-                // Hide overflow button if no buttons exist
-                if (this.overflowMenuButton) {
-                    this.overflowMenuButton.style.display = 'none';
-                }
-                return;
-            }
+    /**
+     * Re-evaluate which buttons fit in the right-side area and which need to
+     * be moved into the overflow ("more options") menu. Safe to call any
+     * number of times — extracted from `setupOverflowDetection` so dynamic
+     * button insertions (audio-description / sign-language) can request a
+     * recheck without re-attaching observers.
+     */
+    checkOverflow() {
+        const isDesktop = window.innerWidth >= 768;
+        const isLandscape = window.innerHeight < window.innerWidth;
+        const isFullscreen = this.player.state.fullscreen;
+        const isLandscapeFullscreen = isLandscape && isFullscreen;
 
-            // Get all buttons (except the overflow menu button itself and
-            // buttons that opt out via data-skip-overflow="true", e.g. the
-            // floating-player PiP button which has its own viewport media
-            // query and must never appear in the overflow menu list).
-            const allButtons = (Array.from(this.rightButtons.children) as HTMLElement[]).filter(
-                btn => !btn.classList.contains(`${this.player.options.classPrefix}-overflow-menu`)
-                    && btn.dataset.skipOverflow !== 'true'
-            );
-
-            if (allButtons.length === 0) {
-                // Hide overflow button if no buttons exist
-                if (this.overflowMenuButton) {
-                    this.overflowMenuButton.style.display = 'none';
-                }
-                return;
-            }
-
-            // Determine if we should use overflow menu
-            // Only use overflow on mobile portrait (width < 768px and not in landscape)
-            // In landscape mode, always show all buttons (even on mobile) to ensure fullscreen button is accessible
-            const shouldUseOverflow = !isDesktop && !isLandscape;
-            
-            if (this.player.options.debug) {
-                console.log('Overflow detection:', {
-                    isDesktop,
-                    isFullscreen,
-                    isLandscape,
-                    isLandscapeFullscreen,
-                    shouldUseOverflow,
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                });
-            }
-
-            // If we shouldn't use overflow menu, show all buttons and hide overflow button
-            if (!shouldUseOverflow) {
-                allButtons.forEach(btn => {
-                    btn.dataset.inOverflow = 'false';
-                    btn.style.display = '';
-                });
-                // Always hide overflow menu button
-                if (this.overflowMenuButton) {
-                    this.overflowMenuButton.style.display = 'none';
-                }
-                if (this.player.options.debug) {
-                    console.log('No overflow menu needed - all buttons visible, overflow button hidden');
-                }
-                return;
-            }
-            
-            // Continue with overflow detection for mobile portrait only
-            if (this.player.options.debug) {
-                console.log('Mobile portrait - checking for overflow...');
-            }
-
-            // First, make all buttons visible to measure their actual widths
-            allButtons.forEach(btn => {
-                btn.style.display = '';
-            });
-
-            // Get available width
-            const containerWidth = this.rightButtons.offsetWidth;
-            const overflowButtonWidth = 50; // Reserve space for overflow button + gap
-            const availableWidth = containerWidth - overflowButtonWidth;
-
-            // Calculate total width needed for all buttons including gaps
-            let totalWidth = 0;
-            const buttonWidths = allButtons.map(btn => {
-                const style = getComputedStyle(btn);
-                const width = btn.offsetWidth + 
-                             parseInt(style.marginLeft || '0') + 
-                             parseInt(style.marginRight || '0');
-                totalWidth += width;
-                return {btn, width};
-            });
-
-            // Add gap widths (8px per gap between buttons)
-            const gapWidth = 8;
-            totalWidth += (allButtons.length - 1) * gapWidth;
-
-            // Check if overflow is needed
-            const isSmallScreen = window.innerWidth < 768;
-            const needsOverflow = totalWidth > availableWidth || isSmallScreen || (isLandscapeFullscreen && !isDesktop); // Always overflow on mobile and mobile landscape fullscreen
-
-            // Debug logging
-            if (this.player.options.debug) {
-                console.log('Overflow detection:', {
-                    containerWidth,
-                    availableWidth,
-                    totalWidth,
-                    needsOverflow,
-                    isSmallScreen,
-                    reason: isSmallScreen ? 'mobile screen' : (totalWidth > availableWidth ? 'not enough space' : 'enough space'),
-                    buttonCount: allButtons.length
-                });
-            }
-
-            if (needsOverflow) {
-                // Use responsive priorities based on screen size
-                const isSmallScreen = window.innerWidth < 768;
-                const priorityAttr = isSmallScreen ? 'overflowPriorityMobile' : 'overflowPriority';
-                
-                if (this.player.options.debug) {
-                    console.log(`Using ${isSmallScreen ? 'mobile' : 'desktop'} priorities (width: ${window.innerWidth}px)`);
-                }
-                
-                // Sort buttons by priority (highest priority last)
-                const sortedButtons = buttonWidths.sort((a, b) => {
-                    const priorityA = parseInt(a.btn.dataset[priorityAttr] || a.btn.dataset.overflowPriority || '1');
-                    const priorityB = parseInt(b.btn.dataset[priorityAttr] || b.btn.dataset.overflowPriority || '1');
-                    return priorityB - priorityA; // Higher priority = lower number = later in array
-                });
-
-                // Hide buttons starting with lowest priority until fits
-                let currentWidth = totalWidth;
-                let movedToOverflow = 0;
-
-                for (const {btn, width} of sortedButtons) {
-                    const priority = parseInt(btn.dataset[priorityAttr] || btn.dataset.overflowPriority || '1');
-                    const buttonLabel = btn.getAttribute('aria-label') || 'unknown';
-                    
-                    // Never hide priority 1 buttons
-                    if (priority === 1) {
-                        btn.dataset.inOverflow = 'false';
-                        btn.style.display = '';
-                        continue;
-                    }
-
-                    // On mobile, hide all non-priority-1 buttons (priority 2 and 3)
-                    // On desktop, only hide if not enough space
-                    const shouldHide = isSmallScreen ? (priority > 1) : (currentWidth > availableWidth);
-
-                    if (shouldHide) {
-                        // Move to overflow
-                        btn.dataset.inOverflow = 'true';
-                        btn.style.display = 'none';
-                        currentWidth -= width;
-                        movedToOverflow++;
-                        if (this.player.options.debug) {
-                            console.log(`  → Hiding button: ${buttonLabel} (priority ${priority}, ${isSmallScreen ? 'mobile' : 'desktop'})`);
-                        }
-                    } else {
-                        // Keep visible
-                        btn.dataset.inOverflow = 'false';
-                        btn.style.display = '';
-                    }
-                }
-
-                // Show overflow menu button if we moved any buttons
-                if (this.player.options.debug) {
-                    console.log('Overflow button exists?', !!this.overflowMenuButton);
-                }
-                
-                if (!this.overflowMenuButton) {
-                    console.error('Overflow menu button not found!');
-                    return;
-                }
-                
-                if (movedToOverflow > 0) {
-                    this.overflowMenuButton.style.display = '';
-                    if (this.player.options.debug) {
-                        console.log('Showing overflow menu button -', movedToOverflow, 'buttons moved');
-                    }
-                } else {
-                    this.overflowMenuButton.style.display = 'none';
-                    if (this.player.options.debug) {
-                        console.log('Hiding overflow menu button - all buttons fit');
-                    }
-                }
-            } else {
-                // No overflow needed - show all buttons
-                allButtons.forEach(btn => {
-                    btn.dataset.inOverflow = 'false';
-                    btn.style.display = '';
-                });
+        if (!this.rightButtons || this.rightButtons.children.length === 0) {
+            if (this.overflowMenuButton) {
                 this.overflowMenuButton.style.display = 'none';
             }
-        };
+            return;
+        }
+
+        // Get all buttons (except the overflow menu button itself and
+        // buttons that opt out via data-skip-overflow="true", e.g. the
+        // floating-player PiP button which has its own viewport media
+        // query and must never appear in the overflow menu list).
+        const allButtons = (Array.from(this.rightButtons.children) as HTMLElement[]).filter(
+            btn => !btn.classList.contains(`${this.player.options.classPrefix}-overflow-menu`)
+                && btn.dataset.skipOverflow !== 'true'
+        );
+
+        if (allButtons.length === 0) {
+            if (this.overflowMenuButton) {
+                this.overflowMenuButton.style.display = 'none';
+            }
+            return;
+        }
+
+        // Only use overflow on mobile portrait (width < 768px and not in landscape).
+        // In landscape, always show all buttons so the fullscreen button stays reachable.
+        const shouldUseOverflow = !isDesktop && !isLandscape;
+
+        if (this.player.options.debug) {
+            console.log('Overflow detection:', {
+                isDesktop,
+                isFullscreen,
+                isLandscape,
+                isLandscapeFullscreen,
+                shouldUseOverflow,
+                width: window.innerWidth,
+                height: window.innerHeight
+            });
+        }
+
+        if (!shouldUseOverflow) {
+            allButtons.forEach(btn => {
+                btn.dataset.inOverflow = 'false';
+                btn.style.display = '';
+            });
+            if (this.overflowMenuButton) {
+                this.overflowMenuButton.style.display = 'none';
+            }
+            if (this.player.options.debug) {
+                console.log('No overflow menu needed - all buttons visible, overflow button hidden');
+            }
+            return;
+        }
+
+        if (this.player.options.debug) {
+            console.log('Mobile portrait - checking for overflow...');
+        }
+
+        allButtons.forEach(btn => {
+            btn.style.display = '';
+        });
+
+        const containerWidth = this.rightButtons.offsetWidth;
+        const overflowButtonWidth = 50;
+        const availableWidth = containerWidth - overflowButtonWidth;
+
+        let totalWidth = 0;
+        const buttonWidths = allButtons.map(btn => {
+            const style = getComputedStyle(btn);
+            const width = btn.offsetWidth +
+                         parseInt(style.marginLeft || '0') +
+                         parseInt(style.marginRight || '0');
+            totalWidth += width;
+            return {btn, width};
+        });
+
+        const gapWidth = 8;
+        totalWidth += (allButtons.length - 1) * gapWidth;
+
+        const isSmallScreen = window.innerWidth < 768;
+        const needsOverflow = totalWidth > availableWidth || isSmallScreen || (isLandscapeFullscreen && !isDesktop);
+
+        if (this.player.options.debug) {
+            console.log('Overflow detection:', {
+                containerWidth,
+                availableWidth,
+                totalWidth,
+                needsOverflow,
+                isSmallScreen,
+                reason: isSmallScreen ? 'mobile screen' : (totalWidth > availableWidth ? 'not enough space' : 'enough space'),
+                buttonCount: allButtons.length
+            });
+        }
+
+        if (needsOverflow) {
+            const priorityAttr = isSmallScreen ? 'overflowPriorityMobile' : 'overflowPriority';
+
+            if (this.player.options.debug) {
+                console.log(`Using ${isSmallScreen ? 'mobile' : 'desktop'} priorities (width: ${window.innerWidth}px)`);
+            }
+
+            const sortedButtons = buttonWidths.sort((a, b) => {
+                const priorityA = parseInt(a.btn.dataset[priorityAttr] || a.btn.dataset.overflowPriority || '1');
+                const priorityB = parseInt(b.btn.dataset[priorityAttr] || b.btn.dataset.overflowPriority || '1');
+                return priorityB - priorityA;
+            });
+
+            let currentWidth = totalWidth;
+            let movedToOverflow = 0;
+
+            for (const {btn, width} of sortedButtons) {
+                const priority = parseInt(btn.dataset[priorityAttr] || btn.dataset.overflowPriority || '1');
+                const buttonLabel = btn.getAttribute('aria-label') || 'unknown';
+
+                if (priority === 1) {
+                    btn.dataset.inOverflow = 'false';
+                    btn.style.display = '';
+                    continue;
+                }
+
+                const shouldHide = isSmallScreen ? (priority > 1) : (currentWidth > availableWidth);
+
+                if (shouldHide) {
+                    btn.dataset.inOverflow = 'true';
+                    btn.style.display = 'none';
+                    currentWidth -= width;
+                    movedToOverflow++;
+                    if (this.player.options.debug) {
+                        console.log(`  → Hiding button: ${buttonLabel} (priority ${priority}, ${isSmallScreen ? 'mobile' : 'desktop'})`);
+                    }
+                } else {
+                    btn.dataset.inOverflow = 'false';
+                    btn.style.display = '';
+                }
+            }
+
+            if (this.player.options.debug) {
+                console.log('Overflow button exists?', Boolean(this.overflowMenuButton));
+            }
+
+            if (!this.overflowMenuButton) {
+                console.error('Overflow menu button not found!');
+                return;
+            }
+
+            if (movedToOverflow > 0) {
+                this.overflowMenuButton.style.display = '';
+                if (this.player.options.debug) {
+                    console.log('Showing overflow menu button -', movedToOverflow, 'buttons moved');
+                }
+            } else {
+                this.overflowMenuButton.style.display = 'none';
+                if (this.player.options.debug) {
+                    console.log('Hiding overflow menu button - all buttons fit');
+                }
+            }
+        } else {
+            allButtons.forEach(btn => {
+                btn.dataset.inOverflow = 'false';
+                btn.style.display = '';
+            });
+            if (this.overflowMenuButton) {
+                this.overflowMenuButton.style.display = 'none';
+            }
+        }
+    }
+
+    setupOverflowDetection() {
+        const checkOverflow = () => this.checkOverflow();
 
         // Check on resize
         const resizeObserver = new ResizeObserver(() => {
@@ -4274,7 +4316,7 @@ export class ControlBar {
             }, 50);
         });
 
-        // Initial checks at multiple intervals to ensure layout is stable
+        // Initial checks at multiple intervals to ensure layout is stable.
         // Some browsers need more time for font loading, CSS rendering, etc.
         requestAnimationFrame(() => {
             checkOverflow();
@@ -4290,7 +4332,6 @@ export class ControlBar {
             });
         }
 
-        // Store for cleanup
         this.overflowResizeObserver = resizeObserver;
     }
 

@@ -44,6 +44,31 @@ interface HlsLevel {
   url: string | string[];
 }
 
+interface HlsSubtitleTrack {
+  id?: number;
+  lang?: string;
+  language?: string;
+  name?: string;
+  url?: string;
+  type?: string;
+  default?: boolean;
+}
+
+interface HlsErrorResponse {
+  code?: number;
+  url?: string;
+  text?: string;
+}
+
+interface HlsErrorData {
+  type: string;
+  details: string;
+  fatal: boolean;
+  response?: HlsErrorResponse;
+  url?: string;
+  reason?: string;
+}
+
 interface HlsInstance {
   loadSource(src: string): void;
   attachMedia(media: HTMLMediaElement): void;
@@ -51,10 +76,12 @@ interface HlsInstance {
   on(event: string, handler: (...args: unknown[]) => void): void;
   off(event: string, handler: (...args: unknown[]) => void): void;
   startLoad(startPosition?: number): void;
+  stopLoad(): void;
   recoverMediaError(): void;
   levels: HlsLevel[];
   currentLevel: number;
-  subtitleTracks: unknown[];
+  loadLevel?: number;
+  subtitleTracks: HlsSubtitleTrack[];
   subtitleTrack: number;
 }
 
@@ -69,17 +96,39 @@ interface DashMediaPlayer {
   create(): DashMediaPlayerInstance;
 }
 
+interface DashRepresentation {
+  id?: string;
+  height?: number;
+  width?: number;
+  bandwidth?: number;
+  bitrate?: number;
+}
+
+interface DashBitrateInfo {
+  height?: number;
+  width?: number;
+  bitrate?: number;
+}
+
 interface DashMediaPlayerInstance {
   initialize(view: HTMLMediaElement, url: string | null, autoPlay: boolean): void;
   updateSettings(settings: Record<string, unknown>): void;
   attachSource(url: string): void;
+  attachTTMLRenderingDiv(div: HTMLElement): void;
   on(event: string, handler: (...args: unknown[]) => void): void;
   off(event: string, handler: (...args: unknown[]) => void): void;
   destroy(): void;
-  getBitrateInfoListFor(type: string): Array<{ height: number; width: number; bitrate: number }>;
+  reset(): void;
+  getBitrateInfoListFor(type: string): DashBitrateInfo[];
   getQualityFor(type: string): number;
-  setQualityFor(type: string, value: number): void;
-  updateSettings(settings: Record<string, unknown>): void;
+  setQualityFor(type: string, value: number, force?: boolean): void;
+  setAutoSwitchQualityFor?(type: string, value: boolean): void;
+  getAutoSwitchQualityFor?(type: string): boolean;
+  getRepresentationsByType?(type: string): DashRepresentation[];
+  setRepresentationForTypeByIndex?(type: string, index: number): void;
+  getCurrentRepresentationForType?(type: string): DashRepresentation | null | undefined;
+  getSettings?(): { streaming?: { abr?: { autoSwitchBitrate?: { video?: boolean; audio?: boolean } } } };
+  getManifest?(): unknown;
   getTracksFor(type: string): unknown[];
   setCurrentTrack(track: unknown): void;
   setTextTrack(index: number): void;

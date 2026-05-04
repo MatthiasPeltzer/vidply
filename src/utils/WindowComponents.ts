@@ -153,7 +153,7 @@ export function createWindowHeader({
  * @returns {Object} Object with label and select elements
  */
 export function createHeaderSelector({
-    classPrefix,
+    classPrefix: _classPrefix,
     selectClass,
     labelText,
     selectId,
@@ -210,7 +210,7 @@ export function createHeaderSelector({
  * @returns {HTMLElement} Label element containing checkbox
  */
 export function createAutoscrollCheckbox({
-    classPrefix,
+    classPrefix: _classPrefix,
     labelClass,
     textClass,
     checkboxId,

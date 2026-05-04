@@ -45,7 +45,11 @@ export async function captureVideoFrame(
         canvas.width = width;
         canvas.height = height;
 
-        const ctx = canvas.getContext('2d')!;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(null);
+          return;
+        }
         ctx.drawImage(video, 0, 0, width, height);
 
         const dataURL = canvas.toDataURL('image/jpeg', quality);

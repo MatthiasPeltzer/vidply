@@ -7,49 +7,60 @@ export interface CreateElementOptions {
   children?: (Node | null | undefined)[];
 }
 
+function createElementImpl<K extends keyof HTMLElementTagNameMap>(
+  tag: K,
+  options?: CreateElementOptions
+): HTMLElementTagNameMap[K];
+function createElementImpl(tag: string, options?: CreateElementOptions): HTMLElement;
+function createElementImpl(tag: string, options: CreateElementOptions = {}): HTMLElement {
+  const element = document.createElement(tag);
+
+  if (options.className) {
+    element.className = options.className;
+  }
+
+  if (options.attributes) {
+    for (const [key, value] of Object.entries(options.attributes)) {
+      if (value !== undefined) {
+        element.setAttribute(key, value);
+      }
+    }
+  }
+
+  if (options.innerHTML) {
+    element.innerHTML = options.innerHTML;
+  }
+
+  if (options.textContent) {
+    element.textContent = options.textContent;
+  }
+
+  if (options.style) {
+    Object.assign(element.style, options.style);
+  }
+
+  if (options.children) {
+    for (const child of options.children) {
+      if (child) element.appendChild(child);
+    }
+  }
+
+  return element;
+}
+
 export const DOMUtils = {
-  createElement(tag: string, options: CreateElementOptions = {}): HTMLElement {
-    const element = document.createElement(tag);
-
-    if (options.className) {
-      element.className = options.className;
-    }
-
-    if (options.attributes) {
-      for (const [key, value] of Object.entries(options.attributes)) {
-        if (value !== undefined) {
-          element.setAttribute(key, value);
-        }
-      }
-    }
-
-    if (options.innerHTML) {
-      element.innerHTML = options.innerHTML;
-    }
-
-    if (options.textContent) {
-      element.textContent = options.textContent;
-    }
-
-    if (options.style) {
-      Object.assign(element.style, options.style);
-    }
-
-    if (options.children) {
-      for (const child of options.children) {
-        if (child) element.appendChild(child);
-      }
-    }
-
-    return element;
-  },
+  createElement: createElementImpl,
 
   show(element: HTMLElement | null | undefined): void {
-    element?.style && (element.style.display = '');
+    if (element?.style) {
+      element.style.display = '';
+    }
   },
 
   hide(element: HTMLElement | null | undefined): void {
-    element?.style && (element.style.display = 'none');
+    if (element?.style) {
+      element.style.display = 'none';
+    }
   },
 
   fadeIn(element: HTMLElement | null, duration = 300, onComplete?: () => void): void {

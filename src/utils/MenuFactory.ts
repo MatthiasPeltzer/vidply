@@ -6,7 +6,8 @@
 import { DOMUtils } from './DOMUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
-import { attachMenuKeyboardNavigation, focusFirstMenuItem } from './MenuUtils.js';
+import { attachMenuKeyboardNavigation } from './MenuUtils.js';
+import type { Player } from '../core/Player.js';
 
 interface DividerMenuItem {
     type: 'divider';
@@ -33,7 +34,7 @@ interface ActionMenuItem {
 type MenuItem = DividerMenuItem | HeaderMenuItem | ActionMenuItem;
 
 interface CreateMenuOptions {
-    player: any;
+    player: Player;
     button: HTMLElement;
     menuClass: string;
     ariaLabel: string;
@@ -46,7 +47,7 @@ interface CreateMenuOptions {
 }
 
 interface SpeedMenuOptions {
-    player: any;
+    player: Player;
     button: HTMLElement;
     currentSpeed: number;
     speeds?: number[];
@@ -57,7 +58,7 @@ interface SpeedMenuOptions {
 }
 
 interface CaptionsMenuOptions {
-    player: any;
+    player: Player;
     button: HTMLElement;
     tracks: Array<{ label?: string; language?: string }>;
     currentTrackIndex: number;
@@ -70,7 +71,7 @@ interface CaptionsMenuOptions {
 }
 
 interface ChaptersMenuOptions {
-    player: any;
+    player: Player;
     button: HTMLElement;
     chapters: Array<{ startTime: number; text: string }> | null | undefined;
     onChapterSelect: (value: number) => void;
@@ -82,7 +83,7 @@ interface ChaptersMenuOptions {
 }
 
 interface QualityMenuOptions {
-    player: any;
+    player: Player;
     button: HTMLElement;
     qualities: Array<{ name?: string; height?: number; index: number }>;
     currentQuality: number;
@@ -207,9 +208,10 @@ export function createMenu({
         }
 
         // Click handler
-        if (actionItem.onClick) {
+        const onClick = actionItem.onClick;
+        if (onClick) {
             item.addEventListener('click', () => {
-                actionItem.onClick!(actionItem.value, index);
+                onClick(actionItem.value, index);
                 closeMenuAndReturnFocus(menu, button, onClose);
             });
         }
@@ -322,9 +324,7 @@ export function createCaptionsMenu({
     positionMenu,
     attachCloseHandler
 }: CaptionsMenuOptions): HTMLElement | null {
-    const classPrefix = player.options.classPrefix;
-    
-    const items: Array<{text: string; value?: number; active: boolean; onClick: () => any}> = [
+    const items: Array<{text: string; value?: number; active: boolean; onClick: () => void}> = [
         {
             text: i18n.t('player.captionsOff'),
             active: !captionsEnabled,

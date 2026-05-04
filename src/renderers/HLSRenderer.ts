@@ -1,10 +1,31 @@
 import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
 
+/** Subset of payloads emitted by hls.js events that we actually consume. */
+interface HlsManifestParsedData {
+  levels: HlsLevel[];
+}
+
+interface HlsLevelSwitchedData {
+  level: number;
+}
+
+interface HlsSubtitleTracksUpdatedData {
+  subtitleTracks: HlsSubtitleTrack[];
+}
+
+interface HlsSubtitleTrackSwitchData {
+  id: number;
+}
+
+interface HlsSubtitleFragProcessedData {
+  success?: boolean;
+}
+
 export class HLSRenderer implements Renderer {
   player: Player;
   media: HTMLMediaElement;
-  hls: any;
+  hls: HlsInstance | null;
 
   // True once hls.js is driving playback via MSE. Native HLS playback on
   // iOS / iPadOS keeps a real HTTP URL on the <video> and does not need the
@@ -75,10 +96,16 @@ export class HLSRenderer implements Renderer {
     const renderer = new HTML5Renderer(this.player);
     await renderer.init();
 
-    // Copy methods from HTML5Renderer onto this instance
+    // Copy methods from HTML5Renderer onto this instance. We intentionally
+    // walk via index signatures because the prototype layout is dynamic;
+    // typing the source/target as keyed records keeps the reflection
+    // pattern readable without `any`.
+    const rendererBag = renderer as unknown as Record<string, unknown>;
+    const selfBag = this as unknown as Record<string, unknown>;
     Object.getOwnPropertyNames(Object.getPrototypeOf(renderer)).forEach((method: string) => {
-      if (method !== 'constructor' && typeof (renderer as any)[method] === 'function') {
-        (this as any)[method] = (renderer as any)[method].bind(renderer);
+      const candidate = rendererBag[method];
+      if (method !== 'constructor' && typeof candidate === 'function') {
+        selfBag[method] = (candidate as (...args: unknown[]) => unknown).bind(renderer);
       }
     });
 
@@ -140,10 +167,10 @@ export class HLSRenderer implements Renderer {
       await this.loadHlsJs();
     }
 
-    if (!window.Hls?.isSupported()) {
+    const HlsCtor = window.Hls;
+    if (!HlsCtor?.isSupported()) {
       throw new Error('HLS is not supported in this browser');
     }
-    const HlsCtor = window.Hls!;
 
     // HTML5 spec: If video has src attribute, <source> children are not allowed.
     // hls.js sets a blob: URL on the src attribute, so we must remove any <source> elements
@@ -273,15 +300,20 @@ export class HLSRenderer implements Renderer {
   }
 
   attachHlsEvents() {
-    this.hls.on(window.Hls!.Events.MANIFEST_PARSED, (_event: any, data: any) => {
+    const hls = this.hls;
+    const Hls = window.Hls;
+    if (!hls || !Hls) return;
+
+    hls.on(Hls.Events.MANIFEST_PARSED, (...args: unknown[]) => {
+      const data = args[1] as HlsManifestParsedData;
       this.player.log('HLS manifest loaded, found ' + data.levels.length + ' quality levels');
       this.player.emit('hlsmanifestparsed', data);
-      
+
       // Show VidPly controls (remove external controls class if present)
       if (this.player.container) {
         this.player.container.classList.remove('vidply-external-controls');
       }
-      
+
       // Check for subtitle tracks after manifest parse
       // This handles streams without subtitles (SUBTITLE_TRACKS_UPDATED won't fire for them)
       setTimeout(() => {
@@ -295,13 +327,15 @@ export class HLSRenderer implements Renderer {
       }, 500);
     });
 
-    this.hls.on(window.Hls!.Events.LEVEL_SWITCHED, (_event: any, data: any) => {
+    hls.on(Hls.Events.LEVEL_SWITCHED, (...args: unknown[]) => {
+      const data = args[1] as HlsLevelSwitchedData;
       this.player.log('HLS level switched to ' + data.level);
       this.player.emit('hlslevelswitched', data);
     });
 
     // Handle HLS subtitle tracks
-    this.hls.on(window.Hls!.Events.SUBTITLE_TRACKS_UPDATED, (_event: any, data: any) => {
+    hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (...args: unknown[]) => {
+      const data = args[1] as HlsSubtitleTracksUpdatedData;
       this.player.log('HLS subtitle tracks updated, found ' + data.subtitleTracks.length + ' tracks');
       this.player.emit('hlssubtitletracksupdated', data);
       this._hlsSubtitleTracksCount = data.subtitleTracks.length;
@@ -311,18 +345,19 @@ export class HLSRenderer implements Renderer {
       }
     });
 
-    this.hls.on(window.Hls!.Events.SUBTITLE_TRACK_SWITCH, (_event: any, data: any) => {
+    hls.on(Hls.Events.SUBTITLE_TRACK_SWITCH, (...args: unknown[]) => {
+      const data = args[1] as HlsSubtitleTrackSwitchData;
       this.player.log('HLS subtitle track switched to ' + data.id);
       this.player.emit('hlssubtitletrackswitch', data);
       this._lastKnownCueCount = 0;
       this._startCueUpdatePolling();
     });
 
-    this.hls.on(window.Hls!.Events.ERROR, (_event: any, data: any) => {
-      this.handleHlsError(data);
+    hls.on(Hls.Events.ERROR, (...args: unknown[]) => {
+      this.handleHlsError(args[1] as HlsErrorData);
     });
 
-    this.hls.on(window.Hls!.Events.FRAG_BUFFERED, (_event: any, _data: any) => {
+    hls.on(Hls.Events.FRAG_BUFFERED, () => {
       this.player.state.buffering = false;
 
       // Seek-only loading: the user scrubbed the seekbar on a paused (or
@@ -345,8 +380,8 @@ export class HLSRenderer implements Renderer {
       } else if (this._loadingForSeekOnly && this._isTimeBuffered(this.media.currentTime)) {
         this._loadingForSeekOnly = false;
         try {
-          this.hls.stopLoad();
-        } catch (e) {
+          hls.stopLoad();
+        } catch {
           // ignore
         }
       }
@@ -357,7 +392,8 @@ export class HLSRenderer implements Renderer {
     // immediately after hls.js has parsed the WebVTT and appended cues to
     // the TextTrack via `addCueToTrack`, which is exactly when we need to
     // refresh captions/transcript UIs.
-    this.hls.on(window.Hls!.Events.SUBTITLE_FRAG_PROCESSED, (_event: any, data: any) => {
+    hls.on(Hls.Events.SUBTITLE_FRAG_PROCESSED, (...args: unknown[]) => {
+      const data = args[1] as HlsSubtitleFragProcessedData | undefined;
       if (!data || !data.success) return;
       const count = this._getTotalCueCount();
       if (count > this._lastKnownCueCount) {
@@ -370,7 +406,7 @@ export class HLSRenderer implements Renderer {
     // their cues via CUES_PARSED instead of through a native TextTrack. Echo
     // that through to the transcript so it can refresh regardless of the
     // underlying subtitle format.
-    this.hls.on(window.Hls!.Events.CUES_PARSED, (_event: any, _data: any) => {
+    hls.on(Hls.Events.CUES_PARSED, () => {
       this.player.emit('textcuesupdate');
     });
   }
@@ -603,7 +639,7 @@ export class HLSRenderer implements Renderer {
       if (this.media.paused && this.hls) {
         try {
           this.hls.stopLoad();
-        } catch (e) {
+        } catch {
           // ignore
         }
       }
@@ -619,32 +655,33 @@ export class HLSRenderer implements Renderer {
     });
   }
 
-  handleHlsError(data: any) {
+  handleHlsError(data: HlsErrorData) {
     // Log detailed error info
     this.player.log(`HLS Error - Type: ${data.type}, Details: ${data.details}, Fatal: ${data.fatal}`, 'warn');
     if (data.response) {
       this.player.log(`Response code: ${data.response.code}, URL: ${data.response.url}`, 'warn');
     }
-    
+
     if (data.fatal) {
+      const ErrorTypes = window.Hls?.ErrorTypes;
       switch (data.type) {
-        case window.Hls!.ErrorTypes.NETWORK_ERROR:
+        case ErrorTypes?.NETWORK_ERROR:
           this.player.log('Fatal network error, trying to recover...', 'error');
           this.player.log(`Network error details: ${data.details}`, 'error');
           setTimeout(() => {
-            this.hls.startLoad();
+            this.hls?.startLoad();
           }, 1000);
           break;
-          
-        case window.Hls!.ErrorTypes.MEDIA_ERROR:
+
+        case ErrorTypes?.MEDIA_ERROR:
           this.player.log('Fatal media error, trying to recover...', 'error');
-          this.hls.recoverMediaError();
+          this.hls?.recoverMediaError();
           break;
-          
+
         default:
           this.player.log('Fatal error, cannot recover', 'error');
           this.player.handleError(new Error(`HLS Error: ${data.type} - ${data.details}`));
-          this.hls.destroy();
+          this.hls?.destroy();
           break;
       }
     } else {
@@ -671,7 +708,7 @@ export class HLSRenderer implements Renderer {
 
     try {
       this.hls.startLoad(-1);
-    } catch (e) {
+    } catch {
       // ignore
     }
     this._didDeferredLoad = true;
@@ -691,7 +728,7 @@ export class HLSRenderer implements Renderer {
       this._loadingForSeekOnly = false;
       try {
         this.hls.startLoad(-1);
-      } catch (e) {
+      } catch {
         // ignore and let media.play() surface errors if any
       }
       this._didDeferredLoad = true;
@@ -718,7 +755,7 @@ export class HLSRenderer implements Renderer {
     if (this.hls) {
       try {
         this.hls.stopLoad();
-      } catch (e) {
+      } catch {
         // ignore
       }
     }
@@ -740,7 +777,7 @@ export class HLSRenderer implements Renderer {
       }
       try {
         this.hls.startLoad(-1);
-      } catch (e) {
+      } catch {
         // ignore
       }
     }
@@ -769,12 +806,13 @@ export class HLSRenderer implements Renderer {
       // hls.js creates separate levels for each video+audio-group combination,
       // producing duplicates (e.g. three "720p" entries). Deduplicate by
       // resolution height, keeping the entry with the highest bitrate per height.
-      const byHeight = new Map();
+      type LevelEntry = { index: number; height: number; width: number; bitrate: number; level: HlsLevel };
+      const byHeight = new Map<string | number, LevelEntry>();
 
-      this.hls.levels.forEach((level: any, index: number) => {
+      this.hls.levels.forEach((level: HlsLevel, index: number) => {
         const height = Number(level.height) || 0;
         const bitrate = Number(level.bitrate) || 0;
-        const key = height > 0 ? height : `br_${bitrate}`;
+        const key: string | number = height > 0 ? height : `br_${bitrate}`;
         const existing = byHeight.get(key);
 
         if (!existing || bitrate > (existing.bitrate || 0)) {
@@ -782,7 +820,7 @@ export class HLSRenderer implements Renderer {
         }
       });
 
-      return Array.from(byHeight.values()).map((entry: any) => {
+      return Array.from(byHeight.values()).map((entry) => {
         const height = Number(entry.height) || 0;
         const kb = entry.bitrate > 0 ? Math.round(entry.bitrate / 1000) : 0;
         const name = height > 0 ? `${height}p` : (kb > 0 ? `${kb} kb` : 'Auto');
@@ -805,7 +843,7 @@ export class HLSRenderer implements Renderer {
     const tracks = this.hls.subtitleTracks;
     if (!tracks || tracks.length === 0) return false;
 
-    const idx = tracks.findIndex((t: any) => {
+    const idx = tracks.findIndex((t: HlsSubtitleTrack) => {
       const tLang = t.lang || t.language || '';
       return tLang === lang || tLang.startsWith(lang) || lang.startsWith(tLang);
     });

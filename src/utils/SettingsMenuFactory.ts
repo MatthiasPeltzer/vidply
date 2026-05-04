@@ -84,7 +84,7 @@ export function createSettingsMenuItem({
     icon,
     label,
     onClick = null,
-    closeMenuOnClick = true
+    closeMenuOnClick: _closeMenuOnClick = true
 }: CreateSettingsMenuItemOptions): HTMLElement {
     // Check if label is an i18n key
     const isI18nKey = typeof label === 'string' && 
