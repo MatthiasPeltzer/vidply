@@ -66,6 +66,12 @@ export class SignLanguageManager {
     documentClickHandlerAdded: boolean;
     video: HTMLVideoElement | null;
     wrapper: HTMLElement | null;
+    /** Visible badge appended to the wrapper while keyboard drag or
+     *  pointer resize mode is active. Replaces the previous
+     *  `::after { content: 'DRAG MODE …' }` CSS approach so the hint is
+     *  real DOM content: translatable, announced by AT, selectable, and
+     *  survives high-contrast themes that strip pseudo-elements. */
+    modeBadge: HTMLElement | null;
 
     constructor(player: Player) {
         this.player = player;
@@ -110,6 +116,7 @@ export class SignLanguageManager {
         this.dragOptionText = null;
         this.resizeOptionButton = null;
         this.resizeOptionText = null;
+        this.modeBadge = null;
     }
 
     /**
@@ -219,7 +226,11 @@ export class SignLanguageManager {
         if (this.settingsMenuVisible) {
             this.hideSettingsMenu({ focusButton: false });
         }
-        
+
+        // Remove the mode badge so it doesn't linger past the overlay
+        // (e.g. if user hides sign language while drag/resize mode was on).
+        this._hideModeBadge();
+
         if (this.wrapper) {
             this.wrapper.style.display = 'none';
         }
@@ -819,6 +830,16 @@ export class SignLanguageManager {
                 this.resizeHandles.forEach(handle => {
                     handle.style.display = enabled ? 'block' : 'none';
                 });
+                // Pair the resize-mode visual state with a translatable
+                // badge and a live-region announcement. Fired for all
+                // entry/exit paths (menu toggle, R key, Escape, Home).
+                if (enabled) {
+                    this._showModeBadge(i18n.t('player.signResizeModeHint'));
+                    this.player.keyboardManager?.announce(i18n.t('player.signLanguageResizeActive'));
+                } else {
+                    this._hideModeBadge();
+                    this.player.keyboardManager?.announce(i18n.t('player.signResizeModeDisabled'));
+                }
             },
             onDragStart: (e) => {
                 const target = e.target as HTMLElement;
@@ -876,11 +897,20 @@ export class SignLanguageManager {
                 e.preventDefault();
                 e.stopPropagation();
                 if (this.draggable?.pointerResizeMode) {
+                    // disablePointerResizeMode() fires onPointerResizeToggle,
+                    // which hides the badge and announces the change.
                     this.draggable.disablePointerResizeMode();
                     return;
                 }
                 if (this.draggable?.keyboardDragMode) {
+                    // disableKeyboardDragMode on the draggable has no
+                    // callback, so mirror the cleanup that
+                    // toggleKeyboardDragMode() does when it turns the
+                    // mode off.
                     this.draggable.disableKeyboardDragMode();
+                    this._hideModeBadge();
+                    this._updateDragOptionState();
+                    this.player.keyboardManager?.announce(i18n.t('player.signDragModeDisabled'));
                     return;
                 }
                 this.disable();
@@ -1071,7 +1101,10 @@ export class SignLanguageManager {
         setTimeout(() => {
             const documentClickHandler = this.documentClickHandler;
             if (!documentClickHandler) return;
-            document.addEventListener('mousedown', documentClickHandler, true);
+            document.addEventListener('mousedown', documentClickHandler, {
+                capture: true,
+                signal: this.player.lifecycleSignal
+            });
             this.documentClickHandlerAdded = true;
         }, 300);
     }
@@ -1297,18 +1330,54 @@ export class SignLanguageManager {
     }
 
     /**
+     * Show a translatable mode badge above the sign-language wrapper.
+     * The badge is a real DOM element (not a CSS `::after` pseudo), so it
+     * is picked up by browser translation tools, honored by high-contrast
+     * themes, and translated via the i18n catalogue. Announcements for
+     * assistive tech go through the shared KeyboardManager live region
+     * to avoid AT reading both the badge text and the live-region copy.
+     */
+    _showModeBadge(text: string) {
+        if (!this.wrapper) return;
+        this._hideModeBadge();
+
+        const classPrefix = this.player.options.classPrefix;
+        const badge = DOMUtils.createElement('span', {
+            className: `${classPrefix}-sign-mode-badge`,
+            textContent: text,
+            attributes: { 'aria-hidden': 'true' }
+        });
+        this.wrapper.appendChild(badge);
+        this.modeBadge = badge;
+    }
+
+    _hideModeBadge() {
+        if (this.modeBadge && this.modeBadge.parentNode) {
+            this.modeBadge.remove();
+        }
+        this.modeBadge = null;
+    }
+
+    /**
      * Toggle keyboard drag mode
      */
     toggleKeyboardDragMode() {
-        if (this.draggable) {
-            const wasEnabled = this.draggable.keyboardDragMode;
-            this.draggable.toggleKeyboardDragMode();
-            const isEnabled = this.draggable.keyboardDragMode;
-            if (!wasEnabled && isEnabled) {
-                this._enableMoveMode();
-            }
-            this._updateDragOptionState();
+        if (!this.draggable) return;
+
+        const wasEnabled = this.draggable.keyboardDragMode;
+        this.draggable.toggleKeyboardDragMode();
+        const isEnabled = this.draggable.keyboardDragMode;
+
+        if (!wasEnabled && isEnabled) {
+            this._enableMoveMode();
+            this._showModeBadge(i18n.t('player.signDragModeHint'));
+            this.player.keyboardManager?.announce(i18n.t('player.signLanguageDragActive'));
+        } else if (wasEnabled && !isEnabled) {
+            this._hideModeBadge();
+            this.player.keyboardManager?.announce(i18n.t('player.signDragModeDisabled'));
         }
+
+        this._updateDragOptionState();
     }
 
     /**
@@ -1484,6 +1553,10 @@ export class SignLanguageManager {
         
         this.interactionHandlers = null;
 
+        // Remove the mode badge before tearing down the wrapper, so the
+        // reference doesn't outlive the DOM tree it belongs to.
+        this._hideModeBadge();
+
         // Remove video and wrapper
         if (this.wrapper?.parentNode) {
             if (this.video) {
@@ -1492,7 +1565,7 @@ export class SignLanguageManager {
             }
             this.wrapper.parentNode.removeChild(this.wrapper);
         }
-        
+
         this.wrapper = null;
         this.video = null;
         this.settingsButton = null;

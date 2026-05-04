@@ -5,7 +5,7 @@
  */
 import {
   TimeUtils
-} from "./vidply.chunk-RJBHVXJQ.js";
+} from "./vidply.chunk-WOICVMY7.js";
 import {
   HTML5Renderer
 } from "./vidply.chunk-EECNLGWE.js";
@@ -15,28 +15,22 @@ import {
   isMobile,
   rafWithTimeout,
   throttle
-} from "./vidply.chunk-ZU7JRX32.js";
+} from "./vidply.chunk-IML5RZDD.js";
 import {
   StorageManager
-} from "./vidply.chunk-3NJN3CBE.js";
+} from "./vidply.chunk-EPPJR7LC.js";
 import {
-  attachMenuKeyboardNavigation,
-  createLabeledSelect,
-  createMenuItem,
   focusElement,
-  focusFirstElement,
-  focusFirstMenuItem,
-  preventDragOnElement
-} from "./vidply.chunk-PUPES4IW.js";
+  focusFirstElement
+} from "./vidply.chunk-F7IGAY5A.js";
 import {
-  DraggableResizable,
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-6H7NMARS.js";
+} from "./vidply.chunk-I5IJEIGK.js";
 import {
   DOMUtils,
   i18n
-} from "./vidply.chunk-YKMGZRFB.js";
+} from "./vidply.chunk-DWPCJWYK.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -326,6 +320,14 @@ var ControlBar = class {
   previewVideoReady = false;
   rightButtons;
   overflowMenuButton = null;
+  /** Track of the currently open volume slider so a single pair of
+   *  document listeners (installed once in {@link init}) can update the
+   *  right element while dragging without being re-registered per open. */
+  _activeVolumeTrack = null;
+  /** Track of the currently rendered progress bar so document-level
+   *  mousemove/mouseup handlers installed once in {@link init} can resolve
+   *  the geometry without re-registering per drag. */
+  _progressBarRect = null;
   constructor(player) {
     this.player = player;
     this.controls = {};
@@ -345,6 +347,41 @@ var ControlBar = class {
     this.attachEvents();
     this.setupAutoHide();
     this.setupOverflowDetection();
+    this.setupGlobalDragListeners();
+  }
+  /**
+   * Install a single pair of document-level mousemove/mouseup handlers
+   * that both the progress bar drag and the volume slider drag reuse.
+   *
+   * This replaces the previous pattern where {@link showVolumeSlider}
+   * and {@link setupProgressBarEvents} each attached their own
+   * `document.addEventListener` calls on every call — the volume variant
+   * in particular accumulated two extra document listeners on every menu
+   * open for the life of the page. All listeners here are tied to the
+   * Player's lifecycle AbortController so `destroy()` removes them.
+   */
+  setupGlobalDragListeners() {
+    const signal = this.player.lifecycleSignal;
+    document.addEventListener("mousemove", (e) => {
+      if (this.isDraggingProgress && this._progressBarRect) {
+        const rect = this._progressBarRect;
+        const percent = rect.width > 0 ? Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) : 0;
+        const duration = this.player.state.duration || 0;
+        this.player.seek(percent * duration);
+        return;
+      }
+      if (this.isDraggingVolume && this._activeVolumeTrack) {
+        const rect = this._activeVolumeTrack.getBoundingClientRect();
+        const percent = Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height));
+        this.player.setVolume(percent);
+      }
+    }, { signal });
+    document.addEventListener("mouseup", () => {
+      this.isDraggingProgress = false;
+      this._progressBarRect = null;
+      this.isDraggingVolume = false;
+      this._activeVolumeTrack = null;
+    }, { signal });
   }
   // Helper method to detect touch devices
   isTouchDevice() {
@@ -645,8 +682,9 @@ var ControlBar = class {
           }
         }
       };
-      document.addEventListener("click", documentClickHandler);
-      document.addEventListener("keydown", documentEscapeHandler);
+      const signal = this.player.lifecycleSignal;
+      document.addEventListener("click", documentClickHandler, { signal });
+      document.addEventListener("keydown", documentEscapeHandler, { signal });
     }, 100);
   }
   // Helper method to close menu and return focus to button
@@ -1282,17 +1320,9 @@ var ControlBar = class {
     };
     progress.addEventListener("mousedown", (e) => {
       this.isDraggingProgress = true;
+      this._progressBarRect = progress.getBoundingClientRect();
       const { time } = updateProgress(e.clientX);
       this.player.seek(time);
-    });
-    document.addEventListener("mousemove", (e) => {
-      if (this.isDraggingProgress) {
-        const { time } = updateProgress(e.clientX);
-        this.player.seek(time);
-      }
-    });
-    document.addEventListener("mouseup", () => {
-      this.isDraggingProgress = false;
     });
     progress.addEventListener("mousemove", (e) => {
       if (!this.isDraggingProgress) {
@@ -1584,20 +1614,14 @@ var ControlBar = class {
       e.stopPropagation();
       e.preventDefault();
       this.isDraggingVolume = true;
+      this._activeVolumeTrack = volumeTrack;
       updateVolume(e.clientY);
-    });
-    document.addEventListener("mousemove", (e) => {
-      if (this.isDraggingVolume) {
-        updateVolume(e.clientY);
-      }
-    });
-    document.addEventListener("mouseup", () => {
-      this.isDraggingVolume = false;
     });
     volumeSlider.addEventListener("touchstart", (e) => {
       e.stopPropagation();
       e.preventDefault();
       this.isDraggingVolume = true;
+      this._activeVolumeTrack = volumeTrack;
       const touch = e.touches[0];
       updateVolume(touch.clientY);
     }, { passive: false });
@@ -1612,9 +1636,11 @@ var ControlBar = class {
       e.stopPropagation();
       e.preventDefault();
       this.isDraggingVolume = false;
+      this._activeVolumeTrack = null;
     }, { passive: false });
     volumeSlider.addEventListener("touchcancel", () => {
       this.isDraggingVolume = false;
+      this._activeVolumeTrack = null;
     });
     volumeSlider.addEventListener("keydown", (e) => {
       if (e.key === "ArrowUp") {
@@ -3416,14 +3442,18 @@ var ControlBar = class {
     }
   }
   setupOverflowDetection() {
-    const checkOverflow = () => this.checkOverflow();
+    const signal = this.player.lifecycleSignal;
+    const checkOverflow = () => {
+      if (signal.aborted) return;
+      this.checkOverflow();
+    };
     const resizeObserver = new ResizeObserver(() => {
       requestAnimationFrame(checkOverflow);
     });
     resizeObserver.observe(this.rightButtons);
     window.addEventListener("resize", () => {
       requestAnimationFrame(checkOverflow);
-    });
+    }, { signal });
     this.player.on("fullscreenchange", () => {
       setTimeout(() => {
         requestAnimationFrame(checkOverflow);
@@ -3743,21 +3773,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-A5D22CVW.js");
+    const module = await import("./vidply.AudioDescriptionManager-NGYPJ3NV.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-Q4OYQ6PR.js");
+    const module = await import("./vidply.SignLanguageManager-ZRX2Y3ZD.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-IHN6CEOW.js");
+    const module = await import("./vidply.FloatingPlayerManager-AB6MOAV4.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -3873,27 +3903,11 @@ var Player = class _Player extends EventEmitter {
   resizeHandler = null;
   resizeObserver = null;
   resumePromptElement = null;
-  signLanguageCustomKeyHandler = null;
-  signLanguageDesiredPosition = null;
-  signLanguageDocumentClickHandler = null;
-  signLanguageDocumentClickHandlerAdded = false;
   signLanguageDraggable = null;
-  signLanguageDragOptionButton = null;
-  signLanguageDragOptionText = null;
-  signLanguageHeaderKeyHandler = null;
   signLanguageHeader = null;
-  signLanguageHandlers = null;
-  signLanguageInteractionHandlers = null;
-  signLanguageResizeHandles = [];
-  signLanguageResizeOptionButton = null;
-  signLanguageSelector = null;
   signLanguageSettingsButton = null;
-  signLanguageSettingsHandlers = null;
   signLanguageSettingsMenu = null;
   signLanguageSettingsMenuVisible = false;
-  signLanguageSettingsMenuJustOpened = false;
-  signLanguageSettingsMenuKeyHandler = null;
-  signLanguageResizeOptionText = null;
   signLanguageSources = {};
   signLanguageSrc = null;
   signLanguageVideo = null;
@@ -4414,7 +4428,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-JCPOVX47.js");
+    const module = await import("./vidply.TranscriptManager-ELZXTICN.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -5975,1038 +5989,9 @@ var Player = class _Player extends EventEmitter {
     const manager = await this.ensureAudioDescriptionManager();
     return manager?.enable();
   }
-  // Legacy method body preserved for reference - can be removed after testing
-  async _legacyEnableAudioDescription() {
-    const hasSourceElementsWithDesc = this.sourceElements.some((el) => el.getAttribute("data-desc-src"));
-    const hasTracksWithDesc = this.audioDescriptionCaptionTracks.length > 0;
-    if (!this.audioDescriptionSrc && !hasSourceElementsWithDesc && !hasTracksWithDesc) {
-      console.warn("VidPly: No audio description source, source elements, or tracks provided");
-      return;
-    }
-    const currentTime = this.element.currentTime;
-    const wasPlaying = this.state.playing;
-    const shouldKeepPoster = !wasPlaying && currentTime === 0;
-    let currentCaptionText = null;
-    if (this.captionManager && this.captionManager.currentTrack) {
-      const track = this.captionManager.currentTrack.track;
-      if (track && track.activeCues && track.activeCues.length > 0) {
-        const activeCue = track.activeCues[0];
-        currentCaptionText = this.stripVTTFormatting(activeCue.text);
-      }
-    }
-    const posterValue = this.resolvePosterPath(
-      this.element.getAttribute("poster") || this.element.poster || this.options.poster
-    );
-    if (shouldKeepPoster) {
-      this.showPosterOverlay();
-    }
-    const swappedTracksForTranscript = [];
-    if (this.audioDescriptionSourceElement) {
-      const currentSrc = this.element.currentSrc || this.element.src;
-      const sourceElements = this.sourceElements;
-      let sourceElementToUpdate = null;
-      let descSrc = this.audioDescriptionSrc;
-      for (const sourceEl of sourceElements) {
-        const sourceSrc = sourceEl.getAttribute("src");
-        const descSrcAttr = sourceEl.getAttribute("data-desc-src");
-        const sourceFilename = sourceSrc ? sourceSrc.split("/").pop() : "";
-        const currentFilename = currentSrc ? currentSrc.split("/").pop() : "";
-        if (currentSrc && sourceSrc && (currentSrc === sourceSrc || currentSrc.includes(sourceSrc) || sourceFilename && currentSrc.includes(sourceFilename) || sourceFilename && currentFilename === sourceFilename)) {
-          sourceElementToUpdate = sourceEl;
-          if (descSrcAttr) {
-            descSrc = descSrcAttr;
-          } else if (sourceSrc) {
-            descSrc = this.audioDescriptionSrc || descSrc;
-          }
-          break;
-        }
-      }
-      if (!sourceElementToUpdate) {
-        sourceElementToUpdate = this.audioDescriptionSourceElement;
-        const storedDescSrc = sourceElementToUpdate.getAttribute("data-desc-src");
-        if (storedDescSrc) {
-          descSrc = storedDescSrc;
-        }
-      }
-      if (this.audioDescriptionCaptionTracks.length > 0) {
-        const validationPromises = this.audioDescriptionCaptionTracks.map(async (trackInfo) => {
-          if (trackInfo.trackElement && trackInfo.describedSrc) {
-            if (trackInfo.explicit === true) {
-              try {
-                const exists = await this.validateTrackExists(trackInfo.describedSrc);
-                return { trackInfo, exists };
-              } catch {
-                return { trackInfo, exists: false };
-              }
-            } else {
-              return { trackInfo, exists: false };
-            }
-          }
-          return { trackInfo, exists: false };
-        });
-        const validationResults = await Promise.all(validationPromises);
-        const tracksToSwap = validationResults.filter((result) => result.exists);
-        if (tracksToSwap.length > 0) {
-          const trackModes = /* @__PURE__ */ new Map();
-          tracksToSwap.forEach(({ trackInfo }) => {
-            const textTrack = trackInfo.trackElement.track;
-            if (textTrack) {
-              trackModes.set(trackInfo, {
-                wasShowing: textTrack.mode === "showing",
-                wasHidden: textTrack.mode === "hidden"
-              });
-            } else {
-              trackModes.set(trackInfo, {
-                wasShowing: false,
-                wasHidden: false
-              });
-            }
-          });
-          const tracksToReadd = tracksToSwap.map(({ trackInfo }) => {
-            const oldSrc = trackInfo.trackElement.getAttribute("src");
-            const parent = trackInfo.trackElement.parentNode;
-            const nextSibling = trackInfo.trackElement.nextSibling;
-            const attributes = {};
-            Array.from(trackInfo.trackElement.attributes).forEach((attr) => {
-              attributes[attr.name] = attr.value;
-            });
-            return {
-              trackInfo,
-              oldSrc,
-              parent,
-              nextSibling,
-              attributes
-            };
-          });
-          tracksToReadd.forEach(({ trackInfo }) => {
-            trackInfo.trackElement.remove();
-          });
-          this.element.load();
-          await new Promise((resolve) => {
-            setTimeout(() => {
-              tracksToReadd.forEach(({ trackInfo, oldSrc: _oldSrc, parent, nextSibling, attributes }) => {
-                swappedTracksForTranscript.push(trackInfo);
-                const newTrackElement = document.createElement("track");
-                if (trackInfo.describedSrc) {
-                  newTrackElement.setAttribute("src", trackInfo.describedSrc);
-                }
-                Object.keys(attributes).forEach((attrName) => {
-                  if (attrName !== "src" && attrName !== "data-desc-src") {
-                    newTrackElement.setAttribute(attrName, attributes[attrName]);
-                  }
-                });
-                if (nextSibling && nextSibling.parentNode && parent) {
-                  parent.insertBefore(newTrackElement, nextSibling);
-                } else if (parent) {
-                  parent.appendChild(newTrackElement);
-                }
-                trackInfo.trackElement = newTrackElement;
-              });
-              this.invalidateTrackCache();
-              const setupNewTracks = () => {
-                this.setManagedTimeout(() => {
-                  swappedTracksForTranscript.forEach((trackInfo) => {
-                    const trackElement = trackInfo.trackElement;
-                    const newTextTrack = trackElement.track;
-                    if (newTextTrack) {
-                      const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
-                      newTextTrack.mode = "hidden";
-                      const restoreMode = () => {
-                        if (modeInfo.wasShowing) {
-                          newTextTrack.mode = "hidden";
-                        } else if (modeInfo.wasHidden) {
-                          newTextTrack.mode = "hidden";
-                        } else {
-                          newTextTrack.mode = "disabled";
-                        }
-                      };
-                      if (trackElement.readyState >= 2) {
-                        restoreMode();
-                      } else {
-                        trackElement.addEventListener("load", restoreMode, { once: true });
-                        trackElement.addEventListener("error", restoreMode, { once: true });
-                      }
-                    }
-                  });
-                }, 300);
-              };
-              if (this.element.readyState >= 1) {
-                setTimeout(setupNewTracks, 200);
-              } else {
-                this.element.addEventListener("loadedmetadata", setupNewTracks, { once: true });
-                setTimeout(setupNewTracks, 2e3);
-              }
-              resolve();
-            }, 100);
-          });
-        }
-      }
-      const allSourceElements = this.sourceElements;
-      const sourcesToUpdate = [];
-      allSourceElements.forEach((sourceEl) => {
-        const descSrcAttr = sourceEl.getAttribute("data-desc-src");
-        const currentSrc2 = sourceEl.getAttribute("src");
-        if (descSrcAttr) {
-          const type = sourceEl.getAttribute("type");
-          let origSrc = sourceEl.getAttribute("data-orig-src");
-          if (!origSrc) {
-            origSrc = currentSrc2;
-          }
-          sourcesToUpdate.push({
-            src: descSrcAttr,
-            type,
-            origSrc,
-            descSrc: descSrcAttr
-          });
-        } else {
-          const type = sourceEl.getAttribute("type");
-          const src = sourceEl.getAttribute("src");
-          sourcesToUpdate.push({
-            src,
-            type,
-            origSrc: null,
-            descSrc: null
-          });
-        }
-      });
-      const hasSrcAttribute = this.element.hasAttribute("src");
-      if (hasSrcAttribute) {
-        this.element.removeAttribute("src");
-      }
-      allSourceElements.forEach((sourceEl) => {
-        sourceEl.remove();
-      });
-      sourcesToUpdate.forEach((sourceInfo) => {
-        const newSource = document.createElement("source");
-        if (sourceInfo.src) {
-          newSource.setAttribute("src", sourceInfo.src);
-        }
-        if (sourceInfo.type) {
-          newSource.setAttribute("type", sourceInfo.type);
-        }
-        if (sourceInfo.origSrc) {
-          newSource.setAttribute("data-orig-src", sourceInfo.origSrc);
-        }
-        if (sourceInfo.descSrc) {
-          newSource.setAttribute("data-desc-src", sourceInfo.descSrc);
-        }
-        const firstTrack = this.element.querySelector("track");
-        if (firstTrack) {
-          this.element.insertBefore(newSource, firstTrack);
-        } else {
-          this.element.appendChild(newSource);
-        }
-      });
-      this._sourceElementsDirty = true;
-      this._sourceElementsCache = null;
-      if (posterValue && this.element.tagName === "VIDEO") {
-        this.element.poster = posterValue;
-      }
-      this.element.load();
-      await new Promise((resolve) => {
-        const onLoadedMetadata = () => {
-          this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
-          resolve();
-        };
-        if (this.element.readyState >= 1) {
-          resolve();
-        } else {
-          this.element.addEventListener("loadedmetadata", onLoadedMetadata);
-        }
-      });
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      if (currentTime > 0 || wasPlaying) {
-        await new Promise((resolve) => {
-          const onCanPlay = () => {
-            this.element.removeEventListener("canplay", onCanPlay);
-            this.element.removeEventListener("canplaythrough", onCanPlay);
-            resolve();
-          };
-          if (this.element.readyState >= 3) {
-            resolve();
-          } else {
-            this.element.addEventListener("canplay", onCanPlay, { once: true });
-            this.element.addEventListener("canplaythrough", onCanPlay, { once: true });
-            setTimeout(() => {
-              this.element.removeEventListener("canplay", onCanPlay);
-              this.element.removeEventListener("canplaythrough", onCanPlay);
-              resolve();
-            }, 3e3);
-          }
-        });
-      }
-      let syncTime2 = currentTime;
-      if (currentCaptionText && this.captionManager && this.captionManager.tracks.length > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        const matchingTime = this.findMatchingCaptionTime(currentCaptionText, this.captionManager.tracks);
-        if (matchingTime !== null) {
-          syncTime2 = matchingTime;
-          if (this.options.debug) {
-            console.log(`[VidPly] Syncing via caption: ${currentTime}s -> ${syncTime2}s`);
-          }
-        }
-      }
-      if (syncTime2 > 0) {
-        this.seek(syncTime2);
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-      if (wasPlaying) {
-        await this.play();
-        this.setManagedTimeout(() => {
-          this.hidePosterOverlay();
-        }, 100);
-      } else {
-        this.pause();
-        if (!shouldKeepPoster) {
-          this.hidePosterOverlay();
-        }
-      }
-      if (!this._audioDescriptionDesiredState) {
-        return;
-      }
-      this.state.audioDescriptionEnabled = true;
-      this.emit("audiodescriptionenabled");
-    } else {
-      if (this.audioDescriptionCaptionTracks.length > 0) {
-        const validationPromises = this.audioDescriptionCaptionTracks.map(async (trackInfo) => {
-          if (trackInfo.trackElement && trackInfo.describedSrc) {
-            if (trackInfo.explicit === true) {
-              try {
-                const exists = await this.validateTrackExists(trackInfo.describedSrc);
-                return { trackInfo, exists };
-              } catch {
-                return { trackInfo, exists: false };
-              }
-            } else {
-              return { trackInfo, exists: false };
-            }
-          }
-          return { trackInfo, exists: false };
-        });
-        const validationResults = await Promise.all(validationPromises);
-        const tracksToSwap = validationResults.filter((result) => result.exists);
-        if (tracksToSwap.length > 0) {
-          const trackModes = /* @__PURE__ */ new Map();
-          tracksToSwap.forEach(({ trackInfo }) => {
-            const textTrack = trackInfo.trackElement.track;
-            if (textTrack) {
-              trackModes.set(trackInfo, {
-                wasShowing: textTrack.mode === "showing",
-                wasHidden: textTrack.mode === "hidden"
-              });
-            } else {
-              trackModes.set(trackInfo, {
-                wasShowing: false,
-                wasHidden: false
-              });
-            }
-          });
-          const tracksToReadd = tracksToSwap.map(({ trackInfo }) => {
-            const oldSrc = trackInfo.trackElement.getAttribute("src");
-            const parent = trackInfo.trackElement.parentNode;
-            const nextSibling = trackInfo.trackElement.nextSibling;
-            const attributes = {};
-            Array.from(trackInfo.trackElement.attributes).forEach((attr) => {
-              attributes[attr.name] = attr.value;
-            });
-            return {
-              trackInfo,
-              oldSrc,
-              parent,
-              nextSibling,
-              attributes
-            };
-          });
-          tracksToReadd.forEach(({ trackInfo }) => {
-            trackInfo.trackElement.remove();
-          });
-          this.element.load();
-          setTimeout(() => {
-            tracksToReadd.forEach(({ trackInfo, parent, nextSibling, attributes }) => {
-              swappedTracksForTranscript.push(trackInfo);
-              const newTrackElement = document.createElement("track");
-              if (trackInfo.describedSrc) {
-                newTrackElement.setAttribute("src", trackInfo.describedSrc);
-              }
-              Object.keys(attributes).forEach((attrName) => {
-                if (attrName !== "src" && attrName !== "data-desc-src") {
-                  newTrackElement.setAttribute(attrName, attributes[attrName]);
-                }
-              });
-              const firstChild = parent?.firstChild;
-              if (firstChild && firstChild.nodeType === Node.ELEMENT_NODE && firstChild.tagName !== "TRACK" && parent) {
-                parent.insertBefore(newTrackElement, firstChild);
-              } else if (nextSibling && nextSibling.parentNode && parent) {
-                parent.insertBefore(newTrackElement, nextSibling);
-              } else if (parent) {
-                parent.appendChild(newTrackElement);
-              }
-              trackInfo.trackElement = newTrackElement;
-            });
-            this.element.load();
-            const setupNewTracks = () => {
-              setTimeout(() => {
-                swappedTracksForTranscript.forEach((trackInfo) => {
-                  const trackElement = trackInfo.trackElement;
-                  const newTextTrack = trackElement.track;
-                  if (newTextTrack) {
-                    const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
-                    newTextTrack.mode = "hidden";
-                    const restoreMode = () => {
-                      if (modeInfo.wasShowing) {
-                        newTextTrack.mode = "hidden";
-                      } else if (modeInfo.wasHidden) {
-                        newTextTrack.mode = "hidden";
-                      } else {
-                        newTextTrack.mode = "disabled";
-                      }
-                    };
-                    if (trackElement.readyState >= 2) {
-                      restoreMode();
-                    } else {
-                      trackElement.addEventListener("load", restoreMode, { once: true });
-                      trackElement.addEventListener("error", restoreMode, { once: true });
-                    }
-                  }
-                });
-              }, 300);
-            };
-            if (this.element.readyState >= 1) {
-              setTimeout(setupNewTracks, 200);
-            } else {
-              this.element.addEventListener("loadedmetadata", setupNewTracks, { once: true });
-              setTimeout(setupNewTracks, 2e3);
-            }
-          }, 100);
-        }
-      }
-      const fallbackSourceElements = this.sourceElements;
-      const hasSourceElementsWithDesc2 = fallbackSourceElements.some((el) => el.getAttribute("data-desc-src"));
-      if (hasSourceElementsWithDesc2) {
-        const fallbackSourcesToUpdate = [];
-        fallbackSourceElements.forEach((sourceEl) => {
-          const descSrcAttr = sourceEl.getAttribute("data-desc-src");
-          const currentSrc = sourceEl.getAttribute("src");
-          if (descSrcAttr) {
-            const type = sourceEl.getAttribute("type");
-            let origSrc = sourceEl.getAttribute("data-orig-src");
-            if (!origSrc) {
-              origSrc = currentSrc;
-            }
-            fallbackSourcesToUpdate.push({
-              src: descSrcAttr,
-              type,
-              origSrc,
-              descSrc: descSrcAttr
-            });
-          } else {
-            const type = sourceEl.getAttribute("type");
-            const src = sourceEl.getAttribute("src");
-            fallbackSourcesToUpdate.push({
-              src,
-              type,
-              origSrc: null,
-              descSrc: null
-            });
-          }
-        });
-        fallbackSourceElements.forEach((sourceEl) => {
-          sourceEl.remove();
-        });
-        fallbackSourcesToUpdate.forEach((sourceInfo) => {
-          const newSource = document.createElement("source");
-          if (sourceInfo.src) {
-            newSource.setAttribute("src", sourceInfo.src);
-          }
-          if (sourceInfo.type) {
-            newSource.setAttribute("type", sourceInfo.type);
-          }
-          if (sourceInfo.origSrc) {
-            newSource.setAttribute("data-orig-src", sourceInfo.origSrc);
-          }
-          if (sourceInfo.descSrc) {
-            newSource.setAttribute("data-desc-src", sourceInfo.descSrc);
-          }
-          this.element.appendChild(newSource);
-        });
-        if (posterValue && this.element.tagName === "VIDEO") {
-          this.element.poster = posterValue;
-        }
-        this.element.load();
-        this.invalidateTrackCache();
-      } else if (this.audioDescriptionSrc) {
-        if (posterValue && this.element.tagName === "VIDEO") {
-          this.element.poster = posterValue;
-        }
-        this.element.src = this.audioDescriptionSrc;
-      }
-    }
-    await new Promise((resolve) => {
-      const onLoadedMetadata = () => {
-        this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
-        resolve();
-      };
-      if (this.element.readyState >= 1) {
-        resolve();
-      } else {
-        this.element.addEventListener("loadedmetadata", onLoadedMetadata);
-      }
-    });
-    if (currentTime > 0 || wasPlaying) {
-      await new Promise((resolve) => {
-        const onCanPlay = () => {
-          this.element.removeEventListener("canplay", onCanPlay);
-          this.element.removeEventListener("canplaythrough", onCanPlay);
-          resolve();
-        };
-        if (this.element.readyState >= 3) {
-          resolve();
-        } else {
-          this.element.addEventListener("canplay", onCanPlay, { once: true });
-          this.element.addEventListener("canplaythrough", onCanPlay, { once: true });
-          setTimeout(() => {
-            this.element.removeEventListener("canplay", onCanPlay);
-            this.element.removeEventListener("canplaythrough", onCanPlay);
-            resolve();
-          }, 3e3);
-        }
-      });
-    }
-    if (this.element.tagName === "VIDEO" && currentTime === 0 && !wasPlaying) {
-      if (this.element.readyState >= 1) {
-        this.element.currentTime = 1e-3;
-        this.setManagedTimeout(() => {
-          this.element.currentTime = 0;
-        }, 10);
-      }
-    }
-    let syncTime = currentTime;
-    if (currentCaptionText && this.captionManager && this.captionManager.tracks.length > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const matchingTime = this.findMatchingCaptionTime(currentCaptionText, this.captionManager.tracks);
-      if (matchingTime !== null) {
-        syncTime = matchingTime;
-        if (this.options.debug) {
-          console.log(`[VidPly] Syncing via caption: ${currentTime}s -> ${syncTime}s`);
-        }
-      }
-    }
-    if (syncTime > 0) {
-      this.seek(syncTime);
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-    if (wasPlaying) {
-      await this.play();
-      this.setManagedTimeout(() => {
-        this.hidePosterOverlay();
-      }, 100);
-    } else {
-      this.pause();
-      if (!shouldKeepPoster) {
-        this.hidePosterOverlay();
-      }
-    }
-    if (swappedTracksForTranscript.length > 0 && this.captionManager) {
-      const captionManager = this.captionManager;
-      const wasCaptionsEnabled = this.state.captionsEnabled;
-      let currentTrackInfo = null;
-      if (captionManager.currentTrack) {
-        const currentTrackIndex = captionManager.tracks.findIndex((t) => t.track === captionManager.currentTrack?.track);
-        if (currentTrackIndex >= 0) {
-          currentTrackInfo = {
-            language: captionManager.tracks[currentTrackIndex].language,
-            kind: captionManager.tracks[currentTrackIndex].kind
-          };
-        }
-      }
-      const reloadTracks = () => {
-        captionManager.tracks = [];
-        captionManager.loadTracks();
-        if (wasCaptionsEnabled && currentTrackInfo && captionManager.tracks.length > 0) {
-          const trackInfo = currentTrackInfo;
-          const matchingTrackIndex = captionManager.tracks.findIndex(
-            (t) => t.language === trackInfo.language && t.kind === trackInfo.kind
-          );
-          if (matchingTrackIndex >= 0) {
-            const trackToEnable = captionManager.tracks[matchingTrackIndex];
-            const trackElement = this.findTrackElement(trackToEnable.track);
-            if (!trackElement || trackElement.readyState >= 2) {
-              captionManager.enable(matchingTrackIndex);
-            } else {
-              const onTrackLoad = () => {
-                trackElement.removeEventListener("load", onTrackLoad);
-                trackElement.removeEventListener("error", onTrackLoad);
-                if (captionManager.tracks.includes(trackToEnable)) {
-                  captionManager.enable(matchingTrackIndex);
-                }
-              };
-              trackElement.addEventListener("load", onTrackLoad, { once: true });
-              trackElement.addEventListener("error", onTrackLoad, { once: true });
-              trackToEnable.track.mode = "hidden";
-              setTimeout(() => {
-                if (captionManager.tracks.includes(trackToEnable)) {
-                  captionManager.enable(matchingTrackIndex);
-                }
-              }, 1e3);
-            }
-          } else if (captionManager.tracks.length > 0) {
-            const firstTrack = captionManager.tracks[0];
-            const firstTrackElement = this.findTrackElement(firstTrack.track);
-            if (!firstTrackElement || firstTrackElement.readyState >= 2) {
-              captionManager.enable(0);
-            } else {
-              const onTrackLoad = () => {
-                firstTrackElement.removeEventListener("load", onTrackLoad);
-                firstTrackElement.removeEventListener("error", onTrackLoad);
-                if (captionManager.tracks.includes(firstTrack)) {
-                  captionManager.enable(0);
-                }
-              };
-              firstTrackElement.addEventListener("load", onTrackLoad, { once: true });
-              firstTrackElement.addEventListener("error", onTrackLoad, { once: true });
-              firstTrack.track.mode = "hidden";
-              setTimeout(() => {
-                if (captionManager.tracks.includes(firstTrack)) {
-                  captionManager.enable(0);
-                }
-              }, 1e3);
-            }
-          }
-        }
-      };
-      setTimeout(reloadTracks, 600);
-    }
-    if (this.transcriptManager && this.transcriptManager.isVisible) {
-      const swappedTracks = typeof swappedTracksForTranscript !== "undefined" ? swappedTracksForTranscript : [];
-      if (swappedTracks.length > 0) {
-        const onMetadataLoaded = () => {
-          this.invalidateTrackCache();
-          const allTextTracks = this.textTracks;
-          const freshTracks = swappedTracks.map((trackInfo) => {
-            const trackEl = trackInfo.trackElement;
-            const expectedSrc = trackEl.getAttribute("src");
-            const srclang = trackEl.getAttribute("srclang");
-            const kind = trackEl.getAttribute("kind");
-            let foundTrack = allTextTracks.find((track) => trackEl.track === track);
-            if (!foundTrack) {
-              foundTrack = allTextTracks.find((track) => {
-                if (track.language === srclang && (track.kind === kind || kind === "captions" && track.kind === "subtitles")) {
-                  const trackElementForTrack = this.findTrackElement(track);
-                  if (trackElementForTrack) {
-                    const actualSrc = trackElementForTrack.getAttribute("src");
-                    if (actualSrc === expectedSrc) {
-                      return true;
-                    }
-                  }
-                }
-                return false;
-              });
-            }
-            if (foundTrack) {
-              const trackElement = this.findTrackElement(foundTrack);
-              if (trackElement && trackElement.getAttribute("src") !== expectedSrc) {
-                return null;
-              }
-            }
-            return foundTrack;
-          }).filter(Boolean);
-          if (freshTracks.length === 0) {
-            this.setManagedTimeout(() => {
-              if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
-                this.transcriptManager.loadTranscriptData();
-              }
-            }, 1e3);
-            return;
-          }
-          freshTracks.forEach((track) => {
-            if (track && track.mode === "disabled") {
-              track.mode = "hidden";
-            }
-          });
-          let loadedCount = 0;
-          const checkLoaded = () => {
-            loadedCount++;
-            if (loadedCount >= freshTracks.length) {
-              this.setManagedTimeout(() => {
-                if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
-                  this.invalidateTrackCache();
-                  const swappedTrackSrcs = swappedTracks.map((t) => t.describedSrc);
-                  const hasCorrectTracks = freshTracks.some((track) => {
-                    if (!track) return false;
-                    const trackEl = this.findTrackElement(track);
-                    const trackSrc = trackEl?.getAttribute("src") ?? void 0;
-                    return trackEl && trackSrc && swappedTrackSrcs.includes(trackSrc);
-                  });
-                  if (hasCorrectTracks || freshTracks.length > 0) {
-                    this.transcriptManager.loadTranscriptData();
-                  }
-                }
-              }, 800);
-            }
-          };
-          freshTracks.forEach((track) => {
-            if (!track) {
-              checkLoaded();
-              return;
-            }
-            if (track.mode === "disabled") {
-              track.mode = "hidden";
-            }
-            const trackElementForTrack = this.findTrackElement(track);
-            const actualSrc = trackElementForTrack ? trackElementForTrack.getAttribute("src") : null;
-            const expectedTrackInfo = swappedTracks.find((t) => {
-              const tEl = t.trackElement;
-              return tEl && (tEl.track === track || tEl.getAttribute("srclang") === track.language && tEl.getAttribute("kind") === track.kind);
-            });
-            const expectedSrc = expectedTrackInfo ? expectedTrackInfo.describedSrc : null;
-            if (expectedSrc && actualSrc && actualSrc !== expectedSrc) {
-              checkLoaded();
-              return;
-            }
-            const trackReadyState = trackElementForTrack ? trackElementForTrack.readyState : 2;
-            if (trackReadyState >= 2 && track.cues && track.cues.length > 0) {
-              checkLoaded();
-            } else {
-              const onTrackLoad = () => {
-                this.setManagedTimeout(checkLoaded, 300);
-              };
-              if (trackReadyState >= 2) {
-                this.setManagedTimeout(() => {
-                  if (track.cues && track.cues.length > 0) {
-                    checkLoaded();
-                  } else if (trackElementForTrack) {
-                    trackElementForTrack.addEventListener("load", onTrackLoad, { once: true });
-                  } else {
-                    checkLoaded();
-                  }
-                }, 100);
-              } else if (trackElementForTrack) {
-                trackElementForTrack.addEventListener("load", onTrackLoad, { once: true });
-                trackElementForTrack.addEventListener("error", () => {
-                  checkLoaded();
-                }, { once: true });
-              } else {
-                checkLoaded();
-              }
-            }
-          });
-        };
-        const waitForTracks = () => {
-          this.setManagedTimeout(() => {
-            if (this.element.readyState >= 1) {
-              onMetadataLoaded();
-            } else {
-              this.element.addEventListener("loadedmetadata", onMetadataLoaded, { once: true });
-              this.setManagedTimeout(onMetadataLoaded, 2e3);
-            }
-          }, 500);
-        };
-        waitForTracks();
-        setTimeout(() => {
-          if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
-            this.transcriptManager.loadTranscriptData();
-          }
-        }, 5e3);
-      } else {
-        setTimeout(() => {
-          if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
-            this.transcriptManager.loadTranscriptData();
-          }
-        }, 800);
-      }
-    }
-    if (!shouldKeepPoster) {
-      this.hidePosterOverlay();
-    }
-    if (!this._audioDescriptionDesiredState) {
-      return;
-    }
-    this.state.audioDescriptionEnabled = true;
-    this.emit("audiodescriptionenabled");
-  }
   async disableAudioDescription() {
     const manager = await this.ensureAudioDescriptionManager();
     return manager?.disable();
-  }
-  // Legacy method body preserved for reference - can be removed after testing
-  async _legacyDisableAudioDescription() {
-    if (!this.originalSrc) {
-      return;
-    }
-    const currentTime = this.element.currentTime;
-    const wasPlaying = this.state.playing;
-    let currentCaptionText = null;
-    if (this.captionManager && this.captionManager.currentTrack) {
-      const track = this.captionManager.currentTrack.track;
-      if (track && track.activeCues && track.activeCues.length > 0) {
-        const activeCue = track.activeCues[0];
-        currentCaptionText = this.stripVTTFormatting(activeCue.text);
-      }
-    }
-    const posterValue = this.resolvePosterPath(
-      this.element.getAttribute("poster") || this.element.poster || this.options.poster
-    );
-    const swappedTracksForTranscript = [];
-    if (this.audioDescriptionCaptionTracks.length > 0) {
-      const tracksToRestore = this.audioDescriptionCaptionTracks.map((trackInfo) => {
-        const trackElement = trackInfo.trackElement;
-        if (!trackElement || !trackElement.parentNode) {
-          return null;
-        }
-        const parent = trackElement.parentNode;
-        const nextSibling = trackElement.nextSibling;
-        const attributes = {};
-        Array.from(trackElement.attributes).forEach((attr) => {
-          attributes[attr.name] = attr.value;
-        });
-        return {
-          trackInfo,
-          parent,
-          nextSibling,
-          attributes
-        };
-      }).filter((entry) => entry !== null);
-      tracksToRestore.forEach(({ trackInfo }) => {
-        if (trackInfo.trackElement && trackInfo.trackElement.parentNode) {
-          trackInfo.trackElement.remove();
-        }
-      });
-      this.element.load();
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          tracksToRestore.forEach(({ trackInfo, parent, nextSibling, attributes }) => {
-            swappedTracksForTranscript.push(trackInfo);
-            const newTrackElement = document.createElement("track");
-            if (trackInfo.originalTrackSrc) {
-              newTrackElement.setAttribute("src", trackInfo.originalTrackSrc);
-            }
-            Object.keys(attributes).forEach((attrName) => {
-              if (attrName !== "src" && attrName !== "data-desc-src") {
-                newTrackElement.setAttribute(attrName, attributes[attrName]);
-              }
-            });
-            if (trackInfo.describedSrc) {
-              newTrackElement.setAttribute("data-desc-src", trackInfo.describedSrc);
-            }
-            if (nextSibling && nextSibling.parentNode) {
-              parent.insertBefore(newTrackElement, nextSibling);
-            } else {
-              parent.appendChild(newTrackElement);
-            }
-            trackInfo.trackElement = newTrackElement;
-          });
-          this.invalidateTrackCache();
-          resolve();
-        }, 100);
-      });
-    }
-    const allSourceElements = this.sourceElements;
-    const hasSourceElementsToSwap = allSourceElements.some((el) => el.getAttribute("data-orig-src"));
-    if (hasSourceElementsToSwap) {
-      const sourcesToRestore = [];
-      allSourceElements.forEach((sourceEl) => {
-        const origSrcAttr = sourceEl.getAttribute("data-orig-src");
-        const descSrcAttr = sourceEl.getAttribute("data-desc-src");
-        if (origSrcAttr) {
-          const type = sourceEl.getAttribute("type");
-          sourcesToRestore.push({
-            src: origSrcAttr,
-            type,
-            origSrc: origSrcAttr,
-            descSrc: descSrcAttr
-          });
-        } else {
-          const type = sourceEl.getAttribute("type");
-          const src = sourceEl.getAttribute("src");
-          sourcesToRestore.push({
-            src,
-            type,
-            origSrc: null,
-            descSrc: descSrcAttr
-          });
-        }
-      });
-      const hasSrcAttribute = this.element.hasAttribute("src");
-      if (hasSrcAttribute) {
-        this.element.removeAttribute("src");
-      }
-      allSourceElements.forEach((sourceEl) => {
-        sourceEl.remove();
-      });
-      sourcesToRestore.forEach((sourceInfo) => {
-        const newSource = document.createElement("source");
-        if (sourceInfo.src) {
-          newSource.setAttribute("src", sourceInfo.src);
-        }
-        if (sourceInfo.type) {
-          newSource.setAttribute("type", sourceInfo.type);
-        }
-        if (sourceInfo.origSrc) {
-          newSource.setAttribute("data-orig-src", sourceInfo.origSrc);
-        }
-        if (sourceInfo.descSrc) {
-          newSource.setAttribute("data-desc-src", sourceInfo.descSrc);
-        }
-        const firstTrack = this.element.querySelector("track");
-        if (firstTrack) {
-          this.element.insertBefore(newSource, firstTrack);
-        } else {
-          this.element.appendChild(newSource);
-        }
-      });
-      this._sourceElementsDirty = true;
-      this._sourceElementsCache = null;
-      if (posterValue && this.element.tagName === "VIDEO") {
-        this.element.poster = posterValue;
-      }
-      this.element.load();
-    } else {
-      if (posterValue && this.element.tagName === "VIDEO") {
-        this.element.poster = posterValue;
-      }
-      const originalSrcToUse = this.originalAudioDescriptionSource || this.originalSrc;
-      this.element.src = originalSrcToUse;
-      this.element.load();
-    }
-    await new Promise((resolve) => {
-      const onLoadedMetadata = () => {
-        this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
-        resolve();
-      };
-      if (this.element.readyState >= 1) {
-        resolve();
-      } else {
-        this.element.addEventListener("loadedmetadata", onLoadedMetadata);
-      }
-    });
-    if (currentTime > 0 || wasPlaying) {
-      await new Promise((resolve) => {
-        const onCanPlay = () => {
-          this.element.removeEventListener("canplay", onCanPlay);
-          this.element.removeEventListener("canplaythrough", onCanPlay);
-          resolve();
-        };
-        if (this.element.readyState >= 3) {
-          resolve();
-        } else {
-          this.element.addEventListener("canplay", onCanPlay, { once: true });
-          this.element.addEventListener("canplaythrough", onCanPlay, { once: true });
-          setTimeout(() => {
-            this.element.removeEventListener("canplay", onCanPlay);
-            this.element.removeEventListener("canplaythrough", onCanPlay);
-            resolve();
-          }, 3e3);
-        }
-      });
-    }
-    let syncTime = currentTime;
-    if (currentCaptionText && this.captionManager && this.captionManager.tracks.length > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const matchingTime = this.findMatchingCaptionTime(currentCaptionText, this.captionManager.tracks);
-      if (matchingTime !== null) {
-        syncTime = matchingTime;
-        if (this.options.debug) {
-          console.log(`[VidPly] Syncing via caption: ${currentTime}s -> ${syncTime}s`);
-        }
-      }
-    }
-    if (syncTime > 0) {
-      this.seek(syncTime);
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-    if (wasPlaying) {
-      await this.play();
-      this.hidePosterOverlay();
-    } else {
-      this.pause();
-      if (!wasPlaying && syncTime === 0) {
-        this.showPosterOverlay();
-      } else {
-        this.hidePosterOverlay();
-      }
-    }
-    if (swappedTracksForTranscript.length > 0 && this.captionManager) {
-      const captionManager = this.captionManager;
-      const wasCaptionsEnabled = this.state.captionsEnabled;
-      let currentTrackInfo = null;
-      if (captionManager.currentTrack) {
-        const currentTrackIndex = captionManager.tracks.findIndex((t) => t.track === captionManager.currentTrack?.track);
-        if (currentTrackIndex >= 0) {
-          currentTrackInfo = {
-            language: captionManager.tracks[currentTrackIndex].language,
-            kind: captionManager.tracks[currentTrackIndex].kind
-          };
-        }
-      }
-      const reloadTracks = () => {
-        captionManager.tracks = [];
-        captionManager.loadTracks();
-        if (wasCaptionsEnabled && currentTrackInfo && captionManager.tracks.length > 0) {
-          const trackInfo = currentTrackInfo;
-          const matchingTrackIndex = captionManager.tracks.findIndex(
-            (t) => t.language === trackInfo.language && t.kind === trackInfo.kind
-          );
-          if (matchingTrackIndex >= 0) {
-            const trackToEnable = captionManager.tracks[matchingTrackIndex];
-            const trackElement = this.findTrackElement(trackToEnable.track);
-            if (!trackElement || trackElement.readyState >= 2) {
-              captionManager.enable(matchingTrackIndex);
-            } else {
-              const onTrackLoad = () => {
-                trackElement.removeEventListener("load", onTrackLoad);
-                trackElement.removeEventListener("error", onTrackLoad);
-                if (captionManager.tracks.includes(trackToEnable)) {
-                  captionManager.enable(matchingTrackIndex);
-                }
-              };
-              trackElement.addEventListener("load", onTrackLoad, { once: true });
-              trackElement.addEventListener("error", onTrackLoad, { once: true });
-              trackToEnable.track.mode = "hidden";
-              setTimeout(() => {
-                if (captionManager.tracks.includes(trackToEnable)) {
-                  captionManager.enable(matchingTrackIndex);
-                }
-              }, 1e3);
-            }
-          } else if (captionManager.tracks.length > 0) {
-            const firstTrack = captionManager.tracks[0];
-            const firstTrackElement = this.findTrackElement(firstTrack.track);
-            if (!firstTrackElement || firstTrackElement.readyState >= 2) {
-              captionManager.enable(0);
-            } else {
-              const onTrackLoad = () => {
-                firstTrackElement.removeEventListener("load", onTrackLoad);
-                firstTrackElement.removeEventListener("error", onTrackLoad);
-                if (captionManager.tracks.includes(firstTrack)) {
-                  captionManager.enable(0);
-                }
-              };
-              firstTrackElement.addEventListener("load", onTrackLoad, { once: true });
-              firstTrackElement.addEventListener("error", onTrackLoad, { once: true });
-              firstTrack.track.mode = "hidden";
-              setTimeout(() => {
-                if (captionManager.tracks.includes(firstTrack)) {
-                  captionManager.enable(0);
-                }
-              }, 1e3);
-            }
-          }
-        }
-      };
-      setTimeout(reloadTracks, 600);
-    }
-    if (this.transcriptManager && this.transcriptManager.isVisible) {
-      this.setManagedTimeout(() => {
-        if (this.transcriptManager && this.transcriptManager.loadTranscriptData) {
-          this.transcriptManager.loadTranscriptData();
-        }
-      }, 500);
-    }
-    if (this._audioDescriptionDesiredState) {
-      return;
-    }
-    this.state.audioDescriptionEnabled = false;
-    this.emit("audiodescriptiondisabled");
   }
   async toggleAudioDescription() {
     if (this.options.requirePlaybackForAccessibilityToggles && !this.renderer && this.playlistManager?.tracks?.length) {
@@ -7028,266 +6013,6 @@ var Player = class _Player extends EventEmitter {
   async enableSignLanguage() {
     const manager = await this.ensureSignLanguageManager();
     return manager?.enable();
-  }
-  // Legacy method body preserved for reference - can be removed after testing
-  _legacyEnableSignLanguage() {
-    const hasMultipleSources = Object.keys(this.signLanguageSources).length > 0;
-    const hasSingleSource = Boolean(this.signLanguageSrc);
-    if (!hasMultipleSources && !hasSingleSource) {
-      console.warn("No sign language video source provided");
-      return;
-    }
-    if (this.signLanguageWrapper) {
-      this.signLanguageWrapper.style.display = "block";
-      this.state.signLanguageEnabled = true;
-      this.emit("signlanguageenabled");
-      this.setManagedTimeout(() => {
-        if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
-          this.signLanguageSettingsButton.focus({ preventScroll: true });
-        }
-      }, 150);
-      return;
-    }
-    let initialLang = null;
-    let initialSrc = null;
-    if (hasMultipleSources) {
-      if (this.captionManager && this.captionManager.currentTrack) {
-        const captionLang = this.captionManager.currentTrack.language?.toLowerCase().split("-")[0];
-        if (captionLang && this.signLanguageSources[captionLang]) {
-          initialLang = captionLang;
-          initialSrc = this.signLanguageSources[captionLang];
-        }
-      }
-      if (!initialLang && this.options.language) {
-        const playerLang = this.options.language.toLowerCase().split("-")[0];
-        if (this.signLanguageSources[playerLang]) {
-          initialLang = playerLang;
-          initialSrc = this.signLanguageSources[playerLang];
-        }
-      }
-      if (!initialLang) {
-        initialLang = Object.keys(this.signLanguageSources)[0];
-        initialSrc = this.signLanguageSources[initialLang];
-      }
-      this.currentSignLanguage = initialLang;
-    } else {
-      initialSrc = this.signLanguageSrc;
-    }
-    this.signLanguageWrapper = document.createElement("div");
-    this.signLanguageWrapper.className = "vidply-sign-language-wrapper";
-    this.signLanguageWrapper.setAttribute("tabindex", "0");
-    this.signLanguageWrapper.setAttribute("aria-label", i18n.t("player.signLanguageDragResize"));
-    this.signLanguageHeader = DOMUtils.createElement("div", {
-      className: `${this.options.classPrefix}-sign-language-header`,
-      attributes: {
-        "tabindex": "0"
-      }
-    });
-    const headerLeft = DOMUtils.createElement("div", {
-      className: `${this.options.classPrefix}-sign-language-header-left`
-    });
-    const title = DOMUtils.createElement("h3", {
-      textContent: i18n.t("player.signLanguageVideo")
-    });
-    const settingsAriaLabel = i18n.t("player.signLanguageSettings");
-    this.signLanguageSettingsButton = DOMUtils.createElement("button", {
-      className: `${this.options.classPrefix}-sign-language-settings`,
-      attributes: {
-        "type": "button",
-        "aria-label": settingsAriaLabel,
-        "aria-expanded": "false"
-      }
-    });
-    this.signLanguageSettingsButton.appendChild(createIconElement("settings"));
-    DOMUtils.attachTooltip(this.signLanguageSettingsButton, settingsAriaLabel, this.options.classPrefix);
-    this.signLanguageSettingsHandlers = {
-      settingsClick: (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.signLanguageDocumentClickHandler) {
-          const wasJustOpened = this.signLanguageSettingsMenuJustOpened;
-          this.signLanguageSettingsMenuJustOpened = true;
-          setTimeout(() => {
-            this.signLanguageSettingsMenuJustOpened = wasJustOpened;
-          }, 100);
-        }
-        if (this.signLanguageSettingsMenuVisible) {
-          this.hideSignLanguageSettingsMenu();
-        } else {
-          this.showSignLanguageSettingsMenu();
-        }
-      },
-      settingsKeydown: (e) => {
-        if (e.key === "d" || e.key === "D") {
-          e.preventDefault();
-          e.stopPropagation();
-          this.toggleSignLanguageKeyboardDragMode();
-        } else if (e.key === "r" || e.key === "R") {
-          e.preventDefault();
-          e.stopPropagation();
-          this.toggleSignLanguageResizeMode();
-        } else if (e.key === "Escape" && this.signLanguageSettingsMenuVisible) {
-          e.preventDefault();
-          e.stopPropagation();
-          this.hideSignLanguageSettingsMenu();
-        }
-      }
-    };
-    const handlers = this.signLanguageSettingsHandlers;
-    if (handlers?.settingsClick) {
-      this.signLanguageSettingsButton.addEventListener("click", handlers.settingsClick);
-    }
-    if (handlers?.settingsKeydown) {
-      this.signLanguageSettingsButton.addEventListener("keydown", handlers.settingsKeydown);
-    }
-    headerLeft.appendChild(this.signLanguageSettingsButton);
-    this.signLanguageSelector = null;
-    if (hasMultipleSources) {
-      const selectId = `${this.options.classPrefix}-sign-language-select-${Date.now()}`;
-      const options = Object.keys(this.signLanguageSources).map((langCode) => ({
-        value: langCode,
-        text: this.getSignLanguageLabel(langCode),
-        selected: langCode === initialLang
-      }));
-      const { label: signLanguageLabel, select: signLanguageSelector } = createLabeledSelect({
-        classPrefix: this.options.classPrefix,
-        labelClass: `${this.options.classPrefix}-sign-language-label`,
-        selectClass: `${this.options.classPrefix}-sign-language-select`,
-        labelText: "settings.language",
-        selectId,
-        options,
-        onChange: (e) => {
-          e.stopPropagation();
-          const selectedLang = e.target.value;
-          this.switchSignLanguage(selectedLang);
-        }
-      });
-      this.signLanguageSelector = signLanguageSelector;
-      const signLanguageSelectorWrapper = DOMUtils.createElement("div", {
-        className: `${this.options.classPrefix}-sign-language-selector-wrapper`
-      });
-      signLanguageSelectorWrapper.appendChild(signLanguageLabel);
-      signLanguageSelectorWrapper.appendChild(this.signLanguageSelector);
-      preventDragOnElement(signLanguageSelectorWrapper);
-      headerLeft.appendChild(signLanguageSelectorWrapper);
-    }
-    headerLeft.appendChild(title);
-    const closeAriaLabel = i18n.t("player.closeSignLanguage");
-    const closeButton = DOMUtils.createElement("button", {
-      className: `${this.options.classPrefix}-sign-language-close`,
-      attributes: {
-        "type": "button",
-        "aria-label": closeAriaLabel
-      }
-    });
-    closeButton.appendChild(createIconElement("close"));
-    DOMUtils.attachTooltip(closeButton, closeAriaLabel, this.options.classPrefix);
-    closeButton.addEventListener("click", () => {
-      this.disableSignLanguage();
-      const signLanguageButton = this.controlBar?.controls?.signLanguage;
-      if (signLanguageButton) {
-        setTimeout(() => {
-          signLanguageButton.focus({ preventScroll: true });
-        }, 0);
-      }
-    });
-    this.signLanguageHeader.appendChild(headerLeft);
-    this.signLanguageHeader.appendChild(closeButton);
-    this.signLanguageSettingsMenuVisible = false;
-    this.signLanguageSettingsMenu = null;
-    this.signLanguageSettingsMenuJustOpened = false;
-    this.signLanguageResizeOptionButton = null;
-    this.signLanguageResizeOptionText = null;
-    this.signLanguageDragOptionButton = null;
-    this.signLanguageDragOptionText = null;
-    this.signLanguageDocumentClickHandler = null;
-    this.signLanguageDocumentClickHandlerAdded = false;
-    this.signLanguageVideo = document.createElement("video");
-    this.signLanguageVideo.className = "vidply-sign-language-video";
-    if (initialSrc) {
-      this.signLanguageVideo.src = initialSrc;
-    }
-    this.signLanguageVideo.setAttribute("aria-label", i18n.t("player.signLanguage"));
-    this.signLanguageVideo.muted = true;
-    this.signLanguageVideo.setAttribute("playsinline", "");
-    this.signLanguageResizeHandles = ["n", "s", "e", "w", "ne", "nw", "se", "sw"].map((dir) => {
-      const handle = DOMUtils.createElement("div", {
-        className: `${this.options.classPrefix}-sign-resize-handle ${this.options.classPrefix}-sign-resize-${dir}`,
-        attributes: {
-          "data-direction": dir,
-          "data-vidply-managed-resize": "true",
-          "aria-hidden": "true"
-        }
-      });
-      handle.style.display = "none";
-      return handle;
-    });
-    const signLanguageWrapper = this.signLanguageWrapper;
-    signLanguageWrapper.appendChild(this.signLanguageHeader);
-    signLanguageWrapper.appendChild(this.signLanguageVideo);
-    this.signLanguageResizeHandles.forEach((handle) => signLanguageWrapper.appendChild(handle));
-    const saved = this.storage.getSignLanguagePreferences();
-    if (saved && saved.size && saved.size.width) {
-      this.signLanguageWrapper.style.width = saved.size.width;
-    } else {
-      this.signLanguageWrapper.style.width = "280px";
-    }
-    this.signLanguageWrapper.style.height = "auto";
-    this.signLanguageDesiredPosition = this.options.signLanguagePosition || "bottom-right";
-    this.container.appendChild(this.signLanguageWrapper);
-    requestAnimationFrame(() => {
-      this.constrainSignLanguagePosition();
-    });
-    this.signLanguageVideo.currentTime = this.state.currentTime;
-    if (!this.state.paused) {
-      this.signLanguageVideo.play();
-    }
-    this.setupSignLanguageInteraction();
-    this.signLanguageHandlers = {
-      play: () => {
-        if (this.signLanguageVideo) {
-          this.signLanguageVideo.play();
-        }
-      },
-      pause: () => {
-        if (this.signLanguageVideo) {
-          this.signLanguageVideo.pause();
-        }
-      },
-      timeupdate: () => {
-        if (this.signLanguageVideo && Math.abs(this.signLanguageVideo.currentTime - this.state.currentTime) > 0.5) {
-          this.signLanguageVideo.currentTime = this.state.currentTime;
-        }
-      },
-      ratechange: () => {
-        if (this.signLanguageVideo) {
-          this.signLanguageVideo.playbackRate = this.state.playbackSpeed;
-        }
-      }
-    };
-    this.on("play", this.signLanguageHandlers.play);
-    this.on("pause", this.signLanguageHandlers.pause);
-    this.on("timeupdate", this.signLanguageHandlers.timeupdate);
-    this.on("ratechange", this.signLanguageHandlers.ratechange);
-    if (hasMultipleSources) {
-      this.signLanguageHandlers.captionChange = () => {
-        if (this.captionManager && this.captionManager.currentTrack && this.signLanguageSelector) {
-          const captionLang = this.captionManager.currentTrack.language?.toLowerCase().split("-")[0];
-          if (captionLang && this.signLanguageSources[captionLang] && this.currentSignLanguage !== captionLang) {
-            this.switchSignLanguage(captionLang);
-            this.signLanguageSelector.value = captionLang;
-          }
-        }
-      };
-      this.on("captionsenabled", this.signLanguageHandlers.captionChange);
-    }
-    this.state.signLanguageEnabled = true;
-    this.emit("signlanguageenabled");
-    this.setManagedTimeout(() => {
-      if (this.signLanguageSettingsButton && document.contains(this.signLanguageSettingsButton)) {
-        this.signLanguageSettingsButton.focus({ preventScroll: true });
-      }
-    }, 150);
   }
   async disableSignLanguage() {
     const manager = await this.ensureSignLanguageManager();
@@ -7313,486 +6038,20 @@ var Player = class _Player extends EventEmitter {
   setupSignLanguageInteraction() {
     return this.signLanguageManager?._setupInteraction();
   }
-  // Legacy method preserved for reference
-  _legacySetupSignLanguageInteraction() {
-    if (!this.signLanguageWrapper) return;
-    const isMobile2 = window.innerWidth < 768;
-    const isFullscreen = this.state.fullscreen;
-    if (isMobile2 && !isFullscreen) {
-      if (this.signLanguageDraggable) {
-        this.signLanguageDraggable.destroy();
-        this.signLanguageDraggable = null;
-      }
-      return;
-    }
-    if (this.signLanguageDraggable) {
-      return;
-    }
-    this.signLanguageDraggable = new DraggableResizable(this.signLanguageWrapper, {
-      dragHandle: this.signLanguageHeader,
-      resizeHandles: this.signLanguageResizeHandles,
-      constrainToViewport: true,
-      maintainAspectRatio: true,
-      minWidth: 150,
-      minHeight: 100,
-      classPrefix: `${this.options.classPrefix}-sign`,
-      keyboardDragKey: "d",
-      keyboardResizeKey: "r",
-      keyboardStep: 10,
-      keyboardStepLarge: 50,
-      pointerResizeIndicatorText: i18n.t("player.signLanguageResizeActive"),
-      onPointerResizeToggle: (enabled) => {
-        this.signLanguageResizeHandles.forEach((handle) => {
-          handle.style.display = enabled ? "block" : "none";
-        });
-      },
-      onDragStart: (e) => {
-        const target = e.target;
-        if (target.closest(`.${this.options.classPrefix}-sign-language-close`) || target.closest(`.${this.options.classPrefix}-sign-language-settings`) || target.closest(`.${this.options.classPrefix}-sign-language-select`) || target.closest(`.${this.options.classPrefix}-sign-language-label`) || target.closest(`.${this.options.classPrefix}-sign-language-settings-menu`)) {
-          return false;
-        }
-        return true;
-      }
-    });
-    this.signLanguageCustomKeyHandler = (e) => {
-      const key = e.key.toLowerCase();
-      if (this.signLanguageSettingsMenuVisible) {
-        return;
-      }
-      if (key === "home") {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.signLanguageDraggable) {
-          if (this.signLanguageDraggable.pointerResizeMode) {
-            this.signLanguageDraggable.disablePointerResizeMode();
-          }
-          this.signLanguageDraggable.manuallyPositioned = false;
-          this.constrainSignLanguagePosition();
-        }
-        return;
-      }
-      if (key === "r") {
-        e.preventDefault();
-        e.stopPropagation();
-        const enabled = this.toggleSignLanguageResizeMode();
-        if (enabled) {
-          this.signLanguageWrapper?.focus({ preventScroll: true });
-        }
-        return;
-      }
-      if (key === "escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.signLanguageDraggable && this.signLanguageDraggable.pointerResizeMode) {
-          this.signLanguageDraggable.disablePointerResizeMode();
-          return;
-        }
-        if (this.signLanguageDraggable && this.signLanguageDraggable.keyboardDragMode) {
-          this.signLanguageDraggable.disableKeyboardDragMode();
-          return;
-        }
-        this.disableSignLanguage();
-        const signLanguageButton = this.controlBar?.controls?.signLanguage;
-        if (signLanguageButton) {
-          setTimeout(() => {
-            signLanguageButton.focus({ preventScroll: true });
-          }, 0);
-        }
-        return;
-      }
-    };
-    if (this.signLanguageWrapper && this.signLanguageCustomKeyHandler) {
-      this.signLanguageWrapper.addEventListener("keydown", this.signLanguageCustomKeyHandler);
-    }
-    this.signLanguageInteractionHandlers = {
-      draggable: this.signLanguageDraggable,
-      headerKeyHandler: this.signLanguageHeaderKeyHandler,
-      customKeyHandler: this.signLanguageCustomKeyHandler
-    };
-  }
-  toggleSignLanguageKeyboardDragMode() {
-    if (this.signLanguageDraggable) {
-      const wasEnabled = this.signLanguageDraggable.keyboardDragMode;
-      this.signLanguageDraggable.toggleKeyboardDragMode();
-      const isEnabled = this.signLanguageDraggable.keyboardDragMode;
-      if (!wasEnabled && isEnabled) {
-        this.enableSignLanguageMoveMode();
-      }
-      this.updateSignLanguageDragOptionState();
-    }
-  }
-  enableSignLanguageMoveMode() {
-    this.signLanguageWrapper?.classList.add(`${this.options.classPrefix}-sign-move-mode`);
-    this.updateSignLanguageResizeOptionState();
-    setTimeout(() => {
-      this.signLanguageWrapper?.classList.remove(`${this.options.classPrefix}-sign-move-mode`);
-    }, 2e3);
-  }
-  toggleSignLanguageResizeMode({ focus = true } = {}) {
-    if (!this.signLanguageDraggable) {
-      return false;
-    }
-    if (this.signLanguageDraggable.pointerResizeMode) {
-      this.signLanguageDraggable.disablePointerResizeMode({ focus });
-      this.updateSignLanguageResizeOptionState();
-      return false;
-    }
-    this.signLanguageDraggable.enablePointerResizeMode({ focus });
-    this.updateSignLanguageResizeOptionState();
-    return true;
-  }
-  getSignLanguageLabel(langCode) {
-    const langNames = {
-      "en": "English",
-      "de": "Deutsch",
-      "es": "Español",
-      "fr": "Français",
-      "it": "Italiano",
-      "ja": "日本語",
-      "pt": "Português",
-      "ar": "العربية",
-      "hi": "हिन्दी"
-    };
-    return langNames[String(langCode)] || String(langCode).toUpperCase();
-  }
   switchSignLanguage(langCode) {
     return this.signLanguageManager?.switchLanguage(langCode);
-  }
-  _legacySwitchSignLanguage(langCode) {
-    if (!this.signLanguageSources[langCode] || !this.signLanguageVideo) {
-      return;
-    }
-    const currentTime = this.signLanguageVideo.currentTime;
-    const wasPlaying = !this.signLanguageVideo.paused;
-    this.signLanguageVideo.src = this.signLanguageSources[langCode];
-    this.currentSignLanguage = langCode;
-    this.signLanguageVideo.currentTime = currentTime;
-    if (wasPlaying) {
-      this.signLanguageVideo.play().catch(() => {
-      });
-    }
-    this.emit("signlanguagelanguagechanged", langCode);
   }
   showSignLanguageSettingsMenu() {
     return this.signLanguageManager?.showSettingsMenu();
   }
-  // Legacy method preserved for reference
-  _legacyShowSignLanguageSettingsMenu() {
-    this.signLanguageSettingsMenuJustOpened = true;
-    setTimeout(() => {
-      this.signLanguageSettingsMenuJustOpened = false;
-    }, 350);
-    if (!this.signLanguageDocumentClickHandlerAdded) {
-      this.signLanguageDocumentClickHandler = (e) => {
-        if (this.signLanguageSettingsMenuJustOpened) {
-          return;
-        }
-        const target = e.target;
-        if (this.signLanguageSettingsButton && target && (this.signLanguageSettingsButton === target || this.signLanguageSettingsButton.contains(target))) {
-          return;
-        }
-        if (this.signLanguageSettingsMenu && target && this.signLanguageSettingsMenu.contains(target)) {
-          return;
-        }
-        if (this.signLanguageSettingsMenuVisible) {
-          this.hideSignLanguageSettingsMenu();
-        }
-      };
-      setTimeout(() => {
-        const handler = this.signLanguageDocumentClickHandler;
-        if (handler) {
-          document.addEventListener("mousedown", handler, { capture: true, signal: this.lifecycleSignal });
-        }
-        this.signLanguageDocumentClickHandlerAdded = true;
-      }, 300);
-    }
-    if (this.signLanguageSettingsMenu) {
-      this.signLanguageSettingsMenu.style.display = "block";
-      this.signLanguageSettingsMenuVisible = true;
-      if (this.signLanguageSettingsButton) {
-        this.signLanguageSettingsButton.setAttribute("aria-expanded", "true");
-      }
-      this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
-        this.signLanguageSettingsMenu,
-        this.signLanguageSettingsButton,
-        `.${this.options.classPrefix}-sign-language-settings-item`,
-        () => this.hideSignLanguageSettingsMenu({ focusButton: true })
-      );
-      this.positionSignLanguageSettingsMenu();
-      this.updateSignLanguageDragOptionState();
-      this.updateSignLanguageResizeOptionState();
-      focusFirstMenuItem(this.signLanguageSettingsMenu, `.${this.options.classPrefix}-sign-language-settings-item`);
-      return;
-    }
-    this.signLanguageSettingsMenu = DOMUtils.createElement("div", {
-      className: `${this.options.classPrefix}-sign-language-settings-menu`,
-      attributes: {
-        "role": "menu"
-      }
-    });
-    const keyboardDragOption = createMenuItem({
-      classPrefix: this.options.classPrefix,
-      itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
-      icon: "move",
-      label: "player.enableSignDragMode",
-      hasTextClass: true,
-      onClick: () => {
-        this.toggleSignLanguageKeyboardDragMode();
-        this.hideSignLanguageSettingsMenu();
-      }
-    });
-    keyboardDragOption.setAttribute("role", "switch");
-    keyboardDragOption.setAttribute("aria-checked", "false");
-    const dragTooltip = keyboardDragOption.querySelector(`.${this.options.classPrefix}-tooltip`);
-    if (dragTooltip) dragTooltip.remove();
-    const dragButtonText = keyboardDragOption.querySelector(`.${this.options.classPrefix}-button-text`);
-    if (dragButtonText) dragButtonText.remove();
-    this.signLanguageDragOptionButton = keyboardDragOption;
-    this.signLanguageDragOptionText = keyboardDragOption.querySelector(`.${this.options.classPrefix}-settings-text`);
-    this.updateSignLanguageDragOptionState();
-    const resizeOption = createMenuItem({
-      classPrefix: this.options.classPrefix,
-      itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
-      icon: "resize",
-      label: "player.enableSignResizeMode",
-      hasTextClass: true,
-      onClick: (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const enabled = this.toggleSignLanguageResizeMode({ focus: false });
-        if (enabled) {
-          this.hideSignLanguageSettingsMenu({ focusButton: false });
-          setTimeout(() => {
-            if (this.signLanguageWrapper) {
-              this.signLanguageWrapper.focus({ preventScroll: true });
-            }
-          }, 20);
-        } else {
-          this.hideSignLanguageSettingsMenu({ focusButton: true });
-        }
-      }
-    });
-    resizeOption.setAttribute("role", "switch");
-    resizeOption.setAttribute("aria-checked", "false");
-    const resizeTooltip = resizeOption.querySelector(`.${this.options.classPrefix}-tooltip`);
-    if (resizeTooltip) resizeTooltip.remove();
-    const resizeButtonText = resizeOption.querySelector(`.${this.options.classPrefix}-button-text`);
-    if (resizeButtonText) resizeButtonText.remove();
-    this.signLanguageResizeOptionButton = resizeOption;
-    this.signLanguageResizeOptionText = resizeOption.querySelector(`.${this.options.classPrefix}-settings-text`);
-    this.updateSignLanguageResizeOptionState();
-    const closeOption = createMenuItem({
-      classPrefix: this.options.classPrefix,
-      itemClass: `${this.options.classPrefix}-sign-language-settings-item`,
-      icon: "close",
-      label: "transcript.closeMenu",
-      onClick: () => {
-        this.hideSignLanguageSettingsMenu();
-      }
-    });
-    const closeTooltip = closeOption.querySelector(`.${this.options.classPrefix}-tooltip`);
-    if (closeTooltip) closeTooltip.remove();
-    const closeButtonText = closeOption.querySelector(`.${this.options.classPrefix}-button-text`);
-    if (closeButtonText) closeButtonText.remove();
-    this.signLanguageSettingsMenu.appendChild(keyboardDragOption);
-    this.signLanguageSettingsMenu.appendChild(resizeOption);
-    this.signLanguageSettingsMenu.appendChild(closeOption);
-    this.signLanguageSettingsMenu.style.visibility = "hidden";
-    this.signLanguageSettingsMenu.style.display = "block";
-    if (this.signLanguageSettingsButton && this.signLanguageSettingsButton.parentNode) {
-      this.signLanguageSettingsButton.insertAdjacentElement("afterend", this.signLanguageSettingsMenu);
-    } else if (this.signLanguageWrapper) {
-      this.signLanguageWrapper.appendChild(this.signLanguageSettingsMenu);
-    }
-    this.positionSignLanguageSettingsMenuImmediate();
-    requestAnimationFrame(() => {
-      if (this.signLanguageSettingsMenu) {
-        this.signLanguageSettingsMenu.style.visibility = "visible";
-      }
-    });
-    this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
-      this.signLanguageSettingsMenu,
-      this.signLanguageSettingsButton,
-      `.${this.options.classPrefix}-sign-language-settings-item`,
-      () => this.hideSignLanguageSettingsMenu({ focusButton: true })
-    );
-    this.signLanguageSettingsMenuVisible = true;
-    if (this.signLanguageSettingsButton) {
-      this.signLanguageSettingsButton.setAttribute("aria-expanded", "true");
-    }
-    this.updateSignLanguageDragOptionState();
-    this.updateSignLanguageResizeOptionState();
-    focusFirstMenuItem(this.signLanguageSettingsMenu, `.${this.options.classPrefix}-sign-language-settings-item`);
-  }
   hideSignLanguageSettingsMenu({ focusButton = true } = {}) {
     return this.signLanguageManager?.hideSettingsMenu({ focusButton });
-  }
-  positionSignLanguageSettingsMenuImmediate() {
-    if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton) return;
-    const buttonRect = this.signLanguageSettingsButton.getBoundingClientRect();
-    const menuRect = this.signLanguageSettingsMenu.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const parentContainer = this.signLanguageSettingsButton.parentElement;
-    if (!parentContainer) return;
-    const parentRect = parentContainer.getBoundingClientRect();
-    const buttonCenterX = buttonRect.left + buttonRect.width / 2 - parentRect.left;
-    const buttonBottom = buttonRect.bottom - parentRect.top;
-    const buttonTop = buttonRect.top - parentRect.top;
-    const spaceAbove = buttonRect.top;
-    const spaceBelow = viewportHeight - buttonRect.bottom;
-    let menuTop = buttonBottom + 8;
-    let menuBottom = null;
-    if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
-      menuTop = null;
-      const parentHeight = parentRect.bottom - parentRect.top;
-      menuBottom = parentHeight - buttonTop + 8;
-      this.signLanguageSettingsMenu.classList.add("vidply-menu-above");
-    } else {
-      this.signLanguageSettingsMenu.classList.remove("vidply-menu-above");
-    }
-    let menuLeft = buttonCenterX - menuRect.width / 2;
-    let menuRight = "auto";
-    let transformX = "translateX(0)";
-    const menuLeftAbsolute = buttonRect.left + buttonRect.width / 2 - menuRect.width / 2;
-    if (menuLeftAbsolute < 10) {
-      menuLeft = 0;
-      transformX = "translateX(0)";
-    } else if (menuLeftAbsolute + menuRect.width > viewportWidth - 10) {
-      menuLeft = "auto";
-      menuRight = 0;
-      transformX = "translateX(0)";
-    } else {
-      menuLeft = buttonCenterX;
-      transformX = "translateX(-50%)";
-    }
-    if (menuTop !== null) {
-      this.signLanguageSettingsMenu.style.top = `${menuTop}px`;
-      this.signLanguageSettingsMenu.style.bottom = "auto";
-    } else if (menuBottom !== null) {
-      this.signLanguageSettingsMenu.style.top = "auto";
-      this.signLanguageSettingsMenu.style.bottom = `${menuBottom}px`;
-    }
-    if (menuLeft !== "auto") {
-      this.signLanguageSettingsMenu.style.left = `${menuLeft}px`;
-      this.signLanguageSettingsMenu.style.right = "auto";
-    } else {
-      this.signLanguageSettingsMenu.style.left = "auto";
-      this.signLanguageSettingsMenu.style.right = `${menuRight}px`;
-    }
-    this.signLanguageSettingsMenu.style.transform = transformX;
-  }
-  positionSignLanguageSettingsMenu() {
-    if (!this.signLanguageSettingsMenu || !this.signLanguageSettingsButton || !this.signLanguageWrapper) return;
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        this.positionSignLanguageSettingsMenuImmediate();
-      }, 10);
-    });
-  }
-  attachSignLanguageSettingsMenuKeyboardNavigation() {
-    if (!this.signLanguageSettingsMenu) return;
-    if (this.signLanguageSettingsMenuKeyHandler) {
-      this.signLanguageSettingsMenu.removeEventListener("keydown", this.signLanguageSettingsMenuKeyHandler);
-    }
-    this.signLanguageSettingsMenuKeyHandler = attachMenuKeyboardNavigation(
-      this.signLanguageSettingsMenu,
-      this.signLanguageSettingsButton,
-      `.${this.options.classPrefix}-sign-language-settings-item`,
-      () => this.hideSignLanguageSettingsMenu({ focusButton: true })
-    );
-  }
-  updateSignLanguageDragOptionState() {
-    if (!this.signLanguageDragOptionButton) {
-      return;
-    }
-    const isEnabled = Boolean(this.signLanguageDraggable && this.signLanguageDraggable.keyboardDragMode);
-    const text = isEnabled ? i18n.t("player.disableSignDragMode") : i18n.t("player.enableSignDragMode");
-    const ariaLabel = isEnabled ? i18n.t("player.disableSignDragModeAria") : i18n.t("player.enableSignDragModeAria");
-    this.signLanguageDragOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
-    this.signLanguageDragOptionButton.setAttribute("aria-label", ariaLabel);
-    if (this.signLanguageDragOptionText) {
-      this.signLanguageDragOptionText.textContent = text;
-    }
-  }
-  updateSignLanguageResizeOptionState() {
-    if (!this.signLanguageResizeOptionButton) {
-      return;
-    }
-    const isEnabled = Boolean(this.signLanguageDraggable && this.signLanguageDraggable.pointerResizeMode);
-    const text = isEnabled ? i18n.t("player.disableSignResizeMode") : i18n.t("player.enableSignResizeMode");
-    const ariaLabel = isEnabled ? i18n.t("player.disableSignResizeModeAria") : i18n.t("player.enableSignResizeModeAria");
-    this.signLanguageResizeOptionButton.setAttribute("aria-checked", isEnabled ? "true" : "false");
-    this.signLanguageResizeOptionButton.setAttribute("aria-label", ariaLabel);
-    if (this.signLanguageResizeOptionText) {
-      this.signLanguageResizeOptionText.textContent = text;
-    }
   }
   constrainSignLanguagePosition() {
     return this.signLanguageManager?.constrainPosition();
   }
   saveSignLanguagePreferences() {
     return this.signLanguageManager?.savePreferences();
-  }
-  // Legacy methods preserved for reference - can be removed after testing
-  _legacyConstrainSignLanguagePosition() {
-    if (!this.signLanguageWrapper || !this.videoWrapper) return;
-    if (this.signLanguageDraggable && this.signLanguageDraggable.manuallyPositioned) {
-      return;
-    }
-    if (!this.signLanguageWrapper.style.width || this.signLanguageWrapper.style.width === "") {
-      this.signLanguageWrapper.style.width = "280px";
-    }
-    const videoWrapperRect = this.videoWrapper.getBoundingClientRect();
-    const containerRect = this.container.getBoundingClientRect();
-    const wrapperRect = this.signLanguageWrapper.getBoundingClientRect();
-    const videoWrapperLeft = videoWrapperRect.left - containerRect.left;
-    const videoWrapperTop = videoWrapperRect.top - containerRect.top;
-    const videoWrapperWidth = videoWrapperRect.width;
-    const videoWrapperHeight = videoWrapperRect.height;
-    const wrapperWidth = wrapperRect.width || 280;
-    const wrapperHeight = wrapperRect.height || 280 * 9 / 16;
-    let left, top;
-    const margin = 16;
-    const controlsHeight = 95;
-    const position = this.signLanguageDesiredPosition || "bottom-right";
-    switch (position) {
-      case "bottom-right":
-        left = videoWrapperLeft + videoWrapperWidth - wrapperWidth - margin;
-        top = videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight;
-        break;
-      case "bottom-left":
-        left = videoWrapperLeft + margin;
-        top = videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight;
-        break;
-      case "top-right":
-        left = videoWrapperLeft + videoWrapperWidth - wrapperWidth - margin;
-        top = videoWrapperTop + margin;
-        break;
-      case "top-left":
-        left = videoWrapperLeft + margin;
-        top = videoWrapperTop + margin;
-        break;
-      default:
-        left = videoWrapperLeft + videoWrapperWidth - wrapperWidth - margin;
-        top = videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight;
-    }
-    left = Math.max(videoWrapperLeft, Math.min(left, videoWrapperLeft + videoWrapperWidth - wrapperWidth));
-    top = Math.max(videoWrapperTop, Math.min(top, videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight));
-    this.signLanguageWrapper.style.left = `${left}px`;
-    this.signLanguageWrapper.style.top = `${top}px`;
-    this.signLanguageWrapper.style.right = "auto";
-    this.signLanguageWrapper.style.bottom = "auto";
-    this.signLanguageWrapper.classList.remove(...Array.from(this.signLanguageWrapper.classList).filter((c) => c.startsWith("vidply-sign-position-")));
-  }
-  _legacySaveSignLanguagePreferences() {
-    if (!this.signLanguageWrapper) return;
-    this.storage.saveSignLanguagePreferences({
-      size: {
-        width: this.signLanguageWrapper.style.width
-        // Height is auto - maintained by aspect ratio
-      }
-    });
   }
   cleanupSignLanguage() {
     return this.signLanguageManager?.cleanup();
@@ -7915,7 +6174,9 @@ var Player = class _Player extends EventEmitter {
       };
       const orientationQuery = window.matchMedia("(orientation: portrait)");
       if (orientationQuery.addEventListener) {
-        orientationQuery.addEventListener("change", this.orientationHandler);
+        orientationQuery.addEventListener("change", this.orientationHandler, {
+          signal: this.lifecycleSignal
+        });
       } else if (orientationQuery.addListener) {
         orientationQuery.addListener(this.orientationHandler);
       }
@@ -7950,7 +6211,6 @@ var Player = class _Player extends EventEmitter {
           this.setManagedTimeout(() => {
             requestAnimationFrame(() => {
               this.storage.saveSignLanguagePreferences({ size: null });
-              this.signLanguageDesiredPosition = "bottom-right";
               if (this.signLanguageWrapper) {
                 this.signLanguageWrapper.style.width = isFullscreen ? "400px" : "280px";
               }

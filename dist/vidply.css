@@ -5173,8 +5173,12 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     box-shadow: 0 0 0 0.1875rem var(--vidply-primary), 0 0.25rem 0.75rem var(--vidply-black-60);
 }
 
-.vidply-sign-keyboard-drag::after,
-.vidply-sign-keyboard-resize::after {
+/* Mode badge shown above the sign-language wrapper while keyboard
+   drag or pointer resize mode is active. Rendered as a real DOM
+   `<span class="vidply-sign-mode-badge">` by SignLanguageManager so
+   the text is translatable, selectable, and honored by high-contrast
+   themes — unlike the previous CSS `content:` pseudo-element. */
+.vidply-sign-mode-badge {
     align-items: center;
     background: var(--vidply-primary);
     border-radius: 0.25rem;
@@ -5191,14 +5195,6 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     transform: translateX(-50%);
     white-space: nowrap;
     z-index: 10;
-}
-
-.vidply-sign-keyboard-drag::after {
-    content: 'DRAG MODE (Arrow keys to move, ESC to exit)';
-}
-
-.vidply-sign-keyboard-resize::after {
-    content: 'RESIZE MODE (Arrow keys to resize, ESC to exit)';
 }
 
 /* Sign Language Video Positions */
