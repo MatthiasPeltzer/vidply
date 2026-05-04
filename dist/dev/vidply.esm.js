@@ -5,7 +5,7 @@
  */
 import {
   TimeUtils
-} from "./vidply.chunk-WOICVMY7.js";
+} from "./vidply.chunk-4QOA7PB6.js";
 import {
   HTML5Renderer
 } from "./vidply.chunk-EECNLGWE.js";
@@ -15,10 +15,10 @@ import {
   isMobile,
   rafWithTimeout,
   throttle
-} from "./vidply.chunk-IML5RZDD.js";
+} from "./vidply.chunk-PQXC67NW.js";
 import {
   StorageManager
-} from "./vidply.chunk-EPPJR7LC.js";
+} from "./vidply.chunk-FNSGUBC2.js";
 import {
   focusElement,
   focusFirstElement
@@ -26,11 +26,12 @@ import {
 import {
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-I5IJEIGK.js";
+} from "./vidply.chunk-V4LWKI3K.js";
 import {
   DOMUtils,
-  i18n
-} from "./vidply.chunk-DWPCJWYK.js";
+  i18n,
+  isForbiddenKey
+} from "./vidply.chunk-NFWOXWQ5.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -3767,41 +3768,7 @@ var KeyboardManager = class {
   }
 };
 
-// src/core/Player.ts
-var AudioDescriptionManagerModule = null;
-var SignLanguageManagerModule = null;
-var FloatingPlayerManagerModule = null;
-async function loadAudioDescriptionManager() {
-  if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-NGYPJ3NV.js");
-    AudioDescriptionManagerModule = module.AudioDescriptionManager;
-  }
-  return AudioDescriptionManagerModule;
-}
-async function loadSignLanguageManager() {
-  if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-ZRX2Y3ZD.js");
-    SignLanguageManagerModule = module.SignLanguageManager;
-  }
-  return SignLanguageManagerModule;
-}
-async function loadFloatingPlayerManager() {
-  if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-AB6MOAV4.js");
-    FloatingPlayerManagerModule = module.FloatingPlayerManager;
-  }
-  return FloatingPlayerManagerModule;
-}
-var ALLOWED_MEDIA_TYPES = ["video", "audio"];
-var PROTO_FORBIDDEN_KEYS = /* @__PURE__ */ new Set(["__proto__", "prototype", "constructor"]);
-function isValidThemeVariableName(name) {
-  return /^--vidply-[A-Za-z0-9_-]{1,64}$/.test(name);
-}
-function isValidThemeVariableValue(value) {
-  if (typeof value !== "string") return false;
-  if (value.length > 200) return false;
-  return !/[<>{};@\\]/.test(value);
-}
+// src/utils/UrlSafe.ts
 function sanitizePosterUrl(input) {
   if (typeof input !== "string" || input.length === 0 || input.length > 4096) {
     return null;
@@ -3828,14 +3795,1149 @@ function sanitizePosterUrl(input) {
 function cssEscapeUrl(url) {
   return url.replace(/["()\\]/g, (m) => `\\${m}`);
 }
+function toCssBackgroundImage(input) {
+  const safe = sanitizePosterUrl(input);
+  if (!safe) return null;
+  return `url("${cssEscapeUrl(safe)}")`;
+}
+
+// src/core/LazyInit.ts
+var pendingByElement = /* @__PURE__ */ new WeakMap();
+function observeForLazyInit(element, options, margin, factory) {
+  const existing = pendingByElement.get(element);
+  if (existing) {
+    existing.observer.unobserve(element);
+    pendingByElement.delete(element);
+  }
+  const rect = element.getBoundingClientRect();
+  if (rect.height < 20) {
+    factory(element, options);
+    return;
+  }
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          observer.unobserve(entry.target);
+          pendingByElement.delete(entry.target);
+          factory(entry.target, options);
+        }
+      });
+    },
+    { rootMargin: margin, threshold: 0 }
+  );
+  observer.observe(element);
+  pendingByElement.set(element, { observer, options });
+}
+function cancelLazyInit(element) {
+  const pending = pendingByElement.get(element);
+  if (pending) {
+    pending.observer.unobserve(element);
+    pendingByElement.delete(element);
+  }
+}
+
+// src/core/PseudoFullscreen.ts
+var PseudoFullscreenController = class {
+  player;
+  // All of the "remember current style / scroll / viewport" slots used
+  // to restore state on exit. Kept private so the rest of the code
+  // base cannot poke into them.
+  originalScrollX;
+  originalScrollY;
+  originalBodyOverflow;
+  originalBodyPosition;
+  originalBodyWidth;
+  originalBodyHeight;
+  originalHtmlOverflow;
+  originalBodyBackground;
+  originalHtmlBackground;
+  originalViewport;
+  inertElements = [];
+  constructor(player) {
+    this.player = player;
+  }
+  enable() {
+    const { player } = this;
+    player.state.fullscreen = true;
+    player.container.classList.add(`${player.options.classPrefix}-fullscreen`);
+    document.body.classList.add("vidply-fullscreen-active");
+    this.originalScrollX = window.scrollX || window.pageXOffset;
+    this.originalScrollY = window.scrollY || window.pageYOffset;
+    this.originalBodyOverflow = document.body.style.overflow;
+    this.originalBodyPosition = document.body.style.position;
+    this.originalBodyWidth = document.body.style.width;
+    this.originalBodyHeight = document.body.style.height;
+    this.originalHtmlOverflow = document.documentElement.style.overflow;
+    this.originalBodyBackground = document.body.style.background;
+    this.originalHtmlBackground = document.documentElement.style.background;
+    document.body.style.overflow = "hidden";
+    document.body.style.width = "100%";
+    document.body.style.height = "100%";
+    document.body.style.background = "#000";
+    document.documentElement.style.overflow = "hidden";
+    document.documentElement.style.background = "#000";
+    this.originalViewport = document.querySelector('meta[name="viewport"]')?.getAttribute("content");
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+    }
+    window.scrollTo(0, 0);
+    this.makeBackgroundInert();
+    player.emit("fullscreenchange", true);
+    player.emit("enterfullscreen");
+  }
+  /**
+   * Make every sibling of the player container (walking up to the body)
+   * `inert`. Scripts/styles are skipped so layout-time mutations still
+   * work. Elements that were already inert are left alone so we don't
+   * accidentally clear another author's inert marker on exit.
+   *
+   * Public because the real Fullscreen API handler also calls it — we
+   * need the same inert treatment when the browser grants real
+   * fullscreen, not only in the pseudo-fallback path.
+   */
+  makeBackgroundInert() {
+    this.inertElements = [];
+    let current = this.player.container;
+    while (current && current !== document.body && current !== document.documentElement) {
+      const parentElement = current.parentElement;
+      if (parentElement) {
+        Array.from(parentElement.children).forEach((sibling) => {
+          if (sibling !== current && sibling.nodeType === Node.ELEMENT_NODE && !sibling.hasAttribute("inert") && sibling.tagName !== "SCRIPT" && sibling.tagName !== "STYLE" && sibling.tagName !== "LINK" && sibling.tagName !== "META") {
+            sibling.setAttribute("inert", "");
+            this.inertElements.push(sibling);
+          }
+        });
+      }
+      current = parentElement;
+    }
+  }
+  /** Public counterpart of {@link makeBackgroundInert}. */
+  restoreBackgroundInteractivity() {
+    if (this.inertElements.length > 0) {
+      for (const el of this.inertElements) {
+        el.removeAttribute("inert");
+      }
+      this.inertElements = [];
+    }
+  }
+  disable() {
+    document.body.classList.remove("vidply-fullscreen-active");
+    this.restoreBackgroundInteractivity();
+    if (this.originalBodyOverflow !== void 0) {
+      document.body.style.overflow = this.originalBodyOverflow;
+      this.originalBodyOverflow = void 0;
+    }
+    if (this.originalBodyPosition !== void 0) {
+      document.body.style.position = this.originalBodyPosition;
+      this.originalBodyPosition = void 0;
+    }
+    if (this.originalBodyWidth !== void 0) {
+      document.body.style.width = this.originalBodyWidth;
+      this.originalBodyWidth = void 0;
+    }
+    if (this.originalBodyHeight !== void 0) {
+      document.body.style.height = this.originalBodyHeight;
+      this.originalBodyHeight = void 0;
+    }
+    if (this.originalHtmlOverflow !== void 0) {
+      document.documentElement.style.overflow = this.originalHtmlOverflow;
+      this.originalHtmlOverflow = void 0;
+    }
+    if (this.originalBodyBackground !== void 0) {
+      document.body.style.background = this.originalBodyBackground;
+      this.originalBodyBackground = void 0;
+    }
+    if (this.originalHtmlBackground !== void 0) {
+      document.documentElement.style.background = this.originalHtmlBackground;
+      this.originalHtmlBackground = void 0;
+    }
+    if (this.originalViewport !== void 0) {
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (viewport && this.originalViewport !== null) {
+        viewport.setAttribute("content", this.originalViewport);
+      }
+      this.originalViewport = void 0;
+    }
+    if (this.originalScrollX !== void 0 && this.originalScrollY !== void 0) {
+      window.scrollTo(this.originalScrollX, this.originalScrollY);
+      this.originalScrollX = void 0;
+      this.originalScrollY = void 0;
+    }
+    this.player.emit("exitfullscreen");
+  }
+};
+
+// src/core/ThemeManager.ts
+var PLAYER_THEMES = ["dark", "light", "minimal", "high-contrast"];
+function isValidThemeVariableName(name) {
+  return /^--vidply-[A-Za-z0-9_-]{1,64}$/.test(name);
+}
+function isValidThemeVariableValue(value) {
+  if (typeof value !== "string") return false;
+  if (value.length > 200) return false;
+  return !/[<>{};@\\]/.test(value);
+}
+var ThemeManager = class {
+  player;
+  constructor(player) {
+    this.player = player;
+  }
+  /**
+   * Apply `options.theme` and validate-and-apply every entry in
+   * `options.themeVariables` to the container. Bad entries are logged
+   * and skipped so a single malformed override cannot poison siblings.
+   */
+  apply() {
+    const player = this.player;
+    if (!player.container) return;
+    const themeClasses = PLAYER_THEMES.map((t) => `${player.options.classPrefix}-theme-${t}`);
+    player.container.classList.remove(...themeClasses);
+    const theme = player.options.theme;
+    if (theme && PLAYER_THEMES.includes(theme)) {
+      player.container.classList.add(`${player.options.classPrefix}-theme-${theme}`);
+    }
+    if (player.options.themeVariables && typeof player.options.themeVariables === "object") {
+      for (const [rawKey, rawValue] of Object.entries(player.options.themeVariables)) {
+        if (isForbiddenKey(rawKey)) continue;
+        const cssVar = rawKey.startsWith("--vidply-") ? rawKey : `--vidply-${rawKey}`;
+        if (!isValidThemeVariableName(cssVar)) {
+          player.log(`[VidPly] Ignoring invalid theme variable name: ${rawKey}`, "warn");
+          continue;
+        }
+        if (!isValidThemeVariableValue(rawValue)) {
+          player.log(`[VidPly] Ignoring invalid theme variable value for ${cssVar}`, "warn");
+          continue;
+        }
+        player.container.style.setProperty(cssVar, rawValue);
+      }
+    }
+  }
+  /**
+   * Swap the active theme at runtime. Emits `themechange` with the old
+   * and new names so external consumers (e.g. telemetry) can react.
+   */
+  set(themeName, customVariables = {}) {
+    const player = this.player;
+    const previousTheme = player.options.theme;
+    player.options.theme = themeName;
+    if (customVariables && Object.keys(customVariables).length > 0) {
+      player.options.themeVariables = {
+        ...player.options.themeVariables,
+        ...customVariables
+      };
+    }
+    this.apply();
+    player.emit("themechange", {
+      theme: themeName,
+      previousTheme,
+      customVariables: player.options.themeVariables
+    });
+  }
+  get() {
+    return this.player.options.theme;
+  }
+  /** Set a single CSS variable override, validating the (name, value)
+   *  pair before it reaches the DOM. Callers must pass a string value. */
+  setVariable(variableName, value) {
+    const player = this.player;
+    if (!player.container) return;
+    const cssVar = variableName.startsWith("--vidply-") ? variableName : `--vidply-${variableName}`;
+    if (!isValidThemeVariableName(cssVar) || !isValidThemeVariableValue(value)) {
+      player.log(`[VidPly] Ignoring unsafe setThemeVariable(${variableName})`, "warn");
+      return;
+    }
+    player.container.style.setProperty(cssVar, value);
+    if (!player.options.themeVariables) {
+      player.options.themeVariables = {};
+    }
+    player.options.themeVariables[variableName] = value;
+  }
+  /**
+   * Reset to the default theme (dark) and clear every override that was
+   * applied through `options.themeVariables`.
+   */
+  reset() {
+    const player = this.player;
+    if (player.container && player.options.themeVariables) {
+      Object.keys(player.options.themeVariables).forEach((key) => {
+        const cssVar = key.startsWith("--vidply-") ? key : `--vidply-${key}`;
+        player.container.style.removeProperty(cssVar);
+      });
+    }
+    const previousTheme = player.options.theme;
+    player.options.theme = "dark";
+    player.options.themeVariables = {};
+    this.apply();
+    player.emit("themechange", { theme: "dark", previousTheme });
+  }
+};
+
+// src/core/PosterManager.ts
+var PosterManager = class {
+  player;
+  constructor(player) {
+    this.player = player;
+  }
+  /**
+   * Convert a relative poster path into an absolute URL. Absolute URLs
+   * (http/https) and root-relative paths (`/foo`) are returned as-is.
+   * Falls back to the raw string on any parse error — a malformed URL
+   * is still better than throwing and breaking the caller.
+   */
+  resolvePath(posterPath) {
+    if (!posterPath) return "";
+    if (posterPath.match(/^(https?:|\/)/)) {
+      return posterPath;
+    }
+    try {
+      const posterUrl = new URL(posterPath, window.location.href);
+      return posterUrl.href;
+    } catch {
+      return posterPath;
+    }
+  }
+  /**
+   * Capture a frame from the underlying video as a data URL suitable
+   * for use as `<video>.poster`. Returns `null` when the element is
+   * not a video, the renderer isn't ready, or the capture fails.
+   *
+   * When the control bar has a hidden "preview video" element (used
+   * for the seek hover thumbnail), we prefer that so we don't disturb
+   * the user's current playback position.
+   */
+  async generateFromVideo(time = 10) {
+    const player = this.player;
+    if (player.element.tagName !== "VIDEO") return null;
+    const renderer = player.renderer;
+    if (!renderer || !renderer.media || renderer.media.tagName !== "VIDEO") {
+      return null;
+    }
+    const video = renderer.media;
+    if (!video.duration || video.duration < time) {
+      time = Math.min(time, Math.max(1, video.duration * 0.1));
+    }
+    let videoToUse = video;
+    if (player.controlBar && player.controlBar.previewVideo && player.controlBar.previewSupported) {
+      videoToUse = player.controlBar.previewVideo;
+    }
+    const restoreState = videoToUse === video;
+    return await captureVideoFrame(videoToUse, time, {
+      restoreState,
+      quality: 0.9
+    });
+  }
+  /**
+   * Auto-generate a poster from the video at the 10-second mark if the
+   * content doesn't already have one. No-op for audio elements and for
+   * media that ships with a poster attribute or option.
+   */
+  async autoGenerate() {
+    const player = this.player;
+    const hasPoster = player.element.getAttribute("poster") || player.element.poster || player.options.poster;
+    if (hasPoster) return;
+    if (player.element.tagName !== "VIDEO") return;
+    if (!player.state.duration || player.state.duration === 0) {
+      await new Promise((resolve) => {
+        const onLoadedMetadata = () => {
+          player.element.removeEventListener("loadedmetadata", onLoadedMetadata);
+          resolve();
+        };
+        if (player.element.readyState >= 1) {
+          resolve();
+        } else {
+          player.element.addEventListener("loadedmetadata", onLoadedMetadata);
+        }
+      });
+    }
+    const posterDataURL = await this.generateFromVideo(10);
+    if (posterDataURL) {
+      player.element.poster = posterDataURL;
+      player.log("Auto-generated poster from video frame at 10 seconds", "info");
+      this.showOverlay();
+    }
+  }
+  /**
+   * Apply the poster as a CSS background on the video wrapper. This is
+   * used to keep the poster visible behind the play button when the
+   * browser wouldn't render `<video>.poster` itself (e.g. during
+   * fallback / transitional states).
+   */
+  showOverlay() {
+    const player = this.player;
+    if (!player.videoWrapper || player.element.tagName !== "VIDEO") return;
+    const poster = player.element.getAttribute("poster") || player.element.poster || player.options.poster;
+    if (!poster) return;
+    const resolvedPoster = poster.startsWith("data:") ? poster : this.resolvePath(poster);
+    player.videoWrapper.style.setProperty("--vidply-poster-image", `url("${resolvedPoster}")`);
+    player.videoWrapper.classList.add("vidply-forced-poster");
+    if (player._isAudioContent && player.container) {
+      player.container.classList.add("vidply-audio-content");
+    } else if (player.container) {
+      player.container.classList.remove("vidply-audio-content");
+    }
+  }
+  hideOverlay() {
+    const player = this.player;
+    if (!player.videoWrapper) return;
+    player.videoWrapper.classList.remove("vidply-forced-poster");
+    player.videoWrapper.style.removeProperty("--vidply-poster-image");
+  }
+};
+
+// src/core/ResumeManager.ts
+var ResumeManager = class {
+  player;
+  saveProgressThrottled = null;
+  resumeChecked = false;
+  listenersAttached = false;
+  constructor(player) {
+    this.player = player;
+  }
+  /**
+   * Wire up the progress-save + resume-check listeners. Safe to call
+   * multiple times: repeat calls are no-ops so a re-init path during
+   * source switching doesn't stack duplicate listeners.
+   */
+  init() {
+    if (this.listenersAttached) return;
+    this.listenersAttached = true;
+    this.saveProgressThrottled = throttle(() => this.saveProgress(), 5e3);
+    this.player.on("timeupdate", () => {
+      if (this.player.state.playing && this.player.state.duration > 0) {
+        this.saveProgressThrottled?.();
+      }
+    });
+    this.player.on("loadedmetadata", () => {
+      if (!this.resumeChecked) {
+        this.resumeChecked = true;
+        this.checkForResume();
+      }
+    });
+    this.player.on("ended", () => {
+      const videoId = this.player.getVideoId();
+      if (videoId) {
+        this.player.storage.clearWatchProgress(videoId);
+      }
+    });
+  }
+  /**
+   * Persist current playback progress to storage. No-op when the
+   * feature is disabled, when the video is too short / at the very
+   * start, or when playback is effectively complete.
+   */
+  saveProgress() {
+    const player = this.player;
+    if (!player.options.resumePlayback) return;
+    const videoId = player.getVideoId();
+    if (!videoId) return;
+    const currentTime = player.state.currentTime;
+    const duration = player.state.duration;
+    if (duration < 30 || currentTime < player.options.resumeThreshold) {
+      return;
+    }
+    const percentage = currentTime / duration * 100;
+    if (percentage > 95) return;
+    player.storage.saveWatchProgress(videoId, currentTime, duration);
+  }
+  /**
+   * Check for a previously-saved resume point for the current video
+   * and either auto-resume or show the prompt depending on
+   * `options.resumePrompt`. Safe to call manually, e.g. after an
+   * external source change.
+   */
+  checkForResume() {
+    const player = this.player;
+    if (!player.options.resumePlayback) return;
+    const videoId = player.getVideoId();
+    if (!videoId) return;
+    const progress = player.storage.getWatchProgress(videoId);
+    if (!progress) return;
+    const { currentTime, duration, percentage } = progress;
+    const threshold = player.options.resumeThreshold;
+    if (currentTime < threshold || percentage > 95) {
+      player.storage.clearWatchProgress(videoId);
+      return;
+    }
+    if (player.state.duration > 0 && Math.abs(player.state.duration - duration) > 5) {
+      player.storage.clearWatchProgress(videoId);
+      return;
+    }
+    if (player.options.resumePrompt) {
+      this.showPrompt(currentTime);
+    } else {
+      player.seek(currentTime);
+    }
+  }
+  /**
+   * Format a time value as `mm:ss` (or `hh:mm:ss` once we cross an
+   * hour) for display in the resume prompt label. No localisation is
+   * needed because the surrounding prompt text is already localised
+   * by i18n.
+   */
+  formatTime(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor(seconds % 3600 / 60);
+    const s = Math.floor(seconds % 60);
+    if (h > 0) {
+      return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    }
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  }
+  showPrompt(savedTime) {
+    const player = this.player;
+    if (player.state.resumePromptVisible || !player.container) return;
+    const formattedTime = this.formatTime(savedTime);
+    const promptText = i18n.t("resume.prompt", { time: formattedTime });
+    player.resumePromptElement = DOMUtils.createElement("div", {
+      className: `${player.options.classPrefix}-resume-prompt`,
+      attributes: {
+        role: "dialog",
+        "aria-label": promptText,
+        "aria-modal": "true"
+      }
+    });
+    const promptContent = DOMUtils.createElement("div", {
+      className: `${player.options.classPrefix}-resume-prompt-content`
+    });
+    const promptMessage = DOMUtils.createElement("p", {
+      className: `${player.options.classPrefix}-resume-prompt-message`,
+      textContent: promptText
+    });
+    const buttonContainer = DOMUtils.createElement("div", {
+      className: `${player.options.classPrefix}-resume-prompt-buttons`
+    });
+    const resumeButton = DOMUtils.createElement("button", {
+      className: `${player.options.classPrefix}-resume-prompt-button ${player.options.classPrefix}-resume-prompt-button-primary`,
+      textContent: i18n.t("resume.resume"),
+      attributes: { type: "button" }
+    });
+    resumeButton.addEventListener("click", () => {
+      this.hidePrompt();
+      player.seek(savedTime);
+      player.play();
+    });
+    const startOverButton = DOMUtils.createElement("button", {
+      className: `${player.options.classPrefix}-resume-prompt-button`,
+      textContent: i18n.t("resume.startOver"),
+      attributes: { type: "button" }
+    });
+    startOverButton.addEventListener("click", () => {
+      this.hidePrompt();
+      const videoId = player.getVideoId();
+      if (videoId) player.storage.clearWatchProgress(videoId);
+      player.seek(0);
+      player.play();
+    });
+    const handleKeydown = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        this.hidePrompt();
+      }
+    };
+    player.resumePromptElement.addEventListener("keydown", handleKeydown);
+    buttonContainer.appendChild(resumeButton);
+    buttonContainer.appendChild(startOverButton);
+    promptContent.appendChild(promptMessage);
+    promptContent.appendChild(buttonContainer);
+    player.resumePromptElement.appendChild(promptContent);
+    player.container.appendChild(player.resumePromptElement);
+    player.state.resumePromptVisible = true;
+    requestAnimationFrame(() => {
+      resumeButton.focus();
+    });
+    player.emit("resumepromptshow", { savedTime });
+  }
+  hidePrompt() {
+    const player = this.player;
+    if (!player.resumePromptElement) return;
+    player.resumePromptElement.remove();
+    player.resumePromptElement = null;
+    player.state.resumePromptVisible = false;
+    player.emit("resumeprompthide");
+  }
+};
+
+// src/core/ResponsiveManager.ts
+var ResponsiveManager = class {
+  player;
+  orientationQuery = null;
+  orientationHandler = null;
+  constructor(player) {
+    this.player = player;
+  }
+  setup() {
+    this.setupResizeTracking();
+    this.setupOrientationTracking();
+    this.setupFullscreenTracking();
+  }
+  setupResizeTracking() {
+    const player = this.player;
+    if (typeof ResizeObserver !== "undefined") {
+      player.resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const width = entry.contentRect.width;
+          const controlBar = player.controlBar;
+          if (controlBar && typeof controlBar.updateControlsForViewport === "function") {
+            controlBar.updateControlsForViewport(width);
+          }
+          if (player.transcriptManager && player.transcriptManager.isVisible) {
+            player.transcriptManager.positionTranscript();
+          }
+        }
+      });
+      player.resizeObserver.observe(player.container);
+      return;
+    }
+    player.resizeHandler = () => {
+      const width = player.container.clientWidth;
+      const controlBar = player.controlBar;
+      if (controlBar && typeof controlBar.updateControlsForViewport === "function") {
+        controlBar.updateControlsForViewport(width);
+      }
+      if (player.transcriptManager && player.transcriptManager.isVisible) {
+        if (!player.transcriptManager.draggableResizable || !player.transcriptManager.draggableResizable.manuallyPositioned) {
+          player.transcriptManager.positionTranscript();
+        }
+      }
+    };
+    window.addEventListener("resize", player.resizeHandler, { signal: player.lifecycleSignal });
+  }
+  setupOrientationTracking() {
+    const player = this.player;
+    if (!window.matchMedia) return;
+    this.orientationHandler = () => {
+      setTimeout(() => {
+        if (player.transcriptManager && player.transcriptManager.isVisible) {
+          if (!player.transcriptManager.draggableResizable || !player.transcriptManager.draggableResizable.manuallyPositioned) {
+            player.transcriptManager.positionTranscript();
+          }
+        }
+      }, 100);
+    };
+    const orientationQuery = window.matchMedia("(orientation: portrait)");
+    if (orientationQuery.addEventListener) {
+      orientationQuery.addEventListener("change", this.orientationHandler, {
+        signal: player.lifecycleSignal
+      });
+    } else if (orientationQuery.addListener) {
+      orientationQuery.addListener(this.orientationHandler);
+    }
+    this.orientationQuery = orientationQuery;
+    player.orientationQuery = orientationQuery;
+    player.orientationHandler = this.orientationHandler;
+  }
+  setupFullscreenTracking() {
+    const player = this.player;
+    player.fullscreenChangeHandler = () => {
+      const doc = document;
+      const isFullscreen = Boolean(
+        document.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement
+      );
+      if (player.state.fullscreen === isFullscreen) return;
+      player.state.fullscreen = isFullscreen;
+      if (!player.pseudoFullscreen) {
+        player.pseudoFullscreen = new PseudoFullscreenController(player);
+      }
+      if (isFullscreen) {
+        player.container.classList.add(`${player.options.classPrefix}-fullscreen`);
+        document.body.classList.add("vidply-fullscreen-active");
+        player.pseudoFullscreen.makeBackgroundInert();
+      } else {
+        player.container.classList.remove(`${player.options.classPrefix}-fullscreen`);
+        document.body.classList.remove("vidply-fullscreen-active");
+        player.pseudoFullscreen.restoreBackgroundInteractivity();
+        player._disablePseudoFullscreen();
+      }
+      player.emit("fullscreenchange", isFullscreen);
+      if (player.controlBar) {
+        player.controlBar.updateFullscreenButton();
+      }
+      if (player.signLanguageWrapper && player.signLanguageWrapper.style.display !== "none") {
+        const isMobileDevice = window.innerWidth < 768;
+        if (isMobileDevice) {
+          player.setupSignLanguageInteraction();
+        }
+        player.setManagedTimeout(() => {
+          requestAnimationFrame(() => {
+            player.storage.saveSignLanguagePreferences({ size: null });
+            if (player.signLanguageWrapper) {
+              player.signLanguageWrapper.style.width = isFullscreen ? "400px" : "280px";
+            }
+            player.constrainSignLanguagePosition();
+          });
+        }, 500);
+      }
+    };
+    const opts = { signal: player.lifecycleSignal };
+    document.addEventListener("fullscreenchange", player.fullscreenChangeHandler, opts);
+    document.addEventListener("webkitfullscreenchange", player.fullscreenChangeHandler, opts);
+    document.addEventListener("mozfullscreenchange", player.fullscreenChangeHandler, opts);
+    document.addEventListener("MSFullscreenChange", player.fullscreenChangeHandler, opts);
+  }
+  /**
+   * Tear down listeners that aren't covered by the Player's
+   * lifecycle AbortController. The `window.resize` and
+   * `document.fullscreenchange` listeners are already cleaned up
+   * via `{signal}`; only the ResizeObserver and old-Safari
+   * matchMedia listener need an explicit removal.
+   */
+  cleanup() {
+    const player = this.player;
+    if (player.resizeObserver) {
+      player.resizeObserver.disconnect();
+      player.resizeObserver = null;
+    }
+    player.resizeHandler = null;
+    player.fullscreenChangeHandler = null;
+    if (this.orientationQuery && this.orientationHandler) {
+      if (this.orientationQuery.removeEventListener) {
+        this.orientationQuery.removeEventListener("change", this.orientationHandler);
+      } else if (this.orientationQuery.removeListener) {
+        this.orientationQuery.removeListener(this.orientationHandler);
+      }
+      this.orientationQuery = null;
+      this.orientationHandler = null;
+    }
+    player.orientationQuery = null;
+    player.orientationHandler = null;
+  }
+};
+
+// src/core/MetadataAlertsManager.ts
+var MetadataAlertsManager = class {
+  player;
+  cueChangeHandler = null;
+  alertHandlers = /* @__PURE__ */ new Map();
+  constructor(player) {
+    this.player = player;
+  }
+  /** The `cuechange` handler this manager installed on the metadata
+   *  track. Exposed so Player can mirror it onto itself for legacy
+   *  access (some tests poke at `player.metadataCueChangeHandler`). */
+  get cuechangeListener() {
+    return this.cueChangeHandler;
+  }
+  setupHandling() {
+    const player = this.player;
+    const setupMetadata = () => {
+      const textTracks = player.textTracks;
+      const metadataTrack = textTracks.find((track) => track.kind === "metadata");
+      if (!metadataTrack) {
+        if (player.options.debug) player.log("[Metadata] No metadata track found");
+        return;
+      }
+      if (metadataTrack.mode === "disabled") {
+        metadataTrack.mode = "hidden";
+      }
+      if (this.cueChangeHandler) {
+        metadataTrack.removeEventListener("cuechange", this.cueChangeHandler);
+      }
+      this.cueChangeHandler = () => {
+        const activeCues = Array.from(metadataTrack.activeCues || []);
+        if (activeCues.length > 0 && player.options.debug) {
+          player.log("[Metadata] Active cues:", activeCues.map((c) => ({
+            start: c.startTime,
+            end: c.endTime,
+            text: c.text
+          })));
+        }
+        activeCues.forEach((cue) => this.handleCue(cue));
+      };
+      metadataTrack.addEventListener("cuechange", this.cueChangeHandler);
+      player.metadataCueChangeHandler = this.cueChangeHandler;
+      if (player.options.debug) {
+        const cueCount = metadataTrack.cues ? metadataTrack.cues.length : 0;
+        player.log("[Metadata] Track enabled,", cueCount, "cues available");
+      }
+    };
+    setupMetadata();
+    player.on("loadedmetadata", setupMetadata);
+  }
+  /**
+   * Sanitise a user-supplied selector string. Returns `null` for
+   * anything that isn't obviously safe: non-string input, empty
+   * after trimming, or too long to bound selector-engine cost.
+   */
+  normalizeSelector(selector) {
+    if (typeof selector !== "string") return null;
+    const trimmed = selector.trim();
+    if (!trimmed) return null;
+    if (trimmed.length > 200) return null;
+    if (trimmed.startsWith("#") || trimmed.startsWith(".") || trimmed.startsWith("[")) {
+      return trimmed;
+    }
+    return `#${trimmed}`;
+  }
+  resolveConfig(map, key) {
+    if (!map || !key) return null;
+    if (Object.prototype.hasOwnProperty.call(map, key)) {
+      return map[key];
+    }
+    const withoutHash = key.replace(/^#/, "");
+    if (Object.prototype.hasOwnProperty.call(map, withoutHash)) {
+      return map[withoutHash];
+    }
+    return null;
+  }
+  /**
+   * Remember the original title/message text before a hashtag cue
+   * overwrites them, so `restoreContent` can roll back on the next
+   * cue boundary. Idempotent — a second call for the same element
+   * does not overwrite the already-cached value.
+   */
+  cacheContent(element, config = {}) {
+    if (!element) return;
+    const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
+    const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
+    const titleEl = element.querySelector(titleSelector);
+    if (titleEl && !titleEl.dataset.vidplyAlertTitleOriginal) {
+      titleEl.dataset.vidplyAlertTitleOriginal = titleEl.textContent?.trim() ?? "";
+    }
+    const messageEl = element.querySelector(messageSelector);
+    if (messageEl && !messageEl.dataset.vidplyAlertMessageOriginal) {
+      messageEl.dataset.vidplyAlertMessageOriginal = messageEl.textContent?.trim() ?? "";
+    }
+  }
+  restoreContent(element, config = {}) {
+    if (!element) return;
+    const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
+    const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
+    const titleEl = element.querySelector(titleSelector);
+    if (titleEl && titleEl.dataset.vidplyAlertTitleOriginal) {
+      titleEl.textContent = titleEl.dataset.vidplyAlertTitleOriginal;
+    }
+    const messageEl = element.querySelector(messageSelector);
+    if (messageEl && messageEl.dataset.vidplyAlertMessageOriginal) {
+      messageEl.textContent = messageEl.dataset.vidplyAlertMessageOriginal;
+    }
+  }
+  /**
+   * Move focus to one of the well-known targets understood by the
+   * alert system, or to a named selector. Never silently errors — an
+   * unresolved target is simply a no-op.
+   */
+  focusTarget(target, fallbackElement = null) {
+    if (!target || target === "none") return;
+    if (target === "alert" && fallbackElement) {
+      fallbackElement.focus({ preventScroll: true });
+      return;
+    }
+    const player = this.player;
+    if (target === "player") {
+      player.container?.focus({ preventScroll: true });
+      return;
+    }
+    if (target === "media") {
+      player.element.focus({ preventScroll: true });
+      return;
+    }
+    if (target === "playButton") {
+      const playButton = player.controlBar?.controls?.playPause;
+      playButton?.focus({ preventScroll: true });
+      return;
+    }
+    if (typeof target === "string") {
+      const targetElement = document.querySelector(target);
+      if (targetElement) {
+        if (targetElement.tabIndex === -1 && !targetElement.hasAttribute("tabindex")) {
+          targetElement.setAttribute("tabindex", "-1");
+        }
+        targetElement.focus({ preventScroll: true });
+      }
+    }
+  }
+  /**
+   * The public alert entry point. Pulls config out of
+   * `options.metadataAlerts`, locates the DOM element, and applies
+   * show/focus/continue logic per configuration.
+   */
+  handleAlert(selector, options = {}) {
+    const player = this.player;
+    if (!selector) return void 0;
+    const config = this.resolveConfig(player.options.metadataAlerts, selector) || {};
+    const element = options.element || this.resolveElement(selector);
+    if (!element) {
+      if (player.options.debug) player.log("[Metadata] Alert element not found:", selector);
+      return void 0;
+    }
+    if (player.options.debug) {
+      player.log("[Metadata] Handling alert", selector, { reason: options.reason, config });
+    }
+    this.cacheContent(element, config);
+    if (!element.dataset.vidplyAlertOriginalDisplay) {
+      element.dataset.vidplyAlertOriginalDisplay = element.style.display || "";
+    }
+    if (!element.dataset.vidplyAlertDisplay) {
+      element.dataset.vidplyAlertDisplay = config.display || "block";
+    }
+    const shouldShow = options.show !== void 0 ? options.show : config.show !== false;
+    if (shouldShow) {
+      const displayValue = config.display || element.dataset.vidplyAlertDisplay || "block";
+      element.style.display = displayValue;
+      element.hidden = false;
+      element.removeAttribute("hidden");
+      element.setAttribute("aria-hidden", "false");
+      element.setAttribute("data-vidply-alert-active", "true");
+    }
+    const shouldReset = config.resetContent !== false && options.reason === "focus";
+    if (shouldReset) this.restoreContent(element, config);
+    const shouldFocus = options.focus !== void 0 ? options.focus : config.focusOnShow ?? options.reason !== "focus";
+    if (shouldShow && shouldFocus) {
+      if (element.tabIndex === -1 && !element.hasAttribute("tabindex")) {
+        element.setAttribute("tabindex", "-1");
+      }
+      element.focus({ preventScroll: true });
+    }
+    if (shouldShow && config.autoScroll !== false && options.autoScroll !== false) {
+      element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    const continueSelector = config.continueButton;
+    if (continueSelector) {
+      let continueButton = null;
+      if (continueSelector === "self") {
+        continueButton = element;
+      } else if (element.matches(continueSelector)) {
+        continueButton = element;
+      } else {
+        continueButton = element.querySelector(continueSelector) || document.querySelector(continueSelector);
+      }
+      if (continueButton && !this.alertHandlers.has(selector)) {
+        const handler = () => {
+          const hideOnContinue = config.hideOnContinue !== false;
+          if (hideOnContinue) {
+            const originalDisplay = element.dataset.vidplyAlertOriginalDisplay || "";
+            element.style.display = config.hideDisplay || originalDisplay || "none";
+            element.setAttribute("aria-hidden", "true");
+            element.removeAttribute("data-vidply-alert-active");
+          }
+          if (config.resume !== false && player.state.paused) {
+            player.play();
+          }
+          const focusTarget = config.focusTarget || "playButton";
+          player.setManagedTimeout(() => {
+            this.focusTarget(focusTarget, element);
+          }, config.focusDelay ?? 100);
+        };
+        continueButton.addEventListener("click", handler);
+        this.alertHandlers.set(selector, { button: continueButton, handler });
+      }
+    }
+    return element;
+  }
+  handleHashtags(hashtags) {
+    if (!Array.isArray(hashtags) || hashtags.length === 0) return;
+    const player = this.player;
+    const configMap = player.options.metadataHashtags;
+    if (!configMap) return;
+    hashtags.forEach((tag) => {
+      const config = this.resolveConfig(configMap, tag);
+      if (!config) return;
+      const selector = this.normalizeSelector(config.alert || config.selector || config.target);
+      if (!selector) return;
+      const element = this.resolveElement(selector);
+      if (!element) {
+        if (player.options.debug) player.log("[Metadata] Hashtag target not found:", selector);
+        return;
+      }
+      if (player.options.debug) {
+        player.log("[Metadata] Handling hashtag", tag, { selector, config });
+      }
+      this.cacheContent(element, config);
+      if (config.title) {
+        const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
+        const titleEl = element.querySelector(titleSelector);
+        if (titleEl) titleEl.textContent = config.title;
+      }
+      if (config.message) {
+        const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
+        const messageEl = element.querySelector(messageSelector);
+        if (messageEl) messageEl.textContent = config.message;
+      }
+      const show = config.show !== false;
+      const focus = config.focus !== void 0 ? config.focus : false;
+      this.handleAlert(selector, {
+        element,
+        show,
+        focus,
+        autoScroll: config.autoScroll,
+        reason: "hashtag"
+      });
+    });
+  }
+  /**
+   * Parse a single metadata cue for directives (`PAUSE`, `FOCUS:x`,
+   * `#hashtag`), emit the corresponding public events, and execute
+   * DOM side-effects only when `options.metadataDirectives` is set.
+   */
+  handleCue(cue) {
+    const player = this.player;
+    const text = cue.text.trim();
+    if (player.options.debug) {
+      player.log("[Metadata] Processing cue:", { time: cue.startTime, text });
+    }
+    player.emit("metadata", {
+      time: cue.startTime,
+      endTime: cue.endTime,
+      text,
+      cue
+    });
+    if (text.includes("PAUSE")) {
+      if (!player.state.paused) {
+        if (player.options.debug) player.log("[Metadata] Pausing video at", cue.startTime);
+        player.pause();
+      }
+      player.emit("metadata:pause", { time: cue.startTime, text });
+    }
+    const focusMatch = text.match(/FOCUS:([\w#-]{1,128})/);
+    if (focusMatch) {
+      const targetSelector = focusMatch[1];
+      const normalizedSelector = this.normalizeSelector(targetSelector);
+      const targetElement = this.resolveElement(normalizedSelector);
+      if (targetElement) {
+        if (player.options.debug) player.log("[Metadata] Focusing element:", normalizedSelector);
+        if (targetElement.tabIndex === -1 && !targetElement.hasAttribute("tabindex")) {
+          targetElement.setAttribute("tabindex", "-1");
+        }
+        player.setManagedTimeout(() => {
+          targetElement.focus({ preventScroll: true });
+        }, 10);
+      } else if (player.options.debug && player.options.metadataDirectives) {
+        player.log("[Metadata] Element not found:", normalizedSelector || targetSelector);
+      }
+      player.emit("metadata:focus", {
+        time: cue.startTime,
+        target: targetSelector,
+        selector: normalizedSelector,
+        element: targetElement,
+        text
+      });
+      if (player.options.metadataDirectives && normalizedSelector) {
+        this.handleAlert(normalizedSelector, {
+          element: targetElement,
+          reason: "focus"
+        });
+      }
+    }
+    const hashtags = text.match(/#[\w-]{1,64}/g);
+    if (hashtags && hashtags.length > 0) {
+      const safeTags = hashtags.slice(0, 32);
+      if (player.options.debug) player.log("[Metadata] Hashtags found:", safeTags);
+      player.emit("metadata:hashtags", {
+        time: cue.startTime,
+        hashtags: safeTags,
+        text
+      });
+      if (player.options.metadataDirectives) this.handleHashtags(safeTags);
+    }
+  }
+  /**
+   * Resolve a metadata-cue selector inside the configured directive
+   * scope. Returns `null` when directives are disabled or the
+   * selector doesn't resolve. Container-scoped resolution is the
+   * default so a malicious caption cannot focus a login-form input
+   * or trigger a dialog elsewhere on the page.
+   */
+  resolveElement(selector) {
+    const player = this.player;
+    const mode = player.options.metadataDirectives;
+    if (!mode) return null;
+    if (!selector) return null;
+    try {
+      if (mode === true || mode === "global") {
+        return document.querySelector(selector);
+      }
+      const root = player.container || player.element.parentElement || document;
+      return root.querySelector(selector);
+    } catch {
+      return null;
+    }
+  }
+  /** Tear down the per-alert click handlers and the cuechange
+   *  listener. Called from Player.destroy(). */
+  cleanup() {
+    if (this.alertHandlers.size > 0) {
+      this.alertHandlers.forEach(({ button, handler }) => {
+        if (button && handler) button.removeEventListener("click", handler);
+      });
+      this.alertHandlers.clear();
+    }
+    this.cueChangeHandler = null;
+  }
+};
+
+// src/core/Player.ts
+var AudioDescriptionManagerModule = null;
+var SignLanguageManagerModule = null;
+var FloatingPlayerManagerModule = null;
+async function loadAudioDescriptionManager() {
+  if (!AudioDescriptionManagerModule) {
+    const module = await import("./vidply.AudioDescriptionManager-R5PH5AW5.js");
+    AudioDescriptionManagerModule = module.AudioDescriptionManager;
+  }
+  return AudioDescriptionManagerModule;
+}
+async function loadSignLanguageManager() {
+  if (!SignLanguageManagerModule) {
+    const module = await import("./vidply.SignLanguageManager-Z5KW57KB.js");
+    SignLanguageManagerModule = module.SignLanguageManager;
+  }
+  return SignLanguageManagerModule;
+}
+async function loadFloatingPlayerManager() {
+  if (!FloatingPlayerManagerModule) {
+    const module = await import("./vidply.FloatingPlayerManager-UVIUWI74.js");
+    FloatingPlayerManagerModule = module.FloatingPlayerManager;
+  }
+  return FloatingPlayerManagerModule;
+}
+var ALLOWED_MEDIA_TYPES = ["video", "audio"];
 var playerInstanceCounter = 0;
 var Player = class _Player extends EventEmitter {
   static instances = [];
-  static observeLazy;
   /**
-   * Available theme names
+   * Available theme names. Kept as a static field for backward
+   * compatibility with external callers that used
+   * `Player.THEMES.includes(x)`; the canonical source is
+   * `PLAYER_THEMES` in `./ThemeManager.ts`.
    */
-  static THEMES = ["dark", "light", "minimal", "high-contrast"];
+  static THEMES = PLAYER_THEMES;
+  /**
+   * Manually schedule a lazy-initialised player for `selector` /
+   * `element`. The player is constructed the first time the element
+   * scrolls within `margin` of the viewport; if `IntersectionObserver`
+   * is unavailable the player is constructed immediately.
+   *
+   * Returns a handle whose `cancel()` method removes the pending
+   * observation, or `null` if no observation was scheduled (element
+   * missing or eager fallback took effect).
+   *
+   * Implemented as a real static method (rather than a post-construction
+   * assignment from `index.ts`) so the API belongs to the `Player`
+   * symbol itself — which makes it easier to tree-shake and reason about.
+   */
+  static observeLazy(selector, options = {}, margin = "200px") {
+    const element = typeof selector === "string" ? document.querySelector(selector) : selector;
+    if (!element) {
+      console.warn("VidPly: Element not found for lazy observation");
+      return null;
+    }
+    if ("IntersectionObserver" in window) {
+      observeForLazyInit(
+        element,
+        options,
+        margin,
+        (target, opts) => {
+          new _Player(target, opts);
+        }
+      );
+      return { cancel: () => cancelLazyInit(element) };
+    }
+    new _Player(element, options);
+    return null;
+  }
   element;
   container;
   /**
@@ -3859,24 +4961,31 @@ var Player = class _Player extends EventEmitter {
   instanceId;
   _audioDescriptionDesiredState;
   _fallbackSources = null;
-  _inertElements = [];
   _isAudioContent;
   _isFallingBack;
   _managersLoading = null;
-  _originalBodyBackground;
-  _originalBodyHeight;
-  _originalBodyOverflow;
-  _originalBodyPosition;
-  _originalBodyWidth;
   _originalElement;
-  _originalHtmlBackground;
-  _originalHtmlOverflow;
-  _originalScrollX;
-  _originalScrollY;
-  _originalViewport;
+  /** Lazily-created on first pseudo-fullscreen entry. Owns the scroll /
+   *  inert / viewport bookkeeping that used to live as `_original*`
+   *  fields directly on the player. */
+  pseudoFullscreen = null;
+  /** Owns `applyTheme`/`setTheme`/`setThemeVariable`/`resetTheme`. Player
+   *  keeps delegating public methods so the existing API is unchanged. */
+  themeManager;
+  /** Owns poster resolution, canvas-capture, and overlay show/hide. */
+  posterManager;
+  /** Owns resume-playback prompt + progress persistence. Lazily
+   *  created the first time `initResumePlayback` is called so sites
+   *  that don't enable the feature don't pay the DOM / listener cost. */
+  resumeManager = null;
+  /** Owns resize-observer, orientation matchMedia, and the
+   *  cross-vendor fullscreenchange listeners. */
+  responsiveManager;
+  /** Owns `kind=metadata` text-track directives (PAUSE, FOCUS,
+   *  #hashtag) + the per-selector alert UI. Lazily created on first
+   *  `setupMetadataHandling()` call. */
+  metadataAlertsManager = null;
   _pendingSource = null;
-  _resumeChecked;
-  _saveProgressThrottled = null;
   _sourceElementsCache = null;
   _sourceElementsDirty = true;
   _switchingRenderer;
@@ -3891,7 +5000,8 @@ var Player = class _Player extends EventEmitter {
   currentSource = null;
   debouncedPositionPlayOverlay = null;
   fullscreenChangeHandler = null;
-  metadataAlertHandlers = /* @__PURE__ */ new Map();
+  /** Mirrored from `MetadataAlertsManager` so the TextTrack cleanup
+   *  path in `destroy()` can still find it by a fixed field name. */
   metadataCueChangeHandler = null;
   noticeElement = null;
   noticeTimeout = null;
@@ -4125,6 +5235,9 @@ var Player = class _Player extends EventEmitter {
     this.noticeElement = null;
     this.noticeTimeout = null;
     this.storage = new StorageManager("vidply");
+    this.themeManager = new ThemeManager(this);
+    this.posterManager = new PosterManager(this);
+    this.responsiveManager = new ResponsiveManager(this);
     const savedPrefs = this.storage.getPlayerPreferences();
     if (savedPrefs) {
       if (typeof savedPrefs.volume === "number") this.options.volume = savedPrefs.volume;
@@ -4156,8 +5269,6 @@ var Player = class _Player extends EventEmitter {
       resumePromptVisible: false
     };
     this.resumePromptElement = null;
-    this._saveProgressThrottled = null;
-    this._resumeChecked = false;
     this.originalSrc = null;
     this.audioDescriptionSrc = this.options.audioDescriptionSrc;
     this.signLanguageSrc = this.options.signLanguageSrc;
@@ -4182,7 +5293,6 @@ var Player = class _Player extends EventEmitter {
     this.keyboardManager = null;
     this.settingsDialog = null;
     this.metadataCueChangeHandler = null;
-    this.metadataAlertHandlers = /* @__PURE__ */ new Map();
     this.audioDescriptionManager = null;
     this.signLanguageManager = null;
     this._managersLoading = null;
@@ -4428,7 +5538,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-ELZXTICN.js");
+    const module = await import("./vidply.TranscriptManager-JI4F3OHJ.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -4550,27 +5660,16 @@ var Player = class _Player extends EventEmitter {
     return null;
   }
   /**
-   * Initialize resume playback functionality
+   * Initialise the resume-playback feature. Lazily constructs a
+   * `ResumeManager` on first use so disabled pages don't pay the DOM
+   * / listener cost. Repeat calls are safe — the manager's own
+   * `init()` is idempotent.
    */
   initResumePlayback() {
-    this._saveProgressThrottled = throttle(() => this.saveProgress(), 5e3);
-    this.on("timeupdate", () => {
-      if (this.state.playing && this.state.duration > 0) {
-        this._saveProgressThrottled?.();
-      }
-    });
-    this.on("loadedmetadata", () => {
-      if (!this._resumeChecked) {
-        this._resumeChecked = true;
-        this.checkForResume();
-      }
-    });
-    this.on("ended", () => {
-      const videoId = this.getVideoId();
-      if (videoId) {
-        this.storage.clearWatchProgress(videoId);
-      }
-    });
+    if (!this.resumeManager) {
+      this.resumeManager = new ResumeManager(this);
+    }
+    this.resumeManager.init();
   }
   /**
    * Get a unique identifier for the current video
@@ -4606,238 +5705,36 @@ var Player = class _Player extends EventEmitter {
     }
     return "v_" + Math.abs(hash).toString(36);
   }
-  /**
-   * Save current playback progress
-   */
+  // Resume-playback delegates. Implementations live in
+  // `core/ResumeManager.ts`; these stubs keep the public API.
   saveProgress() {
-    if (!this.options.resumePlayback) return;
-    const videoId = this.getVideoId();
-    if (!videoId) return;
-    const currentTime = this.state.currentTime;
-    const duration = this.state.duration;
-    if (duration < 30 || currentTime < this.options.resumeThreshold) {
-      return;
-    }
-    const percentage = currentTime / duration * 100;
-    if (percentage > 95) {
-      return;
-    }
-    this.storage.saveWatchProgress(videoId, currentTime, duration);
+    this.resumeManager?.saveProgress();
   }
-  // ============================================
-  // Theme Methods
-  // ============================================
-  /**
-   * Check if there's saved progress and potentially show a resume prompt
-   */
   checkForResume() {
-    if (!this.options.resumePlayback) return;
-    const videoId = this.getVideoId();
-    if (!videoId) return;
-    const progress = this.storage.getWatchProgress(videoId);
-    if (!progress) return;
-    const { currentTime, duration, percentage } = progress;
-    if (currentTime < this.options.resumeThreshold || percentage > 95) {
-      this.storage.clearWatchProgress(videoId);
-      return;
-    }
-    if (this.state.duration > 0 && Math.abs(this.state.duration - duration) > 5) {
-      this.storage.clearWatchProgress(videoId);
-      return;
-    }
-    if (this.options.resumePrompt) {
-      this.showResumePrompt(currentTime);
-    } else {
-      this.seek(currentTime);
-    }
+    this.resumeManager?.checkForResume();
   }
-  /**
-   * Format time for display (mm:ss or hh:mm:ss)
-   * @param {number} seconds - Time in seconds
-   * @returns {string} Formatted time string
-   */
-  _formatResumeTime(seconds) {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor(seconds % 3600 / 60);
-    const s = Math.floor(seconds % 60);
-    if (h > 0) {
-      return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-    }
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  }
-  /**
-   * Show the resume prompt overlay
-   * @param {number} savedTime - Time to resume from
-   */
   showResumePrompt(savedTime) {
-    if (this.state.resumePromptVisible || !this.container) return;
-    const formattedTime = this._formatResumeTime(savedTime);
-    const promptText = i18n.t("resume.prompt", { time: formattedTime });
-    this.resumePromptElement = DOMUtils.createElement("div", {
-      className: `${this.options.classPrefix}-resume-prompt`,
-      attributes: {
-        "role": "dialog",
-        "aria-label": promptText,
-        "aria-modal": "true"
-      }
-    });
-    const promptContent = DOMUtils.createElement("div", {
-      className: `${this.options.classPrefix}-resume-prompt-content`
-    });
-    const promptMessage = DOMUtils.createElement("p", {
-      className: `${this.options.classPrefix}-resume-prompt-message`,
-      textContent: promptText
-    });
-    const buttonContainer = DOMUtils.createElement("div", {
-      className: `${this.options.classPrefix}-resume-prompt-buttons`
-    });
-    const resumeButton = DOMUtils.createElement("button", {
-      className: `${this.options.classPrefix}-resume-prompt-button ${this.options.classPrefix}-resume-prompt-button-primary`,
-      textContent: i18n.t("resume.resume"),
-      attributes: {
-        "type": "button"
-      }
-    });
-    resumeButton.addEventListener("click", () => {
-      this.hideResumePrompt();
-      this.seek(savedTime);
-      this.play();
-    });
-    const startOverButton = DOMUtils.createElement("button", {
-      className: `${this.options.classPrefix}-resume-prompt-button`,
-      textContent: i18n.t("resume.startOver"),
-      attributes: {
-        "type": "button"
-      }
-    });
-    startOverButton.addEventListener("click", () => {
-      this.hideResumePrompt();
-      const videoId = this.getVideoId();
-      if (videoId) {
-        this.storage.clearWatchProgress(videoId);
-      }
-      this.seek(0);
-      this.play();
-    });
-    const handleKeydown = (e) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        this.hideResumePrompt();
-      }
-    };
-    this.resumePromptElement.addEventListener("keydown", handleKeydown);
-    buttonContainer.appendChild(resumeButton);
-    buttonContainer.appendChild(startOverButton);
-    promptContent.appendChild(promptMessage);
-    promptContent.appendChild(buttonContainer);
-    this.resumePromptElement.appendChild(promptContent);
-    this.container.appendChild(this.resumePromptElement);
-    this.state.resumePromptVisible = true;
-    requestAnimationFrame(() => {
-      resumeButton.focus();
-    });
-    this.emit("resumepromptshow", { savedTime });
+    this.resumeManager?.showPrompt(savedTime);
   }
-  /**
-   * Hide the resume prompt overlay
-   */
   hideResumePrompt() {
-    if (!this.resumePromptElement) return;
-    this.resumePromptElement.remove();
-    this.resumePromptElement = null;
-    this.state.resumePromptVisible = false;
-    this.emit("resumeprompthide");
+    this.resumeManager?.hidePrompt();
   }
-  /**
-   * Apply the current theme to the player container
-   */
+  // Theme delegates. All four keep their original names so external
+  // callers keep working; the real work is in `core/ThemeManager.ts`.
   applyTheme() {
-    if (!this.container) return;
-    const themeClasses = _Player.THEMES.map(
-      (t) => `${this.options.classPrefix}-theme-${t}`
-    );
-    this.container.classList.remove(...themeClasses);
-    const theme = this.options.theme;
-    if (theme && _Player.THEMES.includes(theme)) {
-      this.container.classList.add(`${this.options.classPrefix}-theme-${theme}`);
-    }
-    if (this.options.themeVariables && typeof this.options.themeVariables === "object") {
-      for (const [rawKey, rawValue] of Object.entries(this.options.themeVariables)) {
-        if (PROTO_FORBIDDEN_KEYS.has(rawKey)) continue;
-        const cssVar = rawKey.startsWith("--vidply-") ? rawKey : `--vidply-${rawKey}`;
-        if (!isValidThemeVariableName(cssVar)) {
-          this.log(`[VidPly] Ignoring invalid theme variable name: ${rawKey}`, "warn");
-          continue;
-        }
-        if (!isValidThemeVariableValue(rawValue)) {
-          this.log(`[VidPly] Ignoring invalid theme variable value for ${cssVar}`, "warn");
-          continue;
-        }
-        this.container.style.setProperty(cssVar, rawValue);
-      }
-    }
+    this.themeManager.apply();
   }
-  /**
-   * Set the player theme at runtime
-   * @param {string} themeName - Theme name: 'dark', 'light', 'minimal', 'high-contrast'
-   * @param {Object} customVariables - Optional CSS variable overrides
-   */
   setTheme(themeName, customVariables = {}) {
-    const previousTheme = this.options.theme;
-    this.options.theme = themeName;
-    if (customVariables && Object.keys(customVariables).length > 0) {
-      this.options.themeVariables = {
-        ...this.options.themeVariables,
-        ...customVariables
-      };
-    }
-    this.applyTheme();
-    this.emit("themechange", {
-      theme: themeName,
-      previousTheme,
-      customVariables: this.options.themeVariables
-    });
+    this.themeManager.set(themeName, customVariables);
   }
-  /**
-   * Get the current theme name
-   * @returns {string} Current theme name
-   */
   getTheme() {
-    return this.options.theme;
+    return this.themeManager.get();
   }
-  /**
-   * Set a single CSS variable override
-   * @param {string} variableName - Variable name (with or without --vidply-prefix)
-   * @param {string} value - CSS value
-   */
   setThemeVariable(variableName, value) {
-    if (!this.container) return;
-    const cssVar = variableName.startsWith("--vidply-") ? variableName : `--vidply-${variableName}`;
-    if (!isValidThemeVariableName(cssVar) || !isValidThemeVariableValue(value)) {
-      this.log(`[VidPly] Ignoring unsafe setThemeVariable(${variableName})`, "warn");
-      return;
-    }
-    this.container.style.setProperty(cssVar, value);
-    if (!this.options.themeVariables) {
-      this.options.themeVariables = {};
-    }
-    this.options.themeVariables[variableName] = value;
+    this.themeManager.setVariable(variableName, value);
   }
-  /**
-   * Reset theme to default (dark) and clear custom variables
-   */
   resetTheme() {
-    if (this.container && this.options.themeVariables) {
-      Object.keys(this.options.themeVariables).forEach((key) => {
-        const cssVar = key.startsWith("--vidply-") ? key : `--vidply-${key}`;
-        this.container.style.removeProperty(cssVar);
-      });
-    }
-    this.options.theme = "dark";
-    this.options.themeVariables = {};
-    this.applyTheme();
-    this.emit("themechange", { theme: "dark", previousTheme: this.options.theme });
+    this.themeManager.reset();
   }
   createContainer() {
     const playerLabel = this.instanceId > 1 ? `${i18n.t("player.label")} ${this.instanceId}` : i18n.t("player.label");
@@ -5191,106 +6088,21 @@ var Player = class _Player extends EventEmitter {
   findTrackElement(track) {
     return this.trackElements.find((el) => el.track === track);
   }
-  /**
-   * Convert relative poster path to absolute URL
-   * @param {string} posterPath - Poster path (relative or absolute)
-   * @returns {string} Absolute URL
-   */
+  // Poster delegates. Implementations live in `core/PosterManager.ts`.
   resolvePosterPath(posterPath) {
-    if (!posterPath) {
-      return "";
-    }
-    if (posterPath.match(/^(https?:|\/)/)) {
-      return posterPath;
-    }
-    try {
-      const posterUrl = new URL(posterPath, window.location.href);
-      return posterUrl.href;
-    } catch {
-      return posterPath;
-    }
+    return this.posterManager.resolvePath(posterPath);
   }
-  /**
-   * Generate a poster image from video frame at specified time
-   * @param {number} time - Time in seconds (default: 10)
-   * @returns {Promise<string|null>} Data URL of the poster image or null if failed
-   */
   async generatePosterFromVideo(time = 10) {
-    if (this.element.tagName !== "VIDEO") {
-      return null;
-    }
-    const renderer = this.renderer;
-    if (!renderer || !renderer.media || renderer.media.tagName !== "VIDEO") {
-      return null;
-    }
-    const video = renderer.media;
-    if (!video.duration || video.duration < time) {
-      time = Math.min(time, Math.max(1, video.duration * 0.1));
-    }
-    let videoToUse = video;
-    if (this.controlBar && this.controlBar.previewVideo && this.controlBar.previewSupported) {
-      videoToUse = this.controlBar.previewVideo;
-    }
-    const restoreState = videoToUse === video;
-    return await captureVideoFrame(videoToUse, time, {
-      restoreState,
-      quality: 0.9
-    });
+    return this.posterManager.generateFromVideo(time);
   }
-  /**
-   * Auto-generate poster from video if none is provided
-   */
   async autoGeneratePoster() {
-    const hasPoster = this.element.getAttribute("poster") || this.element.poster || this.options.poster;
-    if (hasPoster) {
-      return;
-    }
-    if (this.element.tagName !== "VIDEO") {
-      return;
-    }
-    if (!this.state.duration || this.state.duration === 0) {
-      await new Promise((resolve) => {
-        const onLoadedMetadata = () => {
-          this.element.removeEventListener("loadedmetadata", onLoadedMetadata);
-          resolve();
-        };
-        if (this.element.readyState >= 1) {
-          resolve();
-        } else {
-          this.element.addEventListener("loadedmetadata", onLoadedMetadata);
-        }
-      });
-    }
-    const posterDataURL = await this.generatePosterFromVideo(10);
-    if (posterDataURL) {
-      this.element.poster = posterDataURL;
-      this.log("Auto-generated poster from video frame at 10 seconds", "info");
-      this.showPosterOverlay();
-    }
+    return this.posterManager.autoGenerate();
   }
   showPosterOverlay() {
-    if (!this.videoWrapper || this.element.tagName !== "VIDEO") {
-      return;
-    }
-    const poster = this.element.getAttribute("poster") || this.element.poster || this.options.poster;
-    if (!poster) {
-      return;
-    }
-    const resolvedPoster = poster.startsWith("data:") ? poster : this.resolvePosterPath(poster);
-    this.videoWrapper.style.setProperty("--vidply-poster-image", `url("${resolvedPoster}")`);
-    this.videoWrapper.classList.add("vidply-forced-poster");
-    if (this._isAudioContent && this.container) {
-      this.container.classList.add("vidply-audio-content");
-    } else if (this.container) {
-      this.container.classList.remove("vidply-audio-content");
-    }
+    this.posterManager.showOverlay();
   }
   hidePosterOverlay() {
-    if (!this.videoWrapper) {
-      return;
-    }
-    this.videoWrapper.classList.remove("vidply-forced-poster");
-    this.videoWrapper.style.removeProperty("--vidply-poster-image");
+    this.posterManager.hideOverlay();
   }
   /**
    * Set a managed timeout that will be cleaned up on destroy
@@ -5747,111 +6559,18 @@ var Player = class _Player extends EventEmitter {
       this.enterFullscreen();
     }
   }
-  // Pseudo-fullscreen fallback for iOS and browsers without Fullscreen API
+  // Pseudo-fullscreen fallback for iOS and browsers without Fullscreen API.
+  // All of the real DOM + scroll + inert bookkeeping lives in
+  // `PseudoFullscreenController`; Player keeps these thin delegates so
+  // call sites elsewhere in the class stay readable.
   _enablePseudoFullscreen() {
-    this.state.fullscreen = true;
-    this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
-    document.body.classList.add("vidply-fullscreen-active");
-    this._originalScrollX = window.scrollX || window.pageXOffset;
-    this._originalScrollY = window.scrollY || window.pageYOffset;
-    this._originalBodyOverflow = document.body.style.overflow;
-    this._originalBodyPosition = document.body.style.position;
-    this._originalBodyWidth = document.body.style.width;
-    this._originalBodyHeight = document.body.style.height;
-    this._originalHtmlOverflow = document.documentElement.style.overflow;
-    this._originalBodyBackground = document.body.style.background;
-    this._originalHtmlBackground = document.documentElement.style.background;
-    document.body.style.overflow = "hidden";
-    document.body.style.width = "100%";
-    document.body.style.height = "100%";
-    document.body.style.background = "#000";
-    document.documentElement.style.overflow = "hidden";
-    document.documentElement.style.background = "#000";
-    this._originalViewport = document.querySelector('meta[name="viewport"]')?.getAttribute("content");
-    const viewport = document.querySelector('meta[name="viewport"]');
-    if (viewport) {
-      viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+    if (!this.pseudoFullscreen) {
+      this.pseudoFullscreen = new PseudoFullscreenController(this);
     }
-    window.scrollTo(0, 0);
-    this._makeBackgroundInert();
-    this.emit("fullscreenchange", true);
-    this.emit("enterfullscreen");
-  }
-  /**
-   * Makes all page content except the fullscreen player inert (non-focusable)
-   * This prevents keyboard navigation from focusing on hidden background elements
-   */
-  _makeBackgroundInert() {
-    this._inertElements = [];
-    let current = this.container;
-    while (current && current !== document.body && current !== document.documentElement) {
-      const parentElement = current.parentElement;
-      if (parentElement) {
-        Array.from(parentElement.children).forEach((sibling) => {
-          if (sibling !== current && sibling.nodeType === Node.ELEMENT_NODE && !sibling.hasAttribute("inert") && sibling.tagName !== "SCRIPT" && sibling.tagName !== "STYLE" && sibling.tagName !== "LINK" && sibling.tagName !== "META") {
-            sibling.setAttribute("inert", "");
-            this._inertElements.push(sibling);
-          }
-        });
-      }
-      current = parentElement;
-    }
-  }
-  /**
-   * Restores interactivity to elements that were made inert during fullscreen
-   */
-  _restoreBackgroundInteractivity() {
-    if (this._inertElements) {
-      this._inertElements.forEach((el) => {
-        el.removeAttribute("inert");
-      });
-      this._inertElements = [];
-    }
+    this.pseudoFullscreen.enable();
   }
   _disablePseudoFullscreen() {
-    document.body.classList.remove("vidply-fullscreen-active");
-    this._restoreBackgroundInteractivity();
-    if (this._originalBodyOverflow !== void 0) {
-      document.body.style.overflow = this._originalBodyOverflow;
-      delete this._originalBodyOverflow;
-    }
-    if (this._originalBodyPosition !== void 0) {
-      document.body.style.position = this._originalBodyPosition;
-      delete this._originalBodyPosition;
-    }
-    if (this._originalBodyWidth !== void 0) {
-      document.body.style.width = this._originalBodyWidth;
-      delete this._originalBodyWidth;
-    }
-    if (this._originalBodyHeight !== void 0) {
-      document.body.style.height = this._originalBodyHeight;
-      delete this._originalBodyHeight;
-    }
-    if (this._originalHtmlOverflow !== void 0) {
-      document.documentElement.style.overflow = this._originalHtmlOverflow;
-      delete this._originalHtmlOverflow;
-    }
-    if (this._originalBodyBackground !== void 0) {
-      document.body.style.background = this._originalBodyBackground;
-      delete this._originalBodyBackground;
-    }
-    if (this._originalHtmlBackground !== void 0) {
-      document.documentElement.style.background = this._originalHtmlBackground;
-      delete this._originalHtmlBackground;
-    }
-    if (this._originalViewport !== void 0) {
-      const viewport = document.querySelector('meta[name="viewport"]');
-      if (viewport && this._originalViewport !== null) {
-        viewport.setAttribute("content", this._originalViewport);
-      }
-      delete this._originalViewport;
-    }
-    if (this._originalScrollX !== void 0 && this._originalScrollY !== void 0) {
-      window.scrollTo(this._originalScrollX, this._originalScrollY);
-      delete this._originalScrollX;
-      delete this._originalScrollY;
-    }
-    this.emit("exitfullscreen");
+    this.pseudoFullscreen?.disable();
   }
   // Picture-in-Picture
   enterPiP() {
@@ -6131,100 +6850,14 @@ var Player = class _Player extends EventEmitter {
       console.log("[VidPly]", ...messages);
     }
   }
-  // Set up responsive handlers
+  /**
+   * Wire up resize / orientation / fullscreen listeners. Delegates to
+   * `ResponsiveManager`; Player keeps the method name for backward
+   * compatibility with external callers that start the feature
+   * manually after swapping the container.
+   */
   setupResponsiveHandlers() {
-    if (typeof ResizeObserver !== "undefined") {
-      this.resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          const width = entry.contentRect.width;
-          const controlBar = this.controlBar;
-          if (controlBar && typeof controlBar.updateControlsForViewport === "function") {
-            controlBar.updateControlsForViewport(width);
-          }
-          if (this.transcriptManager && this.transcriptManager.isVisible) {
-            this.transcriptManager.positionTranscript();
-          }
-        }
-      });
-      this.resizeObserver.observe(this.container);
-    } else {
-      this.resizeHandler = () => {
-        const width = this.container.clientWidth;
-        const controlBar = this.controlBar;
-        if (controlBar && typeof controlBar.updateControlsForViewport === "function") {
-          controlBar.updateControlsForViewport(width);
-        }
-        if (this.transcriptManager && this.transcriptManager.isVisible) {
-          if (!this.transcriptManager.draggableResizable || !this.transcriptManager.draggableResizable.manuallyPositioned) {
-            this.transcriptManager.positionTranscript();
-          }
-        }
-      };
-      window.addEventListener("resize", this.resizeHandler, { signal: this.lifecycleSignal });
-    }
-    if (window.matchMedia) {
-      this.orientationHandler = () => {
-        setTimeout(() => {
-          if (this.transcriptManager && this.transcriptManager.isVisible) {
-            if (!this.transcriptManager.draggableResizable || !this.transcriptManager.draggableResizable.manuallyPositioned) {
-              this.transcriptManager.positionTranscript();
-            }
-          }
-        }, 100);
-      };
-      const orientationQuery = window.matchMedia("(orientation: portrait)");
-      if (orientationQuery.addEventListener) {
-        orientationQuery.addEventListener("change", this.orientationHandler, {
-          signal: this.lifecycleSignal
-        });
-      } else if (orientationQuery.addListener) {
-        orientationQuery.addListener(this.orientationHandler);
-      }
-      this.orientationQuery = orientationQuery;
-    }
-    this.fullscreenChangeHandler = () => {
-      const doc = document;
-      const isFullscreen = Boolean(
-        document.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement
-      );
-      if (this.state.fullscreen !== isFullscreen) {
-        this.state.fullscreen = isFullscreen;
-        if (isFullscreen) {
-          this.container.classList.add(`${this.options.classPrefix}-fullscreen`);
-          document.body.classList.add("vidply-fullscreen-active");
-          this._makeBackgroundInert();
-        } else {
-          this.container.classList.remove(`${this.options.classPrefix}-fullscreen`);
-          document.body.classList.remove("vidply-fullscreen-active");
-          this._restoreBackgroundInteractivity();
-          this._disablePseudoFullscreen();
-        }
-        this.emit("fullscreenchange", isFullscreen);
-        if (this.controlBar) {
-          this.controlBar.updateFullscreenButton();
-        }
-        if (this.signLanguageWrapper && this.signLanguageWrapper.style.display !== "none") {
-          const isMobile2 = window.innerWidth < 768;
-          if (isMobile2) {
-            this.setupSignLanguageInteraction();
-          }
-          this.setManagedTimeout(() => {
-            requestAnimationFrame(() => {
-              this.storage.saveSignLanguagePreferences({ size: null });
-              if (this.signLanguageWrapper) {
-                this.signLanguageWrapper.style.width = isFullscreen ? "400px" : "280px";
-              }
-              this.constrainSignLanguagePosition();
-            });
-          }, 500);
-        }
-      }
-    };
-    const opts = { signal: this.lifecycleSignal };
-    document.addEventListener("fullscreenchange", this.fullscreenChangeHandler, opts);
-    document.addEventListener("webkitfullscreenchange", this.fullscreenChangeHandler, opts);
-    document.addEventListener("mozfullscreenchange", this.fullscreenChangeHandler, opts);
-    document.addEventListener("MSFullscreenChange", this.fullscreenChangeHandler, opts);
+    this.responsiveManager.setup();
   }
   // Cleanup. Aborts the lifecycle controller (which removes every
   // window/document listener wired with `{ signal }` plus every
@@ -6306,21 +6939,7 @@ var Player = class _Player extends EventEmitter {
       this.loadingOverlayElement.remove();
       this.loadingOverlayElement = null;
     }
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-      this.resizeObserver = null;
-    }
-    this.resizeHandler = null;
-    this.fullscreenChangeHandler = null;
-    if (this.orientationQuery && this.orientationHandler) {
-      if (this.orientationQuery.removeEventListener) {
-        this.orientationQuery.removeEventListener("change", this.orientationHandler);
-      } else if (this.orientationQuery.removeListener) {
-        this.orientationQuery.removeListener(this.orientationHandler);
-      }
-      this.orientationQuery = null;
-      this.orientationHandler = null;
-    }
+    this.responsiveManager?.cleanup();
     this.timeouts.forEach((timeoutId) => clearTimeout(timeoutId));
     this.timeouts.clear();
     if (this.metadataCueChangeHandler) {
@@ -6331,14 +6950,7 @@ var Player = class _Player extends EventEmitter {
       }
       this.metadataCueChangeHandler = null;
     }
-    if (this.metadataAlertHandlers && this.metadataAlertHandlers.size > 0) {
-      this.metadataAlertHandlers.forEach(({ button, handler }) => {
-        if (button && handler) {
-          button.removeEventListener("click", handler);
-        }
-      });
-      this.metadataAlertHandlers.clear();
-    }
+    this.metadataAlertsManager?.cleanup();
     const idx = _Player.instances.indexOf(this);
     if (idx >= 0) {
       _Player.instances.splice(idx, 1);
@@ -6350,365 +6962,51 @@ var Player = class _Player extends EventEmitter {
     this.removeAllListeners();
   }
   /**
-   * Set up metadata track handling
-   * This enables metadata tracks and listens for cue changes to trigger actions
+   * Set up metadata track handling. Delegates to
+   * `MetadataAlertsManager` — Player lazily constructs it so pages
+   * without metadata tracks pay no cost.
    */
   setupMetadataHandling() {
-    const setupMetadata = () => {
-      const textTracks = this.textTracks;
-      const metadataTrack = textTracks.find((track) => track.kind === "metadata");
-      if (metadataTrack) {
-        if (metadataTrack.mode === "disabled") {
-          metadataTrack.mode = "hidden";
-        }
-        if (this.metadataCueChangeHandler) {
-          metadataTrack.removeEventListener("cuechange", this.metadataCueChangeHandler);
-        }
-        this.metadataCueChangeHandler = () => {
-          const activeCues = Array.from(metadataTrack.activeCues || []);
-          if (activeCues.length > 0) {
-            if (this.options.debug) {
-              this.log("[Metadata] Active cues:", activeCues.map((c) => ({
-                start: c.startTime,
-                end: c.endTime,
-                text: c.text
-              })));
-            }
-          }
-          activeCues.forEach((cue) => {
-            this.handleMetadataCue(cue);
-          });
-        };
-        metadataTrack.addEventListener("cuechange", this.metadataCueChangeHandler);
-        if (this.options.debug) {
-          const cueCount = metadataTrack.cues ? metadataTrack.cues.length : 0;
-          this.log("[Metadata] Track enabled,", cueCount, "cues available");
-        }
-      } else if (this.options.debug) {
-        this.log("[Metadata] No metadata track found");
-      }
-    };
-    setupMetadata();
-    this.on("loadedmetadata", setupMetadata);
+    if (!this.metadataAlertsManager) {
+      this.metadataAlertsManager = new MetadataAlertsManager(this);
+    }
+    this.metadataAlertsManager.setupHandling();
   }
+  // Thin delegates for the metadata-alert system. Implementations
+  // live in `core/MetadataAlertsManager.ts`; Player keeps the names
+  // so call sites inside `handleMetadataCue` and external callers
+  // (e.g. TranscriptManager integration tests) keep working.
   normalizeMetadataSelector(selector) {
-    if (typeof selector !== "string") {
-      return null;
-    }
-    const trimmed = selector.trim();
-    if (!trimmed) {
-      return null;
-    }
-    if (trimmed.length > 200) {
-      return null;
-    }
-    if (trimmed.startsWith("#") || trimmed.startsWith(".") || trimmed.startsWith("[")) {
-      return trimmed;
-    }
-    return `#${trimmed}`;
+    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).normalizeSelector(selector);
   }
   resolveMetadataConfig(map, key) {
-    if (!map || !key) {
-      return null;
-    }
-    if (Object.prototype.hasOwnProperty.call(map, key)) {
-      return map[key];
-    }
-    const withoutHash = key.replace(/^#/, "");
-    if (Object.prototype.hasOwnProperty.call(map, withoutHash)) {
-      return map[withoutHash];
-    }
-    return null;
+    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).resolveConfig(map, key);
   }
   cacheMetadataAlertContent(element, config = {}) {
-    if (!element) {
-      return;
-    }
-    const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
-    const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
-    const titleEl = element.querySelector(titleSelector);
-    if (titleEl && !titleEl.dataset.vidplyAlertTitleOriginal) {
-      titleEl.dataset.vidplyAlertTitleOriginal = titleEl.textContent?.trim() ?? "";
-    }
-    const messageEl = element.querySelector(messageSelector);
-    if (messageEl && !messageEl.dataset.vidplyAlertMessageOriginal) {
-      messageEl.dataset.vidplyAlertMessageOriginal = messageEl.textContent?.trim() ?? "";
-    }
+    (this.metadataAlertsManager ?? this._ensureMetadataManager()).cacheContent(element, config);
   }
   restoreMetadataAlertContent(element, config = {}) {
-    if (!element) {
-      return;
-    }
-    const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
-    const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
-    const titleEl = element.querySelector(titleSelector);
-    if (titleEl && titleEl.dataset.vidplyAlertTitleOriginal) {
-      titleEl.textContent = titleEl.dataset.vidplyAlertTitleOriginal;
-    }
-    const messageEl = element.querySelector(messageSelector);
-    if (messageEl && messageEl.dataset.vidplyAlertMessageOriginal) {
-      messageEl.textContent = messageEl.dataset.vidplyAlertMessageOriginal;
-    }
+    (this.metadataAlertsManager ?? this._ensureMetadataManager()).restoreContent(element, config);
   }
   focusMetadataTarget(target, fallbackElement = null) {
-    if (!target || target === "none") {
-      return;
+    (this.metadataAlertsManager ?? this._ensureMetadataManager()).focusTarget(target, fallbackElement);
+  }
+  /** Internal helper: lazily creates the manager for external
+   *  entry points that didn't come via `setupMetadataHandling`. */
+  _ensureMetadataManager() {
+    if (!this.metadataAlertsManager) {
+      this.metadataAlertsManager = new MetadataAlertsManager(this);
     }
-    if (target === "alert" && fallbackElement) {
-      fallbackElement.focus({ preventScroll: true });
-      return;
-    }
-    if (target === "player") {
-      if (this.container) {
-        this.container.focus({ preventScroll: true });
-      }
-      return;
-    }
-    if (target === "media") {
-      this.element.focus({ preventScroll: true });
-      return;
-    }
-    if (target === "playButton") {
-      const playButton = this.controlBar?.controls?.playPause;
-      if (playButton) {
-        playButton.focus({ preventScroll: true });
-      }
-      return;
-    }
-    if (typeof target === "string") {
-      const targetElement = document.querySelector(target);
-      if (targetElement) {
-        if (targetElement.tabIndex === -1 && !targetElement.hasAttribute("tabindex")) {
-          targetElement.setAttribute("tabindex", "-1");
-        }
-        targetElement.focus({ preventScroll: true });
-      }
-    }
+    return this.metadataAlertsManager;
   }
   handleMetadataAlert(selector, options = {}) {
-    if (!selector) {
-      return;
-    }
-    const config = this.resolveMetadataConfig(this.options.metadataAlerts, selector) || {};
-    const element = options.element || this.resolveMetadataElement(selector);
-    if (!element) {
-      if (this.options.debug) {
-        this.log("[Metadata] Alert element not found:", selector);
-      }
-      return;
-    }
-    if (this.options.debug) {
-      this.log("[Metadata] Handling alert", selector, { reason: options.reason, config });
-    }
-    this.cacheMetadataAlertContent(element, config);
-    if (!element.dataset.vidplyAlertOriginalDisplay) {
-      element.dataset.vidplyAlertOriginalDisplay = element.style.display || "";
-    }
-    if (!element.dataset.vidplyAlertDisplay) {
-      element.dataset.vidplyAlertDisplay = config.display || "block";
-    }
-    const shouldShow = options.show !== void 0 ? options.show : config.show !== false;
-    if (shouldShow) {
-      const displayValue = config.display || element.dataset.vidplyAlertDisplay || "block";
-      element.style.display = displayValue;
-      element.hidden = false;
-      element.removeAttribute("hidden");
-      element.setAttribute("aria-hidden", "false");
-      element.setAttribute("data-vidply-alert-active", "true");
-    }
-    const shouldReset = config.resetContent !== false && options.reason === "focus";
-    if (shouldReset) {
-      this.restoreMetadataAlertContent(element, config);
-    }
-    const shouldFocus = options.focus !== void 0 ? options.focus : config.focusOnShow ?? options.reason !== "focus";
-    if (shouldShow && shouldFocus) {
-      if (element.tabIndex === -1 && !element.hasAttribute("tabindex")) {
-        element.setAttribute("tabindex", "-1");
-      }
-      element.focus({ preventScroll: true });
-    }
-    if (shouldShow && config.autoScroll !== false && options.autoScroll !== false) {
-      element.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-    const continueSelector = config.continueButton;
-    if (continueSelector) {
-      let continueButton = null;
-      if (continueSelector === "self") {
-        continueButton = element;
-      } else if (element.matches(continueSelector)) {
-        continueButton = element;
-      } else {
-        continueButton = element.querySelector(continueSelector) || document.querySelector(continueSelector);
-      }
-      if (continueButton && !this.metadataAlertHandlers.has(selector)) {
-        const handler = () => {
-          const hideOnContinue = config.hideOnContinue !== false;
-          if (hideOnContinue) {
-            const originalDisplay = element.dataset.vidplyAlertOriginalDisplay || "";
-            element.style.display = config.hideDisplay || originalDisplay || "none";
-            element.setAttribute("aria-hidden", "true");
-            element.removeAttribute("data-vidply-alert-active");
-          }
-          if (config.resume !== false && this.state.paused) {
-            this.play();
-          }
-          const focusTarget = config.focusTarget || "playButton";
-          this.setManagedTimeout(() => {
-            this.focusMetadataTarget(focusTarget, element);
-          }, config.focusDelay ?? 100);
-        };
-        continueButton.addEventListener("click", handler);
-        this.metadataAlertHandlers.set(selector, { button: continueButton, handler });
-      }
-    }
-    return element;
+    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleAlert(selector, options);
   }
   handleMetadataHashtags(hashtags) {
-    if (!Array.isArray(hashtags) || hashtags.length === 0) {
-      return;
-    }
-    const configMap = this.options.metadataHashtags;
-    if (!configMap) {
-      return;
-    }
-    hashtags.forEach((tag) => {
-      const config = this.resolveMetadataConfig(configMap, tag);
-      if (!config) {
-        return;
-      }
-      const selector = this.normalizeMetadataSelector(config.alert || config.selector || config.target);
-      if (!selector) {
-        return;
-      }
-      const element = this.resolveMetadataElement(selector);
-      if (!element) {
-        if (this.options.debug) {
-          this.log("[Metadata] Hashtag target not found:", selector);
-        }
-        return;
-      }
-      if (this.options.debug) {
-        this.log("[Metadata] Handling hashtag", tag, { selector, config });
-      }
-      this.cacheMetadataAlertContent(element, config);
-      if (config.title) {
-        const titleSelector = config.titleSelector || "[data-vidply-alert-title], h3, header";
-        const titleEl = element.querySelector(titleSelector);
-        if (titleEl) {
-          titleEl.textContent = config.title;
-        }
-      }
-      if (config.message) {
-        const messageSelector = config.messageSelector || "[data-vidply-alert-message], p";
-        const messageEl = element.querySelector(messageSelector);
-        if (messageEl) {
-          messageEl.textContent = config.message;
-        }
-      }
-      const show = config.show !== false;
-      const focus = config.focus !== void 0 ? config.focus : false;
-      this.handleMetadataAlert(selector, {
-        element,
-        show,
-        focus,
-        autoScroll: config.autoScroll,
-        reason: "hashtag"
-      });
-    });
+    (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleHashtags(hashtags);
   }
-  /**
-   * Handle individual metadata cues
-   * Parses metadata text and emits events or triggers actions
-   */
   handleMetadataCue(cue) {
-    const text = cue.text.trim();
-    if (this.options.debug) {
-      this.log("[Metadata] Processing cue:", {
-        time: cue.startTime,
-        text
-      });
-    }
-    this.emit("metadata", {
-      time: cue.startTime,
-      endTime: cue.endTime,
-      text,
-      cue
-    });
-    if (text.includes("PAUSE")) {
-      if (!this.state.paused) {
-        if (this.options.debug) {
-          this.log("[Metadata] Pausing video at", cue.startTime);
-        }
-        this.pause();
-      }
-      this.emit("metadata:pause", { time: cue.startTime, text });
-    }
-    const focusMatch = text.match(/FOCUS:([\w#-]{1,128})/);
-    if (focusMatch) {
-      const targetSelector = focusMatch[1];
-      const normalizedSelector = this.normalizeMetadataSelector(targetSelector);
-      const targetElement = this.resolveMetadataElement(normalizedSelector);
-      if (targetElement) {
-        if (this.options.debug) {
-          this.log("[Metadata] Focusing element:", normalizedSelector);
-        }
-        if (targetElement.tabIndex === -1 && !targetElement.hasAttribute("tabindex")) {
-          targetElement.setAttribute("tabindex", "-1");
-        }
-        this.setManagedTimeout(() => {
-          targetElement.focus({ preventScroll: true });
-        }, 10);
-      } else if (this.options.debug && this.options.metadataDirectives) {
-        this.log("[Metadata] Element not found:", normalizedSelector || targetSelector);
-      }
-      this.emit("metadata:focus", {
-        time: cue.startTime,
-        target: targetSelector,
-        selector: normalizedSelector,
-        element: targetElement,
-        text
-      });
-      if (this.options.metadataDirectives && normalizedSelector) {
-        this.handleMetadataAlert(normalizedSelector, {
-          element: targetElement,
-          reason: "focus"
-        });
-      }
-    }
-    const hashtags = text.match(/#[\w-]{1,64}/g);
-    if (hashtags && hashtags.length > 0) {
-      const safeTags = hashtags.slice(0, 32);
-      if (this.options.debug) {
-        this.log("[Metadata] Hashtags found:", safeTags);
-      }
-      this.emit("metadata:hashtags", {
-        time: cue.startTime,
-        hashtags: safeTags,
-        text
-      });
-      if (this.options.metadataDirectives) {
-        this.handleMetadataHashtags(safeTags);
-      }
-    }
-  }
-  /**
-   * Resolve a metadata-cue selector inside the configured directive scope.
-   * Returns `null` when directives are disabled or the selector doesn't
-   * resolve.
-   */
-  resolveMetadataElement(selector) {
-    const mode = this.options.metadataDirectives;
-    if (!mode) return null;
-    if (!selector) return null;
-    try {
-      if (mode === true || mode === "global") {
-        return document.querySelector(selector);
-      }
-      const root = this.container || this.element.parentElement || document;
-      return root.querySelector(selector);
-    } catch {
-      return null;
-    }
+    (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleCue(cue);
   }
 };
 
@@ -7101,9 +7399,14 @@ var PlaylistManager = class {
     try {
       if (this.player?.element?.tagName === "VIDEO") {
         if (track.poster) {
-          const posterUrl = typeof this.player.resolvePosterPath === "function" ? this.player.resolvePosterPath(track.poster) : track.poster;
-          this.player.element.poster = posterUrl;
-          this.player.applyPosterAspectRatio?.(posterUrl);
+          const resolved = typeof this.player.resolvePosterPath === "function" ? this.player.resolvePosterPath(track.poster) : track.poster;
+          const posterUrl = sanitizePosterUrl(resolved);
+          if (posterUrl) {
+            this.player.element.poster = posterUrl;
+            this.player.applyPosterAspectRatio?.(posterUrl);
+          } else {
+            this.player.element.removeAttribute("poster");
+          }
         } else {
           this.player.element.removeAttribute("poster");
         }
@@ -7496,10 +7799,12 @@ var PlaylistManager = class {
       }
     }
     if (!this.trackArtworkElement) return;
-    if (track.poster) {
-      this.trackArtworkElement.style.backgroundImage = `url(${track.poster})`;
+    const safeBackground = track.poster ? toCssBackgroundImage(track.poster) : null;
+    if (safeBackground) {
+      this.trackArtworkElement.style.backgroundImage = safeBackground;
       this.trackArtworkElement.style.display = "block";
     } else {
+      this.trackArtworkElement.style.backgroundImage = "";
       this.trackArtworkElement.style.display = "none";
     }
   }
@@ -7592,8 +7897,9 @@ var PlaylistManager = class {
     const thumbnail = DOMUtils.createElement("span", {
       className: "vidply-playlist-thumbnail"
     });
-    if (track.poster) {
-      thumbnail.style.backgroundImage = `url(${track.poster})`;
+    const safeThumbnail = track.poster ? toCssBackgroundImage(track.poster) : null;
+    if (safeThumbnail) {
+      thumbnail.style.backgroundImage = safeThumbnail;
     } else {
       const icon = createIconElement("music");
       icon.classList.add("vidply-playlist-thumbnail-icon");
@@ -7953,15 +8259,13 @@ var PlaylistManager = class {
 };
 
 // src/index.ts
-var pendingPlayers = /* @__PURE__ */ new Map();
-var FORBIDDEN_KEYS = /* @__PURE__ */ new Set(["__proto__", "prototype", "constructor"]);
 function sanitizeOptionsObject(input) {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     return {};
   }
   const out = /* @__PURE__ */ Object.create(null);
   for (const [key, value] of Object.entries(input)) {
-    if (FORBIDDEN_KEYS.has(key)) continue;
+    if (isForbiddenKey(key)) continue;
     out[key] = value;
   }
   return out;
@@ -7986,55 +8290,19 @@ function initializePlayers() {
     const lazyInit = element.dataset.vidplyLazy !== "false" && mergedOptions.lazyInit !== false;
     const lazyMargin = element.dataset.vidplyLazyMargin || mergedOptions.lazyMargin || "500px";
     if (lazyInit && "IntersectionObserver" in window) {
-      observeForLazyInit(element, mergedOptions, lazyMargin);
+      observeForLazyInit(
+        element,
+        mergedOptions,
+        lazyMargin,
+        (target, opts) => {
+          new Player(target, opts);
+        }
+      );
     } else {
       new Player(element, mergedOptions);
     }
   });
 }
-function observeForLazyInit(element, options, margin) {
-  const rect = element.getBoundingClientRect();
-  if (rect.height < 20) {
-    new Player(element, options);
-    return;
-  }
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          observer.unobserve(entry.target);
-          pendingPlayers.delete(entry.target);
-          new Player(entry.target, options);
-        }
-      });
-    },
-    { rootMargin: margin, threshold: 0 }
-  );
-  observer.observe(element);
-  pendingPlayers.set(element, { observer, options });
-}
-function cancelLazyInit(element) {
-  const pending = pendingPlayers.get(element);
-  if (pending) {
-    pending.observer.unobserve(element);
-    pendingPlayers.delete(element);
-  }
-}
-Player.observeLazy = function observeLazy(selector, options = {}, margin = "200px") {
-  const element = typeof selector === "string" ? document.querySelector(selector) : selector;
-  if (!element) {
-    console.warn("VidPly: Element not found for lazy observation");
-    return null;
-  }
-  if ("IntersectionObserver" in window) {
-    observeForLazyInit(element, options, margin);
-    return {
-      cancel: () => cancelLazyInit(element)
-    };
-  }
-  new Player(element, options);
-  return null;
-};
 function parseDataAttributes(dataset) {
   const options = /* @__PURE__ */ Object.create(null);
   const attributeMap = {
@@ -8068,7 +8336,7 @@ function parseDataAttributes(dataset) {
     theme: "theme"
   };
   for (const [dataKey, optionKey] of Object.entries(attributeMap)) {
-    if (FORBIDDEN_KEYS.has(optionKey)) continue;
+    if (isForbiddenKey(optionKey)) continue;
     const value = dataset[dataKey];
     if (value === void 0) continue;
     if (value === "true") {

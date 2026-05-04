@@ -152,6 +152,8 @@ export const de = {
         resizeModeHint: 'Griffe aktiviert. Ziehen Sie Kanten oder Ecken zum Anpassen. Esc oder R zum Beenden.',
         resizeModeEnabled: 'Resize-Modus aktiviert. Kanten oder Ecken ziehen; Esc oder R beendet.',
         resizeModeDisabled: 'Resize-Modus deaktiviert.',
+        dragModeBadge: 'Verschiebemodus: Pfeiltasten zum Bewegen, Esc zum Beenden',
+        resizeModeBadge: 'Resize-Modus: Kanten oder Ecken ziehen, Esc zum Beenden',
         positionReset: 'Transkriptposition zurückgesetzt.',
         styleTranscript: 'Transkript-Stileinstellungen öffnen',
         closeMenu: 'Menü schließen',

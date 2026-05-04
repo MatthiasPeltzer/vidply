@@ -9,9 +9,10 @@ import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 import { StorageManager } from '../utils/StorageManager.js';
 import { focusElement } from '../utils/FocusUtils.js';
-import { createMenuItem, attachMenuKeyboardNavigation } from '../utils/MenuUtils.js';
+import { createMenuItem } from '../utils/MenuUtils.js';
 import { DraggableResizable } from '../utils/DraggableResizable.js';
 import { createLabeledSelect, preventDragOnElement } from '../utils/FormUtils.js';
+import { DraggablePanel } from '../utils/DraggablePanel.js';
 import { deriveTrackLabel } from '../utils/TrackLabelUtils.js';
 import type { Player } from '../core/Player.js';
 import type { Renderer } from '../types/renderer.js';
@@ -55,6 +56,7 @@ interface TranscriptHandlers {
   settingsKeydown: ((e: KeyboardEvent) => void) | null;
   documentClick: ((e: MouseEvent) => void) | null;
   styleDialogKeydown: ((e: KeyboardEvent) => void) | null;
+  floatingchange: ((state: 'pinned' | 'auto' | null) => void) | null;
 }
 
 type TimerHandle = ReturnType<typeof setTimeout>;
@@ -68,10 +70,14 @@ export class TranscriptManager {
     currentActiveEntry: TranscriptEntry | null;
     currentTranscriptLanguage: string | null;
     customKeyHandler: ((e: KeyboardEvent) => void) | null = null;
+    /**
+     * True once the style-dialog's outside-click listener has been
+     * attached. The settings-menu's outside-click listener is now
+     * owned by {@link DraggablePanel} and tracked there; this flag
+     * covers the dialog half of the shared `handlers.documentClick`.
+     */
     documentClickHandlerAdded: boolean = false;
     draggableResizable: DraggableResizable | null;
-    dragOptionButton: HTMLElement | null = null;
-    dragOptionText: Element | null = null;
     handlers: TranscriptHandlers = {} as TranscriptHandlers;
     headerLeft: HTMLElement | null = null;
     isVisible: boolean;
@@ -82,15 +88,7 @@ export class TranscriptManager {
     liveRegion: HTMLElement | null;
     metadataCueChangeHandler: (() => void) | null = null;
     metadataCues: TextTrackCue[];
-    resizeModeIndicatorTimeout: TimerHandle | null;
-    resizeModeIndicator: HTMLElement | null;
-    resizeOptionButton: HTMLElement | null;
-    resizeOptionText: Element | null;
     settingsButton: HTMLButtonElement | null;
-    settingsMenuJustOpened: boolean;
-    settingsMenuKeyHandler: ((e: KeyboardEvent) => void) | null | undefined = null;
-    settingsMenu: HTMLElement | null;
-    settingsMenuVisible: boolean;
     showTimestamps: boolean;
     showTimestampsButton: HTMLElement | null = null;
     showTimestampsText: Element | null = null;
@@ -108,6 +106,53 @@ export class TranscriptManager {
     _dashActiveLang: string | null;
     _vttCache: Map<string, TranscriptCueItem[]>;
 
+    /**
+     * Owns the settings-menu DOM scaffold, its outside-click
+     * dismissal, keyboard navigation, viewport-aware positioning,
+     * and the drag-mode / resize-mode toggle items. Instantiated
+     * lazily once the header is built in {@link createTranscriptHeader}.
+     */
+    private _panel: DraggablePanel | null = null;
+
+    // Back-compat getters for panel-owned state. External callers and
+    // internal reads (e.g. `this.settingsMenuVisible` inside other
+    // transcript methods) keep reading the same properties; the
+    // setters are no-ops because the panel is now the authoritative
+    // owner of those values.
+    get settingsMenu(): HTMLElement | null {
+        return this._panel?.settingsMenu ?? null;
+    }
+    set settingsMenu(_v: HTMLElement | null) {
+        // panel-owned.
+    }
+
+    get settingsMenuVisible(): boolean {
+        return this._panel?.settingsMenuVisible ?? false;
+    }
+    set settingsMenuVisible(_v: boolean) {
+        // panel-owned.
+    }
+
+    get settingsMenuJustOpened(): boolean {
+        return this._panel?.justOpened ?? false;
+    }
+    set settingsMenuJustOpened(_v: boolean) {
+        // panel-owned.
+    }
+
+    get dragOptionButton(): HTMLElement | null {
+        return this._panel?.dragOptionButton ?? null;
+    }
+    get dragOptionText(): Element | null {
+        return this._panel?.dragOptionText ?? null;
+    }
+    get resizeOptionButton(): HTMLElement | null {
+        return this._panel?.resizeOptionButton ?? null;
+    }
+    get resizeOptionText(): Element | null {
+        return this._panel?.resizeOptionText ?? null;
+    }
+
   constructor(player: Player) {
     this.player = player;
     this.transcriptWindow = null;
@@ -121,20 +166,9 @@ export class TranscriptManager {
     
     // Draggable/Resizable utility
     this.draggableResizable = null;
-    
-    // Settings menu state
-    this.settingsMenuVisible = false;
-    this.settingsMenu = null;
     this.settingsButton = null;
-    this.settingsMenuJustOpened = false;
-    
+
     // Resize mode state
-    this.resizeOptionButton = null;
-    this.resizeOptionText = null;
-    this.dragOptionButton = null;
-    this.dragOptionText = null;
-    this.resizeModeIndicator = null;
-    this.resizeModeIndicatorTimeout = null;
     this.transcriptResizeHandles = [];
     this.liveRegion = null;
     
@@ -193,7 +227,8 @@ export class TranscriptManager {
       settingsClick: null,
       settingsKeydown: null,
       documentClick: null,
-      styleDialogKeydown: null
+      styleDialogKeydown: null,
+      floatingchange: null
     };
 
     this._cueUpdateTimeout = null;
@@ -250,6 +285,19 @@ export class TranscriptManager {
         }
       }
     });
+
+    // Collapse the transcript whenever the player enters the floating
+    // shell. The floating miniplayer is intentionally narrow and only
+    // shows a whitelisted subset of controls, so a full-size transcript
+    // popup would either overflow the shell or travel with it and break
+    // the miniplayer UX. We redock the transcript on exit by simply
+    // letting the user re-open it if desired.
+    this.handlers.floatingchange = (state) => {
+      if (state && this.isVisible) {
+        this.hideTranscript();
+      }
+    };
+    this.player.on('floatingchange', this.handlers.floatingchange);
   }
 
   /**
@@ -283,6 +331,14 @@ export class TranscriptManager {
    * Show transcript window
    */
   showTranscript() {
+    // The floating miniplayer hides the transcript control button and is
+    // too narrow to host the transcript window, so refuse to open while
+    // floating. Covers both the control-bar click (already gated by CSS)
+    // and the keyboard shortcut / public API paths.
+    if (this.player.state?.floating) {
+      return;
+    }
+
     // Always invalidate track cache to get fresh HLS subtitle tracks
     this.player.invalidateTrackCache();
     
@@ -387,14 +443,100 @@ export class TranscriptManager {
     });
     this.settingsButton.appendChild(createIconElement('settings'));
     DOMUtils.attachTooltip(this.settingsButton, settingsAriaLabel, this.player.options.classPrefix);
+
+    // The panel owns the settings-menu DOM, lifecycle, and the drag
+    // + resize toggle items. Transcript-specific extras (style dialog
+    // opener and timestamps toggle) are appended via the extras
+    // builder below. The manager keeps ownership of the toggle
+    // semantics (announcements, focus target), which the panel
+    // invokes via the click callbacks.
+    this._panel = new DraggablePanel({
+      player: this.player,
+      namespace: 'transcript',
+      settingsButton: this.settingsButton,
+      getDraggable: () => this.draggableResizable,
+      i18nKeys: {
+        enableDrag: 'transcript.enableDragMode',
+        disableDrag: 'transcript.disableDragMode',
+        enableDragAria: 'transcript.enableDragModeAria',
+        disableDragAria: 'transcript.disableDragModeAria',
+        enableResize: 'transcript.enableResizeMode',
+        disableResize: 'transcript.disableResizeMode',
+        enableResizeAria: 'transcript.enableResizeModeAria',
+        disableResizeAria: 'transcript.disableResizeModeAria',
+        closeMenu: 'transcript.closeMenu',
+      },
+      menuAlign: 'left',
+      getMenuParent: () =>
+        this.headerLeft ?? this.transcriptHeader ?? this.transcriptWindow,
+      // The transcript window itself is the anchor for the mode badge
+      // so it sits above the panel regardless of where the settings
+      // menu was opened from. The default class name is derived from
+      // the namespace → `{classPrefix}-transcript-mode-badge`.
+      getBadgeHost: () => this.transcriptWindow,
+      onDragItemClick: (panel) => {
+        this.toggleKeyboardDragMode();
+        panel.hide();
+      },
+      onResizeItemClick: (panel) => {
+        const enabled = this.toggleResizeMode({ focus: false });
+        if (enabled) {
+          panel.hide({ focusButton: false });
+          setTimeout(() => {
+            this.transcriptWindow?.focus({ preventScroll: true });
+          }, 20);
+        } else {
+          panel.hide({ focusButton: true });
+        }
+      },
+      buildExtraItems: ({ menu, itemClass, classPrefix, stripInlineTooltip }) => {
+        const styleOption = createMenuItem({
+          classPrefix,
+          itemClass,
+          icon: 'settings',
+          label: 'transcript.styleTranscript',
+          onClick: (e: Event) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this._panel?.hide();
+            setTimeout(() => {
+              this.showStyleDialog();
+            }, 50);
+          },
+        });
+        stripInlineTooltip(styleOption);
+        menu.appendChild(styleOption);
+
+        const timestampsOption = createMenuItem({
+          classPrefix,
+          itemClass,
+          icon: 'clock',
+          label: 'transcript.showTimestamps',
+          hasTextClass: true,
+          onClick: () => {
+            this.toggleShowTimestamps();
+          },
+        });
+        timestampsOption.setAttribute('role', 'switch');
+        timestampsOption.setAttribute(
+          'aria-checked',
+          this.showTimestamps ? 'true' : 'false'
+        );
+        stripInlineTooltip(timestampsOption);
+        this.showTimestampsButton = timestampsOption;
+        this.showTimestampsText = timestampsOption.querySelector(
+          `.${classPrefix}-settings-text`
+        );
+        this.updateShowTimestampsState();
+        menu.appendChild(timestampsOption);
+      },
+    });
+
     this.handlers.settingsClick = (e: MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      if (this.settingsMenuVisible) {
-        this.hideSettingsMenu();
-      } else {
-        this.showSettingsMenu();
-      }
+      this._panel?.markJustOpenedForClick();
+      this._panel?.toggle();
     };
     this.settingsButton.addEventListener('click', this.handlers.settingsClick);
     
@@ -543,36 +685,20 @@ export class TranscriptManager {
       this.positionTranscript();
     }
     
-    // Setup document click handler to close settings menu and style dialog
-    // DON'T add it yet - it will be added when the menu is first opened
+    // Outside-click dismissal for the *style dialog* only. The
+    // settings-menu equivalent is owned by the DraggablePanel, which
+    // attaches its own listener (tied to the player's lifecycle
+    // signal) when the menu is first opened.
     this.handlers.documentClick = (e: MouseEvent) => {
-      const target = e.target as Node | null;
-      if (this.settingsMenuJustOpened) {
-        return;
-      }
-      
       if (this.styleDialogJustOpened) {
         return;
       }
-      
-      if (this.settingsButton && this.settingsButton.contains(target)) {
-        return;
-      }
-      
-      if (this.settingsMenu && this.settingsMenu.contains(target)) {
-        return;
-      }
-      
-      if (this.settingsMenuVisible) {
-        this.hideSettingsMenu();
-      }
-      
-      if (this.styleDialogVisible && this.styleDialog && 
-          !this.styleDialog.contains(target)) {
+      const target = e.target as Node | null;
+      if (this.styleDialogVisible && this.styleDialog &&
+          target && !this.styleDialog.contains(target)) {
         this.hideStyleDialog();
       }
     };
-    // Store flag to track if handler has been added
     this.documentClickHandlerAdded = false;
     
     // Re-position on window resize (debounced) - but only if not manually positioned
@@ -1626,7 +1752,10 @@ export class TranscriptManager {
 
 
   /**
-   * Toggle keyboard drag mode
+   * Toggle keyboard drag mode. Mirrors the sign-language flow: a
+   * persistent badge is shown on the transcript window while the mode
+   * is active, and a live-region announcement is made on each state
+   * change.
    */
   toggleKeyboardDragMode() {
     if (this.draggableResizable) {
@@ -1635,16 +1764,19 @@ export class TranscriptManager {
       const isEnabled = this.draggableResizable.keyboardDragMode;
       if (!wasEnabled && isEnabled) {
         this.enableMoveMode();
+        this._panel?.showBadge(i18n.t('transcript.dragModeBadge'));
+        this.announceLive(i18n.t('transcript.dragModeEnabled'));
+      } else if (wasEnabled && !isEnabled) {
+        this._panel?.hideBadge();
+        this.announceLive(i18n.t('transcript.dragModeDisabled'));
       }
-      
-      // Update drag option state
+
       this.updateDragOptionState();
-      
-      // Hide settings menu if open
+
       if (this.settingsMenuVisible) {
         this.hideSettingsMenu();
       }
-      
+
       this.transcriptWindow?.focus({ preventScroll: true });
     }
   }
@@ -1661,364 +1793,43 @@ export class TranscriptManager {
   }
 
   /**
-   * Show settings menu
+   * Show the settings menu. Delegates to the shared {@link DraggablePanel};
+   * kept as a named method so external callers (tests, other managers)
+   * that referenced the legacy API keep working.
    */
   showSettingsMenu() {
-    // Set flag to prevent immediate closing
-    this.settingsMenuJustOpened = true;
-    setTimeout(() => {
-      this.settingsMenuJustOpened = false;
-    }, 350);
-    
-    // Add document click handler on FIRST menu open (not at window creation).
-    // Tied to the player's lifecycle so teardown is automatic.
-    if (!this.documentClickHandlerAdded) {
-      setTimeout(() => {
-        const documentClick = this.handlers.documentClick;
-        if (documentClick) {
-          document.addEventListener('click', documentClick, {
-            signal: this.player.lifecycleSignal
-          });
-        }
-        this.documentClickHandlerAdded = true;
-      }, 300);
-    }
-    
-    if (this.settingsMenu) {
-      this.settingsMenu.style.display = 'block';
-      this.settingsMenuVisible = true;
-      if (this.settingsButton) {
-        this.settingsButton.setAttribute('aria-expanded', 'true');
-      }
-      // Re-attach keyboard navigation handler
-      this.attachSettingsMenuKeyboardNavigation();
-      // Position menu immediately
-      this.positionSettingsMenuImmediate();
-      this.updateResizeOptionState();
-      // Focus first menu item after positioning
-      setTimeout(() => {
-        const menu = this.settingsMenu;
-        if (!menu) return;
-        const menuItems = menu.querySelectorAll<HTMLElement>(`.${this.player.options.classPrefix}-transcript-settings-item`);
-        if (menuItems.length > 0) {
-          menuItems[0].setAttribute('tabindex', '0');
-          for (let i = 1; i < menuItems.length; i++) {
-            menuItems[i].setAttribute('tabindex', '-1');
-          }
-          menuItems[0].focus({ preventScroll: true });
-        }
-      }, 50);
-      return;
-    }
-    // Create settings menu
-    this.settingsMenu = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-transcript-settings-menu`,
-      attributes: {
-        'role': 'menu'
-      }
-    });
-
-    // Keyboard drag option
-    const keyboardDragOption = createMenuItem({
-      classPrefix: this.player.options.classPrefix,
-      itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
-      icon: 'move',
-      label: 'transcript.enableDragMode',
-      hasTextClass: true,
-      onClick: () => {
-        this.toggleKeyboardDragMode();
-        this.hideSettingsMenu();
-      }
-    });
-    keyboardDragOption.setAttribute('role', 'switch');
-    keyboardDragOption.setAttribute('aria-checked', 'false');
-    // Remove any tooltips from menu items (they have visible text)
-    const dragTooltip = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
-    if (dragTooltip) dragTooltip.remove();
-    const dragButtonText = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
-    if (dragButtonText) dragButtonText.remove();
-    this.dragOptionButton = keyboardDragOption;
-    this.dragOptionText = keyboardDragOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
-    this.updateDragOptionState();
-    
-    // Style option
-    const styleOption = createMenuItem({
-      classPrefix: this.player.options.classPrefix,
-      itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
-      icon: 'settings',
-      label: 'transcript.styleTranscript',
-      onClick: (e: Event) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.hideSettingsMenu();
-        // Delay to ensure menu is fully closed before opening dialog
-        setTimeout(() => {
-          this.showStyleDialog();
-        }, 50);
-      }
-    });
-    // Remove any tooltips from menu items (they have visible text)
-    const styleTooltip = styleOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
-    if (styleTooltip) styleTooltip.remove();
-    const styleButtonText = styleOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
-    if (styleButtonText) styleButtonText.remove();
-
-    // Resize option
-    const resizeOption = createMenuItem({
-      classPrefix: this.player.options.classPrefix,
-      itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
-      icon: 'resize',
-      label: 'transcript.enableResizeMode',
-      hasTextClass: true,
-      onClick: (event: Event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        
-        const enabled = this.toggleResizeMode({ focus: false });
-        
-        if (enabled) {
-          this.hideSettingsMenu({ focusButton: false });
-          // Focus transcript window after handles appear
-          setTimeout(() => {
-            if (this.transcriptWindow) {
-              this.transcriptWindow.focus({ preventScroll: true });
-            }
-          }, 20);
-        } else {
-          this.hideSettingsMenu({ focusButton: true });
-        }
-      }
-    });
-    resizeOption.setAttribute('role', 'switch');
-    resizeOption.setAttribute('aria-checked', 'false');
-    // Remove any tooltips from menu items (they have visible text)
-    const resizeTooltip = resizeOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
-    if (resizeTooltip) resizeTooltip.remove();
-    const resizeButtonText = resizeOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
-    if (resizeButtonText) resizeButtonText.remove();
-    this.resizeOptionButton = resizeOption;
-    this.resizeOptionText = resizeOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
-    this.updateResizeOptionState();
-
-    // Show timestamps option
-    const showTimestampsOption = createMenuItem({
-      classPrefix: this.player.options.classPrefix,
-      itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
-      icon: 'clock',
-      label: 'transcript.showTimestamps',
-      hasTextClass: true,
-      onClick: () => {
-        this.toggleShowTimestamps();
-      }
-    });
-    showTimestampsOption.setAttribute('role', 'switch');
-    showTimestampsOption.setAttribute('aria-checked', this.showTimestamps ? 'true' : 'false');
-    // Remove any tooltips from menu items (they have visible text)
-    const timestampsTooltip = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
-    if (timestampsTooltip) timestampsTooltip.remove();
-    const timestampsButtonText = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
-    if (timestampsButtonText) timestampsButtonText.remove();
-    this.showTimestampsButton = showTimestampsOption;
-    this.showTimestampsText = showTimestampsOption.querySelector(`.${this.player.options.classPrefix}-settings-text`);
-    this.updateShowTimestampsState();
-
-    // Close option
-    const closeOption = createMenuItem({
-      classPrefix: this.player.options.classPrefix,
-      itemClass: `${this.player.options.classPrefix}-transcript-settings-item`,
-      icon: 'close',
-      label: 'transcript.closeMenu',
-      onClick: () => {
-        this.hideSettingsMenu();
-      }
-    });
-    // Remove any tooltips from menu items (they have visible text)
-    const closeTooltip = closeOption.querySelector(`.${this.player.options.classPrefix}-tooltip`);
-    if (closeTooltip) closeTooltip.remove();
-    const closeButtonText = closeOption.querySelector(`.${this.player.options.classPrefix}-button-text`);
-    if (closeButtonText) closeButtonText.remove();
-
-    const settingsMenu = this.settingsMenu;
-    if (!settingsMenu) return;
-    settingsMenu.appendChild(keyboardDragOption);
-    settingsMenu.appendChild(resizeOption);
-    settingsMenu.appendChild(styleOption);
-    settingsMenu.appendChild(showTimestampsOption);
-    settingsMenu.appendChild(closeOption);
-
-    settingsMenu.style.visibility = 'hidden';
-    settingsMenu.style.display = 'block';
-    
-    if (this.settingsButton && this.settingsButton.parentNode) {
-      this.settingsButton.insertAdjacentElement('afterend', settingsMenu);
-    } else if (this.headerLeft) {
-      this.headerLeft.appendChild(settingsMenu);
-    } else if (this.transcriptHeader) {
-      this.transcriptHeader.appendChild(settingsMenu);
-    } else if (this.transcriptWindow) {
-      this.transcriptWindow.appendChild(settingsMenu);
-    }
-    
-    this.positionSettingsMenuImmediate();
-    
-    requestAnimationFrame(() => {
-      if (this.settingsMenu) {
-        this.settingsMenu.style.visibility = 'visible';
-      }
-    });
-    
-    this.settingsMenuKeyHandler = attachMenuKeyboardNavigation(
-      settingsMenu,
-      this.settingsButton,
-      `.${this.player.options.classPrefix}-transcript-settings-item`,
-      () => this.hideSettingsMenu({ focusButton: true })
-    );
-    
-    this.settingsMenuVisible = true;
-    settingsMenu.style.display = 'block';
-    
-    if (this.settingsButton) {
-      this.settingsButton.setAttribute('aria-expanded', 'true');
-    }
-    this.updateResizeOptionState();
-    
-    setTimeout(() => {
-      const menuItems = settingsMenu.querySelectorAll<HTMLElement>(`.${this.player.options.classPrefix}-transcript-settings-item`);
-      if (menuItems.length > 0) {
-        menuItems[0].setAttribute('tabindex', '0');
-        for (let i = 1; i < menuItems.length; i++) {
-          menuItems[i].setAttribute('tabindex', '-1');
-        }
-        menuItems[0].focus({ preventScroll: true });
-      }
-    }, 50);
+    this._panel?.show();
   }
 
-  /**
-   * Position settings menu relative to settings button (immediate/synchronous)
-   */
-  positionSettingsMenuImmediate() {
-    if (!this.settingsMenu || !this.settingsButton) return;
-    
-    // Get the parent container (header-left) which has position: relative
-    const container = this.settingsButton.parentElement;
-    if (!container) return;
-    
-    // Position immediately (synchronously) - used when menu is first shown
-    const buttonRect = this.settingsButton.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-    const menuRect = this.settingsMenu.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    
-    // Calculate position relative to the container
-    const buttonLeft = buttonRect.left - containerRect.left;
-    const buttonBottom = buttonRect.bottom - containerRect.top;
-    const buttonTop = buttonRect.top - containerRect.top;
-    
-    const spaceBelow = viewportHeight - buttonRect.bottom;
-    const spaceAbove = buttonRect.top;
-    
-    // Position menu below button by default (left-aligned with button)
-    let menuTop = buttonBottom + 4;
-    
-    // Check if we should position above instead
-    if (spaceBelow < menuRect.height + 20 && spaceAbove > spaceBelow) {
-      // Position above the button
-      menuTop = buttonTop - menuRect.height - 4;
-      this.settingsMenu.classList.add('vidply-menu-above');
-    } else {
-      this.settingsMenu.classList.remove('vidply-menu-above');
-    }
-    
-    // Apply positions (left-aligned with button)
-    this.settingsMenu.style.top = `${menuTop}px`;
-    this.settingsMenu.style.left = `${buttonLeft}px`;
-    this.settingsMenu.style.right = 'auto';
-    this.settingsMenu.style.bottom = 'auto';
-  }
-  
-  /**
-   * Position settings menu relative to settings button (async for repositioning)
-   */
+  /** @see {@link showSettingsMenu} */
   positionSettingsMenu() {
-    if (!this.settingsMenu || !this.settingsButton) return;
-    
-    // Use requestAnimationFrame to ensure layout is stable before positioning (for repositioning)
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        this.positionSettingsMenuImmediate();
-      }, 10); // Small delay to ensure layout is stable
-    });
+    this._panel?.reposition();
   }
 
-  /**
-   * Attach keyboard navigation to settings menu
-   */
-  attachSettingsMenuKeyboardNavigation() {
-    if (!this.settingsMenu) return;
-    
-    // Remove existing handler if any
-    if (this.settingsMenuKeyHandler) {
-      this.settingsMenu.removeEventListener('keydown', this.settingsMenuKeyHandler, true);
-    }
-    
-    const handler = attachMenuKeyboardNavigation(
-      this.settingsMenu,
-      this.settingsButton,
-      `.${this.player.options.classPrefix}-transcript-settings-item`,
-      () => this.hideSettingsMenu({ focusButton: true })
-    );
-    
-    // Store the handler reference
-    this.settingsMenuKeyHandler = handler;
-    
-  }
-
-  /**
-   * Hide settings menu
-   */
+  /** @see {@link showSettingsMenu} */
   hideSettingsMenu({ focusButton = true } = {}) {
-    if (this.settingsMenu) {
-      this.settingsMenu.style.display = 'none';
-      this.settingsMenuVisible = false;
-      this.settingsMenuJustOpened = false;
-      
-      // Remove keyboard handler to prevent duplicate listeners
-      if (this.settingsMenuKeyHandler) {
-        this.settingsMenu.removeEventListener('keydown', this.settingsMenuKeyHandler, true);
-        this.settingsMenuKeyHandler = null;
-      }
-      
-      // Update aria-expanded
-      if (this.settingsButton) {
-        this.settingsButton.setAttribute('aria-expanded', 'false');
-        if (focusButton) {
-          // Return focus to settings button
-          this.settingsButton.focus({ preventScroll: true });
-        }
-      }
-    }
+    this._panel?.hide({ focusButton });
   }
 
   /**
    * Enable move mode (gives visual feedback)
    */
+  /**
+   * Brief pulse animation on the transcript window to confirm entry
+   * into keyboard drag mode. The textual hint that used to also flash
+   * here has been replaced by a persistent {@link DraggablePanel}
+   * badge (see `toggleKeyboardDragMode`), so this method only owns
+   * the 1s visual cue now.
+   */
   enableMoveMode() {
-    this.hideResizeModeIndicator();
+    this.transcriptWindow?.classList.add(
+      `${this.player.options.classPrefix}-transcript-move-mode`
+    );
 
-    this.transcriptWindow?.classList.add(`${this.player.options.classPrefix}-transcript-move-mode`);
-    
-    const tooltip = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-transcript-move-tooltip`,
-      textContent: 'Drag with mouse or press D for keyboard drag mode'
-    });
-    this.transcriptHeader?.appendChild(tooltip);
-    
     setTimeout(() => {
-      this.transcriptWindow?.classList.remove(`${this.player.options.classPrefix}-transcript-move-mode`);
-      if (tooltip.parentNode) {
-        tooltip.remove();
-      }
+      this.transcriptWindow?.classList.remove(
+        `${this.player.options.classPrefix}-transcript-move-mode`
+      );
     }, 2000);
   }
 
@@ -2039,46 +1850,16 @@ export class TranscriptManager {
     return true;
   }
 
+  // Thin delegates to the panel's refreshState. Kept as named methods
+  // so the existing internal call sites (e.g. `toggleKeyboardDragMode`
+  // and `toggleResizeMode`) read naturally without having to chain
+  // through the optional panel reference every time.
   updateDragOptionState() {
-    if (!this.dragOptionButton) {
-      return;
-    }
-    
-    const isEnabled = Boolean(this.draggableResizable && this.draggableResizable.keyboardDragMode);
-    const text = isEnabled
-      ? i18n.t('transcript.disableDragMode')
-      : i18n.t('transcript.enableDragMode');
-    const ariaLabel = isEnabled
-      ? i18n.t('transcript.disableDragModeAria')
-      : i18n.t('transcript.enableDragModeAria');
-
-    this.dragOptionButton.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
-    this.dragOptionButton.setAttribute('aria-label', ariaLabel);
-
-    if (this.dragOptionText) {
-      this.dragOptionText.textContent = text;
-    }
+    this._panel?.refreshDragState();
   }
 
   updateResizeOptionState() {
-    if (!this.resizeOptionButton) {
-      return;
-    }
-    
-    const isEnabled = Boolean(this.draggableResizable && this.draggableResizable.pointerResizeMode);
-    const text = isEnabled
-      ? i18n.t('transcript.disableResizeMode')
-      : i18n.t('transcript.enableResizeMode');
-    const ariaLabel = isEnabled
-      ? i18n.t('transcript.disableResizeModeAria')
-      : i18n.t('transcript.enableResizeModeAria');
-
-    this.resizeOptionButton.setAttribute('aria-checked', isEnabled ? 'true' : 'false');
-    this.resizeOptionButton.setAttribute('aria-label', ariaLabel);
-
-    if (this.resizeOptionText) {
-      this.resizeOptionText.textContent = text;
-    }
+    this._panel?.refreshResizeState();
   }
 
   toggleShowTimestamps() {
@@ -2123,47 +1904,27 @@ export class TranscriptManager {
     this.storage.saveTranscriptPreferences(savedPreferences);
   }
 
+  // Legacy shims kept for any external callers that still invoke the
+  // old transient-tooltip API. The persistent badge owned by the
+  // {@link DraggablePanel} now replaces the 3-second indicator, so
+  // these simply forward to the panel. Safe to remove once the next
+  // consumer sweep confirms no external references.
   showResizeModeIndicator() {
-    if (!this.transcriptHeader) {
-      return;
-    }
-
-    this.hideResizeModeIndicator();
-
-    const indicator = DOMUtils.createElement('div', {
-      className: `${this.player.options.classPrefix}-transcript-resize-tooltip`,
-      textContent: i18n.t('transcript.resizeModeHint') || 'Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit.'
-    });
-
-    this.transcriptHeader.appendChild(indicator);
-    this.resizeModeIndicator = indicator;
-
-    this.resizeModeIndicatorTimeout = this.setManagedTimeout(() => {
-      this.hideResizeModeIndicator();
-    }, 3000);
+    this._panel?.showBadge(i18n.t('transcript.resizeModeBadge'));
   }
 
   hideResizeModeIndicator() {
-    if (this.resizeModeIndicatorTimeout) {
-      this.clearManagedTimeout(this.resizeModeIndicatorTimeout);
-      this.resizeModeIndicatorTimeout = null;
-    }
-
-    if (this.resizeModeIndicator && this.resizeModeIndicator.parentNode) {
-      this.resizeModeIndicator.remove();
-    }
-
-    this.resizeModeIndicator = null;
+    this._panel?.hideBadge();
   }
 
   onPointerResizeModeChange(enabled: boolean) {
     this.updateResizeOptionState();
 
     if (enabled) {
-      this.showResizeModeIndicator();
+      this._panel?.showBadge(i18n.t('transcript.resizeModeBadge'));
       this.announceLive(i18n.t('transcript.resizeModeEnabled'));
     } else {
-      this.hideResizeModeIndicator();
+      this._panel?.hideBadge();
       this.announceLive(i18n.t('transcript.resizeModeDisabled'));
     }
   }
@@ -2172,6 +1933,24 @@ export class TranscriptManager {
    * Show style dialog
    */
   showStyleDialog() {
+    // The style dialog uses an outside-click listener to dismiss
+    // itself. Previously that listener was armed the first time the
+    // settings menu opened (the same handler also dismissed the
+    // settings menu). Now that the settings menu owns its own
+    // outside-click, we arm the style-dialog listener here on first
+    // open. Tied to `lifecycleSignal` so teardown is automatic.
+    if (!this.documentClickHandlerAdded) {
+      setTimeout(() => {
+        const documentClick = this.handlers.documentClick;
+        if (documentClick) {
+          document.addEventListener('click', documentClick, {
+            signal: this.player.lifecycleSignal
+          });
+        }
+        this.documentClickHandlerAdded = true;
+      }, 300);
+    }
+
     // If dialog already exists, just show it
     if (this.styleDialog) {
       this.styleDialog.style.display = 'block';
@@ -2540,7 +2319,16 @@ export class TranscriptManager {
    */
   destroy() {
     this.hideResizeModeIndicator();
-    
+
+    // Tear down the settings-menu panel (removes its DOM + keyboard
+    // listeners). The outside-click listener was attached with the
+    // player's lifecycleSignal, so it cleans itself up as the player
+    // is destroyed.
+    if (this._panel) {
+      this._panel.destroy();
+      this._panel = null;
+    }
+
     // Destroy draggableResizable utility
     if (this.draggableResizable) {
       if (this.draggableResizable.pointerResizeMode) {
@@ -2576,6 +2364,11 @@ export class TranscriptManager {
     // Remove text cue update listener
     if (this.handlers.textcuesupdate) {
       this.player.off('textcuesupdate', this.handlers.textcuesupdate);
+    }
+
+    // Remove floating-state listener
+    if (this.handlers.floatingchange) {
+      this.player.off('floatingchange', this.handlers.floatingchange);
     }
     
     // Remove settings button event listeners
@@ -2618,11 +2411,8 @@ export class TranscriptManager {
     this.transcriptHeader = null;
     this.transcriptContent = null;
     this.transcriptEntries = [];
-    this.settingsMenu = null;
     this.styleDialog = null;
     this.transcriptResizeHandles = [];
-    this.resizeOptionButton = null;
-    this.resizeOptionText = null;
     this.liveRegion = null;
     this._vttCache.clear();
   }

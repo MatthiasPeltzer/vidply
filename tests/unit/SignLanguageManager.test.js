@@ -274,10 +274,6 @@ describe('SignLanguageManager', () => {
     it('should track if menu was just opened', () => {
       expect(manager.settingsMenuJustOpened).toBe(false);
     });
-
-    it('should track document click handler state', () => {
-      expect(manager.documentClickHandlerAdded).toBe(false);
-    });
   });
 
   describe('enable', () => {

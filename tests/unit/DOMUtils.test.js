@@ -30,12 +30,6 @@ describe('DOMUtils', () => {
       expect(button.getAttribute('disabled')).toBe('true');
     });
 
-    it('should set innerHTML', () => {
-      const div = DOMUtils.createElement('div', { innerHTML: '<span>Test</span>' });
-      expect(div.innerHTML).toBe('<span>Test</span>');
-      expect(div.querySelector('span')).toBeTruthy();
-    });
-
     it('should set textContent', () => {
       const span = DOMUtils.createElement('span', { textContent: 'Hello World' });
       expect(span.textContent).toBe('Hello World');

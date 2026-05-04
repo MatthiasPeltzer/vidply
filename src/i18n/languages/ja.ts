@@ -149,6 +149,8 @@ export const ja = {
     resizeModeHint: 'リサイズハンドルが有効になりました。辺や角をドラッグして調整します。Esc または R で終了します。',
     resizeModeEnabled: 'サイズ変更モードを有効にしました。辺や角をドラッグして調整します。Esc または R で終了します。',
     resizeModeDisabled: 'サイズ変更モードを無効にしました。',
+    dragModeBadge: '移動モード：矢印キーで移動、Escで終了',
+    resizeModeBadge: 'サイズ変更モード：辺や角をドラッグ、Escで終了',
     positionReset: '文字起こしの位置をリセットしました。',
     styleTranscript: '文字起こしスタイル設定を開く',
     closeMenu: 'メニューを閉じる',

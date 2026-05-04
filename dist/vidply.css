@@ -4543,49 +4543,31 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     z-index: 1000;
 }
 
-/* Move Mode Tooltip */
-.vidply-transcript-move-tooltip {
-    animation: fadeInDown 0.3s ease;
-    background: var(--vidply-black-90);
-    border-radius: 0.25rem;
-    color: var(--vidply-white);
-    font-size: 0.75rem;
-    left: 50%;
-    padding: 0.375rem 0.75rem;
-    position: absolute;
-    text-align: center;
-    top: 100%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-    z-index: 1000;
-}
-
-.vidply-transcript-resize-tooltip {
-    animation: fadeInDown 0.3s ease;
+/* Persistent badge shown on the transcript window while keyboard
+   drag or pointer resize mode is active. Sibling of the sign-language
+   `.vidply-sign-mode-badge` — same visual treatment so both panels
+   communicate mode state the same way. Rendered as a real DOM
+   `<span class="vidply-transcript-mode-badge">` by
+   TranscriptManager via the shared DraggablePanel.showBadge API, so
+   the text is translatable, selectable, and survives high-contrast
+   themes that strip pseudo-elements. */
+.vidply-transcript-mode-badge {
+    align-items: center;
     background: var(--vidply-primary);
     border-radius: 0.25rem;
     color: var(--vidply-white);
+    display: flex;
     font-size: 0.75rem;
+    font-weight: 600;
+    justify-content: center;
     left: 50%;
-    padding: 0.375rem 0.75rem;
+    padding: 0.25rem 0.5rem;
+    pointer-events: none;
     position: absolute;
-    text-align: center;
-    top: 100%;
+    top: -1.75rem;
     transform: translateX(-50%);
     white-space: nowrap;
-    z-index: 1000;
-}
-
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-0.625rem);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
+    z-index: 10;
 }
 
 /* Transcript Style Dialog - Dropdown Menu Style */
@@ -5489,10 +5471,52 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
  * keeps page layout intact while the video is floating.
  * ========================================================================= */
 
+/* While the player is floating, the placeholder visually marks the spot
+ * the video popped out of. It keeps layout stable (same width/height as
+ * the docked container) and renders a subtle, theme-neutral "video is
+ * floating" cue: a low-contrast tinted background plus a centred PiP
+ * glyph. Both vanish automatically when the player redocks because
+ * FloatingPlayerManager tears down the whole placeholder element in
+ * _unmountFromShell() — no extra state to reset. */
 .vidply-floating-placeholder {
-    background: transparent;
+    align-items: center;
+    /* Tinted, neutral overlay that reads on both light and dark pages.
+     * color-mix with `currentColor` would be nicer but not universally
+     * supported yet; a slate tone blends well against most themes. */
+    background: rgb(128 128 128 / 8%);
+    border: 0.0625rem dashed rgb(128 128 128 / 25%);
+    border-radius: 0.5rem;
     box-sizing: border-box;
+    color: currentColor;
+    display: flex;
+    justify-content: center;
     pointer-events: none;
+}
+
+.vidply-floating-placeholder-icon {
+    /* Scale with the placeholder but clamp so the glyph is never tiny
+     * on small embeds or absurdly large on full-width players. */
+    align-items: center;
+    display: inline-flex;
+    height: clamp(2.5rem, 25%, 6rem);
+    justify-content: center;
+    opacity: 0.4;
+    width: clamp(2.5rem, 25%, 6rem);
+}
+
+.vidply-floating-placeholder-icon svg {
+    height: 100%;
+    width: 100%;
+}
+
+/* Respect reduced motion users: no animation is added, but also make
+ * sure the placeholder does not accidentally inherit a transition from
+ * a parent stylesheet. */
+@media (prefers-reduced-motion: reduce) {
+    .vidply-floating-placeholder,
+    .vidply-floating-placeholder-icon {
+        transition: none !important;
+    }
 }
 
 .vidply-floating-shell {
@@ -5717,6 +5741,19 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     font-size: 90% !important;
     max-width: 95% !important;
     width: 95% !important;
+}
+
+/* Transcript window must never surface inside the floating shell.
+ *
+ * The transcript popup is a child of .vidply-player so it travels with
+ * the container when FloatingPlayerManager moves it into the mini-shell.
+ * TranscriptManager already auto-hides the window on `floatingchange`
+ * and refuses to open while floating, but this rule is a belt-and-
+ * suspenders guard for any edge case where display state races ahead
+ * of the event (e.g. a third-party caller toggling display:flex
+ * directly). */
+.vidply-is-floating .vidply-transcript-window {
+    display: none !important;
 }
 
 /* Tooltip placement inside the floating shell.

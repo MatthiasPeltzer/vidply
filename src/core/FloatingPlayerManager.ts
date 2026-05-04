@@ -484,6 +484,13 @@ export class FloatingPlayerManager {
         this.placeholder.style.width = `${Math.max(1, rect.width)}px`;
         this.placeholder.style.height = `${Math.max(1, rect.height)}px`;
 
+        // Centred PiP glyph that signals "video popped out" in the slot the
+        // player used to occupy. Lives as a regular child so it can inherit
+        // currentColor and scale with the placeholder; both the icon and
+        // the placeholder itself are removed wholesale on _unmountFromShell().
+        const placeholderIcon = createIconElement('pip', `${this.classPrefix}-floating-placeholder-icon`);
+        this.placeholder.appendChild(placeholderIcon);
+
         this.originalParent.insertBefore(this.placeholder, container);
 
         this.shell.appendChild(container);

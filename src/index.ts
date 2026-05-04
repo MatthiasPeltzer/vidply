@@ -4,19 +4,14 @@
  */
 
 import { Player } from './core/Player.js';
+import { observeForLazyInit } from './core/LazyInit.js';
 import { PlaylistManager } from './features/PlaylistManager.js';
+import { isForbiddenKey } from './utils/Sanitize.js';
 import type { PlayerOptions } from './types/options.js';
 
-export type LazyHandle = { cancel: () => void } | null;
-
-interface PendingLazyEntry {
-  observer: IntersectionObserver;
-  options: Partial<PlayerOptions>;
-}
-
-const pendingPlayers = new Map<HTMLElement, PendingLazyEntry>();
-
-const FORBIDDEN_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+// Re-export so existing consumers of `import { LazyHandle } from 'vidply'`
+// keep working; the canonical definition now lives in core/LazyInit.
+export type { LazyHandle } from './core/LazyInit.js';
 
 /**
  * Filter `__proto__` / `constructor` / `prototype` keys from an attacker-
@@ -30,7 +25,7 @@ function sanitizeOptionsObject(input: unknown): Partial<PlayerOptions> {
   }
   const out: Record<string, unknown> = Object.create(null);
   for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
-    if (FORBIDDEN_KEYS.has(key)) continue;
+    if (isForbiddenKey(key)) continue;
     out[key] = value;
   }
   return out as Partial<PlayerOptions>;
@@ -67,77 +62,17 @@ function initializePlayers(): void {
       element.dataset.vidplyLazyMargin || (mergedOptions.lazyMargin as string) || '500px';
 
     if (lazyInit && 'IntersectionObserver' in window) {
-      observeForLazyInit(element, mergedOptions, lazyMargin);
+      observeForLazyInit<Partial<PlayerOptions>>(
+        element,
+        mergedOptions,
+        lazyMargin,
+        (target, opts) => { new Player(target, opts); }
+      );
     } else {
       new Player(element, mergedOptions);
     }
   });
 }
-
-function observeForLazyInit(
-  element: HTMLElement,
-  options: Partial<PlayerOptions>,
-  margin: string
-): void {
-  const rect = element.getBoundingClientRect();
-  if (rect.height < 20) {
-    new Player(element, options);
-    return;
-  }
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          observer.unobserve(entry.target);
-          pendingPlayers.delete(entry.target as HTMLElement);
-          new Player(entry.target as HTMLElement, options);
-        }
-      });
-    },
-    { rootMargin: margin, threshold: 0 }
-  );
-
-  observer.observe(element);
-  pendingPlayers.set(element, { observer, options });
-}
-
-function cancelLazyInit(element: HTMLElement): void {
-  const pending = pendingPlayers.get(element);
-  if (pending) {
-    pending.observer.unobserve(element);
-    pendingPlayers.delete(element);
-  }
-}
-
-/**
- * Manually trigger lazy observation for an element. Real, typed static
- * method on the Player class.
- */
-Player.observeLazy = function observeLazy(
-  selector: string | HTMLElement,
-  options: Record<string, unknown> = {},
-  margin = '200px'
-): LazyHandle {
-  const element =
-    typeof selector === 'string'
-      ? (document.querySelector(selector) as HTMLElement | null)
-      : selector;
-
-  if (!element) {
-    console.warn('VidPly: Element not found for lazy observation');
-    return null;
-  }
-
-  if ('IntersectionObserver' in window) {
-    observeForLazyInit(element, options as Partial<PlayerOptions>, margin);
-    return {
-      cancel: () => cancelLazyInit(element)
-    };
-  }
-  new Player(element, options as Partial<PlayerOptions>);
-  return null;
-};
 
 function parseDataAttributes(dataset: DOMStringMap): Partial<PlayerOptions> {
   const options: Record<string, unknown> = Object.create(null);
@@ -174,7 +109,7 @@ function parseDataAttributes(dataset: DOMStringMap): Partial<PlayerOptions> {
   };
 
   for (const [dataKey, optionKey] of Object.entries(attributeMap)) {
-    if (FORBIDDEN_KEYS.has(optionKey as string)) continue;
+    if (isForbiddenKey(optionKey)) continue;
     const value = dataset[dataKey];
     if (value === undefined) continue;
     if (value === 'true') {
