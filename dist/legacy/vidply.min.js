@@ -1,5 +1,5 @@
 /*!
- * VidPly v1.1.15 - Universal, Accessible Video Player
+ * VidPly v1.1.16 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
