@@ -35,6 +35,9 @@ test-results/
 .env
 .env.local
 .env.*.local
+.npmrc
+.npmrc.local
+.npmrc.*.local
 
 # Temporary files
 tmp/
