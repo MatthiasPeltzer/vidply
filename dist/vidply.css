@@ -5193,7 +5193,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   align-items: center;
   background: var(--vidply-primary);
   border-radius: 0.25rem;
-  color: var(--vidply-white);
+  color: #fff !important;
   display: flex;
   font-size: 0.75rem;
   font-weight: 600;
