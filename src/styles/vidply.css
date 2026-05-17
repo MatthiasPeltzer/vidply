@@ -5514,6 +5514,12 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   color: currentcolor;
   display: flex;
   justify-content: center;
+  /* Prevent the browser's scroll-anchoring algorithm from treating the
+     placeholder as an anchor. Without this the placeholder→container swap
+     in _unmountFromShell() can trigger a scroll-position adjustment that
+     kicks the page back below the re-docking threshold, causing an
+     oscillation that makes scrolling up feel stuck or jerky. */
+  overflow-anchor: none;
   pointer-events: none;
 }
 

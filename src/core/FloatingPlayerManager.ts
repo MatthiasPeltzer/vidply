@@ -74,6 +74,7 @@ export class FloatingPlayerManager {
     _destroyed: boolean;
     _triggerFocusEl: HTMLElement | null;
     _claimId: string;
+    _lastAutoExitTime: number;
 
     constructor(player: Player) {
         this.player = player;
@@ -103,6 +104,7 @@ export class FloatingPlayerManager {
         this._destroyed = false;
         this._triggerFocusEl = null;
         this._claimId = `floating-${player.instanceId}-${Date.now()}`;
+        this._lastAutoExitTime = 0;
 
         this._setupClaimListener();
         this._setupFullscreenGuard();
@@ -168,6 +170,12 @@ export class FloatingPlayerManager {
     exit(reason: ExitReason = 'manual') {
         if (this._destroyed && reason !== 'destroy') return;
         if (!this.player.state.floating) return;
+
+        if (reason === 'auto') {
+            // Record when an auto-exit occurred so the IntersectionObserver
+            // callback can apply a cooldown before re-entering auto-float.
+            this._lastAutoExitTime = Date.now();
+        }
 
         this._unmountFromShell();
         this._teardownShell();
@@ -347,7 +355,7 @@ export class FloatingPlayerManager {
             }
 
             if (this.player.state.floating === 'auto') {
-                if (entry.intersectionRatio > 0.5) {
+                if (entry.intersectionRatio >= 0.5) {
                     this.exit('auto');
                 }
                 return;
@@ -359,6 +367,11 @@ export class FloatingPlayerManager {
             }
 
             if (entry.intersectionRatio < 0.1 && this._canFloat('auto')) {
+                // Brief cooldown after an auto-exit prevents the layout reflow that
+                // accompanies the placeholder→container swap from immediately
+                // re-triggering auto-float (oscillation guard).
+                const AUTO_EXIT_COOLDOWN_MS = 500;
+                if (Date.now() - this._lastAutoExitTime < AUTO_EXIT_COOLDOWN_MS) return;
                 this.enter('auto');
             }
         }, { threshold: [0, 0.1, 0.5, 0.9] });
