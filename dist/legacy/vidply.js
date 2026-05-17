@@ -1,5 +1,5 @@
 /*!
- * VidPly v1.1.16 - Universal, Accessible Video Player
+ * VidPly v1.1.17 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
@@ -3567,7 +3567,6 @@
           const dragHandle = this.options.dragHandle || this.element;
           if (typeof window !== "undefined" && "PointerEvent" in window) {
             dragHandle.addEventListener("pointerdown", this.handlers.pointerdown);
-            document.addEventListener("pointermove", this.handlers.pointermove, { passive: false });
             document.addEventListener("pointerup", this.handlers.pointerup);
             document.addEventListener("pointercancel", this.handlers.pointercancel);
           } else {
@@ -3821,6 +3820,9 @@
           this.element.classList.add(`${this.options.classPrefix}-dragging`);
           document.body.style.cursor = "grabbing";
           document.body.style.userSelect = "none";
+          if ("PointerEvent" in window) {
+            document.addEventListener("pointermove", this.handlers.pointermove, { passive: false });
+          }
         }
         drag(clientX, clientY) {
           if (!this.isDragging) return;
@@ -3849,6 +3851,9 @@
           this.element.classList.remove(`${this.options.classPrefix}-dragging`);
           document.body.style.cursor = "";
           document.body.style.userSelect = "";
+          if ("PointerEvent" in window) {
+            document.removeEventListener("pointermove", this.handlers.pointermove);
+          }
           this.manuallyPositioned = true;
           if (this.options.onDragEnd) {
             this.options.onDragEnd();
@@ -3865,6 +3870,9 @@
           this.resizeStartTop = rect.top;
           this.element.classList.add(`${this.options.classPrefix}-resizing`);
           document.body.style.userSelect = "none";
+          if ("PointerEvent" in window) {
+            document.addEventListener("pointermove", this.handlers.pointermove, { passive: false });
+          }
           if (this.options.onResizeStart) {
             this.options.onResizeStart();
           }
@@ -3933,6 +3941,9 @@
           this.resizeDirection = null;
           this.element.classList.remove(`${this.options.classPrefix}-resizing`);
           document.body.style.userSelect = "";
+          if ("PointerEvent" in window) {
+            document.removeEventListener("pointermove", this.handlers.pointermove);
+          }
           this.manuallyPositioned = true;
           if (this.options.onResizeEnd) {
             this.options.onResizeEnd();
@@ -5926,6 +5937,7 @@
           __publicField(this, "_destroyed");
           __publicField(this, "_triggerFocusEl");
           __publicField(this, "_claimId");
+          __publicField(this, "_lastAutoExitTime");
           this.player = player;
           this.classPrefix = player.options.classPrefix || "vidply";
           this.shell = null;
@@ -5949,6 +5961,7 @@
           this._destroyed = false;
           this._triggerFocusEl = null;
           this._claimId = `floating-${player.instanceId}-${Date.now()}`;
+          this._lastAutoExitTime = 0;
           this._setupClaimListener();
           this._setupFullscreenGuard();
           this._startObserving();
@@ -5997,6 +6010,9 @@
         exit(reason = "manual") {
           if (this._destroyed && reason !== "destroy") return;
           if (!this.player.state.floating) return;
+          if (reason === "auto") {
+            this._lastAutoExitTime = Date.now();
+          }
           this._unmountFromShell();
           this._teardownShell();
           const priorTrigger = this._triggerFocusEl;
@@ -6153,7 +6169,7 @@
               }
             }
             if (this.player.state.floating === "auto") {
-              if (entry.intersectionRatio > 0.5) {
+              if (entry.intersectionRatio >= 0.5) {
                 this.exit("auto");
               }
               return;
@@ -6162,6 +6178,8 @@
               return;
             }
             if (entry.intersectionRatio < 0.1 && this._canFloat("auto")) {
+              const AUTO_EXIT_COOLDOWN_MS = 500;
+              if (Date.now() - this._lastAutoExitTime < AUTO_EXIT_COOLDOWN_MS) return;
               this.enter("auto");
             }
           }, { threshold: [0, 0.1, 0.5, 0.9] });
