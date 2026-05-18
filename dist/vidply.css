@@ -162,6 +162,11 @@
 /* ============================================
    Theme System
    ============================================ */
+.vidply-wrapper audio,
+.vidply-wrapper video {
+  max-width: 100%;
+  width: 100%;
+}
 
 /* Dark Theme (Default) - uses root variables as-is */
 .vidply-theme-dark {
