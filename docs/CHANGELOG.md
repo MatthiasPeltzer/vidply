@@ -5,6 +5,13 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Pinned hls.js / dash.js CDN defaults**: Default fallback URLs now load `hls.js` 1.6.16 and `dash.js` 5.2.0
+  (modern UMD build). Override via `hlsScriptUrl` / `dashScriptUrl` as before.
+
 ## [1.1.10] - 2026-05-03
 
 ### Security

@@ -128,7 +128,7 @@ When using `mpc-vidply` in TYPO3, the **Privacy Layer** displays a GDPR consent 
 <video data-vidply src="https://example.com/stream.m3u8"></video>
 ```
 
-`hls.js` is automatically loaded from CDN when `.m3u8` URLs are detected. Behavior per platform:
+`hls.js` **1.6.16** is loaded on demand when `.m3u8` URLs are detected (CDN fallback if not already on the page). Behavior per platform:
 
 | Platform | HLS engine | Captions / Transcript / Quality |
 |----------|------------|---------------------------------|
@@ -144,7 +144,7 @@ When using `mpc-vidply` in TYPO3, the **Privacy Layer** displays a GDPR consent 
 <video data-vidply src="https://example.com/manifest.mpd"></video>
 ```
 
-dash.js is automatically loaded from CDN when `.mpd` URLs are detected. DASH streams support:
+**dash.js 5.2.0** (modern UMD) is loaded on demand when `.mpd` URLs are detected. DASH streams support:
 - Adaptive bitrate quality selection
 - TTML subtitles (rendered natively by dash.js)
 - WebVTT subtitles (handled by VidPly's caption system with transcript support)

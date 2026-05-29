@@ -45,7 +45,7 @@ You will receive an acknowledgement within **5 business days**. We aim to publis
   - `style-src 'self' 'unsafe-inline';` (the player uses inline `style.setProperty` for theme variables).
   - `connect-src 'self' <your-CDN>;`
 - If you do not need YouTube/Vimeo/SoundCloud playback, omit those origins.
-- Pin the loaded versions of `hls.js` / `dash.js` via the `hlsScriptUrl` / `dashScriptUrl` options and add Subresource Integrity hashes (the library adds them automatically when the URL ends in `.js`).
+- Pin the loaded versions of `hls.js` / `dash.js` via the `hlsScriptUrl` / `dashScriptUrl` options and add Subresource Integrity hashes (the library adds them automatically when the URL ends in `.js`). VidPly defaults to **hls.js 1.6.16** and **dash.js 5.2.0** (modern UMD).
 - Treat captions, transcripts, playlist titles, and any data attribute from third-party content management systems as untrusted. VidPly never uses `innerHTML` for cue rendering, but the embedding page should still validate inputs.
 
 ## Coordinated disclosure

@@ -281,7 +281,7 @@ export class HLSRenderer implements Renderer {
    * silently break playback for consumers who upgrade hls.js.
    */
   async loadHlsJs(): Promise<void> {
-    const defaultUrl = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js';
+    const defaultUrl = 'https://cdn.jsdelivr.net/npm/hls.js@1.6.16/dist/hls.min.js';
     const url: string = (this.player.options.hlsScriptUrl as string | undefined) || defaultUrl;
     const integrity = this.player.options.hlsScriptIntegrity as string | undefined;
 

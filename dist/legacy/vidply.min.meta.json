@@ -12,37 +12,37 @@
       "format": "esm"
     },
     "src/utils/DOMUtils.ts": {
-      "bytes": 9273,
+      "bytes": 8993,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/en.ts": {
-      "bytes": 9107,
+      "bytes": 8889,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.ts": {
-      "bytes": 11202,
+      "bytes": 10985,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.ts": {
-      "bytes": 10250,
+      "bytes": 10036,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.ts": {
-      "bytes": 10571,
+      "bytes": 10357,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.ts": {
-      "bytes": 11054,
+      "bytes": 10840,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/translations.ts": {
-      "bytes": 1139,
+      "bytes": 1167,
       "imports": [
         {
           "path": "src/i18n/languages/en.ts",
@@ -73,12 +73,12 @@
       "format": "esm"
     },
     "src/utils/Sanitize.ts": {
-      "bytes": 2816,
+      "bytes": 2746,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/i18n.ts": {
-      "bytes": 7833,
+      "bytes": 7610,
       "imports": [
         {
           "path": "src/i18n/translations.ts",
@@ -99,7 +99,7 @@
       "format": "esm"
     },
     "src/utils/TimeUtils.ts": {
-      "bytes": 1907,
+      "bytes": 1974,
       "imports": [
         {
           "path": "src/i18n/i18n.ts",
@@ -115,27 +115,27 @@
       "format": "esm"
     },
     "src/utils/FocusUtils.ts": {
-      "bytes": 673,
+      "bytes": 699,
       "imports": [],
       "format": "esm"
     },
     "src/utils/PerformanceUtils.ts": {
-      "bytes": 1113,
+      "bytes": 1153,
       "imports": [],
       "format": "esm"
     },
     "src/utils/VideoFrameCapture.ts": {
-      "bytes": 3564,
+      "bytes": 3450,
       "imports": [],
       "format": "esm"
     },
     "src/utils/DownloadInfo.ts": {
-      "bytes": 5024,
+      "bytes": 4853,
       "imports": [],
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 186578,
+      "bytes": 182109,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -186,7 +186,7 @@
       "format": "esm"
     },
     "src/utils/StorageManager.ts": {
-      "bytes": 9636,
+      "bytes": 9352,
       "imports": [
         {
           "path": "src/utils/Sanitize.ts",
@@ -202,7 +202,7 @@
       "format": "esm"
     },
     "src/utils/TrackLabelUtils.ts": {
-      "bytes": 2045,
+      "bytes": 1993,
       "imports": [
         {
           "path": "src/i18n/i18n.ts",
@@ -213,7 +213,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.ts": {
-      "bytes": 23388,
+      "bytes": 22797,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -249,7 +249,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.ts": {
-      "bytes": 10201,
+      "bytes": 9894,
       "imports": [
         {
           "path": "src/i18n/i18n.ts",
@@ -276,17 +276,17 @@
       "format": "esm"
     },
     "src/utils/UrlSafe.ts": {
-      "bytes": 2722,
+      "bytes": 2653,
       "imports": [],
       "format": "esm"
     },
     "src/core/LazyInit.ts": {
-      "bytes": 2574,
+      "bytes": 2494,
       "imports": [],
       "format": "esm"
     },
     "src/core/PseudoFullscreen.ts": {
-      "bytes": 6982,
+      "bytes": 6805,
       "imports": [
         {
           "path": "<runtime>",
@@ -297,7 +297,7 @@
       "format": "esm"
     },
     "src/core/ThemeManager.ts": {
-      "bytes": 5729,
+      "bytes": 5572,
       "imports": [
         {
           "path": "src/utils/Sanitize.ts",
@@ -313,7 +313,7 @@
       "format": "esm"
     },
     "src/core/PosterManager.ts": {
-      "bytes": 6038,
+      "bytes": 5869,
       "imports": [
         {
           "path": "src/utils/VideoFrameCapture.ts",
@@ -329,7 +329,7 @@
       "format": "esm"
     },
     "src/core/ResumeManager.ts": {
-      "bytes": 7926,
+      "bytes": 7690,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -355,7 +355,7 @@
       "format": "esm"
     },
     "src/core/ResponsiveManager.ts": {
-      "bytes": 9145,
+      "bytes": 8914,
       "imports": [
         {
           "path": "src/core/PseudoFullscreen.ts",
@@ -371,7 +371,7 @@
       "format": "esm"
     },
     "src/core/MetadataAlertsManager.ts": {
-      "bytes": 18550,
+      "bytes": 18037,
       "imports": [
         {
           "path": "<runtime>",
@@ -382,7 +382,7 @@
       "format": "esm"
     },
     "src/core/AudioDescriptionManager.ts": {
-      "bytes": 30382,
+      "bytes": 29610,
       "imports": [
         {
           "path": "src/controls/CaptionManager.ts",
@@ -425,7 +425,7 @@
       "format": "esm"
     },
     "src/utils/MenuUtils.ts": {
-      "bytes": 5060,
+      "bytes": 5232,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -451,12 +451,12 @@
       "format": "esm"
     },
     "src/utils/DraggablePanelMenu.ts": {
-      "bytes": 7637,
+      "bytes": 7442,
       "imports": [],
       "format": "esm"
     },
     "src/utils/DraggablePanel.ts": {
-      "bytes": 18513,
+      "bytes": 17974,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -487,7 +487,7 @@
       "format": "esm"
     },
     "src/core/SignLanguageManager.ts": {
-      "bytes": 49855,
+      "bytes": 48549,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -559,7 +559,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.ts": {
-      "bytes": 91117,
+      "bytes": 88693,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -647,7 +647,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 32259,
+      "bytes": 31361,
       "imports": [
         {
           "path": "src/renderers/HTML5Renderer.ts",
@@ -663,7 +663,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 37541,
+      "bytes": 36473,
       "imports": [
         {
           "path": "<runtime>",
@@ -674,7 +674,7 @@
       "format": "esm"
     },
     "src/renderers/SoundCloudRenderer.ts": {
-      "bytes": 12826,
+      "bytes": 12404,
       "imports": [
         {
           "path": "<runtime>",
@@ -685,7 +685,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 103233,
+      "bytes": 100382,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -836,7 +836,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 63536,
+      "bytes": 61724,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -872,7 +872,7 @@
       "format": "esm"
     },
     "src/index.ts": {
-      "bytes": 6816,
+      "bytes": 6623,
       "imports": [
         {
           "path": "src/core/Player.ts",
