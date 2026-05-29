@@ -1,37 +1,37 @@
 /*!
- * VidPly v1.1.18 - Universal, Accessible Video Player
+ * VidPly v1.1.19 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 import {
   TimeUtils
-} from "./vidply.chunk-CMRM5DBE.js";
+} from "./vidply.chunk-NUTGO3RK.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-ZFY7FNCU.js";
+} from "./vidply.chunk-PTYRD6ZP.js";
 import {
   CaptionManager,
   debounce,
   isMobile,
   rafWithTimeout,
   throttle
-} from "./vidply.chunk-SMAKH57B.js";
+} from "./vidply.chunk-AQDY6B5B.js";
 import {
   StorageManager
-} from "./vidply.chunk-A3O3RXUN.js";
+} from "./vidply.chunk-QF77EYBM.js";
 import {
   focusElement,
   focusFirstElement
-} from "./vidply.chunk-B5EIJMML.js";
+} from "./vidply.chunk-24QLI7ZK.js";
 import {
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-KGJQUMTY.js";
+} from "./vidply.chunk-MQAA3FKI.js";
 import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-6XNKSC2A.js";
+} from "./vidply.chunk-KMACPXZ5.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -4874,21 +4874,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-O6M5MDHC.js");
+    const module = await import("./vidply.AudioDescriptionManager-NRMNKZAL.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-Z2PGSMNL.js");
+    const module = await import("./vidply.SignLanguageManager-ZZ6DIDTP.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-ILY67XXD.js");
+    const module = await import("./vidply.FloatingPlayerManager-HJVGUQLT.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -5538,7 +5538,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-227D6AGI.js");
+    const module = await import("./vidply.TranscriptManager-4553RRA6.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -5978,19 +5978,19 @@ var Player = class _Player extends EventEmitter {
   }
   async _detectRendererClass(src) {
     if (src.includes("youtube.com") || src.includes("youtu.be")) {
-      const module = await import("./vidply.YouTubeRenderer-RJFSC7DO.js");
+      const module = await import("./vidply.YouTubeRenderer-PZHT3GMF.js");
       return module.YouTubeRenderer ?? module.default;
     } else if (src.includes("vimeo.com")) {
-      const module = await import("./vidply.VimeoRenderer-H425TIXI.js");
+      const module = await import("./vidply.VimeoRenderer-EVW2RNSF.js");
       return module.VimeoRenderer ?? module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-LMSW2GVS.js");
+      const module = await import("./vidply.HLSRenderer-YAFEUBMC.js");
       return module.HLSRenderer ?? module.default;
     } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-2CF4EROV.js");
+      const module = await import("./vidply.DASHRenderer-SYXX6RRS.js");
       return module.DASHRenderer ?? module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
-      const module = await import("./vidply.SoundCloudRenderer-RQL7H2VV.js");
+      const module = await import("./vidply.SoundCloudRenderer-OFBGL7UV.js");
       return module.SoundCloudRenderer ?? module.default;
     }
     return HTML5Renderer;
