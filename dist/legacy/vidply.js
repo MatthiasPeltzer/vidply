@@ -9038,7 +9038,7 @@
          * silently break playback for consumers who upgrade hls.js.
          */
         async loadHlsJs() {
-          const defaultUrl = "https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js";
+          const defaultUrl = "https://cdn.jsdelivr.net/npm/hls.js@1.6.16/dist/hls.min.js";
           const url = this.player.options.hlsScriptUrl || defaultUrl;
           const integrity = this.player.options.hlsScriptIntegrity;
           return new Promise((resolve, reject) => {
@@ -9582,7 +9582,7 @@
               // NOTE on pre-play preload: we deliberately do NOT set
               // streaming.scheduling.scheduleWhilePaused = false here. While that
               // is the documented dash.js way to suppress segment downloads while
-              // paused / before the first play, in our setup (dash.js 5.1.1 +
+              // paused / before the first play, in our setup (dash.js 5.2.0 +
               // dash.initialize(media, null, false) + attachSource at init) it
               // tears down the SourceBuffers mid-init with
               // "SourceBuffer has been removed from the parent media source"
@@ -9664,12 +9664,12 @@
         }
         /**
          * Load dash.js. Pinned to an exact version (the previous default
-         * `5.1.1` is preserved) and overridable via `options.dashScriptUrl`
+         * `5.2.0` is preserved) and overridable via `options.dashScriptUrl`
          * (URL) / `options.dashScriptIntegrity` (SRI hash). See
          * HLSRenderer.loadHlsJs() for the SRI computation command.
          */
         async loadDashJs() {
-          const defaultUrl = "https://cdn.jsdelivr.net/npm/dashjs@5.1.1/dist/modern/umd/dash.all.min.js";
+          const defaultUrl = "https://cdn.jsdelivr.net/npm/dashjs@5.2.0/dist/modern/umd/dash.all.min.js";
           const url = this.player.options.dashScriptUrl || defaultUrl;
           const integrity = this.player.options.dashScriptIntegrity;
           return new Promise((resolve, reject) => {

@@ -825,13 +825,13 @@ const player = new Player('#video', {
 1. Verify M3U8 URL is accessible
 2. Check CORS headers
 3. Test in Safari (native HLS support)
-4. hls.js library will auto-load for other browsers
+4. **hls.js 1.6.16** loads on demand when not already on the page (override via `hlsScriptUrl`)
 
 ### DASH Stream Issues
 
 1. Verify MPD URL is accessible
 2. Check CORS headers on the streaming server
-3. dash.js will auto-load from CDN when `.mpd` URLs are detected
+3. **dash.js 5.2.0** (modern UMD) loads on demand when not already on the page (override via `dashScriptUrl`)
 4. TTML subtitles are rendered by dash.js natively; WebVTT subtitles use VidPly's caption system
 5. If quality levels don't appear, check that the MPD manifest contains multiple representations
 6. Enable debug mode for dash.js logs: `{ debug: true }`

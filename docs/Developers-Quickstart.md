@@ -508,13 +508,18 @@ if (this.options.debug) {
 
 ### External Dependencies
 
-| Dependency | Purpose | Loaded |
-|------------|---------|--------|
-| hls.js | HLS streaming (Chrome / Firefox / Edge / desktop Safari) | On demand (CDN) |
-| dash.js | DASH streaming | On demand (CDN) |
-| YouTube IFrame API | YouTube playback | On demand |
-| Vimeo Player API | Vimeo playback | On demand |
-| SoundCloud Widget API | SoundCloud playback | On demand |
+| Dependency | Pinned version | Purpose | Loaded |
+|------------|----------------|---------|--------|
+| hls.js | **1.6.16** | HLS streaming (Chrome / Firefox / Edge / desktop Safari) | On demand (CDN fallback) |
+| dash.js | **5.2.0** (modern UMD) | DASH streaming | On demand (CDN fallback) |
+| YouTube IFrame API | — | YouTube playback | On demand |
+| Vimeo Player API | — | Vimeo playback | On demand |
+| SoundCloud Widget API | — | SoundCloud playback | On demand |
+
+Default CDN fallback URLs (override via `hlsScriptUrl` / `dashScriptUrl`):
+
+- `https://cdn.jsdelivr.net/npm/hls.js@1.6.16/dist/hls.min.js`
+- `https://cdn.jsdelivr.net/npm/dashjs@5.2.0/dist/modern/umd/dash.all.min.js`
 
 ---
 

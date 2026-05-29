@@ -46,11 +46,11 @@ Try VidPly in action:
 - **Vimeo Integration** - Seamless Vimeo player integration
 - **SoundCloud Integration** - Play SoundCloud tracks and sets via the Widget API with unified controls
 - **HLS Streaming** - Adaptive bitrate streaming with quality selection and dynamic subtitle detection
-  - Uses `hls.js` on Chrome / Firefox / Edge / desktop Safari for full feature parity (quality menu, captions,
+  - Uses **hls.js 1.6.16** on Chrome / Firefox / Edge / desktop Safari for full feature parity (quality menu, captions,
     transcript)
   - Falls back to native HLS on iOS / iPadOS where MSE is unavailable; native text tracks are still surfaced through the
     VidPly captions and transcript UI
-- **DASH Streaming** - MPEG-DASH support via dash.js with adaptive quality, TTML and WebVTT subtitles
+- **DASH Streaming** - MPEG-DASH support via **dash.js 5.2.0** (modern UMD) with adaptive quality, TTML and WebVTT subtitles
 - **Buffering Spinner** - Centered loading spinner shown automatically while media is buffering (HTML5, HLS, DASH)
 - **Download Button** - Optional download control with custom URL support (`downloadButton` + `downloadUrl`)
 - **Preview Thumbnails** - Video preview thumbnails on progress bar hover
