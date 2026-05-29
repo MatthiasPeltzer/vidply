@@ -10,7 +10,7 @@ internationalized with support for 5 languages and complete WCAG 2.2 AA complian
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)
 ![ESM](https://img.shields.io/badge/ESM-Module-yellow.svg)
 ![WCAG](https://img.shields.io/badge/WCAG-2.2%20AA-green.svg)
-![Version](https://img.shields.io/badge/version-1.1.10-brightgreen.svg)
+![npm version](https://img.shields.io/npm/v/vidply.svg)
 
 ## Live Demos
 
