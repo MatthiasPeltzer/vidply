@@ -711,14 +711,25 @@ export class PlaylistManager {
         this.player.invalidateTrackCache();
       }
 
-      // Re-scan described-track metadata for AudioDescriptionManager
-      if (this.player.audioDescriptionManager && typeof this.player.audioDescriptionManager.initFromSourceElements === 'function') {
+      // Re-scan described-track metadata for the AudioDescriptionManager. The
+      // manager is no longer eagerly loaded on content-less players, so if this
+      // track is the first to introduce described content, pull the chunk in
+      // lazily before re-scanning.
+      const reinitAudioDescription = (adm: Player['audioDescriptionManager']) => {
+        if (!adm || typeof adm.initFromSourceElements !== 'function') return;
         try {
-          this.player.audioDescriptionManager.captionTracks = [];
-          this.player.audioDescriptionManager.initFromSourceElements(this.player.sourceElements, this.player.trackElements);
+          adm.captionTracks = [];
+          adm.initFromSourceElements(this.player.sourceElements, this.player.trackElements);
         } catch {
           // ignore
         }
+      };
+      if (this.player.audioDescriptionManager) {
+        reinitAudioDescription(this.player.audioDescriptionManager);
+      } else if (this.player.hasAudioDescriptionContent?.()) {
+        void this.player.ensureAudioDescriptionManager()
+          .then(reinitAudioDescription)
+          .catch(() => { /* ignore */ });
       }
 
       // Refresh caption/transcript managers so menus reflect newly injected <track> elements
