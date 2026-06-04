@@ -48,14 +48,14 @@ const EXT_TO_FORMAT: Record<string, string> = {
 
 export function inferFormatFromMime(mime: string | null | undefined): string | null {
   if (!mime) return null;
-  const trimmed = mime.split(';')[0].trim().toLowerCase();
+  const trimmed = (mime.split(';')[0] ?? '').trim().toLowerCase();
   return MIME_TO_FORMAT[trimmed] || null;
 }
 
 export function inferFormatFromUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   try {
-    const cleaned = url.split('?')[0].split('#')[0];
+    const cleaned = url.split('?')[0]?.split('#')[0] ?? '';
     const lastSegment = cleaned.split('/').pop() || '';
     const dotIndex = lastSegment.lastIndexOf('.');
     if (dotIndex < 0 || dotIndex === lastSegment.length - 1) return null;

@@ -320,6 +320,7 @@ export class DraggableResizable {
     }
 
     const touch = e.touches[0];
+    if (!touch) return;
     this.startDragging(touch.clientX, touch.clientY);
     // Prevent page scroll while dragging (requires passive:false listener)
     e.preventDefault();
@@ -359,7 +360,8 @@ export class DraggableResizable {
     
     const clientX = 'clientX' in e ? e.clientX : e.touches?.[0]?.clientX;
     const clientY = 'clientY' in e ? e.clientY : e.touches?.[0]?.clientY;
-    
+    if (clientX === undefined || clientY === undefined) return;
+
     this.startResizing(clientX, clientY);
   }
 
@@ -376,6 +378,7 @@ export class DraggableResizable {
   onTouchMove(e: TouchEvent): void {
     if (this.isDragging || this.isResizing) {
       const touch = e.touches[0];
+      if (!touch) return;
       if (this.isDragging) {
         this.drag(touch.clientX, touch.clientY);
       } else {

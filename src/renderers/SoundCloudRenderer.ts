@@ -1,5 +1,6 @@
 import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
+import { loadScriptOnce } from '../utils/ScriptLoader.js';
 
 /**
  * Subset of the SoundCloud Widget event payloads we actually consume.
@@ -29,6 +30,11 @@ export class SoundCloudRenderer implements Renderer {
   iframe: HTMLIFrameElement | null;
   iframeId: string | null;
   _previousVolume: number;
+  // Pending init timeout (rejects after 10s); cleared once READY fires or on
+  // destroy so it can't reject / touch a torn-down player afterwards.
+  private _initTimeoutId: ReturnType<typeof setTimeout> | null;
+  // Detaches the iframe 'load' listener on destroy.
+  private _initController: AbortController | null;
 
   constructor(player: Player) {
     this.player = player;
@@ -39,6 +45,8 @@ export class SoundCloudRenderer implements Renderer {
     this.iframe = null;
     this.iframeId = null;
     this._previousVolume = 100;
+    this._initTimeoutId = null;
+    this._initController = null;
   }
 
   async init() {
@@ -127,21 +135,10 @@ export class SoundCloudRenderer implements Renderer {
       return Promise.resolve();
     }
 
-    return new Promise<void>((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://w.soundcloud.com/player/api.js';
-      script.onload = () => {
-        // Wait a bit for SC.Widget to be fully available
-        setTimeout(() => {
-          if (typeof window.SC !== 'undefined') {
-            resolve();
-          } else {
-            reject(new Error('SoundCloud Widget API not available'));
-          }
-        }, 100);
-      };
-      script.onerror = () => reject(new Error('Failed to load SoundCloud Widget API'));
-      document.head.appendChild(script);
+    // SC.Widget can become available a tick after the script's load event, so
+    // resolve via the readiness predicate rather than load alone.
+    return loadScriptOnce('https://w.soundcloud.com/player/api.js', {
+      isReady: () => typeof window.SC !== 'undefined'
     });
   }
 
@@ -195,7 +192,9 @@ export class SoundCloudRenderer implements Renderer {
         return;
       }
 
-      // Wait for iframe to load
+      // Wait for iframe to load. Registered through an AbortController so
+      // destroy() can detach it if init never completes.
+      this._initController = new AbortController();
       iframe.addEventListener('load', () => {
         try {
           const widget = SC.Widget(iframe);
@@ -203,6 +202,11 @@ export class SoundCloudRenderer implements Renderer {
 
           widget.bind(SC.Widget.Events.READY, () => {
             this.isReady = true;
+            // Init succeeded — cancel the pending timeout so it can't reject.
+            if (this._initTimeoutId !== null) {
+              clearTimeout(this._initTimeoutId);
+              this._initTimeoutId = null;
+            }
             this.attachEvents();
 
             // Hide VidPly controls - SoundCloud has its own
@@ -229,10 +233,11 @@ export class SoundCloudRenderer implements Renderer {
         } catch (error) {
           reject(error);
         }
-      });
+      }, { signal: this._initController.signal });
       
       // Timeout after 10 seconds
-      setTimeout(() => {
+      this._initTimeoutId = setTimeout(() => {
+        this._initTimeoutId = null;
         if (!this.isReady) {
           reject(new Error('SoundCloud widget initialization timeout'));
         }
@@ -387,6 +392,16 @@ export class SoundCloudRenderer implements Renderer {
   }
 
   destroy() {
+    // Cancel any pending init timeout and detach the iframe 'load' listener.
+    if (this._initTimeoutId !== null) {
+      clearTimeout(this._initTimeoutId);
+      this._initTimeoutId = null;
+    }
+    if (this._initController) {
+      this._initController.abort();
+      this._initController = null;
+    }
+
     // Unbind all events
     if (this.widget && window.SC) {
       const Events = window.SC.Widget.Events;

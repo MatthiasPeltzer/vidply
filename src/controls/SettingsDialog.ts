@@ -33,12 +33,15 @@ export class SettingsDialog {
 
   createElement() {
     // Create overlay
+    // Labelled by the visible <h2> title (created below) rather than a
+    // duplicate aria-label, so the accessible name matches what is on screen
+    // (WCAG 2.4.6, 4.1.2).
     this.overlay = DOMUtils.createElement('div', {
       className: `${this.player.options.classPrefix}-settings-overlay`,
       attributes: {
         'role': 'dialog',
         'aria-modal': 'true',
-        'aria-label': i18n.t('settings.title')
+        'aria-labelledby': `${this.player.options.classPrefix}-settings-title`
       }
     });
 
@@ -120,8 +123,35 @@ export class SettingsDialog {
     // remove it; the player's lifecycle AbortSignal is also forwarded so
     // teardown of the player tears down the listener with us.
     this._keydownHandler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && this.isOpen) {
+      if (!this.isOpen) return;
+
+      if (e.key === 'Escape') {
         this.hide();
+        return;
+      }
+
+      // Trap Tab within the modal dialog so keyboard focus cannot reach the
+      // inert background content behind the overlay (WCAG 2.1.2, 2.4.3).
+      if (e.key === 'Tab') {
+        const focusable = Array.from(
+          this.overlay.querySelectorAll<HTMLElement>(
+            'button, [href], select, input, textarea, [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null);
+        if (focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (!first || !last) return;
+        const active = document.activeElement as HTMLElement | null;
+
+        if (e.shiftKey && (active === first || !this.overlay.contains(active))) {
+          e.preventDefault();
+          last.focus({ preventScroll: true });
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault();
+          first.focus({ preventScroll: true });
+        }
       }
     };
     const lifecycleSignal = (this.player as { lifecycleSignal?: AbortSignal }).lifecycleSignal;

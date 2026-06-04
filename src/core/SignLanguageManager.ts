@@ -178,7 +178,7 @@ export class SignLanguageManager {
         
         if (hasMultipleSources) {
             initialLang = this._determineInitialLanguage();
-            initialSrc = this.sources[initialLang];
+            initialSrc = this.sources[initialLang] ?? null;
             this.currentLanguage = initialLang;
         } else {
             initialSrc = this.src;
@@ -535,7 +535,7 @@ export class SignLanguageManager {
 
     _inferVideoType(url: string): string {
         if (!url) return '';
-        const cleanUrl = url.split('?')[0].toLowerCase();
+        const cleanUrl = (url.split('?')[0] ?? '').toLowerCase();
         if (cleanUrl.endsWith('.mp4')) return 'video/mp4';
         if (cleanUrl.endsWith('.webm')) return 'video/webm';
         if (cleanUrl.endsWith('.ogv') || cleanUrl.endsWith('.ogg')) return 'video/ogg';
@@ -563,7 +563,7 @@ export class SignLanguageManager {
     /**
      * Determine initial sign language
      */
-    _determineInitialLanguage() {
+    _determineInitialLanguage(): string {
         // Try caption language
         if (this.player.captionManager && this.player.captionManager.currentTrack) {
             const captionLang = this.player.captionManager.currentTrack.language?.toLowerCase().split('-')[0];
@@ -575,13 +575,13 @@ export class SignLanguageManager {
         // Try player language
         if (this.player.options.language) {
             const playerLang = this.player.options.language.toLowerCase().split('-')[0];
-            if (this.sources[playerLang]) {
+            if (playerLang && this.sources[playerLang]) {
                 return playerLang;
             }
         }
         
         // First available
-        return Object.keys(this.sources)[0];
+        return Object.keys(this.sources)[0] ?? '';
     }
 
     /**
@@ -786,15 +786,17 @@ export class SignLanguageManager {
         closeButton.appendChild(createIconElement('close'));
         DOMUtils.attachTooltip(closeButton, ariaLabel, classPrefix);
         
+        // Bind to the player lifecycle so the listener is dropped on teardown
+        // even if the button is detached without going through cleanup().
         closeButton.addEventListener('click', () => {
             this.disable();
             const signLanguageButton = this.player.controlBar?.controls?.signLanguage;
             if (signLanguageButton) {
-                setTimeout(() => {
+                this.player.setManagedTimeout(() => {
                     signLanguageButton.focus({ preventScroll: true });
                 }, 0);
             }
-        });
+        }, { signal: this.player.lifecycleSignal });
         
         return closeButton;
     }

@@ -6,8 +6,8 @@ import {DOMUtils} from '../utils/DOMUtils.js';
 import {TimeUtils} from '../utils/TimeUtils.js';
 import {createIconElement} from '../icons/Icons.js';
 import {i18n} from '../i18n/i18n.js';
-import {focusElement, focusFirstElement} from '../utils/FocusUtils.js';
-import {isMobile} from '../utils/PerformanceUtils.js';
+import {focusElement} from '../utils/FocusUtils.js';
+import {isMobile, reducedMotionScrollOptions} from '../utils/PerformanceUtils.js';
 import {captureVideoFrame} from '../utils/VideoFrameCapture.js';
 import {
     buildDownloadLabel,
@@ -641,7 +641,11 @@ export class ControlBar {
 
     // Helper method to add keyboard navigation to menus (arrow keys)
     attachMenuKeyboardNavigation(menu: HTMLElement, button: HTMLElement) {
-        const menuItems: HTMLElement[] = Array.from(menu.querySelectorAll(`.${this.player.options.classPrefix}-menu-item`));
+        // Exclude aria-disabled empty-state entries so arrow keys never land
+        // on a non-operable item (WCAG 2.1.1, 4.1.2).
+        const menuItems: HTMLElement[] = Array.from(
+            menu.querySelectorAll<HTMLElement>(`.${this.player.options.classPrefix}-menu-item`)
+        ).filter((item) => item.getAttribute('aria-disabled') !== 'true');
         
         if (menuItems.length === 0) return;
 
@@ -649,21 +653,29 @@ export class ControlBar {
             const currentIndex = menuItems.indexOf(document.activeElement as HTMLElement);
             
             switch (e.key) {
-                case 'ArrowDown':
+                case 'ArrowDown': {
                     e.preventDefault();
                     e.stopPropagation(); // Prevent volume/seek actions
                     const nextIndex = (currentIndex + 1) % menuItems.length;
-                    menuItems[nextIndex].focus({ preventScroll: false });
-                    menuItems[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    const nextItem = menuItems[nextIndex];
+                    if (nextItem) {
+                        nextItem.focus({ preventScroll: false });
+                        nextItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
+                    }
                     break;
+                }
                 
-                case 'ArrowUp':
+                case 'ArrowUp': {
                     e.preventDefault();
                     e.stopPropagation(); // Prevent volume/seek actions
                     const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
-                    menuItems[prevIndex].focus({ preventScroll: false });
-                    menuItems[prevIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    const prevItem = menuItems[prevIndex];
+                    if (prevItem) {
+                        prevItem.focus({ preventScroll: false });
+                        prevItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
+                    }
                     break;
+                }
                 
                 case 'ArrowLeft':
                 case 'ArrowRight':
@@ -672,19 +684,27 @@ export class ControlBar {
                     e.stopPropagation();
                     break;
                 
-                case 'Home':
+                case 'Home': {
                     e.preventDefault();
                     e.stopPropagation();
-                    menuItems[0].focus({ preventScroll: false });
-                    menuItems[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    const homeItem = menuItems[0];
+                    if (homeItem) {
+                        homeItem.focus({ preventScroll: false });
+                        homeItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
+                    }
                     break;
+                }
                 
-                case 'End':
+                case 'End': {
                     e.preventDefault();
                     e.stopPropagation();
-                    menuItems[menuItems.length - 1].focus({ preventScroll: false });
-                    menuItems[menuItems.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    const endItem = menuItems[menuItems.length - 1];
+                    if (endItem) {
+                        endItem.focus({ preventScroll: false });
+                        endItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
+                    }
                     break;
+                }
                 
                 case 'Enter':
                 case ' ':
@@ -728,7 +748,9 @@ export class ControlBar {
         // Progress bar container
         if (this.player.options.progressBar) {
             this.createProgressBar();
-            progressTimeWrapper.appendChild(this.controls.progress);
+            if (this.controls.progress) {
+                progressTimeWrapper.appendChild(this.controls.progress);
+            }
         }
 
         // Time display (right beside progress bar)
@@ -1018,7 +1040,7 @@ export class ControlBar {
         // 1) Prefer already-loaded TextTracks (fast + accurate)
         const textTracks = this.player.element.textTracks;
         for (let i = 0; i < textTracks.length; i++) {
-            if (textTracks[i].kind === 'chapters') return true;
+            if (textTracks[i]?.kind === 'chapters') return true;
             }
 
         // 2) Fallback to DOM <track> elements (works before tracks are fully loaded)
@@ -1039,7 +1061,8 @@ export class ControlBar {
         // 1) Prefer already-loaded TextTracks (skip stale tracks from previous dash.js)
         const textTracks = this.player.element.textTracks;
         for (let i = 0; i < textTracks.length; i++) {
-            if ((textTracks[i].kind === 'captions' || textTracks[i].kind === 'subtitles') && !textTracks[i]._vidplyStale) {
+            const tt = textTracks[i];
+            if (tt && (tt.kind === 'captions' || tt.kind === 'subtitles') && !tt._vidplyStale) {
                 return true;
             }
         }
@@ -1490,6 +1513,7 @@ export class ControlBar {
 
     setupProgressBarEvents() {
         const progress = this.controls.progress;
+        if (!progress) return;
 
         const updateProgress = (clientX: number) => {
             const rect = progress.getBoundingClientRect();
@@ -1518,12 +1542,14 @@ export class ControlBar {
                 const rect = progress.getBoundingClientRect();
                 const left = e.clientX - rect.left;
                 
-                // Update tooltip time text
-                this.controls.progressTooltipTime.textContent = TimeUtils.formatTime(time);
-                
-                // Update tooltip position
-                this.controls.progressTooltip.style.left = `${left}px`;
-                this.controls.progressTooltip.style.display = 'block';
+                // Update tooltip time text + position
+                const tooltip = this.controls.progressTooltip;
+                const tooltipTime = this.controls.progressTooltipTime;
+                if (tooltip && tooltipTime) {
+                    tooltipTime.textContent = TimeUtils.formatTime(time);
+                    tooltip.style.left = `${left}px`;
+                    tooltip.style.display = 'block';
+                }
 
                 // Only show preview thumbnails after the user has started playback at least once.
                 // Before that, show just the timestamp (no empty preview box).
@@ -1544,7 +1570,9 @@ export class ControlBar {
         });
 
         progress.addEventListener('mouseleave', () => {
-            this.controls.progressTooltip.style.display = 'none';
+            if (this.controls.progressTooltip) {
+                this.controls.progressTooltip.style.display = 'none';
+            }
             if (this.previewThumbnailTimeout) {
                 clearTimeout(this.previewThumbnailTimeout);
             }
@@ -1594,6 +1622,7 @@ export class ControlBar {
         progress.addEventListener('touchstart', (e: TouchEvent) => {
             this.isDraggingProgress = true;
             const touch = e.touches[0];
+            if (!touch) return;
             const {time} = updateProgress(touch.clientX);
             this.player.seek(time);
         });
@@ -1602,6 +1631,7 @@ export class ControlBar {
             if (this.isDraggingProgress) {
                 e.preventDefault();
                 const touch = e.touches[0];
+                if (!touch) return;
                 const {time} = updateProgress(touch.clientX);
                 this.player.seek(time);
             }
@@ -1899,6 +1929,7 @@ export class ControlBar {
             this.isDraggingVolume = true;
             this._activeVolumeTrack = volumeTrack;
             const touch = e.touches[0];
+            if (!touch) return;
             updateVolume(touch.clientY);
         }, { passive: false });
 
@@ -1906,6 +1937,7 @@ export class ControlBar {
             if (this.isDraggingVolume) {
                 e.preventDefault();
                 const touch = e.touches[0];
+                if (!touch) return;
                 updateVolume(touch.clientY);
             }
         }, { passive: false });
@@ -2096,17 +2128,20 @@ export class ControlBar {
         );
 
         if (chapterTracks.length === 0) {
-            // No chapters available
+            // No chapters available — non-operable, so keep it out of keyboard
+            // roving navigation via aria-disabled (WCAG 2.1.1, 4.1.2).
             const noChaptersItem = DOMUtils.createElement('div', {
-                className: `${this.player.options.classPrefix}-menu-item`,
+                className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
                 textContent: i18n.t('player.noChapters'),
                 attributes: {
-                    'role': 'menuitem'
+                    'role': 'menuitem',
+                    'aria-disabled': 'true',
+                    'tabindex': '-1'
                 },
                 style: {opacity: '0.5', cursor: 'default'}
             });
             menu.appendChild(noChaptersItem);
-        } else {
+        } else if (chapterTracks[0]) {
             const chapterTrack = chapterTracks[0];
 
             // Ensure track is in 'hidden' mode to load cues
@@ -2115,12 +2150,15 @@ export class ControlBar {
             }
 
             if (!chapterTrack.cues || chapterTrack.cues.length === 0) {
-                // Cues not loaded yet - wait for them to load
+                // Cues not loaded yet - wait for them to load. Non-operable
+                // placeholder, kept out of roving navigation via aria-disabled.
                 const loadingItem = DOMUtils.createElement('div', {
-                    className: `${this.player.options.classPrefix}-menu-item`,
+                    className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
                     textContent: i18n.t('player.loadingChapters'),
                     attributes: {
-                        'role': 'menuitem'
+                        'role': 'menuitem',
+                        'aria-disabled': 'true',
+                        'tabindex': '-1'
                     },
                     style: {opacity: '0.5', cursor: 'default'}
                 });
@@ -2423,366 +2461,12 @@ export class ControlBar {
     }
 
     showCaptionStyleMenu(button: HTMLElement) {
-        // Remove existing menu if any (toggle behavior)
-        const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-caption-style-menu`);
-        if (existingMenu) {
-            existingMenu.remove();
-            button.setAttribute('aria-expanded', 'false');
-            // Clear tracking if this was the open menu
-            if (this.openMenu === existingMenu) {
-                this.openMenu = null;
-                this.openMenuButton = null;
-            }
-            return;
-        }
-
-        // The caption-style panel contains form controls (selects, color
-        // inputs, sliders), not single-action menuitems. Modeling it as a
-        // dialog yields correct semantics for AT and matches the
-        // SettingsDialog pattern.
-        const menuLabelId = `${this.player.options.classPrefix}-caption-style-label-${this.player.instanceId || ''}`;
-        const menu = DOMUtils.createElement('div', {
-            className: `${this.player.options.classPrefix}-caption-style-menu ${this.player.options.classPrefix}-menu ${this.player.options.classPrefix}-settings-menu`,
-            attributes: {
-                'role': 'dialog',
-                'aria-modal': 'false',
-                'aria-labelledby': menuLabelId
-            }
-        });
-        const visuallyHiddenLabel = DOMUtils.createElement('h2', {
-            textContent: i18n.t('player.captionStyling'),
-            attributes: { id: menuLabelId, class: `${this.player.options.classPrefix}-sr-only` },
-            style: {
-                position: 'absolute',
-                width: '1px',
-                height: '1px',
-                padding: '0',
-                margin: '-1px',
-                overflow: 'hidden',
-                clip: 'rect(0,0,0,0)',
-                whiteSpace: 'nowrap',
-                border: '0'
-            }
-        });
-        menu.appendChild(visuallyHiddenLabel);
-
-        // Prevent menu from closing when clicking inside
-        menu.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-
-        // Check if there are any caption tracks
-        if (!this.player.captionManager || this.player.captionManager.tracks.length === 0) {
-            // Show "No captions available" message
-            const noTracksItem = DOMUtils.createElement('div', {
-                className: `${this.player.options.classPrefix}-menu-item`,
-                textContent: i18n.t('player.noCaptions'),
-                attributes: {
-                    'role': 'status'
-                },
-                style: {opacity: '0.5', cursor: 'default', padding: '12px 16px'}
-            });
-            menu.appendChild(noTracksItem);
-
-            // Position menu first (before it's visible) to prevent jumping
-            // Set menu to invisible temporarily
-            menu.style.visibility = 'hidden';
-            menu.style.display = 'block';
-            
-            // Insert menu into DOM (handles fullscreen positioning)
-            this.insertMenuIntoDOM(menu, button);
-            
-            // Position immediately (synchronously) while hidden
-            this.positionMenu(menu, button, true);
-            
-            // Make menu visible after positioning
-            requestAnimationFrame(() => {
-                menu.style.visibility = 'visible';
-            });
-
-            // Close menu on outside click
-            this.attachMenuCloseHandler(menu, button, true);
-            return;
-        }
-
-        // Font Size
-        const fontSizeGroup = this.createStyleControl(
-            i18n.t('styleLabels.fontSize'),
-            'captionsFontSize',
-            [
-                {label: i18n.t('fontSizes.small'), value: '87.5%'},
-                {label: i18n.t('fontSizes.normal'), value: '100%'},
-                {label: i18n.t('fontSizes.large'), value: '125%'},
-                {label: i18n.t('fontSizes.xlarge'), value: '150%'}
-            ]
-        );
-        menu.appendChild(fontSizeGroup);
-
-        // Font Family
-        const fontFamilyGroup = this.createStyleControl(
-            i18n.t('styleLabels.font'),
-            'captionsFontFamily',
-            [
-                {label: i18n.t('fontFamilies.sansSerif'), value: 'sans-serif'},
-                {label: i18n.t('fontFamilies.serif'), value: 'serif'},
-                {label: i18n.t('fontFamilies.monospace'), value: 'monospace'}
-            ]
-        );
-        menu.appendChild(fontFamilyGroup);
-
-        // Text Color
-        const colorGroup = this.createColorControl(i18n.t('styleLabels.textColor'), 'captionsColor');
-        menu.appendChild(colorGroup);
-
-        // Background Color
-        const bgColorGroup = this.createColorControl(i18n.t('styleLabels.background'), 'captionsBackgroundColor');
-        menu.appendChild(bgColorGroup);
-
-        // Opacity
-        const opacityGroup = this.createOpacityControl(i18n.t('styleLabels.opacity'), 'captionsOpacity');
-        menu.appendChild(opacityGroup);
-
-        // Set min-width for caption style menu
-        menu.style.minWidth = '220px';
-
-        // Position menu first (before it's visible) to prevent jumping
-        // Set menu to invisible temporarily
-        menu.style.visibility = 'hidden';
-        menu.style.display = 'block';
-        
-        // Insert menu into DOM (handles fullscreen positioning)
-        this.insertMenuIntoDOM(menu, button);
-        
-        // Position immediately (synchronously) while hidden
-        this.positionMenu(menu, button, true);
-        
-        // Make menu visible after positioning
-        requestAnimationFrame(() => {
-            menu.style.visibility = 'visible';
-        });
-
-        // Close menu on outside click (but not when interacting with controls)
-        this.attachMenuCloseHandler(menu, button, true);
-
-        // Auto-focus the first style select element
-        focusFirstElement(menu, `.${this.player.options.classPrefix}-style-select`);
-    }
-
-    createStyleControl(label: string, property: string, options: Array<{label: string; value: string}>) {
-        const group = DOMUtils.createElement('div', {
-            className: `${this.player.options.classPrefix}-style-group`
-        });
-
-        // Generate unique ID for the control
-        const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
-
-        const labelEl = DOMUtils.createElement('label', {
-            textContent: label,
-            attributes: {
-                'for': controlId
-            },
-            style: {
-                display: 'block',
-                fontSize: '12px',
-                marginBottom: '4px',
-                color: 'rgba(255,255,255,0.7)'
-            }
-        });
-        group.appendChild(labelEl);
-
-        const select = DOMUtils.createElement('select', {
-            className: `${this.player.options.classPrefix}-style-select`,
-            attributes: {
-                'id': controlId
-            },
-            style: {
-                width: '100%',
-                padding: '6px',
-                background: 'var(--vidply-white)',
-                border: '1px solid var(--vidply-white-10)',
-                borderRadius: '4px',
-                color: 'var(--vidply-black)',
-                fontSize: '13px'
-            }
-        });
-
-        const currentValue = this.player.options[property];
-        options.forEach((opt) => {
-            const option = DOMUtils.createElement('option', {
-                textContent: opt.label,
-                attributes: {value: opt.value}
-            });
-            if (opt.value === currentValue) {
-                (option as HTMLOptionElement).selected = true;
-            }
-            select.appendChild(option);
-        });
-
-        // Prevent clicks from closing the menu
-        select.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-        });
-
-        select.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-
-        select.addEventListener('change', (e) => {
-            e.stopPropagation();
-            this.player.options[property] = (e.target as HTMLSelectElement).value;
-            if (this.player.captionManager) {
-                this.player.captionManager.setCaptionStyle(
-                    property.replace('captions', '').charAt(0).toLowerCase() + property.replace('captions', '').slice(1),
-                    (e.target as HTMLSelectElement).value
-                );
-            }
-        });
-
-        group.appendChild(select);
-        return group;
-    }
-
-    createColorControl(label: string, property: string) {
-        const group = DOMUtils.createElement('div', {
-            className: `${this.player.options.classPrefix}-style-group`
-        });
-
-        // Generate unique ID for the control
-        const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
-
-        const labelEl = DOMUtils.createElement('label', {
-            textContent: label,
-            attributes: {
-                'for': controlId
-            },
-            style: {
-                display: 'block',
-                fontSize: '12px',
-                marginBottom: '4px',
-                color: 'rgba(255,255,255,0.7)'
-            }
-        });
-        group.appendChild(labelEl);
-
-        const input = DOMUtils.createElement('input', {
-            attributes: {
-                'id': controlId,
-                type: 'color',
-                value: String(this.player.options[property] ?? '')
-            },
-            style: {
-                width: '100%',
-                height: '32px',
-                padding: '2px',
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: '4px',
-                cursor: 'pointer'
-            }
-        });
-
-        // Prevent clicks from closing the menu
-        input.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-        });
-
-        input.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-
-        input.addEventListener('change', (e) => {
-            e.stopPropagation();
-            this.player.options[property] = (e.target as HTMLInputElement).value;
-            if (this.player.captionManager) {
-                this.player.captionManager.setCaptionStyle(
-                    property.replace('captions', '').charAt(0).toLowerCase() + property.replace('captions', '').slice(1),
-                    (e.target as HTMLInputElement).value
-                );
-            }
-        });
-
-        group.appendChild(input);
-        return group;
-    }
-
-    createOpacityControl(label: string, property: string) {
-        const group = DOMUtils.createElement('div', {
-            className: `${this.player.options.classPrefix}-style-group`
-        });
-
-        // Generate unique ID for the control
-        const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
-
-        const labelContainer = DOMUtils.createElement('div', {
-            style: {
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginBottom: '4px'
-            }
-        });
-
-        const labelEl = DOMUtils.createElement('label', {
-            textContent: label,
-            attributes: {
-                'for': controlId
-            },
-            style: {
-                fontSize: '12px',
-                color: 'rgba(255,255,255,0.7)'
-            }
-        });
-
-        const valueEl = DOMUtils.createElement('span', {
-            textContent: Math.round(Number(this.player.options[property] ?? 0) * 100) + '%',
-            style: {
-                fontSize: '12px',
-                color: 'rgba(255,255,255,0.7)'
-            }
-        });
-
-        labelContainer.appendChild(labelEl);
-        labelContainer.appendChild(valueEl);
-        group.appendChild(labelContainer);
-
-        const input = DOMUtils.createElement('input', {
-            attributes: {
-                'id': controlId,
-                type: 'range',
-                min: '0',
-                max: '1',
-                step: '0.1',
-                value: String(this.player.options[property])
-            },
-            style: {
-                width: '100%',
-                cursor: 'pointer'
-            }
-        });
-
-        // Prevent clicks from closing the menu
-        input.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-        });
-
-        input.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-
-        input.addEventListener('input', (e) => {
-            e.stopPropagation();
-            const value = parseFloat((e.target as HTMLInputElement).value);
-            valueEl.textContent = Math.round(value * 100) + '%';
-            this.player.options[property] = value;
-            if (this.player.captionManager) {
-                this.player.captionManager.setCaptionStyle(
-                    property.replace('captions', '').charAt(0).toLowerCase() + property.replace('captions', '').slice(1),
-                    value
-                );
-            }
-        });
-
-        group.appendChild(input);
-        return group;
+        // The caption-style panel builder (font/color/opacity controls) lives
+        // in a lazily imported module so it stays out of the always-loaded
+        // core bundle and is only fetched the first time the panel is opened.
+        import('./CaptionStyleMenu.js')
+            .then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button))
+            .catch((error: unknown) => this.player.log('Failed to load caption style menu:', error, 'error'));
     }
 
     createSpeedButton() {
@@ -3597,13 +3281,15 @@ export class ControlBar {
         const percent = duration > 0 ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : 0;
         
         this.controls.played.style.width = `${percent}%`;
-        this.controls.progress.setAttribute('aria-valuenow', String(Math.round(percent)));
-        
-        // Set aria-valuetext to announce both percentage and time for screen readers
-        const currentTimeText = TimeUtils.formatDuration(this.player.state.currentTime);
-        const durationText = TimeUtils.formatDuration(this.player.state.duration);
-        this.controls.progress.setAttribute('aria-valuetext', 
-            `${Math.round(percent)}%, ${currentTimeText} ${i18n.t('time.of')} ${durationText}`);
+        if (this.controls.progress) {
+            this.controls.progress.setAttribute('aria-valuenow', String(Math.round(percent)));
+
+            // Set aria-valuetext to announce both percentage and time for screen readers
+            const currentTimeText = TimeUtils.formatDuration(this.player.state.currentTime);
+            const durationText = TimeUtils.formatDuration(this.player.state.duration);
+            this.controls.progress.setAttribute('aria-valuetext',
+                `${Math.round(percent)}%, ${currentTimeText} ${i18n.t('time.of')} ${durationText}`);
+        }
 
         if (this.controls.currentTimeVisual) {
             const currentTime = this.player.state.currentTime;
@@ -3890,7 +3576,8 @@ export class ControlBar {
         // Disable all text tracks
         const textTracks = this.player.element.textTracks;
         for (let i = 0; i < textTracks.length; i++) {
-            textTracks[i].mode = 'disabled';
+            const tt = textTracks[i];
+            if (tt) tt.mode = 'disabled';
         }
 
         // NOTE: A previous (`captionsManager`) cast lived here. The property
@@ -4049,12 +3736,15 @@ export class ControlBar {
         const overflowButtons: HTMLElement[] = Array.from(this.rightButtons.querySelectorAll('button[data-in-overflow="true"]'));
 
         if (overflowButtons.length === 0) {
-            // No overflow items
+            // No overflow items — non-operable, kept out of roving navigation
+            // via aria-disabled (WCAG 2.1.1, 4.1.2).
             const noItemsText = DOMUtils.createElement('div', {
-                className: `${this.player.options.classPrefix}-menu-item`,
+                className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
                 textContent: i18n.t('player.noMoreOptions'),
                 attributes: {
-                    'role': 'menuitem'
+                    'role': 'menuitem',
+                    'aria-disabled': 'true',
+                    'tabindex': '-1'
                 },
                 style: {opacity: '0.5', cursor: 'default'}
             });

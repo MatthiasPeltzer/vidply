@@ -85,10 +85,28 @@ interface HlsInstance {
   subtitleTrack: number;
 }
 
+/**
+ * The hls.js event-name constants we consume. Declared as concrete `string`
+ * properties (rather than a `Record<string, string>` index signature) so that
+ * accessing them under `noUncheckedIndexedAccess` yields `string`, not
+ * `string | undefined`.
+ */
+interface HlsEventsMap {
+  MANIFEST_PARSED: string;
+  LEVEL_SWITCHED: string;
+  SUBTITLE_TRACKS_UPDATED: string;
+  SUBTITLE_TRACK_SWITCH: string;
+  ERROR: string;
+  FRAG_BUFFERED: string;
+  SUBTITLE_FRAG_PROCESSED: string;
+  CUES_PARSED: string;
+  [event: string]: string;
+}
+
 interface HlsStatic {
   new (config?: HlsConfig): HlsInstance;
   isSupported(): boolean;
-  Events: Record<string, string>;
+  Events: HlsEventsMap;
   ErrorTypes: Record<string, string>;
 }
 
@@ -148,9 +166,25 @@ interface DashMediaPlayerInstance {
   getPlaybackRate?(): number;
 }
 
+/**
+ * The dash.js MediaPlayer event-name constants we consume. Declared as
+ * concrete `string` properties (rather than a `Record<string, string>` index
+ * signature) so accessing them under `noUncheckedIndexedAccess` yields
+ * `string`, not `string | undefined`.
+ */
+interface DashEventsMap {
+  MANIFEST_LOADED: string;
+  QUALITY_CHANGE_RENDERED: string;
+  TEXT_TRACKS_ADDED: string;
+  STREAM_INITIALIZED: string;
+  ERROR: string;
+  FRAGMENT_LOADING_COMPLETED: string;
+  [event: string]: string;
+}
+
 interface DashMediaPlayerFactory {
   (): DashMediaPlayer;
-  events: Record<string, string>;
+  events: DashEventsMap;
 }
 
 interface DashJsStatic {

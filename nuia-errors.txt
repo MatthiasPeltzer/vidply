@@ -1,0 +1,172 @@
+src/controls/CaptionManager.ts(127,18): error TS18048: 'track' is possibly 'undefined'.
+src/controls/CaptionManager.ts(127,48): error TS18048: 'track' is possibly 'undefined'.
+src/controls/CaptionManager.ts(127,79): error TS18048: 'track' is possibly 'undefined'.
+src/controls/CaptionManager.ts(128,17): error TS18048: 'track' is possibly 'undefined'.
+src/controls/CaptionManager.ts(130,38): error TS18048: 'track' is possibly 'undefined'.
+src/controls/CaptionManager.ts(130,56): error TS18048: 'track' is possibly 'undefined'.
+src/controls/CaptionManager.ts(138,67): error TS2345: Argument of type 'TextTrack | undefined' is not assignable to parameter of type 'TextTrack'.
+  Type 'undefined' is not assignable to type 'TextTrack'.
+src/controls/CaptionManager.ts(141,21): error TS2322: Type 'TextTrack | undefined' is not assignable to type 'TextTrack'.
+  Type 'undefined' is not assignable to type 'TextTrack'.
+src/controls/CaptionManager.ts(142,31): error TS18048: 'track' is possibly 'undefined'.
+src/controls/CaptionManager.ts(143,45): error TS18048: 'track' is possibly 'undefined'.
+src/controls/CaptionManager.ts(143,58): error TS18048: 'track' is possibly 'undefined'.
+src/controls/CaptionManager.ts(144,27): error TS18048: 'track' is possibly 'undefined'.
+src/controls/CaptionManager.ts(508,37): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controls/CaptionManager.ts(508,65): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controls/CaptionManager.ts(508,93): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controls/ControlBar.ts(660,21): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(661,21): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(668,21): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(669,21): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(682,21): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(683,21): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(689,21): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(690,21): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(735,45): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Node'.
+  Type 'undefined' is not assignable to type 'Node'.
+src/controls/ControlBar.ts(1025,17): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(1046,18): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(1046,55): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(1046,95): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(1499,26): error TS18048: 'progress' is possibly 'undefined'.
+src/controls/ControlBar.ts(1511,9): error TS18048: 'progress' is possibly 'undefined'.
+src/controls/ControlBar.ts(1513,37): error TS18048: 'progress' is possibly 'undefined'.
+src/controls/ControlBar.ts(1519,9): error TS18048: 'progress' is possibly 'undefined'.
+src/controls/ControlBar.ts(1522,30): error TS18048: 'progress' is possibly 'undefined'.
+src/controls/ControlBar.ts(1526,17): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(1529,17): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(1530,17): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(1550,9): error TS18048: 'progress' is possibly 'undefined'.
+src/controls/ControlBar.ts(1551,13): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(1560,9): error TS18048: 'progress' is possibly 'undefined'.
+src/controls/ControlBar.ts(1598,9): error TS18048: 'progress' is possibly 'undefined'.
+src/controls/ControlBar.ts(1601,43): error TS18048: 'touch' is possibly 'undefined'.
+src/controls/ControlBar.ts(1605,9): error TS18048: 'progress' is possibly 'undefined'.
+src/controls/ControlBar.ts(1609,47): error TS18048: 'touch' is possibly 'undefined'.
+src/controls/ControlBar.ts(1614,9): error TS18048: 'progress' is possibly 'undefined'.
+src/controls/ControlBar.ts(1906,26): error TS18048: 'touch' is possibly 'undefined'.
+src/controls/ControlBar.ts(1913,30): error TS18048: 'touch' is possibly 'undefined'.
+src/controls/ControlBar.ts(2120,17): error TS18048: 'chapterTrack' is possibly 'undefined'.
+src/controls/ControlBar.ts(2121,17): error TS18048: 'chapterTrack' is possibly 'undefined'.
+src/controls/ControlBar.ts(2124,18): error TS18048: 'chapterTrack' is possibly 'undefined'.
+src/controls/ControlBar.ts(2124,39): error TS18048: 'chapterTrack' is possibly 'undefined'.
+src/controls/ControlBar.ts(2146,17): error TS18048: 'chapterTrack' is possibly 'undefined'.
+src/controls/ControlBar.ts(2150,25): error TS18048: 'chapterTrack' is possibly 'undefined'.
+src/controls/ControlBar.ts(2150,46): error TS18048: 'chapterTrack' is possibly 'undefined'.
+src/controls/ControlBar.ts(2157,30): error TS18048: 'chapterTrack' is possibly 'undefined'.
+src/controls/ControlBar.ts(3256,9): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(3261,9): error TS2532: Object is possibly 'undefined'.
+src/controls/ControlBar.ts(3549,13): error TS2532: Object is possibly 'undefined'.
+src/controls/TranscriptManager.ts(1005,28): error TS2532: Object is possibly 'undefined'.
+src/controls/TranscriptManager.ts(1039,13): error TS2532: Object is possibly 'undefined'.
+src/controls/TranscriptManager.ts(1042,21): error TS2532: Object is possibly 'undefined'.
+src/controls/TranscriptManager.ts(1048,18): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controls/TranscriptManager.ts(1049,18): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controls/TranscriptManager.ts(1050,18): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controls/TranscriptManager.ts(1053,18): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controls/TranscriptManager.ts(1054,18): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controls/TranscriptManager.ts(1055,18): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/controls/TranscriptManager.ts(1434,52): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/controls/TranscriptManager.ts(2055,11): error TS18048: 'lastElement' is possibly 'undefined'.
+src/controls/TranscriptManager.ts(2058,11): error TS18048: 'firstElement' is possibly 'undefined'.
+src/core/SignLanguageManager.ts(190,27): error TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/features/PlaylistManager.ts(563,51): error TS2345: Argument of type 'PlaylistTrack | undefined' is not assignable to parameter of type 'PlaylistTrack'.
+  Type 'undefined' is not assignable to type 'PlaylistTrack'.
+src/features/PlaylistManager.ts(568,43): error TS2345: Argument of type 'PlaylistTrack | undefined' is not assignable to parameter of type 'PlaylistTrack'.
+  Type 'undefined' is not assignable to type 'PlaylistTrack'.
+src/features/PlaylistManager.ts(588,12): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(589,13): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(590,15): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(591,15): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(592,28): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(593,24): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(594,28): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(646,13): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(648,45): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(649,15): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(663,41): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(664,37): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(665,41): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(668,11): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(668,36): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(669,45): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(673,51): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(675,62): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(678,47): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(679,51): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(684,11): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(685,35): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(692,25): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(693,9): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(745,26): error TS2345: Argument of type 'PlaylistTrack | undefined' is not assignable to parameter of type 'PlaylistTrack'.
+  Type 'undefined' is not assignable to type 'PlaylistTrack'.
+src/features/PlaylistManager.ts(778,51): error TS2345: Argument of type 'PlaylistTrack | undefined' is not assignable to parameter of type 'PlaylistTrack'.
+  Type 'undefined' is not assignable to type 'PlaylistTrack'.
+src/features/PlaylistManager.ts(783,43): error TS2345: Argument of type 'PlaylistTrack | undefined' is not assignable to parameter of type 'PlaylistTrack'.
+  Type 'undefined' is not assignable to type 'PlaylistTrack'.
+src/features/PlaylistManager.ts(785,30): error TS2345: Argument of type 'PlaylistTrack | undefined' is not assignable to parameter of type 'PlaylistTrack'.
+  Type 'undefined' is not assignable to type 'PlaylistTrack'.
+src/features/PlaylistManager.ts(805,21): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(806,63): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(807,33): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(808,60): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(809,49): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(810,19): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(815,13): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(816,15): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(817,15): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(818,28): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(819,24): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(820,28): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(824,26): error TS2345: Argument of type 'PlaylistTrack | undefined' is not assignable to parameter of type 'PlaylistTrack'.
+  Type 'undefined' is not assignable to type 'PlaylistTrack'.
+src/features/PlaylistManager.ts(1546,7): error TS2532: Object is possibly 'undefined'.
+src/features/PlaylistManager.ts(1547,7): error TS2532: Object is possibly 'undefined'.
+src/features/PlaylistManager.ts(1548,7): error TS2532: Object is possibly 'undefined'.
+src/features/PlaylistManager.ts(1551,20): error TS2532: Object is possibly 'undefined'.
+src/features/PlaylistManager.ts(1583,26): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(1584,27): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(1584,66): error TS18048: 'track' is possibly 'undefined'.
+src/features/PlaylistManager.ts(1587,59): error TS2345: Argument of type 'PlaylistTrack | undefined' is not assignable to parameter of type 'PlaylistTrack'.
+  Type 'undefined' is not assignable to type 'PlaylistTrack'.
+src/renderers/DASHRenderer.ts(92,21): error TS2532: Object is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(261,13): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/renderers/DASHRenderer.ts(276,13): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/renderers/DASHRenderer.ts(284,13): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/renderers/DASHRenderer.ts(308,13): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/renderers/DASHRenderer.ts(320,13): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/renderers/DASHRenderer.ts(324,13): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/renderers/DASHRenderer.ts(348,12): error TS18048: 'track' is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(348,42): error TS18048: 'track' is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(348,73): error TS18048: 'track' is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(348,95): error TS18048: 'track' is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(349,18): error TS18048: 'track' is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(476,12): error TS18048: 'track' is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(476,42): error TS18048: 'track' is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(476,73): error TS18048: 'track' is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(811,29): error TS2532: Object is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(844,27): error TS2532: Object is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(1053,11): error TS18048: 'track' is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(1053,41): error TS18048: 'track' is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(1054,9): error TS18048: 'track' is possibly 'undefined'.
+src/renderers/DASHRenderer.ts(1055,9): error TS18048: 'track' is possibly 'undefined'.

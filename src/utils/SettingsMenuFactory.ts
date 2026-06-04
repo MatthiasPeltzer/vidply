@@ -6,6 +6,7 @@
 import { DOMUtils } from './DOMUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
+import { reducedMotionScrollOptions } from './PerformanceUtils.js';
 
 interface SettingsMenuItemConfig {
     icon?: string;
@@ -213,8 +214,11 @@ export function setupSettingsMenuKeyboard(menu: HTMLElement, button: HTMLElement
                 menuItems.forEach((item, idx) => {
                     item.setAttribute('tabindex', idx === nextIndex ? '0' : '-1');
                 });
-                menuItems[nextIndex].focus({ preventScroll: false });
-                menuItems[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                const nextItem = menuItems[nextIndex];
+                if (nextItem) {
+                    nextItem.focus({ preventScroll: false });
+                    nextItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
+                }
                 break;
 
             case 'ArrowUp':
@@ -223,8 +227,11 @@ export function setupSettingsMenuKeyboard(menu: HTMLElement, button: HTMLElement
                 menuItems.forEach((item, idx) => {
                     item.setAttribute('tabindex', idx === prevIndex ? '0' : '-1');
                 });
-                menuItems[prevIndex].focus({ preventScroll: false });
-                menuItems[prevIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                const prevItem = menuItems[prevIndex];
+                if (prevItem) {
+                    prevItem.focus({ preventScroll: false });
+                    prevItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
+                }
                 break;
 
             case 'Home':
@@ -232,8 +239,11 @@ export function setupSettingsMenuKeyboard(menu: HTMLElement, button: HTMLElement
                 menuItems.forEach((item, idx) => {
                     item.setAttribute('tabindex', idx === 0 ? '0' : '-1');
                 });
-                menuItems[0].focus({ preventScroll: false });
-                menuItems[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                const homeItem = menuItems[0];
+                if (homeItem) {
+                    homeItem.focus({ preventScroll: false });
+                    homeItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
+                }
                 break;
 
             case 'End':
@@ -242,8 +252,11 @@ export function setupSettingsMenuKeyboard(menu: HTMLElement, button: HTMLElement
                 menuItems.forEach((item, idx) => {
                     item.setAttribute('tabindex', idx === lastIndex ? '0' : '-1');
                 });
-                menuItems[lastIndex].focus({ preventScroll: false });
-                menuItems[lastIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                const lastItem = menuItems[lastIndex];
+                if (lastItem) {
+                    lastItem.focus({ preventScroll: false });
+                    lastItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
+                }
                 break;
 
             case 'Escape':

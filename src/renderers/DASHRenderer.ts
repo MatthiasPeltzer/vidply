@@ -1,5 +1,6 @@
 import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
+import { loadScriptOnce } from '../utils/ScriptLoader.js';
 
 interface DashTextTrack {
   lang?: string;
@@ -45,6 +46,11 @@ export class DASHRenderer implements Renderer {
   _pendingTimeouts: ReturnType<typeof setTimeout>[];
   _ttmlDiv: HTMLElement | null;
   _manifestUrl: string | null;
+  // Detaches all media listeners (attachMediaEvents) in destroy().
+  private _listenerController: AbortController;
+  // Deferred 'ready' handler from updateCaptionButtonsForStreaming, removed on
+  // destroy if it never fired.
+  private _pendingReadyHandler: (() => void) | null;
 
   constructor(player: Player) {
     this.player = player;
@@ -62,6 +68,8 @@ export class DASHRenderer implements Renderer {
     this._pendingTimeouts = [];
     this._ttmlDiv = null;
     this._manifestUrl = null;
+    this._listenerController = new AbortController();
+    this._pendingReadyHandler = null;
   }
 
   async init() {
@@ -81,7 +89,7 @@ export class DASHRenderer implements Renderer {
     const sourceElements = Array.from(this.media.querySelectorAll('source'));
     let originalSrc = null;
     if (sourceElements.length > 0) {
-      originalSrc = sourceElements[0].getAttribute('src');
+      originalSrc = sourceElements[0]?.getAttribute('src') ?? null;
       sourceElements.forEach(source => source.remove());
       this.player.log('Removed <source> elements for HTML5 validity (dash.js uses MSE)');
     }
@@ -232,18 +240,7 @@ export class DASHRenderer implements Renderer {
     const url: string = (this.player.options.dashScriptUrl as string | undefined) || defaultUrl;
     const integrity = this.player.options.dashScriptIntegrity as string | undefined;
 
-    return new Promise<void>((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = url;
-      if (integrity) {
-        script.integrity = integrity;
-        script.crossOrigin = 'anonymous';
-        script.referrerPolicy = 'no-referrer';
-      }
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Failed to load dash.js'));
-      document.head.appendChild(script);
-    });
+    return loadScriptOnce(url, { integrity });
   }
 
   _setTimeout(fn: () => void, delay: number) {
@@ -348,7 +345,7 @@ export class DASHRenderer implements Renderer {
     if (!textTracks) return total;
     for (let i = 0; i < textTracks.length; i++) {
       const track = textTracks[i];
-      if ((track.kind === 'subtitles' || track.kind === 'captions') && !track._vidplyStale && track.cues) {
+      if (track && (track.kind === 'subtitles' || track.kind === 'captions') && !track._vidplyStale && track.cues) {
         total += track.cues.length;
       }
     }
@@ -476,7 +473,7 @@ export class DASHRenderer implements Renderer {
     let count = 0;
     for (let i = 0; i < tracks.length; i++) {
       const track = tracks[i];
-      if ((track.kind === 'subtitles' || track.kind === 'captions') && !track._vidplyStale) {
+      if (track && (track.kind === 'subtitles' || track.kind === 'captions') && !track._vidplyStale) {
         count++;
       }
     }
@@ -542,16 +539,21 @@ export class DASHRenderer implements Renderer {
 
     const onReady = () => {
       this.player.off('ready', onReady);
+      this._pendingReadyHandler = null;
       doUpdate();
     };
+    // Track so destroy() can detach it if 'ready' never fires.
+    this._pendingReadyHandler = onReady;
     this.player.on('ready', onReady);
   }
 
   attachMediaEvents() {
+    const { signal } = this._listenerController;
+
     this.media.addEventListener('loadedmetadata', () => {
       this.player.state.duration = this.media.duration;
       this.player.emit('loadedmetadata');
-    });
+    }, { signal });
 
     this.media.addEventListener('durationchange', () => {
       const duration = this.media.duration;
@@ -559,7 +561,7 @@ export class DASHRenderer implements Renderer {
         this.player.state.duration = duration;
         this.player.emit('durationchange', duration);
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('play', () => {
       this.player.state.playing = true;
@@ -570,7 +572,7 @@ export class DASHRenderer implements Renderer {
       if (this.player.options.onPlay) {
         this.player.options.onPlay.call(this.player);
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('pause', () => {
       this.player.state.playing = false;
@@ -580,7 +582,7 @@ export class DASHRenderer implements Renderer {
       if (this.player.options.onPause) {
         this.player.options.onPause.call(this.player);
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('ended', () => {
       this.player.state.playing = false;
@@ -596,7 +598,7 @@ export class DASHRenderer implements Renderer {
         this.player.seek(0);
         this.player.play();
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('timeupdate', () => {
       this.player.state.currentTime = this.media.currentTime;
@@ -605,13 +607,13 @@ export class DASHRenderer implements Renderer {
       if (this.player.options.onTimeUpdate) {
         this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('volumechange', () => {
       this.player.state.volume = this.media.volume;
       this.player.state.muted = this.media.muted;
       this.player.emit('volumechange', this.media.volume);
-    });
+    }, { signal });
 
     this.media.addEventListener('seeking', () => {
       this.player.state.seeking = true;
@@ -629,26 +631,26 @@ export class DASHRenderer implements Renderer {
         this.player.state.buffering = true;
         this.player.emit('waiting');
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('seeked', () => {
       this.player.state.seeking = false;
       this.player.emit('seeked');
-    });
+    }, { signal });
 
     this.media.addEventListener('waiting', () => {
       this.player.state.buffering = true;
       this.player.emit('waiting');
-    });
+    }, { signal });
 
     this.media.addEventListener('canplay', () => {
       this.player.state.buffering = false;
       this.player.emit('canplay');
-    });
+    }, { signal });
 
     this.media.addEventListener('error', () => {
       this.player.handleError(this.media.error);
-    });
+    }, { signal });
   }
 
   handleDashError(e: unknown) {
@@ -806,7 +808,7 @@ export class DASHRenderer implements Renderer {
           const bitrate = Number(rep.bandwidth || rep.bitrate) || 0;
           const kb = bitrate > 0 ? Math.round(bitrate / 1000) : 0;
           let name;
-          if (height > 0 && heightCounts[height] > 1 && kb > 0) {
+          if (height > 0 && (heightCounts[height] ?? 0) > 1 && kb > 0) {
             name = `${height}p (${kb} kbps)`;
           } else if (height > 0) {
             name = `${height}p`;
@@ -839,7 +841,7 @@ export class DASHRenderer implements Renderer {
         const bitrate = Number(info.bitrate) || 0;
         const kb = bitrate > 0 ? Math.round(bitrate / 1000) : 0;
         let name;
-        if (height > 0 && heightCounts[height] > 1 && kb > 0) {
+        if (height > 0 && (heightCounts[height] ?? 0) > 1 && kb > 0) {
           name = `${height}p (${kb} kbps)`;
         } else if (height > 0) {
           name = `${height}p`;
@@ -1018,6 +1020,13 @@ export class DASHRenderer implements Renderer {
     this._pendingTimeouts = [];
     this._stopCueUpdatePolling();
     this._lastKnownCueCount = 0;
+    // Detach media listeners registered in attachMediaEvents().
+    this._listenerController.abort();
+    // Remove the deferred 'ready' listener if it never fired.
+    if (this._pendingReadyHandler) {
+      this.player.off('ready', this._pendingReadyHandler);
+      this._pendingReadyHandler = null;
+    }
 
     if (this._captionEnabledHandler) {
       this.player.off('captionsenabled', this._captionEnabledHandler);
@@ -1041,7 +1050,7 @@ export class DASHRenderer implements Renderer {
     const textTracks = this.media.textTracks;
     for (let i = 0; i < textTracks.length; i++) {
       const track = textTracks[i];
-      if (track.kind === 'subtitles' || track.kind === 'captions') {
+      if (track && (track.kind === 'subtitles' || track.kind === 'captions')) {
         track._vidplyStale = true;
         track.mode = 'disabled';
       }

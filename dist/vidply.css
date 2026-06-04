@@ -122,7 +122,9 @@
   --vidply-transition-default: all 0.2s ease;
   --vidply-transition-fast: all 0.1s ease;
   --vidply-transition-normal: all 0.15s ease;
-  --vidply-transition-slow: all 0.2s ease;
+  /* Identical to --vidply-transition-default; kept as an alias so existing
+     references and theme overrides continue to work. */
+  --vidply-transition-slow: var(--vidply-transition-default);
 
   /* Font Sizes */
   --vidply-transition-slower: all 0.3s ease;
@@ -226,7 +228,7 @@
 }
 
 /* Light theme - Mobile control bar override */
-@media (width <= 48rem), (width < 48rem) {
+@media (width <= 48rem) {
   .vidply-theme-light .vidply-controls {
     background: rgb(240 240 240 / 98%) !important;
   }
@@ -1380,7 +1382,7 @@
 }
 
 /* Mobile: Ensure player contains all elements properly */
-@media (width <= 48rem), (width < 48rem) {
+@media (width <= 48rem) {
   .vidply-player {
     isolation: isolate; /* Create stacking context */
     overflow: visible; /* Allow menus to overflow but within bounds */
@@ -1423,7 +1425,7 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Mobile: Video element order and sizing */
-@media (width <= 48rem), (width < 48rem) {
+@media (width <= 48rem) {
   .vidply-player video,
   .vidply-player audio {
     flex: 0 0 auto; /* Don't grow or shrink */
@@ -1435,8 +1437,7 @@ video[data-vidply]:not(.vidply-initialized) {
   }
 
   /* Override mobile rules in fullscreen mode */
-  .vidply-player.vidply-fullscreen video,
-  .vidply-player:fullscreen video {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) video {
     flex: 1 1 auto !important;
     height: 100% !important;
   }
@@ -1489,8 +1490,7 @@ video[data-vidply]:not(.vidply-initialized) {
 
 /* Allow controls and menus to overflow in fullscreen landscape mode */
 @media (orientation: landscape) {
-  .vidply-player.vidply-fullscreen .vidply-video-wrapper,
-  .vidply-player:fullscreen .vidply-video-wrapper {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-video-wrapper {
     overflow: visible;
   }
 }
@@ -1568,7 +1568,7 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Mobile: Simplify video wrapper but keep captions contained */
-@media (width <= 48rem), (width < 48rem) {
+@media (width <= 48rem) {
   .vidply-video-wrapper {
     display: block;
     height: auto;
@@ -1592,8 +1592,7 @@ video[data-vidply]:not(.vidply-initialized) {
   }
 
   /* Override mobile rules in fullscreen mode - critical for iOS */
-  .vidply-player.vidply-fullscreen .vidply-video-wrapper,
-  .vidply-player:fullscreen .vidply-video-wrapper {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-video-wrapper {
     display: flex !important;
     height: 100% !important;
     inset: 0 !important;
@@ -1601,8 +1600,7 @@ video[data-vidply]:not(.vidply-initialized) {
     position: absolute !important;
   }
 
-  .vidply-player.vidply-fullscreen video,
-  .vidply-player:fullscreen video {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) video {
     height: 100% !important;
     left: 0 !important;
     position: absolute !important;
@@ -1684,7 +1682,7 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Mobile: Controls underneath video (but not in landscape fullscreen) */
-@media (width <= 48rem), (width < 48rem) {
+@media (width <= 48rem) {
   .vidply-controls {
     background: var(--vidply-black-90);
     border-top: 0.0625rem solid var(--vidply-border-light);
@@ -1709,8 +1707,7 @@ video[data-vidply]:not(.vidply-initialized) {
 
   /* Exception: In landscape fullscreen, override mobile defaults */
   @media (orientation: landscape) {
-    .vidply-player.vidply-fullscreen .vidply-controls,
-    .vidply-player:fullscreen .vidply-controls {
+    .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-controls {
       /* Landscape fullscreen rules apply (see below) */
 
       /* This empty block ensures specificity ordering */
@@ -1942,21 +1939,18 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* In fullscreen mode, position tooltips above buttons */
-.vidply-player.vidply-fullscreen .vidply-tooltip,
-.vidply-player:fullscreen .vidply-tooltip {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-tooltip {
   bottom: calc(100% + 0.5rem);
   top: auto;
   transform: translateX(-50%) translateY(0.25rem);
 }
 
-.vidply-player.vidply-fullscreen .vidply-tooltip-visible,
-.vidply-player:fullscreen .vidply-tooltip-visible {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-tooltip-visible {
   transform: translateX(-50%) translateY(0);
 }
 
 /* Adjust tooltip arrow for fullscreen (pointing down instead of up) */
-.vidply-player.vidply-fullscreen .vidply-tooltip::before,
-.vidply-player:fullscreen .vidply-tooltip::before {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-tooltip::before {
   border-color: #e0e0e0 transparent transparent;
   border-width: 0.375rem 0.375rem 0;
   bottom: -0.375rem;
@@ -2099,7 +2093,7 @@ video[data-vidply]:not(.vidply-initialized) {
 
 /* Menu Backdrop (for mobile) */
 .vidply-menu-backdrop {
-  animation: fadeIn 0.2s ease;
+  animation: vidply-fade-in 0.2s ease;
   background: rgb(0 0 0 / 50%);
   display: none;
   inset: 0;
@@ -2112,21 +2106,13 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Mobile: Don't use backdrop, menus position above buttons */
-@media (width <= 48rem), (width < 48rem) {
+@media (width <= 48rem) {
   .vidply-menu-backdrop {
     display: none !important;
   }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
+/* Fade keyframes are consolidated into `vidply-fade-in` (see below). */
 
 /* Menus */
 .vidply-menu {
@@ -2394,6 +2380,9 @@ video[data-vidply]:not(.vidply-initialized) {
   outline-offset: 0.125rem;
 }
 
+/* 1.5rem (24px) thumb meets WCAG 2.5.8 Target Size (Minimum).
+   margin-top centers the larger thumb on the 0.375rem track in WebKit:
+   (0.375rem - 1.5rem) / 2 = -0.5625rem. */
 .vidply-style-group input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   background: var(--vidply-primary);
@@ -2401,9 +2390,10 @@ video[data-vidply]:not(.vidply-initialized) {
   border-radius: 50%;
   box-shadow: var(--vidply-shadow-sm);
   cursor: pointer;
-  height: 1rem;
+  height: 1.5rem;
+  margin-top: -0.5625rem;
   transition: transform 0.15s ease, background 0.15s ease;
-  width: 1rem;
+  width: 1.5rem;
 }
 
 .vidply-style-group input[type="range"]::-webkit-slider-thumb:hover {
@@ -2417,9 +2407,9 @@ video[data-vidply]:not(.vidply-initialized) {
   border-radius: 50%;
   box-shadow: var(--vidply-shadow-sm);
   cursor: pointer;
-  height: 1rem;
+  height: 1.5rem;
   transition: transform 0.15s ease, background 0.15s ease;
-  width: 1rem;
+  width: 1.5rem;
 }
 
 .vidply-style-group input[type="range"]::-moz-range-thumb:hover {
@@ -2516,7 +2506,7 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Mobile: Caption positioning handled by JavaScript */
-@media (width <= 48rem), (width < 48rem) {
+@media (width <= 48rem) {
   .vidply-captions {
     /* Bottom position set dynamically by JS based on control height */
     left: 50%;
@@ -2724,8 +2714,7 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Fullscreen Styles */
-.vidply-player.vidply-fullscreen,
-.vidply-player:fullscreen {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) {
   background: #000;
   height: 100vh;
   max-width: none;
@@ -2734,18 +2723,14 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Video wrapper also needs black background in fullscreen to prevent letterbox areas showing gray */
-.vidply-player.vidply-fullscreen .vidply-video-wrapper,
-.vidply-player:fullscreen .vidply-video-wrapper {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-video-wrapper {
   background: #000 !important;
 }
 
-/* Fullscreen backdrop - the pseudo-element behind the fullscreen element */
+/* Fullscreen backdrop - the pseudo-element behind the fullscreen element.
+   The non-standard `:full-screen` spelling was dropped: all browsers that
+   support the Fullscreen API also support the standard `:fullscreen`. */
 .vidply-player:fullscreen::backdrop {
-  background: #000;
-}
-
-/* Webkit/Safari prefix for backdrop */
-.vidply-player:full-screen::backdrop {
   background: #000;
 }
 
@@ -2757,15 +2742,6 @@ video[data-vidply]:not(.vidply-initialized) {
 :root:has(.vidply-player:fullscreen) .sticky-top,
 :root:has(.vidply-player:fullscreen) [style*="position: fixed"],
 :root:has(.vidply-player:fullscreen) [style*="position:fixed"] {
-  display: none !important;
-}
-
-/* Same for webkit fullscreen */
-:root:has(.vidply-player:full-screen) .fixed-top,
-:root:has(.vidply-player:full-screen) .fixed-bottom,
-:root:has(.vidply-player:full-screen) .sticky-top,
-:root:has(.vidply-player:full-screen) [style*="position: fixed"],
-:root:has(.vidply-player:full-screen) [style*="position:fixed"] {
   display: none !important;
 }
 
@@ -2837,8 +2813,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 /* Fix controls in fullscreen LANDSCAPE mode - overlay them on video */
 
 /* Higher specificity to override mobile rules */
-.vidply-player.vidply-fullscreen .vidply-controls,
-.vidply-player:fullscreen .vidply-controls {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-controls {
   /* Default: inherit from mobile or desktop */
 }
 
@@ -2849,15 +2824,13 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Make player a flex container to center content */
-  .vidply-player.vidply-fullscreen,
-  .vidply-player:fullscreen {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) {
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
   }
 
-  .vidply-player.vidply-fullscreen .vidply-controls,
-  .vidply-player:fullscreen .vidply-controls {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-controls {
     background: linear-gradient(to top, var(--vidply-black-90) 0%, var(--vidply-black-50) 100%) !important;
     border-top: none !important;
     bottom: env(safe-area-inset-bottom, 0) !important;
@@ -2876,63 +2849,52 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Show controls only with visible class or when paused (not :hover - causes issues on touch) */
-  .vidply-player.vidply-fullscreen .vidply-controls.vidply-controls-visible,
-  .vidply-player:fullscreen .vidply-controls.vidply-controls-visible,
-  .vidply-player.vidply-fullscreen.vidply-paused .vidply-controls,
-  .vidply-player:fullscreen.vidply-paused .vidply-controls {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-controls.vidply-controls-visible,
+  .vidply-player:is(.vidply-fullscreen, :fullscreen).vidply-paused .vidply-controls {
     opacity: 1 !important;
     pointer-events: auto !important;
   }
 
   /* On desktop, also show on hover */
   @media (hover: hover) and (pointer: fine) {
-    .vidply-player.vidply-fullscreen:hover .vidply-controls,
-    .vidply-player:fullscreen:hover .vidply-controls {
+    .vidply-player:is(.vidply-fullscreen, :fullscreen):hover .vidply-controls {
       opacity: 1 !important;
       pointer-events: auto !important;
     }
   }
 
   /* Ensure button containers are visible and properly laid out */
-  .vidply-player.vidply-fullscreen .vidply-controls-buttons,
-  .vidply-player:fullscreen .vidply-controls-buttons {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-controls-buttons {
     display: flex !important;
     justify-content: space-between !important;
     width: 100% !important;
   }
 
-  .vidply-player.vidply-fullscreen .vidply-controls-left,
-  .vidply-player:fullscreen .vidply-controls-left,
-  .vidply-player.vidply-fullscreen .vidply-controls-right,
-  .vidply-player:fullscreen .vidply-controls-right {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-controls-left,
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-controls-right {
     display: flex !important;
     flex-wrap: nowrap !important;
     gap: 0.5rem !important;
   }
 
   /* Make sure buttons within containers are visible */
-  .vidply-player.vidply-fullscreen .vidply-controls-left > *,
-  .vidply-player:fullscreen .vidply-controls-left > *,
-  .vidply-player.vidply-fullscreen .vidply-controls-right > *,
-  .vidply-player:fullscreen .vidply-controls-right > * {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-controls-left > *,
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-controls-right > * {
     display: inline-flex !important;
   }
 
   /* But allow overflow menu button to be hidden when not needed */
-  .vidply-player.vidply-fullscreen .vidply-controls-right > .vidply-overflow-menu[style*="display: none"],
-  .vidply-player:fullscreen .vidply-controls-right > .vidply-overflow-menu[style*="display: none"] {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-controls-right > .vidply-overflow-menu[style*="display: none"] {
     display: none !important;
   }
 
   /* Menu content should be vertically stacked in fullscreen */
-  .vidply-player.vidply-fullscreen .vidply-menu,
-  .vidply-player:fullscreen .vidply-menu {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-menu {
     display: flex !important;
     flex-direction: column !important;
   }
 
-  .vidply-player.vidply-fullscreen .vidply-menu-item,
-  .vidply-player:fullscreen .vidply-menu-item {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-menu-item {
     align-items: center !important;
     display: flex !important;
     flex-direction: row !important;
@@ -2941,8 +2903,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     width: 100% !important;
   }
 
-  .vidply-player.vidply-fullscreen .vidply-menu-item-label,
-  .vidply-player:fullscreen .vidply-menu-item-label {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-menu-item-label {
     align-items: center !important;
     display: flex !important;
     flex-direction: row !important;
@@ -2951,30 +2912,25 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Ensure icon appears on the right (after text) in fullscreen, matching desktop */
-  .vidply-player.vidply-fullscreen .vidply-menu-item .vidply-icon,
-  .vidply-player:fullscreen .vidply-menu-item .vidply-icon {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-menu-item .vidply-icon {
     margin-left: auto !important;
     order: 1 !important;
   }
 
   /* Caption positioning in landscape fullscreen */
-  .vidply-player.vidply-fullscreen .vidply-captions,
-  .vidply-player:fullscreen .vidply-captions {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-captions {
     bottom: 1rem !important;
     transition: bottom 0.3s ease !important;
   }
 
   /* Move captions up when controls are visible or paused */
-  .vidply-player.vidply-fullscreen.vidply-controls-visible .vidply-captions,
-  .vidply-player:fullscreen.vidply-controls-visible .vidply-captions,
-  .vidply-player.vidply-fullscreen.vidply-paused .vidply-captions,
-  .vidply-player:fullscreen.vidply-paused .vidply-captions {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen).vidply-controls-visible .vidply-captions,
+  .vidply-player:is(.vidply-fullscreen, :fullscreen).vidply-paused .vidply-captions {
     bottom: 6rem !important;
   }
 
   /* Center video in landscape fullscreen */
-  .vidply-player.vidply-fullscreen .vidply-video-wrapper,
-  .vidply-player:fullscreen .vidply-video-wrapper {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-video-wrapper {
     align-items: center !important;
     display: flex !important;
     flex: 1 !important; /* Take remaining space */
@@ -2984,8 +2940,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     position: absolute !important;
   }
 
-  .vidply-player.vidply-fullscreen video,
-  .vidply-player:fullscreen video {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) video {
     height: 100% !important;
     object-fit: contain !important;
     width: 100% !important;
@@ -2999,8 +2954,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     position: fixed !important;
   }
 
-  .vidply-player.vidply-fullscreen,
-  .vidply-player:fullscreen {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) {
     display: flex !important;
     flex-direction: column !important;
     height: 100vh !important;
@@ -3008,8 +2962,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Make video wrapper fill entire screen - positioned absolutely */
-  .vidply-player.vidply-fullscreen .vidply-video-wrapper,
-  .vidply-player:fullscreen .vidply-video-wrapper {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-video-wrapper {
     align-items: center !important;
     display: flex !important;
     height: 100% !important;
@@ -3020,8 +2973,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     z-index: 1 !important;
   }
 
-  .vidply-player.vidply-fullscreen video,
-  .vidply-player:fullscreen video {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) video {
     height: 100% !important;
     max-height: 100% !important;
     max-width: 100% !important;
@@ -3030,8 +2982,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     width: 100% !important;
   }
 
-  .vidply-player.vidply-fullscreen .vidply-controls,
-  .vidply-player:fullscreen .vidply-controls {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-controls {
     /* Position controls at the bottom, above the home indicator */
     bottom: env(safe-area-inset-bottom, 0) !important;
     left: 0 !important;
@@ -3041,8 +2992,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Force playlist to truly overlay - above video, below controls */
-  .vidply-player.vidply-fullscreen .vidply-playlist-panel,
-  .vidply-player:fullscreen .vidply-playlist-panel {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-panel {
     bottom: 5rem !important; /* Above controls (typical control height is ~5rem) */
     left: 0 !important;
     margin: 0 !important;
@@ -3053,8 +3003,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Transcript in Fullscreen */
-.vidply-player.vidply-fullscreen .vidply-transcript-window,
-.vidply-player:fullscreen .vidply-transcript-window {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-transcript-window {
   height: auto !important;
   inset: auto 1.25rem 5rem auto !important;
   max-height: calc(100vh - 11.25rem) !important;
@@ -3161,7 +3110,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Responsive Breakpoints */
-@media (width <= 48rem), (width < 48rem) {
+@media (width <= 48rem) {
   .vidply-controls {
     padding: 1rem 0.75rem 0.75rem;
   }
@@ -3279,7 +3228,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Landscape mobile optimization */
-@media (width <= 56rem) and (orientation: landscape), (width <= 56rem) and (orientation: landscape) {
+@media (width <= 56rem) and (orientation: landscape) {
   .vidply-menu {
     max-height: 50vh;
   }
@@ -3293,8 +3242,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Landscape fullscreen playlist - horizontal scrolling */
-  .vidply-player.vidply-fullscreen .vidply-playlist-panel,
-  .vidply-player:fullscreen .vidply-playlist-panel {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-panel {
     bottom: 4.375rem; /* Directly above controls */
     max-height: 30vh; /* Less height in landscape */
     overflow: auto hidden;
@@ -3304,43 +3252,37 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Landscape playlist list - horizontal row */
-  .vidply-player.vidply-fullscreen .vidply-playlist-list,
-  .vidply-player:fullscreen .vidply-playlist-list {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-list {
     flex-flow: row nowrap;
     gap: 0.5rem;
     padding: 0 0.625rem;
   }
 
   /* Landscape items - smaller vertical cards */
-  .vidply-player.vidply-fullscreen .vidply-playlist-item,
-  .vidply-player:fullscreen .vidply-playlist-item {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item {
     flex-shrink: 0;
     max-width: 11.25rem;
     min-width: 11.25rem;
     width: 11.25rem;
   }
 
-  .vidply-player.vidply-fullscreen .vidply-playlist-item-button,
-  .vidply-player:fullscreen .vidply-playlist-item-button {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-button {
     flex-direction: column;
     gap: 0;
     padding: 0;
   }
 
-  .vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
-  .vidply-player:fullscreen .vidply-playlist-thumbnail {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-thumbnail {
     border-radius: 0.5rem 0.5rem 0 0;
     height: 6.25rem;
     width: 100%;
   }
 
-  .vidply-player.vidply-fullscreen .vidply-playlist-item-info,
-  .vidply-player:fullscreen .vidply-playlist-item-info {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-info {
     padding: 0.5rem;
   }
 
-  .vidply-player.vidply-fullscreen .vidply-playlist-header,
-  .vidply-player:fullscreen .vidply-playlist-header {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-header {
     flex-shrink: 0;
     font-size: 0.6875rem;
     padding: 0 0.625rem 0.5rem;
@@ -3348,7 +3290,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Extra small screens */
-@media (width <= 30rem), (width <= 30rem) {
+@media (width <= 30rem) {
   .vidply-speed-text {
     display: none;
   }
@@ -3530,7 +3472,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Override mobile isolation for playlists on iOS */
-  @media (width <= 48rem), (width < 48rem) {
+  @media (width <= 48rem) {
     .vidply-player.vidply-has-playlist {
       isolation: auto;
     }
@@ -3551,8 +3493,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Fullscreen Playlist Panel - YouTube-style overlay above controls */
-.vidply-player.vidply-fullscreen .vidply-playlist-panel,
-.vidply-player:fullscreen .vidply-playlist-panel {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-panel {
   backdrop-filter: blur(0.625rem);
   background: linear-gradient(to top, rgb(0 0 0 / 95%) 0%, rgb(0 0 0 / 90%) 100%);
   border: none;
@@ -3571,29 +3512,25 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Show playlist panel in fullscreen when visible */
-.vidply-player.vidply-fullscreen .vidply-playlist-panel.vidply-playlist-fullscreen-visible,
-.vidply-player:fullscreen .vidply-playlist-panel.vidply-playlist-fullscreen-visible {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-panel.vidply-playlist-fullscreen-visible {
   opacity: 1;
   transform: translateY(0);
 }
 
 /* Ensure all menus appear above the playlist in fullscreen */
-.vidply-player.vidply-fullscreen .vidply-menu,
-.vidply-player:fullscreen .vidply-menu {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-menu {
   max-height: calc(100vh - 6rem - env(safe-area-inset-bottom, 0));
   overflow-y: auto;
   z-index: var(--vidply-z-menu-fullscreen); /* High z-index to appear above playlist */
 }
 
 /* Menus at container level in fullscreen need absolute positioning */
-.vidply-player.vidply-fullscreen > .vidply-menu,
-.vidply-player:fullscreen > .vidply-menu {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) > .vidply-menu {
   position: absolute;
 }
 
 /* Fullscreen playlist styling - horizontal scrollable layout like YouTube */
-.vidply-player.vidply-fullscreen .vidply-playlist-list,
-.vidply-player:fullscreen .vidply-playlist-list {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-list {
   display: flex;
   flex-direction: row;
   gap: 0.75rem;
@@ -3604,8 +3541,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Fullscreen playlist header - more subtle */
-.vidply-player.vidply-fullscreen .vidply-playlist-header,
-.vidply-player:fullscreen .vidply-playlist-header {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-header {
   background: var(--vidply-black-50);
   border-bottom: 0.0625rem solid var(--vidply-border);
   font-size: 0.75rem;
@@ -3613,16 +3549,14 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Fullscreen playlist items - horizontal card style */
-.vidply-player.vidply-fullscreen .vidply-playlist-item,
-.vidply-player:fullscreen .vidply-playlist-item {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item {
   flex: 0 0 auto;
   max-width: 20rem;
   min-width: 17.5rem;
   scroll-snap-align: start;
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-item-button,
-.vidply-player:fullscreen .vidply-playlist-item-button {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-button {
   align-items: stretch;
   background: var(--vidply-black-40);
   border-radius: 0.5rem;
@@ -3633,49 +3567,42 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   transition: all 0.2s ease;
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-item-button:hover,
-.vidply-player:fullscreen .vidply-playlist-item-button:hover {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-button:hover {
   background: var(--vidply-white-10);
   box-shadow: 0 0.5rem 1.5rem var(--vidply-black-60);
   transform: translateY(-0.25rem);
 }
 
 /* Fullscreen thumbnail container - takes full width of card */
-.vidply-player.vidply-fullscreen .vidply-playlist-thumbnail-container,
-.vidply-player:fullscreen .vidply-playlist-thumbnail-container {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-thumbnail-container {
   position: relative;
   width: 100%;
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
-.vidply-player:fullscreen .vidply-playlist-thumbnail {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-thumbnail {
   border-radius: 0;
   height: 10rem;
   width: 100%;
 }
 
 /* Larger duration badge in fullscreen for better visibility */
-.vidply-player.vidply-fullscreen .vidply-playlist-duration-badge,
-.vidply-player:fullscreen .vidply-playlist-duration-badge {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-duration-badge {
   bottom: 0.375rem;
   font-size: 0.75rem;
   padding: 0.1875rem 0.375rem;
   right: 0.375rem;
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-item-info,
-.vidply-player:fullscreen .vidply-playlist-item-info {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-info {
   padding: 0.75rem;
 }
 
 /* Hide description in fullscreen to save space */
-.vidply-player.vidply-fullscreen .vidply-playlist-item-description,
-.vidply-player:fullscreen .vidply-playlist-item-description {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-description {
   display: none;
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-item-title,
-.vidply-player:fullscreen .vidply-playlist-item-title {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-title {
   -webkit-box-orient: vertical;
   display: -webkit-box;
   font-size: 0.875rem;
@@ -3687,77 +3614,64 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   white-space: normal;
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-item-artist,
-.vidply-player:fullscreen .vidply-playlist-item-artist {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-artist {
   font-size: 0.75rem;
   opacity: 0.8;
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-item-icon,
-.vidply-player:fullscreen .vidply-playlist-item-icon {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-icon {
   display: none !important;
 }
 
 /* Fullscreen playlist scrollbar styling - horizontal */
-.vidply-player.vidply-fullscreen .vidply-playlist-panel::-webkit-scrollbar,
-.vidply-player:fullscreen .vidply-playlist-panel::-webkit-scrollbar {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-panel::-webkit-scrollbar {
   height: 0.5rem;
   width: 0.625rem;
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-panel::-webkit-scrollbar-track,
-.vidply-player:fullscreen .vidply-playlist-panel::-webkit-scrollbar-track {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-panel::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-panel::-webkit-scrollbar-thumb,
-.vidply-player:fullscreen .vidply-playlist-panel::-webkit-scrollbar-thumb {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-panel::-webkit-scrollbar-thumb {
   background: var(--vidply-white-30);
   border-radius: 0.3125rem;
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-panel::-webkit-scrollbar-thumb:hover,
-.vidply-player:fullscreen .vidply-playlist-panel::-webkit-scrollbar-thumb:hover {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-panel::-webkit-scrollbar-thumb:hover {
   background: var(--vidply-white-50);
 }
 
 /* Horizontal scrollbar for playlist list */
-.vidply-player.vidply-fullscreen .vidply-playlist-list::-webkit-scrollbar,
-.vidply-player:fullscreen .vidply-playlist-list::-webkit-scrollbar {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-list::-webkit-scrollbar {
   height: 0.375rem;
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-list::-webkit-scrollbar-track,
-.vidply-player:fullscreen .vidply-playlist-list::-webkit-scrollbar-track {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-list::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-list::-webkit-scrollbar-thumb,
-.vidply-player:fullscreen .vidply-playlist-list::-webkit-scrollbar-thumb {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-list::-webkit-scrollbar-thumb {
   background: var(--vidply-white-20);
   border-radius: 0.1875rem;
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-list::-webkit-scrollbar-thumb:hover,
-.vidply-player:fullscreen .vidply-playlist-list::-webkit-scrollbar-thumb:hover {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-list::-webkit-scrollbar-thumb:hover {
   background: var(--vidply-white-40);
 }
 
 /* Smooth scroll behavior in fullscreen */
-.vidply-player.vidply-fullscreen .vidply-playlist-panel,
-.vidply-player:fullscreen .vidply-playlist-panel {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-panel {
   scroll-behavior: smooth;
 }
 
 /* Active item styling in fullscreen */
-.vidply-player.vidply-fullscreen .vidply-playlist-item-active .vidply-playlist-item-button,
-.vidply-player:fullscreen .vidply-playlist-item-active .vidply-playlist-item-button {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-active .vidply-playlist-item-button {
   background: var(--vidply-primary-15);
   border: 0.125rem solid var(--vidply-primary-light);
 }
 
-.vidply-player.vidply-fullscreen .vidply-playlist-item-active .vidply-playlist-item-title,
-.vidply-player:fullscreen .vidply-playlist-item-active .vidply-playlist-item-title {
+.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-active .vidply-playlist-item-title {
   color: var(--vidply-primary-light);
 }
 
@@ -4727,6 +4641,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   box-shadow: 0 0 0 0.125rem var(--vidply-primary-20);
 }
 
+/* 1.5rem (24px) thumb meets WCAG 2.5.8 Target Size (Minimum). The input and
+   track share a 0.375rem height, so WebKit auto-centers the thumb on the
+   track and no margin-top correction is needed. */
 .vidply-transcript-style-range::-webkit-slider-thumb {
   appearance: none;
   background: var(--vidply-primary-light);
@@ -4734,9 +4651,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   border-radius: 50%;
   box-shadow: var(--vidply-shadow-sm);
   cursor: pointer;
-  height: 1rem;
+  height: 1.5rem;
   transition: all 0.15s ease;
-  width: 1rem;
+  width: 1.5rem;
 }
 
 .vidply-transcript-style-range::-webkit-slider-thumb:hover {
@@ -4750,9 +4667,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   border-radius: 50%;
   box-shadow: var(--vidply-shadow-sm);
   cursor: pointer;
-  height: 1rem;
+  height: 1.5rem;
   transition: all 0.15s ease;
-  width: 1rem;
+  width: 1.5rem;
 }
 
 .vidply-transcript-style-range::-moz-range-thumb:hover {
@@ -5003,7 +4920,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Mobile: drag is always available via touch, so hide the keyboard drag mode toggle */
-@media (width <= 48rem), (width < 48rem) {
+@media (width <= 48rem) {
   .vidply-sign-language-settings-item[data-setting="keyboard-drag"] {
     display: none !important;
   }
@@ -5235,7 +5152,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Responsive Sign Language Video */
-@media (width <= 48rem), (width < 48rem) {
+@media (width <= 48rem) {
   .vidply-sign-language-wrapper {
     min-width: 7.5rem;
     width: 35%;
@@ -5248,7 +5165,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Responsive Adjustments */
-@media (width <= 48rem), (width < 48rem) {
+@media (width <= 48rem) {
   .vidply-playlist-thumbnail {
     height: 2.125rem;
     width: 3.75rem;
@@ -5272,8 +5189,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Mobile fullscreen playlist - horizontal scrolling directly above controls */
-  .vidply-player.vidply-fullscreen .vidply-playlist-panel,
-  .vidply-player:fullscreen .vidply-playlist-panel {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-panel {
     bottom: 6.25rem; /* Directly above controls with extra space */
     max-height: 35vh; /* Compact height */
     overflow: auto hidden; /* Horizontal scrolling */ /* No vertical scrolling */
@@ -5284,8 +5200,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Mobile playlist list - horizontal row, no wrapping */
-  .vidply-player.vidply-fullscreen .vidply-playlist-list,
-  .vidply-player:fullscreen .vidply-playlist-list {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-list {
     flex-flow: row nowrap; /* Items side by side */ /* Never wrap */
     gap: 0.5rem;
     -webkit-overflow-scrolling: touch;
@@ -5295,8 +5210,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Mobile playlist items - only show thumbnails */
-  .vidply-player.vidply-fullscreen .vidply-playlist-item,
-  .vidply-player:fullscreen .vidply-playlist-item {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item {
     flex-shrink: 0; /* Don't shrink */
     max-width: 7.5rem;
     min-width: 7.5rem;
@@ -5304,15 +5218,13 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     width: 7.5rem; /* Smaller width for thumbnail-only */
   }
 
-  .vidply-player.vidply-fullscreen .vidply-playlist-item-button,
-  .vidply-player:fullscreen .vidply-playlist-item-button {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-button {
     flex-direction: column;
     gap: 0;
     padding: 0;
   }
 
-  .vidply-player.vidply-fullscreen .vidply-playlist-thumbnail,
-  .vidply-player:fullscreen .vidply-playlist-thumbnail {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-thumbnail {
     border-radius: 0.5rem; /* Fully rounded for thumbnail-only */
     flex-shrink: 0;
     height: 5.625rem; /* Square-ish thumbnail */
@@ -5320,14 +5232,12 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Hide text info on mobile - show only thumbnails */
-  .vidply-player.vidply-fullscreen .vidply-playlist-item-info,
-  .vidply-player:fullscreen .vidply-playlist-item-info {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-info {
     display: none; /* Hide text on mobile */
   }
 
   /* If no thumbnail, show only text */
-  .vidply-player.vidply-fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-info,
-  .vidply-player:fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-info {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-info {
     align-items: center;
     display: flex;
     flex-direction: column;
@@ -5337,19 +5247,16 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     text-align: center;
   }
 
-  .vidply-player.vidply-fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-title,
-  .vidply-player:fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-title {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-title {
     font-size: 0.6875rem;
     -webkit-line-clamp: 3;
   }
 
-  .vidply-player.vidply-fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-artist,
-  .vidply-player:fullscreen .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-artist {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-artist {
     font-size: 0.5625rem;
   }
 
-  .vidply-player.vidply-fullscreen .vidply-playlist-header,
-  .vidply-player:fullscreen .vidply-playlist-header {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-header {
     flex-shrink: 0;
     font-size: 0.6875rem;
     padding: 0 0.75rem 0.5rem;
@@ -5383,8 +5290,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* In fullscreen, enable dragging cursor */
-  .vidply-player.vidply-fullscreen .vidply-transcript-header,
-  .vidply-player:fullscreen .vidply-transcript-header {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-transcript-header {
     cursor: move !important;
   }
 }
@@ -5395,7 +5301,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 
 .vidply-resume-prompt {
   align-items: center;
-  animation: vidply-resume-fade-in 0.2s ease-out;
+  animation: vidply-fade-in 0.2s ease-out;
   background: rgb(0 0 0 / 85%);
   display: flex;
   inset: 0;
@@ -5404,15 +5310,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   z-index: 100;
 }
 
-@keyframes vidply-resume-fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
+/* Reuses the shared `vidply-fade-in` keyframes. */
 
 .vidply-resume-prompt-content {
   background: var(--vidply-bg-secondary, rgb(40 40 40 / 95%));
@@ -5654,68 +5552,74 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   z-index: 4;
 }
 
+/* Hit areas are 1.5rem (24px) to satisfy WCAG 2.5.8 Target Size (Minimum).
+   The handles straddle the shell border (negative offset) so the larger grab
+   zone extends mostly outside the player rather than over its content. The
+   visible ::after dot stays small; keyboard resize (R) is the non-pointer
+   equivalent (2.5.7). The close button sits above (z-index 5) so the corner
+   handles never block it. */
 .vidply-floating-resize-n,
 .vidply-floating-resize-s {
   cursor: ns-resize;
-  height: 0.5rem;
-  left: 1rem;
-  right: 1rem;
+  height: 1.5rem;
+  left: 1.5rem;
+  right: 1.5rem;
 }
 
 .vidply-floating-resize-e,
 .vidply-floating-resize-w {
-  bottom: 1rem;
+  bottom: 1.5rem;
   cursor: ew-resize;
-  top: 1rem;
-  width: 0.5rem;
+  top: 1.5rem;
+  width: 1.5rem;
 }
 
 .vidply-floating-resize-n {
-  top: -0.25rem;
+  top: -0.75rem;
 }
 
 .vidply-floating-resize-s {
-  bottom: -0.25rem;
+  bottom: -0.75rem;
 }
 
 .vidply-floating-resize-e {
-  right: -0.25rem;
+  right: -0.75rem;
 }
 
 .vidply-floating-resize-w {
-  left: -0.25rem;
+  left: -0.75rem;
 }
 
 .vidply-floating-resize-ne,
 .vidply-floating-resize-nw,
 .vidply-floating-resize-se,
 .vidply-floating-resize-sw {
-  height: 1rem;
-  width: 1rem;
+  height: 1.5rem;
+  width: 1.5rem;
 }
 
 .vidply-floating-resize-ne {
   cursor: nesw-resize;
-  right: -0.5rem;
-  top: -0.5rem;
+  right: -0.75rem;
+  top: -0.75rem;
 }
 
 .vidply-floating-resize-nw {
   cursor: nwse-resize;
-  left: -0.5rem;
-  top: -0.5rem;
+  left: -0.75rem;
+  top: -0.75rem;
 }
 
 .vidply-floating-resize-se {
-  bottom: -0.5rem;
+  bottom: -0.75rem;
   cursor: nwse-resize;
-  right: -0.5rem;
+  right: -0.75rem;
 }
 
 .vidply-floating-resize-sw {
-  bottom: -0.5rem;
+  bottom: -0.75rem;
   cursor: nesw-resize;
-  left: -0.5rem;
+  left: -0.75rem;
 }
 
 /* Corner handle indicator (visual hint on hover) */

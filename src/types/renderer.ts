@@ -17,11 +17,6 @@ export interface Renderer {
   hls?: HlsInstance | null;
   dash?: DashMediaPlayerInstance | null;
 
-  /** Internal flags used by deferred loading paths. */
-  _didDeferredLoad?: boolean;
-  _hlsSourceLoaded?: boolean;
-  _dashSourceLoaded?: boolean;
-
   /**
    * True for renderers that drive playback through Media Source Extensions
    * (dash.js, hls.js). The `<video>` element's `src` is a MediaSource blob

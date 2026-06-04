@@ -8,6 +8,7 @@ import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 import { TimeUtils } from '../utils/TimeUtils.js';
 import { sanitizePosterUrl, toCssBackgroundImage } from '../utils/UrlSafe.js';
+import { reducedMotionScrollOptions } from '../utils/PerformanceUtils.js';
 import type { Player } from '../core/Player.js';
 
 type PlaylistTextTrack = {
@@ -121,9 +122,15 @@ export class PlaylistManager {
     this.hostElement = (options.hostElement as HTMLElement | null | undefined) ?? null;
     this.PlayerClass = (options.PlayerClass as PlayerConstructor | null | undefined) ?? null;
     
-    // Bind methods
+    // Bind methods once so the same reference is used for both on() and off().
+    // Binding inline at registration time (e.g. `.bind(this)` in init()) would
+    // create a fresh function each call that off() can never match, leaking the
+    // listener after destroy().
     this.handleTrackEnd = this.handleTrackEnd.bind(this);
     this.handleTrackError = this.handleTrackError.bind(this);
+    this.handlePlaybackStateChange = this.handlePlaybackStateChange.bind(this);
+    this.handleFullscreenChange = this.handleFullscreenChange.bind(this);
+    this.handleAudioDescriptionChange = this.handleAudioDescriptionChange.bind(this);
     
     // Register this playlist manager with the player
     this.player.playlistManager = this;
@@ -381,16 +388,17 @@ export class PlaylistManager {
     this.player.on('ended', this.handleTrackEnd);
     this.player.on('error', this.handleTrackError);
     
-    // Listen for playback state changes to show/hide playlist in fullscreen
-    this.player.on('play', this.handlePlaybackStateChange.bind(this));
-    this.player.on('pause', this.handlePlaybackStateChange.bind(this));
-    this.player.on('ended', this.handlePlaybackStateChange.bind(this));
+    // Listen for playback state changes to show/hide playlist in fullscreen.
+    // Handlers are pre-bound in the constructor so destroy() can detach them.
+    this.player.on('play', this.handlePlaybackStateChange);
+    this.player.on('pause', this.handlePlaybackStateChange);
+    this.player.on('ended', this.handlePlaybackStateChange);
     // Use fullscreenchange event which is what the player actually emits
-    this.player.on('fullscreenchange', this.handleFullscreenChange.bind(this));
+    this.player.on('fullscreenchange', this.handleFullscreenChange);
     
     // Listen for audio description state changes to update duration displays
-    this.player.on('audiodescriptionenabled', this.handleAudioDescriptionChange.bind(this));
-    this.player.on('audiodescriptiondisabled', this.handleAudioDescriptionChange.bind(this));
+    this.player.on('audiodescriptionenabled', this.handleAudioDescriptionChange);
+    this.player.on('audiodescriptiondisabled', this.handleAudioDescriptionChange);
     
     // Create UI if needed
     if (this.options.showPanel) {
@@ -540,6 +548,7 @@ export class PlaylistManager {
     }
     
     const track = this.tracks[index];
+    if (!track) return;
     
     // Always update UI immediately (poster, buttons, duration, etc.).
     // Note: this is UI-only; actual media loading is performed by player.load() below.
@@ -624,6 +633,7 @@ export class PlaylistManager {
     }
 
     const track = this.tracks[index];
+    if (!track) return;
     this.currentIndex = index;
 
     // Apply per-track metadata without touching the media source.
@@ -756,6 +766,7 @@ export class PlaylistManager {
     }
     
     const track = this.tracks[index];
+    if (!track) return;
     
     // Set guard flag to prevent cascade of next() calls during track change
     this.isChangingTrack = true;
@@ -1266,10 +1277,6 @@ export class PlaylistManager {
    * Create playlist item element
    */
   createPlaylistItem(track: PlaylistTrack, index: number) {
-    const _trackPosition = i18n.t('playlist.trackOf', {
-      current: index + 1,
-      total: this.tracks.length
-    });
     const trackTitle = track.title || i18n.t('playlist.trackUntitled', { number: index + 1 });
     const trackArtist = track.artist ? i18n.t('playlist.by') + track.artist : '';
     
@@ -1539,14 +1546,18 @@ export class PlaylistManager {
     
     // Update tab indices for roving tabindex pattern
     if (newIndex !== -1 && newIndex !== index) {
-      buttons[index].setAttribute('tabIndex', '-1');
-      buttons[newIndex].setAttribute('tabIndex', '0');
-      buttons[newIndex].focus({ preventScroll: false });
-      
-      // Scroll the focused item into view (same behavior as mouse interaction)
-      const item = buttons[newIndex].closest('.vidply-playlist-item');
-      if (item) {
-        item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      const currentButton = buttons[index];
+      const newButton = buttons[newIndex];
+      if (currentButton && newButton) {
+        currentButton.setAttribute('tabIndex', '-1');
+        newButton.setAttribute('tabIndex', '0');
+        newButton.focus({ preventScroll: false });
+
+        // Scroll the focused item into view (same behavior as mouse interaction)
+        const item = newButton.closest('.vidply-playlist-item');
+        if (item) {
+          item.scrollIntoView(reducedMotionScrollOptions('nearest'));
+        }
       }
     }
     
@@ -1576,10 +1587,7 @@ export class PlaylistManager {
       if (!button) return;
       
       const track = this.tracks[index];
-      const _trackPosition = i18n.t('playlist.trackOf', {
-        current: index + 1,
-        total: this.tracks.length
-      });
+      if (!track) return;
       const trackTitle = track.title || i18n.t('playlist.trackUntitled', { number: index + 1 });
       const trackArtist = track.artist ? i18n.t('playlist.by') + track.artist : '';
       
@@ -1604,7 +1612,7 @@ export class PlaylistManager {
         button.setAttribute('aria-label', ariaLabel);
         
         // Scroll into view within playlist panel (uses 'nearest' to minimize page scroll)
-        item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        item.scrollIntoView(reducedMotionScrollOptions('nearest'));
       } else {
         // Update list item styling
         item.classList.remove('vidply-playlist-item-active');
@@ -1787,9 +1795,16 @@ export class PlaylistManager {
    * Destroy playlist manager
    */
   destroy() {
-    // Remove event listeners
+    // Remove every listener registered in init(). All handlers are pre-bound
+    // in the constructor, so these references match what on() registered.
     this.player.off('ended', this.handleTrackEnd);
     this.player.off('error', this.handleTrackError);
+    this.player.off('play', this.handlePlaybackStateChange);
+    this.player.off('pause', this.handlePlaybackStateChange);
+    this.player.off('ended', this.handlePlaybackStateChange);
+    this.player.off('fullscreenchange', this.handleFullscreenChange);
+    this.player.off('audiodescriptionenabled', this.handleAudioDescriptionChange);
+    this.player.off('audiodescriptiondisabled', this.handleAudioDescriptionChange);
     
     // Remove UI
     if (this.trackArtworkElement) {

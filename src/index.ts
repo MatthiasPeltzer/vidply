@@ -127,7 +127,7 @@ function parseDataAttributes(dataset: DOMStringMap): Partial<PlayerOptions> {
   for (const key of Object.keys(dataset)) {
     if (key.startsWith('signLanguageSrc') && key !== 'signLanguageSrc') {
       const langMatch = key.match(/^signLanguageSrc([A-Z][a-z]*)$/);
-      if (langMatch) {
+      if (langMatch && langMatch[1]) {
         const langCode = langMatch[1].toLowerCase();
         const value = dataset[key];
         if (value !== undefined) {

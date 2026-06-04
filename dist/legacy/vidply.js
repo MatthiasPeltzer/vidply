@@ -111,7 +111,7 @@
             '"': "&quot;",
             "'": "&#x27;"
           };
-          return str.replace(/[&<>"']/g, (char) => escapeMap[char]);
+          return str.replace(/[&<>"']/g, (char) => escapeMap[char] ?? char);
         },
         /**
          * Render a WebVTT cue's text safely.
@@ -139,7 +139,7 @@
           const fragment = document.createDocumentFragment();
           const stack = [];
           const append = (node) => {
-            const target = stack.length > 0 ? stack[stack.length - 1] : fragment;
+            const target = stack[stack.length - 1] ?? fragment;
             target.appendChild(node);
           };
           const tagPattern = /<(\/)?([a-z])(?:\.([\w.-]{1,200}))?(?:\s+([^<>]{0,500}))?>/i;
@@ -157,7 +157,8 @@
             const [, closing, tagLetter, classList, voiceName] = match;
             const tag = (tagLetter || "").toLowerCase();
             if (closing) {
-              if (stack.length > 0 && stack[stack.length - 1].dataset.vttTag === tag) {
+              const top = stack[stack.length - 1];
+              if (top && top.dataset.vttTag === tag) {
                 stack.pop();
               }
             } else if (tag === "b" || tag === "i" || tag === "u") {
@@ -1613,11 +1614,11 @@
         parseTime(timeString) {
           const parts = timeString.split(":").map((p) => parseInt(p, 10));
           if (parts.length === 3) {
-            return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            return (parts[0] ?? 0) * 3600 + (parts[1] ?? 0) * 60 + (parts[2] ?? 0);
           } else if (parts.length === 2) {
-            return parts[0] * 60 + parts[1];
+            return (parts[0] ?? 0) * 60 + (parts[1] ?? 0);
           } else if (parts.length === 1) {
-            return parts[0];
+            return parts[0] ?? 0;
           }
           return 0;
         },
@@ -1831,6 +1832,12 @@
   function isMobile(breakpoint = 768) {
     return window.innerWidth < breakpoint;
   }
+  function prefersReducedMotion() {
+    return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+  function reducedMotionScrollOptions(block = "nearest") {
+    return { behavior: prefersReducedMotion() ? "auto" : "smooth", block };
+  }
   function rafWithTimeout(callback, timeout = 100) {
     let called = false;
     const execute = () => {
@@ -1845,6 +1852,302 @@
   var init_PerformanceUtils = __esm({
     "src/utils/PerformanceUtils.ts"() {
       "use strict";
+    }
+  });
+
+  // src/controls/CaptionStyleMenu.ts
+  var CaptionStyleMenu_exports = {};
+  __export(CaptionStyleMenu_exports, {
+    showCaptionStyleMenu: () => showCaptionStyleMenu
+  });
+  function captionStylePropertyName(property) {
+    const stripped = property.replace("captions", "");
+    return stripped.charAt(0).toLowerCase() + stripped.slice(1);
+  }
+  function createStyleControl(player, label, property, options) {
+    const group = DOMUtils.createElement("div", {
+      className: `${player.options.classPrefix}-style-group`
+    });
+    const controlId = `${player.options.classPrefix}-${property}-${Date.now()}`;
+    const labelEl = DOMUtils.createElement("label", {
+      textContent: label,
+      attributes: {
+        "for": controlId
+      },
+      style: {
+        display: "block",
+        fontSize: "12px",
+        marginBottom: "4px",
+        color: "rgba(255,255,255,0.7)"
+      }
+    });
+    group.appendChild(labelEl);
+    const select = DOMUtils.createElement("select", {
+      className: `${player.options.classPrefix}-style-select`,
+      attributes: {
+        "id": controlId
+      },
+      style: {
+        width: "100%",
+        padding: "6px",
+        background: "var(--vidply-white)",
+        border: "1px solid var(--vidply-white-10)",
+        borderRadius: "4px",
+        color: "var(--vidply-black)",
+        fontSize: "13px"
+      }
+    });
+    const currentValue = player.options[property];
+    options.forEach((opt) => {
+      const option = DOMUtils.createElement("option", {
+        textContent: opt.label,
+        attributes: { value: opt.value }
+      });
+      if (opt.value === currentValue) {
+        option.selected = true;
+      }
+      select.appendChild(option);
+    });
+    select.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+    });
+    select.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+    select.addEventListener("change", (e) => {
+      e.stopPropagation();
+      player.options[property] = e.target.value;
+      if (player.captionManager) {
+        player.captionManager.setCaptionStyle(
+          captionStylePropertyName(property),
+          e.target.value
+        );
+      }
+    });
+    group.appendChild(select);
+    return group;
+  }
+  function createColorControl(player, label, property) {
+    const group = DOMUtils.createElement("div", {
+      className: `${player.options.classPrefix}-style-group`
+    });
+    const controlId = `${player.options.classPrefix}-${property}-${Date.now()}`;
+    const labelEl = DOMUtils.createElement("label", {
+      textContent: label,
+      attributes: {
+        "for": controlId
+      },
+      style: {
+        display: "block",
+        fontSize: "12px",
+        marginBottom: "4px",
+        color: "rgba(255,255,255,0.7)"
+      }
+    });
+    group.appendChild(labelEl);
+    const input = DOMUtils.createElement("input", {
+      attributes: {
+        "id": controlId,
+        type: "color",
+        value: String(player.options[property] ?? "")
+      },
+      style: {
+        width: "100%",
+        height: "32px",
+        padding: "2px",
+        background: "rgba(255,255,255,0.1)",
+        border: "1px solid rgba(255,255,255,0.2)",
+        borderRadius: "4px",
+        cursor: "pointer"
+      }
+    });
+    input.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+    });
+    input.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+    input.addEventListener("change", (e) => {
+      e.stopPropagation();
+      player.options[property] = e.target.value;
+      if (player.captionManager) {
+        player.captionManager.setCaptionStyle(
+          captionStylePropertyName(property),
+          e.target.value
+        );
+      }
+    });
+    group.appendChild(input);
+    return group;
+  }
+  function createOpacityControl(player, label, property) {
+    const group = DOMUtils.createElement("div", {
+      className: `${player.options.classPrefix}-style-group`
+    });
+    const controlId = `${player.options.classPrefix}-${property}-${Date.now()}`;
+    const labelContainer = DOMUtils.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        marginBottom: "4px"
+      }
+    });
+    const labelEl = DOMUtils.createElement("label", {
+      textContent: label,
+      attributes: {
+        "for": controlId
+      },
+      style: {
+        fontSize: "12px",
+        color: "rgba(255,255,255,0.7)"
+      }
+    });
+    const valueEl = DOMUtils.createElement("span", {
+      textContent: Math.round(Number(player.options[property] ?? 0) * 100) + "%",
+      style: {
+        fontSize: "12px",
+        color: "rgba(255,255,255,0.7)"
+      }
+    });
+    labelContainer.appendChild(labelEl);
+    labelContainer.appendChild(valueEl);
+    group.appendChild(labelContainer);
+    const input = DOMUtils.createElement("input", {
+      attributes: {
+        "id": controlId,
+        type: "range",
+        min: "0",
+        max: "1",
+        step: "0.1",
+        value: String(player.options[property])
+      },
+      style: {
+        width: "100%",
+        cursor: "pointer"
+      }
+    });
+    input.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+    });
+    input.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+    input.addEventListener("input", (e) => {
+      e.stopPropagation();
+      const value = parseFloat(e.target.value);
+      valueEl.textContent = Math.round(value * 100) + "%";
+      player.options[property] = value;
+      if (player.captionManager) {
+        player.captionManager.setCaptionStyle(
+          captionStylePropertyName(property),
+          value
+        );
+      }
+    });
+    group.appendChild(input);
+    return group;
+  }
+  function showCaptionStyleMenu(controlBar, button) {
+    const player = controlBar.player;
+    const existingMenu = document.querySelector(`.${player.options.classPrefix}-caption-style-menu`);
+    if (existingMenu) {
+      existingMenu.remove();
+      button.setAttribute("aria-expanded", "false");
+      if (controlBar.openMenu === existingMenu) {
+        controlBar.openMenu = null;
+        controlBar.openMenuButton = null;
+      }
+      return;
+    }
+    const menuLabelId = `${player.options.classPrefix}-caption-style-label-${player.instanceId || ""}`;
+    const menu = DOMUtils.createElement("div", {
+      className: `${player.options.classPrefix}-caption-style-menu ${player.options.classPrefix}-menu ${player.options.classPrefix}-settings-menu`,
+      attributes: {
+        "role": "dialog",
+        "aria-modal": "false",
+        "aria-labelledby": menuLabelId
+      }
+    });
+    const visuallyHiddenLabel = DOMUtils.createElement("h2", {
+      textContent: i18n.t("player.captionStyling"),
+      attributes: { id: menuLabelId, class: `${player.options.classPrefix}-sr-only` },
+      style: {
+        position: "absolute",
+        width: "1px",
+        height: "1px",
+        padding: "0",
+        margin: "-1px",
+        overflow: "hidden",
+        clip: "rect(0,0,0,0)",
+        whiteSpace: "nowrap",
+        border: "0"
+      }
+    });
+    menu.appendChild(visuallyHiddenLabel);
+    menu.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+    if (!player.captionManager || player.captionManager.tracks.length === 0) {
+      const noTracksItem = DOMUtils.createElement("div", {
+        className: `${player.options.classPrefix}-menu-item`,
+        textContent: i18n.t("player.noCaptions"),
+        attributes: {
+          "role": "status"
+        },
+        style: { opacity: "0.5", cursor: "default", padding: "12px 16px" }
+      });
+      menu.appendChild(noTracksItem);
+      menu.style.visibility = "hidden";
+      menu.style.display = "block";
+      controlBar.insertMenuIntoDOM(menu, button);
+      controlBar.positionMenu(menu, button, true);
+      requestAnimationFrame(() => {
+        menu.style.visibility = "visible";
+      });
+      controlBar.attachMenuCloseHandler(menu, button, true);
+      return;
+    }
+    menu.appendChild(createStyleControl(
+      player,
+      i18n.t("styleLabels.fontSize"),
+      "captionsFontSize",
+      [
+        { label: i18n.t("fontSizes.small"), value: "87.5%" },
+        { label: i18n.t("fontSizes.normal"), value: "100%" },
+        { label: i18n.t("fontSizes.large"), value: "125%" },
+        { label: i18n.t("fontSizes.xlarge"), value: "150%" }
+      ]
+    ));
+    menu.appendChild(createStyleControl(
+      player,
+      i18n.t("styleLabels.font"),
+      "captionsFontFamily",
+      [
+        { label: i18n.t("fontFamilies.sansSerif"), value: "sans-serif" },
+        { label: i18n.t("fontFamilies.serif"), value: "serif" },
+        { label: i18n.t("fontFamilies.monospace"), value: "monospace" }
+      ]
+    ));
+    menu.appendChild(createColorControl(player, i18n.t("styleLabels.textColor"), "captionsColor"));
+    menu.appendChild(createColorControl(player, i18n.t("styleLabels.background"), "captionsBackgroundColor"));
+    menu.appendChild(createOpacityControl(player, i18n.t("styleLabels.opacity"), "captionsOpacity"));
+    menu.style.minWidth = "220px";
+    menu.style.visibility = "hidden";
+    menu.style.display = "block";
+    controlBar.insertMenuIntoDOM(menu, button);
+    controlBar.positionMenu(menu, button, true);
+    requestAnimationFrame(() => {
+      menu.style.visibility = "visible";
+    });
+    controlBar.attachMenuCloseHandler(menu, button, true);
+    focusFirstElement(menu, `.${player.options.classPrefix}-style-select`);
+  }
+  var init_CaptionStyleMenu = __esm({
+    "src/controls/CaptionStyleMenu.ts"() {
+      "use strict";
+      init_DOMUtils();
+      init_i18n();
+      init_FocusUtils();
     }
   });
 
@@ -2039,7 +2342,10 @@
             entries.sort((a, b) => a[1].updatedAt - b[1].updatedAt);
             const toRemove = entries.length - _StorageManager.MAX_WATCH_PROGRESS_ENTRIES;
             for (let i = 0; i < toRemove; i++) {
-              delete allProgress[entries[i][0]];
+              const entry = entries[i];
+              if (entry) {
+                delete allProgress[entry[0]];
+              }
             }
           }
           return this.set("watch_progress", allProgress);
@@ -2163,7 +2469,8 @@
             className: `${this.player.options.classPrefix}-captions`,
             attributes: {
               "role": "region",
-              "aria-label": i18n.t("player.captions")
+              "aria-label": i18n.t("player.captions"),
+              "aria-live": "polite"
             }
           });
           this.updateStyles();
@@ -2176,6 +2483,7 @@
           const seen = /* @__PURE__ */ new Map();
           for (let i = 0; i < textTracks.length; i++) {
             const track = textTracks[i];
+            if (!track) continue;
             if ((track.kind === "subtitles" || track.kind === "captions") && !track._vidplyStale) {
               track.mode = "hidden";
               const dedupeKey = `${track.language}|${track.label}`;
@@ -2402,7 +2710,7 @@
                 cueElement.classList.add(`${this.player.options.classPrefix}-caption-active`);
                 requestAnimationFrame(() => {
                   if (cueElement) {
-                    cueElement.scrollIntoView({ behavior: "smooth", block: "center" });
+                    cueElement.scrollIntoView(reducedMotionScrollOptions("center"));
                   }
                 });
               } else {
@@ -2472,7 +2780,7 @@
         }
         hexToRgba(hex, alpha) {
           const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-          if (result) {
+          if (result && result[1] && result[2] && result[3]) {
             return `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${alpha})`;
           }
           return hex;
@@ -2558,9 +2866,14 @@
           __publicField(this, "player");
           __publicField(this, "media");
           __publicField(this, "_didDeferredLoad");
+          // All media listeners are registered with this controller's signal so a
+          // single abort() in destroy() detaches every one of them. Avoids the leak
+          // of removeEventListener being called with fresh, non-matching callbacks.
+          __publicField(this, "_listenerController");
           this.player = player;
           this.media = player.element;
           this._didDeferredLoad = false;
+          this._listenerController = new AbortController();
         }
         async init() {
           this.media.controls = false;
@@ -2580,6 +2893,7 @@
           }
         }
         attachEvents() {
+          const { signal } = this._listenerController;
           this.media.addEventListener("loadedmetadata", () => {
             this.player.state.duration = this.media.duration;
             this.player.emit("loadedmetadata");
@@ -2588,14 +2902,14 @@
                 this.player.log("Failed to auto-generate poster:", error, "warn");
               });
             }
-          });
+          }, { signal });
           this.media.addEventListener("durationchange", () => {
             const duration = this.media.duration;
             if (duration && isFinite(duration) && duration > 0) {
               this.player.state.duration = duration;
               this.player.emit("durationchange", duration);
             }
-          });
+          }, { signal });
           this.media.addEventListener("play", () => {
             this.player.state.playing = true;
             this.player.state.paused = false;
@@ -2607,7 +2921,7 @@
             if (this.player.options.pauseOthersOnPlay) {
               this.pauseOtherPlayers();
             }
-          });
+          }, { signal });
           this.media.addEventListener("pause", () => {
             this.player.state.playing = false;
             this.player.state.paused = true;
@@ -2615,7 +2929,7 @@
             if (this.player.options.onPause) {
               this.player.options.onPause.call(this.player);
             }
-          });
+          }, { signal });
           this.media.addEventListener("ended", () => {
             this.player.state.playing = false;
             this.player.state.paused = true;
@@ -2628,14 +2942,14 @@
               this.player.seek(0);
               this.player.play();
             }
-          });
+          }, { signal });
           this.media.addEventListener("timeupdate", () => {
             this.player.state.currentTime = this.media.currentTime;
             this.player.emit("timeupdate", this.media.currentTime);
             if (this.player.options.onTimeUpdate) {
               this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
             }
-          });
+          }, { signal });
           this.media.addEventListener("volumechange", () => {
             this.player.state.volume = this.media.volume;
             this.player.state.muted = this.media.muted;
@@ -2643,36 +2957,36 @@
             if (this.player.options.onVolumeChange) {
               this.player.options.onVolumeChange.call(this.player, this.media.volume);
             }
-          });
+          }, { signal });
           this.media.addEventListener("seeking", () => {
             this.player.state.seeking = true;
             this.player.emit("seeking");
-          });
+          }, { signal });
           this.media.addEventListener("seeked", () => {
             this.player.state.seeking = false;
             this.player.emit("seeked");
-          });
+          }, { signal });
           this.media.addEventListener("waiting", () => {
             this.player.state.buffering = true;
             this.player.emit("waiting");
-          });
+          }, { signal });
           this.media.addEventListener("canplay", () => {
             this.player.state.buffering = false;
             this.player.emit("canplay");
-          });
+          }, { signal });
           this.media.addEventListener("progress", () => {
             if (this.media.buffered.length > 0) {
               const buffered = this.media.buffered.end(this.media.buffered.length - 1);
               this.player.emit("progress", buffered);
             }
-          });
+          }, { signal });
           this.media.addEventListener("error", (_e) => {
             this.player.handleError(this.media.error);
-          });
+          }, { signal });
           this.media.addEventListener("ratechange", () => {
             this.player.state.playbackSpeed = this.media.playbackRate;
             this.player.emit("ratechange", this.media.playbackRate);
-          });
+          }, { signal });
         }
         pauseOtherPlayers() {
           const allPlayers = document.querySelectorAll(".vidply-player");
@@ -2779,7 +3093,7 @@
          */
         extractHeightFromLabel(label) {
           const match = label.match(/(\d+)p/i);
-          return match ? parseInt(match[1]) : 0;
+          return match && match[1] ? parseInt(match[1], 10) : 0;
         }
         /**
          * Switch to a specific quality level
@@ -2792,6 +3106,9 @@
             return;
           }
           const quality = qualities[qualityIndex];
+          if (!quality || !quality.src) {
+            return;
+          }
           const currentTime = this.media.currentTime;
           const wasPlaying = !this.media.paused;
           const currentSrc = this.media.currentSrc;
@@ -2819,22 +3136,18 @@
          * @returns {number}
          */
         getCurrentQuality() {
+          var _a;
           const qualities = this.getQualities();
           const currentSrc = this.media.currentSrc;
           for (let i = 0; i < qualities.length; i++) {
-            if (qualities[i].src === currentSrc) {
+            if (((_a = qualities[i]) == null ? void 0 : _a.src) === currentSrc) {
               return i;
             }
           }
           return 0;
         }
         destroy() {
-          this.media.removeEventListener("loadedmetadata", () => {
-          });
-          this.media.removeEventListener("play", () => {
-          });
-          this.media.removeEventListener("pause", () => {
-          });
+          this._listenerController.abort();
         }
       };
     }
@@ -3101,7 +3414,7 @@
             });
             this.player.element.load();
             await new Promise((resolve) => {
-              setTimeout(() => {
+              this.player.setManagedTimeout(() => {
                 tracksToReadd.forEach(({ trackInfo, parent, nextSibling, attributes }) => {
                   const newSrc = toDescribed ? trackInfo.describedSrc : trackInfo.originalSrc;
                   if (!newSrc) {
@@ -3111,8 +3424,9 @@
                   const newTrackElement = document.createElement("track");
                   newTrackElement.setAttribute("src", newSrc);
                   Object.keys(attributes).forEach((attrName) => {
-                    if (attrName !== "src" && attrName !== "data-desc-src") {
-                      newTrackElement.setAttribute(attrName, attributes[attrName]);
+                    const attrValue = attributes[attrName];
+                    if (attrName !== "src" && attrName !== "data-desc-src" && attrValue !== void 0) {
+                      newTrackElement.setAttribute(attrName, attrValue);
                     }
                   });
                   const targetParent = parent || this.player.element;
@@ -3150,10 +3464,10 @@
                   }, 300);
                 };
                 if (this.player.element.readyState >= 1) {
-                  setTimeout(setupNewTracks, 200);
+                  this.player.setManagedTimeout(setupNewTracks, 200);
                 } else {
                   this.player.element.addEventListener("loadedmetadata", setupNewTracks, { once: true });
-                  setTimeout(setupNewTracks, 2e3);
+                  this.player.setManagedTimeout(setupNewTracks, 2e3);
                 }
                 resolve();
               }, 100);
@@ -3655,6 +3969,7 @@
             return;
           }
           const touch = e.touches[0];
+          if (!touch) return;
           this.startDragging(touch.clientX, touch.clientY);
           e.preventDefault();
         }
@@ -3682,6 +3997,7 @@
           this.resizeDirection = handle.getAttribute("data-direction");
           const clientX = "clientX" in e ? e.clientX : (_b = (_a = e.touches) == null ? void 0 : _a[0]) == null ? void 0 : _b.clientX;
           const clientY = "clientY" in e ? e.clientY : (_d = (_c = e.touches) == null ? void 0 : _c[0]) == null ? void 0 : _d.clientY;
+          if (clientX === void 0 || clientY === void 0) return;
           this.startResizing(clientX, clientY);
         }
         onMouseMove(e) {
@@ -3696,6 +4012,7 @@
         onTouchMove(e) {
           if (this.isDragging || this.isResizing) {
             const touch = e.touches[0];
+            if (!touch) return;
             if (this.isDragging) {
               this.drag(touch.clientX, touch.clientY);
             } else {
@@ -4250,7 +4567,7 @@
   }
   function attachMenuKeyboardNavigation(menu, button, itemSelector, onClose) {
     if (!menu) return void 0;
-    const menuItems = Array.from(menu.querySelectorAll(itemSelector));
+    const menuItems = Array.from(menu.querySelectorAll(itemSelector)).filter((item) => item.getAttribute("aria-disabled") !== "true");
     if (menuItems.length === 0) return void 0;
     const handleKeyDown = (e) => {
       const currentIndex = menuItems.indexOf(document.activeElement);
@@ -4262,8 +4579,11 @@
           menuItems.forEach((item, idx) => {
             item.setAttribute("tabindex", idx === nextIndex ? "0" : "-1");
           });
-          menuItems[nextIndex].focus({ preventScroll: false });
-          menuItems[nextIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
+          const next = menuItems[nextIndex];
+          if (next) {
+            next.focus({ preventScroll: false });
+            next.scrollIntoView(reducedMotionScrollOptions("nearest"));
+          }
           break;
         }
         case "ArrowUp": {
@@ -4273,8 +4593,11 @@
           menuItems.forEach((item, idx) => {
             item.setAttribute("tabindex", idx === prevIndex ? "0" : "-1");
           });
-          menuItems[prevIndex].focus({ preventScroll: false });
-          menuItems[prevIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
+          const prev = menuItems[prevIndex];
+          if (prev) {
+            prev.focus({ preventScroll: false });
+            prev.scrollIntoView(reducedMotionScrollOptions("nearest"));
+          }
           break;
         }
         case "Home": {
@@ -4283,8 +4606,11 @@
           menuItems.forEach((item, idx) => {
             item.setAttribute("tabindex", idx === 0 ? "0" : "-1");
           });
-          menuItems[0].focus({ preventScroll: false });
-          menuItems[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
+          const firstItem = menuItems[0];
+          if (firstItem) {
+            firstItem.focus({ preventScroll: false });
+            firstItem.scrollIntoView(reducedMotionScrollOptions("nearest"));
+          }
           break;
         }
         case "End": {
@@ -4294,8 +4620,11 @@
           menuItems.forEach((item, idx) => {
             item.setAttribute("tabindex", idx === lastIndex ? "0" : "-1");
           });
-          menuItems[lastIndex].focus({ preventScroll: false });
-          menuItems[lastIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
+          const lastItem = menuItems[lastIndex];
+          if (lastItem) {
+            lastItem.focus({ preventScroll: false });
+            lastItem.scrollIntoView(reducedMotionScrollOptions("nearest"));
+          }
           break;
         }
         case "Enter":
@@ -4329,13 +4658,14 @@
   function focusFirstMenuItem(menu, itemSelector, delay = 0) {
     if (!menu) return;
     setTimeout(() => {
-      const menuItems = Array.from(menu.querySelectorAll(itemSelector));
-      if (menuItems.length > 0) {
+      const menuItems = Array.from(menu.querySelectorAll(itemSelector)).filter((item) => item.getAttribute("aria-disabled") !== "true");
+      const firstItem = menuItems[0];
+      if (firstItem) {
         menuItems.forEach((item, index) => {
           item.setAttribute("tabindex", index === 0 ? "0" : "-1");
         });
-        focusElement(menuItems[0], { delay: 0 });
-        menuItems[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
+        focusElement(firstItem, { delay: 0 });
+        firstItem.scrollIntoView(reducedMotionScrollOptions("nearest"));
       }
     }, delay);
   }
@@ -4346,6 +4676,7 @@
       init_Icons();
       init_i18n();
       init_FocusUtils();
+      init_PerformanceUtils();
     }
   });
 
@@ -4928,7 +5259,7 @@
           let initialSrc = null;
           if (hasMultipleSources) {
             initialLang = this._determineInitialLanguage();
-            initialSrc = this.sources[initialLang];
+            initialSrc = this.sources[initialLang] ?? null;
             this.currentLanguage = initialLang;
           } else {
             initialSrc = this.src;
@@ -5229,7 +5560,7 @@
         }
         _inferVideoType(url) {
           if (!url) return "";
-          const cleanUrl = url.split("?")[0].toLowerCase();
+          const cleanUrl = (url.split("?")[0] ?? "").toLowerCase();
           if (cleanUrl.endsWith(".mp4")) return "video/mp4";
           if (cleanUrl.endsWith(".webm")) return "video/webm";
           if (cleanUrl.endsWith(".ogv") || cleanUrl.endsWith(".ogg")) return "video/ogg";
@@ -5265,11 +5596,11 @@
           }
           if (this.player.options.language) {
             const playerLang = this.player.options.language.toLowerCase().split("-")[0];
-            if (this.sources[playerLang]) {
+            if (playerLang && this.sources[playerLang]) {
               return playerLang;
             }
           }
-          return Object.keys(this.sources)[0];
+          return Object.keys(this.sources)[0] ?? "";
         }
         /**
          * Create wrapper element
@@ -5448,11 +5779,11 @@
             this.disable();
             const signLanguageButton = (_b = (_a = this.player.controlBar) == null ? void 0 : _a.controls) == null ? void 0 : _b.signLanguage;
             if (signLanguageButton) {
-              setTimeout(() => {
+              this.player.setManagedTimeout(() => {
                 signLanguageButton.focus({ preventScroll: true });
               }, 0);
             }
-          });
+          }, { signal: this.player.lifecycleSignal });
           return closeButton;
         }
         /**
@@ -6238,6 +6569,11 @@
           this.resizeHandles.forEach((handle) => shell.appendChild(handle));
           this._onKeyDown = (event) => {
             if (event.key === "Escape") {
+              const d = this.draggable;
+              const inEditMode = !!d && (d.keyboardDragMode || d.keyboardResizeMode || d.pointerResizeMode);
+              if (inEditMode) {
+                return;
+              }
               event.stopPropagation();
               this.dismiss();
             }
@@ -7195,7 +7531,8 @@
             const activeTrack = this.player.textTracks.find(
               (track) => (track.kind === "captions" || track.kind === "subtitles") && track.mode === "showing"
             );
-            const fallbackLang = this.availableTranscriptLanguages[0].language;
+            const firstLang = this.availableTranscriptLanguages[0];
+            const fallbackLang = firstLang ? firstLang.language : null;
             this.currentTranscriptLanguage = activeTrack ? activeTrack.language : fallbackLang;
             if (this.currentTranscriptLanguage) {
               languageSelector.value = this.currentTranscriptLanguage;
@@ -7216,24 +7553,25 @@
           languageSelector.addEventListener("change", handler);
         }
         _parseVTT(vttText) {
+          var _a, _b;
           const cues = [];
           const blocks = vttText.replace(/\r\n/g, "\n").split(/\n\n+/);
           for (const block of blocks) {
             const lines = block.trim().split("\n");
             let tsLine = -1;
             for (let i = 0; i < lines.length; i++) {
-              if (lines[i].includes("-->")) {
+              if ((_a = lines[i]) == null ? void 0 : _a.includes("-->")) {
                 tsLine = i;
                 break;
               }
             }
             if (tsLine < 0) continue;
-            const match = lines[tsLine].match(
+            const match = (_b = lines[tsLine]) == null ? void 0 : _b.match(
               /(\d{1,2}:)?(\d{2}):(\d{2})\.(\d{3})\s*-->\s*(\d{1,2}:)?(\d{2}):(\d{2})\.(\d{3})/
             );
             if (!match) continue;
-            const startTime = (match[1] ? parseInt(match[1]) * 3600 : 0) + parseInt(match[2]) * 60 + parseInt(match[3]) + parseInt(match[4]) / 1e3;
-            const endTime = (match[5] ? parseInt(match[5]) * 3600 : 0) + parseInt(match[6]) * 60 + parseInt(match[7]) + parseInt(match[8]) / 1e3;
+            const startTime = (match[1] ? parseInt(match[1]) * 3600 : 0) + parseInt(match[2] ?? "0") * 60 + parseInt(match[3] ?? "0") + parseInt(match[4] ?? "0") / 1e3;
+            const endTime = (match[5] ? parseInt(match[5]) * 3600 : 0) + parseInt(match[6] ?? "0") * 60 + parseInt(match[7] ?? "0") + parseInt(match[8] ?? "0") / 1e3;
             const text = lines.slice(tsLine + 1).join("\n").trim();
             if (!text) continue;
             cues.push({
@@ -7522,7 +7860,7 @@
             this.player.emit("metadata:pause", { time: cue.startTime, text });
           }
           const focusMatch = text.match(/FOCUS:([\w#-]+)/);
-          if (focusMatch) {
+          if (focusMatch && focusMatch[1]) {
             const targetSelector = focusMatch[1];
             const targetElement = document.querySelector(targetSelector);
             if (targetElement) {
@@ -8029,6 +8367,7 @@
               );
               const firstElement = focusableElements[0];
               const lastElement = focusableElements[focusableElements.length - 1];
+              if (!firstElement || !lastElement) return;
               if (e.shiftKey && document.activeElement === firstElement) {
                 e.preventDefault();
                 lastElement.focus({ preventScroll: true });
@@ -8327,6 +8666,89 @@
     }
   });
 
+  // src/utils/ScriptLoader.ts
+  function findExistingScript(url) {
+    const scripts = document.getElementsByTagName("script");
+    for (let i = 0; i < scripts.length; i++) {
+      const script = scripts[i];
+      if (script && script.src === url) {
+        return script;
+      }
+    }
+    return null;
+  }
+  function waitForReady(url, isReady, timeout, resolve, reject) {
+    if (isReady()) {
+      resolve();
+      return;
+    }
+    const start = Date.now();
+    const interval = window.setInterval(() => {
+      if (isReady()) {
+        window.clearInterval(interval);
+        resolve();
+      } else if (Date.now() - start >= timeout) {
+        window.clearInterval(interval);
+        reject(new Error(`Script loaded but did not become ready: ${url}`));
+      }
+    }, 50);
+  }
+  function loadScriptOnce(url, options = {}) {
+    const cached = inFlight.get(url);
+    if (cached) {
+      return cached;
+    }
+    const { integrity, crossOrigin, referrerPolicy, isReady, readyTimeout = 1e3 } = options;
+    const promise = new Promise((resolve, reject) => {
+      const onLoad = () => {
+        if (isReady) {
+          waitForReady(url, isReady, readyTimeout, resolve, reject);
+        } else {
+          resolve();
+        }
+      };
+      const existing = findExistingScript(url);
+      if (existing) {
+        if (isReady && isReady()) {
+          resolve();
+          return;
+        }
+        existing.addEventListener("load", onLoad, { once: true });
+        existing.addEventListener(
+          "error",
+          () => reject(new Error(`Failed to load script: ${url}`)),
+          { once: true }
+        );
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = url;
+      if (integrity) {
+        script.integrity = integrity;
+        script.crossOrigin = crossOrigin ?? "anonymous";
+        script.referrerPolicy = referrerPolicy ?? "no-referrer";
+      } else if (crossOrigin !== void 0 && crossOrigin !== null) {
+        script.crossOrigin = crossOrigin;
+      }
+      script.onload = onLoad;
+      script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
+      document.head.appendChild(script);
+    });
+    const tracked = promise.catch((err) => {
+      inFlight.delete(url);
+      throw err;
+    });
+    inFlight.set(url, tracked);
+    return tracked;
+  }
+  var inFlight;
+  var init_ScriptLoader = __esm({
+    "src/utils/ScriptLoader.ts"() {
+      "use strict";
+      inFlight = /* @__PURE__ */ new Map();
+    }
+  });
+
   // src/renderers/YouTubeRenderer.ts
   var YouTubeRenderer_exports = {};
   __export(YouTubeRenderer_exports, {
@@ -8336,6 +8758,7 @@
   var init_YouTubeRenderer = __esm({
     "src/renderers/YouTubeRenderer.ts"() {
       "use strict";
+      init_ScriptLoader();
       YouTubeRenderer = class {
         constructor(player) {
           __publicField(this, "player");
@@ -8379,27 +8802,9 @@
           if (window.YT && window.YT.Player) {
             return Promise.resolve();
           }
-          return new Promise((resolve, reject) => {
-            if (window.onYouTubeIframeAPIReady) {
-              const originalCallback = window.onYouTubeIframeAPIReady;
-              window.onYouTubeIframeAPIReady = () => {
-                originalCallback();
-                resolve();
-              };
-              return;
-            }
-            const tag = document.createElement("script");
-            tag.src = "https://www.youtube.com/iframe_api";
-            window.onYouTubeIframeAPIReady = () => {
-              resolve();
-            };
-            tag.onerror = () => reject(new Error("Failed to load YouTube API"));
-            const firstScriptTag = document.getElementsByTagName("script")[0];
-            if (firstScriptTag == null ? void 0 : firstScriptTag.parentNode) {
-              firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-            } else {
-              document.head.appendChild(tag);
-            }
+          return loadScriptOnce("https://www.youtube.com/iframe_api", {
+            isReady: () => !!(window.YT && window.YT.Player),
+            readyTimeout: 8e3
           });
         }
         createIframe() {
@@ -8412,9 +8817,9 @@
           (_a = this.player.element.parentNode) == null ? void 0 : _a.insertBefore(this.iframe, this.player.element);
         }
         async initializePlayer() {
-          return new Promise((resolve) => {
+          return new Promise((resolve, reject) => {
             if (!window.YT || !this.iframe) {
-              resolve();
+              reject(new Error("YouTube IFrame API is not available"));
               return;
             }
             this.youtube = new window.YT.Player(this.iframe.id, {
@@ -8592,6 +8997,7 @@
   var init_VimeoRenderer = __esm({
     "src/renderers/VimeoRenderer.ts"() {
       "use strict";
+      init_ScriptLoader();
       VimeoRenderer = class {
         constructor(player) {
           __publicField(this, "player");
@@ -8635,12 +9041,8 @@
           if (window.Vimeo && window.Vimeo.Player) {
             return Promise.resolve();
           }
-          return new Promise((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = "https://player.vimeo.com/api/player.js";
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error("Failed to load Vimeo API"));
-            document.head.appendChild(script);
+          return loadScriptOnce("https://player.vimeo.com/api/player.js", {
+            isReady: () => !!(window.Vimeo && window.Vimeo.Player)
           });
         }
         createIframe() {
@@ -8668,7 +9070,7 @@
             options.startTime = this.player.options.startTime;
           }
           if (!window.Vimeo || !this.iframe) {
-            return;
+            throw new Error("Vimeo Player API is not available");
           }
           this.vimeo = new window.Vimeo.Player(this.iframe.id, options);
           await this.vimeo.ready();
@@ -8835,6 +9237,7 @@
   var init_HLSRenderer = __esm({
     "src/renderers/HLSRenderer.ts"() {
       "use strict";
+      init_ScriptLoader();
       HLSRenderer = class {
         constructor(player) {
           __publicField(this, "player");
@@ -8856,6 +9259,14 @@
            */
           __publicField(this, "_loadingForSeekOnly");
           __publicField(this, "_cleanupNativeTextTrackListeners");
+          // Detaches all hls.js-path media listeners (attachMediaEvents) in destroy().
+          __publicField(this, "_listenerController");
+          // Pending setTimeout ids so destroy() can cancel retries that would
+          // otherwise fire (and touch a torn-down player) after teardown.
+          __publicField(this, "_timers");
+          // Tracked 'ready' listener registered by updateCaptionButtonsForHls when the
+          // control bar isn't built yet; removed on destroy if it never fired.
+          __publicField(this, "_pendingReadyHandler");
           this.player = player;
           this.media = player.element;
           this.hls = null;
@@ -8867,12 +9278,32 @@
           this._manifestUrl = null;
           this._cleanupNativeTextTrackListeners = () => {
           };
+          this._listenerController = new AbortController();
+          this._timers = /* @__PURE__ */ new Set();
+          this._pendingReadyHandler = null;
         }
         // True once hls.js is driving playback via MSE. Native HLS playback on
         // iOS / iPadOS keeps a real HTTP URL on the <video> and does not need the
         // streaming path to be forced.
         get isStreaming() {
           return this.hls !== null && this.hls !== void 0;
+        }
+        /**
+         * Schedule a timeout that is automatically cancelled by destroy(). Prevents
+         * caption-retry / error-recovery callbacks from running after teardown.
+         */
+        _setTimeout(handler, ms) {
+          const id = setTimeout(() => {
+            this._timers.delete(id);
+            handler();
+          }, ms);
+          this._timers.add(id);
+        }
+        _clearTimers() {
+          for (const id of this._timers) {
+            clearTimeout(id);
+          }
+          this._timers.clear();
         }
         async init() {
           if (this.canPlayNatively()) {
@@ -8893,22 +9324,40 @@
           return video.canPlayType("application/vnd.apple.mpegurl") !== "";
         }
         async initNative() {
-          const HTML5Renderer2 = (await Promise.resolve().then(() => (init_HTML5Renderer(), HTML5Renderer_exports))).HTML5Renderer;
-          const renderer = new HTML5Renderer2(this.player);
-          await renderer.init();
-          const rendererBag = renderer;
-          const selfBag = this;
-          Object.getOwnPropertyNames(Object.getPrototypeOf(renderer)).forEach((method) => {
-            const candidate = rendererBag[method];
-            if (method !== "constructor" && typeof candidate === "function") {
-              selfBag[method] = candidate.bind(renderer);
-            }
-          });
+          const { HTML5Renderer: HTML5Renderer2 } = await Promise.resolve().then(() => (init_HTML5Renderer(), HTML5Renderer_exports));
+          const native = new HTML5Renderer2(this.player);
+          await native.init();
+          this.play = () => native.play();
+          this.pause = () => native.pause();
+          this.seek = (time) => native.seek(time);
+          this.setVolume = (volume) => native.setVolume(volume);
+          this.setMuted = (muted) => native.setMuted(muted);
+          this.setPlaybackSpeed = (speed) => native.setPlaybackSpeed(speed);
+          this.ensureLoaded = () => {
+            var _a;
+            return (_a = native.ensureLoaded) == null ? void 0 : _a.call(native);
+          };
+          this.getQualities = () => {
+            var _a;
+            return ((_a = native.getQualities) == null ? void 0 : _a.call(native)) ?? [];
+          };
+          this.switchQuality = (index) => {
+            var _a;
+            return (_a = native.switchQuality) == null ? void 0 : _a.call(native, index);
+          };
+          this.getCurrentQuality = () => {
+            var _a;
+            return ((_a = native.getCurrentQuality) == null ? void 0 : _a.call(native)) ?? 0;
+          };
           this._attachNativeTextTrackListeners();
-          const html5Destroy = this.destroy;
           this.destroy = () => {
             this._cleanupNativeTextTrackListeners();
-            html5Destroy();
+            this._clearTimers();
+            if (this._pendingReadyHandler) {
+              this.player.off("ready", this._pendingReadyHandler);
+              this._pendingReadyHandler = null;
+            }
+            native.destroy();
           };
         }
         /**
@@ -8920,11 +9369,12 @@
           const checkTracks = () => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
+              var _a;
               if (this._nativeTrackListenersDestroyed) return;
               const tracks = this.media.textTracks;
               let count = 0;
               for (let i = 0; i < tracks.length; i++) {
-                const k = tracks[i].kind;
+                const k = (_a = tracks[i]) == null ? void 0 : _a.kind;
                 if (k === "subtitles" || k === "captions") {
                   count++;
                 }
@@ -8945,6 +9395,7 @@
           };
         }
         async initHlsJs() {
+          var _a;
           this.media.controls = false;
           this.media.removeAttribute("controls");
           if (!window.Hls) {
@@ -8957,7 +9408,7 @@
           const sourceElements = Array.from(this.media.querySelectorAll("source"));
           let originalSrc = null;
           if (sourceElements.length > 0) {
-            originalSrc = sourceElements[0].getAttribute("src");
+            originalSrc = ((_a = sourceElements[0]) == null ? void 0 : _a.getAttribute("src")) ?? null;
             sourceElements.forEach((source) => source.remove());
             this.player.log("Removed <source> elements for HTML5 validity (hls.js uses src attribute)");
           }
@@ -9041,18 +9492,7 @@
           const defaultUrl = "https://cdn.jsdelivr.net/npm/hls.js@1.6.16/dist/hls.min.js";
           const url = this.player.options.hlsScriptUrl || defaultUrl;
           const integrity = this.player.options.hlsScriptIntegrity;
-          return new Promise((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = url;
-            if (integrity) {
-              script.integrity = integrity;
-              script.crossOrigin = "anonymous";
-              script.referrerPolicy = "no-referrer";
-            }
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error("Failed to load hls.js"));
-            document.head.appendChild(script);
-          });
+          return loadScriptOnce(url, { integrity });
         }
         attachHlsEvents() {
           const hls = this.hls;
@@ -9065,7 +9505,7 @@
             if (this.player.container) {
               this.player.container.classList.remove("vidply-external-controls");
             }
-            setTimeout(() => {
+            this._setTimeout(() => {
               var _a, _b;
               if (this._hlsSubtitleTracksCount === void 0 || this._hlsSubtitleTracksCount === 0) {
                 const currentCount = ((_b = (_a = this.hls) == null ? void 0 : _a.subtitleTracks) == null ? void 0 : _b.length) || 0;
@@ -9132,7 +9572,7 @@
           if (!textTracks) return total;
           for (let i = 0; i < textTracks.length; i++) {
             const track = textTracks[i];
-            if ((track.kind === "subtitles" || track.kind === "captions") && track.cues) {
+            if (track && (track.kind === "subtitles" || track.kind === "captions") && track.cues) {
               total += track.cues.length;
             }
           }
@@ -9197,7 +9637,7 @@
                 if (found === 0 && retryCount < 5) {
                   const delay = (retryCount + 1) * 200;
                   this.player.log(`HLS caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`, "info");
-                  setTimeout(() => {
+                  this._setTimeout(() => {
                     this.updateCaptionButtonsForHls(retryCount + 1);
                   }, delay);
                   return;
@@ -9230,22 +9670,25 @@
           }
           const onReady = () => {
             this.player.off("ready", onReady);
+            this._pendingReadyHandler = null;
             doUpdate();
           };
+          this._pendingReadyHandler = onReady;
           this.player.on("ready", onReady);
         }
         attachMediaEvents() {
+          const { signal } = this._listenerController;
           this.media.addEventListener("loadedmetadata", () => {
             this.player.state.duration = this.media.duration;
             this.player.emit("loadedmetadata");
-          });
+          }, { signal });
           this.media.addEventListener("durationchange", () => {
             const duration = this.media.duration;
             if (duration && isFinite(duration) && duration > 0) {
               this.player.state.duration = duration;
               this.player.emit("durationchange", duration);
             }
-          });
+          }, { signal });
           this.media.addEventListener("play", () => {
             this.player.state.playing = true;
             this.player.state.paused = false;
@@ -9254,7 +9697,7 @@
             if (this.player.options.onPlay) {
               this.player.options.onPlay.call(this.player);
             }
-          });
+          }, { signal });
           this.media.addEventListener("pause", () => {
             this.player.state.playing = false;
             this.player.state.paused = true;
@@ -9262,7 +9705,7 @@
             if (this.player.options.onPause) {
               this.player.options.onPause.call(this.player);
             }
-          });
+          }, { signal });
           this.media.addEventListener("ended", () => {
             this.player.state.playing = false;
             this.player.state.paused = true;
@@ -9275,23 +9718,23 @@
               this.player.seek(0);
               this.player.play();
             }
-          });
+          }, { signal });
           this.media.addEventListener("timeupdate", () => {
             this.player.state.currentTime = this.media.currentTime;
             this.player.emit("timeupdate", this.media.currentTime);
             if (this.player.options.onTimeUpdate) {
               this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
             }
-          });
+          }, { signal });
           this.media.addEventListener("volumechange", () => {
             this.player.state.volume = this.media.volume;
             this.player.state.muted = this.media.muted;
             this.player.emit("volumechange", this.media.volume);
-          });
+          }, { signal });
           this.media.addEventListener("waiting", () => {
             this.player.state.buffering = true;
             this.player.emit("waiting");
-          });
+          }, { signal });
           this.media.addEventListener("seeking", () => {
             this.player.state.seeking = true;
             this.player.emit("seeking");
@@ -9299,7 +9742,7 @@
               this.player.state.buffering = true;
               this.player.emit("waiting");
             }
-          });
+          }, { signal });
           this.media.addEventListener("seeked", () => {
             this.player.state.seeking = false;
             this.player.emit("seeked");
@@ -9309,14 +9752,14 @@
               } catch {
               }
             }
-          });
+          }, { signal });
           this.media.addEventListener("canplay", () => {
             this.player.state.buffering = false;
             this.player.emit("canplay");
-          });
+          }, { signal });
           this.media.addEventListener("error", () => {
             this.player.handleError(this.media.error);
-          });
+          }, { signal });
         }
         handleHlsError(data) {
           var _a, _b, _c;
@@ -9330,7 +9773,7 @@
               case (ErrorTypes == null ? void 0 : ErrorTypes.NETWORK_ERROR):
                 this.player.log("Fatal network error, trying to recover...", "error");
                 this.player.log(`Network error details: ${data.details}`, "error");
-                setTimeout(() => {
+                this._setTimeout(() => {
                   var _a2;
                   (_a2 = this.hls) == null ? void 0 : _a2.startLoad();
                 }, 1e3);
@@ -9490,6 +9933,12 @@
         }
         destroy() {
           this._stopCueUpdatePolling();
+          this._clearTimers();
+          this._listenerController.abort();
+          if (this._pendingReadyHandler) {
+            this.player.off("ready", this._pendingReadyHandler);
+            this._pendingReadyHandler = null;
+          }
           this._lastKnownCueCount = 0;
           this._manifestUrl = null;
           if (this.hls) {
@@ -9510,6 +9959,7 @@
   var init_DASHRenderer = __esm({
     "src/renderers/DASHRenderer.ts"() {
       "use strict";
+      init_ScriptLoader();
       DASHRenderer = class {
         constructor(player) {
           __publicField(this, "player");
@@ -9528,6 +9978,11 @@
           __publicField(this, "_pendingTimeouts");
           __publicField(this, "_ttmlDiv");
           __publicField(this, "_manifestUrl");
+          // Detaches all media listeners (attachMediaEvents) in destroy().
+          __publicField(this, "_listenerController");
+          // Deferred 'ready' handler from updateCaptionButtonsForStreaming, removed on
+          // destroy if it never fired.
+          __publicField(this, "_pendingReadyHandler");
           this.player = player;
           this.media = player.element;
           this.dash = null;
@@ -9543,12 +9998,15 @@
           this._pendingTimeouts = [];
           this._ttmlDiv = null;
           this._manifestUrl = null;
+          this._listenerController = new AbortController();
+          this._pendingReadyHandler = null;
         }
         async init() {
           this.player.log("Using dash.js for DASH support");
           await this.initDashJs();
         }
         async initDashJs() {
+          var _a;
           this.media.controls = false;
           this.media.removeAttribute("controls");
           if (!window.dashjs) {
@@ -9557,7 +10015,7 @@
           const sourceElements = Array.from(this.media.querySelectorAll("source"));
           let originalSrc = null;
           if (sourceElements.length > 0) {
-            originalSrc = sourceElements[0].getAttribute("src");
+            originalSrc = ((_a = sourceElements[0]) == null ? void 0 : _a.getAttribute("src")) ?? null;
             sourceElements.forEach((source) => source.remove());
             this.player.log("Removed <source> elements for HTML5 validity (dash.js uses MSE)");
           }
@@ -9672,18 +10130,7 @@
           const defaultUrl = "https://cdn.jsdelivr.net/npm/dashjs@5.2.0/dist/modern/umd/dash.all.min.js";
           const url = this.player.options.dashScriptUrl || defaultUrl;
           const integrity = this.player.options.dashScriptIntegrity;
-          return new Promise((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = url;
-            if (integrity) {
-              script.integrity = integrity;
-              script.crossOrigin = "anonymous";
-              script.referrerPolicy = "no-referrer";
-            }
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error("Failed to load dash.js"));
-            document.head.appendChild(script);
-          });
+          return loadScriptOnce(url, { integrity });
         }
         _setTimeout(fn, delay) {
           const id = setTimeout(() => {
@@ -9775,7 +10222,7 @@
           if (!textTracks) return total;
           for (let i = 0; i < textTracks.length; i++) {
             const track = textTracks[i];
-            if ((track.kind === "subtitles" || track.kind === "captions") && !track._vidplyStale && track.cues) {
+            if (track && (track.kind === "subtitles" || track.kind === "captions") && !track._vidplyStale && track.cues) {
               total += track.cues.length;
             }
           }
@@ -9892,7 +10339,7 @@
           let count = 0;
           for (let i = 0; i < tracks.length; i++) {
             const track = tracks[i];
-            if ((track.kind === "subtitles" || track.kind === "captions") && !track._vidplyStale) {
+            if (track && (track.kind === "subtitles" || track.kind === "captions") && !track._vidplyStale) {
               count++;
             }
           }
@@ -9945,22 +10392,25 @@
           }
           const onReady = () => {
             this.player.off("ready", onReady);
+            this._pendingReadyHandler = null;
             doUpdate();
           };
+          this._pendingReadyHandler = onReady;
           this.player.on("ready", onReady);
         }
         attachMediaEvents() {
+          const { signal } = this._listenerController;
           this.media.addEventListener("loadedmetadata", () => {
             this.player.state.duration = this.media.duration;
             this.player.emit("loadedmetadata");
-          });
+          }, { signal });
           this.media.addEventListener("durationchange", () => {
             const duration = this.media.duration;
             if (duration && isFinite(duration) && duration > 0) {
               this.player.state.duration = duration;
               this.player.emit("durationchange", duration);
             }
-          });
+          }, { signal });
           this.media.addEventListener("play", () => {
             this.player.state.playing = true;
             this.player.state.paused = false;
@@ -9969,7 +10419,7 @@
             if (this.player.options.onPlay) {
               this.player.options.onPlay.call(this.player);
             }
-          });
+          }, { signal });
           this.media.addEventListener("pause", () => {
             this.player.state.playing = false;
             this.player.state.paused = true;
@@ -9977,7 +10427,7 @@
             if (this.player.options.onPause) {
               this.player.options.onPause.call(this.player);
             }
-          });
+          }, { signal });
           this.media.addEventListener("ended", () => {
             this.player.state.playing = false;
             this.player.state.paused = true;
@@ -9990,19 +10440,19 @@
               this.player.seek(0);
               this.player.play();
             }
-          });
+          }, { signal });
           this.media.addEventListener("timeupdate", () => {
             this.player.state.currentTime = this.media.currentTime;
             this.player.emit("timeupdate", this.media.currentTime);
             if (this.player.options.onTimeUpdate) {
               this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
             }
-          });
+          }, { signal });
           this.media.addEventListener("volumechange", () => {
             this.player.state.volume = this.media.volume;
             this.player.state.muted = this.media.muted;
             this.player.emit("volumechange", this.media.volume);
-          });
+          }, { signal });
           this.media.addEventListener("seeking", () => {
             this.player.state.seeking = true;
             this.player.emit("seeking");
@@ -10010,22 +10460,22 @@
               this.player.state.buffering = true;
               this.player.emit("waiting");
             }
-          });
+          }, { signal });
           this.media.addEventListener("seeked", () => {
             this.player.state.seeking = false;
             this.player.emit("seeked");
-          });
+          }, { signal });
           this.media.addEventListener("waiting", () => {
             this.player.state.buffering = true;
             this.player.emit("waiting");
-          });
+          }, { signal });
           this.media.addEventListener("canplay", () => {
             this.player.state.buffering = false;
             this.player.emit("canplay");
-          });
+          }, { signal });
           this.media.addEventListener("error", () => {
             this.player.handleError(this.media.error);
-          });
+          }, { signal });
         }
         handleDashError(e) {
           const wrapped = e;
@@ -10140,7 +10590,7 @@
                 const bitrate = Number(rep.bandwidth || rep.bitrate) || 0;
                 const kb = bitrate > 0 ? Math.round(bitrate / 1e3) : 0;
                 let name;
-                if (height > 0 && heightCounts2[height] > 1 && kb > 0) {
+                if (height > 0 && (heightCounts2[height] ?? 0) > 1 && kb > 0) {
                   name = `${height}p (${kb} kbps)`;
                 } else if (height > 0) {
                   name = `${height}p`;
@@ -10169,7 +10619,7 @@
               const bitrate = Number(info.bitrate) || 0;
               const kb = bitrate > 0 ? Math.round(bitrate / 1e3) : 0;
               let name;
-              if (height > 0 && heightCounts[height] > 1 && kb > 0) {
+              if (height > 0 && (heightCounts[height] ?? 0) > 1 && kb > 0) {
                 name = `${height}p (${kb} kbps)`;
               } else if (height > 0) {
                 name = `${height}p`;
@@ -10325,6 +10775,11 @@
           this._pendingTimeouts = [];
           this._stopCueUpdatePolling();
           this._lastKnownCueCount = 0;
+          this._listenerController.abort();
+          if (this._pendingReadyHandler) {
+            this.player.off("ready", this._pendingReadyHandler);
+            this._pendingReadyHandler = null;
+          }
           if (this._captionEnabledHandler) {
             this.player.off("captionsenabled", this._captionEnabledHandler);
             this._captionEnabledHandler = null;
@@ -10340,7 +10795,7 @@
           const textTracks = this.media.textTracks;
           for (let i = 0; i < textTracks.length; i++) {
             const track = textTracks[i];
-            if (track.kind === "subtitles" || track.kind === "captions") {
+            if (track && (track.kind === "subtitles" || track.kind === "captions")) {
               track._vidplyStale = true;
               track.mode = "disabled";
             }
@@ -10375,6 +10830,7 @@
   var init_SoundCloudRenderer = __esm({
     "src/renderers/SoundCloudRenderer.ts"() {
       "use strict";
+      init_ScriptLoader();
       SoundCloudRenderer = class {
         constructor(player) {
           __publicField(this, "player");
@@ -10385,6 +10841,11 @@
           __publicField(this, "iframe");
           __publicField(this, "iframeId");
           __publicField(this, "_previousVolume");
+          // Pending init timeout (rejects after 10s); cleared once READY fires or on
+          // destroy so it can't reject / touch a torn-down player afterwards.
+          __publicField(this, "_initTimeoutId");
+          // Detaches the iframe 'load' listener on destroy.
+          __publicField(this, "_initController");
           this.player = player;
           this.media = player.element;
           this.widget = null;
@@ -10393,6 +10854,8 @@
           this.iframe = null;
           this.iframeId = null;
           this._previousVolume = 100;
+          this._initTimeoutId = null;
+          this._initController = null;
         }
         async init() {
           var _a;
@@ -10465,20 +10928,8 @@
           if (typeof window.SC !== "undefined") {
             return Promise.resolve();
           }
-          return new Promise((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = "https://w.soundcloud.com/player/api.js";
-            script.onload = () => {
-              setTimeout(() => {
-                if (typeof window.SC !== "undefined") {
-                  resolve();
-                } else {
-                  reject(new Error("SoundCloud Widget API not available"));
-                }
-              }, 100);
-            };
-            script.onerror = () => reject(new Error("Failed to load SoundCloud Widget API"));
-            document.head.appendChild(script);
+          return loadScriptOnce("https://w.soundcloud.com/player/api.js", {
+            isReady: () => typeof window.SC !== "undefined"
           });
         }
         createIframe() {
@@ -10518,12 +10969,17 @@
               reject(new Error("SoundCloud widget cannot initialize"));
               return;
             }
+            this._initController = new AbortController();
             iframe.addEventListener("load", () => {
               try {
                 const widget = SC.Widget(iframe);
                 this.widget = widget;
                 widget.bind(SC.Widget.Events.READY, () => {
                   this.isReady = true;
+                  if (this._initTimeoutId !== null) {
+                    clearTimeout(this._initTimeoutId);
+                    this._initTimeoutId = null;
+                  }
                   this.attachEvents();
                   if (this.player.container) {
                     this.player.container.classList.add("vidply-external-controls");
@@ -10544,8 +11000,9 @@
               } catch (error) {
                 reject(error);
               }
-            });
-            setTimeout(() => {
+            }, { signal: this._initController.signal });
+            this._initTimeoutId = setTimeout(() => {
+              this._initTimeoutId = null;
               if (!this.isReady) {
                 reject(new Error("SoundCloud widget initialization timeout"));
               }
@@ -10668,6 +11125,14 @@
           });
         }
         destroy() {
+          if (this._initTimeoutId !== null) {
+            clearTimeout(this._initTimeoutId);
+            this._initTimeoutId = null;
+          }
+          if (this._initController) {
+            this._initController.abort();
+            this._initController = null;
+          }
           if (this.widget && window.SC) {
             const Events = window.SC.Widget.Events;
             try {
@@ -10882,13 +11347,14 @@
   };
   function inferFormatFromMime(mime) {
     if (!mime) return null;
-    const trimmed = mime.split(";")[0].trim().toLowerCase();
+    const trimmed = (mime.split(";")[0] ?? "").trim().toLowerCase();
     return MIME_TO_FORMAT[trimmed] || null;
   }
   function inferFormatFromUrl(url) {
+    var _a;
     if (!url) return null;
     try {
-      const cleaned = url.split("?")[0].split("#")[0];
+      const cleaned = ((_a = url.split("?")[0]) == null ? void 0 : _a.split("#")[0]) ?? "";
       const lastSegment = cleaned.split("/").pop() || "";
       const dotIndex = lastSegment.lastIndexOf(".");
       if (dotIndex < 0 || dotIndex === lastSegment.length - 1) return null;
@@ -11411,42 +11877,60 @@
     }
     // Helper method to add keyboard navigation to menus (arrow keys)
     attachMenuKeyboardNavigation(menu, button) {
-      const menuItems = Array.from(menu.querySelectorAll(`.${this.player.options.classPrefix}-menu-item`));
+      const menuItems = Array.from(
+        menu.querySelectorAll(`.${this.player.options.classPrefix}-menu-item`)
+      ).filter((item) => item.getAttribute("aria-disabled") !== "true");
       if (menuItems.length === 0) return;
       const handleKeyDown = (e) => {
         const currentIndex = menuItems.indexOf(document.activeElement);
         switch (e.key) {
-          case "ArrowDown":
+          case "ArrowDown": {
             e.preventDefault();
             e.stopPropagation();
             const nextIndex = (currentIndex + 1) % menuItems.length;
-            menuItems[nextIndex].focus({ preventScroll: false });
-            menuItems[nextIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
+            const nextItem = menuItems[nextIndex];
+            if (nextItem) {
+              nextItem.focus({ preventScroll: false });
+              nextItem.scrollIntoView(reducedMotionScrollOptions("nearest"));
+            }
             break;
-          case "ArrowUp":
+          }
+          case "ArrowUp": {
             e.preventDefault();
             e.stopPropagation();
             const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
-            menuItems[prevIndex].focus({ preventScroll: false });
-            menuItems[prevIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
+            const prevItem = menuItems[prevIndex];
+            if (prevItem) {
+              prevItem.focus({ preventScroll: false });
+              prevItem.scrollIntoView(reducedMotionScrollOptions("nearest"));
+            }
             break;
+          }
           case "ArrowLeft":
           case "ArrowRight":
             e.preventDefault();
             e.stopPropagation();
             break;
-          case "Home":
+          case "Home": {
             e.preventDefault();
             e.stopPropagation();
-            menuItems[0].focus({ preventScroll: false });
-            menuItems[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
+            const homeItem = menuItems[0];
+            if (homeItem) {
+              homeItem.focus({ preventScroll: false });
+              homeItem.scrollIntoView(reducedMotionScrollOptions("nearest"));
+            }
             break;
-          case "End":
+          }
+          case "End": {
             e.preventDefault();
             e.stopPropagation();
-            menuItems[menuItems.length - 1].focus({ preventScroll: false });
-            menuItems[menuItems.length - 1].scrollIntoView({ behavior: "smooth", block: "nearest" });
+            const endItem = menuItems[menuItems.length - 1];
+            if (endItem) {
+              endItem.focus({ preventScroll: false });
+              endItem.scrollIntoView(reducedMotionScrollOptions("nearest"));
+            }
             break;
+          }
           case "Enter":
           case " ":
             e.preventDefault();
@@ -11481,7 +11965,9 @@
       });
       if (this.player.options.progressBar) {
         this.createProgressBar();
-        progressTimeWrapper.appendChild(this.controls.progress);
+        if (this.controls.progress) {
+          progressTimeWrapper.appendChild(this.controls.progress);
+        }
       }
       if (this.player.options.currentTime || this.player.options.duration) {
         progressTimeWrapper.appendChild(this.createTimeDisplay());
@@ -11655,14 +12141,14 @@
     }
     // Helper methods to check for available features
     hasChapterTracks() {
-      var _a, _b;
+      var _a, _b, _c;
       const textTracks = this.player.element.textTracks;
       for (let i = 0; i < textTracks.length; i++) {
-        if (textTracks[i].kind === "chapters") return true;
+        if (((_a = textTracks[i]) == null ? void 0 : _a.kind) === "chapters") return true;
       }
       const trackEls = Array.from(this.player.element.querySelectorAll('track[kind="chapters"]'));
       if (trackEls.length > 0) return true;
-      const current = (_b = (_a = this.player.playlistManager) == null ? void 0 : _a.getCurrentTrack) == null ? void 0 : _b.call(_a);
+      const current = (_c = (_b = this.player.playlistManager) == null ? void 0 : _b.getCurrentTrack) == null ? void 0 : _c.call(_b);
       if ((current == null ? void 0 : current.tracks) && Array.isArray(current.tracks)) {
         const tracks = current.tracks;
         return tracks.some((t) => (t == null ? void 0 : t.kind) === "chapters");
@@ -11673,7 +12159,8 @@
       var _a, _b;
       const textTracks = this.player.element.textTracks;
       for (let i = 0; i < textTracks.length; i++) {
-        if ((textTracks[i].kind === "captions" || textTracks[i].kind === "subtitles") && !textTracks[i]._vidplyStale) {
+        const tt = textTracks[i];
+        if (tt && (tt.kind === "captions" || tt.kind === "subtitles") && !tt._vidplyStale) {
           return true;
         }
       }
@@ -11993,6 +12480,7 @@
     }
     setupProgressBarEvents() {
       const progress = this.controls.progress;
+      if (!progress) return;
       const updateProgress = (clientX) => {
         const rect = progress.getBoundingClientRect();
         const percent = rect.width > 0 ? Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) : 0;
@@ -12012,9 +12500,13 @@
           const { time } = updateProgress(e.clientX);
           const rect = progress.getBoundingClientRect();
           const left = e.clientX - rect.left;
-          this.controls.progressTooltipTime.textContent = TimeUtils.formatTime(time);
-          this.controls.progressTooltip.style.left = `${left}px`;
-          this.controls.progressTooltip.style.display = "block";
+          const tooltip = this.controls.progressTooltip;
+          const tooltipTime = this.controls.progressTooltipTime;
+          if (tooltip && tooltipTime) {
+            tooltipTime.textContent = TimeUtils.formatTime(time);
+            tooltip.style.left = `${left}px`;
+            tooltip.style.display = "block";
+          }
           if (!((_b = (_a = this.player) == null ? void 0 : _a.state) == null ? void 0 : _b.hasStartedPlayback)) {
             if (this.controls.progressPreview) {
               this.controls.progressPreview.style.display = "none";
@@ -12030,7 +12522,9 @@
         }
       });
       progress.addEventListener("mouseleave", () => {
-        this.controls.progressTooltip.style.display = "none";
+        if (this.controls.progressTooltip) {
+          this.controls.progressTooltip.style.display = "none";
+        }
         if (this.previewThumbnailTimeout) {
           clearTimeout(this.previewThumbnailTimeout);
         }
@@ -12073,6 +12567,7 @@
       progress.addEventListener("touchstart", (e) => {
         this.isDraggingProgress = true;
         const touch = e.touches[0];
+        if (!touch) return;
         const { time } = updateProgress(touch.clientX);
         this.player.seek(time);
       });
@@ -12080,6 +12575,7 @@
         if (this.isDraggingProgress) {
           e.preventDefault();
           const touch = e.touches[0];
+          if (!touch) return;
           const { time } = updateProgress(touch.clientX);
           this.player.seek(time);
         }
@@ -12306,12 +12802,14 @@
         this.isDraggingVolume = true;
         this._activeVolumeTrack = volumeTrack;
         const touch = e.touches[0];
+        if (!touch) return;
         updateVolume(touch.clientY);
       }, { passive: false });
       volumeSlider.addEventListener("touchmove", (e) => {
         if (this.isDraggingVolume) {
           e.preventDefault();
           const touch = e.touches[0];
+          if (!touch) return;
           updateVolume(touch.clientY);
         }
       }, { passive: false });
@@ -12454,25 +12952,29 @@
       );
       if (chapterTracks.length === 0) {
         const noChaptersItem = DOMUtils.createElement("div", {
-          className: `${this.player.options.classPrefix}-menu-item`,
+          className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
           textContent: i18n.t("player.noChapters"),
           attributes: {
-            "role": "menuitem"
+            "role": "menuitem",
+            "aria-disabled": "true",
+            "tabindex": "-1"
           },
           style: { opacity: "0.5", cursor: "default" }
         });
         menu.appendChild(noChaptersItem);
-      } else {
+      } else if (chapterTracks[0]) {
         const chapterTrack = chapterTracks[0];
         if (chapterTrack.mode === "disabled") {
           chapterTrack.mode = "hidden";
         }
         if (!chapterTrack.cues || chapterTrack.cues.length === 0) {
           const loadingItem = DOMUtils.createElement("div", {
-            className: `${this.player.options.classPrefix}-menu-item`,
+            className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
             textContent: i18n.t("player.loadingChapters"),
             attributes: {
-              "role": "menuitem"
+              "role": "menuitem",
+              "aria-disabled": "true",
+              "tabindex": "-1"
             },
             style: { opacity: "0.5", cursor: "default" }
           });
@@ -12697,284 +13199,7 @@
       return button;
     }
     showCaptionStyleMenu(button) {
-      const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-caption-style-menu`);
-      if (existingMenu) {
-        existingMenu.remove();
-        button.setAttribute("aria-expanded", "false");
-        if (this.openMenu === existingMenu) {
-          this.openMenu = null;
-          this.openMenuButton = null;
-        }
-        return;
-      }
-      const menuLabelId = `${this.player.options.classPrefix}-caption-style-label-${this.player.instanceId || ""}`;
-      const menu = DOMUtils.createElement("div", {
-        className: `${this.player.options.classPrefix}-caption-style-menu ${this.player.options.classPrefix}-menu ${this.player.options.classPrefix}-settings-menu`,
-        attributes: {
-          "role": "dialog",
-          "aria-modal": "false",
-          "aria-labelledby": menuLabelId
-        }
-      });
-      const visuallyHiddenLabel = DOMUtils.createElement("h2", {
-        textContent: i18n.t("player.captionStyling"),
-        attributes: { id: menuLabelId, class: `${this.player.options.classPrefix}-sr-only` },
-        style: {
-          position: "absolute",
-          width: "1px",
-          height: "1px",
-          padding: "0",
-          margin: "-1px",
-          overflow: "hidden",
-          clip: "rect(0,0,0,0)",
-          whiteSpace: "nowrap",
-          border: "0"
-        }
-      });
-      menu.appendChild(visuallyHiddenLabel);
-      menu.addEventListener("click", (e) => {
-        e.stopPropagation();
-      });
-      if (!this.player.captionManager || this.player.captionManager.tracks.length === 0) {
-        const noTracksItem = DOMUtils.createElement("div", {
-          className: `${this.player.options.classPrefix}-menu-item`,
-          textContent: i18n.t("player.noCaptions"),
-          attributes: {
-            "role": "status"
-          },
-          style: { opacity: "0.5", cursor: "default", padding: "12px 16px" }
-        });
-        menu.appendChild(noTracksItem);
-        menu.style.visibility = "hidden";
-        menu.style.display = "block";
-        this.insertMenuIntoDOM(menu, button);
-        this.positionMenu(menu, button, true);
-        requestAnimationFrame(() => {
-          menu.style.visibility = "visible";
-        });
-        this.attachMenuCloseHandler(menu, button, true);
-        return;
-      }
-      const fontSizeGroup = this.createStyleControl(
-        i18n.t("styleLabels.fontSize"),
-        "captionsFontSize",
-        [
-          { label: i18n.t("fontSizes.small"), value: "87.5%" },
-          { label: i18n.t("fontSizes.normal"), value: "100%" },
-          { label: i18n.t("fontSizes.large"), value: "125%" },
-          { label: i18n.t("fontSizes.xlarge"), value: "150%" }
-        ]
-      );
-      menu.appendChild(fontSizeGroup);
-      const fontFamilyGroup = this.createStyleControl(
-        i18n.t("styleLabels.font"),
-        "captionsFontFamily",
-        [
-          { label: i18n.t("fontFamilies.sansSerif"), value: "sans-serif" },
-          { label: i18n.t("fontFamilies.serif"), value: "serif" },
-          { label: i18n.t("fontFamilies.monospace"), value: "monospace" }
-        ]
-      );
-      menu.appendChild(fontFamilyGroup);
-      const colorGroup = this.createColorControl(i18n.t("styleLabels.textColor"), "captionsColor");
-      menu.appendChild(colorGroup);
-      const bgColorGroup = this.createColorControl(i18n.t("styleLabels.background"), "captionsBackgroundColor");
-      menu.appendChild(bgColorGroup);
-      const opacityGroup = this.createOpacityControl(i18n.t("styleLabels.opacity"), "captionsOpacity");
-      menu.appendChild(opacityGroup);
-      menu.style.minWidth = "220px";
-      menu.style.visibility = "hidden";
-      menu.style.display = "block";
-      this.insertMenuIntoDOM(menu, button);
-      this.positionMenu(menu, button, true);
-      requestAnimationFrame(() => {
-        menu.style.visibility = "visible";
-      });
-      this.attachMenuCloseHandler(menu, button, true);
-      focusFirstElement(menu, `.${this.player.options.classPrefix}-style-select`);
-    }
-    createStyleControl(label, property, options) {
-      const group = DOMUtils.createElement("div", {
-        className: `${this.player.options.classPrefix}-style-group`
-      });
-      const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
-      const labelEl = DOMUtils.createElement("label", {
-        textContent: label,
-        attributes: {
-          "for": controlId
-        },
-        style: {
-          display: "block",
-          fontSize: "12px",
-          marginBottom: "4px",
-          color: "rgba(255,255,255,0.7)"
-        }
-      });
-      group.appendChild(labelEl);
-      const select = DOMUtils.createElement("select", {
-        className: `${this.player.options.classPrefix}-style-select`,
-        attributes: {
-          "id": controlId
-        },
-        style: {
-          width: "100%",
-          padding: "6px",
-          background: "var(--vidply-white)",
-          border: "1px solid var(--vidply-white-10)",
-          borderRadius: "4px",
-          color: "var(--vidply-black)",
-          fontSize: "13px"
-        }
-      });
-      const currentValue = this.player.options[property];
-      options.forEach((opt) => {
-        const option = DOMUtils.createElement("option", {
-          textContent: opt.label,
-          attributes: { value: opt.value }
-        });
-        if (opt.value === currentValue) {
-          option.selected = true;
-        }
-        select.appendChild(option);
-      });
-      select.addEventListener("mousedown", (e) => {
-        e.stopPropagation();
-      });
-      select.addEventListener("click", (e) => {
-        e.stopPropagation();
-      });
-      select.addEventListener("change", (e) => {
-        e.stopPropagation();
-        this.player.options[property] = e.target.value;
-        if (this.player.captionManager) {
-          this.player.captionManager.setCaptionStyle(
-            property.replace("captions", "").charAt(0).toLowerCase() + property.replace("captions", "").slice(1),
-            e.target.value
-          );
-        }
-      });
-      group.appendChild(select);
-      return group;
-    }
-    createColorControl(label, property) {
-      const group = DOMUtils.createElement("div", {
-        className: `${this.player.options.classPrefix}-style-group`
-      });
-      const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
-      const labelEl = DOMUtils.createElement("label", {
-        textContent: label,
-        attributes: {
-          "for": controlId
-        },
-        style: {
-          display: "block",
-          fontSize: "12px",
-          marginBottom: "4px",
-          color: "rgba(255,255,255,0.7)"
-        }
-      });
-      group.appendChild(labelEl);
-      const input = DOMUtils.createElement("input", {
-        attributes: {
-          "id": controlId,
-          type: "color",
-          value: String(this.player.options[property] ?? "")
-        },
-        style: {
-          width: "100%",
-          height: "32px",
-          padding: "2px",
-          background: "rgba(255,255,255,0.1)",
-          border: "1px solid rgba(255,255,255,0.2)",
-          borderRadius: "4px",
-          cursor: "pointer"
-        }
-      });
-      input.addEventListener("mousedown", (e) => {
-        e.stopPropagation();
-      });
-      input.addEventListener("click", (e) => {
-        e.stopPropagation();
-      });
-      input.addEventListener("change", (e) => {
-        e.stopPropagation();
-        this.player.options[property] = e.target.value;
-        if (this.player.captionManager) {
-          this.player.captionManager.setCaptionStyle(
-            property.replace("captions", "").charAt(0).toLowerCase() + property.replace("captions", "").slice(1),
-            e.target.value
-          );
-        }
-      });
-      group.appendChild(input);
-      return group;
-    }
-    createOpacityControl(label, property) {
-      const group = DOMUtils.createElement("div", {
-        className: `${this.player.options.classPrefix}-style-group`
-      });
-      const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
-      const labelContainer = DOMUtils.createElement("div", {
-        style: {
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: "4px"
-        }
-      });
-      const labelEl = DOMUtils.createElement("label", {
-        textContent: label,
-        attributes: {
-          "for": controlId
-        },
-        style: {
-          fontSize: "12px",
-          color: "rgba(255,255,255,0.7)"
-        }
-      });
-      const valueEl = DOMUtils.createElement("span", {
-        textContent: Math.round(Number(this.player.options[property] ?? 0) * 100) + "%",
-        style: {
-          fontSize: "12px",
-          color: "rgba(255,255,255,0.7)"
-        }
-      });
-      labelContainer.appendChild(labelEl);
-      labelContainer.appendChild(valueEl);
-      group.appendChild(labelContainer);
-      const input = DOMUtils.createElement("input", {
-        attributes: {
-          "id": controlId,
-          type: "range",
-          min: "0",
-          max: "1",
-          step: "0.1",
-          value: String(this.player.options[property])
-        },
-        style: {
-          width: "100%",
-          cursor: "pointer"
-        }
-      });
-      input.addEventListener("mousedown", (e) => {
-        e.stopPropagation();
-      });
-      input.addEventListener("click", (e) => {
-        e.stopPropagation();
-      });
-      input.addEventListener("input", (e) => {
-        e.stopPropagation();
-        const value = parseFloat(e.target.value);
-        valueEl.textContent = Math.round(value * 100) + "%";
-        this.player.options[property] = value;
-        if (this.player.captionManager) {
-          this.player.captionManager.setCaptionStyle(
-            property.replace("captions", "").charAt(0).toLowerCase() + property.replace("captions", "").slice(1),
-            value
-          );
-        }
-      });
-      group.appendChild(input);
-      return group;
+      Promise.resolve().then(() => (init_CaptionStyleMenu(), CaptionStyleMenu_exports)).then(({ showCaptionStyleMenu: showCaptionStyleMenu2 }) => showCaptionStyleMenu2(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
     }
     createSpeedButton() {
       const button = DOMUtils.createElement("button", {
@@ -13602,13 +13827,15 @@
       const duration = this.player.state.duration || 0;
       const percent = duration > 0 ? Math.min(100, Math.max(0, currentTime / duration * 100)) : 0;
       this.controls.played.style.width = `${percent}%`;
-      this.controls.progress.setAttribute("aria-valuenow", String(Math.round(percent)));
-      const currentTimeText = TimeUtils.formatDuration(this.player.state.currentTime);
-      const durationText = TimeUtils.formatDuration(this.player.state.duration);
-      this.controls.progress.setAttribute(
-        "aria-valuetext",
-        `${Math.round(percent)}%, ${currentTimeText} ${i18n.t("time.of")} ${durationText}`
-      );
+      if (this.controls.progress) {
+        this.controls.progress.setAttribute("aria-valuenow", String(Math.round(percent)));
+        const currentTimeText = TimeUtils.formatDuration(this.player.state.currentTime);
+        const durationText = TimeUtils.formatDuration(this.player.state.duration);
+        this.controls.progress.setAttribute(
+          "aria-valuetext",
+          `${Math.round(percent)}%, ${currentTimeText} ${i18n.t("time.of")} ${durationText}`
+        );
+      }
       if (this.controls.currentTimeVisual) {
         const currentTime2 = this.player.state.currentTime;
         this.controls.currentTimeVisual.textContent = TimeUtils.formatTime(currentTime2);
@@ -13808,7 +14035,8 @@
       var _a;
       const textTracks = this.player.element.textTracks;
       for (let i = 0; i < textTracks.length; i++) {
-        textTracks[i].mode = "disabled";
+        const tt = textTracks[i];
+        if (tt) tt.mode = "disabled";
       }
       const captionsContainer = (_a = this.player.container) == null ? void 0 : _a.querySelector(`.${this.player.options.classPrefix}-captions`);
       if (captionsContainer) {
@@ -13921,10 +14149,12 @@
       const overflowButtons = Array.from(this.rightButtons.querySelectorAll('button[data-in-overflow="true"]'));
       if (overflowButtons.length === 0) {
         const noItemsText = DOMUtils.createElement("div", {
-          className: `${this.player.options.classPrefix}-menu-item`,
+          className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
           textContent: i18n.t("player.noMoreOptions"),
           attributes: {
-            "role": "menuitem"
+            "role": "menuitem",
+            "aria-disabled": "true",
+            "tabindex": "-1"
           },
           style: { opacity: "0.5", cursor: "default" }
         });
@@ -14235,17 +14465,73 @@
 
   // src/controls/KeyboardManager.ts
   init_i18n();
+  init_PerformanceUtils();
   var KeyboardManager = class {
     constructor(player) {
       __publicField(this, "player");
       __publicField(this, "shortcuts");
       __publicField(this, "announcer", null);
+      // Announcements are driven by player state-change events so they fire for
+      // mouse/touch control use too, not only keyboard shortcuts (WCAG 4.1.3).
+      // Gated until 'ready' so initial volume/mute/source setup stays silent.
+      __publicField(this, "_announceReady", false);
+      __publicField(this, "_prevMuted");
+      __publicField(this, "_stateAnnouncers", []);
+      __publicField(this, "_announceVolume");
       this.player = player;
       this.shortcuts = player.options.keyboardShortcuts;
+      this._prevMuted = player.state.muted;
+      this._announceVolume = debounce(() => {
+        const percent = Math.round(this.player.state.volume * 100);
+        this.announce(i18n.t("player.volumePercent", { percent }));
+      }, 500);
       this.init();
     }
     init() {
       this.attachEvents();
+      this.attachStateAnnouncements();
+    }
+    /**
+     * Subscribe to player state-change events so play/pause, mute, volume,
+     * captions, fullscreen and speed changes are announced to assistive tech
+     * regardless of whether the user used the keyboard, mouse or touch
+     * (WCAG 4.1.3 Status Messages).
+     */
+    attachStateAnnouncements() {
+      if (typeof this.player.on !== "function") return;
+      const onReady = () => {
+        this._announceReady = true;
+      };
+      this.player.on("ready", onReady);
+      const register = (event, handler) => {
+        const wrapped = () => {
+          if (this._announceReady) handler();
+        };
+        this.player.on(event, wrapped);
+        this._stateAnnouncers.push({ event, handler: wrapped });
+      };
+      this._stateAnnouncers.push({ event: "ready", handler: onReady });
+      register("play", () => this.announce(i18n.t("player.playing")));
+      register("pause", () => this.announce(i18n.t("player.paused")));
+      register("captionsenabled", () => this.announce(i18n.t("player.captionsOn")));
+      register("captionsdisabled", () => this.announce(i18n.t("player.captionsOff")));
+      register("fullscreenchange", () => {
+        this.announce(this.player.state.fullscreen ? i18n.t("player.fullscreen") : i18n.t("player.exitFullscreen"));
+      });
+      register("ratechange", () => {
+        const rate = this.player.state.playbackSpeed;
+        this.announce(i18n.t("player.speedRate", { rate: String(rate) }));
+      });
+      register("volumechange", () => {
+        if (this.player.state.muted !== this._prevMuted) {
+          this._prevMuted = this.player.state.muted;
+          this.announce(this.player.state.muted ? i18n.t("player.muted") : i18n.t("player.unmuted"));
+          return;
+        }
+        if (!this.player.state.muted) {
+          this._announceVolume();
+        }
+      });
     }
     attachEvents() {
       this.player.container.addEventListener("keydown", (e) => {
@@ -14300,7 +14586,6 @@
           if (handled) {
             e.preventDefault();
             e.stopPropagation();
-            this.announceAction(action);
             break;
           }
         }
@@ -14459,6 +14744,12 @@
       }
     }
     destroy() {
+      if (typeof this.player.off === "function") {
+        for (const { event, handler } of this._stateAnnouncers) {
+          this.player.off(event, handler);
+        }
+      }
+      this._stateAnnouncers = [];
       if (this.announcer && this.announcer.parentNode) {
         this.announcer.parentNode.removeChild(this.announcer);
       }
@@ -14586,7 +14877,7 @@
       this.originalViewport = (_a = document.querySelector('meta[name="viewport"]')) == null ? void 0 : _a.getAttribute("content");
       const viewport = document.querySelector('meta[name="viewport"]');
       if (viewport) {
-        viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+        viewport.setAttribute("content", "width=device-width, initial-scale=1.0");
       }
       window.scrollTo(0, 0);
       this.makeBackgroundInert();
@@ -15218,6 +15509,7 @@
   };
 
   // src/core/MetadataAlertsManager.ts
+  init_PerformanceUtils();
   var MetadataAlertsManager = class {
     constructor(player) {
       __publicField(this, "player");
@@ -15405,7 +15697,7 @@
         element.focus({ preventScroll: true });
       }
       if (shouldShow && config.autoScroll !== false && options.autoScroll !== false) {
-        element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        element.scrollIntoView(reducedMotionScrollOptions("nearest"));
       }
       const continueSelector = config.continueButton;
       if (continueSelector) {
@@ -16380,6 +16672,9 @@
         return null;
       }
       const normalizedLang = htmlLang.toLowerCase().split("-")[0];
+      if (!normalizedLang) {
+        return null;
+      }
       if (i18n.translations[normalizedLang]) {
         return normalizedLang;
       }
@@ -16478,7 +16773,7 @@
       this.container = DOMUtils.createElement("div", {
         className: `${this.options.classPrefix}-player`,
         attributes: {
-          "role": "application",
+          "role": "region",
           "aria-label": playerLabel,
           "tabindex": "0"
         }
@@ -17003,17 +17298,18 @@
             } catch {
             }
             if (this.renderer) {
-              if (typeof this.renderer._didDeferredLoad === "boolean") {
-                this.renderer._didDeferredLoad = false;
+              const deferState = this.renderer;
+              if (typeof deferState._didDeferredLoad === "boolean") {
+                deferState._didDeferredLoad = false;
               }
-              if (typeof this.renderer._hlsSourceLoaded === "boolean") {
-                this.renderer._hlsSourceLoaded = false;
+              if (typeof deferState._hlsSourceLoaded === "boolean") {
+                deferState._hlsSourceLoaded = false;
               }
-              if (typeof this.renderer._dashSourceLoaded === "boolean") {
-                this.renderer._dashSourceLoaded = false;
+              if (typeof deferState._dashSourceLoaded === "boolean") {
+                deferState._dashSourceLoaded = false;
               }
               if ("_pendingSrc" in this.renderer) {
-                this.renderer._pendingSrc = this._pendingSource || this.currentSource || null;
+                deferState._pendingSrc = this._pendingSource || this.currentSource || null;
               }
             }
           } else {
@@ -17599,8 +17895,9 @@
       if (messages.length === 0) {
         messages = [""];
       }
-      if (typeof consoleObj[type] === "function") {
-        consoleObj[type]("[VidPly]", ...messages);
+      const consoleFn = consoleObj[type];
+      if (typeof consoleFn === "function") {
+        consoleFn("[VidPly]", ...messages);
       } else {
         console.log("[VidPly]", ...messages);
       }
@@ -17780,6 +18077,7 @@
   init_Icons();
   init_i18n();
   init_TimeUtils();
+  init_PerformanceUtils();
   var playlistInstanceCounter = 0;
   var PlaylistManager = class {
     constructor(player, options = {}) {
@@ -17827,6 +18125,9 @@
       this.PlayerClass = options.PlayerClass ?? null;
       this.handleTrackEnd = this.handleTrackEnd.bind(this);
       this.handleTrackError = this.handleTrackError.bind(this);
+      this.handlePlaybackStateChange = this.handlePlaybackStateChange.bind(this);
+      this.handleFullscreenChange = this.handleFullscreenChange.bind(this);
+      this.handleAudioDescriptionChange = this.handleAudioDescriptionChange.bind(this);
       this.player.playlistManager = this;
       this.init();
       this.updatePlayerControls();
@@ -17998,12 +18299,12 @@
     init() {
       this.player.on("ended", this.handleTrackEnd);
       this.player.on("error", this.handleTrackError);
-      this.player.on("play", this.handlePlaybackStateChange.bind(this));
-      this.player.on("pause", this.handlePlaybackStateChange.bind(this));
-      this.player.on("ended", this.handlePlaybackStateChange.bind(this));
-      this.player.on("fullscreenchange", this.handleFullscreenChange.bind(this));
-      this.player.on("audiodescriptionenabled", this.handleAudioDescriptionChange.bind(this));
-      this.player.on("audiodescriptiondisabled", this.handleAudioDescriptionChange.bind(this));
+      this.player.on("play", this.handlePlaybackStateChange);
+      this.player.on("pause", this.handlePlaybackStateChange);
+      this.player.on("ended", this.handlePlaybackStateChange);
+      this.player.on("fullscreenchange", this.handleFullscreenChange);
+      this.player.on("audiodescriptionenabled", this.handleAudioDescriptionChange);
+      this.player.on("audiodescriptiondisabled", this.handleAudioDescriptionChange);
       if (this.options.showPanel) {
         this.createUI();
       }
@@ -18110,6 +18411,7 @@
         return;
       }
       const track = this.tracks[index];
+      if (!track) return;
       this.selectTrack(index);
       this.isChangingTrack = true;
       if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
@@ -18170,6 +18472,7 @@
         return;
       }
       const track = this.tracks[index];
+      if (!track) return;
       this.currentIndex = index;
       try {
         if (((_b = (_a = this.player) == null ? void 0 : _a.element) == null ? void 0 : _b.tagName) === "VIDEO") {
@@ -18264,6 +18567,7 @@
         return;
       }
       const track = this.tracks[index];
+      if (!track) return;
       this.isChangingTrack = true;
       this.currentIndex = index;
       if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
@@ -18628,10 +18932,6 @@
      * Create playlist item element
      */
     createPlaylistItem(track, index) {
-      const _trackPosition = i18n.t("playlist.trackOf", {
-        current: index + 1,
-        total: this.tracks.length
-      });
       const trackTitle = track.title || i18n.t("playlist.trackUntitled", { number: index + 1 });
       const trackArtist = track.artist ? i18n.t("playlist.by") + track.artist : "";
       const effectiveDuration = this.getEffectiveDuration(track);
@@ -18829,12 +19129,16 @@
           break;
       }
       if (newIndex !== -1 && newIndex !== index) {
-        buttons[index].setAttribute("tabIndex", "-1");
-        buttons[newIndex].setAttribute("tabIndex", "0");
-        buttons[newIndex].focus({ preventScroll: false });
-        const item = buttons[newIndex].closest(".vidply-playlist-item");
-        if (item) {
-          item.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        const currentButton = buttons[index];
+        const newButton = buttons[newIndex];
+        if (currentButton && newButton) {
+          currentButton.setAttribute("tabIndex", "-1");
+          newButton.setAttribute("tabIndex", "0");
+          newButton.focus({ preventScroll: false });
+          const item = newButton.closest(".vidply-playlist-item");
+          if (item) {
+            item.scrollIntoView(reducedMotionScrollOptions("nearest"));
+          }
         }
       }
       if (announcement && this.navigationFeedback) {
@@ -18857,10 +19161,7 @@
         const button = buttons[index];
         if (!button) return;
         const track = this.tracks[index];
-        const _trackPosition = i18n.t("playlist.trackOf", {
-          current: index + 1,
-          total: this.tracks.length
-        });
+        if (!track) return;
         const trackTitle = track.title || i18n.t("playlist.trackUntitled", { number: index + 1 });
         const trackArtist = track.artist ? i18n.t("playlist.by") + track.artist : "";
         const effectiveDuration = this.getEffectiveDuration(track);
@@ -18875,7 +19176,7 @@
             ariaLabel += `. ${trackDurationReadable}`;
           }
           button.setAttribute("aria-label", ariaLabel);
-          item.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          item.scrollIntoView(reducedMotionScrollOptions("nearest"));
         } else {
           item.classList.remove("vidply-playlist-item-active");
           button.removeAttribute("aria-current");
@@ -19022,6 +19323,12 @@
     destroy() {
       this.player.off("ended", this.handleTrackEnd);
       this.player.off("error", this.handleTrackError);
+      this.player.off("play", this.handlePlaybackStateChange);
+      this.player.off("pause", this.handlePlaybackStateChange);
+      this.player.off("ended", this.handlePlaybackStateChange);
+      this.player.off("fullscreenchange", this.handleFullscreenChange);
+      this.player.off("audiodescriptionenabled", this.handleAudioDescriptionChange);
+      this.player.off("audiodescriptiondisabled", this.handleAudioDescriptionChange);
       if (this.trackArtworkElement) {
         this.trackArtworkElement.remove();
       }
@@ -19131,7 +19438,7 @@
     for (const key of Object.keys(dataset)) {
       if (key.startsWith("signLanguageSrc") && key !== "signLanguageSrc") {
         const langMatch = key.match(/^signLanguageSrc([A-Z][a-z]*)$/);
-        if (langMatch) {
+        if (langMatch && langMatch[1]) {
           const langCode = langMatch[1].toLowerCase();
           const value = dataset[key];
           if (value !== void 0) {

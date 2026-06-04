@@ -1,5 +1,6 @@
-import type { Renderer } from '../types/renderer.js';
+import type { Renderer, QualityLevel } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
+import { loadScriptOnce } from '../utils/ScriptLoader.js';
 
 /** Subset of payloads emitted by hls.js events that we actually consume. */
 interface HlsManifestParsedData {
@@ -50,6 +51,14 @@ export class HLSRenderer implements Renderer {
    */
   _loadingForSeekOnly?: boolean;
   _cleanupNativeTextTrackListeners: () => void;
+  // Detaches all hls.js-path media listeners (attachMediaEvents) in destroy().
+  private _listenerController: AbortController;
+  // Pending setTimeout ids so destroy() can cancel retries that would
+  // otherwise fire (and touch a torn-down player) after teardown.
+  private _timers: Set<ReturnType<typeof setTimeout>>;
+  // Tracked 'ready' listener registered by updateCaptionButtonsForHls when the
+  // control bar isn't built yet; removed on destroy if it never fired.
+  private _pendingReadyHandler: (() => void) | null;
 
   constructor(player: Player) {
     this.player = player;
@@ -62,6 +71,28 @@ export class HLSRenderer implements Renderer {
     this._lastKnownCueCount = 0;
     this._manifestUrl = null;
     this._cleanupNativeTextTrackListeners = () => {};
+    this._listenerController = new AbortController();
+    this._timers = new Set();
+    this._pendingReadyHandler = null;
+  }
+
+  /**
+   * Schedule a timeout that is automatically cancelled by destroy(). Prevents
+   * caption-retry / error-recovery callbacks from running after teardown.
+   */
+  private _setTimeout(handler: () => void, ms: number): void {
+    const id = setTimeout(() => {
+      this._timers.delete(id);
+      handler();
+    }, ms);
+    this._timers.add(id);
+  }
+
+  private _clearTimers(): void {
+    for (const id of this._timers) {
+      clearTimeout(id);
+    }
+    this._timers.clear();
   }
 
   async init() {
@@ -91,32 +122,45 @@ export class HLSRenderer implements Renderer {
   }
 
   async initNative() {
-    // Use HTML5 renderer for native HLS support
-    const HTML5Renderer = (await import('./HTML5Renderer.js')).HTML5Renderer;
-    const renderer = new HTML5Renderer(this.player);
-    await renderer.init();
+    // Native HLS (iOS / iPadOS): the <video> element plays the HLS URL
+    // directly, so we delegate the playback surface to an HTML5Renderer via
+    // composition rather than grafting its prototype methods onto this
+    // instance. hls.js is never created on this path (this.hls stays null),
+    // and this.media already references the same player.element the delegate
+    // drives, so quality/caption inspection keeps working.
+    const { HTML5Renderer } = await import('./HTML5Renderer.js');
+    const native = new HTML5Renderer(this.player);
+    await native.init();
 
-    // Copy methods from HTML5Renderer onto this instance. We intentionally
-    // walk via index signatures because the prototype layout is dynamic;
-    // typing the source/target as keyed records keeps the reflection
-    // pattern readable without `any`.
-    const rendererBag = renderer as unknown as Record<string, unknown>;
-    const selfBag = this as unknown as Record<string, unknown>;
-    Object.getOwnPropertyNames(Object.getPrototypeOf(renderer)).forEach((method: string) => {
-      const candidate = rendererBag[method];
-      if (method !== 'constructor' && typeof candidate === 'function') {
-        selfBag[method] = (candidate as (...args: unknown[]) => unknown).bind(renderer);
-      }
-    });
+    // Forward the externally-invoked Renderer surface to the delegate. The
+    // delegate's own internal helpers (attachEvents, pauseOtherPlayers, …)
+    // run via these calls, so they don't need explicit forwarding. HLS-only
+    // methods (attachHlsEvents, handleHlsError, supportsAutoQuality, …) keep
+    // their HLSRenderer implementations.
+    this.play = () => native.play();
+    this.pause = () => native.pause();
+    this.seek = (time: number) => native.seek(time);
+    this.setVolume = (volume: number) => native.setVolume(volume);
+    this.setMuted = (muted: boolean) => native.setMuted(muted);
+    this.setPlaybackSpeed = (speed: number) => native.setPlaybackSpeed(speed);
+    this.ensureLoaded = () => native.ensureLoaded?.();
+    this.getQualities = () => native.getQualities?.() ?? [];
+    this.switchQuality = (index: number) => native.switchQuality?.(index);
+    this.getCurrentQuality = () => native.getCurrentQuality?.() ?? 0;
 
     this._attachNativeTextTrackListeners();
 
-    // The method-copy above shadows HLSRenderer.prototype.destroy with
-    // HTML5Renderer's destroy. Wrap it so our listeners are also cleaned up.
-    const html5Destroy = this.destroy;
+    // destroy() delegates to the native renderer but also tears down the
+    // native text-track listeners, caption-retry timers and any deferred
+    // 'ready' handler scheduled by updateCaptionButtonsForHls.
     this.destroy = () => {
       this._cleanupNativeTextTrackListeners();
-      html5Destroy();
+      this._clearTimers();
+      if (this._pendingReadyHandler) {
+        this.player.off('ready', this._pendingReadyHandler);
+        this._pendingReadyHandler = null;
+      }
+      native.destroy();
     };
   }
 
@@ -134,7 +178,7 @@ export class HLSRenderer implements Renderer {
         const tracks = this.media.textTracks;
         let count = 0;
         for (let i = 0; i < tracks.length; i++) {
-          const k = tracks[i].kind;
+          const k = tracks[i]?.kind;
           if (k === 'subtitles' || k === 'captions') {
             count++;
           }
@@ -178,7 +222,7 @@ export class HLSRenderer implements Renderer {
     const sourceElements = Array.from(this.media.querySelectorAll('source'));
     let originalSrc = null;
     if (sourceElements.length > 0) {
-      originalSrc = sourceElements[0].getAttribute('src');
+      originalSrc = sourceElements[0]?.getAttribute('src') ?? null;
       sourceElements.forEach(source => source.remove());
       this.player.log('Removed <source> elements for HTML5 validity (hls.js uses src attribute)');
     }
@@ -285,18 +329,7 @@ export class HLSRenderer implements Renderer {
     const url: string = (this.player.options.hlsScriptUrl as string | undefined) || defaultUrl;
     const integrity = this.player.options.hlsScriptIntegrity as string | undefined;
 
-    return new Promise<void>((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = url;
-      if (integrity) {
-        script.integrity = integrity;
-        script.crossOrigin = 'anonymous';
-        script.referrerPolicy = 'no-referrer';
-      }
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Failed to load hls.js'));
-      document.head.appendChild(script);
-    });
+    return loadScriptOnce(url, { integrity });
   }
 
   attachHlsEvents() {
@@ -316,7 +349,7 @@ export class HLSRenderer implements Renderer {
 
       // Check for subtitle tracks after manifest parse
       // This handles streams without subtitles (SUBTITLE_TRACKS_UPDATED won't fire for them)
-      setTimeout(() => {
+      this._setTimeout(() => {
         if (this._hlsSubtitleTracksCount === undefined || this._hlsSubtitleTracksCount === 0) {
           const currentCount = this.hls?.subtitleTracks?.length || 0;
           if (currentCount === 0) {
@@ -417,7 +450,7 @@ export class HLSRenderer implements Renderer {
     if (!textTracks) return total;
     for (let i = 0; i < textTracks.length; i++) {
       const track = textTracks[i];
-      if ((track.kind === 'subtitles' || track.kind === 'captions') && track.cues) {
+      if (track && (track.kind === 'subtitles' || track.kind === 'captions') && track.cues) {
         total += track.cues.length;
       }
     }
@@ -494,7 +527,7 @@ export class HLSRenderer implements Renderer {
           if (found === 0 && retryCount < 5) {
             const delay = (retryCount + 1) * 200;
             this.player.log(`HLS caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`, 'info');
-            setTimeout(() => {
+            this._setTimeout(() => {
               this.updateCaptionButtonsForHls(retryCount + 1);
             }, delay);
             return;
@@ -533,17 +566,22 @@ export class HLSRenderer implements Renderer {
     
     const onReady = () => {
       this.player.off('ready', onReady);
+      this._pendingReadyHandler = null;
       doUpdate();
     };
+    // Track so destroy() can detach it if 'ready' never fires.
+    this._pendingReadyHandler = onReady;
     this.player.on('ready', onReady);
   }
 
   attachMediaEvents() {
+    const { signal } = this._listenerController;
+
     // Use same events as HTML5 renderer
     this.media.addEventListener('loadedmetadata', () => {
       this.player.state.duration = this.media.duration;
       this.player.emit('loadedmetadata');
-    });
+    }, { signal });
 
     this.media.addEventListener('durationchange', () => {
       const duration = this.media.duration;
@@ -551,7 +589,7 @@ export class HLSRenderer implements Renderer {
         this.player.state.duration = duration;
         this.player.emit('durationchange', duration);
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('play', () => {
       this.player.state.playing = true;
@@ -562,7 +600,7 @@ export class HLSRenderer implements Renderer {
       if (this.player.options.onPlay) {
         this.player.options.onPlay.call(this.player);
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('pause', () => {
       this.player.state.playing = false;
@@ -572,7 +610,7 @@ export class HLSRenderer implements Renderer {
       if (this.player.options.onPause) {
         this.player.options.onPause.call(this.player);
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('ended', () => {
       this.player.state.playing = false;
@@ -588,7 +626,7 @@ export class HLSRenderer implements Renderer {
         this.player.seek(0);
         this.player.play();
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('timeupdate', () => {
       this.player.state.currentTime = this.media.currentTime;
@@ -597,18 +635,18 @@ export class HLSRenderer implements Renderer {
       if (this.player.options.onTimeUpdate) {
         this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('volumechange', () => {
       this.player.state.volume = this.media.volume;
       this.player.state.muted = this.media.muted;
       this.player.emit('volumechange', this.media.volume);
-    });
+    }, { signal });
 
     this.media.addEventListener('waiting', () => {
       this.player.state.buffering = true;
       this.player.emit('waiting');
-    });
+    }, { signal });
 
     this.media.addEventListener('seeking', () => {
       this.player.state.seeking = true;
@@ -625,7 +663,7 @@ export class HLSRenderer implements Renderer {
         this.player.state.buffering = true;
         this.player.emit('waiting');
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('seeked', () => {
       this.player.state.seeking = false;
@@ -643,16 +681,16 @@ export class HLSRenderer implements Renderer {
           // ignore
         }
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('canplay', () => {
       this.player.state.buffering = false;
       this.player.emit('canplay');
-    });
+    }, { signal });
 
     this.media.addEventListener('error', () => {
       this.player.handleError(this.media.error);
-    });
+    }, { signal });
   }
 
   handleHlsError(data: HlsErrorData) {
@@ -668,7 +706,7 @@ export class HLSRenderer implements Renderer {
         case ErrorTypes?.NETWORK_ERROR:
           this.player.log('Fatal network error, trying to recover...', 'error');
           this.player.log(`Network error details: ${data.details}`, 'error');
-          setTimeout(() => {
+          this._setTimeout(() => {
             this.hls?.startLoad();
           }, 1000);
           break;
@@ -801,7 +839,7 @@ export class HLSRenderer implements Renderer {
     }
   }
 
-  getQualities() {
+  getQualities(): QualityLevel[] {
     if (this.hls && this.hls.levels) {
       // hls.js creates separate levels for each video+audio-group combination,
       // producing duplicates (e.g. three "720p" entries). Deduplicate by
@@ -887,6 +925,14 @@ export class HLSRenderer implements Renderer {
 
   destroy() {
     this._stopCueUpdatePolling();
+    this._clearTimers();
+    // Detach the media listeners registered in attachMediaEvents().
+    this._listenerController.abort();
+    // Remove the deferred 'ready' listener if it never fired.
+    if (this._pendingReadyHandler) {
+      this.player.off('ready', this._pendingReadyHandler);
+      this._pendingReadyHandler = null;
+    }
     this._lastKnownCueCount = 0;
     this._manifestUrl = null;
     if (this.hls) {
