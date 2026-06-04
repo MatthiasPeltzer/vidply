@@ -5392,14 +5392,32 @@ var Player = class _Player extends EventEmitter {
     if (this.audioDescriptionManager) {
       return this.audioDescriptionManager;
     }
-    const hasAudioDescSrc = this.options.audioDescriptionSrc || this.audioDescriptionSrc;
-    const hasAudioDescButton = this.options.audioDescriptionButton;
-    if (!hasAudioDescSrc && !hasAudioDescButton) {
+    if (!this.hasAudioDescriptionContent()) {
       return null;
     }
     const AudioDescManager = await loadAudioDescriptionManager();
     this.audioDescriptionManager = new AudioDescManager(this);
     return this.audioDescriptionManager;
+  }
+  /**
+   * True when the current media actually exposes audio-description content:
+   * an explicit described-audio source, `<source>` elements carrying
+   * `data-desc-src` / `data-orig-src`, or a `descriptions` text track.
+   * Mirrors `ControlBar.hasAudioDescription()` so the chunk load and the
+   * button visibility stay in lock-step.
+   */
+  hasAudioDescriptionContent() {
+    if (this.options.audioDescriptionSrc || this.audioDescriptionSrc) {
+      return true;
+    }
+    const hasSourceElementsWithDesc = this.sourceElements.some(
+      (el) => el.getAttribute("data-desc-src") || el.getAttribute("data-orig-src")
+    );
+    if (hasSourceElementsWithDesc) {
+      return true;
+    }
+    const textTracks = this.element ? Array.from(this.element.textTracks || []) : [];
+    return textTracks.some((track) => track.kind === "descriptions");
   }
   // ============================================
   // Resume Playback Methods
@@ -5412,15 +5430,23 @@ var Player = class _Player extends EventEmitter {
     if (this.signLanguageManager) {
       return this.signLanguageManager;
     }
-    const hasSignLangSrc = this.options.signLanguageSrc || this.signLanguageSrc;
-    const hasSignLangSources = this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0;
-    const hasSignLangButton = this.options.signLanguageButton;
-    if (!hasSignLangSrc && !hasSignLangSources && !hasSignLangButton) {
+    if (!this.hasSignLanguageContent()) {
       return null;
     }
     const SignLangManager = await loadSignLanguageManager();
     this.signLanguageManager = new SignLangManager(this);
     return this.signLanguageManager;
+  }
+  /**
+   * True when a sign-language video source (single `signLanguageSrc` or a
+   * `signLanguageSources` map) is configured. Mirrors
+   * `ControlBar.hasSignLanguage()`.
+   */
+  hasSignLanguageContent() {
+    if (this.options.signLanguageSrc || this.signLanguageSrc) {
+      return true;
+    }
+    return !!(this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0);
   }
   /**
    * Lazy-load and instantiate the floating (in-page PiP) manager. Only
@@ -5446,13 +5472,10 @@ var Player = class _Player extends EventEmitter {
    */
   async initFeatureManagers() {
     const promises = [];
-    const hasSourceElementsWithDesc = this.sourceElements.some(
-      (el) => el.getAttribute("data-desc-src") || el.getAttribute("data-orig-src")
-    );
-    if (this.options.audioDescriptionButton || this.options.audioDescriptionSrc || this.audioDescriptionSrc || hasSourceElementsWithDesc) {
+    if (this.hasAudioDescriptionContent()) {
       promises.push(this.ensureAudioDescriptionManager());
     }
-    if (this.options.signLanguageButton || this.options.signLanguageSrc || this.signLanguageSrc || this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0) {
+    if (this.hasSignLanguageContent()) {
       promises.push(this.ensureSignLanguageManager());
     }
     if (this.options.floating && this.element && this.element.tagName === "VIDEO") {
@@ -5782,6 +5805,9 @@ var Player = class _Player extends EventEmitter {
     }
     this.currentSource = src;
     this._pendingSource = null;
+    if (this.hasAudioDescriptionContent()) {
+      await this.ensureAudioDescriptionManager();
+    }
     this.audioDescriptionManager?.initFromSourceElements(this.sourceElements, this.trackElements);
     if (!this.originalSrc) {
       this.originalSrc = src;
@@ -7285,12 +7311,19 @@ var PlaylistManager = class {
       if (typeof this.player.invalidateTrackCache === "function") {
         this.player.invalidateTrackCache();
       }
-      if (this.player.audioDescriptionManager && typeof this.player.audioDescriptionManager.initFromSourceElements === "function") {
+      const reinitAudioDescription = (adm) => {
+        if (!adm || typeof adm.initFromSourceElements !== "function") return;
         try {
-          this.player.audioDescriptionManager.captionTracks = [];
-          this.player.audioDescriptionManager.initFromSourceElements(this.player.sourceElements, this.player.trackElements);
+          adm.captionTracks = [];
+          adm.initFromSourceElements(this.player.sourceElements, this.player.trackElements);
         } catch {
         }
+      };
+      if (this.player.audioDescriptionManager) {
+        reinitAudioDescription(this.player.audioDescriptionManager);
+      } else if (this.player.hasAudioDescriptionContent?.()) {
+        void this.player.ensureAudioDescriptionManager().then(reinitAudioDescription).catch(() => {
+        });
       }
       if (this.player.captionManager && typeof this.player.captionManager.loadTracks === "function") {
         try {

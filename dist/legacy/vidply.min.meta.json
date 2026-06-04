@@ -756,7 +756,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 104259,
+      "bytes": 105742,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -907,7 +907,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 64639,
+      "bytes": 65147,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1083,7 +1083,7 @@
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 85990
+          "bytesInOutput": 86541
         },
         "src/controls/ControlBar.ts": {
           "bytesInOutput": 127310
@@ -1122,13 +1122,13 @@
           "bytesInOutput": 15264
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 48005
+          "bytesInOutput": 48299
         },
         "src/index.ts": {
           "bytesInOutput": 5217
         }
       },
-      "bytes": 808336
+      "bytes": 809181
     }
   }
 }

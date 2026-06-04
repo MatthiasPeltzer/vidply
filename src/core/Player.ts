@@ -912,17 +912,40 @@ export class Player extends EventEmitter<PlayerEventMap> {
       return this.audioDescriptionManager;
     }
 
-    // Only load if audio description feature is potentially needed
-    const hasAudioDescSrc = this.options.audioDescriptionSrc || this.audioDescriptionSrc;
-    const hasAudioDescButton = this.options.audioDescriptionButton;
-
-    if (!hasAudioDescSrc && !hasAudioDescButton) {
+    // Only load the chunk when there is actual audio-description content to
+    // drive it. The button option alone (default `true`) is not enough — the
+    // control bar already hides the button when no content is present, so a
+    // content-less player never needs this manager.
+    if (!this.hasAudioDescriptionContent()) {
       return null;
     }
 
     const AudioDescManager = await loadAudioDescriptionManager();
     this.audioDescriptionManager = new AudioDescManager(this);
     return this.audioDescriptionManager;
+  }
+
+  /**
+   * True when the current media actually exposes audio-description content:
+   * an explicit described-audio source, `<source>` elements carrying
+   * `data-desc-src` / `data-orig-src`, or a `descriptions` text track.
+   * Mirrors `ControlBar.hasAudioDescription()` so the chunk load and the
+   * button visibility stay in lock-step.
+   */
+  hasAudioDescriptionContent(): boolean {
+    if (this.options.audioDescriptionSrc || this.audioDescriptionSrc) {
+      return true;
+    }
+
+    const hasSourceElementsWithDesc = this.sourceElements.some(
+      (el: HTMLSourceElement) => el.getAttribute('data-desc-src') || el.getAttribute('data-orig-src')
+    );
+    if (hasSourceElementsWithDesc) {
+      return true;
+    }
+
+    const textTracks = this.element ? Array.from(this.element.textTracks || []) : [];
+    return textTracks.some((track) => track.kind === 'descriptions');
   }
 
   // ============================================
@@ -938,18 +961,31 @@ export class Player extends EventEmitter<PlayerEventMap> {
       return this.signLanguageManager;
     }
 
-    // Only load if sign language feature is potentially needed
-    const hasSignLangSrc = this.options.signLanguageSrc || this.signLanguageSrc;
-    const hasSignLangSources = this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0;
-    const hasSignLangButton = this.options.signLanguageButton;
-
-    if (!hasSignLangSrc && !hasSignLangSources && !hasSignLangButton) {
+    // Only load the chunk when an actual sign-language source is configured.
+    // As with audio description, the button alone (default `true`) is not a
+    // reason to pull in the manager on content-less players.
+    if (!this.hasSignLanguageContent()) {
       return null;
     }
 
     const SignLangManager = await loadSignLanguageManager();
     this.signLanguageManager = new SignLangManager(this);
     return this.signLanguageManager;
+  }
+
+  /**
+   * True when a sign-language video source (single `signLanguageSrc` or a
+   * `signLanguageSources` map) is configured. Mirrors
+   * `ControlBar.hasSignLanguage()`.
+   */
+  hasSignLanguageContent(): boolean {
+    if (this.options.signLanguageSrc || this.signLanguageSrc) {
+      return true;
+    }
+    return !!(
+      this.options.signLanguageSources &&
+      Object.keys(this.options.signLanguageSources).length > 0
+    );
   }
 
   /**
@@ -978,20 +1014,18 @@ export class Player extends EventEmitter<PlayerEventMap> {
   async initFeatureManagers() {
     const promises = [];
 
-    // Check for source elements with audio description attributes
-    const hasSourceElementsWithDesc = this.sourceElements.some(
-      (el: HTMLSourceElement) => el.getAttribute('data-desc-src') || el.getAttribute('data-orig-src')
-    );
-
-    // Load audio description manager if feature is enabled OR source elements have AD attributes
-    if (this.options.audioDescriptionButton || this.options.audioDescriptionSrc ||
-      this.audioDescriptionSrc || hasSourceElementsWithDesc) {
+    // Load the audio-description manager only when the media actually carries
+    // description content (described-audio source, `data-desc-src` sources, or
+    // a `descriptions` text track). The button option alone no longer pulls in
+    // the chunk — content-less players stay lean. Late-arriving content (e.g.
+    // streaming description tracks) is handled by `updateAccessibilityButtons`
+    // + the lazy `ensureAudioDescriptionManager()` on first toggle.
+    if (this.hasAudioDescriptionContent()) {
       promises.push(this.ensureAudioDescriptionManager());
     }
 
-    // Load sign language manager if feature is enabled
-    if (this.options.signLanguageButton || this.options.signLanguageSrc || this.signLanguageSrc ||
-      (this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0)) {
+    // Load the sign-language manager only when a sign-language source exists.
+    if (this.hasSignLanguageContent()) {
       promises.push(this.ensureSignLanguageManager());
     }
 
@@ -1460,6 +1494,12 @@ export class Player extends EventEmitter<PlayerEventMap> {
     this.currentSource = src;
     this._pendingSource = null;
 
+    // Pull in the audio-description manager on demand when this source carries
+    // description content (it is no longer eagerly loaded for content-less
+    // players). Then (re)scan the current source/track elements.
+    if (this.hasAudioDescriptionContent()) {
+      await this.ensureAudioDescriptionManager();
+    }
     this.audioDescriptionManager?.initFromSourceElements(this.sourceElements, this.trackElements);
 
     if (!this.originalSrc) {
