@@ -1002,7 +1002,8 @@ export class TranscriptManager {
       const activeTrack = this.player.textTracks.find(
         (track: TranscriptTrack) => (track.kind === 'captions' || track.kind === 'subtitles') && track.mode === 'showing'
       );
-      const fallbackLang = this.availableTranscriptLanguages[0].language;
+      const firstLang = this.availableTranscriptLanguages[0];
+      const fallbackLang = firstLang ? firstLang.language : null;
       this.currentTranscriptLanguage = activeTrack ? activeTrack.language : fallbackLang;
       if (this.currentTranscriptLanguage) {
         languageSelector.value = this.currentTranscriptLanguage;
@@ -1036,23 +1037,23 @@ export class TranscriptManager {
       const lines = block.trim().split('\n');
       let tsLine = -1;
       for (let i = 0; i < lines.length; i++) {
-        if (lines[i].includes('-->')) { tsLine = i; break; }
+        if (lines[i]?.includes('-->')) { tsLine = i; break; }
       }
       if (tsLine < 0) continue;
-      const match = lines[tsLine].match(
+      const match = lines[tsLine]?.match(
         /(\d{1,2}:)?(\d{2}):(\d{2})\.(\d{3})\s*-->\s*(\d{1,2}:)?(\d{2}):(\d{2})\.(\d{3})/
       );
       if (!match) continue;
       const startTime =
         (match[1] ? parseInt(match[1]) * 3600 : 0) +
-        parseInt(match[2]) * 60 +
-        parseInt(match[3]) +
-        parseInt(match[4]) / 1000;
+        parseInt(match[2] ?? '0') * 60 +
+        parseInt(match[3] ?? '0') +
+        parseInt(match[4] ?? '0') / 1000;
       const endTime =
         (match[5] ? parseInt(match[5]) * 3600 : 0) +
-        parseInt(match[6]) * 60 +
-        parseInt(match[7]) +
-        parseInt(match[8]) / 1000;
+        parseInt(match[6] ?? '0') * 60 +
+        parseInt(match[7] ?? '0') +
+        parseInt(match[8] ?? '0') / 1000;
       const text = lines.slice(tsLine + 1).join('\n').trim();
       if (!text) continue;
       cues.push({
@@ -1428,7 +1429,7 @@ export class TranscriptManager {
 
     // Parse for focus directives
     const focusMatch = text.match(/FOCUS:([\w#-]+)/);
-    if (focusMatch) {
+    if (focusMatch && focusMatch[1]) {
       const targetSelector = focusMatch[1];
       // Automatically focus the target element
       const targetElement = document.querySelector(targetSelector) as HTMLElement | null;
@@ -2049,6 +2050,7 @@ export class TranscriptManager {
         );
         const firstElement = focusableElements[0];
         const lastElement = focusableElements[focusableElements.length - 1];
+        if (!firstElement || !lastElement) return;
         
         if (e.shiftKey && document.activeElement === firstElement) {
           e.preventDefault();

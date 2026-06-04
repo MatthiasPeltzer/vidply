@@ -18,6 +18,7 @@
  * - `cleanup()` — called from Player.destroy()
  */
 
+import { reducedMotionScrollOptions } from '../utils/PerformanceUtils.js';
 import type { Player } from './Player.js';
 
 /** Per-selector metadata alert configuration. */
@@ -299,7 +300,7 @@ export class MetadataAlertsManager {
     }
 
     if (shouldShow && config.autoScroll !== false && options.autoScroll !== false) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      element.scrollIntoView(reducedMotionScrollOptions('nearest'));
     }
 
     const continueSelector = config.continueButton;

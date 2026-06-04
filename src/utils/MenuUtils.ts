@@ -2,6 +2,7 @@ import { DOMUtils } from './DOMUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 import { focusElement } from './FocusUtils.js';
+import { reducedMotionScrollOptions } from './PerformanceUtils.js';
 
 export interface MenuItemOptions {
   classPrefix: string;
@@ -67,7 +68,10 @@ export function attachMenuKeyboardNavigation(
 ): ((e: KeyboardEvent) => void) | undefined {
   if (!menu) return undefined;
 
-  const menuItems = Array.from(menu.querySelectorAll<HTMLElement>(itemSelector));
+  // Only enabled items participate in roving navigation. aria-disabled
+  // empty-state entries must never receive focus (WCAG 2.1.1, 4.1.2).
+  const menuItems = Array.from(menu.querySelectorAll<HTMLElement>(itemSelector))
+    .filter((item) => item.getAttribute('aria-disabled') !== 'true');
   if (menuItems.length === 0) return undefined;
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -81,8 +85,11 @@ export function attachMenuKeyboardNavigation(
         menuItems.forEach((item, idx) => {
           item.setAttribute('tabindex', idx === nextIndex ? '0' : '-1');
         });
-        menuItems[nextIndex].focus({ preventScroll: false });
-        menuItems[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const next = menuItems[nextIndex];
+        if (next) {
+          next.focus({ preventScroll: false });
+          next.scrollIntoView(reducedMotionScrollOptions('nearest'));
+        }
         break;
       }
 
@@ -93,8 +100,11 @@ export function attachMenuKeyboardNavigation(
         menuItems.forEach((item, idx) => {
           item.setAttribute('tabindex', idx === prevIndex ? '0' : '-1');
         });
-        menuItems[prevIndex].focus({ preventScroll: false });
-        menuItems[prevIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const prev = menuItems[prevIndex];
+        if (prev) {
+          prev.focus({ preventScroll: false });
+          prev.scrollIntoView(reducedMotionScrollOptions('nearest'));
+        }
         break;
       }
 
@@ -104,8 +114,11 @@ export function attachMenuKeyboardNavigation(
         menuItems.forEach((item, idx) => {
           item.setAttribute('tabindex', idx === 0 ? '0' : '-1');
         });
-        menuItems[0].focus({ preventScroll: false });
-        menuItems[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const firstItem = menuItems[0];
+        if (firstItem) {
+          firstItem.focus({ preventScroll: false });
+          firstItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
+        }
         break;
       }
 
@@ -116,8 +129,11 @@ export function attachMenuKeyboardNavigation(
         menuItems.forEach((item, idx) => {
           item.setAttribute('tabindex', idx === lastIndex ? '0' : '-1');
         });
-        menuItems[lastIndex].focus({ preventScroll: false });
-        menuItems[lastIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const lastItem = menuItems[lastIndex];
+        if (lastItem) {
+          lastItem.focus({ preventScroll: false });
+          lastItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
+        }
         break;
       }
 
@@ -160,13 +176,15 @@ export function focusFirstMenuItem(
   if (!menu) return;
 
   setTimeout(() => {
-    const menuItems = Array.from(menu.querySelectorAll<HTMLElement>(itemSelector));
-    if (menuItems.length > 0) {
+    const menuItems = Array.from(menu.querySelectorAll<HTMLElement>(itemSelector))
+      .filter((item) => item.getAttribute('aria-disabled') !== 'true');
+    const firstItem = menuItems[0];
+    if (firstItem) {
       menuItems.forEach((item, index) => {
         item.setAttribute('tabindex', index === 0 ? '0' : '-1');
       });
-      focusElement(menuItems[0], { delay: 0 });
-      menuItems[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      focusElement(firstItem, { delay: 0 });
+      firstItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
     }
   }, delay);
 }

@@ -5,33 +5,35 @@
  */
 import {
   TimeUtils
-} from "./vidply.chunk-NUTGO3RK.js";
-import {
-  HTML5Renderer
-} from "./vidply.chunk-PTYRD6ZP.js";
-import {
-  CaptionManager,
-  debounce,
-  isMobile,
-  rafWithTimeout,
-  throttle
-} from "./vidply.chunk-AQDY6B5B.js";
-import {
-  StorageManager
-} from "./vidply.chunk-QF77EYBM.js";
-import {
-  focusElement,
-  focusFirstElement
-} from "./vidply.chunk-24QLI7ZK.js";
+} from "./vidply.chunk-3REZW6PT.js";
 import {
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-MQAA3FKI.js";
+} from "./vidply.chunk-IS7IOF65.js";
+import {
+  focusElement
+} from "./vidply.chunk-GALMU4LO.js";
+import {
+  HTML5Renderer
+} from "./vidply.chunk-NHHWYTHZ.js";
+import {
+  CaptionManager
+} from "./vidply.chunk-ANYE7H3P.js";
+import {
+  StorageManager
+} from "./vidply.chunk-Z7NCCGYG.js";
+import {
+  debounce,
+  isMobile,
+  rafWithTimeout,
+  reducedMotionScrollOptions,
+  throttle
+} from "./vidply.chunk-AIIDGTXD.js";
 import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-KMACPXZ5.js";
+} from "./vidply.chunk-4GNSTE2G.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -206,13 +208,13 @@ var EXT_TO_FORMAT = {
 };
 function inferFormatFromMime(mime) {
   if (!mime) return null;
-  const trimmed = mime.split(";")[0].trim().toLowerCase();
+  const trimmed = (mime.split(";")[0] ?? "").trim().toLowerCase();
   return MIME_TO_FORMAT[trimmed] || null;
 }
 function inferFormatFromUrl(url) {
   if (!url) return null;
   try {
-    const cleaned = url.split("?")[0].split("#")[0];
+    const cleaned = url.split("?")[0]?.split("#")[0] ?? "";
     const lastSegment = cleaned.split("/").pop() || "";
     const dotIndex = lastSegment.lastIndexOf(".");
     if (dotIndex < 0 || dotIndex === lastSegment.length - 1) return null;
@@ -734,42 +736,60 @@ var ControlBar = class {
   }
   // Helper method to add keyboard navigation to menus (arrow keys)
   attachMenuKeyboardNavigation(menu, button) {
-    const menuItems = Array.from(menu.querySelectorAll(`.${this.player.options.classPrefix}-menu-item`));
+    const menuItems = Array.from(
+      menu.querySelectorAll(`.${this.player.options.classPrefix}-menu-item`)
+    ).filter((item) => item.getAttribute("aria-disabled") !== "true");
     if (menuItems.length === 0) return;
     const handleKeyDown = (e) => {
       const currentIndex = menuItems.indexOf(document.activeElement);
       switch (e.key) {
-        case "ArrowDown":
+        case "ArrowDown": {
           e.preventDefault();
           e.stopPropagation();
           const nextIndex = (currentIndex + 1) % menuItems.length;
-          menuItems[nextIndex].focus({ preventScroll: false });
-          menuItems[nextIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
+          const nextItem = menuItems[nextIndex];
+          if (nextItem) {
+            nextItem.focus({ preventScroll: false });
+            nextItem.scrollIntoView(reducedMotionScrollOptions("nearest"));
+          }
           break;
-        case "ArrowUp":
+        }
+        case "ArrowUp": {
           e.preventDefault();
           e.stopPropagation();
           const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
-          menuItems[prevIndex].focus({ preventScroll: false });
-          menuItems[prevIndex].scrollIntoView({ behavior: "smooth", block: "nearest" });
+          const prevItem = menuItems[prevIndex];
+          if (prevItem) {
+            prevItem.focus({ preventScroll: false });
+            prevItem.scrollIntoView(reducedMotionScrollOptions("nearest"));
+          }
           break;
+        }
         case "ArrowLeft":
         case "ArrowRight":
           e.preventDefault();
           e.stopPropagation();
           break;
-        case "Home":
+        case "Home": {
           e.preventDefault();
           e.stopPropagation();
-          menuItems[0].focus({ preventScroll: false });
-          menuItems[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
+          const homeItem = menuItems[0];
+          if (homeItem) {
+            homeItem.focus({ preventScroll: false });
+            homeItem.scrollIntoView(reducedMotionScrollOptions("nearest"));
+          }
           break;
-        case "End":
+        }
+        case "End": {
           e.preventDefault();
           e.stopPropagation();
-          menuItems[menuItems.length - 1].focus({ preventScroll: false });
-          menuItems[menuItems.length - 1].scrollIntoView({ behavior: "smooth", block: "nearest" });
+          const endItem = menuItems[menuItems.length - 1];
+          if (endItem) {
+            endItem.focus({ preventScroll: false });
+            endItem.scrollIntoView(reducedMotionScrollOptions("nearest"));
+          }
           break;
+        }
         case "Enter":
         case " ":
           e.preventDefault();
@@ -803,7 +823,9 @@ var ControlBar = class {
     });
     if (this.player.options.progressBar) {
       this.createProgressBar();
-      progressTimeWrapper.appendChild(this.controls.progress);
+      if (this.controls.progress) {
+        progressTimeWrapper.appendChild(this.controls.progress);
+      }
     }
     if (this.player.options.currentTime || this.player.options.duration) {
       progressTimeWrapper.appendChild(this.createTimeDisplay());
@@ -979,7 +1001,7 @@ var ControlBar = class {
   hasChapterTracks() {
     const textTracks = this.player.element.textTracks;
     for (let i = 0; i < textTracks.length; i++) {
-      if (textTracks[i].kind === "chapters") return true;
+      if (textTracks[i]?.kind === "chapters") return true;
     }
     const trackEls = Array.from(this.player.element.querySelectorAll('track[kind="chapters"]'));
     if (trackEls.length > 0) return true;
@@ -993,7 +1015,8 @@ var ControlBar = class {
   hasCaptionTracks() {
     const textTracks = this.player.element.textTracks;
     for (let i = 0; i < textTracks.length; i++) {
-      if ((textTracks[i].kind === "captions" || textTracks[i].kind === "subtitles") && !textTracks[i]._vidplyStale) {
+      const tt = textTracks[i];
+      if (tt && (tt.kind === "captions" || tt.kind === "subtitles") && !tt._vidplyStale) {
         return true;
       }
     }
@@ -1312,6 +1335,7 @@ var ControlBar = class {
   }
   setupProgressBarEvents() {
     const progress = this.controls.progress;
+    if (!progress) return;
     const updateProgress = (clientX) => {
       const rect = progress.getBoundingClientRect();
       const percent = rect.width > 0 ? Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) : 0;
@@ -1330,9 +1354,13 @@ var ControlBar = class {
         const { time } = updateProgress(e.clientX);
         const rect = progress.getBoundingClientRect();
         const left = e.clientX - rect.left;
-        this.controls.progressTooltipTime.textContent = TimeUtils.formatTime(time);
-        this.controls.progressTooltip.style.left = `${left}px`;
-        this.controls.progressTooltip.style.display = "block";
+        const tooltip = this.controls.progressTooltip;
+        const tooltipTime = this.controls.progressTooltipTime;
+        if (tooltip && tooltipTime) {
+          tooltipTime.textContent = TimeUtils.formatTime(time);
+          tooltip.style.left = `${left}px`;
+          tooltip.style.display = "block";
+        }
         if (!this.player?.state?.hasStartedPlayback) {
           if (this.controls.progressPreview) {
             this.controls.progressPreview.style.display = "none";
@@ -1348,7 +1376,9 @@ var ControlBar = class {
       }
     });
     progress.addEventListener("mouseleave", () => {
-      this.controls.progressTooltip.style.display = "none";
+      if (this.controls.progressTooltip) {
+        this.controls.progressTooltip.style.display = "none";
+      }
       if (this.previewThumbnailTimeout) {
         clearTimeout(this.previewThumbnailTimeout);
       }
@@ -1391,6 +1421,7 @@ var ControlBar = class {
     progress.addEventListener("touchstart", (e) => {
       this.isDraggingProgress = true;
       const touch = e.touches[0];
+      if (!touch) return;
       const { time } = updateProgress(touch.clientX);
       this.player.seek(time);
     });
@@ -1398,6 +1429,7 @@ var ControlBar = class {
       if (this.isDraggingProgress) {
         e.preventDefault();
         const touch = e.touches[0];
+        if (!touch) return;
         const { time } = updateProgress(touch.clientX);
         this.player.seek(time);
       }
@@ -1624,12 +1656,14 @@ var ControlBar = class {
       this.isDraggingVolume = true;
       this._activeVolumeTrack = volumeTrack;
       const touch = e.touches[0];
+      if (!touch) return;
       updateVolume(touch.clientY);
     }, { passive: false });
     volumeSlider.addEventListener("touchmove", (e) => {
       if (this.isDraggingVolume) {
         e.preventDefault();
         const touch = e.touches[0];
+        if (!touch) return;
         updateVolume(touch.clientY);
       }
     }, { passive: false });
@@ -1772,25 +1806,29 @@ var ControlBar = class {
     );
     if (chapterTracks.length === 0) {
       const noChaptersItem = DOMUtils.createElement("div", {
-        className: `${this.player.options.classPrefix}-menu-item`,
+        className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
         textContent: i18n.t("player.noChapters"),
         attributes: {
-          "role": "menuitem"
+          "role": "menuitem",
+          "aria-disabled": "true",
+          "tabindex": "-1"
         },
         style: { opacity: "0.5", cursor: "default" }
       });
       menu.appendChild(noChaptersItem);
-    } else {
+    } else if (chapterTracks[0]) {
       const chapterTrack = chapterTracks[0];
       if (chapterTrack.mode === "disabled") {
         chapterTrack.mode = "hidden";
       }
       if (!chapterTrack.cues || chapterTrack.cues.length === 0) {
         const loadingItem = DOMUtils.createElement("div", {
-          className: `${this.player.options.classPrefix}-menu-item`,
+          className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
           textContent: i18n.t("player.loadingChapters"),
           attributes: {
-            "role": "menuitem"
+            "role": "menuitem",
+            "aria-disabled": "true",
+            "tabindex": "-1"
           },
           style: { opacity: "0.5", cursor: "default" }
         });
@@ -2013,284 +2051,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-caption-style-menu`);
-    if (existingMenu) {
-      existingMenu.remove();
-      button.setAttribute("aria-expanded", "false");
-      if (this.openMenu === existingMenu) {
-        this.openMenu = null;
-        this.openMenuButton = null;
-      }
-      return;
-    }
-    const menuLabelId = `${this.player.options.classPrefix}-caption-style-label-${this.player.instanceId || ""}`;
-    const menu = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-caption-style-menu ${this.player.options.classPrefix}-menu ${this.player.options.classPrefix}-settings-menu`,
-      attributes: {
-        "role": "dialog",
-        "aria-modal": "false",
-        "aria-labelledby": menuLabelId
-      }
-    });
-    const visuallyHiddenLabel = DOMUtils.createElement("h2", {
-      textContent: i18n.t("player.captionStyling"),
-      attributes: { id: menuLabelId, class: `${this.player.options.classPrefix}-sr-only` },
-      style: {
-        position: "absolute",
-        width: "1px",
-        height: "1px",
-        padding: "0",
-        margin: "-1px",
-        overflow: "hidden",
-        clip: "rect(0,0,0,0)",
-        whiteSpace: "nowrap",
-        border: "0"
-      }
-    });
-    menu.appendChild(visuallyHiddenLabel);
-    menu.addEventListener("click", (e) => {
-      e.stopPropagation();
-    });
-    if (!this.player.captionManager || this.player.captionManager.tracks.length === 0) {
-      const noTracksItem = DOMUtils.createElement("div", {
-        className: `${this.player.options.classPrefix}-menu-item`,
-        textContent: i18n.t("player.noCaptions"),
-        attributes: {
-          "role": "status"
-        },
-        style: { opacity: "0.5", cursor: "default", padding: "12px 16px" }
-      });
-      menu.appendChild(noTracksItem);
-      menu.style.visibility = "hidden";
-      menu.style.display = "block";
-      this.insertMenuIntoDOM(menu, button);
-      this.positionMenu(menu, button, true);
-      requestAnimationFrame(() => {
-        menu.style.visibility = "visible";
-      });
-      this.attachMenuCloseHandler(menu, button, true);
-      return;
-    }
-    const fontSizeGroup = this.createStyleControl(
-      i18n.t("styleLabels.fontSize"),
-      "captionsFontSize",
-      [
-        { label: i18n.t("fontSizes.small"), value: "87.5%" },
-        { label: i18n.t("fontSizes.normal"), value: "100%" },
-        { label: i18n.t("fontSizes.large"), value: "125%" },
-        { label: i18n.t("fontSizes.xlarge"), value: "150%" }
-      ]
-    );
-    menu.appendChild(fontSizeGroup);
-    const fontFamilyGroup = this.createStyleControl(
-      i18n.t("styleLabels.font"),
-      "captionsFontFamily",
-      [
-        { label: i18n.t("fontFamilies.sansSerif"), value: "sans-serif" },
-        { label: i18n.t("fontFamilies.serif"), value: "serif" },
-        { label: i18n.t("fontFamilies.monospace"), value: "monospace" }
-      ]
-    );
-    menu.appendChild(fontFamilyGroup);
-    const colorGroup = this.createColorControl(i18n.t("styleLabels.textColor"), "captionsColor");
-    menu.appendChild(colorGroup);
-    const bgColorGroup = this.createColorControl(i18n.t("styleLabels.background"), "captionsBackgroundColor");
-    menu.appendChild(bgColorGroup);
-    const opacityGroup = this.createOpacityControl(i18n.t("styleLabels.opacity"), "captionsOpacity");
-    menu.appendChild(opacityGroup);
-    menu.style.minWidth = "220px";
-    menu.style.visibility = "hidden";
-    menu.style.display = "block";
-    this.insertMenuIntoDOM(menu, button);
-    this.positionMenu(menu, button, true);
-    requestAnimationFrame(() => {
-      menu.style.visibility = "visible";
-    });
-    this.attachMenuCloseHandler(menu, button, true);
-    focusFirstElement(menu, `.${this.player.options.classPrefix}-style-select`);
-  }
-  createStyleControl(label, property, options) {
-    const group = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-style-group`
-    });
-    const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
-    const labelEl = DOMUtils.createElement("label", {
-      textContent: label,
-      attributes: {
-        "for": controlId
-      },
-      style: {
-        display: "block",
-        fontSize: "12px",
-        marginBottom: "4px",
-        color: "rgba(255,255,255,0.7)"
-      }
-    });
-    group.appendChild(labelEl);
-    const select = DOMUtils.createElement("select", {
-      className: `${this.player.options.classPrefix}-style-select`,
-      attributes: {
-        "id": controlId
-      },
-      style: {
-        width: "100%",
-        padding: "6px",
-        background: "var(--vidply-white)",
-        border: "1px solid var(--vidply-white-10)",
-        borderRadius: "4px",
-        color: "var(--vidply-black)",
-        fontSize: "13px"
-      }
-    });
-    const currentValue = this.player.options[property];
-    options.forEach((opt) => {
-      const option = DOMUtils.createElement("option", {
-        textContent: opt.label,
-        attributes: { value: opt.value }
-      });
-      if (opt.value === currentValue) {
-        option.selected = true;
-      }
-      select.appendChild(option);
-    });
-    select.addEventListener("mousedown", (e) => {
-      e.stopPropagation();
-    });
-    select.addEventListener("click", (e) => {
-      e.stopPropagation();
-    });
-    select.addEventListener("change", (e) => {
-      e.stopPropagation();
-      this.player.options[property] = e.target.value;
-      if (this.player.captionManager) {
-        this.player.captionManager.setCaptionStyle(
-          property.replace("captions", "").charAt(0).toLowerCase() + property.replace("captions", "").slice(1),
-          e.target.value
-        );
-      }
-    });
-    group.appendChild(select);
-    return group;
-  }
-  createColorControl(label, property) {
-    const group = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-style-group`
-    });
-    const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
-    const labelEl = DOMUtils.createElement("label", {
-      textContent: label,
-      attributes: {
-        "for": controlId
-      },
-      style: {
-        display: "block",
-        fontSize: "12px",
-        marginBottom: "4px",
-        color: "rgba(255,255,255,0.7)"
-      }
-    });
-    group.appendChild(labelEl);
-    const input = DOMUtils.createElement("input", {
-      attributes: {
-        "id": controlId,
-        type: "color",
-        value: String(this.player.options[property] ?? "")
-      },
-      style: {
-        width: "100%",
-        height: "32px",
-        padding: "2px",
-        background: "rgba(255,255,255,0.1)",
-        border: "1px solid rgba(255,255,255,0.2)",
-        borderRadius: "4px",
-        cursor: "pointer"
-      }
-    });
-    input.addEventListener("mousedown", (e) => {
-      e.stopPropagation();
-    });
-    input.addEventListener("click", (e) => {
-      e.stopPropagation();
-    });
-    input.addEventListener("change", (e) => {
-      e.stopPropagation();
-      this.player.options[property] = e.target.value;
-      if (this.player.captionManager) {
-        this.player.captionManager.setCaptionStyle(
-          property.replace("captions", "").charAt(0).toLowerCase() + property.replace("captions", "").slice(1),
-          e.target.value
-        );
-      }
-    });
-    group.appendChild(input);
-    return group;
-  }
-  createOpacityControl(label, property) {
-    const group = DOMUtils.createElement("div", {
-      className: `${this.player.options.classPrefix}-style-group`
-    });
-    const controlId = `${this.player.options.classPrefix}-${property}-${Date.now()}`;
-    const labelContainer = DOMUtils.createElement("div", {
-      style: {
-        display: "flex",
-        justifyContent: "space-between",
-        marginBottom: "4px"
-      }
-    });
-    const labelEl = DOMUtils.createElement("label", {
-      textContent: label,
-      attributes: {
-        "for": controlId
-      },
-      style: {
-        fontSize: "12px",
-        color: "rgba(255,255,255,0.7)"
-      }
-    });
-    const valueEl = DOMUtils.createElement("span", {
-      textContent: Math.round(Number(this.player.options[property] ?? 0) * 100) + "%",
-      style: {
-        fontSize: "12px",
-        color: "rgba(255,255,255,0.7)"
-      }
-    });
-    labelContainer.appendChild(labelEl);
-    labelContainer.appendChild(valueEl);
-    group.appendChild(labelContainer);
-    const input = DOMUtils.createElement("input", {
-      attributes: {
-        "id": controlId,
-        type: "range",
-        min: "0",
-        max: "1",
-        step: "0.1",
-        value: String(this.player.options[property])
-      },
-      style: {
-        width: "100%",
-        cursor: "pointer"
-      }
-    });
-    input.addEventListener("mousedown", (e) => {
-      e.stopPropagation();
-    });
-    input.addEventListener("click", (e) => {
-      e.stopPropagation();
-    });
-    input.addEventListener("input", (e) => {
-      e.stopPropagation();
-      const value = parseFloat(e.target.value);
-      valueEl.textContent = Math.round(value * 100) + "%";
-      this.player.options[property] = value;
-      if (this.player.captionManager) {
-        this.player.captionManager.setCaptionStyle(
-          property.replace("captions", "").charAt(0).toLowerCase() + property.replace("captions", "").slice(1),
-          value
-        );
-      }
-    });
-    group.appendChild(input);
-    return group;
+    import("./vidply.CaptionStyleMenu-QKRHIFTJ.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
@@ -2912,13 +2673,15 @@ var ControlBar = class {
     const duration = this.player.state.duration || 0;
     const percent = duration > 0 ? Math.min(100, Math.max(0, currentTime / duration * 100)) : 0;
     this.controls.played.style.width = `${percent}%`;
-    this.controls.progress.setAttribute("aria-valuenow", String(Math.round(percent)));
-    const currentTimeText = TimeUtils.formatDuration(this.player.state.currentTime);
-    const durationText = TimeUtils.formatDuration(this.player.state.duration);
-    this.controls.progress.setAttribute(
-      "aria-valuetext",
-      `${Math.round(percent)}%, ${currentTimeText} ${i18n.t("time.of")} ${durationText}`
-    );
+    if (this.controls.progress) {
+      this.controls.progress.setAttribute("aria-valuenow", String(Math.round(percent)));
+      const currentTimeText = TimeUtils.formatDuration(this.player.state.currentTime);
+      const durationText = TimeUtils.formatDuration(this.player.state.duration);
+      this.controls.progress.setAttribute(
+        "aria-valuetext",
+        `${Math.round(percent)}%, ${currentTimeText} ${i18n.t("time.of")} ${durationText}`
+      );
+    }
     if (this.controls.currentTimeVisual) {
       const currentTime2 = this.player.state.currentTime;
       this.controls.currentTimeVisual.textContent = TimeUtils.formatTime(currentTime2);
@@ -3117,7 +2880,8 @@ var ControlBar = class {
   disableAllCaptions() {
     const textTracks = this.player.element.textTracks;
     for (let i = 0; i < textTracks.length; i++) {
-      textTracks[i].mode = "disabled";
+      const tt = textTracks[i];
+      if (tt) tt.mode = "disabled";
     }
     const captionsContainer = this.player.container?.querySelector(`.${this.player.options.classPrefix}-captions`);
     if (captionsContainer) {
@@ -3230,10 +2994,12 @@ var ControlBar = class {
     const overflowButtons = Array.from(this.rightButtons.querySelectorAll('button[data-in-overflow="true"]'));
     if (overflowButtons.length === 0) {
       const noItemsText = DOMUtils.createElement("div", {
-        className: `${this.player.options.classPrefix}-menu-item`,
+        className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
         textContent: i18n.t("player.noMoreOptions"),
         attributes: {
-          "role": "menuitem"
+          "role": "menuitem",
+          "aria-disabled": "true",
+          "tabindex": "-1"
         },
         style: { opacity: "0.5", cursor: "default" }
       });
@@ -3543,13 +3309,68 @@ var KeyboardManager = class {
   player;
   shortcuts;
   announcer = null;
+  // Announcements are driven by player state-change events so they fire for
+  // mouse/touch control use too, not only keyboard shortcuts (WCAG 4.1.3).
+  // Gated until 'ready' so initial volume/mute/source setup stays silent.
+  _announceReady = false;
+  _prevMuted;
+  _stateAnnouncers = [];
+  _announceVolume;
   constructor(player) {
     this.player = player;
     this.shortcuts = player.options.keyboardShortcuts;
+    this._prevMuted = player.state.muted;
+    this._announceVolume = debounce(() => {
+      const percent = Math.round(this.player.state.volume * 100);
+      this.announce(i18n.t("player.volumePercent", { percent }));
+    }, 500);
     this.init();
   }
   init() {
     this.attachEvents();
+    this.attachStateAnnouncements();
+  }
+  /**
+   * Subscribe to player state-change events so play/pause, mute, volume,
+   * captions, fullscreen and speed changes are announced to assistive tech
+   * regardless of whether the user used the keyboard, mouse or touch
+   * (WCAG 4.1.3 Status Messages).
+   */
+  attachStateAnnouncements() {
+    if (typeof this.player.on !== "function") return;
+    const onReady = () => {
+      this._announceReady = true;
+    };
+    this.player.on("ready", onReady);
+    const register = (event, handler) => {
+      const wrapped = () => {
+        if (this._announceReady) handler();
+      };
+      this.player.on(event, wrapped);
+      this._stateAnnouncers.push({ event, handler: wrapped });
+    };
+    this._stateAnnouncers.push({ event: "ready", handler: onReady });
+    register("play", () => this.announce(i18n.t("player.playing")));
+    register("pause", () => this.announce(i18n.t("player.paused")));
+    register("captionsenabled", () => this.announce(i18n.t("player.captionsOn")));
+    register("captionsdisabled", () => this.announce(i18n.t("player.captionsOff")));
+    register("fullscreenchange", () => {
+      this.announce(this.player.state.fullscreen ? i18n.t("player.fullscreen") : i18n.t("player.exitFullscreen"));
+    });
+    register("ratechange", () => {
+      const rate = this.player.state.playbackSpeed;
+      this.announce(i18n.t("player.speedRate", { rate: String(rate) }));
+    });
+    register("volumechange", () => {
+      if (this.player.state.muted !== this._prevMuted) {
+        this._prevMuted = this.player.state.muted;
+        this.announce(this.player.state.muted ? i18n.t("player.muted") : i18n.t("player.unmuted"));
+        return;
+      }
+      if (!this.player.state.muted) {
+        this._announceVolume();
+      }
+    });
   }
   attachEvents() {
     this.player.container.addEventListener("keydown", (e) => {
@@ -3603,7 +3424,6 @@ var KeyboardManager = class {
         if (handled) {
           e.preventDefault();
           e.stopPropagation();
-          this.announceAction(action);
           break;
         }
       }
@@ -3761,6 +3581,12 @@ var KeyboardManager = class {
     }
   }
   destroy() {
+    if (typeof this.player.off === "function") {
+      for (const { event, handler } of this._stateAnnouncers) {
+        this.player.off(event, handler);
+      }
+    }
+    this._stateAnnouncers = [];
     if (this.announcer && this.announcer.parentNode) {
       this.announcer.parentNode.removeChild(this.announcer);
     }
@@ -3880,7 +3706,7 @@ var PseudoFullscreenController = class {
     this.originalViewport = document.querySelector('meta[name="viewport"]')?.getAttribute("content");
     const viewport = document.querySelector('meta[name="viewport"]');
     if (viewport) {
-      viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+      viewport.setAttribute("content", "width=device-width, initial-scale=1.0");
     }
     window.scrollTo(0, 0);
     this.makeBackgroundInert();
@@ -4692,7 +4518,7 @@ var MetadataAlertsManager = class {
       element.focus({ preventScroll: true });
     }
     if (shouldShow && config.autoScroll !== false && options.autoScroll !== false) {
-      element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      element.scrollIntoView(reducedMotionScrollOptions("nearest"));
     }
     const continueSelector = config.continueButton;
     if (continueSelector) {
@@ -4874,21 +4700,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-NRMNKZAL.js");
+    const module = await import("./vidply.AudioDescriptionManager-F7Q64QAU.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-ZZ6DIDTP.js");
+    const module = await import("./vidply.SignLanguageManager-SCKLBTXB.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-HJVGUQLT.js");
+    const module = await import("./vidply.FloatingPlayerManager-GGA5NVNP.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -5538,7 +5364,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-4553RRA6.js");
+    const module = await import("./vidply.TranscriptManager-T6YZASXW.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -5649,6 +5475,9 @@ var Player = class _Player extends EventEmitter {
       return null;
     }
     const normalizedLang = htmlLang.toLowerCase().split("-")[0];
+    if (!normalizedLang) {
+      return null;
+    }
     if (i18n.translations[normalizedLang]) {
       return normalizedLang;
     }
@@ -5741,7 +5570,7 @@ var Player = class _Player extends EventEmitter {
     this.container = DOMUtils.createElement("div", {
       className: `${this.options.classPrefix}-player`,
       attributes: {
-        "role": "application",
+        "role": "region",
         "aria-label": playerLabel,
         "tabindex": "0"
       }
@@ -5978,19 +5807,19 @@ var Player = class _Player extends EventEmitter {
   }
   async _detectRendererClass(src) {
     if (src.includes("youtube.com") || src.includes("youtu.be")) {
-      const module = await import("./vidply.YouTubeRenderer-PZHT3GMF.js");
+      const module = await import("./vidply.YouTubeRenderer-RVL2MNXT.js");
       return module.YouTubeRenderer ?? module.default;
     } else if (src.includes("vimeo.com")) {
-      const module = await import("./vidply.VimeoRenderer-EVW2RNSF.js");
+      const module = await import("./vidply.VimeoRenderer-FV3CBAGV.js");
       return module.VimeoRenderer ?? module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-YAFEUBMC.js");
+      const module = await import("./vidply.HLSRenderer-WRHZ3D4E.js");
       return module.HLSRenderer ?? module.default;
     } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-SYXX6RRS.js");
+      const module = await import("./vidply.DASHRenderer-W4WHHSFR.js");
       return module.DASHRenderer ?? module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
-      const module = await import("./vidply.SoundCloudRenderer-OFBGL7UV.js");
+      const module = await import("./vidply.SoundCloudRenderer-S6LG2FWS.js");
       return module.SoundCloudRenderer ?? module.default;
     }
     return HTML5Renderer;
@@ -6259,17 +6088,18 @@ var Player = class _Player extends EventEmitter {
           } catch {
           }
           if (this.renderer) {
-            if (typeof this.renderer._didDeferredLoad === "boolean") {
-              this.renderer._didDeferredLoad = false;
+            const deferState = this.renderer;
+            if (typeof deferState._didDeferredLoad === "boolean") {
+              deferState._didDeferredLoad = false;
             }
-            if (typeof this.renderer._hlsSourceLoaded === "boolean") {
-              this.renderer._hlsSourceLoaded = false;
+            if (typeof deferState._hlsSourceLoaded === "boolean") {
+              deferState._hlsSourceLoaded = false;
             }
-            if (typeof this.renderer._dashSourceLoaded === "boolean") {
-              this.renderer._dashSourceLoaded = false;
+            if (typeof deferState._dashSourceLoaded === "boolean") {
+              deferState._dashSourceLoaded = false;
             }
             if ("_pendingSrc" in this.renderer) {
-              this.renderer._pendingSrc = this._pendingSource || this.currentSource || null;
+              deferState._pendingSrc = this._pendingSource || this.currentSource || null;
             }
           }
         } else {
@@ -6844,8 +6674,9 @@ var Player = class _Player extends EventEmitter {
     if (messages.length === 0) {
       messages = [""];
     }
-    if (typeof consoleObj[type] === "function") {
-      consoleObj[type]("[VidPly]", ...messages);
+    const consoleFn = consoleObj[type];
+    if (typeof consoleFn === "function") {
+      consoleFn("[VidPly]", ...messages);
     } else {
       console.log("[VidPly]", ...messages);
     }
@@ -7058,6 +6889,9 @@ var PlaylistManager = class {
     this.PlayerClass = options.PlayerClass ?? null;
     this.handleTrackEnd = this.handleTrackEnd.bind(this);
     this.handleTrackError = this.handleTrackError.bind(this);
+    this.handlePlaybackStateChange = this.handlePlaybackStateChange.bind(this);
+    this.handleFullscreenChange = this.handleFullscreenChange.bind(this);
+    this.handleAudioDescriptionChange = this.handleAudioDescriptionChange.bind(this);
     this.player.playlistManager = this;
     this.init();
     this.updatePlayerControls();
@@ -7228,12 +7062,12 @@ var PlaylistManager = class {
   init() {
     this.player.on("ended", this.handleTrackEnd);
     this.player.on("error", this.handleTrackError);
-    this.player.on("play", this.handlePlaybackStateChange.bind(this));
-    this.player.on("pause", this.handlePlaybackStateChange.bind(this));
-    this.player.on("ended", this.handlePlaybackStateChange.bind(this));
-    this.player.on("fullscreenchange", this.handleFullscreenChange.bind(this));
-    this.player.on("audiodescriptionenabled", this.handleAudioDescriptionChange.bind(this));
-    this.player.on("audiodescriptiondisabled", this.handleAudioDescriptionChange.bind(this));
+    this.player.on("play", this.handlePlaybackStateChange);
+    this.player.on("pause", this.handlePlaybackStateChange);
+    this.player.on("ended", this.handlePlaybackStateChange);
+    this.player.on("fullscreenchange", this.handleFullscreenChange);
+    this.player.on("audiodescriptionenabled", this.handleAudioDescriptionChange);
+    this.player.on("audiodescriptiondisabled", this.handleAudioDescriptionChange);
     if (this.options.showPanel) {
       this.createUI();
     }
@@ -7339,6 +7173,7 @@ var PlaylistManager = class {
       return;
     }
     const track = this.tracks[index];
+    if (!track) return;
     this.selectTrack(index);
     this.isChangingTrack = true;
     if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
@@ -7395,6 +7230,7 @@ var PlaylistManager = class {
       return;
     }
     const track = this.tracks[index];
+    if (!track) return;
     this.currentIndex = index;
     try {
       if (this.player?.element?.tagName === "VIDEO") {
@@ -7488,6 +7324,7 @@ var PlaylistManager = class {
       return;
     }
     const track = this.tracks[index];
+    if (!track) return;
     this.isChangingTrack = true;
     this.currentIndex = index;
     if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
@@ -7851,10 +7688,6 @@ var PlaylistManager = class {
    * Create playlist item element
    */
   createPlaylistItem(track, index) {
-    const _trackPosition = i18n.t("playlist.trackOf", {
-      current: index + 1,
-      total: this.tracks.length
-    });
     const trackTitle = track.title || i18n.t("playlist.trackUntitled", { number: index + 1 });
     const trackArtist = track.artist ? i18n.t("playlist.by") + track.artist : "";
     const effectiveDuration = this.getEffectiveDuration(track);
@@ -8052,12 +7885,16 @@ var PlaylistManager = class {
         break;
     }
     if (newIndex !== -1 && newIndex !== index) {
-      buttons[index].setAttribute("tabIndex", "-1");
-      buttons[newIndex].setAttribute("tabIndex", "0");
-      buttons[newIndex].focus({ preventScroll: false });
-      const item = buttons[newIndex].closest(".vidply-playlist-item");
-      if (item) {
-        item.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      const currentButton = buttons[index];
+      const newButton = buttons[newIndex];
+      if (currentButton && newButton) {
+        currentButton.setAttribute("tabIndex", "-1");
+        newButton.setAttribute("tabIndex", "0");
+        newButton.focus({ preventScroll: false });
+        const item = newButton.closest(".vidply-playlist-item");
+        if (item) {
+          item.scrollIntoView(reducedMotionScrollOptions("nearest"));
+        }
       }
     }
     if (announcement && this.navigationFeedback) {
@@ -8080,10 +7917,7 @@ var PlaylistManager = class {
       const button = buttons[index];
       if (!button) return;
       const track = this.tracks[index];
-      const _trackPosition = i18n.t("playlist.trackOf", {
-        current: index + 1,
-        total: this.tracks.length
-      });
+      if (!track) return;
       const trackTitle = track.title || i18n.t("playlist.trackUntitled", { number: index + 1 });
       const trackArtist = track.artist ? i18n.t("playlist.by") + track.artist : "";
       const effectiveDuration = this.getEffectiveDuration(track);
@@ -8098,7 +7932,7 @@ var PlaylistManager = class {
           ariaLabel += `. ${trackDurationReadable}`;
         }
         button.setAttribute("aria-label", ariaLabel);
-        item.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        item.scrollIntoView(reducedMotionScrollOptions("nearest"));
       } else {
         item.classList.remove("vidply-playlist-item-active");
         button.removeAttribute("aria-current");
@@ -8245,6 +8079,12 @@ var PlaylistManager = class {
   destroy() {
     this.player.off("ended", this.handleTrackEnd);
     this.player.off("error", this.handleTrackError);
+    this.player.off("play", this.handlePlaybackStateChange);
+    this.player.off("pause", this.handlePlaybackStateChange);
+    this.player.off("ended", this.handlePlaybackStateChange);
+    this.player.off("fullscreenchange", this.handleFullscreenChange);
+    this.player.off("audiodescriptionenabled", this.handleAudioDescriptionChange);
+    this.player.off("audiodescriptiondisabled", this.handleAudioDescriptionChange);
     if (this.trackArtworkElement) {
       this.trackArtworkElement.remove();
     }
@@ -8353,7 +8193,7 @@ function parseDataAttributes(dataset) {
   for (const key of Object.keys(dataset)) {
     if (key.startsWith("signLanguageSrc") && key !== "signLanguageSrc") {
       const langMatch = key.match(/^signLanguageSrc([A-Z][a-z]*)$/);
-      if (langMatch) {
+      if (langMatch && langMatch[1]) {
         const langCode = langMatch[1].toLowerCase();
         const value = dataset[key];
         if (value !== void 0) {

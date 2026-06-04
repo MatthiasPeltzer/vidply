@@ -5,7 +5,7 @@
 import {DOMUtils} from '../utils/DOMUtils.js';
 import {i18n} from '../i18n/i18n.js';
 import {StorageManager} from '../utils/StorageManager.js';
-import {debounce, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
+import {debounce, isMobile, rafWithTimeout, reducedMotionScrollOptions} from '../utils/PerformanceUtils.js';
 import {deriveTrackLabel} from '../utils/TrackLabelUtils.js';
 import type { Player } from '../core/Player.js';
 
@@ -88,11 +88,17 @@ export class CaptionManager {
     }
 
     createElement() {
+        // The native <track> is rendered hidden and captions are drawn into
+        // this overlay, so assistive tech cannot read cues from the track
+        // itself. aria-live="polite" makes each cue change announceable for
+        // screen-reader users (notably deaf-blind/braille users) without
+        // interrupting other speech (WCAG 1.2.2, 4.1.3).
         this.element = DOMUtils.createElement('div', {
             className: `${this.player.options.classPrefix}-captions`,
             attributes: {
                 'role': 'region',
-                'aria-label': i18n.t('player.captions')
+                'aria-label': i18n.t('player.captions'),
+                'aria-live': 'polite'
             }
         });
 
@@ -117,6 +123,7 @@ export class CaptionManager {
 
         for (let i = 0; i < textTracks.length; i++) {
             const track = textTracks[i];
+            if (!track) continue;
 
             if ((track.kind === 'subtitles' || track.kind === 'captions') && !track._vidplyStale) {
                 track.mode = 'hidden';
@@ -413,7 +420,7 @@ export class CaptionManager {
 
                     requestAnimationFrame(() => {
                         if (cueElement) {
-                            cueElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            cueElement.scrollIntoView(reducedMotionScrollOptions('center'));
                         }
                     });
                 } else {
@@ -498,7 +505,7 @@ export class CaptionManager {
 
     hexToRgba(hex: string, alpha: number) {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        if (result) {
+        if (result && result[1] && result[2] && result[3]) {
             return `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${alpha})`;
         }
         return hex;

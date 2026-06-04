@@ -25,6 +25,29 @@ export function isMobile(breakpoint = 768): boolean {
   return window.innerWidth < breakpoint;
 }
 
+/**
+ * True when the user has requested reduced motion via the OS / browser.
+ * Guards against environments without matchMedia (older test runners).
+ */
+export function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
+/**
+ * Build scrollIntoView options whose animation honors prefers-reduced-motion:
+ * smooth scrolling is downgraded to an instant jump when the user has
+ * requested reduced motion (WCAG 2.3.3 Animation from Interactions).
+ */
+export function reducedMotionScrollOptions(
+  block: ScrollLogicalPosition = 'nearest'
+): ScrollIntoViewOptions {
+  return { behavior: prefersReducedMotion() ? 'auto' : 'smooth', block };
+}
+
 export function rafWithTimeout(callback: () => void, timeout = 100): void {
   let called = false;
 

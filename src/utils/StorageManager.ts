@@ -238,7 +238,10 @@ export class StorageManager {
       entries.sort((a, b) => a[1].updatedAt - b[1].updatedAt);
       const toRemove = entries.length - StorageManager.MAX_WATCH_PROGRESS_ENTRIES;
       for (let i = 0; i < toRemove; i++) {
-        delete allProgress[entries[i][0]];
+        const entry = entries[i];
+        if (entry) {
+          delete allProgress[entry[0]];
+        }
       }
     }
 

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../src/utils/FocusUtils.ts"],
-  "sourcesContent": ["export function focusElement(\r\n  element: HTMLElement | null,\r\n  { delay = 0, preventScroll = true }: { delay?: number; preventScroll?: boolean } = {}\r\n): void {\r\n  if (!element) return;\r\n\r\n  requestAnimationFrame(() => {\r\n    setTimeout(() => {\r\n      if (element && document.contains(element)) {\r\n        element.focus({ preventScroll });\r\n      }\r\n    }, delay);\r\n  });\r\n}\r\n\r\nexport function focusFirstElement(\r\n  container: HTMLElement | null,\r\n  selector: string,\r\n  options: { delay?: number; preventScroll?: boolean } = {}\r\n): void {\r\n  if (!container) return;\r\n  const element = container.querySelector<HTMLElement>(selector);\r\n  if (element) {\r\n    focusElement(element, options);\r\n  }\r\n}\r\n"],
-  "mappings": ";;;;;;;AAAO,SAAS,aACd,SACA,EAAE,QAAQ,GAAG,gBAAgB,KAAK,IAAiD,CAAC,GAC9E;AACN,MAAI,CAAC,QAAS;AAEd,wBAAsB,MAAM;AAC1B,eAAW,MAAM;AACf,UAAI,WAAW,SAAS,SAAS,OAAO,GAAG;AACzC,gBAAQ,MAAM,EAAE,cAAc,CAAC;AAAA,MACjC;AAAA,IACF,GAAG,KAAK;AAAA,EACV,CAAC;AACH;AAEO,SAAS,kBACd,WACA,UACA,UAAuD,CAAC,GAClD;AACN,MAAI,CAAC,UAAW;AAChB,QAAM,UAAU,UAAU,cAA2B,QAAQ;AAC7D,MAAI,SAAS;AACX,iBAAa,SAAS,OAAO;AAAA,EAC/B;AACF;",
-  "names": []
-}

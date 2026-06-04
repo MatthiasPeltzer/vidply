@@ -23,11 +23,11 @@ export const TimeUtils = {
     const parts = timeString.split(':').map(p => parseInt(p, 10));
 
     if (parts.length === 3) {
-      return parts[0] * 3600 + parts[1] * 60 + parts[2];
+      return (parts[0] ?? 0) * 3600 + (parts[1] ?? 0) * 60 + (parts[2] ?? 0);
     } else if (parts.length === 2) {
-      return parts[0] * 60 + parts[1];
+      return (parts[0] ?? 0) * 60 + (parts[1] ?? 0);
     } else if (parts.length === 1) {
-      return parts[0];
+      return parts[0] ?? 0;
     }
 
     return 0;

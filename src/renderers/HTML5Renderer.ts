@@ -5,11 +5,16 @@ export class HTML5Renderer implements Renderer {
   player: Player;
   media: HTMLMediaElement;
   _didDeferredLoad: boolean;
+  // All media listeners are registered with this controller's signal so a
+  // single abort() in destroy() detaches every one of them. Avoids the leak
+  // of removeEventListener being called with fresh, non-matching callbacks.
+  private _listenerController: AbortController;
 
   constructor(player: Player) {
     this.player = player;
     this.media = player.element;
     this._didDeferredLoad = false;
+    this._listenerController = new AbortController();
   }
 
   async init() {
@@ -43,6 +48,8 @@ export class HTML5Renderer implements Renderer {
   }
 
   attachEvents() {
+    const { signal } = this._listenerController;
+
     // Playback events
     this.media.addEventListener('loadedmetadata', () => {
       this.player.state.duration = this.media.duration;
@@ -54,7 +61,7 @@ export class HTML5Renderer implements Renderer {
           this.player.log('Failed to auto-generate poster:', error, 'warn');
         });
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('durationchange', () => {
       const duration = this.media.duration;
@@ -62,7 +69,7 @@ export class HTML5Renderer implements Renderer {
         this.player.state.duration = duration;
         this.player.emit('durationchange', duration);
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('play', () => {
       this.player.state.playing = true;
@@ -78,7 +85,7 @@ export class HTML5Renderer implements Renderer {
       if (this.player.options.pauseOthersOnPlay) {
         this.pauseOtherPlayers();
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('pause', () => {
       this.player.state.playing = false;
@@ -88,7 +95,7 @@ export class HTML5Renderer implements Renderer {
       if (this.player.options.onPause) {
         this.player.options.onPause.call(this.player);
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('ended', () => {
       this.player.state.playing = false;
@@ -105,7 +112,7 @@ export class HTML5Renderer implements Renderer {
         this.player.seek(0);
         this.player.play();
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('timeupdate', () => {
       this.player.state.currentTime = this.media.currentTime;
@@ -114,7 +121,7 @@ export class HTML5Renderer implements Renderer {
       if (this.player.options.onTimeUpdate) {
         this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('volumechange', () => {
       this.player.state.volume = this.media.volume;
@@ -124,43 +131,43 @@ export class HTML5Renderer implements Renderer {
       if (this.player.options.onVolumeChange) {
         this.player.options.onVolumeChange.call(this.player, this.media.volume);
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('seeking', () => {
       this.player.state.seeking = true;
       this.player.emit('seeking');
-    });
+    }, { signal });
 
     this.media.addEventListener('seeked', () => {
       this.player.state.seeking = false;
       this.player.emit('seeked');
-    });
+    }, { signal });
 
     this.media.addEventListener('waiting', () => {
       this.player.state.buffering = true;
       this.player.emit('waiting');
-    });
+    }, { signal });
 
     this.media.addEventListener('canplay', () => {
       this.player.state.buffering = false;
       this.player.emit('canplay');
-    });
+    }, { signal });
 
     this.media.addEventListener('progress', () => {
       if (this.media.buffered.length > 0) {
         const buffered = this.media.buffered.end(this.media.buffered.length - 1);
         this.player.emit('progress', buffered);
       }
-    });
+    }, { signal });
 
     this.media.addEventListener('error', (_e: Event) => {
       this.player.handleError(this.media.error);
-    });
+    }, { signal });
 
     this.media.addEventListener('ratechange', () => {
       this.player.state.playbackSpeed = this.media.playbackRate;
       this.player.emit('ratechange', this.media.playbackRate);
-    });
+    }, { signal });
   }
 
   pauseOtherPlayers() {
@@ -299,7 +306,7 @@ export class HTML5Renderer implements Renderer {
    */
   extractHeightFromLabel(label: string) {
     const match = label.match(/(\d+)p/i);
-    return match ? parseInt(match[1]) : 0;
+    return match && match[1] ? parseInt(match[1], 10) : 0;
   }
 
   /**
@@ -315,6 +322,9 @@ export class HTML5Renderer implements Renderer {
     }
 
     const quality = qualities[qualityIndex];
+    if (!quality || !quality.src) {
+      return;
+    }
     const currentTime = this.media.currentTime;
     const wasPlaying = !this.media.paused;
 
@@ -363,7 +373,7 @@ export class HTML5Renderer implements Renderer {
     const currentSrc = this.media.currentSrc;
     
     for (let i = 0; i < qualities.length; i++) {
-      if (qualities[i].src === currentSrc) {
+      if (qualities[i]?.src === currentSrc) {
         return i;
       }
     }
@@ -372,11 +382,8 @@ export class HTML5Renderer implements Renderer {
   }
 
   destroy() {
-    // Remove event listeners
-    this.media.removeEventListener('loadedmetadata', () => {});
-    this.media.removeEventListener('play', () => {});
-    this.media.removeEventListener('pause', () => {});
-    // ... (other listeners would be removed in a real implementation)
+    // Detach every media listener registered in attachEvents() in one shot.
+    this._listenerController.abort();
   }
 }
 

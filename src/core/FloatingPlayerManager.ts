@@ -433,6 +433,17 @@ export class FloatingPlayerManager {
 
         this._onKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
+                // If the user is in keyboard drag / resize (or pointer-resize)
+                // mode, Escape must exit that mode first — not dismiss the
+                // whole floating player. This listener is registered before the
+                // DraggableResizable one, so we let the event fall through to
+                // it (no dismiss, no stopPropagation) while a mode is active
+                // (WCAG 2.1.1). Only a "neutral" Escape dismisses.
+                const d = this.draggable;
+                const inEditMode = !!d && (d.keyboardDragMode || d.keyboardResizeMode || d.pointerResizeMode);
+                if (inEditMode) {
+                    return;
+                }
                 event.stopPropagation();
                 this.dismiss();
             }

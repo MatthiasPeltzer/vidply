@@ -1,5 +1,6 @@
 import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
+import { loadScriptOnce } from '../utils/ScriptLoader.js';
 
 export class YouTubeRenderer implements Renderer {
   player: Player;
@@ -60,33 +61,14 @@ export class YouTubeRenderer implements Renderer {
       return Promise.resolve();
     }
 
-    return new Promise<void>((resolve, reject) => {
-      // Check if script is already being loaded
-      if (window.onYouTubeIframeAPIReady) {
-        const originalCallback = window.onYouTubeIframeAPIReady;
-        window.onYouTubeIframeAPIReady = () => {
-          originalCallback();
-          resolve();
-        };
-        return;
-      }
-
-      // Load the API script
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      
-      window.onYouTubeIframeAPIReady = () => {
-        resolve();
-      };
-
-      tag.onerror = () => reject(new Error('Failed to load YouTube API'));
-      
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      if (firstScriptTag?.parentNode) {
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-      } else {
-        document.head.appendChild(tag);
-      }
+    // The IFrame API exposes window.YT.Player a short time after its script
+    // loads (it signals readiness via the global onYouTubeIframeAPIReady
+    // callback). loadScriptOnce dedupes the injection and the readiness
+    // predicate polls for YT.Player, also covering the case where the host
+    // page already included the API script.
+    return loadScriptOnce('https://www.youtube.com/iframe_api', {
+      isReady: () => !!(window.YT && window.YT.Player),
+      readyTimeout: 8000
     });
   }
 
@@ -104,9 +86,12 @@ export class YouTubeRenderer implements Renderer {
   }
 
   async initializePlayer() {
-    return new Promise<void>((resolve) => {
+    return new Promise<void>((resolve, reject) => {
       if (!window.YT || !this.iframe) {
-        resolve();
+        // The SDK never became available (or the iframe container is missing).
+        // Reject so Player.init() surfaces a real failure instead of treating
+        // a non-functional embed as a successful initialization.
+        reject(new Error('YouTube IFrame API is not available'));
         return;
       }
       this.youtube = new window.YT.Player(this.iframe.id, {

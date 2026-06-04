@@ -1023,6 +1023,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
     // Normalize the language code (e.g., "en-US" -> "en", "de-DE" -> "de")
     const normalizedLang = htmlLang.toLowerCase().split('-')[0];
+    if (!normalizedLang) {
+      return null;
+    }
 
     // Check if this language is available in our translations (already loaded)
     if (i18n.translations[normalizedLang]) {
@@ -1130,10 +1133,18 @@ export class Player extends EventEmitter<PlayerEventMap> {
       ? `${i18n.t('player.label')} ${this.instanceId}`
       : i18n.t('player.label');
 
+    // Use role="region" (a labelled perceivable section) rather than
+    // role="application". role="application" forces most screen readers into
+    // application mode, suppressing their virtual-cursor/browse mode and
+    // standard reading shortcuts for everything inside the player. A media
+    // player built from native <button> controls and a custom slider does not
+    // need that; a labelled region keeps normal AT navigation while the
+    // control bar (role="region"/toolbar) and keyboard shortcuts still work
+    // when the container is focused (WCAG 4.1.2, 2.1.1).
     this.container = DOMUtils.createElement('div', {
       className: `${this.options.classPrefix}-player`,
       attributes: {
-        'role': 'application',
+        'role': 'region',
         'aria-label': playerLabel,
         'tabindex': '0'
       }
@@ -1856,20 +1867,29 @@ export class Player extends EventEmitter<PlayerEventMap> {
           } catch {
             // ignore
           }
-          // Reset renderer-level deferred flags if present (HTML5/HLS renderers)
+          // Reset renderer-level deferred flags if present (HTML5/HLS/DASH
+          // renderers). These are renderer-private implementation details, not
+          // part of the public Renderer contract, so reach them via a
+          // structural cast rather than the interface.
           if (this.renderer) {
-            if (typeof this.renderer._didDeferredLoad === 'boolean') {
-              this.renderer._didDeferredLoad = false;
+            const deferState = this.renderer as Partial<{
+              _didDeferredLoad: boolean;
+              _hlsSourceLoaded: boolean;
+              _dashSourceLoaded: boolean;
+              _pendingSrc: string | null;
+            }>;
+            if (typeof deferState._didDeferredLoad === 'boolean') {
+              deferState._didDeferredLoad = false;
             }
-            if (typeof this.renderer._hlsSourceLoaded === 'boolean') {
-              this.renderer._hlsSourceLoaded = false;
+            if (typeof deferState._hlsSourceLoaded === 'boolean') {
+              deferState._hlsSourceLoaded = false;
             }
-            if (typeof (this.renderer as { _dashSourceLoaded?: boolean })._dashSourceLoaded === 'boolean') {
-              (this.renderer as { _dashSourceLoaded: boolean })._dashSourceLoaded = false;
+            if (typeof deferState._dashSourceLoaded === 'boolean') {
+              deferState._dashSourceLoaded = false;
             }
             if ('_pendingSrc' in this.renderer) {
               // For HLS, store pending src for the first play() call
-              this.renderer._pendingSrc = this._pendingSource || this.currentSource || null;
+              deferState._pendingSrc = this._pendingSource || this.currentSource || null;
             }
           }
         } else {
@@ -2621,8 +2641,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
       messages = [''];
     }
 
-    if (typeof consoleObj[type] === 'function') {
-      consoleObj[type]('[VidPly]', ...messages);
+    const consoleFn = consoleObj[type];
+    if (typeof consoleFn === 'function') {
+      consoleFn('[VidPly]', ...messages);
     } else {
       console.log('[VidPly]', ...messages);
     }

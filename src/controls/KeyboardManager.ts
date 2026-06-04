@@ -3,6 +3,7 @@
  */
 
 import { i18n } from '../i18n/i18n.js';
+import { debounce } from '../utils/PerformanceUtils.js';
 import type { Player } from '../core/Player.js';
 import type { KeyboardShortcuts } from '../types/options.js';
 
@@ -10,16 +11,82 @@ export class KeyboardManager {
   player: Player;
   shortcuts: KeyboardShortcuts;
   private announcer: HTMLElement | null = null;
+  // Announcements are driven by player state-change events so they fire for
+  // mouse/touch control use too, not only keyboard shortcuts (WCAG 4.1.3).
+  // Gated until 'ready' so initial volume/mute/source setup stays silent.
+  private _announceReady = false;
+  private _prevMuted: boolean;
+  private _stateAnnouncers: Array<{ event: string; handler: (...args: unknown[]) => void }> = [];
+  private _announceVolume: () => void;
 
   constructor(player: Player) {
     this.player = player;
     this.shortcuts = player.options.keyboardShortcuts;
-    
+    this._prevMuted = player.state.muted;
+    // Volume slider drags emit a stream of volumechange events; debounce the
+    // level announcement so AT hears the final value instead of every step.
+    this._announceVolume = debounce(() => {
+      const percent = Math.round(this.player.state.volume * 100);
+      this.announce(i18n.t('player.volumePercent', { percent }));
+    }, 500);
+
     this.init();
   }
 
   init() {
     this.attachEvents();
+    this.attachStateAnnouncements();
+  }
+
+  /**
+   * Subscribe to player state-change events so play/pause, mute, volume,
+   * captions, fullscreen and speed changes are announced to assistive tech
+   * regardless of whether the user used the keyboard, mouse or touch
+   * (WCAG 4.1.3 Status Messages).
+   */
+  attachStateAnnouncements(): void {
+    // Defensive: the player exposes an EventEmitter `on`/`off` API at runtime.
+    if (typeof this.player.on !== 'function') return;
+
+    const onReady = () => { this._announceReady = true; };
+    this.player.on('ready', onReady);
+
+    const register = (event: string, handler: () => void) => {
+      const wrapped = () => { if (this._announceReady) handler(); };
+      this.player.on(event as never, wrapped as never);
+      this._stateAnnouncers.push({ event, handler: wrapped as (...args: unknown[]) => void });
+    };
+
+    // Track the 'ready' handler too so destroy() detaches it.
+    this._stateAnnouncers.push({ event: 'ready', handler: onReady as (...args: unknown[]) => void });
+
+    register('play', () => this.announce(i18n.t('player.playing')));
+    register('pause', () => this.announce(i18n.t('player.paused')));
+    register('captionsenabled', () => this.announce(i18n.t('player.captionsOn')));
+    register('captionsdisabled', () => this.announce(i18n.t('player.captionsOff')));
+    register('fullscreenchange', () => {
+      this.announce(this.player.state.fullscreen
+        ? i18n.t('player.fullscreen')
+        : i18n.t('player.exitFullscreen'));
+    });
+    register('ratechange', () => {
+      const rate = this.player.state.playbackSpeed;
+      this.announce(i18n.t('player.speedRate', { rate: String(rate) }));
+    });
+    register('volumechange', () => {
+      // Mute toggles are discrete and announced immediately; continuous
+      // level changes are debounced via _announceVolume.
+      if (this.player.state.muted !== this._prevMuted) {
+        this._prevMuted = this.player.state.muted;
+        this.announce(this.player.state.muted
+          ? i18n.t('player.muted')
+          : i18n.t('player.unmuted'));
+        return;
+      }
+      if (!this.player.state.muted) {
+        this._announceVolume();
+      }
+    });
   }
 
   attachEvents() {
@@ -94,7 +161,8 @@ export class KeyboardManager {
         if (handled) {
           e.preventDefault();
           e.stopPropagation();
-          this.announceAction(action);
+          // Announcements are handled centrally by attachStateAnnouncements()
+          // via player events, so they fire for pointer interactions too.
           break;
         }
       }
@@ -295,6 +363,14 @@ export class KeyboardManager {
   }
 
   destroy(): void {
+    // Detach the player state-change listeners that drive announcements.
+    if (typeof this.player.off === 'function') {
+      for (const { event, handler } of this._stateAnnouncers) {
+        this.player.off(event as never, handler as never);
+      }
+    }
+    this._stateAnnouncers = [];
+
     // Container-attached keydown listener is removed when the container is
     // destroyed by Player.destroy(). The live-region announcer, however,
     // lives on `document.body` so we must remove it explicitly.

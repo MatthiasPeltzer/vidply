@@ -55,7 +55,7 @@ export const Icons: Record<string, string> = Object.fromEntries(
 );
 
 export function getIcon(name: string): string {
-  return Icons[name] || Icons.play;
+  return Icons[name] || Icons.play || '';
 }
 
 /**

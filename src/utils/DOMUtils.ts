@@ -130,7 +130,7 @@ export const DOMUtils = {
       '"': '&quot;',
       "'": '&#x27;'
     };
-    return str.replace(/[&<>"']/g, char => escapeMap[char]);
+    return str.replace(/[&<>"']/g, char => escapeMap[char] ?? char);
   },
 
   /**
@@ -160,7 +160,7 @@ export const DOMUtils = {
     const stack: HTMLElement[] = [];
 
     const append = (node: Node): void => {
-      const target = stack.length > 0 ? stack[stack.length - 1] : fragment;
+      const target = stack[stack.length - 1] ?? fragment;
       target.appendChild(node);
     };
 
@@ -183,7 +183,8 @@ export const DOMUtils = {
       const tag = (tagLetter || '').toLowerCase();
 
       if (closing) {
-        if (stack.length > 0 && stack[stack.length - 1].dataset.vttTag === tag) {
+        const top = stack[stack.length - 1];
+        if (top && top.dataset.vttTag === tag) {
           stack.pop();
         }
       } else if (tag === 'b' || tag === 'i' || tag === 'u') {

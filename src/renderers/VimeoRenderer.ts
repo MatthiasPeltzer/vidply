@@ -1,5 +1,6 @@
 import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
+import { loadScriptOnce } from '../utils/ScriptLoader.js';
 
 export class VimeoRenderer implements Renderer {
   player: Player;
@@ -60,12 +61,8 @@ export class VimeoRenderer implements Renderer {
       return Promise.resolve();
     }
 
-    return new Promise<void>((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://player.vimeo.com/api/player.js';
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Failed to load Vimeo API'));
-      document.head.appendChild(script);
+    return loadScriptOnce('https://player.vimeo.com/api/player.js', {
+      isReady: () => !!(window.Vimeo && window.Vimeo.Player)
     });
   }
 
@@ -99,7 +96,10 @@ export class VimeoRenderer implements Renderer {
     }
 
     if (!window.Vimeo || !this.iframe) {
-      return;
+      // The SDK never became available (or the iframe container is missing).
+      // Reject so Player.init() surfaces a real failure instead of treating a
+      // non-functional embed as a successful initialization.
+      throw new Error('Vimeo Player API is not available');
     }
     this.vimeo = new window.Vimeo.Player(this.iframe.id, options as VimeoPlayerOptions);
 

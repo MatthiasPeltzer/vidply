@@ -41,6 +41,10 @@ interface CreateMenuOptions {
     items?: MenuItem[];
     activeIndex?: number;
     onClose?: (() => void) | null;
+    // When true, actionable items represent a single-select group and use
+    // role="menuitemradio" + aria-checked so assistive tech announces the
+    // current selection, not just a visual check icon (WCAG 4.1.2).
+    radioGroup?: boolean;
     insertIntoDOM?: ((menu: HTMLElement, button: HTMLElement) => void) | null;
     positionMenu?: ((menu: HTMLElement, button: HTMLElement, initial?: boolean) => void) | null;
     attachCloseHandler?: ((menu: HTMLElement, button: HTMLElement) => void) | null;
@@ -107,6 +111,7 @@ export function createMenu({
     items = [],
     activeIndex = -1,
     onClose = null,
+    radioGroup = false,
     insertIntoDOM = null,
     positionMenu = null,
     attachCloseHandler = null
@@ -153,27 +158,41 @@ export function createMenu({
         }
 
         if ('disabled' in itemConfig && itemConfig.disabled) {
+            // Empty-state text ("No chapters", "Auto quality"). It is not
+            // actionable, so expose it as aria-disabled and keep it out of the
+            // roving keyboard navigation (see attachMenuKeyboardNavigation),
+            // which only steps through enabled menuitems (WCAG 2.1.1, 4.1.2).
             const disabledItem = DOMUtils.createElement('div', {
-                className: `${classPrefix}-menu-item`,
+                className: `${classPrefix}-menu-item ${classPrefix}-menu-item-disabled`,
                 textContent: itemConfig.text,
-                attributes: { 'role': 'menuitem' },
+                attributes: {
+                    'role': 'menuitem',
+                    'aria-disabled': 'true',
+                    'tabindex': '-1'
+                },
                 style: { opacity: '0.5', cursor: 'default' }
             });
             menu.appendChild(disabledItem);
             return;
         }
 
-        const item = DOMUtils.createElement('button', {
-            className: `${classPrefix}-menu-item`,
-            attributes: {
-                'type': 'button',
-                'role': 'menuitem',
-                'tabindex': '-1'
-            }
-        });
-
         // Add content based on item type
         const actionItem = itemConfig as ActionMenuItem;
+        const isActive = actionItem.active || index === activeIndex;
+
+        const itemAttributes: Record<string, string> = {
+            'type': 'button',
+            'role': radioGroup ? 'menuitemradio' : 'menuitem',
+            'tabindex': '-1'
+        };
+        if (radioGroup) {
+            itemAttributes['aria-checked'] = isActive ? 'true' : 'false';
+        }
+
+        const item = DOMUtils.createElement('button', {
+            className: `${classPrefix}-menu-item`,
+            attributes: itemAttributes
+        });
 
         if (actionItem.icon) {
             item.appendChild(createIconElement(actionItem.icon));
@@ -200,7 +219,6 @@ export function createMenu({
         }
 
         // Mark as active
-        const isActive = actionItem.active || index === activeIndex;
         if (isActive) {
             item.classList.add(`${classPrefix}-menu-item-active`);
             item.appendChild(createIconElement('check'));
@@ -245,11 +263,12 @@ export function createMenu({
         closeMenuAndReturnFocus(menu, button, onClose);
     });
     
-    // Focus active or first item
+    // Focus active or first enabled item (never an aria-disabled empty state).
     setTimeout(() => {
-        const focusTarget = activeItem || menu.querySelector(`.${classPrefix}-menu-item`);
+        const focusTarget = activeItem
+            || menu.querySelector(`.${classPrefix}-menu-item:not([aria-disabled="true"])`);
         if (focusTarget) {
-            focusTarget.focus({ preventScroll: true });
+            (focusTarget as HTMLElement).focus({ preventScroll: true });
         }
     }, 0);
 
@@ -303,6 +322,7 @@ export function createSpeedMenu({
         menuClass: 'speed-menu',
         ariaLabel: i18n.t('player.speed'),
         items,
+        radioGroup: true,
         insertIntoDOM,
         positionMenu,
         attachCloseHandler
@@ -347,6 +367,7 @@ export function createCaptionsMenu({
         menuClass: 'captions-menu',
         ariaLabel: i18n.t('player.captions'),
         items,
+        radioGroup: true,
         insertIntoDOM,
         positionMenu,
         attachCloseHandler
@@ -453,6 +474,7 @@ export function createQualityMenu({
         menuClass: 'quality-menu',
         ariaLabel: i18n.t('player.quality'),
         items,
+        radioGroup: true,
         insertIntoDOM,
         positionMenu,
         attachCloseHandler

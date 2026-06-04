@@ -334,9 +334,10 @@ export class AudioDescriptionManager {
             // Force browser to process removal
             this.player.element.load();
             
-            // Re-add tracks with new src
+            // Re-add tracks with new src. Use a managed timeout so the swap
+            // is cancelled (and won't mutate a torn-down player) on destroy.
             await new Promise<void>(resolve => {
-                setTimeout(() => {
+                this.player.setManagedTimeout(() => {
                     tracksToReadd.forEach(({ trackInfo, parent, nextSibling, attributes }) => {
                         const newSrc = toDescribed ? trackInfo.describedSrc : trackInfo.originalSrc;
                         if (!newSrc) {
@@ -349,8 +350,9 @@ export class AudioDescriptionManager {
                         newTrackElement.setAttribute('src', newSrc);
                         
                         Object.keys(attributes).forEach(attrName => {
-                            if (attrName !== 'src' && attrName !== 'data-desc-src') {
-                                newTrackElement.setAttribute(attrName, attributes[attrName]);
+                            const attrValue = attributes[attrName];
+                            if (attrName !== 'src' && attrName !== 'data-desc-src' && attrValue !== undefined) {
+                                newTrackElement.setAttribute(attrName, attrValue);
                             }
                         });
                         
@@ -401,10 +403,10 @@ export class AudioDescriptionManager {
                     };
                     
                     if (this.player.element.readyState >= 1) {
-                        setTimeout(setupNewTracks, 200);
+                        this.player.setManagedTimeout(setupNewTracks, 200);
                     } else {
                         this.player.element.addEventListener('loadedmetadata', setupNewTracks, { once: true });
-                        setTimeout(setupNewTracks, 2000);
+                        this.player.setManagedTimeout(setupNewTracks, 2000);
                     }
                     
                     resolve();
