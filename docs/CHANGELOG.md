@@ -5,6 +5,64 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-06-04
+
+Maintenance release implementing the findings of an internal code review. No public API was removed; the changes are
+accessibility refinements, memory-leak fixes, bundle-size reductions, and stricter typing.
+
+### Accessibility
+
+- **Menu semantics (1.1.1 / 4.1.2)**: Disabled and empty menu entries are now excluded from roving (arrow-key) focus,
+  so screen-reader and keyboard users no longer land on non-interactive items.
+- **Single-select menus (4.1.2)**: Speed, quality and caption menus now expose `role="menuitemradio"` with
+  `aria-checked` instead of a visual checkmark only.
+- **Pinch-zoom restored (1.4.4 / 1.4.10)**: Pseudo-fullscreen (iOS) no longer sets `maximum-scale=1.0,
+  user-scalable=no`, so zoom is no longer blocked while the player fills the viewport.
+- **Live announcements (4.1.3)**: Play/pause, caption and volume changes triggered by mouse/touch are now announced
+  (previously keyboard-only), and the caption cue overlay carries an `aria-live` region.
+- **Focus traps**: The interactive transcript window and the settings dialog now trap focus while open and restore it
+  to the trigger on close.
+- **Reduced motion (2.3.3)**: `scrollIntoView({ behavior: 'smooth' })` in menus, the control bar, the caption overlay
+  and the transcript is now gated behind `prefers-reduced-motion`.
+- **Target size (2.5.8)**: Floating/transcript resize handles and range thumbs were enlarged to meet the 24×24
+  CSS-pixel minimum.
+- **Escape handling**: Floating-player and drag/resize Escape handlers are ordered/scoped so keyboard drag/resize mode
+  can be cancelled without immediately dismissing the player.
+
+### Performance
+
+- **Smaller core bundle**: The caption-style panel builder was extracted into a lazily imported module
+  (`controls/CaptionStyleMenu`), so it is fetched only the first time the panel is opened instead of shipping in the
+  always-loaded core.
+- **Shared SDK loader**: A new `utils/ScriptLoader.loadScriptOnce(url, { integrity })` deduplicates the five separate
+  SDK-injection routines (hls.js, dash.js, YouTube, Vimeo, SoundCloud) and prevents duplicate `<script>` tags when
+  several players mount on one page.
+- **CSS deduplication**: Collapsed the duplicated `.vidply-fullscreen` / `:fullscreen` selector pairs with
+  `:is(.vidply-fullscreen, :fullscreen)`, tokenized the light theme onto the existing `--vidply-*` variables, merged
+  duplicate keyframes, and deduplicated the transcript/sign-language resize blocks. Minified CSS is ~102 KB.
+
+### Fixed
+
+- **Renderer teardown leaks**: `HTML5Renderer.destroy()` previously called `removeEventListener` with fresh empty
+  functions, so `loadedmetadata` / `play` / `pause` / `timeupdate` and related listeners were never removed. All
+  renderers and managers now register listeners through a per-instance `AbortController` and detach them on `destroy()`.
+- **Untracked timers**: HLS caption-retry and fatal-network-retry timers, the SoundCloud init timeout, and the nested
+  AudioDescription caption-swap timeouts are now tracked and cleared on teardown.
+- **PlaylistManager listener leak**: All player listeners registered in `init()` are now detached in `destroy()`
+  (previously only two of them were).
+- **SignLanguageManager**: The close-button click listener is now removed during cleanup.
+- **Embed init**: YouTube and Vimeo renderers now reject when their SDK fails to load instead of resolving as if
+  initialization succeeded.
+
+### Code Quality
+
+- **HLS native path**: Replaced the fragile prototype-grafting in `HLSRenderer.initNative` with explicit composition
+  that delegates to an internal `HTML5Renderer`.
+- **`Renderer` interface**: Removed internal flags (`_hlsSourceLoaded`, `_dashSourceLoaded`, `_didDeferredLoad`) from the
+  public interface.
+- **Stricter TypeScript**: Enabled `noUnusedLocals` and `noUncheckedIndexedAccess` and fixed every resulting site
+  (array/object index access is now guarded throughout). Typecheck is clean and all unit tests pass.
+
 ## [1.1.19] - 2026-05-29
 
 ### Changed

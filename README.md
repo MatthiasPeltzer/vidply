@@ -68,15 +68,22 @@ Try VidPly in action:
 ### Accessibility Features (WCAG 2.2 AA Compliant)
 
 - **Full Keyboard Navigation** - All features accessible via keyboard, custom shortcuts, menu navigation with Arrow keys
-- **Screen Reader Support** - Complete ARIA labels (`aria-controls`, `aria-expanded`, `aria-haspopup`), live regions
-- **Interactive Transcripts** - Click-to-seek and auto-scroll with proper semantic HTML
+  (non-interactive/disabled menu items are excluded from roving focus)
+- **Screen Reader Support** - Complete ARIA labels (`aria-controls`, `aria-expanded`, `aria-haspopup`), live regions;
+  single-select menus (speed/quality/captions) use `role="menuitemradio"` + `aria-checked`, and both mouse- and
+  keyboard-driven play/pause, caption and volume changes are announced
+- **Interactive Transcripts** - Click-to-seek and auto-scroll with proper semantic HTML and a focus trap while open
 - **Sign Language Overlay** - Picture-in-picture with drag/resize, keyboard accessible
 - **Audio Description** - Alternate audio track with visual content descriptions
 - **Caption Styling** - Fully customizable (font, size, color, opacity, edge style)
 - **High Contrast Mode** - Windows HCM support, color-independent design
-- **Focus Management** - Logical focus order, programmatic focus handling, visible indicators
-- **Touch Accessibility** - Buttons sized at or above the WCAG 2.2 AA 24×24 CSS-pixel minimum (SC 2.5.8); swipeable
-  interfaces
+- **Reduced Motion** - Smooth scrolling and animations honor `prefers-reduced-motion` (SC 2.3.3)
+- **Zoom & Reflow** - Pinch-zoom is preserved even in (pseudo-)fullscreen; no fixed `maximum-scale` lock (SC 1.4.4 /
+  1.4.10)
+- **Focus Management** - Logical focus order, programmatic focus handling, visible indicators, focus traps in the
+  transcript window and settings dialog
+- **Touch Accessibility** - Buttons, resize handles and slider thumbs sized at or above the WCAG 2.2 AA 24×24
+  CSS-pixel minimum (SC 2.5.8); swipeable interfaces
 
 ### Captions & Subtitles
 

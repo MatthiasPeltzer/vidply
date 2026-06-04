@@ -473,18 +473,20 @@ const player = new Player('#video', {
 ## Performance Notes
 
 - Transcript entries are created on-demand when transcript is first shown
-- Auto-scrolling uses efficient `scrollIntoView` with `smooth` behavior
-- Event listeners are cleaned up when transcript is destroyed
+- Auto-scrolling uses efficient `scrollIntoView`; the `smooth` behavior is automatically skipped when the user has
+  `prefers-reduced-motion` enabled (WCAG 2.2 SC 2.3.3)
+- Event listeners are cleaned up when transcript is destroyed (registered via a per-player `AbortController`)
 - No performance impact when transcript is not visible
 
 ## Accessibility Features
 
 **Keyboard Accessible** - Full keyboard navigation  
 **ARIA Labels** - Proper role and aria-label attributes  
-**Focus Management** - Logical focus order  
+**Focus Management** - Logical focus order with a focus trap while the window is open; focus returns to the toggle on close  
 **Screen Reader Friendly** - Semantic HTML structure  
 **High Contrast** - Respects system color preferences  
-**Touch Friendly** - Large touch targets (44px minimum)
+**Reduced Motion** - Auto-scroll honors `prefers-reduced-motion`  
+**Touch Friendly** - Touch targets at or above the WCAG 2.2 AA 24×24 CSS-pixel minimum (SC 2.5.8)
 
 ## Best Practices
 
