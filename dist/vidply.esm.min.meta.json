@@ -11,32 +11,32 @@
       "format": "esm"
     },
     "src/i18n/languages/en.ts": {
-      "bytes": 9107,
+      "bytes": 8889,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.ts": {
-      "bytes": 11202,
+      "bytes": 10985,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.ts": {
-      "bytes": 10250,
+      "bytes": 10036,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.ts": {
-      "bytes": 10571,
+      "bytes": 10357,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.ts": {
-      "bytes": 11054,
+      "bytes": 10840,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/translations.ts": {
-      "bytes": 1139,
+      "bytes": 1167,
       "imports": [
         {
           "path": "src/i18n/languages/en.ts",
@@ -67,12 +67,12 @@
       "format": "esm"
     },
     "src/utils/Sanitize.ts": {
-      "bytes": 2816,
+      "bytes": 2746,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/i18n.ts": {
-      "bytes": 7833,
+      "bytes": 7610,
       "imports": [
         {
           "path": "src/i18n/translations.ts",
@@ -88,7 +88,7 @@
       "format": "esm"
     },
     "src/utils/TimeUtils.ts": {
-      "bytes": 1947,
+      "bytes": 2014,
       "imports": [
         {
           "path": "src/i18n/i18n.ts",
@@ -104,17 +104,17 @@
       "format": "esm"
     },
     "src/utils/FocusUtils.ts": {
-      "bytes": 673,
+      "bytes": 699,
       "imports": [],
       "format": "esm"
     },
     "src/utils/PerformanceUtils.ts": {
-      "bytes": 1904,
+      "bytes": 1967,
       "imports": [],
       "format": "esm"
     },
     "src/utils/VideoFrameCapture.ts": {
-      "bytes": 3564,
+      "bytes": 3450,
       "imports": [],
       "format": "esm"
     },
@@ -124,7 +124,7 @@
       "format": "esm"
     },
     "src/controls/CaptionStyleMenu.ts": {
-      "bytes": 11680,
+      "bytes": 12050,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -207,7 +207,7 @@
       "format": "esm"
     },
     "src/utils/TrackLabelUtils.ts": {
-      "bytes": 2045,
+      "bytes": 1993,
       "imports": [
         {
           "path": "src/i18n/i18n.ts",
@@ -270,12 +270,12 @@
       "format": "esm"
     },
     "src/utils/UrlSafe.ts": {
-      "bytes": 2722,
+      "bytes": 2653,
       "imports": [],
       "format": "esm"
     },
     "src/core/LazyInit.ts": {
-      "bytes": 2574,
+      "bytes": 2494,
       "imports": [],
       "format": "esm"
     },
@@ -285,7 +285,7 @@
       "format": "esm"
     },
     "src/core/ThemeManager.ts": {
-      "bytes": 5729,
+      "bytes": 5572,
       "imports": [
         {
           "path": "src/utils/Sanitize.ts",
@@ -296,7 +296,7 @@
       "format": "esm"
     },
     "src/core/PosterManager.ts": {
-      "bytes": 6038,
+      "bytes": 5869,
       "imports": [
         {
           "path": "src/utils/VideoFrameCapture.ts",
@@ -307,7 +307,7 @@
       "format": "esm"
     },
     "src/core/ResumeManager.ts": {
-      "bytes": 7926,
+      "bytes": 7690,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -328,7 +328,7 @@
       "format": "esm"
     },
     "src/core/ResponsiveManager.ts": {
-      "bytes": 9145,
+      "bytes": 8914,
       "imports": [
         {
           "path": "src/core/PseudoFullscreen.ts",
@@ -382,7 +382,7 @@
       "format": "esm"
     },
     "src/utils/MenuUtils.ts": {
-      "bytes": 5639,
+      "bytes": 5829,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -413,12 +413,12 @@
       "format": "esm"
     },
     "src/utils/DraggablePanelMenu.ts": {
-      "bytes": 7637,
+      "bytes": 7442,
       "imports": [],
       "format": "esm"
     },
     "src/utils/DraggablePanel.ts": {
-      "bytes": 18513,
+      "bytes": 17974,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -567,7 +567,7 @@
       "format": "esm"
     },
     "src/utils/ScriptLoader.ts": {
-      "bytes": 4475,
+      "bytes": 4612,
       "imports": [],
       "format": "esm"
     },
