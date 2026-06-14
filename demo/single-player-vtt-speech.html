@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="VidPly demo: extended audio description via WebVTT descriptions tracks and browser speech synthesis (pause, speak, resume).">
+    <title>VidPly - VTT Speech Audio Description</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../dist/vidply.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #444444 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            margin: 0 auto;
+            max-width: 900px;
+        }
+
+        nav {
+            margin-bottom: 20px;
+        }
+
+        .back-link {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: white;
+            display: inline-block;
+            padding: 8px 16px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .back-link:focus {
+            outline: 3px solid white;
+            outline-offset: 4px;
+        }
+
+        header {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        h1 {
+            align-items: center;
+            background: linear-gradient(135deg, #0a406e 0%, #6BA4EE 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            display: flex;
+            font-size: 2.5rem;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 16px;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .intro {
+            color: #ffffff;
+            line-height: 1.6;
+            margin: 0 auto;
+            max-width: 760px;
+            text-align: left;
+        }
+
+        .intro code {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            padding: 2px 6px;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .note {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            color: #ffffff;
+            line-height: 1.6;
+            padding: 20px 24px;
+        }
+
+        .note h2 {
+            font-size: 1.125rem;
+            margin-bottom: 10px;
+        }
+
+        .note ol {
+            margin-left: 1.25rem;
+        }
+
+        .note li {
+            margin: 6px 0;
+        }
+
+        footer {
+            color: #ffffff;
+            margin-top: 48px;
+            opacity: 0.8;
+            text-align: center;
+        }
+
+        footer p {
+            margin: 8px 0;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                flex-direction: column;
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <nav aria-label="Breadcrumb">
+        <a href="index.html" class="back-link">← Back to Demo Index</a>
+    </nav>
+
+    <header>
+        <h1>
+            <img src="../favicon.svg" width="48" height="48" alt="" aria-hidden="true"/>
+            <span>VTT Speech Audio Description</span>
+        </h1>
+        <p class="intro">
+            This player uses <code>data-audio-description-mode="vtt_speech"</code> with a
+            <code>kind="descriptions"</code> WebVTT track. There is <strong>no</strong> described
+            video swap (<code>data-desc-src</code> is omitted). When you enable the AD button,
+            VidPly pauses at each description cue, speaks the text via the browser’s speech
+            synthesis API, then resumes playback. Open the transcript panel to read the same cues as text.
+        </p>
+    </header>
+
+    <main>
+        <video
+                id="vtt-speech-demo"
+                data-vidply
+                data-audio-description-mode="vtt_speech"
+                data-audio-description-button="true"
+                data-transcript-button="true"
+                width="800"
+                height="450"
+                poster="media/wwa_hq_thumbnail.jpg"
+                preload="metadata"
+        >
+            <source src="media/wwa.mp4" type="video/mp4">
+            <source src="media/wwa.webm" type="video/webm">
+            <track kind="captions" src="media/wwa_captions_en.vtt" srclang="en" label="English" default>
+            <track kind="descriptions" src="media/wwa_description_en.vtt" srclang="en" label="English Descriptions">
+            <track kind="chapters" src="media/wwa_chapters_en.vtt" srclang="en" label="English Chapters">
+        </video>
+
+        <section class="note" aria-labelledby="how-to-try">
+            <h2 id="how-to-try">How to try it</h2>
+            <ol>
+                <li>Start playback and click the <strong>AD</strong> button in the control bar.</li>
+                <li>When a visual description cue becomes active, the video pauses and the cue is spoken aloud.</li>
+                <li>Playback resumes automatically after the narration finishes.</li>
+                <li>Use the transcript button to read description text without TTS (<code>audioDescriptionSpeech: false</code> in code).</li>
+            </ol>
+            <p style="margin-top: 12px;">
+                For described-video swap (pre-mixed MP4/WebM), see
+                <a href="single-player-video.html" style="color: #9ec5ff;">Single Video (Floating Player)</a>.
+            </p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 VidPly - Built with strict TypeScript &amp; vanilla ES modules</p>
+        <p>Released under GPL-2.0-or-later License</p>
+    </footer>
+</div>
+
+<script type="module">
+    import '../dist/prod/vidply.esm.min.js';
+</script>
+</body>
+</html>

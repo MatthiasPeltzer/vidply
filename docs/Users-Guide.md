@@ -514,16 +514,37 @@ playlist.hasPrevious()    // Check if previous exists
 
 ### Audio Description
 
-Provide an alternate video with audio descriptions:
+VidPly supports spoken audio description in two ways:
+
+1. **Described video (recommended for production)** — upload or link a pre-mixed MP4/WebM where narration is already
+   embedded in the audio track. VidPly swaps the entire video source when the user toggles AD.
+
+2. **VTT speech (extended AD fallback)** — when no described video is available, a `kind="descriptions"` WebVTT track
+   can drive browser text-to-speech: the player pauses at each cue, speaks the description, then resumes playback.
+   Quality depends on the browser voice; use described video when broadcast-grade narration is required.
+
+Text description cues are always available in the **transcript panel** for reading, regardless of which spoken path
+is active. Set `audioDescriptionSpeech: false` to use text-only descriptions (no TTS).
+
+**Mode** (`audioDescriptionMode`, default `auto`):
+
+| Value | Behavior |
+|-------|----------|
+| `auto` | Described video if configured, else VTT speech if descriptions VTT present |
+| `swap` | Described video swap only |
+| `vtt_speech` | VTT speech only |
 
 ```javascript
 const player = new Player('#my-video', {
   audioDescription: true,
-  audioDescriptionSrc: 'video-with-description.mp4'
+  audioDescriptionSrc: 'video-with-description.mp4', // optional
+  audioDescriptionMode: 'auto',
+  audioDescriptionSpeech: true,
+  audioDescriptionExtended: true
 });
 ```
 
-Users can toggle via the AD button.
+Users toggle AD via the AD button. Demo: [`demo/single-player-vtt-speech.html`](../demo/single-player-vtt-speech.html).
 
 ### Sign Language
 

@@ -533,7 +533,21 @@ The sign language video includes a settings menu (⚙️ icon) with the followin
 
 ### Audio Description
 
-Switch to an audio-described version of your video:
+VidPly supports three complementary audio-description paths:
+
+| Path | When used | Behavior |
+|------|-----------|----------|
+| **Described video swap** | `audioDescriptionSrc` or `<source data-desc-src>` | Replaces the video with a pre-mixed described MP4/WebM; preserves playback position |
+| **VTT speech (extended AD)** | `kind="descriptions"` track, no described video | Pauses video, speaks cue text via `speechSynthesis`, resumes when speech ends |
+| **Text descriptions** | Descriptions VTT always available | Shown in the transcript panel; toggled via track mode when TTS is off |
+
+**Mode resolution** (`audioDescriptionMode`, default `auto`):
+
+- `auto` — described video swap if configured, otherwise VTT speech if a descriptions track exists
+- `swap` — described video only
+- `vtt_speech` — VTT speech only (ignores described video URL)
+
+#### Described video swap
 
 ```html
 <video 
@@ -545,33 +559,80 @@ Switch to an audio-described version of your video:
 </video>
 ```
 
+Or with `<source>` elements:
+
+```html
+<source src="regular.mp4" type="video/mp4"
+        data-desc-src="described.mp4" data-orig-src="regular.mp4">
+```
+
+#### VTT speech (extended AD)
+
+No described video file — only a descriptions WebVTT track:
+
+```html
+<video
+  data-vidply
+  data-audio-description-mode="vtt_speech"
+  data-audio-description-button="true"
+>
+  <source src="video.mp4" type="video/mp4">
+  <track kind="descriptions" src="descriptions-en.vtt" srclang="en" label="Descriptions">
+</video>
+```
+
+See also: [`demo/single-player-vtt-speech.html`](../demo/single-player-vtt-speech.html).
+
+#### JavaScript API
+
 ```javascript
 const player = new Player('#video', {
-  audioDescriptionSrc: 'path/to/described-version.mp4',
-  audioDescriptionButton: true
+  audioDescriptionSrc: 'path/to/described-version.mp4', // optional
+  audioDescriptionButton: true,
+  audioDescriptionMode: 'auto',       // 'auto' | 'swap' | 'vtt_speech'
+  audioDescriptionSpeech: true,       // false = text-only (transcript / track toggle)
+  audioDescriptionExtended: true      // resume after TTS ends, not at cue.endTime
 });
 
 // Control programmatically
-await player.enableAudioDescription();   // Switch to described version
-await player.disableAudioDescription();  // Switch back to original
-await player.toggleAudioDescription();   // Toggle between versions
+await player.enableAudioDescription();
+await player.disableAudioDescription();
+await player.toggleAudioDescription();
 
 // Check state
 if (player.state.audioDescriptionEnabled) {
   console.log('Audio description is active');
 }
 
-// Listen for events
+// Events — swap mode
 player.on('audiodescriptionenabled', () => {
-  console.log('Switched to described version');
+  console.log('Audio description enabled');
 });
 
 player.on('audiodescriptiondisabled', () => {
-  console.log('Switched back to original');
+  console.log('Audio description disabled');
+});
+
+// Events — VTT speech mode (per cue)
+player.on('audiodescriptioncuestart', ({ time, text, cue }) => {
+  console.log('Speaking description at', time, text);
+});
+
+player.on('audiodescriptioncueend', ({ time, text }) => {
+  console.log('Finished description at', time);
 });
 ```
 
-Note: Playback position is preserved when switching between versions.
+**HTML data attributes** (camelCase in `data-vidply-*`):
+
+- `data-audio-description-src`
+- `data-audio-description-button`
+- `data-audio-description-mode` — `auto`, `swap`, or `vtt_speech`
+- `data-audio-description-speech` — `true` / `false`
+- `data-audio-description-extended` — `true` / `false`
+
+Note: Playback position is preserved when switching described video sources. VTT speech requires a browser with
+`speechSynthesis` support; otherwise descriptions fall back to text-only (`track.mode = 'showing'`).
 
 ### Chapter Navigation
 
