@@ -5,6 +5,20 @@ All notable changes to VidPly will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **VTT speech audio description (extended AD)**: When no described video is configured, VidPly can speak
+  `kind="descriptions"` WebVTT cues via the browser `speechSynthesis` API — pausing playback during each cue and
+  resuming when narration finishes (`DescriptionSpeechManager`).
+- **Audio description delivery modes** via `audioDescriptionMode`: `auto` (default), `swap`, `vtt_speech`.
+  In `auto`, a described MP4/WebM source takes precedence over VTT speech.
+- **New options**: `audioDescriptionSpeech` (enable/disable TTS), `audioDescriptionExtended` (resume after speech
+  ends rather than at cue end time).
+- **New events**: `audiodescriptioncuestart`, `audiodescriptioncueend`.
+- **Demo**: `demo/single-player-vtt-speech.html` — VTT speech-only AD without described video swap.
+
 ## [1.2.0] - 2026-06-04
 
 Maintenance release implementing the findings of an internal code review. No public API was removed; the changes are
