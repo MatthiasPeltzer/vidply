@@ -3158,6 +3158,194 @@
     }
   });
 
+  // src/core/DescriptionSpeechManager.ts
+  var DescriptionSpeechManager;
+  var init_DescriptionSpeechManager = __esm({
+    "src/core/DescriptionSpeechManager.ts"() {
+      "use strict";
+      DescriptionSpeechManager = class {
+        constructor(player) {
+          __publicField(this, "player");
+          __publicField(this, "enabled", false);
+          __publicField(this, "descriptionTrack", null);
+          __publicField(this, "cueChangeHandler", null);
+          __publicField(this, "seekedHandler", null);
+          __publicField(this, "wasPlayingBeforeCue", false);
+          __publicField(this, "speaking", false);
+          __publicField(this, "lastSpokenCueKey", null);
+          __publicField(this, "_pendingUtterance", null);
+          this.player = player;
+        }
+        /**
+         * Whether speech synthesis is available and enabled in player options.
+         */
+        canUseSpeech() {
+          if (this.player.options.audioDescriptionSpeech === false) {
+            return false;
+          }
+          return typeof window !== "undefined" && "speechSynthesis" in window;
+        }
+        /**
+         * Resolve the descriptions track, preferring the active caption language.
+         */
+        findDescriptionTrack() {
+          var _a, _b, _c;
+          const textTracks = this.player.element ? Array.from(this.player.element.textTracks || []) : [];
+          const descriptionsTracks = textTracks.filter(
+            (track) => track.kind === "descriptions" && !track._vidplyStale
+          );
+          if (descriptionsTracks.length === 0) {
+            return null;
+          }
+          const captionLang = (_c = (_b = (_a = this.player.captionManager) == null ? void 0 : _a.currentTrack) == null ? void 0 : _b.track) == null ? void 0 : _c.language;
+          if (captionLang) {
+            const match = descriptionsTracks.find((track) => track.language === captionLang);
+            if (match) {
+              return match;
+            }
+          }
+          return descriptionsTracks[0] ?? null;
+        }
+        /**
+         * Enable VTT speech mode: wire cuechange/seeked listeners.
+         */
+        enable() {
+          const track = this.findDescriptionTrack();
+          if (!track) {
+            return false;
+          }
+          if (!this.canUseSpeech()) {
+            track.mode = "showing";
+            return true;
+          }
+          this.descriptionTrack = track;
+          track.mode = "hidden";
+          this.cueChangeHandler = () => {
+            this.handleCueChange();
+          };
+          track.addEventListener("cuechange", this.cueChangeHandler);
+          this.seekedHandler = () => {
+            this.cancelSpeech();
+            this.lastSpokenCueKey = null;
+            this.handleCueChange();
+          };
+          this.player.on("seeked", this.seekedHandler);
+          this.enabled = true;
+          this.handleCueChange();
+          return true;
+        }
+        /**
+         * Disable VTT speech mode and restore track state.
+         */
+        disable() {
+          this.cancelSpeech();
+          this.lastSpokenCueKey = null;
+          this.enabled = false;
+          if (this.descriptionTrack && this.cueChangeHandler) {
+            this.descriptionTrack.removeEventListener("cuechange", this.cueChangeHandler);
+          }
+          if (this.seekedHandler) {
+            this.player.off("seeked", this.seekedHandler);
+          }
+          if (this.descriptionTrack) {
+            this.descriptionTrack.mode = "hidden";
+          }
+          this.cueChangeHandler = null;
+          this.seekedHandler = null;
+          this.descriptionTrack = null;
+          this.wasPlayingBeforeCue = false;
+        }
+        /**
+         * Handle active description cues on the wired track.
+         */
+        handleCueChange() {
+          var _a;
+          if (!this.enabled || !this.descriptionTrack || !this.canUseSpeech()) {
+            return;
+          }
+          const activeCues = this.descriptionTrack.activeCues;
+          if (!activeCues || activeCues.length === 0) {
+            return;
+          }
+          const cue = activeCues[0];
+          const text = (_a = cue.text) == null ? void 0 : _a.trim();
+          if (!text) {
+            return;
+          }
+          const cueKey = `${cue.startTime}:${cue.endTime}:${text}`;
+          if (this.speaking && this.lastSpokenCueKey === cueKey) {
+            return;
+          }
+          if (this.lastSpokenCueKey === cueKey && !this.player.state.playing) {
+            return;
+          }
+          this.speakCue(cue, cueKey);
+        }
+        /**
+         * Pause playback and speak a description cue.
+         */
+        speakCue(cue, cueKey) {
+          var _a;
+          if (!this.canUseSpeech()) {
+            return;
+          }
+          if (this.player.state.paused && !this.speaking && !this.wasPlayingBeforeCue) {
+            return;
+          }
+          this.cancelSpeech();
+          this.wasPlayingBeforeCue = this.player.state.playing;
+          if (this.wasPlayingBeforeCue) {
+            this.player.pause();
+          }
+          this.speaking = true;
+          this.lastSpokenCueKey = cueKey;
+          const detail = {
+            time: cue.startTime,
+            endTime: cue.endTime,
+            text: cue.text.trim(),
+            cue
+          };
+          this.player.emit("audiodescriptioncuestart", detail);
+          const utterance = new SpeechSynthesisUtterance(detail.text);
+          const lang = ((_a = this.descriptionTrack) == null ? void 0 : _a.language) || this.player.options.language || "en";
+          utterance.lang = lang;
+          const finish = () => {
+            if (this._pendingUtterance !== utterance) {
+              return;
+            }
+            this._pendingUtterance = null;
+            this.speaking = false;
+            this.player.emit("audiodescriptioncueend", detail);
+            const extended = this.player.options.audioDescriptionExtended !== false;
+            const shouldResume = extended ? this.wasPlayingBeforeCue : this.wasPlayingBeforeCue && this.player.state.currentTime < cue.endTime;
+            if (shouldResume && this.enabled) {
+              void this.player.play();
+            }
+            this.wasPlayingBeforeCue = false;
+          };
+          utterance.onend = finish;
+          utterance.onerror = finish;
+          this._pendingUtterance = utterance;
+          window.speechSynthesis.speak(utterance);
+        }
+        /**
+         * Cancel any in-progress speech synthesis.
+         */
+        cancelSpeech() {
+          if (typeof window !== "undefined" && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+          }
+          this._pendingUtterance = null;
+          this.speaking = false;
+          this.wasPlayingBeforeCue = false;
+        }
+        destroy() {
+          this.disable();
+        }
+      };
+    }
+  });
+
   // src/core/AudioDescriptionManager.ts
   var AudioDescriptionManager_exports = {};
   __export(AudioDescriptionManager_exports, {
@@ -3168,6 +3356,7 @@
     "src/core/AudioDescriptionManager.ts"() {
       "use strict";
       init_CaptionManager();
+      init_DescriptionSpeechManager();
       AudioDescriptionManager = class {
         constructor(player) {
           __publicField(this, "player");
@@ -3177,6 +3366,7 @@
           __publicField(this, "originalSource");
           __publicField(this, "sourceElement");
           __publicField(this, "src");
+          __publicField(this, "speechManager");
           this.player = player;
           this.enabled = false;
           this.desiredState = false;
@@ -3184,6 +3374,49 @@
           this.sourceElement = null;
           this.originalSource = null;
           this.captionTracks = [];
+          this.speechManager = null;
+        }
+        /**
+         * Whether a described video source swap is configured.
+         */
+        _hasSwapSource() {
+          const hasSourceElementsWithDesc = this.player.sourceElements.some(
+            (el) => el.getAttribute("data-desc-src")
+          );
+          return Boolean(this.src || hasSourceElementsWithDesc);
+        }
+        /**
+         * Whether a descriptions VTT track is present on the media element.
+         */
+        _hasDescriptionsTrack() {
+          return Boolean(this.player.findTextTrack("descriptions"));
+        }
+        /**
+         * Resolve which audio-description delivery mode applies for the current media.
+         */
+        resolveDeliveryMode() {
+          const configured = this.player.options.audioDescriptionMode ?? "auto";
+          const hasSwap = this._hasSwapSource();
+          const hasDescriptions = this._hasDescriptionsTrack();
+          if (configured === "swap") {
+            return hasSwap ? "swap" : "none";
+          }
+          if (configured === "vtt_speech") {
+            return hasDescriptions ? "vtt_speech" : "none";
+          }
+          if (hasSwap) {
+            return "swap";
+          }
+          if (hasDescriptions) {
+            return "vtt_speech";
+          }
+          return "none";
+        }
+        _ensureSpeechManager() {
+          if (!this.speechManager) {
+            this.speechManager = new DescriptionSpeechManager(this.player);
+          }
+          return this.speechManager;
         }
         /**
          * Initialize audio description from source elements
@@ -3237,24 +3470,35 @@
          * Check if audio description is available
          */
         isAvailable() {
-          const hasSourceElementsWithDesc = this.player.sourceElements.some(
-            (el) => el.getAttribute("data-desc-src")
-          );
-          return Boolean(this.src || hasSourceElementsWithDesc || this.captionTracks.length > 0);
+          const mode = this.resolveDeliveryMode();
+          if (mode === "swap" || mode === "vtt_speech") {
+            return true;
+          }
+          return this.captionTracks.length > 0;
         }
         /**
          * Enable audio description
          */
         async enable() {
-          const hasSourceElementsWithDesc = this.player.sourceElements.some(
-            (el) => el.getAttribute("data-desc-src")
-          );
+          const deliveryMode = this.resolveDeliveryMode();
           const hasTracksWithDesc = this.captionTracks.length > 0;
-          if (!this.src && !hasSourceElementsWithDesc && !hasTracksWithDesc) {
-            console.warn("VidPly: No audio description source, source elements, or tracks provided");
+          if (deliveryMode === "none" && !hasTracksWithDesc) {
+            console.warn("VidPly: No audio description source, descriptions track, or tracks provided");
             return;
           }
           this.desiredState = true;
+          if (deliveryMode === "vtt_speech") {
+            const speechManager = this._ensureSpeechManager();
+            const started = speechManager.enable();
+            if (!started) {
+              console.warn("VidPly: No descriptions track available for VTT speech mode");
+              return;
+            }
+            this.enabled = true;
+            this.player.state.audioDescriptionEnabled = true;
+            this.player.emit("audiodescriptionenabled");
+            return;
+          }
           const currentTime = this.player.state.currentTime;
           const wasPlaying = this.player.state.playing;
           const posterValue = this.player.element.poster || this.player.element.getAttribute("poster") || this.player.options.poster;
@@ -3274,7 +3518,15 @@
          * Disable audio description
          */
         async disable() {
+          var _a;
           this.desiredState = false;
+          if ((_a = this.speechManager) == null ? void 0 : _a.enabled) {
+            this.speechManager.disable();
+            this.enabled = false;
+            this.player.state.audioDescriptionEnabled = false;
+            this.player.emit("audiodescriptiondisabled");
+            return;
+          }
           const hasTracksWithDesc = this.captionTracks.length > 0;
           if (!this.sourceElement && !this.src && hasTracksWithDesc) {
             await this._swapCaptionTracks(false);
@@ -3300,19 +3552,30 @@
          * Toggle audio description
          */
         async toggle() {
+          const deliveryMode = this.resolveDeliveryMode();
           const descriptionTrack = this.player.findTextTrack("descriptions");
-          const hasAudioDescriptionSrc = this.isAvailable();
-          if (descriptionTrack && !hasAudioDescriptionSrc) {
+          const hasSwapOrTracks = this._hasSwapSource() || this.captionTracks.length > 0;
+          if (deliveryMode === "vtt_speech") {
+            if (this.enabled) {
+              await this.disable();
+            } else {
+              await this.enable();
+            }
+            return;
+          }
+          if (descriptionTrack && !hasSwapOrTracks) {
             if (descriptionTrack.mode === "showing") {
               descriptionTrack.mode = "hidden";
               this.enabled = false;
+              this.player.state.audioDescriptionEnabled = false;
               this.player.emit("audiodescriptiondisabled");
             } else {
               descriptionTrack.mode = "showing";
               this.enabled = true;
+              this.player.state.audioDescriptionEnabled = true;
               this.player.emit("audiodescriptionenabled");
             }
-          } else if (descriptionTrack && hasAudioDescriptionSrc) {
+          } else if (descriptionTrack && hasSwapOrTracks) {
             if (this.enabled) {
               this.desiredState = false;
               await this.disable();
@@ -3321,7 +3584,7 @@
               this.desiredState = true;
               await this.enable();
             }
-          } else if (hasAudioDescriptionSrc) {
+          } else if (hasSwapOrTracks) {
             if (this.enabled) {
               this.desiredState = false;
               await this.disable();
@@ -3720,6 +3983,9 @@
          * Update sources (called when playlist changes)
          */
         updateSources(audioDescriptionSrc) {
+          var _a;
+          (_a = this.speechManager) == null ? void 0 : _a.destroy();
+          this.speechManager = null;
           this.src = audioDescriptionSrc || null;
           this.enabled = false;
           this.desiredState = false;
@@ -3738,6 +4004,9 @@
          * Cleanup
          */
         destroy() {
+          var _a;
+          (_a = this.speechManager) == null ? void 0 : _a.destroy();
+          this.speechManager = null;
           this.enabled = false;
           this.desiredState = false;
           this.captionTracks = [];
@@ -16109,6 +16378,9 @@
         audioDescriptionSrc: null,
         // URL to audio-described version
         audioDescriptionButton: true,
+        audioDescriptionMode: "auto",
+        audioDescriptionSpeech: true,
+        audioDescriptionExtended: true,
         // Sign Language
         signLanguage: true,
         signLanguageSrc: null,
@@ -19435,6 +19707,9 @@
       signLanguageDisplayMode: "signLanguageDisplayMode",
       audioDescriptionSrc: "audioDescriptionSrc",
       audioDescriptionButton: "audioDescriptionButton",
+      audioDescriptionMode: "audioDescriptionMode",
+      audioDescriptionSpeech: "audioDescriptionSpeech",
+      audioDescriptionExtended: "audioDescriptionExtended",
       autoplay: "autoplay",
       loop: "loop",
       muted: "muted",
