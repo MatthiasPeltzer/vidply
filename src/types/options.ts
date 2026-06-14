@@ -88,6 +88,9 @@ export interface PlayerOptions {
   audioDescription: boolean;
   audioDescriptionSrc: string | null;
   audioDescriptionButton: boolean;
+  audioDescriptionMode: 'auto' | 'swap' | 'vtt_speech';
+  audioDescriptionSpeech: boolean;
+  audioDescriptionExtended: boolean;
 
   // Sign Language
   signLanguage: boolean;

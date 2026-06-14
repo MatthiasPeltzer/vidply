@@ -15,13 +15,27 @@ describe('AudioDescriptionManager', () => {
     mockPlayer = {
       options: {
         audioDescriptionSrc: null,
+        audioDescriptionMode: 'auto',
+        audioDescriptionSpeech: true,
+        audioDescriptionExtended: true,
         classPrefix: 'vidply'
       },
       element: document.createElement('video'),
       sourceElements: [],
       originalSrc: null,
       log: vi.fn(),
-      state: {}
+      emit: vi.fn(),
+      pause: vi.fn(),
+      play: vi.fn().mockResolvedValue(undefined),
+      on: vi.fn(),
+      off: vi.fn(),
+      findTextTrack: vi.fn().mockReturnValue(null),
+      state: {
+        currentTime: 0,
+        playing: false,
+        paused: true,
+        audioDescriptionEnabled: false
+      }
     };
     
     document.body.appendChild(mockPlayer.element);
@@ -321,28 +335,76 @@ describe('AudioDescriptionManager', () => {
       expect(manager.desiredState).toBe(false);
     });
 
-    it('should toggle description track when track exists but no src', async () => {
+    it('should toggle description track when track exists but no src and mode is swap-only', async () => {
+      mockPlayer.options.audioDescriptionMode = 'swap';
       const mockTrack = { mode: 'hidden' };
       mockPlayer.findTextTrack = vi.fn().mockReturnValue(mockTrack);
-      mockPlayer.emit = vi.fn();
       manager = new AudioDescriptionManager(mockPlayer);
-      
+
       await manager.toggle();
-      
+
       expect(mockTrack.mode).toBe('showing');
       expect(manager.enabled).toBe(true);
     });
 
-    it('should disable description track when already showing', async () => {
+    it('should disable description track when already showing in swap-only mode', async () => {
+      mockPlayer.options.audioDescriptionMode = 'swap';
       const mockTrack = { mode: 'showing' };
       mockPlayer.findTextTrack = vi.fn().mockReturnValue(mockTrack);
-      mockPlayer.emit = vi.fn();
       manager = new AudioDescriptionManager(mockPlayer);
-      
+
       await manager.toggle();
-      
+
       expect(mockTrack.mode).toBe('hidden');
       expect(manager.enabled).toBe(false);
+    });
+
+    it('should enable VTT speech mode when descriptions track exists', async () => {
+      mockPlayer.options.audioDescriptionMode = 'vtt_speech';
+      const mockTrack = {
+        kind: 'descriptions',
+        mode: 'disabled',
+        language: 'en',
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn()
+      };
+      mockPlayer.findTextTrack = vi.fn().mockReturnValue(mockTrack);
+      window.speechSynthesis = {
+        speak: vi.fn(),
+        cancel: vi.fn()
+      };
+
+      manager = new AudioDescriptionManager(mockPlayer);
+      vi.spyOn(manager._ensureSpeechManager(), 'findDescriptionTrack').mockReturnValue(mockTrack);
+      await manager.toggle();
+
+      expect(manager.enabled).toBe(true);
+      expect(mockPlayer.emit).toHaveBeenCalledWith('audiodescriptionenabled');
+    });
+  });
+
+  describe('resolveDeliveryMode', () => {
+    it('prefers video swap in auto mode when described source exists', () => {
+      mockPlayer.options.audioDescriptionSrc = '/videos/ad.mp4';
+      mockPlayer.findTextTrack = vi.fn().mockReturnValue({ kind: 'descriptions' });
+      manager = new AudioDescriptionManager(mockPlayer);
+
+      expect(manager.resolveDeliveryMode()).toBe('swap');
+    });
+
+    it('uses VTT speech in auto mode when only descriptions track exists', () => {
+      mockPlayer.findTextTrack = vi.fn().mockReturnValue({ kind: 'descriptions' });
+      manager = new AudioDescriptionManager(mockPlayer);
+
+      expect(manager.resolveDeliveryMode()).toBe('vtt_speech');
+    });
+
+    it('returns none for swap mode without described source', () => {
+      mockPlayer.options.audioDescriptionMode = 'swap';
+      mockPlayer.findTextTrack = vi.fn().mockReturnValue({ kind: 'descriptions' });
+      manager = new AudioDescriptionManager(mockPlayer);
+
+      expect(manager.resolveDeliveryMode()).toBe('none');
     });
   });
 

@@ -384,6 +384,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
       audioDescription: true,
       audioDescriptionSrc: null, // URL to audio-described version
       audioDescriptionButton: true,
+      audioDescriptionMode: 'auto',
+      audioDescriptionSpeech: true,
+      audioDescriptionExtended: true,
 
       // Sign Language
       signLanguage: true,

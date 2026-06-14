@@ -81,6 +81,8 @@ export interface PlayerEventMap {
   // Audio description
   audiodescriptionenabled: void;
   audiodescriptiondisabled: void;
+  audiodescriptioncuestart: { time: number; endTime: number; text: string; cue: TextTrackCue };
+  audiodescriptioncueend: { time: number; endTime: number; text: string; cue: TextTrackCue };
 
   // Sign language
   signlanguageenabled: void;

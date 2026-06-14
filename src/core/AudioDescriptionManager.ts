@@ -5,6 +5,9 @@
 
 import { CaptionManager } from '../controls/CaptionManager.js';
 import type { Player } from './Player.js';
+import { DescriptionSpeechManager } from './DescriptionSpeechManager.js';
+
+export type AudioDescriptionDeliveryMode = 'swap' | 'vtt_speech' | 'none';
 
 /**
  * Caption-track entry tracked by the audio-description manager. Each
@@ -28,6 +31,7 @@ export class AudioDescriptionManager {
     originalSource: string | null;
     sourceElement: Element | null;
     src: string | null;
+    speechManager: DescriptionSpeechManager | null;
 
     constructor(player: Player) {
         this.player = player;
@@ -41,6 +45,55 @@ export class AudioDescriptionManager {
         this.sourceElement = null;
         this.originalSource = null;
         this.captionTracks = [];
+        this.speechManager = null;
+    }
+
+    /**
+     * Whether a described video source swap is configured.
+     */
+    _hasSwapSource(): boolean {
+        const hasSourceElementsWithDesc = this.player.sourceElements.some(
+            (el: Element) => el.getAttribute('data-desc-src')
+        );
+        return Boolean(this.src || hasSourceElementsWithDesc);
+    }
+
+    /**
+     * Whether a descriptions VTT track is present on the media element.
+     */
+    _hasDescriptionsTrack(): boolean {
+        return Boolean(this.player.findTextTrack('descriptions'));
+    }
+
+    /**
+     * Resolve which audio-description delivery mode applies for the current media.
+     */
+    resolveDeliveryMode(): AudioDescriptionDeliveryMode {
+        const configured = this.player.options.audioDescriptionMode ?? 'auto';
+        const hasSwap = this._hasSwapSource();
+        const hasDescriptions = this._hasDescriptionsTrack();
+
+        if (configured === 'swap') {
+            return hasSwap ? 'swap' : 'none';
+        }
+        if (configured === 'vtt_speech') {
+            return hasDescriptions ? 'vtt_speech' : 'none';
+        }
+        // auto: described video takes precedence over VTT speech
+        if (hasSwap) {
+            return 'swap';
+        }
+        if (hasDescriptions) {
+            return 'vtt_speech';
+        }
+        return 'none';
+    }
+
+    _ensureSpeechManager(): DescriptionSpeechManager {
+        if (!this.speechManager) {
+            this.speechManager = new DescriptionSpeechManager(this.player);
+        }
+        return this.speechManager;
     }
 
     /**
@@ -105,27 +158,39 @@ export class AudioDescriptionManager {
      * Check if audio description is available
      */
     isAvailable() {
-        const hasSourceElementsWithDesc = this.player.sourceElements.some(
-            (el: Element) => el.getAttribute('data-desc-src')
-        );
-        return Boolean(this.src || hasSourceElementsWithDesc || this.captionTracks.length > 0);
+        const mode = this.resolveDeliveryMode();
+        if (mode === 'swap' || mode === 'vtt_speech') {
+            return true;
+        }
+        return this.captionTracks.length > 0;
     }
 
     /**
      * Enable audio description
      */
     async enable() {
-        const hasSourceElementsWithDesc = this.player.sourceElements.some(
-            (el: Element) => el.getAttribute('data-desc-src')
-        );
+        const deliveryMode = this.resolveDeliveryMode();
         const hasTracksWithDesc = this.captionTracks.length > 0;
-        
-        if (!this.src && !hasSourceElementsWithDesc && !hasTracksWithDesc) {
-            console.warn('VidPly: No audio description source, source elements, or tracks provided');
+
+        if (deliveryMode === 'none' && !hasTracksWithDesc) {
+            console.warn('VidPly: No audio description source, descriptions track, or tracks provided');
             return;
         }
 
         this.desiredState = true;
+
+        if (deliveryMode === 'vtt_speech') {
+            const speechManager = this._ensureSpeechManager();
+            const started = speechManager.enable();
+            if (!started) {
+                console.warn('VidPly: No descriptions track available for VTT speech mode');
+                return;
+            }
+            this.enabled = true;
+            this.player.state.audioDescriptionEnabled = true;
+            this.player.emit('audiodescriptionenabled');
+            return;
+        }
 
         // Store current state for restoration
         const currentTime = this.player.state.currentTime;
@@ -159,6 +224,14 @@ export class AudioDescriptionManager {
      */
     async disable() {
         this.desiredState = false;
+
+        if (this.speechManager?.enabled) {
+            this.speechManager.disable();
+            this.enabled = false;
+            this.player.state.audioDescriptionEnabled = false;
+            this.player.emit('audiodescriptiondisabled');
+            return;
+        }
 
         // If we only had caption tracks (no video source swap), just swap tracks back
         const hasTracksWithDesc = this.captionTracks.length > 0;
@@ -195,21 +268,33 @@ export class AudioDescriptionManager {
      * Toggle audio description
      */
     async toggle() {
+        const deliveryMode = this.resolveDeliveryMode();
         const descriptionTrack = this.player.findTextTrack('descriptions');
-        const hasAudioDescriptionSrc = this.isAvailable();
-        
-        if (descriptionTrack && !hasAudioDescriptionSrc) {
-            // Toggle description track playback
+        const hasSwapOrTracks = this._hasSwapSource() || this.captionTracks.length > 0;
+
+        if (deliveryMode === 'vtt_speech') {
+            if (this.enabled) {
+                await this.disable();
+            } else {
+                await this.enable();
+            }
+            return;
+        }
+
+        if (descriptionTrack && !hasSwapOrTracks) {
+            // Text-only fallback when speech synthesis is unavailable
             if (descriptionTrack.mode === 'showing') {
                 descriptionTrack.mode = 'hidden';
                 this.enabled = false;
+                this.player.state.audioDescriptionEnabled = false;
                 this.player.emit('audiodescriptiondisabled');
             } else {
                 descriptionTrack.mode = 'showing';
                 this.enabled = true;
+                this.player.state.audioDescriptionEnabled = true;
                 this.player.emit('audiodescriptionenabled');
             }
-        } else if (descriptionTrack && hasAudioDescriptionSrc) {
+        } else if (descriptionTrack && hasSwapOrTracks) {
             // Toggle both
             if (this.enabled) {
                 this.desiredState = false;
@@ -219,8 +304,8 @@ export class AudioDescriptionManager {
                 this.desiredState = true;
                 await this.enable();
             }
-        } else if (hasAudioDescriptionSrc) {
-            // Toggle source
+        } else if (hasSwapOrTracks) {
+            // Toggle source swap
             if (this.enabled) {
                 this.desiredState = false;
                 await this.disable();
@@ -743,6 +828,8 @@ export class AudioDescriptionManager {
      * Update sources (called when playlist changes)
      */
     updateSources(audioDescriptionSrc: string | null | undefined) {
+        this.speechManager?.destroy();
+        this.speechManager = null;
         this.src = audioDescriptionSrc || null;
         // Reset state for new playlist item
         this.enabled = false;
@@ -764,6 +851,8 @@ export class AudioDescriptionManager {
      * Cleanup
      */
     destroy() {
+        this.speechManager?.destroy();
+        this.speechManager = null;
         this.enabled = false;
         this.desiredState = false;
         this.captionTracks = [];
