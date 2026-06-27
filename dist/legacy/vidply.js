@@ -15194,6 +15194,252 @@
     }
   };
 
+  // src/core/MediaSessionManager.ts
+  var POSITION_THROTTLE_MS = 1e3;
+  var activeManager = null;
+  var MediaSessionManager = class {
+    constructor(player) {
+      __publicField(this, "player");
+      __publicField(this, "supported");
+      __publicField(this, "handlers", {});
+      __publicField(this, "boundActions", []);
+      __publicField(this, "lastPositionUpdate", 0);
+      this.player = player;
+      this.supported = typeof navigator !== "undefined" && "mediaSession" in navigator;
+      if (!this.supported) return;
+      this.attachEvents();
+      if (activeManager === null) {
+        this.claimSession();
+      }
+    }
+    /** Does this manager currently own the global media session? */
+    isActive() {
+      return activeManager === this;
+    }
+    /**
+     * Take ownership of the global session: (re)register the action handlers so
+     * the OS controls drive this player, and refresh metadata/state/position.
+     */
+    claimSession() {
+      if (!this.supported) return;
+      activeManager = this;
+      this.setupActionHandlers();
+      this.updateMetadata();
+      this.updatePlaybackState();
+      this.updatePositionState(true);
+    }
+    get session() {
+      return navigator.mediaSession;
+    }
+    setActionHandler(action, handler) {
+      try {
+        this.session.setActionHandler(action, handler);
+        if (handler && !this.boundActions.includes(action)) {
+          this.boundActions.push(action);
+        }
+      } catch {
+      }
+    }
+    setupActionHandlers() {
+      this.setActionHandler("play", () => this.player.play());
+      this.setActionHandler("pause", () => this.player.pause());
+      this.setActionHandler("stop", () => this.player.stop());
+      this.setActionHandler("seekbackward", (details) => {
+        this.player.seekBackward(this.offsetFrom(details));
+      });
+      this.setActionHandler("seekforward", (details) => {
+        this.player.seekForward(this.offsetFrom(details));
+      });
+      this.setActionHandler("seekto", (details) => {
+        if (details && typeof details.seekTime === "number") {
+          this.player.seek(details.seekTime);
+        }
+      });
+      this.updateTrackHandlers();
+    }
+    offsetFrom(details) {
+      const offset = details && typeof details.seekOffset === "number" ? details.seekOffset : void 0;
+      return typeof offset === "number" && offset > 0 ? offset : void 0;
+    }
+    /**
+     * previous/next track only make sense with a multi-item playlist; bind
+     * or clear them whenever the playlist state changes so the OS shows the
+     * correct affordances.
+     */
+    updateTrackHandlers() {
+      const pm = this.player.playlistManager;
+      const hasPlaylist = Boolean(pm && Array.isArray(pm.tracks) && pm.tracks.length > 1);
+      if (hasPlaylist && pm) {
+        this.setActionHandler("previoustrack", () => pm.previous());
+        this.setActionHandler("nexttrack", () => pm.next());
+      } else {
+        this.setActionHandler("previoustrack", null);
+        this.setActionHandler("nexttrack", null);
+      }
+    }
+    attachEvents() {
+      this.handlers = {
+        // Starting playback makes this player the session owner, taking over
+        // the OS controls from any other player on the page.
+        play: () => this.claimSession(),
+        pause: () => {
+          if (!this.isActive()) return;
+          this.updatePlaybackState();
+          this.updatePositionState(true);
+        },
+        ended: () => {
+          if (!this.isActive()) return;
+          this.updatePlaybackState();
+        },
+        timeupdate: () => {
+          if (!this.isActive()) return;
+          this.updatePositionState();
+        },
+        durationchange: () => {
+          if (!this.isActive()) return;
+          this.updatePositionState(true);
+        },
+        ratechange: () => {
+          if (!this.isActive()) return;
+          this.updatePositionState(true);
+        },
+        loadedmetadata: () => {
+          if (!this.isActive()) return;
+          this.updateMetadata();
+          this.updatePositionState(true);
+        },
+        playlisttrackchange: () => {
+          if (!this.isActive()) return;
+          this.updateMetadata();
+          this.updateTrackHandlers();
+          this.updatePositionState(true);
+        }
+      };
+      for (const [event, handler] of Object.entries(this.handlers)) {
+        if (handler) {
+          this.player.on(event, handler);
+        }
+      }
+    }
+    resolveMetadata() {
+      const opts = this.player.options;
+      let title = opts.title || "";
+      let artist = opts.artist || "";
+      const album = opts.album || "";
+      let poster = opts.poster || null;
+      const pm = this.player.playlistManager;
+      if (pm && Array.isArray(pm.tracks) && pm.currentIndex >= 0) {
+        const track = pm.tracks[pm.currentIndex];
+        if (track) {
+          if (track.title) title = track.title;
+          if (track.artist) artist = track.artist;
+          if (track.poster) poster = track.poster;
+        }
+      }
+      if (!title && typeof document !== "undefined") {
+        title = document.title || "VidPly";
+      }
+      return { title, artist, album, poster };
+    }
+    updateMetadata() {
+      if (!this.supported || typeof window === "undefined" || typeof window.MediaMetadata === "undefined") {
+        return;
+      }
+      const { title, artist, album, poster } = this.resolveMetadata();
+      const artwork = [];
+      if (poster) {
+        try {
+          const src = this.player.resolvePosterPath(poster);
+          if (src) {
+            artwork.push({ src });
+          }
+        } catch {
+        }
+      }
+      try {
+        this.session.metadata = new window.MediaMetadata({
+          title,
+          artist,
+          album,
+          artwork
+        });
+      } catch {
+      }
+    }
+    updatePlaybackState() {
+      if (!this.supported) return;
+      try {
+        this.session.playbackState = this.player.state.playing ? "playing" : "paused";
+      } catch {
+      }
+    }
+    /**
+     * Push the current position to the OS scrubber. `timeupdate` fires
+     * several times a second, so non-forced updates are throttled.
+     */
+    updatePositionState(force = false) {
+      if (!this.supported || typeof this.session.setPositionState !== "function") {
+        return;
+      }
+      const now = Date.now();
+      if (!force && now - this.lastPositionUpdate < POSITION_THROTTLE_MS) {
+        return;
+      }
+      this.lastPositionUpdate = now;
+      const duration = this.player.state.duration;
+      if (!Number.isFinite(duration) || duration <= 0) {
+        try {
+          this.session.setPositionState();
+        } catch {
+        }
+        return;
+      }
+      const playbackRate = this.player.state.playbackSpeed || 1;
+      const position = Math.min(Math.max(0, this.player.state.currentTime || 0), duration);
+      try {
+        this.session.setPositionState({
+          duration,
+          playbackRate: playbackRate > 0 ? playbackRate : 1,
+          position
+        });
+      } catch {
+      }
+    }
+    destroy() {
+      if (!this.supported) return;
+      for (const [event, handler] of Object.entries(this.handlers)) {
+        if (handler) {
+          this.player.off(event, handler);
+        }
+      }
+      this.handlers = {};
+      if (this.isActive()) {
+        for (const action of this.boundActions) {
+          try {
+            this.session.setActionHandler(action, null);
+          } catch {
+          }
+        }
+        try {
+          this.session.metadata = null;
+        } catch {
+        }
+        try {
+          if (typeof this.session.setPositionState === "function") {
+            this.session.setPositionState();
+          }
+        } catch {
+        }
+        try {
+          this.session.playbackState = "none";
+        } catch {
+        }
+        activeManager = null;
+      }
+      this.boundActions = [];
+    }
+  };
+
   // src/core/Player.ts
   init_HTML5Renderer();
   init_Icons();
@@ -16578,6 +16824,7 @@
       __publicField(this, "controlBar", null);
       __publicField(this, "captionManager", null);
       __publicField(this, "keyboardManager", null);
+      __publicField(this, "mediaSessionManager", null);
       __publicField(this, "transcriptManager", null);
       __publicField(this, "playlistManager", null);
       __publicField(this, "settingsDialog", null);
@@ -16695,6 +16942,11 @@
         poster: null,
         responsive: true,
         fillContainer: false,
+        // Media metadata + OS media controls (Media Session API)
+        title: null,
+        artist: null,
+        album: null,
+        mediaSession: true,
         // Playback
         autoplay: false,
         loop: false,
@@ -17184,6 +17436,9 @@
         this.setupMetadataHandling();
         if (this.options.keyboard) {
           this.keyboardManager = new KeyboardManager(this);
+        }
+        if (this.options.mediaSession) {
+          this.mediaSessionManager = new MediaSessionManager(this);
         }
         this.setupResponsiveHandlers();
         if (this.options.startTime > 0) {
@@ -18694,6 +18949,14 @@
           this.log(`KeyboardHelp.destroy failed: ${err}`, "warn");
         }
         this.keyboardHelp = null;
+      }
+      if (this.mediaSessionManager && typeof this.mediaSessionManager.destroy === "function") {
+        try {
+          this.mediaSessionManager.destroy();
+        } catch (err) {
+          this.log(`MediaSessionManager.destroy failed: ${err}`, "warn");
+        }
+        this.mediaSessionManager = null;
       }
       if (this.floatingPlayerManager) {
         try {

@@ -295,6 +295,17 @@
       ],
       "format": "esm"
     },
+    "src/core/MediaSessionManager.ts": {
+      "bytes": 9974,
+      "imports": [
+        {
+          "path": "<runtime>",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
     "src/renderers/HTML5Renderer.ts": {
       "bytes": 12110,
       "imports": [
@@ -798,7 +809,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 103887,
+      "bytes": 104630,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -824,6 +835,11 @@
           "path": "src/controls/KeyboardManager.ts",
           "kind": "import-statement",
           "original": "../controls/KeyboardManager.js"
+        },
+        {
+          "path": "src/core/MediaSessionManager.ts",
+          "kind": "import-statement",
+          "original": "./MediaSessionManager.js"
         },
         {
           "path": "src/renderers/HTML5Renderer.ts",
@@ -1133,7 +1149,7 @@
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 87649
+          "bytesInOutput": 88295
         },
         "src/controls/ControlBar.ts": {
           "bytesInOutput": 128246
@@ -1146,6 +1162,9 @@
         },
         "src/controls/KeyboardManager.ts": {
           "bytesInOutput": 11246
+        },
+        "src/core/MediaSessionManager.ts": {
+          "bytesInOutput": 7825
         },
         "src/utils/UrlSafe.ts": {
           "bytesInOutput": 1045
@@ -1181,7 +1200,7 @@
           "bytesInOutput": 5385
         }
       },
-      "bytes": 834034
+      "bytes": 842543
     }
   }
 }

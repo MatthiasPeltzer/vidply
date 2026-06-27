@@ -8,6 +8,7 @@ import {DOMUtils} from '../utils/DOMUtils.js';
 import {ControlBar} from '../controls/ControlBar.js';
 import {CaptionManager} from '../controls/CaptionManager.js';
 import {KeyboardManager} from '../controls/KeyboardManager.js';
+import {MediaSessionManager} from './MediaSessionManager.js';
 import {HTML5Renderer} from '../renderers/HTML5Renderer.js';
 import {createPlayOverlay} from '../icons/Icons.js';
 import {i18n} from '../i18n/i18n.js';
@@ -168,6 +169,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
   controlBar: ControlBar | null = null;
   captionManager: CaptionManager | null = null;
   keyboardManager: KeyboardManager | null = null;
+  mediaSessionManager: MediaSessionManager | null = null;
   transcriptManager: TranscriptManager | null = null;
   playlistManager: PlaylistManager | null = null;
   settingsDialog: SettingsDialog | null = null;
@@ -311,6 +313,12 @@ export class Player extends EventEmitter<PlayerEventMap> {
       poster: null,
       responsive: true,
       fillContainer: false,
+
+      // Media metadata + OS media controls (Media Session API)
+      title: null,
+      artist: null,
+      album: null,
+      mediaSession: true,
 
       // Playback
       autoplay: false,
@@ -819,6 +827,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
       // Initialize keyboard controls
       if (this.options.keyboard) {
         this.keyboardManager = new KeyboardManager(this);
+      }
+
+      // Integrate with OS media controls (Media Session API)
+      if (this.options.mediaSession) {
+        this.mediaSessionManager = new MediaSessionManager(this);
       }
 
       // Set up responsive handlers
@@ -2812,6 +2825,15 @@ export class Player extends EventEmitter<PlayerEventMap> {
         this.log(`KeyboardHelp.destroy failed: ${err}`, 'warn');
       }
       this.keyboardHelp = null;
+    }
+
+    if (this.mediaSessionManager && typeof this.mediaSessionManager.destroy === 'function') {
+      try {
+        this.mediaSessionManager.destroy();
+      } catch (err) {
+        this.log(`MediaSessionManager.destroy failed: ${err}`, 'warn');
+      }
+      this.mediaSessionManager = null;
     }
 
     // Clean up floating player manager (disconnects IntersectionObserver,
