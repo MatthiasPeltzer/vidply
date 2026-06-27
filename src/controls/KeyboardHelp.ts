@@ -37,12 +37,33 @@ const ACTION_ORDER: Array<keyof KeyboardShortcuts> = [
   'help'
 ];
 
+/**
+ * Feature-specific actions only make sense when the matching feature actually
+ * exists on this player (e.g. there's no point listing the captions shortcut
+ * for a video without captions). Each value is the key under
+ * `player.controlBar.controls` whose presence proves the feature is available
+ * and enabled for this player. Actions not listed here (play/pause, seek,
+ * volume, mute, help) are always relevant for any audio/video player.
+ */
+const ACTION_REQUIRES_CONTROL: Partial<Record<keyof KeyboardShortcuts, string>> = {
+  captions: 'captions',
+  'caption-style-menu': 'captionStyle',
+  'speed-down': 'speed',
+  'speed-up': 'speed',
+  'speed-menu': 'speed',
+  'quality-menu': 'quality',
+  'chapters-menu': 'chapters',
+  'transcript-toggle': 'transcript',
+  fullscreen: 'fullscreen'
+};
+
 export class KeyboardHelp {
   player: Player;
   isOpen = false;
   overlay: HTMLElement | null = null;
   private _triggerElement: HTMLElement | null = null;
   private _keydownHandler: ((e: KeyboardEvent) => void) | null = null;
+  private _content: HTMLElement | null = null;
 
   constructor(player: Player) {
     this.player = player;
@@ -118,6 +139,7 @@ export class KeyboardHelp {
     const content = DOMUtils.createElement('div', {
       className: `${this.prefix}-settings-content`
     });
+    this._content = content;
     content.appendChild(this.buildShortcutList());
 
     dialog.appendChild(header);
@@ -172,6 +194,24 @@ export class KeyboardHelp {
     return overlay;
   }
 
+  /**
+   * Whether a shortcut row is worth showing for *this* player. Feature actions
+   * are hidden when their control isn't present (e.g. no captions track, an
+   * audio-only player with no fullscreen). Core actions are always relevant.
+   *
+   * When the player has no control bar we can't infer availability, so nothing
+   * is hidden — the shortcuts still work and we'd rather over-show than mislead.
+   */
+  private isActionRelevant(action: keyof KeyboardShortcuts): boolean {
+    const requiredControl = ACTION_REQUIRES_CONTROL[action];
+    if (!requiredControl) return true;
+
+    const controlBar = (this.player as { controlBar?: { controls?: Record<string, unknown> } }).controlBar;
+    if (!controlBar || !controlBar.controls) return true;
+
+    return Boolean(controlBar.controls[requiredControl]);
+  }
+
   private buildShortcutList(): HTMLElement {
     const list = DOMUtils.createElement('dl', {
       className: `${this.prefix}-help-list`
@@ -182,6 +222,7 @@ export class KeyboardHelp {
     for (const action of ACTION_ORDER) {
       const keys = shortcuts[action];
       if (!Array.isArray(keys) || keys.length === 0) continue;
+      if (!this.isActionRelevant(action)) continue;
 
       const term = DOMUtils.createElement('dt', {
         className: `${this.prefix}-help-action`,
@@ -222,6 +263,10 @@ export class KeyboardHelp {
     if (!this.overlay) {
       this.overlay = this.createElement();
       this.player.container.appendChild(this.overlay);
+    } else if (this._content) {
+      // Rebuild so feature availability that changed since last open
+      // (e.g. HLS captions/qualities loaded later) is reflected.
+      this._content.replaceChildren(this.buildShortcutList());
     }
 
     const active = (typeof document !== 'undefined' ? document.activeElement : null) as HTMLElement | null;
@@ -274,6 +319,7 @@ export class KeyboardHelp {
       this.overlay.parentNode.removeChild(this.overlay);
     }
     this.overlay = null;
+    this._content = null;
     this._triggerElement = null;
     this.isOpen = false;
   }

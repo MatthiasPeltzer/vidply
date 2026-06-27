@@ -1,5 +1,5 @@
 /*!
- * VidPly v1.2.1 - Universal, Accessible Video Player
+ * VidPly v1.2.2 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
@@ -16578,6 +16578,17 @@
     "fullscreen",
     "help"
   ];
+  var ACTION_REQUIRES_CONTROL = {
+    captions: "captions",
+    "caption-style-menu": "captionStyle",
+    "speed-down": "speed",
+    "speed-up": "speed",
+    "speed-menu": "speed",
+    "quality-menu": "quality",
+    "chapters-menu": "chapters",
+    "transcript-toggle": "transcript",
+    fullscreen: "fullscreen"
+  };
   var KeyboardHelp = class {
     constructor(player) {
       __publicField(this, "player");
@@ -16585,6 +16596,7 @@
       __publicField(this, "overlay", null);
       __publicField(this, "_triggerElement", null);
       __publicField(this, "_keydownHandler", null);
+      __publicField(this, "_content", null);
       this.player = player;
     }
     get prefix() {
@@ -16648,6 +16660,7 @@
       const content = DOMUtils.createElement("div", {
         className: `${this.prefix}-settings-content`
       });
+      this._content = content;
       content.appendChild(this.buildShortcutList());
       dialog.appendChild(header);
       dialog.appendChild(content);
@@ -16692,6 +16705,21 @@
       );
       return overlay;
     }
+    /**
+     * Whether a shortcut row is worth showing for *this* player. Feature actions
+     * are hidden when their control isn't present (e.g. no captions track, an
+     * audio-only player with no fullscreen). Core actions are always relevant.
+     *
+     * When the player has no control bar we can't infer availability, so nothing
+     * is hidden — the shortcuts still work and we'd rather over-show than mislead.
+     */
+    isActionRelevant(action) {
+      const requiredControl = ACTION_REQUIRES_CONTROL[action];
+      if (!requiredControl) return true;
+      const controlBar = this.player.controlBar;
+      if (!controlBar || !controlBar.controls) return true;
+      return Boolean(controlBar.controls[requiredControl]);
+    }
     buildShortcutList() {
       const list = DOMUtils.createElement("dl", {
         className: `${this.prefix}-help-list`
@@ -16700,6 +16728,7 @@
       for (const action of ACTION_ORDER) {
         const keys = shortcuts[action];
         if (!Array.isArray(keys) || keys.length === 0) continue;
+        if (!this.isActionRelevant(action)) continue;
         const term = DOMUtils.createElement("dt", {
           className: `${this.prefix}-help-action`,
           textContent: i18n.t(`help.actions.${action}`)
@@ -16733,6 +16762,8 @@
       if (!this.overlay) {
         this.overlay = this.createElement();
         this.player.container.appendChild(this.overlay);
+      } else if (this._content) {
+        this._content.replaceChildren(this.buildShortcutList());
       }
       const active = typeof document !== "undefined" ? document.activeElement : null;
       this._triggerElement = active && typeof active.focus === "function" ? active : null;
@@ -16776,6 +16807,7 @@
         this.overlay.parentNode.removeChild(this.overlay);
       }
       this.overlay = null;
+      this._content = null;
       this._triggerElement = null;
       this.isOpen = false;
     }

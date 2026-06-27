@@ -1,39 +1,39 @@
 /*!
- * VidPly v1.2.1 - Universal, Accessible Video Player
+ * VidPly v1.2.2 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 import {
   TimeUtils
-} from "./vidply.chunk-VPC5DQG2.js";
+} from "./vidply.chunk-XC64R4XX.js";
 import {
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-CPULRMYC.js";
+} from "./vidply.chunk-CAG622YD.js";
 import {
   focusElement
-} from "./vidply.chunk-JAKZNGOR.js";
+} from "./vidply.chunk-UVPOCG3W.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-XAK3DPTO.js";
+} from "./vidply.chunk-KZGZKKYD.js";
 import {
   CaptionManager
-} from "./vidply.chunk-IQK6CHMO.js";
+} from "./vidply.chunk-LAGCYKR4.js";
 import {
   StorageManager
-} from "./vidply.chunk-ZOJW72EP.js";
+} from "./vidply.chunk-EJYH4Y57.js";
 import {
   debounce,
   isMobile,
   rafWithTimeout,
   reducedMotionScrollOptions,
   throttle
-} from "./vidply.chunk-5IK3IC5V.js";
+} from "./vidply.chunk-WGJ5JS2A.js";
 import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-JBH7VXC6.js";
+} from "./vidply.chunk-HRQCV7H2.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -2057,7 +2057,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-NA6HMVYD.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+    import("./vidply.CaptionStyleMenu-BHXXDE67.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
@@ -4986,12 +4986,24 @@ var ACTION_ORDER = [
   "fullscreen",
   "help"
 ];
+var ACTION_REQUIRES_CONTROL = {
+  captions: "captions",
+  "caption-style-menu": "captionStyle",
+  "speed-down": "speed",
+  "speed-up": "speed",
+  "speed-menu": "speed",
+  "quality-menu": "quality",
+  "chapters-menu": "chapters",
+  "transcript-toggle": "transcript",
+  fullscreen: "fullscreen"
+};
 var KeyboardHelp = class {
   player;
   isOpen = false;
   overlay = null;
   _triggerElement = null;
   _keydownHandler = null;
+  _content = null;
   constructor(player) {
     this.player = player;
   }
@@ -5056,6 +5068,7 @@ var KeyboardHelp = class {
     const content = DOMUtils.createElement("div", {
       className: `${this.prefix}-settings-content`
     });
+    this._content = content;
     content.appendChild(this.buildShortcutList());
     dialog.appendChild(header);
     dialog.appendChild(content);
@@ -5100,6 +5113,21 @@ var KeyboardHelp = class {
     );
     return overlay;
   }
+  /**
+   * Whether a shortcut row is worth showing for *this* player. Feature actions
+   * are hidden when their control isn't present (e.g. no captions track, an
+   * audio-only player with no fullscreen). Core actions are always relevant.
+   *
+   * When the player has no control bar we can't infer availability, so nothing
+   * is hidden — the shortcuts still work and we'd rather over-show than mislead.
+   */
+  isActionRelevant(action) {
+    const requiredControl = ACTION_REQUIRES_CONTROL[action];
+    if (!requiredControl) return true;
+    const controlBar = this.player.controlBar;
+    if (!controlBar || !controlBar.controls) return true;
+    return Boolean(controlBar.controls[requiredControl]);
+  }
   buildShortcutList() {
     const list = DOMUtils.createElement("dl", {
       className: `${this.prefix}-help-list`
@@ -5108,6 +5136,7 @@ var KeyboardHelp = class {
     for (const action of ACTION_ORDER) {
       const keys = shortcuts[action];
       if (!Array.isArray(keys) || keys.length === 0) continue;
+      if (!this.isActionRelevant(action)) continue;
       const term = DOMUtils.createElement("dt", {
         className: `${this.prefix}-help-action`,
         textContent: i18n.t(`help.actions.${action}`)
@@ -5141,6 +5170,8 @@ var KeyboardHelp = class {
     if (!this.overlay) {
       this.overlay = this.createElement();
       this.player.container.appendChild(this.overlay);
+    } else if (this._content) {
+      this._content.replaceChildren(this.buildShortcutList());
     }
     const active = typeof document !== "undefined" ? document.activeElement : null;
     this._triggerElement = active && typeof active.focus === "function" ? active : null;
@@ -5183,6 +5214,7 @@ var KeyboardHelp = class {
       this.overlay.parentNode.removeChild(this.overlay);
     }
     this.overlay = null;
+    this._content = null;
     this._triggerElement = null;
     this.isOpen = false;
   }
@@ -5194,21 +5226,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-O76KAYL7.js");
+    const module = await import("./vidply.AudioDescriptionManager-GZWTL4HP.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-CMBRZA6J.js");
+    const module = await import("./vidply.SignLanguageManager-ARXPCRIF.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-OXWXBKQO.js");
+    const module = await import("./vidply.FloatingPlayerManager-GA2NGDAF.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -5873,7 +5905,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-FG6SIAIO.js");
+    const module = await import("./vidply.TranscriptManager-LI6U4KX7.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -6342,19 +6374,19 @@ var Player = class _Player extends EventEmitter {
   }
   async _detectRendererClass(src) {
     if (src.includes("youtube.com") || src.includes("youtu.be")) {
-      const module = await import("./vidply.YouTubeRenderer-HRTN4EJ5.js");
+      const module = await import("./vidply.YouTubeRenderer-DXOYVEJA.js");
       return module.YouTubeRenderer ?? module.default;
     } else if (src.includes("vimeo.com")) {
-      const module = await import("./vidply.VimeoRenderer-BRHFYPNJ.js");
+      const module = await import("./vidply.VimeoRenderer-TS5GFHHR.js");
       return module.VimeoRenderer ?? module.default;
     } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-ZBEFVH5W.js");
+      const module = await import("./vidply.HLSRenderer-X4UUJ6LW.js");
       return module.HLSRenderer ?? module.default;
     } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-EOVEW73H.js");
+      const module = await import("./vidply.DASHRenderer-NUBO7ORA.js");
       return module.DASHRenderer ?? module.default;
     } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
-      const module = await import("./vidply.SoundCloudRenderer-OA7QQYGN.js");
+      const module = await import("./vidply.SoundCloudRenderer-JJYNYIHU.js");
       return module.SoundCloudRenderer ?? module.default;
     }
     return HTML5Renderer;
