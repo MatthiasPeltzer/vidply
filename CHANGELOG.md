@@ -7,7 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No unreleased changes._
+### Added
+- Caption preferences persist across sessions: the player remembers whether
+  captions were turned on/off and which language was selected, restoring that
+  choice on the next visit (preserving the last language even while captions
+  are off).
+
+### Changed
+- Keyboard-shortcuts help dialog now lists only the shortcuts relevant to each
+  player. Feature shortcuts (captions, caption styling, speed, quality,
+  chapters, transcript, fullscreen) appear only when that feature is available,
+  and the list is rebuilt on open so later-loading features (e.g. HLS
+  captions/qualities) show up once ready.
+
+## [1.2.2] - 2026-06-27
+
+### Added
+- Media Session API integration (`mediaSession` option, default on): exposes
+  now-playing metadata (title/artist/album/artwork) and routes OS / lock-screen /
+  notification / headset controls (play, pause, stop, seek, and previous/next
+  track for playlists) back into the player. New `title`/`artist`/`album` options
+  feed the metadata; playlist items take precedence. Position state is reported
+  to the OS scrubber and degrades silently where unsupported.
+- Keyboard-shortcuts help dialog: a focus-trapped, screen-reader-friendly modal
+  listing the active key bindings. Reachable via a new control-bar help button
+  (`helpButton` option, default on), the `?` keyboard shortcut, and the
+  `player.toggleKeyboardHelp()` / `showKeyboardHelp()` / `hideKeyboardHelp()`
+  API. Fully translated (en, de, es, fr, ja).
+
+### Fixed
+- Media Session: on pages with multiple players, the OS controls now drive the
+  player that is actually playing. The single, document-global
+  `navigator.mediaSession` is claimed by the most-recently-played player;
+  background players no longer hijack it on init or wipe it on destroy. Fixes
+  play/pause/seek/next/prev appearing in the OS dialog but doing nothing.
 
 ## [1.2.1] - 2026-06-14
 
@@ -500,7 +533,7 @@ _No unreleased changes._
 
 - Initial release of the vidply accessible media player.
 
-[Unreleased]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.1...HEAD
+[1.2.2]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/MatthiasPeltzer/vidply/compare/v1.1.19...v1.2.0
 [1.1.19]: https://github.com/MatthiasPeltzer/vidply/compare/v1.1.18...v1.1.19

@@ -429,7 +429,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardHelp.ts": {
-      "bytes": 7957,
+      "bytes": 9961,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1191,7 +1191,7 @@
           "bytesInOutput": 15264
         },
         "src/controls/KeyboardHelp.ts": {
-          "bytesInOutput": 7317
+          "bytesInOutput": 8634
         },
         "src/features/PlaylistManager.ts": {
           "bytesInOutput": 48299
@@ -1200,7 +1200,7 @@
           "bytesInOutput": 5385
         }
       },
-      "bytes": 842543
+      "bytes": 843860
     }
   }
 }

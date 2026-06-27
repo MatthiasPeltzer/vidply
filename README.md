@@ -713,7 +713,13 @@ player.hideKeyboardHelp()    // Close the help dialog
 
 The dialog is built from the live `keyboardShortcuts` bindings (including any
 overrides) and is also reachable via the control-bar help button and the
-<kbd>?</kbd> shortcut.
+<kbd>?</kbd> shortcut. It only lists shortcuts that are relevant to the
+specific player: feature shortcuts (captions, caption styling, speed, quality,
+chapters, transcript, fullscreen) are shown only when that feature is actually
+available, so an audio-only player or a video without captions won't advertise
+shortcuts it can't perform. The list is rebuilt each time the dialog opens, so
+features that load later (e.g. HLS captions or quality levels) appear once
+they're ready.
 
 ### State Information
 
