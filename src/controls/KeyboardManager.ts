@@ -269,6 +269,10 @@ export class KeyboardManager {
         }
         return false;
 
+      case 'help':
+        this.player.toggleKeyboardHelp();
+        return true;
+
       default:
         return false;
     }

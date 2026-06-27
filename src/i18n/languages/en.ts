@@ -176,6 +176,33 @@ export const en = {
     reset: 'Reset to defaults',
     close: 'Close'
   },
+  help: {
+    title: 'Keyboard shortcuts',
+    button: 'Keyboard shortcuts',
+    close: 'Close',
+    or: 'or',
+    keys: {
+      space: 'Space'
+    },
+    actions: {
+      'play-pause': 'Play / Pause',
+      'seek-backward': 'Seek backward',
+      'seek-forward': 'Seek forward',
+      'volume-up': 'Volume up',
+      'volume-down': 'Volume down',
+      'mute': 'Mute / Unmute',
+      'captions': 'Toggle captions',
+      'caption-style-menu': 'Caption styling',
+      'speed-down': 'Decrease speed',
+      'speed-up': 'Increase speed',
+      'speed-menu': 'Playback speed',
+      'quality-menu': 'Quality',
+      'chapters-menu': 'Chapters',
+      'transcript-toggle': 'Toggle transcript',
+      'fullscreen': 'Toggle fullscreen',
+      'help': 'Keyboard shortcuts'
+    }
+  },
   speeds: {
     normal: 'Normal'
   },

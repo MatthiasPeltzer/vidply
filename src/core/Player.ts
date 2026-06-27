@@ -41,6 +41,7 @@ import type {FloatingPlayerManager} from './FloatingPlayerManager.js';
 import type {TranscriptManager} from '../controls/TranscriptManager.js';
 import type {PlaylistManager} from '../features/PlaylistManager.js';
 import type {SettingsDialog} from '../controls/SettingsDialog.js';
+import {KeyboardHelp} from '../controls/KeyboardHelp.js';
 
 // Typed dynamic loaders. Each loader returns the constructor for the
 // lazily imported manager, so call sites get full IntelliSense and
@@ -170,6 +171,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
   transcriptManager: TranscriptManager | null = null;
   playlistManager: PlaylistManager | null = null;
   settingsDialog: SettingsDialog | null = null;
+  keyboardHelp: KeyboardHelp | null = null;
   audioDescriptionManager: AudioDescriptionManager | null = null;
   signLanguageManager: SignLanguageManager | null = null;
   floatingPlayerManager: FloatingPlayerManager | null = null;
@@ -357,6 +359,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       captionsButton: true,
       transcriptButton: true,
       fullscreenButton: true,
+      helpButton: true,
       pipButton: false,
       floating: false,
       floatingPosition: 'bottom-right',
@@ -417,7 +420,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
         'speed-menu': ['s'],
         'quality-menu': ['q'],
         'chapters-menu': ['j'],
-        'transcript-toggle': ['t']
+        'transcript-toggle': ['t'],
+        'help': ['?']
       },
 
       // Accessibility
@@ -2607,6 +2611,29 @@ export class Player extends EventEmitter<PlayerEventMap> {
     // No-op - settings dialog removed
   }
 
+  /**
+   * Lazily build (on first use) and toggle the keyboard-shortcuts help
+   * dialog. Reflects the live `keyboardShortcuts` bindings, including any
+   * consumer overrides.
+   */
+  toggleKeyboardHelp() {
+    if (!this.keyboardHelp) {
+      this.keyboardHelp = new KeyboardHelp(this);
+    }
+    this.keyboardHelp.toggle();
+  }
+
+  showKeyboardHelp() {
+    if (!this.keyboardHelp) {
+      this.keyboardHelp = new KeyboardHelp(this);
+    }
+    this.keyboardHelp.show();
+  }
+
+  hideKeyboardHelp() {
+    this.keyboardHelp?.hide();
+  }
+
   // Utility methods
   getCurrentTime() {
     return this.state.currentTime;
@@ -2776,6 +2803,15 @@ export class Player extends EventEmitter<PlayerEventMap> {
         this.log(`SettingsDialog.destroy failed: ${err}`, 'warn');
       }
       this.settingsDialog = null;
+    }
+
+    if (this.keyboardHelp && typeof this.keyboardHelp.destroy === 'function') {
+      try {
+        this.keyboardHelp.destroy();
+      } catch (err) {
+        this.log(`KeyboardHelp.destroy failed: ${err}`, 'warn');
+      }
+      this.keyboardHelp = null;
     }
 
     // Clean up floating player manager (disconnects IntersectionObserver,

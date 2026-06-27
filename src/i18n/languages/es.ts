@@ -172,6 +172,33 @@ export const es = {
     reset: 'Restablecer',
     close: 'Cerrar'
   },
+  help: {
+    title: 'Atajos de teclado',
+    button: 'Atajos de teclado',
+    close: 'Cerrar',
+    or: 'o',
+    keys: {
+      space: 'Espacio'
+    },
+    actions: {
+      'play-pause': 'Reproducir / Pausar',
+      'seek-backward': 'Retroceder',
+      'seek-forward': 'Avanzar',
+      'volume-up': 'Subir volumen',
+      'volume-down': 'Bajar volumen',
+      'mute': 'Silenciar / Activar sonido',
+      'captions': 'Alternar subtítulos',
+      'caption-style-menu': 'Estilo de subtítulos',
+      'speed-down': 'Reducir velocidad',
+      'speed-up': 'Aumentar velocidad',
+      'speed-menu': 'Velocidad de reproducción',
+      'quality-menu': 'Calidad',
+      'chapters-menu': 'Capítulos',
+      'transcript-toggle': 'Alternar transcripción',
+      'fullscreen': 'Alternar pantalla completa',
+      'help': 'Atajos de teclado'
+    }
+  },
   speeds: {
     normal: 'Normal'
   },
