@@ -78,6 +78,10 @@ export interface PlayerEventMap {
   settingsopen: void;
   settingsclose: void;
 
+  // Keyboard shortcuts help
+  keyboardhelpopen: void;
+  keyboardhelpclose: void;
+
   // Audio description
   audiodescriptionenabled: void;
   audiodescriptiondisabled: void;

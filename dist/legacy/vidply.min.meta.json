@@ -17,27 +17,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.ts": {
-      "bytes": 8889,
+      "bytes": 9667,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.ts": {
-      "bytes": 10985,
+      "bytes": 11913,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.ts": {
-      "bytes": 10036,
+      "bytes": 10878,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.ts": {
-      "bytes": 10357,
+      "bytes": 11215,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.ts": {
-      "bytes": 10840,
+      "bytes": 11778,
       "imports": [],
       "format": "esm"
     },
@@ -110,7 +110,7 @@
       "format": "esm"
     },
     "src/icons/Icons.ts": {
-      "bytes": 13492,
+      "bytes": 13759,
       "imports": [],
       "format": "esm"
     },
@@ -156,7 +156,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 171421,
+      "bytes": 172626,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -275,7 +275,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.ts": {
-      "bytes": 13367,
+      "bytes": 13450,
       "imports": [
         {
           "path": "src/i18n/i18n.ts",
@@ -408,6 +408,32 @@
           "path": "src/utils/PerformanceUtils.ts",
           "kind": "import-statement",
           "original": "../utils/PerformanceUtils.js"
+        },
+        {
+          "path": "<runtime>",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "src/controls/KeyboardHelp.ts": {
+      "bytes": 7957,
+      "imports": [
+        {
+          "path": "src/utils/DOMUtils.ts",
+          "kind": "import-statement",
+          "original": "../utils/DOMUtils.js"
+        },
+        {
+          "path": "src/icons/Icons.ts",
+          "kind": "import-statement",
+          "original": "../icons/Icons.js"
+        },
+        {
+          "path": "src/i18n/i18n.ts",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
         },
         {
           "path": "<runtime>",
@@ -772,7 +798,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 102940,
+      "bytes": 103887,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -868,6 +894,11 @@
           "path": "src/core/MetadataAlertsManager.ts",
           "kind": "import-statement",
           "original": "./MetadataAlertsManager.js"
+        },
+        {
+          "path": "src/controls/KeyboardHelp.ts",
+          "kind": "import-statement",
+          "original": "../controls/KeyboardHelp.js"
         },
         {
           "path": "src/core/AudioDescriptionManager.ts",
@@ -1000,19 +1031,19 @@
           "bytesInOutput": 8919
         },
         "src/i18n/languages/en.ts": {
-          "bytesInOutput": 10210
+          "bytesInOutput": 11150
         },
         "src/i18n/languages/de.ts": {
-          "bytesInOutput": 11564
+          "bytesInOutput": 12516
         },
         "src/i18n/languages/es.ts": {
-          "bytesInOutput": 11392
+          "bytesInOutput": 12396
         },
         "src/i18n/languages/fr.ts": {
-          "bytesInOutput": 11698
+          "bytesInOutput": 12718
         },
         "src/i18n/languages/ja.ts": {
-          "bytesInOutput": 12207
+          "bytesInOutput": 13307
         },
         "src/i18n/translations.ts": {
           "bytesInOutput": 894
@@ -1027,7 +1058,7 @@
           "bytesInOutput": 2230
         },
         "src/icons/Icons.ts": {
-          "bytesInOutput": 12648
+          "bytesInOutput": 12921
         },
         "src/utils/FocusUtils.ts": {
           "bytesInOutput": 612
@@ -1102,10 +1133,10 @@
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 86657
+          "bytesInOutput": 87649
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 127310
+          "bytesInOutput": 128246
         },
         "src/utils/VideoFrameCapture.ts": {
           "bytesInOutput": 3154
@@ -1114,7 +1145,7 @@
           "bytesInOutput": 3863
         },
         "src/controls/KeyboardManager.ts": {
-          "bytesInOutput": 11158
+          "bytesInOutput": 11246
         },
         "src/utils/UrlSafe.ts": {
           "bytesInOutput": 1045
@@ -1140,6 +1171,9 @@
         "src/core/MetadataAlertsManager.ts": {
           "bytesInOutput": 15264
         },
+        "src/controls/KeyboardHelp.ts": {
+          "bytesInOutput": 7317
+        },
         "src/features/PlaylistManager.ts": {
           "bytesInOutput": 48299
         },
@@ -1147,7 +1181,7 @@
           "bytesInOutput": 5385
         }
       },
-      "bytes": 819377
+      "bytes": 834034
     }
   }
 }

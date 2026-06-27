@@ -175,6 +175,33 @@ export const de = {
         reset: 'Zurücksetzen',
         close: 'Schließen'
     },
+    help: {
+        title: 'Tastaturkürzel',
+        button: 'Tastaturkürzel',
+        close: 'Schließen',
+        or: 'oder',
+        keys: {
+            space: 'Leertaste'
+        },
+        actions: {
+            'play-pause': 'Wiedergabe / Pause',
+            'seek-backward': 'Zurückspulen',
+            'seek-forward': 'Vorspulen',
+            'volume-up': 'Lauter',
+            'volume-down': 'Leiser',
+            'mute': 'Stumm / Ton an',
+            'captions': 'Untertitel umschalten',
+            'caption-style-menu': 'Untertitel-Stil',
+            'speed-down': 'Langsamer',
+            'speed-up': 'Schneller',
+            'speed-menu': 'Wiedergabegeschwindigkeit',
+            'quality-menu': 'Qualität',
+            'chapters-menu': 'Kapitel',
+            'transcript-toggle': 'Transkript umschalten',
+            'fullscreen': 'Vollbild umschalten',
+            'help': 'Tastaturkürzel'
+        }
+    },
     speeds: {
         normal: 'Normal'
     },

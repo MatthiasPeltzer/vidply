@@ -381,6 +381,7 @@ const player = new Player('#video', {
   audioDescriptionButton: true,
   signLanguageButton: true,
   fullscreenButton: true,
+  helpButton: true,             // Show a keyboard-shortcuts help button (requires keyboard: true)
   pipButton: false,
   downloadButton: false,        // Show a download button in the control bar
   downloadUrl: null,            // Optional explicit download URL (falls back to current src)
@@ -439,7 +440,8 @@ const player = new Player('#video', {
     'speed-menu': ['s'],
     'quality-menu': ['q'],
     'chapters-menu': ['j'],
-    'transcript-toggle': ['t']
+    'transcript-toggle': ['t'],
+    'help': ['?']
   },
   
   // Accessibility
@@ -526,6 +528,7 @@ const player = new Player('#video', {
 | <kbd>Q</kbd>                                   | Open Quality Menu                             |
 | <kbd>J</kbd>                                   | Open Chapters Menu                            |
 | <kbd>T</kbd>                                   | Toggle Transcript                             |
+| <kbd>?</kbd>                                   | Show Keyboard Shortcuts help                  |
 | <kbd>D</kbd>                                   | Toggle Drag Mode (Transcript/Sign Language)   |
 | <kbd>R</kbd>                                   | Toggle Resize Mode (Transcript/Sign Language) |
 | <kbd>Escape</kbd>                              | Exit Drag/Resize Mode or Close Menus          |
@@ -692,6 +695,18 @@ player.on('playlisttrackchange', (e) => {
 player.showSettings()  // Open settings dialog
 player.hideSettings()  // Close settings dialog
 ```
+
+### Keyboard Shortcuts Help
+
+```javascript
+player.toggleKeyboardHelp()  // Toggle the keyboard-shortcuts help dialog
+player.showKeyboardHelp()    // Open the help dialog
+player.hideKeyboardHelp()    // Close the help dialog
+```
+
+The dialog is built from the live `keyboardShortcuts` bindings (including any
+overrides) and is also reachable via the control-bar help button and the
+<kbd>?</kbd> shortcut.
 
 ### State Information
 

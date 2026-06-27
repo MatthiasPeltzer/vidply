@@ -5,11 +5,11 @@
  */
 import {
   TimeUtils
-} from "./vidply.chunk-YVCYQZJI.js";
+} from "./vidply.chunk-VPC5DQG2.js";
 import {
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-RQG3MA7W.js";
+} from "./vidply.chunk-CPULRMYC.js";
 import {
   focusElement
 } from "./vidply.chunk-JAKZNGOR.js";
@@ -18,10 +18,10 @@ import {
 } from "./vidply.chunk-XAK3DPTO.js";
 import {
   CaptionManager
-} from "./vidply.chunk-LDVFAFGC.js";
+} from "./vidply.chunk-IQK6CHMO.js";
 import {
   StorageManager
-} from "./vidply.chunk-UHMVDBDB.js";
+} from "./vidply.chunk-ZOJW72EP.js";
 import {
   debounce,
   isMobile,
@@ -33,7 +33,7 @@ import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-NSMAZCMB.js";
+} from "./vidply.chunk-JBH7VXC6.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -958,6 +958,12 @@ var ControlBar = class {
         btn.dataset.overflowPriority = "3";
         btn.dataset.overflowPriorityMobile = "3";
       }
+      this.rightButtons.appendChild(btn);
+    }
+    if (this.player.options.helpButton && this.player.options.keyboard) {
+      const btn = this.createHelpButton();
+      btn.dataset.overflowPriority = "3";
+      btn.dataset.overflowPriorityMobile = "3";
       this.rightButtons.appendChild(btn);
     }
     this.overflowMenuButton = this.createOverflowMenuButton();
@@ -2051,7 +2057,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-R2SCQ6VP.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+    import("./vidply.CaptionStyleMenu-NA6HMVYD.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
@@ -2273,6 +2279,24 @@ var ControlBar = class {
     if (!this.controls.transcript) return;
     const isVisible = this.player.transcriptManager && this.player.transcriptManager.isVisible;
     this.controls.transcript.setAttribute("aria-expanded", isVisible ? "true" : "false");
+  }
+  createHelpButton() {
+    const ariaLabel = i18n.t("help.button");
+    const button = DOMUtils.createElement("button", {
+      className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-help`,
+      attributes: {
+        "type": "button",
+        "aria-label": ariaLabel,
+        "aria-haspopup": "dialog"
+      }
+    });
+    button.appendChild(createIconElement("help"));
+    DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
+    button.addEventListener("click", () => {
+      this.player.toggleKeyboardHelp();
+    });
+    this.controls.help = button;
+    return button;
   }
   createAudioDescriptionButton() {
     const ariaLabel = i18n.t("player.audioDescription");
@@ -3507,6 +3531,9 @@ var KeyboardManager = class {
           return true;
         }
         return false;
+      case "help":
+        this.player.toggleKeyboardHelp();
+        return true;
       default:
         return false;
     }
@@ -4694,27 +4721,248 @@ var MetadataAlertsManager = class {
   }
 };
 
+// src/controls/KeyboardHelp.ts
+var ACTION_ORDER = [
+  "play-pause",
+  "seek-backward",
+  "seek-forward",
+  "volume-up",
+  "volume-down",
+  "mute",
+  "captions",
+  "caption-style-menu",
+  "speed-down",
+  "speed-up",
+  "speed-menu",
+  "quality-menu",
+  "chapters-menu",
+  "transcript-toggle",
+  "fullscreen",
+  "help"
+];
+var KeyboardHelp = class {
+  player;
+  isOpen = false;
+  overlay = null;
+  _triggerElement = null;
+  _keydownHandler = null;
+  constructor(player) {
+    this.player = player;
+  }
+  get prefix() {
+    return this.player.options.classPrefix;
+  }
+  /**
+   * Turn a raw KeyboardEvent.key value into a human-readable label. Arrow
+   * keys become universally understood glyphs; the space bar and single
+   * letters are normalised for legibility.
+   */
+  formatKey(key) {
+    switch (key) {
+      case " ":
+        return i18n.t("help.keys.space");
+      case "ArrowUp":
+        return "↑";
+      case "ArrowDown":
+        return "↓";
+      case "ArrowLeft":
+        return "←";
+      case "ArrowRight":
+        return "→";
+      case "Escape":
+        return "Esc";
+      default:
+        return key.length === 1 ? key.toUpperCase() : key;
+    }
+  }
+  createElement() {
+    const titleId = `${this.prefix}-help-title-${this.player.instanceId}`;
+    const overlay = DOMUtils.createElement("div", {
+      className: `${this.prefix}-settings-overlay ${this.prefix}-help-overlay`,
+      attributes: {
+        role: "dialog",
+        "aria-modal": "true",
+        "aria-labelledby": titleId
+      }
+    });
+    overlay.style.display = "none";
+    const dialog = DOMUtils.createElement("div", {
+      className: `${this.prefix}-settings-dialog ${this.prefix}-help-dialog`
+    });
+    const header = DOMUtils.createElement("div", {
+      className: `${this.prefix}-settings-header`
+    });
+    const title = DOMUtils.createElement("h2", {
+      textContent: i18n.t("help.title"),
+      attributes: { id: titleId }
+    });
+    const closeButton = DOMUtils.createElement("button", {
+      className: `${this.prefix}-button ${this.prefix}-settings-close`,
+      attributes: {
+        type: "button",
+        "aria-label": i18n.t("help.close")
+      }
+    });
+    closeButton.appendChild(createIconElement("close"));
+    closeButton.addEventListener("click", () => this.hide());
+    header.appendChild(title);
+    header.appendChild(closeButton);
+    const content = DOMUtils.createElement("div", {
+      className: `${this.prefix}-settings-content`
+    });
+    content.appendChild(this.buildShortcutList());
+    dialog.appendChild(header);
+    dialog.appendChild(content);
+    overlay.appendChild(dialog);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) {
+        this.hide();
+      }
+    });
+    this._keydownHandler = (e) => {
+      if (!this.isOpen || !this.overlay) return;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        this.hide();
+        return;
+      }
+      if (e.key === "Tab") {
+        const focusable = Array.from(
+          this.overlay.querySelectorAll(
+            'button, [href], select, input, textarea, [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter((el) => !el.hasAttribute("disabled") && el.offsetParent !== null);
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (!first || !last) return;
+        const active = document.activeElement;
+        if (e.shiftKey && (active === first || !this.overlay.contains(active))) {
+          e.preventDefault();
+          last.focus({ preventScroll: true });
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault();
+          first.focus({ preventScroll: true });
+        }
+      }
+    };
+    const lifecycleSignal = this.player.lifecycleSignal;
+    document.addEventListener(
+      "keydown",
+      this._keydownHandler,
+      lifecycleSignal ? { signal: lifecycleSignal } : void 0
+    );
+    return overlay;
+  }
+  buildShortcutList() {
+    const list = DOMUtils.createElement("dl", {
+      className: `${this.prefix}-help-list`
+    });
+    const shortcuts = this.player.options.keyboardShortcuts;
+    for (const action of ACTION_ORDER) {
+      const keys = shortcuts[action];
+      if (!Array.isArray(keys) || keys.length === 0) continue;
+      const term = DOMUtils.createElement("dt", {
+        className: `${this.prefix}-help-action`,
+        textContent: i18n.t(`help.actions.${action}`)
+      });
+      const desc = DOMUtils.createElement("dd", {
+        className: `${this.prefix}-help-keys`
+      });
+      keys.forEach((key, index) => {
+        if (index > 0) {
+          desc.appendChild(
+            DOMUtils.createElement("span", {
+              className: `${this.prefix}-help-key-sep`,
+              textContent: i18n.t("help.or")
+            })
+          );
+        }
+        desc.appendChild(
+          DOMUtils.createElement("kbd", {
+            className: `${this.prefix}-help-key`,
+            textContent: this.formatKey(key)
+          })
+        );
+      });
+      list.appendChild(term);
+      list.appendChild(desc);
+    }
+    return list;
+  }
+  show() {
+    if (this.isOpen) return;
+    if (!this.overlay) {
+      this.overlay = this.createElement();
+      this.player.container.appendChild(this.overlay);
+    }
+    const active = typeof document !== "undefined" ? document.activeElement : null;
+    this._triggerElement = active && typeof active.focus === "function" ? active : null;
+    this.overlay.style.display = "flex";
+    this.isOpen = true;
+    const closeButton = this.overlay.querySelector(`.${this.prefix}-settings-close`);
+    closeButton?.focus({ preventScroll: true });
+    this.player.emit("keyboardhelpopen");
+  }
+  hide() {
+    if (!this.overlay) return;
+    this.overlay.style.display = "none";
+    this.isOpen = false;
+    const trigger = this._triggerElement;
+    this._triggerElement = null;
+    if (trigger && document.contains(trigger)) {
+      try {
+        trigger.focus({ preventScroll: true });
+      } catch {
+        this.player.container?.focus();
+      }
+    } else {
+      this.player.container?.focus();
+    }
+    this.player.emit("keyboardhelpclose");
+  }
+  toggle() {
+    if (this.isOpen) {
+      this.hide();
+    } else {
+      this.show();
+    }
+  }
+  destroy() {
+    if (this._keydownHandler) {
+      document.removeEventListener("keydown", this._keydownHandler);
+      this._keydownHandler = null;
+    }
+    if (this.overlay && this.overlay.parentNode) {
+      this.overlay.parentNode.removeChild(this.overlay);
+    }
+    this.overlay = null;
+    this._triggerElement = null;
+    this.isOpen = false;
+  }
+};
+
 // src/core/Player.ts
 var AudioDescriptionManagerModule = null;
 var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-6RFVF27Z.js");
+    const module = await import("./vidply.AudioDescriptionManager-O76KAYL7.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-7IAJOVF6.js");
+    const module = await import("./vidply.SignLanguageManager-CMBRZA6J.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-V5XQWS75.js");
+    const module = await import("./vidply.FloatingPlayerManager-OXWXBKQO.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -4780,6 +5028,7 @@ var Player = class _Player extends EventEmitter {
   transcriptManager = null;
   playlistManager = null;
   settingsDialog = null;
+  keyboardHelp = null;
   audioDescriptionManager = null;
   signLanguageManager = null;
   floatingPlayerManager = null;
@@ -4942,6 +5191,7 @@ var Player = class _Player extends EventEmitter {
       captionsButton: true,
       transcriptButton: true,
       fullscreenButton: true,
+      helpButton: true,
       pipButton: false,
       floating: false,
       floatingPosition: "bottom-right",
@@ -5000,7 +5250,8 @@ var Player = class _Player extends EventEmitter {
         "speed-menu": ["s"],
         "quality-menu": ["q"],
         "chapters-menu": ["j"],
-        "transcript-toggle": ["t"]
+        "transcript-toggle": ["t"],
+        "help": ["?"]
       },
       // Accessibility
       ariaLabels: {},
@@ -5367,7 +5618,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-BPM3T23L.js");
+    const module = await import("./vidply.TranscriptManager-FG6SIAIO.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -6640,6 +6891,26 @@ var Player = class _Player extends EventEmitter {
   }
   hideSettings() {
   }
+  /**
+   * Lazily build (on first use) and toggle the keyboard-shortcuts help
+   * dialog. Reflects the live `keyboardShortcuts` bindings, including any
+   * consumer overrides.
+   */
+  toggleKeyboardHelp() {
+    if (!this.keyboardHelp) {
+      this.keyboardHelp = new KeyboardHelp(this);
+    }
+    this.keyboardHelp.toggle();
+  }
+  showKeyboardHelp() {
+    if (!this.keyboardHelp) {
+      this.keyboardHelp = new KeyboardHelp(this);
+    }
+    this.keyboardHelp.show();
+  }
+  hideKeyboardHelp() {
+    this.keyboardHelp?.hide();
+  }
   // Utility methods
   getCurrentTime() {
     return this.state.currentTime;
@@ -6778,6 +7049,14 @@ var Player = class _Player extends EventEmitter {
         this.log(`SettingsDialog.destroy failed: ${err}`, "warn");
       }
       this.settingsDialog = null;
+    }
+    if (this.keyboardHelp && typeof this.keyboardHelp.destroy === "function") {
+      try {
+        this.keyboardHelp.destroy();
+      } catch (err) {
+        this.log(`KeyboardHelp.destroy failed: ${err}`, "warn");
+      }
+      this.keyboardHelp = null;
     }
     if (this.floatingPlayerManager) {
       try {

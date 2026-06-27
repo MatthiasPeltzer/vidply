@@ -172,6 +172,33 @@ export const ja = {
     reset: 'リセット',
     close: '閉じる'
   },
+  help: {
+    title: 'キーボードショートカット',
+    button: 'キーボードショートカット',
+    close: '閉じる',
+    or: 'または',
+    keys: {
+      space: 'スペース'
+    },
+    actions: {
+      'play-pause': '再生 / 一時停止',
+      'seek-backward': '巻き戻し',
+      'seek-forward': '早送り',
+      'volume-up': '音量を上げる',
+      'volume-down': '音量を下げる',
+      'mute': 'ミュート / ミュート解除',
+      'captions': '字幕の切り替え',
+      'caption-style-menu': '字幕スタイル',
+      'speed-down': '速度を下げる',
+      'speed-up': '速度を上げる',
+      'speed-menu': '再生速度',
+      'quality-menu': '画質',
+      'chapters-menu': 'チャプター',
+      'transcript-toggle': '文字起こしの切り替え',
+      'fullscreen': '全画面表示の切り替え',
+      'help': 'キーボードショートカット'
+    }
+  },
   speeds: {
     normal: '通常'
   },

@@ -172,6 +172,33 @@ export const fr = {
     reset: 'Réinitialiser',
     close: 'Fermer'
   },
+  help: {
+    title: 'Raccourcis clavier',
+    button: 'Raccourcis clavier',
+    close: 'Fermer',
+    or: 'ou',
+    keys: {
+      space: 'Espace'
+    },
+    actions: {
+      'play-pause': 'Lecture / Pause',
+      'seek-backward': 'Reculer',
+      'seek-forward': 'Avancer',
+      'volume-up': 'Augmenter le volume',
+      'volume-down': 'Baisser le volume',
+      'mute': 'Couper / Activer le son',
+      'captions': 'Activer/désactiver les sous-titres',
+      'caption-style-menu': 'Style des sous-titres',
+      'speed-down': 'Ralentir',
+      'speed-up': 'Accélérer',
+      'speed-menu': 'Vitesse de lecture',
+      'quality-menu': 'Qualité',
+      'chapters-menu': 'Chapitres',
+      'transcript-toggle': 'Activer/désactiver la transcription',
+      'fullscreen': 'Activer/désactiver le plein écran',
+      'help': 'Raccourcis clavier'
+    }
+  },
   speeds: {
     normal: 'Normal'
   },

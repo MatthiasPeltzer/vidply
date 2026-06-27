@@ -2713,6 +2713,62 @@ video[data-vidply]:not(.vidply-initialized) {
   background: var(--vidply-white-20);
 }
 
+/* Keyboard shortcuts help dialog */
+.vidply-help-list {
+  align-items: center;
+  column-gap: var(--vidply-gap-lg);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  margin: 0;
+  row-gap: var(--vidply-gap-md);
+}
+
+.vidply-help-action {
+  color: var(--vidply-white-90);
+  font-size: var(--vidply-font-md);
+  grid-column: 1;
+  margin: 0;
+}
+
+.vidply-help-keys {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vidply-gap-xs);
+  grid-column: 2;
+  justify-content: flex-end;
+  margin: 0;
+}
+
+.vidply-help-key {
+  background: var(--vidply-white-10);
+  border: 0.0625rem solid var(--vidply-white-20);
+  border-radius: var(--vidply-radius-md);
+  color: var(--vidply-white);
+  font-family: monospace;
+  font-size: var(--vidply-font-base);
+  line-height: 1;
+  min-width: 1.5rem;
+  padding: 0.25rem 0.4rem;
+  text-align: center;
+}
+
+.vidply-help-key-sep {
+  color: var(--vidply-text-muted);
+  font-size: var(--vidply-font-base);
+  padding: 0 0.15rem;
+}
+
+.vidply-theme-light .vidply-help-action {
+  color: #1a1a1a;
+}
+
+.vidply-theme-light .vidply-help-key {
+  background: #f0f0f0;
+  border-color: rgb(0 0 0 / 20%);
+  color: #1a1a1a;
+}
+
 /* Fullscreen Styles */
 .vidply-player:is(.vidply-fullscreen, :fullscreen) {
   background: #000;

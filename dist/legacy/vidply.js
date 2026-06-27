@@ -428,6 +428,33 @@
           reset: "Reset to defaults",
           close: "Close"
         },
+        help: {
+          title: "Keyboard shortcuts",
+          button: "Keyboard shortcuts",
+          close: "Close",
+          or: "or",
+          keys: {
+            space: "Space"
+          },
+          actions: {
+            "play-pause": "Play / Pause",
+            "seek-backward": "Seek backward",
+            "seek-forward": "Seek forward",
+            "volume-up": "Volume up",
+            "volume-down": "Volume down",
+            "mute": "Mute / Unmute",
+            "captions": "Toggle captions",
+            "caption-style-menu": "Caption styling",
+            "speed-down": "Decrease speed",
+            "speed-up": "Increase speed",
+            "speed-menu": "Playback speed",
+            "quality-menu": "Quality",
+            "chapters-menu": "Chapters",
+            "transcript-toggle": "Toggle transcript",
+            "fullscreen": "Toggle fullscreen",
+            "help": "Keyboard shortcuts"
+          }
+        },
         speeds: {
           normal: "Normal"
         },
@@ -652,6 +679,33 @@
           reset: "Zurücksetzen",
           close: "Schließen"
         },
+        help: {
+          title: "Tastaturkürzel",
+          button: "Tastaturkürzel",
+          close: "Schließen",
+          or: "oder",
+          keys: {
+            space: "Leertaste"
+          },
+          actions: {
+            "play-pause": "Wiedergabe / Pause",
+            "seek-backward": "Zurückspulen",
+            "seek-forward": "Vorspulen",
+            "volume-up": "Lauter",
+            "volume-down": "Leiser",
+            "mute": "Stumm / Ton an",
+            "captions": "Untertitel umschalten",
+            "caption-style-menu": "Untertitel-Stil",
+            "speed-down": "Langsamer",
+            "speed-up": "Schneller",
+            "speed-menu": "Wiedergabegeschwindigkeit",
+            "quality-menu": "Qualität",
+            "chapters-menu": "Kapitel",
+            "transcript-toggle": "Transkript umschalten",
+            "fullscreen": "Vollbild umschalten",
+            "help": "Tastaturkürzel"
+          }
+        },
         speeds: {
           normal: "Normal"
         },
@@ -872,6 +926,33 @@
           language: "Idioma",
           reset: "Restablecer",
           close: "Cerrar"
+        },
+        help: {
+          title: "Atajos de teclado",
+          button: "Atajos de teclado",
+          close: "Cerrar",
+          or: "o",
+          keys: {
+            space: "Espacio"
+          },
+          actions: {
+            "play-pause": "Reproducir / Pausar",
+            "seek-backward": "Retroceder",
+            "seek-forward": "Avanzar",
+            "volume-up": "Subir volumen",
+            "volume-down": "Bajar volumen",
+            "mute": "Silenciar / Activar sonido",
+            "captions": "Alternar subtítulos",
+            "caption-style-menu": "Estilo de subtítulos",
+            "speed-down": "Reducir velocidad",
+            "speed-up": "Aumentar velocidad",
+            "speed-menu": "Velocidad de reproducción",
+            "quality-menu": "Calidad",
+            "chapters-menu": "Capítulos",
+            "transcript-toggle": "Alternar transcripción",
+            "fullscreen": "Alternar pantalla completa",
+            "help": "Atajos de teclado"
+          }
         },
         speeds: {
           normal: "Normal"
@@ -1094,6 +1175,33 @@
           reset: "Réinitialiser",
           close: "Fermer"
         },
+        help: {
+          title: "Raccourcis clavier",
+          button: "Raccourcis clavier",
+          close: "Fermer",
+          or: "ou",
+          keys: {
+            space: "Espace"
+          },
+          actions: {
+            "play-pause": "Lecture / Pause",
+            "seek-backward": "Reculer",
+            "seek-forward": "Avancer",
+            "volume-up": "Augmenter le volume",
+            "volume-down": "Baisser le volume",
+            "mute": "Couper / Activer le son",
+            "captions": "Activer/désactiver les sous-titres",
+            "caption-style-menu": "Style des sous-titres",
+            "speed-down": "Ralentir",
+            "speed-up": "Accélérer",
+            "speed-menu": "Vitesse de lecture",
+            "quality-menu": "Qualité",
+            "chapters-menu": "Chapitres",
+            "transcript-toggle": "Activer/désactiver la transcription",
+            "fullscreen": "Activer/désactiver le plein écran",
+            "help": "Raccourcis clavier"
+          }
+        },
         speeds: {
           normal: "Normal"
         },
@@ -1314,6 +1422,33 @@
           language: "言語",
           reset: "リセット",
           close: "閉じる"
+        },
+        help: {
+          title: "キーボードショートカット",
+          button: "キーボードショートカット",
+          close: "閉じる",
+          or: "または",
+          keys: {
+            space: "スペース"
+          },
+          actions: {
+            "play-pause": "再生 / 一時停止",
+            "seek-backward": "巻き戻し",
+            "seek-forward": "早送り",
+            "volume-up": "音量を上げる",
+            "volume-down": "音量を下げる",
+            "mute": "ミュート / ミュート解除",
+            "captions": "字幕の切り替え",
+            "caption-style-menu": "字幕スタイル",
+            "speed-down": "速度を下げる",
+            "speed-up": "速度を上げる",
+            "speed-menu": "再生速度",
+            "quality-menu": "画質",
+            "chapters-menu": "チャプター",
+            "transcript-toggle": "文字起こしの切り替え",
+            "fullscreen": "全画面表示の切り替え",
+            "help": "キーボードショートカット"
+          }
         },
         speeds: {
           normal: "通常"
@@ -1767,7 +1902,8 @@
         move: `<path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/>`,
         resize: `<path d="M21.71 11.29l-9-9c-.39-.39-1.02-.39-1.41 0l-9 9c-.39.39-.39 1.02 0 1.41l9 9c.39.39 1.02.39 1.41 0l9-9c.39-.38.39-1.01 0-1.41zM14 14.5V12h-4v2.5L7 11l3-3.5V10h4V7.5l3 3.5-3 3.5z"/>`,
         clock: `<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>`,
-        download: `<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>`
+        download: `<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>`,
+        help: `<path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>`
       };
       svgWrapper = (paths) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">${paths}</svg>`;
       Icons = Object.fromEntries(
@@ -12376,6 +12512,12 @@
         }
         this.rightButtons.appendChild(btn);
       }
+      if (this.player.options.helpButton && this.player.options.keyboard) {
+        const btn = this.createHelpButton();
+        btn.dataset.overflowPriority = "3";
+        btn.dataset.overflowPriorityMobile = "3";
+        this.rightButtons.appendChild(btn);
+      }
       this.overflowMenuButton = this.createOverflowMenuButton();
       this.overflowMenuButton.style.display = "none";
       this.rightButtons.appendChild(this.overflowMenuButton);
@@ -13697,6 +13839,24 @@
       const isVisible = this.player.transcriptManager && this.player.transcriptManager.isVisible;
       this.controls.transcript.setAttribute("aria-expanded", isVisible ? "true" : "false");
     }
+    createHelpButton() {
+      const ariaLabel = i18n.t("help.button");
+      const button = DOMUtils.createElement("button", {
+        className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-help`,
+        attributes: {
+          "type": "button",
+          "aria-label": ariaLabel,
+          "aria-haspopup": "dialog"
+        }
+      });
+      button.appendChild(createIconElement("help"));
+      DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
+      button.addEventListener("click", () => {
+        this.player.toggleKeyboardHelp();
+      });
+      this.controls.help = button;
+      return button;
+    }
     createAudioDescriptionButton() {
       const ariaLabel = i18n.t("player.audioDescription");
       const button = DOMUtils.createElement("button", {
@@ -14944,6 +15104,9 @@
             return true;
           }
           return false;
+        case "help":
+          this.player.toggleKeyboardHelp();
+          return true;
         default:
           return false;
       }
@@ -16147,6 +16310,231 @@
     }
   };
 
+  // src/controls/KeyboardHelp.ts
+  init_DOMUtils();
+  init_Icons();
+  init_i18n();
+  var ACTION_ORDER = [
+    "play-pause",
+    "seek-backward",
+    "seek-forward",
+    "volume-up",
+    "volume-down",
+    "mute",
+    "captions",
+    "caption-style-menu",
+    "speed-down",
+    "speed-up",
+    "speed-menu",
+    "quality-menu",
+    "chapters-menu",
+    "transcript-toggle",
+    "fullscreen",
+    "help"
+  ];
+  var KeyboardHelp = class {
+    constructor(player) {
+      __publicField(this, "player");
+      __publicField(this, "isOpen", false);
+      __publicField(this, "overlay", null);
+      __publicField(this, "_triggerElement", null);
+      __publicField(this, "_keydownHandler", null);
+      this.player = player;
+    }
+    get prefix() {
+      return this.player.options.classPrefix;
+    }
+    /**
+     * Turn a raw KeyboardEvent.key value into a human-readable label. Arrow
+     * keys become universally understood glyphs; the space bar and single
+     * letters are normalised for legibility.
+     */
+    formatKey(key) {
+      switch (key) {
+        case " ":
+          return i18n.t("help.keys.space");
+        case "ArrowUp":
+          return "↑";
+        case "ArrowDown":
+          return "↓";
+        case "ArrowLeft":
+          return "←";
+        case "ArrowRight":
+          return "→";
+        case "Escape":
+          return "Esc";
+        default:
+          return key.length === 1 ? key.toUpperCase() : key;
+      }
+    }
+    createElement() {
+      const titleId = `${this.prefix}-help-title-${this.player.instanceId}`;
+      const overlay = DOMUtils.createElement("div", {
+        className: `${this.prefix}-settings-overlay ${this.prefix}-help-overlay`,
+        attributes: {
+          role: "dialog",
+          "aria-modal": "true",
+          "aria-labelledby": titleId
+        }
+      });
+      overlay.style.display = "none";
+      const dialog = DOMUtils.createElement("div", {
+        className: `${this.prefix}-settings-dialog ${this.prefix}-help-dialog`
+      });
+      const header = DOMUtils.createElement("div", {
+        className: `${this.prefix}-settings-header`
+      });
+      const title = DOMUtils.createElement("h2", {
+        textContent: i18n.t("help.title"),
+        attributes: { id: titleId }
+      });
+      const closeButton = DOMUtils.createElement("button", {
+        className: `${this.prefix}-button ${this.prefix}-settings-close`,
+        attributes: {
+          type: "button",
+          "aria-label": i18n.t("help.close")
+        }
+      });
+      closeButton.appendChild(createIconElement("close"));
+      closeButton.addEventListener("click", () => this.hide());
+      header.appendChild(title);
+      header.appendChild(closeButton);
+      const content = DOMUtils.createElement("div", {
+        className: `${this.prefix}-settings-content`
+      });
+      content.appendChild(this.buildShortcutList());
+      dialog.appendChild(header);
+      dialog.appendChild(content);
+      overlay.appendChild(dialog);
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) {
+          this.hide();
+        }
+      });
+      this._keydownHandler = (e) => {
+        if (!this.isOpen || !this.overlay) return;
+        if (e.key === "Escape") {
+          e.preventDefault();
+          this.hide();
+          return;
+        }
+        if (e.key === "Tab") {
+          const focusable = Array.from(
+            this.overlay.querySelectorAll(
+              'button, [href], select, input, textarea, [tabindex]:not([tabindex="-1"])'
+            )
+          ).filter((el) => !el.hasAttribute("disabled") && el.offsetParent !== null);
+          if (focusable.length === 0) return;
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (!first || !last) return;
+          const active = document.activeElement;
+          if (e.shiftKey && (active === first || !this.overlay.contains(active))) {
+            e.preventDefault();
+            last.focus({ preventScroll: true });
+          } else if (!e.shiftKey && active === last) {
+            e.preventDefault();
+            first.focus({ preventScroll: true });
+          }
+        }
+      };
+      const lifecycleSignal = this.player.lifecycleSignal;
+      document.addEventListener(
+        "keydown",
+        this._keydownHandler,
+        lifecycleSignal ? { signal: lifecycleSignal } : void 0
+      );
+      return overlay;
+    }
+    buildShortcutList() {
+      const list = DOMUtils.createElement("dl", {
+        className: `${this.prefix}-help-list`
+      });
+      const shortcuts = this.player.options.keyboardShortcuts;
+      for (const action of ACTION_ORDER) {
+        const keys = shortcuts[action];
+        if (!Array.isArray(keys) || keys.length === 0) continue;
+        const term = DOMUtils.createElement("dt", {
+          className: `${this.prefix}-help-action`,
+          textContent: i18n.t(`help.actions.${action}`)
+        });
+        const desc = DOMUtils.createElement("dd", {
+          className: `${this.prefix}-help-keys`
+        });
+        keys.forEach((key, index) => {
+          if (index > 0) {
+            desc.appendChild(
+              DOMUtils.createElement("span", {
+                className: `${this.prefix}-help-key-sep`,
+                textContent: i18n.t("help.or")
+              })
+            );
+          }
+          desc.appendChild(
+            DOMUtils.createElement("kbd", {
+              className: `${this.prefix}-help-key`,
+              textContent: this.formatKey(key)
+            })
+          );
+        });
+        list.appendChild(term);
+        list.appendChild(desc);
+      }
+      return list;
+    }
+    show() {
+      if (this.isOpen) return;
+      if (!this.overlay) {
+        this.overlay = this.createElement();
+        this.player.container.appendChild(this.overlay);
+      }
+      const active = typeof document !== "undefined" ? document.activeElement : null;
+      this._triggerElement = active && typeof active.focus === "function" ? active : null;
+      this.overlay.style.display = "flex";
+      this.isOpen = true;
+      const closeButton = this.overlay.querySelector(`.${this.prefix}-settings-close`);
+      closeButton == null ? void 0 : closeButton.focus({ preventScroll: true });
+      this.player.emit("keyboardhelpopen");
+    }
+    hide() {
+      var _a, _b;
+      if (!this.overlay) return;
+      this.overlay.style.display = "none";
+      this.isOpen = false;
+      const trigger = this._triggerElement;
+      this._triggerElement = null;
+      if (trigger && document.contains(trigger)) {
+        try {
+          trigger.focus({ preventScroll: true });
+        } catch {
+          (_a = this.player.container) == null ? void 0 : _a.focus();
+        }
+      } else {
+        (_b = this.player.container) == null ? void 0 : _b.focus();
+      }
+      this.player.emit("keyboardhelpclose");
+    }
+    toggle() {
+      if (this.isOpen) {
+        this.hide();
+      } else {
+        this.show();
+      }
+    }
+    destroy() {
+      if (this._keydownHandler) {
+        document.removeEventListener("keydown", this._keydownHandler);
+        this._keydownHandler = null;
+      }
+      if (this.overlay && this.overlay.parentNode) {
+        this.overlay.parentNode.removeChild(this.overlay);
+      }
+      this.overlay = null;
+      this._triggerElement = null;
+      this.isOpen = false;
+    }
+  };
+
   // src/core/Player.ts
   var AudioDescriptionManagerModule = null;
   var SignLanguageManagerModule = null;
@@ -16193,6 +16581,7 @@
       __publicField(this, "transcriptManager", null);
       __publicField(this, "playlistManager", null);
       __publicField(this, "settingsDialog", null);
+      __publicField(this, "keyboardHelp", null);
       __publicField(this, "audioDescriptionManager", null);
       __publicField(this, "signLanguageManager", null);
       __publicField(this, "floatingPlayerManager", null);
@@ -16353,6 +16742,7 @@
         captionsButton: true,
         transcriptButton: true,
         fullscreenButton: true,
+        helpButton: true,
         pipButton: false,
         floating: false,
         floatingPosition: "bottom-right",
@@ -16411,7 +16801,8 @@
           "speed-menu": ["s"],
           "quality-menu": ["q"],
           "chapters-menu": ["j"],
-          "transcript-toggle": ["t"]
+          "transcript-toggle": ["t"],
+          "help": ["?"]
         },
         // Accessibility
         ariaLabels: {},
@@ -18135,6 +18526,27 @@
     }
     hideSettings() {
     }
+    /**
+     * Lazily build (on first use) and toggle the keyboard-shortcuts help
+     * dialog. Reflects the live `keyboardShortcuts` bindings, including any
+     * consumer overrides.
+     */
+    toggleKeyboardHelp() {
+      if (!this.keyboardHelp) {
+        this.keyboardHelp = new KeyboardHelp(this);
+      }
+      this.keyboardHelp.toggle();
+    }
+    showKeyboardHelp() {
+      if (!this.keyboardHelp) {
+        this.keyboardHelp = new KeyboardHelp(this);
+      }
+      this.keyboardHelp.show();
+    }
+    hideKeyboardHelp() {
+      var _a;
+      (_a = this.keyboardHelp) == null ? void 0 : _a.hide();
+    }
     // Utility methods
     getCurrentTime() {
       return this.state.currentTime;
@@ -18274,6 +18686,14 @@
           this.log(`SettingsDialog.destroy failed: ${err}`, "warn");
         }
         this.settingsDialog = null;
+      }
+      if (this.keyboardHelp && typeof this.keyboardHelp.destroy === "function") {
+        try {
+          this.keyboardHelp.destroy();
+        } catch (err) {
+          this.log(`KeyboardHelp.destroy failed: ${err}`, "warn");
+        }
+        this.keyboardHelp = null;
       }
       if (this.floatingPlayerManager) {
         try {

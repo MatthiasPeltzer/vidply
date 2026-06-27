@@ -16,6 +16,7 @@ export interface KeyboardShortcuts {
   'quality-menu'?: string[];
   'chapters-menu'?: string[];
   'transcript-toggle'?: string[];
+  'help'?: string[];
 }
 
 export interface PlayerOptions {
@@ -70,6 +71,7 @@ export interface PlayerOptions {
   downloadFileSize: number | null;
   downloadFetchSize: boolean;
   playlistToggleButton?: boolean;
+  helpButton: boolean;
 
   // Seeking
   seekInterval: number;

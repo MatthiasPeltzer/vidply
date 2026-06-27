@@ -971,6 +971,16 @@ export class ControlBar {
             this.rightButtons.appendChild(btn);
         }
 
+        // Keyboard-shortcuts help button (only meaningful when keyboard
+        // shortcuts are active). Low priority: collapses into the overflow
+        // menu first on narrow viewports.
+        if (this.player.options.helpButton && this.player.options.keyboard) {
+            const btn = this.createHelpButton();
+            btn.dataset.overflowPriority = '3';
+            btn.dataset.overflowPriorityMobile = '3';
+            this.rightButtons.appendChild(btn);
+        }
+
         // Create overflow menu button (initially hidden). Added before the
         // fullscreen button so that, on mobile viewports where the overflow
         // menu is visible, fullscreen sits immediately to its right as the
@@ -2772,6 +2782,28 @@ export class ControlBar {
 
         const isVisible = this.player.transcriptManager && this.player.transcriptManager.isVisible;
         this.controls.transcript.setAttribute('aria-expanded', isVisible ? 'true' : 'false');
+    }
+
+    createHelpButton() {
+        const ariaLabel = i18n.t('help.button');
+        const button = DOMUtils.createElement('button', {
+            className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-help`,
+            attributes: {
+                'type': 'button',
+                'aria-label': ariaLabel,
+                'aria-haspopup': 'dialog'
+            }
+        });
+
+        button.appendChild(createIconElement('help'));
+        DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
+
+        button.addEventListener('click', () => {
+            this.player.toggleKeyboardHelp();
+        });
+
+        this.controls.help = button;
+        return button;
     }
 
     createAudioDescriptionButton() {

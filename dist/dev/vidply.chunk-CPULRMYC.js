@@ -1,4 +1,11 @@
-const iconPaths: Record<string, string> = {
+/*!
+ * VidPly v1.2.1 - Universal, Accessible Video Player
+ * (c) 2026 Matthias Peltzer
+ * Released under GPL-2.0-or-later License
+ */
+
+// src/icons/Icons.ts
+var iconPaths = {
   play: `<path d="M8 5v14l11-7z"/>`,
   pause: `<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>`,
   stop: `<rect x="6" y="6" width="12" height="12"/>`,
@@ -40,129 +47,91 @@ const iconPaths: Record<string, string> = {
   download: `<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>`,
   help: `<path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>`
 };
-
-// The `xmlns` declaration is mandatory for `DOMParser.parseFromString`
-// with `image/svg+xml`: without it, XML parsing leaves the child
-// elements (`<path>`, `<rect>`, `<g>`, `<text>`, `<polygon>`) in the
-// null namespace, so the browser can't render them as SVG shapes.
-// The old `innerHTML`-based path worked by accident because the HTML
-// parser treats `<svg>` as a special token and places its descendants
-// in the SVG namespace automatically.
-const svgWrapper = (paths: string) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">${paths}</svg>`;
-
-export const Icons: Record<string, string> = Object.fromEntries(
+var svgWrapper = (paths) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">${paths}</svg>`;
+var Icons = Object.fromEntries(
   Object.entries(iconPaths).map(([key, value]) => [key, svgWrapper(value)])
 );
-
-export function getIcon(name: string): string {
-  return Icons[name] || Icons.play || '';
-}
-
-/**
- * Parse every icon once at module load into an SVG template element and
- * clone it per call. This replaces the previous `wrapper.innerHTML = …`
- * approach: `innerHTML` is disallowed by strict CSP (`require-trusted-types-for`)
- * and is slower because the browser has to re-tokenise the same string on
- * every icon render.
- *
- * The icon SVG strings are trusted constants defined in this module, so
- * parsing via `DOMParser` is safe.
- */
-const iconTemplates: Record<string, SVGSVGElement> = (() => {
+var iconTemplates = (() => {
   const parser = new DOMParser();
-  const templates: Record<string, SVGSVGElement> = {};
+  const templates = {};
   for (const [key, paths] of Object.entries(iconPaths)) {
-    const doc = parser.parseFromString(svgWrapper(paths), 'image/svg+xml');
+    const doc = parser.parseFromString(svgWrapper(paths), "image/svg+xml");
     const root = doc.documentElement;
-    // A parse failure produces a `<parsererror>` element as the
-    // document root; reject that and skip the entry rather than
-    // storing a broken template that would render as nothing.
-    if (
-      root &&
-      root.nodeName.toLowerCase() === 'svg' &&
-      !root.querySelector('parsererror')
-    ) {
-      templates[key] = root as unknown as SVGSVGElement;
+    if (root && root.nodeName.toLowerCase() === "svg" && !root.querySelector("parsererror")) {
+      templates[key] = root;
     }
   }
   return templates;
 })();
-
-export function createIconElement(name: string, className = ''): HTMLElement {
-  const wrapper = document.createElement('span');
+function createIconElement(name, className = "") {
+  const wrapper = document.createElement("span");
   wrapper.className = `vidply-icon ${className}`.trim();
-  wrapper.setAttribute('aria-hidden', 'true');
-
+  wrapper.setAttribute("aria-hidden", "true");
   const template = iconTemplates[name] || iconTemplates.play;
   if (template) {
     wrapper.appendChild(template.cloneNode(true));
   }
   return wrapper;
 }
-
-export function createPlayOverlay(): SVGSVGElement {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('class', 'vidply-play-overlay');
-  svg.setAttribute('viewBox', '0 0 80 80');
-  svg.setAttribute('width', '80');
-  svg.setAttribute('height', '80');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.setAttribute('role', 'presentation');
-  svg.style.cursor = 'pointer';
-
-  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+function createPlayOverlay() {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "vidply-play-overlay");
+  svg.setAttribute("viewBox", "0 0 80 80");
+  svg.setAttribute("width", "80");
+  svg.setAttribute("height", "80");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("role", "presentation");
+  svg.style.cursor = "pointer";
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
   const filterId = `vidply-play-shadow-${Math.random().toString(36).slice(2, 11)}`;
-  const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-  filter.setAttribute('id', filterId);
-  filter.setAttribute('x', '-50%');
-  filter.setAttribute('y', '-50%');
-  filter.setAttribute('width', '200%');
-  filter.setAttribute('height', '200%');
-
-  const feGaussianBlur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
-  feGaussianBlur.setAttribute('in', 'SourceAlpha');
-  feGaussianBlur.setAttribute('stdDeviation', '3');
-
-  const feOffset = document.createElementNS('http://www.w3.org/2000/svg', 'feOffset');
-  feOffset.setAttribute('dx', '0');
-  feOffset.setAttribute('dy', '2');
-  feOffset.setAttribute('result', 'offsetblur');
-
-  const feComponentTransfer = document.createElementNS('http://www.w3.org/2000/svg', 'feComponentTransfer');
-  const feFuncA = document.createElementNS('http://www.w3.org/2000/svg', 'feFuncA');
-  feFuncA.setAttribute('type', 'linear');
-  feFuncA.setAttribute('slope', '0.3');
+  const filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
+  filter.setAttribute("id", filterId);
+  filter.setAttribute("x", "-50%");
+  filter.setAttribute("y", "-50%");
+  filter.setAttribute("width", "200%");
+  filter.setAttribute("height", "200%");
+  const feGaussianBlur = document.createElementNS("http://www.w3.org/2000/svg", "feGaussianBlur");
+  feGaussianBlur.setAttribute("in", "SourceAlpha");
+  feGaussianBlur.setAttribute("stdDeviation", "3");
+  const feOffset = document.createElementNS("http://www.w3.org/2000/svg", "feOffset");
+  feOffset.setAttribute("dx", "0");
+  feOffset.setAttribute("dy", "2");
+  feOffset.setAttribute("result", "offsetblur");
+  const feComponentTransfer = document.createElementNS("http://www.w3.org/2000/svg", "feComponentTransfer");
+  const feFuncA = document.createElementNS("http://www.w3.org/2000/svg", "feFuncA");
+  feFuncA.setAttribute("type", "linear");
+  feFuncA.setAttribute("slope", "0.3");
   feComponentTransfer.appendChild(feFuncA);
-
-  const feMerge = document.createElementNS('http://www.w3.org/2000/svg', 'feMerge');
-  const feMergeNode1 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
-  const feMergeNode2 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
-  feMergeNode2.setAttribute('in', 'SourceGraphic');
+  const feMerge = document.createElementNS("http://www.w3.org/2000/svg", "feMerge");
+  const feMergeNode1 = document.createElementNS("http://www.w3.org/2000/svg", "feMergeNode");
+  const feMergeNode2 = document.createElementNS("http://www.w3.org/2000/svg", "feMergeNode");
+  feMergeNode2.setAttribute("in", "SourceGraphic");
   feMerge.appendChild(feMergeNode1);
   feMerge.appendChild(feMergeNode2);
-
   filter.appendChild(feGaussianBlur);
   filter.appendChild(feOffset);
   filter.appendChild(feComponentTransfer);
   filter.appendChild(feMerge);
   defs.appendChild(filter);
   svg.appendChild(defs);
-
-  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  circle.setAttribute('cx', '40');
-  circle.setAttribute('cy', '40');
-  circle.setAttribute('r', '40');
-  circle.setAttribute('fill', 'rgba(255, 255, 255, 0.95)');
-  circle.setAttribute('filter', `url(#${filterId})`);
-  circle.setAttribute('class', 'vidply-play-overlay-bg');
+  const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  circle.setAttribute("cx", "40");
+  circle.setAttribute("cy", "40");
+  circle.setAttribute("r", "40");
+  circle.setAttribute("fill", "rgba(255, 255, 255, 0.95)");
+  circle.setAttribute("filter", `url(#${filterId})`);
+  circle.setAttribute("class", "vidply-play-overlay-bg");
   svg.appendChild(circle);
-
-  const playTriangle = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-  playTriangle.setAttribute('points', '32,28 32,52 54,40');
-  playTriangle.setAttribute('fill', '#0a406e');
-  playTriangle.setAttribute('class', 'vidply-play-overlay-icon');
+  const playTriangle = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+  playTriangle.setAttribute("points", "32,28 32,52 54,40");
+  playTriangle.setAttribute("fill", "#0a406e");
+  playTriangle.setAttribute("class", "vidply-play-overlay-icon");
   svg.appendChild(playTriangle);
-
   return svg;
 }
+
+export {
+  createIconElement,
+  createPlayOverlay
+};
+//# sourceMappingURL=vidply.chunk-CPULRMYC.js.map
