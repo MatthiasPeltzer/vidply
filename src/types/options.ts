@@ -28,6 +28,18 @@ export interface PlayerOptions {
   fillContainer: boolean;
   mediaType?: 'video' | 'audio';
 
+  // Media metadata (used for the Media Session API: OS / lock-screen
+  // controls and now-playing info). For playlists, the per-track
+  // title/artist/poster take precedence over these.
+  title?: string | null;
+  artist?: string | null;
+  album?: string | null;
+
+  // Integrate with the OS media controls via the Media Session API
+  // (lock-screen / notification controls, headset buttons, now-playing
+  // metadata and artwork). Set to false to opt out.
+  mediaSession: boolean;
+
   // Playback
   autoplay: boolean;
   loop: boolean;

@@ -54,6 +54,7 @@ Try VidPly in action:
 - **Buffering Spinner** - Centered loading spinner shown automatically while media is buffering (HTML5, HLS, DASH)
 - **Download Button** - Optional download control with custom URL support (`downloadButton` + `downloadUrl`)
 - **Preview Thumbnails** - Video preview thumbnails on progress bar hover
+- **OS Media Controls** - Media Session API integration: now-playing metadata (title/artist/album/artwork) and lock-screen / notification / headset controls, including previous/next track for playlists
 - **Playlists** - Full playlist support with auto-advance and navigation
   - Audio playlists with track info
   - Video playlists with thumbnails
@@ -354,7 +355,13 @@ const player = new Player('#video', {
   height: 450,
   poster: 'poster.jpg',
   responsive: true,
-  
+
+  // Media metadata + OS media controls (Media Session API)
+  title: null,                  // Now-playing title (lock-screen / notification)
+  artist: null,                 // Now-playing artist/author
+  album: null,                  // Now-playing album/collection
+  mediaSession: true,           // Expose OS media controls + metadata (set false to opt out)
+
   // Playback
   autoplay: false,
   loop: false,

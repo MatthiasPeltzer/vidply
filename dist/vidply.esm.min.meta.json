@@ -264,6 +264,11 @@
       ],
       "format": "esm"
     },
+    "src/core/MediaSessionManager.ts": {
+      "bytes": 9974,
+      "imports": [],
+      "format": "esm"
+    },
     "src/renderers/HTML5Renderer.ts": {
       "bytes": 12110,
       "imports": [],
@@ -663,7 +668,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 103887,
+      "bytes": 104630,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -689,6 +694,11 @@
           "path": "src/controls/KeyboardManager.ts",
           "kind": "import-statement",
           "original": "../controls/KeyboardManager.js"
+        },
+        {
+          "path": "src/core/MediaSessionManager.ts",
+          "kind": "import-statement",
+          "original": "./MediaSessionManager.js"
         },
         {
           "path": "src/renderers/HTML5Renderer.ts",
@@ -1244,6 +1254,9 @@
         "src/controls/KeyboardManager.ts": {
           "bytesInOutput": 10220
         },
+        "src/core/MediaSessionManager.ts": {
+          "bytesInOutput": 7215
+        },
         "src/utils/UrlSafe.ts": {
           "bytesInOutput": 983
         },
@@ -1272,7 +1285,7 @@
           "bytesInOutput": 6604
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 78607
+          "bytesInOutput": 79195
         },
         "src/features/PlaylistManager.ts": {
           "bytesInOutput": 44655
@@ -1281,7 +1294,7 @@
           "bytesInOutput": 5074
         }
       },
-      "bytes": 315635
+      "bytes": 323474
     },
     "dist/prod/vidply.chunk-7WPTIUCX.min.js": {
       "imports": [
