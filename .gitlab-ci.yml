@@ -1,0 +1,74 @@
+# Mirrors .github/workflows/ci.yml — Node 24 per package.json engines and .nvmrc.
+# Jobs: lint → build (test) → e2e (Playwright).
+
+image: node:24-bookworm
+
+stages:
+  - lint
+  - test
+  - e2e
+
+variables:
+  npm_config_cache: $CI_PROJECT_DIR/.npm
+  PLAYWRIGHT_BROWSERS_PATH: $CI_PROJECT_DIR/.cache/ms-playwright
+
+.cache_template: &npm_cache
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+      - node_modules/
+
+default:
+  before_script:
+    - node --version
+    - npm ci
+
+lint:
+  <<: *npm_cache
+  stage: lint
+  script:
+    - npm run lint
+
+build:
+  <<: *npm_cache
+  stage: test
+  script:
+    - npm run typecheck
+    - npm run test
+    - npm run build
+    - node tests/check-readme-types.mjs
+  artifacts:
+    when: on_success
+    paths:
+      - dist/
+    expire_in: 1 day
+
+e2e:
+  <<: *npm_cache
+  stage: e2e
+  needs:
+    - job: build
+      artifacts: true
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+      - node_modules/
+      - .cache/ms-playwright/
+  before_script:
+    - node --version
+    - npm ci
+    - npx playwright install --with-deps chromium
+  script:
+    - npm run test:e2e
+  artifacts:
+    when: on_failure
+    paths:
+      - playwright-report/
+      - test-results/
+    expire_in: 1 week
