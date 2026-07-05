@@ -1002,10 +1002,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
     if (this.options.signLanguageSrc || this.signLanguageSrc) {
       return true;
     }
-    return !!(
-      this.options.signLanguageSources &&
-      Object.keys(this.options.signLanguageSources).length > 0
-    );
+    return Boolean(this.options.signLanguageSources &&
+      Object.keys(this.options.signLanguageSources).length > 0);
   }
 
   /**

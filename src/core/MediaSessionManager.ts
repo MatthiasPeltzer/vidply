@@ -34,6 +34,10 @@ const POSITION_THROTTLE_MS = 1000;
  */
 let activeManager: MediaSessionManager | null = null;
 
+function setActiveManager(manager: MediaSessionManager): void {
+  activeManager = manager;
+}
+
 export class MediaSessionManager {
   player: Player;
   private supported: boolean;
@@ -70,7 +74,7 @@ export class MediaSessionManager {
    */
   private claimSession(): void {
     if (!this.supported) return;
-    activeManager = this;
+    setActiveManager(this);
     this.setupActionHandlers();
     this.updateMetadata();
     this.updatePlaybackState();

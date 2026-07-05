@@ -62,7 +62,7 @@ export class VimeoRenderer implements Renderer {
     }
 
     return loadScriptOnce('https://player.vimeo.com/api/player.js', {
-      isReady: () => !!(window.Vimeo && window.Vimeo.Player)
+      isReady: () => Boolean(window.Vimeo && window.Vimeo.Player)
     });
   }
 

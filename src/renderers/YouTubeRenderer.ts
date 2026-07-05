@@ -67,7 +67,7 @@ export class YouTubeRenderer implements Renderer {
     // predicate polls for YT.Player, also covering the case where the host
     // page already included the API script.
     return loadScriptOnce('https://www.youtube.com/iframe_api', {
-      isReady: () => !!(window.YT && window.YT.Player),
+      isReady: () => Boolean(window.YT && window.YT.Player),
       readyTimeout: 8000
     });
   }
