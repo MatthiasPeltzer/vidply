@@ -6980,7 +6980,9 @@
           this._onKeyDown = (event) => {
             if (event.key === "Escape") {
               const d = this.draggable;
-              const inEditMode = !!d && (d.keyboardDragMode || d.keyboardResizeMode || d.pointerResizeMode);
+              const inEditMode = Boolean(
+                d && (d.keyboardDragMode || d.keyboardResizeMode || d.pointerResizeMode)
+              );
               if (inEditMode) {
                 return;
               }
@@ -9213,7 +9215,7 @@
             return Promise.resolve();
           }
           return loadScriptOnce("https://www.youtube.com/iframe_api", {
-            isReady: () => !!(window.YT && window.YT.Player),
+            isReady: () => Boolean(window.YT && window.YT.Player),
             readyTimeout: 8e3
           });
         }
@@ -9452,7 +9454,7 @@
             return Promise.resolve();
           }
           return loadScriptOnce("https://player.vimeo.com/api/player.js", {
-            isReady: () => !!(window.Vimeo && window.Vimeo.Player)
+            isReady: () => Boolean(window.Vimeo && window.Vimeo.Player)
           });
         }
         createIframe() {
@@ -15197,6 +15199,9 @@
   // src/core/MediaSessionManager.ts
   var POSITION_THROTTLE_MS = 1e3;
   var activeManager = null;
+  function setActiveManager(manager) {
+    activeManager = manager;
+  }
   var MediaSessionManager = class {
     constructor(player) {
       __publicField(this, "player");
@@ -15222,7 +15227,7 @@
      */
     claimSession() {
       if (!this.supported) return;
-      activeManager = this;
+      setActiveManager(this);
       this.setupActionHandlers();
       this.updateMetadata();
       this.updatePlaybackState();
@@ -17598,7 +17603,7 @@
       if (this.options.signLanguageSrc || this.signLanguageSrc) {
         return true;
       }
-      return !!(this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0);
+      return Boolean(this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0);
     }
     /**
      * Lazy-load and instantiate the floating (in-page PiP) manager. Only

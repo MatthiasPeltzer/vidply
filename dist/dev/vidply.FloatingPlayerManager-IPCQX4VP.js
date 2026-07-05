@@ -346,7 +346,9 @@ var FloatingPlayerManager = class {
     this._onKeyDown = (event) => {
       if (event.key === "Escape") {
         const d = this.draggable;
-        const inEditMode = !!d && (d.keyboardDragMode || d.keyboardResizeMode || d.pointerResizeMode);
+        const inEditMode = Boolean(
+          d && (d.keyboardDragMode || d.keyboardResizeMode || d.pointerResizeMode)
+        );
         if (inEditMode) {
           return;
         }
@@ -534,4 +536,4 @@ var FloatingPlayerManager = class {
 export {
   FloatingPlayerManager
 };
-//# sourceMappingURL=vidply.FloatingPlayerManager-C2UVRPZY.js.map
+//# sourceMappingURL=vidply.FloatingPlayerManager-IPCQX4VP.js.map

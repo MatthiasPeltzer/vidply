@@ -52,7 +52,7 @@ var VimeoRenderer = class {
       return Promise.resolve();
     }
     return loadScriptOnce("https://player.vimeo.com/api/player.js", {
-      isReady: () => !!(window.Vimeo && window.Vimeo.Player)
+      isReady: () => Boolean(window.Vimeo && window.Vimeo.Player)
     });
   }
   createIframe() {
@@ -236,4 +236,4 @@ var VimeoRenderer = class {
 export {
   VimeoRenderer
 };
-//# sourceMappingURL=vidply.VimeoRenderer-RQFQD7OE.js.map
+//# sourceMappingURL=vidply.VimeoRenderer-PIUNYGFK.js.map

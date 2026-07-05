@@ -52,7 +52,7 @@ var YouTubeRenderer = class {
       return Promise.resolve();
     }
     return loadScriptOnce("https://www.youtube.com/iframe_api", {
-      isReady: () => !!(window.YT && window.YT.Player),
+      isReady: () => Boolean(window.YT && window.YT.Player),
       readyTimeout: 8e3
     });
   }
@@ -235,4 +235,4 @@ var YouTubeRenderer = class {
 export {
   YouTubeRenderer
 };
-//# sourceMappingURL=vidply.YouTubeRenderer-EU2BARZF.js.map
+//# sourceMappingURL=vidply.YouTubeRenderer-QEFYNS4X.js.map

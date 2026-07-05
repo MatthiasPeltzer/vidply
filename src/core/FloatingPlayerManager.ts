@@ -440,7 +440,9 @@ export class FloatingPlayerManager {
                 // it (no dismiss, no stopPropagation) while a mode is active
                 // (WCAG 2.1.1). Only a "neutral" Escape dismisses.
                 const d = this.draggable;
-                const inEditMode = Boolean(d) && (d.keyboardDragMode || d.keyboardResizeMode || d.pointerResizeMode);
+                const inEditMode = Boolean(
+                    d && (d.keyboardDragMode || d.keyboardResizeMode || d.pointerResizeMode)
+                );
                 if (inEditMode) {
                     return;
                 }

@@ -3624,6 +3624,9 @@ var KeyboardManager = class {
 // src/core/MediaSessionManager.ts
 var POSITION_THROTTLE_MS = 1e3;
 var activeManager = null;
+function setActiveManager(manager) {
+  activeManager = manager;
+}
 var MediaSessionManager = class {
   player;
   supported;
@@ -3649,7 +3652,7 @@ var MediaSessionManager = class {
    */
   claimSession() {
     if (!this.supported) return;
-    activeManager = this;
+    setActiveManager(this);
     this.setupActionHandlers();
     this.updateMetadata();
     this.updatePlaybackState();
@@ -5240,7 +5243,7 @@ async function loadSignLanguageManager() {
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-C2UVRPZY.js");
+    const module = await import("./vidply.FloatingPlayerManager-IPCQX4VP.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -5987,7 +5990,7 @@ var Player = class _Player extends EventEmitter {
     if (this.options.signLanguageSrc || this.signLanguageSrc) {
       return true;
     }
-    return !!(this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0);
+    return Boolean(this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0);
   }
   /**
    * Lazy-load and instantiate the floating (in-page PiP) manager. Only
@@ -6374,10 +6377,10 @@ var Player = class _Player extends EventEmitter {
   }
   async _detectRendererClass(src) {
     if (src.includes("youtube.com") || src.includes("youtu.be")) {
-      const module = await import("./vidply.YouTubeRenderer-EU2BARZF.js");
+      const module = await import("./vidply.YouTubeRenderer-QEFYNS4X.js");
       return module.YouTubeRenderer ?? module.default;
     } else if (src.includes("vimeo.com")) {
-      const module = await import("./vidply.VimeoRenderer-RQFQD7OE.js");
+      const module = await import("./vidply.VimeoRenderer-PIUNYGFK.js");
       return module.VimeoRenderer ?? module.default;
     } else if (src.includes(".m3u8")) {
       const module = await import("./vidply.HLSRenderer-ZVBK2TNQ.js");

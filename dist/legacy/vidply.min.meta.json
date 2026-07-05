@@ -296,7 +296,7 @@
       "format": "esm"
     },
     "src/core/MediaSessionManager.ts": {
-      "bytes": 9974,
+      "bytes": 10070,
       "imports": [
         {
           "path": "<runtime>",
@@ -622,7 +622,7 @@
       "format": "esm"
     },
     "src/core/FloatingPlayerManager.ts": {
-      "bytes": 25908,
+      "bytes": 25953,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -724,7 +724,7 @@
       "format": "esm"
     },
     "src/renderers/YouTubeRenderer.ts": {
-      "bytes": 8305,
+      "bytes": 8310,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -740,7 +740,7 @@
       "format": "esm"
     },
     "src/renderers/VimeoRenderer.ts": {
-      "bytes": 8372,
+      "bytes": 8377,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -809,7 +809,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 104630,
+      "bytes": 104623,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -1122,7 +1122,7 @@
           "bytesInOutput": 46260
         },
         "src/core/FloatingPlayerManager.ts": {
-          "bytesInOutput": 22012
+          "bytesInOutput": 22051
         },
         "src/controls/TranscriptManager.ts": {
           "bytesInOutput": 85820
@@ -1131,10 +1131,10 @@
           "bytesInOutput": 2468
         },
         "src/renderers/YouTubeRenderer.ts": {
-          "bytesInOutput": 8477
+          "bytesInOutput": 8482
         },
         "src/renderers/VimeoRenderer.ts": {
-          "bytesInOutput": 8633
+          "bytesInOutput": 8638
         },
         "src/renderers/HLSRenderer.ts": {
           "bytesInOutput": 30118
@@ -1149,7 +1149,7 @@
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 88295
+          "bytesInOutput": 88300
         },
         "src/controls/ControlBar.ts": {
           "bytesInOutput": 128246
@@ -1164,7 +1164,7 @@
           "bytesInOutput": 11246
         },
         "src/core/MediaSessionManager.ts": {
-          "bytesInOutput": 7825
+          "bytesInOutput": 7899
         },
         "src/utils/UrlSafe.ts": {
           "bytesInOutput": 1045
@@ -1200,7 +1200,7 @@
           "bytesInOutput": 5385
         }
       },
-      "bytes": 843860
+      "bytes": 843988
     }
   }
 }

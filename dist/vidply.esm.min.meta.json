@@ -265,7 +265,7 @@
       "format": "esm"
     },
     "src/core/MediaSessionManager.ts": {
-      "bytes": 9974,
+      "bytes": 10070,
       "imports": [],
       "format": "esm"
     },
@@ -516,7 +516,7 @@
       "format": "esm"
     },
     "src/core/FloatingPlayerManager.ts": {
-      "bytes": 25908,
+      "bytes": 25953,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -608,7 +608,7 @@
       "format": "esm"
     },
     "src/renderers/YouTubeRenderer.ts": {
-      "bytes": 8305,
+      "bytes": 8310,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -619,7 +619,7 @@
       "format": "esm"
     },
     "src/renderers/VimeoRenderer.ts": {
-      "bytes": 8372,
+      "bytes": 8377,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -668,7 +668,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 104630,
+      "bytes": 104623,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -925,7 +925,7 @@
       },
       "bytes": 37502
     },
-    "dist/prod/vidply.FloatingPlayerManager-VZXHPCPM.min.js": {
+    "dist/prod/vidply.FloatingPlayerManager-QTAAL34L.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-PL3P3JHR.min.js",
@@ -946,10 +946,10 @@
       "entryPoint": "src/core/FloatingPlayerManager.ts",
       "inputs": {
         "src/core/FloatingPlayerManager.ts": {
-          "bytesInOutput": 17719
+          "bytesInOutput": 17746
         }
       },
-      "bytes": 18137
+      "bytes": 18164
     },
     "dist/prod/vidply.TranscriptManager-4B2QKYGQ.min.js": {
       "imports": [
@@ -1050,7 +1050,7 @@
       },
       "bytes": 25546
     },
-    "dist/prod/vidply.YouTubeRenderer-ITRTC7NR.min.js": {
+    "dist/prod/vidply.YouTubeRenderer-FLTGDM6R.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-5HTX5QXW.min.js",
@@ -1063,12 +1063,12 @@
       "entryPoint": "src/renderers/YouTubeRenderer.ts",
       "inputs": {
         "src/renderers/YouTubeRenderer.ts": {
-          "bytesInOutput": 6585
+          "bytesInOutput": 6590
         }
       },
-      "bytes": 6853
+      "bytes": 6858
     },
-    "dist/prod/vidply.VimeoRenderer-MR3UYLY7.min.js": {
+    "dist/prod/vidply.VimeoRenderer-I73KOXR6.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-5HTX5QXW.min.js",
@@ -1081,10 +1081,10 @@
       "entryPoint": "src/renderers/VimeoRenderer.ts",
       "inputs": {
         "src/renderers/VimeoRenderer.ts": {
-          "bytesInOutput": 6748
+          "bytesInOutput": 6753
         }
       },
-      "bytes": 7012
+      "bytes": 7017
     },
     "dist/prod/vidply.HLSRenderer-Q6EFYKID.min.js": {
       "imports": [
@@ -1204,7 +1204,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.FloatingPlayerManager-VZXHPCPM.min.js",
+          "path": "dist/prod/vidply.FloatingPlayerManager-QTAAL34L.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -1212,11 +1212,11 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.YouTubeRenderer-ITRTC7NR.min.js",
+          "path": "dist/prod/vidply.YouTubeRenderer-FLTGDM6R.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.VimeoRenderer-MR3UYLY7.min.js",
+          "path": "dist/prod/vidply.VimeoRenderer-I73KOXR6.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -1255,7 +1255,7 @@
           "bytesInOutput": 10220
         },
         "src/core/MediaSessionManager.ts": {
-          "bytesInOutput": 7215
+          "bytesInOutput": 7283
         },
         "src/utils/UrlSafe.ts": {
           "bytesInOutput": 983
@@ -1285,7 +1285,7 @@
           "bytesInOutput": 7833
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 79195
+          "bytesInOutput": 79200
         },
         "src/features/PlaylistManager.ts": {
           "bytesInOutput": 44655
@@ -1294,7 +1294,7 @@
           "bytesInOutput": 5074
         }
       },
-      "bytes": 324703
+      "bytes": 324776
     },
     "dist/prod/vidply.chunk-VKHV4QHA.min.js": {
       "imports": [
