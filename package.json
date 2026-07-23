@@ -11,11 +11,11 @@
     "src"
   ],
   "scripts": {
-    "dev": "npx serve . -p 3000",
+    "dev": "serve . -p 3000",
     "start": "npm run clean && npm run build:js && npm run build:types && npm run build:css && npm run dev",
     "build": "npm run clean && npm run build:js && npm run build:types && npm run build:css",
     "build:js": "node build/build.js",
-    "build:types": "tsc --emitDeclarationOnly",
+    "build:types": "tsc -p tsconfig.build.json",
     "build:css": "node build/build-css.js",
     "watch": "node build/watch.js",
     "clean": "node build/clean.js",
@@ -30,7 +30,7 @@
     "test:e2e:debug": "playwright test --debug",
     "test:all": "vitest run && playwright test",
     "typecheck": "tsc --noEmit",
-    "types": "tsc --emitDeclarationOnly",
+    "types": "tsc -p tsconfig.build.json",
     "verify": "npm run typecheck && npm run lint && npm run test && node tests/check-readme-types.mjs",
     "prepublishOnly": "npm run clean && npm run build && npm run test:all"
   },
@@ -77,17 +77,18 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.61.1",
-    "@typescript-eslint/eslint-plugin": "^8.62.1",
-    "@typescript-eslint/parser": "^8.62.1",
-    "@vitest/coverage-v8": "^4.1.9",
+    "@typescript-eslint/eslint-plugin": "^8.65.0",
+    "@typescript-eslint/parser": "^8.65.0",
+    "@vitest/coverage-v8": "^4.1.10",
     "clean-css": "^5.3.3",
     "esbuild": "^0.28.1",
-    "eslint": "^10.6.0",
+    "eslint": "^10.7.0",
     "jsdom": "^29.1.1",
-    "prettier": "^3.9.4",
-    "terser": "^5.48.0",
+    "prettier": "^3.9.6",
+    "serve": "14.2.6",
+    "terser": "^5.49.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   },
   "allowScripts": {
     "esbuild@0.28.1": true

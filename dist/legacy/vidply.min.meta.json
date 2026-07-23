@@ -78,7 +78,7 @@
       "format": "esm"
     },
     "src/i18n/i18n.ts": {
-      "bytes": 7610,
+      "bytes": 7869,
       "imports": [
         {
           "path": "src/i18n/translations.ts",
@@ -135,7 +135,7 @@
       "format": "esm"
     },
     "src/controls/CaptionStyleMenu.ts": {
-      "bytes": 11680,
+      "bytes": 11765,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -156,7 +156,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 172626,
+      "bytes": 177592,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -307,7 +307,7 @@
       "format": "esm"
     },
     "src/renderers/HTML5Renderer.ts": {
-      "bytes": 12110,
+      "bytes": 12154,
       "imports": [
         {
           "path": "<runtime>",
@@ -319,6 +319,11 @@
     },
     "src/utils/UrlSafe.ts": {
       "bytes": 2653,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/utils/RendererType.ts": {
+      "bytes": 863,
       "imports": [],
       "format": "esm"
     },
@@ -355,12 +360,17 @@
       "format": "esm"
     },
     "src/core/PosterManager.ts": {
-      "bytes": 5869,
+      "bytes": 7580,
       "imports": [
         {
           "path": "src/utils/VideoFrameCapture.ts",
           "kind": "import-statement",
           "original": "../utils/VideoFrameCapture.js"
+        },
+        {
+          "path": "src/utils/UrlSafe.ts",
+          "kind": "import-statement",
+          "original": "../utils/UrlSafe.js"
         },
         {
           "path": "<runtime>",
@@ -371,7 +381,7 @@
       "format": "esm"
     },
     "src/core/ResumeManager.ts": {
-      "bytes": 7690,
+      "bytes": 9818,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -429,7 +439,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardHelp.ts": {
-      "bytes": 9961,
+      "bytes": 9955,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -487,7 +497,7 @@
       "format": "esm"
     },
     "src/utils/DraggableResizable.ts": {
-      "bytes": 32705,
+      "bytes": 33509,
       "imports": [
         {
           "path": "<runtime>",
@@ -653,7 +663,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.ts": {
-      "bytes": 88859,
+      "bytes": 83896,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -719,12 +729,12 @@
       "format": "esm"
     },
     "src/utils/ScriptLoader.ts": {
-      "bytes": 4475,
+      "bytes": 5511,
       "imports": [],
       "format": "esm"
     },
     "src/renderers/YouTubeRenderer.ts": {
-      "bytes": 8310,
+      "bytes": 8901,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -740,7 +750,7 @@
       "format": "esm"
     },
     "src/renderers/VimeoRenderer.ts": {
-      "bytes": 8377,
+      "bytes": 8421,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -756,7 +766,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 33707,
+      "bytes": 34100,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -777,7 +787,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 37200,
+      "bytes": 37626,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -793,7 +803,7 @@
       "format": "esm"
     },
     "src/renderers/SoundCloudRenderer.ts": {
-      "bytes": 13297,
+      "bytes": 13346,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -809,7 +819,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 104623,
+      "bytes": 104818,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -875,6 +885,11 @@
           "path": "src/utils/UrlSafe.ts",
           "kind": "import-statement",
           "original": "../utils/UrlSafe.js"
+        },
+        {
+          "path": "src/utils/RendererType.ts",
+          "kind": "import-statement",
+          "original": "../utils/RendererType.js"
         },
         {
           "path": "src/core/LazyInit.ts",
@@ -970,7 +985,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 63309,
+      "bytes": 64958,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1038,6 +1053,12 @@
     }
   },
   "outputs": {
+    "dist/legacy/vidply.min.js.map": {
+      "imports": [],
+      "exports": [],
+      "inputs": {},
+      "bytes": 1451076
+    },
     "dist/legacy/vidply.min.js": {
       "imports": [],
       "exports": [],
@@ -1068,7 +1089,7 @@
           "bytesInOutput": 1149
         },
         "src/i18n/i18n.ts": {
-          "bytesInOutput": 7259
+          "bytesInOutput": 7302
         },
         "src/utils/TimeUtils.ts": {
           "bytesInOutput": 2230
@@ -1083,7 +1104,7 @@
           "bytesInOutput": 1343
         },
         "src/controls/CaptionStyleMenu.ts": {
-          "bytesInOutput": 9577
+          "bytesInOutput": 9585
         },
         "src/utils/StorageManager.ts": {
           "bytesInOutput": 8793
@@ -1095,7 +1116,7 @@
           "bytesInOutput": 18798
         },
         "src/renderers/HTML5Renderer.ts": {
-          "bytesInOutput": 11899
+          "bytesInOutput": 11955
         },
         "src/core/DescriptionSpeechManager.ts": {
           "bytesInOutput": 6832
@@ -1104,7 +1125,7 @@
           "bytesInOutput": 27826
         },
         "src/utils/DraggableResizable.ts": {
-          "bytesInOutput": 30761
+          "bytesInOutput": 31284
         },
         "src/utils/FormUtils.ts": {
           "bytesInOutput": 1672
@@ -1125,34 +1146,34 @@
           "bytesInOutput": 22051
         },
         "src/controls/TranscriptManager.ts": {
-          "bytesInOutput": 85820
+          "bytesInOutput": 81388
         },
         "src/utils/ScriptLoader.ts": {
-          "bytesInOutput": 2468
+          "bytesInOutput": 2712
         },
         "src/renderers/YouTubeRenderer.ts": {
-          "bytesInOutput": 8482
+          "bytesInOutput": 8881
         },
         "src/renderers/VimeoRenderer.ts": {
-          "bytesInOutput": 8638
+          "bytesInOutput": 8694
         },
         "src/renderers/HLSRenderer.ts": {
-          "bytesInOutput": 30118
+          "bytesInOutput": 30402
         },
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 36133
+          "bytesInOutput": 36457
         },
         "src/renderers/SoundCloudRenderer.ts": {
-          "bytesInOutput": 13153
+          "bytesInOutput": 13214
         },
         "src/utils/EventEmitter.ts": {
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 88300
+          "bytesInOutput": 87682
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 128246
+          "bytesInOutput": 130457
         },
         "src/utils/VideoFrameCapture.ts": {
           "bytesInOutput": 3154
@@ -1169,6 +1190,9 @@
         "src/utils/UrlSafe.ts": {
           "bytesInOutput": 1045
         },
+        "src/utils/RendererType.ts": {
+          "bytesInOutput": 426
+        },
         "src/core/LazyInit.ts": {
           "bytesInOutput": 1076
         },
@@ -1179,10 +1203,10 @@
           "bytesInOutput": 4181
         },
         "src/core/PosterManager.ts": {
-          "bytesInOutput": 4465
+          "bytesInOutput": 5544
         },
         "src/core/ResumeManager.ts": {
-          "bytesInOutput": 6712
+          "bytesInOutput": 8530
         },
         "src/core/ResponsiveManager.ts": {
           "bytesInOutput": 6290
@@ -1194,13 +1218,13 @@
           "bytesInOutput": 8634
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 48299
+          "bytesInOutput": 49569
         },
         "src/index.ts": {
           "bytesInOutput": 5385
         }
       },
-      "bytes": 843988
+      "bytes": 847772
     }
   }
 }

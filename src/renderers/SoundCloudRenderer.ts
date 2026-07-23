@@ -22,6 +22,7 @@ interface SCWidgetError {
 }
 
 export class SoundCloudRenderer implements Renderer {
+  readonly rendererType = 'soundcloud' as const;
   player: Player;
   media: HTMLMediaElement;
   widget: SCWidget | null;

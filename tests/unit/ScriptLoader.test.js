@@ -6,7 +6,12 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { loadScriptOnce, _resetScriptLoaderCache } from '../../src/utils/ScriptLoader.js';
+import { loadScriptOnce, loadPinnedScript, _resetScriptLoaderCache } from '../../src/utils/ScriptLoader.js';
+
+const PINNED = {
+  defaultUrl: 'https://cdn.example.com/lib@1.0.0/lib.min.js',
+  defaultIntegrity: 'sha384-DEFAULT'
+};
 
 function scriptsFor(url) {
   return Array.from(document.getElementsByTagName('script')).filter((s) => s.src === url);
@@ -104,6 +109,40 @@ describe('ScriptLoader', () => {
     expect(scriptsFor(url)).toHaveLength(1);
     fireLoad(url);
     await expect(retry).resolves.toBeUndefined();
+  });
+
+  describe('loadPinnedScript', () => {
+    it('loads the default URL with its built-in integrity when no override is given', () => {
+      loadPinnedScript({ ...PINNED });
+      const [script] = scriptsFor(PINNED.defaultUrl);
+      expect(script).toBeTruthy();
+      expect(script.integrity).toBe('sha384-DEFAULT');
+      expect(script.crossOrigin).toBe('anonymous');
+    });
+
+    it('drops the built-in integrity for a custom URL with no explicit integrity', () => {
+      const url = 'https://self-hosted.example/lib.js';
+      loadPinnedScript({ ...PINNED, url });
+      const [script] = scriptsFor(url);
+      expect(script).toBeTruthy();
+      expect(script.getAttribute('integrity')).toBeNull();
+      expect(script.crossOrigin).toBeNull();
+      // The default hash must never be applied to a non-default URL.
+      expect(scriptsFor(PINNED.defaultUrl)).toHaveLength(0);
+    });
+
+    it('applies an explicit integrity to a custom URL', () => {
+      const url = 'https://cdn.example.com/lib@2.0.0/lib.min.js';
+      loadPinnedScript({ ...PINNED, url, integrity: 'sha384-CUSTOM' });
+      const [script] = scriptsFor(url);
+      expect(script.integrity).toBe('sha384-CUSTOM');
+    });
+
+    it('lets an explicit integrity override even for the default URL', () => {
+      loadPinnedScript({ ...PINNED, integrity: 'sha384-OVERRIDE' });
+      const [script] = scriptsFor(PINNED.defaultUrl);
+      expect(script.integrity).toBe('sha384-OVERRIDE');
+    });
   });
 
   describe('readiness polling', () => {

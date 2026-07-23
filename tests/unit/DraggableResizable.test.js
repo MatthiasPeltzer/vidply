@@ -104,6 +104,53 @@ describe('DraggableResizable', () => {
     });
   });
 
+  describe('keyboard toggle guards', () => {
+    beforeEach(() => {
+      draggable = new DraggableResizable(element);
+    });
+
+    const makeEvent = (key, overrides = {}) => ({
+      key,
+      target: null,
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      shiftKey: false,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+      ...overrides
+    });
+
+    it('does not toggle drag mode while typing in an <input>', () => {
+      const input = document.createElement('input');
+      const e = makeEvent('d', { target: input });
+      draggable.onKeyDown(e);
+      expect(draggable.keyboardDragMode).toBe(false);
+      expect(e.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('does not toggle resize mode inside a contenteditable', () => {
+      const editable = document.createElement('div');
+      editable.setAttribute('contenteditable', 'true');
+      // jsdom does not derive isContentEditable from the attribute; set it.
+      Object.defineProperty(editable, 'isContentEditable', { value: true });
+      draggable.onKeyDown(makeEvent('r', { target: editable }));
+      expect(draggable.keyboardResizeMode).toBe(false);
+    });
+
+    it('does not toggle drag mode when a modifier key is held (e.g. Ctrl+D)', () => {
+      draggable.onKeyDown(makeEvent('d', { target: element, ctrlKey: true }));
+      expect(draggable.keyboardDragMode).toBe(false);
+    });
+
+    it('still toggles drag mode for a bare shortcut key on a non-editable target', () => {
+      const e = makeEvent('d', { target: element });
+      draggable.onKeyDown(e);
+      expect(draggable.keyboardDragMode).toBe(true);
+      expect(e.preventDefault).toHaveBeenCalled();
+    });
+  });
+
   describe('keyboard resize mode', () => {
     beforeEach(() => {
       draggable = new DraggableResizable(element);

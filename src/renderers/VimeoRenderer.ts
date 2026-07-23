@@ -3,6 +3,7 @@ import type { Player } from '../core/Player.js';
 import { loadScriptOnce } from '../utils/ScriptLoader.js';
 
 export class VimeoRenderer implements Renderer {
+  readonly rendererType = 'vimeo' as const;
   player: Player;
   media: HTMLMediaElement;
   vimeo: VimeoPlayer | null;

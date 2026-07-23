@@ -5,6 +5,124 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+- Poster/artwork URLs are now validated and CSS-escaped before being
+  written into the `--vidply-poster-image` custom property, so an
+  attacker-influenced poster value can no longer break out of the CSS
+  `url(...)` context (`PosterManager`, `Player.load`).
+- Metadata-cue directives (`PAUSE` / `FOCUS:` / `#hashtags`) are handled
+  by a single, container-scoped processor. The duplicate pipeline in the
+  transcript layer that resolved `FOCUS:` selectors document-wide has
+  been removed, so an untrusted VTT cue can no longer move focus to
+  arbitrary elements on the host page (opt in with
+  `metadataDirectives: 'global'` for the old document-wide behaviour).
+- The default hls.js and dash.js CDN builds now load with a built-in
+  Subresource Integrity hash, so the pinned scripts are verified out of
+  the box. A custom `hlsScriptUrl`/`dashScriptUrl` still requires its own
+  `*ScriptIntegrity` value; the built-in hash is only applied to the
+  pinned default URL.
+- Placeholder replacement in `i18n.t()` now inserts values literally, so
+  `$`-sequences (`$&`, `$1`, `$$`, `` $` ``) in a substituted value can
+  no longer be reinterpreted as `String.prototype.replace` patterns.
+
+### Fixed
+- Type declarations are now actually emitted to `dist/types` during the
+  build (the `types` entry point was previously dangling because
+  `tsc` ran with `noEmit`); CI asserts `dist/types/index.d.ts` exists.
+- Removed a duplicate metadata `cuechange`/`loadedmetadata` listener
+  registration in the transcript layer that accumulated across source
+  changes.
+- Renderer selection on source changes now uses a stable `rendererType`
+  field instead of `constructor.name`, which minifiers mangle in
+  production builds — fixing needless renderer re-creation (or missed
+  swaps) in minified bundles.
+- Recreating the player for a different track type no longer hangs if the
+  new player becomes ready before the `ready` listener is attached; the
+  wait resolves immediately when already ready and has a safety timeout.
+- Playlist deferred callbacks (auto-play, guard-flag resets, live-region
+  clears, focus moves) are now tracked and cancelled on `destroy()`, so
+  they can no longer fire against a torn-down player.
+- The player now tears down the iOS pseudo-fullscreen fallback in
+  `destroy()`, restoring body/document scroll lock, background styles,
+  viewport meta and inert siblings if destroyed while pseudo-fullscreen.
+- Rebuilding the control bar (feature detection / playlist refresh /
+  renderer swap) no longer stacks duplicate player-event listeners,
+  `ResizeObserver`s or auto-hide DOM handlers — each control rebuild now
+  detaches its previous listeners before re-attaching, and `destroy()`
+  removes them all.
+- On pages with multiple players, opening a menu (volume, chapters,
+  quality, speed, captions, caption-style, overflow) no longer closes or
+  toggles another player's open menu: the "already open" lookup is scoped
+  to the player's own container instead of the whole document.
+- The YouTube video-ID parser no longer folds trailing query/hash
+  segments into the ID (e.g. `youtu.be/ID?t=60`, `.../embed/ID?autoplay=1`)
+  and now also handles `v` appearing as a later query parameter, `/shorts/`
+  and legacy `/v/` paths, and `youtube-nocookie.com`.
+
+### Accessibility
+- The draggable/resizable single-letter shortcuts (`d`/`r`) are no longer
+  hijacked while typing in a form control or contenteditable, or when a
+  modifier (Ctrl/Cmd/Alt) is held (e.g. Ctrl+D, Cmd+R).
+- The resume ("Where were we?") prompt now traps Tab/Shift+Tab within the
+  dialog while it is open and restores focus to the previously focused
+  element (falling back to the play button) when it closes, matching its
+  `role="dialog"`/`aria-modal` semantics (WCAG 2.4.3).
+
+### Changed
+- Source-URL → renderer detection is consolidated into one
+  `classifyRendererType()` helper used by both `_detectRendererClass`
+  (which renderer to build) and `shouldChangeRenderer` (whether to swap),
+  so the two can no longer drift apart; `youtube-nocookie.com` is now
+  recognised as a YouTube source.
+- The pinned hls.js/dash.js default-URL + Subresource-Integrity resolution
+  is centralised in a shared `loadPinnedScript()` loader, keeping the
+  "built-in hash only applies to the pinned default URL" rule in one place.
+- Light-theme focus rings and accents now reference the `--vidply-primary`
+  custom property instead of a repeated hardcoded `#0a406e`, so theming the
+  primary colour restyles them consistently.
+
+### Removed
+- Deleted the dead `SettingsDialog` component and its unreachable wiring
+  (the settings button was never rendered and `showSettings()` had been a
+  no-op stub); the public `showSettings()`/`hideSettings()` methods remain
+  as deprecation stubs.
+
+### Build
+- The `dev` server dependency (`serve`) is now a pinned devDependency and
+  run from the local install instead of being fetched at runtime via
+  `npx serve`, removing a runtime supply-chain fetch.
+- Production (minified) bundles now emit external source maps: the esbuild
+  bundle map is chained through Terser so `dist/prod` / `dist/legacy`
+  `.min.js` files map back to the original TypeScript for field debugging.
+- CI now runs the unit/integration suite with coverage (`test:coverage`)
+  so the configured coverage thresholds actually gate builds; thresholds
+  were realigned to the current measured coverage as regression floors.
+
+### Tests
+- Added adversarial unit suites for the prototype-pollution sanitiser
+  (`Sanitize`) and the poster URL allow-list/CSS-escaping (`UrlSafe`),
+  and a dedicated `MetadataAlertsManager` suite covering scoped vs.
+  global `FOCUS:` resolution.
+- Added regression tests for the `i18n` `$`-escape, the drag/resize
+  keyboard-shortcut guards, and the stable renderer-type identifier.
+- Strengthened the YouTube `extractVideoId` suite to assert exact IDs
+  (query/hash stripped) and cover `?si=` share links, `v` as a later
+  query parameter, `/shorts/`, `youtube-nocookie.com`, and `#fragment`s.
+- Added unit suites for the `classifyRendererType` URL classifier and the
+  `loadPinnedScript` default-URL/SRI resolution rules.
+
+## [1.2.4] - 2026-07-07
+
+### Changed
+- GitHub Actions CI: lint and Playwright e2e jobs, GitLab CI pipeline, expanded
+  `.editorconfig`, and GitHub Actions artifact/cache actions v6 (Node 24).
+
+### Fixed
+- ESLint CI failures: `no-this-alias` in `MediaSessionManager` and implicit
+  coercion warnings in player/renderers.
+
 ## [1.2.3] - 2026-06-27
 
 ### Added
@@ -533,6 +651,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of the vidply accessible media player.
 
+[1.2.4]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.0...v1.2.1

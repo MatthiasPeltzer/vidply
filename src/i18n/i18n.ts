@@ -114,7 +114,11 @@ class I18n {
       for (const [placeholder, replacement] of Object.entries(replacements)) {
         if (isForbiddenKey(placeholder)) continue;
         const safe = escapeRegExp(placeholder);
-        result = result.replace(new RegExp(`\\{${safe}\\}`, 'g'), String(replacement));
+        // Function-form replacement so `$`-sequences in the replacement value
+        // (e.g. `$&`, `$1`, `$$`) are inserted literally rather than being
+        // interpreted as String.prototype.replace special patterns.
+        const value = String(replacement);
+        result = result.replace(new RegExp(`\\{${safe}\\}`, 'g'), () => value);
       }
       return result;
     }

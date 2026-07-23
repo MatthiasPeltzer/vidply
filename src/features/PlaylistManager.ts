@@ -85,6 +85,10 @@ export class PlaylistManager {
   trackInfoElement: HTMLElement | null;
   tracks: PlaylistTrack[];
   uniqueId: string;
+  // Timers owned by this manager. Tracked so destroy() can cancel any pending
+  // deferred callback (auto-play, guard-flag resets, live-region clears,
+  // focus moves) that would otherwise run against a torn-down player.
+  private _timers: Set<ReturnType<typeof setTimeout>> = new Set();
 
   constructor(player: Player, options: Record<string, unknown> = {}) {
     this.player = player;
@@ -298,9 +302,23 @@ export class PlaylistManager {
     // Re-register playlist manager
     this.player.playlistManager = this;
     
-    // Wait for player to be ready
+    // Wait for player to be ready. Resolve immediately if the freshly created
+    // player already flipped its ready state during construction — otherwise a
+    // late on('ready') listener would miss the event and hang forever. A
+    // managed timeout is a safety valve if 'ready' never fires (e.g. init error).
     await new Promise<void>(resolve => {
-      this.player.on('ready', () => resolve());
+      if (this.player.state?.ready) {
+        resolve();
+        return;
+      }
+      let settled = false;
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      this.player.once('ready', done);
+      this.setManagedTimeout(done, 5000);
     });
     
     // Re-attach event listeners
@@ -375,7 +393,7 @@ export class PlaylistManager {
     
     // Auto-play if requested
     if (autoPlay) {
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         this.player.play();
       }, 100);
     }
@@ -578,7 +596,7 @@ export class PlaylistManager {
         });
         
         // Clear guard flag
-        setTimeout(() => {
+        this.setManagedTimeout(() => {
           this.isChangingTrack = false;
         }, 150);
         return;
@@ -613,7 +631,7 @@ export class PlaylistManager {
     });
     
     // Clear guard flag after a short delay to ensure track is loaded
-    setTimeout(() => {
+    this.setManagedTimeout(() => {
       this.isChangingTrack = false;
     }, 150);
   }
@@ -807,7 +825,7 @@ export class PlaylistManager {
         });
         
         // Clear guard flag
-        setTimeout(() => {
+        this.setManagedTimeout(() => {
           this.isChangingTrack = false;
         }, 150);
         return;
@@ -846,10 +864,10 @@ export class PlaylistManager {
     });
     
     // Auto-play and clear guard flag after playback starts
-    setTimeout(() => {
+    this.setManagedTimeout(() => {
       this.player.play();
       // Clear guard flag after a short delay to ensure track has started
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         this.isChangingTrack = false;
       }, 50);
     }, 100);
@@ -943,7 +961,7 @@ export class PlaylistManager {
     
     // Try next track
     if (this.options.autoAdvance) {
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         this.next();
       }, 1000);
     }
@@ -961,7 +979,7 @@ export class PlaylistManager {
    */
   handleFullscreenChange() {
     // Use a small delay to ensure fullscreen state is fully applied
-    setTimeout(() => {
+    this.setManagedTimeout(() => {
       this.updatePlaylistVisibilityInFullscreen();
     }, 50);
   }
@@ -1054,7 +1072,7 @@ export class PlaylistManager {
       } else {
         playlistPanel.classList.remove('vidply-playlist-fullscreen-visible');
         // Add a smooth fade out with delay to match CSS transition
-        setTimeout(() => {
+        this.setManagedTimeout(() => {
           // Double-check state hasn't changed before hiding
           if (this.player.state.playing && this.player.state.fullscreen) {
             playlistPanel.style.display = 'none';
@@ -1441,7 +1459,7 @@ export class PlaylistManager {
       if (isExternalRenderer && this.player.state.fullscreen) {
         this.player.exitFullscreen();
         // Small delay to let fullscreen exit before loading
-        setTimeout(() => {
+        this.setManagedTimeout(() => {
           this.play(index, true);
         }, 100);
       } else {
@@ -1481,7 +1499,7 @@ export class PlaylistManager {
           // Exit fullscreen for external renderer tracks (YouTube, Vimeo, SoundCloud)
           if (isExternalRenderer && this.player.state.fullscreen) {
             this.player.exitFullscreen();
-            setTimeout(() => {
+            this.setManagedTimeout(() => {
               this.play(index, true);
             }, 100);
           } else {
@@ -1576,7 +1594,7 @@ export class PlaylistManager {
     if (announcement && this.navigationFeedback) {
       this.navigationFeedback.textContent = announcement;
       // Clear after a short delay to allow for repeated announcements
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         if (this.navigationFeedback) {
           this.navigationFeedback.textContent = '';
         }
@@ -1758,7 +1776,7 @@ export class PlaylistManager {
 
       // Focus first item if playlist has tracks
       if (this.tracks.length > 0) {
-        setTimeout(() => {
+        this.setManagedTimeout(() => {
           const firstItem = playlistPanel.querySelector<HTMLElement>('.vidply-playlist-item[tabindex="0"]');
           if (firstItem) {
             firstItem.focus({ preventScroll: true });
@@ -1805,7 +1823,26 @@ export class PlaylistManager {
   /**
    * Destroy playlist manager
    */
+  /**
+   * setTimeout wrapper that tracks the handle so destroy() can cancel any
+   * still-pending callback. Nested deferred work should also route through
+   * this so it can't fire after teardown.
+   */
+  private setManagedTimeout(callback: () => void, delay: number): ReturnType<typeof setTimeout> {
+    const id = setTimeout(() => {
+      this._timers.delete(id);
+      callback();
+    }, delay);
+    this._timers.add(id);
+    return id;
+  }
+
   destroy() {
+    // Cancel any pending deferred callbacks (auto-play, guard resets,
+    // announcement clears, focus moves) before tearing the manager down.
+    this._timers.forEach(id => clearTimeout(id));
+    this._timers.clear();
+
     // Remove every listener registered in init(). All handlers are pre-bound
     // in the constructor, so these references match what on() registered.
     this.player.off('ended', this.handleTrackEnd);

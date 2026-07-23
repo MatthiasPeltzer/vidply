@@ -49,11 +49,14 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Unit + integration tests
-        run: npm run test
+      - name: Unit + integration tests (with coverage gate)
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build
+
+      - name: Assert type declarations were emitted
+        run: test -f dist/types/index.d.ts
 
       - name: README ↔ types drift check
         run: node tests/check-readme-types.mjs

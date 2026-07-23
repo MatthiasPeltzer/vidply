@@ -118,8 +118,10 @@ export function createMenu({
 }: CreateMenuOptions): HTMLElement | null {
     const classPrefix = player.options.classPrefix;
     
-    // Remove existing menu (toggle behavior)
-    const existingMenu = document.querySelector(`.${classPrefix}-${menuClass}`);
+    // Remove existing menu (toggle behavior). Scoped to this player's container
+    // so that, on pages with multiple players, one player's open menu is never
+    // matched (and closed) by another player's button.
+    const existingMenu = player.container.querySelector(`.${classPrefix}-${menuClass}`);
     if (existingMenu) {
         existingMenu.remove();
         button.setAttribute('aria-expanded', 'false');

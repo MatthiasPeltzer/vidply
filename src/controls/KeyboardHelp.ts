@@ -3,8 +3,8 @@
  *
  * A focus-trapped modal listing the player's active keyboard shortcuts.
  * Built lazily from `player.options.keyboardShortcuts` so it always reflects
- * the live bindings (including consumer overrides). Mirrors the focus, escape
- * and return-focus behaviour of SettingsDialog for a consistent, accessible UX.
+ * the live bindings (including consumer overrides). Implements the standard
+ * modal focus-trap, escape and return-focus behaviour for an accessible UX.
  */
 
 import { DOMUtils } from '../utils/DOMUtils.js';

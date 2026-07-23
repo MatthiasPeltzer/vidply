@@ -1,6 +1,6 @@
 import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
-import { loadScriptOnce } from '../utils/ScriptLoader.js';
+import { loadPinnedScript } from '../utils/ScriptLoader.js';
 
 interface DashTextTrack {
   lang?: string;
@@ -30,6 +30,7 @@ type CaptionEnabledHandler = (track: CaptionTrackSelection) => void;
 type CaptionDisabledHandler = () => void;
 
 export class DASHRenderer implements Renderer {
+  readonly rendererType = 'dash' as const;
   player: Player;
   media: HTMLMediaElement;
   dash: DashMediaPlayerInstance | null;
@@ -231,16 +232,22 @@ export class DASHRenderer implements Renderer {
 
   /**
    * Load dash.js. Pinned to an exact version (the previous default
-   * `5.2.0` is preserved) and overridable via `options.dashScriptUrl`
-   * (URL) / `options.dashScriptIntegrity` (SRI hash). See
-   * HLSRenderer.loadHlsJs() for the SRI computation command.
+   * `5.2.0` is preserved) and shipped with a matching Subresource
+   * Integrity hash, so the default CDN script is verified out of the
+   * box. Overridable via `options.dashScriptUrl` (URL) /
+   * `options.dashScriptIntegrity` (SRI hash). The built-in hash only
+   * applies to the pinned default URL. See HLSRenderer.loadHlsJs() for
+   * the SRI computation command.
    */
   async loadDashJs(): Promise<void> {
-    const defaultUrl = 'https://cdn.jsdelivr.net/npm/dashjs@5.2.0/dist/modern/umd/dash.all.min.js';
-    const url: string = (this.player.options.dashScriptUrl as string | undefined) || defaultUrl;
-    const integrity = this.player.options.dashScriptIntegrity as string | undefined;
-
-    return loadScriptOnce(url, { integrity });
+    // SRI for the pinned default build below, verified against the file served
+    // by jsdelivr for dashjs@5.2.0. Recompute whenever the pin changes.
+    return loadPinnedScript({
+      defaultUrl: 'https://cdn.jsdelivr.net/npm/dashjs@5.2.0/dist/modern/umd/dash.all.min.js',
+      defaultIntegrity: 'sha384-DUqWPzOl/i7/DGF7SBoe4NrlZOMxxomlJsg3X0daS5SBeFxco3dmwWQPFr2oauXn',
+      url: this.player.options.dashScriptUrl as string | undefined,
+      integrity: this.player.options.dashScriptIntegrity as string | undefined
+    });
   }
 
   _setTimeout(fn: () => void, delay: number) {

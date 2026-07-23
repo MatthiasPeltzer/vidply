@@ -131,6 +131,31 @@ export function loadScriptOnce(url: string, options: LoadScriptOptions = {}): Pr
   return tracked;
 }
 
+export interface PinnedScriptConfig {
+  /** Pinned default CDN URL used when no override URL is supplied. */
+  defaultUrl: string;
+  /** Subresource Integrity hash matching `defaultUrl`. */
+  defaultIntegrity: string;
+  /** Embedder override URL (self-hosted / alternative CDN). */
+  url?: string;
+  /** Embedder override integrity for a custom `url`. */
+  integrity?: string;
+}
+
+/**
+ * Load a version-pinned third-party script (hls.js / dash.js) with its built-in
+ * Subresource Integrity hash. The security-relevant rule lives in one place:
+ * the built-in `defaultIntegrity` is only applied when the effective URL is the
+ * pinned default; a custom URL must bring its own `integrity` (we can't know its
+ * hash) and otherwise loads without SRI.
+ */
+export function loadPinnedScript(config: PinnedScriptConfig): Promise<void> {
+  const url = config.url || config.defaultUrl;
+  const integrity =
+    config.integrity ?? (url === config.defaultUrl ? config.defaultIntegrity : undefined);
+  return loadScriptOnce(url, { integrity });
+}
+
 /** Test-only hook to reset the dedupe cache between cases. */
 export function _resetScriptLoaderCache(): void {
   inFlight.clear();

@@ -405,8 +405,29 @@ export class DraggableResizable {
   }
 
   onKeyDown(e: KeyboardEvent): void {
+    const key = e.key.toLowerCase();
+    const isToggleKey =
+      key === this.options.keyboardDragKey.toLowerCase() ||
+      key === this.options.keyboardResizeKey.toLowerCase();
+
+    // Never hijack the single-letter drag/resize shortcuts while the user is
+    // typing into a form control / contenteditable, or while a modifier is
+    // held (e.g. Ctrl+D bookmark, Cmd+R reload). Escape/arrow handling for
+    // already-active modes below is unaffected.
+    if (isToggleKey) {
+      const target = e.target as HTMLElement | null;
+      const isEditable =
+        target !== null &&
+        (target.isContentEditable ||
+          /^(input|textarea|select)$/i.test(target.tagName));
+      const hasModifier = e.ctrlKey || e.metaKey || e.altKey;
+      if (isEditable || hasModifier) {
+        return;
+      }
+    }
+
     // Toggle drag mode
-    if (e.key.toLowerCase() === this.options.keyboardDragKey.toLowerCase()) {
+    if (key === this.options.keyboardDragKey.toLowerCase()) {
       e.preventDefault();
       this.toggleKeyboardDragMode();
       return;

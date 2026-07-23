@@ -16,6 +16,7 @@ import {StorageManager} from '../utils/StorageManager.js';
 import {DraggableResizable} from '../utils/DraggableResizable.js';
 import {debounce, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
 import {sanitizePosterUrl, cssEscapeUrl} from '../utils/UrlSafe.js';
+import {classifyRendererType} from '../utils/RendererType.js';
 import {observeForLazyInit, cancelLazyInit, type LazyHandle} from './LazyInit.js';
 import {PseudoFullscreenController} from './PseudoFullscreen.js';
 import {ThemeManager, PLAYER_THEMES, type ThemeName} from './ThemeManager.js';
@@ -41,7 +42,6 @@ import type {SignLanguageManager} from './SignLanguageManager.js';
 import type {FloatingPlayerManager} from './FloatingPlayerManager.js';
 import type {TranscriptManager} from '../controls/TranscriptManager.js';
 import type {PlaylistManager} from '../features/PlaylistManager.js';
-import type {SettingsDialog} from '../controls/SettingsDialog.js';
 import {KeyboardHelp} from '../controls/KeyboardHelp.js';
 
 // Typed dynamic loaders. Each loader returns the constructor for the
@@ -172,7 +172,6 @@ export class Player extends EventEmitter<PlayerEventMap> {
   mediaSessionManager: MediaSessionManager | null = null;
   transcriptManager: TranscriptManager | null = null;
   playlistManager: PlaylistManager | null = null;
-  settingsDialog: SettingsDialog | null = null;
   keyboardHelp: KeyboardHelp | null = null;
   audioDescriptionManager: AudioDescriptionManager | null = null;
   signLanguageManager: SignLanguageManager | null = null;
@@ -571,7 +570,6 @@ export class Player extends EventEmitter<PlayerEventMap> {
     this.controlBar = null;
     this.captionManager = null;
     this.keyboardManager = null;
-    this.settingsDialog = null;
 
     // Metadata handling
     this.metadataCueChangeHandler = null;
@@ -1550,23 +1548,30 @@ export class Player extends EventEmitter<PlayerEventMap> {
   async _detectRendererClass(src: string): Promise<new (player: Player) => Renderer> {
     type RendererCtor = new (player: Player) => Renderer;
     type RendererModule = Record<string, RendererCtor | undefined> & { default?: RendererCtor };
-    if (src.includes('youtube.com') || src.includes('youtu.be')) {
-      const module = await import('../renderers/YouTubeRenderer.js') as RendererModule;
-      return (module.YouTubeRenderer ?? module.default) as RendererCtor;
-    } else if (src.includes('vimeo.com')) {
-      const module = await import('../renderers/VimeoRenderer.js') as RendererModule;
-      return (module.VimeoRenderer ?? module.default) as RendererCtor;
-    } else if (src.includes('.m3u8')) {
-      const module = await import('../renderers/HLSRenderer.js') as RendererModule;
-      return (module.HLSRenderer ?? module.default) as RendererCtor;
-    } else if (src.includes('.mpd')) {
-      const module = await import('../renderers/DASHRenderer.js') as RendererModule;
-      return (module.DASHRenderer ?? module.default) as RendererCtor;
-    } else if (src.includes('soundcloud.com') || src.includes('api.soundcloud.com')) {
-      const module = await import('../renderers/SoundCloudRenderer.js') as RendererModule;
-      return (module.SoundCloudRenderer ?? module.default) as RendererCtor;
+    switch (classifyRendererType(src)) {
+      case 'youtube': {
+        const module = await import('../renderers/YouTubeRenderer.js') as RendererModule;
+        return (module.YouTubeRenderer ?? module.default) as RendererCtor;
+      }
+      case 'vimeo': {
+        const module = await import('../renderers/VimeoRenderer.js') as RendererModule;
+        return (module.VimeoRenderer ?? module.default) as RendererCtor;
+      }
+      case 'hls': {
+        const module = await import('../renderers/HLSRenderer.js') as RendererModule;
+        return (module.HLSRenderer ?? module.default) as RendererCtor;
+      }
+      case 'dash': {
+        const module = await import('../renderers/DASHRenderer.js') as RendererModule;
+        return (module.DASHRenderer ?? module.default) as RendererCtor;
+      }
+      case 'soundcloud': {
+        const module = await import('../renderers/SoundCloudRenderer.js') as RendererModule;
+        return (module.SoundCloudRenderer ?? module.default) as RendererCtor;
+      }
+      default:
+        return HTML5Renderer as unknown as RendererCtor;
     }
-    return HTML5Renderer as unknown as RendererCtor;
   }
 
   _selectBestSource(sourceElements: HTMLSourceElement[]): {
@@ -1815,16 +1820,28 @@ export class Player extends EventEmitter<PlayerEventMap> {
       // Handle poster display based on content type
       if (config.poster && this.element.tagName === 'VIDEO') {
         if (this._isAudioContent) {
-          // For audio in video player: use CSS poster overlay with 16:3 aspect ratio
+          // For audio in video player: use CSS poster overlay with 16:3 aspect ratio.
+          // A manifest-supplied poster is attacker-influenced, so validate +
+          // CSS-escape before interpolating into the `url(...)` custom property.
           this.element.removeAttribute('poster');
           if (this.videoWrapper) {
-            const resolvedPoster = this.resolvePosterPath(config.poster);
-            this.videoWrapper.style.setProperty('--vidply-poster-image', `url("${resolvedPoster}")`);
-            this.videoWrapper.classList.add('vidply-forced-poster');
+            const cssPoster = PosterManager.toSafeCssPoster(this.resolvePosterPath(config.poster));
+            if (cssPoster) {
+              this.videoWrapper.style.setProperty('--vidply-poster-image', cssPoster);
+              this.videoWrapper.classList.add('vidply-forced-poster');
+            } else {
+              this.videoWrapper.style.removeProperty('--vidply-poster-image');
+            }
           }
         } else {
-          // For video: use normal poster and remove overlay
-          (this.element as HTMLVideoElement).poster = this.resolvePosterPath(config.poster);
+          // For video: use normal poster and remove overlay. Validate the
+          // URL (reject `javascript:`/other schemes) before assigning it.
+          const safePoster = sanitizePosterUrl(this.resolvePosterPath(config.poster));
+          if (safePoster) {
+            (this.element as HTMLVideoElement).poster = safePoster;
+          } else {
+            this.element.removeAttribute('poster');
+          }
           if (this.videoWrapper) {
             this.videoWrapper.classList.remove('vidply-forced-poster');
             this.videoWrapper.style.removeProperty('--vidply-poster-image');
@@ -2079,22 +2096,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
   shouldChangeRenderer(src: string) {
     if (!this.renderer) return true;
 
-    const isYouTube = src.includes('youtube.com') || src.includes('youtu.be');
-    const isVimeo = src.includes('vimeo.com');
-    const isHLS = src.includes('.m3u8');
-    const isDASH = src.includes('.mpd');
-    const isSoundCloud = src.includes('soundcloud.com') || src.includes('api.soundcloud.com');
-
-    const currentRendererName = this.renderer.constructor.name;
-
-    if (isYouTube && currentRendererName !== 'YouTubeRenderer') return true;
-    if (isVimeo && currentRendererName !== 'VimeoRenderer') return true;
-    if (isHLS && currentRendererName !== 'HLSRenderer') return true;
-    if (isDASH && currentRendererName !== 'DASHRenderer') return true;
-    if (isSoundCloud && currentRendererName !== 'SoundCloudRenderer') return true;
-    if (!isYouTube && !isVimeo && !isHLS && !isDASH && !isSoundCloud && currentRendererName !== 'HTML5Renderer') return true;
-
-    return false;
+    // Compare the type the URL maps to against the current renderer's stable
+    // `rendererType` field (not `constructor.name`, which minifiers mangle).
+    // Both this check and `_detectRendererClass` classify via the same helper
+    // so they can never disagree about a URL.
+    return classifyRendererType(src) !== this.renderer.rendererType;
   }
 
   // Playback controls
@@ -2807,15 +2813,6 @@ export class Player extends EventEmitter<PlayerEventMap> {
       this.playlistManager = null;
     }
 
-    if (this.settingsDialog && typeof this.settingsDialog.destroy === 'function') {
-      try {
-        this.settingsDialog.destroy();
-      } catch (err) {
-        this.log(`SettingsDialog.destroy failed: ${err}`, 'warn');
-      }
-      this.settingsDialog = null;
-    }
-
     if (this.keyboardHelp && typeof this.keyboardHelp.destroy === 'function') {
       try {
         this.keyboardHelp.destroy();
@@ -2872,6 +2869,19 @@ export class Player extends EventEmitter<PlayerEventMap> {
     // handles the two exceptions (ResizeObserver + legacy Safari
     // matchMedia listener).
     this.responsiveManager?.cleanup();
+
+    // If the player is torn down while in the pseudo-fullscreen fallback
+    // (iOS Safari path), disable() restores the body/html scroll lock,
+    // background styles, viewport meta and inert siblings. Guarded on the
+    // fullscreen state so we don't emit a spurious `exitfullscreen`.
+    if (this.pseudoFullscreen && this.state.fullscreen) {
+      try {
+        this.pseudoFullscreen.disable();
+      } catch (err) {
+        this.log(`PseudoFullscreenController.disable failed: ${err}`, 'warn');
+      }
+    }
+    this.pseudoFullscreen = null;
 
     // Clean up all managed timeouts
     this.timeouts.forEach((timeoutId: ReturnType<typeof setTimeout>) => clearTimeout(timeoutId));

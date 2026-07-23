@@ -242,8 +242,9 @@ function createOpacityControl(player: Player, label: string, property: string): 
 export function showCaptionStyleMenu(controlBar: ControlBar, button: HTMLElement): void {
     const player = controlBar.player;
 
-    // Remove existing menu if any (toggle behavior)
-    const existingMenu = document.querySelector(`.${player.options.classPrefix}-caption-style-menu`);
+    // Remove existing menu if any (toggle behavior). Scoped to this player's
+    // container so multiple players on a page don't toggle each other's menus.
+    const existingMenu = player.container.querySelector(`.${player.options.classPrefix}-caption-style-menu`);
     if (existingMenu) {
         existingMenu.remove();
         button.setAttribute('aria-expanded', 'false');
@@ -256,8 +257,7 @@ export function showCaptionStyleMenu(controlBar: ControlBar, button: HTMLElement
 
     // The caption-style panel contains form controls (selects, color
     // inputs, sliders), not single-action menuitems. Modeling it as a
-    // dialog yields correct semantics for AT and matches the
-    // SettingsDialog pattern.
+    // dialog yields correct semantics for assistive technology.
     const menuLabelId = `${player.options.classPrefix}-caption-style-label-${player.instanceId || ''}`;
     const menu = DOMUtils.createElement('div', {
         className: `${player.options.classPrefix}-caption-style-menu ${player.options.classPrefix}-menu ${player.options.classPrefix}-settings-menu`,

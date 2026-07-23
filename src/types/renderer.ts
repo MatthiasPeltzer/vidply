@@ -9,9 +9,28 @@ export interface QualityLevel {
   index?: number;
 }
 
+/**
+ * Stable, minification-safe identifier for each renderer implementation.
+ * Prefer this over `renderer.constructor.name`, which is mangled in
+ * production builds (e.g. `class s`) and breaks runtime type checks.
+ */
+export type RendererType =
+  | 'html5'
+  | 'hls'
+  | 'dash'
+  | 'youtube'
+  | 'vimeo'
+  | 'soundcloud';
+
 export interface Renderer {
   player: Player;
   media: HTMLMediaElement;
+
+  /**
+   * Stable renderer identifier that survives minification. Used by the
+   * Player to decide whether a source change requires swapping renderers.
+   */
+  readonly rendererType: RendererType;
 
   /** Streaming engines, present on HLS / DASH renderers. */
   hls?: HlsInstance | null;

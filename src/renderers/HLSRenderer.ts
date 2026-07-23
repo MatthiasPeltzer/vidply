@@ -1,6 +1,6 @@
 import type { Renderer, QualityLevel } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
-import { loadScriptOnce } from '../utils/ScriptLoader.js';
+import { loadPinnedScript } from '../utils/ScriptLoader.js';
 
 /** Subset of payloads emitted by hls.js events that we actually consume. */
 interface HlsManifestParsedData {
@@ -24,6 +24,7 @@ interface HlsSubtitleFragProcessedData {
 }
 
 export class HLSRenderer implements Renderer {
+  readonly rendererType = 'hls' as const;
   player: Player;
   media: HTMLMediaElement;
   hls: HlsInstance | null;
@@ -313,23 +314,28 @@ export class HLSRenderer implements Renderer {
   }
 
   /**
-   * Load hls.js. Pinned to an exact version by default (no more `@latest`).
-   * Embedders who self-host or who want SRI protection can override via:
+   * Load hls.js. Pinned to an exact version by default (no more `@latest`) and
+   * shipped with a matching Subresource Integrity hash, so the default CDN
+   * script is verified out of the box. Embedders who self-host can override via:
    *   - `options.hlsScriptUrl` (URL to load from)
    *   - `options.hlsScriptIntegrity` (Subresource Integrity hash, e.g.
    *     `sha384-XXXX`)
    *
-   * Generate the SRI hash with:
+   * The built-in hash only applies to the pinned default URL. A custom URL
+   * without an explicit integrity gets none — we can't know its hash. Generate
+   * a hash for a new pin/URL with:
    *   curl -sSL <url> | openssl dgst -sha384 -binary | openssl base64 -A
-   * and prefix with `sha384-`. SRI is opt-in because hash drift would
-   * silently break playback for consumers who upgrade hls.js.
+   * and prefix with `sha384-`.
    */
   async loadHlsJs(): Promise<void> {
-    const defaultUrl = 'https://cdn.jsdelivr.net/npm/hls.js@1.6.16/dist/hls.min.js';
-    const url: string = (this.player.options.hlsScriptUrl as string | undefined) || defaultUrl;
-    const integrity = this.player.options.hlsScriptIntegrity as string | undefined;
-
-    return loadScriptOnce(url, { integrity });
+    // SRI for the pinned default build below, verified against the file served
+    // by jsdelivr for hls.js@1.6.16. Recompute whenever the pin changes.
+    return loadPinnedScript({
+      defaultUrl: 'https://cdn.jsdelivr.net/npm/hls.js@1.6.16/dist/hls.min.js',
+      defaultIntegrity: 'sha384-5E8B0pTlZZJMabWpC0fyYf6OUpe15jJij34BqBAh4NXoHAlLNOjCPRrwtOXOQFAn',
+      url: this.player.options.hlsScriptUrl as string | undefined,
+      integrity: this.player.options.hlsScriptIntegrity as string | undefined
+    });
   }
 
   attachHlsEvents() {

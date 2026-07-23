@@ -113,6 +113,12 @@ describe('DASHRenderer', () => {
       expect(renderer.player).toBe(mockPlayer);
     });
 
+    it('exposes a stable, minification-safe rendererType', () => {
+      // Player.shouldChangeRenderer() relies on this instead of
+      // constructor.name (which minifiers mangle in production).
+      expect(renderer.rendererType).toBe('dash');
+    });
+
     it('should store media element', () => {
       expect(renderer.media).toBe(mockMedia);
     });

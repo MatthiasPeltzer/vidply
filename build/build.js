@@ -8,7 +8,7 @@
 
 import * as esbuild from 'esbuild';
 import { minify } from 'terser';
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, existsSync } from 'fs';
 import { basename, dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -80,13 +80,29 @@ async function terserMinifyDirectory(dir, isLegacy = false, filePattern = null) 
     if (stat.isFile() && file.endsWith('.js') && !file.endsWith('.map')) {
       const originalCode = readFileSync(filePath, 'utf8');
       const originalSize = Buffer.byteLength(originalCode, 'utf8');
-      
+
+      // Chain the esbuild-produced sourcemap (bundle → TS sources) through
+      // Terser so the shipped minified file maps back to the original source.
+      const mapPath = `${filePath}.map`;
+      const inputMap = existsSync(mapPath) ? readFileSync(mapPath, 'utf8') : undefined;
+
       try {
-        const result = await minify(originalCode, isLegacy ? terserOptionsLegacy : terserOptions);
+        const baseOptions = isLegacy ? terserOptionsLegacy : terserOptions;
+        const result = await minify(originalCode, {
+          ...baseOptions,
+          sourceMap: {
+            content: inputMap,
+            url: `${file}.map`,
+            includeSources: true
+          }
+        });
         if (result.code) {
           writeFileSync(filePath, result.code);
           const newSize = Buffer.byteLength(result.code, 'utf8');
           totalSaved += originalSize - newSize;
+        }
+        if (result.map) {
+          writeFileSync(mapPath, result.map);
         }
       } catch (err) {
         console.warn(`   ⚠ Terser warning for ${file}:`, err.message);
@@ -169,7 +185,10 @@ async function buildAll() {
         bundle: true,
         format: config.format,
         minify: false, // We'll use Terser for minification instead
-        sourcemap: !config.minify,
+        // Dev builds: linked sourcemaps (with //# comment). Minified builds:
+        // external map with no comment here — Terser re-emits the composed map
+        // and appends the sourceMappingURL after minification.
+        sourcemap: config.minify ? 'external' : true,
         target: config.legacy
           ? ['es2020', 'chrome80', 'firefox78', 'safari14', 'edge88']
           : ['es2022', 'chrome100', 'firefox100', 'safari15', 'edge100'],

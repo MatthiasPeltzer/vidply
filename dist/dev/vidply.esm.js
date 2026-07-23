@@ -5,7 +5,7 @@
  */
 import {
   TimeUtils
-} from "./vidply.chunk-HZ7UOKOU.js";
+} from "./vidply.chunk-ETADJTTK.js";
 import {
   createIconElement,
   createPlayOverlay
@@ -15,13 +15,13 @@ import {
 } from "./vidply.chunk-P25MRJ6O.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-CGYIED2I.js";
+} from "./vidply.chunk-RAGQCCLG.js";
 import {
   CaptionManager
-} from "./vidply.chunk-JKMQGLCJ.js";
+} from "./vidply.chunk-VZYRHCM3.js";
 import {
   StorageManager
-} from "./vidply.chunk-6LYZYI5G.js";
+} from "./vidply.chunk-VVDL6SYO.js";
 import {
   debounce,
   isMobile,
@@ -33,7 +33,7 @@ import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-I6EDRYGJ.js";
+} from "./vidply.chunk-UYYVR5CX.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -314,6 +314,16 @@ var ControlBar = class {
   openMenu;
   openMenuButton;
   overflowResizeObserver = null;
+  /** Player-event subscriptions grouped by the method that registered them,
+   *  so rebuilds can detach-and-re-add per group without leaking. */
+  _playerSubscriptions = [];
+  /** Guards the one-time auto-hide DOM/player listener binding so control
+   *  rebuilds (which re-call setupAutoHide) don't stack duplicate handlers. */
+  _autoHideBound = false;
+  /** Guards the one-time window-resize/fullscreen overflow listeners so
+   *  control rebuilds (which re-call setupOverflowDetection) don't stack them.
+   *  The ResizeObserver is still recreated each call for the new rightButtons. */
+  _overflowGlobalBound = false;
   previewSupported = false;
   previewThumbnailCache = /* @__PURE__ */ new Map();
   previewThumbnailTimeout = null;
@@ -351,6 +361,34 @@ var ControlBar = class {
     this.setupAutoHide();
     this.setupOverflowDetection();
     this.setupGlobalDragListeners();
+  }
+  /**
+   * Register a player-event listener tagged with a lifecycle `group` so it
+   * can be detached before the owning method re-runs on a control rebuild.
+   */
+  subscribe(group, event, handler) {
+    this.player.on(event, handler);
+    this._playerSubscriptions.push({
+      group,
+      event,
+      handler
+    });
+  }
+  /**
+   * Detach player-event listeners. With a `group`, only that group's
+   * listeners are removed (and re-added by the method that owns it);
+   * without one, every ControlBar subscription is removed (destroy path).
+   */
+  detachPlayerEvents(group) {
+    const remaining = [];
+    for (const sub of this._playerSubscriptions) {
+      if (group === void 0 || sub.group === group) {
+        this.player.off(sub.event, sub.handler);
+      } else {
+        remaining.push(sub);
+      }
+    }
+    this._playerSubscriptions = remaining;
   }
   /**
    * Install a single pair of document-level mousemove/mouseup handlers
@@ -818,6 +856,7 @@ var ControlBar = class {
     });
   }
   createControls() {
+    this.detachPlayerEvents("controls");
     const progressTimeWrapper = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-progress-time-wrapper`
     });
@@ -1493,7 +1532,7 @@ var ControlBar = class {
         button.disabled = !this.player.playlistManager.hasPrevious() && !this.player.playlistManager.options.loop;
       }
     };
-    this.player.on("playlisttrackchange", updateState);
+    this.subscribe("controls", "playlisttrackchange", updateState);
     updateState();
     this.controls.previous = button;
     return button;
@@ -1517,7 +1556,7 @@ var ControlBar = class {
         button.disabled = !this.player.playlistManager.hasNext() && !this.player.playlistManager.options.loop;
       }
     };
-    this.player.on("playlisttrackchange", updateState);
+    this.subscribe("controls", "playlisttrackchange", updateState);
     updateState();
     this.controls.next = button;
     return button;
@@ -1607,7 +1646,7 @@ var ControlBar = class {
     return muteButton;
   }
   showVolumeSlider(button) {
-    const existingSlider = document.querySelector(`.${this.player.options.classPrefix}-volume-menu`);
+    const existingSlider = this.player.container.querySelector(`.${this.player.options.classPrefix}-volume-menu`);
     if (existingSlider) {
       existingSlider.remove();
       button.setAttribute("aria-expanded", "false");
@@ -1790,7 +1829,7 @@ var ControlBar = class {
     return button;
   }
   showChaptersMenu(button) {
-    const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-chapters-menu`);
+    const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-chapters-menu`);
     if (existingMenu) {
       existingMenu.remove();
       button.setAttribute("aria-expanded", "false");
@@ -1926,7 +1965,7 @@ var ControlBar = class {
     return button;
   }
   showQualityMenu(button) {
-    const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-quality-menu`);
+    const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-quality-menu`);
     if (existingMenu) {
       existingMenu.remove();
       button.setAttribute("aria-expanded", "false");
@@ -2057,7 +2096,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-47RCKQF5.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+    import("./vidply.CaptionStyleMenu-4FBZYS2R.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
@@ -2092,7 +2131,7 @@ var ControlBar = class {
     return `${speedStr}×`;
   }
   showSpeedMenu(button) {
-    const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-speed-menu`);
+    const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-speed-menu`);
     if (existingMenu) {
       existingMenu.remove();
       button.setAttribute("aria-expanded", "false");
@@ -2164,7 +2203,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionsMenu(button) {
-    const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-captions-menu`);
+    const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-captions-menu`);
     if (existingMenu) {
       existingMenu.remove();
       button.setAttribute("aria-expanded", "false");
@@ -2479,20 +2518,6 @@ var ControlBar = class {
       if (this.controls.signLanguageMainView) this.controls.signLanguageMainView.style.display = "none";
     }
   }
-  createSettingsButton() {
-    const button = DOMUtils.createElement("button", {
-      className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-settings`,
-      attributes: {
-        "type": "button",
-        "aria-label": i18n.t("player.settings")
-      }
-    });
-    button.appendChild(createIconElement("settings"));
-    button.addEventListener("click", () => {
-      this.player.showSettings();
-    });
-    return button;
-  }
   createPipButton() {
     const floating = this.player.options.floating === true;
     const labelKey = floating ? "player.floatingPlayer" : "player.pip";
@@ -2517,7 +2542,7 @@ var ControlBar = class {
       }
     });
     if (floating) {
-      this.player.on("floatingchange", (state) => {
+      this.subscribe("controls", "floatingchange", (state) => {
         button.setAttribute("aria-pressed", state === "pinned" ? "true" : "false");
         button.classList.toggle(`${this.player.options.classPrefix}-pip-active`, Boolean(state));
       });
@@ -2641,41 +2666,42 @@ var ControlBar = class {
     return button;
   }
   attachEvents() {
-    this.player.on("play", () => this.updatePlayPauseButton());
-    this.player.on("pause", () => this.updatePlayPauseButton());
-    this.player.on("timeupdate", () => this.updateProgress());
-    this.player.on("loadedmetadata", () => {
+    this.detachPlayerEvents("events");
+    this.subscribe("events", "play", () => this.updatePlayPauseButton());
+    this.subscribe("events", "pause", () => this.updatePlayPauseButton());
+    this.subscribe("events", "timeupdate", () => this.updateProgress());
+    this.subscribe("events", "loadedmetadata", () => {
       this.updateDuration();
       this.ensureQualityButton();
       this.updateQualityIndicator();
       this.updatePreviewVideoSource();
     });
-    this.player.on("durationchange", () => {
+    this.subscribe("events", "durationchange", () => {
       this.updateDuration();
     });
-    this.player.on("sourcechange", () => {
+    this.subscribe("events", "sourcechange", () => {
       this.updatePreviewVideoSource();
     });
-    this.player.on("volumechange", () => this.updateVolumeDisplay());
-    this.player.on("progress", () => this.updateBuffered());
-    this.player.on("playbackspeedchange", () => this.updateSpeedDisplay());
-    this.player.on("fullscreenchange", () => this.updateFullscreenButton());
-    this.player.on("captionsenabled", () => this.updateCaptionsButton());
-    this.player.on("captionsdisabled", () => this.updateCaptionsButton());
-    this.player.on("audiodescriptionenabled", () => this.updateAudioDescriptionButton());
-    this.player.on("audiodescriptiondisabled", () => this.updateAudioDescriptionButton());
-    this.player.on("signlanguageenabled", () => this.updateSignLanguageButton());
-    this.player.on("signlanguagedisabled", () => this.updateSignLanguageButton());
-    this.player.on("signlanguageinmainviewenabled", () => this.updateSignLanguageInMainViewButton());
-    this.player.on("signlanguageinmainviewdisabled", () => this.updateSignLanguageInMainViewButton());
-    this.player.on("qualitychange", () => this.updateQualityIndicator());
-    this.player.on("hlslevelswitched", () => this.updateQualityIndicator());
-    this.player.on("hlsmanifestparsed", () => {
+    this.subscribe("events", "volumechange", () => this.updateVolumeDisplay());
+    this.subscribe("events", "progress", () => this.updateBuffered());
+    this.subscribe("events", "playbackspeedchange", () => this.updateSpeedDisplay());
+    this.subscribe("events", "fullscreenchange", () => this.updateFullscreenButton());
+    this.subscribe("events", "captionsenabled", () => this.updateCaptionsButton());
+    this.subscribe("events", "captionsdisabled", () => this.updateCaptionsButton());
+    this.subscribe("events", "audiodescriptionenabled", () => this.updateAudioDescriptionButton());
+    this.subscribe("events", "audiodescriptiondisabled", () => this.updateAudioDescriptionButton());
+    this.subscribe("events", "signlanguageenabled", () => this.updateSignLanguageButton());
+    this.subscribe("events", "signlanguagedisabled", () => this.updateSignLanguageButton());
+    this.subscribe("events", "signlanguageinmainviewenabled", () => this.updateSignLanguageInMainViewButton());
+    this.subscribe("events", "signlanguageinmainviewdisabled", () => this.updateSignLanguageInMainViewButton());
+    this.subscribe("events", "qualitychange", () => this.updateQualityIndicator());
+    this.subscribe("events", "hlslevelswitched", () => this.updateQualityIndicator());
+    this.subscribe("events", "hlsmanifestparsed", () => {
       this.ensureQualityButton();
       this.updateQualityIndicator();
     });
-    this.player.on("dashqualitychanged", () => this.updateQualityIndicator());
-    this.player.on("dashmanifestparsed", () => {
+    this.subscribe("events", "dashqualitychanged", () => this.updateQualityIndicator());
+    this.subscribe("events", "dashmanifestparsed", () => {
       this.ensureQualityButton();
       this.updateQualityIndicator();
     });
@@ -2951,32 +2977,36 @@ var ControlBar = class {
         }, delay);
       }
     };
-    this.player.container.addEventListener("mousemove", showControls);
-    this.player.container.addEventListener("touchstart", showControls);
-    this.player.container.addEventListener("touchmove", showControls);
-    this.player.container.addEventListener("click", showControls);
-    this.player.container.addEventListener("tap", showControls);
-    this.element.addEventListener("focusin", showControls);
-    this.player.on("pause", () => {
-      showControls();
-      clearTimeout(this.hideTimeout);
-    });
-    this.player.on("play", () => {
-      showControls();
-    });
-    this.player.on("enterfullscreen", () => {
-      showControls();
-      if (this.player.state.fullscreen) {
+    if (!this._autoHideBound) {
+      this._autoHideBound = true;
+      const signal = this.player.lifecycleSignal;
+      this.player.container.addEventListener("mousemove", showControls, { signal });
+      this.player.container.addEventListener("touchstart", showControls, { signal });
+      this.player.container.addEventListener("touchmove", showControls, { signal });
+      this.player.container.addEventListener("click", showControls, { signal });
+      this.player.container.addEventListener("tap", showControls, { signal });
+      this.element.addEventListener("focusin", showControls, { signal });
+      this.subscribe("autohide", "pause", () => {
+        showControls();
         clearTimeout(this.hideTimeout);
-        this.hideTimeout = setTimeout(() => {
-          if (this.player.state.playing) {
-            this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
-            this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
-            this.player.state.controlsVisible = false;
-          }
-        }, this.player.options.hideControlsDelay * 2);
-      }
-    });
+      });
+      this.subscribe("autohide", "play", () => {
+        showControls();
+      });
+      this.subscribe("autohide", "enterfullscreen", () => {
+        showControls();
+        if (this.player.state.fullscreen) {
+          clearTimeout(this.hideTimeout);
+          this.hideTimeout = setTimeout(() => {
+            if (this.player.state.playing) {
+              this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+              this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+              this.player.state.controlsVisible = false;
+            }
+          }, this.player.options.hideControlsDelay * 2);
+        }
+      });
+    }
     showControls();
   }
   createOverflowMenuButton() {
@@ -2998,7 +3028,7 @@ var ControlBar = class {
     return button;
   }
   showOverflowMenu(button) {
-    const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-overflow-menu-list`);
+    const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-overflow-menu-list`);
     if (existingMenu) {
       existingMenu.remove();
       button.setAttribute("aria-expanded", "false");
@@ -3238,18 +3268,24 @@ var ControlBar = class {
       if (signal.aborted) return;
       this.checkOverflow();
     };
+    if (this.overflowResizeObserver) {
+      this.overflowResizeObserver.disconnect();
+    }
     const resizeObserver = new ResizeObserver(() => {
       requestAnimationFrame(checkOverflow);
     });
     resizeObserver.observe(this.rightButtons);
-    window.addEventListener("resize", () => {
-      requestAnimationFrame(checkOverflow);
-    }, { signal });
-    this.player.on("fullscreenchange", () => {
-      setTimeout(() => {
+    if (!this._overflowGlobalBound) {
+      this._overflowGlobalBound = true;
+      window.addEventListener("resize", () => {
         requestAnimationFrame(checkOverflow);
-      }, 50);
-    });
+      }, { signal });
+      this.subscribe("overflow", "fullscreenchange", () => {
+        setTimeout(() => {
+          requestAnimationFrame(checkOverflow);
+        }, 50);
+      });
+    }
     requestAnimationFrame(() => {
       checkOverflow();
       setTimeout(() => checkOverflow(), 100);
@@ -3315,11 +3351,14 @@ var ControlBar = class {
     this.previewThumbnailCache.clear();
   }
   destroy() {
+    this.detachPlayerEvents();
     if (this.hideTimeout) {
       clearTimeout(this.hideTimeout);
+      this.hideTimeout = void 0;
     }
     if (this.overflowResizeObserver) {
       this.overflowResizeObserver.disconnect();
+      this.overflowResizeObserver = null;
     }
     this.cleanupPreviewThumbnail();
     if (this.element && this.element.parentNode) {
@@ -3903,6 +3942,16 @@ function toCssBackgroundImage(input) {
   return `url("${cssEscapeUrl(safe)}")`;
 }
 
+// src/utils/RendererType.ts
+function classifyRendererType(src) {
+  if (src.includes("youtube.com") || src.includes("youtu.be") || src.includes("youtube-nocookie.com")) return "youtube";
+  if (src.includes("vimeo.com")) return "vimeo";
+  if (src.includes(".m3u8")) return "hls";
+  if (src.includes(".mpd")) return "dash";
+  if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) return "soundcloud";
+  return "html5";
+}
+
 // src/core/LazyInit.ts
 var pendingByElement = /* @__PURE__ */ new WeakMap();
 function observeForLazyInit(element, options, margin, factory) {
@@ -4177,10 +4226,32 @@ var ThemeManager = class {
 };
 
 // src/core/PosterManager.ts
-var PosterManager = class {
+var PosterManager = class _PosterManager {
   player;
   constructor(player) {
     this.player = player;
+  }
+  /**
+   * Build a CSS `url("...")` value for a poster that is safe to
+   * interpolate into a custom property / `background-image`.
+   *
+   * - `data:image/*` URLs (e.g. an auto-captured frame) are opaque and
+   *   frequently exceed the allow-list length cap, so they bypass
+   *   {@link sanitizePosterUrl} but are still CSS-escaped and required to
+   *   carry an `image/*` MIME type.
+   * - Everything else goes through the poster allow-list.
+   *
+   * Returns `null` for anything unsafe so callers can skip the overlay.
+   */
+  static toSafeCssPoster(resolved) {
+    if (typeof resolved !== "string" || !resolved) return null;
+    if (/^data:/i.test(resolved)) {
+      if (!/^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);/i.test(resolved)) return null;
+      return `url("${cssEscapeUrl(resolved)}")`;
+    }
+    const safe = sanitizePosterUrl(resolved);
+    if (!safe) return null;
+    return `url("${cssEscapeUrl(safe)}")`;
   }
   /**
    * Convert a relative poster path into an absolute URL. Absolute URLs
@@ -4272,7 +4343,9 @@ var PosterManager = class {
     const poster = player.element.getAttribute("poster") || player.element.poster || player.options.poster;
     if (!poster) return;
     const resolvedPoster = poster.startsWith("data:") ? poster : this.resolvePath(poster);
-    player.videoWrapper.style.setProperty("--vidply-poster-image", `url("${resolvedPoster}")`);
+    const cssPoster = _PosterManager.toSafeCssPoster(resolvedPoster);
+    if (!cssPoster) return;
+    player.videoWrapper.style.setProperty("--vidply-poster-image", cssPoster);
     player.videoWrapper.classList.add("vidply-forced-poster");
     if (player._isAudioContent && player.container) {
       player.container.classList.add("vidply-audio-content");
@@ -4294,6 +4367,8 @@ var ResumeManager = class {
   saveProgressThrottled = null;
   resumeChecked = false;
   listenersAttached = false;
+  /** Element focused before the modal opened, restored when it closes. */
+  previouslyFocused = null;
   constructor(player) {
     this.player = player;
   }
@@ -4387,9 +4462,21 @@ var ResumeManager = class {
     }
     return `${m}:${s.toString().padStart(2, "0")}`;
   }
+  /**
+   * Collect the tabbable elements inside a container, in DOM order. Used to
+   * keep Tab / Shift+Tab cycling within the modal (focus trap).
+   */
+  getFocusableElements(container) {
+    if (!container) return [];
+    const selector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    return Array.from(container.querySelectorAll(selector)).filter(
+      (el) => !el.hasAttribute("disabled") && el.getAttribute("tabindex") !== "-1"
+    );
+  }
   showPrompt(savedTime) {
     const player = this.player;
     if (player.state.resumePromptVisible || !player.container) return;
+    this.previouslyFocused = document.activeElement;
     const formattedTime = this.formatTime(savedTime);
     const promptText = i18n.t("resume.prompt", { time: formattedTime });
     player.resumePromptElement = DOMUtils.createElement("div", {
@@ -4437,6 +4524,24 @@ var ResumeManager = class {
         e.preventDefault();
         e.stopPropagation();
         this.hidePrompt();
+        return;
+      }
+      if (e.key === "Tab") {
+        const focusable = this.getFocusableElements(player.resumePromptElement);
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (!first || !last) return;
+        const active = document.activeElement;
+        const withinModal = player.resumePromptElement?.contains(active) ?? false;
+        if (e.shiftKey) {
+          if (!withinModal || active === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else if (!withinModal || active === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
     player.resumePromptElement.addEventListener("keydown", handleKeydown);
@@ -4455,9 +4560,14 @@ var ResumeManager = class {
   hidePrompt() {
     const player = this.player;
     if (!player.resumePromptElement) return;
+    const toRestore = this.previouslyFocused;
+    this.previouslyFocused = null;
     player.resumePromptElement.remove();
     player.resumePromptElement = null;
     player.state.resumePromptVisible = false;
+    const fallback = player.controlBar?.controls?.playPause ?? null;
+    const target = toRestore && document.contains(toRestore) ? toRestore : fallback;
+    target?.focus({ preventScroll: true });
     player.emit("resumeprompthide");
   }
 };
@@ -5229,21 +5339,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-JYYLK5KB.js");
+    const module = await import("./vidply.AudioDescriptionManager-LAMSICPG.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-FLUCBW5H.js");
+    const module = await import("./vidply.SignLanguageManager-K7YL7RWZ.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-IPCQX4VP.js");
+    const module = await import("./vidply.FloatingPlayerManager-J2R66LC3.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -5309,7 +5419,6 @@ var Player = class _Player extends EventEmitter {
   mediaSessionManager = null;
   transcriptManager = null;
   playlistManager = null;
-  settingsDialog = null;
   keyboardHelp = null;
   audioDescriptionManager = null;
   signLanguageManager = null;
@@ -5658,7 +5767,6 @@ var Player = class _Player extends EventEmitter {
     this.controlBar = null;
     this.captionManager = null;
     this.keyboardManager = null;
-    this.settingsDialog = null;
     this.metadataCueChangeHandler = null;
     this.audioDescriptionManager = null;
     this.signLanguageManager = null;
@@ -5908,7 +6016,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-Y2RYXHJW.js");
+    const module = await import("./vidply.TranscriptManager-HUTA5LYY.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -6376,23 +6484,30 @@ var Player = class _Player extends EventEmitter {
     this.invalidateTrackCache();
   }
   async _detectRendererClass(src) {
-    if (src.includes("youtube.com") || src.includes("youtu.be")) {
-      const module = await import("./vidply.YouTubeRenderer-QEFYNS4X.js");
-      return module.YouTubeRenderer ?? module.default;
-    } else if (src.includes("vimeo.com")) {
-      const module = await import("./vidply.VimeoRenderer-PIUNYGFK.js");
-      return module.VimeoRenderer ?? module.default;
-    } else if (src.includes(".m3u8")) {
-      const module = await import("./vidply.HLSRenderer-ZVBK2TNQ.js");
-      return module.HLSRenderer ?? module.default;
-    } else if (src.includes(".mpd")) {
-      const module = await import("./vidply.DASHRenderer-VEJ4HDHO.js");
-      return module.DASHRenderer ?? module.default;
-    } else if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
-      const module = await import("./vidply.SoundCloudRenderer-MGMAJ7NK.js");
-      return module.SoundCloudRenderer ?? module.default;
+    switch (classifyRendererType(src)) {
+      case "youtube": {
+        const module = await import("./vidply.YouTubeRenderer-LYQKEEOA.js");
+        return module.YouTubeRenderer ?? module.default;
+      }
+      case "vimeo": {
+        const module = await import("./vidply.VimeoRenderer-TLWUAJNA.js");
+        return module.VimeoRenderer ?? module.default;
+      }
+      case "hls": {
+        const module = await import("./vidply.HLSRenderer-RWBPM7OZ.js");
+        return module.HLSRenderer ?? module.default;
+      }
+      case "dash": {
+        const module = await import("./vidply.DASHRenderer-755EDPD3.js");
+        return module.DASHRenderer ?? module.default;
+      }
+      case "soundcloud": {
+        const module = await import("./vidply.SoundCloudRenderer-M3UQRYG7.js");
+        return module.SoundCloudRenderer ?? module.default;
+      }
+      default:
+        return HTML5Renderer;
     }
-    return HTML5Renderer;
   }
   _selectBestSource(sourceElements) {
     const hasMSE = typeof MediaSource !== "undefined";
@@ -6584,12 +6699,21 @@ var Player = class _Player extends EventEmitter {
         if (this._isAudioContent) {
           this.element.removeAttribute("poster");
           if (this.videoWrapper) {
-            const resolvedPoster = this.resolvePosterPath(config.poster);
-            this.videoWrapper.style.setProperty("--vidply-poster-image", `url("${resolvedPoster}")`);
-            this.videoWrapper.classList.add("vidply-forced-poster");
+            const cssPoster = PosterManager.toSafeCssPoster(this.resolvePosterPath(config.poster));
+            if (cssPoster) {
+              this.videoWrapper.style.setProperty("--vidply-poster-image", cssPoster);
+              this.videoWrapper.classList.add("vidply-forced-poster");
+            } else {
+              this.videoWrapper.style.removeProperty("--vidply-poster-image");
+            }
           }
         } else {
-          this.element.poster = this.resolvePosterPath(config.poster);
+          const safePoster = sanitizePosterUrl(this.resolvePosterPath(config.poster));
+          if (safePoster) {
+            this.element.poster = safePoster;
+          } else {
+            this.element.removeAttribute("poster");
+          }
           if (this.videoWrapper) {
             this.videoWrapper.classList.remove("vidply-forced-poster");
             this.videoWrapper.style.removeProperty("--vidply-poster-image");
@@ -6762,19 +6886,7 @@ var Player = class _Player extends EventEmitter {
   }
   shouldChangeRenderer(src) {
     if (!this.renderer) return true;
-    const isYouTube = src.includes("youtube.com") || src.includes("youtu.be");
-    const isVimeo = src.includes("vimeo.com");
-    const isHLS = src.includes(".m3u8");
-    const isDASH = src.includes(".mpd");
-    const isSoundCloud = src.includes("soundcloud.com") || src.includes("api.soundcloud.com");
-    const currentRendererName = this.renderer.constructor.name;
-    if (isYouTube && currentRendererName !== "YouTubeRenderer") return true;
-    if (isVimeo && currentRendererName !== "VimeoRenderer") return true;
-    if (isHLS && currentRendererName !== "HLSRenderer") return true;
-    if (isDASH && currentRendererName !== "DASHRenderer") return true;
-    if (isSoundCloud && currentRendererName !== "SoundCloudRenderer") return true;
-    if (!isYouTube && !isVimeo && !isHLS && !isDASH && !isSoundCloud && currentRendererName !== "HTML5Renderer") return true;
-    return false;
+    return classifyRendererType(src) !== this.renderer.rendererType;
   }
   // Playback controls
   play() {
@@ -7332,14 +7444,6 @@ var Player = class _Player extends EventEmitter {
       }
       this.playlistManager = null;
     }
-    if (this.settingsDialog && typeof this.settingsDialog.destroy === "function") {
-      try {
-        this.settingsDialog.destroy();
-      } catch (err) {
-        this.log(`SettingsDialog.destroy failed: ${err}`, "warn");
-      }
-      this.settingsDialog = null;
-    }
     if (this.keyboardHelp && typeof this.keyboardHelp.destroy === "function") {
       try {
         this.keyboardHelp.destroy();
@@ -7377,6 +7481,14 @@ var Player = class _Player extends EventEmitter {
       this.loadingOverlayElement = null;
     }
     this.responsiveManager?.cleanup();
+    if (this.pseudoFullscreen && this.state.fullscreen) {
+      try {
+        this.pseudoFullscreen.disable();
+      } catch (err) {
+        this.log(`PseudoFullscreenController.disable failed: ${err}`, "warn");
+      }
+    }
+    this.pseudoFullscreen = null;
     this.timeouts.forEach((timeoutId) => clearTimeout(timeoutId));
     this.timeouts.clear();
     if (this.metadataCueChangeHandler) {
@@ -7466,6 +7578,10 @@ var PlaylistManager = class {
   trackInfoElement;
   tracks;
   uniqueId;
+  // Timers owned by this manager. Tracked so destroy() can cancel any pending
+  // deferred callback (auto-play, guard-flag resets, live-region clears,
+  // focus moves) that would otherwise run against a torn-down player.
+  _timers = /* @__PURE__ */ new Set();
   constructor(player, options = {}) {
     this.player = player;
     this.tracks = [];
@@ -7607,7 +7723,18 @@ var PlaylistManager = class {
     this.player = new this.PlayerClass(mediaElement, playerOptions);
     this.player.playlistManager = this;
     await new Promise((resolve) => {
-      this.player.on("ready", () => resolve());
+      if (this.player.state?.ready) {
+        resolve();
+        return;
+      }
+      let settled = false;
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      this.player.once("ready", done);
+      this.setManagedTimeout(done, 5e3);
     });
     this.player.on("ended", this.handleTrackEnd);
     this.player.on("error", this.handleTrackError);
@@ -7659,7 +7786,7 @@ var PlaylistManager = class {
       });
     }
     if (autoPlay) {
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         this.player.play();
       }, 100);
     }
@@ -7794,7 +7921,7 @@ var PlaylistManager = class {
           item: track,
           total: this.tracks.length
         });
-        setTimeout(() => {
+        this.setManagedTimeout(() => {
           this.isChangingTrack = false;
         }, 150);
         return;
@@ -7818,7 +7945,7 @@ var PlaylistManager = class {
       item: track,
       total: this.tracks.length
     });
-    setTimeout(() => {
+    this.setManagedTimeout(() => {
       this.isChangingTrack = false;
     }, 150);
   }
@@ -7953,7 +8080,7 @@ var PlaylistManager = class {
           item: track,
           total: this.tracks.length
         });
-        setTimeout(() => {
+        this.setManagedTimeout(() => {
           this.isChangingTrack = false;
         }, 150);
         return;
@@ -7982,9 +8109,9 @@ var PlaylistManager = class {
       item: track,
       total: this.tracks.length
     });
-    setTimeout(() => {
+    this.setManagedTimeout(() => {
       this.player.play();
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         this.isChangingTrack = false;
       }, 50);
     }, 100);
@@ -8050,7 +8177,7 @@ var PlaylistManager = class {
     }
     console.error("VidPly Playlist: Track error", e);
     if (this.options.autoAdvance) {
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         this.next();
       }, 1e3);
     }
@@ -8065,7 +8192,7 @@ var PlaylistManager = class {
    * Handle fullscreen state changes
    */
   handleFullscreenChange() {
-    setTimeout(() => {
+    this.setManagedTimeout(() => {
       this.updatePlaylistVisibilityInFullscreen();
     }, 50);
   }
@@ -8131,7 +8258,7 @@ var PlaylistManager = class {
         playlistPanel.style.display = "block";
       } else {
         playlistPanel.classList.remove("vidply-playlist-fullscreen-visible");
-        setTimeout(() => {
+        this.setManagedTimeout(() => {
           if (this.player.state.playing && this.player.state.fullscreen) {
             playlistPanel.style.display = "none";
           }
@@ -8406,7 +8533,7 @@ var PlaylistManager = class {
       const isExternalRenderer = this.isExternalRendererUrl(track2?.src);
       if (isExternalRenderer && this.player.state.fullscreen) {
         this.player.exitFullscreen();
-        setTimeout(() => {
+        this.setManagedTimeout(() => {
           this.play(index, true);
         }, 100);
       } else {
@@ -8437,7 +8564,7 @@ var PlaylistManager = class {
           const isExternalRenderer = this.isExternalRendererUrl(track?.src);
           if (isExternalRenderer && this.player.state.fullscreen) {
             this.player.exitFullscreen();
-            setTimeout(() => {
+            this.setManagedTimeout(() => {
               this.play(index, true);
             }, 100);
           } else {
@@ -8512,7 +8639,7 @@ var PlaylistManager = class {
     }
     if (announcement && this.navigationFeedback) {
       this.navigationFeedback.textContent = announcement;
-      setTimeout(() => {
+      this.setManagedTimeout(() => {
         if (this.navigationFeedback) {
           this.navigationFeedback.textContent = "";
         }
@@ -8652,7 +8779,7 @@ var PlaylistManager = class {
       playlistPanel.style.display = "block";
       this.isPanelVisible = true;
       if (this.tracks.length > 0) {
-        setTimeout(() => {
+        this.setManagedTimeout(() => {
           const firstItem = playlistPanel.querySelector('.vidply-playlist-item[tabindex="0"]');
           if (firstItem) {
             firstItem.focus({ preventScroll: true });
@@ -8689,7 +8816,22 @@ var PlaylistManager = class {
   /**
    * Destroy playlist manager
    */
+  /**
+   * setTimeout wrapper that tracks the handle so destroy() can cancel any
+   * still-pending callback. Nested deferred work should also route through
+   * this so it can't fire after teardown.
+   */
+  setManagedTimeout(callback, delay) {
+    const id = setTimeout(() => {
+      this._timers.delete(id);
+      callback();
+    }, delay);
+    this._timers.add(id);
+    return id;
+  }
   destroy() {
+    this._timers.forEach((id) => clearTimeout(id));
+    this._timers.clear();
     this.player.off("ended", this.handleTrackEnd);
     this.player.off("error", this.handleTrackError);
     this.player.off("play", this.handlePlaybackStateChange);

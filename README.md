@@ -960,7 +960,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [Transcript Guide](docs/TRANSCRIPT.md) - Interactive transcripts
 - [Keyboard Shortcuts](docs/KEYBOARD.md) - Complete keyboard reference
 - [Build Guide](docs/BUILD.md) - Build system and development
-- [Changelog](docs/CHANGELOG.md) - Version history and updates
+- [Changelog](CHANGELOG.md) - Version history and updates
 
 ## Credits
 

@@ -2,6 +2,7 @@ import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
 
 export class HTML5Renderer implements Renderer {
+  readonly rendererType = 'html5' as const;
   player: Player;
   media: HTMLMediaElement;
   _didDeferredLoad: boolean;

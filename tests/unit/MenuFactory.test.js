@@ -51,7 +51,11 @@ describe('MenuFactory', () => {
     mockPlayer = {
       options: {
         classPrefix: 'vidply'
-      }
+      },
+      // Menus are inserted next to the button (inside the player container in
+      // real usage); the toggle lookup is scoped to this container so that
+      // multiple players on a page don't close each other's menus.
+      container: document.body
     };
     
     mockButton = document.createElement('button');

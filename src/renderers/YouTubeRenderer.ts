@@ -3,6 +3,7 @@ import type { Player } from '../core/Player.js';
 import { loadScriptOnce } from '../utils/ScriptLoader.js';
 
 export class YouTubeRenderer implements Renderer {
+  readonly rendererType = 'youtube' as const;
   player: Player;
   media: HTMLMediaElement;
   youtube: YTPlayer | null;
@@ -40,9 +41,18 @@ export class YouTubeRenderer implements Renderer {
   }
 
   extractVideoId(url: string) {
+    // The capture group stops at the first query/hash/path delimiter so a
+    // trailing `?t=`, `&list=`, `#…` or extra path segment can't leak into the
+    // returned ID (previously `[^&\s]+` swallowed `?…` on youtu.be/embed URLs).
+    const id = '([^&?#/\\s]+)';
+    const host = '(?:youtube\\.com|youtube-nocookie\\.com)';
     const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/,
-      /youtube\.com\/embed\/([^&\s]+)/
+      // watch URLs — `v` may be any query parameter, not only the first.
+      new RegExp(`${host}\\/watch\\?(?:[^\\s]*&)?v=${id}`),
+      // Short links.
+      new RegExp(`youtu\\.be\\/${id}`),
+      // /embed/, /shorts/ and legacy /v/ path forms.
+      new RegExp(`${host}\\/(?:embed|shorts|v)\\/${id}`)
     ];
 
     for (const pattern of patterns) {

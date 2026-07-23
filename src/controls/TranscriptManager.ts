@@ -86,8 +86,6 @@ export class TranscriptManager {
     languageSelectorHandler: ((e: Event) => void) | null;
     languageSelectorWrapper: HTMLElement | null = null;
     liveRegion: HTMLElement | null;
-    metadataCueChangeHandler: (() => void) | null = null;
-    metadataCues: TextTrackCue[];
     settingsButton: HTMLButtonElement | null;
     showTimestamps: boolean;
     showTimestampsButton: HTMLElement | null = null;
@@ -157,7 +155,6 @@ export class TranscriptManager {
     this.player = player;
     this.transcriptWindow = null;
     this.transcriptEntries = [];
-    this.metadataCues = [];
     this.currentActiveEntry = null;
     this.isVisible = false;
     
@@ -242,9 +239,11 @@ export class TranscriptManager {
   }
 
   init() {
-    // Set up metadata handling immediately (independent of transcript display)
-    this.setupMetadataHandlingOnLoad();
-    
+    // Metadata-cue directives (PAUSE / FOCUS / #hashtags) are handled
+    // centrally by the scoped `MetadataAlertsManager` (wired from
+    // `Player.setupMetadataHandling()`), so the TranscriptManager no
+    // longer attaches its own `cuechange` pipeline.
+
     // Listen for time updates to highlight active transcript entry
     this.player.on('timeupdate', this.handlers.timeupdate);
     this.player.on('seeked', this.handlers.seeked);
@@ -1210,8 +1209,7 @@ export class TranscriptManager {
         this._renderTranscriptCues(
           vttCues && vttCues.length > 0 ? vttCues : null,
           captionTrack,
-          descriptionTrack,
-          metadataTrack
+          descriptionTrack
         );
       });
       return;
@@ -1252,14 +1250,13 @@ export class TranscriptManager {
       return;
     }
 
-    this._renderTranscriptCues(null, captionTrack, descriptionTrack, metadataTrack);
+    this._renderTranscriptCues(null, captionTrack, descriptionTrack);
   }
 
   private _renderTranscriptCues(
     vttCues: TranscriptCueItem[] | null,
     captionTrack: TranscriptTrack | null,
-    descriptionTrack: TranscriptTrack | null,
-    metadataTrack: TranscriptTrack | undefined | null
+    descriptionTrack: TranscriptTrack | null
   ) {
     this.transcriptEntries = [];
     this.currentActiveEntry = null;
@@ -1284,11 +1281,6 @@ export class TranscriptManager {
       });
     }
     
-    if (metadataTrack && metadataTrack.cues) {
-      this.metadataCues = Array.from(metadataTrack.cues) as TranscriptCue[];
-      this.setupMetadataHandling();
-    }
-
     allCues.sort((a, b) => a.cue.startTime - b.cue.startTime);
 
     allCues.forEach((item, index) => {
@@ -1315,156 +1307,17 @@ export class TranscriptManager {
   }
 
   /**
-   * Setup metadata handling on player load
-   * This runs independently of transcript loading
-   */
-  setupMetadataHandlingOnLoad() {
-    // Wait for metadata to be loaded
-    const setupMetadata = () => {
-      const textTracks = this.player.textTracks;
-      const metadataTrack = (textTracks as TranscriptTrack[]).find((track: TranscriptTrack) => track.kind === 'metadata');
-      
-      if (metadataTrack) {
-        // Enable the metadata track so cuechange events fire
-        // Use 'hidden' mode so it doesn't display anything, but events still work
-        if (metadataTrack.mode === 'disabled') {
-          metadataTrack.mode = 'hidden';
-        }
-        
-        // Check if we already added the listener
-        if (this.metadataCueChangeHandler) {
-          metadataTrack.removeEventListener('cuechange', this.metadataCueChangeHandler);
-        }
-        
-        // Add event listener for cue changes
-        this.metadataCueChangeHandler = () => {
-          const activeCues = Array.from(metadataTrack.activeCues || []) as TranscriptCue[];
-          if (activeCues.length > 0) {
-            // Debug logging (can be removed in production)
-            if (this.player.options.debug) {
-              console.log('[VidPly Metadata] Active cues:', activeCues.map((c) => ({
-                start: c.startTime,
-                end: c.endTime,
-                text: (c as VTTCue).text
-              })));
-            }
-          }
-          activeCues.forEach((cue: TranscriptCue) => {
-            this.handleMetadataCue(cue);
-          });
-        };
-        
-        metadataTrack.addEventListener('cuechange', this.metadataCueChangeHandler);
-        
-        // Debug: Log metadata track setup
-        if (this.player.options.debug) {
-          const cueCount = metadataTrack.cues ? metadataTrack.cues.length : 0;
-          console.log('[VidPly Metadata] Track enabled,', cueCount, 'cues available');
-        }
-      } else if (this.player.options.debug) {
-        console.warn('[VidPly Metadata] No metadata track found');
-      }
-    };
-    
-    // Try immediately
-    setupMetadata();
-    
-    // Also try after loadedmetadata event
-    this.player.on('loadedmetadata', setupMetadata);
-  }
-
-  /**
-   * Setup metadata handling
-   * Metadata cues are not displayed but can be used programmatically
-   * This is called when transcript data is loaded (for storing cues)
-   */
-  setupMetadataHandling() {
-    if (!this.metadataCues || this.metadataCues.length === 0) {
-      return;
-    }
-
-    // The actual event handling is set up in setupMetadataHandlingOnLoad()
-    // This method just stores the cues for reference
-    if (this.player.options.debug) {
-      console.log('[VidPly Metadata]', this.metadataCues.length, 'cues stored from transcript load');
-    }
-  }
-
-  /**
-   * Handle individual metadata cues
-   * Parses metadata text and emits events or triggers actions
+   * Handle an individual metadata cue.
+   *
+   * Directive parsing (`PAUSE`, `FOCUS:`, `#hashtags`) lives in the
+   * scoped {@link MetadataAlertsManager}, which resolves selectors
+   * inside the player container by default (never document-wide unless
+   * the embedder opts into `metadataDirectives: 'global'`). Delegating
+   * here keeps a single source of truth and prevents an untrusted VTT
+   * cue from moving focus to arbitrary elements on the host page.
    */
   handleMetadataCue(cue: TranscriptCue) {
-    const cueText = (cue as TextTrackCue & { text?: string }).text || '';
-    const text = cueText.trim();
-    
-    // Debug logging
-    if (this.player.options.debug) {
-      console.log('[VidPly Metadata] Processing cue:', {
-        time: cue.startTime,
-        text: text
-      });
-    }
-    
-    // Emit a generic metadata event that developers can listen to
-    this.player.emit('metadata', {
-      time: cue.startTime,
-      endTime: cue.endTime,
-      text: text,
-      cue: cue
-    });
-
-    // Parse for specific commands (examples based on wwa_meta.vtt format)
-    if (text.includes('PAUSE')) {
-      // Automatically pause the video
-      if (!this.player.state.paused) {
-        if (this.player.options.debug) {
-          console.log('[VidPly Metadata] Pausing video at', cue.startTime);
-        }
-        this.player.pause();
-      }
-      // Also emit event for developers who want to listen
-      this.player.emit('metadata:pause', { time: cue.startTime, text: text });
-    }
-
-    // Parse for focus directives
-    const focusMatch = text.match(/FOCUS:([\w#-]+)/);
-    if (focusMatch && focusMatch[1]) {
-      const targetSelector = focusMatch[1];
-      // Automatically focus the target element
-      const targetElement = document.querySelector(targetSelector) as HTMLElement | null;
-      if (targetElement) {
-        if (this.player.options.debug) {
-          console.log('[VidPly Metadata] Focusing element:', targetSelector);
-        }
-        // Use setTimeout to ensure DOM is ready
-        this.setManagedTimeout(() => {
-          targetElement.focus({ preventScroll: true });
-        }, 10);
-      } else if (this.player.options.debug) {
-        console.warn('[VidPly Metadata] Element not found:', targetSelector);
-      }
-      // Also emit event for developers who want to listen
-      this.player.emit('metadata:focus', { 
-        time: cue.startTime, 
-        target: targetSelector,
-        element: targetElement,
-        text: text 
-      });
-    }
-
-    // Parse for hashtag references
-    const hashtags = text.match(/#[\w-]+/g);
-    if (hashtags) {
-      if (this.player.options.debug) {
-        console.log('[VidPly Metadata] Hashtags found:', hashtags);
-      }
-      this.player.emit('metadata:hashtags', {
-        time: cue.startTime,
-        hashtags: hashtags,
-        text: text
-      });
-    }
+    this.player.handleMetadataCue(cue);
   }
 
   /**

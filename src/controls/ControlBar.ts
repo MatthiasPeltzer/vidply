@@ -18,8 +18,28 @@ import {
 import type { Player } from '../core/Player.js';
 import type { CaptionManager } from './CaptionManager.js';
 import type { QualityLevel } from '../types/renderer.js';
+import type { PlayerEventMap } from '../types/events.js';
 
 type TimerHandle = ReturnType<typeof setTimeout>;
+
+/** Mirror of the EventEmitter listener shape for a given player event. */
+type PlayerListener<K extends keyof PlayerEventMap> =
+    PlayerEventMap[K] extends void ? () => void : (data: PlayerEventMap[K]) => void;
+
+/**
+ * A player-event subscription owned by the ControlBar, tagged with the
+ * lifecycle group that registered it. `updateControlBar()` /
+ * `PlaylistManager.updatePlayerControls()` re-run `createControls`,
+ * `attachEvents`, `setupAutoHide` and `setupOverflowDetection` on the *same*
+ * ControlBar instance, so each of those methods detaches its own group before
+ * re-subscribing — otherwise handlers (and their observers) accumulate on every
+ * rebuild and fire N times per event.
+ */
+type ControlBarSubscription = {
+    group: string;
+    event: keyof PlayerEventMap;
+    handler: (...args: unknown[]) => void;
+};
 
 /**
  * Stores per-button event handlers added by `attachMenuCloseHandler` so they
@@ -55,6 +75,16 @@ export class ControlBar {
     openMenu: HTMLElement | null;
     openMenuButton: HTMLElement | null;
     overflowResizeObserver: ResizeObserver | null = null;
+    /** Player-event subscriptions grouped by the method that registered them,
+     *  so rebuilds can detach-and-re-add per group without leaking. */
+    private _playerSubscriptions: ControlBarSubscription[] = [];
+    /** Guards the one-time auto-hide DOM/player listener binding so control
+     *  rebuilds (which re-call setupAutoHide) don't stack duplicate handlers. */
+    private _autoHideBound: boolean = false;
+    /** Guards the one-time window-resize/fullscreen overflow listeners so
+     *  control rebuilds (which re-call setupOverflowDetection) don't stack them.
+     *  The ResizeObserver is still recreated each call for the new rightButtons. */
+    private _overflowGlobalBound: boolean = false;
     previewSupported: boolean = false;
     previewThumbnailCache: Map<number, string> = new Map();
     previewThumbnailTimeout: TimerHandle | null = null;
@@ -97,6 +127,40 @@ export class ControlBar {
         this.setupAutoHide();
         this.setupOverflowDetection();
         this.setupGlobalDragListeners();
+    }
+
+    /**
+     * Register a player-event listener tagged with a lifecycle `group` so it
+     * can be detached before the owning method re-runs on a control rebuild.
+     */
+    private subscribe<K extends keyof PlayerEventMap>(
+        group: string,
+        event: K,
+        handler: PlayerListener<K>
+    ): void {
+        this.player.on(event, handler);
+        this._playerSubscriptions.push({
+            group,
+            event,
+            handler: handler as (...args: unknown[]) => void
+        });
+    }
+
+    /**
+     * Detach player-event listeners. With a `group`, only that group's
+     * listeners are removed (and re-added by the method that owns it);
+     * without one, every ControlBar subscription is removed (destroy path).
+     */
+    private detachPlayerEvents(group?: string): void {
+        const remaining: ControlBarSubscription[] = [];
+        for (const sub of this._playerSubscriptions) {
+            if (group === undefined || sub.group === group) {
+                this.player.off(sub.event, sub.handler as PlayerListener<typeof sub.event>);
+            } else {
+                remaining.push(sub);
+            }
+        }
+        this._playerSubscriptions = remaining;
     }
 
     /**
@@ -740,6 +804,10 @@ export class ControlBar {
     }
 
     createControls() {
+        // Detach the player listeners registered by the previous createControls
+        // pass (playlist/floating), since a rebuild recreates these buttons.
+        this.detachPlayerEvents('controls');
+
         // Progress bar and time display wrapper
         const progressTimeWrapper = DOMUtils.createElement('div', {
             className: `${this.player.options.classPrefix}-progress-time-wrapper`
@@ -1713,7 +1781,7 @@ export class ControlBar {
                 (button as HTMLButtonElement).disabled = !this.player.playlistManager.hasPrevious() && !this.player.playlistManager.options.loop;
             }
         };
-        this.player.on('playlisttrackchange', updateState);
+        this.subscribe('controls', 'playlisttrackchange', updateState);
         updateState();
 
         this.controls.previous = button;
@@ -1743,7 +1811,7 @@ export class ControlBar {
                 (button as HTMLButtonElement).disabled = !this.player.playlistManager.hasNext() && !this.player.playlistManager.options.loop;
             }
         };
-        this.player.on('playlisttrackchange', updateState);
+        this.subscribe('controls', 'playlisttrackchange', updateState);
         updateState();
 
         this.controls.next = button;
@@ -1865,7 +1933,7 @@ export class ControlBar {
 
     showVolumeSlider(button: HTMLElement) {
         // Remove existing slider if any
-        const existingSlider = document.querySelector(`.${this.player.options.classPrefix}-volume-menu`);
+        const existingSlider = this.player.container.querySelector(`.${this.player.options.classPrefix}-volume-menu`);
         if (existingSlider) {
             existingSlider.remove();
             button.setAttribute('aria-expanded', 'false');
@@ -2112,7 +2180,7 @@ export class ControlBar {
 
     showChaptersMenu(button: HTMLElement) {
         // Remove existing menu if any (toggle behavior)
-        const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-chapters-menu`);
+        const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-chapters-menu`);
         if (existingMenu) {
             existingMenu.remove();
             button.setAttribute('aria-expanded', 'false');
@@ -2298,7 +2366,7 @@ export class ControlBar {
 
     showQualityMenu(button: HTMLElement) {
         // Remove existing menu if any (toggle behavior)
-        const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-quality-menu`);
+        const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-quality-menu`);
         if (existingMenu) {
             existingMenu.remove();
             button.setAttribute('aria-expanded', 'false');
@@ -2523,7 +2591,7 @@ export class ControlBar {
 
     showSpeedMenu(button: HTMLElement) {
         // Remove existing menu if any (toggle behavior)
-        const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-speed-menu`);
+        const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-speed-menu`);
         if (existingMenu) {
             existingMenu.remove();
             button.setAttribute('aria-expanded', 'false');
@@ -2623,7 +2691,7 @@ export class ControlBar {
 
     showCaptionsMenu(button: HTMLElement) {
         // Remove existing menu if any (toggle behavior)
-        const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-captions-menu`);
+        const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-captions-menu`);
         if (existingMenu) {
             existingMenu.remove();
             button.setAttribute('aria-expanded', 'false');
@@ -3037,24 +3105,6 @@ export class ControlBar {
         }
     }
 
-    createSettingsButton() {
-        const button = DOMUtils.createElement('button', {
-            className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-settings`,
-            attributes: {
-                'type': 'button',
-                'aria-label': i18n.t('player.settings')
-            }
-        });
-
-        button.appendChild(createIconElement('settings'));
-
-        button.addEventListener('click', () => {
-            this.player.showSettings();
-        });
-
-        return button;
-    }
-
     createPipButton() {
         const floating = this.player.options.floating === true;
         const labelKey = floating ? 'player.floatingPlayer' : 'player.pip';
@@ -3089,7 +3139,7 @@ export class ControlBar {
         if (floating) {
             // Keep aria-pressed in sync with the floating state so screen
             // readers announce the toggled state correctly.
-            this.player.on('floatingchange', (state: 'pinned' | 'auto' | null) => {
+            this.subscribe('controls', 'floatingchange', (state: 'pinned' | 'auto' | null) => {
                 button.setAttribute('aria-pressed', state === 'pinned' ? 'true' : 'false');
                 button.classList.toggle(`${this.player.options.classPrefix}-pip-active`, Boolean(state));
             });
@@ -3242,44 +3292,48 @@ export class ControlBar {
     }
 
     attachEvents() {
+        // Rebuilds (updateControlBar / playlist control refresh) call this again
+        // on the same instance; detach the previous pass so listeners don't stack.
+        this.detachPlayerEvents('events');
+
         // Update controls based on player state
-        this.player.on('play', () => this.updatePlayPauseButton());
-        this.player.on('pause', () => this.updatePlayPauseButton());
-        this.player.on('timeupdate', () => this.updateProgress());
-        this.player.on('loadedmetadata', () => {
+        this.subscribe('events', 'play', () => this.updatePlayPauseButton());
+        this.subscribe('events', 'pause', () => this.updatePlayPauseButton());
+        this.subscribe('events', 'timeupdate', () => this.updateProgress());
+        this.subscribe('events', 'loadedmetadata', () => {
             this.updateDuration();
             this.ensureQualityButton();
             this.updateQualityIndicator();
             // Update preview video source when metadata loads (for playlists)
             this.updatePreviewVideoSource();
         });
-        this.player.on('durationchange', () => {
+        this.subscribe('events', 'durationchange', () => {
             this.updateDuration();
         });
-        this.player.on('sourcechange', () => {
+        this.subscribe('events', 'sourcechange', () => {
             // Update preview video source when source changes (for playlists)
             this.updatePreviewVideoSource();
         });
-        this.player.on('volumechange', () => this.updateVolumeDisplay());
-        this.player.on('progress', () => this.updateBuffered());
-        this.player.on('playbackspeedchange', () => this.updateSpeedDisplay());
-        this.player.on('fullscreenchange', () => this.updateFullscreenButton());
-        this.player.on('captionsenabled', () => this.updateCaptionsButton());
-        this.player.on('captionsdisabled', () => this.updateCaptionsButton());
-        this.player.on('audiodescriptionenabled', () => this.updateAudioDescriptionButton());
-        this.player.on('audiodescriptiondisabled', () => this.updateAudioDescriptionButton());
-        this.player.on('signlanguageenabled', () => this.updateSignLanguageButton());
-        this.player.on('signlanguagedisabled', () => this.updateSignLanguageButton());
-        this.player.on('signlanguageinmainviewenabled', () => this.updateSignLanguageInMainViewButton());
-        this.player.on('signlanguageinmainviewdisabled', () => this.updateSignLanguageInMainViewButton());
-        this.player.on('qualitychange', () => this.updateQualityIndicator());
-        this.player.on('hlslevelswitched', () => this.updateQualityIndicator());
-        this.player.on('hlsmanifestparsed', () => {
+        this.subscribe('events', 'volumechange', () => this.updateVolumeDisplay());
+        this.subscribe('events', 'progress', () => this.updateBuffered());
+        this.subscribe('events', 'playbackspeedchange', () => this.updateSpeedDisplay());
+        this.subscribe('events', 'fullscreenchange', () => this.updateFullscreenButton());
+        this.subscribe('events', 'captionsenabled', () => this.updateCaptionsButton());
+        this.subscribe('events', 'captionsdisabled', () => this.updateCaptionsButton());
+        this.subscribe('events', 'audiodescriptionenabled', () => this.updateAudioDescriptionButton());
+        this.subscribe('events', 'audiodescriptiondisabled', () => this.updateAudioDescriptionButton());
+        this.subscribe('events', 'signlanguageenabled', () => this.updateSignLanguageButton());
+        this.subscribe('events', 'signlanguagedisabled', () => this.updateSignLanguageButton());
+        this.subscribe('events', 'signlanguageinmainviewenabled', () => this.updateSignLanguageInMainViewButton());
+        this.subscribe('events', 'signlanguageinmainviewdisabled', () => this.updateSignLanguageInMainViewButton());
+        this.subscribe('events', 'qualitychange', () => this.updateQualityIndicator());
+        this.subscribe('events', 'hlslevelswitched', () => this.updateQualityIndicator());
+        this.subscribe('events', 'hlsmanifestparsed', () => {
             this.ensureQualityButton();
             this.updateQualityIndicator();
         });
-        this.player.on('dashqualitychanged', () => this.updateQualityIndicator());
-        this.player.on('dashmanifestparsed', () => {
+        this.subscribe('events', 'dashqualitychanged', () => this.updateQualityIndicator());
+        this.subscribe('events', 'dashmanifestparsed', () => {
             this.ensureQualityButton();
             this.updateQualityIndicator();
         });
@@ -3681,41 +3735,51 @@ export class ControlBar {
             }
         };
 
-        // Mouse and touch events to show controls
-        this.player.container.addEventListener('mousemove', showControls);
-        this.player.container.addEventListener('touchstart', showControls);
-        this.player.container.addEventListener('touchmove', showControls); // Also show on touch drag/swipe
-        this.player.container.addEventListener('click', showControls);
-        this.player.container.addEventListener('tap', showControls); // Some mobile browsers use tap event
+        // The container/element and player listeners below don't depend on the
+        // rebuilt buttons, so they must be attached exactly once — a control
+        // rebuild calls setupAutoHide() again on the same instance. Tie the DOM
+        // listeners to the player lifecycle signal so destroy() removes them,
+        // and track the player-event listeners in the 'autohide' group.
+        if (!this._autoHideBound) {
+            this._autoHideBound = true;
+            const signal = this.player.lifecycleSignal;
 
-        // Show controls on focus
-        this.element.addEventListener('focusin', showControls);
+            // Mouse and touch events to show controls
+            this.player.container.addEventListener('mousemove', showControls, { signal });
+            this.player.container.addEventListener('touchstart', showControls, { signal });
+            this.player.container.addEventListener('touchmove', showControls, { signal }); // Also show on touch drag/swipe
+            this.player.container.addEventListener('click', showControls, { signal });
+            this.player.container.addEventListener('tap', showControls, { signal }); // Some mobile browsers use tap event
 
-        // Always show when paused
-        this.player.on('pause', () => {
-            showControls();
-            clearTimeout(this.hideTimeout);
-        });
+            // Show controls on focus
+            this.element.addEventListener('focusin', showControls, { signal });
 
-        this.player.on('play', () => {
-            showControls();
-        });
-
-        // Show controls when entering fullscreen (especially important for mobile landscape)
-        this.player.on('enterfullscreen', () => {
-            showControls();
-            // In fullscreen, keep controls visible longer initially
-            if (this.player.state.fullscreen) {
+            // Always show when paused
+            this.subscribe('autohide', 'pause', () => {
+                showControls();
                 clearTimeout(this.hideTimeout);
-                this.hideTimeout = setTimeout(() => {
-                    if (this.player.state.playing) {
-                        this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
-                        this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
-                        this.player.state.controlsVisible = false;
-                    }
-                }, this.player.options.hideControlsDelay * 2); // Double the delay in fullscreen
-            }
-        });
+            });
+
+            this.subscribe('autohide', 'play', () => {
+                showControls();
+            });
+
+            // Show controls when entering fullscreen (especially important for mobile landscape)
+            this.subscribe('autohide', 'enterfullscreen', () => {
+                showControls();
+                // In fullscreen, keep controls visible longer initially
+                if (this.player.state.fullscreen) {
+                    clearTimeout(this.hideTimeout);
+                    this.hideTimeout = setTimeout(() => {
+                        if (this.player.state.playing) {
+                            this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+                            this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+                            this.player.state.controlsVisible = false;
+                        }
+                    }, this.player.options.hideControlsDelay * 2); // Double the delay in fullscreen
+                }
+            });
+        }
 
         // Initial state
         showControls();
@@ -3745,7 +3809,7 @@ export class ControlBar {
 
     showOverflowMenu(button: HTMLElement) {
         // Remove existing menu if any (toggle behavior)
-        const existingMenu = document.querySelector(`.${this.player.options.classPrefix}-overflow-menu-list`);
+        const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-overflow-menu-list`);
         if (existingMenu) {
             existingMenu.remove();
             button.setAttribute('aria-expanded', 'false');
@@ -4064,25 +4128,37 @@ export class ControlBar {
             this.checkOverflow();
         };
 
-        // Check on resize
+        // Check on resize. The observer watches the (rebuilt) rightButtons
+        // element, so it must be recreated on every setupOverflowDetection call
+        // — disconnect the previous one first so observers don't accumulate.
+        if (this.overflowResizeObserver) {
+            this.overflowResizeObserver.disconnect();
+        }
         const resizeObserver = new ResizeObserver(() => {
             requestAnimationFrame(checkOverflow);
         });
         resizeObserver.observe(this.rightButtons);
 
-        // Check on window resize. Tied to the player's lifecycle so the
-        // listener is removed when the player is destroyed.
-        window.addEventListener('resize', () => {
-            requestAnimationFrame(checkOverflow);
-        }, { signal });
+        // The window-resize and fullscreen listeners read this.rightButtons
+        // lazily via checkOverflow, so they don't depend on the rebuilt buttons
+        // and must be bound exactly once (a rebuild re-calls this method). The
+        // window listener is tied to the lifecycle signal; the player-event
+        // listener is tracked in the 'overflow' group for destroy cleanup.
+        if (!this._overflowGlobalBound) {
+            this._overflowGlobalBound = true;
 
-        // Check on fullscreen changes (important for desktop/tablet fullscreen)
-        this.player.on('fullscreenchange', () => {
-            // Use setTimeout to ensure fullscreen state is fully updated
-            setTimeout(() => {
+            window.addEventListener('resize', () => {
                 requestAnimationFrame(checkOverflow);
-            }, 50);
-        });
+            }, { signal });
+
+            // Check on fullscreen changes (important for desktop/tablet fullscreen)
+            this.subscribe('overflow', 'fullscreenchange', () => {
+                // Use setTimeout to ensure fullscreen state is fully updated
+                setTimeout(() => {
+                    requestAnimationFrame(checkOverflow);
+                }, 50);
+            });
+        }
 
         // Initial checks at multiple intervals to ensure layout is stable.
         // Some browsers need more time for font loading, CSS rendering, etc.
@@ -4172,12 +4248,20 @@ export class ControlBar {
     }
 
     destroy() {
+        // Detach every player-event listener this ControlBar registered. The
+        // Player also calls removeAllListeners() at the end of its own destroy,
+        // but detaching here keeps teardown correct if the ControlBar is
+        // destroyed independently and avoids relying on that ordering.
+        this.detachPlayerEvents();
+
         if (this.hideTimeout) {
             clearTimeout(this.hideTimeout);
+            this.hideTimeout = undefined;
         }
 
         if (this.overflowResizeObserver) {
             this.overflowResizeObserver.disconnect();
+            this.overflowResizeObserver = null;
         }
 
         // Cleanup preview thumbnail resources

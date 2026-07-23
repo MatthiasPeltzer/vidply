@@ -117,6 +117,7 @@ describe('TranscriptManager', () => {
       on: vi.fn(),
       emit: vi.fn(),
       pause: vi.fn(),
+      handleMetadataCue: vi.fn(),
       invalidateTrackCache: vi.fn(),
       setManagedTimeout: vi.fn((cb) => { cb(); return 1; }),
       clearManagedTimeout: vi.fn()
@@ -205,58 +206,11 @@ describe('TranscriptManager', () => {
       manager = new TranscriptManager(mockPlayer);
     });
 
-    it('should emit generic metadata event', () => {
-      const cue = {
-        startTime: 10,
-        endTime: 15,
-        text: 'Test metadata'
-      };
-
-      manager.handleMetadataCue(cue);
-
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata', {
-        time: 10,
-        endTime: 15,
-        text: 'Test metadata',
-        cue: cue
-      });
-    });
-
-    it('should pause video when PAUSE command found', () => {
-      mockPlayer.state.paused = false;
-      const cue = {
-        startTime: 10,
-        endTime: 15,
-        text: 'PAUSE'
-      };
-
-      manager.handleMetadataCue(cue);
-
-      expect(mockPlayer.pause).toHaveBeenCalled();
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata:pause', {
-        time: 10,
-        text: 'PAUSE'
-      });
-    });
-
-    it('should not pause if already paused', () => {
-      mockPlayer.state.paused = true;
-      const cue = {
-        startTime: 10,
-        endTime: 15,
-        text: 'PAUSE'
-      };
-
-      manager.handleMetadataCue(cue);
-
-      expect(mockPlayer.pause).not.toHaveBeenCalled();
-    });
-
-    it('should parse FOCUS directive', () => {
-      const button = document.createElement('button');
-      button.id = 'my-button';
-      document.body.appendChild(button);
-
+    // Directive parsing (PAUSE / FOCUS / #hashtags) now lives in the
+    // scoped MetadataAlertsManager; TranscriptManager only forwards the
+    // cue so there is a single, container-scoped processor. See
+    // tests/unit/MetadataAlertsManager.test.js for the behaviour tests.
+    it('should delegate the cue to the player-level scoped handler', () => {
       const cue = {
         startTime: 10,
         endTime: 15,
@@ -265,102 +219,20 @@ describe('TranscriptManager', () => {
 
       manager.handleMetadataCue(cue);
 
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata:focus', expect.objectContaining({
-        time: 10,
-        target: '#my-button',
-        element: button
-      }));
+      expect(mockPlayer.handleMetadataCue).toHaveBeenCalledWith(cue);
     });
 
-    it('should handle FOCUS with non-existent element', () => {
-      const cue = {
-        startTime: 10,
-        endTime: 15,
-        text: 'FOCUS:#nonexistent'
-      };
+    it('should not attach its own cuechange pipeline (no duplicate emits)', () => {
+      // The manager must not re-emit metadata events itself; that is the
+      // MetadataAlertsManager's job. Forwarding must not touch player.emit.
+      const cue = { startTime: 1, endTime: 2, text: 'PAUSE' };
 
       manager.handleMetadataCue(cue);
 
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata:focus', expect.objectContaining({
-        time: 10,
-        target: '#nonexistent',
-        element: null
-      }));
-    });
-
-    it('should parse hashtags', () => {
-      const cue = {
-        startTime: 10,
-        endTime: 15,
-        text: 'Check out #feature and #update'
-      };
-
-      manager.handleMetadataCue(cue);
-
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata:hashtags', {
-        time: 10,
-        hashtags: ['#feature', '#update'],
-        text: 'Check out #feature and #update'
-      });
-    });
-
-    it('should parse single hashtag', () => {
-      const cue = {
-        startTime: 10,
-        endTime: 15,
-        text: 'Important #milestone'
-      };
-
-      manager.handleMetadataCue(cue);
-
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata:hashtags', expect.objectContaining({
-        hashtags: ['#milestone']
-      }));
-    });
-
-    it('should handle hashtags with hyphens', () => {
-      const cue = {
-        startTime: 10,
-        endTime: 15,
-        text: '#new-feature is ready'
-      };
-
-      manager.handleMetadataCue(cue);
-
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata:hashtags', expect.objectContaining({
-        hashtags: ['#new-feature']
-      }));
-    });
-
-    it('should not emit hashtag event if no hashtags', () => {
-      const cue = {
-        startTime: 10,
-        endTime: 15,
-        text: 'No hashtags here'
-      };
-
-      manager.handleMetadataCue(cue);
-
-      const hashtagCalls = mockPlayer.emit.mock.calls.filter(
-        call => call[0] === 'metadata:hashtags'
+      const metadataEmits = mockPlayer.emit.mock.calls.filter(
+        call => String(call[0]).startsWith('metadata')
       );
-      expect(hashtagCalls.length).toBe(0);
-    });
-
-    it('should log debug info when debug enabled', () => {
-      mockPlayer.options.debug = true;
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
-      const cue = {
-        startTime: 10,
-        endTime: 15,
-        text: 'Debug test'
-      };
-
-      manager.handleMetadataCue(cue);
-
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      expect(metadataEmits.length).toBe(0);
     });
   });
 

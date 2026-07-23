@@ -13,6 +13,7 @@
  */
 
 import { captureVideoFrame } from '../utils/VideoFrameCapture.js';
+import { sanitizePosterUrl, cssEscapeUrl } from '../utils/UrlSafe.js';
 import type { Player } from './Player.js';
 
 export class PosterManager {
@@ -20,6 +21,29 @@ export class PosterManager {
 
   constructor(player: Player) {
     this.player = player;
+  }
+
+  /**
+   * Build a CSS `url("...")` value for a poster that is safe to
+   * interpolate into a custom property / `background-image`.
+   *
+   * - `data:image/*` URLs (e.g. an auto-captured frame) are opaque and
+   *   frequently exceed the allow-list length cap, so they bypass
+   *   {@link sanitizePosterUrl} but are still CSS-escaped and required to
+   *   carry an `image/*` MIME type.
+   * - Everything else goes through the poster allow-list.
+   *
+   * Returns `null` for anything unsafe so callers can skip the overlay.
+   */
+  static toSafeCssPoster(resolved: string | null | undefined): string | null {
+    if (typeof resolved !== 'string' || !resolved) return null;
+    if (/^data:/i.test(resolved)) {
+      if (!/^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);/i.test(resolved)) return null;
+      return `url("${cssEscapeUrl(resolved)}")`;
+    }
+    const safe = sanitizePosterUrl(resolved);
+    if (!safe) return null;
+    return `url("${cssEscapeUrl(safe)}")`;
   }
 
   /**
@@ -143,7 +167,17 @@ export class PosterManager {
     // Data URLs are already absolute and opaque; only normal URLs need
     // resolving into absolute form for the CSS `url(...)` value.
     const resolvedPoster = poster.startsWith('data:') ? poster : this.resolvePath(poster);
-    player.videoWrapper.style.setProperty('--vidply-poster-image', `url("${resolvedPoster}")`);
+    // Poster values can originate from attacker-influenced data (playlist
+    // manifests, data-* attributes), so escape before interpolating: a
+    // crafted value like `x"),url("//evil` must not break out of the
+    // `url(...)` context. Auto-generated posters are large `data:image`
+    // URLs (from a captured video frame) which the allow-list length-caps
+    // — those are already opaque, so we only require the `image/*` scheme
+    // and lean on `cssEscapeUrl` for the `"`/`(`/`)`/`\` escaping. When
+    // the URL fails validation we leave the overlay off entirely.
+    const cssPoster = PosterManager.toSafeCssPoster(resolvedPoster);
+    if (!cssPoster) return;
+    player.videoWrapper.style.setProperty('--vidply-poster-image', cssPoster);
     player.videoWrapper.classList.add('vidply-forced-poster');
 
     // Audio-as-video content uses a wider aspect ratio so the poster

@@ -22,6 +22,8 @@ export class ResumeManager {
   private saveProgressThrottled: (() => void) | null = null;
   private resumeChecked = false;
   private listenersAttached = false;
+  /** Element focused before the modal opened, restored when it closes. */
+  private previouslyFocused: HTMLElement | null = null;
 
   constructor(player: Player) {
     this.player = player;
@@ -145,9 +147,25 @@ export class ResumeManager {
     return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
+  /**
+   * Collect the tabbable elements inside a container, in DOM order. Used to
+   * keep Tab / Shift+Tab cycling within the modal (focus trap).
+   */
+  private getFocusableElements(container: HTMLElement | null): HTMLElement[] {
+    if (!container) return [];
+    const selector =
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    return Array.from(container.querySelectorAll<HTMLElement>(selector)).filter(
+      el => !el.hasAttribute('disabled') && el.getAttribute('tabindex') !== '-1'
+    );
+  }
+
   showPrompt(savedTime: number): void {
     const player = this.player;
     if (player.state.resumePromptVisible || !player.container) return;
+
+    // Remember what had focus so it can be restored when the modal closes.
+    this.previouslyFocused = document.activeElement as HTMLElement | null;
 
     const formattedTime = this.formatTime(savedTime);
     const promptText = i18n.t('resume.prompt', { time: formattedTime });
@@ -203,6 +221,29 @@ export class ResumeManager {
         e.preventDefault();
         e.stopPropagation();
         this.hidePrompt();
+        return;
+      }
+
+      // Focus trap: keep Tab / Shift+Tab within the modal (WCAG 2.4.3 /
+      // aria-modal semantics) so keyboard focus can't reach the page behind it.
+      if (e.key === 'Tab') {
+        const focusable = this.getFocusableElements(player.resumePromptElement);
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (!first || !last) return;
+
+        const active = document.activeElement;
+        const withinModal = player.resumePromptElement?.contains(active) ?? false;
+
+        if (e.shiftKey) {
+          if (!withinModal || active === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else if (!withinModal || active === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
     player.resumePromptElement.addEventListener('keydown', handleKeydown);
@@ -227,9 +268,20 @@ export class ResumeManager {
     const player = this.player;
     if (!player.resumePromptElement) return;
 
+    const toRestore = this.previouslyFocused;
+    this.previouslyFocused = null;
+
     player.resumePromptElement.remove();
     player.resumePromptElement = null;
     player.state.resumePromptVisible = false;
+
+    // Return focus to wherever it was before the modal opened so keyboard
+    // users aren't dropped at the top of the page. Fall back to the
+    // play/pause button when the previous element is gone.
+    const fallback = player.controlBar?.controls?.playPause ?? null;
+    const target =
+      toRestore && document.contains(toRestore) ? toRestore : fallback;
+    target?.focus({ preventScroll: true });
 
     player.emit('resumeprompthide');
   }

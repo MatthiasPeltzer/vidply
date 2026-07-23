@@ -37,8 +37,9 @@ build:
   stage: test
   script:
     - npm run typecheck
-    - npm run test
+    - npm run test:coverage
     - npm run build
+    - test -f dist/types/index.d.ts
     - node tests/check-readme-types.mjs
   artifacts:
     when: on_success

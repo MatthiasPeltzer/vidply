@@ -67,6 +67,14 @@ describe('i18n', () => {
       expect(i18n.t('time.second', { count: 1 })).toBe('1 second');
       expect(i18n.t('time.seconds', { count: 30 })).toBe('30 seconds');
     });
+
+    it('inserts replacement values literally, not as $-replacement patterns', () => {
+      // Values that would be misinterpreted by String.prototype.replace when a
+      // string (rather than a function) is used as the replacement argument:
+      // $& (whole match), $1 (capture), $$ (literal $), $` (prefix).
+      i18n.addTranslation('en', { custom: { dollar: 'Value: {v}' } });
+      expect(i18n.t('custom.dollar', { v: '$& $1 $$ $`' })).toBe('Value: $& $1 $$ $`');
+    });
   });
 
   describe('addTranslation', () => {

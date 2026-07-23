@@ -46,11 +46,14 @@ describe('YouTubeRenderer', () => {
       expect(renderer.extractVideoId(url)).toBe('dQw4w9WgXcQ');
     });
 
-    it('should extract video ID from youtu.be with params', () => {
+    it('should extract video ID from youtu.be with params (excludes the query)', () => {
       const url = 'https://youtu.be/dQw4w9WgXcQ?t=60';
-      const result = renderer.extractVideoId(url);
-      // The regex may include params - just check it starts with the ID
-      expect(result.startsWith('dQw4w9WgXcQ')).toBe(true);
+      expect(renderer.extractVideoId(url)).toBe('dQw4w9WgXcQ');
+    });
+
+    it('should extract video ID from youtu.be with a share (?si=) param', () => {
+      const url = 'https://youtu.be/dQw4w9WgXcQ?si=abcdEFGHij';
+      expect(renderer.extractVideoId(url)).toBe('dQw4w9WgXcQ');
     });
 
     it('should extract video ID from embed URL', () => {
@@ -58,11 +61,26 @@ describe('YouTubeRenderer', () => {
       expect(renderer.extractVideoId(url)).toBe('dQw4w9WgXcQ');
     });
 
-    it('should extract video ID from embed URL with params', () => {
+    it('should extract video ID from embed URL with params (excludes the query)', () => {
       const url = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1';
-      const result = renderer.extractVideoId(url);
-      // The regex may include params - just check it starts with the ID
-      expect(result.startsWith('dQw4w9WgXcQ')).toBe(true);
+      expect(renderer.extractVideoId(url)).toBe('dQw4w9WgXcQ');
+    });
+
+    it('should extract video ID when v is not the first query parameter', () => {
+      const url = 'https://www.youtube.com/watch?list=PLtest&v=dQw4w9WgXcQ&t=10';
+      expect(renderer.extractVideoId(url)).toBe('dQw4w9WgXcQ');
+    });
+
+    it('should extract video ID from a /shorts/ URL', () => {
+      expect(renderer.extractVideoId('https://www.youtube.com/shorts/dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
+    });
+
+    it('should extract video ID from a youtube-nocookie embed URL', () => {
+      expect(renderer.extractVideoId('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
+    });
+
+    it('should strip a #fragment from the video ID', () => {
+      expect(renderer.extractVideoId('https://youtu.be/dQw4w9WgXcQ#t=1m')).toBe('dQw4w9WgXcQ');
     });
 
     it('should return null for invalid URL', () => {

@@ -268,7 +268,7 @@
 .vidply-theme-light .vidply-button:focus,
 .vidply-theme-light .vidply-button:focus-visible {
   box-shadow: 0 0 0 4px rgb(10 64 110 / 30%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 2px !important;
 }
 
@@ -279,7 +279,7 @@
 .vidply-theme-light .vidply-icon-button:focus,
 .vidply-theme-light .vidply-icon-button:focus-visible {
   box-shadow: 0 0 0 4px rgb(10 64 110 / 30%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 2px !important;
 }
 
@@ -323,17 +323,17 @@
 .vidply-theme-light .vidply-transcript-entry:focus,
 .vidply-theme-light .vidply-transcript-entry:focus-visible {
   background: rgb(10 64 110 / 10%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: -2px !important;
 }
 
 .vidply-theme-light .vidply-transcript-entry-active {
   background: rgb(10 64 110 / 12%);
-  border-left-color: #0a406e;
+  border-left-color: var(--vidply-primary);
 }
 
 .vidply-theme-light .vidply-transcript-time {
-  color: #0a406e; /* Dark blue - 7.5:1 contrast on white */
+  color: var(--vidply-primary); /* Dark blue - 7.5:1 contrast on white */
 }
 
 .vidply-theme-light .vidply-transcript-text {
@@ -342,7 +342,7 @@
 }
 
 .vidply-theme-light .vidply-transcript-entry-active .vidply-transcript-text {
-  color: #0a406e !important;
+  color: var(--vidply-primary) !important;
 }
 
 .vidply-theme-light .vidply-transcript-entry:hover .vidply-transcript-text,
@@ -353,7 +353,7 @@
 /* Light theme - Description entries in transcript */
 .vidply-theme-light .vidply-transcript-description {
   background: rgb(10 64 110 / 8%) !important;
-  border-left-color: #0a406e !important;
+  border-left-color: var(--vidply-primary) !important;
 }
 
 .vidply-theme-light .vidply-transcript-description .vidply-transcript-text {
@@ -364,7 +364,7 @@
 
 .vidply-theme-light .vidply-transcript-description:hover .vidply-transcript-text,
 .vidply-theme-light .vidply-transcript-description:focus .vidply-transcript-text {
-  color: #0a406e !important;
+  color: var(--vidply-primary) !important;
   opacity: 1 !important;
 }
 
@@ -387,7 +387,7 @@
 }
 
 .vidply-theme-light .vidply-transcript-autoscroll-label input[type="checkbox"] {
-  accent-color: #0a406e;
+  accent-color: var(--vidply-primary);
 }
 
 /* Light theme - Transcript header buttons */
@@ -411,7 +411,7 @@
 .vidply-theme-light .vidply-transcript-header button:focus,
 .vidply-theme-light .vidply-transcript-header button:focus-visible {
   box-shadow: 0 0 0 4px rgb(10 64 110 / 30%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 2px !important;
 }
 
@@ -430,9 +430,9 @@
 
 .vidply-theme-light .vidply-transcript-header select:focus,
 .vidply-theme-light .vidply-transcript-language-select:focus {
-  border-color: #0a406e !important;
+  border-color: var(--vidply-primary) !important;
   box-shadow: 0 0 0 3px rgb(10 64 110 / 40%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 0 !important;
 }
 
@@ -459,14 +459,14 @@
 .vidply-theme-light .vidply-menu-item:focus,
 .vidply-theme-light .vidply-menu-item:focus-visible {
   background: rgb(10 64 110 / 12%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: -2px !important;
 }
 
 .vidply-theme-light .vidply-menu-item.vidply-active,
 .vidply-theme-light .vidply-menu-item[aria-checked="true"] {
   background: rgb(10 64 110 / 10%);
-  color: #0a406e;
+  color: var(--vidply-primary);
 }
 
 .vidply-theme-light .vidply-menu-header {
@@ -502,9 +502,9 @@
 
 .vidply-theme-light .vidply-caption-style-menu select:focus,
 .vidply-theme-light .vidply-caption-style-menu select:focus-visible {
-  border-color: #0a406e !important;
+  border-color: var(--vidply-primary) !important;
   box-shadow: 0 0 0 3px rgb(10 64 110 / 40%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 0 !important;
 }
 
@@ -521,9 +521,9 @@
 
 .vidply-theme-light .vidply-style-select:focus,
 .vidply-theme-light .vidply-style-select:focus-visible {
-  border-color: #0a406e !important;
+  border-color: var(--vidply-primary) !important;
   box-shadow: 0 0 0 3px rgb(10 64 110 / 40%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 0 !important;
 }
 
@@ -562,9 +562,9 @@
 
 .vidply-theme-light select:focus,
 .vidply-theme-light select:focus-visible {
-  border-color: #0a406e !important;
+  border-color: var(--vidply-primary) !important;
   box-shadow: 0 0 0 3px rgb(10 64 110 / 40%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 0 !important;
 }
 
@@ -596,7 +596,7 @@
 .vidply-theme-light .vidply-chapter-item:focus,
 .vidply-theme-light .vidply-chapter-item:focus-visible {
   background: rgb(10 64 110 / 10%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: -2px !important;
 }
 
@@ -605,7 +605,7 @@
 }
 
 .vidply-theme-light .vidply-chapter-time {
-  color: #0a406e;
+  color: var(--vidply-primary);
 }
 
 /* Light theme - Speed menu */
@@ -685,7 +685,7 @@
 .vidply-theme-light .vidply-playlist-item:focus,
 .vidply-theme-light .vidply-playlist-item:focus-visible {
   background: rgb(10 64 110 / 10%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: -2px !important;
 }
 
@@ -700,14 +700,14 @@
 .vidply-theme-light .vidply-playlist-item-button:focus,
 .vidply-theme-light .vidply-playlist-item-button:focus-visible {
   background: rgb(10 64 110 / 8%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: -2px !important;
 }
 
 .vidply-theme-light .vidply-playlist-item-active,
 .vidply-theme-light .vidply-playlist-item.vidply-playlist-item-active {
   background: rgb(10 64 110 / 8%);
-  border-color: #0a406e;
+  border-color: var(--vidply-primary);
 }
 
 .vidply-theme-light .vidply-playlist-item-active .vidply-playlist-item-button,
@@ -754,7 +754,7 @@
 }
 
 .vidply-theme-light .vidply-playlist-item-active .vidply-playlist-item-icon {
-  color: #0a406e;
+  color: var(--vidply-primary);
 }
 
 /* Light theme - Track info */
@@ -886,7 +886,7 @@
 .vidply-theme-light .vidply-resume-prompt-button:focus,
 .vidply-theme-light .vidply-resume-prompt-button:focus-visible {
   box-shadow: 0 0 0 4px rgb(10 64 110 / 30%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 2px !important;
 }
 
@@ -913,7 +913,7 @@
 }
 
 .vidply-theme-light input[type="checkbox"] {
-  accent-color: #0a406e;
+  accent-color: var(--vidply-primary);
 }
 
 .vidply-theme-light .vidply-labeled-select {
@@ -928,9 +928,9 @@
 
 .vidply-theme-light .vidply-labeled-select select:focus,
 .vidply-theme-light .vidply-labeled-select select:focus-visible {
-  border-color: #0a406e !important;
+  border-color: var(--vidply-primary) !important;
   box-shadow: 0 0 0 3px rgb(10 64 110 / 40%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 0 !important;
 }
 
@@ -967,13 +967,13 @@
 /* Light theme - WCAG catch-all focus states for all interactive elements */
 .vidply-theme-light a:focus,
 .vidply-theme-light a:focus-visible {
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 2px !important;
 }
 
 .vidply-theme-light [tabindex]:focus,
 .vidply-theme-light [tabindex]:focus-visible {
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 2px !important;
 }
 
@@ -981,21 +981,21 @@
 .vidply-theme-light .vidply-control-bar button:focus,
 .vidply-theme-light .vidply-control-bar button:focus-visible {
   box-shadow: 0 0 0 4px rgb(10 64 110 / 30%) !important;
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 2px !important;
 }
 
 /* Light theme - Slider focus (range inputs) */
 .vidply-theme-light input[type="range"]:focus,
 .vidply-theme-light input[type="range"]:focus-visible {
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 4px !important;
 }
 
 /* Light theme - Checkbox focus */
 .vidply-theme-light input[type="checkbox"]:focus,
 .vidply-theme-light input[type="checkbox"]:focus-visible {
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 2px !important;
 }
 
@@ -1004,14 +1004,14 @@
 .vidply-theme-light .vidply-progress:focus-visible,
 .vidply-theme-light .vidply-progress-bar:focus,
 .vidply-theme-light .vidply-progress-bar:focus-visible {
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 2px !important;
 }
 
 /* Light theme - Volume slider focus */
 .vidply-theme-light .vidply-volume-slider:focus,
 .vidply-theme-light .vidply-volume-slider:focus-visible {
-  outline: 2px solid #0a406e !important;
+  outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 2px !important;
 }
 
