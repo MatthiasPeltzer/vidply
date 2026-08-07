@@ -1,39 +1,39 @@
 /*!
- * VidPly v1.2.3 - Universal, Accessible Video Player
+ * VidPly v1.2.5 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 import {
   TimeUtils
-} from "./vidply.chunk-ETADJTTK.js";
+} from "./vidply.chunk-3EVYHJL5.js";
 import {
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-UI3RYCVF.js";
+} from "./vidply.chunk-VPVB3BUI.js";
 import {
   focusElement
-} from "./vidply.chunk-P25MRJ6O.js";
+} from "./vidply.chunk-PVLH7I2S.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-RAGQCCLG.js";
+} from "./vidply.chunk-PU2FCBLA.js";
 import {
   CaptionManager
-} from "./vidply.chunk-VZYRHCM3.js";
+} from "./vidply.chunk-AOMZGVON.js";
 import {
   StorageManager
-} from "./vidply.chunk-VVDL6SYO.js";
+} from "./vidply.chunk-UBLW7IID.js";
 import {
   debounce,
   isMobile,
   rafWithTimeout,
   reducedMotionScrollOptions,
   throttle
-} from "./vidply.chunk-PRFNESYA.js";
+} from "./vidply.chunk-MLYKXQUN.js";
 import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-UYYVR5CX.js";
+} from "./vidply.chunk-RACTFVFK.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -2096,7 +2096,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-4FBZYS2R.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+    import("./vidply.CaptionStyleMenu-5TZPTNVC.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
@@ -5339,21 +5339,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-LAMSICPG.js");
+    const module = await import("./vidply.AudioDescriptionManager-GOZOSVY6.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-K7YL7RWZ.js");
+    const module = await import("./vidply.SignLanguageManager-MX64BPBY.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-J2R66LC3.js");
+    const module = await import("./vidply.FloatingPlayerManager-VEP65HYH.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -5476,6 +5476,9 @@ var Player = class _Player extends EventEmitter {
   originalAudioDescriptionSource = null;
   originalSrc = null;
   playButtonOverlay = null;
+  /** Wrapper button for the audio play overlay. Video keeps the bare,
+   *  presentational SVG because the video surface is itself clickable. */
+  playButtonOverlayButton = null;
   resizeHandler = null;
   resizeObserver = null;
   resumePromptElement = null;
@@ -5566,6 +5569,9 @@ var Player = class _Player extends EventEmitter {
       controls: true,
       hideControlsDelay: 3e3,
       playPauseButton: true,
+      // 'auto' = video only. Set to true to also show the centered play
+      // button on audio players (rendered on top of the track artwork).
+      playButtonOverlay: "auto",
       progressBar: true,
       currentTime: true,
       duration: true,
@@ -6016,7 +6022,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-HUTA5LYY.js");
+    const module = await import("./vidply.TranscriptManager-FGQB5KYA.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -6297,7 +6303,7 @@ var Player = class _Player extends EventEmitter {
         this.element.poster = resolvedPoster;
       }
     }
-    if (this.element.tagName === "VIDEO") {
+    if (this.isPlayButtonOverlayEnabled()) {
       this.createPlayButtonOverlay();
     }
     this.createBufferingLoadingOverlay();
@@ -6325,25 +6331,81 @@ var Player = class _Player extends EventEmitter {
     }, { once: true });
     this.applyTheme();
   }
+  /**
+   * Whether the centered play overlay should be created for this player.
+   * `playButtonOverlay: 'auto'` keeps it video-only.
+   */
+  isPlayButtonOverlayEnabled() {
+    const option = this.options.playButtonOverlay;
+    if (option === false) {
+      return false;
+    }
+    if (this.element.tagName === "VIDEO") {
+      return true;
+    }
+    return option === true;
+  }
+  /** The node actually inserted into the DOM: the button on audio, the SVG on video. */
+  getPlayButtonOverlayNode() {
+    return this.playButtonOverlayButton ?? this.playButtonOverlay;
+  }
+  /**
+   * (Re-)insert the overlay into its host. Audio players hang it on the track
+   * artwork, which `PlaylistManager` may only create once a track is loaded —
+   * hence the separate, idempotent mount step.
+   */
+  mountPlayButtonOverlay(host = null) {
+    const node = this.getPlayButtonOverlayNode();
+    if (!node) {
+      return;
+    }
+    const target = host ?? (this.element.tagName === "AUDIO" ? this.trackArtworkElement ?? this.container : this.videoWrapper);
+    if (!target || node.parentNode === target) {
+      return;
+    }
+    if (this.playButtonOverlayButton) {
+      target.removeAttribute("aria-hidden");
+    }
+    target.appendChild(node);
+  }
   createPlayButtonOverlay() {
     const overlay = createPlayOverlay();
     this.playButtonOverlay = overlay;
-    overlay.addEventListener("click", () => {
-      this.toggle();
-    });
-    this.videoWrapper?.appendChild(overlay);
+    if (this.element.tagName === "AUDIO") {
+      const button = DOMUtils.createElement("button", {
+        className: `${this.options.classPrefix}-play-overlay-button`,
+        attributes: {
+          type: "button",
+          "aria-label": i18n.t("player.play")
+        }
+      });
+      button.appendChild(overlay);
+      button.addEventListener("click", () => {
+        this.toggle();
+      });
+      this.playButtonOverlayButton = button;
+    } else {
+      overlay.addEventListener("click", () => {
+        this.toggle();
+      });
+    }
+    const node = this.getPlayButtonOverlayNode();
+    this.mountPlayButtonOverlay();
     this.on("play", () => {
-      overlay.style.opacity = "0";
-      overlay.style.pointerEvents = "none";
+      node.style.opacity = "0";
+      node.style.pointerEvents = "none";
+      this.playButtonOverlayButton?.setAttribute("aria-label", i18n.t("player.pause"));
     });
     this.on("pause", () => {
-      overlay.style.opacity = "1";
-      overlay.style.pointerEvents = "auto";
+      node.style.opacity = "1";
+      node.style.pointerEvents = "auto";
+      this.playButtonOverlayButton?.setAttribute("aria-label", i18n.t("player.play"));
       this.positionPlayOverlayOnMobile();
     });
     this.on("ended", () => {
-      overlay.style.opacity = "1";
-      overlay.style.pointerEvents = "auto";
+      node.style.opacity = "1";
+      node.style.pointerEvents = "auto";
+      this.playButtonOverlayButton?.setAttribute("aria-label", i18n.t("player.play"));
       this.positionPlayOverlayOnMobile();
     });
     const debouncedPosition = debounce(() => {
@@ -6486,23 +6548,23 @@ var Player = class _Player extends EventEmitter {
   async _detectRendererClass(src) {
     switch (classifyRendererType(src)) {
       case "youtube": {
-        const module = await import("./vidply.YouTubeRenderer-LYQKEEOA.js");
+        const module = await import("./vidply.YouTubeRenderer-UURNSSZG.js");
         return module.YouTubeRenderer ?? module.default;
       }
       case "vimeo": {
-        const module = await import("./vidply.VimeoRenderer-TLWUAJNA.js");
+        const module = await import("./vidply.VimeoRenderer-2QUDYLHB.js");
         return module.VimeoRenderer ?? module.default;
       }
       case "hls": {
-        const module = await import("./vidply.HLSRenderer-RWBPM7OZ.js");
+        const module = await import("./vidply.HLSRenderer-CHMSZVY2.js");
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {
-        const module = await import("./vidply.DASHRenderer-755EDPD3.js");
+        const module = await import("./vidply.DASHRenderer-3H2HHTBU.js");
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
-        const module = await import("./vidply.SoundCloudRenderer-M3UQRYG7.js");
+        const module = await import("./vidply.SoundCloudRenderer-QQD6OJRS.js");
         return module.SoundCloudRenderer ?? module.default;
       }
       default:
@@ -7468,10 +7530,14 @@ var Player = class _Player extends EventEmitter {
       }
       this.floatingPlayerManager = null;
     }
+    if (this.playButtonOverlayButton && this.playButtonOverlayButton.parentNode) {
+      this.playButtonOverlayButton.remove();
+    }
+    this.playButtonOverlayButton = null;
     if (this.playButtonOverlay && this.playButtonOverlay.parentNode) {
       this.playButtonOverlay.remove();
-      this.playButtonOverlay = null;
     }
+    this.playButtonOverlay = null;
     if (this._bufferingHideOnMediaPlaying) {
       this.element.removeEventListener("playing", this._bufferingHideOnMediaPlaying);
       this._bufferingHideOnMediaPlaying = null;
@@ -8323,14 +8389,16 @@ var PlaylistManager = class {
     const effectiveDuration = this.getEffectiveDuration(track);
     const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : "";
     const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : "";
+    const trackDate = typeof track.date === "string" ? track.date : "";
     const artistPart = trackArtist ? i18n.t("playlist.by") + trackArtist : "";
+    const datePart = trackDate ? `. ${trackDate}` : "";
     const durationPart = trackDurationReadable ? `. ${trackDurationReadable}` : "";
     const announcement = i18n.t("playlist.nowPlaying", {
       current: trackNumber,
       total: totalTracks,
       title: trackTitle,
       artist: artistPart
-    }) + durationPart;
+    }) + datePart + durationPart;
     const trackOfText = i18n.t("playlist.trackOf", {
       current: trackNumber,
       total: totalTracks
@@ -8345,6 +8413,7 @@ var PlaylistManager = class {
       </div>
       <div class="vidply-track-title" aria-hidden="true">${DOMUtils.escapeHTML(trackTitle)}</div>
       ${trackArtist ? `<div class="vidply-track-artist" aria-hidden="true">${DOMUtils.escapeHTML(trackArtist)}</div>` : ""}
+      ${trackDate ? `<div class="vidply-track-date" aria-hidden="true">${DOMUtils.escapeHTML(trackDate)}</div>` : ""}
       ${trackDescription ? `<div class="vidply-track-description" aria-hidden="true">${DOMUtils.escapeHTML(trackDescription)}</div>` : ""}
     `;
     this.trackInfoElement.style.display = "block";
@@ -8380,6 +8449,7 @@ var PlaylistManager = class {
     if (safeBackground) {
       this.trackArtworkElement.style.backgroundImage = safeBackground;
       this.trackArtworkElement.style.display = "block";
+      this.player?.mountPlayButtonOverlay(this.trackArtworkElement);
     } else {
       this.trackArtworkElement.style.backgroundImage = "";
       this.trackArtworkElement.style.display = "none";
@@ -8434,7 +8504,11 @@ var PlaylistManager = class {
     const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : "";
     const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : "";
     const isActive = index === this.currentIndex;
+    const trackDate = typeof track.date === "string" ? track.date : "";
     let ariaLabel = `${trackTitle}${trackArtist}`;
+    if (trackDate) {
+      ariaLabel += `. ${trackDate}`;
+    }
     if (trackDurationReadable) {
       ariaLabel += `. ${trackDurationReadable}`;
     }
@@ -8515,6 +8589,13 @@ var PlaylistManager = class {
       });
       artist.textContent = track.artist;
       info.appendChild(artist);
+    }
+    if (trackDate) {
+      const date = DOMUtils.createElement("span", {
+        className: "vidply-playlist-item-date"
+      });
+      date.textContent = trackDate;
+      info.appendChild(date);
     }
     if (track.description) {
       const description = DOMUtils.createElement("span", {

@@ -9,6 +9,12 @@ export interface PlaylistTrack {
     artist?: string;
     poster?: string;
     duration?: number;
+    /**
+     * Publish date of the track, as a **preformatted, already localised
+     * string** (e.g. "18. Mai 2021"). The player renders it verbatim — the
+     * host application knows the content language, the library does not.
+     */
+    date?: string;
     type?: string;
     captions?: Array<{
         src: string;

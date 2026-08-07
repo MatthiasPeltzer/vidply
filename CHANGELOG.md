@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- New `playButtonOverlay` option (`'auto' | true | false`, default `'auto'`)
+  that allows the centered play button on audio players. On audio the
+  overlay is rendered as a real, i18n-labelled `<button>` on top of the
+  track artwork — an `<audio>` element offers no click surface — and its
+  accessible name follows the play/pause state. `'auto'` keeps the
+  previous video-only behaviour, `false` disables the overlay entirely.
+- `PlaylistTrack.date`: an optional, **preformatted and already localised**
+  publish date. It is rendered in the playlist panel rows
+  (`.vidply-playlist-item-date`) and in the now-playing track info
+  (`.vidply-track-date`), and is included in the row's `aria-label` so it
+  is announced together with title and duration. The library renders the
+  string verbatim; locale handling stays with the host application.
+
+### Fixed
+- The keyboard help and settings dialogs were unreadable on audio players.
+  They are positioned inside the player box, which for audio is just the
+  control bar, so `max-height: 80%` squeezed them to about 80 pixels. On
+  audio players the overlay is now anchored to the viewport (and layout
+  containment is dropped there, since it would otherwise keep the fixed
+  overlay trapped inside the player).
+
 ## [1.2.5] - 2026-07-23
 
 ### Security

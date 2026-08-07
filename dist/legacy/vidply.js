@@ -1,5 +1,5 @@
 /*!
- * VidPly v1.2.3 - Universal, Accessible Video Player
+ * VidPly v1.2.5 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
@@ -16958,6 +16958,9 @@
       __publicField(this, "originalAudioDescriptionSource", null);
       __publicField(this, "originalSrc", null);
       __publicField(this, "playButtonOverlay", null);
+      /** Wrapper button for the audio play overlay. Video keeps the bare,
+       *  presentational SVG because the video surface is itself clickable. */
+      __publicField(this, "playButtonOverlayButton", null);
       __publicField(this, "resizeHandler", null);
       __publicField(this, "resizeObserver", null);
       __publicField(this, "resumePromptElement", null);
@@ -17046,6 +17049,9 @@
         controls: true,
         hideControlsDelay: 3e3,
         playPauseButton: true,
+        // 'auto' = video only. Set to true to also show the centered play
+        // button on audio players (rendered on top of the track artwork).
+        playButtonOverlay: "auto",
         progressBar: true,
         currentTime: true,
         duration: true,
@@ -17843,7 +17849,7 @@
           this.element.poster = resolvedPoster;
         }
       }
-      if (this.element.tagName === "VIDEO") {
+      if (this.isPlayButtonOverlayEnabled()) {
         this.createPlayButtonOverlay();
       }
       this.createBufferingLoadingOverlay();
@@ -17871,26 +17877,84 @@
       }, { once: true });
       this.applyTheme();
     }
+    /**
+     * Whether the centered play overlay should be created for this player.
+     * `playButtonOverlay: 'auto'` keeps it video-only.
+     */
+    isPlayButtonOverlayEnabled() {
+      const option = this.options.playButtonOverlay;
+      if (option === false) {
+        return false;
+      }
+      if (this.element.tagName === "VIDEO") {
+        return true;
+      }
+      return option === true;
+    }
+    /** The node actually inserted into the DOM: the button on audio, the SVG on video. */
+    getPlayButtonOverlayNode() {
+      return this.playButtonOverlayButton ?? this.playButtonOverlay;
+    }
+    /**
+     * (Re-)insert the overlay into its host. Audio players hang it on the track
+     * artwork, which `PlaylistManager` may only create once a track is loaded —
+     * hence the separate, idempotent mount step.
+     */
+    mountPlayButtonOverlay(host = null) {
+      const node = this.getPlayButtonOverlayNode();
+      if (!node) {
+        return;
+      }
+      const target = host ?? (this.element.tagName === "AUDIO" ? this.trackArtworkElement ?? this.container : this.videoWrapper);
+      if (!target || node.parentNode === target) {
+        return;
+      }
+      if (this.playButtonOverlayButton) {
+        target.removeAttribute("aria-hidden");
+      }
+      target.appendChild(node);
+    }
     createPlayButtonOverlay() {
-      var _a;
       const overlay = createPlayOverlay();
       this.playButtonOverlay = overlay;
-      overlay.addEventListener("click", () => {
-        this.toggle();
-      });
-      (_a = this.videoWrapper) == null ? void 0 : _a.appendChild(overlay);
+      if (this.element.tagName === "AUDIO") {
+        const button = DOMUtils.createElement("button", {
+          className: `${this.options.classPrefix}-play-overlay-button`,
+          attributes: {
+            type: "button",
+            "aria-label": i18n.t("player.play")
+          }
+        });
+        button.appendChild(overlay);
+        button.addEventListener("click", () => {
+          this.toggle();
+        });
+        this.playButtonOverlayButton = button;
+      } else {
+        overlay.addEventListener("click", () => {
+          this.toggle();
+        });
+      }
+      const node = this.getPlayButtonOverlayNode();
+      this.mountPlayButtonOverlay();
       this.on("play", () => {
-        overlay.style.opacity = "0";
-        overlay.style.pointerEvents = "none";
+        var _a;
+        node.style.opacity = "0";
+        node.style.pointerEvents = "none";
+        (_a = this.playButtonOverlayButton) == null ? void 0 : _a.setAttribute("aria-label", i18n.t("player.pause"));
       });
       this.on("pause", () => {
-        overlay.style.opacity = "1";
-        overlay.style.pointerEvents = "auto";
+        var _a;
+        node.style.opacity = "1";
+        node.style.pointerEvents = "auto";
+        (_a = this.playButtonOverlayButton) == null ? void 0 : _a.setAttribute("aria-label", i18n.t("player.play"));
         this.positionPlayOverlayOnMobile();
       });
       this.on("ended", () => {
-        overlay.style.opacity = "1";
-        overlay.style.pointerEvents = "auto";
+        var _a;
+        node.style.opacity = "1";
+        node.style.pointerEvents = "auto";
+        (_a = this.playButtonOverlayButton) == null ? void 0 : _a.setAttribute("aria-label", i18n.t("player.play"));
         this.positionPlayOverlayOnMobile();
       });
       const debouncedPosition = debounce(() => {
@@ -19034,10 +19098,14 @@
         }
         this.floatingPlayerManager = null;
       }
+      if (this.playButtonOverlayButton && this.playButtonOverlayButton.parentNode) {
+        this.playButtonOverlayButton.remove();
+      }
+      this.playButtonOverlayButton = null;
       if (this.playButtonOverlay && this.playButtonOverlay.parentNode) {
         this.playButtonOverlay.remove();
-        this.playButtonOverlay = null;
       }
+      this.playButtonOverlay = null;
       if (this._bufferingHideOnMediaPlaying) {
         this.element.removeEventListener("playing", this._bufferingHideOnMediaPlaying);
         this._bufferingHideOnMediaPlaying = null;
@@ -19911,14 +19979,16 @@
       const effectiveDuration = this.getEffectiveDuration(track);
       const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : "";
       const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : "";
+      const trackDate = typeof track.date === "string" ? track.date : "";
       const artistPart = trackArtist ? i18n.t("playlist.by") + trackArtist : "";
+      const datePart = trackDate ? `. ${trackDate}` : "";
       const durationPart = trackDurationReadable ? `. ${trackDurationReadable}` : "";
       const announcement = i18n.t("playlist.nowPlaying", {
         current: trackNumber,
         total: totalTracks,
         title: trackTitle,
         artist: artistPart
-      }) + durationPart;
+      }) + datePart + durationPart;
       const trackOfText = i18n.t("playlist.trackOf", {
         current: trackNumber,
         total: totalTracks
@@ -19933,6 +20003,7 @@
       </div>
       <div class="vidply-track-title" aria-hidden="true">${DOMUtils.escapeHTML(trackTitle)}</div>
       ${trackArtist ? `<div class="vidply-track-artist" aria-hidden="true">${DOMUtils.escapeHTML(trackArtist)}</div>` : ""}
+      ${trackDate ? `<div class="vidply-track-date" aria-hidden="true">${DOMUtils.escapeHTML(trackDate)}</div>` : ""}
       ${trackDescription ? `<div class="vidply-track-description" aria-hidden="true">${DOMUtils.escapeHTML(trackDescription)}</div>` : ""}
     `;
       this.trackInfoElement.style.display = "block";
@@ -19942,7 +20013,7 @@
      * Update track artwork display (for audio playlists)
      */
     updateTrackArtwork(track) {
-      var _a, _b;
+      var _a, _b, _c;
       if (((_b = (_a = this.player) == null ? void 0 : _a.element) == null ? void 0 : _b.tagName) !== "AUDIO") {
         if (this.trackArtworkElement) {
           this.trackArtworkElement.style.display = "none";
@@ -19969,6 +20040,7 @@
       if (safeBackground) {
         this.trackArtworkElement.style.backgroundImage = safeBackground;
         this.trackArtworkElement.style.display = "block";
+        (_c = this.player) == null ? void 0 : _c.mountPlayButtonOverlay(this.trackArtworkElement);
       } else {
         this.trackArtworkElement.style.backgroundImage = "";
         this.trackArtworkElement.style.display = "none";
@@ -20023,7 +20095,11 @@
       const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : "";
       const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : "";
       const isActive = index === this.currentIndex;
+      const trackDate = typeof track.date === "string" ? track.date : "";
       let ariaLabel = `${trackTitle}${trackArtist}`;
+      if (trackDate) {
+        ariaLabel += `. ${trackDate}`;
+      }
       if (trackDurationReadable) {
         ariaLabel += `. ${trackDurationReadable}`;
       }
@@ -20104,6 +20180,13 @@
         });
         artist.textContent = track.artist;
         info.appendChild(artist);
+      }
+      if (trackDate) {
+        const date = DOMUtils.createElement("span", {
+          className: "vidply-playlist-item-date"
+        });
+        date.textContent = trackDate;
+        info.appendChild(date);
       }
       if (track.description) {
         const description = DOMUtils.createElement("span", {

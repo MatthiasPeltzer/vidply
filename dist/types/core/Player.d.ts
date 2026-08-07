@@ -147,6 +147,9 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     originalAudioDescriptionSource: string | null;
     originalSrc: string | null;
     playButtonOverlay: SVGSVGElement | null;
+    /** Wrapper button for the audio play overlay. Video keeps the bare,
+     *  presentational SVG because the video surface is itself clickable. */
+    playButtonOverlayButton: HTMLButtonElement | null;
     resizeHandler: (() => void) | null;
     resizeObserver: ResizeObserver | null;
     resumePromptElement: HTMLElement | null;
@@ -274,6 +277,19 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     setThemeVariable(variableName: string, value: string): void;
     resetTheme(): void;
     createContainer(): void;
+    /**
+     * Whether the centered play overlay should be created for this player.
+     * `playButtonOverlay: 'auto'` keeps it video-only.
+     */
+    isPlayButtonOverlayEnabled(): boolean;
+    /** The node actually inserted into the DOM: the button on audio, the SVG on video. */
+    getPlayButtonOverlayNode(): HTMLElement | SVGSVGElement | null;
+    /**
+     * (Re-)insert the overlay into its host. Audio players hang it on the track
+     * artwork, which `PlaylistManager` may only create once a track is loaded —
+     * hence the separate, idempotent mount step.
+     */
+    mountPlayButtonOverlay(host?: HTMLElement | null): void;
     createPlayButtonOverlay(): void;
     /**
      * Purely additive buffering spinner. Never touches play overlay or any other UI —

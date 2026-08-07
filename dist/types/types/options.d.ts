@@ -42,6 +42,18 @@ export interface PlayerOptions {
     controls: boolean;
     hideControlsDelay: number;
     playPauseButton: boolean;
+    /**
+     * Centered play button on top of the media.
+     *
+     *   'auto'  — (default) video only, matching the historic behaviour.
+     *   true    — also render it for audio players, on top of the track
+     *             artwork. Useful for podcast/episode presentations.
+     *   false   — never render it.
+     *
+     * On audio the overlay is a real `<button>` (the audio element itself is
+     * not a click target), so it is keyboard operable and labelled via i18n.
+     */
+    playButtonOverlay: boolean | 'auto';
     progressBar: boolean;
     currentTime: boolean;
     duration: boolean;

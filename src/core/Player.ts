@@ -229,6 +229,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
   originalAudioDescriptionSource: string | null = null;
   originalSrc: string | null = null;
   playButtonOverlay: SVGSVGElement | null = null;
+  /** Wrapper button for the audio play overlay. Video keeps the bare,
+   *  presentational SVG because the video surface is itself clickable. */
+  playButtonOverlayButton: HTMLButtonElement | null = null;
   resizeHandler: (() => void) | null = null;
   resizeObserver: ResizeObserver | null = null;
   resumePromptElement: HTMLElement | null = null;
@@ -345,6 +348,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
       controls: true,
       hideControlsDelay: 3000,
       playPauseButton: true,
+      // 'auto' = video only. Set to true to also show the centered play
+      // button on audio players (rendered on top of the track artwork).
+      playButtonOverlay: 'auto',
       progressBar: true,
       currentTime: true,
       duration: true,
@@ -1276,8 +1282,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
       }
     }
 
-    // Create centered play button overlay (only for video)
-    if (this.element.tagName === 'VIDEO') {
+    // Create centered play button overlay (video by default, audio on request)
+    if (this.isPlayButtonOverlayEnabled()) {
       this.createPlayButtonOverlay();
     }
 
@@ -1336,30 +1342,100 @@ export class Player extends EventEmitter<PlayerEventMap> {
     this.applyTheme();
   }
 
+  /**
+   * Whether the centered play overlay should be created for this player.
+   * `playButtonOverlay: 'auto'` keeps it video-only.
+   */
+  isPlayButtonOverlayEnabled(): boolean {
+    const option = this.options.playButtonOverlay;
+    if (option === false) {
+      return false;
+    }
+    if (this.element.tagName === 'VIDEO') {
+      return true;
+    }
+    return option === true;
+  }
+
+  /** The node actually inserted into the DOM: the button on audio, the SVG on video. */
+  getPlayButtonOverlayNode(): HTMLElement | SVGSVGElement | null {
+    return this.playButtonOverlayButton ?? this.playButtonOverlay;
+  }
+
+  /**
+   * (Re-)insert the overlay into its host. Audio players hang it on the track
+   * artwork, which `PlaylistManager` may only create once a track is loaded —
+   * hence the separate, idempotent mount step.
+   */
+  mountPlayButtonOverlay(host: HTMLElement | null = null) {
+    const node = this.getPlayButtonOverlayNode();
+    if (!node) {
+      return;
+    }
+
+    const target = host
+      ?? (this.element.tagName === 'AUDIO'
+        ? (this.trackArtworkElement ?? this.container)
+        : this.videoWrapper);
+
+    if (!target || node.parentNode === target) {
+      return;
+    }
+
+    // A focusable control must never sit inside an aria-hidden subtree
+    // (the artwork element is decorative and hidden by default).
+    if (this.playButtonOverlayButton) {
+      target.removeAttribute('aria-hidden');
+    }
+
+    target.appendChild(node);
+  }
+
   createPlayButtonOverlay() {
     const overlay = createPlayOverlay();
     this.playButtonOverlay = overlay;
 
-    overlay.addEventListener('click', () => {
-      this.toggle();
-    });
+    if (this.element.tagName === 'AUDIO') {
+      // Unlike video, an <audio> element offers no click surface, so the
+      // overlay has to be an operable control rather than decoration.
+      const button = DOMUtils.createElement('button', {
+        className: `${this.options.classPrefix}-play-overlay-button`,
+        attributes: {
+          type: 'button',
+          'aria-label': i18n.t('player.play')
+        }
+      }) as HTMLButtonElement;
+      button.appendChild(overlay);
+      button.addEventListener('click', () => {
+        this.toggle();
+      });
+      this.playButtonOverlayButton = button;
+    } else {
+      overlay.addEventListener('click', () => {
+        this.toggle();
+      });
+    }
 
-    this.videoWrapper?.appendChild(overlay);
+    const node = this.getPlayButtonOverlayNode() as HTMLElement | SVGSVGElement;
+    this.mountPlayButtonOverlay();
 
     this.on('play', () => {
-      overlay.style.opacity = '0';
-      overlay.style.pointerEvents = 'none';
+      node.style.opacity = '0';
+      node.style.pointerEvents = 'none';
+      this.playButtonOverlayButton?.setAttribute('aria-label', i18n.t('player.pause'));
     });
 
     this.on('pause', () => {
-      overlay.style.opacity = '1';
-      overlay.style.pointerEvents = 'auto';
+      node.style.opacity = '1';
+      node.style.pointerEvents = 'auto';
+      this.playButtonOverlayButton?.setAttribute('aria-label', i18n.t('player.play'));
       this.positionPlayOverlayOnMobile();
     });
 
     this.on('ended', () => {
-      overlay.style.opacity = '1';
-      overlay.style.pointerEvents = 'auto';
+      node.style.opacity = '1';
+      node.style.pointerEvents = 'auto';
+      this.playButtonOverlayButton?.setAttribute('aria-label', i18n.t('player.play'));
       this.positionPlayOverlayOnMobile();
     });
 
@@ -1465,6 +1541,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   positionPlayOverlayOnMobile() {
+    // Video only: the overlay has to follow the letterboxed video box inside
+    // the wrapper. On audio it is centered on the artwork purely by CSS.
     if (!this.playButtonOverlay || this.element.tagName !== 'VIDEO') {
       return;
     }
@@ -2843,10 +2921,14 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     // Cleanup play overlay button
+    if (this.playButtonOverlayButton && this.playButtonOverlayButton.parentNode) {
+      this.playButtonOverlayButton.remove();
+    }
+    this.playButtonOverlayButton = null;
     if (this.playButtonOverlay && this.playButtonOverlay.parentNode) {
       this.playButtonOverlay.remove();
-      this.playButtonOverlay = null;
     }
+    this.playButtonOverlay = null;
 
     // The buffering listener is attached to `this.element` directly and
     // therefore not covered by the lifecycle controller (which only

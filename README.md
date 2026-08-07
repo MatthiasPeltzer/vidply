@@ -374,6 +374,8 @@ const player = new Player('#video', {
   controls: true,
   hideControlsDelay: 3000,
   playPauseButton: true,
+  playButtonOverlay: 'auto', // Centered play button: 'auto' = video only,
+                             // true = also on audio (over the track artwork), false = never
   progressBar: true,
   currentTime: true,
   duration: true,
@@ -670,7 +672,8 @@ playlist.loadPlaylist([
     src: 'track1.mp3',
     title: 'Track 1',
     artist: 'Artist Name',
-    poster: 'thumb1.jpg'
+    poster: 'thumb1.jpg',
+    date: 'May 18, 2021' // Optional, preformatted and already localised by the host
   },
   {
     src: 'track2.mp3',

@@ -34,6 +34,8 @@ type PlaylistTrack = {
   title?: string;
   artist?: string;
   description?: string;
+  /** Preformatted, already localised publish date (see `PlaylistTrack` in types/events.ts). */
+  date?: string;
   [key: string]: unknown;
 };
 
@@ -1159,15 +1161,19 @@ export class PlaylistManager {
     const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration as number) : '';
     const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration as number) : '';
     
-    // Screen reader announcement - include duration if available
+    // Preformatted, already localised publish date supplied by the host
+    const trackDate = typeof track.date === 'string' ? track.date : '';
+    
+    // Screen reader announcement - include date and duration if available
     const artistPart = trackArtist ? i18n.t('playlist.by') + trackArtist : '';
+    const datePart = trackDate ? `. ${trackDate}` : '';
     const durationPart = trackDurationReadable ? `. ${trackDurationReadable}` : '';
     const announcement = i18n.t('playlist.nowPlaying', {
       current: trackNumber,
       total: totalTracks,
       title: trackTitle,
       artist: artistPart
-    }) + durationPart;
+    }) + datePart + durationPart;
     
     const trackOfText = i18n.t('playlist.trackOf', {
       current: trackNumber,
@@ -1190,6 +1196,7 @@ export class PlaylistManager {
       </div>
       <div class="vidply-track-title" aria-hidden="true">${DOMUtils.escapeHTML(trackTitle)}</div>
       ${trackArtist ? `<div class="vidply-track-artist" aria-hidden="true">${DOMUtils.escapeHTML(trackArtist)}</div>` : ''}
+      ${trackDate ? `<div class="vidply-track-date" aria-hidden="true">${DOMUtils.escapeHTML(trackDate)}</div>` : ''}
       ${trackDescription ? `<div class="vidply-track-description" aria-hidden="true">${DOMUtils.escapeHTML(trackDescription)}</div>` : ''}
     `;
     
@@ -1242,6 +1249,9 @@ export class PlaylistManager {
     if (safeBackground) {
       this.trackArtworkElement.style.backgroundImage = safeBackground;
       this.trackArtworkElement.style.display = 'block';
+      // The player may have created its play overlay before any artwork
+      // existed (playlists resolve the poster per track).
+      this.player?.mountPlayButtonOverlay(this.trackArtworkElement);
     } else {
       this.trackArtworkElement.style.backgroundImage = '';
       this.trackArtworkElement.style.display = 'none';
@@ -1319,7 +1329,12 @@ export class PlaylistManager {
     // With role="option" and aria-checked, screen reader will announce selection state
     // Position is already announced via aria-posinset/aria-setsize
     // Format: "Title by Artist. 3 minutes, 45 seconds."
+    const trackDate = typeof track.date === 'string' ? track.date : '';
+    
     let ariaLabel = `${trackTitle}${trackArtist}`;
+    if (trackDate) {
+      ariaLabel += `. ${trackDate}`;
+    }
     if (trackDurationReadable) {
       ariaLabel += `. ${trackDurationReadable}`;
     }
@@ -1430,6 +1445,15 @@ export class PlaylistManager {
       });
       artist.textContent = track.artist;
       info.appendChild(artist);
+    }
+    
+    // Publish date (preformatted by the host application)
+    if (trackDate) {
+      const date = DOMUtils.createElement('span', {
+        className: 'vidply-playlist-item-date'
+      });
+      date.textContent = trackDate;
+      info.appendChild(date);
     }
     
     // Description (truncated)

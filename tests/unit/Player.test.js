@@ -894,4 +894,110 @@ describe('Player', () => {
       expect(enterSpy).toHaveBeenCalled();
     });
   });
+
+  describe('play button overlay', () => {
+    const createAudioElement = () => {
+      const audio = document.createElement('audio');
+      audio.id = 'test-audio';
+      container.appendChild(audio);
+      return audio;
+    };
+
+    // init() is async (i18n), so the DOM is only built after a few microtasks
+    const createPlayer = async (element, options = {}) => {
+      const instance = new Player(element, options);
+      for (let i = 0; i < 20; i++) {
+        await Promise.resolve();
+      }
+      return instance;
+    };
+
+    it('should create the overlay for video by default', async () => {
+      player = await createPlayer(videoElement);
+      
+      expect(player.playButtonOverlay).not.toBeNull();
+      expect(player.playButtonOverlayButton).toBeNull();
+    });
+
+    it('should not create the overlay for video when disabled', async () => {
+      player = await createPlayer(videoElement, { playButtonOverlay: false });
+      
+      expect(player.playButtonOverlay).toBeNull();
+    });
+
+    it('should not create the overlay for audio by default', async () => {
+      player = await createPlayer(createAudioElement(), { poster: 'https://example.com/cover.jpg' });
+      
+      expect(player.playButtonOverlay).toBeNull();
+      expect(player.playButtonOverlayButton).toBeNull();
+    });
+
+    it('should create a labelled button for audio when enabled', async () => {
+      player = await createPlayer(createAudioElement(), {
+        playButtonOverlay: true,
+        poster: 'https://example.com/cover.jpg'
+      });
+      
+      const button = player.playButtonOverlayButton;
+      expect(button).not.toBeNull();
+      expect(button.tagName).toBe('BUTTON');
+      expect(button.getAttribute('type')).toBe('button');
+      expect(button.getAttribute('aria-label')).toBe('player.play');
+      expect(button.contains(player.playButtonOverlay)).toBe(true);
+    });
+
+    it('should mount the audio overlay on the track artwork', async () => {
+      player = await createPlayer(createAudioElement(), {
+        playButtonOverlay: true,
+        poster: 'https://example.com/cover.jpg'
+      });
+      
+      expect(player.trackArtworkElement).not.toBeNull();
+      expect(player.playButtonOverlayButton.parentNode).toBe(player.trackArtworkElement);
+      // A focusable control must not sit inside an aria-hidden subtree
+      expect(player.trackArtworkElement.hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    it('should toggle playback and label from the audio overlay button', async () => {
+      player = await createPlayer(createAudioElement(), {
+        playButtonOverlay: true,
+        poster: 'https://example.com/cover.jpg'
+      });
+      const toggleSpy = vi.spyOn(player, 'toggle').mockImplementation(() => {});
+      
+      player.playButtonOverlayButton.click();
+      expect(toggleSpy).toHaveBeenCalled();
+      
+      player.emit('play');
+      expect(player.playButtonOverlayButton.getAttribute('aria-label')).toBe('player.pause');
+      
+      player.emit('pause');
+      expect(player.playButtonOverlayButton.getAttribute('aria-label')).toBe('player.play');
+    });
+
+    it('should re-mount the overlay on a host supplied later', async () => {
+      player = await createPlayer(createAudioElement(), { playButtonOverlay: true });
+      const artwork = document.createElement('div');
+      artwork.setAttribute('aria-hidden', 'true');
+      container.appendChild(artwork);
+      
+      player.mountPlayButtonOverlay(artwork);
+      
+      expect(player.playButtonOverlayButton.parentNode).toBe(artwork);
+      expect(artwork.hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    it('should remove the overlay button on destroy', async () => {
+      player = await createPlayer(createAudioElement(), {
+        playButtonOverlay: true,
+        poster: 'https://example.com/cover.jpg'
+      });
+      const button = player.playButtonOverlayButton;
+      
+      player.destroy();
+      
+      expect(button.parentNode).toBeNull();
+      expect(player.playButtonOverlayButton).toBeNull();
+    });
+  });
 });

@@ -156,6 +156,7 @@
   --vidply-z-menu: 20; /* Menus in normal mode */
   --vidply-z-menu-fullscreen: 1000; /* Menus in fullscreen mode */
   --vidply-z-menu-high: 100; /* Volume menu */
+  --vidply-z-modal: 2000; /* Dialogs lifted out of the player box (audio) */
   --vidply-z-overlay: 2; /* Play overlay, video wrapper on mobile */
   --vidply-z-playlist: 15; /* Playlist panel in fullscreen */
   --vidply-z-transcript: 5; /* Transcript window */
@@ -734,6 +735,10 @@
   color: #555 !important;
 }
 
+.vidply-theme-light .vidply-playlist-item-date {
+  color: #666 !important;
+}
+
 .vidply-theme-light .vidply-playlist-item-description {
   color: #666 !important;
 }
@@ -781,6 +786,10 @@
 
 .vidply-theme-light .vidply-track-artist {
   color: #444 !important;
+}
+
+.vidply-theme-light .vidply-track-date {
+  color: #555 !important;
 }
 
 .vidply-theme-light .vidply-track-description {
@@ -1646,9 +1655,53 @@ video[data-vidply]:not(.vidply-initialized) {
   transform: translate(-50%, -50%) scale(0.95);
 }
 
-/* Hide play overlay in audio players */
+/* Hide play overlay in audio players unless the `playButtonOverlay` option
+   opted in — in that case the SVG is wrapped in an operable button. */
 .vidply-player.vidply-audio .vidply-play-overlay {
   display: none;
+}
+
+.vidply-play-overlay-button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  left: 50%;
+  line-height: 0;
+  padding: 0;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: var(--vidply-z-overlay);
+}
+
+.vidply-play-overlay-button .vidply-play-overlay {
+  display: block;
+  height: clamp(3rem, 8vw, 5rem);
+  left: auto;
+  position: static;
+  top: auto;
+  transform: none;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: clamp(3rem, 8vw, 5rem);
+}
+
+.vidply-play-overlay-button:hover .vidply-play-overlay {
+  filter: drop-shadow(0 0.75rem 3rem rgb(0 0 0 / 40%));
+  transform: scale(1.1);
+}
+
+.vidply-play-overlay-button:hover .vidply-play-overlay-bg {
+  fill: rgb(255 255 255 / 100%);
+}
+
+.vidply-play-overlay-button:active .vidply-play-overlay {
+  transform: scale(0.95);
+}
+
+.vidply-play-overlay-button:focus-visible {
+  border-radius: 50%;
+  outline: var(--vidply-focus-outline-white);
+  outline-offset: 0.25rem;
 }
 
 /* Controls Container */
@@ -2587,6 +2640,24 @@ video[data-vidply]:not(.vidply-initialized) {
   width: 90%;
 }
 
+/* An audio player is only as tall as its control bar, so a dialog bound to the
+   player box collapses to a sliver (`max-height: 80%` of ~6rem). Anchor the
+   overlay to the viewport instead. Layout containment has to be dropped along
+   with it: it would make the player the containing block for the fixed
+   overlay, putting us right back inside the control bar. */
+.vidply-player.vidply-audio {
+  contain: style;
+}
+
+.vidply-audio .vidply-settings-overlay {
+  position: fixed;
+  z-index: var(--vidply-z-modal);
+}
+
+.vidply-audio .vidply-settings-dialog {
+  max-height: 80vh;
+}
+
 @keyframes vidply-slide-up {
   from {
     transform: translateY(1.25rem);
@@ -3456,6 +3527,11 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   font-size: 0.875rem;
 }
 
+.vidply-track-date {
+  color: var(--vidply-white-60);
+  font-size: 0.8125rem;
+}
+
 .vidply-track-description {
   -webkit-box-orient: vertical;
   color: var(--vidply-white-60);
@@ -3939,6 +4015,16 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   color: var(--vidply-text-disabled);
   display: block;
   font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Publish date - preformatted by the host application */
+.vidply-playlist-item-date {
+  color: var(--vidply-text-subtle);
+  display: block;
+  font-size: 0.6875rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

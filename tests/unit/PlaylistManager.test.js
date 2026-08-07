@@ -740,4 +740,50 @@ describe('PlaylistManager', () => {
       expect(clearSpy).toHaveBeenCalled();
     });
   });
+
+  describe('track date', () => {
+    beforeEach(() => {
+      manager = new PlaylistManager(mockPlayer);
+      manager.tracks = mockTracks;
+    });
+
+    it('should render the preformatted date in a playlist row', () => {
+      const item = manager.createPlaylistItem(
+        { src: 'track1.mp3', title: 'Episode 11', date: '18. Mai 2021' },
+        0
+      );
+      
+      const date = item.querySelector('.vidply-playlist-item-date');
+      expect(date).not.toBeNull();
+      expect(date.textContent).toBe('18. Mai 2021');
+    });
+
+    it('should omit the date element when no date is set', () => {
+      const item = manager.createPlaylistItem({ src: 'track1.mp3', title: 'Episode 11' }, 0);
+      
+      expect(item.querySelector('.vidply-playlist-item-date')).toBeNull();
+    });
+
+    it('should announce the date in the row label', () => {
+      const item = manager.createPlaylistItem(
+        { src: 'track1.mp3', title: 'Episode 11', duration: 180, date: '18. Mai 2021' },
+        0
+      );
+      
+      const label = item.querySelector('.vidply-playlist-item-button').getAttribute('aria-label');
+      expect(label).toContain('18. Mai 2021');
+      expect(label).toContain('3 minutes, 0 seconds');
+    });
+
+    it('should render the date in the track info panel', () => {
+      manager.trackInfoElement = document.createElement('div');
+      manager.currentIndex = 0;
+      
+      manager.updateTrackInfo({ src: 'track1.mp3', title: 'Episode 11', date: '18. Mai 2021' });
+      
+      const date = manager.trackInfoElement.querySelector('.vidply-track-date');
+      expect(date).not.toBeNull();
+      expect(date.textContent).toBe('18. Mai 2021');
+    });
+  });
 });

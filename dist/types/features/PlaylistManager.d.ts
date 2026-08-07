@@ -25,6 +25,8 @@ type PlaylistTrack = {
     title?: string;
     artist?: string;
     description?: string;
+    /** Preformatted, already localised publish date (see `PlaylistTrack` in types/events.ts). */
+    date?: string;
     [key: string]: unknown;
 };
 /**
