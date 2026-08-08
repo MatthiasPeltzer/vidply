@@ -100,6 +100,9 @@ import { Player, PlaylistManager } from 'vidply';
   artist: 'Artist Name',          // Optional: Artist name
   duration: 180,                  // Optional: Duration in seconds
   poster: 'path/to/thumbnail.jpg', // Optional: Thumbnail image
+  downloadUrl: 'path/to/media.mp3', // Optional: File the download button offers for this track
+  downloadFormat: 'MP3',          // Optional: Format for the download label (else inferred)
+  downloadFileSize: 7340032,      // Optional: Size in bytes (else fetched via HEAD)
   tracks: [                       // Optional: Text tracks (captions, chapters)
     {
       src: 'captions.vtt',
@@ -110,6 +113,34 @@ import { Player, PlaylistManager } from 'vidply';
   ]
 }
 ```
+
+### Per-Track Downloads
+
+The download button follows the playlist: set `downloadUrl` on the tracks that
+may be downloaded and the button offers the selected track's file, relabels
+itself with that file's format and size, and disappears on tracks that have no
+`downloadUrl`. It needs `downloadButton: true` in the player options — the
+per-track URL only decides *which* file is offered, not whether the button
+exists at all.
+
+```javascript
+const player = new Player('#audio', { downloadButton: true });
+
+player.playlistManager.loadPlaylist([
+  {
+    src: 'episode-1.m3u8',
+    type: 'application/x-mpegURL',
+    title: 'Episode 1',
+    // Streams are not downloadable — offer the progressive file instead
+    downloadUrl: 'episode-1.mp3',
+    downloadFileSize: 7340032
+  },
+  { src: 'episode-2.mp3', type: 'audio/mpeg', title: 'Episode 2' } // no download
+]);
+```
+
+Playlists that set `downloadUrl` on no track at all keep the player-wide target
+(`downloadUrl` option or `data-vidply-download-url`) for every track.
 
 ## API Methods
 

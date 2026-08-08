@@ -16,6 +16,16 @@ export interface PlaylistTrack {
      */
     date?: string;
     type?: string;
+    /**
+     * File the download button offers while this track is selected. Set it on
+     * every downloadable track — as soon as one track carries it, the button
+     * follows the playlist instead of the player's `downloadUrl` option.
+     */
+    downloadUrl?: string;
+    /** Format shown in the download label, e.g. "MP3". Inferred from `type` or the URL when omitted. */
+    downloadFormat?: string;
+    /** Size of `downloadUrl` in bytes. Skips the HEAD request the button would otherwise send. */
+    downloadFileSize?: number;
     captions?: Array<{
         src: string;
         lang: string;

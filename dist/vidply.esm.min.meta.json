@@ -145,7 +145,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 177592,
+      "bytes": 183156,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -839,7 +839,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 66023,
+      "bytes": 66739,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1243,7 +1243,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 674505
+      "bytes": 683032
     },
     "dist/prod/vidply.esm.min.js": {
       "imports": [
@@ -1337,7 +1337,7 @@
           "bytesInOutput": 3575
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 121888
+          "bytesInOutput": 125864
         },
         "src/controls/KeyboardManager.ts": {
           "bytesInOutput": 10220
@@ -1379,13 +1379,13 @@
           "bytesInOutput": 81127
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 46452
+          "bytesInOutput": 47000
         },
         "src/index.ts": {
           "bytesInOutput": 5074
         }
       },
-      "bytes": 333589
+      "bytes": 338113
     },
     "dist/prod/vidply.chunk-GJIQH5GQ.min.js.map": {
       "imports": [],

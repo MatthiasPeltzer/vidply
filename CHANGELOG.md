@@ -20,8 +20,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`.vidply-track-date`), and is included in the row's `aria-label` so it
   is announced together with title and duration. The library renders the
   string verbatim; locale handling stays with the host application.
+- Per-track downloads in playlists: `PlaylistTrack.downloadUrl` (plus optional
+  `downloadFormat` and `downloadFileSize`) makes the control bar's download
+  button follow the selection — it offers the current track's file, relabels
+  itself with that file's format and size, and is hidden on tracks that carry
+  no `downloadUrl`. A known `downloadFileSize` also skips the HEAD request the
+  button would otherwise send. Playlists that set no track-level URL keep
+  using the player-wide `downloadUrl` / `data-vidply-download-url` target.
 
 ### Fixed
+- The download button in playlists offered the element-level file for every
+  track, so a playlist could only ever hand out one download (usually none at
+  all, since streaming manifests have no progressive URL).
 - The keyboard help and settings dialogs were unreadable on audio players.
   They are positioned inside the player box, which for audio is just the
   control bar, so `max-height: 80%` squeezed them to about 80 pixels. On

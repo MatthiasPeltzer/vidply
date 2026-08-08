@@ -305,6 +305,8 @@ const player = new Player('#video', {
 
 For streaming sources (`.mpd`, `.m3u8`) it is strongly recommended to provide an explicit `downloadUrl` pointing to a single MP4/MP3/WebM file — manifests are not directly downloadable.
 
+In playlists the file can be set per track (`downloadUrl`, `downloadFormat`, `downloadFileSize`), and the button then follows the selection — see [PLAYLIST.md](PLAYLIST.md#per-track-downloads).
+
 ### Custom Floating Player (Miniplayer)
 
 Enable the in-page floating player ("own PiP"). When the original video scrolls

@@ -63,6 +63,24 @@ function getMenuButtonHandlers(button: HTMLElement): MenuButtonHandlers {
     return entry;
 }
 
+/**
+ * The file the download button currently offers, together with the facts its
+ * label is built from. Format and size belong to *this* URL, so the three
+ * values are always resolved and applied together.
+ */
+type DownloadTarget = {
+    url: string;
+    format: string | null;
+    sizeBytes: number | null;
+};
+
+/** Only positive, finite byte counts can produce a size label. */
+function normalizeDownloadSize(value: unknown): number | null {
+    const size = typeof value === 'string' ? Number(value) : value;
+    if (typeof size !== 'number' || !Number.isFinite(size) || size <= 0) return null;
+    return size;
+}
+
 export class ControlBar {
     player: Player;
     _overflowMenuItemRef: HTMLElement | null = null;
@@ -1001,12 +1019,13 @@ export class ControlBar {
             this.rightButtons.appendChild(btn);
         }
 
-        // Download button
+        // Download button — in playlists the offered file belongs to the
+        // selected track, so the target is resolved instead of read straight
+        // off the element.
         if (this.player.options.downloadButton) {
-            const downloadUrl = this.player.options.downloadUrl
-                || this.player.element?.dataset?.vidplyDownloadUrl;
-            if (downloadUrl) {
-                const btn = this.createDownloadButton(downloadUrl);
+            const target = this.resolveDownloadTarget();
+            if (target) {
+                const btn = this.createDownloadButton(target.url, target);
                 btn.dataset.overflowPriority = '2';
                 btn.dataset.overflowPriorityMobile = '3';
                 this.rightButtons.appendChild(btn);
@@ -3148,40 +3167,27 @@ export class ControlBar {
         return button;
     }
 
-    createDownloadButton(downloadUrl: string) {
-        const dataset = this.player.element?.dataset || ({} as DOMStringMap);
-
-        const format = this.resolveDownloadFormat(downloadUrl);
-        const initialSize = this.resolveInitialDownloadSize();
-
-        const baseLabel = i18n.t('player.download');
-        const initialLabel = buildDownloadLabel({
-            baseLabel,
-            format,
-            sizeBytes: initialSize,
-            locale: i18n.getLanguage(),
-            withFormatSizeTemplate: i18n.t('player.downloadWithFormatSize'),
-            withFormatTemplate: i18n.t('player.downloadWithFormat'),
-            withSizeTemplate: i18n.t('player.downloadWithSize')
-        });
-
+    /**
+     * @param downloadUrl File the button offers when nothing else resolves.
+     * @param target Format/size that belong to `downloadUrl` — passed by
+     *   playlists, which know their track's metadata; omitted for single media,
+     *   where format and size are read from the element and player options.
+     */
+    createDownloadButton(downloadUrl: string, target?: Partial<DownloadTarget>) {
         const button = DOMUtils.createElement('button', {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-download`,
             attributes: {
                 'type': 'button',
-                'aria-label': initialLabel
+                'aria-label': i18n.t('player.download')
             }
         }) as HTMLButtonElement;
-
-        if (format) button.dataset.vidplyDownloadFormat = format;
-        if (initialSize != null) button.dataset.vidplyDownloadSize = String(initialSize);
 
         button.appendChild(createIconElement('download'));
 
         button.addEventListener('click', () => {
-            const url = this.player.options.downloadUrl
-                || dataset.vidplyDownloadUrl
-                || downloadUrl;
+            // Resolved again on click so a playlist that advanced in the
+            // meantime hands out the track the label describes.
+            const url = this.resolveDownloadTarget()?.url || downloadUrl;
             if (!url) return;
 
             const a = document.createElement('a');
@@ -3194,26 +3200,163 @@ export class ControlBar {
             document.body.removeChild(a);
         });
 
-        // If size wasn't provided, try a HEAD request and update the label/tooltip when it resolves.
-        const shouldFetchSize = this.player.options.downloadFetchSize !== false && initialSize == null;
-        if (shouldFetchSize) {
-            fetchContentLength(downloadUrl).then(sizeBytes => {
-                if (sizeBytes == null) return;
-                const newLabel = buildDownloadLabel({
-                    baseLabel,
-                    format,
-                    sizeBytes,
-                    locale: i18n.getLanguage(),
-                    withFormatSizeTemplate: i18n.t('player.downloadWithFormatSize'),
-                    withFormatTemplate: i18n.t('player.downloadWithFormat'),
-                    withSizeTemplate: i18n.t('player.downloadWithSize')
-                });
-                button.dataset.vidplyDownloadSize = String(sizeBytes);
-                this.updateDownloadButtonLabel(button, newLabel);
-            });
-        }
+        this.controls.download = button;
+
+        this.applyDownloadTarget(button, {
+            url: downloadUrl,
+            format: target?.format ?? this.resolveDownloadFormat(downloadUrl),
+            sizeBytes: target?.sizeBytes ?? this.resolveInitialDownloadSize()
+        });
 
         return button;
+    }
+
+    /**
+     * Point the download button at the file that is loaded now, creating or
+     * hiding it as the current media allows one.
+     *
+     * Playlists swap the file behind the player without always rebuilding the
+     * control bar — MSE renderers (DASH/HLS) skip the rebuild — so track
+     * changes call this to keep button, label and target in sync.
+     */
+    updateDownloadButton(): void {
+        if (!this.rightButtons) return;
+
+        const target = this.player.options.downloadButton ? this.resolveDownloadTarget() : null;
+        const existing = this.controls.download as HTMLButtonElement | undefined;
+        // A rebuild leaves `controls` pointing at discarded nodes, so only a
+        // button that is still mounted can be reused.
+        const mounted = existing && this.rightButtons.contains(existing) ? existing : undefined;
+
+        if (!target) {
+            if (mounted) mounted.style.display = 'none';
+            return;
+        }
+
+        if (!mounted) {
+            const prefix = this.player.options.classPrefix;
+            const button = this.createDownloadButton(target.url, target);
+            button.dataset.overflowPriority = '2';
+            button.dataset.overflowPriorityMobile = '3';
+            const insertBefore = this.rightButtons.querySelector(`.${prefix}-pip`)
+                || this.rightButtons.querySelector(`.${prefix}-fullscreen`);
+            if (insertBefore) {
+                this.rightButtons.insertBefore(button, insertBefore);
+            } else {
+                this.rightButtons.appendChild(button);
+            }
+            if (button.getAttribute('aria-label')) {
+                DOMUtils.attachTooltip(button, button.getAttribute('aria-label') as string, prefix);
+            }
+            // A new button can push the bar past its width.
+            this.checkOverflow();
+            return;
+        }
+
+        mounted.style.display = '';
+        this.applyDownloadTarget(mounted, target);
+    }
+
+    /**
+     * Resolve which file the download button offers.
+     *
+     * Playlist tracks may carry `downloadUrl` (plus optional `downloadFormat`
+     * and `downloadFileSize`), which makes the button follow the selection.
+     * Playlists without any of those, and single media, keep using the player
+     * option and the `data-vidply-download-url` attribute.
+     */
+    resolveDownloadTarget(): DownloadTarget | null {
+        const track = this.resolveDownloadTrack();
+
+        if (track) {
+            const url = typeof track.downloadUrl === 'string' ? track.downloadUrl : '';
+            if (!url) return null;
+
+            const trackFormat = typeof track.downloadFormat === 'string' ? track.downloadFormat : '';
+            const mime = typeof track.type === 'string' ? track.type : null;
+
+            return {
+                url,
+                format: trackFormat || inferFormatFromMime(mime) || inferFormatFromUrl(url),
+                sizeBytes: normalizeDownloadSize(track.downloadFileSize)
+            };
+        }
+
+        const url = this.player.options.downloadUrl
+            || this.player.element?.dataset?.vidplyDownloadUrl
+            || '';
+        if (!url) return null;
+
+        return {
+            url,
+            format: this.resolveDownloadFormat(url),
+            sizeBytes: this.resolveInitialDownloadSize()
+        };
+    }
+
+    /**
+     * The selected playlist track, but only for playlists that describe their
+     * downloads themselves. Older playlists say nothing about downloads, and
+     * for those the element-level target must stay in charge.
+     */
+    resolveDownloadTrack(): Record<string, unknown> | null {
+        const manager = this.player.playlistManager;
+        const tracks = manager?.tracks;
+        if (!manager || !Array.isArray(tracks) || tracks.length === 0) return null;
+
+        const describesDownloads = tracks.some(track => {
+            const url = (track as { downloadUrl?: unknown })?.downloadUrl;
+            return typeof url === 'string' && url !== '';
+        });
+        if (!describesDownloads) return null;
+
+        return (manager.getCurrentTrack?.() ?? null) as Record<string, unknown> | null;
+    }
+
+    /**
+     * Write a resolved target onto the button: the URL it hands out, the data
+     * attributes host pages read, and the label built from format and size.
+     */
+    applyDownloadTarget(button: HTMLButtonElement, target: DownloadTarget): void {
+        button.dataset.vidplyDownloadUrl = target.url;
+
+        if (target.format) {
+            button.dataset.vidplyDownloadFormat = target.format;
+        } else {
+            delete button.dataset.vidplyDownloadFormat;
+        }
+
+        if (target.sizeBytes != null) {
+            button.dataset.vidplyDownloadSize = String(target.sizeBytes);
+        } else {
+            delete button.dataset.vidplyDownloadSize;
+        }
+
+        this.updateDownloadButtonLabel(button, this.composeDownloadLabel(target.format, target.sizeBytes));
+
+        // Without a known size, ask the server for one and relabel afterwards.
+        if (this.player.options.downloadFetchSize === false || target.sizeBytes != null) return;
+
+        fetchContentLength(target.url).then(sizeBytes => {
+            // The next track may already own the button by now — never label it
+            // with the size of a file it no longer offers.
+            if (sizeBytes == null || button.dataset.vidplyDownloadUrl !== target.url) return;
+            button.dataset.vidplyDownloadSize = String(sizeBytes);
+            this.updateDownloadButtonLabel(button, this.composeDownloadLabel(target.format, sizeBytes));
+        });
+    }
+
+    /** Localized download label for a format/size pair. */
+    composeDownloadLabel(format: string | null, sizeBytes: number | null): string {
+        return buildDownloadLabel({
+            baseLabel: i18n.t('player.download'),
+            format,
+            sizeBytes,
+            locale: i18n.getLanguage(),
+            withFormatSizeTemplate: i18n.t('player.downloadWithFormatSize'),
+            withFormatTemplate: i18n.t('player.downloadWithFormat'),
+            withSizeTemplate: i18n.t('player.downloadWithSize')
+        });
     }
 
     /**
@@ -3248,16 +3391,8 @@ export class ControlBar {
      */
     resolveInitialDownloadSize(): number | null {
         const dataset = this.player.element?.dataset || ({} as DOMStringMap);
-        const optionSize = this.player.options.downloadFileSize;
-        if (typeof optionSize === 'number' && Number.isFinite(optionSize) && optionSize > 0) {
-            return optionSize;
-        }
-        const datasetSize = dataset.vidplyDownloadSize;
-        if (datasetSize) {
-            const n = Number(datasetSize);
-            if (Number.isFinite(n) && n > 0) return n;
-        }
-        return null;
+        return normalizeDownloadSize(this.player.options.downloadFileSize)
+            ?? normalizeDownloadSize(dataset.vidplyDownloadSize);
     }
 
     /**

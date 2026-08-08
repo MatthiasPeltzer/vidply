@@ -25,6 +25,10 @@ type PlaylistTrack = {
   src?: string;
   type?: string;
   poster?: string;
+  /** File this track offers for download (see `PlaylistTrack` in types/events.ts). */
+  downloadUrl?: string;
+  downloadFormat?: string;
+  downloadFileSize?: number;
   tracks?: PlaylistTextTrack[];
   audioDescriptionSrc?: string | null;
   audioDescriptionDuration?: number | string | null;
@@ -518,6 +522,19 @@ export class PlaylistManager {
     controlBar.attachEvents();
     controlBar.setupAutoHide();
   }
+
+  /**
+   * Move the control bar's download button to the selected track.
+   *
+   * Tracks may each offer their own file, and the control bar is not always
+   * rebuilt on a track change (MSE renderers keep their controls), so the
+   * button is refreshed explicitly.
+   */
+  refreshDownloadButton() {
+    if (typeof this.player.controlBar?.updateDownloadButton === 'function') {
+      this.player.controlBar.updateDownloadButton();
+    }
+  }
   
   /**
    * Load a playlist
@@ -777,6 +794,7 @@ export class PlaylistManager {
 
     this.updateTrackInfo(track);
     this.updatePlaylistUI();
+    this.refreshDownloadButton();
 
     this.player.emit('playlisttrackselect', {
       index,
@@ -818,6 +836,7 @@ export class PlaylistManager {
         // Update UI after recreation
         this.updateTrackInfo(track);
         this.updatePlaylistUI();
+        this.refreshDownloadButton();
         
         // Emit event
         this.player.emit('playlisttrackchange', {
@@ -857,6 +876,7 @@ export class PlaylistManager {
     // Update UI
     this.updateTrackInfo(track);
     this.updatePlaylistUI();
+    this.refreshDownloadButton();
     
     // Emit event
     this.player.emit('playlisttrackchange', {

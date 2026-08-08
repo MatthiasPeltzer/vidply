@@ -3,6 +3,16 @@
  */
 import type { Player } from '../core/Player.js';
 type TimerHandle = ReturnType<typeof setTimeout>;
+/**
+ * The file the download button currently offers, together with the facts its
+ * label is built from. Format and size belong to *this* URL, so the three
+ * values are always resolved and applied together.
+ */
+type DownloadTarget = {
+    url: string;
+    format: string | null;
+    sizeBytes: number | null;
+};
 export declare class ControlBar {
     player: Player;
     _overflowMenuItemRef: HTMLElement | null;
@@ -157,7 +167,44 @@ export declare class ControlBar {
      */
     updateAccessibilityButtons(): void;
     createPipButton(): HTMLButtonElement;
-    createDownloadButton(downloadUrl: string): HTMLButtonElement;
+    /**
+     * @param downloadUrl File the button offers when nothing else resolves.
+     * @param target Format/size that belong to `downloadUrl` — passed by
+     *   playlists, which know their track's metadata; omitted for single media,
+     *   where format and size are read from the element and player options.
+     */
+    createDownloadButton(downloadUrl: string, target?: Partial<DownloadTarget>): HTMLButtonElement;
+    /**
+     * Point the download button at the file that is loaded now, creating or
+     * hiding it as the current media allows one.
+     *
+     * Playlists swap the file behind the player without always rebuilding the
+     * control bar — MSE renderers (DASH/HLS) skip the rebuild — so track
+     * changes call this to keep button, label and target in sync.
+     */
+    updateDownloadButton(): void;
+    /**
+     * Resolve which file the download button offers.
+     *
+     * Playlist tracks may carry `downloadUrl` (plus optional `downloadFormat`
+     * and `downloadFileSize`), which makes the button follow the selection.
+     * Playlists without any of those, and single media, keep using the player
+     * option and the `data-vidply-download-url` attribute.
+     */
+    resolveDownloadTarget(): DownloadTarget | null;
+    /**
+     * The selected playlist track, but only for playlists that describe their
+     * downloads themselves. Older playlists say nothing about downloads, and
+     * for those the element-level target must stay in charge.
+     */
+    resolveDownloadTrack(): Record<string, unknown> | null;
+    /**
+     * Write a resolved target onto the button: the URL it hands out, the data
+     * attributes host pages read, and the label built from format and size.
+     */
+    applyDownloadTarget(button: HTMLButtonElement, target: DownloadTarget): void;
+    /** Localized download label for a format/size pair. */
+    composeDownloadLabel(format: string | null, sizeBytes: number | null): string;
     /**
      * Resolve the human-readable file format (e.g. "MP4") for the download
      * button from options, data attributes, the matching <source type>, or

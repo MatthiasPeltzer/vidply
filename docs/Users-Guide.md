@@ -341,6 +341,10 @@ The button is keyboard accessible, fully internationalized (`player.download` tr
 
 > Hint for streaming sources: `downloadUrl` is normally the URL of an MP4/MP3 fallback because users typically can't download a `.mpd` or `.m3u8` manifest as a single file.
 
+In a playlist each track can bring its own file (`downloadUrl`, `downloadFormat`,
+`downloadFileSize`). The button then offers whatever is selected and hides on
+tracks that are not downloadable — see [PLAYLIST.md](PLAYLIST.md#per-track-downloads).
+
 ---
 
 ## Custom Floating Player (Miniplayer)

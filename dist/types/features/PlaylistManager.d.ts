@@ -16,6 +16,10 @@ type PlaylistTrack = {
     src?: string;
     type?: string;
     poster?: string;
+    /** File this track offers for download (see `PlaylistTrack` in types/events.ts). */
+    downloadUrl?: string;
+    downloadFormat?: string;
+    downloadFileSize?: number;
     tracks?: PlaylistTextTrack[];
     audioDescriptionSrc?: string | null;
     audioDescriptionDuration?: number | string | null;
@@ -97,6 +101,14 @@ export declare class PlaylistManager {
      * Update player controls to add playlist navigation buttons
      */
     updatePlayerControls(): void;
+    /**
+     * Move the control bar's download button to the selected track.
+     *
+     * Tracks may each offer their own file, and the control bar is not always
+     * rebuilt on a track change (MSE renderers keep their controls), so the
+     * button is refreshed explicitly.
+     */
+    refreshDownloadButton(): void;
     /**
      * Load a playlist
      * @param {Array} tracks - Array of track objects
