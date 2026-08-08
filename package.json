@@ -82,7 +82,7 @@
     "@vitest/coverage-v8": "^4.1.10",
     "clean-css": "^5.3.3",
     "esbuild": "^0.28.1",
-    "eslint": "^10.8.0",
+    "eslint": "^10.8.1",
     "jsdom": "^30.0.1",
     "prettier": "^3.9.6",
     "serve": "14.2.6",
