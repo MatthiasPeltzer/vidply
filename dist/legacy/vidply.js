@@ -16895,6 +16895,7 @@
       return list;
     }
     show() {
+      var _a;
       if (this.isOpen) return;
       if (!this.overlay) {
         this.overlay = this.createElement();
@@ -16905,15 +16906,17 @@
       const active = typeof document !== "undefined" ? document.activeElement : null;
       this._triggerElement = active && typeof active.focus === "function" ? active : null;
       this.overlay.style.display = "flex";
+      (_a = this.player.container) == null ? void 0 : _a.classList.add(`${this.prefix}-modal-open`);
       this.isOpen = true;
       const closeButton = this.overlay.querySelector(`.${this.prefix}-settings-close`);
       closeButton == null ? void 0 : closeButton.focus({ preventScroll: true });
       this.player.emit("keyboardhelpopen");
     }
     hide() {
-      var _a, _b;
+      var _a, _b, _c;
       if (!this.overlay) return;
       this.overlay.style.display = "none";
+      (_a = this.player.container) == null ? void 0 : _a.classList.remove(`${this.prefix}-modal-open`);
       this.isOpen = false;
       const trigger = this._triggerElement;
       this._triggerElement = null;
@@ -16921,10 +16924,10 @@
         try {
           trigger.focus({ preventScroll: true });
         } catch {
-          (_a = this.player.container) == null ? void 0 : _a.focus();
+          (_b = this.player.container) == null ? void 0 : _b.focus();
         }
       } else {
-        (_b = this.player.container) == null ? void 0 : _b.focus();
+        (_c = this.player.container) == null ? void 0 : _c.focus();
       }
       this.player.emit("keyboardhelpclose");
     }
@@ -16936,6 +16939,7 @@
       }
     }
     destroy() {
+      var _a;
       if (this._keydownHandler) {
         document.removeEventListener("keydown", this._keydownHandler);
         this._keydownHandler = null;
@@ -16943,6 +16947,7 @@
       if (this.overlay && this.overlay.parentNode) {
         this.overlay.parentNode.removeChild(this.overlay);
       }
+      (_a = this.player.container) == null ? void 0 : _a.classList.remove(`${this.prefix}-modal-open`);
       this.overlay = null;
       this._content = null;
       this._triggerElement = null;

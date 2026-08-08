@@ -2654,6 +2654,14 @@ video[data-vidply]:not(.vidply-initialized) {
   z-index: var(--vidply-z-modal);
 }
 
+/* A dialog escapes the player's box but not its stacking context, and host
+   stylesheets commonly give the player a stacking level of its own to lift it
+   over page decoration. Page content stacked above that level would then paint
+   over the dialog, so lift the player itself for as long as one is open. */
+.vidply-player.vidply-modal-open {
+  z-index: var(--vidply-z-modal);
+}
+
 .vidply-audio .vidply-settings-dialog {
   max-height: 80vh;
 }

@@ -365,7 +365,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardHelp.ts": {
-      "bytes": 9955,
+      "bytes": 10174,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1243,7 +1243,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 683032
+      "bytes": 683407
     },
     "dist/prod/vidply.esm.min.js": {
       "imports": [
@@ -1373,7 +1373,7 @@
           "bytesInOutput": 14231
         },
         "src/controls/KeyboardHelp.ts": {
-          "bytesInOutput": 7833
+          "bytesInOutput": 8052
         },
         "src/core/Player.ts": {
           "bytesInOutput": 81127
@@ -1385,7 +1385,7 @@
           "bytesInOutput": 5074
         }
       },
-      "bytes": 338113
+      "bytes": 338332
     },
     "dist/prod/vidply.chunk-GJIQH5GQ.min.js.map": {
       "imports": [],

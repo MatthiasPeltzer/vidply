@@ -38,6 +38,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   audio players the overlay is now anchored to the viewport (and layout
   containment is dropped there, since it would otherwise keep the fixed
   overlay trapped inside the player).
+- Page content could paint over an open dialog. A dialog escapes the player's
+  box but not its stacking context, so a host stylesheet that gives the player
+  a stacking level of its own — a common way to lift it over page decoration —
+  left anything stacked above that level covering the dialog. The player is now
+  lifted to the modal level itself (`vidply-modal-open`) while one is open.
 
 ## [1.2.5] - 2026-07-23
 

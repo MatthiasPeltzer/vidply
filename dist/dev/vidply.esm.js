@@ -5383,6 +5383,7 @@ var KeyboardHelp = class {
     const active = typeof document !== "undefined" ? document.activeElement : null;
     this._triggerElement = active && typeof active.focus === "function" ? active : null;
     this.overlay.style.display = "flex";
+    this.player.container?.classList.add(`${this.prefix}-modal-open`);
     this.isOpen = true;
     const closeButton = this.overlay.querySelector(`.${this.prefix}-settings-close`);
     closeButton?.focus({ preventScroll: true });
@@ -5391,6 +5392,7 @@ var KeyboardHelp = class {
   hide() {
     if (!this.overlay) return;
     this.overlay.style.display = "none";
+    this.player.container?.classList.remove(`${this.prefix}-modal-open`);
     this.isOpen = false;
     const trigger = this._triggerElement;
     this._triggerElement = null;
@@ -5420,6 +5422,7 @@ var KeyboardHelp = class {
     if (this.overlay && this.overlay.parentNode) {
       this.overlay.parentNode.removeChild(this.overlay);
     }
+    this.player.container?.classList.remove(`${this.prefix}-modal-open`);
     this.overlay = null;
     this._content = null;
     this._triggerElement = null;

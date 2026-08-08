@@ -439,7 +439,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardHelp.ts": {
-      "bytes": 9955,
+      "bytes": 10174,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1057,7 +1057,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1465525
+      "bytes": 1465924
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1215,7 +1215,7 @@
           "bytesInOutput": 15264
         },
         "src/controls/KeyboardHelp.ts": {
-          "bytesInOutput": 8634
+          "bytesInOutput": 8975
         },
         "src/features/PlaylistManager.ts": {
           "bytesInOutput": 50915
@@ -1224,7 +1224,7 @@
           "bytesInOutput": 5385
         }
       },
-      "bytes": 856213
+      "bytes": 856554
     }
   }
 }
