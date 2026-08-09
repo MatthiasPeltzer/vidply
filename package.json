@@ -81,7 +81,7 @@
     "@typescript-eslint/parser": "^8.66.0",
     "@vitest/coverage-v8": "^4.1.10",
     "clean-css": "^5.3.3",
-    "esbuild": "^0.28.1",
+    "esbuild": "^0.28.2",
     "eslint": "^10.8.1",
     "jsdom": "^30.0.1",
     "prettier": "^3.9.6",
