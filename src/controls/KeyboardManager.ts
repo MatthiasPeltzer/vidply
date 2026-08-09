@@ -16,6 +16,7 @@ export class KeyboardManager {
   // Gated until 'ready' so initial volume/mute/source setup stays silent.
   private _announceReady = false;
   private _prevMuted: boolean;
+  private _prevVolumePercent: number;
   private _stateAnnouncers: Array<{ event: string; handler: (...args: unknown[]) => void }> = [];
   private _announceVolume: () => void;
 
@@ -23,10 +24,17 @@ export class KeyboardManager {
     this.player = player;
     this.shortcuts = player.options.keyboardShortcuts;
     this._prevMuted = player.state.muted;
+    // A volume restored from storage is pushed to the renderer after 'ready',
+    // so it arrives as a volumechange the user never caused. Seeding the last
+    // announced level from the current state keeps that setup silent, the way
+    // `_prevMuted` does for the mute state, while real changes still speak.
+    this._prevVolumePercent = Math.round(player.state.volume * 100);
     // Volume slider drags emit a stream of volumechange events; debounce the
     // level announcement so AT hears the final value instead of every step.
     this._announceVolume = debounce(() => {
       const percent = Math.round(this.player.state.volume * 100);
+      if (percent === this._prevVolumePercent) return;
+      this._prevVolumePercent = percent;
       this.announce(i18n.t('player.volumePercent', { percent }));
     }, 500);
 
@@ -43,6 +51,11 @@ export class KeyboardManager {
    * captions, fullscreen and speed changes are announced to assistive tech
    * regardless of whether the user used the keyboard, mouse or touch
    * (WCAG 4.1.3 Status Messages).
+   *
+   * These are the announcements `screenReaderAnnouncements: false` turns off.
+   * Announcements tied to an explicit action — `Player.showNotice()` and the
+   * sign-language drag/resize hints — keep speaking, since suppressing them
+   * would leave that action with no feedback at all.
    */
   attachStateAnnouncements(): void {
     // Defensive: the player exposes an EventEmitter `on`/`off` API at runtime.
@@ -52,7 +65,11 @@ export class KeyboardManager {
     this.player.on('ready', onReady);
 
     const register = (event: string, handler: () => void) => {
-      const wrapped = () => { if (this._announceReady) handler(); };
+      const wrapped = () => {
+        if (!this._announceReady) return;
+        if (!this.player.options.screenReaderAnnouncements) return;
+        handler();
+      };
       this.player.on(event as never, wrapped as never);
       this._stateAnnouncers.push({ event, handler: wrapped as (...args: unknown[]) => void });
     };

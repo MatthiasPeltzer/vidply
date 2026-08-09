@@ -9,6 +9,7 @@ export declare class KeyboardManager {
     private announcer;
     private _announceReady;
     private _prevMuted;
+    private _prevVolumePercent;
     private _stateAnnouncers;
     private _announceVolume;
     constructor(player: Player);
@@ -18,6 +19,11 @@ export declare class KeyboardManager {
      * captions, fullscreen and speed changes are announced to assistive tech
      * regardless of whether the user used the keyboard, mouse or touch
      * (WCAG 4.1.3 Status Messages).
+     *
+     * These are the announcements `screenReaderAnnouncements: false` turns off.
+     * Announcements tied to an explicit action — `Player.showNotice()` and the
+     * sign-language drag/resize hints — keep speaking, since suppressing them
+     * would leave that action with no feedback at all.
      */
     attachStateAnnouncements(): void;
     attachEvents(): void;

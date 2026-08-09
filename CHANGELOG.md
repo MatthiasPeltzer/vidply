@@ -29,6 +29,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   using the player-wide `downloadUrl` / `data-vidply-download-url` target.
 
 ### Fixed
+- `screenReaderAnnouncements: false` no longer had any effect on play/pause,
+  volume, mute, caption, fullscreen and speed announcements. Those moved from
+  the keyboard handler onto player events so pointer and touch use announces
+  too, and the option check stayed behind. It now gates them again.
+  `showNotice()` and the sign-language drag/resize hints keep announcing, as
+  suppressing them would leave the action they belong to without feedback.
+- Every player announced its own volume to screen readers on page load. A
+  volume restored from storage is pushed to the renderer after `ready`, so it
+  arrived as a `volumechange` the listener could not tell apart from a real
+  one; on a page with two players that meant hearing "Volume 53 percent"
+  twice before touching anything. The level is now announced only when it
+  actually differs from the last announced one, the way the mute state
+  already worked.
 - The download button in playlists offered the element-level file for every
   track, so a playlist could only ever hand out one download (usually none at
   all, since streaming manifests have no progressive URL).

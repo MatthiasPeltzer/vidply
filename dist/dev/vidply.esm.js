@@ -3471,14 +3471,18 @@ var KeyboardManager = class {
   // Gated until 'ready' so initial volume/mute/source setup stays silent.
   _announceReady = false;
   _prevMuted;
+  _prevVolumePercent;
   _stateAnnouncers = [];
   _announceVolume;
   constructor(player) {
     this.player = player;
     this.shortcuts = player.options.keyboardShortcuts;
     this._prevMuted = player.state.muted;
+    this._prevVolumePercent = Math.round(player.state.volume * 100);
     this._announceVolume = debounce(() => {
       const percent = Math.round(this.player.state.volume * 100);
+      if (percent === this._prevVolumePercent) return;
+      this._prevVolumePercent = percent;
       this.announce(i18n.t("player.volumePercent", { percent }));
     }, 500);
     this.init();
@@ -3492,6 +3496,11 @@ var KeyboardManager = class {
    * captions, fullscreen and speed changes are announced to assistive tech
    * regardless of whether the user used the keyboard, mouse or touch
    * (WCAG 4.1.3 Status Messages).
+   *
+   * These are the announcements `screenReaderAnnouncements: false` turns off.
+   * Announcements tied to an explicit action — `Player.showNotice()` and the
+   * sign-language drag/resize hints — keep speaking, since suppressing them
+   * would leave that action with no feedback at all.
    */
   attachStateAnnouncements() {
     if (typeof this.player.on !== "function") return;
@@ -3501,7 +3510,9 @@ var KeyboardManager = class {
     this.player.on("ready", onReady);
     const register = (event, handler) => {
       const wrapped = () => {
-        if (this._announceReady) handler();
+        if (!this._announceReady) return;
+        if (!this.player.options.screenReaderAnnouncements) return;
+        handler();
       };
       this.player.on(event, wrapped);
       this._stateAnnouncers.push({ event, handler: wrapped });

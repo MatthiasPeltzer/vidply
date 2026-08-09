@@ -275,7 +275,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.ts": {
-      "bytes": 13450,
+      "bytes": 14363,
       "imports": [
         {
           "path": "src/i18n/i18n.ts",
@@ -1057,7 +1057,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1465924
+      "bytes": 1467034
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1182,7 +1182,7 @@
           "bytesInOutput": 3863
         },
         "src/controls/KeyboardManager.ts": {
-          "bytesInOutput": 11246
+          "bytesInOutput": 11862
         },
         "src/core/MediaSessionManager.ts": {
           "bytesInOutput": 7899
@@ -1224,7 +1224,7 @@
           "bytesInOutput": 5385
         }
       },
-      "bytes": 856554
+      "bytes": 857170
     }
   }
 }

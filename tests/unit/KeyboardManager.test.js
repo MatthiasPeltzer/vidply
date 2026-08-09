@@ -485,6 +485,100 @@ describe('KeyboardManager', () => {
     });
   });
 
+  describe('state announcements', () => {
+    // The mock player above has no event emitter, so attachStateAnnouncements()
+    // bails out there. These cases need one to drive the player events.
+    const createEmittingPlayer = (volume) => {
+      const handlers = {};
+      const emittingContainer = document.createElement('div');
+      document.body.appendChild(emittingContainer);
+
+      return {
+        container: emittingContainer,
+        options: {
+          keyboardShortcuts: {},
+          debug: false,
+          screenReaderAnnouncements: true,
+          classPrefix: 'vidply'
+        },
+        state: {
+          volume,
+          playing: false,
+          muted: false,
+          fullscreen: false,
+          captionsEnabled: false,
+          playbackSpeed: 1
+        },
+        on(event, handler) {
+          (handlers[event] ||= []).push(handler);
+        },
+        off: vi.fn(),
+        emit(event) {
+          (handlers[event] || []).forEach((handler) => handler());
+        }
+      };
+    };
+
+    it('should stay silent when a restored volume is re-applied after ready', () => {
+      // Preferences from storage reach the renderer after 'ready', so the
+      // player emits volumechange for a level the user never touched.
+      const player = createEmittingPlayer(0.53);
+      const stateManager = new KeyboardManager(player);
+      const announceSpy = vi.spyOn(stateManager, 'announce');
+
+      player.emit('ready');
+      player.emit('volumechange');
+      vi.advanceTimersByTime(1000);
+
+      expect(announceSpy).not.toHaveBeenCalled();
+    });
+
+    it('should announce a volume the user actually changed', () => {
+      const player = createEmittingPlayer(0.53);
+      const stateManager = new KeyboardManager(player);
+      const announceSpy = vi.spyOn(stateManager, 'announce');
+
+      player.emit('ready');
+      player.state.volume = 0.6;
+      player.emit('volumechange');
+      vi.advanceTimersByTime(1000);
+
+      expect(announceSpy).toHaveBeenCalledWith('Volume 60 percent');
+    });
+
+    it('should not announce state changes when screenReaderAnnouncements is disabled', () => {
+      const player = createEmittingPlayer(0.5);
+      player.options.screenReaderAnnouncements = false;
+      const stateManager = new KeyboardManager(player);
+      const announceSpy = vi.spyOn(stateManager, 'announce');
+
+      player.emit('ready');
+      player.state.playing = true;
+      player.emit('play');
+      player.state.volume = 0.7;
+      player.emit('volumechange');
+      vi.advanceTimersByTime(1000);
+
+      expect(announceSpy).not.toHaveBeenCalled();
+    });
+
+    it('should announce each distinct volume level once', () => {
+      const player = createEmittingPlayer(0.5);
+      const stateManager = new KeyboardManager(player);
+      const announceSpy = vi.spyOn(stateManager, 'announce');
+
+      player.emit('ready');
+      player.state.volume = 0.7;
+      player.emit('volumechange');
+      vi.advanceTimersByTime(1000);
+      player.emit('volumechange');
+      vi.advanceTimersByTime(1000);
+
+      expect(announceSpy).toHaveBeenCalledTimes(1);
+      expect(announceSpy).toHaveBeenCalledWith('Volume 70 percent');
+    });
+  });
+
   describe('announce', () => {
     // The announcer is created per-player-instance with an id of
     // `vidply-announcer-{instanceId}` instead of a singleton id, so
