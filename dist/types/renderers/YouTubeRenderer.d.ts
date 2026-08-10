@@ -22,6 +22,11 @@ export declare class YouTubeRenderer implements Renderer {
     handleError(event: {
         data: 2 | 5 | 100 | 101 | 150;
     }): void;
+    /**
+     * Switch to another YouTube video without recreating the iframe player.
+     * Used by playlist track changes when the renderer type stays `youtube`.
+     */
+    loadSource(src: string): void;
     play(): void;
     pause(): void;
     seek(time: number): void;

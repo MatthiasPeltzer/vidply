@@ -221,6 +221,27 @@ export class VimeoRenderer implements Renderer {
     });
   }
 
+  /**
+   * Switch to another Vimeo video without recreating the embed player.
+   */
+  async loadSource(src: string) {
+    const videoId = this.extractVideoId(src);
+    if (!videoId) {
+      throw new Error('Invalid Vimeo URL');
+    }
+
+    if (videoId === this.videoId) {
+      return;
+    }
+
+    this.videoId = videoId;
+    this.player.currentSource = src;
+
+    if (this.isReady && this.vimeo) {
+      await this.vimeo.loadVideo(Number(videoId));
+    }
+  }
+
   play() {
     if (this.isReady && this.vimeo) {
       // Save scroll position to prevent browser from scrolling to video

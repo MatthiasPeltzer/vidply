@@ -16,6 +16,8 @@ describe('YouTubeRenderer (Mocked)', () => {
     mockYouTubePlayer = {
       playVideo: vi.fn(),
       pauseVideo: vi.fn(),
+      cueVideoById: vi.fn(),
+      loadVideoById: vi.fn(),
       seekTo: vi.fn(),
       setVolume: vi.fn(),
       mute: vi.fn(),
@@ -88,6 +90,31 @@ describe('YouTubeRenderer (Mocked)', () => {
     document.body.innerHTML = '';
     vi.clearAllMocks();
     delete window.YT;
+  });
+
+  describe('loadSource', () => {
+    it('should cue a different YouTube video without recreating the player', () => {
+      renderer.isReady = true;
+      renderer.youtube = mockYouTubePlayer;
+      renderer.videoId = 'dQw4w9WgXcQ';
+      mockPlayer.currentSource = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+
+      renderer.loadSource('https://www.youtube.com/watch?v=abc123DEF45');
+
+      expect(mockYouTubePlayer.cueVideoById).toHaveBeenCalledWith('abc123DEF45');
+      expect(renderer.videoId).toBe('abc123DEF45');
+      expect(mockPlayer.currentSource).toBe('https://www.youtube.com/watch?v=abc123DEF45');
+    });
+
+    it('should no-op when the video id is unchanged', () => {
+      renderer.isReady = true;
+      renderer.youtube = mockYouTubePlayer;
+      renderer.videoId = 'dQw4w9WgXcQ';
+
+      renderer.loadSource('https://youtu.be/dQw4w9WgXcQ?t=10');
+
+      expect(mockYouTubePlayer.cueVideoById).not.toHaveBeenCalled();
+    });
   });
 
   describe('play', () => {

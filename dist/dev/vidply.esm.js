@@ -1,39 +1,39 @@
 /*!
- * VidPly v1.2.5 - Universal, Accessible Video Player
+ * VidPly v1.2.6 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 import {
   TimeUtils
-} from "./vidply.chunk-3EVYHJL5.js";
+} from "./vidply.chunk-DSTWIX76.js";
 import {
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-VPVB3BUI.js";
+} from "./vidply.chunk-RFCEKIVE.js";
 import {
   focusElement
-} from "./vidply.chunk-PVLH7I2S.js";
+} from "./vidply.chunk-WJJJDEQU.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-PU2FCBLA.js";
+} from "./vidply.chunk-WKTWE7AL.js";
 import {
   CaptionManager
-} from "./vidply.chunk-AOMZGVON.js";
+} from "./vidply.chunk-GF3Y2ICE.js";
 import {
   StorageManager
-} from "./vidply.chunk-UBLW7IID.js";
+} from "./vidply.chunk-XHKD37YN.js";
 import {
   debounce,
   isMobile,
   rafWithTimeout,
   reducedMotionScrollOptions,
   throttle
-} from "./vidply.chunk-MLYKXQUN.js";
+} from "./vidply.chunk-OQSO7MWE.js";
 import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-RACTFVFK.js";
+} from "./vidply.chunk-Q3WONNHM.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -2101,7 +2101,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-5TZPTNVC.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+    import("./vidply.CaptionStyleMenu-SHLRFPMV.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
@@ -5447,21 +5447,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-GOZOSVY6.js");
+    const module = await import("./vidply.AudioDescriptionManager-EOB7MBEV.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-MX64BPBY.js");
+    const module = await import("./vidply.SignLanguageManager-IEDK5MV4.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-VEP65HYH.js");
+    const module = await import("./vidply.FloatingPlayerManager-FZSATXHA.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -6130,7 +6130,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-FGQB5KYA.js");
+    const module = await import("./vidply.TranscriptManager-56W7O3X7.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -6656,23 +6656,23 @@ var Player = class _Player extends EventEmitter {
   async _detectRendererClass(src) {
     switch (classifyRendererType(src)) {
       case "youtube": {
-        const module = await import("./vidply.YouTubeRenderer-UURNSSZG.js");
+        const module = await import("./vidply.YouTubeRenderer-GSFCOSQF.js");
         return module.YouTubeRenderer ?? module.default;
       }
       case "vimeo": {
-        const module = await import("./vidply.VimeoRenderer-2QUDYLHB.js");
+        const module = await import("./vidply.VimeoRenderer-CWABLJMP.js");
         return module.VimeoRenderer ?? module.default;
       }
       case "hls": {
-        const module = await import("./vidply.HLSRenderer-CHMSZVY2.js");
+        const module = await import("./vidply.HLSRenderer-TF7SXEZU.js");
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {
-        const module = await import("./vidply.DASHRenderer-3H2HHTBU.js");
+        const module = await import("./vidply.DASHRenderer-E7UQI27R.js");
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
-        const module = await import("./vidply.SoundCloudRenderer-QQD6OJRS.js");
+        const module = await import("./vidply.SoundCloudRenderer-7SXGEFG5.js");
         return module.SoundCloudRenderer ?? module.default;
       }
       default:
@@ -6946,10 +6946,17 @@ var Player = class _Player extends EventEmitter {
         await this.initializeRenderer();
       } else {
         this.renderer.media = this.element;
-        if (this.options.deferLoad) {
+        const sourceChanged = Boolean(config.src && config.src !== this.currentSource);
+        if (sourceChanged && isExternalRenderer && typeof this.renderer.loadSource === "function") {
+          this.currentSource = config.src;
+          await this.renderer.loadSource(config.src);
+        } else if (this.options.deferLoad) {
           try {
             this.element.preload = this.options.preload || "metadata";
           } catch {
+          }
+          if (sourceChanged && config.src) {
+            this.currentSource = config.src;
           }
           if (this.renderer) {
             const deferState = this.renderer;
@@ -6966,8 +6973,16 @@ var Player = class _Player extends EventEmitter {
               deferState._pendingSrc = this._pendingSource || this.currentSource || null;
             }
           }
-        } else {
+        } else if (!isExternalRenderer) {
+          if (sourceChanged && config.src) {
+            this.currentSource = config.src;
+          }
           this.element.load();
+        } else if (sourceChanged) {
+          this._pendingSource = config.src;
+          this.renderer.destroy();
+          this.renderer = null;
+          await this.initializeRenderer();
         }
       }
       if (isExternalRenderer) {

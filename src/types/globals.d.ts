@@ -202,6 +202,8 @@ interface YTPlayerOptions {
 interface YTPlayer {
   playVideo(): void;
   pauseVideo(): void;
+  cueVideoById(videoId: string, startSeconds?: number): void;
+  loadVideoById(videoId: string, startSeconds?: number): void;
   seekTo(seconds: number, allowSeekAhead?: boolean): void;
   setVolume(volume: number): void;
   getVolume(): number;
@@ -251,6 +253,7 @@ interface VimeoPlayerOptions {
 interface VimeoPlayer {
   on(event: string, callback: (...args: unknown[]) => void): void;
   off(event: string, callback?: (...args: unknown[]) => void): void;
+  loadVideo(id: number | string): Promise<number>;
   play(): Promise<void>;
   pause(): Promise<void>;
   setCurrentTime(seconds: number): Promise<number>;

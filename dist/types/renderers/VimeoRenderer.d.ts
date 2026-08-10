@@ -15,6 +15,10 @@ export declare class VimeoRenderer implements Renderer {
     createIframe(): void;
     initializePlayer(): Promise<void>;
     attachEvents(): void;
+    /**
+     * Switch to another Vimeo video without recreating the embed player.
+     */
+    loadSource(src: string): Promise<void>;
     play(): void;
     pause(): void;
     seek(time: number): void;

@@ -2014,11 +2014,21 @@ export class Player extends EventEmitter<PlayerEventMap> {
       } else {
         // Just reload the current renderer with the updated element
         this.renderer.media = this.element; // Update media reference
-        if (this.options.deferLoad) {
+        const sourceChanged = Boolean(config.src && config.src !== this.currentSource);
+
+        if (sourceChanged && isExternalRenderer && typeof this.renderer.loadSource === 'function') {
+          // Same embed renderer (YouTube→YouTube, Vimeo→Vimeo): swap the video
+          // in-place instead of calling element.load(), which is a no-op here.
+          this.currentSource = config.src;
+          await this.renderer.loadSource(config.src);
+        } else if (this.options.deferLoad) {
           try {
             this.element.preload = this.options.preload || 'metadata';
           } catch {
             // ignore
+          }
+          if (sourceChanged && config.src) {
+            this.currentSource = config.src;
           }
           // Reset renderer-level deferred flags if present (HTML5/HLS/DASH
           // renderers). These are renderer-private implementation details, not
@@ -2045,8 +2055,17 @@ export class Player extends EventEmitter<PlayerEventMap> {
               deferState._pendingSrc = this._pendingSource || this.currentSource || null;
             }
           }
-        } else {
+        } else if (!isExternalRenderer) {
+          if (sourceChanged && config.src) {
+            this.currentSource = config.src;
+          }
           this.element.load();
+        } else if (sourceChanged) {
+          // External renderer without in-place source switching (e.g. SoundCloud)
+          this._pendingSource = config.src;
+          this.renderer.destroy();
+          this.renderer = null;
+          await this.initializeRenderer();
         }
       }
 

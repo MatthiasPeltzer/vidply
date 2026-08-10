@@ -41,6 +41,11 @@ export interface Renderer {
     setPlaybackSpeed(speed: number): void;
     destroy(): void;
     ensureLoaded?(): void;
+    /**
+     * Switch to a new source URL without tearing down the embed when the
+     * renderer type stays the same (e.g. YouTube → YouTube in a playlist).
+     */
+    loadSource?(src: string): void | Promise<void>;
     getQualities?(): QualityLevel[];
     switchQuality?(index: number): void;
     getCurrentQuality?(): number;

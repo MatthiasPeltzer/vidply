@@ -228,6 +228,29 @@ export class YouTubeRenderer implements Renderer {
     this.player.handleError(error);
   }
 
+  /**
+   * Switch to another YouTube video without recreating the iframe player.
+   * Used by playlist track changes when the renderer type stays `youtube`.
+   */
+  loadSource(src: string) {
+    const videoId = this.extractVideoId(src);
+    if (!videoId) {
+      throw new Error('Invalid YouTube URL');
+    }
+
+    if (videoId === this.videoId) {
+      return;
+    }
+
+    this.videoId = videoId;
+    this.player.currentSource = src;
+
+    if (this.isReady && this.youtube) {
+      // Cue only — PlaylistManager / Player.play() starts playback explicitly.
+      this.youtube.cueVideoById(videoId);
+    }
+  }
+
   play() {
     if (this.isReady && this.youtube) {
       // Save scroll position to prevent browser from scrolling to video

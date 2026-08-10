@@ -1,5 +1,5 @@
 /*!
- * VidPly v1.2.5 - Universal, Accessible Video Player
+ * VidPly v1.2.6 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
@@ -9254,6 +9254,24 @@
           const error = new Error(errors[event.data] || "YouTube player error");
           this.player.handleError(error);
         }
+        /**
+         * Switch to another YouTube video without recreating the iframe player.
+         * Used by playlist track changes when the renderer type stays `youtube`.
+         */
+        loadSource(src) {
+          const videoId = this.extractVideoId(src);
+          if (!videoId) {
+            throw new Error("Invalid YouTube URL");
+          }
+          if (videoId === this.videoId) {
+            return;
+          }
+          this.videoId = videoId;
+          this.player.currentSource = src;
+          if (this.isReady && this.youtube) {
+            this.youtube.cueVideoById(videoId);
+          }
+        }
         play() {
           if (this.isReady && this.youtube) {
             const scrollX = window.scrollX;
@@ -9487,6 +9505,23 @@
             const error = args[0];
             this.player.handleError(new Error(`Vimeo error: ${(error == null ? void 0 : error.message) ?? "unknown"}`));
           });
+        }
+        /**
+         * Switch to another Vimeo video without recreating the embed player.
+         */
+        async loadSource(src) {
+          const videoId = this.extractVideoId(src);
+          if (!videoId) {
+            throw new Error("Invalid Vimeo URL");
+          }
+          if (videoId === this.videoId) {
+            return;
+          }
+          this.videoId = videoId;
+          this.player.currentSource = src;
+          if (this.isReady && this.vimeo) {
+            await this.vimeo.loadVideo(Number(videoId));
+          }
         }
         play() {
           if (this.isReady && this.vimeo) {
@@ -18504,10 +18539,17 @@
           await this.initializeRenderer();
         } else {
           this.renderer.media = this.element;
-          if (this.options.deferLoad) {
+          const sourceChanged = Boolean(config.src && config.src !== this.currentSource);
+          if (sourceChanged && isExternalRenderer && typeof this.renderer.loadSource === "function") {
+            this.currentSource = config.src;
+            await this.renderer.loadSource(config.src);
+          } else if (this.options.deferLoad) {
             try {
               this.element.preload = this.options.preload || "metadata";
             } catch {
+            }
+            if (sourceChanged && config.src) {
+              this.currentSource = config.src;
             }
             if (this.renderer) {
               const deferState = this.renderer;
@@ -18524,8 +18566,16 @@
                 deferState._pendingSrc = this._pendingSource || this.currentSource || null;
               }
             }
-          } else {
+          } else if (!isExternalRenderer) {
+            if (sourceChanged && config.src) {
+              this.currentSource = config.src;
+            }
             this.element.load();
+          } else if (sourceChanged) {
+            this._pendingSource = config.src;
+            this.renderer.destroy();
+            this.renderer = null;
+            await this.initializeRenderer();
           }
         }
         if (isExternalRenderer) {
