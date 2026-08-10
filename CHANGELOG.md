@@ -29,6 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   using the player-wide `downloadUrl` / `data-vidply-download-url` target.
 
 ### Fixed
+- Mixed-media playlists loaded YouTube, Vimeo, and SoundCloud tracks two or
+  three times when selected from the panel. `PlaylistManager.play()` fired
+  `player.play()` on a 100 ms timer before `load()` finished; with the
+  renderer still null, `Player.play()` re-entered the playlist and started
+  duplicate loads. Track changes now await `load()` before playback, and
+  `Player.play()` ignores the playlist fallback while a track change is in
+  progress.
 - `screenReaderAnnouncements: false` no longer had any effect on play/pause,
   volume, mute, caption, fullscreen and speed announcements. Those moved from
   the keyboard handler onto player events so pointer and touch use announces
