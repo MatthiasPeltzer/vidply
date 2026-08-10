@@ -819,7 +819,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 108932,
+      "bytes": 109295,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -985,7 +985,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 66739,
+      "bytes": 66597,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1057,7 +1057,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1470133
+      "bytes": 1470193
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1170,7 +1170,7 @@
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 91199
+          "bytesInOutput": 91345
         },
         "src/controls/ControlBar.ts": {
           "bytesInOutput": 134777
@@ -1218,13 +1218,13 @@
           "bytesInOutput": 8975
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 50915
+          "bytesInOutput": 50591
         },
         "src/index.ts": {
           "bytesInOutput": 5385
         }
       },
-      "bytes": 859082
+      "bytes": 858904
     }
   }
 }

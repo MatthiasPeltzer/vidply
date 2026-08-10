@@ -109,7 +109,7 @@ describe('PlaylistManager', () => {
       emit: vi.fn(),
       on: vi.fn(),
       off: vi.fn(),
-      load: vi.fn(),
+      load: vi.fn().mockResolvedValue(undefined),
       play: vi.fn(),
       pause: vi.fn(),
       playlistManager: null,
@@ -282,11 +282,30 @@ describe('PlaylistManager', () => {
       }));
     });
 
-    it('should call player.play after delay', async () => {
+    it('should call player.play after load completes', async () => {
       await manager.play(0);
+
+      expect(mockPlayer.play).toHaveBeenCalledTimes(1);
+    });
+
+    it('should load embed tracks only once when init outlasts the old autoplay delay', async () => {
+      let resolveLoad;
+      mockPlayer.load.mockImplementation(
+        () => new Promise((resolve) => {
+          resolveLoad = resolve;
+        })
+      );
+
+      const playPromise = manager.play(1);
       vi.advanceTimersByTime(200);
-      
-      expect(mockPlayer.play).toHaveBeenCalled();
+
+      expect(mockPlayer.load).toHaveBeenCalledTimes(1);
+
+      resolveLoad();
+      await playPromise;
+
+      expect(mockPlayer.load).toHaveBeenCalledTimes(1);
+      expect(mockPlayer.play).toHaveBeenCalledTimes(1);
     });
 
     it('should warn on invalid index', async () => {

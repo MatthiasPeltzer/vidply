@@ -18668,8 +18668,12 @@
     }
     // Playback controls
     play() {
+      var _a;
       if (this.renderer) {
         this.renderer.play();
+        return;
+      }
+      if (this._switchingRenderer || ((_a = this.playlistManager) == null ? void 0 : _a.isChangingTrack)) {
         return;
       }
       if (this.playlistManager && Array.isArray(this.playlistManager.tracks) && this.playlistManager.tracks.length > 0) {
@@ -19577,29 +19581,17 @@
       if (this.playlistPanel) {
         this.playlistPanel.style.display = wasVisible ? "" : "none";
       }
-      if (isExternalRenderer) {
-        this.player.load({
-          src: track.src ?? "",
-          type: track.type,
-          poster: track.poster,
-          tracks: track.tracks || [],
-          audioDescriptionSrc: track.audioDescriptionSrc || null,
-          signLanguageSrc: track.signLanguageSrc || null
-        });
-      } else {
-        this.player.load({
-          src: track.src ?? "",
-          type: track.type,
-          poster: track.poster,
-          tracks: track.tracks || [],
-          audioDescriptionSrc: track.audioDescriptionSrc || null,
-          signLanguageSrc: track.signLanguageSrc || null
-        });
-      }
+      const loadConfig = {
+        src: track.src ?? "",
+        type: track.type,
+        poster: track.poster,
+        tracks: track.tracks || [],
+        audioDescriptionSrc: track.audioDescriptionSrc || null,
+        signLanguageSrc: track.signLanguageSrc || null
+      };
+      await this.player.load(loadConfig);
       if (autoPlay) {
-        this.setManagedTimeout(() => {
-          this.player.play();
-        }, 100);
+        this.player.play();
       }
       return true;
     }
@@ -19925,15 +19917,20 @@
         this.player.audioDescriptionManager.src = track.audioDescriptionSrc;
         srcToLoad = track.audioDescriptionSrc;
       }
-      this.player.load({
-        src: srcToLoad ?? "",
-        type: track.type,
-        poster: track.poster,
-        tracks: track.tracks || [],
-        audioDescriptionSrc: track.audioDescriptionSrc || null,
-        signLanguageSrc: track.signLanguageSrc || null,
-        signLanguageSources: track.signLanguageSources || {}
-      });
+      try {
+        await this.player.load({
+          src: srcToLoad ?? "",
+          type: track.type,
+          poster: track.poster,
+          tracks: track.tracks || [],
+          audioDescriptionSrc: track.audioDescriptionSrc || null,
+          signLanguageSrc: track.signLanguageSrc || null,
+          signLanguageSources: track.signLanguageSources || {}
+        });
+      } catch {
+        this.isChangingTrack = false;
+        return;
+      }
       this.updateTrackInfo(track);
       this.updatePlaylistUI();
       this.refreshDownloadButton();
@@ -19942,12 +19939,10 @@
         item: track,
         total: this.tracks.length
       });
+      this.player.play();
       this.setManagedTimeout(() => {
-        this.player.play();
-        this.setManagedTimeout(() => {
-          this.isChangingTrack = false;
-        }, 50);
-      }, 100);
+        this.isChangingTrack = false;
+      }, 50);
     }
     /**
      * Play next track

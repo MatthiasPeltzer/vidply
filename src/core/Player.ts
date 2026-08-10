@@ -2207,6 +2207,14 @@ export class Player extends EventEmitter<PlayerEventMap> {
       return;
     }
 
+    // While a playlist track change is loading, the old renderer has been
+    // destroyed and the new one is not ready yet. Do not re-enter
+    // PlaylistManager.play() — that would duplicate load() for slow embed
+    // renderers (YouTube, Vimeo, SoundCloud).
+    if (this._switchingRenderer || this.playlistManager?.isChangingTrack) {
+      return;
+    }
+
     // Playlist support: if no renderer exists yet (no initial src),
     // start playback via playlist selection.
     if (this.playlistManager && Array.isArray(this.playlistManager.tracks) && this.playlistManager.tracks.length > 0) {

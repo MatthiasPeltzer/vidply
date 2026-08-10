@@ -375,33 +375,22 @@ export class PlaylistManager {
       this.playlistPanel.style.display = wasVisible ? '' : 'none';
     }
     
-    // For external renderers, load the track via player.load()
-    // For HTML5, the source is already set on the element
-    if (isExternalRenderer) {
-      this.player.load({
-        src: track.src ?? '',
-        type: track.type,
-        poster: track.poster,
-        tracks: track.tracks || [],
-        audioDescriptionSrc: track.audioDescriptionSrc || null,
-        signLanguageSrc: track.signLanguageSrc || null
-      });
-    } else {
-      this.player.load({
-        src: track.src ?? '',
-        type: track.type,
-        poster: track.poster,
-        tracks: track.tracks || [],
-        audioDescriptionSrc: track.audioDescriptionSrc || null,
-        signLanguageSrc: track.signLanguageSrc || null
-      });
-    }
-    
-    // Auto-play if requested
+    const loadConfig = {
+      src: track.src ?? '',
+      type: track.type,
+      poster: track.poster,
+      tracks: track.tracks || [],
+      audioDescriptionSrc: track.audioDescriptionSrc || null,
+      signLanguageSrc: track.signLanguageSrc || null
+    };
+
+    // Await load so embed renderers (YouTube/Vimeo/SoundCloud) finish init
+    // before we call play(). While load() runs the renderer is null; an early
+    // play() would fall back into PlaylistManager.play() and load again.
+    await this.player.load(loadConfig);
+
     if (autoPlay) {
-      this.setManagedTimeout(() => {
-        this.player.play();
-      }, 100);
+      this.player.play();
     }
     
     return true;
@@ -863,16 +852,21 @@ export class PlaylistManager {
       srcToLoad = track.audioDescriptionSrc;
     }
 
-    this.player.load({
-      src: srcToLoad ?? '',
-      type: track.type,
-      poster: track.poster,
-      tracks: track.tracks || [],
-      audioDescriptionSrc: track.audioDescriptionSrc || null,
-      signLanguageSrc: track.signLanguageSrc || null,
-      signLanguageSources: track.signLanguageSources || {}
-    });
-    
+    try {
+      await this.player.load({
+        src: srcToLoad ?? '',
+        type: track.type,
+        poster: track.poster,
+        tracks: track.tracks || [],
+        audioDescriptionSrc: track.audioDescriptionSrc || null,
+        signLanguageSrc: track.signLanguageSrc || null,
+        signLanguageSources: track.signLanguageSources || {}
+      });
+    } catch {
+      this.isChangingTrack = false;
+      return;
+    }
+
     // Update UI
     this.updateTrackInfo(track);
     this.updatePlaylistUI();
@@ -885,14 +879,14 @@ export class PlaylistManager {
       total: this.tracks.length
     });
     
-    // Auto-play and clear guard flag after playback starts
+    // Start playback only after load() resolved — embed renderers keep
+    // `renderer` null until init finishes; a timed play() fired too early
+    // re-entered this method and loaded the same track again (often 2–3×).
+    this.player.play();
+
     this.setManagedTimeout(() => {
-      this.player.play();
-      // Clear guard flag after a short delay to ensure track has started
-      this.setManagedTimeout(() => {
-        this.isChangingTrack = false;
-      }, 50);
-    }, 100);
+      this.isChangingTrack = false;
+    }, 50);
   }
   
   /**
