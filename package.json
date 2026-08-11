@@ -1,6 +1,6 @@
 {
   "name": "vidply",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "Universal, accessible video & audio player authored in strict TypeScript. Ships ES modules with type declarations, supports HTML5, YouTube, Vimeo, SoundCloud, HLS (hls.js + native iOS) and MPEG-DASH.",
   "type": "module",
   "main": "dist/prod/vidply.esm.min.js",
@@ -77,8 +77,8 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.62.1",
-    "@typescript-eslint/eslint-plugin": "^8.66.0",
-    "@typescript-eslint/parser": "^8.66.0",
+    "@typescript-eslint/eslint-plugin": "^8.67.0",
+    "@typescript-eslint/parser": "^8.67.0",
     "@vitest/coverage-v8": "^4.1.10",
     "clean-css": "^5.3.3",
     "esbuild": "^0.28.2",
@@ -91,6 +91,6 @@
     "vitest": "^4.1.10"
   },
   "allowScripts": {
-    "esbuild@0.28.1": true
+    "esbuild@0.28.2": true
   }
 }
