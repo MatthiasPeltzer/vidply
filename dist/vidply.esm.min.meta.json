@@ -1376,7 +1376,7 @@
           "bytesInOutput": 8052
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 81935
+          "bytesInOutput": 81936
         },
         "src/features/PlaylistManager.ts": {
           "bytesInOutput": 46694
@@ -1385,7 +1385,7 @@
           "bytesInOutput": 5074
         }
       },
-      "bytes": 339403
+      "bytes": 339404
     },
     "dist/prod/vidply.chunk-AZSVUNCL.min.js.map": {
       "imports": [],

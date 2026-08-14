@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `resumePlayback` now defaults to `false`. Resume-from-last-position must be
+  enabled explicitly via player options.
+
 ### Added
 - New `playButtonOverlay` option (`'auto' | true | false`, default `'auto'`)
   that allows the centered play button on audio players. On audio the

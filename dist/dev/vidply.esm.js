@@ -5774,7 +5774,7 @@ var Player = class _Player extends EventEmitter {
       language: "en",
       languages: ["en"],
       // Resume Playback
-      resumePlayback: true,
+      resumePlayback: false,
       // Enable saving and resuming playback position
       resumeThreshold: 10,
       // Don't resume if < threshold seconds watched

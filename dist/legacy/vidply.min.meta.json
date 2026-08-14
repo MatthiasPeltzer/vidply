@@ -1170,7 +1170,7 @@
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 91345
+          "bytesInOutput": 91346
         },
         "src/controls/ControlBar.ts": {
           "bytesInOutput": 134777
@@ -1224,7 +1224,7 @@
           "bytesInOutput": 5385
         }
       },
-      "bytes": 858904
+      "bytes": 858905
     }
   }
 }

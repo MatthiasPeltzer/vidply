@@ -450,7 +450,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       languages: ['en'],
 
       // Resume Playback
-      resumePlayback: true,       // Enable saving and resuming playback position
+      resumePlayback: false,      // Enable saving and resuming playback position
       resumeThreshold: 10,        // Don't resume if < threshold seconds watched
       resumePrompt: true,         // Show prompt to resume (false = auto-resume silently)
 
