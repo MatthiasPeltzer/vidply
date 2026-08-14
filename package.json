@@ -75,7 +75,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.12.1",
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.62.1",
     "@typescript-eslint/eslint-plugin": "^8.67.0",
     "@typescript-eslint/parser": "^8.67.0",
@@ -86,7 +86,7 @@
     "jsdom": "^30.0.1",
     "prettier": "^3.9.6",
     "serve": "14.2.6",
-    "terser": "^5.49.2",
+    "terser": "^5.50.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10"
   },
