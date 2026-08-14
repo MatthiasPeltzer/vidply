@@ -5,11 +5,11 @@
  */
 import {
   TimeUtils
-} from "./vidply.chunk-X736577Y.js";
+} from "./vidply.chunk-2SSASZBG.js";
 import {
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-GUVSELBK.js";
+} from "./vidply.chunk-NMMYVUA3.js";
 import {
   focusElement
 } from "./vidply.chunk-NJBRG32Z.js";
@@ -18,10 +18,10 @@ import {
 } from "./vidply.chunk-PCVQZFY5.js";
 import {
   CaptionManager
-} from "./vidply.chunk-6FQYFGRM.js";
+} from "./vidply.chunk-FL2WRIIX.js";
 import {
   StorageManager
-} from "./vidply.chunk-E5RMRQIY.js";
+} from "./vidply.chunk-YK4PQBJC.js";
 import {
   debounce,
   isMobile,
@@ -33,7 +33,7 @@ import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-GT2TWIMU.js";
+} from "./vidply.chunk-KLC6IDGF.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -2101,7 +2101,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-WFECY5C2.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+    import("./vidply.CaptionStyleMenu-CSNW5B3I.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
@@ -5185,6 +5185,274 @@ var MetadataAlertsManager = class {
   }
 };
 
+// src/utils/RichText.ts
+var ALLOWED_TAGS = /* @__PURE__ */ new Set([
+  "p",
+  "br",
+  "strong",
+  "b",
+  "em",
+  "i",
+  "u",
+  "ul",
+  "ol",
+  "li",
+  "a",
+  "h2",
+  "h3",
+  "h4",
+  "blockquote",
+  "span",
+  "div"
+]);
+var ALLOWED_ATTRS = {
+  a: /* @__PURE__ */ new Set(["href", "title", "target", "rel"])
+};
+var FORBIDDEN_URI_PATTERN = /^\s*(javascript|data|vbscript):/i;
+function sanitizeNode(root) {
+  const elements = root instanceof Element ? Array.from(root.children) : Array.from(root.childNodes).filter((node) => node instanceof Element);
+  for (const child of elements) {
+    const tag = child.tagName.toLowerCase();
+    if (!ALLOWED_TAGS.has(tag)) {
+      while (child.firstChild) {
+        child.parentNode?.insertBefore(child.firstChild, child);
+      }
+      child.remove();
+      continue;
+    }
+    for (const attr of Array.from(child.attributes)) {
+      const name = attr.name.toLowerCase();
+      if (name.startsWith("on")) {
+        child.removeAttribute(attr.name);
+        continue;
+      }
+      const allowed = ALLOWED_ATTRS[tag];
+      if (!allowed?.has(name)) {
+        child.removeAttribute(attr.name);
+      }
+    }
+    if (tag === "a") {
+      const href = child.getAttribute("href") ?? "";
+      if (href === "" || FORBIDDEN_URI_PATTERN.test(href)) {
+        child.removeAttribute("href");
+      } else if (child.getAttribute("target") === "_blank") {
+        const rel = (child.getAttribute("rel") ?? "").split(/\s+/).filter(Boolean);
+        if (!rel.includes("noopener")) rel.push("noopener");
+        if (!rel.includes("noreferrer")) rel.push("noreferrer");
+        child.setAttribute("rel", rel.join(" "));
+      }
+    }
+    sanitizeNode(child);
+  }
+}
+function createSanitizedRichTextFragment(html) {
+  const fragment = document.createDocumentFragment();
+  const trimmed = html.trim();
+  if (trimmed === "") {
+    return fragment;
+  }
+  const template = document.createElement("template");
+  template.innerHTML = trimmed;
+  sanitizeNode(template.content);
+  fragment.append(...Array.from(template.content.childNodes));
+  return fragment;
+}
+function setSanitizedRichText(container, html) {
+  container.replaceChildren(...Array.from(createSanitizedRichTextFragment(html).childNodes));
+}
+
+// src/core/TrackInfoView.ts
+var TrackInfoView = class {
+  element;
+  classPrefix;
+  handleClick;
+  constructor(classPrefix = "vidply") {
+    this.classPrefix = classPrefix;
+    this.element = DOMUtils.createElement("div", {
+      className: `${classPrefix}-track-info`,
+      attributes: { role: "status" }
+    });
+    this.element.style.display = "none";
+    this.handleClick = (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const toggle = target.closest(`.${this.classPrefix}-track-longdesc-toggle`);
+      if (!(toggle instanceof HTMLButtonElement) || !this.element.contains(toggle)) {
+        return;
+      }
+      this.toggleLongDescription(toggle);
+    };
+    this.element.addEventListener("click", this.handleClick);
+  }
+  mount(container, before) {
+    if (before) {
+      container.insertBefore(this.element, before);
+    } else {
+      container.appendChild(this.element);
+    }
+  }
+  render(data) {
+    const hasContent = this.hasVisibleContent(data);
+    if (!hasContent) {
+      this.hide();
+      return;
+    }
+    const prefix = this.classPrefix;
+    const trackTitle = (data.title ?? "").trim() || i18n.t("playlist.untitled");
+    const trackArtist = (data.artist ?? "").trim();
+    const trackDescription = (data.description ?? "").trim();
+    const trackDate = (data.date ?? "").trim();
+    const longDescription = (data.longDescription ?? "").trim();
+    const trackNumber = data.trackNumber ?? 0;
+    const totalTracks = data.totalTracks ?? 0;
+    const showTrackHeader = totalTracks > 1 && trackNumber > 0;
+    const effectiveDuration = typeof data.duration === "number" && data.duration > 0 ? data.duration : 0;
+    const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : "";
+    const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : "";
+    const artistPart = trackArtist ? i18n.t("playlist.by") + trackArtist : "";
+    const datePart = trackDate ? `. ${trackDate}` : "";
+    const durationPart = trackDurationReadable ? `. ${trackDurationReadable}` : "";
+    let announcement = trackTitle + artistPart + datePart + durationPart;
+    if (showTrackHeader) {
+      announcement = i18n.t("playlist.nowPlaying", {
+        current: trackNumber,
+        total: totalTracks,
+        title: trackTitle,
+        artist: artistPart
+      }) + datePart + durationPart;
+    }
+    this.element.replaceChildren();
+    this.element.appendChild(DOMUtils.createElement("span", {
+      className: `${prefix}-sr-only`,
+      textContent: announcement
+    }));
+    if (showTrackHeader) {
+      const header = DOMUtils.createElement("div", {
+        className: `${prefix}-track-header`,
+        attributes: { "aria-hidden": "true" }
+      });
+      header.appendChild(DOMUtils.createElement("span", {
+        className: `${prefix}-track-number`,
+        textContent: i18n.t("playlist.trackOf", { current: trackNumber, total: totalTracks })
+      }));
+      if (trackDuration) {
+        header.appendChild(DOMUtils.createElement("span", {
+          className: `${prefix}-track-duration`,
+          textContent: trackDuration
+        }));
+      }
+      this.element.appendChild(header);
+    } else if (trackDuration) {
+      const header = DOMUtils.createElement("div", {
+        className: `${prefix}-track-header`,
+        attributes: { "aria-hidden": "true" }
+      });
+      header.appendChild(DOMUtils.createElement("span", {
+        className: `${prefix}-track-duration`,
+        textContent: trackDuration
+      }));
+      this.element.appendChild(header);
+    }
+    this.element.appendChild(DOMUtils.createElement("div", {
+      className: `${prefix}-track-title`,
+      attributes: { "aria-hidden": "true" },
+      textContent: trackTitle
+    }));
+    if (trackArtist) {
+      this.element.appendChild(DOMUtils.createElement("div", {
+        className: `${prefix}-track-artist`,
+        attributes: { "aria-hidden": "true" },
+        textContent: trackArtist
+      }));
+    }
+    if (trackDate) {
+      this.element.appendChild(DOMUtils.createElement("div", {
+        className: `${prefix}-track-date`,
+        attributes: { "aria-hidden": "true" },
+        textContent: trackDate
+      }));
+    }
+    if (trackDescription) {
+      this.element.appendChild(DOMUtils.createElement("div", {
+        className: `${prefix}-track-description`,
+        attributes: { "aria-hidden": "true" },
+        textContent: trackDescription
+      }));
+    }
+    if (longDescription) {
+      const showLabel = i18n.t("trackInfo.descriptionShow");
+      const toggle = DOMUtils.createElement("button", {
+        className: `${prefix}-track-longdesc-toggle`,
+        attributes: {
+          type: "button",
+          "aria-expanded": "false",
+          "aria-label": trackTitle ? `${showLabel}: ${trackTitle}` : showLabel
+        },
+        children: [
+          createIconElement("chevronDown", `${prefix}-track-longdesc-toggle-icon`),
+          DOMUtils.createElement("span", {
+            className: `${prefix}-track-longdesc-toggle-text`,
+            textContent: showLabel
+          })
+        ]
+      });
+      toggle.dataset.labelShow = showLabel;
+      toggle.dataset.labelHide = i18n.t("trackInfo.descriptionHide");
+      toggle.dataset.trackTitle = trackTitle;
+      const actions = DOMUtils.createElement("div", {
+        className: `${prefix}-track-actions`,
+        attributes: { "aria-hidden": "true" }
+      });
+      actions.appendChild(toggle);
+      this.element.appendChild(actions);
+      const panel = DOMUtils.createElement("div", {
+        className: `${prefix}-track-longdesc`,
+        attributes: { hidden: "" }
+      });
+      setSanitizedRichText(panel, longDescription);
+      this.element.appendChild(panel);
+    }
+    this.element.style.display = "block";
+  }
+  hide() {
+    this.element.replaceChildren();
+    this.element.style.display = "none";
+  }
+  destroy() {
+    this.element.removeEventListener("click", this.handleClick);
+    this.element.remove();
+  }
+  hasVisibleContent(data) {
+    return Boolean(
+      (data.title ?? "").trim() || (data.artist ?? "").trim() || (data.description ?? "").trim() || (data.longDescription ?? "").trim() || (data.date ?? "").trim() || typeof data.duration === "number" && data.duration > 0 || (data.totalTracks ?? 0) > 1 && (data.trackNumber ?? 0) > 0
+    );
+  }
+  toggleLongDescription(button) {
+    const panel = button.closest(`.${this.classPrefix}-track-info`)?.querySelector(`.${this.classPrefix}-track-longdesc`);
+    if (!(panel instanceof HTMLElement)) return;
+    const expanded = button.getAttribute("aria-expanded") !== "true";
+    button.setAttribute("aria-expanded", String(expanded));
+    panel.toggleAttribute("hidden", !expanded);
+    const label = expanded ? button.dataset.labelHide ?? i18n.t("trackInfo.descriptionHide") : button.dataset.labelShow ?? i18n.t("trackInfo.descriptionShow");
+    const text = button.querySelector(`.${this.classPrefix}-track-longdesc-toggle-text`);
+    if (text instanceof HTMLElement) {
+      text.textContent = label;
+    }
+    const title = button.dataset.trackTitle ?? "";
+    button.setAttribute("aria-label", title ? `${label}: ${title}` : label);
+    const icon = button.querySelector(`.${this.classPrefix}-track-longdesc-toggle-icon`);
+    const newIcon = createIconElement(
+      expanded ? "chevronUp" : "chevronDown",
+      `${this.classPrefix}-track-longdesc-toggle-icon`
+    );
+    if (icon instanceof HTMLElement) {
+      icon.replaceWith(newIcon);
+    } else {
+      button.insertBefore(newIcon, button.firstChild);
+    }
+  }
+};
+
 // src/controls/KeyboardHelp.ts
 var ACTION_ORDER = [
   "play-pause",
@@ -5447,21 +5715,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-MWZVDSQF.js");
+    const module = await import("./vidply.AudioDescriptionManager-QTZHYZ2H.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-WW2O534T.js");
+    const module = await import("./vidply.SignLanguageManager-HOP6NYR7.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-R7Y7Q7TM.js");
+    const module = await import("./vidply.FloatingPlayerManager-PXP743ET.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -5552,6 +5820,8 @@ var Player = class _Player extends EventEmitter {
    *  created the first time `initResumePlayback` is called so sites
    *  that don't enable the feature don't pay the DOM / listener cost. */
   resumeManager = null;
+  /** Standalone track metadata header (single-item players without a playlist). */
+  trackInfoView = null;
   /** Owns resize-observer, orientation matchMedia, and the
    *  cross-vendor fullscreenchange listeners. */
   responsiveManager;
@@ -6051,6 +6321,7 @@ var Player = class _Player extends EventEmitter {
       await i18n.ensureLanguage(this.options.language);
       i18n.setLanguage(this.options.language);
       this.createContainer();
+      this.initStandaloneTrackInfo();
       if (this.options.floating && this.element && this.element.tagName === "VIDEO") {
         try {
           const mediaEl = this.element;
@@ -6130,7 +6401,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-ZJ2GCDUX.js");
+    const module = await import("./vidply.TranscriptManager-N7K3JSML.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -6288,6 +6559,37 @@ var Player = class _Player extends EventEmitter {
       this.resumeManager = new ResumeManager(this);
     }
     this.resumeManager.init();
+  }
+  /**
+   * Render track metadata above the media for single-item players. Skipped
+   * when a playlist manager owns the track-info header instead.
+   */
+  initStandaloneTrackInfo() {
+    if (this.playlistManager || !this.container) {
+      return;
+    }
+    const data = this.buildStandaloneTrackInfoData();
+    if (!data) {
+      return;
+    }
+    this.trackInfoView = new TrackInfoView(this.options.classPrefix);
+    this.trackInfoView.mount(this.container);
+    this.trackInfoView.render(data);
+  }
+  buildStandaloneTrackInfoData() {
+    const opts = this.options;
+    const data = {
+      title: typeof opts.title === "string" ? opts.title : void 0,
+      artist: typeof opts.artist === "string" ? opts.artist : void 0,
+      description: typeof opts.description === "string" ? opts.description : void 0,
+      longDescription: typeof opts.longDescription === "string" ? opts.longDescription : void 0,
+      date: typeof opts.date === "string" ? opts.date : void 0,
+      duration: opts.initialDuration > 0 ? opts.initialDuration : void 0
+    };
+    const hasContent = Boolean(
+      (data.title ?? "").trim() || (data.artist ?? "").trim() || (data.description ?? "").trim() || (data.longDescription ?? "").trim() || (data.date ?? "").trim() || (data.duration ?? 0) > 0
+    );
+    return hasContent ? data : null;
   }
   /**
    * Get a unique identifier for the current video
@@ -7632,6 +7934,10 @@ var Player = class _Player extends EventEmitter {
       }
       this.playlistManager = null;
     }
+    if (this.trackInfoView) {
+      this.trackInfoView.destroy();
+      this.trackInfoView = null;
+    }
     if (this.keyboardHelp && typeof this.keyboardHelp.destroy === "function") {
       try {
         this.keyboardHelp.destroy();
@@ -7767,7 +8073,7 @@ var PlaylistManager = class {
   PlayerClass;
   playlistPanel;
   trackArtworkElement;
-  trackInfoElement;
+  trackInfoView;
   tracks;
   uniqueId;
   // Timers owned by this manager. Tracked so destroy() can cancel any pending
@@ -7794,7 +8100,7 @@ var PlaylistManager = class {
     };
     this.container = null;
     this.playlistPanel = null;
-    this.trackInfoElement = null;
+    this.trackInfoView = null;
     this.trackArtworkElement = null;
     this.navigationFeedback = null;
     this.isPanelVisible = this.options.showPanel !== false;
@@ -7858,8 +8164,8 @@ var PlaylistManager = class {
     if (this.trackArtworkElement && this.trackArtworkElement.parentNode) {
       this.trackArtworkElement.parentNode.removeChild(this.trackArtworkElement);
     }
-    if (this.trackInfoElement && this.trackInfoElement.parentNode) {
-      this.trackInfoElement.parentNode.removeChild(this.trackInfoElement);
+    if (this.trackInfoView?.element.parentNode) {
+      this.trackInfoView.element.parentNode.removeChild(this.trackInfoView.element);
     }
     if (this.navigationFeedback && this.navigationFeedback.parentNode) {
       this.navigationFeedback.parentNode.removeChild(this.navigationFeedback);
@@ -7939,8 +8245,8 @@ var PlaylistManager = class {
           this.player.container.appendChild(this.trackArtworkElement);
         }
       }
-      if (this.trackInfoElement) {
-        this.player.container.appendChild(this.trackInfoElement);
+      if (this.trackInfoView) {
+        this.player.container.appendChild(this.trackInfoView.element);
       }
       if (this.navigationFeedback) {
         this.player.container.appendChild(this.navigationFeedback);
@@ -8480,14 +8786,8 @@ var PlaylistManager = class {
       console.warn("VidPly Playlist: No container found");
       return;
     }
-    this.trackInfoElement = DOMUtils.createElement("div", {
-      className: "vidply-track-info",
-      attributes: {
-        role: "status"
-      }
-    });
-    this.trackInfoElement.style.display = "none";
-    this.container.appendChild(this.trackInfoElement);
+    this.trackInfoView = new TrackInfoView(this.player.options.classPrefix);
+    this.trackInfoView.mount(this.container);
     this.navigationFeedback = DOMUtils.createElement("div", {
       className: "vidply-sr-only",
       attributes: {
@@ -8513,42 +8813,19 @@ var PlaylistManager = class {
    * Update track info display
    */
   updateTrackInfo(track) {
-    if (!this.trackInfoElement) return;
-    const trackNumber = this.currentIndex + 1;
-    const totalTracks = this.tracks.length;
-    const trackTitle = track.title || i18n.t("playlist.untitled");
-    const trackArtist = track.artist || "";
+    if (!this.trackInfoView) return;
     const effectiveDuration = this.getEffectiveDuration(track);
-    const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : "";
-    const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : "";
-    const trackDate = typeof track.date === "string" ? track.date : "";
-    const artistPart = trackArtist ? i18n.t("playlist.by") + trackArtist : "";
-    const datePart = trackDate ? `. ${trackDate}` : "";
-    const durationPart = trackDurationReadable ? `. ${trackDurationReadable}` : "";
-    const announcement = i18n.t("playlist.nowPlaying", {
-      current: trackNumber,
-      total: totalTracks,
-      title: trackTitle,
-      artist: artistPart
-    }) + datePart + durationPart;
-    const trackOfText = i18n.t("playlist.trackOf", {
-      current: trackNumber,
-      total: totalTracks
-    });
-    const durationHtml = trackDuration ? `<span class="vidply-track-duration" aria-hidden="true">${DOMUtils.escapeHTML(trackDuration)}</span>` : "";
-    const trackDescription = track.description || "";
-    this.trackInfoElement.innerHTML = `
-      <span class="vidply-sr-only">${DOMUtils.escapeHTML(announcement)}</span>
-      <div class="vidply-track-header" aria-hidden="true">
-        <span class="vidply-track-number">${DOMUtils.escapeHTML(trackOfText)}</span>
-        ${durationHtml}
-      </div>
-      <div class="vidply-track-title" aria-hidden="true">${DOMUtils.escapeHTML(trackTitle)}</div>
-      ${trackArtist ? `<div class="vidply-track-artist" aria-hidden="true">${DOMUtils.escapeHTML(trackArtist)}</div>` : ""}
-      ${trackDate ? `<div class="vidply-track-date" aria-hidden="true">${DOMUtils.escapeHTML(trackDate)}</div>` : ""}
-      ${trackDescription ? `<div class="vidply-track-description" aria-hidden="true">${DOMUtils.escapeHTML(trackDescription)}</div>` : ""}
-    `;
-    this.trackInfoElement.style.display = "block";
+    const data = {
+      title: track.title,
+      artist: track.artist,
+      description: track.description,
+      longDescription: typeof track.longDescription === "string" ? track.longDescription : void 0,
+      date: typeof track.date === "string" ? track.date : void 0,
+      duration: effectiveDuration ? Number(effectiveDuration) : void 0,
+      trackNumber: this.currentIndex + 1,
+      totalTracks: this.tracks.length
+    };
+    this.trackInfoView.render(data);
     this.updateTrackArtwork(track);
   }
   /**
@@ -8970,9 +9247,8 @@ var PlaylistManager = class {
       this.playlistPanel.innerHTML = "";
       this.playlistPanel.style.display = "none";
     }
-    if (this.trackInfoElement) {
-      this.trackInfoElement.innerHTML = "";
-      this.trackInfoElement.style.display = "none";
+    if (this.trackInfoView) {
+      this.trackInfoView.hide();
     }
     if (this.trackArtworkElement) {
       this.trackArtworkElement.style.backgroundImage = "";
@@ -9056,8 +9332,9 @@ var PlaylistManager = class {
     if (this.trackArtworkElement) {
       this.trackArtworkElement.remove();
     }
-    if (this.trackInfoElement) {
-      this.trackInfoElement.remove();
+    if (this.trackInfoView) {
+      this.trackInfoView.destroy();
+      this.trackInfoView = null;
     }
     if (this.playlistPanel) {
       this.playlistPanel.remove();

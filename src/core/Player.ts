@@ -42,6 +42,8 @@ import type {SignLanguageManager} from './SignLanguageManager.js';
 import type {FloatingPlayerManager} from './FloatingPlayerManager.js';
 import type {TranscriptManager} from '../controls/TranscriptManager.js';
 import type {PlaylistManager} from '../features/PlaylistManager.js';
+import {TrackInfoView} from './TrackInfoView.js';
+import type {TrackInfoData} from './TrackInfoView.js';
 import {KeyboardHelp} from '../controls/KeyboardHelp.js';
 
 // Typed dynamic loaders. Each loader returns the constructor for the
@@ -197,6 +199,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
    *  created the first time `initResumePlayback` is called so sites
    *  that don't enable the feature don't pay the DOM / listener cost. */
   resumeManager: ResumeManager | null = null;
+  /** Standalone track metadata header (single-item players without a playlist). */
+  trackInfoView: TrackInfoView | null = null;
   /** Owns resize-observer, orientation matchMedia, and the
    *  cross-vendor fullscreenchange listeners. */
   responsiveManager!: ResponsiveManager;
@@ -779,6 +783,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
       // Create container
       this.createContainer();
+      this.initStandaloneTrackInfo();
 
       // Suppress native Picture-in-Picture when the custom floating
       // player is enabled. This removes Chrome's hover PiP button and
@@ -1110,6 +1115,48 @@ export class Player extends EventEmitter<PlayerEventMap> {
       this.resumeManager = new ResumeManager(this);
     }
     this.resumeManager.init();
+  }
+
+  /**
+   * Render track metadata above the media for single-item players. Skipped
+   * when a playlist manager owns the track-info header instead.
+   */
+  initStandaloneTrackInfo(): void {
+    if (this.playlistManager || !this.container) {
+      return;
+    }
+
+    const data = this.buildStandaloneTrackInfoData();
+    if (!data) {
+      return;
+    }
+
+    this.trackInfoView = new TrackInfoView(this.options.classPrefix);
+    this.trackInfoView.mount(this.container);
+    this.trackInfoView.render(data);
+  }
+
+  private buildStandaloneTrackInfoData(): TrackInfoData | null {
+    const opts = this.options;
+    const data: TrackInfoData = {
+      title: typeof opts.title === 'string' ? opts.title : undefined,
+      artist: typeof opts.artist === 'string' ? opts.artist : undefined,
+      description: typeof opts.description === 'string' ? opts.description : undefined,
+      longDescription: typeof opts.longDescription === 'string' ? opts.longDescription : undefined,
+      date: typeof opts.date === 'string' ? opts.date : undefined,
+      duration: opts.initialDuration > 0 ? opts.initialDuration : undefined
+    };
+
+    const hasContent = Boolean(
+      (data.title ?? '').trim()
+      || (data.artist ?? '').trim()
+      || (data.description ?? '').trim()
+      || (data.longDescription ?? '').trim()
+      || (data.date ?? '').trim()
+      || (data.duration ?? 0) > 0
+    );
+
+    return hasContent ? data : null;
   }
 
   /**
@@ -2916,6 +2963,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
         this.log(`PlaylistManager.destroy failed: ${err}`, 'warn');
       }
       this.playlistManager = null;
+    }
+
+    if (this.trackInfoView) {
+      this.trackInfoView.destroy();
+      this.trackInfoView = null;
     }
 
     if (this.keyboardHelp && typeof this.keyboardHelp.destroy === 'function') {

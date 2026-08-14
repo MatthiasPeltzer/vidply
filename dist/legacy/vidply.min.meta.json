@@ -17,27 +17,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.ts": {
-      "bytes": 9667,
+      "bytes": 9768,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.ts": {
-      "bytes": 11913,
+      "bytes": 12038,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.ts": {
-      "bytes": 10878,
+      "bytes": 10987,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.ts": {
-      "bytes": 11215,
+      "bytes": 11329,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.ts": {
-      "bytes": 11778,
+      "bytes": 11880,
       "imports": [],
       "format": "esm"
     },
@@ -110,7 +110,7 @@
       "format": "esm"
     },
     "src/icons/Icons.ts": {
-      "bytes": 13759,
+      "bytes": 13930,
       "imports": [],
       "format": "esm"
     },
@@ -429,6 +429,47 @@
           "path": "src/utils/PerformanceUtils.ts",
           "kind": "import-statement",
           "original": "../utils/PerformanceUtils.js"
+        },
+        {
+          "path": "<runtime>",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "src/utils/RichText.ts": {
+      "bytes": 2690,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/core/TrackInfoView.ts": {
+      "bytes": 8641,
+      "imports": [
+        {
+          "path": "src/utils/DOMUtils.ts",
+          "kind": "import-statement",
+          "original": "../utils/DOMUtils.js"
+        },
+        {
+          "path": "src/utils/RichText.ts",
+          "kind": "import-statement",
+          "original": "../utils/RichText.js"
+        },
+        {
+          "path": "src/icons/Icons.ts",
+          "kind": "import-statement",
+          "original": "../icons/Icons.js"
+        },
+        {
+          "path": "src/i18n/i18n.ts",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        },
+        {
+          "path": "src/utils/TimeUtils.ts",
+          "kind": "import-statement",
+          "original": "../utils/TimeUtils.js"
         },
         {
           "path": "<runtime>",
@@ -819,7 +860,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 109295,
+      "bytes": 111101,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -927,6 +968,11 @@
           "original": "./MetadataAlertsManager.js"
         },
         {
+          "path": "src/core/TrackInfoView.ts",
+          "kind": "import-statement",
+          "original": "./TrackInfoView.js"
+        },
+        {
           "path": "src/controls/KeyboardHelp.ts",
           "kind": "import-statement",
           "original": "../controls/KeyboardHelp.js"
@@ -985,7 +1031,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 66597,
+      "bytes": 64694,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1016,6 +1062,11 @@
           "path": "src/utils/PerformanceUtils.ts",
           "kind": "import-statement",
           "original": "../utils/PerformanceUtils.js"
+        },
+        {
+          "path": "src/core/TrackInfoView.ts",
+          "kind": "import-statement",
+          "original": "../core/TrackInfoView.js"
         },
         {
           "path": "<runtime>",
@@ -1057,7 +1108,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1470193
+      "bytes": 1489640
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1068,19 +1119,19 @@
           "bytesInOutput": 8919
         },
         "src/i18n/languages/en.ts": {
-          "bytesInOutput": 11150
+          "bytesInOutput": 11275
         },
         "src/i18n/languages/de.ts": {
-          "bytesInOutput": 12516
+          "bytesInOutput": 12653
         },
         "src/i18n/languages/es.ts": {
-          "bytesInOutput": 12396
+          "bytesInOutput": 12529
         },
         "src/i18n/languages/fr.ts": {
-          "bytesInOutput": 12718
+          "bytesInOutput": 12856
         },
         "src/i18n/languages/ja.ts": {
-          "bytesInOutput": 13307
+          "bytesInOutput": 13433
         },
         "src/i18n/translations.ts": {
           "bytesInOutput": 894
@@ -1095,7 +1146,7 @@
           "bytesInOutput": 2230
         },
         "src/icons/Icons.ts": {
-          "bytesInOutput": 12921
+          "bytesInOutput": 13104
         },
         "src/utils/FocusUtils.ts": {
           "bytesInOutput": 612
@@ -1170,7 +1221,7 @@
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 91346
+          "bytesInOutput": 93021
         },
         "src/controls/ControlBar.ts": {
           "bytesInOutput": 134777
@@ -1214,17 +1265,23 @@
         "src/core/MetadataAlertsManager.ts": {
           "bytesInOutput": 15264
         },
+        "src/core/TrackInfoView.ts": {
+          "bytesInOutput": 8117
+        },
+        "src/utils/RichText.ts": {
+          "bytesInOutput": 2410
+        },
         "src/controls/KeyboardHelp.ts": {
           "bytesInOutput": 8975
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 50591
+          "bytesInOutput": 48826
         },
         "src/index.ts": {
           "bytesInOutput": 5385
         }
       },
-      "bytes": 858905
+      "bytes": 870276
     }
   }
 }

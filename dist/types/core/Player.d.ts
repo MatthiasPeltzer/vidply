@@ -27,6 +27,7 @@ import type { SignLanguageManager } from './SignLanguageManager.js';
 import type { FloatingPlayerManager } from './FloatingPlayerManager.js';
 import type { TranscriptManager } from '../controls/TranscriptManager.js';
 import type { PlaylistManager } from '../features/PlaylistManager.js';
+import { TrackInfoView } from './TrackInfoView.js';
 import { KeyboardHelp } from '../controls/KeyboardHelp.js';
 /** Configuration accepted by Player.load() when switching to new media. */
 export interface PlayerLoadConfig {
@@ -115,6 +116,8 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
      *  created the first time `initResumePlayback` is called so sites
      *  that don't enable the feature don't pay the DOM / listener cost. */
     resumeManager: ResumeManager | null;
+    /** Standalone track metadata header (single-item players without a playlist). */
+    trackInfoView: TrackInfoView | null;
     /** Owns resize-observer, orientation matchMedia, and the
      *  cross-vendor fullscreenchange listeners. */
     responsiveManager: ResponsiveManager;
@@ -255,6 +258,12 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
      * `init()` is idempotent.
      */
     initResumePlayback(): void;
+    /**
+     * Render track metadata above the media for single-item players. Skipped
+     * when a playlist manager owns the track-info header instead.
+     */
+    initStandaloneTrackInfo(): void;
+    private buildStandaloneTrackInfoData;
     /**
      * Get a unique identifier for the current video
      * Uses data-video-id attribute if available, otherwise hashes the source URL

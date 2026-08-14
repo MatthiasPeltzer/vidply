@@ -34,6 +34,13 @@ export interface PlayerOptions {
   title?: string | null;
   artist?: string | null;
   album?: string | null;
+  /** Short plain-text summary shown in the track-info header. */
+  description?: string | null;
+  /** RTE HTML for the collapsible long description in the track-info header. */
+  longDescription?: string | null;
+  /** Preformatted, already localised publish date for the track-info header. */
+  date?: string | null;
+  episodeNumber?: string | null;
 
   // Integrate with the OS media controls via the Media Session API
   // (lock-screen / notification controls, headset buttons, now-playing

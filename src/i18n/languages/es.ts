@@ -236,6 +236,10 @@ export const es = {
     jumpedToFirstTrack: 'Saltó a la primera pista. 1 de {total}.',
     firstTrack: 'Primera pista. 1 de {total}.',
     lastTrack: 'Última pista. {current} de {total}.'
+  },
+  trackInfo: {
+    descriptionShow: 'Mostrar descripción',
+    descriptionHide: 'Ocultar descripción'
   }
 };
 

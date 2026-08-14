@@ -2,6 +2,7 @@
  * VidPly Playlist Manager
  * Manages playlists for audio and video content
  */
+import { TrackInfoView } from '../core/TrackInfoView.js';
 import type { Player } from '../core/Player.js';
 type PlaylistTextTrack = {
     src?: string;
@@ -29,6 +30,8 @@ type PlaylistTrack = {
     title?: string;
     artist?: string;
     description?: string;
+    /** Host-supplied RTE HTML for the collapsible long description. */
+    longDescription?: string;
     /** Preformatted, already localised publish date (see `PlaylistTrack` in types/events.ts). */
     date?: string;
     [key: string]: unknown;
@@ -70,7 +73,7 @@ export declare class PlaylistManager {
     PlayerClass: PlayerConstructor | null;
     playlistPanel: HTMLElement | null;
     trackArtworkElement: HTMLElement | null;
-    trackInfoElement: HTMLElement | null;
+    trackInfoView: TrackInfoView | null;
     tracks: PlaylistTrack[];
     uniqueId: string;
     private _timers;

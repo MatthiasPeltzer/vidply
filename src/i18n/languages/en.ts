@@ -240,6 +240,10 @@ export const en = {
     jumpedToFirstTrack: 'Jumped to first track. 1 of {total}.',
     firstTrack: 'First track. 1 of {total}.',
     lastTrack: 'Last track. {current} of {total}.'
+  },
+  trackInfo: {
+    descriptionShow: 'Show description',
+    descriptionHide: 'Hide description'
   }
 };
 

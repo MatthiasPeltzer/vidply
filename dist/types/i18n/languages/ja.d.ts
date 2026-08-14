@@ -236,5 +236,9 @@ export declare const ja: {
         firstTrack: string;
         lastTrack: string;
     };
+    trackInfo: {
+        descriptionShow: string;
+        descriptionHide: string;
+    };
 };
 //# sourceMappingURL=ja.d.ts.map

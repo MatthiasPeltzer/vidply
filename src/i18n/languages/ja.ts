@@ -236,6 +236,10 @@ export const ja = {
     jumpedToFirstTrack: '最初のトラックにジャンプしました。1/{total}。',
     firstTrack: '最初のトラックです。1/{total}。',
     lastTrack: '最後のトラックです。{current}/{total}。'
+  },
+  trackInfo: {
+    descriptionShow: '説明を表示',
+    descriptionHide: '説明を非表示'
   }
 };
 

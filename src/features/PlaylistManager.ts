@@ -9,6 +9,8 @@ import { i18n } from '../i18n/i18n.js';
 import { TimeUtils } from '../utils/TimeUtils.js';
 import { sanitizePosterUrl, toCssBackgroundImage } from '../utils/UrlSafe.js';
 import { reducedMotionScrollOptions } from '../utils/PerformanceUtils.js';
+import { TrackInfoView } from '../core/TrackInfoView.js';
+import type { TrackInfoData } from '../core/TrackInfoView.js';
 import type { Player } from '../core/Player.js';
 
 type PlaylistTextTrack = {
@@ -38,6 +40,8 @@ type PlaylistTrack = {
   title?: string;
   artist?: string;
   description?: string;
+  /** Host-supplied RTE HTML for the collapsible long description. */
+  longDescription?: string;
   /** Preformatted, already localised publish date (see `PlaylistTrack` in types/events.ts). */
   date?: string;
   [key: string]: unknown;
@@ -88,7 +92,7 @@ export class PlaylistManager {
   PlayerClass: PlayerConstructor | null;
   playlistPanel: HTMLElement | null;
   trackArtworkElement: HTMLElement | null;
-  trackInfoElement: HTMLElement | null;
+  trackInfoView: TrackInfoView | null;
   tracks: PlaylistTrack[];
   uniqueId: string;
   // Timers owned by this manager. Tracked so destroy() can cancel any pending
@@ -120,7 +124,7 @@ export class PlaylistManager {
     // UI elements
     this.container = null;
     this.playlistPanel = null;
-    this.trackInfoElement = null;
+    this.trackInfoView = null;
     this.trackArtworkElement = null;
     this.navigationFeedback = null; // Live region for keyboard navigation feedback
     this.isPanelVisible = this.options.showPanel !== false;
@@ -213,8 +217,8 @@ export class PlaylistManager {
     if (this.trackArtworkElement && this.trackArtworkElement.parentNode) {
       this.trackArtworkElement.parentNode.removeChild(this.trackArtworkElement);
     }
-    if (this.trackInfoElement && this.trackInfoElement.parentNode) {
-      this.trackInfoElement.parentNode.removeChild(this.trackInfoElement);
+    if (this.trackInfoView?.element.parentNode) {
+      this.trackInfoView.element.parentNode.removeChild(this.trackInfoView.element);
     }
     if (this.navigationFeedback && this.navigationFeedback.parentNode) {
       this.navigationFeedback.parentNode.removeChild(this.navigationFeedback);
@@ -343,8 +347,8 @@ export class PlaylistManager {
         }
       }
       // Track info
-      if (this.trackInfoElement) {
-        this.player.container.appendChild(this.trackInfoElement);
+      if (this.trackInfoView) {
+        this.player.container.appendChild(this.trackInfoView.element);
       }
       // Navigation feedback (screen reader only)
       if (this.navigationFeedback) {
@@ -1122,16 +1126,9 @@ export class PlaylistManager {
     // Important: in mixed playlists the player may start as <video> and later recreate to <audio>,
     // so we create this lazily in `updateTrackArtwork()` when we actually have an audio element.
     
-    // Create track info element (shows current track)
-    this.trackInfoElement = DOMUtils.createElement('div', {
-      className: 'vidply-track-info',
-      attributes: {
-        role: 'status'
-      }
-    });
-    this.trackInfoElement.style.display = 'none';
-    
-    this.container.appendChild(this.trackInfoElement);
+    // Track metadata header above the media element.
+    this.trackInfoView = new TrackInfoView(this.player.options.classPrefix);
+    this.trackInfoView.mount(this.container);
     
     // Create navigation feedback live region
     this.navigationFeedback = DOMUtils.createElement('div', {
@@ -1163,59 +1160,22 @@ export class PlaylistManager {
    * Update track info display
    */
   updateTrackInfo(track: PlaylistTrack) {
-    if (!this.trackInfoElement) return;
-    
-    const trackNumber = this.currentIndex + 1;
-    const totalTracks = this.tracks.length;
-    const trackTitle = track.title || i18n.t('playlist.untitled');
-    const trackArtist = track.artist || '';
-    
-    // Use effective duration (audio description duration when AD is enabled)
+    if (!this.trackInfoView) return;
+
     const effectiveDuration = this.getEffectiveDuration(track);
-    const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration as number) : '';
-    const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration as number) : '';
-    
-    // Preformatted, already localised publish date supplied by the host
-    const trackDate = typeof track.date === 'string' ? track.date : '';
-    
-    // Screen reader announcement - include date and duration if available
-    const artistPart = trackArtist ? i18n.t('playlist.by') + trackArtist : '';
-    const datePart = trackDate ? `. ${trackDate}` : '';
-    const durationPart = trackDurationReadable ? `. ${trackDurationReadable}` : '';
-    const announcement = i18n.t('playlist.nowPlaying', {
-      current: trackNumber,
-      total: totalTracks,
-      title: trackTitle,
-      artist: artistPart
-    }) + datePart + durationPart;
-    
-    const trackOfText = i18n.t('playlist.trackOf', {
-      current: trackNumber,
-      total: totalTracks
-    });
-    
-    // Build duration HTML if available
-    const durationHtml = trackDuration 
-      ? `<span class="vidply-track-duration" aria-hidden="true">${DOMUtils.escapeHTML(trackDuration)}</span>` 
-      : '';
-    
-    // Get description if available
-    const trackDescription = track.description || '';
-    
-    this.trackInfoElement.innerHTML = `
-      <span class="vidply-sr-only">${DOMUtils.escapeHTML(announcement)}</span>
-      <div class="vidply-track-header" aria-hidden="true">
-        <span class="vidply-track-number">${DOMUtils.escapeHTML(trackOfText)}</span>
-        ${durationHtml}
-      </div>
-      <div class="vidply-track-title" aria-hidden="true">${DOMUtils.escapeHTML(trackTitle)}</div>
-      ${trackArtist ? `<div class="vidply-track-artist" aria-hidden="true">${DOMUtils.escapeHTML(trackArtist)}</div>` : ''}
-      ${trackDate ? `<div class="vidply-track-date" aria-hidden="true">${DOMUtils.escapeHTML(trackDate)}</div>` : ''}
-      ${trackDescription ? `<div class="vidply-track-description" aria-hidden="true">${DOMUtils.escapeHTML(trackDescription)}</div>` : ''}
-    `;
-    
-    this.trackInfoElement.style.display = 'block';
-    
+    const data: TrackInfoData = {
+      title: track.title,
+      artist: track.artist,
+      description: track.description,
+      longDescription: typeof track.longDescription === 'string' ? track.longDescription : undefined,
+      date: typeof track.date === 'string' ? track.date : undefined,
+      duration: effectiveDuration ? Number(effectiveDuration) : undefined,
+      trackNumber: this.currentIndex + 1,
+      totalTracks: this.tracks.length
+    };
+
+    this.trackInfoView.render(data);
+
     // Update track artwork if available (for audio playlists)
     this.updateTrackArtwork(track);
   }
@@ -1785,9 +1745,8 @@ export class PlaylistManager {
       this.playlistPanel.style.display = 'none';
     }
     
-    if (this.trackInfoElement) {
-      this.trackInfoElement.innerHTML = '';
-      this.trackInfoElement.style.display = 'none';
+    if (this.trackInfoView) {
+      this.trackInfoView.hide();
     }
     
     if (this.trackArtworkElement) {
@@ -1897,8 +1856,9 @@ export class PlaylistManager {
       this.trackArtworkElement.remove();
     }
     
-    if (this.trackInfoElement) {
-      this.trackInfoElement.remove();
+    if (this.trackInfoView) {
+      this.trackInfoView.destroy();
+      this.trackInfoView = null;
     }
     
     if (this.playlistPanel) {

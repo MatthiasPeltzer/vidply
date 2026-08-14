@@ -5,6 +5,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PlaylistManager } from '../../src/features/PlaylistManager.js';
+import { TrackInfoView } from '../../src/core/TrackInfoView.js';
 
 // Mock dependencies
 vi.mock('../../src/utils/DOMUtils.js', () => ({
@@ -44,7 +45,9 @@ vi.mock('../../src/i18n/i18n.js', () => ({
         'playlist.trackOf': `${params.current || ''} of ${params.total || ''}`,
         'playlist.by': ' by ',
         'playlist.nowPlaying': `Now playing ${params.current || ''} of ${params.total || ''}: ${params.title || ''}${params.artist || ''}`,
-        'playlist.keyboardInstructions': 'Use arrow keys to navigate'
+        'playlist.keyboardInstructions': 'Use arrow keys to navigate',
+        'trackInfo.descriptionShow': 'Show description',
+        'trackInfo.descriptionHide': 'Hide description'
       };
       return templates[key] || key;
     })
@@ -795,14 +798,30 @@ describe('PlaylistManager', () => {
     });
 
     it('should render the date in the track info panel', () => {
-      manager.trackInfoElement = document.createElement('div');
+      manager.trackInfoView = new TrackInfoView('vidply');
       manager.currentIndex = 0;
+      manager.tracks = [{ src: 'track1.mp3', title: 'Episode 11', date: '18. Mai 2021' }];
       
       manager.updateTrackInfo({ src: 'track1.mp3', title: 'Episode 11', date: '18. Mai 2021' });
       
-      const date = manager.trackInfoElement.querySelector('.vidply-track-date');
+      const date = manager.trackInfoView.element.querySelector('.vidply-track-date');
       expect(date).not.toBeNull();
       expect(date.textContent).toBe('18. Mai 2021');
+    });
+
+    it('should render a long-description toggle in the track info panel', () => {
+      manager.trackInfoView = new TrackInfoView('vidply');
+      manager.currentIndex = 0;
+      manager.tracks = [{ src: 'track1.mp3', title: 'Episode 11', longDescription: '<p>Notes</p>' }];
+
+      manager.updateTrackInfo({
+        src: 'track1.mp3',
+        title: 'Episode 11',
+        longDescription: '<p>Notes</p>'
+      });
+
+      expect(manager.trackInfoView.element.querySelector('.vidply-track-longdesc-toggle')).not.toBeNull();
+      expect(manager.trackInfoView.element.querySelector('.vidply-track-longdesc')?.hasAttribute('hidden')).toBe(true);
     });
   });
 });

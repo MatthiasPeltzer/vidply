@@ -15,6 +15,9 @@ export interface PlaylistTrack {
    * host application knows the content language, the library does not.
    */
   date?: string;
+  /** Host-supplied RTE HTML for the collapsible long description. */
+  longDescription?: string;
+  episodeNumber?: string;
   type?: string;
   /**
    * File the download button offers while this track is selected. Set it on

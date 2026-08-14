@@ -239,6 +239,10 @@ export const de = {
         jumpedToFirstTrack: 'Zum ersten Titel gesprungen. 1 von {total}.',
         firstTrack: 'Erster Titel. 1 von {total}.',
         lastTrack: 'Letzter Titel. {current} von {total}.'
+    },
+    trackInfo: {
+        descriptionShow: 'Beschreibung anzeigen',
+        descriptionHide: 'Beschreibung ausblenden'
     }
 };
 

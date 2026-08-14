@@ -239,5 +239,9 @@ export declare const de: {
         firstTrack: string;
         lastTrack: string;
     };
+    trackInfo: {
+        descriptionShow: string;
+        descriptionHide: string;
+    };
 };
 //# sourceMappingURL=de.d.ts.map
