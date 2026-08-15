@@ -807,7 +807,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 34100,
+      "bytes": 34098,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -1108,7 +1108,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1489640
+      "bytes": 1489638
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1209,7 +1209,7 @@
           "bytesInOutput": 9242
         },
         "src/renderers/HLSRenderer.ts": {
-          "bytesInOutput": 30402
+          "bytesInOutput": 30401
         },
         "src/renderers/DASHRenderer.ts": {
           "bytesInOutput": 36457
@@ -1281,7 +1281,7 @@
           "bytesInOutput": 5385
         }
       },
-      "bytes": 870276
+      "bytes": 870275
     }
   }
 }

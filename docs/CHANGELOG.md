@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Updated vendored streaming library to hls.js 1.7.0.
+- Bumped the pinned hls.js CDN default and Subresource Integrity hash to 1.7.0.
+
 ### Security
 - Poster/artwork URLs are now validated and CSS-escaped before being
   written into the `--vidply-poster-image` custom property, so an

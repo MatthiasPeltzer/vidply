@@ -329,10 +329,10 @@ export class HLSRenderer implements Renderer {
    */
   async loadHlsJs(): Promise<void> {
     // SRI for the pinned default build below, verified against the file served
-    // by jsdelivr for hls.js@1.6.16. Recompute whenever the pin changes.
+    // by jsdelivr for hls.js@1.7.0. Recompute whenever the pin changes.
     return loadPinnedScript({
-      defaultUrl: 'https://cdn.jsdelivr.net/npm/hls.js@1.6.16/dist/hls.min.js',
-      defaultIntegrity: 'sha384-5E8B0pTlZZJMabWpC0fyYf6OUpe15jJij34BqBAh4NXoHAlLNOjCPRrwtOXOQFAn',
+      defaultUrl: 'https://cdn.jsdelivr.net/npm/hls.js@1.7.0/dist/hls.min.js',
+      defaultIntegrity: 'sha384-NsaFqWMOpy26cQK1F9VfwDdMFB97h7JCesDaPSI1sr79bzoezFrUOTYBhdsLJgha',
       url: this.player.options.hlsScriptUrl as string | undefined,
       integrity: this.player.options.hlsScriptIntegrity as string | undefined
     });

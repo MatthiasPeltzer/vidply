@@ -888,7 +888,7 @@ const player = new Player('#video', {
 1. Verify M3U8 URL is accessible
 2. Check CORS headers
 3. Test in Safari (native HLS support)
-4. **hls.js 1.6.16** loads on demand when not already on the page (override via `hlsScriptUrl`)
+4. **hls.js 1.7.0** loads on demand when not already on the page (override via `hlsScriptUrl`)
 
 ### DASH Stream Issues
 
