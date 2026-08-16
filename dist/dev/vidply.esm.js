@@ -11,11 +11,13 @@ import {
   createPlayOverlay
 } from "./vidply.chunk-MST7YVO2.js";
 import {
-  focusElement
-} from "./vidply.chunk-XOXOPD2X.js";
+  focusElement,
+  setContainerChildrenInert,
+  trapFocusInContainer
+} from "./vidply.chunk-QCNYPXPM.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-PUXQGFLY.js";
+} from "./vidply.chunk-A5BIOOI6.js";
 import {
   CaptionManager
 } from "./vidply.chunk-EZ77B6OY.js";
@@ -1106,6 +1108,7 @@ var ControlBar = class {
       attributes: {
         "role": "slider",
         "aria-label": i18n.t("player.progress"),
+        "aria-orientation": "horizontal",
         "aria-valuemin": "0",
         "aria-valuemax": "100",
         "aria-valuenow": "0",
@@ -1666,6 +1669,7 @@ var ControlBar = class {
       attributes: {
         "role": "slider",
         "aria-label": i18n.t("player.volume"),
+        "aria-orientation": "vertical",
         "aria-valuemin": "0",
         "aria-valuemax": "100",
         "aria-valuenow": String(initialPercent),
@@ -2101,7 +2105,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-P5N3J63J.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+    import("./vidply.CaptionStyleMenu-HTEZ4X32.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
@@ -5262,15 +5266,24 @@ function setSanitizedRichText(container, html) {
 }
 
 // src/core/TrackInfoView.ts
-var TrackInfoView = class {
+var TrackInfoView = class _TrackInfoView {
   element;
   classPrefix;
+  titleElementId;
+  longDescPanelId;
   handleClick;
+  static instanceCounter = 0;
   constructor(classPrefix = "vidply") {
+    _TrackInfoView.instanceCounter += 1;
     this.classPrefix = classPrefix;
+    this.titleElementId = `${classPrefix}-track-info-title-${_TrackInfoView.instanceCounter}`;
+    this.longDescPanelId = `${classPrefix}-track-longdesc-panel-${_TrackInfoView.instanceCounter}`;
     this.element = DOMUtils.createElement("div", {
       className: `${classPrefix}-track-info`,
-      attributes: { role: "status" }
+      attributes: {
+        role: "region",
+        "aria-labelledby": this.titleElementId
+      }
     });
     this.element.style.display = "none";
     this.handleClick = (event) => {
@@ -5306,15 +5319,16 @@ var TrackInfoView = class {
     const trackNumber = data.trackNumber ?? 0;
     const totalTracks = data.totalTracks ?? 0;
     const showTrackHeader = totalTracks > 1 && trackNumber > 0;
-    const effectiveDuration = typeof data.duration === "number" && data.duration > 0 ? data.duration : 0;
+    const isPlaylistContext = totalTracks > 1;
+    const effectiveDuration = isPlaylistContext && typeof data.duration === "number" && data.duration > 0 ? data.duration : 0;
     const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : "";
     const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : "";
     const artistPart = trackArtist ? i18n.t("playlist.by") + trackArtist : "";
     const datePart = trackDate ? `. ${trackDate}` : "";
     const durationPart = trackDurationReadable ? `. ${trackDurationReadable}` : "";
-    let announcement = trackTitle + artistPart + datePart + durationPart;
+    let playlistAnnouncement = trackTitle + artistPart + datePart + durationPart;
     if (showTrackHeader) {
-      announcement = i18n.t("playlist.nowPlaying", {
+      playlistAnnouncement = i18n.t("playlist.nowPlaying", {
         current: trackNumber,
         total: totalTracks,
         title: trackTitle,
@@ -5322,14 +5336,16 @@ var TrackInfoView = class {
       }) + datePart + durationPart;
     }
     this.element.replaceChildren();
-    this.element.appendChild(DOMUtils.createElement("span", {
-      className: `${prefix}-sr-only`,
-      textContent: announcement
-    }));
+    if (isPlaylistContext) {
+      this.element.appendChild(DOMUtils.createElement("span", {
+        className: `${prefix}-sr-only`,
+        attributes: { "aria-live": "polite" },
+        textContent: playlistAnnouncement
+      }));
+    }
     if (showTrackHeader) {
       const header = DOMUtils.createElement("div", {
-        className: `${prefix}-track-header`,
-        attributes: { "aria-hidden": "true" }
+        className: `${prefix}-track-header`
       });
       header.appendChild(DOMUtils.createElement("span", {
         className: `${prefix}-track-number`,
@@ -5342,40 +5358,27 @@ var TrackInfoView = class {
         }));
       }
       this.element.appendChild(header);
-    } else if (trackDuration) {
-      const header = DOMUtils.createElement("div", {
-        className: `${prefix}-track-header`,
-        attributes: { "aria-hidden": "true" }
-      });
-      header.appendChild(DOMUtils.createElement("span", {
-        className: `${prefix}-track-duration`,
-        textContent: trackDuration
-      }));
-      this.element.appendChild(header);
     }
-    this.element.appendChild(DOMUtils.createElement("div", {
+    this.element.appendChild(DOMUtils.createElement("p", {
       className: `${prefix}-track-title`,
-      attributes: { "aria-hidden": "true" },
+      attributes: { id: this.titleElementId },
       textContent: trackTitle
     }));
     if (trackArtist) {
-      this.element.appendChild(DOMUtils.createElement("div", {
+      this.element.appendChild(DOMUtils.createElement("p", {
         className: `${prefix}-track-artist`,
-        attributes: { "aria-hidden": "true" },
         textContent: trackArtist
       }));
     }
     if (trackDate) {
-      this.element.appendChild(DOMUtils.createElement("div", {
+      this.element.appendChild(DOMUtils.createElement("p", {
         className: `${prefix}-track-date`,
-        attributes: { "aria-hidden": "true" },
         textContent: trackDate
       }));
     }
     if (trackDescription) {
-      this.element.appendChild(DOMUtils.createElement("div", {
+      this.element.appendChild(DOMUtils.createElement("p", {
         className: `${prefix}-track-description`,
-        attributes: { "aria-hidden": "true" },
         textContent: trackDescription
       }));
     }
@@ -5386,6 +5389,7 @@ var TrackInfoView = class {
         attributes: {
           type: "button",
           "aria-expanded": "false",
+          "aria-controls": this.longDescPanelId,
           "aria-label": trackTitle ? `${showLabel}: ${trackTitle}` : showLabel
         },
         children: [
@@ -5400,14 +5404,16 @@ var TrackInfoView = class {
       toggle.dataset.labelHide = i18n.t("trackInfo.descriptionHide");
       toggle.dataset.trackTitle = trackTitle;
       const actions = DOMUtils.createElement("div", {
-        className: `${prefix}-track-actions`,
-        attributes: { "aria-hidden": "true" }
+        className: `${prefix}-track-actions`
       });
       actions.appendChild(toggle);
       this.element.appendChild(actions);
       const panel = DOMUtils.createElement("div", {
         className: `${prefix}-track-longdesc`,
-        attributes: { hidden: "" }
+        attributes: {
+          id: this.longDescPanelId,
+          hidden: ""
+        }
       });
       setSanitizedRichText(panel, longDescription);
       this.element.appendChild(panel);
@@ -5423,12 +5429,13 @@ var TrackInfoView = class {
     this.element.remove();
   }
   hasVisibleContent(data) {
+    const isPlaylistContext = (data.totalTracks ?? 0) > 1;
     return Boolean(
-      (data.title ?? "").trim() || (data.artist ?? "").trim() || (data.description ?? "").trim() || (data.longDescription ?? "").trim() || (data.date ?? "").trim() || typeof data.duration === "number" && data.duration > 0 || (data.totalTracks ?? 0) > 1 && (data.trackNumber ?? 0) > 0
+      (data.title ?? "").trim() || (data.artist ?? "").trim() || (data.description ?? "").trim() || (data.longDescription ?? "").trim() || (data.date ?? "").trim() || isPlaylistContext && typeof data.duration === "number" && data.duration > 0 || isPlaylistContext && (data.trackNumber ?? 0) > 0
     );
   }
   toggleLongDescription(button) {
-    const panel = button.closest(`.${this.classPrefix}-track-info`)?.querySelector(`.${this.classPrefix}-track-longdesc`);
+    const panel = button.closest(`.${this.classPrefix}-track-info`)?.querySelector(`#${CSS.escape(this.longDescPanelId)}`);
     if (!(panel instanceof HTMLElement)) return;
     const expanded = button.getAttribute("aria-expanded") !== "true";
     button.setAttribute("aria-expanded", String(expanded));
@@ -5490,6 +5497,7 @@ var KeyboardHelp = class {
   _triggerElement = null;
   _keydownHandler = null;
   _content = null;
+  _inertedElements = [];
   constructor(player) {
     this.player = player;
   }
@@ -5572,23 +5580,7 @@ var KeyboardHelp = class {
         return;
       }
       if (e.key === "Tab") {
-        const focusable = Array.from(
-          this.overlay.querySelectorAll(
-            'button, [href], select, input, textarea, [tabindex]:not([tabindex="-1"])'
-          )
-        ).filter((el) => !el.hasAttribute("disabled") && el.offsetParent !== null);
-        if (focusable.length === 0) return;
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (!first || !last) return;
-        const active = document.activeElement;
-        if (e.shiftKey && (active === first || !this.overlay.contains(active))) {
-          e.preventDefault();
-          last.focus({ preventScroll: true });
-        } else if (!e.shiftKey && active === last) {
-          e.preventDefault();
-          first.focus({ preventScroll: true });
-        }
+        trapFocusInContainer(e, this.overlay);
       }
     };
     const lifecycleSignal = this.player.lifecycleSignal;
@@ -5663,6 +5655,14 @@ var KeyboardHelp = class {
     this._triggerElement = active && typeof active.focus === "function" ? active : null;
     this.overlay.style.display = "flex";
     this.player.container?.classList.add(`${this.prefix}-modal-open`);
+    if (this.player.container && this.overlay) {
+      this._inertedElements = setContainerChildrenInert(
+        this.player.container,
+        this.overlay,
+        true,
+        this._inertedElements
+      );
+    }
     this.isOpen = true;
     const closeButton = this.overlay.querySelector(`.${this.prefix}-settings-close`);
     closeButton?.focus({ preventScroll: true });
@@ -5672,6 +5672,14 @@ var KeyboardHelp = class {
     if (!this.overlay) return;
     this.overlay.style.display = "none";
     this.player.container?.classList.remove(`${this.prefix}-modal-open`);
+    if (this.player.container) {
+      this._inertedElements = setContainerChildrenInert(
+        this.player.container,
+        null,
+        false,
+        this._inertedElements
+      );
+    }
     this.isOpen = false;
     const trigger = this._triggerElement;
     this._triggerElement = null;
@@ -5701,6 +5709,14 @@ var KeyboardHelp = class {
     if (this.overlay && this.overlay.parentNode) {
       this.overlay.parentNode.removeChild(this.overlay);
     }
+    if (this.player.container) {
+      this._inertedElements = setContainerChildrenInert(
+        this.player.container,
+        null,
+        false,
+        this._inertedElements
+      );
+    }
     this.player.container?.classList.remove(`${this.prefix}-modal-open`);
     this.overlay = null;
     this._content = null;
@@ -5722,7 +5738,7 @@ async function loadAudioDescriptionManager() {
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-C5KNIK2M.js");
+    const module = await import("./vidply.SignLanguageManager-3Q72VSU2.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
@@ -5825,6 +5841,10 @@ var Player = class _Player extends EventEmitter {
   /** Owns resize-observer, orientation matchMedia, and the
    *  cross-vendor fullscreenchange listeners. */
   responsiveManager;
+  /** Baseline `muted|volume` from page options; invalidates stale localStorage. */
+  _preferencesConfigKey = "";
+  /** While true, HTML5 renderers ignore media `volumechange` sync. */
+  _isApplyingVolumeSettings = false;
   /** Owns `kind=metadata` text-track directives (PAUSE, FOCUS,
    *  #hashtag) + the per-selector alert UI. Lazily created on first
    *  `setupMetadataHandling()` call. */
@@ -5916,6 +5936,7 @@ var Player = class _Player extends EventEmitter {
       poster: null,
       responsive: true,
       fillContainer: false,
+      showTrackInfo: true,
       // Media metadata + OS media controls (Media Session API)
       title: null,
       artist: null,
@@ -6094,15 +6115,21 @@ var Player = class _Player extends EventEmitter {
     this.options.metadataHashtags = this.options.metadataHashtags || {};
     this.noticeElement = null;
     this.noticeTimeout = null;
+    this._preferencesConfigKey = `${Boolean(this.options.muted)}|${Number(this.options.volume)}`;
     this.storage = new StorageManager("vidply");
     this.themeManager = new ThemeManager(this);
     this.posterManager = new PosterManager(this);
     this.responsiveManager = new ResponsiveManager(this);
     const savedPrefs = this.storage.getPlayerPreferences();
     if (savedPrefs) {
-      if (typeof savedPrefs.volume === "number") this.options.volume = savedPrefs.volume;
-      if (typeof savedPrefs.playbackSpeed === "number") this.options.playbackSpeed = savedPrefs.playbackSpeed;
-      if (typeof savedPrefs.muted === "boolean") this.options.muted = savedPrefs.muted;
+      const savedConfigKey = typeof savedPrefs.configKey === "string" ? savedPrefs.configKey : null;
+      if (savedConfigKey === this._preferencesConfigKey) {
+        if (typeof savedPrefs.volume === "number") this.options.volume = savedPrefs.volume;
+        if (typeof savedPrefs.muted === "boolean") this.options.muted = savedPrefs.muted;
+      }
+      if (typeof savedPrefs.playbackSpeed === "number") {
+        this.options.playbackSpeed = savedPrefs.playbackSpeed;
+      }
     }
     this.state = {
       ready: false,
@@ -6362,16 +6389,7 @@ var Player = class _Player extends EventEmitter {
         this.seek(this.options.startTime);
       }
       requestAnimationFrame(() => {
-        if (this.options.muted) {
-          this.mute();
-        } else if (this.renderer && this.renderer.media) {
-          this.renderer.setMuted(false);
-        }
-        if (this.options.volume !== 0.8) {
-          this.setVolume(this.options.volume);
-        } else if (this.renderer && this.renderer.media) {
-          this.renderer.setVolume(this.options.volume);
-        }
+        this.applyVolumeAndMuteSettings();
       });
       if (this.options.resumePlayback) {
         this.initResumePlayback();
@@ -6401,7 +6419,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-65CRCNRZ.js");
+    const module = await import("./vidply.TranscriptManager-7XECXIJC.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -6565,7 +6583,7 @@ var Player = class _Player extends EventEmitter {
    * when a playlist manager owns the track-info header instead.
    */
   initStandaloneTrackInfo() {
-    if (this.playlistManager || !this.container) {
+    if (this.playlistManager || !this.container || this.options.showTrackInfo === false) {
       return;
     }
     const data = this.buildStandaloneTrackInfoData();
@@ -6583,11 +6601,10 @@ var Player = class _Player extends EventEmitter {
       artist: typeof opts.artist === "string" ? opts.artist : void 0,
       description: typeof opts.description === "string" ? opts.description : void 0,
       longDescription: typeof opts.longDescription === "string" ? opts.longDescription : void 0,
-      date: typeof opts.date === "string" ? opts.date : void 0,
-      duration: opts.initialDuration > 0 ? opts.initialDuration : void 0
+      date: typeof opts.date === "string" ? opts.date : void 0
     };
     const hasContent = Boolean(
-      (data.title ?? "").trim() || (data.artist ?? "").trim() || (data.description ?? "").trim() || (data.longDescription ?? "").trim() || (data.date ?? "").trim() || (data.duration ?? 0) > 0
+      (data.title ?? "").trim() || (data.artist ?? "").trim() || (data.description ?? "").trim() || (data.longDescription ?? "").trim() || (data.date ?? "").trim()
     );
     return hasContent ? data : null;
   }
@@ -6966,11 +6983,11 @@ var Player = class _Player extends EventEmitter {
         return module.VimeoRenderer ?? module.default;
       }
       case "hls": {
-        const module = await import("./vidply.HLSRenderer-ID5FSU6E.js");
+        const module = await import("./vidply.HLSRenderer-UKMSQOVL.js");
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {
-        const module = await import("./vidply.DASHRenderer-WNGBZ5QS.js");
+        const module = await import("./vidply.DASHRenderer-5QXGMLEM.js");
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
@@ -7430,6 +7447,33 @@ var Player = class _Player extends EventEmitter {
   }
   // Volume controls
   /**
+   * HTML5 renderers call this before syncing `media.volume` / `media.muted`
+   * into player state so programmatic init is not overwritten (Chrome timing).
+   */
+  shouldSyncVolumeFromMedia() {
+    return !this._isApplyingVolumeSettings;
+  }
+  /**
+   * Apply the resolved options volume/mute to the renderer and player state.
+   */
+  applyVolumeAndMuteSettings() {
+    if (!this.renderer) {
+      return;
+    }
+    const volume = Math.max(0, Math.min(1, this.options.volume));
+    const muted = Boolean(this.options.muted);
+    this._isApplyingVolumeSettings = true;
+    try {
+      this.renderer.setVolume(volume);
+      this.renderer.setMuted(muted);
+      this.state.volume = volume;
+      this.state.muted = muted;
+    } finally {
+      this._isApplyingVolumeSettings = false;
+    }
+    this.emit("volumechange");
+  }
+  /**
    * Set the volume to a finite number in [0, 1]. Non-numeric or NaN
    * input is silently ignored.
    */
@@ -7495,6 +7539,7 @@ var Player = class _Player extends EventEmitter {
   // Save player preferences to localStorage
   savePlayerPreferences() {
     this.storage.savePlayerPreferences({
+      configKey: this._preferencesConfigKey,
       volume: this.state.volume,
       muted: this.state.muted,
       playbackSpeed: this.state.playbackSpeed
@@ -8937,7 +8982,7 @@ var PlaylistManager = class {
         "aria-label": ariaLabel,
         "aria-posinset": String(index + 1),
         "aria-setsize": String(this.tracks.length),
-        "aria-checked": isActive ? "true" : "false"
+        "aria-selected": isActive ? "true" : "false"
       }
     });
     if (isActive) {
@@ -9155,7 +9200,7 @@ var PlaylistManager = class {
       if (index === this.currentIndex) {
         item.classList.add("vidply-playlist-item-active");
         button.setAttribute("aria-current", "true");
-        button.setAttribute("aria-checked", "true");
+        button.setAttribute("aria-selected", "true");
         button.setAttribute("tabIndex", "0");
         let ariaLabel = `${trackTitle}${trackArtist}`;
         if (trackDurationReadable) {
@@ -9166,7 +9211,7 @@ var PlaylistManager = class {
       } else {
         item.classList.remove("vidply-playlist-item-active");
         button.removeAttribute("aria-current");
-        button.setAttribute("aria-checked", "false");
+        button.setAttribute("aria-selected", "false");
         button.setAttribute("tabIndex", "-1");
         let ariaLabel = `${trackTitle}${trackArtist}`;
         if (trackDurationReadable) {

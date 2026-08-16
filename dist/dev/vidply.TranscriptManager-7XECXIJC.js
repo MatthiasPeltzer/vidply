@@ -8,7 +8,7 @@ import {
   createLabeledSelect,
   createMenuItem,
   preventDragOnElement
-} from "./vidply.chunk-3XLISO52.js";
+} from "./vidply.chunk-IQ3H5XKR.js";
 import {
   DraggableResizable
 } from "./vidply.chunk-QDVE22LM.js";
@@ -19,8 +19,10 @@ import {
   createIconElement
 } from "./vidply.chunk-MST7YVO2.js";
 import {
-  focusElement
-} from "./vidply.chunk-XOXOPD2X.js";
+  focusElement,
+  setContainerChildrenInert,
+  trapFocusInContainer
+} from "./vidply.chunk-QCNYPXPM.js";
 import {
   StorageManager,
   deriveTrackLabel
@@ -41,6 +43,9 @@ var TranscriptManager = class {
   currentActiveEntry;
   currentTranscriptLanguage;
   customKeyHandler = null;
+  /** Elements marked inert while the floating transcript dialog is open. */
+  inertedElements = [];
+  previouslyFocused = null;
   /**
    * True once the style-dialog's outside-click listener has been
    * attached. The settings-menu's outside-click listener is now
@@ -246,6 +251,7 @@ var TranscriptManager = class {
     if (this.player.state?.floating) {
       return;
     }
+    this.previouslyFocused = document.activeElement;
     this.player.invalidateTrackCache();
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = "flex";
@@ -255,6 +261,11 @@ var TranscriptManager = class {
       this.updateLanguageSelector();
       if (this.player.controlBar && typeof this.player.controlBar.updateTranscriptButton === "function") {
         this.player.controlBar.updateTranscriptButton();
+      }
+      if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
+        this.setManagedTimeout(() => this.positionTranscript(), 0);
+      } else {
+        this.updateTranscriptModalState();
       }
       focusElement(this.settingsButton, { delay: 150 });
       return;
@@ -267,6 +278,8 @@ var TranscriptManager = class {
       transcriptWindow.style.display = "flex";
       if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
         this.setManagedTimeout(() => this.positionTranscript(), 0);
+      } else {
+        this.updateTranscriptModalState();
       }
       focusElement(this.settingsButton, { delay: 150 });
     }
@@ -279,6 +292,7 @@ var TranscriptManager = class {
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = "none";
       this.isVisible = false;
+      this.updateTranscriptModalState();
     }
     if (this.draggableResizable && this.draggableResizable.pointerResizeMode) {
       this.draggableResizable.disablePointerResizeMode();
@@ -305,6 +319,7 @@ var TranscriptManager = class {
       attributes: {
         "role": "dialog",
         "aria-label": i18n.t("transcript.ariaLabel"),
+        "aria-modal": "false",
         "tabindex": "-1"
       }
     });
@@ -555,6 +570,7 @@ var TranscriptManager = class {
         attributes: {
           "data-direction": direction,
           "data-vidply-managed-resize": "true",
+          "aria-label": i18n.t("player.resizeHandle", { direction }),
           "aria-hidden": "true"
         }
       });
@@ -708,6 +724,37 @@ var TranscriptManager = class {
         this.player.container.appendChild(this.transcriptWindow);
       }
     }
+    this.updateTranscriptModalState();
+  }
+  /**
+   * Floating/overlay layouts behave as modal dialogs; inline mobile layout does not.
+   */
+  isFloatingTranscriptLayout() {
+    if (!this.transcriptWindow || !this.isVisible) {
+      return false;
+    }
+    const position = this.transcriptWindow.style.position;
+    return position === "absolute" || position === "fixed";
+  }
+  /**
+   * Toggle aria-modal, background inert, and related WCAG semantics after layout.
+   */
+  updateTranscriptModalState() {
+    if (!this.transcriptWindow) {
+      return;
+    }
+    const isModal = this.isFloatingTranscriptLayout();
+    this.transcriptWindow.setAttribute("aria-modal", isModal ? "true" : "false");
+    const container = this.player.container;
+    if (!container) {
+      return;
+    }
+    this.inertedElements = setContainerChildrenInert(
+      container,
+      isModal ? this.transcriptWindow : null,
+      isModal,
+      this.inertedElements
+    );
   }
   /**
    * Get available transcript languages from tracks
@@ -1182,6 +1229,10 @@ var TranscriptManager = class {
       const key = e.key.toLowerCase();
       const alreadyPrevented = e.defaultPrevented;
       if (this.settingsMenuVisible || this.styleDialogVisible) {
+        return;
+      }
+      if (e.key === "Tab" && this.isFloatingTranscriptLayout()) {
+        trapFocusInContainer(e, this.transcriptWindow);
         return;
       }
       if (key === "home") {
@@ -1705,6 +1756,10 @@ var TranscriptManager = class {
    */
   destroy() {
     this.hideResizeModeIndicator();
+    const container = this.player.container;
+    if (container) {
+      this.inertedElements = setContainerChildrenInert(container, null, false, this.inertedElements);
+    }
     if (this._panel) {
       this._panel.destroy();
       this._panel = null;
@@ -1779,4 +1834,4 @@ var TranscriptManager = class {
 export {
   TranscriptManager
 };
-//# sourceMappingURL=vidply.TranscriptManager-65CRCNRZ.js.map
+//# sourceMappingURL=vidply.TranscriptManager-7XECXIJC.js.map

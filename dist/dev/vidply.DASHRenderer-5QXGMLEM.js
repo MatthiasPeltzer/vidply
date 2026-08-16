@@ -500,6 +500,9 @@ var DASHRenderer = class {
       }
     }, { signal });
     this.media.addEventListener("volumechange", () => {
+      if (!this.player.shouldSyncVolumeFromMedia()) {
+        return;
+      }
       this.player.state.volume = this.media.volume;
       this.player.state.muted = this.media.muted;
       this.player.emit("volumechange", this.media.volume);
@@ -868,4 +871,4 @@ var DASHRenderer = class {
 export {
   DASHRenderer
 };
-//# sourceMappingURL=vidply.DASHRenderer-WNGBZ5QS.js.map
+//# sourceMappingURL=vidply.DASHRenderer-5QXGMLEM.js.map

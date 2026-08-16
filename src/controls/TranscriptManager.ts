@@ -8,7 +8,11 @@ import { TimeUtils } from '../utils/TimeUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 import { StorageManager } from '../utils/StorageManager.js';
-import { focusElement } from '../utils/FocusUtils.js';
+import {
+  focusElement,
+  setContainerChildrenInert,
+  trapFocusInContainer,
+} from '../utils/FocusUtils.js';
 import { createMenuItem } from '../utils/MenuUtils.js';
 import { DraggableResizable } from '../utils/DraggableResizable.js';
 import { createLabeledSelect, preventDragOnElement } from '../utils/FormUtils.js';
@@ -70,6 +74,9 @@ export class TranscriptManager {
     currentActiveEntry: TranscriptEntry | null;
     currentTranscriptLanguage: string | null;
     customKeyHandler: ((e: KeyboardEvent) => void) | null = null;
+    /** Elements marked inert while the floating transcript dialog is open. */
+    private inertedElements: Element[] = [];
+    previouslyFocused: HTMLElement | null = null;
     /**
      * True once the style-dialog's outside-click listener has been
      * attached. The settings-menu's outside-click listener is now
@@ -338,6 +345,8 @@ export class TranscriptManager {
       return;
     }
 
+    this.previouslyFocused = document.activeElement as HTMLElement | null;
+
     // Always invalidate track cache to get fresh HLS subtitle tracks
     this.player.invalidateTrackCache();
     
@@ -352,6 +361,12 @@ export class TranscriptManager {
 
       if (this.player.controlBar && typeof this.player.controlBar.updateTranscriptButton === 'function') {
         this.player.controlBar.updateTranscriptButton();
+      }
+
+      if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
+        this.setManagedTimeout(() => this.positionTranscript(), 0);
+      } else {
+        this.updateTranscriptModalState();
       }
       
       // Focus the settings button for keyboard accessibility
@@ -369,6 +384,8 @@ export class TranscriptManager {
       
       if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
         this.setManagedTimeout(() => this.positionTranscript(), 0);
+      } else {
+        this.updateTranscriptModalState();
       }
       
       focusElement(this.settingsButton, { delay: 150 });
@@ -383,6 +400,7 @@ export class TranscriptManager {
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = 'none';
       this.isVisible = false;
+      this.updateTranscriptModalState();
     }
     if (this.draggableResizable && this.draggableResizable.pointerResizeMode) {
       this.draggableResizable.disablePointerResizeMode();
@@ -413,6 +431,7 @@ export class TranscriptManager {
       attributes: {
         'role': 'dialog',
         'aria-label': i18n.t('transcript.ariaLabel'),
+        'aria-modal': 'false',
         'tabindex': '-1'
       }
     });
@@ -729,6 +748,7 @@ export class TranscriptManager {
         attributes: {
           'data-direction': direction,
           'data-vidply-managed-resize': 'true',
+          'aria-label': i18n.t('player.resizeHandle', { direction }),
           'aria-hidden': 'true'
         }
       });
@@ -929,6 +949,44 @@ export class TranscriptManager {
         this.player.container.appendChild(this.transcriptWindow);
       }
     }
+
+    this.updateTranscriptModalState();
+  }
+
+  /**
+   * Floating/overlay layouts behave as modal dialogs; inline mobile layout does not.
+   */
+  private isFloatingTranscriptLayout(): boolean {
+    if (!this.transcriptWindow || !this.isVisible) {
+      return false;
+    }
+
+    const position = this.transcriptWindow.style.position;
+    return position === 'absolute' || position === 'fixed';
+  }
+
+  /**
+   * Toggle aria-modal, background inert, and related WCAG semantics after layout.
+   */
+  private updateTranscriptModalState(): void {
+    if (!this.transcriptWindow) {
+      return;
+    }
+
+    const isModal = this.isFloatingTranscriptLayout();
+    this.transcriptWindow.setAttribute('aria-modal', isModal ? 'true' : 'false');
+
+    const container = this.player.container;
+    if (!container) {
+      return;
+    }
+
+    this.inertedElements = setContainerChildrenInert(
+      container,
+      isModal ? this.transcriptWindow : null,
+      isModal,
+      this.inertedElements
+    );
   }
 
   /**
@@ -1534,13 +1592,19 @@ export class TranscriptManager {
       }
     });
 
-    // Add custom keyboard handler for special keys (Escape, Home)
+    // Add custom keyboard handler for special keys (Escape, Home, Tab trap)
     this.customKeyHandler = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
       const alreadyPrevented = e.defaultPrevented;
 
       // Don't handle keys if settings menu or style dialog is open (let them handle keys)
       if (this.settingsMenuVisible || this.styleDialogVisible) {
+        return;
+      }
+
+      // WCAG 2.1.2 / 2.4.3 — keep focus inside the floating transcript dialog.
+      if (e.key === 'Tab' && this.isFloatingTranscriptLayout()) {
+        trapFocusInContainer(e, this.transcriptWindow);
         return;
       }
 
@@ -2174,6 +2238,11 @@ export class TranscriptManager {
    */
   destroy() {
     this.hideResizeModeIndicator();
+
+    const container = this.player.container;
+    if (container) {
+      this.inertedElements = setContainerChildrenInert(container, null, false, this.inertedElements);
+    }
 
     // Tear down the settings-menu panel (removes its DOM + keyboard
     // listeners). The outside-click listener was attached with the

@@ -17,7 +17,7 @@ export interface TrackInfoData {
   longDescription?: string;
   /** Preformatted, already localised publish date. */
   date?: string;
-  /** Duration in seconds. */
+  /** Duration in seconds (playlists only; standalone players omit this). */
   duration?: number;
   trackNumber?: number;
   totalTracks?: number;
@@ -26,13 +26,22 @@ export interface TrackInfoData {
 export class TrackInfoView {
   readonly element: HTMLElement;
   private readonly classPrefix: string;
+  private readonly titleElementId: string;
+  private readonly longDescPanelId: string;
   private readonly handleClick: (event: Event) => void;
+  private static instanceCounter = 0;
 
   constructor(classPrefix = 'vidply') {
+    TrackInfoView.instanceCounter += 1;
     this.classPrefix = classPrefix;
+    this.titleElementId = `${classPrefix}-track-info-title-${TrackInfoView.instanceCounter}`;
+    this.longDescPanelId = `${classPrefix}-track-longdesc-panel-${TrackInfoView.instanceCounter}`;
     this.element = DOMUtils.createElement('div', {
       className: `${classPrefix}-track-info`,
-      attributes: { role: 'status' }
+      attributes: {
+        role: 'region',
+        'aria-labelledby': this.titleElementId
+      }
     });
     this.element.style.display = 'none';
 
@@ -73,8 +82,11 @@ export class TrackInfoView {
     const trackNumber = data.trackNumber ?? 0;
     const totalTracks = data.totalTracks ?? 0;
     const showTrackHeader = totalTracks > 1 && trackNumber > 0;
+    const isPlaylistContext = totalTracks > 1;
 
-    const effectiveDuration = typeof data.duration === 'number' && data.duration > 0
+    const effectiveDuration = isPlaylistContext
+      && typeof data.duration === 'number'
+      && data.duration > 0
       ? data.duration
       : 0;
     const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : '';
@@ -84,9 +96,9 @@ export class TrackInfoView {
     const datePart = trackDate ? `. ${trackDate}` : '';
     const durationPart = trackDurationReadable ? `. ${trackDurationReadable}` : '';
 
-    let announcement = trackTitle + artistPart + datePart + durationPart;
+    let playlistAnnouncement = trackTitle + artistPart + datePart + durationPart;
     if (showTrackHeader) {
-      announcement = i18n.t('playlist.nowPlaying', {
+      playlistAnnouncement = i18n.t('playlist.nowPlaying', {
         current: trackNumber,
         total: totalTracks,
         title: trackTitle,
@@ -96,15 +108,17 @@ export class TrackInfoView {
 
     this.element.replaceChildren();
 
-    this.element.appendChild(DOMUtils.createElement('span', {
-      className: `${prefix}-sr-only`,
-      textContent: announcement
-    }));
+    if (isPlaylistContext) {
+      this.element.appendChild(DOMUtils.createElement('span', {
+        className: `${prefix}-sr-only`,
+        attributes: { 'aria-live': 'polite' },
+        textContent: playlistAnnouncement
+      }));
+    }
 
     if (showTrackHeader) {
       const header = DOMUtils.createElement('div', {
-        className: `${prefix}-track-header`,
-        attributes: { 'aria-hidden': 'true' }
+        className: `${prefix}-track-header`
       });
       header.appendChild(DOMUtils.createElement('span', {
         className: `${prefix}-track-number`,
@@ -117,44 +131,31 @@ export class TrackInfoView {
         }));
       }
       this.element.appendChild(header);
-    } else if (trackDuration) {
-      const header = DOMUtils.createElement('div', {
-        className: `${prefix}-track-header`,
-        attributes: { 'aria-hidden': 'true' }
-      });
-      header.appendChild(DOMUtils.createElement('span', {
-        className: `${prefix}-track-duration`,
-        textContent: trackDuration
-      }));
-      this.element.appendChild(header);
     }
 
-    this.element.appendChild(DOMUtils.createElement('div', {
+    this.element.appendChild(DOMUtils.createElement('p', {
       className: `${prefix}-track-title`,
-      attributes: { 'aria-hidden': 'true' },
+      attributes: { id: this.titleElementId },
       textContent: trackTitle
     }));
 
     if (trackArtist) {
-      this.element.appendChild(DOMUtils.createElement('div', {
+      this.element.appendChild(DOMUtils.createElement('p', {
         className: `${prefix}-track-artist`,
-        attributes: { 'aria-hidden': 'true' },
         textContent: trackArtist
       }));
     }
 
     if (trackDate) {
-      this.element.appendChild(DOMUtils.createElement('div', {
+      this.element.appendChild(DOMUtils.createElement('p', {
         className: `${prefix}-track-date`,
-        attributes: { 'aria-hidden': 'true' },
         textContent: trackDate
       }));
     }
 
     if (trackDescription) {
-      this.element.appendChild(DOMUtils.createElement('div', {
+      this.element.appendChild(DOMUtils.createElement('p', {
         className: `${prefix}-track-description`,
-        attributes: { 'aria-hidden': 'true' },
         textContent: trackDescription
       }));
     }
@@ -166,6 +167,7 @@ export class TrackInfoView {
         attributes: {
           type: 'button',
           'aria-expanded': 'false',
+          'aria-controls': this.longDescPanelId,
           'aria-label': trackTitle ? `${showLabel}: ${trackTitle}` : showLabel
         },
         children: [
@@ -181,15 +183,17 @@ export class TrackInfoView {
       toggle.dataset.trackTitle = trackTitle;
 
       const actions = DOMUtils.createElement('div', {
-        className: `${prefix}-track-actions`,
-        attributes: { 'aria-hidden': 'true' }
+        className: `${prefix}-track-actions`
       });
       actions.appendChild(toggle);
       this.element.appendChild(actions);
 
       const panel = DOMUtils.createElement('div', {
         className: `${prefix}-track-longdesc`,
-        attributes: { hidden: '' }
+        attributes: {
+          id: this.longDescPanelId,
+          hidden: ''
+        }
       });
       setSanitizedRichText(panel, longDescription);
       this.element.appendChild(panel);
@@ -209,20 +213,22 @@ export class TrackInfoView {
   }
 
   private hasVisibleContent(data: TrackInfoData): boolean {
+    const isPlaylistContext = (data.totalTracks ?? 0) > 1;
+
     return Boolean(
       (data.title ?? '').trim()
       || (data.artist ?? '').trim()
       || (data.description ?? '').trim()
       || (data.longDescription ?? '').trim()
       || (data.date ?? '').trim()
-      || (typeof data.duration === 'number' && data.duration > 0)
-      || ((data.totalTracks ?? 0) > 1 && (data.trackNumber ?? 0) > 0)
+      || (isPlaylistContext && typeof data.duration === 'number' && data.duration > 0)
+      || (isPlaylistContext && (data.trackNumber ?? 0) > 0)
     );
   }
 
   private toggleLongDescription(button: HTMLButtonElement): void {
     const panel = button.closest(`.${this.classPrefix}-track-info`)
-      ?.querySelector(`.${this.classPrefix}-track-longdesc`);
+      ?.querySelector(`#${CSS.escape(this.longDescPanelId)}`);
     if (!(panel instanceof HTMLElement)) return;
 
     const expanded = button.getAttribute('aria-expanded') !== 'true';

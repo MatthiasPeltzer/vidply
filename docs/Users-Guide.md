@@ -312,6 +312,8 @@ const player = new Player('#my-video', {
 | `debug` | bool | false | Debug logging |
 | `preload` | string | 'metadata' | `'none'`, `'metadata'`, `'auto'` |
 | `deferLoad` | bool | false | Avoid starting network loading during init; load on user play / explicit load |
+| `fillContainer` | bool | false | Fill the player container |
+| `showTrackInfo` | bool | true | Render `.vidply-track-info` for standalone players (playlists use their own header) |
 | `initialDuration` | number | 0 | Initial duration in seconds (UI only, before media metadata is loaded) |
 | `requirePlaybackForAccessibilityToggles` | bool | false | If true: AD/SL before playback shows a notice instead of implicitly loading/playing |
 

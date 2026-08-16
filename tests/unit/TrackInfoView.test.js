@@ -65,4 +65,74 @@ describe('TrackInfoView', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
     expect(panel?.hasAttribute('hidden')).toBe(true);
   });
+
+  it('does not render duration for standalone track-info', () => {
+    view.render({
+      title: 'Episode 11',
+      duration: 180
+    });
+
+    expect(view.element.querySelector('.vidply-track-duration')).toBeNull();
+    expect(view.element.style.display).toBe('block');
+  });
+
+  it('stays hidden when only duration would have been content without playlist context', () => {
+    view.render({
+      duration: 180
+    });
+
+    expect(view.element.style.display).toBe('none');
+  });
+
+  it('renders duration in the track header for playlists', () => {
+    view.render({
+      title: 'Episode 11',
+      duration: 180,
+      trackNumber: 2,
+      totalTracks: 5
+    });
+
+    expect(view.element.querySelector('.vidply-track-duration')?.textContent).toBe('03:00');
+    expect(view.element.style.display).toBe('block');
+  });
+
+  it('exposes standalone track metadata to assistive technologies', () => {
+    view.render({
+      title: 'Episode 11',
+      artist: 'Example Artist',
+      description: 'Short description.',
+      longDescription: '<p>Extended notes.</p>'
+    });
+
+    expect(view.element.getAttribute('role')).toBe('region');
+    const titleId = view.element.getAttribute('aria-labelledby');
+    expect(titleId).toBeTruthy();
+    expect(view.element.querySelector(`#${titleId}`)?.textContent).toBe('Episode 11');
+    expect(view.element.querySelector('.vidply-track-title')?.tagName).toBe('P');
+    expect(view.element.querySelector('.vidply-track-artist')?.tagName).toBe('P');
+    expect(view.element.querySelector('.vidply-track-description')?.tagName).toBe('P');
+    expect(view.element.querySelector('.vidply-sr-only')).toBeNull();
+    expect(view.element.querySelector('.vidply-track-title')?.getAttribute('aria-hidden')).toBeNull();
+    expect(view.element.querySelector('.vidply-track-artist')?.getAttribute('aria-hidden')).toBeNull();
+    expect(view.element.querySelector('.vidply-track-description')?.getAttribute('aria-hidden')).toBeNull();
+    expect(view.element.querySelector('.vidply-track-actions')?.getAttribute('aria-hidden')).toBeNull();
+
+    const toggle = view.element.querySelector('.vidply-track-longdesc-toggle');
+    const panel = view.element.querySelector('.vidply-track-longdesc');
+    expect(toggle?.getAttribute('aria-controls')).toBe(panel?.id);
+  });
+
+  it('announces playlist track changes without hiding interactive controls', () => {
+    view.render({
+      title: 'Episode 11',
+      artist: 'Example Artist',
+      trackNumber: 2,
+      totalTracks: 5,
+      longDescription: '<p>Extended notes.</p>'
+    });
+
+    const liveRegion = view.element.querySelector('.vidply-sr-only[aria-live="polite"]');
+    expect(liveRegion?.textContent).toContain('Episode 11');
+    expect(view.element.querySelector('.vidply-track-longdesc-toggle')?.closest('[aria-hidden="true"]')).toBeNull();
+  });
 });

@@ -1213,6 +1213,7 @@ export class ControlBar {
             attributes: {
                 'role': 'slider',
                 'aria-label': i18n.t('player.progress'),
+                'aria-orientation': 'horizontal',
                 'aria-valuemin': '0',
                 'aria-valuemax': '100',
                 'aria-valuenow': '0',
@@ -1970,6 +1971,7 @@ export class ControlBar {
             attributes: {
                 'role': 'slider',
                 'aria-label': i18n.t('player.volume'),
+                'aria-orientation': 'vertical',
                 'aria-valuemin': '0',
                 'aria-valuemax': '100',
                 'aria-valuenow': String(initialPercent),

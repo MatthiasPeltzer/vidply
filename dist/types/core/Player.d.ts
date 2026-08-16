@@ -121,6 +121,10 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     /** Owns resize-observer, orientation matchMedia, and the
      *  cross-vendor fullscreenchange listeners. */
     responsiveManager: ResponsiveManager;
+    /** Baseline `muted|volume` from page options; invalidates stale localStorage. */
+    private _preferencesConfigKey;
+    /** While true, HTML5 renderers ignore media `volumechange` sync. */
+    private _isApplyingVolumeSettings;
     /** Owns `kind=metadata` text-track directives (PAUSE, FOCUS,
      *  #hashtag) + the per-selector alert UI. Lazily created on first
      *  `setupMetadataHandling()` call. */
@@ -403,6 +407,15 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     seek(time: number): void;
     seekForward(interval?: number): void;
     seekBackward(interval?: number): void;
+    /**
+     * HTML5 renderers call this before syncing `media.volume` / `media.muted`
+     * into player state so programmatic init is not overwritten (Chrome timing).
+     */
+    shouldSyncVolumeFromMedia(): boolean;
+    /**
+     * Apply the resolved options volume/mute to the renderer and player state.
+     */
+    applyVolumeAndMuteSettings(): void;
     /**
      * Set the volume to a finite number in [0, 1]. Non-numeric or NaN
      * input is silently ignored.

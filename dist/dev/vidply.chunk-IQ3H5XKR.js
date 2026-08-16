@@ -8,7 +8,7 @@ import {
 } from "./vidply.chunk-MST7YVO2.js";
 import {
   focusElement
-} from "./vidply.chunk-XOXOPD2X.js";
+} from "./vidply.chunk-QCNYPXPM.js";
 import {
   reducedMotionScrollOptions
 } from "./vidply.chunk-XQIUVLS5.js";
@@ -639,4 +639,4 @@ export {
   createMenuItem,
   DraggablePanel
 };
-//# sourceMappingURL=vidply.chunk-3XLISO52.js.map
+//# sourceMappingURL=vidply.chunk-IQ3H5XKR.js.map

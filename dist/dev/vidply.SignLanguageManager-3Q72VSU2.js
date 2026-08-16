@@ -7,14 +7,14 @@ import {
   DraggablePanel,
   createLabeledSelect,
   preventDragOnElement
-} from "./vidply.chunk-3XLISO52.js";
+} from "./vidply.chunk-IQ3H5XKR.js";
 import {
   DraggableResizable
 } from "./vidply.chunk-QDVE22LM.js";
 import {
   createIconElement
 } from "./vidply.chunk-MST7YVO2.js";
-import "./vidply.chunk-XOXOPD2X.js";
+import "./vidply.chunk-QCNYPXPM.js";
 import "./vidply.chunk-XQIUVLS5.js";
 import {
   DOMUtils,
@@ -1083,4 +1083,4 @@ var SignLanguageManager = class {
 export {
   SignLanguageManager
 };
-//# sourceMappingURL=vidply.SignLanguageManager-C5KNIK2M.js.map
+//# sourceMappingURL=vidply.SignLanguageManager-3Q72VSU2.js.map

@@ -23,6 +23,8 @@ export interface PlayerOptions {
     poster: string | null;
     responsive: boolean;
     fillContainer: boolean;
+    /** Render `.vidply-track-info` for standalone players; playlists use their own header. */
+    showTrackInfo: boolean;
     mediaType?: 'video' | 'audio';
     title?: string | null;
     artist?: string | null;

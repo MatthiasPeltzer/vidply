@@ -95,7 +95,7 @@ var HLSRenderer = class {
     return video.canPlayType("application/vnd.apple.mpegurl") !== "";
   }
   async initNative() {
-    const { HTML5Renderer } = await import("./vidply.HTML5Renderer-ROMMGYGK.js");
+    const { HTML5Renderer } = await import("./vidply.HTML5Renderer-2PCSYYTH.js");
     const native = new HTML5Renderer(this.player);
     await native.init();
     this.play = () => native.play();
@@ -486,6 +486,9 @@ var HLSRenderer = class {
       }
     }, { signal });
     this.media.addEventListener("volumechange", () => {
+      if (!this.player.shouldSyncVolumeFromMedia()) {
+        return;
+      }
       this.player.state.volume = this.media.volume;
       this.player.state.muted = this.media.muted;
       this.player.emit("volumechange", this.media.volume);
@@ -706,4 +709,4 @@ var HLSRenderer = class {
 export {
   HLSRenderer
 };
-//# sourceMappingURL=vidply.HLSRenderer-ID5FSU6E.js.map
+//# sourceMappingURL=vidply.HLSRenderer-UKMSQOVL.js.map

@@ -82,7 +82,7 @@ Try VidPly in action:
 - **Zoom & Reflow** - Pinch-zoom is preserved even in (pseudo-)fullscreen; no fixed `maximum-scale` lock (SC 1.4.4 /
   1.4.10)
 - **Focus Management** - Logical focus order, programmatic focus handling, visible indicators, focus traps in the
-  transcript window and settings dialog
+  transcript window (floating layout), caption style dialog, and keyboard help
 - **Touch Accessibility** - Buttons, resize handles and slider thumbs sized at or above the WCAG 2.2 AA 24×24
   CSS-pixel minimum (SC 2.5.8); swipeable interfaces
 

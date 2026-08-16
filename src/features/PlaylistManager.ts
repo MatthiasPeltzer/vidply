@@ -1300,7 +1300,7 @@ export class PlaylistManager {
     const isActive = index === this.currentIndex;
     
     // Build accessible label for screen readers
-    // With role="option" and aria-checked, screen reader will announce selection state
+    // With role="option" and aria-selected, screen reader will announce selection state
     // Position is already announced via aria-posinset/aria-setsize
     // Format: "Title by Artist. 3 minutes, 45 seconds."
     const trackDate = typeof track.date === 'string' ? track.date : '';
@@ -1334,7 +1334,7 @@ export class PlaylistManager {
         'aria-label': ariaLabel,
         'aria-posinset': String(index + 1),
         'aria-setsize': String(this.tracks.length),
-        'aria-checked': isActive ? 'true' : 'false'
+        'aria-selected': isActive ? 'true' : 'false'
       }
     });
     
@@ -1628,7 +1628,7 @@ export class PlaylistManager {
         
         // Update button ARIA attributes
         button.setAttribute('aria-current', 'true');
-        button.setAttribute('aria-checked', 'true');
+        button.setAttribute('aria-selected', 'true');
         button.setAttribute('tabIndex', '0'); // Active item should be tabbable
         
         // Simplified aria-label - status and actions are announced via ARIA roles
@@ -1646,7 +1646,7 @@ export class PlaylistManager {
         
         // Update button ARIA attributes
         button.removeAttribute('aria-current');
-        button.setAttribute('aria-checked', 'false');
+        button.setAttribute('aria-selected', 'false');
         button.setAttribute('tabIndex', '-1'); // Remove from tab order (use arrow keys)
         
         // Simplified aria-label - status and actions are announced via ARIA roles

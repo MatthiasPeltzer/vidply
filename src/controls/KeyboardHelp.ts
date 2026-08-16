@@ -10,6 +10,7 @@
 import { DOMUtils } from '../utils/DOMUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
+import { setContainerChildrenInert, trapFocusInContainer } from '../utils/FocusUtils.js';
 import type { Player } from '../core/Player.js';
 import type { KeyboardShortcuts } from '../types/options.js';
 
@@ -64,6 +65,7 @@ export class KeyboardHelp {
   private _triggerElement: HTMLElement | null = null;
   private _keydownHandler: ((e: KeyboardEvent) => void) | null = null;
   private _content: HTMLElement | null = null;
+  private _inertedElements: Element[] = [];
 
   constructor(player: Player) {
     this.player = player;
@@ -163,25 +165,7 @@ export class KeyboardHelp {
 
       // Trap Tab within the dialog (WCAG 2.1.2, 2.4.3).
       if (e.key === 'Tab') {
-        const focusable = Array.from(
-          this.overlay.querySelectorAll<HTMLElement>(
-            'button, [href], select, input, textarea, [tabindex]:not([tabindex="-1"])'
-          )
-        ).filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null);
-        if (focusable.length === 0) return;
-
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (!first || !last) return;
-        const active = document.activeElement as HTMLElement | null;
-
-        if (e.shiftKey && (active === first || !this.overlay.contains(active))) {
-          e.preventDefault();
-          last.focus({ preventScroll: true });
-        } else if (!e.shiftKey && active === last) {
-          e.preventDefault();
-          first.focus({ preventScroll: true });
-        }
+        trapFocusInContainer(e, this.overlay);
       }
     };
     const lifecycleSignal = (this.player as { lifecycleSignal?: AbortSignal }).lifecycleSignal;
@@ -274,6 +258,14 @@ export class KeyboardHelp {
 
     this.overlay.style.display = 'flex';
     this.player.container?.classList.add(`${this.prefix}-modal-open`);
+    if (this.player.container && this.overlay) {
+      this._inertedElements = setContainerChildrenInert(
+        this.player.container,
+        this.overlay,
+        true,
+        this._inertedElements
+      );
+    }
     this.isOpen = true;
 
     const closeButton = this.overlay.querySelector<HTMLElement>(`.${this.prefix}-settings-close`);
@@ -287,6 +279,14 @@ export class KeyboardHelp {
 
     this.overlay.style.display = 'none';
     this.player.container?.classList.remove(`${this.prefix}-modal-open`);
+    if (this.player.container) {
+      this._inertedElements = setContainerChildrenInert(
+        this.player.container,
+        null,
+        false,
+        this._inertedElements
+      );
+    }
     this.isOpen = false;
 
     const trigger = this._triggerElement;
@@ -319,6 +319,14 @@ export class KeyboardHelp {
     }
     if (this.overlay && this.overlay.parentNode) {
       this.overlay.parentNode.removeChild(this.overlay);
+    }
+    if (this.player.container) {
+      this._inertedElements = setContainerChildrenInert(
+        this.player.container,
+        null,
+        false,
+        this._inertedElements
+      );
     }
     this.player.container?.classList.remove(`${this.prefix}-modal-open`);
     this.overlay = null;

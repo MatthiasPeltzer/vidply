@@ -204,6 +204,10 @@ export class Player extends EventEmitter<PlayerEventMap> {
   /** Owns resize-observer, orientation matchMedia, and the
    *  cross-vendor fullscreenchange listeners. */
   responsiveManager!: ResponsiveManager;
+  /** Baseline `muted|volume` from page options; invalidates stale localStorage. */
+  private _preferencesConfigKey = '';
+  /** While true, HTML5 renderers ignore media `volumechange` sync. */
+  private _isApplyingVolumeSettings = false;
   /** Owns `kind=metadata` text-track directives (PAUSE, FOCUS,
    *  #hashtag) + the per-selector alert UI. Lazily created on first
    *  `setupMetadataHandling()` call. */
@@ -319,6 +323,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       poster: null,
       responsive: true,
       fillContainer: false,
+      showTrackInfo: true,
 
       // Media metadata + OS media controls (Media Session API)
       title: null,
@@ -500,6 +505,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
     this.noticeElement = null;
     this.noticeTimeout = null;
 
+    this._preferencesConfigKey = `${Boolean(this.options.muted)}|${Number(this.options.volume)}`;
+
     // Storage manager
     this.storage = new StorageManager('vidply');
 
@@ -510,12 +517,17 @@ export class Player extends EventEmitter<PlayerEventMap> {
     this.posterManager = new PosterManager(this);
     this.responsiveManager = new ResponsiveManager(this);
 
-    // Load saved player preferences
+    // Restore user volume/mute only when localStorage matches this CMS config.
     const savedPrefs = this.storage.getPlayerPreferences();
     if (savedPrefs) {
-      if (typeof savedPrefs.volume === 'number') this.options.volume = savedPrefs.volume;
-      if (typeof savedPrefs.playbackSpeed === 'number') this.options.playbackSpeed = savedPrefs.playbackSpeed;
-      if (typeof savedPrefs.muted === 'boolean') this.options.muted = savedPrefs.muted;
+      const savedConfigKey = typeof savedPrefs.configKey === 'string' ? savedPrefs.configKey : null;
+      if (savedConfigKey === this._preferencesConfigKey) {
+        if (typeof savedPrefs.volume === 'number') this.options.volume = savedPrefs.volume;
+        if (typeof savedPrefs.muted === 'boolean') this.options.muted = savedPrefs.muted;
+      }
+      if (typeof savedPrefs.playbackSpeed === 'number') {
+        this.options.playbackSpeed = savedPrefs.playbackSpeed;
+      }
     }
 
     // State
@@ -851,22 +863,10 @@ export class Player extends EventEmitter<PlayerEventMap> {
         this.seek(this.options.startTime);
       }
 
-      // Apply volume and mute settings after renderer is initialized
-      // Use requestAnimationFrame to ensure renderer is fully ready
+      // Apply volume and mute after the renderer is ready. Chrome may emit a
+      // late `volumechange` during `load()`; renderers ignore sync while this runs.
       requestAnimationFrame(() => {
-        if (this.options.muted) {
-          this.mute();
-        } else if (this.renderer && this.renderer.media) {
-          // Ensure media element is not muted if options say it shouldn't be
-          this.renderer.setMuted(false);
-        }
-
-        if (this.options.volume !== 0.8) {
-          this.setVolume(this.options.volume);
-        } else if (this.renderer && this.renderer.media) {
-          // Ensure volume is set even if it's the default
-          this.renderer.setVolume(this.options.volume);
-        }
+        this.applyVolumeAndMuteSettings();
       });
 
       // Initialize resume playback feature
@@ -1122,7 +1122,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
    * when a playlist manager owns the track-info header instead.
    */
   initStandaloneTrackInfo(): void {
-    if (this.playlistManager || !this.container) {
+    if (this.playlistManager || !this.container || this.options.showTrackInfo === false) {
       return;
     }
 
@@ -1143,8 +1143,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       artist: typeof opts.artist === 'string' ? opts.artist : undefined,
       description: typeof opts.description === 'string' ? opts.description : undefined,
       longDescription: typeof opts.longDescription === 'string' ? opts.longDescription : undefined,
-      date: typeof opts.date === 'string' ? opts.date : undefined,
-      duration: opts.initialDuration > 0 ? opts.initialDuration : undefined
+      date: typeof opts.date === 'string' ? opts.date : undefined
     };
 
     const hasContent = Boolean(
@@ -1153,7 +1152,6 @@ export class Player extends EventEmitter<PlayerEventMap> {
       || (data.description ?? '').trim()
       || (data.longDescription ?? '').trim()
       || (data.date ?? '').trim()
-      || (data.duration ?? 0) > 0
     );
 
     return hasContent ? data : null;
@@ -2326,6 +2324,38 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
   // Volume controls
   /**
+   * HTML5 renderers call this before syncing `media.volume` / `media.muted`
+   * into player state so programmatic init is not overwritten (Chrome timing).
+   */
+  shouldSyncVolumeFromMedia(): boolean {
+    return !this._isApplyingVolumeSettings;
+  }
+
+  /**
+   * Apply the resolved options volume/mute to the renderer and player state.
+   */
+  applyVolumeAndMuteSettings(): void {
+    if (!this.renderer) {
+      return;
+    }
+
+    const volume = Math.max(0, Math.min(1, this.options.volume));
+    const muted = Boolean(this.options.muted);
+
+    this._isApplyingVolumeSettings = true;
+    try {
+      this.renderer.setVolume(volume);
+      this.renderer.setMuted(muted);
+      this.state.volume = volume;
+      this.state.muted = muted;
+    } finally {
+      this._isApplyingVolumeSettings = false;
+    }
+
+    this.emit('volumechange');
+  }
+
+  /**
    * Set the volume to a finite number in [0, 1]. Non-numeric or NaN
    * input is silently ignored.
    */
@@ -2401,6 +2431,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
   // Save player preferences to localStorage
   savePlayerPreferences() {
     this.storage.savePlayerPreferences({
+      configKey: this._preferencesConfigKey,
       volume: this.state.volume,
       muted: this.state.muted,
       playbackSpeed: this.state.playbackSpeed

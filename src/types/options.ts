@@ -26,6 +26,8 @@ export interface PlayerOptions {
   poster: string | null;
   responsive: boolean;
   fillContainer: boolean;
+  /** Render `.vidply-track-info` for standalone players; playlists use their own header. */
+  showTrackInfo: boolean;
   mediaType?: 'video' | 'audio';
 
   // Media metadata (used for the Media Session API: OS / lock-screen

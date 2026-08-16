@@ -9,7 +9,7 @@
 
 import { DOMUtils } from '../utils/DOMUtils.js';
 import { i18n } from '../i18n/i18n.js';
-import { focusFirstElement } from '../utils/FocusUtils.js';
+import { focusFirstElement, trapFocusInContainer } from '../utils/FocusUtils.js';
 import type { ControlBar } from './ControlBar.js';
 import type { Player } from '../core/Player.js';
 
@@ -263,7 +263,7 @@ export function showCaptionStyleMenu(controlBar: ControlBar, button: HTMLElement
         className: `${player.options.classPrefix}-caption-style-menu ${player.options.classPrefix}-menu ${player.options.classPrefix}-settings-menu`,
         attributes: {
             'role': 'dialog',
-            'aria-modal': 'false',
+            'aria-modal': 'true',
             'aria-labelledby': menuLabelId
         }
     });
@@ -364,6 +364,13 @@ export function showCaptionStyleMenu(controlBar: ControlBar, button: HTMLElement
     });
 
     controlBar.attachMenuCloseHandler(menu, button, true);
+
+    // WCAG 2.1.2 / 2.4.3 — keep keyboard focus inside the style dialog.
+    menu.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Tab') {
+            trapFocusInContainer(e, menu);
+        }
+    });
 
     // Auto-focus the first style select element
     focusFirstElement(menu, `.${player.options.classPrefix}-style-select`);

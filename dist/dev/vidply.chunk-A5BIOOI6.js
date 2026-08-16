@@ -96,6 +96,9 @@ var HTML5Renderer = class {
       }
     }, { signal });
     this.media.addEventListener("volumechange", () => {
+      if (!this.player.shouldSyncVolumeFromMedia()) {
+        return;
+      }
       this.player.state.volume = this.media.volume;
       this.player.state.muted = this.media.muted;
       this.player.emit("volumechange", this.media.volume);
@@ -298,4 +301,4 @@ var HTML5Renderer = class {
 export {
   HTML5Renderer
 };
-//# sourceMappingURL=vidply.chunk-PUXQGFLY.js.map
+//# sourceMappingURL=vidply.chunk-A5BIOOI6.js.map

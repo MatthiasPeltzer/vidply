@@ -80,6 +80,7 @@ vi.mock('../../src/icons/Icons.js', () => ({
 describe('Player Initialization Paths', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
+    localStorage.clear();
   });
 
   afterEach(() => {
@@ -260,6 +261,41 @@ describe('Player Initialization Paths', () => {
       expect(player.options.muted).toBe(true);
       expect(player.options.preload).toBe('auto');
       expect(player.options.startTime).toBe(30);
+    });
+
+    it('ignores stale localStorage volume/mute when CMS defaults change', () => {
+      localStorage.setItem('vidply_player_preferences', JSON.stringify({
+        configKey: 'false|0.8',
+        volume: 0.25,
+        muted: false,
+        playbackSpeed: 1.5
+      }));
+
+      const video = document.createElement('video');
+      document.body.appendChild(video);
+
+      const player = new Player(video, { muted: true, volume: 0.8 });
+
+      expect(player.options.muted).toBe(true);
+      expect(player.options.volume).toBe(0.8);
+      expect(player.options.playbackSpeed).toBe(1.5);
+    });
+
+    it('restores localStorage volume/mute when CMS config matches', () => {
+      localStorage.setItem('vidply_player_preferences', JSON.stringify({
+        configKey: 'true|0.8',
+        volume: 0.55,
+        muted: false,
+        playbackSpeed: 1
+      }));
+
+      const video = document.createElement('video');
+      document.body.appendChild(video);
+
+      const player = new Player(video, { muted: true, volume: 0.8 });
+
+      expect(player.options.muted).toBe(false);
+      expect(player.options.volume).toBe(0.55);
     });
 
     it('should handle control options', () => {

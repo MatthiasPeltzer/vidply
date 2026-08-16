@@ -4,8 +4,9 @@
  * Released under GPL-2.0-or-later License
  */
 import {
-  focusFirstElement
-} from "./vidply.chunk-XOXOPD2X.js";
+  focusFirstElement,
+  trapFocusInContainer
+} from "./vidply.chunk-QCNYPXPM.js";
 import {
   DOMUtils,
   i18n
@@ -216,7 +217,7 @@ function showCaptionStyleMenu(controlBar, button) {
     className: `${player.options.classPrefix}-caption-style-menu ${player.options.classPrefix}-menu ${player.options.classPrefix}-settings-menu`,
     attributes: {
       "role": "dialog",
-      "aria-modal": "false",
+      "aria-modal": "true",
       "aria-labelledby": menuLabelId
     }
   });
@@ -292,9 +293,14 @@ function showCaptionStyleMenu(controlBar, button) {
     menu.style.visibility = "visible";
   });
   controlBar.attachMenuCloseHandler(menu, button, true);
+  menu.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") {
+      trapFocusInContainer(e, menu);
+    }
+  });
   focusFirstElement(menu, `.${player.options.classPrefix}-style-select`);
 }
 export {
   showCaptionStyleMenu
 };
-//# sourceMappingURL=vidply.CaptionStyleMenu-P5N3J63J.js.map
+//# sourceMappingURL=vidply.CaptionStyleMenu-HTEZ4X32.js.map

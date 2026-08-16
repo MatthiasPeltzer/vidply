@@ -14,6 +14,7 @@ export declare class KeyboardHelp {
     private _triggerElement;
     private _keydownHandler;
     private _content;
+    private _inertedElements;
     constructor(player: Player);
     private get prefix();
     /**

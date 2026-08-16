@@ -617,6 +617,9 @@ export class DASHRenderer implements Renderer {
     }, { signal });
 
     this.media.addEventListener('volumechange', () => {
+      if (!this.player.shouldSyncVolumeFromMedia()) {
+        return;
+      }
       this.player.state.volume = this.media.volume;
       this.player.state.muted = this.media.muted;
       this.player.emit('volumechange', this.media.volume);

@@ -10,7 +10,7 @@ export interface TrackInfoData {
     longDescription?: string;
     /** Preformatted, already localised publish date. */
     date?: string;
-    /** Duration in seconds. */
+    /** Duration in seconds (playlists only; standalone players omit this). */
     duration?: number;
     trackNumber?: number;
     totalTracks?: number;
@@ -18,7 +18,10 @@ export interface TrackInfoData {
 export declare class TrackInfoView {
     readonly element: HTMLElement;
     private readonly classPrefix;
+    private readonly titleElementId;
+    private readonly longDescPanelId;
     private readonly handleClick;
+    private static instanceCounter;
     constructor(classPrefix?: string);
     mount(container: HTMLElement, before?: Node | null): void;
     render(data: TrackInfoData): void;

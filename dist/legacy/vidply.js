@@ -1948,6 +1948,70 @@
   });
 
   // src/utils/FocusUtils.ts
+  function getFocusableElements(container) {
+    if (!container) {
+      return [];
+    }
+    return Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+      (el) => !el.hasAttribute("disabled") && el.getAttribute("tabindex") !== "-1"
+    );
+  }
+  function trapFocusInContainer(e, container) {
+    if (e.key !== "Tab" || !container) {
+      return false;
+    }
+    const focusable = getFocusableElements(container).filter(
+      (el) => el.offsetParent !== null || container.contains(el)
+    );
+    if (focusable.length === 0) {
+      return false;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (!first || !last) {
+      return false;
+    }
+    const active = document.activeElement;
+    const within = active !== null && container.contains(active);
+    if (e.shiftKey) {
+      if (!within || active === first) {
+        e.preventDefault();
+        last.focus({ preventScroll: true });
+        return true;
+      }
+    } else if (!within || active === last) {
+      e.preventDefault();
+      first.focus({ preventScroll: true });
+      return true;
+    }
+    return false;
+  }
+  function setContainerChildrenInert(container, except, enabled, tracked) {
+    if (!enabled) {
+      for (const el of tracked) {
+        el.removeAttribute("inert");
+      }
+      return [];
+    }
+    const next = [];
+    for (const child of Array.from(container.children)) {
+      if (child === except) {
+        continue;
+      }
+      if (!(child instanceof HTMLElement)) {
+        continue;
+      }
+      const tag = child.tagName;
+      if (tag === "SCRIPT" || tag === "STYLE") {
+        continue;
+      }
+      if (!child.hasAttribute("inert")) {
+        child.setAttribute("inert", "");
+        next.push(child);
+      }
+    }
+    return next;
+  }
   function focusElement(element, { delay = 0, preventScroll = true } = {}) {
     if (!element) return;
     requestAnimationFrame(() => {
@@ -1965,9 +2029,11 @@
       focusElement(element, options);
     }
   }
+  var FOCUSABLE_SELECTOR;
   var init_FocusUtils = __esm({
     "src/utils/FocusUtils.ts"() {
       "use strict";
+      FOCUSABLE_SELECTOR = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
     }
   });
 
@@ -2228,7 +2294,7 @@
       className: `${player.options.classPrefix}-caption-style-menu ${player.options.classPrefix}-menu ${player.options.classPrefix}-settings-menu`,
       attributes: {
         "role": "dialog",
-        "aria-modal": "false",
+        "aria-modal": "true",
         "aria-labelledby": menuLabelId
       }
     });
@@ -2304,6 +2370,11 @@
       menu.style.visibility = "visible";
     });
     controlBar.attachMenuCloseHandler(menu, button, true);
+    menu.addEventListener("keydown", (e) => {
+      if (e.key === "Tab") {
+        trapFocusInContainer(e, menu);
+      }
+    });
     focusFirstElement(menu, `.${player.options.classPrefix}-style-select`);
   }
   var init_CaptionStyleMenu = __esm({
@@ -3116,6 +3187,9 @@
             }
           }, { signal });
           this.media.addEventListener("volumechange", () => {
+            if (!this.player.shouldSyncVolumeFromMedia()) {
+              return;
+            }
             this.player.state.volume = this.media.volume;
             this.player.state.muted = this.media.muted;
             this.player.emit("volumechange", this.media.volume);
@@ -7236,6 +7310,9 @@
           __publicField(this, "currentActiveEntry");
           __publicField(this, "currentTranscriptLanguage");
           __publicField(this, "customKeyHandler", null);
+          /** Elements marked inert while the floating transcript dialog is open. */
+          __publicField(this, "inertedElements", []);
+          __publicField(this, "previouslyFocused", null);
           /**
            * True once the style-dialog's outside-click listener has been
            * attached. The settings-menu's outside-click listener is now
@@ -7448,6 +7525,7 @@
           if ((_a = this.player.state) == null ? void 0 : _a.floating) {
             return;
           }
+          this.previouslyFocused = document.activeElement;
           this.player.invalidateTrackCache();
           if (this.transcriptWindow) {
             this.transcriptWindow.style.display = "flex";
@@ -7457,6 +7535,11 @@
             this.updateLanguageSelector();
             if (this.player.controlBar && typeof this.player.controlBar.updateTranscriptButton === "function") {
               this.player.controlBar.updateTranscriptButton();
+            }
+            if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
+              this.setManagedTimeout(() => this.positionTranscript(), 0);
+            } else {
+              this.updateTranscriptModalState();
             }
             focusElement(this.settingsButton, { delay: 150 });
             return;
@@ -7469,6 +7552,8 @@
             transcriptWindow.style.display = "flex";
             if (!this.draggableResizable || !this.draggableResizable.manuallyPositioned) {
               this.setManagedTimeout(() => this.positionTranscript(), 0);
+            } else {
+              this.updateTranscriptModalState();
             }
             focusElement(this.settingsButton, { delay: 150 });
           }
@@ -7482,6 +7567,7 @@
           if (this.transcriptWindow) {
             this.transcriptWindow.style.display = "none";
             this.isVisible = false;
+            this.updateTranscriptModalState();
           }
           if (this.draggableResizable && this.draggableResizable.pointerResizeMode) {
             this.draggableResizable.disablePointerResizeMode();
@@ -7508,6 +7594,7 @@
             attributes: {
               "role": "dialog",
               "aria-label": i18n.t("transcript.ariaLabel"),
+              "aria-modal": "false",
               "tabindex": "-1"
             }
           });
@@ -7761,6 +7848,7 @@
               attributes: {
                 "data-direction": direction,
                 "data-vidply-managed-resize": "true",
+                "aria-label": i18n.t("player.resizeHandle", { direction }),
                 "aria-hidden": "true"
               }
             });
@@ -7914,6 +8002,37 @@
               this.player.container.appendChild(this.transcriptWindow);
             }
           }
+          this.updateTranscriptModalState();
+        }
+        /**
+         * Floating/overlay layouts behave as modal dialogs; inline mobile layout does not.
+         */
+        isFloatingTranscriptLayout() {
+          if (!this.transcriptWindow || !this.isVisible) {
+            return false;
+          }
+          const position = this.transcriptWindow.style.position;
+          return position === "absolute" || position === "fixed";
+        }
+        /**
+         * Toggle aria-modal, background inert, and related WCAG semantics after layout.
+         */
+        updateTranscriptModalState() {
+          if (!this.transcriptWindow) {
+            return;
+          }
+          const isModal = this.isFloatingTranscriptLayout();
+          this.transcriptWindow.setAttribute("aria-modal", isModal ? "true" : "false");
+          const container = this.player.container;
+          if (!container) {
+            return;
+          }
+          this.inertedElements = setContainerChildrenInert(
+            container,
+            isModal ? this.transcriptWindow : null,
+            isModal,
+            this.inertedElements
+          );
         }
         /**
          * Get available transcript languages from tracks
@@ -8392,6 +8511,10 @@
             const key = e.key.toLowerCase();
             const alreadyPrevented = e.defaultPrevented;
             if (this.settingsMenuVisible || this.styleDialogVisible) {
+              return;
+            }
+            if (e.key === "Tab" && this.isFloatingTranscriptLayout()) {
+              trapFocusInContainer(e, this.transcriptWindow);
               return;
             }
             if (key === "home") {
@@ -8926,6 +9049,10 @@
          */
         destroy() {
           this.hideResizeModeIndicator();
+          const container = this.player.container;
+          if (container) {
+            this.inertedElements = setContainerChildrenInert(container, null, false, this.inertedElements);
+          }
           if (this._panel) {
             this._panel.destroy();
             this._panel = null;
@@ -10114,6 +10241,9 @@
             }
           }, { signal });
           this.media.addEventListener("volumechange", () => {
+            if (!this.player.shouldSyncVolumeFromMedia()) {
+              return;
+            }
             this.player.state.volume = this.media.volume;
             this.player.state.muted = this.media.muted;
             this.player.emit("volumechange", this.media.volume);
@@ -10842,6 +10972,9 @@
             }
           }, { signal });
           this.media.addEventListener("volumechange", () => {
+            if (!this.player.shouldSyncVolumeFromMedia()) {
+              return;
+            }
             this.player.state.volume = this.media.volume;
             this.player.state.muted = this.media.muted;
             this.player.emit("volumechange", this.media.volume);
@@ -12644,6 +12777,7 @@
         attributes: {
           "role": "slider",
           "aria-label": i18n.t("player.progress"),
+          "aria-orientation": "horizontal",
           "aria-valuemin": "0",
           "aria-valuemax": "100",
           "aria-valuenow": "0",
@@ -13206,6 +13340,7 @@
         attributes: {
           "role": "slider",
           "aria-label": i18n.t("player.volume"),
+          "aria-orientation": "vertical",
           "aria-valuemin": "0",
           "aria-valuemax": "100",
           "aria-valuenow": String(initialPercent),
@@ -16845,15 +16980,23 @@
   init_Icons();
   init_i18n();
   init_TimeUtils();
-  var TrackInfoView = class {
+  var _TrackInfoView = class _TrackInfoView {
     constructor(classPrefix = "vidply") {
       __publicField(this, "element");
       __publicField(this, "classPrefix");
+      __publicField(this, "titleElementId");
+      __publicField(this, "longDescPanelId");
       __publicField(this, "handleClick");
+      _TrackInfoView.instanceCounter += 1;
       this.classPrefix = classPrefix;
+      this.titleElementId = `${classPrefix}-track-info-title-${_TrackInfoView.instanceCounter}`;
+      this.longDescPanelId = `${classPrefix}-track-longdesc-panel-${_TrackInfoView.instanceCounter}`;
       this.element = DOMUtils.createElement("div", {
         className: `${classPrefix}-track-info`,
-        attributes: { role: "status" }
+        attributes: {
+          role: "region",
+          "aria-labelledby": this.titleElementId
+        }
       });
       this.element.style.display = "none";
       this.handleClick = (event) => {
@@ -16889,15 +17032,16 @@
       const trackNumber = data.trackNumber ?? 0;
       const totalTracks = data.totalTracks ?? 0;
       const showTrackHeader = totalTracks > 1 && trackNumber > 0;
-      const effectiveDuration = typeof data.duration === "number" && data.duration > 0 ? data.duration : 0;
+      const isPlaylistContext = totalTracks > 1;
+      const effectiveDuration = isPlaylistContext && typeof data.duration === "number" && data.duration > 0 ? data.duration : 0;
       const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : "";
       const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : "";
       const artistPart = trackArtist ? i18n.t("playlist.by") + trackArtist : "";
       const datePart = trackDate ? `. ${trackDate}` : "";
       const durationPart = trackDurationReadable ? `. ${trackDurationReadable}` : "";
-      let announcement = trackTitle + artistPart + datePart + durationPart;
+      let playlistAnnouncement = trackTitle + artistPart + datePart + durationPart;
       if (showTrackHeader) {
-        announcement = i18n.t("playlist.nowPlaying", {
+        playlistAnnouncement = i18n.t("playlist.nowPlaying", {
           current: trackNumber,
           total: totalTracks,
           title: trackTitle,
@@ -16905,14 +17049,16 @@
         }) + datePart + durationPart;
       }
       this.element.replaceChildren();
-      this.element.appendChild(DOMUtils.createElement("span", {
-        className: `${prefix}-sr-only`,
-        textContent: announcement
-      }));
+      if (isPlaylistContext) {
+        this.element.appendChild(DOMUtils.createElement("span", {
+          className: `${prefix}-sr-only`,
+          attributes: { "aria-live": "polite" },
+          textContent: playlistAnnouncement
+        }));
+      }
       if (showTrackHeader) {
         const header = DOMUtils.createElement("div", {
-          className: `${prefix}-track-header`,
-          attributes: { "aria-hidden": "true" }
+          className: `${prefix}-track-header`
         });
         header.appendChild(DOMUtils.createElement("span", {
           className: `${prefix}-track-number`,
@@ -16925,40 +17071,27 @@
           }));
         }
         this.element.appendChild(header);
-      } else if (trackDuration) {
-        const header = DOMUtils.createElement("div", {
-          className: `${prefix}-track-header`,
-          attributes: { "aria-hidden": "true" }
-        });
-        header.appendChild(DOMUtils.createElement("span", {
-          className: `${prefix}-track-duration`,
-          textContent: trackDuration
-        }));
-        this.element.appendChild(header);
       }
-      this.element.appendChild(DOMUtils.createElement("div", {
+      this.element.appendChild(DOMUtils.createElement("p", {
         className: `${prefix}-track-title`,
-        attributes: { "aria-hidden": "true" },
+        attributes: { id: this.titleElementId },
         textContent: trackTitle
       }));
       if (trackArtist) {
-        this.element.appendChild(DOMUtils.createElement("div", {
+        this.element.appendChild(DOMUtils.createElement("p", {
           className: `${prefix}-track-artist`,
-          attributes: { "aria-hidden": "true" },
           textContent: trackArtist
         }));
       }
       if (trackDate) {
-        this.element.appendChild(DOMUtils.createElement("div", {
+        this.element.appendChild(DOMUtils.createElement("p", {
           className: `${prefix}-track-date`,
-          attributes: { "aria-hidden": "true" },
           textContent: trackDate
         }));
       }
       if (trackDescription) {
-        this.element.appendChild(DOMUtils.createElement("div", {
+        this.element.appendChild(DOMUtils.createElement("p", {
           className: `${prefix}-track-description`,
-          attributes: { "aria-hidden": "true" },
           textContent: trackDescription
         }));
       }
@@ -16969,6 +17102,7 @@
           attributes: {
             type: "button",
             "aria-expanded": "false",
+            "aria-controls": this.longDescPanelId,
             "aria-label": trackTitle ? `${showLabel}: ${trackTitle}` : showLabel
           },
           children: [
@@ -16983,14 +17117,16 @@
         toggle.dataset.labelHide = i18n.t("trackInfo.descriptionHide");
         toggle.dataset.trackTitle = trackTitle;
         const actions = DOMUtils.createElement("div", {
-          className: `${prefix}-track-actions`,
-          attributes: { "aria-hidden": "true" }
+          className: `${prefix}-track-actions`
         });
         actions.appendChild(toggle);
         this.element.appendChild(actions);
         const panel = DOMUtils.createElement("div", {
           className: `${prefix}-track-longdesc`,
-          attributes: { hidden: "" }
+          attributes: {
+            id: this.longDescPanelId,
+            hidden: ""
+          }
         });
         setSanitizedRichText(panel, longDescription);
         this.element.appendChild(panel);
@@ -17006,13 +17142,14 @@
       this.element.remove();
     }
     hasVisibleContent(data) {
+      const isPlaylistContext = (data.totalTracks ?? 0) > 1;
       return Boolean(
-        (data.title ?? "").trim() || (data.artist ?? "").trim() || (data.description ?? "").trim() || (data.longDescription ?? "").trim() || (data.date ?? "").trim() || typeof data.duration === "number" && data.duration > 0 || (data.totalTracks ?? 0) > 1 && (data.trackNumber ?? 0) > 0
+        (data.title ?? "").trim() || (data.artist ?? "").trim() || (data.description ?? "").trim() || (data.longDescription ?? "").trim() || (data.date ?? "").trim() || isPlaylistContext && typeof data.duration === "number" && data.duration > 0 || isPlaylistContext && (data.trackNumber ?? 0) > 0
       );
     }
     toggleLongDescription(button) {
       var _a;
-      const panel = (_a = button.closest(`.${this.classPrefix}-track-info`)) == null ? void 0 : _a.querySelector(`.${this.classPrefix}-track-longdesc`);
+      const panel = (_a = button.closest(`.${this.classPrefix}-track-info`)) == null ? void 0 : _a.querySelector(`#${CSS.escape(this.longDescPanelId)}`);
       if (!(panel instanceof HTMLElement)) return;
       const expanded = button.getAttribute("aria-expanded") !== "true";
       button.setAttribute("aria-expanded", String(expanded));
@@ -17036,11 +17173,14 @@
       }
     }
   };
+  __publicField(_TrackInfoView, "instanceCounter", 0);
+  var TrackInfoView = _TrackInfoView;
 
   // src/controls/KeyboardHelp.ts
   init_DOMUtils();
   init_Icons();
   init_i18n();
+  init_FocusUtils();
   var ACTION_ORDER = [
     "play-pause",
     "seek-backward",
@@ -17078,6 +17218,7 @@
       __publicField(this, "_triggerElement", null);
       __publicField(this, "_keydownHandler", null);
       __publicField(this, "_content", null);
+      __publicField(this, "_inertedElements", []);
       this.player = player;
     }
     get prefix() {
@@ -17159,23 +17300,7 @@
           return;
         }
         if (e.key === "Tab") {
-          const focusable = Array.from(
-            this.overlay.querySelectorAll(
-              'button, [href], select, input, textarea, [tabindex]:not([tabindex="-1"])'
-            )
-          ).filter((el) => !el.hasAttribute("disabled") && el.offsetParent !== null);
-          if (focusable.length === 0) return;
-          const first = focusable[0];
-          const last = focusable[focusable.length - 1];
-          if (!first || !last) return;
-          const active = document.activeElement;
-          if (e.shiftKey && (active === first || !this.overlay.contains(active))) {
-            e.preventDefault();
-            last.focus({ preventScroll: true });
-          } else if (!e.shiftKey && active === last) {
-            e.preventDefault();
-            first.focus({ preventScroll: true });
-          }
+          trapFocusInContainer(e, this.overlay);
         }
       };
       const lifecycleSignal = this.player.lifecycleSignal;
@@ -17251,6 +17376,14 @@
       this._triggerElement = active && typeof active.focus === "function" ? active : null;
       this.overlay.style.display = "flex";
       (_a = this.player.container) == null ? void 0 : _a.classList.add(`${this.prefix}-modal-open`);
+      if (this.player.container && this.overlay) {
+        this._inertedElements = setContainerChildrenInert(
+          this.player.container,
+          this.overlay,
+          true,
+          this._inertedElements
+        );
+      }
       this.isOpen = true;
       const closeButton = this.overlay.querySelector(`.${this.prefix}-settings-close`);
       closeButton == null ? void 0 : closeButton.focus({ preventScroll: true });
@@ -17261,6 +17394,14 @@
       if (!this.overlay) return;
       this.overlay.style.display = "none";
       (_a = this.player.container) == null ? void 0 : _a.classList.remove(`${this.prefix}-modal-open`);
+      if (this.player.container) {
+        this._inertedElements = setContainerChildrenInert(
+          this.player.container,
+          null,
+          false,
+          this._inertedElements
+        );
+      }
       this.isOpen = false;
       const trigger = this._triggerElement;
       this._triggerElement = null;
@@ -17290,6 +17431,14 @@
       }
       if (this.overlay && this.overlay.parentNode) {
         this.overlay.parentNode.removeChild(this.overlay);
+      }
+      if (this.player.container) {
+        this._inertedElements = setContainerChildrenInert(
+          this.player.container,
+          null,
+          false,
+          this._inertedElements
+        );
       }
       (_a = this.player.container) == null ? void 0 : _a.classList.remove(`${this.prefix}-modal-open`);
       this.overlay = null;
@@ -17375,6 +17524,10 @@
       /** Owns resize-observer, orientation matchMedia, and the
        *  cross-vendor fullscreenchange listeners. */
       __publicField(this, "responsiveManager");
+      /** Baseline `muted|volume` from page options; invalidates stale localStorage. */
+      __publicField(this, "_preferencesConfigKey", "");
+      /** While true, HTML5 renderers ignore media `volumechange` sync. */
+      __publicField(this, "_isApplyingVolumeSettings", false);
       /** Owns `kind=metadata` text-track directives (PAUSE, FOCUS,
        *  #hashtag) + the per-selector alert UI. Lazily created on first
        *  `setupMetadataHandling()` call. */
@@ -17464,6 +17617,7 @@
         poster: null,
         responsive: true,
         fillContainer: false,
+        showTrackInfo: true,
         // Media metadata + OS media controls (Media Session API)
         title: null,
         artist: null,
@@ -17642,15 +17796,21 @@
       this.options.metadataHashtags = this.options.metadataHashtags || {};
       this.noticeElement = null;
       this.noticeTimeout = null;
+      this._preferencesConfigKey = `${Boolean(this.options.muted)}|${Number(this.options.volume)}`;
       this.storage = new StorageManager("vidply");
       this.themeManager = new ThemeManager(this);
       this.posterManager = new PosterManager(this);
       this.responsiveManager = new ResponsiveManager(this);
       const savedPrefs = this.storage.getPlayerPreferences();
       if (savedPrefs) {
-        if (typeof savedPrefs.volume === "number") this.options.volume = savedPrefs.volume;
-        if (typeof savedPrefs.playbackSpeed === "number") this.options.playbackSpeed = savedPrefs.playbackSpeed;
-        if (typeof savedPrefs.muted === "boolean") this.options.muted = savedPrefs.muted;
+        const savedConfigKey = typeof savedPrefs.configKey === "string" ? savedPrefs.configKey : null;
+        if (savedConfigKey === this._preferencesConfigKey) {
+          if (typeof savedPrefs.volume === "number") this.options.volume = savedPrefs.volume;
+          if (typeof savedPrefs.muted === "boolean") this.options.muted = savedPrefs.muted;
+        }
+        if (typeof savedPrefs.playbackSpeed === "number") {
+          this.options.playbackSpeed = savedPrefs.playbackSpeed;
+        }
       }
       this.state = {
         ready: false,
@@ -17970,16 +18130,7 @@
           this.seek(this.options.startTime);
         }
         requestAnimationFrame(() => {
-          if (this.options.muted) {
-            this.mute();
-          } else if (this.renderer && this.renderer.media) {
-            this.renderer.setMuted(false);
-          }
-          if (this.options.volume !== 0.8) {
-            this.setVolume(this.options.volume);
-          } else if (this.renderer && this.renderer.media) {
-            this.renderer.setVolume(this.options.volume);
-          }
+          this.applyVolumeAndMuteSettings();
         });
         if (this.options.resumePlayback) {
           this.initResumePlayback();
@@ -18173,7 +18324,7 @@
      * when a playlist manager owns the track-info header instead.
      */
     initStandaloneTrackInfo() {
-      if (this.playlistManager || !this.container) {
+      if (this.playlistManager || !this.container || this.options.showTrackInfo === false) {
         return;
       }
       const data = this.buildStandaloneTrackInfoData();
@@ -18191,11 +18342,10 @@
         artist: typeof opts.artist === "string" ? opts.artist : void 0,
         description: typeof opts.description === "string" ? opts.description : void 0,
         longDescription: typeof opts.longDescription === "string" ? opts.longDescription : void 0,
-        date: typeof opts.date === "string" ? opts.date : void 0,
-        duration: opts.initialDuration > 0 ? opts.initialDuration : void 0
+        date: typeof opts.date === "string" ? opts.date : void 0
       };
       const hasContent = Boolean(
-        (data.title ?? "").trim() || (data.artist ?? "").trim() || (data.description ?? "").trim() || (data.longDescription ?? "").trim() || (data.date ?? "").trim() || (data.duration ?? 0) > 0
+        (data.title ?? "").trim() || (data.artist ?? "").trim() || (data.description ?? "").trim() || (data.longDescription ?? "").trim() || (data.date ?? "").trim()
       );
       return hasContent ? data : null;
     }
@@ -19054,6 +19204,33 @@
     }
     // Volume controls
     /**
+     * HTML5 renderers call this before syncing `media.volume` / `media.muted`
+     * into player state so programmatic init is not overwritten (Chrome timing).
+     */
+    shouldSyncVolumeFromMedia() {
+      return !this._isApplyingVolumeSettings;
+    }
+    /**
+     * Apply the resolved options volume/mute to the renderer and player state.
+     */
+    applyVolumeAndMuteSettings() {
+      if (!this.renderer) {
+        return;
+      }
+      const volume = Math.max(0, Math.min(1, this.options.volume));
+      const muted = Boolean(this.options.muted);
+      this._isApplyingVolumeSettings = true;
+      try {
+        this.renderer.setVolume(volume);
+        this.renderer.setMuted(muted);
+        this.state.volume = volume;
+        this.state.muted = muted;
+      } finally {
+        this._isApplyingVolumeSettings = false;
+      }
+      this.emit("volumechange");
+    }
+    /**
      * Set the volume to a finite number in [0, 1]. Non-numeric or NaN
      * input is silently ignored.
      */
@@ -19119,6 +19296,7 @@
     // Save player preferences to localStorage
     savePlayerPreferences() {
       this.storage.savePlayerPreferences({
+        configKey: this._preferencesConfigKey,
         volume: this.state.volume,
         muted: this.state.muted,
         playbackSpeed: this.state.playbackSpeed
@@ -20598,7 +20776,7 @@
           "aria-label": ariaLabel,
           "aria-posinset": String(index + 1),
           "aria-setsize": String(this.tracks.length),
-          "aria-checked": isActive ? "true" : "false"
+          "aria-selected": isActive ? "true" : "false"
         }
       });
       if (isActive) {
@@ -20816,7 +20994,7 @@
         if (index === this.currentIndex) {
           item.classList.add("vidply-playlist-item-active");
           button.setAttribute("aria-current", "true");
-          button.setAttribute("aria-checked", "true");
+          button.setAttribute("aria-selected", "true");
           button.setAttribute("tabIndex", "0");
           let ariaLabel = `${trackTitle}${trackArtist}`;
           if (trackDurationReadable) {
@@ -20827,7 +21005,7 @@
         } else {
           item.classList.remove("vidply-playlist-item-active");
           button.removeAttribute("aria-current");
-          button.setAttribute("aria-checked", "false");
+          button.setAttribute("aria-selected", "false");
           button.setAttribute("tabIndex", "-1");
           let ariaLabel = `${trackTitle}${trackArtist}`;
           if (trackDurationReadable) {

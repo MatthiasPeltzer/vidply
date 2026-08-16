@@ -56,6 +56,9 @@ export declare class TranscriptManager {
     currentActiveEntry: TranscriptEntry | null;
     currentTranscriptLanguage: string | null;
     customKeyHandler: ((e: KeyboardEvent) => void) | null;
+    /** Elements marked inert while the floating transcript dialog is open. */
+    private inertedElements;
+    previouslyFocused: HTMLElement | null;
     /**
      * True once the style-dialog's outside-click listener has been
      * attached. The settings-menu's outside-click listener is now
@@ -137,6 +140,14 @@ export declare class TranscriptManager {
      * Position transcript window next to video
      */
     positionTranscript(): void;
+    /**
+     * Floating/overlay layouts behave as modal dialogs; inline mobile layout does not.
+     */
+    private isFloatingTranscriptLayout;
+    /**
+     * Toggle aria-modal, background inert, and related WCAG semantics after layout.
+     */
+    private updateTranscriptModalState;
     /**
      * Get available transcript languages from tracks
      */

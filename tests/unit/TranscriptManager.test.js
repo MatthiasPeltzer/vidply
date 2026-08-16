@@ -52,10 +52,14 @@ vi.mock('../../src/utils/StorageManager.js', () => ({
   }
 }));
 
-vi.mock('../../src/utils/FocusUtils.js', () => ({
-  focusElement: vi.fn(),
-  focusFirstElement: vi.fn()
-}));
+vi.mock('../../src/utils/FocusUtils.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    focusElement: vi.fn(),
+    focusFirstElement: vi.fn(),
+  };
+});
 
 vi.mock('../../src/utils/MenuUtils.js', () => ({
   createMenuItem: vi.fn(() => document.createElement('button')),
