@@ -41,6 +41,7 @@ export class HLSRenderer implements Renderer {
   _hlsSubtitleTracksCount: number | undefined;
   _cueUpdateTimer: ReturnType<typeof setInterval> | null;
   _lastKnownCueCount: number;
+  _lastKnownMaxCueStart: number;
   _nativeTrackListenersDestroyed?: boolean;
   _didDeferredLoad?: boolean;
   _manifestUrl: string | null;
@@ -70,6 +71,7 @@ export class HLSRenderer implements Renderer {
     this._hlsSubtitleTracksCount = undefined;
     this._cueUpdateTimer = null;
     this._lastKnownCueCount = 0;
+    this._lastKnownMaxCueStart = -1;
     this._manifestUrl = null;
     this._cleanupNativeTextTrackListeners = () => {};
     this._listenerController = new AbortController();
@@ -347,6 +349,7 @@ export class HLSRenderer implements Renderer {
       const data = args[1] as HlsManifestParsedData;
       this.player.log('HLS manifest loaded, found ' + data.levels.length + ' quality levels');
       this.player.emit('hlsmanifestparsed', data);
+      this.player.liveStreamManager?.evaluateHls(this.hls);
 
       // Show VidPly controls (remove external controls class if present)
       if (this.player.container) {
@@ -381,6 +384,7 @@ export class HLSRenderer implements Renderer {
       this.updateCaptionButtonsForHls();
       if (data.subtitleTracks.length > 0) {
         this._startCueUpdatePolling();
+        this._ensureHlsSubtitleTrackActive();
       }
     });
 
@@ -398,6 +402,7 @@ export class HLSRenderer implements Renderer {
 
     hls.on(Hls.Events.FRAG_BUFFERED, () => {
       this.player.state.buffering = false;
+      this.player.liveStreamManager?.evaluateHls(this.hls);
 
       // Seek-only loading: the user scrubbed the seekbar on a paused (or
       // never-played) media element. We only want hls.js to fetch enough
@@ -434,11 +439,7 @@ export class HLSRenderer implements Renderer {
     hls.on(Hls.Events.SUBTITLE_FRAG_PROCESSED, (...args: unknown[]) => {
       const data = args[1] as HlsSubtitleFragProcessedData | undefined;
       if (!data || !data.success) return;
-      const count = this._getTotalCueCount();
-      if (count > this._lastKnownCueCount) {
-        this._lastKnownCueCount = count;
-        this.player.emit('textcuesupdate');
-      }
+      this._emitTextCuesUpdateIfChanged();
     });
 
     // Some streams (e.g. IMSC1/TTML rendered externally by hls.js) deliver
@@ -463,6 +464,55 @@ export class HLSRenderer implements Renderer {
     return total;
   }
 
+  _getMaxCueStartTime(): number {
+    const textTracks = this.media.textTracks;
+    if (!textTracks) {
+      return -1;
+    }
+
+    let max = -1;
+    for (let i = 0; i < textTracks.length; i++) {
+      const track = textTracks[i];
+      if (!track || (track.kind !== 'subtitles' && track.kind !== 'captions') || !track.cues) {
+        continue;
+      }
+      for (let j = 0; j < track.cues.length; j++) {
+        const cue = track.cues[j];
+        if (cue && cue.startTime > max) {
+          max = cue.startTime;
+        }
+      }
+    }
+    return max;
+  }
+
+  _isLivePlayback(): boolean {
+    return typeof this.player.isLiveStream === 'function' && this.player.isLiveStream();
+  }
+
+  /**
+   * Live HLS keeps a rolling TextTrack window — cue count plateaus while
+   * content keeps changing. Emit when count or latest cue time advances.
+   */
+  _emitTextCuesUpdateIfChanged(): boolean {
+    const count = this._getTotalCueCount();
+    const maxStart = this._getMaxCueStartTime();
+    const isLive = this._isLivePlayback();
+
+    if (
+      isLive
+      || count > this._lastKnownCueCount
+      || maxStart > this._lastKnownMaxCueStart
+    ) {
+      this._lastKnownCueCount = count;
+      this._lastKnownMaxCueStart = maxStart;
+      this.player.emit('textcuesupdate');
+      return true;
+    }
+
+    return false;
+  }
+
   /**
    * Return true if `time` falls inside any TimeRange the SourceBuffer already
    * holds, with a small tolerance to absorb GOP boundaries. Used by the
@@ -484,14 +534,31 @@ export class HLSRenderer implements Renderer {
   _startCueUpdatePolling() {
     this._stopCueUpdatePolling();
     let prevCueCount = 0;
+    let prevMaxStart = -1;
     let stableRounds = 0;
+    const isLive = this._isLivePlayback();
 
     this._cueUpdateTimer = setInterval(() => {
       const count = this._getTotalCueCount();
+      const maxStart = this._getMaxCueStartTime();
 
-      if (count > prevCueCount) {
+      if (isLive) {
+        if (count > prevCueCount || maxStart > prevMaxStart) {
+          prevCueCount = count;
+          prevMaxStart = maxStart;
+          this._lastKnownCueCount = count;
+          this._lastKnownMaxCueStart = maxStart;
+          this.player.emit('textcuesupdate');
+        }
+        return;
+      }
+
+      if (count > prevCueCount || maxStart > prevMaxStart) {
         prevCueCount = count;
+        prevMaxStart = maxStart;
         stableRounds = 0;
+        this._lastKnownCueCount = count;
+        this._lastKnownMaxCueStart = maxStart;
         this.player.emit('textcuesupdate');
       } else {
         stableRounds++;
@@ -903,6 +970,38 @@ export class HLSRenderer implements Renderer {
     this._lastKnownCueCount = 0;
     this._startCueUpdatePolling();
     return true;
+  }
+
+  /**
+   * hls.js does not download subtitle segments until a subtitle rendition is
+   * selected. Activate the default (or first) track when captions/transcript
+   * should be on so live streams receive rolling WebVTT cues.
+   */
+  _ensureHlsSubtitleTrackActive(): void {
+    if (!this.hls?.subtitleTracks?.length) {
+      return;
+    }
+
+    const wantsSubtitles =
+      this.player.state.captionsEnabled
+      || this.player.options.captionsDefault
+      || this.player.transcriptManager?.isVisible;
+
+    if (!wantsSubtitles) {
+      return;
+    }
+
+    if (this.hls.subtitleTrack >= 0) {
+      return;
+    }
+
+    const tracks = this.hls.subtitleTracks;
+    const defaultIdx = tracks.findIndex((t: HlsSubtitleTrack) => t.default);
+    const idx = defaultIdx >= 0 ? defaultIdx : 0;
+    this.hls.subtitleTrack = idx;
+    this._lastKnownCueCount = 0;
+    this._startCueUpdatePolling();
+    this.player.log(`HLS subtitle track auto-selected: index ${idx}`, 'info');
   }
 
   getTextTrackURLs(): { lang: string; url: string }[] {

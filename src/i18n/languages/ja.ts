@@ -13,6 +13,9 @@ export const ja = {
     forward: '早送り',
     rewindSeconds: '{seconds}秒戻す',
     forwardSeconds: '{seconds}秒進める',
+    live: 'ライブ',
+    goLive: 'ライブ放送に戻る',
+    goLiveShort: 'ライブ',
     previous: '前のトラック',
     next: '次のトラック',
     playlist: 'プレイリストの切り替え',
@@ -177,6 +180,7 @@ export const ja = {
     button: 'キーボードショートカット',
     close: '閉じる',
     or: 'または',
+    liveSectionTitle: 'ライブストリームの操作',
     keys: {
       space: 'スペース'
     },
@@ -184,6 +188,7 @@ export const ja = {
       'play-pause': '再生 / 一時停止',
       'seek-backward': '巻き戻し',
       'seek-forward': '早送り',
+      'seek-forward-live': '早送り（ライブより遅れているとき）',
       'volume-up': '音量を上げる',
       'volume-down': '音量を下げる',
       'mute': 'ミュート / ミュート解除',
@@ -197,6 +202,18 @@ export const ja = {
       'transcript-toggle': '文字起こしの切り替え',
       'fullscreen': '全画面表示の切り替え',
       'help': 'キーボードショートカット'
+    },
+    live: {
+      skipBack: '巻き戻し',
+      skipBackDesc: '{seconds} 秒 — 常に利用可能',
+      skipForward: '早送り',
+      skipForwardDesc: '{seconds} 秒 — ライブより遅れているときのみ',
+      goLive: 'ライブに戻る',
+      goLiveDesc: '現在のライブ位置に移動して再生を再開します',
+      progress: 'プログレスバー',
+      progressDesc: '巻き戻し可能な範囲内の位置を示します。右端がライブです',
+      liveBadge: 'LIVE 表示',
+      liveBadgeDesc: 'ライブ位置では LIVE のみ表示。巻き戻すと、その前にライブからの遅れが表示されます'
     }
   },
   speeds: {
@@ -205,6 +222,7 @@ export const ja = {
   time: {
     display: '時間表示',
     durationPrefix: '再生時間: ',
+    behindLive: 'ライブより {time} 遅れ',
     of: '/',
     hour: '{count}時間',
     hours: '{count}時間',

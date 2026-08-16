@@ -642,6 +642,154 @@ describe('TranscriptManager', () => {
     });
   });
 
+  describe('live transcript sync', () => {
+    beforeEach(() => {
+      mockPlayer.state.isLive = true;
+      mockPlayer.isLiveStream = vi.fn(() => true);
+      manager = new TranscriptManager(mockPlayer);
+      manager.createTranscriptWindow();
+      manager.isVisible = true;
+    });
+
+    it('should append live cues incrementally without duplicates', () => {
+      const cue = {
+        startTime: 12,
+        endTime: 14,
+        text: 'Guten Abend',
+        id: 'cue-1',
+      };
+      const duplicateCueList = {
+        0: cue,
+        1: cue,
+        length: 2,
+        [Symbol.iterator]: function* () {
+          yield cue;
+          yield cue;
+        },
+      };
+
+      mockPlayer.textTracks = [{
+        kind: 'subtitles',
+        language: 'de',
+        label: 'Deutsch',
+        mode: 'hidden',
+        cues: duplicateCueList,
+      }];
+
+      manager._syncLiveTranscriptCues();
+      manager._syncLiveTranscriptCues();
+
+      expect(manager.transcriptEntries).toHaveLength(1);
+      expect(manager.transcriptContent.querySelectorAll('.vidply-transcript-entry')).toHaveLength(1);
+    });
+
+    it('should treat shifted live timestamps as the same line', () => {
+      const cueA = { startTime: 12.04, endTime: 14.1, text: 'Guten Abend', id: 'a' };
+      const cueB = { startTime: 12.51, endTime: 14.6, text: 'Guten Abend', id: 'b' };
+      mockPlayer.textTracks = [{
+        kind: 'subtitles',
+        language: 'de',
+        label: 'Deutsch',
+        mode: 'hidden',
+        cues: [cueA, cueB],
+      }];
+
+      manager._syncLiveTranscriptCues();
+
+      expect(manager.transcriptEntries).toHaveLength(1);
+    });
+
+    it('should dedupe live segment overlap several seconds apart', () => {
+      const sentence = 'Die Italienerinnen, die Frauen aus Großbritannien sind in jedem Fall';
+      const cues = [
+        { startTime: 7198.58, endTime: 7200.02, text: sentence, id: 'a' },
+        { startTime: 7202.02, endTime: 7203.02, text: sentence, id: 'b' },
+        { startTime: 7200.02, endTime: 7202.02, text: sentence, id: 'c' },
+      ];
+      mockPlayer.textTracks = [{
+        kind: 'subtitles',
+        language: 'de',
+        label: 'Deutsch',
+        mode: 'hidden',
+        cues,
+      }];
+
+      manager._syncLiveTranscriptCues();
+
+      expect(manager.transcriptEntries).toHaveLength(1);
+      expect(manager.transcriptEntries[0].startTime).toBe(7198.58);
+    });
+
+    it('should sort live transcript entries by start time', () => {
+      const cues = [
+        { startTime: 20, endTime: 22, text: 'Zweiter Satz', id: 'b' },
+        { startTime: 10, endTime: 12, text: 'Erster Satz', id: 'a' },
+      ];
+      mockPlayer.textTracks = [{
+        kind: 'subtitles',
+        language: 'de',
+        label: 'Deutsch',
+        mode: 'hidden',
+        cues,
+      }];
+
+      manager._syncLiveTranscriptCues();
+
+      expect(manager.transcriptEntries.map((entry) => entry.startTime)).toEqual([10, 20]);
+      const domOrder = [...manager.transcriptContent.querySelectorAll('.vidply-transcript-entry')]
+        .map((node) => node.querySelector('.vidply-transcript-text')?.textContent);
+      expect(domOrder).toEqual(['Erster Satz', 'Zweiter Satz']);
+    });
+
+    it('should not inert player controls when floating transcript is open', () => {
+      manager = new TranscriptManager(mockPlayer);
+      manager.createTranscriptWindow();
+      manager.isVisible = true;
+      manager.transcriptWindow.style.position = 'absolute';
+      manager.transcriptWindow.style.display = 'flex';
+
+      const controls = document.createElement('div');
+      controls.className = 'vidply-controls';
+      mockPlayer.videoWrapper.appendChild(controls);
+
+      manager.updateTranscriptModalState();
+
+      expect(mockPlayer.videoWrapper.hasAttribute('inert')).toBe(false);
+      expect(manager.transcriptWindow.getAttribute('aria-modal')).toBe('false');
+    });
+
+    it('should highlight the latest started live cue during playback', () => {
+      manager = new TranscriptManager(mockPlayer);
+      manager.createTranscriptWindow();
+      manager.isVisible = true;
+      manager.transcriptContent = manager.transcriptWindow.querySelector('.vidply-transcript-content');
+
+      const makeEntry = (startTime, text) => {
+        const cue = { startTime, endTime: startTime + 2, text, id: String(startTime) };
+        const element = document.createElement('button');
+        element.className = 'vidply-transcript-entry';
+        element.appendChild(document.createElement('span'));
+        manager.transcriptEntries.push({
+          element,
+          cue,
+          type: 'caption',
+          startTime,
+          endTime: startTime + 2,
+        });
+        manager.transcriptContent.appendChild(element);
+        return element;
+      };
+
+      makeEntry(100, 'first');
+      const second = makeEntry(104, 'second');
+      mockPlayer.state.currentTime = 105;
+
+      manager.updateActiveEntry();
+
+      expect(second.classList.contains('vidply-transcript-entry-active')).toBe(true);
+    });
+  });
+
   describe('managed timeouts', () => {
     beforeEach(() => {
       manager = new TranscriptManager(mockPlayer);

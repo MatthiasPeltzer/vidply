@@ -122,6 +122,12 @@ export declare class ControlBar {
      * @param {number} time - Time in seconds
      */
     updatePreviewThumbnail(time: number): Promise<void>;
+    getProgressSeekRange(): {
+        start: number;
+        end: number;
+    };
+    formatProgressTooltipTime(seekTime: number): string;
+    updateLiveTimeDisplay(): void;
     setupProgressBarEvents(): void;
     createPlayPauseButton(): HTMLButtonElement;
     createRestartButton(): HTMLButtonElement;
@@ -130,6 +136,7 @@ export declare class ControlBar {
     createPlaylistToggleButton(): HTMLButtonElement;
     createRewindButton(): HTMLButtonElement;
     createForwardButton(): HTMLButtonElement;
+    createGoLiveButton(): HTMLButtonElement;
     createMuteButton(): HTMLButtonElement;
     createVolumeControl(): HTMLButtonElement;
     showVolumeSlider(button: HTMLElement): void;
@@ -225,6 +232,7 @@ export declare class ControlBar {
     updatePlayPauseButton(): void;
     updateProgress(): void;
     updateDuration(): void;
+    updateLiveControls(): void;
     updateVolumeDisplay(): void;
     updateBuffered(): void;
     updateSpeedDisplay(): void;

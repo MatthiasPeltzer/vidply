@@ -110,6 +110,16 @@ export interface PlayerOptions {
   seekInterval: number;
   seekIntervalLarge: number;
 
+  /**
+   * Live stream mode. `'auto'` detects live HLS/DASH/HTML5 sources;
+   * `true` / `false` force live or on-demand behaviour.
+   */
+  liveStream: boolean | 'auto';
+  /** Seconds behind the live edge before skip-forward / go-live controls appear. */
+  liveBehindThreshold: number;
+  /** Show a "Go live" button when the user is behind the live edge. */
+  goLiveButton: boolean;
+
   // Captions
   captions: boolean;
   captionsDefault: boolean;

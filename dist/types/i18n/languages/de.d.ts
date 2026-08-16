@@ -12,6 +12,9 @@ export declare const de: {
         forward: string;
         rewindSeconds: string;
         forwardSeconds: string;
+        live: string;
+        goLive: string;
+        goLiveShort: string;
         previous: string;
         next: string;
         playlist: string;
@@ -179,6 +182,7 @@ export declare const de: {
         button: string;
         close: string;
         or: string;
+        liveSectionTitle: string;
         keys: {
             space: string;
         };
@@ -186,6 +190,7 @@ export declare const de: {
             'play-pause': string;
             'seek-backward': string;
             'seek-forward': string;
+            'seek-forward-live': string;
             'volume-up': string;
             'volume-down': string;
             mute: string;
@@ -200,6 +205,18 @@ export declare const de: {
             fullscreen: string;
             help: string;
         };
+        live: {
+            skipBack: string;
+            skipBackDesc: string;
+            skipForward: string;
+            skipForwardDesc: string;
+            goLive: string;
+            goLiveDesc: string;
+            progress: string;
+            progressDesc: string;
+            liveBadge: string;
+            liveBadgeDesc: string;
+        };
     };
     speeds: {
         normal: string;
@@ -207,6 +224,7 @@ export declare const de: {
     time: {
         display: string;
         durationPrefix: string;
+        behindLive: string;
         of: string;
         hour: string;
         hours: string;

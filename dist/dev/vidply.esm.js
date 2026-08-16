@@ -5,7 +5,7 @@
  */
 import {
   TimeUtils
-} from "./vidply.chunk-3L3D66RG.js";
+} from "./vidply.chunk-EXUF7MIP.js";
 import {
   createIconElement,
   createPlayOverlay
@@ -20,10 +20,10 @@ import {
 } from "./vidply.chunk-A5BIOOI6.js";
 import {
   CaptionManager
-} from "./vidply.chunk-EZ77B6OY.js";
+} from "./vidply.chunk-RZ2IB2OK.js";
 import {
   StorageManager
-} from "./vidply.chunk-74ATRZS2.js";
+} from "./vidply.chunk-76SN56KM.js";
 import {
   debounce,
   isMobile,
@@ -35,7 +35,7 @@ import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-ZAFXR35D.js";
+} from "./vidply.chunk-BHAISU3Q.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -364,6 +364,7 @@ var ControlBar = class {
     this.createControls();
     this.updateDuration();
     this.updateProgress();
+    this.updateLiveControls();
     this.attachEvents();
     this.setupAutoHide();
     this.setupOverflowDetection();
@@ -414,8 +415,9 @@ var ControlBar = class {
       if (this.isDraggingProgress && this._progressBarRect) {
         const rect = this._progressBarRect;
         const percent = rect.width > 0 ? Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) : 0;
-        const duration = this.player.state.duration || 0;
-        this.player.seek(percent * duration);
+        const { start, end } = this.getProgressSeekRange();
+        const span = end - start;
+        this.player.seek(span > 0 ? start + percent * span : 0);
         return;
       }
       if (this.isDraggingVolume && this._activeVolumeTrack) {
@@ -889,15 +891,26 @@ var ControlBar = class {
     if (this.player.options.playPauseButton) {
       leftButtons.appendChild(this.createPlayPauseButton());
     }
-    leftButtons.appendChild(this.createRestartButton());
+    const restartButton = this.createRestartButton();
+    leftButtons.appendChild(restartButton);
+    this.controls.restart = restartButton;
     if (this.player.playlistManager) {
       leftButtons.appendChild(this.createNextButton());
     }
     if (!this.player.playlistManager) {
-      leftButtons.appendChild(this.createRewindButton());
+      const rewindButton = this.createRewindButton();
+      leftButtons.appendChild(rewindButton);
+      this.controls.rewind = rewindButton;
     }
     if (!this.player.playlistManager) {
-      leftButtons.appendChild(this.createForwardButton());
+      const forwardButton = this.createForwardButton();
+      leftButtons.appendChild(forwardButton);
+      this.controls.forward = forwardButton;
+    }
+    if (!this.player.playlistManager && this.player.options.goLiveButton) {
+      const goLiveButton = this.createGoLiveButton();
+      leftButtons.appendChild(goLiveButton);
+      this.controls.goLive = goLiveButton;
     }
     if (this.player.options.volumeControl) {
       if (this.isTouchDevice()) {
@@ -935,7 +948,7 @@ var ControlBar = class {
     const isHlsSource = typeof src === "string" && src.includes(".m3u8");
     const isDashSource = typeof src === "string" && src.includes(".mpd");
     const isVideoElement = this.player.element?.tagName?.toLowerCase() === "video";
-    const hideSpeedForThisPlayer = Boolean(this.player.options.hideSpeedForHls) && isHlsSource || Boolean(this.player.options.hideSpeedForHlsVideo) && isHlsSource && isVideoElement || Boolean(this.player.options.hideSpeedForDash) && isDashSource || Boolean(this.player.options.hideSpeedForDashVideo) && isDashSource && isVideoElement;
+    const hideSpeedForThisPlayer = this.player.state.isLive || Boolean(this.player.options.hideSpeedForHls) && isHlsSource || Boolean(this.player.options.hideSpeedForHlsVideo) && isHlsSource && isVideoElement || Boolean(this.player.options.hideSpeedForDash) && isDashSource || Boolean(this.player.options.hideSpeedForDashVideo) && isDashSource && isVideoElement;
     if (this.player.options.speedButton && !hideSpeedForThisPlayer) {
       const btn = this.createSpeedButton();
       btn.dataset.overflowPriority = "1";
@@ -1386,14 +1399,45 @@ var ControlBar = class {
       }
     }, 100);
   }
+  getProgressSeekRange() {
+    const liveRange = this.player.getLiveSeekRange();
+    if (liveRange) {
+      return liveRange;
+    }
+    const duration = this.player.state.duration || 0;
+    return { start: 0, end: duration };
+  }
+  formatProgressTooltipTime(seekTime) {
+    if (!this.player.state.isLive) {
+      return TimeUtils.formatTime(seekTime);
+    }
+    const { end } = this.getProgressSeekRange();
+    const behindSeconds = Math.max(0, end - seekTime);
+    const threshold = Number(this.player.options.liveBehindThreshold) >= 0 ? Number(this.player.options.liveBehindThreshold) : 5;
+    if (behindSeconds <= threshold) {
+      return i18n.t("player.live");
+    }
+    return TimeUtils.formatBehindLive(behindSeconds);
+  }
+  updateLiveTimeDisplay() {
+    const isLive = this.player.state.isLive;
+    const behindLive = this.player.state.behindLive;
+    if (this.controls.currentTimeDisplay) {
+      this.controls.currentTimeDisplay.hidden = isLive && !behindLive;
+    }
+    if (this.controls.timeSeparator) {
+      this.controls.timeSeparator.hidden = isLive ? !behindLive : false;
+    }
+  }
   setupProgressBarEvents() {
     const progress = this.controls.progress;
     if (!progress) return;
     const updateProgress = (clientX) => {
       const rect = progress.getBoundingClientRect();
       const percent = rect.width > 0 ? Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) : 0;
-      const duration = this.player.state.duration || 0;
-      const time = percent * duration;
+      const { start, end } = this.getProgressSeekRange();
+      const span = end - start;
+      const time = span > 0 ? start + percent * span : 0;
       return { percent, time };
     };
     progress.addEventListener("mousedown", (e) => {
@@ -1410,7 +1454,7 @@ var ControlBar = class {
         const tooltip = this.controls.progressTooltip;
         const tooltipTime = this.controls.progressTooltipTime;
         if (tooltip && tooltipTime) {
-          tooltipTime.textContent = TimeUtils.formatTime(time);
+          tooltipTime.textContent = this.formatProgressTooltipTime(time);
           tooltip.style.left = `${left}px`;
           tooltip.style.display = "block";
         }
@@ -1439,7 +1483,7 @@ var ControlBar = class {
     progress.addEventListener("keydown", (e) => {
       const smallStep = this.player.options.seekInterval || 5;
       const largeStep = this.player.options.seekIntervalLarge || 30;
-      const duration = Number(this.player.state.duration);
+      const { start, end } = this.getProgressSeekRange();
       switch (e.key) {
         case "ArrowLeft":
           e.preventDefault();
@@ -1459,12 +1503,12 @@ var ControlBar = class {
           break;
         case "Home":
           e.preventDefault();
-          this.player.seek(0);
+          this.player.seek(start);
           break;
         case "End":
           e.preventDefault();
-          if (Number.isFinite(duration) && duration > 0) {
-            this.player.seek(Math.max(0, duration - 0.1));
+          if (Number.isFinite(end) && end > start) {
+            this.player.seek(Math.max(start, end - 0.1));
           }
           break;
         default:
@@ -1591,30 +1635,49 @@ var ControlBar = class {
     return button;
   }
   createRewindButton() {
+    const seconds = this.player.options.seekInterval || 10;
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-rewind`,
       attributes: {
         "type": "button",
-        "aria-label": i18n.t("player.rewindSeconds", { seconds: 15 })
+        "aria-label": i18n.t("player.rewindSeconds", { seconds })
       }
     });
     button.appendChild(createIconElement("rewind"));
     button.addEventListener("click", () => {
-      this.player.seekBackward(15);
+      this.player.seekBackward(seconds);
     });
     return button;
   }
   createForwardButton() {
+    const seconds = this.player.options.seekInterval || 10;
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-forward`,
       attributes: {
         "type": "button",
-        "aria-label": i18n.t("player.forwardSeconds", { seconds: 15 })
+        "aria-label": i18n.t("player.forwardSeconds", { seconds }),
+        "hidden": "true"
       }
     });
     button.appendChild(createIconElement("forward"));
     button.addEventListener("click", () => {
-      this.player.seekForward(15);
+      this.player.seekForward(seconds);
+    });
+    return button;
+  }
+  createGoLiveButton() {
+    const prefix = this.player.options.classPrefix;
+    const button = DOMUtils.createElement("button", {
+      className: `${prefix}-button ${prefix}-go-live`,
+      attributes: {
+        "type": "button",
+        "aria-label": i18n.t("player.goLive"),
+        "hidden": "true"
+      },
+      textContent: i18n.t("player.goLiveShort")
+    });
+    button.addEventListener("click", () => {
+      this.player.seekToLive();
     });
     return button;
   }
@@ -1794,11 +1857,13 @@ var ControlBar = class {
     this.controls.currentTimeVisual = currentTimeVisual;
     this.controls.currentTimeAccessible = currentTimeAccessible;
     const separator = DOMUtils.createElement("span", {
+      className: `${this.player.options.classPrefix}-time-separator`,
       textContent: " / ",
       attributes: {
         "aria-hidden": "true"
       }
     });
+    this.controls.timeSeparator = separator;
     this.controls.durationDisplay = DOMUtils.createElement("span", {
       className: `${this.player.options.classPrefix}-duration`
     });
@@ -1816,9 +1881,31 @@ var ControlBar = class {
     this.controls.durationDisplay.appendChild(durationAccessible);
     this.controls.durationVisual = durationVisual;
     this.controls.durationAccessible = durationAccessible;
+    const liveBadgeAccessible = DOMUtils.createElement("span", {
+      className: "vidply-sr-only",
+      textContent: i18n.t("player.live")
+    });
+    const liveBadgeVisual = DOMUtils.createElement("span", {
+      className: `${this.player.options.classPrefix}-live-badge`,
+      attributes: {
+        "aria-hidden": "true"
+      },
+      textContent: i18n.t("player.live")
+    });
+    this.controls.liveBadge = DOMUtils.createElement("span", {
+      className: `${this.player.options.classPrefix}-live-indicator`,
+      attributes: {
+        "hidden": "true"
+      }
+    });
+    this.controls.liveBadge.appendChild(liveBadgeVisual);
+    this.controls.liveBadge.appendChild(liveBadgeAccessible);
+    this.controls.liveBadgeVisual = liveBadgeVisual;
+    this.controls.liveBadgeAccessible = liveBadgeAccessible;
     container.appendChild(this.controls.currentTimeDisplay);
     container.appendChild(separator);
     container.appendChild(this.controls.durationDisplay);
+    container.appendChild(this.controls.liveBadge);
     return container;
   }
   createChaptersButton() {
@@ -2105,7 +2192,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-HTEZ4X32.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+    import("./vidply.CaptionStyleMenu-YPZLO5HM.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
@@ -2767,16 +2854,26 @@ var ControlBar = class {
     this.detachPlayerEvents("events");
     this.subscribe("events", "play", () => this.updatePlayPauseButton());
     this.subscribe("events", "pause", () => this.updatePlayPauseButton());
-    this.subscribe("events", "timeupdate", () => this.updateProgress());
+    this.subscribe("events", "timeupdate", () => {
+      this.updateProgress();
+      this.updateLiveControls();
+    });
     this.subscribe("events", "loadedmetadata", () => {
       this.updateDuration();
+      this.updateLiveControls();
       this.ensureQualityButton();
       this.updateQualityIndicator();
       this.updatePreviewVideoSource();
     });
     this.subscribe("events", "durationchange", () => {
       this.updateDuration();
+      this.updateLiveControls();
     });
+    this.subscribe("events", "livechange", () => {
+      this.updateDuration();
+      this.updateLiveControls();
+    });
+    this.subscribe("events", "liveedgechange", () => this.updateLiveControls());
     this.subscribe("events", "sourcechange", () => {
       this.updatePreviewVideoSource();
     });
@@ -2797,12 +2894,14 @@ var ControlBar = class {
     this.subscribe("events", "hlsmanifestparsed", () => {
       this.ensureQualityButton();
       this.updateQualityIndicator();
+      this.updateLiveControls();
     });
     this.subscribe("events", "dashqualitychanged", () => this.updateQualityIndicator());
     this.subscribe("events", "dashmanifestparsed", () => {
       this.ensureQualityButton();
       this.updateQualityIndicator();
     });
+    this.subscribe("events", "dashmanifestloaded", () => this.updateLiveControls());
   }
   updatePlayPauseButton() {
     if (!this.controls.playPause) return;
@@ -2818,33 +2917,87 @@ var ControlBar = class {
   updateProgress() {
     if (!this.controls.played) return;
     const currentTime = this.player.state.currentTime || 0;
-    const duration = this.player.state.duration || 0;
-    const percent = duration > 0 ? Math.min(100, Math.max(0, currentTime / duration * 100)) : 0;
+    const { start, end } = this.getProgressSeekRange();
+    const span = end - start;
+    const percent = span > 0 ? Math.min(100, Math.max(0, (currentTime - start) / span * 100)) : 0;
     this.controls.played.style.width = `${percent}%`;
     if (this.controls.progress) {
       this.controls.progress.setAttribute("aria-valuenow", String(Math.round(percent)));
-      const currentTimeText = TimeUtils.formatDuration(this.player.state.currentTime);
-      const durationText = TimeUtils.formatDuration(this.player.state.duration);
-      this.controls.progress.setAttribute(
-        "aria-valuetext",
-        `${Math.round(percent)}%, ${currentTimeText} ${i18n.t("time.of")} ${durationText}`
-      );
-    }
-    if (this.controls.currentTimeVisual) {
-      const currentTime2 = this.player.state.currentTime;
-      this.controls.currentTimeVisual.textContent = TimeUtils.formatTime(currentTime2);
-      if (this.controls.currentTimeAccessible) {
-        this.controls.currentTimeAccessible.textContent = TimeUtils.formatDuration(currentTime2);
+      if (this.player.state.isLive) {
+        if (this.player.state.behindLive) {
+          const behindText = TimeUtils.formatDuration(this.player.getSecondsBehindLive());
+          this.controls.progress.setAttribute(
+            "aria-valuetext",
+            `${Math.round(percent)}%, ${i18n.t("time.behindLive", { time: behindText })}, ${i18n.t("player.live")}`
+          );
+        } else {
+          this.controls.progress.setAttribute(
+            "aria-valuetext",
+            `${Math.round(percent)}%, ${i18n.t("player.live")}`
+          );
+        }
+      } else {
+        const currentTimeText = TimeUtils.formatDuration(this.player.state.currentTime);
+        const durationText = TimeUtils.formatDuration(this.player.state.duration);
+        this.controls.progress.setAttribute(
+          "aria-valuetext",
+          `${Math.round(percent)}%, ${currentTimeText} ${i18n.t("time.of")} ${durationText}`
+        );
       }
     }
+    if (this.controls.currentTimeVisual) {
+      if (this.player.state.isLive && this.player.state.behindLive) {
+        const behindSeconds = this.player.getSecondsBehindLive();
+        this.controls.currentTimeVisual.textContent = TimeUtils.formatBehindLive(behindSeconds);
+        if (this.controls.currentTimeAccessible) {
+          this.controls.currentTimeAccessible.textContent = i18n.t("time.behindLive", {
+            time: TimeUtils.formatDuration(behindSeconds)
+          });
+        }
+      } else if (!this.player.state.isLive) {
+        const currentTime2 = this.player.state.currentTime;
+        this.controls.currentTimeVisual.textContent = TimeUtils.formatTime(currentTime2);
+        if (this.controls.currentTimeAccessible) {
+          this.controls.currentTimeAccessible.textContent = TimeUtils.formatDuration(currentTime2);
+        }
+      }
+    }
+    this.updateLiveTimeDisplay();
   }
   updateDuration() {
-    if (this.controls.durationVisual) {
+    const isLive = this.player.state.isLive;
+    if (this.controls.durationDisplay) {
+      this.controls.durationDisplay.hidden = isLive;
+    }
+    if (this.controls.liveBadge) {
+      this.controls.liveBadge.hidden = !isLive;
+    }
+    this.updateLiveTimeDisplay();
+    if (!isLive && this.controls.durationVisual) {
       const duration = this.player.state.duration;
       this.controls.durationVisual.textContent = TimeUtils.formatTime(duration);
       if (this.controls.durationAccessible) {
         this.controls.durationAccessible.textContent = i18n.t("time.durationPrefix") + TimeUtils.formatDuration(duration);
       }
+    }
+  }
+  updateLiveControls() {
+    const isLive = this.player.state.isLive;
+    const behindLive = this.player.state.behindLive;
+    const prefix = this.player.options.classPrefix;
+    if (this.controls.restart) {
+      this.controls.restart.hidden = isLive;
+    }
+    if (this.controls.forward) {
+      this.controls.forward.hidden = !isLive || !behindLive;
+    }
+    if (this.controls.goLive) {
+      this.controls.goLive.hidden = !isLive || !behindLive;
+    }
+    this.updateLiveTimeDisplay();
+    const speedButton = this.rightButtons?.querySelector(`.${prefix}-speed`);
+    if (speedButton) {
+      speedButton.hidden = isLive;
     }
   }
   updateVolumeDisplay() {
@@ -2884,8 +3037,10 @@ var ControlBar = class {
   updateBuffered() {
     if (!this.controls.buffered || !this.player.element.buffered || this.player.element.buffered.length === 0) return;
     const buffered = this.player.element.buffered.end(this.player.element.buffered.length - 1);
-    const percent = buffered / this.player.state.duration * 100;
-    this.controls.buffered.style.width = `${percent}%`;
+    const { start, end } = this.getProgressSeekRange();
+    const span = end - start;
+    const percent = span > 0 ? (buffered - start) / span * 100 : 0;
+    this.controls.buffered.style.width = `${Math.min(100, Math.max(0, percent))}%`;
   }
   updateSpeedDisplay() {
     if (this.controls.speedText) {
@@ -4827,6 +4982,215 @@ var ResponsiveManager = class {
   }
 };
 
+// src/core/LiveStreamManager.ts
+var LiveStreamManager = class {
+  player;
+  boundRefresh;
+  boundReset;
+  /** Set by renderers when the manifest reports a dynamic/live playlist. */
+  sourceReportsLive = null;
+  constructor(player) {
+    this.player = player;
+    this.boundRefresh = () => this.refresh();
+    this.boundReset = () => {
+      this.sourceReportsLive = null;
+      this.refresh();
+    };
+    this.player.on("timeupdate", this.boundRefresh);
+    this.player.on("durationchange", this.boundRefresh);
+    this.player.on("loadedmetadata", this.boundRefresh);
+    this.player.on("seeked", this.boundRefresh);
+    this.player.on("hlsmanifestparsed", this.boundRefresh);
+    this.player.on("dashmanifestloaded", this.boundRefresh);
+    this.player.on("sourcechange", this.boundReset);
+  }
+  destroy() {
+    this.player.off("timeupdate", this.boundRefresh);
+    this.player.off("durationchange", this.boundRefresh);
+    this.player.off("loadedmetadata", this.boundRefresh);
+    this.player.off("seeked", this.boundRefresh);
+    this.player.off("hlsmanifestparsed", this.boundRefresh);
+    this.player.off("dashmanifestloaded", this.boundRefresh);
+    this.player.off("sourcechange", this.boundReset);
+  }
+  /** Called by HLSRenderer when the manifest or buffer state indicates live. */
+  evaluateHls(hls) {
+    if (!hls) {
+      return;
+    }
+    const liveSync = hls.liveSyncPosition;
+    if (typeof liveSync === "number" && Number.isFinite(liveSync)) {
+      this.sourceReportsLive = true;
+      this.refresh();
+    }
+  }
+  /** Called by DASHRenderer after the MPD is loaded. */
+  evaluateDash(dash) {
+    if (!dash || typeof dash.isDynamic !== "function") {
+      return;
+    }
+    if (dash.isDynamic()) {
+      this.sourceReportsLive = true;
+      this.refresh();
+    }
+  }
+  resolveIsLive() {
+    const option = this.player.options.liveStream;
+    if (option === true) {
+      return true;
+    }
+    if (option === false) {
+      return false;
+    }
+    if (this.sourceReportsLive === true) {
+      return true;
+    }
+    if (this.sourceReportsLive === false) {
+      return false;
+    }
+    return this.detectFromMedia();
+  }
+  detectFromMedia() {
+    const media = this.player.element;
+    if (!media) {
+      return false;
+    }
+    if (media.duration === Infinity || !Number.isFinite(media.duration)) {
+      return true;
+    }
+    const renderer = this.player.renderer;
+    if (renderer?.rendererType === "hls") {
+      const hls = renderer.hls ?? null;
+      const liveSync = hls?.liveSyncPosition;
+      if (typeof liveSync === "number" && Number.isFinite(liveSync)) {
+        return true;
+      }
+    }
+    if (renderer?.rendererType === "dash") {
+      const dash = renderer.dash ?? null;
+      if (dash && typeof dash.isDynamic === "function" && dash.isDynamic()) {
+        return true;
+      }
+    }
+    return false;
+  }
+  getLiveEdge() {
+    const media = this.player.element;
+    if (!media) {
+      return null;
+    }
+    const renderer = this.player.renderer;
+    if (renderer?.rendererType === "hls") {
+      const hls = renderer.hls ?? null;
+      const liveSync = hls?.liveSyncPosition;
+      if (typeof liveSync === "number" && Number.isFinite(liveSync)) {
+        return liveSync;
+      }
+    }
+    if (media.seekable && media.seekable.length > 0) {
+      try {
+        const end = media.seekable.end(media.seekable.length - 1);
+        if (Number.isFinite(end) && end > 0) {
+          return end;
+        }
+      } catch {
+      }
+    }
+    if (Number.isFinite(media.duration) && media.duration > 0) {
+      return media.duration;
+    }
+    return null;
+  }
+  getSeekableStart() {
+    const media = this.player.element;
+    if (!media?.seekable?.length) {
+      return 0;
+    }
+    try {
+      const start = media.seekable.start(0);
+      return Number.isFinite(start) && start >= 0 ? start : 0;
+    } catch {
+      return 0;
+    }
+  }
+  getSeekRange() {
+    if (!this.resolveIsLive()) {
+      return null;
+    }
+    const start = this.getSeekableStart();
+    const end = this.getLiveEdge();
+    if (end === null || end <= start) {
+      return null;
+    }
+    return { start, end };
+  }
+  getBehindThreshold() {
+    const threshold = this.player.options.liveBehindThreshold;
+    return typeof threshold === "number" && Number.isFinite(threshold) && threshold >= 0 ? threshold : 5;
+  }
+  isBehindLive() {
+    if (!this.resolveIsLive()) {
+      return false;
+    }
+    return this.getSecondsBehindLive() > this.getBehindThreshold();
+  }
+  getSecondsBehindLive() {
+    if (!this.resolveIsLive()) {
+      return 0;
+    }
+    const edge = this.getLiveEdge();
+    if (edge === null) {
+      return 0;
+    }
+    return Math.max(0, edge - this.player.state.currentTime);
+  }
+  clampSeekTime(time) {
+    if (!Number.isFinite(time)) {
+      return 0;
+    }
+    let clamped = Math.max(0, time);
+    if (!this.resolveIsLive()) {
+      return clamped;
+    }
+    clamped = Math.max(clamped, this.getSeekableStart());
+    const edge = this.getLiveEdge();
+    if (edge !== null) {
+      clamped = Math.min(clamped, edge);
+    }
+    return clamped;
+  }
+  seekToLive() {
+    const edge = this.getLiveEdge();
+    if (edge === null) {
+      return;
+    }
+    this.player.seek(edge);
+    if (!this.player.state.playing) {
+      void this.player.play();
+    }
+  }
+  refresh() {
+    const wasLive = this.player.state.isLive;
+    const wasBehind = this.player.state.behindLive;
+    const isLive = this.resolveIsLive();
+    const liveEdge = isLive ? this.getLiveEdge() : null;
+    const behindLive = isLive && this.isBehindLive();
+    this.player.state.isLive = isLive;
+    this.player.state.liveEdge = liveEdge;
+    this.player.state.behindLive = behindLive;
+    const prefix = this.player.options.classPrefix;
+    this.player.container?.classList.toggle(`${prefix}-is-live`, isLive);
+    this.player.container?.classList.toggle(`${prefix}-behind-live`, behindLive);
+    if (wasLive !== isLive) {
+      this.player.emit("livechange", isLive);
+    }
+    if (wasBehind !== behindLive) {
+      const detail = { behindLive, liveEdge };
+      this.player.emit("liveedgechange", detail);
+    }
+  }
+};
+
 // src/core/MetadataAlertsManager.ts
 var MetadataAlertsManager = class {
   player;
@@ -5563,7 +5927,7 @@ var KeyboardHelp = class {
       className: `${this.prefix}-settings-content`
     });
     this._content = content;
-    content.appendChild(this.buildShortcutList());
+    content.appendChild(this.buildContent());
     dialog.appendChild(header);
     dialog.appendChild(content);
     overlay.appendChild(dialog);
@@ -5600,11 +5964,85 @@ var KeyboardHelp = class {
    * is hidden — the shortcuts still work and we'd rather over-show than mislead.
    */
   isActionRelevant(action) {
+    if (this.player.state?.isLive) {
+      if (action === "speed-down" || action === "speed-up" || action === "speed-menu") {
+        return false;
+      }
+    }
     const requiredControl = ACTION_REQUIRES_CONTROL[action];
     if (!requiredControl) return true;
     const controlBar = this.player.controlBar;
     if (!controlBar || !controlBar.controls) return true;
     return Boolean(controlBar.controls[requiredControl]);
+  }
+  getActionLabel(action) {
+    if (this.player.state?.isLive && action === "seek-forward") {
+      return i18n.t("help.actions.seek-forward-live");
+    }
+    return i18n.t(`help.actions.${action}`);
+  }
+  buildLiveControlsSection() {
+    if (!this.player.state?.isLive) {
+      return null;
+    }
+    const seekSeconds = Number(this.player.options.seekInterval) > 0 ? Number(this.player.options.seekInterval) : 10;
+    const section = DOMUtils.createElement("div", {
+      className: `${this.prefix}-help-live-section`
+    });
+    section.appendChild(DOMUtils.createElement("h3", {
+      className: `${this.prefix}-help-live-title`,
+      textContent: i18n.t("help.liveSectionTitle")
+    }));
+    const list = DOMUtils.createElement("dl", {
+      className: `${this.prefix}-help-list ${this.prefix}-help-live-list`
+    });
+    const rows = [
+      {
+        term: i18n.t("help.live.skipBack"),
+        desc: i18n.t("help.live.skipBackDesc", { seconds: seekSeconds })
+      },
+      {
+        term: i18n.t("help.live.skipForward"),
+        desc: i18n.t("help.live.skipForwardDesc", { seconds: seekSeconds })
+      }
+    ];
+    if (this.player.options.goLiveButton) {
+      rows.push({
+        term: i18n.t("help.live.goLive"),
+        desc: i18n.t("help.live.goLiveDesc")
+      });
+    }
+    rows.push(
+      {
+        term: i18n.t("help.live.progress"),
+        desc: i18n.t("help.live.progressDesc")
+      },
+      {
+        term: i18n.t("help.live.liveBadge"),
+        desc: i18n.t("help.live.liveBadgeDesc")
+      }
+    );
+    for (const row of rows) {
+      list.appendChild(DOMUtils.createElement("dt", {
+        className: `${this.prefix}-help-action`,
+        textContent: row.term
+      }));
+      list.appendChild(DOMUtils.createElement("dd", {
+        className: `${this.prefix}-help-desc`,
+        textContent: row.desc
+      }));
+    }
+    section.appendChild(list);
+    return section;
+  }
+  buildContent() {
+    const content = document.createDocumentFragment();
+    content.appendChild(this.buildShortcutList());
+    const liveSection = this.buildLiveControlsSection();
+    if (liveSection) {
+      content.appendChild(liveSection);
+    }
+    return content;
   }
   buildShortcutList() {
     const list = DOMUtils.createElement("dl", {
@@ -5617,7 +6055,7 @@ var KeyboardHelp = class {
       if (!this.isActionRelevant(action)) continue;
       const term = DOMUtils.createElement("dt", {
         className: `${this.prefix}-help-action`,
-        textContent: i18n.t(`help.actions.${action}`)
+        textContent: this.getActionLabel(action)
       });
       const desc = DOMUtils.createElement("dd", {
         className: `${this.prefix}-help-keys`
@@ -5649,7 +6087,7 @@ var KeyboardHelp = class {
       this.overlay = this.createElement();
       this.player.container.appendChild(this.overlay);
     } else if (this._content) {
-      this._content.replaceChildren(this.buildShortcutList());
+      this._content.replaceChildren(this.buildContent());
     }
     const active = typeof document !== "undefined" ? document.activeElement : null;
     this._triggerElement = active && typeof active.focus === "function" ? active : null;
@@ -5731,21 +6169,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-BYNGMJ4P.js");
+    const module = await import("./vidply.AudioDescriptionManager-6T3S2XEP.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-3Q72VSU2.js");
+    const module = await import("./vidply.SignLanguageManager-K4562IMP.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-4MID7IKU.js");
+    const module = await import("./vidply.FloatingPlayerManager-PIL45TZF.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -5815,6 +6253,7 @@ var Player = class _Player extends EventEmitter {
   audioDescriptionManager = null;
   signLanguageManager = null;
   floatingPlayerManager = null;
+  liveStreamManager = null;
   storage;
   instanceId;
   _audioDescriptionDesiredState;
@@ -6005,6 +6444,9 @@ var Player = class _Player extends EventEmitter {
       // Seeking
       seekInterval: 10,
       seekIntervalLarge: 30,
+      liveStream: "auto",
+      liveBehindThreshold: 5,
+      goLiveButton: true,
       // Captions
       captions: true,
       captionsDefault: false,
@@ -6153,8 +6595,12 @@ var Player = class _Player extends EventEmitter {
       audioDescriptionEnabled: false,
       signLanguageEnabled: false,
       signLanguageInMainView: false,
-      resumePromptVisible: false
+      resumePromptVisible: false,
+      isLive: false,
+      behindLive: false,
+      liveEdge: null
     };
+    this.liveStreamManager = new LiveStreamManager(this);
     this.resumePromptElement = null;
     this.originalSrc = null;
     this.audioDescriptionSrc = this.options.audioDescriptionSrc;
@@ -6419,7 +6865,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-7XECXIJC.js");
+    const module = await import("./vidply.TranscriptManager-33PFHLKA.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -6983,11 +7429,11 @@ var Player = class _Player extends EventEmitter {
         return module.VimeoRenderer ?? module.default;
       }
       case "hls": {
-        const module = await import("./vidply.HLSRenderer-UKMSQOVL.js");
+        const module = await import("./vidply.HLSRenderer-JJJG7TRA.js");
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {
-        const module = await import("./vidply.DASHRenderer-5QXGMLEM.js");
+        const module = await import("./vidply.DASHRenderer-KBRZ6RI2.js");
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
@@ -7429,7 +7875,7 @@ var Player = class _Player extends EventEmitter {
    */
   seek(time) {
     if (typeof time !== "number" || !Number.isFinite(time)) return;
-    const safeTime = time < 0 ? 0 : time;
+    const safeTime = this.liveStreamManager ? this.liveStreamManager.clampSeekTime(time) : time < 0 ? 0 : time;
     this.hidePosterOverlay();
     if (this.renderer) {
       this.renderer.seek(safeTime);
@@ -7437,13 +7883,36 @@ var Player = class _Player extends EventEmitter {
   }
   seekForward(interval = this.options.seekInterval) {
     const step = Number.isFinite(interval) ? interval : 5;
-    const targetTime = this.state.currentTime + step;
-    const seekTime = this.state.duration > 0 ? Math.min(targetTime, this.state.duration) : targetTime;
-    this.seek(seekTime);
+    let targetTime = this.state.currentTime + step;
+    if (this.liveStreamManager?.resolveIsLive()) {
+      const edge = this.liveStreamManager.getLiveEdge();
+      if (edge !== null) {
+        targetTime = Math.min(targetTime, edge);
+      }
+    } else if (this.state.duration > 0) {
+      targetTime = Math.min(targetTime, this.state.duration);
+    }
+    this.seek(targetTime);
   }
   seekBackward(interval = this.options.seekInterval) {
     const step = Number.isFinite(interval) ? interval : 5;
-    this.seek(Math.max(this.state.currentTime - step, 0));
+    const minTime = this.liveStreamManager?.resolveIsLive() ? this.liveStreamManager.getSeekableStart() : 0;
+    this.seek(Math.max(this.state.currentTime - step, minTime));
+  }
+  isLiveStream() {
+    return this.liveStreamManager?.resolveIsLive() ?? false;
+  }
+  isBehindLive() {
+    return this.liveStreamManager?.isBehindLive() ?? false;
+  }
+  getSecondsBehindLive() {
+    return this.liveStreamManager?.getSecondsBehindLive() ?? 0;
+  }
+  getLiveSeekRange() {
+    return this.liveStreamManager?.getSeekRange() ?? null;
+  }
+  seekToLive() {
+    this.liveStreamManager?.seekToLive();
   }
   // Volume controls
   /**
@@ -7998,6 +8467,10 @@ var Player = class _Player extends EventEmitter {
         this.log(`MediaSessionManager.destroy failed: ${err}`, "warn");
       }
       this.mediaSessionManager = null;
+    }
+    if (this.liveStreamManager) {
+      this.liveStreamManager.destroy();
+      this.liveStreamManager = null;
     }
     if (this.floatingPlayerManager) {
       try {

@@ -13,6 +13,9 @@ export const en = {
     forward: 'Forward',
     rewindSeconds: 'Rewind {seconds} seconds',
     forwardSeconds: 'Forward {seconds} seconds',
+    live: 'Live',
+    goLive: 'Go to live broadcast',
+    goLiveShort: 'Live',
     previous: 'Previous track',
     next: 'Next track',
     playlist: 'Toggle playlist',
@@ -181,6 +184,7 @@ export const en = {
     button: 'Keyboard shortcuts',
     close: 'Close',
     or: 'or',
+    liveSectionTitle: 'Live stream controls',
     keys: {
       space: 'Space'
     },
@@ -188,6 +192,7 @@ export const en = {
       'play-pause': 'Play / Pause',
       'seek-backward': 'Seek backward',
       'seek-forward': 'Seek forward',
+      'seek-forward-live': 'Seek forward (when behind live)',
       'volume-up': 'Volume up',
       'volume-down': 'Volume down',
       'mute': 'Mute / Unmute',
@@ -201,6 +206,18 @@ export const en = {
       'transcript-toggle': 'Toggle transcript',
       'fullscreen': 'Toggle fullscreen',
       'help': 'Keyboard shortcuts'
+    },
+    live: {
+      skipBack: 'Skip back',
+      skipBackDesc: '{seconds} seconds — always available',
+      skipForward: 'Skip forward',
+      skipForwardDesc: '{seconds} seconds — only when you are behind the live broadcast',
+      goLive: 'Go live',
+      goLiveDesc: 'Jump to the current live edge and resume playback',
+      progress: 'Progress bar',
+      progressDesc: 'Shows your position within the available rewind window; the right edge is live',
+      liveBadge: 'LIVE badge',
+      liveBadgeDesc: 'Shown at the live edge; when you rewind, the time before it shows how far behind live you are'
     }
   },
   speeds: {
@@ -209,6 +226,7 @@ export const en = {
   time: {
     display: 'Time display',
     durationPrefix: 'Duration: ',
+    behindLive: '{time} behind live',
     of: 'of',
     hour: '{count} hour',
     hours: '{count} hours',

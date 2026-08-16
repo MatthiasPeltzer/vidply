@@ -112,6 +112,13 @@ describe('TimeUtils', () => {
     });
   });
 
+  describe('formatBehindLive', () => {
+    it('should prefix formatted time with a minus sign', () => {
+      expect(TimeUtils.formatBehindLive(754)).toBe('\u221212:34');
+      expect(TimeUtils.formatBehindLive(0)).toBe('\u221200:00');
+    });
+  });
+
   describe('formatPercentage', () => {
     it('should calculate percentage correctly', () => {
       expect(TimeUtils.formatPercentage(0, 100)).toBe(0);

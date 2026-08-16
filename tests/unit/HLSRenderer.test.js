@@ -627,6 +627,34 @@ describe('HLSRenderer', () => {
       expect(renderer._cueUpdateTimer).toBeNull();
     });
 
+    it('should keep polling on live streams when cue count plateaus', () => {
+      mockPlayer.isLiveStream = vi.fn(() => true);
+      const mockTextTracks = [{ kind: 'subtitles', cues: { length: 12 } }];
+      mockTextTracks.length = 1;
+      Object.defineProperty(mockMedia, 'textTracks', { value: mockTextTracks, configurable: true });
+
+      renderer._startCueUpdatePolling();
+      vi.advanceTimersByTime(10000);
+
+      expect(renderer._cueUpdateTimer).not.toBeNull();
+    });
+
+    it('should emit textcuesupdate on live subtitle fragments even when cue count is stable', () => {
+      mockPlayer.isLiveStream = vi.fn(() => true);
+      const hlsOnCalls = mockHls.on.mock.calls;
+      const subtitleFragHandler = hlsOnCalls.find(c => c[0] === 'hlsSubtitleFragProcessed')?.[1];
+
+      const mockTextTracks = [{ kind: 'subtitles', cues: { length: 12 } }];
+      mockTextTracks.length = 1;
+      Object.defineProperty(mockMedia, 'textTracks', { value: mockTextTracks, configurable: true });
+      renderer._lastKnownCueCount = 12;
+
+      mockPlayer.emit.mockClear();
+      subtitleFragHandler('hlsSubtitleFragProcessed', { success: true });
+
+      expect(mockPlayer.emit).toHaveBeenCalledWith('textcuesupdate');
+    });
+
     it('should clean up polling on destroy', () => {
       renderer._startCueUpdatePolling();
       expect(renderer._cueUpdateTimer).not.toBeNull();
@@ -653,6 +681,28 @@ describe('HLSRenderer', () => {
       subtitleFragHandler('hlsSubtitleFragProcessed', { success: true });
 
       expect(mockPlayer.emit).toHaveBeenCalledWith('textcuesupdate');
+    });
+
+    it('should auto-select the default hls.js subtitle track when captions are enabled', () => {
+      renderer.hls.subtitleTracks = [{ lang: 'de', default: true }, { lang: 'en' }];
+      renderer.hls.subtitleTrack = -1;
+      mockPlayer.state.captionsEnabled = true;
+
+      renderer._ensureHlsSubtitleTrackActive();
+
+      expect(renderer.hls.subtitleTrack).toBe(0);
+    });
+
+    it('should not auto-select hls.js subtitles when captions and transcript are off', () => {
+      renderer.hls.subtitleTracks = [{ lang: 'de' }];
+      renderer.hls.subtitleTrack = -1;
+      mockPlayer.state.captionsEnabled = false;
+      mockPlayer.options.captionsDefault = false;
+      mockPlayer.transcriptManager = null;
+
+      renderer._ensureHlsSubtitleTrackActive();
+
+      expect(renderer.hls.subtitleTrack).toBe(-1);
     });
   });
 

@@ -24,6 +24,7 @@ function createPlayer() {
 
   return {
     container,
+    state: { isLive: false },
     options: {
       classPrefix: 'vidply',
       keyboardShortcuts: {
@@ -80,5 +81,34 @@ describe('KeyboardHelp', () => {
 
     help.toggle();
     expect(player.container.classList.contains('vidply-modal-open')).toBe(true);
+  });
+
+  it('shows a live stream controls section when the player is live', () => {
+    player.state = { isLive: true };
+    player.options.seekInterval = 15;
+    player.options.goLiveButton = true;
+
+    help.show();
+
+    const liveSection = player.container.querySelector('.vidply-help-live-section');
+    expect(liveSection).not.toBeNull();
+    expect(liveSection?.querySelector('.vidply-help-live-title')?.textContent).toBe('help.liveSectionTitle');
+    expect(liveSection?.querySelectorAll('dt').length).toBeGreaterThan(0);
+  });
+
+  it('hides speed shortcuts in the help dialog for live streams', () => {
+    player.state = { isLive: true };
+    player.options.keyboardShortcuts = {
+      'play-pause': [' '],
+      'speed-menu': ['s'],
+      help: ['?']
+    };
+    player.controlBar = { controls: { speed: document.createElement('button') } };
+
+    help.show();
+
+    const actions = Array.from(player.container.querySelectorAll('.vidply-help-action'))
+      .map((node) => node.textContent);
+    expect(actions.some((text) => text === 'help.actions.speed-menu')).toBe(false);
   });
 });

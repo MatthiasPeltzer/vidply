@@ -59,6 +59,11 @@ export interface PlayerEventMap {
     seeked: void;
     timeupdate: number;
     durationchange: number;
+    livechange: boolean;
+    liveedgechange: {
+        behindLive: boolean;
+        liveEdge: number | null;
+    };
     ratechange: number;
     loadedmetadata: void;
     progress: TimeRanges | number;

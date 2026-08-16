@@ -13,6 +13,9 @@ export const fr = {
     forward: 'Avancer',
     rewindSeconds: 'Reculer de {seconds} secondes',
     forwardSeconds: 'Avancer de {seconds} secondes',
+    live: 'Direct',
+    goLive: 'Revenir au direct',
+    goLiveShort: 'Direct',
     previous: 'Piste précédente',
     next: 'Piste suivante',
     playlist: 'Basculer la liste de lecture',
@@ -177,6 +180,7 @@ export const fr = {
     button: 'Raccourcis clavier',
     close: 'Fermer',
     or: 'ou',
+    liveSectionTitle: 'Commandes du direct',
     keys: {
       space: 'Espace'
     },
@@ -184,6 +188,7 @@ export const fr = {
       'play-pause': 'Lecture / Pause',
       'seek-backward': 'Reculer',
       'seek-forward': 'Avancer',
+      'seek-forward-live': 'Avancer (en retard sur le direct)',
       'volume-up': 'Augmenter le volume',
       'volume-down': 'Baisser le volume',
       'mute': 'Couper / Activer le son',
@@ -197,6 +202,18 @@ export const fr = {
       'transcript-toggle': 'Activer/désactiver la transcription',
       'fullscreen': 'Activer/désactiver le plein écran',
       'help': 'Raccourcis clavier'
+    },
+    live: {
+      skipBack: 'Reculer',
+      skipBackDesc: '{seconds} secondes — toujours disponible',
+      skipForward: 'Avancer',
+      skipForwardDesc: '{seconds} secondes — uniquement en retard sur le direct',
+      goLive: 'Revenir au direct',
+      goLiveDesc: 'Rejoint le point live actuel et reprend la lecture',
+      progress: 'Barre de progression',
+      progressDesc: 'Indique votre position dans la fenêtre de retour arrière ; le bord droit est le direct',
+      liveBadge: 'Badge DIRECT',
+      liveBadgeDesc: 'Affiché au direct ; après un retour arrière, l’heure indique le retard sur le direct'
     }
   },
   speeds: {
@@ -205,6 +222,7 @@ export const fr = {
   time: {
     display: 'Affichage du temps',
     durationPrefix: 'Durée : ',
+    behindLive: '{time} de retard sur le direct',
     of: 'sur',
     hour: '{count} heure',
     hours: '{count} heures',

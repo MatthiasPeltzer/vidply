@@ -38,6 +38,7 @@ export declare class DASHRenderer implements Renderer {
     _captionEnabledHandler: CaptionEnabledHandler | null;
     _captionDisabledHandler: CaptionDisabledHandler | null;
     _lastKnownCueCount: number;
+    _lastKnownMaxCueStart: number;
     _dashTextIsTtml: boolean;
     _pendingTimeouts: ReturnType<typeof setTimeout>[];
     _ttmlDiv: HTMLElement | null;
@@ -63,6 +64,9 @@ export declare class DASHRenderer implements Renderer {
      * Count total cues across all subtitle/caption tracks (for WebVTT DASH).
      */
     _getTotalCueCount(): number;
+    _getMaxCueStartTime(): number;
+    _isLivePlayback(): boolean;
+    _emitTextCuesUpdateIfChanged(): boolean;
     /**
      * Return true if `time` falls inside any TimeRange the SourceBuffer already
      * holds, with a small tolerance to absorb GOP boundaries. Used by the

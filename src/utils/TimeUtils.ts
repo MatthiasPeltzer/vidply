@@ -63,5 +63,14 @@ export const TimeUtils = {
   formatPercentage(value: number, total: number): number {
     if (total === 0) return 0;
     return Math.round((value / total) * 100);
+  },
+
+  /** Visual offset from the live edge, e.g. "−12:34". */
+  formatBehindLive(seconds: number): string {
+    if (!Number.isFinite(seconds) || seconds <= 0) {
+      return `\u221200:00`;
+    }
+
+    return `\u2212${TimeUtils.formatTime(seconds)}`;
   }
 };

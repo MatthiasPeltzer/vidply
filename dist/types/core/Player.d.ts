@@ -15,6 +15,7 @@ import { ThemeManager, type ThemeName } from './ThemeManager.js';
 import { PosterManager } from './PosterManager.js';
 import { ResumeManager } from './ResumeManager.js';
 import { ResponsiveManager } from './ResponsiveManager.js';
+import { LiveStreamManager } from './LiveStreamManager.js';
 import { MetadataAlertsManager, type MetadataAlertConfig as _MetadataAlertConfig, type MetadataAlertOptions as _MetadataAlertOptions } from './MetadataAlertsManager.js';
 export type MetadataAlertConfig = _MetadataAlertConfig;
 export type MetadataAlertOptions = _MetadataAlertOptions;
@@ -91,6 +92,7 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     audioDescriptionManager: AudioDescriptionManager | null;
     signLanguageManager: SignLanguageManager | null;
     floatingPlayerManager: FloatingPlayerManager | null;
+    liveStreamManager: LiveStreamManager | null;
     storage: StorageManager;
     instanceId: number;
     _audioDescriptionDesiredState: boolean | undefined;
@@ -407,6 +409,14 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     seek(time: number): void;
     seekForward(interval?: number): void;
     seekBackward(interval?: number): void;
+    isLiveStream(): boolean;
+    isBehindLive(): boolean;
+    getSecondsBehindLive(): number;
+    getLiveSeekRange(): {
+        start: number;
+        end: number;
+    } | null;
+    seekToLive(): void;
     /**
      * HTML5 renderers call this before syncing `media.volume` / `media.muted`
      * into player state so programmatic init is not overwritten (Chrome timing).

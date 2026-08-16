@@ -43,6 +43,7 @@ export class DASHRenderer implements Renderer {
   _captionEnabledHandler: CaptionEnabledHandler | null;
   _captionDisabledHandler: CaptionDisabledHandler | null;
   _lastKnownCueCount: number;
+  _lastKnownMaxCueStart: number;
   _dashTextIsTtml: boolean;
   _pendingTimeouts: ReturnType<typeof setTimeout>[];
   _ttmlDiv: HTMLElement | null;
@@ -65,6 +66,7 @@ export class DASHRenderer implements Renderer {
     this._captionEnabledHandler = null;
     this._captionDisabledHandler = null;
     this._lastKnownCueCount = 0;
+    this._lastKnownMaxCueStart = -1;
     this._dashTextIsTtml = false;
     this._pendingTimeouts = [];
     this._ttmlDiv = null;
@@ -270,6 +272,7 @@ export class DASHRenderer implements Renderer {
       const data = e?.data ?? e;
       this.player.log('DASH manifest loaded');
       this.player.emit('dashmanifestloaded', data);
+      this.player.liveStreamManager?.evaluateDash(this.dash);
 
       if (this.player.container) {
         this.player.container.classList.remove('vidply-external-controls');
@@ -333,11 +336,7 @@ export class DASHRenderer implements Renderer {
       this.player.state.buffering = false;
       if (e?.request?.mediaType === 'text' && !this._dashTextIsTtml) {
         this._setTimeout(() => {
-          const count = this._getTotalCueCount();
-          if (count > this._lastKnownCueCount) {
-            this._lastKnownCueCount = count;
-            this.player.emit('textcuesupdate');
-          }
+          this._emitTextCuesUpdateIfChanged();
         }, 100);
       }
     });
@@ -357,6 +356,56 @@ export class DASHRenderer implements Renderer {
       }
     }
     return total;
+  }
+
+  _getMaxCueStartTime(): number {
+    const textTracks = this.media.textTracks;
+    if (!textTracks) {
+      return -1;
+    }
+
+    let max = -1;
+    for (let i = 0; i < textTracks.length; i++) {
+      const track = textTracks[i];
+      if (
+        !track
+        || (track.kind !== 'subtitles' && track.kind !== 'captions')
+        || track._vidplyStale
+        || !track.cues
+      ) {
+        continue;
+      }
+      for (let j = 0; j < track.cues.length; j++) {
+        const cue = track.cues[j];
+        if (cue && cue.startTime > max) {
+          max = cue.startTime;
+        }
+      }
+    }
+    return max;
+  }
+
+  _isLivePlayback(): boolean {
+    return typeof this.player.isLiveStream === 'function' && this.player.isLiveStream();
+  }
+
+  _emitTextCuesUpdateIfChanged(): boolean {
+    const count = this._getTotalCueCount();
+    const maxStart = this._getMaxCueStartTime();
+    const isLive = this._isLivePlayback();
+
+    if (
+      isLive
+      || count > this._lastKnownCueCount
+      || maxStart > this._lastKnownMaxCueStart
+    ) {
+      this._lastKnownCueCount = count;
+      this._lastKnownMaxCueStart = maxStart;
+      this.player.emit('textcuesupdate');
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -444,14 +493,31 @@ export class DASHRenderer implements Renderer {
   _startCueUpdatePolling() {
     this._stopCueUpdatePolling();
     let prevCueCount = 0;
+    let prevMaxStart = -1;
     let stableRounds = 0;
+    const isLive = this._isLivePlayback();
 
     this._cueUpdateTimer = setInterval(() => {
       const count = this._getTotalCueCount();
+      const maxStart = this._getMaxCueStartTime();
 
-      if (count > prevCueCount) {
+      if (isLive) {
+        if (count > prevCueCount || maxStart > prevMaxStart) {
+          prevCueCount = count;
+          prevMaxStart = maxStart;
+          this._lastKnownCueCount = count;
+          this._lastKnownMaxCueStart = maxStart;
+          this.player.emit('textcuesupdate');
+        }
+        return;
+      }
+
+      if (count > prevCueCount || maxStart > prevMaxStart) {
         prevCueCount = count;
+        prevMaxStart = maxStart;
         stableRounds = 0;
+        this._lastKnownCueCount = count;
+        this._lastKnownMaxCueStart = maxStart;
         this.player.emit('textcuesupdate');
       } else {
         stableRounds++;

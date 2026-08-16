@@ -33,6 +33,9 @@ export declare class KeyboardHelp {
      * is hidden — the shortcuts still work and we'd rather over-show than mislead.
      */
     private isActionRelevant;
+    private getActionLabel;
+    private buildLiveControlsSection;
+    private buildContent;
     private buildShortcutList;
     show(): void;
     hide(): void;

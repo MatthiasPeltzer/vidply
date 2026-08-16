@@ -11,7 +11,6 @@ import { StorageManager } from '../utils/StorageManager.js';
 import {
   focusElement,
   setContainerChildrenInert,
-  trapFocusInContainer,
 } from '../utils/FocusUtils.js';
 import { createMenuItem } from '../utils/MenuUtils.js';
 import { DraggableResizable } from '../utils/DraggableResizable.js';
@@ -66,8 +65,12 @@ interface TranscriptHandlers {
 type TimerHandle = ReturnType<typeof setTimeout>;
 
 export class TranscriptManager {
+  /** Live HLS re-publishes the same subtitle line within ~6s segment overlap. */
+  private static readonly LIVE_TRANSCRIPT_DEDUPE_WINDOW_SEC = 30;
+
     player: Player;
     _cueUpdateTimeout: TimerHandle | null;
+    _liveSyncTimer: TimerHandle | null = null;
     autoscrollCheckbox: HTMLInputElement | null = null;
     autoscrollEnabled: boolean;
     availableTranscriptLanguages: TranscriptLanguageInfo[];
@@ -263,12 +266,22 @@ export class TranscriptManager {
     // Skip re-render when we already fetched the full VTT for the active language.
     this.handlers.textcuesupdate = () => {
       if (!this.isVisible) return;
-      if (this.currentTranscriptLanguage && this._vttCache.has(this.currentTranscriptLanguage)) return;
+      if (
+        this.currentTranscriptLanguage
+        && this._vttCache.has(this.currentTranscriptLanguage)
+        && !this._isLiveTranscriptSource()
+      ) {
+        return;
+      }
       if (this._cueUpdateTimeout) {
         this.clearManagedTimeout(this._cueUpdateTimeout);
       }
       this._cueUpdateTimeout = this.setManagedTimeout(() => {
         this._cueUpdateTimeout = null;
+        if (this._isLiveTranscriptSource()) {
+          this._syncLiveTranscriptCues();
+          return;
+        }
         this.loadTranscriptData();
       }, 400);
     };
@@ -371,6 +384,7 @@ export class TranscriptManager {
       
       // Focus the settings button for keyboard accessibility
       focusElement(this.settingsButton, { delay: 150 });
+      this._startLiveTranscriptSync();
       return;
     }
 
@@ -391,12 +405,14 @@ export class TranscriptManager {
       focusElement(this.settingsButton, { delay: 150 });
     }
     this.isVisible = true;
+    this._startLiveTranscriptSync();
   }
 
   /**
    * Hide transcript window
    */
   hideTranscript({ focusButton = false } = {}) {
+    this._stopLiveTranscriptSync();
     if (this.transcriptWindow) {
       this.transcriptWindow.style.display = 'none';
       this.isVisible = false;
@@ -954,27 +970,14 @@ export class TranscriptManager {
   }
 
   /**
-   * Floating/overlay layouts behave as modal dialogs; inline mobile layout does not.
-   */
-  private isFloatingTranscriptLayout(): boolean {
-    if (!this.transcriptWindow || !this.isVisible) {
-      return false;
-    }
-
-    const position = this.transcriptWindow.style.position;
-    return position === 'absolute' || position === 'fixed';
-  }
-
-  /**
-   * Toggle aria-modal, background inert, and related WCAG semantics after layout.
+   * Keep transcript as a companion panel: player controls stay operable.
    */
   private updateTranscriptModalState(): void {
     if (!this.transcriptWindow) {
       return;
     }
 
-    const isModal = this.isFloatingTranscriptLayout();
-    this.transcriptWindow.setAttribute('aria-modal', isModal ? 'true' : 'false');
+    this.transcriptWindow.setAttribute('aria-modal', 'false');
 
     const container = this.player.container;
     if (!container) {
@@ -983,8 +986,8 @@ export class TranscriptManager {
 
     this.inertedElements = setContainerChildrenInert(
       container,
-      isModal ? this.transcriptWindow : null,
-      isModal,
+      null,
+      false,
       this.inertedElements
     );
   }
@@ -1195,27 +1198,9 @@ export class TranscriptManager {
     // Get all text tracks
     const textTracks = this.player.textTracks as TranscriptTrack[];
 
-    // Find track for selected language, or default to first available.
-    // Safari native HLS can expose duplicate TextTrack objects for the same
-    // language (SUBTITLES vs CLOSED-CAPTIONS); prefer the one with cues loaded.
-    let captionTrack: TranscriptTrack | null = null;
-    if (this.currentTranscriptLanguage) {
-      const candidates = textTracks.filter(
-        (track: TranscriptTrack) => (track.kind === 'captions' || track.kind === 'subtitles') && 
-                 track.language === this.currentTranscriptLanguage &&
-                 !track._vidplyStale
-      );
-      captionTrack = candidates.find((t: TranscriptTrack) => t.cues && t.cues.length > 0) || candidates[0] || null;
-    }
-    
-    if (!captionTrack) {
-      const candidates = textTracks.filter(
-        (track: TranscriptTrack) => (track.kind === 'captions' || track.kind === 'subtitles') && !track._vidplyStale
-      );
-      captionTrack = candidates.find((t: TranscriptTrack) => t.cues && t.cues.length > 0) || candidates[0] || null;
-      if (captionTrack) {
-        this.currentTranscriptLanguage = captionTrack.language;
-      }
+    const captionTrack = this._resolveCaptionTrackForTranscript(textTracks);
+    if (captionTrack && !this.currentTranscriptLanguage) {
+      this.currentTranscriptLanguage = captionTrack.language;
     }
     
     // Find description track matching the selected language
@@ -1250,12 +1235,15 @@ export class TranscriptManager {
     });
 
     // For streaming renderers, fetch the complete VTT file directly rather
-    // than relying on dash.js's partial segment-based cues.
+    // than relying on dash.js's partial segment-based cues. Live HLS/DASH
+    // streams only expose rolling subtitle segments — use the TextTrack
+    // polling path below instead of a one-shot bulk fetch.
     const renderer = this.player.renderer as Renderer | null | undefined;
     const isStreaming = renderer?.isStreaming && typeof renderer.getTextTrackURLs === 'function';
+    const isLiveStream = this._isLiveTranscriptSource();
     const lang = this.currentTranscriptLanguage || (captionTrack?.language ?? '');
 
-    if (isStreaming && lang) {
+    if (isStreaming && lang && !isLiveStream) {
       const loadingMessage = DOMUtils.createElement('div', {
         className: `${this.player.options.classPrefix}-transcript-loading`,
         textContent: i18n.t('transcript.loading')
@@ -1270,6 +1258,22 @@ export class TranscriptManager {
           descriptionTrack
         );
       });
+      return;
+    }
+
+    // Live HLS/DASH: cues arrive incrementally with shifted timestamps for the
+    // same line. Avoid full rebuild/poll loops — append via _syncLiveTranscriptCues.
+    if (isLiveStream) {
+      if (!captionTrack?.cues?.length) {
+        const loadingMessage = DOMUtils.createElement('div', {
+          className: `${this.player.options.classPrefix}-transcript-loading`,
+          textContent: i18n.t('transcript.loading')
+        });
+        this.transcriptContent?.appendChild(loadingMessage);
+        return;
+      }
+
+      this._syncLiveTranscriptCues();
       return;
     }
 
@@ -1341,7 +1345,9 @@ export class TranscriptManager {
     
     allCues.sort((a, b) => a.cue.startTime - b.cue.startTime);
 
-    allCues.forEach((item, index) => {
+    const uniqueCues = this._dedupeTranscriptCueItems(allCues);
+
+    uniqueCues.forEach((item, index) => {
       const entry = this.createTranscriptEntry(item.cue, index, item.type);
       this.transcriptEntries.push({
         element: entry,
@@ -1443,6 +1449,290 @@ export class TranscriptManager {
       .trim();
   }
 
+  private _isLiveTranscriptSource(): boolean {
+    return this.player.state.isLive === true
+      || (typeof this.player.isLiveStream === 'function' && this.player.isLiveStream());
+  }
+
+  private _cueDedupeKey(item: TranscriptCueItem): string {
+    const cue = item.cue;
+    const text = this._normalizedCueText(cue);
+    return `${item.type}|${cue.startTime.toFixed(3)}|${cue.endTime.toFixed(3)}|${text}`;
+  }
+
+  private _normalizedCueText(cue: TranscriptCue): string {
+    return this.stripVTTFormatting(((cue as TextTrackCue & { text?: string }).text) || '');
+  }
+
+  private _isNearDuplicateLiveCue(item: TranscriptCueItem): boolean {
+    if (!this._isLiveTranscriptSource()) {
+      return false;
+    }
+
+    const text = this._normalizedCueText(item.cue);
+    if (text === '') {
+      return false;
+    }
+
+    return this._hasDuplicateLiveText(
+      item.type,
+      text,
+      item.cue.startTime,
+      this.transcriptEntries.map((entry) => ({
+        type: entry.type,
+        cue: entry.cue,
+        startTime: entry.startTime,
+      }))
+    );
+  }
+
+  private _hasDuplicateLiveText(
+    type: TranscriptCueItem['type'],
+    text: string,
+    startTime: number,
+    entries: Array<{ type: TranscriptCueItem['type']; cue: TranscriptCue; startTime: number }>
+  ): boolean {
+    const windowSec = TranscriptManager.LIVE_TRANSCRIPT_DEDUPE_WINDOW_SEC;
+
+    return entries.some((entry) => {
+      if (entry.type !== type) {
+        return false;
+      }
+      if (this._normalizedCueText(entry.cue) !== text) {
+        return false;
+      }
+      return Math.abs(entry.startTime - startTime) < windowSec;
+    });
+  }
+
+  private _dedupeTranscriptCueItems(items: TranscriptCueItem[]): TranscriptCueItem[] {
+    const seen = new Set<string>();
+    const unique: TranscriptCueItem[] = [];
+
+    for (const item of items) {
+      const key = this._cueDedupeKey(item);
+      if (seen.has(key) || this._isNearDuplicateLiveCueForList(item, unique)) {
+        continue;
+      }
+      seen.add(key);
+      unique.push(item);
+    }
+
+    return unique;
+  }
+
+  private _isNearDuplicateLiveCueForList(item: TranscriptCueItem, existing: TranscriptCueItem[]): boolean {
+    if (!this._isLiveTranscriptSource()) {
+      return false;
+    }
+
+    const text = this._normalizedCueText(item.cue);
+    if (text === '') {
+      return false;
+    }
+
+    return this._hasDuplicateLiveText(
+      item.type,
+      text,
+      item.cue.startTime,
+      existing.map((other) => ({
+        type: other.type,
+        cue: other.cue,
+        startTime: other.cue.startTime,
+      }))
+    );
+  }
+
+  private _getTrackMaxCueStartTime(track: TranscriptTrack): number {
+    if (!track.cues?.length) {
+      return -1;
+    }
+
+    let max = -1;
+    for (const cue of Array.from(track.cues)) {
+      if (cue.startTime > max) {
+        max = cue.startTime;
+      }
+    }
+    return max;
+  }
+
+  private _pickTranscriptTrackFromGroup(group: TranscriptTrack[]): TranscriptTrack {
+    if (this._isLiveTranscriptSource()) {
+      return group.reduce((best, track) => (
+        this._getTrackMaxCueStartTime(track) > this._getTrackMaxCueStartTime(best) ? track : best
+      ));
+    }
+
+    return group.reduce((best, track) => {
+      const bestLen = best.cues?.length ?? 0;
+      const trackLen = track.cues?.length ?? 0;
+      return trackLen > bestLen ? track : best;
+    });
+  }
+
+  /**
+   * Pick one caption/subtitle TextTrack for the transcript. Native HLS and
+   * hls.js can expose multiple tracks for the same language/label.
+   */
+  private _resolveCaptionTrackForTranscript(textTracks: TranscriptTrack[]): TranscriptTrack | null {
+    const candidates = textTracks.filter(
+      (track) => (track.kind === 'captions' || track.kind === 'subtitles') && !track._vidplyStale
+    );
+    if (candidates.length === 0) {
+      return null;
+    }
+
+    const pickFromGroup = (group: TranscriptTrack[]): TranscriptTrack => this._pickTranscriptTrackFromGroup(group);
+
+    const groups = new Map<string, TranscriptTrack[]>();
+    for (const track of candidates) {
+      const key = this._isLiveTranscriptSource()
+        ? (track.language || track.label || 'und')
+        : `${track.language}|${track.label}`;
+      const group = groups.get(key) ?? [];
+      group.push(track);
+      groups.set(key, group);
+    }
+
+    if (this.currentTranscriptLanguage) {
+      const languageMatches = candidates.filter(
+        (track) => track.language === this.currentTranscriptLanguage
+      );
+      if (languageMatches.length > 0) {
+        if (this._isLiveTranscriptSource()) {
+          return pickFromGroup(languageMatches);
+        }
+        const first = languageMatches[0];
+        if (first) {
+          const key = `${first.language}|${first.label}`;
+          return pickFromGroup(groups.get(key) ?? languageMatches);
+        }
+      }
+    }
+
+    let bestTrack: TranscriptTrack | null = null;
+    let bestCueCount = -1;
+    for (const group of groups.values()) {
+      const track = pickFromGroup(group);
+      const cueCount = track.cues?.length ?? 0;
+      if (cueCount > bestCueCount) {
+        bestTrack = track;
+        bestCueCount = cueCount;
+      }
+    }
+
+    return bestTrack ?? pickFromGroup(candidates);
+  }
+
+  /**
+   * Append newly arrived live cues without rebuilding the whole transcript.
+   * hls.js may repeat cues in TextTrackList during rolling live updates.
+   */
+  private _syncLiveTranscriptCues(): void {
+    if (!this.transcriptContent) {
+      return;
+    }
+
+    const captionTrack = this._resolveCaptionTrackForTranscript(this.player.textTracks as TranscriptTrack[]);
+    if (!captionTrack?.cues?.length) {
+      return;
+    }
+
+    if (!this.currentTranscriptLanguage && captionTrack.language) {
+      this.currentTranscriptLanguage = captionTrack.language;
+    }
+
+    const existingKeys = new Set(
+      this.transcriptEntries.map((entry) => this._cueDedupeKey({ cue: entry.cue, type: entry.type }))
+    );
+
+    Array.from(captionTrack.cues).forEach((cue: TranscriptCue) => {
+      const item: TranscriptCueItem = { cue, type: 'caption' };
+      const key = this._cueDedupeKey(item);
+      if (existingKeys.has(key) || this._isNearDuplicateLiveCue(item)) {
+        return;
+      }
+      existingKeys.add(key);
+
+      const entry = this.createTranscriptEntry(cue, this.transcriptEntries.length, 'caption');
+      this.transcriptEntries.push({
+        element: entry,
+        cue,
+        type: 'caption',
+        startTime: cue.startTime,
+        endTime: cue.endTime,
+      });
+      this.transcriptContent?.appendChild(entry);
+    });
+
+    this._normalizeLiveTranscriptOrder();
+    this.updateActiveEntry();
+  }
+
+  private _startLiveTranscriptSync(): void {
+    this._stopLiveTranscriptSync();
+    if (!this.isVisible || !this._isLiveTranscriptSource()) {
+      return;
+    }
+
+    const tick = () => {
+      if (!this.isVisible || !this._isLiveTranscriptSource()) {
+        this._liveSyncTimer = null;
+        return;
+      }
+      this._syncLiveTranscriptCues();
+      this._liveSyncTimer = this.setManagedTimeout(tick, 2000);
+    };
+
+    this._liveSyncTimer = this.setManagedTimeout(tick, 2000);
+  }
+
+  private _stopLiveTranscriptSync(): void {
+    if (this._liveSyncTimer) {
+      this.clearManagedTimeout(this._liveSyncTimer);
+      this._liveSyncTimer = null;
+    }
+  }
+
+  /**
+   * Sort live transcript entries chronologically and remove segment-overlap duplicates.
+   */
+  private _normalizeLiveTranscriptOrder(): void {
+    if (!this._isLiveTranscriptSource() || !this.transcriptContent || this.transcriptEntries.length === 0) {
+      return;
+    }
+
+    const windowSec = TranscriptManager.LIVE_TRANSCRIPT_DEDUPE_WINDOW_SEC;
+    const sorted = [...this.transcriptEntries].sort((a, b) => a.startTime - b.startTime);
+    const kept: TranscriptEntry[] = [];
+    const seen: Array<{ type: TranscriptCueItem['type']; text: string; startTime: number }> = [];
+
+    for (const entry of sorted) {
+      const text = this._normalizedCueText(entry.cue);
+      const isDuplicate = text !== '' && seen.some((prior) => (
+        prior.type === entry.type
+        && prior.text === text
+        && Math.abs(prior.startTime - entry.startTime) < windowSec
+      ));
+
+      if (isDuplicate) {
+        entry.element.remove();
+        continue;
+      }
+
+      if (text !== '') {
+        seen.push({ type: entry.type, text, startTime: entry.startTime });
+      }
+      kept.push(entry);
+    }
+
+    this.transcriptEntries = kept;
+    kept.forEach((entry) => {
+      this.transcriptContent?.appendChild(entry.element);
+    });
+  }
+
   /**
    * Show message when no transcript is available
    */
@@ -1461,11 +1751,28 @@ export class TranscriptManager {
     if (!this.isVisible || this.transcriptEntries.length === 0) return;
 
     const currentTime = this.player.state.currentTime;
-    
-    // Find the entry that matches current time
-    const activeEntry = this.transcriptEntries.find(
-      (entry: TranscriptEntry) => currentTime >= entry.startTime && currentTime < entry.endTime
-    );
+
+    let activeEntry: TranscriptEntry | null;
+    if (this._isLiveTranscriptSource()) {
+      activeEntry = this.transcriptEntries.reduce<TranscriptEntry | null>((best, entry) => {
+        if (currentTime < entry.startTime) {
+          return best;
+        }
+        if (!best || entry.startTime > best.startTime) {
+          return entry;
+        }
+        return best;
+      }, null);
+
+      // Drop stale highlights when playback has moved well past the transcript tail.
+      if (activeEntry && currentTime - activeEntry.startTime > 120) {
+        activeEntry = null;
+      }
+    } else {
+      activeEntry = this.transcriptEntries.find(
+        (entry: TranscriptEntry) => currentTime >= entry.startTime && currentTime < entry.endTime
+      ) ?? null;
+    }
 
     if (activeEntry && activeEntry !== this.currentActiveEntry) {
       // Remove previous active class
@@ -1599,12 +1906,6 @@ export class TranscriptManager {
 
       // Don't handle keys if settings menu or style dialog is open (let them handle keys)
       if (this.settingsMenuVisible || this.styleDialogVisible) {
-        return;
-      }
-
-      // WCAG 2.1.2 / 2.4.3 — keep focus inside the floating transcript dialog.
-      if (e.key === 'Tab' && this.isFloatingTranscriptLayout()) {
-        trapFocusInContainer(e, this.transcriptWindow);
         return;
       }
 
@@ -2237,6 +2538,7 @@ export class TranscriptManager {
    * Cleanup
    */
   destroy() {
+    this._stopLiveTranscriptSync();
     this.hideResizeModeIndicator();
 
     const container = this.player.container;

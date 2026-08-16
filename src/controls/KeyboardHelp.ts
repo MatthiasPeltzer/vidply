@@ -142,7 +142,7 @@ export class KeyboardHelp {
       className: `${this.prefix}-settings-content`
     });
     this._content = content;
-    content.appendChild(this.buildShortcutList());
+    content.appendChild(this.buildContent());
 
     dialog.appendChild(header);
     dialog.appendChild(content);
@@ -187,6 +187,12 @@ export class KeyboardHelp {
    * is hidden — the shortcuts still work and we'd rather over-show than mislead.
    */
   private isActionRelevant(action: keyof KeyboardShortcuts): boolean {
+    if (this.player.state?.isLive) {
+      if (action === 'speed-down' || action === 'speed-up' || action === 'speed-menu') {
+        return false;
+      }
+    }
+
     const requiredControl = ACTION_REQUIRES_CONTROL[action];
     if (!requiredControl) return true;
 
@@ -194,6 +200,91 @@ export class KeyboardHelp {
     if (!controlBar || !controlBar.controls) return true;
 
     return Boolean(controlBar.controls[requiredControl]);
+  }
+
+  private getActionLabel(action: keyof KeyboardShortcuts): string {
+    if (this.player.state?.isLive && action === 'seek-forward') {
+      return i18n.t('help.actions.seek-forward-live');
+    }
+    return i18n.t(`help.actions.${action}`);
+  }
+
+  private buildLiveControlsSection(): HTMLElement | null {
+    if (!this.player.state?.isLive) {
+      return null;
+    }
+
+    const seekSeconds = Number(this.player.options.seekInterval) > 0
+      ? Number(this.player.options.seekInterval)
+      : 10;
+
+    const section = DOMUtils.createElement('div', {
+      className: `${this.prefix}-help-live-section`
+    });
+
+    section.appendChild(DOMUtils.createElement('h3', {
+      className: `${this.prefix}-help-live-title`,
+      textContent: i18n.t('help.liveSectionTitle')
+    }));
+
+    const list = DOMUtils.createElement('dl', {
+      className: `${this.prefix}-help-list ${this.prefix}-help-live-list`
+    });
+
+    const rows: Array<{ term: string; desc: string }> = [
+      {
+        term: i18n.t('help.live.skipBack'),
+        desc: i18n.t('help.live.skipBackDesc', { seconds: seekSeconds })
+      },
+      {
+        term: i18n.t('help.live.skipForward'),
+        desc: i18n.t('help.live.skipForwardDesc', { seconds: seekSeconds })
+      }
+    ];
+
+    if (this.player.options.goLiveButton) {
+      rows.push({
+        term: i18n.t('help.live.goLive'),
+        desc: i18n.t('help.live.goLiveDesc')
+      });
+    }
+
+    rows.push(
+      {
+        term: i18n.t('help.live.progress'),
+        desc: i18n.t('help.live.progressDesc')
+      },
+      {
+        term: i18n.t('help.live.liveBadge'),
+        desc: i18n.t('help.live.liveBadgeDesc')
+      }
+    );
+
+    for (const row of rows) {
+      list.appendChild(DOMUtils.createElement('dt', {
+        className: `${this.prefix}-help-action`,
+        textContent: row.term
+      }));
+      list.appendChild(DOMUtils.createElement('dd', {
+        className: `${this.prefix}-help-desc`,
+        textContent: row.desc
+      }));
+    }
+
+    section.appendChild(list);
+    return section;
+  }
+
+  private buildContent(): DocumentFragment {
+    const content = document.createDocumentFragment();
+    content.appendChild(this.buildShortcutList());
+
+    const liveSection = this.buildLiveControlsSection();
+    if (liveSection) {
+      content.appendChild(liveSection);
+    }
+
+    return content;
   }
 
   private buildShortcutList(): HTMLElement {
@@ -210,7 +301,7 @@ export class KeyboardHelp {
 
       const term = DOMUtils.createElement('dt', {
         className: `${this.prefix}-help-action`,
-        textContent: i18n.t(`help.actions.${action}`)
+        textContent: this.getActionLabel(action)
       });
 
       const desc = DOMUtils.createElement('dd', {
@@ -250,7 +341,7 @@ export class KeyboardHelp {
     } else if (this._content) {
       // Rebuild so feature availability that changed since last open
       // (e.g. HLS captions/qualities loaded later) is reflected.
-      this._content.replaceChildren(this.buildShortcutList());
+      this._content.replaceChildren(this.buildContent());
     }
 
     const active = (typeof document !== 'undefined' ? document.activeElement : null) as HTMLElement | null;

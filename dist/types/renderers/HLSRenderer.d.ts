@@ -11,6 +11,7 @@ export declare class HLSRenderer implements Renderer {
     _hlsSubtitleTracksCount: number | undefined;
     _cueUpdateTimer: ReturnType<typeof setInterval> | null;
     _lastKnownCueCount: number;
+    _lastKnownMaxCueStart: number;
     _nativeTrackListenersDestroyed?: boolean;
     _didDeferredLoad?: boolean;
     _manifestUrl: string | null;
@@ -58,6 +59,13 @@ export declare class HLSRenderer implements Renderer {
     loadHlsJs(): Promise<void>;
     attachHlsEvents(): void;
     _getTotalCueCount(): number;
+    _getMaxCueStartTime(): number;
+    _isLivePlayback(): boolean;
+    /**
+     * Live HLS keeps a rolling TextTrack window — cue count plateaus while
+     * content keeps changing. Emit when count or latest cue time advances.
+     */
+    _emitTextCuesUpdateIfChanged(): boolean;
     /**
      * Return true if `time` falls inside any TimeRange the SourceBuffer already
      * holds, with a small tolerance to absorb GOP boundaries. Used by the
@@ -91,6 +99,12 @@ export declare class HLSRenderer implements Renderer {
     getQualities(): QualityLevel[];
     getCurrentQuality(): number;
     activateTextTrackForLanguage(lang: string): boolean;
+    /**
+     * hls.js does not download subtitle segments until a subtitle rendition is
+     * selected. Activate the default (or first) track when captions/transcript
+     * should be on so live streams receive rolling WebVTT cues.
+     */
+    _ensureHlsSubtitleTrackActive(): void;
     getTextTrackURLs(): {
         lang: string;
         url: string;

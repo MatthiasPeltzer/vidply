@@ -172,19 +172,28 @@ export class CaptionManager {
         const renderer = this.player.renderer;
         if (!renderer?.hls || !renderer.hls.subtitleTracks?.length) return;
 
-        const tracks = renderer.hls.subtitleTracks as Array<{ lang?: string; name?: string }>;
-        let hlsIndex = tracks.findIndex(
-            (t) => t.lang === targetLang
-        );
+        const tracks = renderer.hls.subtitleTracks as Array<{ lang?: string; language?: string; name?: string; default?: boolean }>;
+        const normalizedTarget = targetLang.trim();
+        let hlsIndex = normalizedTarget !== ''
+            ? tracks.findIndex((t) => {
+                const tLang = (t.lang || t.language || '').trim();
+                return tLang === normalizedTarget
+                    || (tLang !== '' && (tLang.startsWith(normalizedTarget) || normalizedTarget.startsWith(tLang)));
+            })
+            : -1;
         // Fallback: match by name/label
         if (hlsIndex < 0 && targetLabel) {
             hlsIndex = tracks.findIndex(
                 (t) => t.name === targetLabel
             );
         }
+        if (hlsIndex < 0 && tracks.length > 0) {
+            const defaultIndex = tracks.findIndex((t) => t.default);
+            hlsIndex = defaultIndex >= 0 ? defaultIndex : 0;
+        }
         if (hlsIndex >= 0 && renderer.hls.subtitleTrack !== hlsIndex) {
             renderer.hls.subtitleTrack = hlsIndex;
-            this.player.log(`HLS subtitle track set to index ${hlsIndex} (${targetLang})`, 'info');
+            this.player.log(`HLS subtitle track set to index ${hlsIndex} (${targetLang || targetLabel || 'default'})`, 'info');
         }
     }
 
@@ -575,6 +584,8 @@ export class CaptionManager {
             if (matchingIndex >= 0) {
                 this.enable(matchingIndex);
             }
+        } else if (!wasEnabled && this.player.options.captionsDefault && this.tracks.length > 0) {
+            this.enable(0);
         }
         
         return this.tracks.length;

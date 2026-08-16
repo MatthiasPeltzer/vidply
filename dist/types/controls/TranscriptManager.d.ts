@@ -48,8 +48,11 @@ interface TranscriptHandlers {
 }
 type TimerHandle = ReturnType<typeof setTimeout>;
 export declare class TranscriptManager {
+    /** Live HLS re-publishes the same subtitle line within ~6s segment overlap. */
+    private static readonly LIVE_TRANSCRIPT_DEDUPE_WINDOW_SEC;
     player: Player;
     _cueUpdateTimeout: TimerHandle | null;
+    _liveSyncTimer: TimerHandle | null;
     autoscrollCheckbox: HTMLInputElement | null;
     autoscrollEnabled: boolean;
     availableTranscriptLanguages: TranscriptLanguageInfo[];
@@ -141,11 +144,7 @@ export declare class TranscriptManager {
      */
     positionTranscript(): void;
     /**
-     * Floating/overlay layouts behave as modal dialogs; inline mobile layout does not.
-     */
-    private isFloatingTranscriptLayout;
-    /**
-     * Toggle aria-modal, background inert, and related WCAG semantics after layout.
+     * Keep transcript as a companion panel: player controls stay operable.
      */
     private updateTranscriptModalState;
     /**
@@ -187,6 +186,31 @@ export declare class TranscriptManager {
      * Strip VTT formatting tags from text
      */
     stripVTTFormatting(text: string): string;
+    private _isLiveTranscriptSource;
+    private _cueDedupeKey;
+    private _normalizedCueText;
+    private _isNearDuplicateLiveCue;
+    private _hasDuplicateLiveText;
+    private _dedupeTranscriptCueItems;
+    private _isNearDuplicateLiveCueForList;
+    private _getTrackMaxCueStartTime;
+    private _pickTranscriptTrackFromGroup;
+    /**
+     * Pick one caption/subtitle TextTrack for the transcript. Native HLS and
+     * hls.js can expose multiple tracks for the same language/label.
+     */
+    private _resolveCaptionTrackForTranscript;
+    /**
+     * Append newly arrived live cues without rebuilding the whole transcript.
+     * hls.js may repeat cues in TextTrackList during rolling live updates.
+     */
+    private _syncLiveTranscriptCues;
+    private _startLiveTranscriptSync;
+    private _stopLiveTranscriptSync;
+    /**
+     * Sort live transcript entries chronologically and remove segment-overlap duplicates.
+     */
+    private _normalizeLiveTranscriptOrder;
     /**
      * Show message when no transcript is available
      */

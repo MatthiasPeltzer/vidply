@@ -23,6 +23,7 @@ import {ThemeManager, PLAYER_THEMES, type ThemeName} from './ThemeManager.js';
 import {PosterManager} from './PosterManager.js';
 import {ResumeManager} from './ResumeManager.js';
 import {ResponsiveManager} from './ResponsiveManager.js';
+import {LiveStreamManager} from './LiveStreamManager.js';
 import {
   MetadataAlertsManager,
   type MetadataAlertConfig as _MetadataAlertConfig,
@@ -178,6 +179,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
   audioDescriptionManager: AudioDescriptionManager | null = null;
   signLanguageManager: SignLanguageManager | null = null;
   floatingPlayerManager: FloatingPlayerManager | null = null;
+  liveStreamManager: LiveStreamManager | null = null;
   storage: StorageManager;
   instanceId: number;
   _audioDescriptionDesiredState: boolean | undefined;
@@ -395,6 +397,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
       // Seeking
       seekInterval: 10,
       seekIntervalLarge: 30,
+      liveStream: 'auto',
+      liveBehindThreshold: 5,
+      goLiveButton: true,
 
       // Captions
       captions: true,
@@ -553,8 +558,13 @@ export class Player extends EventEmitter<PlayerEventMap> {
       audioDescriptionEnabled: false,
       signLanguageEnabled: false,
       signLanguageInMainView: false,
-      resumePromptVisible: false
+      resumePromptVisible: false,
+      isLive: false,
+      behindLive: false,
+      liveEdge: null
     };
+
+    this.liveStreamManager = new LiveStreamManager(this);
 
     // Resume playback: prompt DOM element lives here so
     // `ResumeManager` can attach/detach it without leaking container
@@ -2294,7 +2304,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
    */
   seek(time: number): void {
     if (typeof time !== 'number' || !Number.isFinite(time)) return;
-    const safeTime = time < 0 ? 0 : time;
+    const safeTime = this.liveStreamManager
+      ? this.liveStreamManager.clampSeekTime(time)
+      : (time < 0 ? 0 : time);
     // Any user-initiated seek (seekbar drag/click, keyboard arrow,
     // skip buttons) flows through this method, so it's the right place
     // to drop the poster overlay: scrubbing communicates "I want to see
@@ -2311,15 +2323,44 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
   seekForward(interval: number = (this.options.seekInterval as number)): void {
     const step = Number.isFinite(interval) ? interval : 5;
-    const targetTime = this.state.currentTime + step;
-    // Only cap to duration if duration is known (> 0), otherwise let the media element handle it
-    const seekTime = this.state.duration > 0 ? Math.min(targetTime, this.state.duration) : targetTime;
-    this.seek(seekTime);
+    let targetTime = this.state.currentTime + step;
+    if (this.liveStreamManager?.resolveIsLive()) {
+      const edge = this.liveStreamManager.getLiveEdge();
+      if (edge !== null) {
+        targetTime = Math.min(targetTime, edge);
+      }
+    } else if (this.state.duration > 0) {
+      targetTime = Math.min(targetTime, this.state.duration);
+    }
+    this.seek(targetTime);
   }
 
   seekBackward(interval: number = (this.options.seekInterval as number)): void {
     const step = Number.isFinite(interval) ? interval : 5;
-    this.seek(Math.max(this.state.currentTime - step, 0));
+    const minTime = this.liveStreamManager?.resolveIsLive()
+      ? this.liveStreamManager.getSeekableStart()
+      : 0;
+    this.seek(Math.max(this.state.currentTime - step, minTime));
+  }
+
+  isLiveStream(): boolean {
+    return this.liveStreamManager?.resolveIsLive() ?? false;
+  }
+
+  isBehindLive(): boolean {
+    return this.liveStreamManager?.isBehindLive() ?? false;
+  }
+
+  getSecondsBehindLive(): number {
+    return this.liveStreamManager?.getSecondsBehindLive() ?? 0;
+  }
+
+  getLiveSeekRange(): { start: number; end: number } | null {
+    return this.liveStreamManager?.getSeekRange() ?? null;
+  }
+
+  seekToLive(): void {
+    this.liveStreamManager?.seekToLive();
   }
 
   // Volume controls
@@ -3017,6 +3058,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
         this.log(`MediaSessionManager.destroy failed: ${err}`, 'warn');
       }
       this.mediaSessionManager = null;
+    }
+
+    if (this.liveStreamManager) {
+      this.liveStreamManager.destroy();
+      this.liveStreamManager = null;
     }
 
     // Clean up floating player manager (disconnects IntersectionObserver,

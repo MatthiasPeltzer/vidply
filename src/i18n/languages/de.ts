@@ -13,6 +13,9 @@ export const de = {
         forward: 'Vorspulen',
         rewindSeconds: '{seconds} Sekunden zurückspulen',
         forwardSeconds: '{seconds} Sekunden vorspulen',
+        live: 'Live',
+        goLive: 'Zurück zur Live-Übertragung',
+        goLiveShort: 'Live',
         previous: 'Vorheriger Titel',
         next: 'Nächster Titel',
         playlist: 'Wiedergabeliste umschalten',
@@ -180,6 +183,7 @@ export const de = {
         button: 'Tastaturkürzel',
         close: 'Schließen',
         or: 'oder',
+        liveSectionTitle: 'Livestream-Steuerung',
         keys: {
             space: 'Leertaste'
         },
@@ -187,6 +191,7 @@ export const de = {
             'play-pause': 'Wiedergabe / Pause',
             'seek-backward': 'Zurückspulen',
             'seek-forward': 'Vorspulen',
+            'seek-forward-live': 'Vorspulen (wenn hinter Live)',
             'volume-up': 'Lauter',
             'volume-down': 'Leiser',
             'mute': 'Stumm / Ton an',
@@ -200,6 +205,18 @@ export const de = {
             'transcript-toggle': 'Transkript umschalten',
             'fullscreen': 'Vollbild umschalten',
             'help': 'Tastaturkürzel'
+        },
+        live: {
+            skipBack: 'Zurückspringen',
+            skipBackDesc: '{seconds} Sekunden — immer verfügbar',
+            skipForward: 'Vorspringen',
+            skipForwardDesc: '{seconds} Sekunden — nur wenn Sie hinter der Live-Übertragung sind',
+            goLive: 'Zurück zur Live-Übertragung',
+            goLiveDesc: 'Springt zur aktuellen Live-Position und setzt die Wiedergabe fort',
+            progress: 'Fortschrittsbalken',
+            progressDesc: 'Zeigt Ihre Position im verfügbaren Zurückspul-Fenster; der rechte Rand ist live',
+            liveBadge: 'LIVE-Kennzeichnung',
+            liveBadgeDesc: 'An der Live-Position sichtbar; nach dem Zurückspulen zeigt die Zeit davor, wie weit Sie hinter Live sind'
         }
     },
     speeds: {
@@ -208,6 +225,7 @@ export const de = {
     time: {
         display: 'Zeitanzeige',
         durationPrefix: 'Dauer: ',
+        behindLive: '{time} hinter Live',
         of: 'von',
         hour: '{count} Stunde',
         hours: '{count} Stunden',

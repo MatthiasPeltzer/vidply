@@ -83,6 +83,8 @@ interface HlsInstance {
   loadLevel?: number;
   subtitleTracks: HlsSubtitleTrack[];
   subtitleTrack: number;
+  /** Present on live HLS streams; null or undefined for VOD. */
+  liveSyncPosition?: number | null;
 }
 
 /**
@@ -164,6 +166,8 @@ interface DashMediaPlayerInstance {
   pause?(): void;
   setPlaybackRate?(rate: number): void;
   getPlaybackRate?(): number;
+  /** True for dynamic (live) DASH manifests. */
+  isDynamic?(): boolean;
 }
 
 /**

@@ -13,6 +13,9 @@ export const es = {
     forward: 'Avanzar',
     rewindSeconds: 'Retroceder {seconds} segundos',
     forwardSeconds: 'Avanzar {seconds} segundos',
+    live: 'En directo',
+    goLive: 'Ir a la emisión en directo',
+    goLiveShort: 'Directo',
     previous: 'Pista anterior',
     next: 'Siguiente pista',
     playlist: 'Alternar lista de reproducción',
@@ -177,6 +180,7 @@ export const es = {
     button: 'Atajos de teclado',
     close: 'Cerrar',
     or: 'o',
+    liveSectionTitle: 'Controles de emisión en directo',
     keys: {
       space: 'Espacio'
     },
@@ -184,6 +188,7 @@ export const es = {
       'play-pause': 'Reproducir / Pausar',
       'seek-backward': 'Retroceder',
       'seek-forward': 'Avanzar',
+      'seek-forward-live': 'Avanzar (cuando va retrasado respecto al directo)',
       'volume-up': 'Subir volumen',
       'volume-down': 'Bajar volumen',
       'mute': 'Silenciar / Activar sonido',
@@ -197,6 +202,18 @@ export const es = {
       'transcript-toggle': 'Alternar transcripción',
       'fullscreen': 'Alternar pantalla completa',
       'help': 'Atajos de teclado'
+    },
+    live: {
+      skipBack: 'Retroceder',
+      skipBackDesc: '{seconds} segundos — siempre disponible',
+      skipForward: 'Avanzar',
+      skipForwardDesc: '{seconds} segundos — solo cuando va retrasado respecto al directo',
+      goLive: 'Ir al directo',
+      goLiveDesc: 'Salta al punto en directo actual y reanuda la reproducción',
+      progress: 'Barra de progreso',
+      progressDesc: 'Muestra su posición dentro de la ventana de rebobinado; el borde derecho es el directo',
+      liveBadge: 'Indicador EN DIRECTO',
+      liveBadgeDesc: 'Visible en el directo; al rebobinar, la hora anterior muestra el retraso respecto al directo'
     }
   },
   speeds: {
@@ -205,6 +222,7 @@ export const es = {
   time: {
     display: 'Visualización de tiempo',
     durationPrefix: 'Duración: ',
+    behindLive: '{time} de retraso respecto al directo',
     of: 'de',
     hour: '{count} hora',
     hours: '{count} horas',
