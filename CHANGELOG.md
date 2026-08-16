@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.10] - 2026-08-16
+
+### Accessibility
+- Transcript window (floating layout): `aria-modal`, Tab focus trap, and background `inert` on player siblings.
+- Transcript window: no longer marks the video wrapper (and controls) inert while open; player controls stay operable alongside the transcript panel.
+- Caption style dialog: `aria-modal="true"` and Tab focus trap.
+- Keyboard help dialog: background `inert` on player siblings while open.
+- Progress and volume sliders: `aria-orientation`.
+- Playlist listbox options: `aria-selected` instead of `aria-checked`.
+- Transcript resize handles: `aria-label` when pointer resize mode is active.
+
+### Added
+- Live stream mode (`liveStream: 'auto' | boolean`): auto-detects HLS/DASH/HTML5 live sources, shows a **LIVE** badge instead of duration, hides restart and playback speed, keeps skip-back, and shows skip-forward plus **Go live** only when more than `liveBehindThreshold` seconds behind the live edge (default 5 s). At the live edge the raw timeline is hidden; when behind live the time display shows an offset such as **−12:34**.
+- Keyboard shortcuts help: adds a **Live stream controls** section when a live source is detected; hides speed shortcuts and clarifies seek-forward behaviour for live.
+- Player API: `isLiveStream()`, `isBehindLive()`, `getLiveSeekRange()`, `seekToLive()`; events `livechange` and `liveedgechange`.
+- `showTrackInfo` player option to suppress the standalone `.vidply-track-info` header.
+
+### Changed
+- Removed duration from the standalone `.vidply-track-info` header; playlists still show duration in the track-info header when switching tracks.
+
+### Fixed
+- HLS live subtitles: auto-select the default subtitle rendition in hls.js when captions or transcript are enabled so rolling WebVTT cues load during live playback.
+- HLS live transcript: skip one-shot VTT bulk fetch (only valid for VOD) and build the transcript incrementally from TextTrack cues instead.
+- Live transcript: deduplicate rolling HLS cues and append incrementally instead of rebuilding the full list on every subtitle update (fixes doubled lines).
+- Live transcript dedupe: bucket subtitle timestamps and ignore near-duplicate lines re-published by hls.js with shifted PTS.
+- Live transcript dedupe: widen overlap window to 30 s, scan all entries, and sort chronologically after each sync (fixes segment-overlap duplicates several seconds apart and out-of-order DOM).
+- Live transcript: keep syncing after the initial minutes — rolling HLS subtitle windows no longer stop cue-update polling or fragment events when cue count plateaus; autoscroll follows the latest started cue on live streams.
+- Captions default on HLS: apply `captionsDefault` when subtitle tracks appear after manifest parse, not only at initial player setup.
+- Volume/mute init: apply CMS options atomically after the renderer is ready and ignore late `volumechange` sync while doing so (Chrome timing).
+- Persisted player preferences: store a `configKey` from CMS `muted|volume` so stale localStorage no longer overrides backend defaults after editor changes.
+
+### Accessibility
+- `TrackInfoView`: expose title, artist, date, description, and the long-description toggle to assistive technologies instead of hiding them with `aria-hidden`; use a labelled `role="region"` and wire the disclosure button with `aria-controls`. Playlist track changes still announce via a dedicated polite live region. Text metadata uses semantic `<p>` elements instead of generic `<div>` wrappers.
+
 ## [1.2.9] - 2026-08-15
 
 ### Changed
