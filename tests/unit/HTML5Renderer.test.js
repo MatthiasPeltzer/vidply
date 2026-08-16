@@ -44,7 +44,8 @@ describe('HTML5Renderer', () => {
       handleError: vi.fn(),
       seek: vi.fn(),
       play: vi.fn(),
-      autoGeneratePoster: vi.fn().mockResolvedValue(null)
+      autoGeneratePoster: vi.fn().mockResolvedValue(null),
+      shouldSyncVolumeFromMedia: vi.fn(() => true),
     };
 
     renderer = new HTML5Renderer(mockPlayer);

@@ -44,7 +44,8 @@ describe('HLSRenderer', () => {
       handleError: vi.fn(),
       log: vi.fn(),
       seek: vi.fn(),
-      play: vi.fn()
+      play: vi.fn(),
+      shouldSyncVolumeFromMedia: vi.fn(() => true),
     };
 
     // Mock hls.js - needs to be a proper class for `new` to work

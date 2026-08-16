@@ -49,7 +49,8 @@ describe('DASHRenderer', () => {
       off: vi.fn(),
       invalidateTrackCache: vi.fn(),
       showPosterOverlay: vi.fn(),
-      hidePosterOverlay: vi.fn()
+      hidePosterOverlay: vi.fn(),
+      shouldSyncVolumeFromMedia: vi.fn(() => true),
     };
 
     mockDashInstance = {
