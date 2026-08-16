@@ -69,6 +69,12 @@ interface HlsErrorData {
   reason?: string;
 }
 
+interface HlsLevelDetails {
+  live?: boolean;
+  edge?: number;
+  targetduration?: number;
+}
+
 interface HlsInstance {
   loadSource(src: string): void;
   attachMedia(media: HTMLMediaElement): void;
@@ -83,7 +89,8 @@ interface HlsInstance {
   loadLevel?: number;
   subtitleTracks: HlsSubtitleTrack[];
   subtitleTrack: number;
-  /** Present on live HLS streams; null or undefined for VOD. */
+  latestLevelDetails?: HlsLevelDetails | null;
+  /** Sync position relative to the playlist edge; finite for VOD too — check `latestLevelDetails.live`. */
   liveSyncPosition?: number | null;
 }
 
@@ -95,6 +102,7 @@ interface HlsInstance {
  */
 interface HlsEventsMap {
   MANIFEST_PARSED: string;
+  LEVEL_UPDATED: string;
   LEVEL_SWITCHED: string;
   SUBTITLE_TRACKS_UPDATED: string;
   SUBTITLE_TRACK_SWITCH: string;

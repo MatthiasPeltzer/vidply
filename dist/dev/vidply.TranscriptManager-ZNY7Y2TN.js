@@ -178,7 +178,8 @@ var TranscriptManager = class _TranscriptManager {
       settingsKeydown: null,
       documentClick: null,
       styleDialogKeydown: null,
-      floatingchange: null
+      floatingchange: null,
+      livechange: null
     };
     this._cueUpdateTimeout = null;
     this._dashActiveLang = null;
@@ -194,7 +195,13 @@ var TranscriptManager = class _TranscriptManager {
     this.handlers.textcuesupdate = () => {
       if (!this.isVisible) return;
       if (this.currentTranscriptLanguage && this._vttCache.has(this.currentTranscriptLanguage) && !this._isLiveTranscriptSource()) {
-        return;
+        const cached = this._vttCache.get(this.currentTranscriptLanguage);
+        const track = this._resolveCaptionTrackForTranscript(this.player.textTracks);
+        const trackCueCount = track?.cues?.length ?? 0;
+        if (cached && (trackCueCount === 0 || cached.length >= trackCueCount)) {
+          return;
+        }
+        this._vttCache.delete(this.currentTranscriptLanguage);
       }
       if (this._cueUpdateTimeout) {
         this.clearManagedTimeout(this._cueUpdateTimeout);
@@ -209,6 +216,21 @@ var TranscriptManager = class _TranscriptManager {
       }, 400);
     };
     this.player.on("textcuesupdate", this.handlers.textcuesupdate);
+    this.handlers.livechange = (isLive) => {
+      if (!this.isVisible) {
+        return;
+      }
+      if (isLive) {
+        this._startLiveTranscriptSync();
+        return;
+      }
+      this._stopLiveTranscriptSync();
+      if (this.currentTranscriptLanguage) {
+        this._vttCache.delete(this.currentTranscriptLanguage);
+      }
+      this.loadTranscriptData();
+    };
+    this.player.on("livechange", this.handlers.livechange);
     this.player.on("fullscreenchange", () => {
       if (this.isVisible) {
         const isMobile = window.innerWidth < 768;
@@ -835,6 +857,21 @@ var TranscriptManager = class _TranscriptManager {
     this.languageSelectorHandler = handler;
     languageSelector.addEventListener("change", handler);
   }
+  _parseSubtitlePlaylistSegmentUris(m3u8Text) {
+    return m3u8Text.replace(/\r\n/g, "\n").split("\n").map((line) => line.trim()).filter((line) => line && !line.startsWith("#"));
+  }
+  async _fetchTextResource(url, timeoutMs = 1e4) {
+    const signal = this._buildFetchSignal(timeoutMs);
+    try {
+      const res = await fetch(url, { signal });
+      if (!res.ok) {
+        return null;
+      }
+      return await res.text();
+    } catch {
+      return null;
+    }
+  }
   _parseVTT(vttText) {
     const cues = [];
     const blocks = vttText.replace(/\r\n/g, "\n").split(/\n\n+/);
@@ -873,23 +910,41 @@ var TranscriptManager = class _TranscriptManager {
       (u) => u.lang === lang || u.lang.startsWith(lang) || lang.startsWith(u.lang)
     );
     if (!entry) return null;
-    const signal = this._buildFetchSignal(1e4);
     try {
-      const res = await fetch(entry.url, { signal });
-      if (!res.ok) return null;
-      let text = await res.text();
+      const text = await this._fetchTextResource(entry.url);
+      if (!text) {
+        return null;
+      }
       if (text.trimStart().startsWith("#EXTM3U")) {
-        const vttUri = text.split("\n").map((l) => l.trim()).find((l) => l && !l.startsWith("#"));
-        if (!vttUri) return null;
         const baseUrl = entry.url.substring(0, entry.url.lastIndexOf("/") + 1);
-        const vttUrl = vttUri.startsWith("http") ? vttUri : new URL(vttUri, baseUrl).href;
-        const vttRes = await fetch(vttUrl, { signal: this._buildFetchSignal(1e4) });
-        if (!vttRes.ok) return null;
-        text = await vttRes.text();
+        const segmentUris = this._parseSubtitlePlaylistSegmentUris(text);
+        if (segmentUris.length === 0) {
+          return null;
+        }
+        const segmentTexts = await Promise.all(
+          segmentUris.map(async (uri) => {
+            const vttUrl = uri.startsWith("http") ? uri : new URL(uri, baseUrl).href;
+            return this._fetchTextResource(vttUrl);
+          })
+        );
+        const allCues = [];
+        for (const segmentText of segmentTexts) {
+          if (segmentText) {
+            allCues.push(...this._parseVTT(segmentText));
+          }
+        }
+        if (allCues.length === 0) {
+          return null;
+        }
+        allCues.sort((a, b) => a.cue.startTime - b.cue.startTime);
+        this._vttCache.set(lang, allCues);
+        return allCues;
       }
       const cues = this._parseVTT(text);
-      if (cues.length > 0) this._vttCache.set(lang, cues);
-      return cues;
+      if (cues.length > 0) {
+        this._vttCache.set(lang, cues);
+      }
+      return cues.length > 0 ? cues : null;
     } catch {
       return null;
     }
@@ -958,8 +1013,12 @@ var TranscriptManager = class _TranscriptManager {
       this.transcriptContent?.appendChild(loadingMessage);
       this._loadVttTranscript(lang).then((vttCues) => {
         if (!this.isVisible) return;
+        const trackCueCount = captionTrack?.cues?.length ?? 0;
+        const useBulkVtt = Boolean(
+          vttCues && vttCues.length > 0 && (trackCueCount === 0 || vttCues.length >= trackCueCount)
+        );
         this._renderTranscriptCues(
-          vttCues && vttCues.length > 0 ? vttCues : null,
+          useBulkVtt ? vttCues : null,
           captionTrack,
           descriptionTrack
         );
@@ -2035,6 +2094,9 @@ var TranscriptManager = class _TranscriptManager {
     if (this.handlers.textcuesupdate) {
       this.player.off("textcuesupdate", this.handlers.textcuesupdate);
     }
+    if (this.handlers.livechange) {
+      this.player.off("livechange", this.handlers.livechange);
+    }
     if (this.handlers.floatingchange) {
       this.player.off("floatingchange", this.handlers.floatingchange);
     }
@@ -2078,4 +2140,4 @@ var TranscriptManager = class _TranscriptManager {
 export {
   TranscriptManager
 };
-//# sourceMappingURL=vidply.TranscriptManager-DFKVIHYQ.js.map
+//# sourceMappingURL=vidply.TranscriptManager-ZNY7Y2TN.js.map

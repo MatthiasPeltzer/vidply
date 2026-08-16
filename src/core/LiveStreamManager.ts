@@ -43,17 +43,36 @@ export class LiveStreamManager {
     this.player.off('sourcechange', this.boundReset);
   }
 
+  /**
+   * hls.js exposes `liveSyncPosition` for VOD too (edge minus target latency).
+   * Only trust the playlist `live` flag once the level manifest is loaded.
+   */
+  private hlsPlaylistIsLive(hls: HlsInstance | null): boolean | null {
+    if (!hls) {
+      return null;
+    }
+
+    const details = hls.latestLevelDetails;
+    if (details && typeof details.live === 'boolean') {
+      return details.live;
+    }
+
+    return null;
+  }
+
   /** Called by HLSRenderer when the manifest or buffer state indicates live. */
   evaluateHls(hls: HlsInstance | null): void {
     if (!hls) {
       return;
     }
 
-    const liveSync = hls.liveSyncPosition;
-    if (typeof liveSync === 'number' && Number.isFinite(liveSync)) {
-      this.sourceReportsLive = true;
-      this.refresh();
+    const playlistLive = this.hlsPlaylistIsLive(hls);
+    if (playlistLive === null) {
+      return;
     }
+
+    this.sourceReportsLive = playlistLive;
+    this.refresh();
   }
 
   /** Called by DASHRenderer after the MPD is loaded. */
@@ -62,10 +81,89 @@ export class LiveStreamManager {
       return;
     }
 
-    if (dash.isDynamic()) {
-      this.sourceReportsLive = true;
+    this.sourceReportsLive = dash.isDynamic();
+    this.refresh();
+  }
+
+  /** Current manifest/playlist live hint from the active renderer, if known. */
+  getSourceReportsLive(): boolean | null {
+    return this.sourceReportsLive;
+  }
+
+  /** Called when a renderer learns live/VOD from a fetched level/media playlist. */
+  reportSourceLive(isLive: boolean): void {
+    if (this.sourceReportsLive === isLive) {
       this.refresh();
+      this.player.controlBar?.updateLiveControls();
+      return;
     }
+
+    this.sourceReportsLive = isLive;
+    this.refresh();
+    this.player.controlBar?.updateLiveControls();
+  }
+
+  /**
+   * Infer live/VOD from a fetched HLS media playlist before hls.js loads level details.
+   * Returns null when the text is not a usable media playlist.
+   */
+  parseHlsMediaPlaylistLive(m3u8Text: string): boolean | null {
+    const text = m3u8Text.replace(/\r\n/g, '\n');
+    if (!text.trimStart().startsWith('#EXTM3U')) {
+      return null;
+    }
+
+    if (/#EXT-X-PLAYLIST-TYPE:VOD/i.test(text) || /#EXT-X-ENDLIST/i.test(text)) {
+      return false;
+    }
+
+    if (/#EXT-X-PLAYLIST-TYPE:EVENT/i.test(text)) {
+      return true;
+    }
+
+    if (/#EXTINF:/.test(text)) {
+      return true;
+    }
+
+    return null;
+  }
+
+  /** True once the source is confidently VOD (not merely "not live yet"). */
+  isConfirmedVod(): boolean {
+    const option = this.player.options.liveStream;
+    if (option === false) {
+      return true;
+    }
+    if (option === true) {
+      return false;
+    }
+    if (this.sourceReportsLive === false) {
+      return true;
+    }
+    if (this.sourceReportsLive === true) {
+      return false;
+    }
+
+    const initialDuration = Number(this.player.options.initialDuration);
+    if (Number.isFinite(initialDuration) && initialDuration > 0) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /** VOD skip-forward, or live catch-up when behind the edge. */
+  shouldShowForwardSkip(): boolean {
+    if (this.player.state.isLive) {
+      return this.player.state.behindLive;
+    }
+
+    return this.isConfirmedVod();
+  }
+
+  /** Restart is a VOD-only affordance once the source is confirmed VOD. */
+  shouldShowRestart(): boolean {
+    return this.isConfirmedVod() && !this.player.state.isLive;
   }
 
   resolveIsLive(): boolean {
@@ -93,24 +191,32 @@ export class LiveStreamManager {
       return false;
     }
 
-    if (media.duration === Infinity || !Number.isFinite(media.duration)) {
-      return true;
-    }
-
     const renderer = this.player.renderer;
+
     if (renderer?.rendererType === 'hls') {
       const hls = (renderer as { hls?: HlsInstance | null }).hls ?? null;
-      const liveSync = hls?.liveSyncPosition;
-      if (typeof liveSync === 'number' && Number.isFinite(liveSync)) {
+      const playlistLive = this.hlsPlaylistIsLive(hls);
+      if (playlistLive === true) {
         return true;
       }
+      if (playlistLive === false) {
+        return false;
+      }
+      // Level playlist not loaded yet — MSE may already report Infinity
+      // duration during startup; never infer live from that alone.
+      return false;
     }
 
     if (renderer?.rendererType === 'dash') {
       const dash = (renderer as { dash?: DashMediaPlayerInstance | null }).dash ?? null;
-      if (dash && typeof dash.isDynamic === 'function' && dash.isDynamic()) {
-        return true;
+      if (dash && typeof dash.isDynamic === 'function') {
+        return dash.isDynamic();
       }
+      return false;
+    }
+
+    if (media.duration === Infinity) {
+      return true;
     }
 
     return false;
@@ -125,9 +231,11 @@ export class LiveStreamManager {
     const renderer = this.player.renderer;
     if (renderer?.rendererType === 'hls') {
       const hls = (renderer as { hls?: HlsInstance | null }).hls ?? null;
-      const liveSync = hls?.liveSyncPosition;
-      if (typeof liveSync === 'number' && Number.isFinite(liveSync)) {
-        return liveSync;
+      if (this.hlsPlaylistIsLive(hls) === true) {
+        const liveSync = hls?.liveSyncPosition;
+        if (typeof liveSync === 'number' && Number.isFinite(liveSync)) {
+          return liveSync;
+        }
       }
     }
 

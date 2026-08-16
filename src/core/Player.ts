@@ -2243,6 +2243,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
     controlBar.attachEvents();
     controlBar.setupAutoHide();
     controlBar.setupOverflowDetection();
+    controlBar.updateLiveControls();
+    controlBar.updateDuration();
+    controlBar.updateProgress();
   }
 
   shouldChangeRenderer(src: string) {

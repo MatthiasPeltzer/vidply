@@ -84,6 +84,16 @@ describe('LiveStreamManager', () => {
     expect(player.container.classList.contains('vidply-is-live')).toBe(true);
   });
 
+  it('does not treat unknown duration as live before metadata is loaded', () => {
+    Object.defineProperty(player.element, 'duration', {
+      configurable: true,
+      value: NaN,
+    });
+    manager.refresh();
+    expect(player.state.isLive).toBe(false);
+    expect(player.container.classList.contains('vidply-is-live')).toBe(false);
+  });
+
   it('marks the user as behind live when currentTime is before the edge', () => {
     player.options.liveStream = true;
     Object.defineProperty(player.element, 'seekable', {
@@ -129,10 +139,45 @@ describe('LiveStreamManager', () => {
     expect(player.play).toHaveBeenCalled();
   });
 
-  it('evaluates HLS liveSyncPosition', () => {
-    manager.evaluateHls({ liveSyncPosition: 42 });
-    manager.refresh();
+  it('does not treat VOD HLS Infinity duration as live when level details say VOD', () => {
+    player.renderer = {
+      rendererType: 'hls',
+      hls: {
+        latestLevelDetails: { live: false },
+      },
+    };
+    Object.defineProperty(player.element, 'duration', {
+      configurable: true,
+      value: Infinity,
+    });
+    expect(manager.resolveIsLive()).toBe(false);
+  });
+
+  it('evaluates live HLS playlists via latestLevelDetails.live', () => {
+    manager.evaluateHls({
+      liveSyncPosition: 42,
+      latestLevelDetails: { live: true },
+    });
     expect(player.state.isLive).toBe(true);
+  });
+
+  it('does not treat VOD HLS liveSyncPosition as live (Apple BipBop case)', () => {
+    manager.evaluateHls({
+      liveSyncPosition: 597,
+      latestLevelDetails: { live: false, edge: 600 },
+    });
+    expect(player.state.isLive).toBe(false);
+    expect(player.container.classList.contains('vidply-is-live')).toBe(false);
+  });
+
+  it('ignores HLS liveSyncPosition until the level playlist is loaded', () => {
+    Object.defineProperty(player.element, 'duration', {
+      configurable: true,
+      value: 600,
+    });
+    manager.evaluateHls({ liveSyncPosition: 597 });
+    manager.refresh();
+    expect(player.state.isLive).toBe(false);
   });
 
   it('evaluates dynamic DASH manifests', () => {
@@ -153,5 +198,39 @@ describe('LiveStreamManager', () => {
     });
     player.state.currentTime = 185;
     expect(manager.getSecondsBehindLive()).toBe(15);
+  });
+
+  it('parses VOD HLS media playlists from ENDLIST / PLAYLIST-TYPE:VOD', () => {
+    expect(manager.parseHlsMediaPlaylistLive('#EXTM3U\n#EXT-X-PLAYLIST-TYPE:VOD\n#EXTINF:6,\nfile.ts\n#EXT-X-ENDLIST')).toBe(false);
+  });
+
+  it('parses live HLS media playlists without ENDLIST', () => {
+    expect(manager.parseHlsMediaPlaylistLive('#EXTM3U\n#EXT-X-TARGETDURATION:2\n#EXTINF:2,\nseg.ts')).toBe(true);
+  });
+
+  it('hides forward/restart until VOD is confirmed under liveStream auto', () => {
+    player.options.initialDuration = 0;
+    expect(manager.shouldShowForwardSkip()).toBe(false);
+    expect(manager.shouldShowRestart()).toBe(false);
+
+    manager.reportSourceLive(false);
+    expect(manager.shouldShowForwardSkip()).toBe(true);
+    expect(manager.shouldShowRestart()).toBe(true);
+  });
+
+  it('uses initialDuration as a VOD hint before the level playlist loads', () => {
+    player.options.initialDuration = 600;
+    expect(manager.isConfirmedVod()).toBe(true);
+    expect(manager.shouldShowForwardSkip()).toBe(true);
+  });
+
+  it('shows live catch-up forward only when behind the edge', () => {
+    player.options.liveStream = true;
+    player.state.isLive = true;
+    player.state.behindLive = false;
+    expect(manager.shouldShowForwardSkip()).toBe(false);
+
+    player.state.behindLive = true;
+    expect(manager.shouldShowForwardSkip()).toBe(true);
   });
 });

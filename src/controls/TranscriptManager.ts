@@ -60,6 +60,7 @@ interface TranscriptHandlers {
   documentClick: ((e: MouseEvent) => void) | null;
   styleDialogKeydown: ((e: KeyboardEvent) => void) | null;
   floatingchange: ((state: 'pinned' | 'auto' | null) => void) | null;
+  livechange: ((isLive: boolean) => void) | null;
 }
 
 type TimerHandle = ReturnType<typeof setTimeout>;
@@ -235,7 +236,8 @@ export class TranscriptManager {
       settingsKeydown: null,
       documentClick: null,
       styleDialogKeydown: null,
-      floatingchange: null
+      floatingchange: null,
+      livechange: null
     };
 
     this._cueUpdateTimeout = null;
@@ -271,7 +273,13 @@ export class TranscriptManager {
         && this._vttCache.has(this.currentTranscriptLanguage)
         && !this._isLiveTranscriptSource()
       ) {
-        return;
+        const cached = this._vttCache.get(this.currentTranscriptLanguage);
+        const track = this._resolveCaptionTrackForTranscript(this.player.textTracks as TranscriptTrack[]);
+        const trackCueCount = track?.cues?.length ?? 0;
+        if (cached && (trackCueCount === 0 || cached.length >= trackCueCount)) {
+          return;
+        }
+        this._vttCache.delete(this.currentTranscriptLanguage);
       }
       if (this._cueUpdateTimeout) {
         this.clearManagedTimeout(this._cueUpdateTimeout);
@@ -286,6 +294,24 @@ export class TranscriptManager {
       }, 400);
     };
     this.player.on('textcuesupdate', this.handlers.textcuesupdate);
+
+    this.handlers.livechange = (isLive: boolean) => {
+      if (!this.isVisible) {
+        return;
+      }
+
+      if (isLive) {
+        this._startLiveTranscriptSync();
+        return;
+      }
+
+      this._stopLiveTranscriptSync();
+      if (this.currentTranscriptLanguage) {
+        this._vttCache.delete(this.currentTranscriptLanguage);
+      }
+      this.loadTranscriptData();
+    };
+    this.player.on('livechange', this.handlers.livechange);
     
     // Reposition transcript when entering/exiting fullscreen
     this.player.on('fullscreenchange', () => {
@@ -1090,6 +1116,27 @@ export class TranscriptManager {
     languageSelector.addEventListener('change', handler);
   }
 
+  private _parseSubtitlePlaylistSegmentUris(m3u8Text: string): string[] {
+    return m3u8Text
+      .replace(/\r\n/g, '\n')
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#'));
+  }
+
+  private async _fetchTextResource(url: string, timeoutMs = 10_000): Promise<string | null> {
+    const signal = this._buildFetchSignal(timeoutMs);
+    try {
+      const res = await fetch(url, { signal });
+      if (!res.ok) {
+        return null;
+      }
+      return await res.text();
+    } catch {
+      return null;
+    }
+  }
+
   private _parseVTT(vttText: string): TranscriptCueItem[] {
     const cues: TranscriptCueItem[] = [];
     const blocks = vttText.replace(/\r\n/g, '\n').split(/\n\n+/);
@@ -1137,32 +1184,49 @@ export class TranscriptManager {
     );
     if (!entry) return null;
 
-    // Build a combined AbortSignal: the player's lifecycle controller plus
-    // a 10s timeout per individual fetch.
-    const signal = this._buildFetchSignal(10_000);
-
     try {
-      const res = await fetch(entry.url, { signal });
-      if (!res.ok) return null;
-      let text = await res.text();
+      const text = await this._fetchTextResource(entry.url);
+      if (!text) {
+        return null;
+      }
 
-      // HLS subtitle playlists are m3u8 files that reference the actual VTT.
-      // Resolve the VTT URI and fetch it instead.
+      // HLS subtitle playlists are m3u8 files that reference segmented WebVTT.
+      // Fetch every segment and merge cues — the first segment alone is only ~6s.
       if (text.trimStart().startsWith('#EXTM3U')) {
-        const vttUri = text.split('\n')
-          .map(l => l.trim())
-          .find(l => l && !l.startsWith('#'));
-        if (!vttUri) return null;
         const baseUrl = entry.url.substring(0, entry.url.lastIndexOf('/') + 1);
-        const vttUrl = vttUri.startsWith('http') ? vttUri : new URL(vttUri, baseUrl).href;
-        const vttRes = await fetch(vttUrl, { signal: this._buildFetchSignal(10_000) });
-        if (!vttRes.ok) return null;
-        text = await vttRes.text();
+        const segmentUris = this._parseSubtitlePlaylistSegmentUris(text);
+        if (segmentUris.length === 0) {
+          return null;
+        }
+
+        const segmentTexts = await Promise.all(
+          segmentUris.map(async (uri) => {
+            const vttUrl = uri.startsWith('http') ? uri : new URL(uri, baseUrl).href;
+            return this._fetchTextResource(vttUrl);
+          })
+        );
+
+        const allCues: TranscriptCueItem[] = [];
+        for (const segmentText of segmentTexts) {
+          if (segmentText) {
+            allCues.push(...this._parseVTT(segmentText));
+          }
+        }
+
+        if (allCues.length === 0) {
+          return null;
+        }
+
+        allCues.sort((a, b) => a.cue.startTime - b.cue.startTime);
+        this._vttCache.set(lang, allCues);
+        return allCues;
       }
 
       const cues = this._parseVTT(text);
-      if (cues.length > 0) this._vttCache.set(lang, cues);
-      return cues;
+      if (cues.length > 0) {
+        this._vttCache.set(lang, cues);
+      }
+      return cues.length > 0 ? cues : null;
     } catch {
       return null;
     }
@@ -1252,8 +1316,14 @@ export class TranscriptManager {
 
       this._loadVttTranscript(lang).then(vttCues => {
         if (!this.isVisible) return;
+        const trackCueCount = captionTrack?.cues?.length ?? 0;
+        const useBulkVtt = Boolean(
+          vttCues
+          && vttCues.length > 0
+          && (trackCueCount === 0 || vttCues.length >= trackCueCount)
+        );
         this._renderTranscriptCues(
-          vttCues && vttCues.length > 0 ? vttCues : null,
+          useBulkVtt ? vttCues : null,
           captionTrack,
           descriptionTrack
         );
@@ -2590,6 +2660,9 @@ export class TranscriptManager {
     // Remove text cue update listener
     if (this.handlers.textcuesupdate) {
       this.player.off('textcuesupdate', this.handlers.textcuesupdate);
+    }
+    if (this.handlers.livechange) {
+      this.player.off('livechange', this.handlers.livechange);
     }
 
     // Remove floating-state listener

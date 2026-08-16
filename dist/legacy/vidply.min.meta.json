@@ -156,7 +156,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 190171,
+      "bytes": 190433,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -423,7 +423,7 @@
       "format": "esm"
     },
     "src/core/LiveStreamManager.ts": {
-      "bytes": 6902,
+      "bytes": 9720,
       "imports": [
         {
           "path": "<runtime>",
@@ -720,7 +720,7 @@
       "format": "esm"
     },
     "src/controls/TranscriptManager.ts": {
-      "bytes": 94845,
+      "bytes": 96954,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -823,7 +823,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 37149,
+      "bytes": 39011,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -876,7 +876,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 113306,
+      "bytes": 113409,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -1129,7 +1129,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1558108
+      "bytes": 1569495
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1218,7 +1218,7 @@
           "bytesInOutput": 22051
         },
         "src/controls/TranscriptManager.ts": {
-          "bytesInOutput": 93551
+          "bytesInOutput": 96073
         },
         "src/utils/ScriptLoader.ts": {
           "bytesInOutput": 2712
@@ -1230,7 +1230,7 @@
           "bytesInOutput": 9242
         },
         "src/renderers/HLSRenderer.ts": {
-          "bytesInOutput": 34074
+          "bytesInOutput": 36261
         },
         "src/renderers/DASHRenderer.ts": {
           "bytesInOutput": 38604
@@ -1242,10 +1242,10 @@
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 95687
+          "bytesInOutput": 95796
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 141219
+          "bytesInOutput": 141409
         },
         "src/utils/VideoFrameCapture.ts": {
           "bytesInOutput": 3154
@@ -1284,7 +1284,7 @@
           "bytesInOutput": 6290
         },
         "src/core/LiveStreamManager.ts": {
-          "bytesInOutput": 6860
+          "bytesInOutput": 9616
         },
         "src/core/MetadataAlertsManager.ts": {
           "bytesInOutput": 15264
@@ -1305,7 +1305,7 @@
           "bytesInOutput": 5385
         }
       },
-      "bytes": 915169
+      "bytes": 922933
     }
   }
 }

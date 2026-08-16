@@ -1822,7 +1822,8 @@ export class ControlBar {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-restart`,
             attributes: {
                 'type': 'button',
-                'aria-label': i18n.t('player.restart')
+                'aria-label': i18n.t('player.restart'),
+                'hidden': 'true'
             }
         });
 
@@ -3689,13 +3690,18 @@ export class ControlBar {
         const isLive = this.player.state.isLive;
         const behindLive = this.player.state.behindLive;
         const prefix = this.player.options.classPrefix;
+        const liveManager = this.player.liveStreamManager;
 
         if (this.controls.restart) {
-            this.controls.restart.hidden = isLive;
+            this.controls.restart.hidden = liveManager
+                ? !liveManager.shouldShowRestart()
+                : true;
         }
 
         if (this.controls.forward) {
-            this.controls.forward.hidden = !isLive || !behindLive;
+            this.controls.forward.hidden = liveManager
+                ? !liveManager.shouldShowForwardSkip()
+                : isLive ? !behindLive : true;
         }
 
         if (this.controls.goLive) {

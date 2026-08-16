@@ -61,6 +61,7 @@ export class HLSRenderer implements Renderer {
   // Tracked 'ready' listener registered by updateCaptionButtonsForHls when the
   // control bar isn't built yet; removed on destroy if it never fired.
   private _pendingReadyHandler: (() => void) | null;
+  private _boundLiveChangeHandler: ((isLive: boolean) => void) | null;
 
   constructor(player: Player) {
     this.player = player;
@@ -77,6 +78,7 @@ export class HLSRenderer implements Renderer {
     this._listenerController = new AbortController();
     this._timers = new Set();
     this._pendingReadyHandler = null;
+    this._boundLiveChangeHandler = null;
   }
 
   /**
@@ -350,6 +352,7 @@ export class HLSRenderer implements Renderer {
       this.player.log('HLS manifest loaded, found ' + data.levels.length + ' quality levels');
       this.player.emit('hlsmanifestparsed', data);
       this.player.liveStreamManager?.evaluateHls(this.hls);
+      void this._probeHlsLevelPlaylistLive();
 
       // Show VidPly controls (remove external controls class if present)
       if (this.player.container) {
@@ -368,6 +371,20 @@ export class HLSRenderer implements Renderer {
         }
       }, 500);
     });
+
+    hls.on(Hls.Events.LEVEL_UPDATED, () => {
+      this.player.liveStreamManager?.evaluateHls(this.hls);
+    });
+
+    this._boundLiveChangeHandler = (isLive: boolean) => {
+      if (this._cueUpdateTimer) {
+        this._startCueUpdatePolling();
+      }
+      if (!isLive && (this.hls?.subtitleTrack ?? -1) >= 0) {
+        this._ensureHlsSubtitleTrackActive();
+      }
+    };
+    this.player.on('livechange', this._boundLiveChangeHandler);
 
     hls.on(Hls.Events.LEVEL_SWITCHED, (...args: unknown[]) => {
       const data = args[1] as HlsLevelSwitchedData;
@@ -536,11 +553,11 @@ export class HLSRenderer implements Renderer {
     let prevCueCount = 0;
     let prevMaxStart = -1;
     let stableRounds = 0;
-    const isLive = this._isLivePlayback();
 
     this._cueUpdateTimer = setInterval(() => {
       const count = this._getTotalCueCount();
       const maxStart = this._getMaxCueStartTime();
+      const isLive = this._isLivePlayback();
 
       if (isLive) {
         if (count > prevCueCount || maxStart > prevMaxStart) {
@@ -645,6 +662,43 @@ export class HLSRenderer implements Renderer {
     // Track so destroy() can detach it if 'ready' never fires.
     this._pendingReadyHandler = onReady;
     this.player.on('ready', onReady);
+  }
+
+  /**
+   * With `autoStartLoad: false`, hls.js does not fetch level playlists until play.
+   * Fetch the active variant playlist once so live/VOD controls are correct pre-play.
+   */
+  private async _probeHlsLevelPlaylistLive(): Promise<void> {
+    const hls = this.hls;
+    const manager = this.player.liveStreamManager;
+    if (!hls || !manager || manager.getSourceReportsLive() !== null) {
+      return;
+    }
+
+    const levelIndex = hls.currentLevel >= 0 ? hls.currentLevel : 0;
+    const level = hls.levels?.[levelIndex];
+    if (!level) {
+      return;
+    }
+
+    const rawUrl = Array.isArray(level.url) ? level.url[0] : level.url;
+    if (typeof rawUrl !== 'string' || rawUrl === '') {
+      return;
+    }
+
+    try {
+      const res = await fetch(rawUrl, { signal: this.player.lifecycleSignal });
+      if (!res.ok) {
+        return;
+      }
+
+      const playlistLive = manager.parseHlsMediaPlaylistLive(await res.text());
+      if (playlistLive !== null) {
+        manager.reportSourceLive(playlistLive);
+      }
+    } catch {
+      // Network failure or player destroyed while probing.
+    }
   }
 
   attachMediaEvents() {
@@ -1040,6 +1094,10 @@ export class HLSRenderer implements Renderer {
     if (this._pendingReadyHandler) {
       this.player.off('ready', this._pendingReadyHandler);
       this._pendingReadyHandler = null;
+    }
+    if (this._boundLiveChangeHandler) {
+      this.player.off('livechange', this._boundLiveChangeHandler);
+      this._boundLiveChangeHandler = null;
     }
     this._lastKnownCueCount = 0;
     this._manifestUrl = null;

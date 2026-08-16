@@ -26,6 +26,7 @@ export declare class HLSRenderer implements Renderer {
     private _listenerController;
     private _timers;
     private _pendingReadyHandler;
+    private _boundLiveChangeHandler;
     constructor(player: Player);
     /**
      * Schedule a timeout that is automatically cancelled by destroy(). Prevents
@@ -80,6 +81,11 @@ export declare class HLSRenderer implements Renderer {
      * Handles the case where control bar may not exist yet
      */
     updateCaptionButtonsForHls(retryCount?: number): void;
+    /**
+     * With `autoStartLoad: false`, hls.js does not fetch level playlists until play.
+     * Fetch the active variant playlist once so live/VOD controls are correct pre-play.
+     */
+    private _probeHlsLevelPlaylistLive;
     attachMediaEvents(): void;
     handleHlsError(data: HlsErrorData): void;
     /**

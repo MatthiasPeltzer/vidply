@@ -45,6 +45,7 @@ interface TranscriptHandlers {
     documentClick: ((e: MouseEvent) => void) | null;
     styleDialogKeydown: ((e: KeyboardEvent) => void) | null;
     floatingchange: ((state: 'pinned' | 'auto' | null) => void) | null;
+    livechange: ((isLive: boolean) => void) | null;
 }
 type TimerHandle = ReturnType<typeof setTimeout>;
 export declare class TranscriptManager {
@@ -155,6 +156,8 @@ export declare class TranscriptManager {
      * Update language selector dropdown
      */
     updateLanguageSelector(): void;
+    private _parseSubtitlePlaylistSegmentUris;
+    private _fetchTextResource;
     private _parseVTT;
     private _loadVttTranscript;
     /**

@@ -7516,7 +7516,8 @@
             settingsKeydown: null,
             documentClick: null,
             styleDialogKeydown: null,
-            floatingchange: null
+            floatingchange: null,
+            livechange: null
           };
           this._cueUpdateTimeout = null;
           this._dashActiveLang = null;
@@ -7569,9 +7570,16 @@
           this.player.on("audiodescriptionenabled", this.handlers.audiodescriptionenabled);
           this.player.on("audiodescriptiondisabled", this.handlers.audiodescriptiondisabled);
           this.handlers.textcuesupdate = () => {
+            var _a;
             if (!this.isVisible) return;
             if (this.currentTranscriptLanguage && this._vttCache.has(this.currentTranscriptLanguage) && !this._isLiveTranscriptSource()) {
-              return;
+              const cached = this._vttCache.get(this.currentTranscriptLanguage);
+              const track = this._resolveCaptionTrackForTranscript(this.player.textTracks);
+              const trackCueCount = ((_a = track == null ? void 0 : track.cues) == null ? void 0 : _a.length) ?? 0;
+              if (cached && (trackCueCount === 0 || cached.length >= trackCueCount)) {
+                return;
+              }
+              this._vttCache.delete(this.currentTranscriptLanguage);
             }
             if (this._cueUpdateTimeout) {
               this.clearManagedTimeout(this._cueUpdateTimeout);
@@ -7586,6 +7594,21 @@
             }, 400);
           };
           this.player.on("textcuesupdate", this.handlers.textcuesupdate);
+          this.handlers.livechange = (isLive) => {
+            if (!this.isVisible) {
+              return;
+            }
+            if (isLive) {
+              this._startLiveTranscriptSync();
+              return;
+            }
+            this._stopLiveTranscriptSync();
+            if (this.currentTranscriptLanguage) {
+              this._vttCache.delete(this.currentTranscriptLanguage);
+            }
+            this.loadTranscriptData();
+          };
+          this.player.on("livechange", this.handlers.livechange);
           this.player.on("fullscreenchange", () => {
             if (this.isVisible) {
               const isMobile2 = window.innerWidth < 768;
@@ -8217,6 +8240,21 @@
           this.languageSelectorHandler = handler;
           languageSelector.addEventListener("change", handler);
         }
+        _parseSubtitlePlaylistSegmentUris(m3u8Text) {
+          return m3u8Text.replace(/\r\n/g, "\n").split("\n").map((line) => line.trim()).filter((line) => line && !line.startsWith("#"));
+        }
+        async _fetchTextResource(url, timeoutMs = 1e4) {
+          const signal = this._buildFetchSignal(timeoutMs);
+          try {
+            const res = await fetch(url, { signal });
+            if (!res.ok) {
+              return null;
+            }
+            return await res.text();
+          } catch {
+            return null;
+          }
+        }
         _parseVTT(vttText) {
           var _a, _b;
           const cues = [];
@@ -8256,23 +8294,41 @@
             (u) => u.lang === lang || u.lang.startsWith(lang) || lang.startsWith(u.lang)
           );
           if (!entry) return null;
-          const signal = this._buildFetchSignal(1e4);
           try {
-            const res = await fetch(entry.url, { signal });
-            if (!res.ok) return null;
-            let text = await res.text();
+            const text = await this._fetchTextResource(entry.url);
+            if (!text) {
+              return null;
+            }
             if (text.trimStart().startsWith("#EXTM3U")) {
-              const vttUri = text.split("\n").map((l) => l.trim()).find((l) => l && !l.startsWith("#"));
-              if (!vttUri) return null;
               const baseUrl = entry.url.substring(0, entry.url.lastIndexOf("/") + 1);
-              const vttUrl = vttUri.startsWith("http") ? vttUri : new URL(vttUri, baseUrl).href;
-              const vttRes = await fetch(vttUrl, { signal: this._buildFetchSignal(1e4) });
-              if (!vttRes.ok) return null;
-              text = await vttRes.text();
+              const segmentUris = this._parseSubtitlePlaylistSegmentUris(text);
+              if (segmentUris.length === 0) {
+                return null;
+              }
+              const segmentTexts = await Promise.all(
+                segmentUris.map(async (uri) => {
+                  const vttUrl = uri.startsWith("http") ? uri : new URL(uri, baseUrl).href;
+                  return this._fetchTextResource(vttUrl);
+                })
+              );
+              const allCues = [];
+              for (const segmentText of segmentTexts) {
+                if (segmentText) {
+                  allCues.push(...this._parseVTT(segmentText));
+                }
+              }
+              if (allCues.length === 0) {
+                return null;
+              }
+              allCues.sort((a, b) => a.cue.startTime - b.cue.startTime);
+              this._vttCache.set(lang, allCues);
+              return allCues;
             }
             const cues = this._parseVTT(text);
-            if (cues.length > 0) this._vttCache.set(lang, cues);
-            return cues;
+            if (cues.length > 0) {
+              this._vttCache.set(lang, cues);
+            }
+            return cues.length > 0 ? cues : null;
           } catch {
             return null;
           }
@@ -8341,9 +8397,14 @@
             });
             (_a = this.transcriptContent) == null ? void 0 : _a.appendChild(loadingMessage);
             this._loadVttTranscript(lang).then((vttCues) => {
+              var _a2;
               if (!this.isVisible) return;
+              const trackCueCount = ((_a2 = captionTrack == null ? void 0 : captionTrack.cues) == null ? void 0 : _a2.length) ?? 0;
+              const useBulkVtt = Boolean(
+                vttCues && vttCues.length > 0 && (trackCueCount === 0 || vttCues.length >= trackCueCount)
+              );
               this._renderTranscriptCues(
-                vttCues && vttCues.length > 0 ? vttCues : null,
+                useBulkVtt ? vttCues : null,
                 captionTrack,
                 descriptionTrack
               );
@@ -9438,6 +9499,9 @@
           if (this.handlers.textcuesupdate) {
             this.player.off("textcuesupdate", this.handlers.textcuesupdate);
           }
+          if (this.handlers.livechange) {
+            this.player.off("livechange", this.handlers.livechange);
+          }
           if (this.handlers.floatingchange) {
             this.player.off("floatingchange", this.handlers.floatingchange);
           }
@@ -10135,6 +10199,7 @@
           // Tracked 'ready' listener registered by updateCaptionButtonsForHls when the
           // control bar isn't built yet; removed on destroy if it never fired.
           __publicField(this, "_pendingReadyHandler");
+          __publicField(this, "_boundLiveChangeHandler");
           this.player = player;
           this.media = player.element;
           this.hls = null;
@@ -10150,6 +10215,7 @@
           this._listenerController = new AbortController();
           this._timers = /* @__PURE__ */ new Set();
           this._pendingReadyHandler = null;
+          this._boundLiveChangeHandler = null;
         }
         // True once hls.js is driving playback via MSE. Native HLS playback on
         // iOS / iPadOS keeps a real HTTP URL on the <video> and does not need the
@@ -10377,6 +10443,7 @@
             this.player.log("HLS manifest loaded, found " + data.levels.length + " quality levels");
             this.player.emit("hlsmanifestparsed", data);
             (_a = this.player.liveStreamManager) == null ? void 0 : _a.evaluateHls(this.hls);
+            void this._probeHlsLevelPlaylistLive();
             if (this.player.container) {
               this.player.container.classList.remove("vidply-external-controls");
             }
@@ -10391,6 +10458,20 @@
               }
             }, 500);
           });
+          hls.on(Hls.Events.LEVEL_UPDATED, () => {
+            var _a;
+            (_a = this.player.liveStreamManager) == null ? void 0 : _a.evaluateHls(this.hls);
+          });
+          this._boundLiveChangeHandler = (isLive) => {
+            var _a;
+            if (this._cueUpdateTimer) {
+              this._startCueUpdatePolling();
+            }
+            if (!isLive && (((_a = this.hls) == null ? void 0 : _a.subtitleTrack) ?? -1) >= 0) {
+              this._ensureHlsSubtitleTrackActive();
+            }
+          };
+          this.player.on("livechange", this._boundLiveChangeHandler);
           hls.on(Hls.Events.LEVEL_SWITCHED, (...args) => {
             const data = args[1];
             this.player.log("HLS level switched to " + data.level);
@@ -10513,10 +10594,10 @@
           let prevCueCount = 0;
           let prevMaxStart = -1;
           let stableRounds = 0;
-          const isLive = this._isLivePlayback();
           this._cueUpdateTimer = setInterval(() => {
             const count = this._getTotalCueCount();
             const maxStart = this._getMaxCueStartTime();
+            const isLive = this._isLivePlayback();
             if (isLive) {
               if (count > prevCueCount || maxStart > prevMaxStart) {
                 prevCueCount = count;
@@ -10604,6 +10685,38 @@
           };
           this._pendingReadyHandler = onReady;
           this.player.on("ready", onReady);
+        }
+        /**
+         * With `autoStartLoad: false`, hls.js does not fetch level playlists until play.
+         * Fetch the active variant playlist once so live/VOD controls are correct pre-play.
+         */
+        async _probeHlsLevelPlaylistLive() {
+          var _a;
+          const hls = this.hls;
+          const manager = this.player.liveStreamManager;
+          if (!hls || !manager || manager.getSourceReportsLive() !== null) {
+            return;
+          }
+          const levelIndex = hls.currentLevel >= 0 ? hls.currentLevel : 0;
+          const level = (_a = hls.levels) == null ? void 0 : _a[levelIndex];
+          if (!level) {
+            return;
+          }
+          const rawUrl = Array.isArray(level.url) ? level.url[0] : level.url;
+          if (typeof rawUrl !== "string" || rawUrl === "") {
+            return;
+          }
+          try {
+            const res = await fetch(rawUrl, { signal: this.player.lifecycleSignal });
+            if (!res.ok) {
+              return;
+            }
+            const playlistLive = manager.parseHlsMediaPlaylistLive(await res.text());
+            if (playlistLive !== null) {
+              manager.reportSourceLive(playlistLive);
+            }
+          } catch {
+          }
         }
         attachMediaEvents() {
           const { signal } = this._listenerController;
@@ -10895,6 +11008,10 @@
           if (this._pendingReadyHandler) {
             this.player.off("ready", this._pendingReadyHandler);
             this._pendingReadyHandler = null;
+          }
+          if (this._boundLiveChangeHandler) {
+            this.player.off("livechange", this._boundLiveChangeHandler);
+            this._boundLiveChangeHandler = null;
           }
           this._lastKnownCueCount = 0;
           this._manifestUrl = null;
@@ -13717,7 +13834,8 @@
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-restart`,
         attributes: {
           "type": "button",
-          "aria-label": i18n.t("player.restart")
+          "aria-label": i18n.t("player.restart"),
+          "hidden": "true"
         }
       });
       button.appendChild(createIconElement("restart"));
@@ -15157,11 +15275,12 @@
       const isLive = this.player.state.isLive;
       const behindLive = this.player.state.behindLive;
       const prefix = this.player.options.classPrefix;
+      const liveManager = this.player.liveStreamManager;
       if (this.controls.restart) {
-        this.controls.restart.hidden = isLive;
+        this.controls.restart.hidden = liveManager ? !liveManager.shouldShowRestart() : true;
       }
       if (this.controls.forward) {
-        this.controls.forward.hidden = !isLive || !behindLive;
+        this.controls.forward.hidden = liveManager ? !liveManager.shouldShowForwardSkip() : isLive ? !behindLive : true;
       }
       if (this.controls.goLive) {
         this.controls.goLive.hidden = !isLive || !behindLive;
@@ -17209,26 +17328,107 @@
       this.player.off("dashmanifestloaded", this.boundRefresh);
       this.player.off("sourcechange", this.boundReset);
     }
+    /**
+     * hls.js exposes `liveSyncPosition` for VOD too (edge minus target latency).
+     * Only trust the playlist `live` flag once the level manifest is loaded.
+     */
+    hlsPlaylistIsLive(hls) {
+      if (!hls) {
+        return null;
+      }
+      const details = hls.latestLevelDetails;
+      if (details && typeof details.live === "boolean") {
+        return details.live;
+      }
+      return null;
+    }
     /** Called by HLSRenderer when the manifest or buffer state indicates live. */
     evaluateHls(hls) {
       if (!hls) {
         return;
       }
-      const liveSync = hls.liveSyncPosition;
-      if (typeof liveSync === "number" && Number.isFinite(liveSync)) {
-        this.sourceReportsLive = true;
-        this.refresh();
+      const playlistLive = this.hlsPlaylistIsLive(hls);
+      if (playlistLive === null) {
+        return;
       }
+      this.sourceReportsLive = playlistLive;
+      this.refresh();
     }
     /** Called by DASHRenderer after the MPD is loaded. */
     evaluateDash(dash) {
       if (!dash || typeof dash.isDynamic !== "function") {
         return;
       }
-      if (dash.isDynamic()) {
-        this.sourceReportsLive = true;
+      this.sourceReportsLive = dash.isDynamic();
+      this.refresh();
+    }
+    /** Current manifest/playlist live hint from the active renderer, if known. */
+    getSourceReportsLive() {
+      return this.sourceReportsLive;
+    }
+    /** Called when a renderer learns live/VOD from a fetched level/media playlist. */
+    reportSourceLive(isLive) {
+      var _a, _b;
+      if (this.sourceReportsLive === isLive) {
         this.refresh();
+        (_a = this.player.controlBar) == null ? void 0 : _a.updateLiveControls();
+        return;
       }
+      this.sourceReportsLive = isLive;
+      this.refresh();
+      (_b = this.player.controlBar) == null ? void 0 : _b.updateLiveControls();
+    }
+    /**
+     * Infer live/VOD from a fetched HLS media playlist before hls.js loads level details.
+     * Returns null when the text is not a usable media playlist.
+     */
+    parseHlsMediaPlaylistLive(m3u8Text) {
+      const text = m3u8Text.replace(/\r\n/g, "\n");
+      if (!text.trimStart().startsWith("#EXTM3U")) {
+        return null;
+      }
+      if (/#EXT-X-PLAYLIST-TYPE:VOD/i.test(text) || /#EXT-X-ENDLIST/i.test(text)) {
+        return false;
+      }
+      if (/#EXT-X-PLAYLIST-TYPE:EVENT/i.test(text)) {
+        return true;
+      }
+      if (/#EXTINF:/.test(text)) {
+        return true;
+      }
+      return null;
+    }
+    /** True once the source is confidently VOD (not merely "not live yet"). */
+    isConfirmedVod() {
+      const option = this.player.options.liveStream;
+      if (option === false) {
+        return true;
+      }
+      if (option === true) {
+        return false;
+      }
+      if (this.sourceReportsLive === false) {
+        return true;
+      }
+      if (this.sourceReportsLive === true) {
+        return false;
+      }
+      const initialDuration = Number(this.player.options.initialDuration);
+      if (Number.isFinite(initialDuration) && initialDuration > 0) {
+        return true;
+      }
+      return false;
+    }
+    /** VOD skip-forward, or live catch-up when behind the edge. */
+    shouldShowForwardSkip() {
+      if (this.player.state.isLive) {
+        return this.player.state.behindLive;
+      }
+      return this.isConfirmedVod();
+    }
+    /** Restart is a VOD-only affordance once the source is confirmed VOD. */
+    shouldShowRestart() {
+      return this.isConfirmedVod() && !this.player.state.isLive;
     }
     resolveIsLive() {
       const option = this.player.options.liveStream;
@@ -17251,22 +17451,27 @@
       if (!media) {
         return false;
       }
-      if (media.duration === Infinity || !Number.isFinite(media.duration)) {
-        return true;
-      }
       const renderer = this.player.renderer;
       if ((renderer == null ? void 0 : renderer.rendererType) === "hls") {
         const hls = renderer.hls ?? null;
-        const liveSync = hls == null ? void 0 : hls.liveSyncPosition;
-        if (typeof liveSync === "number" && Number.isFinite(liveSync)) {
+        const playlistLive = this.hlsPlaylistIsLive(hls);
+        if (playlistLive === true) {
           return true;
         }
+        if (playlistLive === false) {
+          return false;
+        }
+        return false;
       }
       if ((renderer == null ? void 0 : renderer.rendererType) === "dash") {
         const dash = renderer.dash ?? null;
-        if (dash && typeof dash.isDynamic === "function" && dash.isDynamic()) {
-          return true;
+        if (dash && typeof dash.isDynamic === "function") {
+          return dash.isDynamic();
         }
+        return false;
+      }
+      if (media.duration === Infinity) {
+        return true;
       }
       return false;
     }
@@ -17278,9 +17483,11 @@
       const renderer = this.player.renderer;
       if ((renderer == null ? void 0 : renderer.rendererType) === "hls") {
         const hls = renderer.hls ?? null;
-        const liveSync = hls == null ? void 0 : hls.liveSyncPosition;
-        if (typeof liveSync === "number" && Number.isFinite(liveSync)) {
-          return liveSync;
+        if (this.hlsPlaylistIsLive(hls) === true) {
+          const liveSync = hls == null ? void 0 : hls.liveSyncPosition;
+          if (typeof liveSync === "number" && Number.isFinite(liveSync)) {
+            return liveSync;
+          }
         }
       }
       if (media.seekable && media.seekable.length > 0) {
@@ -20086,6 +20293,9 @@
       controlBar.attachEvents();
       controlBar.setupAutoHide();
       controlBar.setupOverflowDetection();
+      controlBar.updateLiveControls();
+      controlBar.updateDuration();
+      controlBar.updateProgress();
     }
     shouldChangeRenderer(src) {
       if (!this.renderer) return true;

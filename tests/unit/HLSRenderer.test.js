@@ -20,6 +20,8 @@ describe('HLSRenderer', () => {
     mockMedia.src = 'https://example.com/stream.m3u8';
     document.body.appendChild(mockMedia);
 
+    const playerListeners = {};
+
     mockPlayer = {
       element: mockMedia,
       currentSource: 'https://example.com/stream.m3u8',
@@ -46,6 +48,23 @@ describe('HLSRenderer', () => {
       seek: vi.fn(),
       play: vi.fn(),
       shouldSyncVolumeFromMedia: vi.fn(() => true),
+      isLiveStream: vi.fn(() => false),
+      lifecycleSignal: new AbortController().signal,
+      liveStreamManager: {
+        evaluateHls: vi.fn(),
+        getSourceReportsLive: vi.fn(() => null),
+        parseHlsMediaPlaylistLive: vi.fn(),
+        reportSourceLive: vi.fn()
+      },
+      on: vi.fn((event, handler) => {
+        (playerListeners[event] ??= []).push(handler);
+      }),
+      off: vi.fn((event, handler) => {
+        if (!playerListeners[event]) {
+          return;
+        }
+        playerListeners[event] = playerListeners[event].filter((fn) => fn !== handler);
+      })
     };
 
     // Mock hls.js - needs to be a proper class for `new` to work
@@ -74,6 +93,7 @@ describe('HLSRenderer', () => {
     MockHls.Events = {
       MANIFEST_PARSED: 'hlsManifestParsed',
       LEVEL_SWITCHED: 'hlsLevelSwitched',
+      LEVEL_UPDATED: 'hlsLevelUpdated',
       SUBTITLE_TRACKS_UPDATED: 'hlsSubtitleTracksUpdated',
       SUBTITLE_TRACK_SWITCH: 'hlsSubtitleTrackSwitch',
       SUBTITLE_FRAG_PROCESSED: 'hlsSubtitleFragProcessed',
