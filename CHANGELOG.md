@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.11] - 2026-08-16
+
+### Fixed
+- HLS VOD transcript: fetch every WebVTT segment from segmented subtitle playlists instead of only the first ~6 s segment; invalidate incomplete VTT cache when more TextTrack cues arrive.
+- Control bar rebuild: re-apply live/VOD button visibility after `updateControlBar()` so restart and go-live state stays correct when HLS caption buttons are added.
+- VOD controls: show the skip-forward button again (live-at-edge keeps it hidden until the viewer falls behind).
+- Live/HLS pre-play controls: hide VOD-only skip-forward and restart until the source is confirmed VOD; probe the level playlist on manifest parse so live streams like ARD get correct controls before playback starts.
+- Live pre-play controls: restart starts hidden by default; control bar refreshes when the level-playlist probe reports live/VOD.
+- Live stream auto-detection: VOD HLS sources (e.g. Apple BipBop) no longer show the LIVE badge — hls.js exposes a finite `liveSyncPosition` for VOD too, so detection now relies on `latestLevelDetails.live` instead.
+- Live stream auto-detection: unknown media duration (before HLS level playlists load) no longer triggers the LIVE badge; only `Infinity` duration or an explicit live playlist does.
+- Live stream auto-detection: VOD HLS no longer flips to live mode when MSE reports `Infinity` duration during startup; HLS cue polling follows live/VOD mode dynamically so captions keep working after playback begins.
+
 ## [1.2.10] - 2026-08-16
 
 ### Accessibility
