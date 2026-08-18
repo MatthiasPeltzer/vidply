@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.12] - 2026-08-18
+
+### Changed
+- Bumped pinned dash.js CDN default and SRI to **5.2.1** (modern UMD).
+
+### Fixed
+- Demo dev server: relative nav links no longer drop the `/demo/` prefix when the index is opened as `/demo` (trailing-slash redirect + `serve.json` rewrites for root-level demo URLs).
+- Control bar: `[hidden]` on buttons is honored again (CSS no longer forces `display: inline-flex` on hidden controls).
+- Live-only UI: Go Live and LIVE badge are omitted from the DOM when `liveStream: false`, or injected/removed under `liveStream: 'auto'` instead of staying visible behind `hidden`.
+- VOD controls: HTML5 finite duration and DASH static manifests confirm VOD so restart and skip-forward show on audio/video and DASH VOD streams.
+- DASH VOD: parse manifest `type` on `MANIFEST_LOADED` and re-evaluate on `STREAM_INITIALIZED` when `isDynamic()` was not ready yet.
+- Playlists: rewind and skip-forward are created for playlist players; sign language uses per-track `signLanguageSrc` from the playlist.
+
+### Tests
+- E2E and unit coverage for VOD seek controls, playlist sign language, and DASH/HTML5 live detection.
+
 ## [1.2.11] - 2026-08-16
 
 ### Fixed
