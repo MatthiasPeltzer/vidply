@@ -1,0 +1,20 @@
+{
+  "rewrites": [
+    { "source": "/dash-test", "destination": "/demo/dash-test.html" },
+    { "source": "/demo-de", "destination": "/demo/demo-de.html" },
+    { "source": "/demo-es", "destination": "/demo/demo-es.html" },
+    { "source": "/demo-fr", "destination": "/demo/demo-fr.html" },
+    { "source": "/demo-it", "destination": "/demo/demo-it.html" },
+    { "source": "/demo-jp", "destination": "/demo/demo-jp.html" },
+    { "source": "/hls-test", "destination": "/demo/hls-test.html" },
+    { "source": "/playlist-audio", "destination": "/demo/playlist-audio.html" },
+    { "source": "/playlist-mixed", "destination": "/demo/playlist-mixed.html" },
+    { "source": "/playlist-video", "destination": "/demo/playlist-video.html" },
+    { "source": "/single-player-audio", "destination": "/demo/single-player-audio.html" },
+    { "source": "/single-player-dash", "destination": "/demo/single-player-dash.html" },
+    { "source": "/single-player-hls", "destination": "/demo/single-player-hls.html" },
+    { "source": "/single-player-video", "destination": "/demo/single-player-video.html" },
+    { "source": "/single-player-vtt-speech", "destination": "/demo/single-player-vtt-speech.html" },
+    { "source": "/single-playlist", "destination": "/demo/single-playlist.html" }
+  ]
+}
