@@ -65,6 +65,12 @@ export declare class SignLanguageManager {
     get resizeOptionText(): Element | null;
     constructor(player: Player);
     /**
+     * Resolve the active sign-language URL from player state (playlist tracks
+     * update `player.signLanguageSrc`; options are the init-time fallback).
+     */
+    static resolveSrc(player: Player): string | null;
+    static resolveSources(player: Player): Record<string, string>;
+    /**
      * Check if sign language is available
      */
     isAvailable(): boolean;

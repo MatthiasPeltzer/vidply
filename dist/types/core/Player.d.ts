@@ -242,6 +242,8 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
      * `ControlBar.hasSignLanguage()`.
      */
     hasSignLanguageContent(): boolean;
+    private resolveSignLanguageSrc;
+    private resolveSignLanguageSources;
     /**
      * Lazy-load and instantiate the floating (in-page PiP) manager. Only
      * created when `options.floating === true` and the media element is a
@@ -481,6 +483,7 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     enableSignLanguage(): Promise<void | undefined>;
     disableSignLanguage(): Promise<void | undefined>;
     toggleSignLanguage(): Promise<void>;
+    toggleSignLanguageInMainView(): Promise<void>;
     setupSignLanguageInteraction(): void | undefined;
     switchSignLanguage(langCode: string): void | undefined;
     showSignLanguageSettingsMenu(): void | undefined;
