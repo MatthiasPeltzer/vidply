@@ -3645,6 +3645,7 @@ export class ControlBar {
         this.subscribe('events', 'sourcechange', () => {
             // Update preview video source when source changes (for playlists)
             this.updatePreviewVideoSource();
+            this.updateLiveControls();
         });
         this.subscribe('events', 'volumechange', () => this.updateVolumeDisplay());
         this.subscribe('events', 'progress', () => this.updateBuffered());

@@ -22,6 +22,7 @@ export class LiveStreamManager {
     this.boundReset = () => {
       this.sourceReportsLive = null;
       this.refresh();
+      this.player.controlBar?.updateLiveControls();
     };
 
     this.player.on('timeupdate', this.boundRefresh);
@@ -41,6 +42,11 @@ export class LiveStreamManager {
     this.player.off('hlsmanifestparsed', this.boundRefresh);
     this.player.off('dashmanifestloaded', this.boundRefresh);
     this.player.off('sourcechange', this.boundReset);
+  }
+
+  /** Clear manifest live hints when the media source changes (before the new manifest loads). */
+  resetForSourceChange(): void {
+    this.boundReset();
   }
 
   /**

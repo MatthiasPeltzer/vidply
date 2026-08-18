@@ -50,7 +50,7 @@ export declare class DASHRenderer implements Renderer {
     initDashJs(): Promise<void>;
     /**
      * Load dash.js. Pinned to an exact version (the previous default
-     * `5.2.0` is preserved) and shipped with a matching Subresource
+     * `5.2.1` is preserved) and shipped with a matching Subresource
      * Integrity hash, so the default CDN script is verified out of the
      * box. Overridable via `options.dashScriptUrl` (URL) /
      * `options.dashScriptIntegrity` (SRI hash). The built-in hash only

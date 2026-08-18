@@ -384,6 +384,12 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     isExternalRendererUrl(src: string | null | undefined): boolean;
     load(config: PlayerLoadConfig): Promise<void>;
     /**
+     * Sync play/pause UI after a source swap. Destroying an HLS/DASH renderer or
+     * clearing the media `src` can leave `state.playing` true without a matching
+     * `pause` event on the element.
+     */
+    resetPlaybackStateForSourceChange(): void;
+    /**
      * Ensure the current renderer has started its initial load (metadata/manifest)
      * without starting playback. This is useful for playlists to behave like
      * single videos on selection, while still keeping autoplay off.

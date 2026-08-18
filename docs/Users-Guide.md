@@ -144,7 +144,7 @@ When using `mpc-vidply` in TYPO3, the **Privacy Layer** displays a GDPR consent 
 <video data-vidply src="https://example.com/manifest.mpd"></video>
 ```
 
-**dash.js 5.2.0** (modern UMD) is loaded on demand when `.mpd` URLs are detected. DASH streams support:
+**dash.js 5.2.1** (modern UMD) is loaded on demand when `.mpd` URLs are detected. DASH streams support:
 - Adaptive bitrate quality selection
 - TTML subtitles (rendered natively by dash.js)
 - WebVTT subtitles (handled by VidPly's caption system with transcript support)

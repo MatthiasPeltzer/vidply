@@ -727,7 +727,7 @@ Total: ~62KB uncompressed, ~18KB gzipped
 VidPly auto-detects streaming formats by file extension:
 
 - **HLS** (`.m3u8`) - Uses **hls.js 1.7.0** on Chrome / Firefox / Edge / desktop Safari (CDN fallback when not preloaded). On iOS / iPadOS the native `<video>` HLS support is used and bridged into VidPly's caption / transcript / quality UI via the `TextTrack` API.
-- **DASH** (`.mpd`) - Uses **dash.js 5.2.0** (modern UMD), loaded on demand when not already on the page.
+- **DASH** (`.mpd`) - Uses **dash.js 5.2.1** (modern UMD), loaded on demand when not already on the page.
 - **SoundCloud** - Auto-detected for any URL containing `soundcloud.com`; the SoundCloud Widget API is loaded on demand.
 
 ```html

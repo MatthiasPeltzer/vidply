@@ -180,6 +180,29 @@ describe('LiveStreamManager', () => {
     expect(player.state.isLive).toBe(false);
   });
 
+  it('resets live state on sourcechange', () => {
+    manager.evaluateHls({
+      latestLevelDetails: { live: true },
+    });
+    expect(player.state.isLive).toBe(true);
+
+    player.emit('sourcechange', {});
+    expect(manager.getSourceReportsLive()).toBe(null);
+    expect(player.state.isLive).toBe(false);
+    expect(player.container.classList.contains('vidply-is-live')).toBe(false);
+  });
+
+  it('resetForSourceChange clears a prior live report', () => {
+    manager.evaluateHls({
+      latestLevelDetails: { live: true },
+    });
+    expect(player.state.isLive).toBe(true);
+
+    manager.resetForSourceChange();
+    expect(manager.getSourceReportsLive()).toBe(null);
+    expect(player.state.isLive).toBe(false);
+  });
+
   it('evaluates dynamic DASH manifests', () => {
     manager.evaluateDash({ isDynamic: () => true });
     expect(player.state.isLive).toBe(true);

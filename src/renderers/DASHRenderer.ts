@@ -119,7 +119,7 @@ export class DASHRenderer implements Renderer {
         // NOTE on pre-play preload: we deliberately do NOT set
         // streaming.scheduling.scheduleWhilePaused = false here. While that
         // is the documented dash.js way to suppress segment downloads while
-        // paused / before the first play, in our setup (dash.js 5.2.0 +
+        // paused / before the first play, in our setup (dash.js 5.2.1 +
         // dash.initialize(media, null, false) + attachSource at init) it
         // tears down the SourceBuffers mid-init with
         // "SourceBuffer has been removed from the parent media source"
@@ -234,7 +234,7 @@ export class DASHRenderer implements Renderer {
 
   /**
    * Load dash.js. Pinned to an exact version (the previous default
-   * `5.2.0` is preserved) and shipped with a matching Subresource
+   * `5.2.1` is preserved) and shipped with a matching Subresource
    * Integrity hash, so the default CDN script is verified out of the
    * box. Overridable via `options.dashScriptUrl` (URL) /
    * `options.dashScriptIntegrity` (SRI hash). The built-in hash only
@@ -243,10 +243,10 @@ export class DASHRenderer implements Renderer {
    */
   async loadDashJs(): Promise<void> {
     // SRI for the pinned default build below, verified against the file served
-    // by jsdelivr for dashjs@5.2.0. Recompute whenever the pin changes.
+    // by jsdelivr for dashjs@5.2.1. Recompute whenever the pin changes.
     return loadPinnedScript({
-      defaultUrl: 'https://cdn.jsdelivr.net/npm/dashjs@5.2.0/dist/modern/umd/dash.all.min.js',
-      defaultIntegrity: 'sha384-DUqWPzOl/i7/DGF7SBoe4NrlZOMxxomlJsg3X0daS5SBeFxco3dmwWQPFr2oauXn',
+      defaultUrl: 'https://cdn.jsdelivr.net/npm/dashjs@5.2.1/dist/modern/umd/dash.all.min.js',
+      defaultIntegrity: 'sha384-NwbBGevMmVf2Lv50ZqQWLZ0dLH69dxVHYeS+8t54klP9odovQ2+Ms0J4SWfKzPkr',
       url: this.player.options.dashScriptUrl as string | undefined,
       integrity: this.player.options.dashScriptIntegrity as string | undefined
     });

@@ -2942,6 +2942,7 @@ var ControlBar = class {
     this.subscribe("events", "liveedgechange", () => this.updateLiveControls());
     this.subscribe("events", "sourcechange", () => {
       this.updatePreviewVideoSource();
+      this.updateLiveControls();
     });
     this.subscribe("events", "volumechange", () => this.updateVolumeDisplay());
     this.subscribe("events", "progress", () => this.updateBuffered());
@@ -5060,6 +5061,7 @@ var LiveStreamManager = class {
     this.boundReset = () => {
       this.sourceReportsLive = null;
       this.refresh();
+      this.player.controlBar?.updateLiveControls();
     };
     this.player.on("timeupdate", this.boundRefresh);
     this.player.on("durationchange", this.boundRefresh);
@@ -5077,6 +5079,10 @@ var LiveStreamManager = class {
     this.player.off("hlsmanifestparsed", this.boundRefresh);
     this.player.off("dashmanifestloaded", this.boundRefresh);
     this.player.off("sourcechange", this.boundReset);
+  }
+  /** Clear manifest live hints when the media source changes (before the new manifest loads). */
+  resetForSourceChange() {
+    this.boundReset();
   }
   /**
    * hls.js exposes `liveSyncPosition` for VOD too (edge minus target latency).
@@ -7582,6 +7588,13 @@ var Player = class _Player extends EventEmitter {
     this.playButtonOverlay.style.top = `${videoCenter}px`;
   }
   async initializeRenderer() {
+    this.liveStreamManager?.resetForSourceChange();
+    this.resetPlaybackStateForSourceChange();
+    if (this.renderer) {
+      this.renderer.destroy();
+      this.renderer = null;
+      this.controlBar?.removeHlsCaptionButtons(true);
+    }
     let src = this._pendingSource;
     let rendererClass = null;
     if (!src) {
@@ -7643,7 +7656,7 @@ var Player = class _Player extends EventEmitter {
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {
-        const module = await import("./vidply.DASHRenderer-CVKGP64B.js");
+        const module = await import("./vidply.DASHRenderer-EGAVP5ZE.js");
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
@@ -7809,9 +7822,11 @@ var Player = class _Player extends EventEmitter {
   async load(config) {
     try {
       this.log("Loading new media:", config.src);
+      this.liveStreamManager?.resetForSourceChange();
       if (this.renderer) {
         this.pause();
       }
+      this.resetPlaybackStateForSourceChange();
       const scrollX = window.scrollX || window.pageXOffset;
       const scrollY = window.scrollY || window.pageYOffset;
       const existingTracks = this.trackElements;
@@ -8011,10 +8026,28 @@ var Player = class _Player extends EventEmitter {
         }, 150);
       }
       this.emit("sourcechange", config);
+      this.resetPlaybackStateForSourceChange();
       this.log("Media loaded successfully");
     } catch (error) {
       this.handleError(error);
     }
+  }
+  /**
+   * Sync play/pause UI after a source swap. Destroying an HLS/DASH renderer or
+   * clearing the media `src` can leave `state.playing` true without a matching
+   * `pause` event on the element.
+   */
+  resetPlaybackStateForSourceChange() {
+    try {
+      this.element.pause();
+    } catch {
+    }
+    this.state.playing = false;
+    this.state.paused = true;
+    this.state.ended = false;
+    this.state.buffering = false;
+    this.state.seeking = false;
+    this.controlBar?.updatePlayPauseButton();
   }
   /**
    * Ensure the current renderer has started its initial load (metadata/manifest)

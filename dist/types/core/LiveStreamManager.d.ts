@@ -11,6 +11,8 @@ export declare class LiveStreamManager {
     private sourceReportsLive;
     constructor(player: Player);
     destroy(): void;
+    /** Clear manifest live hints when the media source changes (before the new manifest loads). */
+    resetForSourceChange(): void;
     /**
      * hls.js exposes `liveSyncPosition` for VOD too (edge minus target latency).
      * Only trust the playlist `live` flag once the level manifest is loaded.

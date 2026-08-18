@@ -481,9 +481,8 @@
             <div class="stream-selector">
                 <label for="stream-select">Select Test Stream:</label> <select id="stream-select">
                 <option value="https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8" data-poster="media/appletest.png">Apple Test Stream (Best)</option>
-                <option value="https://test-streams.mux.dev/tos_ismc/main.m3u8" data-poster="media/tearsofsteel.png">Tears of Steel (with Captions)</option>
                 <option value="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" data-poster="media/bigbunny.png">Big Buck Bunny (Mux)</option>
-                <option value="https://ireplay.tv/test/blender.m3u8" data-poster="media/blender-channel.png">Blender TV (Live Channel)</option>
+                <option value="https://daserste-live.ard-mcdn.de/daserste/live/hls/de/master.m3u8" data-poster="media/ard-daserste-live.png">ARD Das Erste (Live)</option>
             </select>
             </div>
             
@@ -821,7 +820,6 @@
         
         // Stream selector
         const streamSelect = document.getElementById('stream-select');
-        const videoElement = document.getElementById('hls-player');
         
         streamSelect.addEventListener('change', async (e) => {
             const newUrl = e.target.value;
@@ -836,24 +834,10 @@
                 document.getElementById('quality-selector').style.display = 'none';
                 document.getElementById('buffer-status').textContent = 'Loading...';
                 
-                // Destroy current HLS instance if it exists
-                if (player.renderer && player.renderer.hls) {
-                    log('Destroying current HLS instance...', 'info');
-                    player.renderer.hls.destroy();
-                    player.renderer.hls = null;
-                }
-                
-                // Update poster image
-                if (newPoster) {
-                    videoElement.poster = newPoster;
-                }
-                
-                // Set the new source directly on the video element
-                videoElement.src = newUrl;
-                
-                // Reinitialize the renderer
-                log('Reinitializing renderer...', 'info');
-                await player.initializeRenderer();
+                await player.load({
+                    src: newUrl,
+                    poster: newPoster || undefined,
+                });
                 
                 log('Stream switched successfully!', 'success');
             } catch (error) {

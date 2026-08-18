@@ -894,7 +894,7 @@ const player = new Player('#video', {
 
 1. Verify MPD URL is accessible
 2. Check CORS headers on the streaming server
-3. **dash.js 5.2.0** (modern UMD) loads on demand when not already on the page (override via `dashScriptUrl`)
+3. **dash.js 5.2.1** (modern UMD) loads on demand when not already on the page (override via `dashScriptUrl`)
 4. TTML subtitles are rendered by dash.js natively; WebVTT subtitles use VidPly's caption system
 5. If quality levels don't appear, check that the MPD manifest contains multiple representations
 6. Enable debug mode for dash.js logs: `{ debug: true }`

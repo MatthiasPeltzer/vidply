@@ -50,7 +50,7 @@ Try VidPly in action:
     transcript)
   - Falls back to native HLS on iOS / iPadOS where MSE is unavailable; native text tracks are still surfaced through the
     VidPly captions and transcript UI
-- **DASH Streaming** - MPEG-DASH support via **dash.js 5.2.0** (modern UMD) with adaptive quality, TTML and WebVTT subtitles
+- **DASH Streaming** - MPEG-DASH support via **dash.js 5.2.1** (modern UMD) with adaptive quality, TTML and WebVTT subtitles
 - **Buffering Spinner** - Centered loading spinner shown automatically while media is buffering (HTML5, HLS, DASH)
 - **Download Button** - Optional download control with custom URL support (`downloadButton` + `downloadUrl`)
 - **Preview Thumbnails** - Video preview thumbnails on progress bar hover

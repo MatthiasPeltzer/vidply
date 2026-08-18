@@ -156,7 +156,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 192938,
+      "bytes": 192977,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -423,7 +423,7 @@
       "format": "esm"
     },
     "src/core/LiveStreamManager.ts": {
-      "bytes": 11795,
+      "bytes": 12006,
       "imports": [
         {
           "path": "<runtime>",
@@ -876,7 +876,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 114554,
+      "bytes": 115530,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -1129,7 +1129,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1579618
+      "bytes": 1581436
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1242,10 +1242,10 @@
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 96919
+          "bytesInOutput": 98016
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 143739
+          "bytesInOutput": 143774
         },
         "src/utils/VideoFrameCapture.ts": {
           "bytesInOutput": 3154
@@ -1284,7 +1284,7 @@
           "bytesInOutput": 6290
         },
         "src/core/LiveStreamManager.ts": {
-          "bytesInOutput": 11216
+          "bytesInOutput": 11474
         },
         "src/core/MetadataAlertsManager.ts": {
           "bytesInOutput": 15264
@@ -1305,7 +1305,7 @@
           "bytesInOutput": 5385
         }
       },
-      "bytes": 928965
+      "bytes": 930355
     }
   }
 }

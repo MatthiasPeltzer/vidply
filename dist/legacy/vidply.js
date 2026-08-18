@@ -11132,7 +11132,7 @@
               // NOTE on pre-play preload: we deliberately do NOT set
               // streaming.scheduling.scheduleWhilePaused = false here. While that
               // is the documented dash.js way to suppress segment downloads while
-              // paused / before the first play, in our setup (dash.js 5.2.0 +
+              // paused / before the first play, in our setup (dash.js 5.2.1 +
               // dash.initialize(media, null, false) + attachSource at init) it
               // tears down the SourceBuffers mid-init with
               // "SourceBuffer has been removed from the parent media source"
@@ -11214,7 +11214,7 @@
         }
         /**
          * Load dash.js. Pinned to an exact version (the previous default
-         * `5.2.0` is preserved) and shipped with a matching Subresource
+         * `5.2.1` is preserved) and shipped with a matching Subresource
          * Integrity hash, so the default CDN script is verified out of the
          * box. Overridable via `options.dashScriptUrl` (URL) /
          * `options.dashScriptIntegrity` (SRI hash). The built-in hash only
@@ -11223,8 +11223,8 @@
          */
         async loadDashJs() {
           return loadPinnedScript({
-            defaultUrl: "https://cdn.jsdelivr.net/npm/dashjs@5.2.0/dist/modern/umd/dash.all.min.js",
-            defaultIntegrity: "sha384-DUqWPzOl/i7/DGF7SBoe4NrlZOMxxomlJsg3X0daS5SBeFxco3dmwWQPFr2oauXn",
+            defaultUrl: "https://cdn.jsdelivr.net/npm/dashjs@5.2.1/dist/modern/umd/dash.all.min.js",
+            defaultIntegrity: "sha384-NwbBGevMmVf2Lv50ZqQWLZ0dLH69dxVHYeS+8t54klP9odovQ2+Ms0J4SWfKzPkr",
             url: this.player.options.dashScriptUrl,
             integrity: this.player.options.dashScriptIntegrity
           });
@@ -15249,6 +15249,7 @@
       this.subscribe("events", "liveedgechange", () => this.updateLiveControls());
       this.subscribe("events", "sourcechange", () => {
         this.updatePreviewVideoSource();
+        this.updateLiveControls();
       });
       this.subscribe("events", "volumechange", () => this.updateVolumeDisplay());
       this.subscribe("events", "progress", () => this.updateBuffered());
@@ -17390,8 +17391,10 @@
       this.player = player;
       this.boundRefresh = () => this.refresh();
       this.boundReset = () => {
+        var _a;
         this.sourceReportsLive = null;
         this.refresh();
+        (_a = this.player.controlBar) == null ? void 0 : _a.updateLiveControls();
       };
       this.player.on("timeupdate", this.boundRefresh);
       this.player.on("durationchange", this.boundRefresh);
@@ -17409,6 +17412,10 @@
       this.player.off("hlsmanifestparsed", this.boundRefresh);
       this.player.off("dashmanifestloaded", this.boundRefresh);
       this.player.off("sourcechange", this.boundReset);
+    }
+    /** Clear manifest live hints when the media source changes (before the new manifest loads). */
+    resetForSourceChange() {
+      this.boundReset();
     }
     /**
      * hls.js exposes `liveSyncPosition` for VOD too (edge minus target latency).
@@ -19972,7 +19979,14 @@
       this.playButtonOverlay.style.top = `${videoCenter}px`;
     }
     async initializeRenderer() {
-      var _a, _b, _c;
+      var _a, _b, _c, _d, _e;
+      (_a = this.liveStreamManager) == null ? void 0 : _a.resetForSourceChange();
+      this.resetPlaybackStateForSourceChange();
+      if (this.renderer) {
+        this.renderer.destroy();
+        this.renderer = null;
+        (_b = this.controlBar) == null ? void 0 : _b.removeHlsCaptionButtons(true);
+      }
       let src = this._pendingSource;
       let rendererClass = null;
       if (!src) {
@@ -19982,7 +19996,7 @@
           src = negotiated.src;
           this._fallbackSources = negotiated.fallbacks;
         } else {
-          src = this.element.src || ((_a = sourceElements[0]) == null ? void 0 : _a.src);
+          src = this.element.src || ((_c = sourceElements[0]) == null ? void 0 : _c.src);
           this._fallbackSources = [];
         }
       } else {
@@ -19996,14 +20010,14 @@
       if (this.hasAudioDescriptionContent()) {
         await this.ensureAudioDescriptionManager();
       }
-      (_b = this.audioDescriptionManager) == null ? void 0 : _b.initFromSourceElements(this.sourceElements, this.trackElements);
+      (_d = this.audioDescriptionManager) == null ? void 0 : _d.initFromSourceElements(this.sourceElements, this.trackElements);
       if (!this.originalSrc) {
         this.originalSrc = src;
       }
       rendererClass = await this._detectRendererClass(src);
       this.log(`Using ${(rendererClass == null ? void 0 : rendererClass.name) || "HTML5Renderer"} renderer`);
       this.renderer = new rendererClass(this);
-      const initTimeout = (((_c = this._fallbackSources) == null ? void 0 : _c.length) ?? 0) > 0 ? 1e4 : 0;
+      const initTimeout = (((_e = this._fallbackSources) == null ? void 0 : _e.length) ?? 0) > 0 ? 1e4 : 0;
       if (initTimeout > 0) {
         let timer;
         await Promise.race([
@@ -20198,12 +20212,14 @@
       return src.includes("youtube.com") || src.includes("youtu.be") || src.includes("vimeo.com") || src.includes("soundcloud.com") || src.includes("api.soundcloud.com") || src.includes(".m3u8") || src.includes(".mpd");
     }
     async load(config) {
-      var _a, _b;
+      var _a, _b, _c;
       try {
         this.log("Loading new media:", config.src);
+        (_a = this.liveStreamManager) == null ? void 0 : _a.resetForSourceChange();
         if (this.renderer) {
           this.pause();
         }
+        this.resetPlaybackStateForSourceChange();
         const scrollX = window.scrollX || window.pageXOffset;
         const scrollY = window.scrollY || window.pageYOffset;
         const existingTracks = this.trackElements;
@@ -20308,7 +20324,7 @@
           if (this.controlBar) {
             this.controlBar.removeHlsCaptionButtons(true);
           }
-          if ((_a = this.transcriptManager) == null ? void 0 : _a.isVisible) {
+          if ((_b = this.transcriptManager) == null ? void 0 : _b.isVisible) {
             this.transcriptManager.hideTranscript();
           }
         }
@@ -20368,7 +20384,7 @@
             this.captionManager.disable();
             this.captionManager.tracks = [];
           }
-          if ((_b = this.transcriptManager) == null ? void 0 : _b.isVisible) {
+          if ((_c = this.transcriptManager) == null ? void 0 : _c.isVisible) {
             this.transcriptManager.hideTranscript();
           }
         } else {
@@ -20403,10 +20419,29 @@
           }, 150);
         }
         this.emit("sourcechange", config);
+        this.resetPlaybackStateForSourceChange();
         this.log("Media loaded successfully");
       } catch (error) {
         this.handleError(error);
       }
+    }
+    /**
+     * Sync play/pause UI after a source swap. Destroying an HLS/DASH renderer or
+     * clearing the media `src` can leave `state.playing` true without a matching
+     * `pause` event on the element.
+     */
+    resetPlaybackStateForSourceChange() {
+      var _a;
+      try {
+        this.element.pause();
+      } catch {
+      }
+      this.state.playing = false;
+      this.state.paused = true;
+      this.state.ended = false;
+      this.state.buffering = false;
+      this.state.seeking = false;
+      (_a = this.controlBar) == null ? void 0 : _a.updatePlayPauseButton();
     }
     /**
      * Ensure the current renderer has started its initial load (metadata/manifest)

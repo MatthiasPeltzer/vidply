@@ -1636,6 +1636,15 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   async initializeRenderer() {
+    this.liveStreamManager?.resetForSourceChange();
+    this.resetPlaybackStateForSourceChange();
+
+    if (this.renderer) {
+      this.renderer.destroy();
+      this.renderer = null;
+      this.controlBar?.removeHlsCaptionButtons(true);
+    }
+
     let src: string | null | undefined = this._pendingSource;
     let rendererClass: (new (player: Player) => Renderer) | null = null;
 
@@ -1911,11 +1920,13 @@ export class Player extends EventEmitter<PlayerEventMap> {
   async load(config: PlayerLoadConfig) {
     try {
       this.log('Loading new media:', config.src);
+      this.liveStreamManager?.resetForSourceChange();
 
       // Pause current playback
       if (this.renderer) {
         this.pause();
       }
+      this.resetPlaybackStateForSourceChange();
 
       // Save scroll position to prevent browser from auto-scrolling when loading new media
       const scrollX = window.scrollX || window.pageXOffset;
@@ -2217,11 +2228,32 @@ export class Player extends EventEmitter<PlayerEventMap> {
       }
 
       this.emit('sourcechange', config);
+      this.resetPlaybackStateForSourceChange();
       this.log('Media loaded successfully');
 
     } catch (error: unknown) {
       this.handleError(error);
     }
+  }
+
+  /**
+   * Sync play/pause UI after a source swap. Destroying an HLS/DASH renderer or
+   * clearing the media `src` can leave `state.playing` true without a matching
+   * `pause` event on the element.
+   */
+  resetPlaybackStateForSourceChange(): void {
+    try {
+      this.element.pause();
+    } catch {
+      // ignore — element may be detached or not ready yet
+    }
+
+    this.state.playing = false;
+    this.state.paused = true;
+    this.state.ended = false;
+    this.state.buffering = false;
+    this.state.seeking = false;
+    this.controlBar?.updatePlayPauseButton();
   }
 
   /**
