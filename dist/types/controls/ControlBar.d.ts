@@ -43,6 +43,8 @@ export declare class ControlBar {
     previewVideoInitialized: boolean;
     previewVideoReady: boolean;
     rightButtons: HTMLElement;
+    leftButtons: HTMLElement;
+    timeDisplayContainer: HTMLElement | null;
     overflowMenuButton: HTMLElement | null;
     /** Track of the currently open volume slider so a single pair of
      *  document listeners (installed once in {@link init}) can update the
@@ -141,6 +143,20 @@ export declare class ControlBar {
     createVolumeControl(): HTMLButtonElement;
     showVolumeSlider(button: HTMLElement): void;
     createTimeDisplay(): HTMLDivElement;
+    /** Live-only UI is omitted entirely when liveStream is false. */
+    private liveControlsAllowed;
+    /** Under liveStream auto, live controls are injected only after detection. */
+    private usesDynamicLiveControls;
+    private shouldMountLiveControlsAtBuild;
+    private ensureGoLiveButton;
+    private removeGoLiveButton;
+    private ensureLiveBadge;
+    private removeLiveBadge;
+    /**
+     * Mount or remove Go Live / LIVE badge for liveStream auto. Forced-live players
+     * mount at build; VOD-only players (liveStream false) never get these nodes.
+     */
+    private syncLiveOnlyControls;
     createChaptersButton(): HTMLButtonElement;
     showChaptersMenu(button: HTMLElement): void;
     createQualityButton(): HTMLButtonElement;

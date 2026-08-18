@@ -107,9 +107,9 @@ export class SignLanguageManager {
     constructor(player: Player) {
         this.player = player;
         
-        // Sources
-        this.src = player.options.signLanguageSrc;
-        this.sources = player.options.signLanguageSources || {};
+        // Sources — playlists and load() set player.signLanguageSrc; options may lag.
+        this.src = SignLanguageManager.resolveSrc(player);
+        this.sources = SignLanguageManager.resolveSources(player);
         this.currentLanguage = null;
         this.desiredPosition = player.options.signLanguagePosition || 'bottom-right';
         
@@ -135,6 +135,23 @@ export class SignLanguageManager {
         this.interactionHandlers = null;
         this.draggable = null;
         this.customKeyHandler = null;
+    }
+
+    /**
+     * Resolve the active sign-language URL from player state (playlist tracks
+     * update `player.signLanguageSrc`; options are the init-time fallback).
+     */
+    static resolveSrc(player: Player): string | null {
+        const src = player.signLanguageSrc ?? player.options.signLanguageSrc ?? null;
+        return src && src.length > 0 ? src : null;
+    }
+
+    static resolveSources(player: Player): Record<string, string> {
+        const fromPlayer = player.signLanguageSources;
+        if (fromPlayer && Object.keys(fromPlayer).length > 0) {
+            return { ...fromPlayer };
+        }
+        return { ...(player.options.signLanguageSources || {}) };
     }
 
     /**

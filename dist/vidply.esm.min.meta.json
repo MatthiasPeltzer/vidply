@@ -145,7 +145,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 190433,
+      "bytes": 192938,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -354,7 +354,7 @@
       "format": "esm"
     },
     "src/core/LiveStreamManager.ts": {
-      "bytes": 9720,
+      "bytes": 11795,
       "imports": [],
       "format": "esm"
     },
@@ -536,7 +536,7 @@
       "format": "esm"
     },
     "src/core/SignLanguageManager.ts": {
-      "bytes": 48807,
+      "bytes": 49566,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -702,7 +702,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 39489,
+      "bytes": 39557,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -724,7 +724,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 113409,
+      "bytes": 114554,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -895,7 +895,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 64698,
+      "bytes": 64854,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -963,13 +963,13 @@
     }
   },
   "outputs": {
-    "dist/prod/vidply.SignLanguageManager-QQNTSVOV.min.js.map": {
+    "dist/prod/vidply.SignLanguageManager-PTBJG66J.min.js.map": {
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 72350
+      "bytes": 73460
     },
-    "dist/prod/vidply.SignLanguageManager-QQNTSVOV.min.js": {
+    "dist/prod/vidply.SignLanguageManager-PTBJG66J.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-7QLQ67W4.min.js",
@@ -1002,10 +1002,10 @@
       "entryPoint": "src/core/SignLanguageManager.ts",
       "inputs": {
         "src/core/SignLanguageManager.ts": {
-          "bytesInOutput": 36892
+          "bytesInOutput": 37499
         }
       },
-      "bytes": 37503
+      "bytes": 38110
     },
     "dist/prod/vidply.FloatingPlayerManager-OHY5QDIF.min.js.map": {
       "imports": [],
@@ -1232,13 +1232,13 @@
       },
       "bytes": 29466
     },
-    "dist/prod/vidply.DASHRenderer-J2CEF2RH.min.js.map": {
+    "dist/prod/vidply.DASHRenderer-7D2LVMEO.min.js.map": {
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 60478
+      "bytes": 60590
     },
-    "dist/prod/vidply.DASHRenderer-J2CEF2RH.min.js": {
+    "dist/prod/vidply.DASHRenderer-7D2LVMEO.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-6ICIB55U.min.js",
@@ -1251,10 +1251,10 @@
       "entryPoint": "src/renderers/DASHRenderer.ts",
       "inputs": {
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 31699
+          "bytesInOutput": 31767
         }
       },
-      "bytes": 31964
+      "bytes": 32032
     },
     "dist/prod/vidply.SoundCloudRenderer-HL5LTSLX.min.js.map": {
       "imports": [],
@@ -1304,7 +1304,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 739646
+      "bytes": 748490
     },
     "dist/prod/vidply.esm.min.js": {
       "imports": [
@@ -1349,7 +1349,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.SignLanguageManager-QQNTSVOV.min.js",
+          "path": "dist/prod/vidply.SignLanguageManager-PTBJG66J.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -1373,7 +1373,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.DASHRenderer-J2CEF2RH.min.js",
+          "path": "dist/prod/vidply.DASHRenderer-7D2LVMEO.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -1398,7 +1398,7 @@
           "bytesInOutput": 3575
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 132136
+          "bytesInOutput": 134182
         },
         "src/controls/KeyboardManager.ts": {
           "bytesInOutput": 10789
@@ -1431,7 +1431,7 @@
           "bytesInOutput": 5929
         },
         "src/core/LiveStreamManager.ts": {
-          "bytesInOutput": 8602
+          "bytesInOutput": 10026
         },
         "src/core/MetadataAlertsManager.ts": {
           "bytesInOutput": 14231
@@ -1446,16 +1446,16 @@
           "bytesInOutput": 10277
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 85770
+          "bytesInOutput": 86845
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 44938
+          "bytesInOutput": 45094
         },
         "src/index.ts": {
           "bytesInOutput": 5074
         }
       },
-      "bytes": 368587
+      "bytes": 373288
     },
     "dist/prod/vidply.chunk-VYGJZAWS.min.js.map": {
       "imports": [],

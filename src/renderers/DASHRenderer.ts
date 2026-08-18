@@ -272,7 +272,7 @@ export class DASHRenderer implements Renderer {
       const data = e?.data ?? e;
       this.player.log('DASH manifest loaded');
       this.player.emit('dashmanifestloaded', data);
-      this.player.liveStreamManager?.evaluateDash(this.dash);
+      this.player.liveStreamManager?.evaluateDash(this.dash, data);
 
       if (this.player.container) {
         this.player.container.classList.remove('vidply-external-controls');
@@ -318,6 +318,7 @@ export class DASHRenderer implements Renderer {
     dash.on(dashEvents.STREAM_INITIALIZED, () => {
       this.player.log('DASH stream initialized');
       this.player.emit('dashstreaminitialized');
+      this.player.liveStreamManager?.evaluateDash(this.dash);
 
       this._setTimeout(() => {
         const qualities = this.getQualities();

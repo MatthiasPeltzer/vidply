@@ -3672,6 +3672,12 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   display: none !important;
 }
 
+/* Author display rules (e.g. .vidply-button { display: inline-flex }) override the
+ * UA [hidden] stylesheet; keep toggled controls out of layout and assistive tech. */
+.vidply-player [hidden] {
+  display: none !important;
+}
+
 .vidply-track-longdesc :where(p, ul, ol, blockquote) {
   margin: 0 0 0.75rem;
 }

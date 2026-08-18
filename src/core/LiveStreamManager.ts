@@ -71,27 +71,53 @@ export class LiveStreamManager {
       return;
     }
 
-    this.sourceReportsLive = playlistLive;
-    this.refresh();
+    this.applySourceLiveReport(playlistLive);
   }
 
-  /** Called by DASHRenderer after the MPD is loaded. */
-  evaluateDash(dash: DashMediaPlayerInstance | null): void {
+  /** Called by DASHRenderer after the MPD is loaded (and again once playback starts). */
+  evaluateDash(dash: DashMediaPlayerInstance | null, manifestData?: unknown): void {
+    const fromManifest = this.parseDashManifestLive(manifestData);
+    if (fromManifest !== null) {
+      this.applySourceLiveReport(fromManifest);
+      return;
+    }
+
     if (!dash || typeof dash.isDynamic !== 'function') {
       return;
     }
 
-    this.sourceReportsLive = dash.isDynamic();
-    this.refresh();
+    try {
+      this.applySourceLiveReport(dash.isDynamic());
+    } catch {
+      // dash.js throws PLAYBACK_NOT_INITIALIZED_ERROR until STREAM_INITIALIZED.
+    }
   }
 
-  /** Current manifest/playlist live hint from the active renderer, if known. */
-  getSourceReportsLive(): boolean | null {
-    return this.sourceReportsLive;
+  /**
+   * Infer live/VOD from a DASH MPD payload (MANIFEST_LOADED event data).
+   * Returns null when the manifest type is not available.
+   */
+  parseDashManifestLive(manifestData: unknown): boolean | null {
+    if (!manifestData || typeof manifestData !== 'object') {
+      return null;
+    }
+
+    const data = manifestData as {
+      type?: string;
+      manifestInfo?: { type?: string };
+    };
+    const type = data.type ?? data.manifestInfo?.type;
+    if (type === 'static') {
+      return false;
+    }
+    if (type === 'dynamic') {
+      return true;
+    }
+
+    return null;
   }
 
-  /** Called when a renderer learns live/VOD from a fetched level/media playlist. */
-  reportSourceLive(isLive: boolean): void {
+  private applySourceLiveReport(isLive: boolean): void {
     if (this.sourceReportsLive === isLive) {
       this.refresh();
       this.player.controlBar?.updateLiveControls();
@@ -101,6 +127,16 @@ export class LiveStreamManager {
     this.sourceReportsLive = isLive;
     this.refresh();
     this.player.controlBar?.updateLiveControls();
+  }
+
+  /** Current manifest/playlist live hint from the active renderer, if known. */
+  getSourceReportsLive(): boolean | null {
+    return this.sourceReportsLive;
+  }
+
+  /** Called when a renderer learns live/VOD from a fetched level/media playlist. */
+  reportSourceLive(isLive: boolean): void {
+    this.applySourceLiveReport(isLive);
   }
 
   /**
@@ -149,7 +185,35 @@ export class LiveStreamManager {
       return true;
     }
 
+    // Plain HTML5 audio/video: a finite duration after metadata means VOD.
+    // Streaming renderers may report Infinity during startup, so only apply this
+    // when the active renderer is HTML5 (or not yet chosen).
+    if (this.isPlainHtml5Renderer() && this.hasFiniteMediaDuration() && !this.resolveIsLive()) {
+      return true;
+    }
+
+    // DASH VOD: once playback exposes a finite duration and we are not live,
+    // treat as confirmed VOD even if isDynamic() was unavailable earlier.
+    if (this.isDashRenderer() && this.sourceReportsLive !== true
+      && this.hasFiniteMediaDuration() && !this.resolveIsLive()) {
+      return true;
+    }
+
     return false;
+  }
+
+  private isDashRenderer(): boolean {
+    return this.player.renderer?.rendererType === 'dash';
+  }
+
+  private isPlainHtml5Renderer(): boolean {
+    const renderer = this.player.renderer;
+    return !renderer || renderer.rendererType === 'html5';
+  }
+
+  private hasFiniteMediaDuration(): boolean {
+    const media = this.player.element;
+    return Boolean(media && Number.isFinite(media.duration) && media.duration > 0);
   }
 
   /** VOD skip-forward, or live catch-up when behind the edge. */

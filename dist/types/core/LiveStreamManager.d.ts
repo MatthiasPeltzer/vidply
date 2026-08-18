@@ -18,8 +18,14 @@ export declare class LiveStreamManager {
     private hlsPlaylistIsLive;
     /** Called by HLSRenderer when the manifest or buffer state indicates live. */
     evaluateHls(hls: HlsInstance | null): void;
-    /** Called by DASHRenderer after the MPD is loaded. */
-    evaluateDash(dash: DashMediaPlayerInstance | null): void;
+    /** Called by DASHRenderer after the MPD is loaded (and again once playback starts). */
+    evaluateDash(dash: DashMediaPlayerInstance | null, manifestData?: unknown): void;
+    /**
+     * Infer live/VOD from a DASH MPD payload (MANIFEST_LOADED event data).
+     * Returns null when the manifest type is not available.
+     */
+    parseDashManifestLive(manifestData: unknown): boolean | null;
+    private applySourceLiveReport;
     /** Current manifest/playlist live hint from the active renderer, if known. */
     getSourceReportsLive(): boolean | null;
     /** Called when a renderer learns live/VOD from a fetched level/media playlist. */
@@ -31,6 +37,9 @@ export declare class LiveStreamManager {
     parseHlsMediaPlaylistLive(m3u8Text: string): boolean | null;
     /** True once the source is confidently VOD (not merely "not live yet"). */
     isConfirmedVod(): boolean;
+    private isDashRenderer;
+    private isPlainHtml5Renderer;
+    private hasFiniteMediaDuration;
     /** VOD skip-forward, or live catch-up when behind the edge. */
     shouldShowForwardSkip(): boolean;
     /** Restart is a VOD-only affordance once the source is confirmed VOD. */

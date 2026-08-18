@@ -347,3 +347,35 @@ test.describe('Video Poster', () => {
     expect(count).toBeGreaterThanOrEqual(0);
   });
 });
+
+test.describe('Live controls on VOD audio', () => {
+  test('simple audio demo omits live-only controls from the DOM', async ({ page }) => {
+    await page.goto('/demo/single-player-audio.html');
+    await page.waitForSelector('.vidply-player', { timeout: 15000 });
+    await page.waitForFunction(() => {
+      const audio = document.querySelector('#everyday-audio');
+      return audio && Number.isFinite(audio.duration) && audio.duration > 0;
+    });
+
+    await expect(page.locator('.vidply-go-live')).toHaveCount(0);
+    await expect(page.locator('.vidply-live-indicator')).toHaveCount(0);
+    await expect(page.locator('.vidply-player')).not.toHaveClass(/vidply-is-live/);
+    await expect(page.locator('.vidply-restart')).toBeVisible();
+    await expect(page.locator('.vidply-forward')).toBeVisible();
+  });
+});
+
+test.describe('VOD seek controls under liveStream auto', () => {
+  test('single video demo shows restart and forward once metadata is loaded', async ({ page }) => {
+    await page.goto('/demo/single-player-video.html');
+    await page.waitForSelector('.vidply-player', { timeout: 15000 });
+    await page.waitForFunction(() => {
+      const video = document.querySelector('.vidply-player video');
+      return video && Number.isFinite(video.duration) && video.duration > 0;
+    });
+
+    await expect(page.locator('.vidply-restart')).toBeVisible();
+    await expect(page.locator('.vidply-forward')).toBeVisible();
+    await expect(page.locator('.vidply-go-live')).toHaveCount(0);
+  });
+});

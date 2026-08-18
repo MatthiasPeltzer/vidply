@@ -36,6 +36,16 @@ test.describe('Video Playlist', () => {
     // May not be visible if there's only one track or on last track
   });
 
+  test('should show rewind and forward on VOD tracks', async ({ page }) => {
+    const player = page.locator('.vidply-player.vidply-has-playlist').first();
+    await page.waitForFunction(() => {
+      const media = document.querySelector('.vidply-has-playlist video, .vidply-has-playlist audio');
+      return media && Number.isFinite(media.duration) && media.duration > 0;
+    });
+    await expect(player.locator('.vidply-rewind')).toBeVisible();
+    await expect(player.locator('.vidply-forward')).toBeVisible();
+  });
+
   test('should navigate to next track', async ({ page }) => {
     // Find the first player
     const player = page.locator('.vidply-player').first();
@@ -160,6 +170,16 @@ test.describe('Audio Playlist', () => {
     await expect(progressBar).toBeVisible();
   });
 
+  test('should show rewind and forward on VOD tracks', async ({ page }) => {
+    const player = page.locator('.vidply-player.vidply-has-playlist').first();
+    await page.waitForFunction(() => {
+      const media = document.querySelector('.vidply-has-playlist video, .vidply-has-playlist audio');
+      return media && Number.isFinite(media.duration) && media.duration > 0;
+    });
+    await expect(player.locator('.vidply-rewind')).toBeVisible();
+    await expect(player.locator('.vidply-forward')).toBeVisible();
+  });
+
   test('should navigate between audio tracks', async ({ page }) => {
     const player = page.locator('.vidply-player').first();
     
@@ -190,6 +210,34 @@ test.describe('Mixed Media Playlist', () => {
   test('should display mixed media playlist player', async ({ page }) => {
     const player = page.locator('.vidply-player').first();
     await expect(player).toBeVisible();
+  });
+
+  test('should show rewind and forward on VOD tracks', async ({ page }) => {
+    const player = page.locator('.vidply-player.vidply-has-playlist').first();
+    await page.waitForFunction(() => {
+      const media = document.querySelector('.vidply-has-playlist video, .vidply-has-playlist audio');
+      return media && Number.isFinite(media.duration) && media.duration > 0;
+    });
+    await expect(player.locator('.vidply-rewind')).toBeVisible();
+    await expect(player.locator('.vidply-forward')).toBeVisible();
+  });
+
+  test('should enable sign language overlay on tracks that provide a source', async ({ page }) => {
+    const player = page.locator('.vidply-player.vidply-has-playlist').first();
+    await page.waitForSelector('.vidply-sign-language', { timeout: 15000 });
+
+    const warnings = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'warning' && msg.text().includes('No sign language video source provided')) {
+        warnings.push(msg.text());
+      }
+    });
+
+    await player.locator('.vidply-sign-language').click();
+    await page.waitForTimeout(500);
+
+    expect(warnings).toEqual([]);
+    await expect(player.locator('.vidply-sign-language-wrapper')).toBeVisible();
   });
 
   test('should handle mixed video and audio tracks', async ({ page }) => {

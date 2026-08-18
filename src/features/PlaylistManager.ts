@@ -695,6 +695,8 @@ export class PlaylistManager {
       this.player.audioDescriptionSrc = track.audioDescriptionSrc || null;
       this.player.signLanguageSrc = track.signLanguageSrc || null;
       this.player.signLanguageSources = track.signLanguageSources || {};
+      this.player.options.signLanguageSrc = track.signLanguageSrc || null;
+      this.player.options.signLanguageSources = track.signLanguageSources || {};
 
       // Fill duration early for UI (progress/time display) without loading media
       if (track.duration && Number(track.duration) > 0) {

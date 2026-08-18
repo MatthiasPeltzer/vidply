@@ -167,6 +167,15 @@ describe('SignLanguageManager', () => {
       expect(manager.isAvailable()).toBe(true);
     });
 
+    it('should read signLanguageSrc from the player instance (playlist tracks)', () => {
+      mockPlayer.signLanguageSrc = '/sign/playlist-track.mp4';
+
+      manager = new SignLanguageManager(mockPlayer);
+
+      expect(manager.src).toBe('/sign/playlist-track.mp4');
+      expect(manager.isAvailable()).toBe(true);
+    });
+
     it('should return true when multiple sources are configured', () => {
       mockPlayer.options.signLanguageSources = {
         en: '/sign/en.mp4',

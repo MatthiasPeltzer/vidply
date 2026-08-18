@@ -997,6 +997,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
    */
   async ensureSignLanguageManager() {
     if (this.signLanguageManager) {
+      this.signLanguageManager.src = this.resolveSignLanguageSrc();
+      this.signLanguageManager.sources = this.resolveSignLanguageSources();
       return this.signLanguageManager;
     }
 
@@ -1018,11 +1020,26 @@ export class Player extends EventEmitter<PlayerEventMap> {
    * `ControlBar.hasSignLanguage()`.
    */
   hasSignLanguageContent(): boolean {
-    if (this.options.signLanguageSrc || this.signLanguageSrc) {
+    const src = this.signLanguageSrc ?? this.options.signLanguageSrc ?? null;
+    if (src && src.length > 0) {
       return true;
     }
-    return Boolean(this.options.signLanguageSources &&
-      Object.keys(this.options.signLanguageSources).length > 0);
+    const sources = (this.signLanguageSources && Object.keys(this.signLanguageSources).length > 0)
+      ? this.signLanguageSources
+      : (this.options.signLanguageSources || {});
+    return Object.keys(sources).length > 0;
+  }
+
+  private resolveSignLanguageSrc(): string | null {
+    const src = this.signLanguageSrc ?? this.options.signLanguageSrc ?? null;
+    return src && src.length > 0 ? src : null;
+  }
+
+  private resolveSignLanguageSources(): Record<string, string> {
+    if (this.signLanguageSources && Object.keys(this.signLanguageSources).length > 0) {
+      return { ...this.signLanguageSources };
+    }
+    return { ...(this.options.signLanguageSources || {}) };
   }
 
   /**
@@ -2016,6 +2033,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
       // Update sources from config FIRST (before hiding features)
       this.audioDescriptionSrc = config.audioDescriptionSrc || null;
       this.signLanguageSrc = config.signLanguageSrc || null;
+      this.signLanguageSources = config.signLanguageSources || {};
+      this.options.signLanguageSrc = config.signLanguageSrc || null;
+      this.options.signLanguageSources = config.signLanguageSources || {};
 
       // Update original source for toggling
       this.originalSrc = config.src;
@@ -2816,6 +2836,14 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     return manager.toggle();
+  }
+
+  async toggleSignLanguageInMainView() {
+    const manager = await this.ensureSignLanguageManager();
+    if (!manager) {
+      return;
+    }
+    return manager.toggleInMainView();
   }
 
   setupSignLanguageInteraction() {

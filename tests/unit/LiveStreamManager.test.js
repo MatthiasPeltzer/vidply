@@ -182,8 +182,43 @@ describe('LiveStreamManager', () => {
 
   it('evaluates dynamic DASH manifests', () => {
     manager.evaluateDash({ isDynamic: () => true });
-    manager.refresh();
     expect(player.state.isLive).toBe(true);
+  });
+
+  it('confirms VOD DASH from MANIFEST_LOADED payload before playback starts', () => {
+    manager.evaluateDash(null, { type: 'static' });
+    expect(manager.isConfirmedVod()).toBe(true);
+    expect(manager.shouldShowRestart()).toBe(true);
+    expect(manager.shouldShowForwardSkip()).toBe(true);
+  });
+
+  it('parses dynamic DASH manifest payloads', () => {
+    expect(manager.parseDashManifestLive({ type: 'dynamic' })).toBe(true);
+    expect(manager.parseDashManifestLive({ manifestInfo: { type: 'static' } })).toBe(false);
+  });
+
+  it('ignores isDynamic when it throws before playback initialization', () => {
+    manager.evaluateDash({
+      isDynamic: () => {
+        throw new Error('PLAYBACK_NOT_INITIALIZED_ERROR');
+      },
+    });
+    expect(manager.isConfirmedVod()).toBe(false);
+
+    manager.evaluateDash(null, { type: 'static' });
+    expect(manager.isConfirmedVod()).toBe(true);
+  });
+
+  it('confirms DASH VOD from finite duration once playback metadata is known', () => {
+    player.renderer = { rendererType: 'dash' };
+    Object.defineProperty(player.element, 'duration', {
+      configurable: true,
+      value: 120,
+    });
+    manager.refresh();
+
+    expect(manager.isConfirmedVod()).toBe(true);
+    expect(manager.shouldShowRestart()).toBe(true);
   });
 
   it('reports seconds behind the live edge', () => {
@@ -222,6 +257,31 @@ describe('LiveStreamManager', () => {
     player.options.initialDuration = 600;
     expect(manager.isConfirmedVod()).toBe(true);
     expect(manager.shouldShowForwardSkip()).toBe(true);
+  });
+
+  it('confirms VOD from finite HTML5 media duration under liveStream auto', () => {
+    Object.defineProperty(player.element, 'duration', {
+      configurable: true,
+      value: 265.9,
+    });
+    manager.refresh();
+
+    expect(manager.isConfirmedVod()).toBe(true);
+    expect(manager.shouldShowRestart()).toBe(true);
+    expect(manager.shouldShowForwardSkip()).toBe(true);
+  });
+
+  it('does not confirm VOD from finite duration on HLS before the playlist reports VOD', () => {
+    player.renderer = { rendererType: 'hls', hls: null };
+    Object.defineProperty(player.element, 'duration', {
+      configurable: true,
+      value: 600,
+    });
+    manager.refresh();
+
+    expect(manager.resolveIsLive()).toBe(false);
+    expect(manager.isConfirmedVod()).toBe(false);
+    expect(manager.shouldShowRestart()).toBe(false);
   });
 
   it('shows live catch-up forward only when behind the edge', () => {

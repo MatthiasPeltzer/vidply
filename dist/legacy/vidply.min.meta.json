@@ -156,7 +156,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 190433,
+      "bytes": 192938,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -423,7 +423,7 @@
       "format": "esm"
     },
     "src/core/LiveStreamManager.ts": {
-      "bytes": 9720,
+      "bytes": 11795,
       "imports": [
         {
           "path": "<runtime>",
@@ -648,7 +648,7 @@
       "format": "esm"
     },
     "src/core/SignLanguageManager.ts": {
-      "bytes": 48807,
+      "bytes": 49566,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -844,7 +844,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 39489,
+      "bytes": 39557,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -876,7 +876,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 113409,
+      "bytes": 114554,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -1052,7 +1052,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 64698,
+      "bytes": 64854,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1129,7 +1129,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1569495
+      "bytes": 1579618
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1212,7 +1212,7 @@
           "bytesInOutput": 14238
         },
         "src/core/SignLanguageManager.ts": {
-          "bytesInOutput": 46260
+          "bytesInOutput": 46957
         },
         "src/core/FloatingPlayerManager.ts": {
           "bytesInOutput": 22051
@@ -1233,7 +1233,7 @@
           "bytesInOutput": 36261
         },
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 38604
+          "bytesInOutput": 38726
         },
         "src/renderers/SoundCloudRenderer.ts": {
           "bytesInOutput": 13214
@@ -1242,10 +1242,10 @@
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 95796
+          "bytesInOutput": 96919
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 141409
+          "bytesInOutput": 143739
         },
         "src/utils/VideoFrameCapture.ts": {
           "bytesInOutput": 3154
@@ -1284,7 +1284,7 @@
           "bytesInOutput": 6290
         },
         "src/core/LiveStreamManager.ts": {
-          "bytesInOutput": 9616
+          "bytesInOutput": 11216
         },
         "src/core/MetadataAlertsManager.ts": {
           "bytesInOutput": 15264
@@ -1299,13 +1299,13 @@
           "bytesInOutput": 11541
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 48829
+          "bytesInOutput": 48989
         },
         "src/index.ts": {
           "bytesInOutput": 5385
         }
       },
-      "bytes": 922933
+      "bytes": 928965
     }
   }
 }

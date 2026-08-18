@@ -111,6 +111,8 @@ export class ControlBar {
     previewVideoInitialized: boolean = false;
     previewVideoReady: boolean = false;
     rightButtons!: HTMLElement;
+    leftButtons!: HTMLElement;
+    timeDisplayContainer: HTMLElement | null = null;
     overflowMenuButton: HTMLElement | null = null;
     /** Track of the currently open volume slider so a single pair of
      *  document listeners (installed once in {@link init}) can update the
@@ -857,6 +859,7 @@ export class ControlBar {
         const leftButtons = DOMUtils.createElement('div', {
             className: `${this.player.options.classPrefix}-controls-left`
         });
+        this.leftButtons = leftButtons;
 
         // Previous track button (if playlist)
         if (this.player.playlistManager) {
@@ -878,25 +881,19 @@ export class ControlBar {
             leftButtons.appendChild(this.createNextButton());
         }
 
-        // Rewind button (not shown in playlist mode)
-        if (!this.player.playlistManager) {
-            const rewindButton = this.createRewindButton();
-            leftButtons.appendChild(rewindButton);
-            this.controls.rewind = rewindButton;
-        }
+        // Rewind / forward — seek within the current track (including playlists)
+        const rewindButton = this.createRewindButton();
+        leftButtons.appendChild(rewindButton);
+        this.controls.rewind = rewindButton;
 
-        // Forward button (not shown in playlist mode; hidden at live edge)
-        if (!this.player.playlistManager) {
-            const forwardButton = this.createForwardButton();
-            leftButtons.appendChild(forwardButton);
-            this.controls.forward = forwardButton;
-        }
+        const forwardButton = this.createForwardButton();
+        leftButtons.appendChild(forwardButton);
+        this.controls.forward = forwardButton;
 
-        // Go live button (live streams only, shown when behind the live edge)
-        if (!this.player.playlistManager && this.player.options.goLiveButton) {
-            const goLiveButton = this.createGoLiveButton();
-            leftButtons.appendChild(goLiveButton);
-            this.controls.goLive = goLiveButton;
+        // Go live button — mounted at build for forced-live; otherwise injected when
+        // liveStream auto-detection confirms a live source (see syncLiveOnlyControls).
+        if (this.shouldMountLiveControlsAtBuild()) {
+            this.ensureGoLiveButton();
         }
 
         // Volume control
@@ -2255,6 +2252,67 @@ export class ControlBar {
         this.controls.durationVisual = durationVisual;
         this.controls.durationAccessible = durationAccessible;
 
+        this.timeDisplayContainer = container;
+        container.appendChild(this.controls.currentTimeDisplay);
+        container.appendChild(separator);
+        container.appendChild(this.controls.durationDisplay);
+
+        if (this.shouldMountLiveControlsAtBuild()) {
+            this.ensureLiveBadge();
+        }
+
+        return container;
+    }
+
+    /** Live-only UI is omitted entirely when liveStream is false. */
+    private liveControlsAllowed(): boolean {
+        return this.player.options.liveStream !== false;
+    }
+
+    /** Under liveStream auto, live controls are injected only after detection. */
+    private usesDynamicLiveControls(): boolean {
+        return this.player.options.liveStream === 'auto';
+    }
+
+    private shouldMountLiveControlsAtBuild(): boolean {
+        return this.liveControlsAllowed()
+            && !this.usesDynamicLiveControls()
+            && !this.player.playlistManager;
+    }
+
+    private ensureGoLiveButton(): void {
+        if (!this.liveControlsAllowed() || this.player.playlistManager || !this.player.options.goLiveButton) {
+            return;
+        }
+        if (this.controls.goLive) {
+            return;
+        }
+
+        const goLiveButton = this.createGoLiveButton();
+        const insertBefore = this.controls.mute ?? null;
+        if (insertBefore) {
+            this.leftButtons.insertBefore(goLiveButton, insertBefore);
+        } else {
+            const anchor = this.controls.forward ?? this.controls.rewind;
+            if (anchor?.nextSibling) {
+                this.leftButtons.insertBefore(goLiveButton, anchor.nextSibling);
+            } else {
+                this.leftButtons.appendChild(goLiveButton);
+            }
+        }
+        this.controls.goLive = goLiveButton;
+    }
+
+    private removeGoLiveButton(): void {
+        this.controls.goLive?.remove();
+        delete this.controls.goLive;
+    }
+
+    private ensureLiveBadge(): void {
+        if (!this.liveControlsAllowed() || this.controls.liveBadge || !this.timeDisplayContainer) {
+            return;
+        }
+
         const liveBadgeAccessible = DOMUtils.createElement('span', {
             className: 'vidply-sr-only',
             textContent: i18n.t('player.live')
@@ -2267,22 +2325,44 @@ export class ControlBar {
             textContent: i18n.t('player.live')
         });
         this.controls.liveBadge = DOMUtils.createElement('span', {
-            className: `${this.player.options.classPrefix}-live-indicator`,
-            attributes: {
-                'hidden': 'true'
-            }
+            className: `${this.player.options.classPrefix}-live-indicator`
         });
         this.controls.liveBadge.appendChild(liveBadgeVisual);
         this.controls.liveBadge.appendChild(liveBadgeAccessible);
         this.controls.liveBadgeVisual = liveBadgeVisual;
         this.controls.liveBadgeAccessible = liveBadgeAccessible;
+        this.timeDisplayContainer.appendChild(this.controls.liveBadge);
+    }
 
-        container.appendChild(this.controls.currentTimeDisplay);
-        container.appendChild(separator);
-        container.appendChild(this.controls.durationDisplay);
-        container.appendChild(this.controls.liveBadge);
+    private removeLiveBadge(): void {
+        this.controls.liveBadge?.remove();
+        delete this.controls.liveBadge;
+        delete this.controls.liveBadgeVisual;
+        delete this.controls.liveBadgeAccessible;
+    }
 
-        return container;
+    /**
+     * Mount or remove Go Live / LIVE badge for liveStream auto. Forced-live players
+     * mount at build; VOD-only players (liveStream false) never get these nodes.
+     */
+    private syncLiveOnlyControls(): void {
+        if (!this.liveControlsAllowed()) {
+            this.removeGoLiveButton();
+            this.removeLiveBadge();
+            return;
+        }
+
+        if (!this.usesDynamicLiveControls()) {
+            return;
+        }
+
+        if (this.player.state.isLive) {
+            this.ensureGoLiveButton();
+            this.ensureLiveBadge();
+        } else {
+            this.removeGoLiveButton();
+            this.removeLiveBadge();
+        }
     }
 
     createChaptersButton() {
@@ -3101,9 +3181,8 @@ export class ControlBar {
         DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
 
         button.addEventListener('click', () => {
-            if (this.player.signLanguageManager) {
-                this.player.signLanguageManager.toggleInMainView();
-            }
+            void this.player.toggleSignLanguageInMainView();
+            this.updateSignLanguageInMainViewButton();
         });
 
         this.controls.signLanguageMainView = button;
@@ -3670,9 +3749,6 @@ export class ControlBar {
         if (this.controls.durationDisplay) {
             this.controls.durationDisplay.hidden = isLive;
         }
-        if (this.controls.liveBadge) {
-            this.controls.liveBadge.hidden = !isLive;
-        }
 
         this.updateLiveTimeDisplay();
 
@@ -3687,6 +3763,8 @@ export class ControlBar {
     }
 
     updateLiveControls() {
+        this.syncLiveOnlyControls();
+
         const isLive = this.player.state.isLive;
         const behindLive = this.player.state.behindLive;
         const prefix = this.player.options.classPrefix;

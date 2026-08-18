@@ -339,6 +339,8 @@ var ControlBar = class {
   previewVideoInitialized = false;
   previewVideoReady = false;
   rightButtons;
+  leftButtons;
+  timeDisplayContainer = null;
   overflowMenuButton = null;
   /** Track of the currently open volume slider so a single pair of
    *  document listeners (installed once in {@link init}) can update the
@@ -885,6 +887,7 @@ var ControlBar = class {
     const leftButtons = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-controls-left`
     });
+    this.leftButtons = leftButtons;
     if (this.player.playlistManager) {
       leftButtons.appendChild(this.createPreviousButton());
     }
@@ -897,20 +900,14 @@ var ControlBar = class {
     if (this.player.playlistManager) {
       leftButtons.appendChild(this.createNextButton());
     }
-    if (!this.player.playlistManager) {
-      const rewindButton = this.createRewindButton();
-      leftButtons.appendChild(rewindButton);
-      this.controls.rewind = rewindButton;
-    }
-    if (!this.player.playlistManager) {
-      const forwardButton = this.createForwardButton();
-      leftButtons.appendChild(forwardButton);
-      this.controls.forward = forwardButton;
-    }
-    if (!this.player.playlistManager && this.player.options.goLiveButton) {
-      const goLiveButton = this.createGoLiveButton();
-      leftButtons.appendChild(goLiveButton);
-      this.controls.goLive = goLiveButton;
+    const rewindButton = this.createRewindButton();
+    leftButtons.appendChild(rewindButton);
+    this.controls.rewind = rewindButton;
+    const forwardButton = this.createForwardButton();
+    leftButtons.appendChild(forwardButton);
+    this.controls.forward = forwardButton;
+    if (this.shouldMountLiveControlsAtBuild()) {
+      this.ensureGoLiveButton();
     }
     if (this.player.options.volumeControl) {
       if (this.isTouchDevice()) {
@@ -1882,6 +1879,55 @@ var ControlBar = class {
     this.controls.durationDisplay.appendChild(durationAccessible);
     this.controls.durationVisual = durationVisual;
     this.controls.durationAccessible = durationAccessible;
+    this.timeDisplayContainer = container;
+    container.appendChild(this.controls.currentTimeDisplay);
+    container.appendChild(separator);
+    container.appendChild(this.controls.durationDisplay);
+    if (this.shouldMountLiveControlsAtBuild()) {
+      this.ensureLiveBadge();
+    }
+    return container;
+  }
+  /** Live-only UI is omitted entirely when liveStream is false. */
+  liveControlsAllowed() {
+    return this.player.options.liveStream !== false;
+  }
+  /** Under liveStream auto, live controls are injected only after detection. */
+  usesDynamicLiveControls() {
+    return this.player.options.liveStream === "auto";
+  }
+  shouldMountLiveControlsAtBuild() {
+    return this.liveControlsAllowed() && !this.usesDynamicLiveControls() && !this.player.playlistManager;
+  }
+  ensureGoLiveButton() {
+    if (!this.liveControlsAllowed() || this.player.playlistManager || !this.player.options.goLiveButton) {
+      return;
+    }
+    if (this.controls.goLive) {
+      return;
+    }
+    const goLiveButton = this.createGoLiveButton();
+    const insertBefore = this.controls.mute ?? null;
+    if (insertBefore) {
+      this.leftButtons.insertBefore(goLiveButton, insertBefore);
+    } else {
+      const anchor = this.controls.forward ?? this.controls.rewind;
+      if (anchor?.nextSibling) {
+        this.leftButtons.insertBefore(goLiveButton, anchor.nextSibling);
+      } else {
+        this.leftButtons.appendChild(goLiveButton);
+      }
+    }
+    this.controls.goLive = goLiveButton;
+  }
+  removeGoLiveButton() {
+    this.controls.goLive?.remove();
+    delete this.controls.goLive;
+  }
+  ensureLiveBadge() {
+    if (!this.liveControlsAllowed() || this.controls.liveBadge || !this.timeDisplayContainer) {
+      return;
+    }
     const liveBadgeAccessible = DOMUtils.createElement("span", {
       className: "vidply-sr-only",
       textContent: i18n.t("player.live")
@@ -1894,20 +1940,40 @@ var ControlBar = class {
       textContent: i18n.t("player.live")
     });
     this.controls.liveBadge = DOMUtils.createElement("span", {
-      className: `${this.player.options.classPrefix}-live-indicator`,
-      attributes: {
-        "hidden": "true"
-      }
+      className: `${this.player.options.classPrefix}-live-indicator`
     });
     this.controls.liveBadge.appendChild(liveBadgeVisual);
     this.controls.liveBadge.appendChild(liveBadgeAccessible);
     this.controls.liveBadgeVisual = liveBadgeVisual;
     this.controls.liveBadgeAccessible = liveBadgeAccessible;
-    container.appendChild(this.controls.currentTimeDisplay);
-    container.appendChild(separator);
-    container.appendChild(this.controls.durationDisplay);
-    container.appendChild(this.controls.liveBadge);
-    return container;
+    this.timeDisplayContainer.appendChild(this.controls.liveBadge);
+  }
+  removeLiveBadge() {
+    this.controls.liveBadge?.remove();
+    delete this.controls.liveBadge;
+    delete this.controls.liveBadgeVisual;
+    delete this.controls.liveBadgeAccessible;
+  }
+  /**
+   * Mount or remove Go Live / LIVE badge for liveStream auto. Forced-live players
+   * mount at build; VOD-only players (liveStream false) never get these nodes.
+   */
+  syncLiveOnlyControls() {
+    if (!this.liveControlsAllowed()) {
+      this.removeGoLiveButton();
+      this.removeLiveBadge();
+      return;
+    }
+    if (!this.usesDynamicLiveControls()) {
+      return;
+    }
+    if (this.player.state.isLive) {
+      this.ensureGoLiveButton();
+      this.ensureLiveBadge();
+    } else {
+      this.removeGoLiveButton();
+      this.removeLiveBadge();
+    }
   }
   createChaptersButton() {
     const button = DOMUtils.createElement("button", {
@@ -2511,9 +2577,8 @@ var ControlBar = class {
     button.appendChild(createIconElement("signLanguage"));
     DOMUtils.attachTooltip(button, ariaLabel, this.player.options.classPrefix);
     button.addEventListener("click", () => {
-      if (this.player.signLanguageManager) {
-        this.player.signLanguageManager.toggleInMainView();
-      }
+      void this.player.toggleSignLanguageInMainView();
+      this.updateSignLanguageInMainViewButton();
     });
     this.controls.signLanguageMainView = button;
     return button;
@@ -2970,9 +3035,6 @@ var ControlBar = class {
     if (this.controls.durationDisplay) {
       this.controls.durationDisplay.hidden = isLive;
     }
-    if (this.controls.liveBadge) {
-      this.controls.liveBadge.hidden = !isLive;
-    }
     this.updateLiveTimeDisplay();
     if (!isLive && this.controls.durationVisual) {
       const duration = this.player.state.duration;
@@ -2983,6 +3045,7 @@ var ControlBar = class {
     }
   }
   updateLiveControls() {
+    this.syncLiveOnlyControls();
     const isLive = this.player.state.isLive;
     const behindLive = this.player.state.behindLive;
     const prefix = this.player.options.classPrefix;
@@ -5038,23 +5101,42 @@ var LiveStreamManager = class {
     if (playlistLive === null) {
       return;
     }
-    this.sourceReportsLive = playlistLive;
-    this.refresh();
+    this.applySourceLiveReport(playlistLive);
   }
-  /** Called by DASHRenderer after the MPD is loaded. */
-  evaluateDash(dash) {
+  /** Called by DASHRenderer after the MPD is loaded (and again once playback starts). */
+  evaluateDash(dash, manifestData) {
+    const fromManifest = this.parseDashManifestLive(manifestData);
+    if (fromManifest !== null) {
+      this.applySourceLiveReport(fromManifest);
+      return;
+    }
     if (!dash || typeof dash.isDynamic !== "function") {
       return;
     }
-    this.sourceReportsLive = dash.isDynamic();
-    this.refresh();
+    try {
+      this.applySourceLiveReport(dash.isDynamic());
+    } catch {
+    }
   }
-  /** Current manifest/playlist live hint from the active renderer, if known. */
-  getSourceReportsLive() {
-    return this.sourceReportsLive;
+  /**
+   * Infer live/VOD from a DASH MPD payload (MANIFEST_LOADED event data).
+   * Returns null when the manifest type is not available.
+   */
+  parseDashManifestLive(manifestData) {
+    if (!manifestData || typeof manifestData !== "object") {
+      return null;
+    }
+    const data = manifestData;
+    const type = data.type ?? data.manifestInfo?.type;
+    if (type === "static") {
+      return false;
+    }
+    if (type === "dynamic") {
+      return true;
+    }
+    return null;
   }
-  /** Called when a renderer learns live/VOD from a fetched level/media playlist. */
-  reportSourceLive(isLive) {
+  applySourceLiveReport(isLive) {
     if (this.sourceReportsLive === isLive) {
       this.refresh();
       this.player.controlBar?.updateLiveControls();
@@ -5063,6 +5145,14 @@ var LiveStreamManager = class {
     this.sourceReportsLive = isLive;
     this.refresh();
     this.player.controlBar?.updateLiveControls();
+  }
+  /** Current manifest/playlist live hint from the active renderer, if known. */
+  getSourceReportsLive() {
+    return this.sourceReportsLive;
+  }
+  /** Called when a renderer learns live/VOD from a fetched level/media playlist. */
+  reportSourceLive(isLive) {
+    this.applySourceLiveReport(isLive);
   }
   /**
    * Infer live/VOD from a fetched HLS media playlist before hls.js loads level details.
@@ -5103,7 +5193,24 @@ var LiveStreamManager = class {
     if (Number.isFinite(initialDuration) && initialDuration > 0) {
       return true;
     }
+    if (this.isPlainHtml5Renderer() && this.hasFiniteMediaDuration() && !this.resolveIsLive()) {
+      return true;
+    }
+    if (this.isDashRenderer() && this.sourceReportsLive !== true && this.hasFiniteMediaDuration() && !this.resolveIsLive()) {
+      return true;
+    }
     return false;
+  }
+  isDashRenderer() {
+    return this.player.renderer?.rendererType === "dash";
+  }
+  isPlainHtml5Renderer() {
+    const renderer = this.player.renderer;
+    return !renderer || renderer.rendererType === "html5";
+  }
+  hasFiniteMediaDuration() {
+    const media = this.player.element;
+    return Boolean(media && Number.isFinite(media.duration) && media.duration > 0);
   }
   /** VOD skip-forward, or live catch-up when behind the edge. */
   shouldShowForwardSkip() {
@@ -6265,7 +6372,7 @@ async function loadAudioDescriptionManager() {
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-6H6U5DCR.js");
+    const module = await import("./vidply.SignLanguageManager-ZEXL5A4L.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
@@ -7018,6 +7125,8 @@ var Player = class _Player extends EventEmitter {
    */
   async ensureSignLanguageManager() {
     if (this.signLanguageManager) {
+      this.signLanguageManager.src = this.resolveSignLanguageSrc();
+      this.signLanguageManager.sources = this.resolveSignLanguageSources();
       return this.signLanguageManager;
     }
     if (!this.hasSignLanguageContent()) {
@@ -7033,10 +7142,22 @@ var Player = class _Player extends EventEmitter {
    * `ControlBar.hasSignLanguage()`.
    */
   hasSignLanguageContent() {
-    if (this.options.signLanguageSrc || this.signLanguageSrc) {
+    const src = this.signLanguageSrc ?? this.options.signLanguageSrc ?? null;
+    if (src && src.length > 0) {
       return true;
     }
-    return Boolean(this.options.signLanguageSources && Object.keys(this.options.signLanguageSources).length > 0);
+    const sources = this.signLanguageSources && Object.keys(this.signLanguageSources).length > 0 ? this.signLanguageSources : this.options.signLanguageSources || {};
+    return Object.keys(sources).length > 0;
+  }
+  resolveSignLanguageSrc() {
+    const src = this.signLanguageSrc ?? this.options.signLanguageSrc ?? null;
+    return src && src.length > 0 ? src : null;
+  }
+  resolveSignLanguageSources() {
+    if (this.signLanguageSources && Object.keys(this.signLanguageSources).length > 0) {
+      return { ...this.signLanguageSources };
+    }
+    return { ...this.options.signLanguageSources || {} };
   }
   /**
    * Lazy-load and instantiate the floating (in-page PiP) manager. Only
@@ -7522,7 +7643,7 @@ var Player = class _Player extends EventEmitter {
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {
-        const module = await import("./vidply.DASHRenderer-PP4LAZIU.js");
+        const module = await import("./vidply.DASHRenderer-CVKGP64B.js");
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
@@ -7770,6 +7891,9 @@ var Player = class _Player extends EventEmitter {
       const wasAudioDescriptionEnabled = this.state.audioDescriptionEnabled;
       this.audioDescriptionSrc = config.audioDescriptionSrc || null;
       this.signLanguageSrc = config.signLanguageSrc || null;
+      this.signLanguageSources = config.signLanguageSources || {};
+      this.options.signLanguageSrc = config.signLanguageSrc || null;
+      this.options.signLanguageSources = config.signLanguageSources || {};
       this.originalSrc = config.src;
       if (this.audioDescriptionManager) {
         this.audioDescriptionManager.updateSources(config.audioDescriptionSrc);
@@ -8361,6 +8485,13 @@ var Player = class _Player extends EventEmitter {
       return result;
     }
     return manager.toggle();
+  }
+  async toggleSignLanguageInMainView() {
+    const manager = await this.ensureSignLanguageManager();
+    if (!manager) {
+      return;
+    }
+    return manager.toggleInMainView();
   }
   setupSignLanguageInteraction() {
     return this.signLanguageManager?._setupInteraction();
@@ -9091,6 +9222,8 @@ var PlaylistManager = class {
       this.player.audioDescriptionSrc = track.audioDescriptionSrc || null;
       this.player.signLanguageSrc = track.signLanguageSrc || null;
       this.player.signLanguageSources = track.signLanguageSources || {};
+      this.player.options.signLanguageSrc = track.signLanguageSrc || null;
+      this.player.options.signLanguageSources = track.signLanguageSources || {};
       if (track.duration && Number(track.duration) > 0) {
         this.player.state.duration = Number(track.duration);
       }
