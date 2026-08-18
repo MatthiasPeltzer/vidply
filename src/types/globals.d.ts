@@ -306,6 +306,8 @@ interface SCWidget {
   getPosition(callback: (position: number) => void): void;
   isPaused(callback: (paused: boolean) => void): void;
   getCurrentSound(callback: (sound: unknown) => void): void;
+  getCurrentSoundIndex(callback: (index: number) => void): void;
+  getSounds(callback: (sounds: unknown[] | null) => void): void;
   skip(index: number): void;
   load(url: string, options?: Record<string, unknown>): void;
 }

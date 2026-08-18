@@ -860,7 +860,7 @@
       "format": "esm"
     },
     "src/renderers/SoundCloudRenderer.ts": {
-      "bytes": 13346,
+      "bytes": 14460,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -1129,7 +1129,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1581436
+      "bytes": 1583066
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1236,7 +1236,7 @@
           "bytesInOutput": 38726
         },
         "src/renderers/SoundCloudRenderer.ts": {
-          "bytesInOutput": 13214
+          "bytesInOutput": 14184
         },
         "src/utils/EventEmitter.ts": {
           "bytesInOutput": 1054
@@ -1305,7 +1305,7 @@
           "bytesInOutput": 5385
         }
       },
-      "bytes": 930355
+      "bytes": 931325
     }
   }
 }

@@ -275,19 +275,19 @@ export class SoundCloudRenderer implements Renderer {
     });
 
     widget.bind(Events.FINISH, () => {
-      this.player.state.playing = false;
-      this.player.state.paused = true;
-      this.player.state.ended = true;
-      this.player.emit('ended');
-
-      if (this.player.options.onEnded) {
-        this.player.options.onEnded.call(this.player);
+      // SoundCloud sets fire FINISH after every track. Only signal playback
+      // ended to VidPly (and thus the mixed-media playlist) once the last
+      // track in the set completes — the widget auto-advances between tracks.
+      if (this.isPlaylist()) {
+        this.isLastTrackInSet((isLast) => {
+          if (isLast) {
+            this.handlePlaybackFinished();
+          }
+        });
+        return;
       }
 
-      if (this.player.options.loop) {
-        this.seek(0);
-        this.play();
-      }
+      this.handlePlaybackFinished();
     });
 
     widget.bind(Events.PLAY_PROGRESS, (...args: unknown[]) => {
@@ -316,6 +316,42 @@ export class SoundCloudRenderer implements Renderer {
         this.player.emit('progress', buffered);
       }
     });
+  }
+
+  /**
+   * For SoundCloud sets, check whether the track that just finished is the
+   * last one in the embedded playlist.
+   */
+  private isLastTrackInSet(callback: (isLast: boolean) => void): void {
+    const widget = this.widget;
+    if (!widget) {
+      callback(true);
+      return;
+    }
+
+    widget.getCurrentSoundIndex((currentIndex: number) => {
+      widget.getSounds((sounds: unknown[] | null) => {
+        const count = Array.isArray(sounds) ? sounds.length : 0;
+        callback(count === 0 || currentIndex >= count - 1);
+      });
+    });
+  }
+
+  /** Map a completed SoundCloud playback to VidPly's ended state. */
+  private handlePlaybackFinished(): void {
+    this.player.state.playing = false;
+    this.player.state.paused = true;
+    this.player.state.ended = true;
+    this.player.emit('ended');
+
+    if (this.player.options.onEnded) {
+      this.player.options.onEnded.call(this.player);
+    }
+
+    if (this.player.options.loop) {
+      this.seek(0);
+      this.play();
+    }
   }
 
   play() {

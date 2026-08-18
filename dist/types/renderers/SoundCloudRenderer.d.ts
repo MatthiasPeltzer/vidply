@@ -38,6 +38,13 @@ export declare class SoundCloudRenderer implements Renderer {
     createIframe(): void;
     initializeWidget(): Promise<void>;
     attachEvents(): void;
+    /**
+     * For SoundCloud sets, check whether the track that just finished is the
+     * last one in the embedded playlist.
+     */
+    private isLastTrackInSet;
+    /** Map a completed SoundCloud playback to VidPly's ended state. */
+    private handlePlaybackFinished;
     play(): void;
     pause(): void;
     seek(time: number): void;

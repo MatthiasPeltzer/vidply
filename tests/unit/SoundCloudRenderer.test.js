@@ -54,7 +54,9 @@ describe('SoundCloudRenderer', () => {
       seekTo: vi.fn(),
       setVolume: vi.fn(),
       getVolume: vi.fn((callback) => callback(50)),
-      getCurrentSound: vi.fn((callback) => callback({ duration: 180000 }))
+      getCurrentSound: vi.fn((callback) => callback({ duration: 180000 })),
+      getCurrentSoundIndex: vi.fn((callback) => callback(0)),
+      getSounds: vi.fn((callback) => callback([{ duration: 180000 }]))
     };
 
     window.SC = {
@@ -487,6 +489,44 @@ describe('SoundCloudRenderer', () => {
       
       expect(mockWidget.seekTo).toHaveBeenCalledWith(0);
       expect(mockWidget.play).toHaveBeenCalled();
+    });
+
+    it('should not emit ended when an intermediate set track finishes', () => {
+      renderer.trackUrl = 'https://soundcloud.com/artist/sets/playlist-name';
+      mockWidget.getCurrentSoundIndex.mockImplementation((callback) => callback(0));
+      mockWidget.getSounds.mockImplementation((callback) => callback([
+        { duration: 180000 },
+        { duration: 200000 },
+        { duration: 150000 }
+      ]));
+      renderer.attachEvents();
+
+      const finishCall = mockWidget.bind.mock.calls.find(
+        call => call[0] === window.SC.Widget.Events.FINISH
+      );
+      finishCall[1]();
+
+      expect(mockPlayer.emit).not.toHaveBeenCalledWith('ended');
+      expect(mockPlayer.state.ended).toBe(false);
+    });
+
+    it('should emit ended when the last track in a set finishes', () => {
+      renderer.trackUrl = 'https://soundcloud.com/artist/sets/playlist-name';
+      mockWidget.getCurrentSoundIndex.mockImplementation((callback) => callback(2));
+      mockWidget.getSounds.mockImplementation((callback) => callback([
+        { duration: 180000 },
+        { duration: 200000 },
+        { duration: 150000 }
+      ]));
+      renderer.attachEvents();
+
+      const finishCall = mockWidget.bind.mock.calls.find(
+        call => call[0] === window.SC.Widget.Events.FINISH
+      );
+      finishCall[1]();
+
+      expect(mockPlayer.state.ended).toBe(true);
+      expect(mockPlayer.emit).toHaveBeenCalledWith('ended');
     });
 
     it('should handle PLAY_PROGRESS event', () => {

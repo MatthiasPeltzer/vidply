@@ -1,5 +1,5 @@
 /*!
- * VidPly v1.2.11 - Universal, Accessible Video Player
+ * VidPly v1.2.12 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
@@ -12184,17 +12184,15 @@
             }
           });
           widget.bind(Events.FINISH, () => {
-            this.player.state.playing = false;
-            this.player.state.paused = true;
-            this.player.state.ended = true;
-            this.player.emit("ended");
-            if (this.player.options.onEnded) {
-              this.player.options.onEnded.call(this.player);
+            if (this.isPlaylist()) {
+              this.isLastTrackInSet((isLast) => {
+                if (isLast) {
+                  this.handlePlaybackFinished();
+                }
+              });
+              return;
             }
-            if (this.player.options.loop) {
-              this.seek(0);
-              this.play();
-            }
+            this.handlePlaybackFinished();
           });
           widget.bind(Events.PLAY_PROGRESS, (...args) => {
             const data = args[0];
@@ -12217,6 +12215,37 @@
               this.player.emit("progress", buffered);
             }
           });
+        }
+        /**
+         * For SoundCloud sets, check whether the track that just finished is the
+         * last one in the embedded playlist.
+         */
+        isLastTrackInSet(callback) {
+          const widget = this.widget;
+          if (!widget) {
+            callback(true);
+            return;
+          }
+          widget.getCurrentSoundIndex((currentIndex) => {
+            widget.getSounds((sounds) => {
+              const count = Array.isArray(sounds) ? sounds.length : 0;
+              callback(count === 0 || currentIndex >= count - 1);
+            });
+          });
+        }
+        /** Map a completed SoundCloud playback to VidPly's ended state. */
+        handlePlaybackFinished() {
+          this.player.state.playing = false;
+          this.player.state.paused = true;
+          this.player.state.ended = true;
+          this.player.emit("ended");
+          if (this.player.options.onEnded) {
+            this.player.options.onEnded.call(this.player);
+          }
+          if (this.player.options.loop) {
+            this.seek(0);
+            this.play();
+          }
         }
         play() {
           if (this.isReady && this.widget) {
