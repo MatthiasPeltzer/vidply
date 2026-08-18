@@ -246,7 +246,7 @@
         flex-direction: column;
         font-size: 2rem;
       }
-      
+
       h1 a {
         font-size: 24px;
       }
@@ -258,7 +258,7 @@
     <nav aria-label="Breadcrumb">
       <a href="demo.html" class="back-link">← Back to Main Demo</a>
     </nav>
-    
+
     <header>
       <h1>
         <a href="index.html">
@@ -267,7 +267,7 @@
         </a>
       </h1>
       <p class="subtitle">One playlist. Multiple sources. Seamless playback.</p>
-      
+
       <div class="media-types" aria-label="Supported media types">
         <span class="media-badge">MP4 Video</span>
         <span class="media-badge">MP3 Audio</span>
@@ -276,7 +276,7 @@
         <span class="media-badge">Vimeo</span>
         <span class="media-badge">SoundCloud</span>
       </div>
-      
+
       <div class="demo-links">
         <a href="playlist-video.html" class="demo-link">Video Playlist</a>
         <a href="playlist-audio.html" class="demo-link">Audio Playlist</a>
@@ -345,11 +345,11 @@
                  "description": "Vimeo content played via Vimeo Player API with full playback control."
                },
                {
-                 "src": "https://soundcloud.com/pellerhead/sets/joy-division-cover",
+                 "src": "https://soundcloud.com/pellerhead/sets/hopefully-wrong",
                  "title": "SoundCloud Audio",
                  "artist": "SoundCloud Renderer",
-                 "poster": "media/joydivision.png",
-                 "description": "Joy Division cover playlist from SoundCloud via Widget API."
+                 "poster": "media/pellerhead.jpg",
+                 "description": "I hope I am not wrong when I think about releasing a new indie album that features a variety of different styles, yet still comes together as a cohesive whole."
                }
              ]'
              data-playlist-auto-advance="true"
@@ -362,7 +362,7 @@
       <section aria-labelledby="how-it-works">
         <h2 id="how-it-works">How It Works</h2>
         <p>VidPly automatically detects the media source type and loads the appropriate renderer on-the-fly:</p>
-        
+
         <div class="feature-grid">
           <div class="feature-card">
             <h3>Smart Detection</h3>
@@ -476,7 +476,7 @@ const playlist = new PlaylistManager(player, { tracks });</code></pre>
     player.on('ready', () => {
       const playlistData = hostElement.getAttribute('data-playlist');
       const tracks = playlistData ? JSON.parse(playlistData) : [];
-      
+
       const playlistOptions = {
         autoAdvance: hostElement.getAttribute('data-playlist-auto-advance') !== 'false',
         autoPlayFirst: hostElement.getAttribute('data-playlist-auto-play-first') !== 'false',
@@ -491,21 +491,21 @@ const playlist = new PlaylistManager(player, { tracks });</code></pre>
       };
 
       playlist = new PlaylistManager(player, playlistOptions);
-      
+
       // Patch handleTrackError to ignore errors for external renderer tracks
       // This prevents auto-advance cascade when switching between renderer types
       // We need to remove the old listener and add a new patched one
       const originalBoundHandler = playlist.handleTrackError;
       player.off('error', originalBoundHandler);
-      
+
       playlist.handleTrackError = function(e) {
         const currentTrack = this.getCurrentTrack();
         if (currentTrack && currentTrack.src) {
           const src = currentTrack.src;
-          const isExternalRenderer = src.includes('youtube.com') || 
-                                      src.includes('youtu.be') || 
-                                      src.includes('vimeo.com') || 
-                                      src.includes('soundcloud.com') || 
+          const isExternalRenderer = src.includes('youtube.com') ||
+                                      src.includes('youtu.be') ||
+                                      src.includes('vimeo.com') ||
+                                      src.includes('soundcloud.com') ||
                                       src.includes('.m3u8');
           if (isExternalRenderer) {
             // Silently ignore errors for external renderer tracks
@@ -520,7 +520,7 @@ const playlist = new PlaylistManager(player, { tracks });</code></pre>
           }, 1000);
         }
       }.bind(playlist);
-      
+
       // Add the patched handler
       player.on('error', playlist.handleTrackError);
 
@@ -529,16 +529,16 @@ const playlist = new PlaylistManager(player, { tracks });</code></pre>
       // Listen for track changes
       player.on('playlisttrackchange', (e) => {
         console.log(`🎵 Now playing: ${e.item.title} (${rendererTypes[e.index]} renderer)`);
-        
+
         // Update document title
         document.title = `${e.item.title} - VidPly Mixed Playlist`;
-        
+
         // Update active badge
         mediaBadges.forEach((badge, i) => {
           badge.classList.toggle('active', i === e.index);
         });
       });
-      
+
       // Listen for source changes to log renderer info
       player.on('sourcechange', (config) => {
         console.log('Source changed:', config.src);
