@@ -185,6 +185,10 @@ export class PlaylistManager {
     if (src.includes('soundcloud.com') || src.includes('api.soundcloud.com')) {
       return 'soundcloud';
     }
+    const normalizedType = (track.type || '').toLowerCase();
+    if (normalizedType === 'youtube' || normalizedType === 'vimeo' || normalizedType === 'soundcloud') {
+      return normalizedType;
+    }
     if (src.includes('.m3u8')) {
       return 'hls';
     }
@@ -1431,15 +1435,63 @@ export class PlaylistManager {
   }
 
   /**
+   * Whether a playlist track uses an external embed renderer (not local HTML5 media).
+   */
+  private isExternalEmbedTrack(track: PlaylistTrack): boolean {
+    const mediaType = this.getTrackMediaType(track);
+    return mediaType === 'youtube' || mediaType === 'vimeo' || mediaType === 'soundcloud';
+  }
+
+  /**
+   * Hide every track-artwork node in the current playlist layout.
+   */
+  private hideTrackArtworkElements(clearBackground = false): void {
+    const roots = [this.playlistMainElement, this.container, this.hostElement].filter(
+      (root): root is HTMLElement => root instanceof HTMLElement
+    );
+
+    roots.forEach((root) => {
+      root.querySelectorAll('.vidply-track-artwork').forEach((el) => {
+        if (!(el instanceof HTMLElement)) {
+          return;
+        }
+        if (clearBackground) {
+          el.style.backgroundImage = '';
+        }
+        el.style.display = 'none';
+      });
+    });
+
+    if (this.trackArtworkElement) {
+      if (clearBackground) {
+        this.trackArtworkElement.style.backgroundImage = '';
+      }
+      this.trackArtworkElement.style.display = 'none';
+    }
+  }
+
+  /**
    * Update track artwork display (for audio playlists)
    */
   updateTrackArtwork(track: PlaylistTrack) {
+    // External embeds use the privacy overlay poster — never duplicate it in track artwork.
+    if (this.isExternalEmbedTrack(track)) {
+      this.hideTrackArtworkElements(true);
+      return;
+    }
+
+    // Privacy consent may force-hide artwork while the overlay is visible.
+    const forcedHidden = this.trackArtworkElement?.getAttribute('data-vidply-artwork-forced-hidden') === 'true'
+      || this.container?.querySelector('.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]') instanceof HTMLElement
+      || this.playlistMainElement?.querySelector('.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]') instanceof HTMLElement;
+    if (forcedHidden) {
+      return;
+    }
+
     // Only show artwork for audio players.
     // In mixed playlists we may recreate from <video> -> <audio> later, so ensure the element exists lazily.
     if (this.player?.element?.tagName !== 'AUDIO') {
-      if (this.trackArtworkElement) {
-        this.trackArtworkElement.style.display = 'none';
-      }
+      this.hideTrackArtworkElements();
       return;
     }
 
@@ -1477,7 +1529,6 @@ export class PlaylistManager {
     const safeBackground = this.resolveTrackPosterForArtwork(track.poster);
     if (safeBackground) {
       this.trackArtworkElement.style.backgroundImage = safeBackground;
-      this.trackArtworkElement.removeAttribute('data-vidply-artwork-forced-hidden');
       this.trackArtworkElement.removeAttribute('data-vidply-hidden');
       this.trackArtworkElement.style.removeProperty('display');
       this.trackArtworkElement.style.display = 'block';

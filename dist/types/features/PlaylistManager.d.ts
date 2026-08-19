@@ -250,6 +250,14 @@ export declare class PlaylistManager {
      */
     private finalizeTrackArtworkForTrack;
     /**
+     * Whether a playlist track uses an external embed renderer (not local HTML5 media).
+     */
+    private isExternalEmbedTrack;
+    /**
+     * Hide every track-artwork node in the current playlist layout.
+     */
+    private hideTrackArtworkElements;
+    /**
      * Update track artwork display (for audio playlists)
      */
     updateTrackArtwork(track: PlaylistTrack): void;

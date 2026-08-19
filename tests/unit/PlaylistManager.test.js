@@ -322,6 +322,51 @@ describe('PlaylistManager', () => {
       expect(main.firstElementChild).toBe(artwork);
     });
 
+    it('does not show track artwork for external embed tracks on an audio host', () => {
+      mockPlayer.element = document.createElement('audio');
+      manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'right' });
+
+      const main = container.querySelector('.vidply-playlist-main');
+      const artwork = document.createElement('div');
+      artwork.className = 'vidply-track-artwork';
+      artwork.style.display = 'block';
+      artwork.style.backgroundImage = 'url("/fileadmin/poster.jpg")';
+      main?.prepend(artwork);
+      manager.trackArtworkElement = artwork;
+
+      manager.updateTrackArtwork({
+        title: 'Vimeo track',
+        type: 'vimeo',
+        src: 'https://vimeo.com/72632269',
+        poster: '/fileadmin/vimeo-poster.jpg',
+      });
+
+      expect(artwork.style.display).toBe('none');
+      expect(artwork.style.backgroundImage).toBe('');
+    });
+
+    it('hides track artwork for external embed tracks even on a video host', () => {
+      mockPlayer.element = document.createElement('video');
+      manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'right' });
+
+      const main = container.querySelector('.vidply-playlist-main');
+      const artwork = document.createElement('div');
+      artwork.className = 'vidply-track-artwork';
+      artwork.style.display = 'block';
+      artwork.style.backgroundImage = 'url("/fileadmin/poster.jpg")';
+      main?.prepend(artwork);
+
+      manager.updateTrackArtwork({
+        title: 'SoundCloud track',
+        type: 'soundcloud',
+        src: 'https://soundcloud.com/example/track',
+        poster: '/fileadmin/sc-poster.jpg',
+      });
+
+      expect(artwork.style.display).toBe('none');
+      expect(artwork.style.backgroundImage).toBe('');
+    });
+
     it('rebuilds the media wrapper after player recreation', () => {
       manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'right' });
       expect(container.querySelector('.vidply-playlist-main')).not.toBeNull();

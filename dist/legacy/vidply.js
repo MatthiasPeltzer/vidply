@@ -21596,6 +21596,10 @@
       if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) {
         return "soundcloud";
       }
+      const normalizedType = (track.type || "").toLowerCase();
+      if (normalizedType === "youtube" || normalizedType === "vimeo" || normalizedType === "soundcloud") {
+        return normalizedType;
+      }
       if (src.includes(".m3u8")) {
         return "hls";
       }
@@ -22503,14 +22507,52 @@
       });
     }
     /**
+     * Whether a playlist track uses an external embed renderer (not local HTML5 media).
+     */
+    isExternalEmbedTrack(track) {
+      const mediaType = this.getTrackMediaType(track);
+      return mediaType === "youtube" || mediaType === "vimeo" || mediaType === "soundcloud";
+    }
+    /**
+     * Hide every track-artwork node in the current playlist layout.
+     */
+    hideTrackArtworkElements(clearBackground = false) {
+      const roots = [this.playlistMainElement, this.container, this.hostElement].filter(
+        (root) => root instanceof HTMLElement
+      );
+      roots.forEach((root) => {
+        root.querySelectorAll(".vidply-track-artwork").forEach((el) => {
+          if (!(el instanceof HTMLElement)) {
+            return;
+          }
+          if (clearBackground) {
+            el.style.backgroundImage = "";
+          }
+          el.style.display = "none";
+        });
+      });
+      if (this.trackArtworkElement) {
+        if (clearBackground) {
+          this.trackArtworkElement.style.backgroundImage = "";
+        }
+        this.trackArtworkElement.style.display = "none";
+      }
+    }
+    /**
      * Update track artwork display (for audio playlists)
      */
     updateTrackArtwork(track) {
-      var _a, _b, _c;
-      if (((_b = (_a = this.player) == null ? void 0 : _a.element) == null ? void 0 : _b.tagName) !== "AUDIO") {
-        if (this.trackArtworkElement) {
-          this.trackArtworkElement.style.display = "none";
-        }
+      var _a, _b, _c, _d, _e, _f;
+      if (this.isExternalEmbedTrack(track)) {
+        this.hideTrackArtworkElements(true);
+        return;
+      }
+      const forcedHidden = ((_a = this.trackArtworkElement) == null ? void 0 : _a.getAttribute("data-vidply-artwork-forced-hidden")) === "true" || ((_b = this.container) == null ? void 0 : _b.querySelector('.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]')) instanceof HTMLElement || ((_c = this.playlistMainElement) == null ? void 0 : _c.querySelector('.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]')) instanceof HTMLElement;
+      if (forcedHidden) {
+        return;
+      }
+      if (((_e = (_d = this.player) == null ? void 0 : _d.element) == null ? void 0 : _e.tagName) !== "AUDIO") {
+        this.hideTrackArtworkElements();
         return;
       }
       if (!this.trackArtworkElement) {
@@ -22534,12 +22576,11 @@
       const safeBackground = this.resolveTrackPosterForArtwork(track.poster);
       if (safeBackground) {
         this.trackArtworkElement.style.backgroundImage = safeBackground;
-        this.trackArtworkElement.removeAttribute("data-vidply-artwork-forced-hidden");
         this.trackArtworkElement.removeAttribute("data-vidply-hidden");
         this.trackArtworkElement.style.removeProperty("display");
         this.trackArtworkElement.style.display = "block";
         this.insertBeforeVideoWrapper(this.trackArtworkElement);
-        (_c = this.player) == null ? void 0 : _c.mountPlayButtonOverlay(this.trackArtworkElement);
+        (_f = this.player) == null ? void 0 : _f.mountPlayButtonOverlay(this.trackArtworkElement);
       } else {
         this.trackArtworkElement.style.backgroundImage = "";
         this.trackArtworkElement.style.display = "none";
