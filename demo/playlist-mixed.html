@@ -23,7 +23,7 @@
 
     .container {
       margin: 0 auto;
-      max-width: 1000px;
+      max-width: 75rem;
     }
 
     nav {
@@ -181,6 +181,25 @@
       overflow: visible;
     }
 
+    .player-section-title {
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .player-section-note {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .player-section-note code {
+      background: rgba(255, 255, 255, 0.92);
+      color: #0a406e;
+    }
+
     section {
       background: rgba(255, 255, 255, 0.95);
       border-radius: 8px;
@@ -212,6 +231,7 @@
     code {
       background: #f4f4f4;
       border-radius: 3px;
+      color: #0a406e;
       font-family: 'Courier New', monospace;
       font-size: 0.9em;
       padding: 2px 6px;
@@ -286,82 +306,37 @@
     </header>
 
     <main>
-      <figure class="player-wrapper">
+      <div>
+        <h2 class="player-section-title">Playlist below the player</h2>
+        <figure class="player-wrapper">
         <div id="mixed-player"
              data-vidply-options='{"mediaType":"video","autoplay":false,"controls":true,"preload":"metadata"}'
-             data-playlist='[
-               {
-                 "src": "media/wwa.mp4",
-                 "type": "video/mp4",
-                 "title": "Local Video (MP4)",
-                 "artist": "HTML5 Renderer",
-                 "poster": "media/wwa_thumbnail.jpg",
-                 "duration": 52,
-                 "audioDescriptionSrc": "media/wwa_described.mp4",
-                 "audioDescriptionDuration": 53,
-                 "signLanguageSrc": "media/wwa_sign_en.mp4",
-                 "description": "Standard MP4 video played via HTML5 video element. Supports captions, chapters, and accessibility features.",
-                 "tracks": [
-                   {"src": "media/wwa_captions_en.vtt", "kind": "captions", "srclang": "en", "label": "English"},
-                   {"src": "media/wwa_description_en.vtt", "kind": "descriptions", "srclang": "en", "label": "English Descriptions"},
-                   {"src": "media/wwa_chapters_en.vtt", "kind": "chapters", "srclang": "en", "label": "Chapters"}
-                 ]
-               },
-               {
-                 "src": "media/frenchsong.mp3",
-                 "type": "audio/mpeg",
-                 "title": "Local Audio (MP3)",
-                 "artist": "HTML5 Renderer",
-                 "poster": "media/bild5.jpg",
-                 "duration": 182,
-                 "description": "MP3 audio track with lyrics/captions support. Demonstrates audio playback in a video player context.",
-                 "tracks": [
-                   {"src": "media/frenchsong_captions_en.vtt", "kind": "captions", "srclang": "en", "label": "English Translation"},
-                   {"src": "media/frenchsong_captions_fr.vtt", "kind": "captions", "srclang": "fr", "label": "Français"}
-                 ]
-               },
-               {
-                 "src": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-                 "title": "HLS Stream",
-                 "artist": "HLS.js Renderer",
-                 "poster": "media/bigbunny.png",
-                 "duration": 634,
-                 "description": "Adaptive bitrate streaming via HLS. Quality automatically adjusts based on network conditions."
-               },
-               {
-                 "src": "https://www.youtube.com/watch?v=RSyy2-Z2m-U",
-                 "title": "YouTube Video",
-                 "artist": "YouTube Renderer",
-                 "poster": "media/apple.jpg",
-                 "duration": 67,
-                 "description": "YouTube video played via YouTube IFrame API with custom controls."
-               },
-               {
-                 "src": "https://vimeo.com/960454227",
-                 "title": "Vimeo Video",
-                 "artist": "Vimeo Renderer",
-                 "poster": "media/adultwim.jpg",
-                 "duration": 430,
-                 "description": "Vimeo content played via Vimeo Player API with full playback control."
-               },
-               {
-                 "src": "https://soundcloud.com/pellerhead/sets/hopefully-wrong",
-                 "title": "SoundCloud Audio",
-                 "artist": "SoundCloud Renderer",
-                 "poster": "media/pellerhead.jpg",
-                 "description": "I hope I am not wrong when I think about releasing a new indie album that features a variety of different styles, yet still comes together as a cohesive whole."
-               }
-             ]'
              data-playlist-auto-advance="true"
              data-playlist-auto-play-first="false"
              data-playlist-loop="true"
              data-playlist-show-panel="true"></div>
         <figcaption class="sr-only">Mixed media playlist with 6 items from different sources</figcaption>
       </figure>
+      </div>
+
+      <div>
+        <h2 class="player-section-title">Playlist on the right (desktop)</h2>
+        <p class="player-section-note">Same tracks as above, with <code>panelPosition: 'right'</code>. On viewports under 75rem wide the playlist stacks below the player.</p>
+        <figure class="player-wrapper">
+        <div id="mixed-player-right"
+             data-vidply-options='{"mediaType":"video","autoplay":false,"controls":true,"preload":"metadata"}'
+             data-playlist-auto-advance="true"
+             data-playlist-auto-play-first="false"
+             data-playlist-loop="true"
+             data-playlist-show-panel="true"
+             data-playlist-panel-position="right"></div>
+        <figcaption class="sr-only">Mixed media playlist with right-side panel on desktop</figcaption>
+      </figure>
+      </div>
 
       <section aria-labelledby="how-it-works">
         <h2 id="how-it-works">How It Works</h2>
-        <p>VidPly automatically detects the media source type and loads the appropriate renderer on-the-fly:</p>
+        <p>VidPly automatically detects the media source type and loads the appropriate renderer on-the-fly. The same mixed-media playlist can use either layout shown above: playlist below the player (default) or beside it on desktop.</p>
 
         <div class="feature-grid">
           <div class="feature-card">
@@ -379,6 +354,10 @@
           <div class="feature-card">
             <h3>Unified Controls</h3>
             <p>Same control bar works across all media types - play, pause, seek, volume, fullscreen.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Playlist Layout</h3>
+            <p>Set <code>panelPosition: 'right'</code> (or <code>data-playlist-panel-position="right"</code>) to place the playlist beside the player on viewports 75rem and wider. Below that breakpoint, both layouts stack the playlist under the media column.</p>
           </div>
         </div>
       </section>
@@ -436,83 +415,98 @@ const playlist = new PlaylistManager(player, { tracks });</code></pre>
     // Use built ESM bundle so demos work after TS migration
     import Player, { PlaylistManager } from '../dist/prod/vidply.esm.min.js';
 
-    console.log('🎬 Starting mixed media player initialization...');
-
-    const hostElement = document.querySelector('#mixed-player');
-    const mediaBadges = document.querySelectorAll('.media-badge');
-
-    // Create player instance (video type to support all content)
-      let parsedOptions = {};
-      try {
-        parsedOptions = hostElement.dataset.vidplyOptions ? JSON.parse(hostElement.dataset.vidplyOptions) : {};
-      } catch (e) {
-        console.warn('Invalid JSON in data-vidply-options:', e);
+    const mixedMediaTracks = [
+      {
+        src: 'media/wwa.mp4',
+        type: 'video/mp4',
+        title: 'Local Video (MP4)',
+        artist: 'HTML5 Renderer',
+        poster: 'media/wwa_thumbnail.jpg',
+        duration: 52,
+        audioDescriptionSrc: 'media/wwa_described.mp4',
+        audioDescriptionDuration: 53,
+        signLanguageSrc: 'media/wwa_sign_en.mp4',
+        description: 'Standard MP4 video played via HTML5 video element. Supports captions, chapters, and accessibility features.',
+        tracks: [
+          { src: 'media/wwa_captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English' },
+          { src: 'media/wwa_description_en.vtt', kind: 'descriptions', srclang: 'en', label: 'English Descriptions' },
+          { src: 'media/wwa_chapters_en.vtt', kind: 'chapters', srclang: 'en', label: 'Chapters' }
+        ]
+      },
+      {
+        src: 'media/frenchsong.mp3',
+        type: 'audio/mpeg',
+        title: 'Local Audio (MP3)',
+        artist: 'HTML5 Renderer',
+        poster: 'media/bild5.jpg',
+        duration: 182,
+        description: 'MP3 audio track with lyrics/captions support. Demonstrates audio playback in a video player context.',
+        tracks: [
+          { src: 'media/frenchsong_captions_en.vtt', kind: 'captions', srclang: 'en', label: 'English Translation' },
+          { src: 'media/frenchsong_captions_fr.vtt', kind: 'captions', srclang: 'fr', label: 'Français' }
+        ]
+      },
+      {
+        src: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+        title: 'HLS Stream',
+        artist: 'HLS.js Renderer',
+        poster: 'media/bigbunny.png',
+        duration: 634,
+        description: 'Adaptive bitrate streaming via HLS. Quality automatically adjusts based on network conditions.'
+      },
+      {
+        src: 'https://www.youtube.com/watch?v=RSyy2-Z2m-U',
+        title: 'YouTube Video',
+        artist: 'YouTube Renderer',
+        poster: 'media/apple.jpg',
+        duration: 67,
+        description: 'YouTube video played via YouTube IFrame API with custom controls.'
+      },
+      {
+        src: 'https://vimeo.com/960454227',
+        title: 'Vimeo Video',
+        artist: 'Vimeo Renderer',
+        poster: 'media/adultwim.jpg',
+        duration: 430,
+        description: 'Vimeo content played via Vimeo Player API with full playback control.'
+      },
+      {
+        src: 'https://soundcloud.com/pellerhead/sets/hopefully-wrong',
+        title: 'SoundCloud Audio',
+        artist: 'SoundCloud Renderer',
+        poster: 'media/pellerhead.jpg',
+        description: 'I hope I am not wrong when I think about releasing a new indie album that features a variety of different styles, yet still comes together as a cohesive whole.'
       }
-
-      // Get theme from data attribute
-      const theme = hostElement.dataset.theme || 'dark';
-
-      const player = new Player(hostElement, {
-        mediaType: 'video',
-        theme,
-        ...parsedOptions
-      });
-
-    console.log('Mixed media player created:', player);
-
-    // Track renderer types for badge highlighting
-    const rendererTypes = [
-      'HTML5',      // MP4
-      'HTML5',      // MP3
-      'HLS',        // HLS Stream
-      'YouTube',    // YouTube
-      'Vimeo',      // Vimeo
-      'SoundCloud'  // SoundCloud
     ];
 
-    let playlist;
+    const rendererTypes = [
+      'HTML5',
+      'HTML5',
+      'HLS',
+      'YouTube',
+      'Vimeo',
+      'SoundCloud'
+    ];
 
-    // Create playlist after player is ready
-    player.on('ready', () => {
-      const playlistData = hostElement.getAttribute('data-playlist');
-      const tracks = playlistData ? JSON.parse(playlistData) : [];
-
-      const playlistOptions = {
-        autoAdvance: hostElement.getAttribute('data-playlist-auto-advance') !== 'false',
-        autoPlayFirst: hostElement.getAttribute('data-playlist-auto-play-first') !== 'false',
-        loop: hostElement.getAttribute('data-playlist-loop') === 'true',
-        showPanel: hostElement.getAttribute('data-playlist-show-panel') !== 'false',
-        tracks,
-        // Enable player recreation for each track type
-        // This creates proper <audio> elements for audio tracks and <video> for video
-        recreatePlayers: true,
-        hostElement: hostElement,
-        PlayerClass: Player
-      };
-
-      playlist = new PlaylistManager(player, playlistOptions);
-
-      // Patch handleTrackError to ignore errors for external renderer tracks
-      // This prevents auto-advance cascade when switching between renderer types
-      // We need to remove the old listener and add a new patched one
+    function patchExternalTrackErrors(playlist, playlistOptions) {
+      const player = playlist.player;
       const originalBoundHandler = playlist.handleTrackError;
       player.off('error', originalBoundHandler);
 
       playlist.handleTrackError = function(e) {
         const currentTrack = this.getCurrentTrack();
-        if (currentTrack && currentTrack.src) {
+        if (currentTrack?.src) {
           const src = currentTrack.src;
           const isExternalRenderer = src.includes('youtube.com') ||
-                                      src.includes('youtu.be') ||
-                                      src.includes('vimeo.com') ||
-                                      src.includes('soundcloud.com') ||
-                                      src.includes('.m3u8');
+            src.includes('youtu.be') ||
+            src.includes('vimeo.com') ||
+            src.includes('soundcloud.com') ||
+            src.includes('.m3u8');
           if (isExternalRenderer) {
-            // Silently ignore errors for external renderer tracks
             return;
           }
         }
-        // Original behavior: log error and auto-advance if enabled
+
         console.error('VidPly Playlist: Track error', e);
         if (playlistOptions.autoAdvance) {
           setTimeout(() => {
@@ -521,36 +515,85 @@ const playlist = new PlaylistManager(player, { tracks });</code></pre>
         }
       }.bind(playlist);
 
-      // Add the patched handler
-      player.on('error', playlist.handleTrackError);
+      playlist.player.on('error', playlist.handleTrackError);
+    }
 
-      console.log('Mixed media playlist initialized with', tracks.length, 'tracks');
+    function createMixedMediaPlaylist(hostElement, tracks, { updateBadges = false } = {}) {
+      let parsedOptions = {};
+      try {
+        parsedOptions = hostElement.dataset.vidplyOptions ? JSON.parse(hostElement.dataset.vidplyOptions) : {};
+      } catch (e) {
+        console.warn('Invalid JSON in data-vidply-options:', e);
+      }
 
-      // Listen for track changes
-      player.on('playlisttrackchange', (e) => {
-        console.log(`🎵 Now playing: ${e.item.title} (${rendererTypes[e.index]} renderer)`);
+      const theme = hostElement.dataset.theme || 'dark';
+      const player = new Player(hostElement, {
+        mediaType: 'video',
+        theme,
+        ...parsedOptions
+      });
 
-        // Update document title
-        document.title = `${e.item.title} - VidPly Mixed Playlist`;
+      let playlist;
 
-        // Update active badge
-        mediaBadges.forEach((badge, i) => {
-          badge.classList.toggle('active', i === e.index);
+      player.on('ready', () => {
+        const panelPosition = hostElement.getAttribute('data-playlist-panel-position') || 'below';
+        const playlistOptions = {
+          autoAdvance: hostElement.getAttribute('data-playlist-auto-advance') !== 'false',
+          autoPlayFirst: hostElement.getAttribute('data-playlist-auto-play-first') !== 'false',
+          loop: hostElement.getAttribute('data-playlist-loop') === 'true',
+          showPanel: hostElement.getAttribute('data-playlist-show-panel') !== 'false',
+          panelPosition,
+          tracks,
+          recreatePlayers: true,
+          hostElement,
+          PlayerClass: Player
+        };
+
+        playlist = new PlaylistManager(player, playlistOptions);
+        patchExternalTrackErrors(playlist, playlistOptions);
+
+        console.log(`Mixed media playlist initialized (${panelPosition}) with`, tracks.length, 'tracks');
+
+        player.on('playlisttrackchange', (e) => {
+          console.log(`🎵 [${hostElement.id}] Now playing: ${e.item.title} (${rendererTypes[e.index]} renderer)`);
+          document.title = `${e.item.title} - VidPly Mixed Playlist`;
+
+          if (updateBadges) {
+            mediaBadges.forEach((badge, i) => {
+              badge.classList.toggle('active', i === e.index);
+            });
+          }
+        });
+
+        player.on('sourcechange', (config) => {
+          console.log(`[${hostElement.id}] Source changed:`, config.src);
         });
       });
 
-      // Listen for source changes to log renderer info
-      player.on('sourcechange', (config) => {
-        console.log('Source changed:', config.src);
-      });
-    });
+      return { player, getPlaylist: () => playlist };
+    }
 
-    // Add keyboard shortcuts
+    console.log('🎬 Starting mixed media player initialization...');
+
+    const mediaBadges = document.querySelectorAll('.media-badge');
+    const belowDemo = createMixedMediaPlaylist(
+      document.querySelector('#mixed-player'),
+      mixedMediaTracks,
+      { updateBadges: true }
+    );
+    createMixedMediaPlaylist(
+      document.querySelector('#mixed-player-right'),
+      mixedMediaTracks
+    );
+
+    // Add keyboard shortcuts for the first demo player
     document.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      const playlist = belowDemo.getPlaylist();
       if (!playlist) return;
 
-      switch(e.key) {
+      switch (e.key) {
         case 'N':
         case 'n':
           if (e.shiftKey) {
