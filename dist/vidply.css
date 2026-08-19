@@ -4224,6 +4224,13 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   z-index: 1;
 }
 
+@media (width >= 48rem) {
+  /* Leave room for the inset focus ring inside overflow:auto playlist panels. */
+  .vidply-playlist-item-button {
+    width: calc(100% - 3px);
+  }
+}
+
 .vidply-playlist-item:has(:focus-visible) {
   border-left-color: var(--vidply-primary);
   z-index: 1;
