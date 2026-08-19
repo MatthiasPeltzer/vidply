@@ -234,6 +234,22 @@ export declare class PlaylistManager {
      */
     updateTrackInfo(track: PlaylistTrack): void;
     /**
+     * Resolve a track poster for CSS/artwork (absolute URL + allow-list).
+     */
+    private resolveTrackPosterForArtwork;
+    /**
+     * Locate an existing artwork node in the current player tree.
+     */
+    private findExistingTrackArtworkElement;
+    /**
+     * Keep a single artwork node — Player init and PlaylistManager can both create one.
+     */
+    private dedupeTrackArtworkElements;
+    /**
+     * Re-apply artwork after player recreation and right-panel layout settle.
+     */
+    private finalizeTrackArtworkForTrack;
+    /**
      * Update track artwork display (for audio playlists)
      */
     updateTrackArtwork(track: PlaylistTrack): void;

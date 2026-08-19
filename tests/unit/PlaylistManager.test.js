@@ -258,6 +258,70 @@ describe('PlaylistManager', () => {
       expect(artwork?.nextElementSibling).toBe(wrapper);
     });
 
+    it('reuses player artwork and resolves poster paths when switching to audio', () => {
+      mockPlayer.element.remove();
+      mockPlayer.element = document.createElement('audio');
+      mockPlayer.videoWrapper.appendChild(mockPlayer.element);
+      mockPlayer.resolvePosterPath = vi.fn((url) => `/resolved/${url}`);
+
+      const playerArtwork = document.createElement('div');
+      playerArtwork.className = 'vidply-track-artwork';
+      mockPlayer.trackArtworkElement = playerArtwork;
+      container.appendChild(playerArtwork);
+
+      manager = new PlaylistManager(mockPlayer, { showPanel: false, autoPlayFirst: false });
+      manager.trackArtworkElement = null;
+      manager.updateTrackArtwork({
+        src: 'track1.mp3',
+        type: 'audio/mp3',
+        title: 'Track 1',
+        poster: 'album.jpg',
+      });
+
+      expect(mockPlayer.resolvePosterPath).toHaveBeenCalledWith('album.jpg');
+      expect(manager.trackArtworkElement).toBe(playerArtwork);
+      expect(playerArtwork.style.display).toBe('block');
+      expect(playerArtwork.style.backgroundImage).toContain('/resolved/album.jpg');
+      expect(container.querySelectorAll('.vidply-track-artwork')).toHaveLength(1);
+    });
+
+    it('finds artwork inside playlist-main after player recreation layout', () => {
+      mockPlayer.element.remove();
+      mockPlayer.element = document.createElement('audio');
+      mockPlayer.videoWrapper.appendChild(mockPlayer.element);
+      mockPlayer.resolvePosterPath = vi.fn((url) => url);
+
+      manager = new PlaylistManager(mockPlayer, {
+        showPanel: false,
+        autoPlayFirst: false,
+        panelPosition: 'right',
+      });
+      manager.trackArtworkElement = null;
+
+      const main = document.createElement('div');
+      main.className = 'vidply-playlist-main';
+      const artwork = document.createElement('div');
+      artwork.className = 'vidply-track-artwork';
+      const wrapper = document.createElement('div');
+      wrapper.className = 'vidply-video-wrapper';
+      main.append(artwork, wrapper);
+      container.appendChild(main);
+      manager.playlistMainElement = main;
+      manager.container = container;
+
+      manager.updateTrackArtwork({
+        src: 'track.mp3',
+        type: 'audio/mpeg',
+        title: 'Audio track',
+        poster: '/fileadmin/poster.jpg',
+      });
+
+      expect(manager.trackArtworkElement).toBe(artwork);
+      expect(artwork.style.display).toBe('block');
+      expect(artwork.style.backgroundImage).toContain('/fileadmin/poster.jpg');
+      expect(main.firstElementChild).toBe(artwork);
+    });
+
     it('rebuilds the media wrapper after player recreation', () => {
       manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'right' });
       expect(container.querySelector('.vidply-playlist-main')).not.toBeNull();

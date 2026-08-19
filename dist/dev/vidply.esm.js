@@ -7525,7 +7525,7 @@ var Player = class _Player extends EventEmitter {
     });
     this.element.parentNode?.insertBefore(this.container, this.element);
     if (this.element.tagName === "AUDIO" && this.options.poster) {
-      const safePoster = sanitizePosterUrl(this.options.poster);
+      const safePoster = sanitizePosterUrl(this.resolvePosterPath(this.options.poster));
       if (safePoster) {
         this.trackArtworkElement = DOMUtils.createElement("div", {
           className: `${this.options.classPrefix}-track-artwork`,
@@ -9163,6 +9163,7 @@ var PlaylistManager = class _PlaylistManager {
     if (this.trackArtworkElement && this.trackArtworkElement.parentNode) {
       this.trackArtworkElement.parentNode.removeChild(this.trackArtworkElement);
     }
+    this.trackArtworkElement = null;
     if (this.trackInfoView?.element.parentNode) {
       this.trackInfoView.element.parentNode.removeChild(this.trackInfoView.element);
     }
@@ -9209,14 +9210,13 @@ var PlaylistManager = class _PlaylistManager {
       }
     }
     this.hostElement.appendChild(mediaElement);
-    const playerOptions = {
+    const playerOptions = Object.assign({}, preservedPlayerOptions, {
       mediaType: elementType,
       poster: track.poster,
       audioDescriptionSrc: track.audioDescriptionSrc || null,
       audioDescriptionDuration: track.audioDescriptionDuration || null,
       signLanguageSrc: track.signLanguageSrc || null
-    };
-    Object.assign(playerOptions, preservedPlayerOptions);
+    });
     this.player = new this.PlayerClass(mediaElement, playerOptions);
     this.player.playlistManager = this;
     await new Promise((resolve) => {
@@ -9236,9 +9236,6 @@ var PlaylistManager = class _PlaylistManager {
     this.player.on("ended", this.handleTrackEnd);
     this.player.on("error", this.handleTrackError);
     if (this.player.container) {
-      if (this.trackArtworkElement) {
-        this.insertBeforeVideoWrapper(this.trackArtworkElement);
-      }
       if (this.trackInfoView) {
         this.player.container.appendChild(this.trackInfoView.element);
       }
@@ -9276,6 +9273,11 @@ var PlaylistManager = class _PlaylistManager {
     if (autoPlay) {
       this.player.play();
     }
+    if (this.hostElement) {
+      this.hostElement._vidplyPlayer = this.player;
+    }
+    this.updateTrackInfo(track);
+    this.finalizeTrackArtworkForTrack(track);
     return true;
   }
   init() {
@@ -9431,7 +9433,7 @@ var PlaylistManager = class _PlaylistManager {
     if (!this.container) {
       return;
     }
-    const videoWrapper = this.container.querySelector(".vidply-video-wrapper");
+    const videoWrapper = this.playlistMainElement?.querySelector(".vidply-video-wrapper") ?? this.container.querySelector(".vidply-video-wrapper");
     if (videoWrapper?.parentElement) {
       videoWrapper.parentElement.insertBefore(element, videoWrapper);
       if (this.playlistMainElement && videoWrapper.parentElement === this.playlistMainElement) {
@@ -9948,21 +9950,83 @@ var PlaylistManager = class _PlaylistManager {
    * Update track info display
    */
   updateTrackInfo(track) {
-    if (!this.trackInfoView) return;
-    const effectiveDuration = this.getEffectiveDuration(track);
-    const data = {
-      title: track.title,
-      artist: track.artist,
-      description: track.description,
-      longDescription: typeof track.longDescription === "string" ? track.longDescription : void 0,
-      date: typeof track.date === "string" ? track.date : void 0,
-      duration: effectiveDuration ? Number(effectiveDuration) : void 0,
-      trackNumber: this.currentIndex + 1,
-      totalTracks: this.tracks.length
-    };
-    this.trackInfoView.render(data);
+    if (this.trackInfoView) {
+      const effectiveDuration = this.getEffectiveDuration(track);
+      const data = {
+        title: track.title,
+        artist: track.artist,
+        description: track.description,
+        longDescription: typeof track.longDescription === "string" ? track.longDescription : void 0,
+        date: typeof track.date === "string" ? track.date : void 0,
+        duration: effectiveDuration ? Number(effectiveDuration) : void 0,
+        trackNumber: this.currentIndex + 1,
+        totalTracks: this.tracks.length
+      };
+      this.trackInfoView.render(data);
+    }
     this.updateTrackArtwork(track);
     this.syncRightPanelMediaStyles();
+  }
+  /**
+   * Resolve a track poster for CSS/artwork (absolute URL + allow-list).
+   */
+  resolveTrackPosterForArtwork(poster) {
+    if (!poster) {
+      return null;
+    }
+    const resolved = typeof this.player?.resolvePosterPath === "function" ? this.player.resolvePosterPath(poster) : poster;
+    return toCssBackgroundImage(resolved);
+  }
+  /**
+   * Locate an existing artwork node in the current player tree.
+   */
+  findExistingTrackArtworkElement() {
+    const candidates = [
+      this.player?.trackArtworkElement ?? null,
+      this.playlistMainElement,
+      this.container,
+      this.hostElement
+    ];
+    for (const root of candidates) {
+      if (!root) {
+        continue;
+      }
+      if (root.classList.contains("vidply-track-artwork")) {
+        return root;
+      }
+      const nested = root.querySelector(".vidply-track-artwork");
+      if (nested instanceof HTMLElement) {
+        return nested;
+      }
+    }
+    return null;
+  }
+  /**
+   * Keep a single artwork node — Player init and PlaylistManager can both create one.
+   */
+  dedupeTrackArtworkElements(keep) {
+    const roots = [this.playlistMainElement, this.container, this.hostElement].filter(
+      (root) => root instanceof HTMLElement
+    );
+    roots.forEach((root) => {
+      root.querySelectorAll(".vidply-track-artwork").forEach((el) => {
+        if (el !== keep) {
+          el.remove();
+        }
+      });
+    });
+    if (this.player) {
+      this.player.trackArtworkElement = keep;
+    }
+  }
+  /**
+   * Re-apply artwork after player recreation and right-panel layout settle.
+   */
+  finalizeTrackArtworkForTrack(track) {
+    this.updateTrackArtwork(track);
+    requestAnimationFrame(() => {
+      this.updateTrackArtwork(track);
+    });
   }
   /**
    * Update track artwork display (for audio playlists)
@@ -9973,6 +10037,12 @@ var PlaylistManager = class _PlaylistManager {
         this.trackArtworkElement.style.display = "none";
       }
       return;
+    }
+    if (!this.trackArtworkElement) {
+      const existing = this.findExistingTrackArtworkElement();
+      if (existing) {
+        this.trackArtworkElement = existing;
+      }
     }
     if (!this.trackArtworkElement && this.container) {
       this.trackArtworkElement = DOMUtils.createElement("div", {
@@ -9985,10 +10055,15 @@ var PlaylistManager = class _PlaylistManager {
       this.insertBeforeVideoWrapper(this.trackArtworkElement);
     }
     if (!this.trackArtworkElement) return;
-    const safeBackground = track.poster ? toCssBackgroundImage(track.poster) : null;
+    this.dedupeTrackArtworkElements(this.trackArtworkElement);
+    const safeBackground = this.resolveTrackPosterForArtwork(track.poster);
     if (safeBackground) {
       this.trackArtworkElement.style.backgroundImage = safeBackground;
+      this.trackArtworkElement.removeAttribute("data-vidply-artwork-forced-hidden");
+      this.trackArtworkElement.removeAttribute("data-vidply-hidden");
+      this.trackArtworkElement.style.removeProperty("display");
       this.trackArtworkElement.style.display = "block";
+      this.insertBeforeVideoWrapper(this.trackArtworkElement);
       this.player?.mountPlayButtonOverlay(this.trackArtworkElement);
     } else {
       this.trackArtworkElement.style.backgroundImage = "";

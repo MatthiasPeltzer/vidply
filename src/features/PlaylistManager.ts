@@ -224,6 +224,10 @@ export class PlaylistManager {
     if (this.trackArtworkElement && this.trackArtworkElement.parentNode) {
       this.trackArtworkElement.parentNode.removeChild(this.trackArtworkElement);
     }
+    // Always drop the reference — Player.init() creates a fresh node asynchronously
+    // and reusing a detached/hidden element from a prior track leaves mixed playlists
+    // without visible artwork after video → audio switches.
+    this.trackArtworkElement = null;
     if (this.trackInfoView?.element.parentNode) {
       this.trackInfoView.element.parentNode.removeChild(this.trackInfoView.element);
     }
@@ -302,17 +306,15 @@ export class PlaylistManager {
     
     this.hostElement.appendChild(mediaElement);
     
-    // Create new player with the media element
-    // Pass the source for external renderers via options
-    const playerOptions = {
+    // Create new player with the media element — track-specific fields must
+    // win over preserved options (e.g. poster from the previous video track).
+    const playerOptions = Object.assign({}, preservedPlayerOptions, {
       mediaType: elementType,
       poster: track.poster,
       audioDescriptionSrc: track.audioDescriptionSrc || null,
       audioDescriptionDuration: track.audioDescriptionDuration || null,
-      signLanguageSrc: track.signLanguageSrc || null
-    };
-    // Merge back preserved options (so deferLoad/preload/etc remain active)
-    Object.assign(playerOptions, preservedPlayerOptions);
+      signLanguageSrc: track.signLanguageSrc || null,
+    });
     
     this.player = new this.PlayerClass(mediaElement, playerOptions);
     
@@ -344,10 +346,6 @@ export class PlaylistManager {
     
     // Re-attach all playlist UI elements to the new player's container
     if (this.player.container) {
-      // Track artwork goes before video wrapper
-      if (this.trackArtworkElement) {
-        this.insertBeforeVideoWrapper(this.trackArtworkElement);
-      }
       // Track info
       if (this.trackInfoView) {
         this.player.container.appendChild(this.trackInfoView.element);
@@ -402,6 +400,14 @@ export class PlaylistManager {
     if (autoPlay) {
       this.player.play();
     }
+
+    // Keep TYPO3 host reference in sync (PlaylistInit caches player on the DIV).
+    if (this.hostElement) {
+      (this.hostElement as HTMLElement & { _vidplyPlayer?: Player })._vidplyPlayer = this.player;
+    }
+
+    this.updateTrackInfo(track);
+    this.finalizeTrackArtworkForTrack(track);
     
     return true;
   }
@@ -611,7 +617,8 @@ export class PlaylistManager {
       return;
     }
 
-    const videoWrapper = this.container.querySelector('.vidply-video-wrapper');
+    const videoWrapper = this.playlistMainElement?.querySelector('.vidply-video-wrapper')
+      ?? this.container.querySelector('.vidply-video-wrapper');
     if (videoWrapper?.parentElement) {
       videoWrapper.parentElement.insertBefore(element, videoWrapper);
       if (this.playlistMainElement && videoWrapper.parentElement === this.playlistMainElement) {
@@ -1331,27 +1338,98 @@ export class PlaylistManager {
    * Update track info display
    */
   updateTrackInfo(track: PlaylistTrack) {
-    if (!this.trackInfoView) return;
+    if (this.trackInfoView) {
+      const effectiveDuration = this.getEffectiveDuration(track);
+      const data: TrackInfoData = {
+        title: track.title,
+        artist: track.artist,
+        description: track.description,
+        longDescription: typeof track.longDescription === 'string' ? track.longDescription : undefined,
+        date: typeof track.date === 'string' ? track.date : undefined,
+        duration: effectiveDuration ? Number(effectiveDuration) : undefined,
+        trackNumber: this.currentIndex + 1,
+        totalTracks: this.tracks.length
+      };
 
-    const effectiveDuration = this.getEffectiveDuration(track);
-    const data: TrackInfoData = {
-      title: track.title,
-      artist: track.artist,
-      description: track.description,
-      longDescription: typeof track.longDescription === 'string' ? track.longDescription : undefined,
-      date: typeof track.date === 'string' ? track.date : undefined,
-      duration: effectiveDuration ? Number(effectiveDuration) : undefined,
-      trackNumber: this.currentIndex + 1,
-      totalTracks: this.tracks.length
-    };
+      this.trackInfoView.render(data);
+    }
 
-    this.trackInfoView.render(data);
-
-    // Update track artwork if available (for audio playlists)
+    // Artwork is independent of the metadata header (must survive player recreation).
     this.updateTrackArtwork(track);
     this.syncRightPanelMediaStyles();
   }
   
+  /**
+   * Resolve a track poster for CSS/artwork (absolute URL + allow-list).
+   */
+  private resolveTrackPosterForArtwork(poster: string | undefined): string | null {
+    if (!poster) {
+      return null;
+    }
+    const resolved = typeof this.player?.resolvePosterPath === 'function'
+      ? this.player.resolvePosterPath(poster)
+      : poster;
+    return toCssBackgroundImage(resolved);
+  }
+
+  /**
+   * Locate an existing artwork node in the current player tree.
+   */
+  private findExistingTrackArtworkElement(): HTMLElement | null {
+    const candidates: (HTMLElement | null | undefined)[] = [
+      this.player?.trackArtworkElement ?? null,
+      this.playlistMainElement,
+      this.container,
+      this.hostElement,
+    ];
+
+    for (const root of candidates) {
+      if (!root) {
+        continue;
+      }
+      if (root.classList.contains('vidply-track-artwork')) {
+        return root;
+      }
+      const nested = root.querySelector('.vidply-track-artwork');
+      if (nested instanceof HTMLElement) {
+        return nested;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Keep a single artwork node — Player init and PlaylistManager can both create one.
+   */
+  private dedupeTrackArtworkElements(keep: HTMLElement): void {
+    const roots = [this.playlistMainElement, this.container, this.hostElement].filter(
+      (root): root is HTMLElement => root instanceof HTMLElement
+    );
+
+    roots.forEach(root => {
+      root.querySelectorAll('.vidply-track-artwork').forEach((el) => {
+        if (el !== keep) {
+          el.remove();
+        }
+      });
+    });
+
+    if (this.player) {
+      this.player.trackArtworkElement = keep;
+    }
+  }
+
+  /**
+   * Re-apply artwork after player recreation and right-panel layout settle.
+   */
+  private finalizeTrackArtworkForTrack(track: PlaylistTrack): void {
+    this.updateTrackArtwork(track);
+    requestAnimationFrame(() => {
+      this.updateTrackArtwork(track);
+    });
+  }
+
   /**
    * Update track artwork display (for audio playlists)
    */
@@ -1363,6 +1441,14 @@ export class PlaylistManager {
         this.trackArtworkElement.style.display = 'none';
       }
       return;
+    }
+
+    // Reuse artwork from Player init or a prior track switch (mixed playlists recreate the player).
+    if (!this.trackArtworkElement) {
+      const existing = this.findExistingTrackArtworkElement();
+      if (existing) {
+        this.trackArtworkElement = existing;
+      }
     }
 
     // Lazily create artwork element once we have an audio element/container.
@@ -1380,16 +1466,23 @@ export class PlaylistManager {
     }
 
     if (!this.trackArtworkElement) return;
+
+    this.dedupeTrackArtworkElements(this.trackArtworkElement);
     
     // A track manifest is attacker-influenced data — a value like
     // `x); background: url(evil.svg` must not be allowed to break out
     // of the declaration. `toCssBackgroundImage` returns null when the
     // URL fails validation, so we leave the element hidden instead of
     // assigning a dangerous value.
-    const safeBackground = track.poster ? toCssBackgroundImage(track.poster) : null;
+    const safeBackground = this.resolveTrackPosterForArtwork(track.poster);
     if (safeBackground) {
       this.trackArtworkElement.style.backgroundImage = safeBackground;
+      this.trackArtworkElement.removeAttribute('data-vidply-artwork-forced-hidden');
+      this.trackArtworkElement.removeAttribute('data-vidply-hidden');
+      this.trackArtworkElement.style.removeProperty('display');
       this.trackArtworkElement.style.display = 'block';
+      // Layout may wrap the media column after recreation — always re-home the node.
+      this.insertBeforeVideoWrapper(this.trackArtworkElement);
       // The player may have created its play overlay before any artwork
       // existed (playlists resolve the poster per track).
       this.player?.mountPlayButtonOverlay(this.trackArtworkElement);

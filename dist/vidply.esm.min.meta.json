@@ -729,7 +729,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 117584,
+      "bytes": 117608,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -905,7 +905,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 70913,
+      "bytes": 74049,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1319,7 +1319,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 774729
+      "bytes": 779364
     },
     "dist/prod/vidply.esm.min.js": {
       "imports": [
@@ -1464,16 +1464,16 @@
           "bytesInOutput": 10277
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 89778
+          "bytesInOutput": 89802
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 50328
+          "bytesInOutput": 52747
         },
         "src/index.ts": {
           "bytesInOutput": 5074
         }
       },
-      "bytes": 387898
+      "bytes": 390341
     },
     "dist/prod/vidply.chunk-JINGP7CU.min.js.map": {
       "imports": [],

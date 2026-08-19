@@ -1300,7 +1300,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
     // This shows the poster/artwork above the audio player (similar to playlists).
     // Poster URL is validated and CSS-escaped before interpolation.
     if (this.element.tagName === 'AUDIO' && this.options.poster) {
-      const safePoster = sanitizePosterUrl(this.options.poster);
+      const safePoster = sanitizePosterUrl(this.resolvePosterPath(this.options.poster));
       if (safePoster) {
         this.trackArtworkElement = DOMUtils.createElement('div', {
           className: `${this.options.classPrefix}-track-artwork`,
