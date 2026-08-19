@@ -3777,7 +3777,8 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     order: 0;
   }
 
-  .vidply-player.vidply-playlist-panel-right .vidply-playlist-main > .vidply-video-wrapper {
+  /* Audio side panel: stack controls under the artwork/media in document flow */
+  .vidply-player.vidply-audio.vidply-has-playlist.vidply-playlist-panel-right .vidply-playlist-main > .vidply-video-wrapper {
     display: grid;
     flex: 0 0 auto;
     grid-template-columns: minmax(0, 1fr);
@@ -3786,13 +3787,21 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     order: 1;
   }
 
-  /* Row 1 = media only (overlay/captions stack here); row 2 = controls in flow */
-  .vidply-player.vidply-playlist-panel-right .vidply-video-wrapper > :not(.vidply-controls) {
+  /* Video side panel: overlay controls (auto-hide) like every other video player */
+  .vidply-player.vidply-video.vidply-has-playlist.vidply-playlist-panel-right .vidply-playlist-main > .vidply-video-wrapper {
+    flex: 0 0 auto;
+    height: auto;
+    order: 1;
+    position: relative;
+  }
+
+  /* Row 1 = media only (overlay/captions stack here); row 2 = audio controls in flow */
+  .vidply-player.vidply-audio.vidply-has-playlist.vidply-playlist-panel-right .vidply-video-wrapper > :not(.vidply-controls) {
     grid-column: 1;
     grid-row: 1;
   }
 
-  .vidply-player.vidply-playlist-panel-right .vidply-video-wrapper > .vidply-controls {
+  .vidply-player.vidply-audio.vidply-has-playlist.vidply-playlist-panel-right .vidply-video-wrapper > .vidply-controls {
     grid-column: 1;
     grid-row: 2;
     order: unset;
@@ -3813,26 +3822,17 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     width: 100%;
   }
 
-  .vidply-player.vidply-playlist-panel-right .vidply-controls {
+  .vidply-player.vidply-audio.vidply-has-playlist.vidply-playlist-panel-right .vidply-controls {
     background: var(--vidply-black-90);
     border-top: 0.0625rem solid var(--vidply-border-light);
     bottom: auto;
     left: auto;
+    margin-top: 0;
     opacity: 1;
     pointer-events: auto;
     position: relative;
     right: auto;
     width: 100%;
-  }
-
-  /* Audio playlists: keep controls, captions, and track info stacked under the artwork
-     instead of stretching the wrapper to the playlist column height. */
-  .vidply-player.vidply-audio.vidply-has-playlist.vidply-playlist-panel-right .vidply-playlist-main > .vidply-video-wrapper {
-    flex: 0 0 auto;
-  }
-
-  .vidply-player.vidply-audio.vidply-has-playlist.vidply-playlist-panel-right .vidply-controls {
-    margin-top: 0;
   }
 }
 

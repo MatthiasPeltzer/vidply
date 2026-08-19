@@ -316,6 +316,12 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     createBufferingLoadingOverlay(): void;
     positionPlayOverlayOnMobile(): void;
     /**
+     * Center an overlay on the visible media surface. The video wrapper can be
+     * taller than the media (controls, aspect-ratio boxes), so plain 50%/50% CSS
+     * would sit too low — same logic as the play overlay button.
+     */
+    private positionOverlayOnMediaCenter;
+    /**
      * Visible media surface used to center the play overlay. External renderers
      * hide the host <video>, so their iframe/container must be used instead.
      */

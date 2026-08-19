@@ -1585,6 +1585,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       this.container.classList.add(`${prefix}-buffering`);
       loading.setAttribute('aria-busy', 'true');
       srAnnouncer.textContent = bufferingLabel;
+      this.positionPlayOverlayOnMobile();
     };
 
     const hideBuffering = () => {
@@ -1614,7 +1615,16 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   positionPlayOverlayOnMobile() {
-    const node = this.getPlayButtonOverlayNode();
+    this.positionOverlayOnMediaCenter(this.getPlayButtonOverlayNode());
+    this.positionOverlayOnMediaCenter(this.loadingOverlayElement);
+  }
+
+  /**
+   * Center an overlay on the visible media surface. The video wrapper can be
+   * taller than the media (controls, aspect-ratio boxes), so plain 50%/50% CSS
+   * would sit too low — same logic as the play overlay button.
+   */
+  private positionOverlayOnMediaCenter(node: HTMLElement | SVGSVGElement | null) {
     if (!node) {
       return;
     }
