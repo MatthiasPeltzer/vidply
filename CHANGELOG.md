@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Shared layout breakpoint (`75rem`) for right-side playlist panel desktop vs stacked layout.
+- Control bar overflow menu on narrow viewports and when left-cluster buttons do not fit; playlist toggle moves to overflow on mobile while previous, play/pause, next, and volume stay visible.
+
+### Fixed
+- Buffering spinner centers on the visible media surface (same positioning as the play overlay).
+- Video playlists with a right-side panel use overlay controls with auto-hide again; captions are no longer stuck behind always-visible in-flow controls.
+- Mixed-media playlists show audio track artwork after switching from a playing video track (poster no longer overwritten on player recreation).
+- Playlist panel-right layout survives mixed-media player recreation (video ↔ audio) by restoring `vidply-has-playlist` and applying grid rules from `vidply-playlist-panel-right` alone.
+- Audio playlists with a right-side panel no longer stretch the media wrapper to the playlist height; captions, controls, and track info stay under the artwork.
+- Play overlay centers on the visible `<video>` surface in right-panel and mobile layouts instead of the full wrapper.
+- Play overlay centers on YouTube, Vimeo, and SoundCloud iframes/containers after external renderers hide the host `<video>`.
+- Control bar focus outlines no longer clip at narrow widths (`0.125rem` padding on left/right clusters).
+- External embed tracks hide duplicate playlist artwork while the privacy consent overlay is visible (including when the host element is still `<video>`).
+
 ## [1.2.13] - 2026-08-18
 
 ### Fixed
