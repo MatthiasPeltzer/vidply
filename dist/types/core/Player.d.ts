@@ -315,6 +315,12 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
      */
     createBufferingLoadingOverlay(): void;
     positionPlayOverlayOnMobile(): void;
+    /**
+     * Visible media surface used to center the play overlay. External renderers
+     * hide the host <video>, so their iframe/container must be used instead.
+     */
+    private getPlayOverlayMediaElement;
+    private isPlaylistPanelRightDesktop;
     initializeRenderer(): Promise<void>;
     _detectRendererClass(src: string): Promise<new (player: Player) => Renderer>;
     _selectBestSource(sourceElements: HTMLSourceElement[]): {

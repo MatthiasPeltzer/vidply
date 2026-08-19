@@ -444,7 +444,8 @@ var ControlBar = class {
     const mobile = isMobile();
     const isOverflowMenu = menu.classList.contains(`${this.player.options.classPrefix}-overflow-menu-list`);
     const isFullscreen = this.player.state.fullscreen;
-    if (isFullscreen && menu.parentElement === this.player.container) {
+    const menuInPlayerContainer = menu.parentElement === this.player.container;
+    if (menuInPlayerContainer && (isFullscreen || isOverflowMenu)) {
       const doFullscreenPositioning = () => {
         const buttonRect = button.getBoundingClientRect();
         const menuRect = menu.getBoundingClientRect();
@@ -465,9 +466,18 @@ var ControlBar = class {
         }
         if (isOverflowMenu) {
           const buttonRight = buttonRect.right - containerRect.left;
-          menu.style.right = `${containerRect.width - buttonRight}px`;
           menu.style.left = "auto";
+          menu.style.right = `${containerRect.width - buttonRight}px`;
           menu.style.transform = "none";
+          const menuWidth = menuRect.width || menu.offsetWidth;
+          if (menuWidth > 0) {
+            const maxLeft = Math.max(0, buttonRight - menuWidth);
+            const computedLeft = buttonRight - menuWidth;
+            if (computedLeft < 0) {
+              menu.style.left = `${maxLeft}px`;
+              menu.style.right = "auto";
+            }
+          }
         } else {
           menu.style.left = `${buttonCenterX}px`;
           menu.style.right = "auto";
@@ -600,8 +610,10 @@ var ControlBar = class {
     }
     button.setAttribute("aria-controls", menu.id);
     button.setAttribute("aria-haspopup", "true");
+    const prefix = this.player.options.classPrefix;
+    const isOverflowMenuList = menu.classList.contains(`${prefix}-overflow-menu-list`);
     const isFullscreen = this.player.state.fullscreen;
-    if (isFullscreen) {
+    if (isFullscreen || isOverflowMenuList) {
       this.player.container.appendChild(menu);
       menu.dataset.triggerButton = button.getAttribute("aria-label") || "button";
     } else {
@@ -894,6 +906,9 @@ var ControlBar = class {
     if (this.player.options.playPauseButton) {
       leftButtons.appendChild(this.createPlayPauseButton());
     }
+    if (this.player.playlistManager && this.player.options.playlistToggleButton !== false) {
+      leftButtons.appendChild(this.createPlaylistToggleButton());
+    }
     const restartButton = this.createRestartButton();
     leftButtons.appendChild(restartButton);
     this.controls.restart = restartButton;
@@ -961,12 +976,6 @@ var ControlBar = class {
     if (this.player.options.transcriptButton && hasCaptions) {
       const btn = this.createTranscriptButton();
       btn.dataset.overflowPriority = "3";
-      btn.dataset.overflowPriorityMobile = "3";
-      this.rightButtons.appendChild(btn);
-    }
-    if (this.player.playlistManager && this.player.options.playlistToggleButton !== false) {
-      const btn = this.createPlaylistToggleButton();
-      btn.dataset.overflowPriority = "2";
       btn.dataset.overflowPriorityMobile = "3";
       this.rightButtons.appendChild(btn);
     }
@@ -1545,6 +1554,8 @@ var ControlBar = class {
       this.player.toggle();
     });
     this.controls.playPause = button;
+    button.dataset.overflowPriority = "1";
+    button.dataset.overflowPriorityMobile = "1";
     return button;
   }
   createRestartButton() {
@@ -1561,6 +1572,8 @@ var ControlBar = class {
       this.player.seek(0);
       this.player.play();
     });
+    button.dataset.overflowPriority = "3";
+    button.dataset.overflowPriorityMobile = "3";
     return button;
   }
   createPreviousButton() {
@@ -1585,6 +1598,8 @@ var ControlBar = class {
     this.subscribe("controls", "playlisttrackchange", updateState);
     updateState();
     this.controls.previous = button;
+    button.dataset.overflowPriority = "3";
+    button.dataset.overflowPriorityMobile = "1";
     return button;
   }
   createNextButton() {
@@ -1609,6 +1624,8 @@ var ControlBar = class {
     this.subscribe("controls", "playlisttrackchange", updateState);
     updateState();
     this.controls.next = button;
+    button.dataset.overflowPriority = "3";
+    button.dataset.overflowPriorityMobile = "1";
     return button;
   }
   createPlaylistToggleButton() {
@@ -1630,6 +1647,8 @@ var ControlBar = class {
       }
     });
     this.controls.playlistToggle = button;
+    button.dataset.overflowPriority = "2";
+    button.dataset.overflowPriorityMobile = "3";
     return button;
   }
   createRewindButton() {
@@ -1645,6 +1664,8 @@ var ControlBar = class {
     button.addEventListener("click", () => {
       this.player.seekBackward(seconds);
     });
+    button.dataset.overflowPriority = "2";
+    button.dataset.overflowPriorityMobile = "3";
     return button;
   }
   createForwardButton() {
@@ -1661,6 +1682,8 @@ var ControlBar = class {
     button.addEventListener("click", () => {
       this.player.seekForward(seconds);
     });
+    button.dataset.overflowPriority = "2";
+    button.dataset.overflowPriorityMobile = "3";
     return button;
   }
   createGoLiveButton() {
@@ -1692,6 +1715,8 @@ var ControlBar = class {
       this.player.toggleMute();
     });
     this.controls.mute = muteButton;
+    muteButton.dataset.overflowPriority = "1";
+    muteButton.dataset.overflowPriorityMobile = "1";
     return muteButton;
   }
   createVolumeControl() {
@@ -1712,6 +1737,8 @@ var ControlBar = class {
       this.showVolumeSlider(muteButton);
     });
     this.controls.mute = muteButton;
+    muteButton.dataset.overflowPriority = "1";
+    muteButton.dataset.overflowPriorityMobile = "1";
     return muteButton;
   }
   showVolumeSlider(button) {
@@ -2614,7 +2641,7 @@ var ControlBar = class {
         btn.dataset.overflowPriority = "2";
         btn.dataset.overflowPriorityMobile = "3";
         const transcriptBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-transcript`);
-        const playlistBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
+        const playlistBtn = this.leftButtons?.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`) ?? this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
         const insertBefore = transcriptBtn || playlistBtn || null;
         if (insertBefore) {
           this.rightButtons.insertBefore(btn, insertBefore);
@@ -3364,7 +3391,10 @@ var ControlBar = class {
         "aria-label": i18n.t("player.moreOptions")
       }
     });
-    const overflowButtons = Array.from(this.rightButtons.querySelectorAll('button[data-in-overflow="true"]'));
+    const overflowButtons = [
+      ...Array.from(this.leftButtons?.querySelectorAll('button[data-in-overflow="true"]') ?? []),
+      ...Array.from(this.rightButtons.querySelectorAll('button[data-in-overflow="true"]'))
+    ];
     if (overflowButtons.length === 0) {
       const noItemsText = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
@@ -3443,6 +3473,160 @@ var ControlBar = class {
    * button insertions (audio-description / sign-language) can request a
    * recheck without re-attaching observers.
    */
+  measureControlButton(btn) {
+    const style = getComputedStyle(btn);
+    return btn.offsetWidth + parseInt(style.marginLeft || "0", 10) + parseInt(style.marginRight || "0", 10);
+  }
+  getOverflowPriority(btn, priorityAttr) {
+    return parseInt(btn.dataset[priorityAttr] || btn.dataset.overflowPriority || "1", 10);
+  }
+  isFullscreenControlButton(btn) {
+    return btn.classList.contains(`${this.player.options.classPrefix}-fullscreen`);
+  }
+  /**
+   * Width available for right-side control buttons. Uses the controls row
+   * minus the left cluster so overflow detection reacts to narrow playlist
+   * columns instead of the unconstrained scroll width of the button row.
+   */
+  getOverflowContainerWidth() {
+    if (!this.rightButtons) {
+      return 0;
+    }
+    const parent = this.rightButtons.parentElement;
+    if (parent) {
+      const prefix = this.player.options.classPrefix;
+      const left = parent.querySelector(`.${prefix}-controls-left`);
+      const parentWidth = parent.clientWidth;
+      if (parentWidth > 0) {
+        const styles = getComputedStyle(parent);
+        const gap = parseInt(styles.columnGap || styles.gap || "0", 10) || 0;
+        const leftWidth = left?.getBoundingClientRect().width ?? 0;
+        const available = Math.floor(parentWidth - leftWidth - (left && leftWidth > 0 ? gap : 0));
+        if (available > 0) {
+          return available;
+        }
+      }
+    }
+    const clientWidth = this.rightButtons.clientWidth;
+    if (clientWidth > 0) {
+      return clientWidth;
+    }
+    return this.rightButtons.offsetWidth;
+  }
+  /**
+   * Fit as many collapsible buttons as possible into the row budget while
+   * keeping the overflow menu (optional) and fullscreen pinned at the end.
+   */
+  fitCollapsibleButtons(collapsible, containerWidth, gapWidth, reserveOverflowMenu, priorityAttr, fullscreenButton, overflowButton) {
+    let reserved = 0;
+    if (fullscreenButton) {
+      reserved += this.measureControlButton(fullscreenButton);
+    }
+    if (reserveOverflowMenu && overflowButton) {
+      reserved += this.measureControlButton(overflowButton);
+    }
+    const pinnedCount = (fullscreenButton ? 1 : 0) + (reserveOverflowMenu && overflowButton ? 1 : 0);
+    if (pinnedCount > 0) {
+      reserved += Math.max(0, pinnedCount - 1) * gapWidth;
+    }
+    let budget = containerWidth - reserved;
+    const sorted = collapsible.map((btn) => ({
+      btn,
+      width: this.measureControlButton(btn),
+      priority: this.getOverflowPriority(btn, priorityAttr)
+    })).sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return a.priority - b.priority;
+      }
+      return 0;
+    });
+    const visible = [];
+    const hidden = [];
+    for (const item of sorted) {
+      const gap = visible.length > 0 ? gapWidth : 0;
+      if (item.width + gap <= budget) {
+        budget -= item.width + gap;
+        visible.push(item.btn);
+      } else {
+        hidden.push(item.btn);
+      }
+    }
+    return { visible, hidden };
+  }
+  getLeftClusterCandidates() {
+    if (!this.leftButtons) {
+      return [];
+    }
+    return Array.from(this.leftButtons.children).filter(
+      (btn) => btn.tagName === "BUTTON" && btn.dataset.skipOverflow !== "true" && !btn.hasAttribute("hidden")
+    );
+  }
+  /**
+   * Hide lower-priority left-cluster buttons when the row is too narrow.
+   * Runs after the right cluster is resolved so the remaining width is accurate.
+   */
+  applyLeftClusterOverflow(priorityAttr, options = {}) {
+    if (!this.leftButtons) {
+      return;
+    }
+    const row = this.leftButtons.parentElement;
+    if (!row) {
+      return;
+    }
+    const candidates = this.getLeftClusterCandidates();
+    candidates.forEach((btn) => {
+      btn.style.display = "";
+      btn.dataset.inOverflow = "false";
+    });
+    const rowWidth = row.clientWidth;
+    if (rowWidth <= 0) {
+      return;
+    }
+    const rowStyles = getComputedStyle(row);
+    const rowGap = parseInt(rowStyles.columnGap || rowStyles.gap || "0", 10) || 0;
+    const rightWidth = this.rightButtons?.getBoundingClientRect().width ?? 0;
+    let budget = Math.floor(rowWidth - rightWidth - (rightWidth > 0 ? rowGap : 0));
+    if (budget <= 0) {
+      return;
+    }
+    const gapWidth = parseInt(getComputedStyle(this.leftButtons).gap || "0", 10) || 0;
+    const sorted = candidates.map((btn) => ({
+      btn,
+      width: this.measureControlButton(btn),
+      priority: this.getOverflowPriority(btn, priorityAttr)
+    })).sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return a.priority - b.priority;
+      }
+      return 0;
+    });
+    let visibleCount = 0;
+    for (const item of sorted) {
+      if (options.maxVisiblePriority !== void 0 && item.priority > options.maxVisiblePriority) {
+        item.btn.style.display = "none";
+        item.btn.dataset.inOverflow = "true";
+        continue;
+      }
+      const itemGap = visibleCount > 0 ? gapWidth : 0;
+      const fits = item.width + itemGap <= budget;
+      if (fits || item.priority <= 1) {
+        budget -= item.width + itemGap;
+        visibleCount++;
+        item.btn.style.display = "";
+        item.btn.dataset.inOverflow = "false";
+      } else {
+        item.btn.style.display = "none";
+        item.btn.dataset.inOverflow = "true";
+      }
+    }
+  }
+  updateOverflowMenuVisibility() {
+    if (!this.overflowMenuButton) {
+      return;
+    }
+    const hiddenCount = (this.leftButtons?.querySelectorAll('button[data-in-overflow="true"]').length ?? 0) + (this.rightButtons?.querySelectorAll('button[data-in-overflow="true"]').length ?? 0);
+    this.overflowMenuButton.style.display = hiddenCount > 0 ? "" : "none";
+  }
   checkOverflow() {
     const isDesktop = window.innerWidth >= 768;
     const isLandscape = window.innerHeight < window.innerWidth;
@@ -3463,123 +3647,98 @@ var ControlBar = class {
       }
       return;
     }
-    const shouldUseOverflow = !isDesktop && !isLandscape;
+    const isMobilePortrait = !isDesktop && !isLandscape;
+    if (!isDesktop && isLandscape && !isLandscapeFullscreen) {
+      allButtons.forEach((btn) => {
+        btn.dataset.inOverflow = "false";
+        btn.style.display = "";
+      });
+      this.applyLeftClusterOverflow("overflowPriorityMobile");
+      this.updateOverflowMenuVisibility();
+      return;
+    }
     if (this.player.options.debug) {
       console.log("Overflow detection:", {
         isDesktop,
         isFullscreen,
         isLandscape,
         isLandscapeFullscreen,
-        shouldUseOverflow,
+        isMobilePortrait,
         width: window.innerWidth,
         height: window.innerHeight
       });
     }
-    if (!shouldUseOverflow) {
-      allButtons.forEach((btn) => {
-        btn.dataset.inOverflow = "false";
-        btn.style.display = "";
-      });
-      if (this.overflowMenuButton) {
-        this.overflowMenuButton.style.display = "none";
-      }
-      if (this.player.options.debug) {
-        console.log("No overflow menu needed - all buttons visible, overflow button hidden");
-      }
-      return;
-    }
-    if (this.player.options.debug) {
-      console.log("Mobile portrait - checking for overflow...");
-    }
     allButtons.forEach((btn) => {
       btn.style.display = "";
     });
-    const containerWidth = this.rightButtons.offsetWidth;
-    const overflowButtonWidth = 50;
-    const availableWidth = containerWidth - overflowButtonWidth;
-    let totalWidth = 0;
-    const buttonWidths = allButtons.map((btn) => {
-      const style = getComputedStyle(btn);
-      const width = btn.offsetWidth + parseInt(style.marginLeft || "0") + parseInt(style.marginRight || "0");
-      totalWidth += width;
-      return { btn, width };
+    this.getLeftClusterCandidates().forEach((btn) => {
+      btn.style.display = "";
+      btn.dataset.inOverflow = "false";
     });
-    const gapWidth = 8;
-    totalWidth += (allButtons.length - 1) * gapWidth;
-    const isSmallScreen = window.innerWidth < 768;
-    const needsOverflow = totalWidth > availableWidth || isSmallScreen || isLandscapeFullscreen && !isDesktop;
+    const containerWidth = this.getOverflowContainerWidth();
+    if (containerWidth <= 0) {
+      return;
+    }
+    const gapWidth = parseInt(getComputedStyle(this.rightButtons).gap || "8", 10) || 8;
+    const priorityAttr = isMobilePortrait ? "overflowPriorityMobile" : "overflowPriority";
+    const fullscreenButton = allButtons.find((btn) => this.isFullscreenControlButton(btn));
+    const collapsible = allButtons.filter((btn) => !this.isFullscreenControlButton(btn));
+    if (isMobilePortrait) {
+      for (const btn of collapsible) {
+        const priority = this.getOverflowPriority(btn, priorityAttr);
+        const hide = priority > 1;
+        btn.dataset.inOverflow = hide ? "true" : "false";
+        btn.style.display = hide ? "none" : "";
+      }
+      if (fullscreenButton) {
+        fullscreenButton.dataset.inOverflow = "false";
+        fullscreenButton.style.display = "";
+      }
+      this.applyLeftClusterOverflow(priorityAttr, { maxVisiblePriority: 1 });
+      this.updateOverflowMenuVisibility();
+      return;
+    }
+    let { visible, hidden } = this.fitCollapsibleButtons(
+      collapsible,
+      containerWidth,
+      gapWidth,
+      false,
+      priorityAttr,
+      fullscreenButton,
+      this.overflowMenuButton
+    );
+    if (hidden.length > 0) {
+      ({ visible, hidden } = this.fitCollapsibleButtons(
+        collapsible,
+        containerWidth,
+        gapWidth,
+        true,
+        priorityAttr,
+        fullscreenButton,
+        this.overflowMenuButton
+      ));
+    }
     if (this.player.options.debug) {
       console.log("Overflow detection:", {
         containerWidth,
-        availableWidth,
-        totalWidth,
-        needsOverflow,
-        isSmallScreen,
-        reason: isSmallScreen ? "mobile screen" : totalWidth > availableWidth ? "not enough space" : "enough space",
-        buttonCount: allButtons.length
+        visibleCount: visible.length,
+        hiddenCount: hidden.length,
+        isMobilePortrait,
+        width: window.innerWidth
       });
     }
-    if (needsOverflow) {
-      const priorityAttr = isSmallScreen ? "overflowPriorityMobile" : "overflowPriority";
-      if (this.player.options.debug) {
-        console.log(`Using ${isSmallScreen ? "mobile" : "desktop"} priorities (width: ${window.innerWidth}px)`);
-      }
-      const sortedButtons = buttonWidths.sort((a, b) => {
-        const priorityA = parseInt(a.btn.dataset[priorityAttr] || a.btn.dataset.overflowPriority || "1");
-        const priorityB = parseInt(b.btn.dataset[priorityAttr] || b.btn.dataset.overflowPriority || "1");
-        return priorityB - priorityA;
-      });
-      let currentWidth = totalWidth;
-      let movedToOverflow = 0;
-      for (const { btn, width } of sortedButtons) {
-        const priority = parseInt(btn.dataset[priorityAttr] || btn.dataset.overflowPriority || "1");
-        const buttonLabel = btn.getAttribute("aria-label") || "unknown";
-        if (priority === 1) {
-          btn.dataset.inOverflow = "false";
-          btn.style.display = "";
-          continue;
-        }
-        const shouldHide = isSmallScreen ? priority > 1 : currentWidth > availableWidth;
-        if (shouldHide) {
-          btn.dataset.inOverflow = "true";
-          btn.style.display = "none";
-          currentWidth -= width;
-          movedToOverflow++;
-          if (this.player.options.debug) {
-            console.log(`  → Hiding button: ${buttonLabel} (priority ${priority}, ${isSmallScreen ? "mobile" : "desktop"})`);
-          }
-        } else {
-          btn.dataset.inOverflow = "false";
-          btn.style.display = "";
-        }
-      }
-      if (this.player.options.debug) {
-        console.log("Overflow button exists?", Boolean(this.overflowMenuButton));
-      }
-      if (!this.overflowMenuButton) {
-        console.error("Overflow menu button not found!");
-        return;
-      }
-      if (movedToOverflow > 0) {
-        this.overflowMenuButton.style.display = "";
-        if (this.player.options.debug) {
-          console.log("Showing overflow menu button -", movedToOverflow, "buttons moved");
-        }
-      } else {
-        this.overflowMenuButton.style.display = "none";
-        if (this.player.options.debug) {
-          console.log("Hiding overflow menu button - all buttons fit");
-        }
-      }
-    } else {
-      allButtons.forEach((btn) => {
-        btn.dataset.inOverflow = "false";
-        btn.style.display = "";
-      });
-      if (this.overflowMenuButton) {
-        this.overflowMenuButton.style.display = "none";
-      }
+    const hiddenSet = new Set(hidden);
+    for (const btn of collapsible) {
+      const hide = hiddenSet.has(btn);
+      btn.dataset.inOverflow = hide ? "true" : "false";
+      btn.style.display = hide ? "none" : "";
     }
+    if (fullscreenButton) {
+      fullscreenButton.dataset.inOverflow = "false";
+      fullscreenButton.style.display = "";
+    }
+    this.applyLeftClusterOverflow(priorityAttr);
+    this.updateOverflowMenuVisibility();
   }
   setupOverflowDetection() {
     const signal = this.player.lifecycleSignal;
@@ -3594,6 +3753,10 @@ var ControlBar = class {
       requestAnimationFrame(checkOverflow);
     });
     resizeObserver.observe(this.rightButtons);
+    const controlsRow = this.rightButtons.parentElement;
+    if (controlsRow) {
+      resizeObserver.observe(controlsRow);
+    }
     if (!this._overflowGlobalBound) {
       this._overflowGlobalBound = true;
       window.addEventListener("resize", () => {
@@ -4238,6 +4401,13 @@ var MediaSessionManager = class {
     this.boundActions = [];
   }
 };
+
+// src/constants/layoutBreakpoints.ts
+var PLAYLIST_PANEL_RIGHT_DESKTOP_MIN_WIDTH = "75rem";
+var PLAYLIST_PANEL_RIGHT_DESKTOP_MEDIA_QUERY = `(width >= ${PLAYLIST_PANEL_RIGHT_DESKTOP_MIN_WIDTH})`;
+function isPlaylistPanelRightDesktopViewport() {
+  return typeof window !== "undefined" && window.matchMedia(PLAYLIST_PANEL_RIGHT_DESKTOP_MEDIA_QUERY).matches;
+}
 
 // src/utils/UrlSafe.ts
 function sanitizePosterUrl(input) {
@@ -7573,19 +7743,61 @@ var Player = class _Player extends EventEmitter {
     });
   }
   positionPlayOverlayOnMobile() {
-    if (!this.playButtonOverlay || this.element.tagName !== "VIDEO") {
+    const node = this.getPlayButtonOverlayNode();
+    if (!node) {
       return;
     }
-    const mobile = isMobile();
-    if (!mobile) {
-      this.playButtonOverlay.style.top = "";
+    const mediaEl = this.getPlayOverlayMediaElement();
+    if (!mediaEl) {
+      node.style.top = "";
+      node.style.left = "";
+      node.style.transform = "";
       return;
     }
-    const videoRect = this.element.getBoundingClientRect();
+    const needsManualPosition = isMobile() || this.isPlaylistPanelRightDesktop() || mediaEl !== this.element;
+    if (!needsManualPosition) {
+      node.style.top = "";
+      node.style.left = "";
+      node.style.transform = "";
+      return;
+    }
+    const mediaRect = mediaEl.getBoundingClientRect();
     const wrapperRect = this.videoWrapper?.getBoundingClientRect();
-    if (!wrapperRect) return;
-    const videoCenter = videoRect.top - wrapperRect.top + videoRect.height / 2;
-    this.playButtonOverlay.style.top = `${videoCenter}px`;
+    if (!wrapperRect || mediaRect.height <= 0) {
+      return;
+    }
+    const mediaCenterY = mediaRect.top - wrapperRect.top + mediaRect.height / 2;
+    const mediaCenterX = mediaRect.left - wrapperRect.left + mediaRect.width / 2;
+    node.style.top = `${mediaCenterY}px`;
+    node.style.left = `${mediaCenterX}px`;
+    node.style.transform = "translate(-50%, -50%)";
+  }
+  /**
+   * Visible media surface used to center the play overlay. External renderers
+   * hide the host <video>, so their iframe/container must be used instead.
+   */
+  getPlayOverlayMediaElement() {
+    const prefix = this.options.classPrefix;
+    if (this.videoWrapper) {
+      const externalSelectors = [
+        'div[id^="youtube-player-"]',
+        'iframe[id^="vimeo-player-"]',
+        `iframe.${prefix}-soundcloud-iframe`
+      ];
+      for (const selector of externalSelectors) {
+        const candidate = this.videoWrapper.querySelector(selector);
+        if (candidate instanceof HTMLElement && candidate.getBoundingClientRect().height > 0) {
+          return candidate;
+        }
+      }
+    }
+    if (this.element.tagName === "VIDEO" && getComputedStyle(this.element).display !== "none") {
+      return this.element;
+    }
+    return null;
+  }
+  isPlaylistPanelRightDesktop() {
+    return !!this.container?.classList.contains("vidply-playlist-panel-right") && !this.state.fullscreen && isPlaylistPanelRightDesktopViewport();
   }
   async initializeRenderer() {
     this.liveStreamManager?.resetForSourceChange();
@@ -7640,6 +7852,7 @@ var Player = class _Player extends EventEmitter {
       await this.renderer.init();
     }
     this.invalidateTrackCache();
+    rafWithTimeout(() => this.positionPlayOverlayOnMobile(), 100);
   }
   async _detectRendererClass(src) {
     switch (classifyRendererType(src)) {
@@ -7660,7 +7873,7 @@ var Player = class _Player extends EventEmitter {
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
-        const module = await import("./vidply.SoundCloudRenderer-QOXUWVKL.js");
+        const module = await import("./vidply.SoundCloudRenderer-PCSU742H.js");
         return module.SoundCloudRenderer ?? module.default;
       }
       default:
@@ -8833,7 +9046,7 @@ var Player = class _Player extends EventEmitter {
 
 // src/features/PlaylistManager.ts
 var playlistInstanceCounter = 0;
-var PlaylistManager = class {
+var PlaylistManager = class _PlaylistManager {
   player;
   container;
   currentIndex;
@@ -8846,6 +9059,7 @@ var PlaylistManager = class {
   options;
   PlayerClass;
   playlistPanel;
+  playlistMainElement;
   trackArtworkElement;
   trackInfoView;
   tracks;
@@ -8870,10 +9084,12 @@ var PlaylistManager = class {
       loop: Boolean(options.loop) || false,
       showPanel: options.showPanel !== false,
       // Default true
+      panelPosition: _PlaylistManager.normalizePanelPosition(options.panelPosition),
       recreatePlayers: Boolean(options.recreatePlayers) || false
     };
     this.container = null;
     this.playlistPanel = null;
+    this.playlistMainElement = null;
     this.trackInfoView = null;
     this.trackArtworkElement = null;
     this.navigationFeedback = null;
@@ -9012,12 +9228,7 @@ var PlaylistManager = class {
     this.player.on("error", this.handleTrackError);
     if (this.player.container) {
       if (this.trackArtworkElement) {
-        const videoWrapper = this.player.container.querySelector(".vidply-video-wrapper");
-        if (videoWrapper) {
-          this.player.container.insertBefore(this.trackArtworkElement, videoWrapper);
-        } else {
-          this.player.container.appendChild(this.trackArtworkElement);
-        }
+        this.insertBeforeVideoWrapper(this.trackArtworkElement);
       }
       if (this.trackInfoView) {
         this.player.container.appendChild(this.trackInfoView.element);
@@ -9029,10 +9240,16 @@ var PlaylistManager = class {
         this.player.container.appendChild(this.playlistPanel);
       }
     }
-    this.container = this.player.container;
-    this.updatePlayerControls();
     this.tracks = savedTracks;
     this.currentIndex = savedIndex;
+    this.container = this.player.container;
+    this.playlistMainElement = null;
+    if (this.container) {
+      this.container.classList.add("vidply-has-playlist");
+    }
+    this.applyPanelPositionClass();
+    this.updatePlayerControls();
+    this.applyPanelPositionClass();
     this.updatePlaylistUI();
     this.isPanelVisible = wasVisible;
     if (this.playlistPanel) {
@@ -9118,6 +9335,137 @@ var PlaylistManager = class {
     if (showPanel !== null) {
       this.options.showPanel = showPanel === "true";
     }
+    const panelPosition = element.getAttribute("data-playlist-panel-position");
+    if (panelPosition !== null) {
+      this.options.panelPosition = _PlaylistManager.normalizePanelPosition(panelPosition);
+    }
+    this.applyPanelPositionClass();
+  }
+  /**
+   * Normalize a caller-supplied panel position to a supported value.
+   */
+  static normalizePanelPosition(value) {
+    return value === "right" ? "right" : "below";
+  }
+  /**
+   * Apply or remove the layout modifier class on the player container.
+   */
+  applyPanelPositionClass() {
+    if (!this.container) {
+      return;
+    }
+    if (this.tracks.length > 0 || this.playlistPanel) {
+      this.container.classList.add("vidply-has-playlist");
+    }
+    if (this.playlistMainElement && this.playlistMainElement.parentElement !== this.container) {
+      this.playlistMainElement = null;
+    }
+    const isRight = this.options.panelPosition === "right";
+    this.container.classList.toggle("vidply-playlist-panel-right", isRight);
+    if (isRight) {
+      this.ensurePlaylistMainLayout();
+      this.syncRightPanelMediaStyles();
+    } else {
+      this.teardownPlaylistMainLayout();
+    }
+  }
+  /**
+   * Group the media area (wrapper, track info, artwork) so the playlist can sit
+   * beside it without stretching the video wrapper to the playlist height.
+   */
+  ensurePlaylistMainLayout() {
+    if (!this.container || this.playlistMainElement) {
+      return;
+    }
+    const main = DOMUtils.createElement("div", {
+      className: "vidply-playlist-main"
+    });
+    const panel = this.playlistPanel;
+    const children = Array.from(this.container.children).filter(
+      (child) => child instanceof HTMLElement && child !== panel
+    );
+    if (panel && panel.parentElement === this.container) {
+      this.container.insertBefore(main, panel);
+    } else {
+      this.container.appendChild(main);
+    }
+    children.forEach((child) => main.appendChild(child));
+    this.orderPlaylistMainChildren(main);
+    this.playlistMainElement = main;
+  }
+  /**
+   * Left column order: artwork (optional) → video → controls (inside wrapper) → track info.
+   */
+  orderPlaylistMainChildren(main) {
+    const orderedSelectors = [
+      ".vidply-track-artwork",
+      ".vidply-video-wrapper",
+      ".vidply-track-info"
+    ];
+    orderedSelectors.forEach((selector) => {
+      const node = main.querySelector(selector);
+      if (node) {
+        main.appendChild(node);
+      }
+    });
+    Array.from(main.children).forEach((child) => {
+      if (child.classList.contains("vidply-sr-only")) {
+        main.appendChild(child);
+      }
+    });
+  }
+  /**
+   * Insert a node before the video wrapper regardless of whether the right-panel
+   * layout wrapped the player chrome in `.vidply-playlist-main`.
+   */
+  insertBeforeVideoWrapper(element) {
+    if (!this.container) {
+      return;
+    }
+    const videoWrapper = this.container.querySelector(".vidply-video-wrapper");
+    if (videoWrapper?.parentElement) {
+      videoWrapper.parentElement.insertBefore(element, videoWrapper);
+      if (this.playlistMainElement && videoWrapper.parentElement === this.playlistMainElement) {
+        this.orderPlaylistMainChildren(this.playlistMainElement);
+      }
+      return;
+    }
+    const host = this.playlistMainElement ?? this.container;
+    host.appendChild(element);
+  }
+  /**
+   * Inline 100% heights on the media element stretch the wrapper in grid layouts.
+   */
+  syncRightPanelMediaStyles() {
+    if (!this.container || this.options.panelPosition !== "right") {
+      return;
+    }
+    this.container.querySelectorAll(".vidply-video-wrapper > video, .vidply-video-wrapper > audio").forEach((node) => {
+      if (node instanceof HTMLElement) {
+        node.style.height = "auto";
+      }
+    });
+    requestAnimationFrame(() => {
+      this.player.positionPlayOverlayOnMobile();
+    });
+  }
+  /**
+   * Restore the default single-column DOM when the panel is below the player.
+   */
+  teardownPlaylistMainLayout() {
+    if (!this.container || !this.playlistMainElement) {
+      return;
+    }
+    const main = this.playlistMainElement;
+    while (main.firstChild) {
+      if (this.playlistPanel) {
+        this.container.insertBefore(main.firstChild, this.playlistPanel);
+      } else {
+        this.container.appendChild(main.firstChild);
+      }
+    }
+    main.remove();
+    this.playlistMainElement = null;
   }
   /**
    * Update player controls to add playlist navigation buttons
@@ -9151,6 +9499,7 @@ var PlaylistManager = class {
     this.currentIndex = -1;
     if (this.container) {
       this.container.classList.add("vidply-has-playlist");
+      this.applyPanelPositionClass();
     }
     if (this.playlistPanel) {
       this.renderPlaylist();
@@ -9584,6 +9933,7 @@ var PlaylistManager = class {
     });
     this.playlistPanel.style.display = this.isPanelVisible ? "none" : "none";
     this.container.appendChild(this.playlistPanel);
+    this.applyPanelPositionClass();
   }
   /**
    * Update track info display
@@ -9603,6 +9953,7 @@ var PlaylistManager = class {
     };
     this.trackInfoView.render(data);
     this.updateTrackArtwork(track);
+    this.syncRightPanelMediaStyles();
   }
   /**
    * Update track artwork display (for audio playlists)
@@ -9622,12 +9973,7 @@ var PlaylistManager = class {
         }
       });
       this.trackArtworkElement.style.display = "none";
-      const videoWrapper = this.container.querySelector(".vidply-video-wrapper");
-      if (videoWrapper) {
-        this.container.insertBefore(this.trackArtworkElement, videoWrapper);
-      } else {
-        this.container.appendChild(this.trackArtworkElement);
-      }
+      this.insertBeforeVideoWrapper(this.trackArtworkElement);
     }
     if (!this.trackArtworkElement) return;
     const safeBackground = track.poster ? toCssBackgroundImage(track.poster) : null;
@@ -9678,6 +10024,7 @@ var PlaylistManager = class {
     if (this.isPanelVisible) {
       this.playlistPanel.style.display = "block";
     }
+    this.syncPanelCollapsedLayout();
   }
   /**
    * Create playlist item element
@@ -10032,6 +10379,24 @@ var PlaylistManager = class {
     }
   }
   /**
+   * Sync grid layout when the in-player playlist panel is toggled in the
+   * right-column desktop layout (full width when collapsed).
+   */
+  syncPanelCollapsedLayout() {
+    if (!this.container) {
+      return;
+    }
+    const isRightDesktop = this.options.panelPosition === "right" && isPlaylistPanelRightDesktopViewport();
+    this.container.classList.toggle(
+      "vidply-playlist-panel-collapsed",
+      isRightDesktop && !this.isPanelVisible
+    );
+    requestAnimationFrame(() => {
+      this.player.controlBar?.checkOverflow();
+      this.player.positionPlayOverlayOnMobile();
+    });
+  }
+  /**
    * Toggle playlist panel visibility
    * @param {boolean} show - Optional: force show (true) or hide (false)
    * @returns {boolean} - New visibility state
@@ -10064,6 +10429,7 @@ var PlaylistManager = class {
         this.player.controlBar.controls.playlistToggle.focus({ preventScroll: true });
       }
     }
+    this.syncPanelCollapsedLayout();
     return this.isPanelVisible;
   }
   /**
@@ -10112,8 +10478,12 @@ var PlaylistManager = class {
       this.trackInfoView.destroy();
       this.trackInfoView = null;
     }
+    this.teardownPlaylistMainLayout();
     if (this.playlistPanel) {
       this.playlistPanel.remove();
+    }
+    if (this.container) {
+      this.container.classList.remove("vidply-has-playlist", "vidply-playlist-panel-right");
     }
     this.clear();
   }

@@ -48,11 +48,13 @@ type PlayerConstructor = new (element: string | HTMLElement, options?: Record<st
  * `[key: string]: unknown` index so consumers can pass through
  * additional player options without losing typing on the known ones.
  */
+type PlaylistPanelPosition = 'below' | 'right';
 interface PlaylistManagerOptions {
     autoAdvance: boolean;
     autoPlayFirst: boolean;
     loop: boolean;
     showPanel: boolean;
+    panelPosition: PlaylistPanelPosition;
     recreatePlayers: boolean;
     hostElement?: HTMLElement | null;
     PlayerClass?: PlayerConstructor | null;
@@ -72,6 +74,7 @@ export declare class PlaylistManager {
     options: PlaylistManagerOptions;
     PlayerClass: PlayerConstructor | null;
     playlistPanel: HTMLElement | null;
+    playlistMainElement: HTMLElement | null;
     trackArtworkElement: HTMLElement | null;
     trackInfoView: TrackInfoView | null;
     tracks: PlaylistTrack[];
@@ -100,6 +103,36 @@ export declare class PlaylistManager {
      * @param {HTMLElement} element - Element to read attributes from
      */
     loadOptionsFromAttributes(element: HTMLElement): void;
+    /**
+     * Normalize a caller-supplied panel position to a supported value.
+     */
+    private static normalizePanelPosition;
+    /**
+     * Apply or remove the layout modifier class on the player container.
+     */
+    private applyPanelPositionClass;
+    /**
+     * Group the media area (wrapper, track info, artwork) so the playlist can sit
+     * beside it without stretching the video wrapper to the playlist height.
+     */
+    private ensurePlaylistMainLayout;
+    /**
+     * Left column order: artwork (optional) → video → controls (inside wrapper) → track info.
+     */
+    private orderPlaylistMainChildren;
+    /**
+     * Insert a node before the video wrapper regardless of whether the right-panel
+     * layout wrapped the player chrome in `.vidply-playlist-main`.
+     */
+    private insertBeforeVideoWrapper;
+    /**
+     * Inline 100% heights on the media element stretch the wrapper in grid layouts.
+     */
+    private syncRightPanelMediaStyles;
+    /**
+     * Restore the default single-column DOM when the panel is below the player.
+     */
+    private teardownPlaylistMainLayout;
     /**
      * Update player controls to add playlist navigation buttons
      */
@@ -254,6 +287,11 @@ export declare class PlaylistManager {
      * Clear playlist
      */
     clear(): void;
+    /**
+     * Sync grid layout when the in-player playlist panel is toggled in the
+     * right-column desktop layout (full width when collapsed).
+     */
+    private syncPanelCollapsedLayout;
     /**
      * Toggle playlist panel visibility
      * @param {boolean} show - Optional: force show (true) or hide (false)

@@ -173,8 +173,9 @@ export class SoundCloudRenderer implements Renderer {
       this.iframe.classList.add('vidply-soundcloud-iframe', 'vidply-soundcloud-playlist');
     } else {
       this.iframe.classList.add('vidply-soundcloud-iframe');
+      // Single tracks can inherit wrapper height; sets need the CSS min-height instead.
+      this.iframe.style.maxHeight = '100%';
     }
-    this.iframe.style.maxHeight = '100%';
     
     this.player.element.parentNode?.insertBefore(this.iframe, this.player.element);
   }

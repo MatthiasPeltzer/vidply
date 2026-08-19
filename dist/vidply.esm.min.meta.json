@@ -145,7 +145,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 192977,
+      "bytes": 200749,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -271,6 +271,11 @@
     },
     "src/renderers/HTML5Renderer.ts": {
       "bytes": 12232,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/constants/layoutBreakpoints.ts": {
+      "bytes": 528,
       "imports": [],
       "format": "esm"
     },
@@ -713,7 +718,7 @@
       "format": "esm"
     },
     "src/renderers/SoundCloudRenderer.ts": {
-      "bytes": 14460,
+      "bytes": 14551,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -724,7 +729,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 115530,
+      "bytes": 117129,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -785,6 +790,11 @@
           "path": "src/utils/PerformanceUtils.ts",
           "kind": "import-statement",
           "original": "../utils/PerformanceUtils.js"
+        },
+        {
+          "path": "src/constants/layoutBreakpoints.ts",
+          "kind": "import-statement",
+          "original": "../constants/layoutBreakpoints.js"
         },
         {
           "path": "src/utils/UrlSafe.ts",
@@ -895,7 +905,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 64854,
+      "bytes": 70913,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -926,6 +936,11 @@
           "path": "src/utils/PerformanceUtils.ts",
           "kind": "import-statement",
           "original": "../utils/PerformanceUtils.js"
+        },
+        {
+          "path": "src/constants/layoutBreakpoints.ts",
+          "kind": "import-statement",
+          "original": "../constants/layoutBreakpoints.js"
         },
         {
           "path": "src/core/TrackInfoView.ts",
@@ -1256,13 +1271,13 @@
       },
       "bytes": 32032
     },
-    "dist/prod/vidply.SoundCloudRenderer-45RCDUTF.min.js.map": {
+    "dist/prod/vidply.SoundCloudRenderer-2LLYLS24.min.js.map": {
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 22329
+      "bytes": 22421
     },
-    "dist/prod/vidply.SoundCloudRenderer-45RCDUTF.min.js": {
+    "dist/prod/vidply.SoundCloudRenderer-2LLYLS24.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-3Q2MZ35X.min.js",
@@ -1276,10 +1291,10 @@
       "entryPoint": "src/renderers/SoundCloudRenderer.ts",
       "inputs": {
         "src/renderers/SoundCloudRenderer.ts": {
-          "bytesInOutput": 11281
+          "bytesInOutput": 11283
         }
       },
-      "bytes": 11597
+      "bytes": 11599
     },
     "dist/prod/vidply.chunk-3Q2MZ35X.min.js.map": {
       "imports": [],
@@ -1304,7 +1319,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 750287
+      "bytes": 774150
     },
     "dist/prod/vidply.esm.min.js": {
       "imports": [
@@ -1377,7 +1392,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.SoundCloudRenderer-45RCDUTF.min.js",
+          "path": "dist/prod/vidply.SoundCloudRenderer-2LLYLS24.min.js",
           "kind": "dynamic-import"
         }
       ],
@@ -1398,13 +1413,16 @@
           "bytesInOutput": 3575
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 134215
+          "bytesInOutput": 140063
         },
         "src/controls/KeyboardManager.ts": {
           "bytesInOutput": 10789
         },
         "src/core/MediaSessionManager.ts": {
           "bytesInOutput": 7283
+        },
+        "src/constants/layoutBreakpoints.ts": {
+          "bytesInOutput": 319
         },
         "src/utils/UrlSafe.ts": {
           "bytesInOutput": 983
@@ -1446,16 +1464,16 @@
           "bytesInOutput": 10277
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 87750
+          "bytesInOutput": 89368
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 45094
+          "bytesInOutput": 50328
         },
         "src/index.ts": {
           "bytesInOutput": 5074
         }
       },
-      "bytes": 374430
+      "bytes": 387488
     },
     "dist/prod/vidply.chunk-JINGP7CU.min.js.map": {
       "imports": [],

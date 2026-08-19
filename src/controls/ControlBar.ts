@@ -238,9 +238,13 @@ export class ControlBar {
         const mobile = isMobile();
         const isOverflowMenu = menu.classList.contains(`${this.player.options.classPrefix}-overflow-menu-list`);
         const isFullscreen = this.player.state.fullscreen;
+        const menuInPlayerContainer = menu.parentElement === this.player.container;
         
-        // In fullscreen, menu is appended to player container, so use fixed positioning
-        if (isFullscreen && menu.parentElement === this.player.container) {
+        // Menus appended to the player container (fullscreen controls and the
+        // overflow list in narrow layouts) use container-relative coordinates
+        // so they are not clipped by .vidply-controls-right and sit above the
+        // side playlist panel.
+        if (menuInPlayerContainer && (isFullscreen || isOverflowMenu)) {
             const doFullscreenPositioning = () => {
                 const buttonRect = button.getBoundingClientRect();
                 const menuRect = menu.getBoundingClientRect();
@@ -266,13 +270,23 @@ export class ControlBar {
                     menu.classList.add('vidply-menu-below');
                 }
                 
-                // Horizontal positioning
+                // Horizontal positioning — align the menu's right edge with the button
                 if (isOverflowMenu) {
-                    // Overflow menu aligns to right
                     const buttonRight = buttonRect.right - containerRect.left;
-                    menu.style.right = `${containerRect.width - buttonRight}px`;
                     menu.style.left = 'auto';
+                    menu.style.right = `${containerRect.width - buttonRight}px`;
                     menu.style.transform = 'none';
+
+                    // Keep the menu inside the player box when it is wider than the button
+                    const menuWidth = menuRect.width || menu.offsetWidth;
+                    if (menuWidth > 0) {
+                        const maxLeft = Math.max(0, buttonRight - menuWidth);
+                        const computedLeft = buttonRight - menuWidth;
+                        if (computedLeft < 0) {
+                            menu.style.left = `${maxLeft}px`;
+                            menu.style.right = 'auto';
+                        }
+                    }
                 } else {
                     // Other menus center on button
                     menu.style.left = `${buttonCenterX}px`;
@@ -465,11 +479,13 @@ export class ControlBar {
         button.setAttribute('aria-controls', menu.id);
         button.setAttribute('aria-haspopup', 'true');
         
-        // In fullscreen, append menu to player container to escape video-wrapper stacking context
-        // This allows menus to appear above the playlist panel
-        // Otherwise, keep it after the button for WCAG compliance
+        // Overflow list and fullscreen menus append to the player container so
+        // they escape the control-bar row (overflow clipping / side playlist).
+        // Other menus stay beside their button for keyboard navigation.
+        const prefix = this.player.options.classPrefix;
+        const isOverflowMenuList = menu.classList.contains(`${prefix}-overflow-menu-list`);
         const isFullscreen = this.player.state.fullscreen;
-        if (isFullscreen) {
+        if (isFullscreen || isOverflowMenuList) {
             // Append to player container as sibling to playlist panel
             this.player.container.appendChild(menu);
             // Store reference to button for positioning
@@ -871,6 +887,11 @@ export class ControlBar {
             leftButtons.appendChild(this.createPlayPauseButton());
         }
 
+        // Playlist toggle beside transport controls (visible on narrow viewports)
+        if (this.player.playlistManager && this.player.options.playlistToggleButton !== false) {
+            leftButtons.appendChild(this.createPlaylistToggleButton());
+        }
+
         // Restart button (right beside play button) — hidden for live streams
         const restartButton = this.createRestartButton();
         leftButtons.appendChild(restartButton);
@@ -924,8 +945,8 @@ export class ControlBar {
         //   Priority 2: Audio Description, Quality  
         //   Priority 3: Chapters, Caption Style, Transcript, Sign Language, PiP
         // Smaller screens (<768px):
-        //   Priority 1: Play, Volume, Progress (only left controls visible)
-        //   Priority 3: ALL right-side buttons go to overflow menu
+        //   Priority 1: Previous, Play, Next, Volume, Fullscreen
+        //   Priority 3: Playlist toggle and other extras go to the overflow menu
 
         // 1. Chapters button
         if (this.player.options.chaptersButton && hasChapters) {
@@ -990,14 +1011,6 @@ export class ControlBar {
         if (this.player.options.transcriptButton && hasCaptions) {
             const btn = this.createTranscriptButton();
             btn.dataset.overflowPriority = '3';
-            btn.dataset.overflowPriorityMobile = '3';
-            this.rightButtons.appendChild(btn);
-        }
-
-        // 6.5 Playlist toggle button (for playlists)
-        if (this.player.playlistManager && this.player.options.playlistToggleButton !== false) {
-            const btn = this.createPlaylistToggleButton();
-            btn.dataset.overflowPriority = '2';
             btn.dataset.overflowPriorityMobile = '3';
             this.rightButtons.appendChild(btn);
         }
@@ -1811,6 +1824,8 @@ export class ControlBar {
         });
 
         this.controls.playPause = button;
+        button.dataset.overflowPriority = '1';
+        button.dataset.overflowPriorityMobile = '1';
         return button;
     }
 
@@ -1831,6 +1846,8 @@ export class ControlBar {
             this.player.play();
         });
 
+        button.dataset.overflowPriority = '3';
+        button.dataset.overflowPriorityMobile = '3';
         return button;
     }
 
@@ -1861,6 +1878,8 @@ export class ControlBar {
         updateState();
 
         this.controls.previous = button;
+        button.dataset.overflowPriority = '3';
+        button.dataset.overflowPriorityMobile = '1';
         return button;
     }
 
@@ -1891,6 +1910,8 @@ export class ControlBar {
         updateState();
 
         this.controls.next = button;
+        button.dataset.overflowPriority = '3';
+        button.dataset.overflowPriorityMobile = '1';
         return button;
     }
 
@@ -1918,6 +1939,8 @@ export class ControlBar {
         });
 
         this.controls.playlistToggle = button;
+        button.dataset.overflowPriority = '2';
+        button.dataset.overflowPriorityMobile = '3';
         return button;
     }
 
@@ -1937,6 +1960,8 @@ export class ControlBar {
             this.player.seekBackward(seconds);
         });
 
+        button.dataset.overflowPriority = '2';
+        button.dataset.overflowPriorityMobile = '3';
         return button;
     }
 
@@ -1957,6 +1982,8 @@ export class ControlBar {
             this.player.seekForward(seconds);
         });
 
+        button.dataset.overflowPriority = '2';
+        button.dataset.overflowPriorityMobile = '3';
         return button;
     }
 
@@ -1997,6 +2024,8 @@ export class ControlBar {
         });
 
         this.controls.mute = muteButton;
+        muteButton.dataset.overflowPriority = '1';
+        muteButton.dataset.overflowPriorityMobile = '1';
 
         return muteButton;
     }
@@ -2025,6 +2054,8 @@ export class ControlBar {
         });
 
         this.controls.mute = muteButton;
+        muteButton.dataset.overflowPriority = '1';
+        muteButton.dataset.overflowPriorityMobile = '1';
 
         return muteButton;
     }
@@ -3228,7 +3259,8 @@ export class ControlBar {
                 btn.dataset.overflowPriorityMobile = '3';
                 // Insert before transcript or playlist toggle button
                 const transcriptBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-transcript`);
-                const playlistBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
+                const playlistBtn = this.leftButtons?.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`)
+                    ?? this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
                 const insertBefore = transcriptBtn || playlistBtn || null;
                 if (insertBefore) {
                     this.rightButtons.insertBefore(btn, insertBefore);
@@ -4227,8 +4259,11 @@ export class ControlBar {
             }
         });
 
-        // Get all overflow buttons (those currently hidden)
-        const overflowButtons: HTMLElement[] = Array.from(this.rightButtons.querySelectorAll('button[data-in-overflow="true"]'));
+        // Get all overflow buttons (those currently hidden in either cluster)
+        const overflowButtons: HTMLElement[] = [
+            ...Array.from(this.leftButtons?.querySelectorAll('button[data-in-overflow="true"]') ?? []) as HTMLElement[],
+            ...Array.from(this.rightButtons.querySelectorAll('button[data-in-overflow="true"]')) as HTMLElement[],
+        ];
 
         if (overflowButtons.length === 0) {
             // No overflow items — non-operable, kept out of roving navigation
@@ -4345,6 +4380,214 @@ export class ControlBar {
      * button insertions (audio-description / sign-language) can request a
      * recheck without re-attaching observers.
      */
+    measureControlButton(btn: HTMLElement): number {
+        const style = getComputedStyle(btn);
+        return btn.offsetWidth +
+            parseInt(style.marginLeft || '0', 10) +
+            parseInt(style.marginRight || '0', 10);
+    }
+
+    getOverflowPriority(btn: HTMLElement, priorityAttr: 'overflowPriority' | 'overflowPriorityMobile'): number {
+        return parseInt(btn.dataset[priorityAttr] || btn.dataset.overflowPriority || '1', 10);
+    }
+
+    isFullscreenControlButton(btn: HTMLElement): boolean {
+        return btn.classList.contains(`${this.player.options.classPrefix}-fullscreen`);
+    }
+
+    /**
+     * Width available for right-side control buttons. Uses the controls row
+     * minus the left cluster so overflow detection reacts to narrow playlist
+     * columns instead of the unconstrained scroll width of the button row.
+     */
+    getOverflowContainerWidth(): number {
+        if (!this.rightButtons) {
+            return 0;
+        }
+
+        const parent = this.rightButtons.parentElement;
+        if (parent) {
+            const prefix = this.player.options.classPrefix;
+            const left = parent.querySelector(`.${prefix}-controls-left`) as HTMLElement | null;
+            const parentWidth = parent.clientWidth;
+            if (parentWidth > 0) {
+                const styles = getComputedStyle(parent);
+                const gap = parseInt(styles.columnGap || styles.gap || '0', 10) || 0;
+                const leftWidth = left?.getBoundingClientRect().width ?? 0;
+                const available = Math.floor(parentWidth - leftWidth - (left && leftWidth > 0 ? gap : 0));
+                if (available > 0) {
+                    return available;
+                }
+            }
+        }
+
+        const clientWidth = this.rightButtons.clientWidth;
+        if (clientWidth > 0) {
+            return clientWidth;
+        }
+
+        return this.rightButtons.offsetWidth;
+    }
+
+    /**
+     * Fit as many collapsible buttons as possible into the row budget while
+     * keeping the overflow menu (optional) and fullscreen pinned at the end.
+     */
+    private fitCollapsibleButtons(
+        collapsible: HTMLElement[],
+        containerWidth: number,
+        gapWidth: number,
+        reserveOverflowMenu: boolean,
+        priorityAttr: 'overflowPriority' | 'overflowPriorityMobile',
+        fullscreenButton: HTMLElement | undefined,
+        overflowButton: HTMLElement | null
+    ): { visible: HTMLElement[]; hidden: HTMLElement[] } {
+        let reserved = 0;
+        if (fullscreenButton) {
+            reserved += this.measureControlButton(fullscreenButton);
+        }
+        if (reserveOverflowMenu && overflowButton) {
+            reserved += this.measureControlButton(overflowButton);
+        }
+
+        const pinnedCount = (fullscreenButton ? 1 : 0) + (reserveOverflowMenu && overflowButton ? 1 : 0);
+        if (pinnedCount > 0) {
+            reserved += Math.max(0, pinnedCount - 1) * gapWidth;
+        }
+
+        let budget = containerWidth - reserved;
+        const sorted = collapsible
+            .map(btn => ({
+                btn,
+                width: this.measureControlButton(btn),
+                priority: this.getOverflowPriority(btn, priorityAttr)
+            }))
+            .sort((a, b) => {
+                if (a.priority !== b.priority) {
+                    return a.priority - b.priority;
+                }
+                return 0;
+            });
+
+        const visible: HTMLElement[] = [];
+        const hidden: HTMLElement[] = [];
+
+        for (const item of sorted) {
+            const gap = visible.length > 0 ? gapWidth : 0;
+            if (item.width + gap <= budget) {
+                budget -= item.width + gap;
+                visible.push(item.btn);
+            } else {
+                hidden.push(item.btn);
+            }
+        }
+
+        return { visible, hidden };
+    }
+
+    private getLeftClusterCandidates(): HTMLElement[] {
+        if (!this.leftButtons) {
+            return [];
+        }
+
+        return (Array.from(this.leftButtons.children) as HTMLElement[]).filter(
+            (btn) => btn.tagName === 'BUTTON'
+                && btn.dataset.skipOverflow !== 'true'
+                && !btn.hasAttribute('hidden')
+        );
+    }
+
+    /**
+     * Hide lower-priority left-cluster buttons when the row is too narrow.
+     * Runs after the right cluster is resolved so the remaining width is accurate.
+     */
+    private applyLeftClusterOverflow(
+        priorityAttr: 'overflowPriority' | 'overflowPriorityMobile',
+        options: { maxVisiblePriority?: number } = {}
+    ): void {
+        if (!this.leftButtons) {
+            return;
+        }
+
+        const row = this.leftButtons.parentElement;
+        if (!row) {
+            return;
+        }
+
+        const candidates = this.getLeftClusterCandidates();
+        candidates.forEach((btn) => {
+            btn.style.display = '';
+            btn.dataset.inOverflow = 'false';
+        });
+
+        const rowWidth = row.clientWidth;
+        if (rowWidth <= 0) {
+            return;
+        }
+
+        const rowStyles = getComputedStyle(row);
+        const rowGap = parseInt(rowStyles.columnGap || rowStyles.gap || '0', 10) || 0;
+        const rightWidth = this.rightButtons?.getBoundingClientRect().width ?? 0;
+        let budget = Math.floor(rowWidth - rightWidth - (rightWidth > 0 ? rowGap : 0));
+
+        if (budget <= 0) {
+            return;
+        }
+
+        const gapWidth = parseInt(getComputedStyle(this.leftButtons).gap || '0', 10) || 0;
+        const sorted = candidates
+            .map((btn) => ({
+                btn,
+                width: this.measureControlButton(btn),
+                priority: this.getOverflowPriority(btn, priorityAttr),
+            }))
+            .sort((a, b) => {
+                if (a.priority !== b.priority) {
+                    return a.priority - b.priority;
+                }
+
+                return 0;
+            });
+
+        let visibleCount = 0;
+
+        for (const item of sorted) {
+            if (
+                options.maxVisiblePriority !== undefined
+                && item.priority > options.maxVisiblePriority
+            ) {
+                item.btn.style.display = 'none';
+                item.btn.dataset.inOverflow = 'true';
+                continue;
+            }
+
+            const itemGap = visibleCount > 0 ? gapWidth : 0;
+            const fits = item.width + itemGap <= budget;
+
+            if (fits || item.priority <= 1) {
+                budget -= item.width + itemGap;
+                visibleCount++;
+                item.btn.style.display = '';
+                item.btn.dataset.inOverflow = 'false';
+            } else {
+                item.btn.style.display = 'none';
+                item.btn.dataset.inOverflow = 'true';
+            }
+        }
+    }
+
+    private updateOverflowMenuVisibility(): void {
+        if (!this.overflowMenuButton) {
+            return;
+        }
+
+        const hiddenCount =
+            (this.leftButtons?.querySelectorAll('button[data-in-overflow="true"]').length ?? 0)
+            + (this.rightButtons?.querySelectorAll('button[data-in-overflow="true"]').length ?? 0);
+
+        this.overflowMenuButton.style.display = hiddenCount > 0 ? '' : 'none';
+    }
+
     checkOverflow() {
         const isDesktop = window.innerWidth >= 768;
         const isLandscape = window.innerHeight < window.innerWidth;
@@ -4374,9 +4617,19 @@ export class ControlBar {
             return;
         }
 
-        // Only use overflow on mobile portrait (width < 768px and not in landscape).
-        // In landscape, always show all buttons so the fullscreen button stays reachable.
-        const shouldUseOverflow = !isDesktop && !isLandscape;
+        const isMobilePortrait = !isDesktop && !isLandscape;
+
+        // Mobile landscape (non-fullscreen): keep every right-side button in the row so
+        // fullscreen stays reachable without opening the overflow menu first.
+        if (!isDesktop && isLandscape && !isLandscapeFullscreen) {
+            allButtons.forEach(btn => {
+                btn.dataset.inOverflow = 'false';
+                btn.style.display = '';
+            });
+            this.applyLeftClusterOverflow('overflowPriorityMobile');
+            this.updateOverflowMenuVisibility();
+            return;
+        }
 
         if (this.player.options.debug) {
             console.log('Overflow detection:', {
@@ -4384,137 +4637,93 @@ export class ControlBar {
                 isFullscreen,
                 isLandscape,
                 isLandscapeFullscreen,
-                shouldUseOverflow,
+                isMobilePortrait,
                 width: window.innerWidth,
                 height: window.innerHeight
             });
         }
 
-        if (!shouldUseOverflow) {
-            allButtons.forEach(btn => {
-                btn.dataset.inOverflow = 'false';
-                btn.style.display = '';
-            });
-            if (this.overflowMenuButton) {
-                this.overflowMenuButton.style.display = 'none';
-            }
-            if (this.player.options.debug) {
-                console.log('No overflow menu needed - all buttons visible, overflow button hidden');
-            }
-            return;
-        }
-
-        if (this.player.options.debug) {
-            console.log('Mobile portrait - checking for overflow...');
-        }
-
         allButtons.forEach(btn => {
             btn.style.display = '';
         });
-
-        const containerWidth = this.rightButtons.offsetWidth;
-        const overflowButtonWidth = 50;
-        const availableWidth = containerWidth - overflowButtonWidth;
-
-        let totalWidth = 0;
-        const buttonWidths = allButtons.map(btn => {
-            const style = getComputedStyle(btn);
-            const width = btn.offsetWidth +
-                         parseInt(style.marginLeft || '0') +
-                         parseInt(style.marginRight || '0');
-            totalWidth += width;
-            return {btn, width};
+        this.getLeftClusterCandidates().forEach((btn) => {
+            btn.style.display = '';
+            btn.dataset.inOverflow = 'false';
         });
 
-        const gapWidth = 8;
-        totalWidth += (allButtons.length - 1) * gapWidth;
+        const containerWidth = this.getOverflowContainerWidth();
+        if (containerWidth <= 0) {
+            return;
+        }
 
-        const isSmallScreen = window.innerWidth < 768;
-        const needsOverflow = totalWidth > availableWidth || isSmallScreen || (isLandscapeFullscreen && !isDesktop);
+        const gapWidth = parseInt(getComputedStyle(this.rightButtons).gap || '8', 10) || 8;
+        const priorityAttr: 'overflowPriority' | 'overflowPriorityMobile' =
+            isMobilePortrait ? 'overflowPriorityMobile' : 'overflowPriority';
+        const fullscreenButton = allButtons.find(btn => this.isFullscreenControlButton(btn));
+        const collapsible = allButtons.filter(btn => !this.isFullscreenControlButton(btn));
+
+        if (isMobilePortrait) {
+            for (const btn of collapsible) {
+                const priority = this.getOverflowPriority(btn, priorityAttr);
+                const hide = priority > 1;
+                btn.dataset.inOverflow = hide ? 'true' : 'false';
+                btn.style.display = hide ? 'none' : '';
+            }
+            if (fullscreenButton) {
+                fullscreenButton.dataset.inOverflow = 'false';
+                fullscreenButton.style.display = '';
+            }
+            this.applyLeftClusterOverflow(priorityAttr, { maxVisiblePriority: 1 });
+            this.updateOverflowMenuVisibility();
+            return;
+        }
+
+        let { visible, hidden } = this.fitCollapsibleButtons(
+            collapsible,
+            containerWidth,
+            gapWidth,
+            false,
+            priorityAttr,
+            fullscreenButton,
+            this.overflowMenuButton
+        );
+
+        if (hidden.length > 0) {
+            ({ visible, hidden } = this.fitCollapsibleButtons(
+                collapsible,
+                containerWidth,
+                gapWidth,
+                true,
+                priorityAttr,
+                fullscreenButton,
+                this.overflowMenuButton
+            ));
+        }
 
         if (this.player.options.debug) {
             console.log('Overflow detection:', {
                 containerWidth,
-                availableWidth,
-                totalWidth,
-                needsOverflow,
-                isSmallScreen,
-                reason: isSmallScreen ? 'mobile screen' : (totalWidth > availableWidth ? 'not enough space' : 'enough space'),
-                buttonCount: allButtons.length
+                visibleCount: visible.length,
+                hiddenCount: hidden.length,
+                isMobilePortrait,
+                width: window.innerWidth
             });
         }
 
-        if (needsOverflow) {
-            const priorityAttr = isSmallScreen ? 'overflowPriorityMobile' : 'overflowPriority';
-
-            if (this.player.options.debug) {
-                console.log(`Using ${isSmallScreen ? 'mobile' : 'desktop'} priorities (width: ${window.innerWidth}px)`);
-            }
-
-            const sortedButtons = buttonWidths.sort((a, b) => {
-                const priorityA = parseInt(a.btn.dataset[priorityAttr] || a.btn.dataset.overflowPriority || '1');
-                const priorityB = parseInt(b.btn.dataset[priorityAttr] || b.btn.dataset.overflowPriority || '1');
-                return priorityB - priorityA;
-            });
-
-            let currentWidth = totalWidth;
-            let movedToOverflow = 0;
-
-            for (const {btn, width} of sortedButtons) {
-                const priority = parseInt(btn.dataset[priorityAttr] || btn.dataset.overflowPriority || '1');
-                const buttonLabel = btn.getAttribute('aria-label') || 'unknown';
-
-                if (priority === 1) {
-                    btn.dataset.inOverflow = 'false';
-                    btn.style.display = '';
-                    continue;
-                }
-
-                const shouldHide = isSmallScreen ? (priority > 1) : (currentWidth > availableWidth);
-
-                if (shouldHide) {
-                    btn.dataset.inOverflow = 'true';
-                    btn.style.display = 'none';
-                    currentWidth -= width;
-                    movedToOverflow++;
-                    if (this.player.options.debug) {
-                        console.log(`  → Hiding button: ${buttonLabel} (priority ${priority}, ${isSmallScreen ? 'mobile' : 'desktop'})`);
-                    }
-                } else {
-                    btn.dataset.inOverflow = 'false';
-                    btn.style.display = '';
-                }
-            }
-
-            if (this.player.options.debug) {
-                console.log('Overflow button exists?', Boolean(this.overflowMenuButton));
-            }
-
-            if (!this.overflowMenuButton) {
-                console.error('Overflow menu button not found!');
-                return;
-            }
-
-            if (movedToOverflow > 0) {
-                this.overflowMenuButton.style.display = '';
-                if (this.player.options.debug) {
-                    console.log('Showing overflow menu button -', movedToOverflow, 'buttons moved');
-                }
-            } else {
-                this.overflowMenuButton.style.display = 'none';
-                if (this.player.options.debug) {
-                    console.log('Hiding overflow menu button - all buttons fit');
-                }
-            }
-        } else {
-            allButtons.forEach(btn => {
-                btn.dataset.inOverflow = 'false';
-                btn.style.display = '';
-            });
-            if (this.overflowMenuButton) {
-                this.overflowMenuButton.style.display = 'none';
-            }
+        const hiddenSet = new Set(hidden);
+        for (const btn of collapsible) {
+            const hide = hiddenSet.has(btn);
+            btn.dataset.inOverflow = hide ? 'true' : 'false';
+            btn.style.display = hide ? 'none' : '';
         }
+
+        if (fullscreenButton) {
+            fullscreenButton.dataset.inOverflow = 'false';
+            fullscreenButton.style.display = '';
+        }
+
+        this.applyLeftClusterOverflow(priorityAttr);
+        this.updateOverflowMenuVisibility();
     }
 
     setupOverflowDetection() {
@@ -4537,6 +4746,10 @@ export class ControlBar {
             requestAnimationFrame(checkOverflow);
         });
         resizeObserver.observe(this.rightButtons);
+        const controlsRow = this.rightButtons.parentElement;
+        if (controlsRow) {
+            resizeObserver.observe(controlsRow);
+        }
 
         // The window-resize and fullscreen listeners read this.rightButtons
         // lazily via checkOverflow, so they don't depend on the rebuilt buttons

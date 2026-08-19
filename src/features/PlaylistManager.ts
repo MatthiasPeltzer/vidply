@@ -9,6 +9,7 @@ import { i18n } from '../i18n/i18n.js';
 import { TimeUtils } from '../utils/TimeUtils.js';
 import { sanitizePosterUrl, toCssBackgroundImage } from '../utils/UrlSafe.js';
 import { reducedMotionScrollOptions } from '../utils/PerformanceUtils.js';
+import { isPlaylistPanelRightDesktopViewport } from '../constants/layoutBreakpoints.js';
 import { TrackInfoView } from '../core/TrackInfoView.js';
 import type { TrackInfoData } from '../core/TrackInfoView.js';
 import type { Player } from '../core/Player.js';
@@ -63,11 +64,14 @@ type PlayerConstructor = new (
  * `[key: string]: unknown` index so consumers can pass through
  * additional player options without losing typing on the known ones.
  */
+type PlaylistPanelPosition = 'below' | 'right';
+
 interface PlaylistManagerOptions {
   autoAdvance: boolean;
   autoPlayFirst: boolean;
   loop: boolean;
   showPanel: boolean;
+  panelPosition: PlaylistPanelPosition;
   recreatePlayers: boolean;
   hostElement?: HTMLElement | null;
   PlayerClass?: PlayerConstructor | null;
@@ -91,6 +95,7 @@ export class PlaylistManager {
   options: PlaylistManagerOptions;
   PlayerClass: PlayerConstructor | null;
   playlistPanel: HTMLElement | null;
+  playlistMainElement: HTMLElement | null;
   trackArtworkElement: HTMLElement | null;
   trackInfoView: TrackInfoView | null;
   tracks: PlaylistTrack[];
@@ -118,12 +123,14 @@ export class PlaylistManager {
       autoPlayFirst: options.autoPlayFirst !== false, // Default true - auto-play first track on load
       loop: Boolean(options.loop) || false,
       showPanel: options.showPanel !== false, // Default true
+      panelPosition: PlaylistManager.normalizePanelPosition(options.panelPosition),
       recreatePlayers: Boolean(options.recreatePlayers) || false,
     };
 
     // UI elements
     this.container = null;
     this.playlistPanel = null;
+    this.playlistMainElement = null;
     this.trackInfoView = null;
     this.trackArtworkElement = null;
     this.navigationFeedback = null; // Live region for keyboard navigation feedback
@@ -339,12 +346,7 @@ export class PlaylistManager {
     if (this.player.container) {
       // Track artwork goes before video wrapper
       if (this.trackArtworkElement) {
-        const videoWrapper = this.player.container.querySelector('.vidply-video-wrapper');
-        if (videoWrapper) {
-          this.player.container.insertBefore(this.trackArtworkElement, videoWrapper);
-        } else {
-          this.player.container.appendChild(this.trackArtworkElement);
-        }
+        this.insertBeforeVideoWrapper(this.trackArtworkElement);
       }
       // Track info
       if (this.trackInfoView) {
@@ -360,15 +362,19 @@ export class PlaylistManager {
       }
     }
     
-    // Update container reference
-    this.container = this.player.container;
-    
-    // Update controls (adds playlist prev/next buttons)
-    this.updatePlayerControls();
-    
-    // Restore tracks data (we kept it during recreation)
+    // Update container reference and restore playlist state before re-applying layout.
     this.tracks = savedTracks;
     this.currentIndex = savedIndex;
+    this.container = this.player.container;
+    this.playlistMainElement = null;
+    if (this.container) {
+      this.container.classList.add('vidply-has-playlist');
+    }
+    this.applyPanelPositionClass();
+
+    // Update controls (adds playlist prev/next buttons)
+    this.updatePlayerControls();
+    this.applyPanelPositionClass();
     
     // Update playlist UI to reflect current state
     this.updatePlaylistUI();
@@ -495,6 +501,167 @@ export class PlaylistManager {
     if (showPanel !== null) {
       this.options.showPanel = showPanel === 'true';
     }
+
+    // data-playlist-panel-position
+    const panelPosition = element.getAttribute('data-playlist-panel-position');
+    if (panelPosition !== null) {
+      this.options.panelPosition = PlaylistManager.normalizePanelPosition(panelPosition);
+    }
+
+    this.applyPanelPositionClass();
+  }
+
+  /**
+   * Normalize a caller-supplied panel position to a supported value.
+   */
+  private static normalizePanelPosition(value: unknown): PlaylistPanelPosition {
+    return value === 'right' ? 'right' : 'below';
+  }
+
+  /**
+   * Apply or remove the layout modifier class on the player container.
+   */
+  private applyPanelPositionClass(): void {
+    if (!this.container) {
+      return;
+    }
+
+    // Player recreation replaces the container node. Re-apply the playlist marker
+    // so layout CSS (`.vidply-has-playlist`) keeps matching after mixed-media swaps.
+    if (this.tracks.length > 0 || this.playlistPanel) {
+      this.container.classList.add('vidply-has-playlist');
+    }
+
+    // Player recreation replaces the container node; drop a wrapper that belonged
+    // to the previous tree so ensurePlaylistMainLayout() can rebuild it.
+    if (this.playlistMainElement && this.playlistMainElement.parentElement !== this.container) {
+      this.playlistMainElement = null;
+    }
+
+    const isRight = this.options.panelPosition === 'right';
+    this.container.classList.toggle('vidply-playlist-panel-right', isRight);
+
+    if (isRight) {
+      this.ensurePlaylistMainLayout();
+      this.syncRightPanelMediaStyles();
+    } else {
+      this.teardownPlaylistMainLayout();
+    }
+  }
+
+  /**
+   * Group the media area (wrapper, track info, artwork) so the playlist can sit
+   * beside it without stretching the video wrapper to the playlist height.
+   */
+  private ensurePlaylistMainLayout(): void {
+    if (!this.container || this.playlistMainElement) {
+      return;
+    }
+
+    const main = DOMUtils.createElement('div', {
+      className: 'vidply-playlist-main',
+    });
+    const panel = this.playlistPanel;
+    const children = Array.from(this.container.children).filter(
+      (child): child is HTMLElement => child instanceof HTMLElement && child !== panel
+    );
+
+    if (panel && panel.parentElement === this.container) {
+      this.container.insertBefore(main, panel);
+    } else {
+      this.container.appendChild(main);
+    }
+
+    children.forEach(child => main.appendChild(child));
+    this.orderPlaylistMainChildren(main);
+    this.playlistMainElement = main;
+  }
+
+  /**
+   * Left column order: artwork (optional) → video → controls (inside wrapper) → track info.
+   */
+  private orderPlaylistMainChildren(main: HTMLElement): void {
+    const orderedSelectors = [
+      '.vidply-track-artwork',
+      '.vidply-video-wrapper',
+      '.vidply-track-info',
+    ];
+
+    orderedSelectors.forEach(selector => {
+      const node = main.querySelector(selector);
+      if (node) {
+        main.appendChild(node);
+      }
+    });
+
+    // Keep screen-reader live regions after the visible column content.
+    Array.from(main.children).forEach(child => {
+      if (child.classList.contains('vidply-sr-only')) {
+        main.appendChild(child);
+      }
+    });
+  }
+
+  /**
+   * Insert a node before the video wrapper regardless of whether the right-panel
+   * layout wrapped the player chrome in `.vidply-playlist-main`.
+   */
+  private insertBeforeVideoWrapper(element: HTMLElement): void {
+    if (!this.container) {
+      return;
+    }
+
+    const videoWrapper = this.container.querySelector('.vidply-video-wrapper');
+    if (videoWrapper?.parentElement) {
+      videoWrapper.parentElement.insertBefore(element, videoWrapper);
+      if (this.playlistMainElement && videoWrapper.parentElement === this.playlistMainElement) {
+        this.orderPlaylistMainChildren(this.playlistMainElement);
+      }
+      return;
+    }
+
+    const host = this.playlistMainElement ?? this.container;
+    host.appendChild(element);
+  }
+
+  /**
+   * Inline 100% heights on the media element stretch the wrapper in grid layouts.
+   */
+  private syncRightPanelMediaStyles(): void {
+    if (!this.container || this.options.panelPosition !== 'right') {
+      return;
+    }
+
+    this.container.querySelectorAll('.vidply-video-wrapper > video, .vidply-video-wrapper > audio').forEach(node => {
+      if (node instanceof HTMLElement) {
+        node.style.height = 'auto';
+      }
+    });
+
+    requestAnimationFrame(() => {
+      this.player.positionPlayOverlayOnMobile();
+    });
+  }
+
+  /**
+   * Restore the default single-column DOM when the panel is below the player.
+   */
+  private teardownPlaylistMainLayout(): void {
+    if (!this.container || !this.playlistMainElement) {
+      return;
+    }
+
+    const main = this.playlistMainElement;
+    while (main.firstChild) {
+      if (this.playlistPanel) {
+        this.container.insertBefore(main.firstChild, this.playlistPanel);
+      } else {
+        this.container.appendChild(main.firstChild);
+      }
+    }
+
+    main.remove();
+    this.playlistMainElement = null;
   }
   
   /**
@@ -540,6 +707,7 @@ export class PlaylistManager {
     // Add playlist class to container
     if (this.container) {
       this.container.classList.add('vidply-has-playlist');
+      this.applyPanelPositionClass();
     }
     
     // Update UI
@@ -1156,6 +1324,7 @@ export class PlaylistManager {
     this.playlistPanel.style.display = this.isPanelVisible ? 'none' : 'none'; // Will be shown when playlist is loaded
     
     this.container.appendChild(this.playlistPanel);
+    this.applyPanelPositionClass();
   }
   
   /**
@@ -1180,6 +1349,7 @@ export class PlaylistManager {
 
     // Update track artwork if available (for audio playlists)
     this.updateTrackArtwork(track);
+    this.syncRightPanelMediaStyles();
   }
   
   /**
@@ -1206,12 +1376,7 @@ export class PlaylistManager {
       this.trackArtworkElement.style.display = 'none';
 
       // Insert before video wrapper (if present) for consistent layout.
-      const videoWrapper = this.container.querySelector('.vidply-video-wrapper');
-      if (videoWrapper) {
-        this.container.insertBefore(this.trackArtworkElement, videoWrapper);
-      } else {
-        this.container.appendChild(this.trackArtworkElement);
-      }
+      this.insertBeforeVideoWrapper(this.trackArtworkElement);
     }
 
     if (!this.trackArtworkElement) return;
@@ -1286,6 +1451,8 @@ export class PlaylistManager {
     if (this.isPanelVisible) {
       this.playlistPanel.style.display = 'block';
     }
+
+    this.syncPanelCollapsedLayout();
   }
   
   /**
@@ -1758,6 +1925,30 @@ export class PlaylistManager {
   }
   
   /**
+   * Sync grid layout when the in-player playlist panel is toggled in the
+   * right-column desktop layout (full width when collapsed).
+   */
+  private syncPanelCollapsedLayout(): void {
+    if (!this.container) {
+      return;
+    }
+
+    const isRightDesktop =
+      this.options.panelPosition === 'right'
+      && isPlaylistPanelRightDesktopViewport();
+
+    this.container.classList.toggle(
+      'vidply-playlist-panel-collapsed',
+      isRightDesktop && !this.isPanelVisible
+    );
+
+    requestAnimationFrame(() => {
+      this.player.controlBar?.checkOverflow();
+      this.player.positionPlayOverlayOnMobile();
+    });
+  }
+
+  /**
    * Toggle playlist panel visibility
    * @param {boolean} show - Optional: force show (true) or hide (false)
    * @returns {boolean} - New visibility state
@@ -1801,6 +1992,8 @@ export class PlaylistManager {
         this.player.controlBar.controls.playlistToggle.focus({ preventScroll: true });
       }
     }
+
+    this.syncPanelCollapsedLayout();
     
     return this.isPanelVisible;
   }
@@ -1862,9 +2055,15 @@ export class PlaylistManager {
       this.trackInfoView.destroy();
       this.trackInfoView = null;
     }
+
+    this.teardownPlaylistMainLayout();
     
     if (this.playlistPanel) {
       this.playlistPanel.remove();
+    }
+
+    if (this.container) {
+      this.container.classList.remove('vidply-has-playlist', 'vidply-playlist-panel-right');
     }
     
     // Clear data

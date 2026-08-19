@@ -118,10 +118,14 @@ describe('PlaylistManager', () => {
       playlistManager: null,
       ensureLoaded: vi.fn(),
       updateControlBar: vi.fn(),
-      invalidateTrackCache: vi.fn()
+      invalidateTrackCache: vi.fn(),
+      mountPlayButtonOverlay: vi.fn(),
     };
 
     container.appendChild(mockPlayer.element);
+    mockPlayer.videoWrapper = document.createElement('div');
+    mockPlayer.videoWrapper.className = 'vidply-video-wrapper';
+    container.appendChild(mockPlayer.videoWrapper);
   });
 
   afterEach(() => {
@@ -153,6 +157,7 @@ describe('PlaylistManager', () => {
       expect(manager.options.autoPlayFirst).toBe(true);
       expect(manager.options.loop).toBe(false);
       expect(manager.options.showPanel).toBe(true);
+      expect(manager.options.panelPosition).toBe('below');
     });
 
     it('should accept custom options', () => {
@@ -181,6 +186,105 @@ describe('PlaylistManager', () => {
       manager = new PlaylistManager(mockPlayer, { tracks: mockTracks });
       
       expect(manager.tracks).toEqual(mockTracks);
+    });
+  });
+
+  describe('panelPosition', () => {
+    it('defaults to below', () => {
+      manager = new PlaylistManager(mockPlayer, { showPanel: true });
+      expect(manager.options.panelPosition).toBe('below');
+      expect(container.classList.contains('vidply-playlist-panel-right')).toBe(false);
+    });
+
+    it('applies the right-side layout class when configured', () => {
+      manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'right' });
+      expect(container.classList.contains('vidply-playlist-panel-right')).toBe(true);
+    });
+
+    it('normalizes unknown values to below', () => {
+      manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'left' });
+      expect(manager.options.panelPosition).toBe('below');
+      expect(container.classList.contains('vidply-playlist-panel-right')).toBe(false);
+    });
+
+    it('reads panel position from data attributes', () => {
+      container.setAttribute('data-playlist-panel-position', 'right');
+      manager = new PlaylistManager(mockPlayer, { showPanel: true });
+      manager.loadOptionsFromAttributes(container);
+      expect(manager.options.panelPosition).toBe('right');
+      expect(container.classList.contains('vidply-playlist-panel-right')).toBe(true);
+    });
+
+    it('adds the layout class when a playlist loads', () => {
+      manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'right' });
+      manager.loadPlaylist(mockTracks);
+      expect(container.classList.contains('vidply-has-playlist')).toBe(true);
+      expect(container.classList.contains('vidply-playlist-panel-right')).toBe(true);
+    });
+
+    it('wraps the media area when the panel is on the right', () => {
+      manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'right' });
+      expect(container.querySelector('.vidply-playlist-main')).not.toBeNull();
+      expect(container.querySelector('.vidply-playlist-main .vidply-video-wrapper')).not.toBeNull();
+      expect(container.querySelector(':scope > .vidply-playlist-panel')).not.toBeNull();
+    });
+
+    it('removes the media wrapper when switching back to below', () => {
+      manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'right' });
+      manager.options.panelPosition = 'below';
+      manager.loadOptionsFromAttributes(container);
+      expect(container.querySelector('.vidply-playlist-main')).toBeNull();
+    });
+
+    it('inserts track artwork before the video wrapper inside the main column', () => {
+      mockPlayer.element.remove();
+      mockPlayer.element = document.createElement('audio');
+      mockPlayer.videoWrapper.appendChild(mockPlayer.element);
+
+      manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'right', autoPlayFirst: false });
+      manager.loadPlaylist([
+        { src: 'track1.mp3', type: 'audio/mp3', title: 'Track 1', poster: 'poster.jpg' },
+        { src: 'track2.mp3', type: 'audio/mp3', title: 'Track 2' },
+      ]);
+      manager.updateTrackInfo({ src: 'track1.mp3', type: 'audio/mp3', title: 'Track 1', poster: 'poster.jpg' });
+
+      const main = container.querySelector('.vidply-playlist-main');
+      const artwork = main?.querySelector('.vidply-track-artwork');
+      const wrapper = main?.querySelector('.vidply-video-wrapper');
+      expect(main).not.toBeNull();
+      expect(artwork).not.toBeNull();
+      expect(wrapper).not.toBeNull();
+      expect(main?.firstElementChild).toBe(artwork);
+      expect(artwork?.nextElementSibling).toBe(wrapper);
+    });
+
+    it('rebuilds the media wrapper after player recreation', () => {
+      manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'right' });
+      expect(container.querySelector('.vidply-playlist-main')).not.toBeNull();
+
+      const newContainer = document.createElement('div');
+      document.body.appendChild(newContainer);
+      newContainer.appendChild(mockPlayer.videoWrapper);
+      manager.playlistPanel = container.querySelector('.vidply-playlist-panel');
+      manager.tracks = mockTracks;
+      manager.container = newContainer;
+      manager.playlistMainElement = document.createElement('div');
+
+      manager.loadOptionsFromAttributes(newContainer);
+      expect(newContainer.querySelector('.vidply-playlist-main')).not.toBeNull();
+      expect(newContainer.querySelector('.vidply-playlist-main .vidply-video-wrapper')).not.toBeNull();
+      expect(newContainer.classList.contains('vidply-has-playlist')).toBe(true);
+      expect(newContainer.classList.contains('vidply-playlist-panel-right')).toBe(true);
+
+      newContainer.remove();
+    });
+
+    it('removes layout classes on destroy', () => {
+      manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'right' });
+      manager.loadPlaylist(mockTracks);
+      manager.destroy();
+      expect(container.classList.contains('vidply-has-playlist')).toBe(false);
+      expect(container.classList.contains('vidply-playlist-panel-right')).toBe(false);
     });
   });
 
@@ -606,6 +710,29 @@ describe('PlaylistManager', () => {
       
       expect(manager.playlistPanel.style.display).toBe('none');
       expect(manager.isPanelVisible).toBe(false);
+    });
+
+    it('collapses the right-column grid when the panel is hidden on desktop', () => {
+      manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'right' });
+      manager.playlistPanel = document.createElement('div');
+      manager.playlistPanel.style.display = 'block';
+      manager.isPanelVisible = true;
+      container.appendChild(manager.playlistPanel);
+
+      window.matchMedia = vi.fn().mockImplementation((query) => ({
+        matches: query === '(width >= 75rem)',
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }));
+
+      manager.togglePanel(false);
+
+      expect(container.classList.contains('vidply-playlist-panel-collapsed')).toBe(true);
+
+      manager.togglePanel(true);
+
+      expect(container.classList.contains('vidply-playlist-panel-collapsed')).toBe(false);
     });
 
     it('should force show with true parameter', () => {

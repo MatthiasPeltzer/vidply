@@ -15,6 +15,7 @@ import {i18n} from '../i18n/i18n.js';
 import {StorageManager} from '../utils/StorageManager.js';
 import {DraggableResizable} from '../utils/DraggableResizable.js';
 import {debounce, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
+import {isPlaylistPanelRightDesktopViewport} from '../constants/layoutBreakpoints.js';
 import {sanitizePosterUrl, cssEscapeUrl} from '../utils/UrlSafe.js';
 import {classifyRendererType} from '../utils/RendererType.js';
 import {observeForLazyInit, cancelLazyInit, type LazyHandle} from './LazyInit.js';
@@ -1613,26 +1614,78 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   positionPlayOverlayOnMobile() {
-    // Video only: the overlay has to follow the letterboxed video box inside
-    // the wrapper. On audio it is centered on the artwork purely by CSS.
-    if (!this.playButtonOverlay || this.element.tagName !== 'VIDEO') {
+    const node = this.getPlayButtonOverlayNode();
+    if (!node) {
       return;
     }
 
-    const mobile = isMobile();
-
-    if (!mobile) {
-      // Reset to CSS defaults on desktop
-      this.playButtonOverlay.style.top = '';
+    const mediaEl = this.getPlayOverlayMediaElement();
+    if (!mediaEl) {
+      node.style.top = '';
+      node.style.left = '';
+      node.style.transform = '';
       return;
     }
 
-    const videoRect = this.element.getBoundingClientRect();
+    const needsManualPosition =
+      isMobile()
+      || this.isPlaylistPanelRightDesktop()
+      || mediaEl !== this.element;
+
+    if (!needsManualPosition) {
+      node.style.top = '';
+      node.style.left = '';
+      node.style.transform = '';
+      return;
+    }
+
+    const mediaRect = mediaEl.getBoundingClientRect();
     const wrapperRect = this.videoWrapper?.getBoundingClientRect();
-    if (!wrapperRect) return;
-    const videoCenter = (videoRect.top - wrapperRect.top) + (videoRect.height / 2);
+    if (!wrapperRect || mediaRect.height <= 0) {
+      return;
+    }
 
-    this.playButtonOverlay.style.top = `${videoCenter}px`;
+    const mediaCenterY = (mediaRect.top - wrapperRect.top) + (mediaRect.height / 2);
+    const mediaCenterX = (mediaRect.left - wrapperRect.left) + (mediaRect.width / 2);
+
+    node.style.top = `${mediaCenterY}px`;
+    node.style.left = `${mediaCenterX}px`;
+    node.style.transform = 'translate(-50%, -50%)';
+  }
+
+  /**
+   * Visible media surface used to center the play overlay. External renderers
+   * hide the host <video>, so their iframe/container must be used instead.
+   */
+  private getPlayOverlayMediaElement(): HTMLElement | null {
+    const prefix = this.options.classPrefix;
+
+    if (this.videoWrapper) {
+      const externalSelectors = [
+        'div[id^="youtube-player-"]',
+        'iframe[id^="vimeo-player-"]',
+        `iframe.${prefix}-soundcloud-iframe`,
+      ];
+
+      for (const selector of externalSelectors) {
+        const candidate = this.videoWrapper.querySelector(selector);
+        if (candidate instanceof HTMLElement && candidate.getBoundingClientRect().height > 0) {
+          return candidate;
+        }
+      }
+    }
+
+    if (this.element.tagName === 'VIDEO' && getComputedStyle(this.element).display !== 'none') {
+      return this.element;
+    }
+
+    return null;
+  }
+
+  private isPlaylistPanelRightDesktop(): boolean {
+    return !!this.container?.classList.contains('vidply-playlist-panel-right')
+      && !this.state.fullscreen
+      && isPlaylistPanelRightDesktopViewport();
   }
 
   async initializeRenderer() {
@@ -1702,6 +1755,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     this.invalidateTrackCache();
+    rafWithTimeout(() => this.positionPlayOverlayOnMobile(), 100);
   }
 
   async _detectRendererClass(src: string): Promise<new (player: Player) => Renderer> {

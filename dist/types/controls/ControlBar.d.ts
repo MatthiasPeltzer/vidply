@@ -293,6 +293,27 @@ export declare class ControlBar {
      * button insertions (audio-description / sign-language) can request a
      * recheck without re-attaching observers.
      */
+    measureControlButton(btn: HTMLElement): number;
+    getOverflowPriority(btn: HTMLElement, priorityAttr: 'overflowPriority' | 'overflowPriorityMobile'): number;
+    isFullscreenControlButton(btn: HTMLElement): boolean;
+    /**
+     * Width available for right-side control buttons. Uses the controls row
+     * minus the left cluster so overflow detection reacts to narrow playlist
+     * columns instead of the unconstrained scroll width of the button row.
+     */
+    getOverflowContainerWidth(): number;
+    /**
+     * Fit as many collapsible buttons as possible into the row budget while
+     * keeping the overflow menu (optional) and fullscreen pinned at the end.
+     */
+    private fitCollapsibleButtons;
+    private getLeftClusterCandidates;
+    /**
+     * Hide lower-priority left-cluster buttons when the row is too narrow.
+     * Runs after the right cluster is resolved so the remaining width is accurate.
+     */
+    private applyLeftClusterOverflow;
+    private updateOverflowMenuVisibility;
     checkOverflow(): void;
     setupOverflowDetection(): void;
     show(): void;

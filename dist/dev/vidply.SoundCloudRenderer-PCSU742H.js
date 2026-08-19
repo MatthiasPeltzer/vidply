@@ -129,8 +129,8 @@ var SoundCloudRenderer = class {
       this.iframe.classList.add("vidply-soundcloud-iframe", "vidply-soundcloud-playlist");
     } else {
       this.iframe.classList.add("vidply-soundcloud-iframe");
+      this.iframe.style.maxHeight = "100%";
     }
-    this.iframe.style.maxHeight = "100%";
     this.player.element.parentNode?.insertBefore(this.iframe, this.player.element);
   }
   async initializeWidget() {
@@ -367,4 +367,4 @@ export {
   SoundCloudRenderer,
   SoundCloudRenderer_default as default
 };
-//# sourceMappingURL=vidply.SoundCloudRenderer-QOXUWVKL.js.map
+//# sourceMappingURL=vidply.SoundCloudRenderer-PCSU742H.js.map
