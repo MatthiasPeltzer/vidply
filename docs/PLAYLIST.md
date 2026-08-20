@@ -86,7 +86,8 @@ import { Player, PlaylistManager } from 'vidply';
   autoAdvance: true,  // Automatically play next track when current ends
   autoPlayFirst: true, // Auto-play first track on load (if false: load/select first track, but do not start playback)
   loop: false,         // Loop back to first track after last
-  showPanel: true      // Show visual playlist panel
+  showPanel: true,     // Show visual playlist panel
+  panelPosition: 'below' // 'below' (default) or 'right' — desktop side-by-side layout from 75rem; mobile always stacks below
 }
 ```
 
@@ -474,7 +475,9 @@ Appears above the controls, showing:
 
 ### Playlist Panel
 
-A scrollable list below the player showing:
+A scrollable list showing all tracks. Default placement is **below** the player; with `panelPosition: 'right'` (or `data-playlist-panel-position="right"`) the player and controls sit in the left column and the playlist occupies the right column from **`75rem`** viewport width upward. On narrower viewports the list always stacks below the player.
+
+Each panel shows:
 - Track thumbnails (if provided)
 - Track numbers
 - Track titles and artists
@@ -548,10 +551,9 @@ The playlist panel includes comprehensive keyboard navigation support:
 
 ### Playlist Toggle Button
 
-A playlist toggle button is automatically added to the control bar when a PlaylistManager is active. This button allows users to:
-- Toggle the playlist panel visibility
-- Access the playlist with keyboard navigation (Tab to button, Enter to toggle)
-- Proper ARIA attributes for screen readers (`aria-expanded`, `aria-pressed`, `aria-controls`)
+When a `PlaylistManager` is active, a toggle button in the **right control bar** (with captions, settings, fullscreen) shows or hides the playlist panel. On narrow viewports the toggle may move into the overflow menu while transport controls stay visible.
+
+The button supports keyboard access (Tab, Enter) and exposes `aria-expanded`, `aria-pressed`, and `aria-controls` for screen readers.
 
 ### Screen Reader Support
 

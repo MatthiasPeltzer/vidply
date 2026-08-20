@@ -7,9 +7,161 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Shared layout breakpoint (`75rem`) for right-side playlist panel desktop vs stacked layout.
+- Control bar overflow menu on narrow viewports and when left-cluster buttons do not fit; playlist toggle moves to overflow on mobile while previous, play/pause, next, and volume stay visible.
+
+### Fixed
+- Buffering spinner centers on the visible media surface (same positioning as the play overlay).
+- Video playlists with a right-side panel use overlay controls with auto-hide again; captions are no longer stuck behind always-visible in-flow controls.
+- Mixed-media playlists show audio track artwork after switching from a playing video track (poster no longer overwritten on player recreation).
+- Playlist panel-right layout survives mixed-media player recreation (video ↔ audio) by restoring `vidply-has-playlist` and applying grid rules from `vidply-playlist-panel-right` alone.
+- Audio playlists with a right-side panel no longer stretch the media wrapper to the playlist height; captions, controls, and track info stay under the artwork.
+- Play overlay centers on the visible `<video>` surface in right-panel and mobile layouts instead of the full wrapper.
+- Play overlay centers on YouTube, Vimeo, and SoundCloud iframes/containers after external renderers hide the host `<video>`.
+- Control bar focus outlines no longer clip at narrow widths (`0.125rem` padding on left/right clusters).
+- External embed tracks hide duplicate playlist artwork while the privacy consent overlay is visible (including when the host element is still `<video>`).
+
+## [1.2.13] - 2026-08-18
+
+### Fixed
+- SoundCloud sets in mixed-media playlists no longer auto-advance to the next playlist entry after the first track; `ended` is emitted only when the last track in the set finishes.
+
+## [1.2.12] - 2026-08-18
+
+### Changed
+- Bumped pinned dash.js CDN default and SRI to **5.2.1** (modern UMD).
+
+### Fixed
+- Demo dev server: relative nav links no longer drop the `/demo/` prefix when the index is opened as `/demo` (trailing-slash redirect + `serve.json` rewrites for root-level demo URLs).
+- Control bar: `[hidden]` on buttons is honored again (CSS no longer forces `display: inline-flex` on hidden controls).
+- Live-only UI: Go Live and LIVE badge are omitted from the DOM when `liveStream: false`, or injected/removed under `liveStream: 'auto'` instead of staying visible behind `hidden`.
+- VOD controls: HTML5 finite duration and DASH static manifests confirm VOD so restart and skip-forward show on audio/video and DASH VOD streams.
+- DASH VOD: parse manifest `type` on `MANIFEST_LOADED` and re-evaluate on `STREAM_INITIALIZED` when `isDynamic()` was not ready yet.
+- Playlists: rewind and skip-forward are created for playlist players; sign language uses per-track `signLanguageSrc` from the playlist.
+
+### Tests
+- E2E and unit coverage for VOD seek controls, playlist sign language, and DASH/HTML5 live detection.
+
+## [1.2.11] - 2026-08-16
+
+### Fixed
+- HLS VOD transcript: fetch every WebVTT segment from segmented subtitle playlists instead of only the first ~6 s segment; invalidate incomplete VTT cache when more TextTrack cues arrive.
+- Control bar rebuild: re-apply live/VOD button visibility after `updateControlBar()` so restart and go-live state stays correct when HLS caption buttons are added.
+- VOD controls: show the skip-forward button again (live-at-edge keeps it hidden until the viewer falls behind).
+- Live/HLS pre-play controls: hide VOD-only skip-forward and restart until the source is confirmed VOD; probe the level playlist on manifest parse so live streams like ARD get correct controls before playback starts.
+- Live pre-play controls: restart starts hidden by default; control bar refreshes when the level-playlist probe reports live/VOD.
+- Live stream auto-detection: VOD HLS sources (e.g. Apple BipBop) no longer show the LIVE badge — hls.js exposes a finite `liveSyncPosition` for VOD too, so detection now relies on `latestLevelDetails.live` instead.
+- Live stream auto-detection: unknown media duration (before HLS level playlists load) no longer triggers the LIVE badge; only `Infinity` duration or an explicit live playlist does.
+- Live stream auto-detection: VOD HLS no longer flips to live mode when MSE reports `Infinity` duration during startup; HLS cue polling follows live/VOD mode dynamically so captions keep working after playback begins.
+
+## [1.2.10] - 2026-08-16
+
+### Accessibility
+- Transcript window (floating layout): `aria-modal`, Tab focus trap, and background `inert` on player siblings.
+- Transcript window: no longer marks the video wrapper (and controls) inert while open; player controls stay operable alongside the transcript panel.
+- Caption style dialog: `aria-modal="true"` and Tab focus trap.
+- Keyboard help dialog: background `inert` on player siblings while open.
+- Progress and volume sliders: `aria-orientation`.
+- Playlist listbox options: `aria-selected` instead of `aria-checked`.
+- Transcript resize handles: `aria-label` when pointer resize mode is active.
+
+### Added
+- Live stream mode (`liveStream: 'auto' | boolean`): auto-detects HLS/DASH/HTML5 live sources, shows a **LIVE** badge instead of duration, hides restart and playback speed, keeps skip-back, and shows skip-forward plus **Go live** only when more than `liveBehindThreshold` seconds behind the live edge (default 5 s). At the live edge the raw timeline is hidden; when behind live the time display shows an offset such as **−12:34**.
+- Keyboard shortcuts help: adds a **Live stream controls** section when a live source is detected; hides speed shortcuts and clarifies seek-forward behaviour for live.
+- Player API: `isLiveStream()`, `isBehindLive()`, `getLiveSeekRange()`, `seekToLive()`; events `livechange` and `liveedgechange`.
+- `showTrackInfo` player option to suppress the standalone `.vidply-track-info` header.
+
+### Changed
+- Removed duration from the standalone `.vidply-track-info` header; playlists still show duration in the track-info header when switching tracks.
+
+### Fixed
+- HLS live subtitles: auto-select the default subtitle rendition in hls.js when captions or transcript are enabled so rolling WebVTT cues load during live playback.
+- HLS live transcript: skip one-shot VTT bulk fetch (only valid for VOD) and build the transcript incrementally from TextTrack cues instead.
+- Live transcript: deduplicate rolling HLS cues and append incrementally instead of rebuilding the full list on every subtitle update (fixes doubled lines).
+- Live transcript dedupe: bucket subtitle timestamps and ignore near-duplicate lines re-published by hls.js with shifted PTS.
+- Live transcript dedupe: widen overlap window to 30 s, scan all entries, and sort chronologically after each sync (fixes segment-overlap duplicates several seconds apart and out-of-order DOM).
+- Live transcript: keep syncing after the initial minutes — rolling HLS subtitle windows no longer stop cue-update polling or fragment events when cue count plateaus; autoscroll follows the latest started cue on live streams.
+- Captions default on HLS: apply `captionsDefault` when subtitle tracks appear after manifest parse, not only at initial player setup.
+- Volume/mute init: apply CMS options atomically after the renderer is ready and ignore late `volumechange` sync while doing so (Chrome timing).
+- Persisted player preferences: store a `configKey` from CMS `muted|volume` so stale localStorage no longer overrides backend defaults after editor changes.
+
+### Accessibility
+- `TrackInfoView`: expose title, artist, date, description, and the long-description toggle to assistive technologies instead of hiding them with `aria-hidden`; use a labelled `role="region"` and wire the disclosure button with `aria-controls`. Playlist track changes still announce via a dedicated polite live region. Text metadata uses semantic `<p>` elements instead of generic `<div>` wrappers.
+
+## [1.2.9] - 2026-08-15
+
 ### Changed
 - Updated vendored streaming library to hls.js 1.7.0.
 - Bumped the pinned hls.js CDN default and Subresource Integrity hash to 1.7.0.
+
+## [1.2.8] - 2026-08-14
+
+### Changed
+- `resumePlayback` now defaults to `false`. Resume-from-last-position must be
+  enabled explicitly via player options.
+
+### Added
+- `TrackInfoView`: the track-info header above the player can show a collapsible
+  long description (`longDescription` on tracks / player options) with a
+  sanitised RTE body and accessible show/hide toggle.
+- New `playButtonOverlay` option (`'auto' | true | false`, default `'auto'`)
+  that allows the centered play button on audio players. On audio the
+  overlay is rendered as a real, i18n-labelled `<button>` on top of the
+  track artwork — an `<audio>` element offers no click surface — and its
+  accessible name follows the play/pause state. `'auto'` keeps the
+  previous video-only behaviour, `false` disables the overlay entirely.
+- `PlaylistTrack.date`: an optional, **preformatted and already localised**
+  publish date. It is rendered in the playlist panel rows
+  (`.vidply-playlist-item-date`) and in the now-playing track info
+  (`.vidply-track-date`), and is included in the row's `aria-label` so it
+  is announced together with title and duration. The library renders the
+  string verbatim; locale handling stays with the host application.
+- Per-track downloads in playlists: `PlaylistTrack.downloadUrl` (plus optional
+  `downloadFormat` and `downloadFileSize`) makes the control bar's download
+  button follow the selection — it offers the current track's file, relabels
+  itself with that file's format and size, and is hidden on tracks that carry
+  no `downloadUrl`. A known `downloadFileSize` also skips the HEAD request the
+  button would otherwise send. Playlists that set no track-level URL keep
+  using the player-wide `downloadUrl` / `data-vidply-download-url` target.
+
+### Fixed
+- Mixed-media playlists loaded YouTube, Vimeo, and SoundCloud tracks two or
+  three times when selected from the panel. `PlaylistManager.play()` fired
+  `player.play()` on a 100 ms timer before `load()` finished; with the
+  renderer still null, `Player.play()` re-entered the playlist and started
+  duplicate loads. Track changes now await `load()` before playback, and
+  `Player.play()` ignores the playlist fallback while a track change is in
+  progress.
+- `screenReaderAnnouncements: false` no longer had any effect on play/pause,
+  volume, mute, caption, fullscreen and speed announcements. Those moved from
+  the keyboard handler onto player events so pointer and touch use announces
+  too, and the option check stayed behind. It now gates them again.
+  `showNotice()` and the sign-language drag/resize hints keep announcing, as
+  suppressing them would leave the action they belong to without feedback.
+- Every player announced its own volume to screen readers on page load. A
+  volume restored from storage is pushed to the renderer after `ready`, so it
+  arrived as a `volumechange` the listener could not tell apart from a real
+  one; on a page with two players that meant hearing "Volume 53 percent"
+  twice before touching anything. The level is now announced only when it
+  actually differs from the last announced one, the way the mute state
+  already worked.
+- The download button in playlists offered the element-level file for every
+  track, so a playlist could only ever hand out one download (usually none at
+  all, since streaming manifests have no progressive URL).
+- The keyboard help and settings dialogs were unreadable on audio players.
+  They are positioned inside the player box, which for audio is just the
+  control bar, so `max-height: 80%` squeezed them to about 80 pixels. On
+  audio players the overlay is now anchored to the viewport (and layout
+  containment is dropped there, since it would otherwise keep the fixed
+  overlay trapped inside the player).
+- Page content could paint over an open dialog. A dialog escapes the player's
+  box but not its stacking context, so a host stylesheet that gives the player
+  a stacking level of its own — a common way to lift it over page decoration —
+  left anything stacked above that level covering the dialog. The player is now
+  lifted to the modal level itself (`vidply-modal-open`) while one is open.
+
+## [1.2.5] - 2026-07-23
 
 ### Security
 - Poster/artwork URLs are now validated and CSS-escaped before being
@@ -655,6 +807,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of the vidply accessible media player.
 
+[1.2.5]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.1...v1.2.2

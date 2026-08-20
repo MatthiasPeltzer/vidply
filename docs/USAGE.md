@@ -357,6 +357,37 @@ The container exposes a `.vidply-buffering` class while loading; you can hook in
 .vidply-player.vidply-buffering .my-overlay { opacity: 0.3; }
 ```
 
+### Live streams
+
+For HLS, DASH, or HTML5 live sources, enable live-aware controls with `liveStream`:
+
+```javascript
+const player = new Player('#live', {
+  liveStream: 'auto' // default — detect live vs VOD; or true / false to force
+});
+```
+
+When a live source is detected:
+
+- A **LIVE** badge replaces total duration
+- Restart and playback speed are hidden
+- Skip-forward and **Go live** appear only when the viewer is behind the live edge (default threshold: 5 seconds)
+- HLS live captions and the interactive transcript update incrementally from rolling WebVTT cues
+
+Player API: `isLiveStream()`, `isBehindLive()`, `seekToLive()`; events `livechange` and `liveedgechange`.
+
+### Resume playback
+
+Remember where a visitor stopped and offer to continue on the next visit:
+
+```javascript
+const player = new Player('#video', {
+  resumePlayback: true // default: false
+});
+```
+
+Position is stored in `localStorage` per media source. A focus-trapped prompt lets the visitor resume or start from the beginning.
+
 ### Caption Track Selection
 
 When you have multiple caption tracks, clicking the CC button shows a menu to select the language:
