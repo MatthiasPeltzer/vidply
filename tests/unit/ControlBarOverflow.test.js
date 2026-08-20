@@ -167,10 +167,10 @@ describe('ControlBar.checkOverflow', () => {
 
     controlBar.leftButtons.appendChild(previous);
     controlBar.leftButtons.appendChild(play);
-    controlBar.leftButtons.appendChild(playlist);
     controlBar.leftButtons.appendChild(next);
     controlBar.leftButtons.appendChild(volume);
 
+    controlBar.rightButtons.insertBefore(playlist, controlBar.overflowMenuButton);
     controlBar.rightButtons.insertBefore(createFullscreenButton(), controlBar.overflowMenuButton);
 
     Object.defineProperty(controlBar.rightButtons, 'offsetWidth', { value: 72, configurable: true });
@@ -183,8 +183,8 @@ describe('ControlBar.checkOverflow', () => {
 
     expect(controlBar.leftButtons.querySelector('.vidply-previous').style.display).not.toBe('none');
     expect(controlBar.leftButtons.querySelector('.vidply-play-pause').style.display).not.toBe('none');
-    expect(controlBar.leftButtons.querySelector('.vidply-playlist-toggle').style.display).toBe('none');
-    expect(controlBar.leftButtons.querySelector('.vidply-playlist-toggle').dataset.inOverflow).toBe('true');
+    expect(controlBar.rightButtons.querySelector('.vidply-playlist-toggle').style.display).toBe('none');
+    expect(controlBar.rightButtons.querySelector('.vidply-playlist-toggle').dataset.inOverflow).toBe('true');
     expect(controlBar.leftButtons.querySelector('.vidply-next').style.display).not.toBe('none');
     expect(controlBar.leftButtons.querySelector('.vidply-mute').style.display).not.toBe('none');
     expect(controlBar.leftButtons.querySelector('.vidply-previous').dataset.inOverflow).toBe('false');

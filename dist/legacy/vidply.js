@@ -13227,9 +13227,6 @@
       if (this.player.options.playPauseButton) {
         leftButtons.appendChild(this.createPlayPauseButton());
       }
-      if (this.player.playlistManager && this.player.options.playlistToggleButton !== false) {
-        leftButtons.appendChild(this.createPlaylistToggleButton());
-      }
       const restartButton = this.createRestartButton();
       leftButtons.appendChild(restartButton);
       this.controls.restart = restartButton;
@@ -13299,6 +13296,9 @@
         btn.dataset.overflowPriority = "3";
         btn.dataset.overflowPriorityMobile = "3";
         this.rightButtons.appendChild(btn);
+      }
+      if (this.player.playlistManager && this.player.options.playlistToggleButton !== false) {
+        this.rightButtons.appendChild(this.createPlaylistToggleButton());
       }
       const hasSignLanguage = this.hasSignLanguage();
       const showSignLanguageButtons = this.player.options.signLanguageButton !== false && hasSignLanguage;
@@ -14963,7 +14963,7 @@
      * Called when loading a new playlist track to show/hide buttons accordingly.
      */
     updateAccessibilityButtons() {
-      var _a, _b;
+      var _a;
       const hasAudioDescription = this.hasAudioDescription();
       const hasSignLanguage = this.hasSignLanguage();
       if (hasAudioDescription) {
@@ -14972,7 +14972,7 @@
           btn.dataset.overflowPriority = "2";
           btn.dataset.overflowPriorityMobile = "3";
           const transcriptBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-transcript`);
-          const playlistBtn = ((_a = this.leftButtons) == null ? void 0 : _a.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`)) ?? this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
+          const playlistBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
           const insertBefore = transcriptBtn || playlistBtn || null;
           if (insertBefore) {
             this.rightButtons.insertBefore(btn, insertBefore);
@@ -15014,7 +15014,7 @@
           const btn = this.createSignLanguageInMainViewButton();
           btn.dataset.overflowPriority = "3";
           btn.dataset.overflowPriorityMobile = "3";
-          const afterPip = (_b = this.controls.signLanguage) == null ? void 0 : _b.nextSibling;
+          const afterPip = (_a = this.controls.signLanguage) == null ? void 0 : _a.nextSibling;
           if (afterPip) {
             this.rightButtons.insertBefore(btn, afterPip);
           } else if (insertBeforeRef) {

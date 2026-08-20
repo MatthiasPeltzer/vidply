@@ -906,9 +906,6 @@ var ControlBar = class {
     if (this.player.options.playPauseButton) {
       leftButtons.appendChild(this.createPlayPauseButton());
     }
-    if (this.player.playlistManager && this.player.options.playlistToggleButton !== false) {
-      leftButtons.appendChild(this.createPlaylistToggleButton());
-    }
     const restartButton = this.createRestartButton();
     leftButtons.appendChild(restartButton);
     this.controls.restart = restartButton;
@@ -978,6 +975,9 @@ var ControlBar = class {
       btn.dataset.overflowPriority = "3";
       btn.dataset.overflowPriorityMobile = "3";
       this.rightButtons.appendChild(btn);
+    }
+    if (this.player.playlistManager && this.player.options.playlistToggleButton !== false) {
+      this.rightButtons.appendChild(this.createPlaylistToggleButton());
     }
     const hasSignLanguage = this.hasSignLanguage();
     const showSignLanguageButtons = this.player.options.signLanguageButton !== false && hasSignLanguage;
@@ -2641,7 +2641,7 @@ var ControlBar = class {
         btn.dataset.overflowPriority = "2";
         btn.dataset.overflowPriorityMobile = "3";
         const transcriptBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-transcript`);
-        const playlistBtn = this.leftButtons?.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`) ?? this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
+        const playlistBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
         const insertBefore = transcriptBtn || playlistBtn || null;
         if (insertBefore) {
           this.rightButtons.insertBefore(btn, insertBefore);

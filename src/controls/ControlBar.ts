@@ -887,11 +887,6 @@ export class ControlBar {
             leftButtons.appendChild(this.createPlayPauseButton());
         }
 
-        // Playlist toggle beside transport controls (visible on narrow viewports)
-        if (this.player.playlistManager && this.player.options.playlistToggleButton !== false) {
-            leftButtons.appendChild(this.createPlaylistToggleButton());
-        }
-
         // Restart button (right beside play button) — hidden for live streams
         const restartButton = this.createRestartButton();
         leftButtons.appendChild(restartButton);
@@ -946,7 +941,7 @@ export class ControlBar {
         //   Priority 3: Chapters, Caption Style, Transcript, Sign Language, PiP
         // Smaller screens (<768px):
         //   Priority 1: Previous, Play, Next, Volume, Fullscreen
-        //   Priority 3: Playlist toggle and other extras go to the overflow menu
+        //   Priority 3: Playlist toggle, transcript, and other extras go to the overflow menu
 
         // 1. Chapters button
         if (this.player.options.chaptersButton && hasChapters) {
@@ -1015,7 +1010,12 @@ export class ControlBar {
             this.rightButtons.appendChild(btn);
         }
 
-        // 7. Sign Language buttons (PiP overlay and/or main view src swap)
+        // 7. Playlist panel toggle (right cluster with other feature buttons)
+        if (this.player.playlistManager && this.player.options.playlistToggleButton !== false) {
+            this.rightButtons.appendChild(this.createPlaylistToggleButton());
+        }
+
+        // 8. Sign Language buttons (PiP overlay and/or main view src swap)
         const hasSignLanguage = this.hasSignLanguage();
         const showSignLanguageButtons = this.player.options.signLanguageButton !== false && hasSignLanguage;
         const signLanguageDisplayMode = this.player.options.signLanguageDisplayMode || 'both';
@@ -3259,8 +3259,7 @@ export class ControlBar {
                 btn.dataset.overflowPriorityMobile = '3';
                 // Insert before transcript or playlist toggle button
                 const transcriptBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-transcript`);
-                const playlistBtn = this.leftButtons?.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`)
-                    ?? this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
+                const playlistBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
                 const insertBefore = transcriptBtn || playlistBtn || null;
                 if (insertBefore) {
                     this.rightButtons.insertBefore(btn, insertBefore);
