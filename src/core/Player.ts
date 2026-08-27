@@ -1693,7 +1693,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   private isPlaylistPanelRightDesktop(): boolean {
-    return !!this.container?.classList.contains('vidply-playlist-panel-right')
+    return Boolean(this.container?.classList.contains('vidply-playlist-panel-right'))
       && !this.state.fullscreen
       && isPlaylistPanelRightDesktopViewport();
   }
