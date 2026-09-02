@@ -253,8 +253,8 @@ var HLSRenderer = class {
    */
   async loadHlsJs() {
     return loadPinnedScript({
-      defaultUrl: "https://cdn.jsdelivr.net/npm/hls.js@1.7.0/dist/hls.min.js",
-      defaultIntegrity: "sha384-NsaFqWMOpy26cQK1F9VfwDdMFB97h7JCesDaPSI1sr79bzoezFrUOTYBhdsLJgha",
+      defaultUrl: "https://cdn.jsdelivr.net/npm/hls.js@1.7.2/dist/hls.min.js",
+      defaultIntegrity: "sha384-xZKOEqJSfUEI1E4N6MG1+KjnKYM1R1v2WKpyaS0c+ksIxRi5PB8MAkyEdX48MX2/",
       url: this.player.options.hlsScriptUrl,
       integrity: this.player.options.hlsScriptIntegrity
     });
@@ -839,4 +839,4 @@ var HLSRenderer = class {
 export {
   HLSRenderer
 };
-//# sourceMappingURL=vidply.HLSRenderer-FCSIAZTA.js.map
+//# sourceMappingURL=vidply.HLSRenderer-NGQJDO5S.js.map

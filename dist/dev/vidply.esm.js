@@ -7806,7 +7806,7 @@ var Player = class _Player extends EventEmitter {
     return null;
   }
   isPlaylistPanelRightDesktop() {
-    return !!this.container?.classList.contains("vidply-playlist-panel-right") && !this.state.fullscreen && isPlaylistPanelRightDesktopViewport();
+    return Boolean(this.container?.classList.contains("vidply-playlist-panel-right")) && !this.state.fullscreen && isPlaylistPanelRightDesktopViewport();
   }
   async initializeRenderer() {
     this.liveStreamManager?.resetForSourceChange();
@@ -7874,7 +7874,7 @@ var Player = class _Player extends EventEmitter {
         return module.VimeoRenderer ?? module.default;
       }
       case "hls": {
-        const module = await import("./vidply.HLSRenderer-FCSIAZTA.js");
+        const module = await import("./vidply.HLSRenderer-NGQJDO5S.js");
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {

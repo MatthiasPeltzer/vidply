@@ -510,7 +510,7 @@ if (this.options.debug) {
 
 | Dependency | Pinned version | Purpose | Loaded |
 |------------|----------------|---------|--------|
-| hls.js | **1.7.0** | HLS streaming (Chrome / Firefox / Edge / desktop Safari) | On demand (CDN fallback) |
+| hls.js | **1.7.2** | HLS streaming (Chrome / Firefox / Edge / desktop Safari) | On demand (CDN fallback) |
 | dash.js | **5.2.1** (modern UMD) | DASH streaming | On demand (CDN fallback) |
 | YouTube IFrame API | — | YouTube playback | On demand |
 | Vimeo Player API | — | Vimeo playback | On demand |
@@ -518,7 +518,7 @@ if (this.options.debug) {
 
 Default CDN fallback URLs (override via `hlsScriptUrl` / `dashScriptUrl`):
 
-- `https://cdn.jsdelivr.net/npm/hls.js@1.7.0/dist/hls.min.js`
+- `https://cdn.jsdelivr.net/npm/hls.js@1.7.2/dist/hls.min.js`
 - `https://cdn.jsdelivr.net/npm/dashjs@5.2.1/dist/modern/umd/dash.all.min.js`
 
 ---

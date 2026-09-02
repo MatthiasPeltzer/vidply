@@ -729,7 +729,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 117608,
+      "bytes": 117615,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -1219,13 +1219,13 @@
       },
       "bytes": 7490
     },
-    "dist/prod/vidply.HLSRenderer-MH3UVOIO.min.js.map": {
+    "dist/prod/vidply.HLSRenderer-JDKAEU6T.min.js.map": {
       "imports": [],
       "exports": [],
       "inputs": {},
       "bytes": 57652
     },
-    "dist/prod/vidply.HLSRenderer-MH3UVOIO.min.js": {
+    "dist/prod/vidply.HLSRenderer-JDKAEU6T.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-6J5NKEND.min.js",
@@ -1319,7 +1319,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 782007
+      "bytes": 782014
     },
     "dist/prod/vidply.esm.min.js": {
       "imports": [
@@ -1384,7 +1384,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.HLSRenderer-MH3UVOIO.min.js",
+          "path": "dist/prod/vidply.HLSRenderer-JDKAEU6T.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -1464,7 +1464,7 @@
           "bytesInOutput": 10277
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 89802
+          "bytesInOutput": 89809
         },
         "src/features/PlaylistManager.ts": {
           "bytesInOutput": 54376
@@ -1473,7 +1473,7 @@
           "bytesInOutput": 5074
         }
       },
-      "bytes": 391886
+      "bytes": 391893
     },
     "dist/prod/vidply.chunk-GBWCROUT.min.js.map": {
       "imports": [],

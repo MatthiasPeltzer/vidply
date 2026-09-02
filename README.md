@@ -46,7 +46,7 @@ Try VidPly in action:
 - **Vimeo Integration** - Seamless Vimeo player integration
 - **SoundCloud Integration** - Play SoundCloud tracks and sets via the Widget API with unified controls
 - **HLS Streaming** - Adaptive bitrate streaming with quality selection and dynamic subtitle detection
-  - Uses **hls.js 1.7.0** on Chrome / Firefox / Edge / desktop Safari for full feature parity (quality menu, captions,
+  - Uses **hls.js 1.7.2** on Chrome / Firefox / Edge / desktop Safari for full feature parity (quality menu, captions,
     transcript)
   - Falls back to native HLS on iOS / iPadOS where MSE is unavailable; native text tracks are still surfaced through the
     VidPly captions and transcript UI

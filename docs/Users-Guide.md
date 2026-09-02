@@ -128,7 +128,7 @@ When using `mpc-vidply` in TYPO3, the **Privacy Layer** displays a GDPR consent 
 <video data-vidply src="https://example.com/stream.m3u8"></video>
 ```
 
-`hls.js` **1.7.0** is loaded on demand when `.m3u8` URLs are detected (CDN fallback if not already on the page). Behavior per platform:
+`hls.js` **1.7.2** is loaded on demand when `.m3u8` URLs are detected (CDN fallback if not already on the page). Behavior per platform:
 
 | Platform | HLS engine | Captions / Transcript / Quality |
 |----------|------------|---------------------------------|

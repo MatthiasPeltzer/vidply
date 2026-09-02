@@ -333,10 +333,10 @@ export class HLSRenderer implements Renderer {
    */
   async loadHlsJs(): Promise<void> {
     // SRI for the pinned default build below, verified against the file served
-    // by jsdelivr for hls.js@1.7.0. Recompute whenever the pin changes.
+    // by jsdelivr for hls.js@1.7.2. Recompute whenever the pin changes.
     return loadPinnedScript({
-      defaultUrl: 'https://cdn.jsdelivr.net/npm/hls.js@1.7.0/dist/hls.min.js',
-      defaultIntegrity: 'sha384-NsaFqWMOpy26cQK1F9VfwDdMFB97h7JCesDaPSI1sr79bzoezFrUOTYBhdsLJgha',
+      defaultUrl: 'https://cdn.jsdelivr.net/npm/hls.js@1.7.2/dist/hls.min.js',
+      defaultIntegrity: 'sha384-xZKOEqJSfUEI1E4N6MG1+KjnKYM1R1v2WKpyaS0c+ksIxRi5PB8MAkyEdX48MX2/',
       url: this.player.options.hlsScriptUrl as string | undefined,
       integrity: this.player.options.hlsScriptIntegrity as string | undefined
     });

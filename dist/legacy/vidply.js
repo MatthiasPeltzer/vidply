@@ -10442,8 +10442,8 @@
          */
         async loadHlsJs() {
           return loadPinnedScript({
-            defaultUrl: "https://cdn.jsdelivr.net/npm/hls.js@1.7.0/dist/hls.min.js",
-            defaultIntegrity: "sha384-NsaFqWMOpy26cQK1F9VfwDdMFB97h7JCesDaPSI1sr79bzoezFrUOTYBhdsLJgha",
+            defaultUrl: "https://cdn.jsdelivr.net/npm/hls.js@1.7.2/dist/hls.min.js",
+            defaultIntegrity: "sha384-xZKOEqJSfUEI1E4N6MG1+KjnKYM1R1v2WKpyaS0c+ksIxRi5PB8MAkyEdX48MX2/",
             url: this.player.options.hlsScriptUrl,
             integrity: this.player.options.hlsScriptIntegrity
           });
@@ -20230,7 +20230,7 @@
     }
     isPlaylistPanelRightDesktop() {
       var _a;
-      return !!((_a = this.container) == null ? void 0 : _a.classList.contains("vidply-playlist-panel-right")) && !this.state.fullscreen && isPlaylistPanelRightDesktopViewport();
+      return Boolean((_a = this.container) == null ? void 0 : _a.classList.contains("vidply-playlist-panel-right")) && !this.state.fullscreen && isPlaylistPanelRightDesktopViewport();
     }
     async initializeRenderer() {
       var _a, _b, _c, _d, _e;
