@@ -5,8 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.15] - 2026-09-02
 
+### Changed
+- Updated vendored streaming library to hls.js 1.7.2.
+- Bumped the pinned hls.js CDN default and Subresource Integrity hash to 1.7.2.
+
+## [1.2.14] - 2026-08-27
 ### Added
 - Shared layout breakpoint (`75rem`) for right-side playlist panel desktop vs stacked layout.
 - Control bar overflow menu on narrow viewports and when left-cluster buttons do not fit; playlist toggle moves to overflow on mobile while previous, play/pause, next, and volume stay visible.
