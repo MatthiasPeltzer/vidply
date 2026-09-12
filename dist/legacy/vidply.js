@@ -1,5 +1,5 @@
 /*!
- * VidPly v1.2.14 - Universal, Accessible Video Player
+ * VidPly v1.2.15 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
@@ -10442,8 +10442,8 @@
          */
         async loadHlsJs() {
           return loadPinnedScript({
-            defaultUrl: "https://cdn.jsdelivr.net/npm/hls.js@1.7.2/dist/hls.min.js",
-            defaultIntegrity: "sha384-xZKOEqJSfUEI1E4N6MG1+KjnKYM1R1v2WKpyaS0c+ksIxRi5PB8MAkyEdX48MX2/",
+            defaultUrl: "https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js",
+            defaultIntegrity: "sha384-cciJ0zi8d1uMKC2zJd7jvPY4HQt7W4ByUI/FlMkltvBi31aW61rcpVBhpmW8/NwX",
             url: this.player.options.hlsScriptUrl,
             integrity: this.player.options.hlsScriptIntegrity
           });
