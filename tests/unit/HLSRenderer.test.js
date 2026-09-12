@@ -5,6 +5,13 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { HLSRenderer } from '../../src/renderers/HLSRenderer.js';
+import * as ScriptLoader from '../../src/utils/ScriptLoader.js';
+
+/** Keep in sync with HLSRenderer.loadHlsJs() — update when the CDN pin changes. */
+const HLS_JS_PIN = {
+  defaultUrl: 'https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js',
+  defaultIntegrity: 'sha384-cciJ0zi8d1uMKC2zJd7jvPY4HQt7W4ByUI/FlMkltvBi31aW61rcpVBhpmW8/NwX'
+};
 
 describe('HLSRenderer', () => {
   let renderer;
@@ -801,6 +808,40 @@ describe('HLSRenderer', () => {
       
       expect(mockPlayer.state.buffering).toBe(false);
       expect(mockPlayer.emit).toHaveBeenCalledWith('canplay');
+    });
+  });
+
+  describe('loadHlsJs', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('loads the pinned hls.js CDN URL with its built-in SRI by default', async () => {
+      const spy = vi.spyOn(ScriptLoader, 'loadPinnedScript').mockResolvedValue();
+
+      await renderer.loadHlsJs();
+
+      expect(spy).toHaveBeenCalledWith({
+        defaultUrl: HLS_JS_PIN.defaultUrl,
+        defaultIntegrity: HLS_JS_PIN.defaultIntegrity,
+        url: undefined,
+        integrity: undefined
+      });
+    });
+
+    it('forwards custom hlsScriptUrl and hlsScriptIntegrity overrides', async () => {
+      mockPlayer.options.hlsScriptUrl = 'https://cdn.example.com/hls.min.js';
+      mockPlayer.options.hlsScriptIntegrity = 'sha384-CUSTOM';
+      const spy = vi.spyOn(ScriptLoader, 'loadPinnedScript').mockResolvedValue();
+
+      await renderer.loadHlsJs();
+
+      expect(spy).toHaveBeenCalledWith({
+        defaultUrl: HLS_JS_PIN.defaultUrl,
+        defaultIntegrity: HLS_JS_PIN.defaultIntegrity,
+        url: 'https://cdn.example.com/hls.min.js',
+        integrity: 'sha384-CUSTOM'
+      });
     });
   });
 });

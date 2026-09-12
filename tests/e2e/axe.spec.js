@@ -8,7 +8,8 @@ const PAGES = [
   '/demo/',
   '/demo/single-player-video.html',
   '/demo/single-player-audio.html',
-  '/demo/playlist-video.html'
+  '/demo/playlist-video.html',
+  '/demo/hls-test.html'
 ];
 
 for (const path of PAGES) {

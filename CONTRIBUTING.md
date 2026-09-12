@@ -89,6 +89,7 @@ Before opening a PR, run:
 npm run typecheck
 npm run lint            # if eslint is configured
 npm run test            # vitest unit + integration
+npm run test:e2e:install # one-time: install Playwright Chromium (+ OS deps on Linux CI)
 npm run test:e2e        # Playwright (requires Chromium installed)
 npm run build           # produces dist/ to confirm the bundle still builds
 ```

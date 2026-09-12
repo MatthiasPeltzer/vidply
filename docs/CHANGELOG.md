@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.16] - 2026-09-12
+
+### Changed
+- Updated vendored streaming library to hls.js 1.7.3.
+- Bumped the pinned hls.js CDN default and Subresource Integrity hash to 1.7.3.
+
+### Tests
+- Added Chromium Playwright coverage for `demo/hls-test.html` (pinned hls.js CDN load + hls.js renderer path).
+- Added unit tests asserting `HLSRenderer.loadHlsJs()` forwards the 1.7.3 pin/SRI defaults and option overrides.
+- Included `hls-test.html` in the axe-core e2e smoke pages; added `npm run test:e2e:install` for local Chromium setup.
+
 ## [1.2.15] - 2026-09-02
 
 ### Changed
