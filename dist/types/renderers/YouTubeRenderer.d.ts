@@ -10,6 +10,10 @@ export declare class YouTubeRenderer implements Renderer {
     iframe: HTMLDivElement | null;
     timeUpdateInterval?: ReturnType<typeof setInterval>;
     constructor(player: Player);
+    /** origin + widget_referrer for YouTube's embed client-identity checks (iOS). */
+    static embedIdentityPlayerVars(): Record<string, string>;
+    static applyEmbedReferrerPolicy(youtube: YTPlayer | null): void;
+    private showIosLanFallback;
     init(): Promise<void>;
     extractVideoId(url: string): string | null;
     loadYouTubeAPI(): Promise<void>;

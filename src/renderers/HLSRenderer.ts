@@ -883,10 +883,6 @@ export class HLSRenderer implements Renderer {
   }
 
   play() {
-    // Save scroll position to prevent browser from scrolling to video
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
-
     // (Re)start segment loading on every play. Cheap when already loading
     // (hls.js no-ops); needed after pause() called stopLoad() so the buffer
     // resumes filling. Passing -1 lets hls.js pick the starting position from
@@ -903,10 +899,7 @@ export class HLSRenderer implements Renderer {
     }
 
     const promise = this.media.play();
-    
-    // Restore scroll position immediately to prevent auto-scroll
-    window.scrollTo(scrollX, scrollY);
-    
+
     if (promise !== undefined) {
       promise.catch(error => {
         this.player.log('Play failed:', error, 'warn');

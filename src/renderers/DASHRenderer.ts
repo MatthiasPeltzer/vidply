@@ -773,9 +773,6 @@ export class DASHRenderer implements Renderer {
   }
 
   play() {
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
-
     // Defer-load (legacy code path, kept for completeness): the source is
     // normally attached at init and dash.js is configured with
     // scheduling.scheduleWhilePaused: false to keep prefetch at zero until
@@ -799,8 +796,6 @@ export class DASHRenderer implements Renderer {
     }
 
     const promise = this.media.play();
-
-    window.scrollTo(scrollX, scrollY);
 
     if (promise !== undefined) {
       promise.catch(error => {

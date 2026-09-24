@@ -1,6 +1,7 @@
 import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
 import { loadScriptOnce } from '../utils/ScriptLoader.js';
+import { isIOS } from '../utils/PerformanceUtils.js';
 
 export class VimeoRenderer implements Renderer {
   readonly rendererType = 'vimeo' as const;
@@ -86,7 +87,7 @@ export class VimeoRenderer implements Renderer {
       width: '100%',
       height: '100%',
       controls: true,
-      autoplay: this.player.options.autoplay,
+      autoplay: isIOS() ? false : this.player.options.autoplay,
       muted: this.player.options.muted,
       loop: this.player.options.loop,
       keyboard: false
@@ -244,16 +245,9 @@ export class VimeoRenderer implements Renderer {
 
   play() {
     if (this.isReady && this.vimeo) {
-      // Save scroll position to prevent browser from scrolling to video
-      const scrollX = window.scrollX;
-      const scrollY = window.scrollY;
-      
       this.vimeo.play().catch((error: unknown) => {
         this.player.log('Play error:', error, 'warn');
       });
-      
-      // Restore scroll position immediately to prevent auto-scroll
-      window.scrollTo(scrollX, scrollY);
     }
   }
 

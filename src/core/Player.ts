@@ -1992,10 +1992,6 @@ export class Player extends EventEmitter<PlayerEventMap> {
       }
       this.resetPlaybackStateForSourceChange();
 
-      // Save scroll position to prevent browser from auto-scrolling when loading new media
-      const scrollX = window.scrollX || window.pageXOffset;
-      const scrollY = window.scrollY || window.pageYOffset;
-
       // Clear existing text tracks
       const existingTracks = this.trackElements;
       existingTracks.forEach((track) => track.remove());
@@ -2229,9 +2225,6 @@ export class Player extends EventEmitter<PlayerEventMap> {
         this._switchingRenderer = false;
       }
 
-      // Restore scroll position immediately after loading to prevent auto-scroll
-      window.scrollTo(scrollX, scrollY);
-
       // For MSE-based renderers (DASH/HLS), skip CaptionManager/TranscriptManager
       // re-creation here. dash.js/hls.js create programmatic TextTrack objects
       // that persist on the <video> element after destroy() and cannot be removed
@@ -2269,16 +2262,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
         }
       }
 
-      // Restore scroll position after control bar update (may have caused micro-scrolls)
-      window.scrollTo(scrollX, scrollY);
-
       // Restore accessibility features if they were enabled and available in new track
       if (wasSignLanguageEnabled && this.signLanguageSrc) {
         // Small delay to ensure player and control bar are ready
         setTimeout(() => {
           this.enableSignLanguage();
-          // Restore scroll after sign language is shown
-          window.scrollTo(scrollX, scrollY);
         }, 150);
       }
 
@@ -2286,8 +2274,6 @@ export class Player extends EventEmitter<PlayerEventMap> {
         // Small delay to ensure player is ready
         setTimeout(() => {
           this.enableAudioDescription();
-          // Restore scroll after audio description is enabled
-          window.scrollTo(scrollX, scrollY);
         }, 150);
       }
 

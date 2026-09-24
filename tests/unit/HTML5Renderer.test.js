@@ -119,15 +119,21 @@ describe('HTML5Renderer', () => {
       expect(mockMedia.play).toHaveBeenCalled();
     });
 
-    it('should trigger load on first play when deferLoad is true', () => {
+    it('should start playback without calling load when deferLoad is true', () => {
+      // load() would reset the element into iOS Safari's "gesture required"
+      // state and make the play() inside the same tap handler fail; play()
+      // performs resource selection on its own.
       mockPlayer.options.deferLoad = true;
       renderer._didDeferredLoad = false;
       Object.defineProperty(mockMedia, 'readyState', { value: 0, configurable: true });
+      // load() is a shared prototype mock, so drop the call init() already made.
       const loadSpy = vi.spyOn(mockMedia, 'load');
+      loadSpy.mockClear();
 
       renderer.play();
 
-      expect(loadSpy).toHaveBeenCalled();
+      expect(loadSpy).not.toHaveBeenCalled();
+      expect(mockMedia.play).toHaveBeenCalled();
       expect(renderer._didDeferredLoad).toBe(true);
     });
 

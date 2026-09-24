@@ -1,6 +1,11 @@
 import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
 import { loadScriptOnce } from '../utils/ScriptLoader.js';
+import {
+  isIOS,
+  isLikelyUnsupportedYoutubeEmbedHost,
+  shouldUseYoutubeIosLanFallback
+} from '../utils/PerformanceUtils.js';
 
 export class YouTubeRenderer implements Renderer {
   readonly rendererType = 'youtube' as const;
@@ -21,6 +26,68 @@ export class YouTubeRenderer implements Renderer {
     this.iframe = null;
   }
 
+  /** origin + widget_referrer for YouTube's embed client-identity checks (iOS). */
+  static embedIdentityPlayerVars(): Record<string, string> {
+    if (typeof window === 'undefined' || isLikelyUnsupportedYoutubeEmbedHost()) {
+      return {};
+    }
+    const vars: Record<string, string> = {};
+    if (window.location?.origin) {
+      vars.origin = window.location.origin;
+    }
+    if (window.location?.href) {
+      vars.widget_referrer = window.location.href;
+    }
+    return vars;
+  }
+
+  static applyEmbedReferrerPolicy(youtube: YTPlayer | null) {
+    const iframe = youtube?.getIframe?.();
+    if (iframe instanceof HTMLIFrameElement) {
+      iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    }
+  }
+
+  private showIosLanFallback() {
+    this.player.element.style.display = 'none';
+    this.iframe = document.createElement('div');
+    this.iframe.className = 'vidply-youtube-ios-lan-fallback-host';
+    this.iframe.style.width = '100%';
+    this.iframe.style.maxHeight = '100%';
+    this.player.element.parentNode?.insertBefore(this.iframe, this.player.element);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'vidply-youtube-ios-lan-fallback';
+
+    const videoId = this.videoId ?? '';
+    const pageLang = (document.documentElement.lang || '').toLowerCase();
+    const linkLabel = pageLang.startsWith('de') ? 'Video in YouTube abspielen' : 'Play video in YouTube';
+    const hint = pageLang.startsWith('de')
+      ? 'Der eingebettete Player ist auf dem iPhone bei Entwicklungs-Adressen (LAN, IP, sslip.io, DDEV, …) nicht verfügbar. Bitte YouTube öffnen.'
+      : 'The embedded player is not available on iPhone on development URLs (LAN, IP, sslip.io, DDEV, …). Please open YouTube.';
+
+    const openLink = document.createElement('a');
+    openLink.href = `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
+    openLink.className = 'vidply-youtube-ios-lan-fallback__link';
+    openLink.target = '_blank';
+    openLink.rel = 'noopener noreferrer';
+    openLink.textContent = linkLabel;
+
+    const message = document.createElement('p');
+    message.className = 'vidply-youtube-ios-lan-fallback__hint';
+    message.textContent = hint;
+
+    wrap.appendChild(openLink);
+    wrap.appendChild(message);
+    this.iframe.appendChild(wrap);
+
+    this.isReady = true;
+    if (this.player.container) {
+      this.player.container.classList.add('vidply-external-controls');
+    }
+    this.player.emit('loadedmetadata');
+  }
+
   async init() {
     // Extract video ID from URL - use currentSource which works for external renderers
     const src = this.player.currentSource || this.player.element.src;
@@ -28,6 +95,11 @@ export class YouTubeRenderer implements Renderer {
     
     if (!this.videoId) {
       throw new Error('Invalid YouTube URL');
+    }
+
+    if (shouldUseYoutubeIosLanFallback()) {
+      this.showIosLanFallback();
+      return;
     }
 
     // Load YouTube IFrame API
@@ -117,13 +189,17 @@ export class YouTubeRenderer implements Renderer {
           showinfo: 0,
           iv_load_policy: 3,
           playsinline: 1,
-          autoplay: this.player.options.autoplay ? 1 : 0,
+          // iOS rejects programmatic/autoplay starts inside cross-origin embeds; leave
+          // the video cued so the visitor starts it with a tap on YouTube's control.
+          autoplay: isIOS() ? 0 : (this.player.options.autoplay ? 1 : 0),
           mute: this.player.options.muted ? 1 : 0,
-          start: this.player.options.startTime || 0
+          start: this.player.options.startTime || 0,
+          ...YouTubeRenderer.embedIdentityPlayerVars()
         },
         events: {
           onReady: (_event: unknown) => {
             this.isReady = true;
+            YouTubeRenderer.applyEmbedReferrerPolicy(this.youtube);
             this.attachEvents();
             // Hide VidPly controls - YouTube has its own
             if (this.player.container) {
@@ -254,14 +330,7 @@ export class YouTubeRenderer implements Renderer {
 
   play() {
     if (this.isReady && this.youtube) {
-      // Save scroll position to prevent browser from scrolling to video
-      const scrollX = window.scrollX;
-      const scrollY = window.scrollY;
-      
       this.youtube.playVideo();
-      
-      // Restore scroll position immediately to prevent auto-scroll
-      window.scrollTo(scrollX, scrollY);
     }
   }
 

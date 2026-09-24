@@ -8,7 +8,7 @@ import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 import { TimeUtils } from '../utils/TimeUtils.js';
 import { sanitizePosterUrl, toCssBackgroundImage } from '../utils/UrlSafe.js';
-import { reducedMotionScrollOptions } from '../utils/PerformanceUtils.js';
+import { reducedMotionScrollOptions, scrollIntoViewWithinScrollParent } from '../utils/PerformanceUtils.js';
 import { isPlaylistPanelRightDesktopViewport } from '../constants/layoutBreakpoints.js';
 import { TrackInfoView } from '../core/TrackInfoView.js';
 import type { TrackInfoData } from '../core/TrackInfoView.js';
@@ -1951,8 +1951,9 @@ export class PlaylistManager {
         }
         button.setAttribute('aria-label', ariaLabel);
         
-        // Scroll into view within playlist panel (uses 'nearest' to minimize page scroll)
-        item.scrollIntoView(reducedMotionScrollOptions('nearest'));
+        // Runs on every UI refresh, including the initial render, so it must
+        // never scroll the page — only the playlist's own scroll container.
+        scrollIntoViewWithinScrollParent(item as HTMLElement);
       } else {
         // Update list item styling
         item.classList.remove('vidply-playlist-item-active');

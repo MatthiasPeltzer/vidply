@@ -1,6 +1,7 @@
 import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
 import { loadScriptOnce } from '../utils/ScriptLoader.js';
+import { isIOS } from '../utils/PerformanceUtils.js';
 
 /**
  * Subset of the SoundCloud Widget event payloads we actually consume.
@@ -117,7 +118,7 @@ export class SoundCloudRenderer implements Renderer {
     // Build widget URL with parameters
     const params = new URLSearchParams({
       url: trackUrl,
-      auto_play: this.player.options.autoplay ? 'true' : 'false',
+      auto_play: isIOS() ? 'false' : (this.player.options.autoplay ? 'true' : 'false'),
       hide_related: 'true',
       show_comments: 'false',
       show_user: 'true',
@@ -357,14 +358,7 @@ export class SoundCloudRenderer implements Renderer {
 
   play() {
     if (this.isReady && this.widget) {
-      // Save scroll position to prevent browser from scrolling
-      const scrollX = window.scrollX;
-      const scrollY = window.scrollY;
-      
       this.widget.play();
-      
-      // Restore scroll position
-      window.scrollTo(scrollX, scrollY);
     }
   }
 

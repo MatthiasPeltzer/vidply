@@ -1597,6 +1597,55 @@ video[data-vidply]:not(.vidply-initialized) {
   display: none !important;
 }
 
+/* YouTube/Vimeo/SoundCloud ship their own play UI — the VidPly overlay would
+   sit above the iframe and steal taps (especially on iPhone). */
+.vidply-player.vidply-external-controls .vidply-video-wrapper > .vidply-play-overlay,
+.vidply-player.vidply-external-controls .vidply-video-wrapper > .vidply-play-overlay-button {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* iPhone + LAN/IP — same fallback as mpc-vidply privacy layer (playlist path) */
+.vidply-youtube-ios-lan-fallback-host {
+  min-height: 12.5rem;
+  position: relative;
+  width: 100%;
+}
+
+.vidply-youtube-ios-lan-fallback {
+  align-items: center;
+  background: rgb(0 0 0 / 85%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: absolute;
+  text-align: center;
+}
+
+.vidply-youtube-ios-lan-fallback__hint {
+  color: #fff;
+  font-size: 0.85rem;
+  margin: 0;
+  max-width: 22rem;
+}
+
+.vidply-youtube-ios-lan-fallback__link {
+  background: rgb(255 255 255 / 95%);
+  border-radius: 0.375rem;
+  color: #0a406e;
+  font-weight: 600;
+  padding: 0.65rem 1rem;
+  text-decoration: none;
+}
+
+.vidply-youtube-ios-lan-fallback__link:hover {
+  background: #fff;
+  color: #0a406e;
+}
+
 /* Mobile: Simplify video wrapper but keep captions contained */
 @media (width <= 48rem) {
   .vidply-video-wrapper {

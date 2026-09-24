@@ -1,5 +1,5 @@
 /*!
- * VidPly v1.2.16 - Universal, Accessible Video Player
+ * VidPly v1.2.17 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
@@ -2159,11 +2159,79 @@
   function isMobile(breakpoint = 768) {
     return window.innerWidth < breakpoint;
   }
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+  }
+  function isIPhone() {
+    return /iPhone|iPod/.test(navigator.userAgent);
+  }
+  function isLikelyUnsupportedYoutubeEmbedHost(hostname) {
+    const host = (hostname ?? (typeof window !== "undefined" ? window.location.hostname : "")).toLowerCase();
+    if (!host) {
+      return true;
+    }
+    if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) {
+      return true;
+    }
+    if (DEV_TUNNEL_HOST_SUFFIXES.some((suffix) => host === suffix.slice(1) || host.endsWith(suffix))) {
+      return true;
+    }
+    if (/\d{1,3}-\d{1,3}-\d{1,3}-\d{1,3}/.test(host)) {
+      return true;
+    }
+    if (/^(?:\d{1,3}\.){3}\d{1,3}$/.test(host)) {
+      return true;
+    }
+    if (host.includes(":")) {
+      return true;
+    }
+    return false;
+  }
+  function shouldUseYoutubeIosLanFallback() {
+    return isIPhone() && isLikelyUnsupportedYoutubeEmbedHost();
+  }
   function prefersReducedMotion() {
     return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
   function reducedMotionScrollOptions(block = "nearest") {
     return { behavior: prefersReducedMotion() ? "auto" : "smooth", block };
+  }
+  function scrollParentOf(element) {
+    let node = element.parentElement;
+    while (node && node !== document.body && node !== document.documentElement) {
+      const style = window.getComputedStyle(node);
+      const scrollsY = /(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight;
+      const scrollsX = /(auto|scroll)/.test(style.overflowX) && node.scrollWidth > node.clientWidth;
+      if (scrollsY || scrollsX) {
+        return node;
+      }
+      node = node.parentElement;
+    }
+    return null;
+  }
+  function scrollIntoViewWithinScrollParent(element) {
+    const container = scrollParentOf(element);
+    if (!container) {
+      return;
+    }
+    const elementRect = element.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    let top = container.scrollTop;
+    if (elementRect.top < containerRect.top) {
+      top += elementRect.top - containerRect.top;
+    } else if (elementRect.bottom > containerRect.bottom) {
+      top += elementRect.bottom - containerRect.bottom;
+    }
+    let left = container.scrollLeft;
+    if (elementRect.left < containerRect.left) {
+      left += elementRect.left - containerRect.left;
+    } else if (elementRect.right > containerRect.right) {
+      left += elementRect.right - containerRect.right;
+    }
+    if (top === container.scrollTop && left === container.scrollLeft) {
+      return;
+    }
+    container.scrollTo({ top, left, behavior: prefersReducedMotion() ? "auto" : "smooth" });
   }
   function rafWithTimeout(callback, timeout = 100) {
     let called = false;
@@ -2176,9 +2244,18 @@
     requestAnimationFrame(execute);
     setTimeout(execute, timeout);
   }
+  var DEV_TUNNEL_HOST_SUFFIXES;
   var init_PerformanceUtils = __esm({
     "src/utils/PerformanceUtils.ts"() {
       "use strict";
+      DEV_TUNNEL_HOST_SUFFIXES = [
+        ".sslip.io",
+        ".nip.io",
+        ".xip.io",
+        ".ddev.site",
+        ".ddev.local",
+        ".docker.internal"
+      ];
     }
   });
 
@@ -3344,30 +3421,17 @@
           });
         }
         play() {
-          const scrollX = window.scrollX;
-          const scrollY = window.scrollY;
-          if (this.player.options.deferLoad && !this._didDeferredLoad) {
-            try {
-              if (this.media.readyState === 0) {
-                this.media.load();
-              }
-            } catch {
-            }
+          if (this.player.options.deferLoad) {
             this._didDeferredLoad = true;
           }
           const promise = this.media.play();
-          window.scrollTo(scrollX, scrollY);
           if (promise !== void 0) {
             promise.catch((error) => {
               this.player.log("Play failed:", error, "warn");
               if (this.player.options.autoplay && !this.player.state.muted) {
                 this.player.log("Retrying play with muted audio", "info");
                 this.media.muted = true;
-                const retryScrollX = window.scrollX;
-                const retryScrollY = window.scrollY;
-                this.media.play().then(() => {
-                  window.scrollTo(retryScrollX, retryScrollY);
-                }).catch((err) => {
+                this.media.play().catch((err) => {
                   this.player.handleError(err);
                 });
               }
@@ -9661,7 +9725,8 @@
     "src/renderers/YouTubeRenderer.ts"() {
       "use strict";
       init_ScriptLoader();
-      YouTubeRenderer = class {
+      init_PerformanceUtils();
+      YouTubeRenderer = class _YouTubeRenderer {
         constructor(player) {
           __publicField(this, "rendererType", "youtube");
           __publicField(this, "player");
@@ -9678,11 +9743,69 @@
           this.isReady = false;
           this.iframe = null;
         }
+        /** origin + widget_referrer for YouTube's embed client-identity checks (iOS). */
+        static embedIdentityPlayerVars() {
+          var _a, _b;
+          if (typeof window === "undefined" || isLikelyUnsupportedYoutubeEmbedHost()) {
+            return {};
+          }
+          const vars = {};
+          if ((_a = window.location) == null ? void 0 : _a.origin) {
+            vars.origin = window.location.origin;
+          }
+          if ((_b = window.location) == null ? void 0 : _b.href) {
+            vars.widget_referrer = window.location.href;
+          }
+          return vars;
+        }
+        static applyEmbedReferrerPolicy(youtube) {
+          var _a;
+          const iframe = (_a = youtube == null ? void 0 : youtube.getIframe) == null ? void 0 : _a.call(youtube);
+          if (iframe instanceof HTMLIFrameElement) {
+            iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+          }
+        }
+        showIosLanFallback() {
+          var _a;
+          this.player.element.style.display = "none";
+          this.iframe = document.createElement("div");
+          this.iframe.className = "vidply-youtube-ios-lan-fallback-host";
+          this.iframe.style.width = "100%";
+          this.iframe.style.maxHeight = "100%";
+          (_a = this.player.element.parentNode) == null ? void 0 : _a.insertBefore(this.iframe, this.player.element);
+          const wrap = document.createElement("div");
+          wrap.className = "vidply-youtube-ios-lan-fallback";
+          const videoId = this.videoId ?? "";
+          const pageLang = (document.documentElement.lang || "").toLowerCase();
+          const linkLabel = pageLang.startsWith("de") ? "Video in YouTube abspielen" : "Play video in YouTube";
+          const hint = pageLang.startsWith("de") ? "Der eingebettete Player ist auf dem iPhone bei Entwicklungs-Adressen (LAN, IP, sslip.io, DDEV, …) nicht verfügbar. Bitte YouTube öffnen." : "The embedded player is not available on iPhone on development URLs (LAN, IP, sslip.io, DDEV, …). Please open YouTube.";
+          const openLink = document.createElement("a");
+          openLink.href = `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
+          openLink.className = "vidply-youtube-ios-lan-fallback__link";
+          openLink.target = "_blank";
+          openLink.rel = "noopener noreferrer";
+          openLink.textContent = linkLabel;
+          const message = document.createElement("p");
+          message.className = "vidply-youtube-ios-lan-fallback__hint";
+          message.textContent = hint;
+          wrap.appendChild(openLink);
+          wrap.appendChild(message);
+          this.iframe.appendChild(wrap);
+          this.isReady = true;
+          if (this.player.container) {
+            this.player.container.classList.add("vidply-external-controls");
+          }
+          this.player.emit("loadedmetadata");
+        }
         async init() {
           const src = this.player.currentSource || this.player.element.src;
           this.videoId = this.extractVideoId(src);
           if (!this.videoId) {
             throw new Error("Invalid YouTube URL");
+          }
+          if (shouldUseYoutubeIosLanFallback()) {
+            this.showIosLanFallback();
+            return;
           }
           await this.loadYouTubeAPI();
           this.createIframe();
@@ -9747,13 +9870,17 @@
                 showinfo: 0,
                 iv_load_policy: 3,
                 playsinline: 1,
-                autoplay: this.player.options.autoplay ? 1 : 0,
+                // iOS rejects programmatic/autoplay starts inside cross-origin embeds; leave
+                // the video cued so the visitor starts it with a tap on YouTube's control.
+                autoplay: isIOS() ? 0 : this.player.options.autoplay ? 1 : 0,
                 mute: this.player.options.muted ? 1 : 0,
-                start: this.player.options.startTime || 0
+                start: this.player.options.startTime || 0,
+                ..._YouTubeRenderer.embedIdentityPlayerVars()
               },
               events: {
                 onReady: (_event) => {
                   this.isReady = true;
+                  _YouTubeRenderer.applyEmbedReferrerPolicy(this.youtube);
                   this.attachEvents();
                   if (this.player.container) {
                     this.player.container.classList.add("vidply-external-controls");
@@ -9860,10 +9987,7 @@
         }
         play() {
           if (this.isReady && this.youtube) {
-            const scrollX = window.scrollX;
-            const scrollY = window.scrollY;
             this.youtube.playVideo();
-            window.scrollTo(scrollX, scrollY);
           }
         }
         pause() {
@@ -9926,6 +10050,7 @@
     "src/renderers/VimeoRenderer.ts"() {
       "use strict";
       init_ScriptLoader();
+      init_PerformanceUtils();
       VimeoRenderer = class {
         constructor(player) {
           __publicField(this, "rendererType", "vimeo");
@@ -9990,7 +10115,7 @@
             width: "100%",
             height: "100%",
             controls: true,
-            autoplay: this.player.options.autoplay,
+            autoplay: isIOS() ? false : this.player.options.autoplay,
             muted: this.player.options.muted,
             loop: this.player.options.loop,
             keyboard: false
@@ -10111,12 +10236,9 @@
         }
         play() {
           if (this.isReady && this.vimeo) {
-            const scrollX = window.scrollX;
-            const scrollY = window.scrollY;
             this.vimeo.play().catch((error) => {
               this.player.log("Play error:", error, "warn");
             });
-            window.scrollTo(scrollX, scrollY);
           }
         }
         pause() {
@@ -10266,9 +10388,9 @@
           }
         }
         canPlayNatively() {
-          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+          const isIOS2 = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
           const isIPadDesktopMode = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
-          if (!isIOS && !isIPadDesktopMode) {
+          if (!isIOS2 && !isIPadDesktopMode) {
             return false;
           }
           const video = document.createElement("video");
@@ -10873,8 +10995,6 @@
           this._didDeferredLoad = true;
         }
         play() {
-          const scrollX = window.scrollX;
-          const scrollY = window.scrollY;
           if (this.hls) {
             this._loadingForSeekOnly = false;
             try {
@@ -10884,7 +11004,6 @@
             this._didDeferredLoad = true;
           }
           const promise = this.media.play();
-          window.scrollTo(scrollX, scrollY);
           if (promise !== void 0) {
             promise.catch((error) => {
               this.player.log("Play failed:", error, "warn");
@@ -11664,8 +11783,6 @@
           }
         }
         play() {
-          const scrollX = window.scrollX;
-          const scrollY = window.scrollY;
           if (this.player.options.deferLoad && this.dash && !this._dashSourceLoaded) {
             const src = this._pendingSrc || this.player.currentSource;
             if (src) {
@@ -11677,7 +11794,6 @@
             }
           }
           const promise = this.media.play();
-          window.scrollTo(scrollX, scrollY);
           if (promise !== void 0) {
             promise.catch((error) => {
               this.player.log("Play failed:", error, "warn");
@@ -11983,6 +12099,7 @@
     "src/renderers/SoundCloudRenderer.ts"() {
       "use strict";
       init_ScriptLoader();
+      init_PerformanceUtils();
       SoundCloudRenderer = class {
         constructor(player) {
           __publicField(this, "rendererType", "soundcloud");
@@ -12065,7 +12182,7 @@
           }
           const params = new URLSearchParams({
             url: trackUrl,
-            auto_play: this.player.options.autoplay ? "true" : "false",
+            auto_play: isIOS() ? "false" : this.player.options.autoplay ? "true" : "false",
             hide_related: "true",
             show_comments: "false",
             show_user: "true",
@@ -12250,10 +12367,7 @@
         }
         play() {
           if (this.isReady && this.widget) {
-            const scrollX = window.scrollX;
-            const scrollY = window.scrollY;
             this.widget.play();
-            window.scrollTo(scrollX, scrollY);
           }
         }
         pause() {
@@ -16856,6 +16970,8 @@
       __publicField(this, "originalScrollY");
       __publicField(this, "originalBodyOverflow");
       __publicField(this, "originalBodyPosition");
+      __publicField(this, "originalBodyTop");
+      __publicField(this, "originalBodyLeft");
       __publicField(this, "originalBodyWidth");
       __publicField(this, "originalBodyHeight");
       __publicField(this, "originalHtmlOverflow");
@@ -16875,6 +16991,8 @@
       this.originalScrollY = window.scrollY || window.pageYOffset;
       this.originalBodyOverflow = document.body.style.overflow;
       this.originalBodyPosition = document.body.style.position;
+      this.originalBodyTop = document.body.style.top;
+      this.originalBodyLeft = document.body.style.left;
       this.originalBodyWidth = document.body.style.width;
       this.originalBodyHeight = document.body.style.height;
       this.originalHtmlOverflow = document.documentElement.style.overflow;
@@ -16886,12 +17004,14 @@
       document.body.style.background = "#000";
       document.documentElement.style.overflow = "hidden";
       document.documentElement.style.background = "#000";
+      document.body.style.position = "fixed";
+      document.body.style.top = `${-this.originalScrollY}px`;
+      document.body.style.left = `${-this.originalScrollX}px`;
       this.originalViewport = (_a = document.querySelector('meta[name="viewport"]')) == null ? void 0 : _a.getAttribute("content");
       const viewport = document.querySelector('meta[name="viewport"]');
       if (viewport) {
         viewport.setAttribute("content", "width=device-width, initial-scale=1.0");
       }
-      window.scrollTo(0, 0);
       this.makeBackgroundInert();
       player.emit("fullscreenchange", true);
       player.emit("enterfullscreen");
@@ -16941,6 +17061,14 @@
       if (this.originalBodyPosition !== void 0) {
         document.body.style.position = this.originalBodyPosition;
         this.originalBodyPosition = void 0;
+      }
+      if (this.originalBodyTop !== void 0) {
+        document.body.style.top = this.originalBodyTop;
+        this.originalBodyTop = void 0;
+      }
+      if (this.originalBodyLeft !== void 0) {
+        document.body.style.left = this.originalBodyLeft;
+        this.originalBodyLeft = void 0;
       }
       if (this.originalBodyWidth !== void 0) {
         document.body.style.width = this.originalBodyWidth;
@@ -20476,8 +20604,6 @@
           this.pause();
         }
         this.resetPlaybackStateForSourceChange();
-        const scrollX = window.scrollX || window.pageXOffset;
-        const scrollY = window.scrollY || window.pageYOffset;
         const existingTracks = this.trackElements;
         existingTracks.forEach((track) => track.remove());
         this.invalidateTrackCache();
@@ -20634,7 +20760,6 @@
         } else {
           this._switchingRenderer = false;
         }
-        window.scrollTo(scrollX, scrollY);
         if (needsFullReinit) {
           if (this.captionManager) {
             this.captionManager.disable();
@@ -20661,17 +20786,14 @@
             this.updateControlBar();
           }
         }
-        window.scrollTo(scrollX, scrollY);
         if (wasSignLanguageEnabled && this.signLanguageSrc) {
           setTimeout(() => {
             this.enableSignLanguage();
-            window.scrollTo(scrollX, scrollY);
           }, 150);
         }
         if (wasAudioDescriptionEnabled && this.audioDescriptionSrc) {
           setTimeout(() => {
             this.enableAudioDescription();
-            window.scrollTo(scrollX, scrollY);
           }, 150);
         }
         this.emit("sourcechange", config);
@@ -20925,8 +21047,8 @@
     enterFullscreen() {
       const elem = this.container;
       let fullscreenPromise = null;
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
-      if (isIOS) {
+      const isIOS2 = /iPad|iPhone|iPod/.test(navigator.userAgent) || navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+      if (isIOS2) {
         this._enablePseudoFullscreen();
         return;
       }
@@ -22886,7 +23008,7 @@
             ariaLabel += `. ${trackDurationReadable}`;
           }
           button.setAttribute("aria-label", ariaLabel);
-          item.scrollIntoView(reducedMotionScrollOptions("nearest"));
+          scrollIntoViewWithinScrollParent(item);
         } else {
           item.classList.remove("vidply-playlist-item-active");
           button.removeAttribute("aria-current");

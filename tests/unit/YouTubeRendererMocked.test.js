@@ -136,19 +136,17 @@ describe('YouTubeRenderer (Mocked)', () => {
       expect(mockYouTubePlayer.playVideo).not.toHaveBeenCalled();
     });
 
-    it('should preserve scroll position', () => {
+    it('should not move the page', () => {
+      // Starting playback must never scroll the document: on iOS Safari the
+      // saved scroll offset is read against a layout viewport that shifts with
+      // the URL bar, so writing it back jumps the page.
       renderer.isReady = true;
       renderer.youtube = mockYouTubePlayer;
-
-      const scrollX = 100;
-      const scrollY = 200;
-      window.scrollX = scrollX;
-      window.scrollY = scrollY;
       window.scrollTo = vi.fn();
 
       renderer.play();
 
-      expect(window.scrollTo).toHaveBeenCalledWith(scrollX, scrollY);
+      expect(window.scrollTo).not.toHaveBeenCalled();
     });
   });
 

@@ -227,6 +227,7 @@ interface YTPlayer {
   getDuration(): number;
   getCurrentTime(): number;
   getPlayerState(): number;
+  getIframe(): HTMLIFrameElement;
   destroy(): void;
 }
 

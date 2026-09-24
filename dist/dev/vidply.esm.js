@@ -1,41 +1,42 @@
 /*!
- * VidPly v1.2.16 - Universal, Accessible Video Player
+ * VidPly v1.2.17 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 import {
   TimeUtils
-} from "./vidply.chunk-Z37JIDP4.js";
+} from "./vidply.chunk-RM5MYBVQ.js";
 import {
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-JTHPIVTM.js";
+} from "./vidply.chunk-DS556V52.js";
 import {
   focusElement,
   setContainerChildrenInert,
   trapFocusInContainer
-} from "./vidply.chunk-GCEQUEYB.js";
+} from "./vidply.chunk-WRDA4BIK.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-6AYCBFSO.js";
+} from "./vidply.chunk-YCIVOD4W.js";
 import {
   CaptionManager
-} from "./vidply.chunk-Z2P2DV4P.js";
+} from "./vidply.chunk-W7PH3BDF.js";
 import {
   StorageManager
-} from "./vidply.chunk-4PEILNEN.js";
+} from "./vidply.chunk-V476LWAA.js";
 import {
   debounce,
   isMobile,
   rafWithTimeout,
   reducedMotionScrollOptions,
+  scrollIntoViewWithinScrollParent,
   throttle
-} from "./vidply.chunk-V7PRUV4T.js";
+} from "./vidply.chunk-KJVUGADU.js";
 import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-IK26HB64.js";
+} from "./vidply.chunk-YNDMWZB2.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -2286,7 +2287,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-RMPZW4AT.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+    import("./vidply.CaptionStyleMenu-WW2AUHCQ.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
@@ -4498,6 +4499,8 @@ var PseudoFullscreenController = class {
   originalScrollY;
   originalBodyOverflow;
   originalBodyPosition;
+  originalBodyTop;
+  originalBodyLeft;
   originalBodyWidth;
   originalBodyHeight;
   originalHtmlOverflow;
@@ -4517,6 +4520,8 @@ var PseudoFullscreenController = class {
     this.originalScrollY = window.scrollY || window.pageYOffset;
     this.originalBodyOverflow = document.body.style.overflow;
     this.originalBodyPosition = document.body.style.position;
+    this.originalBodyTop = document.body.style.top;
+    this.originalBodyLeft = document.body.style.left;
     this.originalBodyWidth = document.body.style.width;
     this.originalBodyHeight = document.body.style.height;
     this.originalHtmlOverflow = document.documentElement.style.overflow;
@@ -4528,12 +4533,14 @@ var PseudoFullscreenController = class {
     document.body.style.background = "#000";
     document.documentElement.style.overflow = "hidden";
     document.documentElement.style.background = "#000";
+    document.body.style.position = "fixed";
+    document.body.style.top = `${-this.originalScrollY}px`;
+    document.body.style.left = `${-this.originalScrollX}px`;
     this.originalViewport = document.querySelector('meta[name="viewport"]')?.getAttribute("content");
     const viewport = document.querySelector('meta[name="viewport"]');
     if (viewport) {
       viewport.setAttribute("content", "width=device-width, initial-scale=1.0");
     }
-    window.scrollTo(0, 0);
     this.makeBackgroundInert();
     player.emit("fullscreenchange", true);
     player.emit("enterfullscreen");
@@ -4583,6 +4590,14 @@ var PseudoFullscreenController = class {
     if (this.originalBodyPosition !== void 0) {
       document.body.style.position = this.originalBodyPosition;
       this.originalBodyPosition = void 0;
+    }
+    if (this.originalBodyTop !== void 0) {
+      document.body.style.top = this.originalBodyTop;
+      this.originalBodyTop = void 0;
+    }
+    if (this.originalBodyLeft !== void 0) {
+      document.body.style.left = this.originalBodyLeft;
+      this.originalBodyLeft = void 0;
     }
     if (this.originalBodyWidth !== void 0) {
       document.body.style.width = this.originalBodyWidth;
@@ -6541,21 +6556,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-QQBGLXVG.js");
+    const module = await import("./vidply.AudioDescriptionManager-MY4KFH32.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-A3L3K63N.js");
+    const module = await import("./vidply.SignLanguageManager-4FMZ3CK6.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-JLEC6PPX.js");
+    const module = await import("./vidply.FloatingPlayerManager-SCABZWGI.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -7237,7 +7252,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-3ORNLP75.js");
+    const module = await import("./vidply.TranscriptManager-VVNOYRQO.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -7866,23 +7881,23 @@ var Player = class _Player extends EventEmitter {
   async _detectRendererClass(src) {
     switch (classifyRendererType(src)) {
       case "youtube": {
-        const module = await import("./vidply.YouTubeRenderer-P7SNGGHH.js");
+        const module = await import("./vidply.YouTubeRenderer-JUIZWNH7.js");
         return module.YouTubeRenderer ?? module.default;
       }
       case "vimeo": {
-        const module = await import("./vidply.VimeoRenderer-WTDU4JGS.js");
+        const module = await import("./vidply.VimeoRenderer-NRDWM6FF.js");
         return module.VimeoRenderer ?? module.default;
       }
       case "hls": {
-        const module = await import("./vidply.HLSRenderer-MODZX73N.js");
+        const module = await import("./vidply.HLSRenderer-2JR4ELFQ.js");
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {
-        const module = await import("./vidply.DASHRenderer-QKNYBR5G.js");
+        const module = await import("./vidply.DASHRenderer-Q36GVB4N.js");
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
-        const module = await import("./vidply.SoundCloudRenderer-DGMKXRM4.js");
+        const module = await import("./vidply.SoundCloudRenderer-WPZJHMZG.js");
         return module.SoundCloudRenderer ?? module.default;
       }
       default:
@@ -8049,8 +8064,6 @@ var Player = class _Player extends EventEmitter {
         this.pause();
       }
       this.resetPlaybackStateForSourceChange();
-      const scrollX = window.scrollX || window.pageXOffset;
-      const scrollY = window.scrollY || window.pageYOffset;
       const existingTracks = this.trackElements;
       existingTracks.forEach((track) => track.remove());
       this.invalidateTrackCache();
@@ -8207,7 +8220,6 @@ var Player = class _Player extends EventEmitter {
       } else {
         this._switchingRenderer = false;
       }
-      window.scrollTo(scrollX, scrollY);
       if (needsFullReinit) {
         if (this.captionManager) {
           this.captionManager.disable();
@@ -8234,17 +8246,14 @@ var Player = class _Player extends EventEmitter {
           this.updateControlBar();
         }
       }
-      window.scrollTo(scrollX, scrollY);
       if (wasSignLanguageEnabled && this.signLanguageSrc) {
         setTimeout(() => {
           this.enableSignLanguage();
-          window.scrollTo(scrollX, scrollY);
         }, 150);
       }
       if (wasAudioDescriptionEnabled && this.audioDescriptionSrc) {
         setTimeout(() => {
           this.enableAudioDescription();
-          window.scrollTo(scrollX, scrollY);
         }, 150);
       }
       this.emit("sourcechange", config);
@@ -10410,7 +10419,7 @@ var PlaylistManager = class _PlaylistManager {
           ariaLabel += `. ${trackDurationReadable}`;
         }
         button.setAttribute("aria-label", ariaLabel);
-        item.scrollIntoView(reducedMotionScrollOptions("nearest"));
+        scrollIntoViewWithinScrollParent(item);
       } else {
         item.classList.remove("vidply-playlist-item-active");
         button.removeAttribute("aria-current");

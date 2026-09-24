@@ -21,6 +21,8 @@ export class PseudoFullscreenController {
   private originalScrollY?: number;
   private originalBodyOverflow?: string;
   private originalBodyPosition?: string;
+  private originalBodyTop?: string;
+  private originalBodyLeft?: string;
   private originalBodyWidth?: string;
   private originalBodyHeight?: string;
   private originalHtmlOverflow?: string;
@@ -48,6 +50,8 @@ export class PseudoFullscreenController {
     // Prevent body/html from scrolling while the player covers the viewport.
     this.originalBodyOverflow = document.body.style.overflow;
     this.originalBodyPosition = document.body.style.position;
+    this.originalBodyTop = document.body.style.top;
+    this.originalBodyLeft = document.body.style.left;
     this.originalBodyWidth = document.body.style.width;
     this.originalBodyHeight = document.body.style.height;
     this.originalHtmlOverflow = document.documentElement.style.overflow;
@@ -61,6 +65,14 @@ export class PseudoFullscreenController {
     document.documentElement.style.overflow = 'hidden';
     document.documentElement.style.background = '#000';
 
+    // iOS Safari ignores `overflow: hidden` on body/html, so the page keeps
+    // scrolling behind the player. Offsetting a fixed body pins it instead,
+    // and unlike a scrollTo(0, 0) it does not move the page the visitor sees
+    // — the same pixels stay under the overlay and exit restores them exactly.
+    document.body.style.position = 'fixed';
+    document.body.style.top = `${-this.originalScrollY}px`;
+    document.body.style.left = `${-this.originalScrollX}px`;
+
     // iOS: reset the viewport scale so the player fills the screen, but never
     // disable user scaling. Setting maximum-scale=1.0 / user-scalable=no would
     // block pinch-zoom and fail WCAG 1.4.4 (Resize Text) and 1.4.10 (Reflow).
@@ -69,9 +81,6 @@ export class PseudoFullscreenController {
     if (viewport) {
       viewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
     }
-
-    // Scroll to top on iOS to prevent positioning issues.
-    window.scrollTo(0, 0);
 
     // Make the rest of the page inert so keyboard focus cannot escape
     // to background content that is visually covered but still alive.
@@ -138,6 +147,14 @@ export class PseudoFullscreenController {
     if (this.originalBodyPosition !== undefined) {
       document.body.style.position = this.originalBodyPosition;
       this.originalBodyPosition = undefined;
+    }
+    if (this.originalBodyTop !== undefined) {
+      document.body.style.top = this.originalBodyTop;
+      this.originalBodyTop = undefined;
+    }
+    if (this.originalBodyLeft !== undefined) {
+      document.body.style.left = this.originalBodyLeft;
+      this.originalBodyLeft = undefined;
     }
     if (this.originalBodyWidth !== undefined) {
       document.body.style.width = this.originalBodyWidth;

@@ -15,6 +15,8 @@ export declare class PseudoFullscreenController {
     private originalScrollY?;
     private originalBodyOverflow?;
     private originalBodyPosition?;
+    private originalBodyTop?;
+    private originalBodyLeft?;
     private originalBodyWidth?;
     private originalBodyHeight?;
     private originalHtmlOverflow?;

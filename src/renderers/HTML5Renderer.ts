@@ -188,28 +188,17 @@ export class HTML5Renderer implements Renderer {
   }
 
   play() {
-    // Save scroll position to prevent browser from scrolling to video
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
-
-    // If deferLoad is enabled, trigger load only on the first user play request.
-    if (this.player.options.deferLoad && !this._didDeferredLoad) {
-      try {
-        // Only call load() if browser hasn't loaded anything yet.
-        if (this.media.readyState === 0) {
-          this.media.load();
-        }
-      } catch {
-        // ignore
-      }
+    // Deferred loading needs no explicit load() here: play() runs the resource
+    // selection algorithm itself when the element is still NETWORK_EMPTY. On
+    // iOS an extra load() is actively harmful — it resets the element into its
+    // "gesture required" state, so the play() that follows inside the same tap
+    // handler is rejected and the video never starts.
+    if (this.player.options.deferLoad) {
       this._didDeferredLoad = true;
     }
-    
+
     const promise = this.media.play();
-    
-    // Restore scroll position immediately to prevent auto-scroll
-    window.scrollTo(scrollX, scrollY);
-    
+
     if (promise !== undefined) {
       promise.catch(error => {
         this.player.log('Play failed:', error, 'warn');
@@ -218,13 +207,7 @@ export class HTML5Renderer implements Renderer {
         if (this.player.options.autoplay && !this.player.state.muted) {
           this.player.log('Retrying play with muted audio', 'info');
           this.media.muted = true;
-          
-          // Save scroll position again for retry
-          const retryScrollX = window.scrollX;
-          const retryScrollY = window.scrollY;
-          this.media.play().then(() => {
-            window.scrollTo(retryScrollX, retryScrollY);
-          }).catch(err => {
+          this.media.play().catch(err => {
             this.player.handleError(err);
           });
         }

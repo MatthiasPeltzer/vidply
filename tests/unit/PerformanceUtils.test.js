@@ -4,7 +4,13 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { debounce, throttle, isMobile, rafWithTimeout } from '../../src/utils/PerformanceUtils.js';
+import {
+  debounce,
+  throttle,
+  isMobile,
+  isLikelyUnsupportedYoutubeEmbedHost,
+  rafWithTimeout
+} from '../../src/utils/PerformanceUtils.js';
 
 describe('PerformanceUtils', () => {
   beforeEach(() => {
@@ -236,6 +242,19 @@ describe('PerformanceUtils', () => {
       
       // rAF would have fired, but let's verify timeout works
       expect(fn).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('isLikelyUnsupportedYoutubeEmbedHost', () => {
+    it('treats sslip.io and LAN-style hostnames as unsupported', () => {
+      expect(isLikelyUnsupportedYoutubeEmbedHost('mpcore.192-168-178-75.sslip.io')).toBe(true);
+      expect(isLikelyUnsupportedYoutubeEmbedHost('192.168.178.75')).toBe(true);
+      expect(isLikelyUnsupportedYoutubeEmbedHost('mpcore.ddev.site')).toBe(true);
+    });
+
+    it('allows normal production hostnames', () => {
+      expect(isLikelyUnsupportedYoutubeEmbedHost('www.mpcore.de')).toBe(false);
+      expect(isLikelyUnsupportedYoutubeEmbedHost('mpcore.de')).toBe(false);
     });
   });
 });
