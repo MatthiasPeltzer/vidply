@@ -92,6 +92,7 @@ var YouTubeRenderer = class {
           rel: 0,
           showinfo: 0,
           iv_load_policy: 3,
+          playsinline: 1,
           autoplay: this.player.options.autoplay ? 1 : 0,
           mute: this.player.options.muted ? 1 : 0,
           start: this.player.options.startTime || 0
@@ -260,4 +261,4 @@ var YouTubeRenderer = class {
 export {
   YouTubeRenderer
 };
-//# sourceMappingURL=vidply.YouTubeRenderer-QPP3FIFP.js.map
+//# sourceMappingURL=vidply.YouTubeRenderer-P7SNGGHH.js.map

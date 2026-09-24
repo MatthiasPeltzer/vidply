@@ -7866,7 +7866,7 @@ var Player = class _Player extends EventEmitter {
   async _detectRendererClass(src) {
     switch (classifyRendererType(src)) {
       case "youtube": {
-        const module = await import("./vidply.YouTubeRenderer-QPP3FIFP.js");
+        const module = await import("./vidply.YouTubeRenderer-P7SNGGHH.js");
         return module.YouTubeRenderer ?? module.default;
       }
       case "vimeo": {

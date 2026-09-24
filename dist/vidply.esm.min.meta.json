@@ -669,7 +669,7 @@
       "format": "esm"
     },
     "src/renderers/YouTubeRenderer.ts": {
-      "bytes": 9509,
+      "bytes": 9535,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -1171,13 +1171,13 @@
       },
       "bytes": 26010
     },
-    "dist/prod/vidply.YouTubeRenderer-ORP72CVC.min.js.map": {
+    "dist/prod/vidply.YouTubeRenderer-IAYHILQH.min.js.map": {
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 15133
+      "bytes": 15175
     },
-    "dist/prod/vidply.YouTubeRenderer-ORP72CVC.min.js": {
+    "dist/prod/vidply.YouTubeRenderer-IAYHILQH.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-RVTWG7OL.min.js",
@@ -1190,10 +1190,10 @@
       "entryPoint": "src/renderers/YouTubeRenderer.ts",
       "inputs": {
         "src/renderers/YouTubeRenderer.ts": {
-          "bytesInOutput": 7437
+          "bytesInOutput": 7463
         }
       },
-      "bytes": 7706
+      "bytes": 7732
     },
     "dist/prod/vidply.VimeoRenderer-PT72NBSD.min.js.map": {
       "imports": [],
@@ -1376,7 +1376,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.YouTubeRenderer-ORP72CVC.min.js",
+          "path": "dist/prod/vidply.YouTubeRenderer-IAYHILQH.min.js",
           "kind": "dynamic-import"
         },
         {

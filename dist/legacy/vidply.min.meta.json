@@ -796,7 +796,7 @@
       "format": "esm"
     },
     "src/renderers/YouTubeRenderer.ts": {
-      "bytes": 9509,
+      "bytes": 9535,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -1144,7 +1144,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1614997
+      "bytes": 1615040
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1239,7 +1239,7 @@
           "bytesInOutput": 2712
         },
         "src/renderers/YouTubeRenderer.ts": {
-          "bytesInOutput": 9503
+          "bytesInOutput": 9535
         },
         "src/renderers/VimeoRenderer.ts": {
           "bytesInOutput": 9242
@@ -1323,7 +1323,7 @@
           "bytesInOutput": 5385
         }
       },
-      "bytes": 950345
+      "bytes": 950377
     }
   }
 }
