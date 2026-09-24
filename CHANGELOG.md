@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.17] - 2026-09-24
+
+### Fixed
+- YouTube renderer: set IFrame API `playsinline` so inline playback works reliably on iOS Safari.
+
 ## [1.2.16] - 2026-09-12
 
 ### Changed
@@ -824,6 +829,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of the vidply accessible media player.
 
+[1.2.17]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.16...v1.2.17
+[1.2.16]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.15...v1.2.16
+[1.2.15]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.14...v1.2.15
+[1.2.14]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.13...v1.2.14
+[1.2.13]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.12...v1.2.13
+[1.2.12]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.11...v1.2.12
+[1.2.11]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.10...v1.2.11
+[1.2.10]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.9...v1.2.10
+[1.2.9]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.8...v1.2.9
+[1.2.8]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.7...v1.2.8
+[1.2.7]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.6...v1.2.7
+[1.2.6]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.2...v1.2.3
