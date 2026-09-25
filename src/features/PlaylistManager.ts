@@ -1352,13 +1352,18 @@ export class PlaylistManager {
       return;
     }
 
-    try {
-      this.applyVideoPosterForTrack(track);
-      if (track.duration && Number(track.duration) > 0) {
-        this.player.state.duration = Number(track.duration);
+    if (this.isExternalEmbedTrack(track)) {
+      this.applyIdleExternalEmbedPreview(track);
+    } else {
+      this.clearIdleExternalEmbedPreview();
+      try {
+        this.applyVideoPosterForTrack(track);
+        if (track.duration && Number(track.duration) > 0) {
+          this.player.state.duration = Number(track.duration);
+        }
+      } catch {
+        // ignore preview errors
       }
-    } catch {
-      // ignore preview errors
     }
 
     this.updateTrackInfo(track, { listIndex: index });
@@ -1381,6 +1386,8 @@ export class PlaylistManager {
     if (!track) return;
 
     const loadGeneration = ++this._trackLoadGeneration;
+
+    this.clearIdleExternalEmbedPreview();
     
     // Always update UI immediately (poster, buttons, duration, etc.).
     // Note: this is UI-only; actual media loading is performed by player.load() below.
@@ -1612,6 +1619,8 @@ export class PlaylistManager {
     
     const track = this.tracks[index];
     if (!track) return;
+
+    this.clearIdleExternalEmbedPreview();
 
     this.selectTrack(index);
 
@@ -1971,6 +1980,68 @@ export class PlaylistManager {
   /**
    * Apply a validated poster URL to a video element (playlists / idle preview).
    */
+  /**
+   * Idle playlist preview for YouTube/Vimeo/SoundCloud: poster + play overlay only.
+   */
+  private applyIdleExternalEmbedPreview(track: PlaylistTrack): void {
+    const player = this.player;
+    if (!player?.element) {
+      return;
+    }
+
+    try {
+      player.pause();
+      player.element.removeAttribute('src');
+      player.element.querySelectorAll('source').forEach((source) => {
+        source.removeAttribute('src');
+        source.remove();
+      });
+      player._pendingSource = null;
+      player.currentSource = null;
+    } catch {
+      // ignore reset errors
+    }
+
+    this.removeStaleExternalEmbedNodes();
+
+    try {
+      player.container?.classList.remove('vidply-external-controls');
+      this.applyVideoPosterForTrack(track);
+      player.showPosterOverlay?.();
+      if (track.duration && Number(track.duration) > 0) {
+        player.state.duration = Number(track.duration);
+      }
+    } catch {
+      // ignore preview errors
+    }
+
+    this.setPlaylistIdleEmbedPreview(true);
+    this.hideTrackArtworkElements(true);
+  }
+
+  private clearIdleExternalEmbedPreview(): void {
+    this.setPlaylistIdleEmbedPreview(false);
+  }
+
+  private setPlaylistIdleEmbedPreview(active: boolean): void {
+    this.player?.container?.classList.toggle('vidply-playlist-idle-embed', active);
+  }
+
+  private removeStaleExternalEmbedNodes(): void {
+    const wrapper = this.player?.videoWrapper;
+    if (!wrapper) {
+      return;
+    }
+
+    wrapper
+      .querySelectorAll(
+        'iframe[id^="youtube-player-"], div[id^="youtube-player-"], div[id^="vimeo-player-"], iframe.vidply-soundcloud-iframe'
+      )
+      .forEach((node) => {
+        node.remove();
+      });
+  }
+
   private applyVideoPosterForTrack(track: PlaylistTrack): void {
     if (this.player?.element?.tagName !== 'VIDEO') {
       return;

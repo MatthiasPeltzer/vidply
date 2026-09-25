@@ -482,6 +482,30 @@ describe('PlaylistManager', () => {
       expect(loadTrackSpy).not.toHaveBeenCalled();
       expect(manager.currentIndex).toBe(-1);
     });
+
+    it('should idle-preview an external embed with poster overlay only', () => {
+      mockPlayer.showPosterOverlay = vi.fn();
+      mockPlayer.container = container;
+      container.className = 'vidply-player';
+
+      const embedTracks = [
+        {
+          src: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+          type: 'youtube',
+          title: 'YouTube track',
+          poster: 'poster.jpg',
+          duration: 120
+        }
+      ];
+
+      manager = new PlaylistManager(mockPlayer, { autoPlayFirst: false });
+      manager.loadPlaylist(embedTracks);
+
+      expect(mockPlayer.showPosterOverlay).toHaveBeenCalled();
+      expect(container.classList.contains('vidply-playlist-idle-embed')).toBe(true);
+      expect(manager.currentIndex).toBe(-1);
+      expect(mockPlayer.load).not.toHaveBeenCalled();
+    });
   });
 
   describe('play', () => {

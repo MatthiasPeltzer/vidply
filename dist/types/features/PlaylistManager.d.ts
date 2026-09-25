@@ -312,6 +312,13 @@ export declare class PlaylistManager {
     /**
      * Apply a validated poster URL to a video element (playlists / idle preview).
      */
+    /**
+     * Idle playlist preview for YouTube/Vimeo/SoundCloud: poster + play overlay only.
+     */
+    private applyIdleExternalEmbedPreview;
+    private clearIdleExternalEmbedPreview;
+    private setPlaylistIdleEmbedPreview;
+    private removeStaleExternalEmbedNodes;
     private applyVideoPosterForTrack;
     /**
      * Update track info display

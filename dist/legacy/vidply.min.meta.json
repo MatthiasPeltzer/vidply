@@ -1119,7 +1119,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 95546,
+      "bytes": 97488,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1211,7 +1211,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1703393
+      "bytes": 1706484
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1390,13 +1390,13 @@
           "bytesInOutput": 11541
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 78834
+          "bytesInOutput": 80940
         },
         "src/index.ts": {
           "bytesInOutput": 5385
         }
       },
-      "bytes": 1006723
+      "bytes": 1008829
     }
   }
 }

@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.20] - 2026-09-25
+
+### Fixed
+- Playlists: idle preview for YouTube/Vimeo/SoundCloud first items shows poster + play overlay only (not the default HTML5 control bar before the embed loads).
+
+### Tests
+- Playlist unit test: idle external embed uses poster overlay and `vidply-playlist-idle-embed` without loading media.
+
 ## [1.2.19] - 2026-09-25
 
 ### Fixed
@@ -876,6 +884,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of the vidply accessible media player.
 
+[1.2.20]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.19...v1.2.20
 [1.2.19]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.18...v1.2.19
 [1.2.18]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.17...v1.2.18
 [1.2.17]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.16...v1.2.17

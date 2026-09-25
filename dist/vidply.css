@@ -1590,6 +1590,11 @@ video[data-vidply]:not(.vidply-initialized) {
   height: auto;
 }
 
+/* Playlist idle preview: embed track poster + play overlay before the renderer loads */
+.vidply-player.vidply-playlist-idle-embed .vidply-controls {
+  display: none !important;
+}
+
 /* Hide VidPly controls when external renderer (YouTube, Vimeo, SoundCloud) is active */
 
 /* These services have their own native controls */
