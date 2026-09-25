@@ -5,6 +5,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { HTML5Renderer } from '../../src/renderers/HTML5Renderer.js';
+import * as PerformanceUtils from '../../src/utils/PerformanceUtils.js';
 
 describe('HTML5Renderer', () => {
   let renderer;
@@ -46,6 +47,7 @@ describe('HTML5Renderer', () => {
       play: vi.fn(),
       autoGeneratePoster: vi.fn().mockResolvedValue(null),
       shouldSyncVolumeFromMedia: vi.fn(() => true),
+      syncPlaybackUiFromMediaElement: vi.fn(),
     };
 
     renderer = new HTML5Renderer(mockPlayer);
@@ -53,7 +55,7 @@ describe('HTML5Renderer', () => {
 
   afterEach(() => {
     document.body.innerHTML = '';
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('constructor', () => {
@@ -97,6 +99,18 @@ describe('HTML5Renderer', () => {
       expect(loadSpy).not.toHaveBeenCalled();
     });
 
+    it('should not call load on iOS when deferLoad uses preload metadata', async () => {
+      mockPlayer.options.deferLoad = true;
+      mockPlayer.options.preload = 'metadata';
+      vi.spyOn(PerformanceUtils, 'isIOS').mockReturnValue(true);
+      const loadSpy = vi.spyOn(mockMedia, 'load');
+      loadSpy.mockClear();
+
+      await renderer.init();
+
+      expect(loadSpy).not.toHaveBeenCalled();
+    });
+
     it('should call load when deferLoad is false', async () => {
       mockPlayer.options.deferLoad = false;
       const loadSpy = vi.spyOn(mockMedia, 'load');
@@ -135,6 +149,22 @@ describe('HTML5Renderer', () => {
       expect(loadSpy).not.toHaveBeenCalled();
       expect(mockMedia.play).toHaveBeenCalled();
       expect(renderer._didDeferredLoad).toBe(true);
+    });
+
+    it('should reset state and sync UI when play() is rejected', async () => {
+      mockPlayer.state.playing = true;
+      mockPlayer.state.paused = false;
+      mockMedia.play = vi.fn().mockRejectedValue(
+        Object.assign(new Error('NotAllowedError'), { name: 'NotAllowedError' }),
+      );
+
+      renderer.play();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockPlayer.state.playing).toBe(false);
+      expect(mockPlayer.state.paused).toBe(true);
+      expect(mockPlayer.syncPlaybackUiFromMediaElement).toHaveBeenCalled();
     });
 
     it('should not trigger load again after first deferred load', () => {
@@ -258,6 +288,7 @@ describe('HTML5Renderer', () => {
     it('should call load if deferLoad is true and not yet loaded', () => {
       mockPlayer.options.deferLoad = true;
       renderer._didDeferredLoad = false;
+      mockMedia.src = 'https://example.com/video.mp4';
       Object.defineProperty(mockMedia, 'readyState', { value: 0, configurable: true });
       const loadSpy = vi.spyOn(mockMedia, 'load');
 
@@ -275,6 +306,20 @@ describe('HTML5Renderer', () => {
       renderer.ensureLoaded();
 
       expect(loadSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not call load on iOS when deferLoad (playlist defer — gesture play only)', () => {
+      mockPlayer.options.deferLoad = true;
+      renderer._didDeferredLoad = false;
+      mockMedia.src = 'https://example.com/video.mp4';
+      Object.defineProperty(mockMedia, 'readyState', { value: 0, configurable: true });
+      vi.spyOn(PerformanceUtils, 'isIOS').mockReturnValue(true);
+      const loadSpy = vi.spyOn(mockMedia, 'load');
+
+      renderer.ensureLoaded();
+
+      expect(loadSpy).not.toHaveBeenCalled();
+      expect(renderer._didDeferredLoad).toBe(true);
     });
   });
 

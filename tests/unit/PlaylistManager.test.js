@@ -96,8 +96,10 @@ describe('PlaylistManager', () => {
         controls: {},
         createControls: vi.fn(),
         attachEvents: vi.fn(),
-        setupAutoHide: vi.fn()
+        setupAutoHide: vi.fn(),
+        checkOverflow: vi.fn(),
       },
+      positionPlayOverlayOnMobile: vi.fn(),
       options: {
         deferLoad: false
       },
@@ -117,9 +119,20 @@ describe('PlaylistManager', () => {
       pause: vi.fn(),
       playlistManager: null,
       ensureLoaded: vi.fn(),
+      hidePosterOverlay: vi.fn(),
+      syncPlaybackUiFromMediaElement: vi.fn(),
+      beginPreservedPlaybackDuringRendererInit: vi.fn(),
+      endPreservedPlaybackDuringRendererInit: vi.fn(),
+      stagePlaylistNativeSource: vi.fn(),
+      initializeRenderer: vi.fn().mockResolvedValue(undefined),
       updateControlBar: vi.fn(),
       invalidateTrackCache: vi.fn(),
       mountPlayButtonOverlay: vi.fn(),
+      currentSource: null,
+      isExternalRendererUrl: vi.fn(() => false),
+      shouldChangeRenderer: vi.fn(() => false),
+      isExternalRendererUrl: vi.fn(() => false),
+      log: vi.fn(),
     };
 
     container.appendChild(mockPlayer.element);
@@ -462,15 +475,26 @@ describe('PlaylistManager', () => {
 
     it('should load first track without playing when autoPlayFirst is false', () => {
       const loadTrackSpy = vi.spyOn(manager, 'loadTrack');
-      
+
       manager.loadPlaylist(mockTracks);
-      
+
       expect(loadTrackSpy).toHaveBeenCalledWith(0);
+    });
+
+    it('should prepare first track when deferLoad is enabled', async () => {
+      mockPlayer.options.deferLoad = true;
+      const prepareSpy = vi.spyOn(manager, 'prepareTrack');
+
+      manager.loadPlaylist(mockTracks);
+
+      expect(prepareSpy).toHaveBeenCalledWith(0);
+      await vi.runAllTimersAsync();
     });
   });
 
   describe('play', () => {
     beforeEach(() => {
+      mockPlayer.renderer = { play: vi.fn() };
       manager = new PlaylistManager(mockPlayer, { autoPlayFirst: false });
       manager.tracks = mockTracks;
     });
@@ -498,10 +522,37 @@ describe('PlaylistManager', () => {
       }));
     });
 
-    it('should call player.play after load completes', async () => {
+    it('should call renderer.play after load completes', async () => {
       await manager.play(0);
 
-      expect(mockPlayer.play).toHaveBeenCalledTimes(1);
+      expect(mockPlayer.renderer.play).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use renderer.play when source is attached but readyState is 0', () => {
+      mockPlayer.currentSource = 'track1.mp3';
+      mockPlayer.element.setAttribute('src', 'track1.mp3');
+      Object.defineProperty(mockPlayer.element, 'readyState', {
+        configurable: true,
+        get: () => 0,
+      });
+      manager.tracks = mockTracks;
+      manager.currentIndex = 0;
+
+      manager.startUserPlayback(0);
+
+      expect(mockPlayer.renderer.play).toHaveBeenCalledTimes(1);
+      expect(mockPlayer.load).not.toHaveBeenCalled();
+    });
+
+    it('should skip load when user play targets an already attached track', async () => {
+      mockPlayer.currentSource = 'track1.mp3';
+      mockPlayer.element.setAttribute('src', 'track1.mp3');
+      manager.tracks = mockTracks;
+
+      await manager.play(0, true);
+
+      expect(mockPlayer.load).not.toHaveBeenCalled();
+      expect(mockPlayer.renderer.play).toHaveBeenCalledTimes(1);
     });
 
     it('should load embed tracks only once when init outlasts the old autoplay delay', async () => {
@@ -521,7 +572,7 @@ describe('PlaylistManager', () => {
       await playPromise;
 
       expect(mockPlayer.load).toHaveBeenCalledTimes(1);
-      expect(mockPlayer.play).toHaveBeenCalledTimes(1);
+      expect(mockPlayer.renderer.play).toHaveBeenCalledTimes(1);
     });
 
     it('should warn on invalid index', async () => {
@@ -1058,6 +1109,46 @@ describe('PlaylistManager', () => {
 
       expect(manager.trackInfoView.element.querySelector('.vidply-track-longdesc-toggle')).not.toBeNull();
       expect(manager.trackInfoView.element.querySelector('.vidply-track-longdesc')?.hasAttribute('hidden')).toBe(true);
+    });
+  });
+
+  describe('iOS native track after embed renderer', () => {
+    it('tears down embed renderer and primes native play when switching to MP4', async () => {
+      const PerformanceUtils = await import('../../src/utils/PerformanceUtils.js');
+      vi.spyOn(PerformanceUtils, 'isIOS').mockReturnValue(true);
+
+      const embedDestroy = vi.fn();
+      mockPlayer.renderer = {
+        rendererType: 'youtube',
+        destroy: embedDestroy,
+      };
+      mockPlayer.shouldChangeRenderer = vi.fn((src) => src.includes('.mp4'));
+      mockPlayer.resolveMediaSourceUrl = vi.fn((src) => src);
+      mockPlayer.iosNativePlayInUserGesture = vi.fn(() => true);
+      mockPlayer.isRendererInitializing = vi.fn(() => false);
+      mockPlayer.isExternalRendererUrl = vi.fn((src) => String(src).includes('youtube'));
+      mockPlayer.teardownRendererForNativeGestureSwap = vi.fn(() => {
+        embedDestroy();
+        mockPlayer.renderer = null;
+      });
+
+      manager = new PlaylistManager(mockPlayer);
+      mockPlayer.playlistManager = manager;
+      manager.tracks = [
+        { src: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', title: 'YT' },
+        { src: 'https://example.com/video.mp4', title: 'MP4', type: 'video/mp4' },
+      ];
+      manager.currentIndex = 0;
+
+      await manager.play(1, true);
+
+      expect(mockPlayer.teardownRendererForNativeGestureSwap).toHaveBeenCalled();
+      expect(mockPlayer.iosNativePlayInUserGesture).toHaveBeenCalledWith(
+        'https://example.com/video.mp4',
+        'video/mp4',
+      );
+      expect(mockPlayer.initializeRenderer).toHaveBeenCalled();
+      expect(manager.currentIndex).toBe(1);
     });
   });
 });

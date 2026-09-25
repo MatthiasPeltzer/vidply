@@ -14,10 +14,16 @@ import {createPlayOverlay} from '../icons/Icons.js';
 import {i18n} from '../i18n/i18n.js';
 import {StorageManager} from '../utils/StorageManager.js';
 import {DraggableResizable} from '../utils/DraggableResizable.js';
-import {debounce, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
+import {canPlayNativeHls, debounce, isIOS, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
 import {isPlaylistPanelRightDesktopViewport} from '../constants/layoutBreakpoints.js';
 import {sanitizePosterUrl, cssEscapeUrl} from '../utils/UrlSafe.js';
 import {classifyRendererType} from '../utils/RendererType.js';
+import {
+  candidatesFromTrack,
+  negotiateMediaSources,
+  type MediaSourceCandidate,
+  type NegotiatedMediaSource,
+} from '../utils/MediaSourceNegotiation.js';
 import {observeForLazyInit, cancelLazyInit, type LazyHandle} from './LazyInit.js';
 import {PseudoFullscreenController} from './PseudoFullscreen.js';
 import {ThemeManager, PLAYER_THEMES, type ThemeName} from './ThemeManager.js';
@@ -25,6 +31,7 @@ import {PosterManager} from './PosterManager.js';
 import {ResumeManager} from './ResumeManager.js';
 import {ResponsiveManager} from './ResponsiveManager.js';
 import {LiveStreamManager} from './LiveStreamManager.js';
+import {DebugOverlay} from './DebugOverlay.js';
 import {
   MetadataAlertsManager,
   type MetadataAlertConfig as _MetadataAlertConfig,
@@ -37,6 +44,58 @@ export type MetadataAlertConfig = _MetadataAlertConfig;
 export type MetadataAlertOptions = _MetadataAlertOptions;
 import type {PlayerEventMap} from '../types/events.js';
 import type {PlayerOptions} from '../types/options.js';
+
+const MEDIA_ERR_LABEL: Record<number, string> = {
+  1: 'MEDIA_ERR_ABORTED',
+  2: 'MEDIA_ERR_NETWORK',
+  3: 'MEDIA_ERR_DECODE',
+  4: 'MEDIA_ERR_SRC_NOT_SUPPORTED',
+};
+
+/** MediaError and DOM objects often stringify as `{}` in the debug overlay. */
+function formatUnknownForLog(value: unknown, media?: HTMLMediaElement | null): string {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (value instanceof Error && value.message) {
+    return `${value.name}: ${value.message}`;
+  }
+  if (value instanceof Error) {
+    return value.name || 'Error';
+  }
+  const MediaErrorCtor = typeof globalThis.MediaError !== 'undefined' ? globalThis.MediaError : null;
+  const asMedia =
+    MediaErrorCtor && value instanceof MediaErrorCtor
+      ? value
+      : value && typeof value === 'object' && 'code' in value
+        ? (value as MediaError)
+        : null;
+  if (asMedia && typeof asMedia.code === 'number') {
+    const label = MEDIA_ERR_LABEL[asMedia.code] ?? `MediaError code=${asMedia.code}`;
+    const msg = asMedia.message?.trim();
+    return msg ? `${label}: ${msg}` : label;
+  }
+  const elErr = media?.error ?? null;
+  if (
+    elErr &&
+    (value === null ||
+      value === undefined ||
+      (typeof value === 'object' && !Array.isArray(value) && Object.keys(value as object).length === 0))
+  ) {
+    const label = MEDIA_ERR_LABEL[elErr.code] ?? `MediaError code=${elErr.code}`;
+    const msg = elErr.message?.trim();
+    return msg ? `${label}: ${msg}` : label;
+  }
+  try {
+    const json = JSON.stringify(value);
+    if (json !== '{}' && json !== 'null') {
+      return json;
+    }
+  } catch {
+    // ignore
+  }
+  return String(value);
+}
 import type {PlayerState} from '../types/state.js';
 import type {Renderer} from '../types/renderer.js';
 import type {AudioDescriptionManager} from './AudioDescriptionManager.js';
@@ -260,6 +319,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
   videoWrapper: HTMLElement | null = null;
   /** Centered buffering spinner (see `.vidply-loading` / `.vidply-buffering` in CSS) */
   loadingOverlayElement: HTMLElement | null = null;
+  debugOverlay: DebugOverlay | null = null;
   /** Native `playing` listener — must be removed in destroy() */
   _bufferingHideOnMediaPlaying: (() => void) | null = null;
   /** AbortController, whose signal feeds every window/document listener and
@@ -267,6 +327,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
    *  `abort()` so a torn-down player can never leak listeners or pending
    *  network calls. */
   private _lifecycleController: AbortController = new AbortController();
+  /** While `initializeRenderer()` is running, defer `play()` until init finishes. */
+  private _rendererInitInFlight: Promise<void> | null = null;
+  private _playRequestedDuringRendererInit = false;
+  /** Set during {@link load} when iOS primed playback must survive {@link initializeRenderer}. */
+  private _preservePlaybackDuringRendererInit = false;
 
   constructor(element: string | HTMLElement, options: Record<string, unknown> = {}) {
     super();
@@ -488,6 +553,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
       // Advanced
       debug: false,
+      debugOverlay: false,
       classPrefix: 'vidply',
       iconType: 'svg',
       pauseOthersOnPlay: true,
@@ -664,6 +730,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
         }
       }
     });
+
+    if (DebugOverlay.shouldEnable(this.options)) {
+      this.debugOverlay = DebugOverlay.acquire(this);
+      this.debugOverlay.mount();
+    }
 
     // Initialize
     this.init();
@@ -883,6 +954,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
       // Initialize resume playback feature
       if (this.options.resumePlayback) {
         this.initResumePlayback();
+      }
+
+      if (DebugOverlay.shouldEnable(this.options) && !this.debugOverlay) {
+        this.debugOverlay = DebugOverlay.acquire(this);
+        this.debugOverlay.mount();
       }
 
       // Mark as ready
@@ -1700,7 +1776,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
   async initializeRenderer() {
     this.liveStreamManager?.resetForSourceChange();
-    this.resetPlaybackStateForSourceChange();
+    if (!this._preservePlaybackDuringRendererInit) {
+      this.resetPlaybackStateForSourceChange();
+    }
 
     if (this.renderer) {
       this.renderer.destroy();
@@ -1747,25 +1825,47 @@ export class Player extends EventEmitter<PlayerEventMap> {
     rendererClass = await this._detectRendererClass(src);
 
     this.log(`Using ${rendererClass?.name || 'HTML5Renderer'} renderer`);
-    this.renderer = new rendererClass(this);
+    const runInit = async () => {
+      this.renderer = new rendererClass(this);
 
-    const initTimeout = (this._fallbackSources?.length ?? 0) > 0 ? 10000 : 0;
-    if (initTimeout > 0) {
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      await Promise.race([
-        this.renderer.init(),
-        new Promise<never>((_, reject) => {
-          timer = setTimeout(() => reject(new Error(`Renderer init timed out after ${initTimeout}ms`)), initTimeout);
-        }),
-      ]).finally(() => {
-        if (timer !== undefined) clearTimeout(timer);
-      });
-    } else {
-      await this.renderer.init();
+      const initTimeout = (this._fallbackSources?.length ?? 0) > 0 ? 10000 : 0;
+      if (initTimeout > 0) {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        await Promise.race([
+          this.renderer.init(),
+          new Promise<never>((_, reject) => {
+            timer = setTimeout(() => reject(new Error(`Renderer init timed out after ${initTimeout}ms`)), initTimeout);
+          }),
+        ]).finally(() => {
+          if (timer !== undefined) clearTimeout(timer);
+        });
+      } else {
+        await this.renderer.init();
+      }
+
+      this.invalidateTrackCache();
+      rafWithTimeout(() => this.positionPlayOverlayOnMobile(), 100);
+    };
+
+    this._rendererInitInFlight = runInit();
+    try {
+      await this._rendererInitInFlight;
+    } finally {
+      this._rendererInitInFlight = null;
+      this._preservePlaybackDuringRendererInit = false;
+      if (this._playRequestedDuringRendererInit) {
+        this._playRequestedDuringRendererInit = false;
+        // iOS: follow-up play() here is outside the user gesture and is rejected.
+        if (isIOS()) {
+          this.syncPlaybackUiFromMediaElement?.();
+          if (!this.element.paused) {
+            this.hidePosterOverlay?.();
+          }
+        } else {
+          this.play();
+        }
+      }
     }
-
-    this.invalidateTrackCache();
-    rafWithTimeout(() => this.positionPlayOverlayOnMobile(), 100);
   }
 
   async _detectRendererClass(src: string): Promise<new (player: Player) => Renderer> {
@@ -1801,41 +1901,30 @@ export class Player extends EventEmitter<PlayerEventMap> {
     src: string;
     fallbacks: Array<{ src: string; type: string }>
   } {
-    const hasMSE = typeof MediaSource !== 'undefined';
-    type SourceInfo = { src: string; type: string; el: HTMLSourceElement };
-    const sources: SourceInfo[] = sourceElements.map((el) => ({
+    const candidates: MediaSourceCandidate[] = sourceElements.map((el) => ({
       src: el.src || el.getAttribute('src') || '',
       type: el.type || el.getAttribute('type') || '',
-      el,
     }));
+    const negotiated = negotiateMediaSources(candidates);
+    return {
+      src: negotiated.src,
+      fallbacks: negotiated.fallbacks.map((s) => ({
+        src: s.src,
+        type: s.type ?? '',
+      })),
+    };
+  }
 
-    const canPlayNativeHLS = (() => {
-      const v = document.createElement('video');
-      return v.canPlayType('application/vnd.apple.mpegurl') !== '';
-    })();
-
-    let chosen: SourceInfo | undefined;
-
-    if (hasMSE) {
-      chosen = sources.find((s) => s.src.includes('.mpd'));
-    }
-
-    if (!chosen) {
-      const hlsSource = sources.find((s) => s.src.includes('.m3u8'));
-      if (hlsSource && (hasMSE || canPlayNativeHLS)) {
-        chosen = hlsSource;
-      }
-    }
-
-    if (!chosen) {
-      chosen = sources.find((s) => !s.src.includes('.mpd') && !s.src.includes('.m3u8')) || sources[0];
-    }
-
-    const fallbacks = sources
-      .filter((s) => s !== chosen)
-      .map((s) => ({src: s.src, type: s.type}));
-
-    return {src: chosen?.src ?? '', fallbacks};
+  /** Playlist track JSON stores MSE-first `src`; pick a URL like `<source>` negotiation. */
+  negotiateTrackPlaybackSource(
+    track: {
+      src?: string;
+      type?: string;
+      sources?: Array<{ src?: string; type?: string }>;
+    },
+    options?: { preferNativeElement?: boolean },
+  ): NegotiatedMediaSource {
+    return negotiateMediaSources(candidatesFromTrack(track), options);
   }
 
   async _fallbackToNextSource(): Promise<boolean> {
@@ -1982,15 +2071,21 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   async load(config: PlayerLoadConfig) {
+    const retainMediaPlayback = Boolean(config.retainMediaPlayback);
+    const preserveElementPlayback = retainMediaPlayback && !this.element.paused;
+    this._preservePlaybackDuringRendererInit = preserveElementPlayback;
+
     try {
       this.log('Loading new media:', config.src);
       this.liveStreamManager?.resetForSourceChange();
 
-      // Pause current playback
-      if (this.renderer) {
+      const nativeHls = Boolean(config.src && canPlayNativeHls());
+      if (this.renderer && !preserveElementPlayback) {
         this.pause();
       }
-      this.resetPlaybackStateForSourceChange();
+      this.resetPlaybackStateForSourceChange({
+        pauseElement: !preserveElementPlayback,
+      });
 
       // Clear existing text tracks
       const existingTracks = this.trackElements;
@@ -2006,15 +2101,31 @@ export class Player extends EventEmitter<PlayerEventMap> {
         this._switchingRenderer = true;
       }
 
-      // Only set src on HTML5 element for non-external sources
-      // External renderers (YouTube, Vimeo, SoundCloud, HLS, DASH) handle their own media loading
-      if (!isExternalRenderer) {
-        this.element.src = config.src;
+      // Set src on the media element for plain HTML5 and for native HLS on iOS/iPadOS
+      // (Safari plays the .m3u8 URL directly). MSE-based HLS/DASH and embeds keep
+      // the element empty and load via their renderer.
+      const usesMseStreaming = isExternalRenderer && !nativeHls;
+      if (!usesMseStreaming && config.src) {
+        const current =
+          this.element.currentSrc || this.element.getAttribute('src') || this.element.src || '';
+        let sameSrc = false;
+        if (current) {
+          try {
+            sameSrc =
+              new URL(config.src, window.location.href).href ===
+              new URL(current, window.location.href).href;
+          } catch {
+            sameSrc = config.src === current;
+          }
+        }
+        if (!sameSrc) {
+          this.element.src = config.src;
+        }
 
         if (config.type) {
           (this.element as HTMLMediaElement & { type?: string }).type = config.type;
         }
-      } else {
+      } else if (usesMseStreaming) {
         // For external renderers, clear the src to prevent HTML5 element errors
         // but store the URL for the renderer to use
         // DO NOT call load() here - it will trigger an error event on an element without a valid source
@@ -2135,8 +2246,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
       // DASH and HLS renderers manage their own source loading via MSE/hls.js
       // and must be fully destroyed+reinitialized when switching sources,
       // even when the renderer type stays the same.
-      const needsFullReinit = !shouldChangeRenderer && this.renderer &&
-        (this.renderer.dash || this.renderer.hls);
+      const streamingRenderer = this.renderer as { dash?: unknown; hls?: unknown; isStreaming?: boolean } | null;
+      const needsFullReinit = Boolean(
+        !shouldChangeRenderer && streamingRenderer &&
+        (streamingRenderer.dash || (streamingRenderer.hls && streamingRenderer.isStreaming !== false))
+      );
 
       // Destroy old renderer if changing types or if MSE-based renderer needs reinit
       if ((shouldChangeRenderer || needsFullReinit) && this.renderer) {
@@ -2175,6 +2289,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
           }
           if (sourceChanged && config.src) {
             this.currentSource = config.src;
+            // Native HLS (no hls.js): swap the manifest URL on the element directly.
+            const hlsState = this.renderer as { hls?: unknown; isStreaming?: boolean };
+            if (!hlsState.hls && config.src.includes('.m3u8')) {
+              this.element.src = config.src;
+            }
           }
           // Reset renderer-level deferred flags if present (HTML5/HLS/DASH
           // renderers). These are renderer-private implementation details, not
@@ -2278,11 +2397,14 @@ export class Player extends EventEmitter<PlayerEventMap> {
       }
 
       this.emit('sourcechange', config);
-      this.resetPlaybackStateForSourceChange();
+      this.syncPlaybackUiFromMediaElement();
       this.log('Media loaded successfully');
 
     } catch (error: unknown) {
       this.handleError(error);
+    } finally {
+      this._preservePlaybackDuringRendererInit = false;
+      this.playlistManager?.tryConsumePendingUserPlay?.();
     }
   }
 
@@ -2291,19 +2413,81 @@ export class Player extends EventEmitter<PlayerEventMap> {
    * clearing the media `src` can leave `state.playing` true without a matching
    * `pause` event on the element.
    */
-  resetPlaybackStateForSourceChange(): void {
-    try {
-      this.element.pause();
-    } catch {
-      // ignore — element may be detached or not ready yet
+  resetPlaybackStateForSourceChange(options?: { pauseElement?: boolean }): void {
+    const pauseElement = options?.pauseElement !== false;
+
+    if (pauseElement) {
+      try {
+        this.element.pause();
+      } catch {
+        // ignore — element may be detached or not ready yet
+      }
     }
 
-    this.state.playing = false;
-    this.state.paused = true;
+    this.state.playing = pauseElement ? false : !this.element.paused;
+    this.state.paused = pauseElement ? true : this.element.paused;
+    this.state.ended = false;
+    this.state.buffering = false;
+    this.state.seeking = false;
+    if (pauseElement) {
+      this.state.hasStartedPlayback = false;
+    }
+
+    const prefix = this.options.classPrefix as string;
+    this.container?.classList.remove(`${prefix}-buffering`);
+    if (this.loadingOverlayElement) {
+      this.loadingOverlayElement.setAttribute('aria-busy', 'false');
+    }
+
+    this.controlBar?.updatePlayPauseButton();
+  }
+
+  /** After {@link load} succeeds — refresh UI without stopping active playback. */
+  syncPlaybackUiAfterSourceLoad(retainMediaPlayback: boolean): void {
+    if (retainMediaPlayback && !this.element.paused) {
+      this.state.playing = true;
+      this.state.paused = false;
+      this.state.hasStartedPlayback = true;
+      this.hidePosterOverlay();
+    } else {
+      this.state.playing = false;
+      this.state.paused = true;
+    }
+
     this.state.ended = false;
     this.state.buffering = false;
     this.state.seeking = false;
     this.controlBar?.updatePlayPauseButton();
+  }
+
+  /**
+   * Align VidPly state and chrome with the media element (fixes iOS playlist taps
+   * where `play` fired but a subsequent `load()` aborted playback without `pause`).
+   */
+  syncPlaybackUiFromMediaElement(): void {
+    const el = this.element;
+    const playing = !el.paused && !el.ended;
+
+    this.state.playing = playing;
+    this.state.paused = !playing;
+    this.state.ended = el.ended;
+
+    this.controlBar?.updatePlayPauseButton();
+
+    const overlayNode = this.playButtonOverlay
+      ? (this.getPlayButtonOverlayNode() as HTMLElement | SVGSVGElement | null)
+      : null;
+    if (overlayNode) {
+      if (playing) {
+        overlayNode.style.opacity = '0';
+        overlayNode.style.pointerEvents = 'none';
+        this.playButtonOverlayButton?.setAttribute('aria-label', i18n.t('player.pause'));
+      } else if (!el.ended) {
+        overlayNode.style.opacity = '1';
+        overlayNode.style.pointerEvents = 'auto';
+        this.playButtonOverlayButton?.setAttribute('aria-label', i18n.t('player.play'));
+      }
+    }
   }
 
   /**
@@ -2319,6 +2503,229 @@ export class Player extends EventEmitter<PlayerEventMap> {
       }
     } catch {
       // ignore
+    }
+  }
+
+  /** True while {@link load} / {@link initializeRenderer} must not pause or reset primed iPhone playback. */
+  preservesPlaybackDuringSourceLoad(): boolean {
+    return this._preservePlaybackDuringRendererInit;
+  }
+
+  /** iPhone playlist taps: keep WebKit playback alive while the renderer inits. */
+  beginPreservedPlaybackDuringRendererInit(pendingSrc: string): void {
+    this._preservePlaybackDuringRendererInit = true;
+    this._pendingSource = pendingSrc;
+  }
+
+  endPreservedPlaybackDuringRendererInit(): void {
+    this._preservePlaybackDuringRendererInit = false;
+  }
+
+  /**
+   * iOS playlist: remove embed/MSE renderer in the user-gesture turn before
+   * {@link iosNativePlayInUserGesture} binds a native `<source>`.
+   */
+  teardownRendererForNativeGestureSwap(): void {
+    this._switchingRenderer = false;
+    if (this.renderer) {
+      this.renderer.destroy();
+      this.renderer = null;
+      this.controlBar?.removeHlsCaptionButtons(true);
+    }
+    if (this.transcriptManager?.isVisible) {
+      this.transcriptManager.hideTranscript();
+    }
+  }
+
+  /** True while {@link initializeRenderer} is running (playlist prefetch / track change). */
+  isRendererInitializing(): boolean {
+    return this._rendererInitInFlight !== null;
+  }
+
+  /** Resolve playlist / FAL URLs to an absolute href for {@link HTMLMediaElement.src}. */
+  resolveMediaSourceUrl(src: string): string {
+    try {
+      return new URL(src, window.location.href).href;
+    } catch {
+      return src;
+    }
+  }
+
+  /** Guess MIME for a native `<source type>` (TYPO3 single-video markup uses this). */
+  private inferNativeSourceMimeType(url: string, fallback?: string): string {
+    if (fallback && fallback.trim() !== '') {
+      return fallback;
+    }
+    const lower = url.toLowerCase();
+    if (lower.includes('.m3u8')) {
+      return 'application/vnd.apple.mpegurl';
+    }
+    if (lower.includes('.mpd')) {
+      return 'application/dash+xml';
+    }
+    if (lower.includes('.webm')) {
+      return 'video/webm';
+    }
+    if (lower.includes('.mp4') || lower.includes('.m4v') || lower.includes('.mov')) {
+      return 'video/mp4';
+    }
+    if (lower.includes('.mp3') || lower.includes('.m4a')) {
+      return 'audio/mpeg';
+    }
+    return 'video/mp4';
+  }
+
+  /**
+   * Stage like Fluid `VideoSources.html`: one `<source src type>`, no `video.src`.
+   * Competing `video.src` + `<source>` leaves iOS at `ns=3` / SRC_NOT_SUPPORTED.
+   */
+  private mountNativeSourceOnElement(
+    media: HTMLMediaElement,
+    absolute: string,
+    mimeType?: string,
+  ): void {
+    media.querySelectorAll('source').forEach((node) => node.remove());
+    media.removeAttribute('src');
+    media.removeAttribute('type');
+
+    const source = document.createElement('source');
+    source.src = absolute;
+    source.type = this.inferNativeSourceMimeType(absolute, mimeType);
+    media.appendChild(source);
+  }
+
+  /** Stage MP4/HLS on the media element before {@link initializeRenderer} (iPhone playlists). */
+  stagePlaylistNativeSource(src: string, mimeType?: string): void {
+    if (!src || typeof src !== 'string') {
+      return;
+    }
+    const absolute = this.resolveMediaSourceUrl(src);
+    this._pendingSource = absolute;
+    this.currentSource = absolute;
+
+    // iOS deferLoad: binding src/<source> outside a user gesture leaves ns=3 forever.
+    // The URL is stored on the player until {@link iosNativePlayInUserGesture}.
+    if (isIOS()) {
+      return;
+    }
+
+    this.invalidateTrackCache();
+
+    const media = this.element;
+    if (!(media instanceof HTMLMediaElement)) {
+      return;
+    }
+
+    const staged = media.querySelector('source');
+    const stagedSrc = staged?.getAttribute('src') ?? staged?.src ?? '';
+    let sameSrc = false;
+    if (stagedSrc) {
+      try {
+        sameSrc = this.resolveMediaSourceUrl(stagedSrc) === absolute;
+      } catch {
+        sameSrc = stagedSrc === absolute;
+      }
+    }
+
+    if (!sameSrc) {
+      this.mountNativeSourceOnElement(media, absolute, mimeType);
+    } else if (mimeType && staged && staged.type !== mimeType) {
+      staged.type = mimeType;
+    }
+
+    this.currentSource = absolute;
+  }
+
+  /**
+   * iOS playlist tap: bind `<source type>` in the user gesture (matches TYPO3 single-video markup).
+   * Text tracks must not be on the element yet — see {@link PlaylistManager.attachIosTextTracksAfterMediaLoad}.
+   */
+  private bindIosPlaylistMediaInUserGesture(
+    media: HTMLMediaElement,
+    absolute: string,
+    mimeType?: string,
+  ): void {
+    media.querySelectorAll('track').forEach((node) => node.remove());
+    this.mountNativeSourceOnElement(media, absolute, mimeType);
+    this.invalidateTrackCache();
+    this._pendingSource = absolute;
+    this.currentSource = absolute;
+  }
+
+  /**
+   * iOS native MP4/HLS: {@link HTMLMediaElement.play} in the user-gesture turn.
+   * Prefer this over {@link Renderer.play} for playlists — WebKit rejects when
+   * the element has no selected resource (NotSupportedError, rs=0 ns=3).
+   */
+  iosNativePlayInUserGesture(src: string, mimeType?: string): boolean {
+    if (!src) {
+      this.log('iosNativePlay: missing src', 'warn');
+      return false;
+    }
+
+    const absolute = this.resolveMediaSourceUrl(src);
+    const media = this.element;
+    if (!(media instanceof HTMLMediaElement)) {
+      this.log('iosNativePlay: element is not HTMLMediaElement', 'warn');
+      return false;
+    }
+
+    if (media.tagName === 'VIDEO') {
+      media.setAttribute('playsinline', '');
+      media.setAttribute('webkit-playsinline', '');
+    }
+
+    this.bindIosPlaylistMediaInUserGesture(media, absolute, mimeType);
+
+    const snap = (): string => {
+      const staged = media.querySelector('source');
+      const href = media.currentSrc || staged?.src || media.src || absolute;
+      return `rs=${media.readyState} ns=${media.networkState} paused=${media.paused} src=${href}`;
+    };
+
+    const stagedSource = media.querySelector('source');
+    if (!stagedSource?.src && !media.src && !absolute) {
+      this.log(`iosNativePlay: no source on element — ${snap()}`, 'warn');
+      return false;
+    }
+
+    const attachTextTracks = (): void => {
+      this.playlistManager?.attachIosTextTracksAfterMediaLoad?.();
+    };
+    media.addEventListener('loadedmetadata', attachTextTracks, { once: true });
+
+    const renderer = this.renderer as { media?: HTMLMediaElement; play?: () => Promise<void> | void; rendererType?: string } | null;
+    if (renderer && 'media' in renderer) {
+      renderer.media = media;
+    }
+
+    try {
+      const promise =
+        renderer?.rendererType === 'html5' && typeof renderer.play === 'function'
+          ? renderer.play()
+          : media.play();
+      if (promise !== undefined) {
+        promise.catch((error: unknown) => {
+          const err = error as { name?: string; message?: string };
+          this.endPreservedPlaybackDuringRendererInit();
+          this.state.buffering = false;
+          this.state.playing = false;
+          this.state.paused = true;
+          this.log(
+            `Play failed: ${err.name ?? 'Error'} ${err.message ?? ''} | ${snap()}`.trim(),
+            'warn',
+          );
+          this.syncPlaybackUiFromMediaElement?.();
+        });
+      }
+      return true;
+    } catch (error: unknown) {
+      const err = error as { name?: string; message?: string };
+      this.log(
+        `Play failed: ${err.name ?? 'Error'} ${err.message ?? ''} | ${snap()}`.trim(),
+        'warn',
+      );
+      return false;
     }
   }
 
@@ -2362,24 +2769,49 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
   // Playback controls
   play() {
+    const playlist = this.playlistManager;
+
+    this.log('play() enter', 'debug');
+
+    if (this._rendererInitInFlight) {
+      this.log('play() deferred: renderer init in flight', 'debug');
+      const tracks = playlist?.tracks;
+      if (Array.isArray(tracks) && tracks.length > 0 && this.element.paused) {
+        const index = playlist!.currentIndex >= 0 ? playlist!.currentIndex : 0;
+        if (playlist!.tryPrimeNativePlaybackDuringInit(index)) {
+          this.log('play() primed on media element during renderer init (iOS)', 'debug');
+          this._playRequestedDuringRendererInit = true;
+          return;
+        }
+      }
+      this._playRequestedDuringRendererInit = true;
+      return;
+    }
+
+    if (this._switchingRenderer) {
+      this.log('play() blocked: switching renderer', 'debug');
+      return;
+    }
+
+    if (playlist?.isChangingTrack) {
+      this.log('play() queued: isChangingTrack', 'debug');
+      playlist.queuePlayWhenTrackReady();
+      return;
+    }
+
+    const tracks = playlist?.tracks;
+    if (Array.isArray(tracks) && tracks.length > 0 && this.element.paused) {
+      const index = playlist!.currentIndex >= 0 ? playlist!.currentIndex : 0;
+      if (playlist!.canResumeCurrentTrack(index)) {
+        this.renderer?.play();
+        return;
+      }
+      playlist!.startUserPlayback(index);
+      return;
+    }
+
     if (this.renderer) {
       this.renderer.play();
-      return;
-    }
-
-    // While a playlist track change is loading, the old renderer has been
-    // destroyed and the new one is not ready yet. Do not re-enter
-    // PlaylistManager.play() — that would duplicate load() for slow embed
-    // renderers (YouTube, Vimeo, SoundCloud).
-    if (this._switchingRenderer || this.playlistManager?.isChangingTrack) {
-      return;
-    }
-
-    // Playlist support: if no renderer exists yet (no initial src),
-    // start playback via playlist selection.
-    if (this.playlistManager && Array.isArray(this.playlistManager.tracks) && this.playlistManager.tracks.length > 0) {
-      const index = this.playlistManager.currentIndex >= 0 ? this.playlistManager.currentIndex : 0;
-      this.playlistManager.play(index, true);
     }
   }
 
@@ -2395,7 +2827,15 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   toggle() {
-    if (this.state.playing) {
+    const rendererType = this.renderer?.rendererType;
+    const useElement =
+      Boolean(this.renderer) &&
+      (rendererType === 'html5' || rendererType === 'hls' || rendererType === 'dash');
+    const playing = useElement ? !this.element.paused && !this.element.ended : this.state.playing;
+
+    this.log(`toggle() playing=${playing}`, 'debug');
+
+    if (playing) {
       this.pause();
     } else {
       this.play();
@@ -3018,13 +3458,32 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   handleError(error: unknown) {
-    if (this._switchingRenderer || this._isFallingBack) {
-      this.log('Suppressing error during renderer switch:', error, 'debug');
+    const mediaEl = this.element instanceof HTMLMediaElement ? this.element : null;
+    const detail = formatUnknownForLog(error, mediaEl);
+    const MediaErrorCtor = typeof globalThis.MediaError !== 'undefined' ? globalThis.MediaError : null;
+    const mediaCode =
+      (MediaErrorCtor && error instanceof MediaErrorCtor ? error.code : undefined) ??
+      (error && typeof error === 'object' && 'code' in error
+        ? (error as MediaError).code
+        : undefined) ??
+      mediaEl?.error?.code;
+
+    if (mediaCode === 1) {
+      this.log(`Media error (aborted, ignored): ${detail}`, 'debug');
+      return;
+    }
+
+    if (
+      this._switchingRenderer ||
+      this._isFallingBack ||
+      this._preservePlaybackDuringRendererInit
+    ) {
+      this.log(`Suppressing error during renderer switch: ${detail}`, 'debug');
       return;
     }
 
     if (this._fallbackSources && this._fallbackSources.length > 0) {
-      this.log('Renderer error, attempting fallback:', error, 'warn');
+      this.log(`Renderer error, attempting fallback: ${detail}`, 'warn');
       this._fallbackToNextSource().then((success: boolean) => {
         if (!success) {
           this.log('All fallback sources exhausted', 'error');
@@ -3037,7 +3496,14 @@ export class Player extends EventEmitter<PlayerEventMap> {
       return;
     }
 
-    this.log('Error:', error, 'error');
+    this.state.buffering = false;
+    if (mediaCode === 4 && mediaEl) {
+      const href = mediaEl.currentSrc || mediaEl.src || this.currentSource || '';
+      this.log(`Error: ${detail} | attempted=${href}`, 'error');
+    } else {
+      this.log(`Error: ${detail}`, 'error');
+    }
+    this.syncPlaybackUiFromMediaElement?.();
     this.emit('error', error);
 
     if (this.options.onError) {
@@ -3047,7 +3513,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
   // Logging
   log(...messages: unknown[]) {
-    if (!this.options.debug) {
+    const overlayEnabled = DebugOverlay.shouldEnable(this.options);
+    if (!this.options.debug && !overlayEnabled) {
       return;
     }
 
@@ -3066,10 +3533,25 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     const consoleFn = consoleObj[type];
-    if (typeof consoleFn === 'function') {
-      consoleFn('[VidPly]', ...messages);
-    } else {
-      console.log('[VidPly]', ...messages);
+    const mediaEl = this.element instanceof HTMLMediaElement ? this.element : null;
+    const text = messages.map((m) => formatUnknownForLog(m, mediaEl)).join(' ');
+
+    if (this.options.debug) {
+      if (typeof consoleFn === 'function') {
+        consoleFn('[VidPly]', ...messages);
+      } else {
+        console.log('[VidPly]', ...messages);
+      }
+    }
+
+    if (overlayEnabled) {
+      if (!this.debugOverlay) {
+        this.debugOverlay = DebugOverlay.acquire(this);
+        this.debugOverlay.mount();
+      } else {
+        this.debugOverlay.setActivePlayer(this);
+      }
+      this.debugOverlay.append(`[${type}] ${text}`, this);
     }
   }
 
@@ -3090,6 +3572,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
   // global `Player.instances` registry.
   destroy(): void {
     this.log('Destroying player');
+
+    if (this.debugOverlay) {
+      this.debugOverlay.destroy();
+      this.debugOverlay = null;
+    }
 
     // Abort all listeners + in-flight fetches first so callbacks
     // running concurrently with destroy() see a torn-down player.

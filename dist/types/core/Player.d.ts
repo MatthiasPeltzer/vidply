@@ -9,6 +9,7 @@ import { KeyboardManager } from '../controls/KeyboardManager.js';
 import { MediaSessionManager } from './MediaSessionManager.js';
 import { StorageManager } from '../utils/StorageManager.js';
 import { DraggableResizable } from '../utils/DraggableResizable.js';
+import { type NegotiatedMediaSource } from '../utils/MediaSourceNegotiation.js';
 import { type LazyHandle } from './LazyInit.js';
 import { PseudoFullscreenController } from './PseudoFullscreen.js';
 import { ThemeManager, type ThemeName } from './ThemeManager.js';
@@ -16,6 +17,7 @@ import { PosterManager } from './PosterManager.js';
 import { ResumeManager } from './ResumeManager.js';
 import { ResponsiveManager } from './ResponsiveManager.js';
 import { LiveStreamManager } from './LiveStreamManager.js';
+import { DebugOverlay } from './DebugOverlay.js';
 import { MetadataAlertsManager, type MetadataAlertConfig as _MetadataAlertConfig, type MetadataAlertOptions as _MetadataAlertOptions } from './MetadataAlertsManager.js';
 export type MetadataAlertConfig = _MetadataAlertConfig;
 export type MetadataAlertOptions = _MetadataAlertOptions;
@@ -176,6 +178,7 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     videoWrapper: HTMLElement | null;
     /** Centered buffering spinner (see `.vidply-loading` / `.vidply-buffering` in CSS) */
     loadingOverlayElement: HTMLElement | null;
+    debugOverlay: DebugOverlay | null;
     /** Native `playing` listener — must be removed in destroy() */
     _bufferingHideOnMediaPlaying: (() => void) | null;
     /** AbortController, whose signal feeds every window/document listener and
@@ -183,6 +186,11 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
      *  `abort()` so a torn-down player can never leak listeners or pending
      *  network calls. */
     private _lifecycleController;
+    /** While `initializeRenderer()` is running, defer `play()` until init finishes. */
+    private _rendererInitInFlight;
+    private _playRequestedDuringRendererInit;
+    /** Set during {@link load} when iOS primed playback must survive {@link initializeRenderer}. */
+    private _preservePlaybackDuringRendererInit;
     constructor(element: string | HTMLElement, options?: Record<string, unknown>);
     /** Convenience getter for subsystems that take an AbortSignal. */
     get lifecycleSignal(): AbortSignal;
@@ -336,6 +344,17 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
             type: string;
         }>;
     };
+    /** Playlist track JSON stores MSE-first `src`; pick a URL like `<source>` negotiation. */
+    negotiateTrackPlaybackSource(track: {
+        src?: string;
+        type?: string;
+        sources?: Array<{
+            src?: string;
+            type?: string;
+        }>;
+    }, options?: {
+        preferNativeElement?: boolean;
+    }): NegotiatedMediaSource;
     _fallbackToNextSource(): Promise<boolean>;
     /**
      * Invalidate DOM query cache (call when tracks/sources change)
@@ -400,13 +419,56 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
      * clearing the media `src` can leave `state.playing` true without a matching
      * `pause` event on the element.
      */
-    resetPlaybackStateForSourceChange(): void;
+    resetPlaybackStateForSourceChange(options?: {
+        pauseElement?: boolean;
+    }): void;
+    /** After {@link load} succeeds — refresh UI without stopping active playback. */
+    syncPlaybackUiAfterSourceLoad(retainMediaPlayback: boolean): void;
+    /**
+     * Align VidPly state and chrome with the media element (fixes iOS playlist taps
+     * where `play` fired but a subsequent `load()` aborted playback without `pause`).
+     */
+    syncPlaybackUiFromMediaElement(): void;
     /**
      * Ensure the current renderer has started its initial load (metadata/manifest)
      * without starting playback. This is useful for playlists to behave like
      * single videos on selection, while still keeping autoplay off.
      */
     ensureLoaded(): void;
+    /** True while {@link load} / {@link initializeRenderer} must not pause or reset primed iPhone playback. */
+    preservesPlaybackDuringSourceLoad(): boolean;
+    /** iPhone playlist taps: keep WebKit playback alive while the renderer inits. */
+    beginPreservedPlaybackDuringRendererInit(pendingSrc: string): void;
+    endPreservedPlaybackDuringRendererInit(): void;
+    /**
+     * iOS playlist: remove embed/MSE renderer in the user-gesture turn before
+     * {@link iosNativePlayInUserGesture} binds a native `<source>`.
+     */
+    teardownRendererForNativeGestureSwap(): void;
+    /** True while {@link initializeRenderer} is running (playlist prefetch / track change). */
+    isRendererInitializing(): boolean;
+    /** Resolve playlist / FAL URLs to an absolute href for {@link HTMLMediaElement.src}. */
+    resolveMediaSourceUrl(src: string): string;
+    /** Guess MIME for a native `<source type>` (TYPO3 single-video markup uses this). */
+    private inferNativeSourceMimeType;
+    /**
+     * Stage like Fluid `VideoSources.html`: one `<source src type>`, no `video.src`.
+     * Competing `video.src` + `<source>` leaves iOS at `ns=3` / SRC_NOT_SUPPORTED.
+     */
+    private mountNativeSourceOnElement;
+    /** Stage MP4/HLS on the media element before {@link initializeRenderer} (iPhone playlists). */
+    stagePlaylistNativeSource(src: string, mimeType?: string): void;
+    /**
+     * iOS playlist tap: bind `<source type>` in the user gesture (matches TYPO3 single-video markup).
+     * Text tracks must not be on the element yet — see {@link PlaylistManager.attachIosTextTracksAfterMediaLoad}.
+     */
+    private bindIosPlaylistMediaInUserGesture;
+    /**
+     * iOS native MP4/HLS: {@link HTMLMediaElement.play} in the user-gesture turn.
+     * Prefer this over {@link Renderer.play} for playlists — WebKit rejects when
+     * the element has no selected resource (NotSupportedError, rs=0 ns=3).
+     */
+    iosNativePlayInUserGesture(src: string, mimeType?: string): boolean;
     /**
      * Check if we need to change renderer type
      * @param {string} src - New source URL

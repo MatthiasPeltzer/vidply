@@ -1,6 +1,7 @@
 import type { Renderer, QualityLevel } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
 import { loadPinnedScript } from '../utils/ScriptLoader.js';
+import { canPlayNativeHls } from '../utils/PerformanceUtils.js';
 
 /** Subset of payloads emitted by hls.js events that we actually consume. */
 interface HlsManifestParsedData {
@@ -112,21 +113,33 @@ export class HLSRenderer implements Renderer {
   }
 
   canPlayNatively() {
-    // Use native HLS only on iOS/iPadOS (MSE unavailable); desktop macOS Safari uses hls.js
-    // for quality switching and parity with Chrome/Firefox.
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    // iPad in desktop mode reports MacIntel but has touch
-    const isIPadDesktopMode = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+    return canPlayNativeHls();
+  }
 
-    if (!isIOS && !isIPadDesktopMode) {
+  private elementSourceMatches(src: string): boolean {
+    const current =
+      this.media.currentSrc || this.media.getAttribute('src') || this.media.src || '';
+    if (!current) {
       return false;
     }
-
-    const video = document.createElement('video');
-    return video.canPlayType('application/vnd.apple.mpegurl') !== '';
+    try {
+      return (
+        new URL(src, window.location.href).href ===
+        new URL(current, window.location.href).href
+      );
+    } catch {
+      return src === current;
+    }
   }
 
   async initNative() {
+    const src = this.player.currentSource;
+    if (src) {
+      if (!this.elementSourceMatches(src)) {
+        this.media.src = src;
+      }
+    }
+
     // Native HLS (iOS / iPadOS): the <video> element plays the HLS URL
     // directly, so we delegate the playback surface to an HTML5Renderer via
     // composition rather than grafting its prototype methods onto this
@@ -902,6 +915,8 @@ export class HLSRenderer implements Renderer {
 
     if (promise !== undefined) {
       promise.catch(error => {
+        this.player.state.buffering = false;
+        this.player.emit('canplay');
         this.player.log('Play failed:', error, 'warn');
       });
     }

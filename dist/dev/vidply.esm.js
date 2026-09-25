@@ -17,26 +17,28 @@ import {
 } from "./vidply.chunk-WRDA4BIK.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-YCIVOD4W.js";
+} from "./vidply.chunk-FXETE4LO.js";
 import {
   CaptionManager
-} from "./vidply.chunk-W7PH3BDF.js";
+} from "./vidply.chunk-PXOU272O.js";
 import {
   StorageManager
 } from "./vidply.chunk-V476LWAA.js";
-import {
-  debounce,
-  isMobile,
-  rafWithTimeout,
-  reducedMotionScrollOptions,
-  scrollIntoViewWithinScrollParent,
-  throttle
-} from "./vidply.chunk-KJVUGADU.js";
 import {
   DOMUtils,
   i18n,
   isForbiddenKey
 } from "./vidply.chunk-YNDMWZB2.js";
+import {
+  canPlayNativeHls,
+  debounce,
+  isIOS,
+  isMobile,
+  rafWithTimeout,
+  reducedMotionScrollOptions,
+  scrollIntoViewWithinScrollParent,
+  throttle
+} from "./vidply.chunk-KH7YUEQO.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -2957,6 +2959,7 @@ var ControlBar = class {
       this.updateLiveControls();
       this.ensureQualityButton();
       this.updateQualityIndicator();
+      this.syncCaptionControlsFromTracks();
       this.updatePreviewVideoSource();
     });
     this.subscribe("events", "durationchange", () => {
@@ -3171,6 +3174,24 @@ var ControlBar = class {
       this.rightButtons.insertBefore(qualityButton, this.rightButtons.firstChild);
     }
     this.player.log("Quality button added dynamically", "info");
+    this.checkOverflow();
+  }
+  /**
+   * Add caption-related controls once text tracks exist (HTML5 deferLoad, HLS, playlists).
+   */
+  syncCaptionControlsFromTracks() {
+    if (!this.hasCaptionTracks()) {
+      return;
+    }
+    if (this.player.options.captionsButton && !this.controls.captions) {
+      this.ensureCaptionsButton();
+    }
+    if (this.player.options.captionStyleButton && !this.controls.captionStyle) {
+      this.ensureCaptionStyleButton();
+    }
+    if (this.player.options.transcriptButton && !this.controls.transcript) {
+      this.ensureTranscriptButton();
+    }
   }
   /**
    * Dynamically add captions button if HLS subtitle tracks become available
@@ -3191,6 +3212,7 @@ var ControlBar = class {
       this.rightButtons.insertBefore(btn, this.rightButtons.firstChild);
     }
     this.player.log("Captions button added dynamically for HLS subtitles", "info");
+    this.checkOverflow();
   }
   /**
    * Dynamically add caption style button if HLS subtitle tracks become available
@@ -3208,6 +3230,7 @@ var ControlBar = class {
       this.rightButtons.insertBefore(btn, this.rightButtons.firstChild);
     }
     this.player.log("Caption style button added dynamically for HLS subtitles", "info");
+    this.checkOverflow();
   }
   /**
    * Dynamically add transcript button if HLS subtitle tracks become available
@@ -3239,6 +3262,7 @@ var ControlBar = class {
       }
     }
     this.player.log("Transcript button added dynamically for HLS subtitles", "info");
+    this.checkOverflow();
   }
   /**
    * Remove caption-related buttons if no HLS subtitle tracks are available
@@ -3270,6 +3294,7 @@ var ControlBar = class {
       delete this.controls.transcript;
       this.player.log("Transcript button removed - no subtitle tracks", "info");
     }
+    this.checkOverflow();
   }
   /**
    * Disable all caption/subtitle tracks and clear the captions display
@@ -3942,6 +3967,9 @@ var KeyboardManager = class {
     if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") {
       return;
     }
+    if (target.tagName === "BUTTON" || target.closest("button")) {
+      return;
+    }
     const activeElement = document.activeElement;
     if (activeElement) {
       const menu = activeElement.closest('.vidply-menu, [role="menu"]');
@@ -4451,6 +4479,63 @@ function classifyRendererType(src) {
   if (src.includes(".mpd")) return "dash";
   if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) return "soundcloud";
   return "html5";
+}
+
+// src/utils/MediaSourceNegotiation.ts
+function negotiateMediaSources(candidates, options) {
+  const sources = candidates.filter((s) => typeof s.src === "string" && s.src.length > 0);
+  if (sources.length === 0) {
+    return { src: "", fallbacks: [] };
+  }
+  if (sources.length === 1) {
+    return { src: sources[0].src, fallbacks: [] };
+  }
+  const hasMSE = typeof MediaSource !== "undefined";
+  const nativeHls = canPlayNativeHls();
+  const preferNative = options?.preferNativeElement === true;
+  let chosen;
+  if (preferNative) {
+    const hls = sources.find((s) => s.src.includes(".m3u8"));
+    if (hls && nativeHls) {
+      chosen = hls;
+    }
+    if (!chosen) {
+      chosen = sources.find((s) => !s.src.includes(".mpd") && !s.src.includes(".m3u8"));
+    }
+    if (!chosen) {
+      chosen = sources.find((s) => !s.src.includes(".mpd"));
+    }
+  } else {
+    if (hasMSE) {
+      chosen = sources.find((s) => s.src.includes(".mpd"));
+    }
+    if (!chosen) {
+      const hlsSource = sources.find((s) => s.src.includes(".m3u8"));
+      if (hlsSource && (hasMSE || nativeHls)) {
+        chosen = hlsSource;
+      }
+    }
+    if (!chosen) {
+      chosen = sources.find((s) => !s.src.includes(".mpd") && !s.src.includes(".m3u8")) || sources[0];
+    }
+  }
+  if (!chosen) {
+    chosen = sources[0];
+  }
+  const fallbacks = sources.filter((s) => s !== chosen);
+  return { src: chosen.src, fallbacks };
+}
+function candidatesFromTrack(track) {
+  if (Array.isArray(track.sources) && track.sources.length > 0) {
+    return track.sources.filter((s) => typeof s.src === "string" && s.src.length > 0).map((s) => ({
+      src: s.src,
+      type: s.type
+    }));
+  }
+  if (track.src) {
+    return [{ src: track.src, type: track.type }];
+  }
+  return [];
 }
 
 // src/core/LazyInit.ts
@@ -5578,6 +5663,189 @@ var LiveStreamManager = class {
   }
 };
 
+// src/core/DebugOverlay.ts
+var MAX_LINES = 80;
+function formatMediaSnapshot(el) {
+  const src = el.currentSrc || el.src || "";
+  const tail = src.length > 48 ? `…${src.slice(-48)}` : src;
+  return `rs=${el.readyState} ns=${el.networkState} paused=${el.paused} src=${tail || "(empty)"}`;
+}
+function isVidplyDebugQueryEnabled() {
+  try {
+    if (new URLSearchParams(window.location.search).get("vidplyDebug") === "1") {
+      return true;
+    }
+    const hash = window.location.hash.replace(/^#/, "");
+    if (hash === "vidplyDebug=1" || hash === "vidplyDebug") {
+      return true;
+    }
+    return sessionStorage.getItem("vidplyDebug") === "1";
+  } catch {
+    return false;
+  }
+}
+var DebugOverlay = class _DebugOverlay {
+  static shared = null;
+  static refCount = 0;
+  /** One overlay for the whole page (videos demo has many players). */
+  static acquire(player) {
+    if (!_DebugOverlay.shared) {
+      _DebugOverlay.shared = new _DebugOverlay();
+    }
+    _DebugOverlay.refCount += 1;
+    _DebugOverlay.shared.setActivePlayer(player);
+    return _DebugOverlay.shared;
+  }
+  static release() {
+    _DebugOverlay.refCount = Math.max(0, _DebugOverlay.refCount - 1);
+    if (_DebugOverlay.refCount === 0 && _DebugOverlay.shared) {
+      _DebugOverlay.shared.destroyInternal();
+      _DebugOverlay.shared = null;
+    }
+  }
+  static shouldEnable(options) {
+    if (options.debug || options.debugOverlay) {
+      return true;
+    }
+    return isVidplyDebugQueryEnabled();
+  }
+  player = null;
+  root = null;
+  logEl = null;
+  lines = [];
+  mediaListenerController = null;
+  constructor() {
+  }
+  setActivePlayer(player) {
+    this.player = player;
+    if (this.root) {
+      this.attachMediaListeners();
+    }
+  }
+  mount() {
+    if (this.root || typeof document === "undefined") {
+      return;
+    }
+    const root = document.createElement("div");
+    root.className = "vidply-debug-overlay";
+    root.setAttribute("aria-hidden", "true");
+    root.style.cssText = "position:fixed;top:12px;right:12px;left:auto;bottom:auto;width:min(420px,calc(100vw - 24px));max-height:min(50vh,480px);z-index:2147483646;background:rgba(0,0,0,.92);color:#0f0;font:12px/1.35 ui-monospace,monospace;padding:8px 10px;overflow:hidden;display:flex;flex-direction:column;gap:6px;pointer-events:auto;border:2px solid #fc0;box-shadow:0 4px 24px rgba(0,0,0,.45);";
+    const toolbar = document.createElement("div");
+    toolbar.style.cssText = "display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap;";
+    const title = document.createElement("span");
+    title.textContent = "VidPly debug";
+    title.style.cssText = "color:#fff;font-weight:700;";
+    const hint = document.createElement("span");
+    hint.textContent = "(top-right · ?vidplyDebug=1)";
+    hint.style.cssText = "color:#aaa;font-size:10px;";
+    const copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.textContent = "Copy";
+    copyBtn.style.cssText = "font:inherit;color:#fff;background:#333;border:1px solid #666;padding:2px 8px;border-radius:4px;";
+    const clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.textContent = "Clear";
+    clearBtn.style.cssText = copyBtn.style.cssText;
+    const logEl = document.createElement("pre");
+    logEl.style.cssText = "margin:0;overflow:auto;flex:1;white-space:pre-wrap;word-break:break-word;";
+    copyBtn.addEventListener("click", () => {
+      void navigator.clipboard?.writeText(this.lines.join("\n")).catch(() => {
+      });
+    });
+    clearBtn.addEventListener("click", () => {
+      this.lines = [];
+      this.render();
+    });
+    toolbar.appendChild(title);
+    toolbar.appendChild(hint);
+    toolbar.appendChild(copyBtn);
+    toolbar.appendChild(clearBtn);
+    root.appendChild(toolbar);
+    root.appendChild(logEl);
+    document.body.appendChild(root);
+    this.root = root;
+    this.logEl = logEl;
+    this.attachMediaListeners();
+    this.append("overlay ready");
+  }
+  destroy() {
+    _DebugOverlay.release();
+  }
+  destroyInternal() {
+    this.mediaListenerController?.abort();
+    this.mediaListenerController = null;
+    this.root?.remove();
+    this.root = null;
+    this.logEl = null;
+    this.player = null;
+  }
+  append(message, player) {
+    const active = player ?? this.player;
+    const el = active?.element;
+    const stamp = (/* @__PURE__ */ new Date()).toISOString().slice(11, 23);
+    const snap = el instanceof HTMLMediaElement ? formatMediaSnapshot(el) : "no-element";
+    const line = `${stamp} ${message} | ${snap}`;
+    this.lines.push(line);
+    if (this.lines.length > MAX_LINES) {
+      this.lines.shift();
+    }
+    this.render();
+  }
+  render() {
+    if (this.logEl) {
+      this.logEl.textContent = this.lines.join("\n");
+      this.logEl.scrollTop = this.logEl.scrollHeight;
+    }
+  }
+  attachMediaListeners() {
+    const media = this.player?.element;
+    if (!(media instanceof HTMLMediaElement)) {
+      return;
+    }
+    this.mediaListenerController?.abort();
+    const controller = new AbortController();
+    this.mediaListenerController = controller;
+    const { signal } = controller;
+    const activePlayer = this.player;
+    const events = [
+      "loadstart",
+      "loadedmetadata",
+      "loadeddata",
+      "canplay",
+      "play",
+      "playing",
+      "pause",
+      "waiting",
+      "stalled",
+      "suspend",
+      "abort",
+      "emptied",
+      "error"
+    ];
+    for (const type of events) {
+      media.addEventListener(
+        type,
+        () => {
+          let extra = "";
+          if (type === "error" && media.error) {
+            const labels = {
+              1: "ABORTED",
+              2: "NETWORK",
+              3: "DECODE",
+              4: "SRC_NOT_SUPPORTED"
+            };
+            const label = labels[media.error.code] ?? String(media.error.code);
+            const msg = media.error.message?.trim();
+            extra = msg ? ` ${label}: ${msg}` : ` ${label}`;
+          }
+          this.append(`media:${type}${extra}`, activePlayer ?? void 0);
+        },
+        { signal }
+      );
+    }
+  }
+};
+
 // src/core/MetadataAlertsManager.ts
 var MetadataAlertsManager = class {
   player;
@@ -6551,19 +6819,57 @@ var KeyboardHelp = class {
 };
 
 // src/core/Player.ts
+var MEDIA_ERR_LABEL = {
+  1: "MEDIA_ERR_ABORTED",
+  2: "MEDIA_ERR_NETWORK",
+  3: "MEDIA_ERR_DECODE",
+  4: "MEDIA_ERR_SRC_NOT_SUPPORTED"
+};
+function formatUnknownForLog(value, media) {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (value instanceof Error && value.message) {
+    return `${value.name}: ${value.message}`;
+  }
+  if (value instanceof Error) {
+    return value.name || "Error";
+  }
+  const MediaErrorCtor = typeof globalThis.MediaError !== "undefined" ? globalThis.MediaError : null;
+  const asMedia = MediaErrorCtor && value instanceof MediaErrorCtor ? value : value && typeof value === "object" && "code" in value ? value : null;
+  if (asMedia && typeof asMedia.code === "number") {
+    const label = MEDIA_ERR_LABEL[asMedia.code] ?? `MediaError code=${asMedia.code}`;
+    const msg = asMedia.message?.trim();
+    return msg ? `${label}: ${msg}` : label;
+  }
+  const elErr = media?.error ?? null;
+  if (elErr && (value === null || value === void 0 || typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0)) {
+    const label = MEDIA_ERR_LABEL[elErr.code] ?? `MediaError code=${elErr.code}`;
+    const msg = elErr.message?.trim();
+    return msg ? `${label}: ${msg}` : label;
+  }
+  try {
+    const json = JSON.stringify(value);
+    if (json !== "{}" && json !== "null") {
+      return json;
+    }
+  } catch {
+  }
+  return String(value);
+}
 var AudioDescriptionManagerModule = null;
 var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-MY4KFH32.js");
+    const module = await import("./vidply.AudioDescriptionManager-RL7HB2WR.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-4FMZ3CK6.js");
+    const module = await import("./vidply.SignLanguageManager-C4NX4JTJ.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
@@ -6720,6 +7026,7 @@ var Player = class _Player extends EventEmitter {
   videoWrapper = null;
   /** Centered buffering spinner (see `.vidply-loading` / `.vidply-buffering` in CSS) */
   loadingOverlayElement = null;
+  debugOverlay = null;
   /** Native `playing` listener — must be removed in destroy() */
   _bufferingHideOnMediaPlaying = null;
   /** AbortController, whose signal feeds every window/document listener and
@@ -6727,6 +7034,11 @@ var Player = class _Player extends EventEmitter {
    *  `abort()` so a torn-down player can never leak listeners or pending
    *  network calls. */
   _lifecycleController = new AbortController();
+  /** While `initializeRenderer()` is running, defer `play()` until init finishes. */
+  _rendererInitInFlight = null;
+  _playRequestedDuringRendererInit = false;
+  /** Set during {@link load} when iOS primed playback must survive {@link initializeRenderer}. */
+  _preservePlaybackDuringRendererInit = false;
   constructor(element, options = {}) {
     super();
     this.element = typeof element === "string" ? document.querySelector(element) : element;
@@ -6927,6 +7239,7 @@ var Player = class _Player extends EventEmitter {
       // Custom CSS variable overrides (e.g., { 'primary': '#ff0000' })
       // Advanced
       debug: false,
+      debugOverlay: false,
       classPrefix: "vidply",
       iconType: "svg",
       pauseOthersOnPlay: true,
@@ -7065,6 +7378,10 @@ var Player = class _Player extends EventEmitter {
         }
       }
     });
+    if (DebugOverlay.shouldEnable(this.options)) {
+      this.debugOverlay = DebugOverlay.acquire(this);
+      this.debugOverlay.mount();
+    }
     this.init();
   }
   /** Convenience getter for subsystems that take an AbortSignal. */
@@ -7227,6 +7544,10 @@ var Player = class _Player extends EventEmitter {
       if (this.options.resumePlayback) {
         this.initResumePlayback();
       }
+      if (DebugOverlay.shouldEnable(this.options) && !this.debugOverlay) {
+        this.debugOverlay = DebugOverlay.acquire(this);
+        this.debugOverlay.mount();
+      }
       this.state.ready = true;
       this._originalElement.classList.add("vidply-initialized");
       this.emit("ready");
@@ -7252,7 +7573,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-VVNOYRQO.js");
+    const module = await import("./vidply.TranscriptManager-JE5IAY73.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -7825,7 +8146,9 @@ var Player = class _Player extends EventEmitter {
   }
   async initializeRenderer() {
     this.liveStreamManager?.resetForSourceChange();
-    this.resetPlaybackStateForSourceChange();
+    if (!this._preservePlaybackDuringRendererInit) {
+      this.resetPlaybackStateForSourceChange();
+    }
     if (this.renderer) {
       this.renderer.destroy();
       this.renderer = null;
@@ -7860,44 +8183,64 @@ var Player = class _Player extends EventEmitter {
     }
     rendererClass = await this._detectRendererClass(src);
     this.log(`Using ${rendererClass?.name || "HTML5Renderer"} renderer`);
-    this.renderer = new rendererClass(this);
-    const initTimeout = (this._fallbackSources?.length ?? 0) > 0 ? 1e4 : 0;
-    if (initTimeout > 0) {
-      let timer;
-      await Promise.race([
-        this.renderer.init(),
-        new Promise((_, reject) => {
-          timer = setTimeout(() => reject(new Error(`Renderer init timed out after ${initTimeout}ms`)), initTimeout);
-        })
-      ]).finally(() => {
-        if (timer !== void 0) clearTimeout(timer);
-      });
-    } else {
-      await this.renderer.init();
+    const runInit = async () => {
+      this.renderer = new rendererClass(this);
+      const initTimeout = (this._fallbackSources?.length ?? 0) > 0 ? 1e4 : 0;
+      if (initTimeout > 0) {
+        let timer;
+        await Promise.race([
+          this.renderer.init(),
+          new Promise((_, reject) => {
+            timer = setTimeout(() => reject(new Error(`Renderer init timed out after ${initTimeout}ms`)), initTimeout);
+          })
+        ]).finally(() => {
+          if (timer !== void 0) clearTimeout(timer);
+        });
+      } else {
+        await this.renderer.init();
+      }
+      this.invalidateTrackCache();
+      rafWithTimeout(() => this.positionPlayOverlayOnMobile(), 100);
+    };
+    this._rendererInitInFlight = runInit();
+    try {
+      await this._rendererInitInFlight;
+    } finally {
+      this._rendererInitInFlight = null;
+      this._preservePlaybackDuringRendererInit = false;
+      if (this._playRequestedDuringRendererInit) {
+        this._playRequestedDuringRendererInit = false;
+        if (isIOS()) {
+          this.syncPlaybackUiFromMediaElement?.();
+          if (!this.element.paused) {
+            this.hidePosterOverlay?.();
+          }
+        } else {
+          this.play();
+        }
+      }
     }
-    this.invalidateTrackCache();
-    rafWithTimeout(() => this.positionPlayOverlayOnMobile(), 100);
   }
   async _detectRendererClass(src) {
     switch (classifyRendererType(src)) {
       case "youtube": {
-        const module = await import("./vidply.YouTubeRenderer-JUIZWNH7.js");
+        const module = await import("./vidply.YouTubeRenderer-QVQSP5V5.js");
         return module.YouTubeRenderer ?? module.default;
       }
       case "vimeo": {
-        const module = await import("./vidply.VimeoRenderer-NRDWM6FF.js");
+        const module = await import("./vidply.VimeoRenderer-RQ5NFF5A.js");
         return module.VimeoRenderer ?? module.default;
       }
       case "hls": {
-        const module = await import("./vidply.HLSRenderer-2JR4ELFQ.js");
+        const module = await import("./vidply.HLSRenderer-UV2QBL7Y.js");
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {
-        const module = await import("./vidply.DASHRenderer-Q36GVB4N.js");
+        const module = await import("./vidply.DASHRenderer-HWGSANOY.js");
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
-        const module = await import("./vidply.SoundCloudRenderer-WPZJHMZG.js");
+        const module = await import("./vidply.SoundCloudRenderer-K6PAWXJL.js");
         return module.SoundCloudRenderer ?? module.default;
       }
       default:
@@ -7905,31 +8248,22 @@ var Player = class _Player extends EventEmitter {
     }
   }
   _selectBestSource(sourceElements) {
-    const hasMSE = typeof MediaSource !== "undefined";
-    const sources = sourceElements.map((el) => ({
+    const candidates = sourceElements.map((el) => ({
       src: el.src || el.getAttribute("src") || "",
-      type: el.type || el.getAttribute("type") || "",
-      el
+      type: el.type || el.getAttribute("type") || ""
     }));
-    const canPlayNativeHLS = (() => {
-      const v = document.createElement("video");
-      return v.canPlayType("application/vnd.apple.mpegurl") !== "";
-    })();
-    let chosen;
-    if (hasMSE) {
-      chosen = sources.find((s) => s.src.includes(".mpd"));
-    }
-    if (!chosen) {
-      const hlsSource = sources.find((s) => s.src.includes(".m3u8"));
-      if (hlsSource && (hasMSE || canPlayNativeHLS)) {
-        chosen = hlsSource;
-      }
-    }
-    if (!chosen) {
-      chosen = sources.find((s) => !s.src.includes(".mpd") && !s.src.includes(".m3u8")) || sources[0];
-    }
-    const fallbacks = sources.filter((s) => s !== chosen).map((s) => ({ src: s.src, type: s.type }));
-    return { src: chosen?.src ?? "", fallbacks };
+    const negotiated = negotiateMediaSources(candidates);
+    return {
+      src: negotiated.src,
+      fallbacks: negotiated.fallbacks.map((s) => ({
+        src: s.src,
+        type: s.type ?? ""
+      }))
+    };
+  }
+  /** Playlist track JSON stores MSE-first `src`; pick a URL like `<source>` negotiation. */
+  negotiateTrackPlaybackSource(track, options) {
+    return negotiateMediaSources(candidatesFromTrack(track), options);
   }
   async _fallbackToNextSource() {
     if (!this._fallbackSources || this._fallbackSources.length === 0) {
@@ -8057,13 +8391,19 @@ var Player = class _Player extends EventEmitter {
     return src.includes("youtube.com") || src.includes("youtu.be") || src.includes("vimeo.com") || src.includes("soundcloud.com") || src.includes("api.soundcloud.com") || src.includes(".m3u8") || src.includes(".mpd");
   }
   async load(config) {
+    const retainMediaPlayback = Boolean(config.retainMediaPlayback);
+    const preserveElementPlayback = retainMediaPlayback && !this.element.paused;
+    this._preservePlaybackDuringRendererInit = preserveElementPlayback;
     try {
       this.log("Loading new media:", config.src);
       this.liveStreamManager?.resetForSourceChange();
-      if (this.renderer) {
+      const nativeHls = Boolean(config.src && canPlayNativeHls());
+      if (this.renderer && !preserveElementPlayback) {
         this.pause();
       }
-      this.resetPlaybackStateForSourceChange();
+      this.resetPlaybackStateForSourceChange({
+        pauseElement: !preserveElementPlayback
+      });
       const existingTracks = this.trackElements;
       existingTracks.forEach((track) => track.remove());
       this.invalidateTrackCache();
@@ -8071,12 +8411,24 @@ var Player = class _Player extends EventEmitter {
       if (isExternalRenderer) {
         this._switchingRenderer = true;
       }
-      if (!isExternalRenderer) {
-        this.element.src = config.src;
+      const usesMseStreaming = isExternalRenderer && !nativeHls;
+      if (!usesMseStreaming && config.src) {
+        const current = this.element.currentSrc || this.element.getAttribute("src") || this.element.src || "";
+        let sameSrc = false;
+        if (current) {
+          try {
+            sameSrc = new URL(config.src, window.location.href).href === new URL(current, window.location.href).href;
+          } catch {
+            sameSrc = config.src === current;
+          }
+        }
+        if (!sameSrc) {
+          this.element.src = config.src;
+        }
         if (config.type) {
           this.element.type = config.type;
         }
-      } else {
+      } else if (usesMseStreaming) {
         this.element.removeAttribute("src");
         const sources = this.element.querySelectorAll("source");
         sources.forEach((s) => s.removeAttribute("src"));
@@ -8159,7 +8511,10 @@ var Player = class _Player extends EventEmitter {
         this.disableSignLanguage();
       }
       const shouldChangeRenderer = this.shouldChangeRenderer(config.src);
-      const needsFullReinit = !shouldChangeRenderer && this.renderer && (this.renderer.dash || this.renderer.hls);
+      const streamingRenderer = this.renderer;
+      const needsFullReinit = Boolean(
+        !shouldChangeRenderer && streamingRenderer && (streamingRenderer.dash || streamingRenderer.hls && streamingRenderer.isStreaming !== false)
+      );
       if ((shouldChangeRenderer || needsFullReinit) && this.renderer) {
         this.renderer.destroy();
         this.renderer = null;
@@ -8185,6 +8540,10 @@ var Player = class _Player extends EventEmitter {
           }
           if (sourceChanged && config.src) {
             this.currentSource = config.src;
+            const hlsState = this.renderer;
+            if (!hlsState.hls && config.src.includes(".m3u8")) {
+              this.element.src = config.src;
+            }
           }
           if (this.renderer) {
             const deferState = this.renderer;
@@ -8257,10 +8616,13 @@ var Player = class _Player extends EventEmitter {
         }, 150);
       }
       this.emit("sourcechange", config);
-      this.resetPlaybackStateForSourceChange();
+      this.syncPlaybackUiFromMediaElement();
       this.log("Media loaded successfully");
     } catch (error) {
       this.handleError(error);
+    } finally {
+      this._preservePlaybackDuringRendererInit = false;
+      this.playlistManager?.tryConsumePendingUserPlay?.();
     }
   }
   /**
@@ -8268,17 +8630,68 @@ var Player = class _Player extends EventEmitter {
    * clearing the media `src` can leave `state.playing` true without a matching
    * `pause` event on the element.
    */
-  resetPlaybackStateForSourceChange() {
-    try {
-      this.element.pause();
-    } catch {
+  resetPlaybackStateForSourceChange(options) {
+    const pauseElement = options?.pauseElement !== false;
+    if (pauseElement) {
+      try {
+        this.element.pause();
+      } catch {
+      }
     }
-    this.state.playing = false;
-    this.state.paused = true;
+    this.state.playing = pauseElement ? false : !this.element.paused;
+    this.state.paused = pauseElement ? true : this.element.paused;
+    this.state.ended = false;
+    this.state.buffering = false;
+    this.state.seeking = false;
+    if (pauseElement) {
+      this.state.hasStartedPlayback = false;
+    }
+    const prefix = this.options.classPrefix;
+    this.container?.classList.remove(`${prefix}-buffering`);
+    if (this.loadingOverlayElement) {
+      this.loadingOverlayElement.setAttribute("aria-busy", "false");
+    }
+    this.controlBar?.updatePlayPauseButton();
+  }
+  /** After {@link load} succeeds — refresh UI without stopping active playback. */
+  syncPlaybackUiAfterSourceLoad(retainMediaPlayback) {
+    if (retainMediaPlayback && !this.element.paused) {
+      this.state.playing = true;
+      this.state.paused = false;
+      this.state.hasStartedPlayback = true;
+      this.hidePosterOverlay();
+    } else {
+      this.state.playing = false;
+      this.state.paused = true;
+    }
     this.state.ended = false;
     this.state.buffering = false;
     this.state.seeking = false;
     this.controlBar?.updatePlayPauseButton();
+  }
+  /**
+   * Align VidPly state and chrome with the media element (fixes iOS playlist taps
+   * where `play` fired but a subsequent `load()` aborted playback without `pause`).
+   */
+  syncPlaybackUiFromMediaElement() {
+    const el = this.element;
+    const playing = !el.paused && !el.ended;
+    this.state.playing = playing;
+    this.state.paused = !playing;
+    this.state.ended = el.ended;
+    this.controlBar?.updatePlayPauseButton();
+    const overlayNode = this.playButtonOverlay ? this.getPlayButtonOverlayNode() : null;
+    if (overlayNode) {
+      if (playing) {
+        overlayNode.style.opacity = "0";
+        overlayNode.style.pointerEvents = "none";
+        this.playButtonOverlayButton?.setAttribute("aria-label", i18n.t("player.pause"));
+      } else if (!el.ended) {
+        overlayNode.style.opacity = "1";
+        overlayNode.style.pointerEvents = "auto";
+        this.playButtonOverlayButton?.setAttribute("aria-label", i18n.t("player.play"));
+      }
+    }
   }
   /**
    * Ensure the current renderer has started its initial load (metadata/manifest)
@@ -8292,6 +8705,190 @@ var Player = class _Player extends EventEmitter {
         this.renderer.ensureLoaded();
       }
     } catch {
+    }
+  }
+  /** True while {@link load} / {@link initializeRenderer} must not pause or reset primed iPhone playback. */
+  preservesPlaybackDuringSourceLoad() {
+    return this._preservePlaybackDuringRendererInit;
+  }
+  /** iPhone playlist taps: keep WebKit playback alive while the renderer inits. */
+  beginPreservedPlaybackDuringRendererInit(pendingSrc) {
+    this._preservePlaybackDuringRendererInit = true;
+    this._pendingSource = pendingSrc;
+  }
+  endPreservedPlaybackDuringRendererInit() {
+    this._preservePlaybackDuringRendererInit = false;
+  }
+  /**
+   * iOS playlist: remove embed/MSE renderer in the user-gesture turn before
+   * {@link iosNativePlayInUserGesture} binds a native `<source>`.
+   */
+  teardownRendererForNativeGestureSwap() {
+    this._switchingRenderer = false;
+    if (this.renderer) {
+      this.renderer.destroy();
+      this.renderer = null;
+      this.controlBar?.removeHlsCaptionButtons(true);
+    }
+    if (this.transcriptManager?.isVisible) {
+      this.transcriptManager.hideTranscript();
+    }
+  }
+  /** True while {@link initializeRenderer} is running (playlist prefetch / track change). */
+  isRendererInitializing() {
+    return this._rendererInitInFlight !== null;
+  }
+  /** Resolve playlist / FAL URLs to an absolute href for {@link HTMLMediaElement.src}. */
+  resolveMediaSourceUrl(src) {
+    try {
+      return new URL(src, window.location.href).href;
+    } catch {
+      return src;
+    }
+  }
+  /** Guess MIME for a native `<source type>` (TYPO3 single-video markup uses this). */
+  inferNativeSourceMimeType(url, fallback) {
+    if (fallback && fallback.trim() !== "") {
+      return fallback;
+    }
+    const lower = url.toLowerCase();
+    if (lower.includes(".m3u8")) {
+      return "application/vnd.apple.mpegurl";
+    }
+    if (lower.includes(".mpd")) {
+      return "application/dash+xml";
+    }
+    if (lower.includes(".webm")) {
+      return "video/webm";
+    }
+    if (lower.includes(".mp4") || lower.includes(".m4v") || lower.includes(".mov")) {
+      return "video/mp4";
+    }
+    if (lower.includes(".mp3") || lower.includes(".m4a")) {
+      return "audio/mpeg";
+    }
+    return "video/mp4";
+  }
+  /**
+   * Stage like Fluid `VideoSources.html`: one `<source src type>`, no `video.src`.
+   * Competing `video.src` + `<source>` leaves iOS at `ns=3` / SRC_NOT_SUPPORTED.
+   */
+  mountNativeSourceOnElement(media, absolute, mimeType) {
+    media.querySelectorAll("source").forEach((node) => node.remove());
+    media.removeAttribute("src");
+    media.removeAttribute("type");
+    const source = document.createElement("source");
+    source.src = absolute;
+    source.type = this.inferNativeSourceMimeType(absolute, mimeType);
+    media.appendChild(source);
+  }
+  /** Stage MP4/HLS on the media element before {@link initializeRenderer} (iPhone playlists). */
+  stagePlaylistNativeSource(src, mimeType) {
+    if (!src || typeof src !== "string") {
+      return;
+    }
+    const absolute = this.resolveMediaSourceUrl(src);
+    this._pendingSource = absolute;
+    this.currentSource = absolute;
+    if (isIOS()) {
+      return;
+    }
+    this.invalidateTrackCache();
+    const media = this.element;
+    if (!(media instanceof HTMLMediaElement)) {
+      return;
+    }
+    const staged = media.querySelector("source");
+    const stagedSrc = staged?.getAttribute("src") ?? staged?.src ?? "";
+    let sameSrc = false;
+    if (stagedSrc) {
+      try {
+        sameSrc = this.resolveMediaSourceUrl(stagedSrc) === absolute;
+      } catch {
+        sameSrc = stagedSrc === absolute;
+      }
+    }
+    if (!sameSrc) {
+      this.mountNativeSourceOnElement(media, absolute, mimeType);
+    } else if (mimeType && staged && staged.type !== mimeType) {
+      staged.type = mimeType;
+    }
+    this.currentSource = absolute;
+  }
+  /**
+   * iOS playlist tap: bind `<source type>` in the user gesture (matches TYPO3 single-video markup).
+   * Text tracks must not be on the element yet — see {@link PlaylistManager.attachIosTextTracksAfterMediaLoad}.
+   */
+  bindIosPlaylistMediaInUserGesture(media, absolute, mimeType) {
+    media.querySelectorAll("track").forEach((node) => node.remove());
+    this.mountNativeSourceOnElement(media, absolute, mimeType);
+    this.invalidateTrackCache();
+    this._pendingSource = absolute;
+    this.currentSource = absolute;
+  }
+  /**
+   * iOS native MP4/HLS: {@link HTMLMediaElement.play} in the user-gesture turn.
+   * Prefer this over {@link Renderer.play} for playlists — WebKit rejects when
+   * the element has no selected resource (NotSupportedError, rs=0 ns=3).
+   */
+  iosNativePlayInUserGesture(src, mimeType) {
+    if (!src) {
+      this.log("iosNativePlay: missing src", "warn");
+      return false;
+    }
+    const absolute = this.resolveMediaSourceUrl(src);
+    const media = this.element;
+    if (!(media instanceof HTMLMediaElement)) {
+      this.log("iosNativePlay: element is not HTMLMediaElement", "warn");
+      return false;
+    }
+    if (media.tagName === "VIDEO") {
+      media.setAttribute("playsinline", "");
+      media.setAttribute("webkit-playsinline", "");
+    }
+    this.bindIosPlaylistMediaInUserGesture(media, absolute, mimeType);
+    const snap = () => {
+      const staged = media.querySelector("source");
+      const href = media.currentSrc || staged?.src || media.src || absolute;
+      return `rs=${media.readyState} ns=${media.networkState} paused=${media.paused} src=${href}`;
+    };
+    const stagedSource = media.querySelector("source");
+    if (!stagedSource?.src && !media.src && !absolute) {
+      this.log(`iosNativePlay: no source on element — ${snap()}`, "warn");
+      return false;
+    }
+    const attachTextTracks = () => {
+      this.playlistManager?.attachIosTextTracksAfterMediaLoad?.();
+    };
+    media.addEventListener("loadedmetadata", attachTextTracks, { once: true });
+    const renderer = this.renderer;
+    if (renderer && "media" in renderer) {
+      renderer.media = media;
+    }
+    try {
+      const promise = renderer?.rendererType === "html5" && typeof renderer.play === "function" ? renderer.play() : media.play();
+      if (promise !== void 0) {
+        promise.catch((error) => {
+          const err = error;
+          this.endPreservedPlaybackDuringRendererInit();
+          this.state.buffering = false;
+          this.state.playing = false;
+          this.state.paused = true;
+          this.log(
+            `Play failed: ${err.name ?? "Error"} ${err.message ?? ""} | ${snap()}`.trim(),
+            "warn"
+          );
+          this.syncPlaybackUiFromMediaElement?.();
+        });
+      }
+      return true;
+    } catch (error) {
+      const err = error;
+      this.log(
+        `Play failed: ${err.name ?? "Error"} ${err.message ?? ""} | ${snap()}`.trim(),
+        "warn"
+      );
+      return false;
     }
   }
   /**
@@ -8320,16 +8917,43 @@ var Player = class _Player extends EventEmitter {
   }
   // Playback controls
   play() {
+    const playlist = this.playlistManager;
+    this.log("play() enter", "debug");
+    if (this._rendererInitInFlight) {
+      this.log("play() deferred: renderer init in flight", "debug");
+      const tracks2 = playlist?.tracks;
+      if (Array.isArray(tracks2) && tracks2.length > 0 && this.element.paused) {
+        const index = playlist.currentIndex >= 0 ? playlist.currentIndex : 0;
+        if (playlist.tryPrimeNativePlaybackDuringInit(index)) {
+          this.log("play() primed on media element during renderer init (iOS)", "debug");
+          this._playRequestedDuringRendererInit = true;
+          return;
+        }
+      }
+      this._playRequestedDuringRendererInit = true;
+      return;
+    }
+    if (this._switchingRenderer) {
+      this.log("play() blocked: switching renderer", "debug");
+      return;
+    }
+    if (playlist?.isChangingTrack) {
+      this.log("play() queued: isChangingTrack", "debug");
+      playlist.queuePlayWhenTrackReady();
+      return;
+    }
+    const tracks = playlist?.tracks;
+    if (Array.isArray(tracks) && tracks.length > 0 && this.element.paused) {
+      const index = playlist.currentIndex >= 0 ? playlist.currentIndex : 0;
+      if (playlist.canResumeCurrentTrack(index)) {
+        this.renderer?.play();
+        return;
+      }
+      playlist.startUserPlayback(index);
+      return;
+    }
     if (this.renderer) {
       this.renderer.play();
-      return;
-    }
-    if (this._switchingRenderer || this.playlistManager?.isChangingTrack) {
-      return;
-    }
-    if (this.playlistManager && Array.isArray(this.playlistManager.tracks) && this.playlistManager.tracks.length > 0) {
-      const index = this.playlistManager.currentIndex >= 0 ? this.playlistManager.currentIndex : 0;
-      this.playlistManager.play(index, true);
     }
   }
   pause() {
@@ -8342,7 +8966,11 @@ var Player = class _Player extends EventEmitter {
     this.seek(0);
   }
   toggle() {
-    if (this.state.playing) {
+    const rendererType = this.renderer?.rendererType;
+    const useElement = Boolean(this.renderer) && (rendererType === "html5" || rendererType === "hls" || rendererType === "dash");
+    const playing = useElement ? !this.element.paused && !this.element.ended : this.state.playing;
+    this.log(`toggle() playing=${playing}`, "debug");
+    if (playing) {
       this.pause();
     } else {
       this.play();
@@ -8498,8 +9126,8 @@ var Player = class _Player extends EventEmitter {
   enterFullscreen() {
     const elem = this.container;
     let fullscreenPromise = null;
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
-    if (isIOS) {
+    const isIOS2 = /iPad|iPhone|iPod/.test(navigator.userAgent) || navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+    if (isIOS2) {
       this._enablePseudoFullscreen();
       return;
     }
@@ -8827,12 +9455,20 @@ var Player = class _Player extends EventEmitter {
     return this.state.fullscreen;
   }
   handleError(error) {
-    if (this._switchingRenderer || this._isFallingBack) {
-      this.log("Suppressing error during renderer switch:", error, "debug");
+    const mediaEl = this.element instanceof HTMLMediaElement ? this.element : null;
+    const detail = formatUnknownForLog(error, mediaEl);
+    const MediaErrorCtor = typeof globalThis.MediaError !== "undefined" ? globalThis.MediaError : null;
+    const mediaCode = (MediaErrorCtor && error instanceof MediaErrorCtor ? error.code : void 0) ?? (error && typeof error === "object" && "code" in error ? error.code : void 0) ?? mediaEl?.error?.code;
+    if (mediaCode === 1) {
+      this.log(`Media error (aborted, ignored): ${detail}`, "debug");
+      return;
+    }
+    if (this._switchingRenderer || this._isFallingBack || this._preservePlaybackDuringRendererInit) {
+      this.log(`Suppressing error during renderer switch: ${detail}`, "debug");
       return;
     }
     if (this._fallbackSources && this._fallbackSources.length > 0) {
-      this.log("Renderer error, attempting fallback:", error, "warn");
+      this.log(`Renderer error, attempting fallback: ${detail}`, "warn");
       this._fallbackToNextSource().then((success) => {
         if (!success) {
           this.log("All fallback sources exhausted", "error");
@@ -8844,7 +9480,14 @@ var Player = class _Player extends EventEmitter {
       });
       return;
     }
-    this.log("Error:", error, "error");
+    this.state.buffering = false;
+    if (mediaCode === 4 && mediaEl) {
+      const href = mediaEl.currentSrc || mediaEl.src || this.currentSource || "";
+      this.log(`Error: ${detail} | attempted=${href}`, "error");
+    } else {
+      this.log(`Error: ${detail}`, "error");
+    }
+    this.syncPlaybackUiFromMediaElement?.();
     this.emit("error", error);
     if (this.options.onError) {
       this.options.onError.call(this, error);
@@ -8852,7 +9495,8 @@ var Player = class _Player extends EventEmitter {
   }
   // Logging
   log(...messages) {
-    if (!this.options.debug) {
+    const overlayEnabled = DebugOverlay.shouldEnable(this.options);
+    if (!this.options.debug && !overlayEnabled) {
       return;
     }
     let type = "log";
@@ -8868,10 +9512,23 @@ var Player = class _Player extends EventEmitter {
       messages = [""];
     }
     const consoleFn = consoleObj[type];
-    if (typeof consoleFn === "function") {
-      consoleFn("[VidPly]", ...messages);
-    } else {
-      console.log("[VidPly]", ...messages);
+    const mediaEl = this.element instanceof HTMLMediaElement ? this.element : null;
+    const text = messages.map((m) => formatUnknownForLog(m, mediaEl)).join(" ");
+    if (this.options.debug) {
+      if (typeof consoleFn === "function") {
+        consoleFn("[VidPly]", ...messages);
+      } else {
+        console.log("[VidPly]", ...messages);
+      }
+    }
+    if (overlayEnabled) {
+      if (!this.debugOverlay) {
+        this.debugOverlay = DebugOverlay.acquire(this);
+        this.debugOverlay.mount();
+      } else {
+        this.debugOverlay.setActivePlayer(this);
+      }
+      this.debugOverlay.append(`[${type}] ${text}`, this);
     }
   }
   /**
@@ -8890,6 +9547,10 @@ var Player = class _Player extends EventEmitter {
   // global `Player.instances` registry.
   destroy() {
     this.log("Destroying player");
+    if (this.debugOverlay) {
+      this.debugOverlay.destroy();
+      this.debugOverlay = null;
+    }
     try {
       this._lifecycleController.abort();
     } catch (err) {
@@ -9086,6 +9747,14 @@ var PlaylistManager = class _PlaylistManager {
   // deferred callback (auto-play, guard-flag resets, live-region clears,
   // focus moves) that would otherwise run against a torn-down player.
   _timers = /* @__PURE__ */ new Set();
+  /** Set when the user taps play while {@link isChangingTrack} is still true. */
+  _pendingUserPlay = false;
+  /** Supersedes in-flight {@link loadTrack} / {@link play} when the user picks another track. */
+  _trackLoadGeneration = 0;
+  /** Prefetch track 0 (src + renderer) before the first user tap. */
+  _trackPreparePromise = null;
+  /** iOS: caption/chapter <track> nodes are attached after the media resource loads. */
+  _iosPendingTextTracks = null;
   constructor(player, options = {}) {
     this.player = player;
     this.tracks = [];
@@ -9282,8 +9951,10 @@ var PlaylistManager = class _PlaylistManager {
       audioDescriptionSrc: track.audioDescriptionSrc || null,
       signLanguageSrc: track.signLanguageSrc || null
     };
-    await this.player.load(loadConfig);
-    if (autoPlay) {
+    await this.player.load({
+      ...loadConfig
+    });
+    if (autoPlay && !isIOS()) {
       this.player.play();
     }
     if (this.hostElement) {
@@ -9514,6 +10185,393 @@ var PlaylistManager = class _PlaylistManager {
       this.player.controlBar.updateDownloadButton();
     }
   }
+  /** Normalize a manifest/element media URL for comparison. */
+  static resolveMediaUrl(src) {
+    try {
+      return new URL(src, window.location.href).href;
+    } catch {
+      return src;
+    }
+  }
+  mediaSourcesMatch(a, b) {
+    if (!a || !b) {
+      return false;
+    }
+    return _PlaylistManager.resolveMediaUrl(a) === _PlaylistManager.resolveMediaUrl(b);
+  }
+  /** Whether the `<video>` / `<audio>` element already points at `src`. */
+  elementHasMediaSource(src) {
+    if (!src) {
+      return false;
+    }
+    const element = this.player.element;
+    const sourceEl = element.querySelector("source");
+    const fromSource = sourceEl instanceof HTMLSourceElement ? sourceEl.src || sourceEl.getAttribute("src") || "" : "";
+    const current = element.currentSrc || fromSource || element.getAttribute("src") || element.src || "";
+    if (!current) {
+      return false;
+    }
+    return this.mediaSourcesMatch(current, src);
+  }
+  /** Pause → play on the same track without re-binding media (iOS playlist). */
+  canResumeCurrentTrack(index) {
+    if (!this.player.renderer || this.isChangingTrack) {
+      return false;
+    }
+    const track = this.tracks[index];
+    if (!track) {
+      return false;
+    }
+    const playback = this.resolveTrackPlaybackSource(track, {
+      preferNativeElement: isIOS()
+    });
+    if (!playback.src) {
+      return false;
+    }
+    if (!this.canPlayTrackWithoutReload(playback.src)) {
+      return false;
+    }
+    const media = this.player.element;
+    if (!(media instanceof HTMLMediaElement)) {
+      return false;
+    }
+    return media.readyState > 0 || media.currentTime > 0;
+  }
+  /**
+   * The renderer is active and the media element points at this track's URL.
+   * Does not require {@link HTMLMediaElement.readyState} — single-video players
+   * call {@link Renderer.play} without that check (required for iPhone playlists).
+   */
+  isTrackSourceAttached(index) {
+    const track = this.tracks[index];
+    if (!track?.src || !this.player.renderer) {
+      return false;
+    }
+    return this.mediaSourcesMatch(this.player.currentSource, track.src) || this.elementHasMediaSource(track.src);
+  }
+  /**
+   * User can start playback with {@link Renderer.play} only — skip {@link Player.load}.
+   */
+  canPlayTrackWithoutReload(srcToLoad) {
+    return this.isTrackSourceAttachedForSrc(srcToLoad);
+  }
+  isTrackSourceAttachedForSrc(srcToLoad) {
+    if (!srcToLoad || !this.player.renderer) {
+      return false;
+    }
+    if (this.player.shouldChangeRenderer(srcToLoad)) {
+      return false;
+    }
+    return this.elementHasMediaSource(srcToLoad);
+  }
+  /**
+   * Track metadata and renderer are loaded for this index (media may still be paused).
+   */
+  isTrackMediaReady(index) {
+    if (!this.isTrackSourceAttached(index)) {
+      return false;
+    }
+    return this.player.element.readyState > 0;
+  }
+  /** Resolve `src` / `sources[]` the same way single-video `<source>` negotiation does. */
+  resolveTrackPlaybackSource(track, options) {
+    const negotiated = negotiateMediaSources(candidatesFromTrack(track), options);
+    const match = track.sources?.find((s) => s.src === negotiated.src) ?? (track.src === negotiated.src ? { src: track.src, type: track.type } : null);
+    this.player._fallbackSources = negotiated.fallbacks.length > 0 ? negotiated.fallbacks.map((s) => ({
+      src: s.src,
+      type: s.type ?? ""
+    })) : [];
+    return { src: negotiated.src, type: match?.type ?? track.type };
+  }
+  /** True when Safari can drive this URL via a plain `src` on the media element. */
+  usesNativeElementPlayback(src) {
+    if (!src) {
+      return false;
+    }
+    if (this.player.isExternalRendererUrl(src)) {
+      return canPlayNativeHls() && src.includes(".m3u8");
+    }
+    return true;
+  }
+  /** Safari/iOS inline video (same requirement as single-video players). */
+  ensureInlineVideoPlaybackAttributes() {
+    if (!isIOS()) {
+      return;
+    }
+    const element = this.player.element;
+    if (element.tagName === "VIDEO") {
+      element.setAttribute("playsinline", "");
+      element.setAttribute("webkit-playsinline", "");
+    }
+  }
+  /**
+   * Start playback from {@link Player.play} when the playlist is paused.
+   */
+  startUserPlayback(index) {
+    void this.play(index, true);
+  }
+  /**
+   * iOS: call {@link HTMLMediaElement.play} in the current user-gesture turn while
+   * {@link Player.initializeRenderer} is still running (deferLoad prefetch).
+   */
+  tryPrimeNativePlaybackDuringInit(index) {
+    if (!isIOS()) {
+      return false;
+    }
+    const track = this.tracks[index];
+    if (!track) {
+      return false;
+    }
+    const playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: true });
+    if (!playback.src || !this.usesNativeElementPlayback(playback.src)) {
+      return false;
+    }
+    this.player.beginPreservedPlaybackDuringRendererInit(playback.src);
+    return this.player.iosNativePlayInUserGesture(playback.src, playback.type);
+  }
+  /** Attach deferred VTT tracks once iOS has selected the media resource. */
+  attachIosTextTracksAfterMediaLoad() {
+    const pending = this._iosPendingTextTracks;
+    if (!pending?.length) {
+      return;
+    }
+    const media = this.player.element;
+    if (!(media instanceof HTMLMediaElement)) {
+      return;
+    }
+    if (media.querySelector("track[src]")) {
+      this._iosPendingTextTracks = null;
+      return;
+    }
+    pending.forEach((tc) => {
+      if (!tc?.src) {
+        return;
+      }
+      const el = document.createElement("track");
+      el.src = tc.src;
+      el.kind = tc.kind || "captions";
+      el.srclang = tc.srclang || "en";
+      el.label = tc.label || tc.srclang || "Track";
+      if (tc.default) {
+        el.default = true;
+      }
+      if (tc.describedSrc) {
+        el.setAttribute("data-desc-src", tc.describedSrc);
+      }
+      media.appendChild(el);
+    });
+    this._iosPendingTextTracks = null;
+    this.player.invalidateTrackCache?.();
+    if (this.player.captionManager && typeof this.player.captionManager.loadTracks === "function") {
+      try {
+        this.player.captionManager.tracks = [];
+        this.player.captionManager.currentTrack = null;
+        this.player.captionManager.loadTracks();
+      } catch {
+      }
+    }
+  }
+  completeNativeGesturePlayUi(index, track) {
+    if (track.src && !this.player.originalSrc) {
+      this.player.originalSrc = track.src;
+    }
+    if (this.currentIndex !== index) {
+      this.selectTrack(index);
+    } else {
+      this.updateTrackInfo(track);
+      this.updatePlaylistUI();
+      this.refreshDownloadButton();
+    }
+    this.updatePlaylistUI();
+    this.refreshDownloadButton();
+    this.player.emit("playlisttrackchange", {
+      index,
+      item: track,
+      total: this.tracks.length
+    });
+    this.isChangingTrack = false;
+    this.player.syncPlaybackUiFromMediaElement?.();
+    if (!this.player.element.paused) {
+      this.player.hidePosterOverlay?.();
+    }
+  }
+  /**
+   * Stage `src` and init renderer at rest (deferLoad playlists — all platforms).
+   */
+  prepareTrack(index) {
+    if (this._trackPreparePromise) {
+      return this._trackPreparePromise;
+    }
+    this._trackPreparePromise = (async () => {
+      if (index < 0 || index >= this.tracks.length) {
+        return;
+      }
+      const track = this.tracks[index];
+      if (!track) {
+        return;
+      }
+      const preferNative = isIOS();
+      const playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: preferNative });
+      if (!playback.src) {
+        return;
+      }
+      if (!this.usesNativeElementPlayback(playback.src)) {
+        await this.loadTrack(index);
+        return;
+      }
+      this.selectTrack(index);
+      this.ensureInlineVideoPlaybackAttributes();
+      this.player.stagePlaylistNativeSource(playback.src, playback.type);
+      if (!this.player.renderer || this.player.shouldChangeRenderer(playback.src)) {
+        await this.player.initializeRenderer();
+      }
+    })().catch(() => {
+      this._trackPreparePromise = null;
+    });
+    return this._trackPreparePromise;
+  }
+  /**
+   * Native MP4/HLS: {@link Renderer.play} in the user-gesture turn, then playlist UI.
+   */
+  playNativeInUserGesture(index, track, srcToLoad, mimeType) {
+    if (isIOS()) {
+      this.ensureInlineVideoPlaybackAttributes();
+      const finishUi = () => {
+        this.player.endPreservedPlaybackDuringRendererInit();
+        this.completeNativeGesturePlayUi(index, track);
+        this.fulfillPendingUserPlay();
+      };
+      const abortGesturePlay = () => {
+        this.player.endPreservedPlaybackDuringRendererInit();
+        this.isChangingTrack = false;
+      };
+      const rendererReady = this.player.renderer && !this.player.shouldChangeRenderer(srcToLoad);
+      if (rendererReady && this.canResumeCurrentTrack(index)) {
+        this.player.renderer.play();
+        finishUi();
+        return;
+      }
+      if (rendererReady) {
+        if (!this.player.iosNativePlayInUserGesture(srcToLoad, mimeType)) {
+          abortGesturePlay();
+          return;
+        }
+        finishUi();
+        return;
+      }
+      const needsRendererInit = !this.player.renderer && !this.player.isRendererInitializing();
+      if (needsRendererInit) {
+        this.player.beginPreservedPlaybackDuringRendererInit(srcToLoad);
+        if (!this.player.iosNativePlayInUserGesture(srcToLoad, mimeType)) {
+          abortGesturePlay();
+          return;
+        }
+        void this.player.initializeRenderer().then(finishUi).catch(abortGesturePlay);
+        return;
+      }
+      const needsRendererSwap = Boolean(this.player.renderer) && this.player.shouldChangeRenderer(srcToLoad);
+      if (needsRendererSwap) {
+        if (this.currentIndex !== index) {
+          this.selectTrack(index);
+        }
+        this.player.beginPreservedPlaybackDuringRendererInit(
+          this.player.resolveMediaSourceUrl(srcToLoad)
+        );
+        this.player.teardownRendererForNativeGestureSwap();
+        if (!this.player.iosNativePlayInUserGesture(srcToLoad, mimeType)) {
+          abortGesturePlay();
+          return;
+        }
+        void this.player.initializeRenderer().then(finishUi).catch(abortGesturePlay);
+        return;
+      }
+      if (this.player.isRendererInitializing()) {
+        this.player.beginPreservedPlaybackDuringRendererInit(srcToLoad);
+        if (this.player.element.paused) {
+          if (!this.player.iosNativePlayInUserGesture(srcToLoad, mimeType)) {
+            abortGesturePlay();
+            return;
+          }
+        }
+        void (this._trackPreparePromise ?? Promise.resolve()).then(finishUi);
+        return;
+      }
+      abortGesturePlay();
+      return;
+    }
+    this.ensureInlineVideoPlaybackAttributes();
+    this.player.stagePlaylistNativeSource(srcToLoad, mimeType);
+    if (!this.player.renderer) {
+      this.player.log("play: renderer not ready — wait for prepareTrack()", "warn");
+      this.isChangingTrack = false;
+      return;
+    }
+    if (this.player.shouldChangeRenderer(srcToLoad)) {
+      this.player.log("play: renderer swap required — use load path", "warn");
+      this.isChangingTrack = false;
+      return;
+    }
+    if (track.src && !this.player.originalSrc) {
+      this.player.originalSrc = track.src;
+    }
+    this.player.renderer.play();
+    this.player.hidePosterOverlay?.();
+    this.completeNativeGesturePlayUi(index, track);
+    this.fulfillPendingUserPlay();
+  }
+  /** User tapped play while a track was still loading — run play when load finishes. */
+  queuePlayWhenTrackReady() {
+    this._pendingUserPlay = true;
+  }
+  /** Called when {@link Player.load} / track selection finishes (desktop / iPad). */
+  tryConsumePendingUserPlay() {
+    this.fulfillPendingUserPlay();
+  }
+  fulfillPendingUserPlay() {
+    if (!this._pendingUserPlay) {
+      return;
+    }
+    this._pendingUserPlay = false;
+    if (!this.player.element.paused) {
+      return;
+    }
+    if (isIOS()) {
+      this.player.log("pending play skipped on iOS (no user gesture)", "debug");
+      return;
+    }
+    if (this.player.renderer) {
+      this.player.renderer.play();
+    }
+  }
+  finishPlayAfterLoad(loadGeneration, index, track, failed) {
+    if (loadGeneration !== this._trackLoadGeneration) {
+      return;
+    }
+    if (failed) {
+      this.isChangingTrack = false;
+      return;
+    }
+    this.updateTrackInfo(track);
+    this.updatePlaylistUI();
+    this.refreshDownloadButton();
+    this.player.emit("playlisttrackchange", {
+      index,
+      item: track,
+      total: this.tracks.length
+    });
+    if (!isIOS() && this.player.element.paused && this.player.options.deferLoad && typeof this.player.ensureLoaded === "function") {
+      this.player.ensureLoaded();
+    }
+    this.isChangingTrack = false;
+    this.fulfillPendingUserPlay();
+    this.player.syncPlaybackUiFromMediaElement();
+    if (!this.player.element.paused) {
+      this.player.hidePosterOverlay();
+    } else if (!isIOS()) {
+      this.ensureInlineVideoPlaybackAttributes();
+      this.player.renderer?.play();
+    }
+  }
   /**
    * Load a playlist
    * @param {Array} tracks - Array of track objects
@@ -9528,9 +10586,15 @@ var PlaylistManager = class _PlaylistManager {
     if (this.playlistPanel) {
       this.renderPlaylist();
     }
+    if (isIOS() && tracks.some((t) => t.src?.includes(".m3u8"))) {
+      void import("./vidply.HLSRenderer-UV2QBL7Y.js");
+    }
     if (tracks.length > 0) {
       if (this.options.autoPlayFirst) {
-        this.play(0);
+        void this.play(0).catch(() => {
+        });
+      } else if (this.player?.options?.deferLoad) {
+        void this.prepareTrack(0);
       } else {
         void this.loadTrack(0).catch(() => {
         });
@@ -9552,13 +10616,14 @@ var PlaylistManager = class _PlaylistManager {
     }
     const track = this.tracks[index];
     if (!track) return;
+    const loadGeneration = ++this._trackLoadGeneration;
     this.selectTrack(index);
-    this.isChangingTrack = true;
     if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
       const currentMediaType = this.player ? this.player.element.tagName === "AUDIO" ? "audio" : "video" : null;
       const newMediaType = this.getTrackMediaType(track);
       const newElementType = newMediaType === "audio" || newMediaType === "soundcloud" ? "audio" : "video";
       if (currentMediaType !== newElementType) {
+        this.isChangingTrack = true;
         await this.recreatePlayerForTrack(track, false);
         this.selectTrack(index);
         this.player.emit("playlisttrackchange", {
@@ -9567,32 +10632,47 @@ var PlaylistManager = class _PlaylistManager {
           total: this.tracks.length
         });
         this.setManagedTimeout(() => {
-          this.isChangingTrack = false;
+          if (loadGeneration === this._trackLoadGeneration) {
+            this.isChangingTrack = false;
+          }
         }, 150);
         return;
       }
     }
-    const loadPromise = this.player.load({
-      src: track.src ?? "",
-      type: track.type,
-      poster: track.poster,
-      tracks: track.tracks || [],
-      audioDescriptionSrc: track.audioDescriptionSrc || null,
-      signLanguageSrc: track.signLanguageSrc || null,
-      signLanguageSources: track.signLanguageSources || {}
-    });
-    if (this.player?.options?.deferLoad && typeof this.player.ensureLoaded === "function") {
-      Promise.resolve(loadPromise).then(() => this.player?.ensureLoaded?.()).catch(() => {
+    try {
+      const playback = this.resolveTrackPlaybackSource(track);
+      await this.player.load({
+        src: playback.src || track.src || "",
+        type: playback.type ?? track.type,
+        poster: track.poster,
+        tracks: track.tracks || [],
+        audioDescriptionSrc: track.audioDescriptionSrc || null,
+        signLanguageSrc: track.signLanguageSrc || null,
+        signLanguageSources: track.signLanguageSources || {}
       });
+      if (loadGeneration !== this._trackLoadGeneration) {
+        return;
+      }
+      if (!isIOS() && this.player?.options?.deferLoad && typeof this.player.ensureLoaded === "function") {
+        this.player.ensureLoaded();
+      }
+    } catch {
+      if (loadGeneration === this._trackLoadGeneration) {
+        this.isChangingTrack = false;
+        this.fulfillPendingUserPlay();
+      }
+      return;
+    }
+    if (loadGeneration !== this._trackLoadGeneration) {
+      return;
     }
     this.player.emit("playlisttrackchange", {
       index,
       item: track,
       total: this.tracks.length
     });
-    this.setManagedTimeout(() => {
-      this.isChangingTrack = false;
-    }, 150);
+    this.isChangingTrack = false;
+    this.fulfillPendingUserPlay();
   }
   /**
    * Select a track (UI/selection only; does NOT set the media src / does NOT initialize renderer)
@@ -9647,7 +10727,9 @@ var PlaylistManager = class _PlaylistManager {
       }
       const existing = Array.from(this.player.element.querySelectorAll("track"));
       existing.forEach((t) => t.remove());
-      if (Array.isArray(track.tracks)) {
+      if (isIOS()) {
+        this._iosPendingTextTracks = Array.isArray(track.tracks) ? track.tracks : null;
+      } else if (Array.isArray(track.tracks)) {
         track.tracks.forEach((tc) => {
           if (!tc?.src) return;
           const el = document.createElement("track");
@@ -9706,15 +10788,15 @@ var PlaylistManager = class _PlaylistManager {
    * @param {number} index - Track index
    * @param {boolean} userInitiated - Whether this was triggered by user action (default: false)
    */
-  async play(index, _userInitiated = false) {
+  async play(index, userInitiated = false) {
     if (index < 0 || index >= this.tracks.length) {
       console.warn("VidPly Playlist: Invalid track index", index);
       return;
     }
     const track = this.tracks[index];
     if (!track) return;
+    const loadGeneration = ++this._trackLoadGeneration;
     this.isChangingTrack = true;
-    this.currentIndex = index;
     if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
       const currentMediaType = this.player ? this.player.element.tagName === "AUDIO" ? "audio" : "video" : null;
       const newMediaType = this.getTrackMediaType(track);
@@ -9730,44 +10812,47 @@ var PlaylistManager = class _PlaylistManager {
           total: this.tracks.length
         });
         this.setManagedTimeout(() => {
-          this.isChangingTrack = false;
+          if (loadGeneration === this._trackLoadGeneration) {
+            this.isChangingTrack = false;
+          }
         }, 150);
         return;
       }
     }
-    let srcToLoad = track.src;
+    const preferNative = isIOS();
+    let playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: preferNative });
+    let srcToLoad = playback.src;
+    let typeToLoad = playback.type;
     if (this.player?.audioDescriptionManager?.desiredState && track.audioDescriptionSrc) {
-      this.player.originalSrc = track.src ?? null;
-      this.player.audioDescriptionManager.originalSource = track.src ?? null;
+      this.player.originalSrc = playback.src || track.src || null;
+      this.player.audioDescriptionManager.originalSource = playback.src || track.src || null;
       this.player.audioDescriptionManager.src = track.audioDescriptionSrc;
       srcToLoad = track.audioDescriptionSrc;
+      typeToLoad = track.type;
     }
-    try {
-      await this.player.load({
-        src: srcToLoad ?? "",
-        type: track.type,
-        poster: track.poster,
-        tracks: track.tracks || [],
-        audioDescriptionSrc: track.audioDescriptionSrc || null,
-        signLanguageSrc: track.signLanguageSrc || null,
-        signLanguageSources: track.signLanguageSources || {}
-      });
-    } catch {
-      this.isChangingTrack = false;
+    if (userInitiated && this.usesNativeElementPlayback(srcToLoad)) {
+      this.playNativeInUserGesture(index, track, srcToLoad ?? "", typeToLoad);
       return;
     }
-    this.updateTrackInfo(track);
-    this.updatePlaylistUI();
-    this.refreshDownloadButton();
-    this.player.emit("playlisttrackchange", {
-      index,
-      item: track,
-      total: this.tracks.length
-    });
-    this.player.play();
-    this.setManagedTimeout(() => {
-      this.isChangingTrack = false;
-    }, 50);
+    this.selectTrack(index);
+    const loadConfig = {
+      src: srcToLoad ?? "",
+      type: typeToLoad,
+      poster: track.poster,
+      tracks: track.tracks || [],
+      audioDescriptionSrc: track.audioDescriptionSrc || null,
+      signLanguageSrc: track.signLanguageSrc || null,
+      signLanguageSources: track.signLanguageSources || {}
+    };
+    try {
+      await this.player.load(loadConfig);
+    } catch {
+      if (loadGeneration === this._trackLoadGeneration) {
+        this.isChangingTrack = false;
+      }
+      return;
+    }
+    this.finishPlayAfterLoad(loadGeneration, index, track, false);
   }
   /**
    * Play next track
@@ -9829,7 +10914,7 @@ var PlaylistManager = class _PlaylistManager {
       return;
     }
     console.error("VidPly Playlist: Track error", e);
-    if (this.options.autoAdvance) {
+    if (this.options.autoAdvance && !isIOS()) {
       this.setManagedTimeout(() => {
         this.next();
       }, 1e3);

@@ -19,6 +19,7 @@
     "build:css": "node build/build-css.js",
     "watch": "node build/watch.js",
     "clean": "node build/clean.js",
+    "ship:mpc-vidply": "node build/ship-to-mpc-vidply.js",
     "lint": "eslint \"src/**/*.{ts,js}\" \"tests/**/*.{ts,js,mjs}\"",
     "lint:fix": "eslint --fix \"src/**/*.{ts,js}\" \"tests/**/*.{ts,js,mjs}\"",
     "test": "vitest run",

@@ -799,6 +799,8 @@ export class DASHRenderer implements Renderer {
 
     if (promise !== undefined) {
       promise.catch(error => {
+        this.player.state.buffering = false;
+        this.player.emit('canplay');
         this.player.log('Play failed:', error, 'warn');
       });
     }

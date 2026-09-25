@@ -3661,6 +3661,7 @@ export class ControlBar {
             this.updateLiveControls();
             this.ensureQualityButton();
             this.updateQualityIndicator();
+            this.syncCaptionControlsFromTracks();
             // Update preview video source when metadata loads (for playlists)
             this.updatePreviewVideoSource();
         });
@@ -3942,6 +3943,26 @@ export class ControlBar {
         }
         
         this.player.log('Quality button added dynamically', 'info');
+        this.checkOverflow();
+    }
+
+    /**
+     * Add caption-related controls once text tracks exist (HTML5 deferLoad, HLS, playlists).
+     */
+    syncCaptionControlsFromTracks(): void {
+        if (!this.hasCaptionTracks()) {
+            return;
+        }
+
+        if (this.player.options.captionsButton && !this.controls.captions) {
+            this.ensureCaptionsButton();
+        }
+        if (this.player.options.captionStyleButton && !this.controls.captionStyle) {
+            this.ensureCaptionStyleButton();
+        }
+        if (this.player.options.transcriptButton && !this.controls.transcript) {
+            this.ensureTranscriptButton();
+        }
     }
 
     /**
@@ -3971,6 +3992,7 @@ export class ControlBar {
         }
         
         this.player.log('Captions button added dynamically for HLS subtitles', 'info');
+        this.checkOverflow();
     }
 
     /**
@@ -3998,6 +4020,7 @@ export class ControlBar {
         }
         
         this.player.log('Caption style button added dynamically for HLS subtitles', 'info');
+        this.checkOverflow();
     }
 
     /**
@@ -4041,6 +4064,7 @@ export class ControlBar {
         }
         
         this.player.log('Transcript button added dynamically for HLS subtitles', 'info');
+        this.checkOverflow();
     }
 
     /**
@@ -4083,6 +4107,8 @@ export class ControlBar {
             delete this.controls.transcript;
             this.player.log('Transcript button removed - no subtitle tracks', 'info');
         }
+
+        this.checkOverflow();
     }
 
     /**

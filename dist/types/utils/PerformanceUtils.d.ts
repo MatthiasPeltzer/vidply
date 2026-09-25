@@ -3,6 +3,8 @@ export declare function throttle<T extends (...args: unknown[]) => void>(func: T
 export declare function isMobile(breakpoint?: number): boolean;
 /** iOS / iPadOS (including iPad desktop mode reporting as MacIntel). */
 export declare function isIOS(): boolean;
+/** True when Safari should play HLS via the native `<video>` URL (no hls.js MSE). */
+export declare function canPlayNativeHls(): boolean;
 export declare function isIPhone(): boolean;
 export declare function isLikelyUnsupportedYoutubeEmbedHost(hostname?: string): boolean;
 export declare function shouldUseYoutubeIosLanFallback(): boolean;

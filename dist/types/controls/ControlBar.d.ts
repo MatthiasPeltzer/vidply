@@ -259,6 +259,10 @@ export declare class ControlBar {
      */
     ensureQualityButton(): void;
     /**
+     * Add caption-related controls once text tracks exist (HTML5 deferLoad, HLS, playlists).
+     */
+    syncCaptionControlsFromTracks(): void;
+    /**
      * Dynamically add captions button if HLS subtitle tracks become available
      * Button order: Chapters, Captions, Caption Style, Speed, AD, Transcript, Playlist, Sign, Quality, PiP, Fullscreen
      */

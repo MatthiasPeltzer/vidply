@@ -36,6 +36,7 @@ export declare class HLSRenderer implements Renderer {
     private _clearTimers;
     init(): Promise<void>;
     canPlayNatively(): boolean;
+    private elementSourceMatches;
     initNative(): Promise<void>;
     /**
      * Listen for HLS-exposed text tracks so captions/transcript buttons appear on native HLS.

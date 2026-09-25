@@ -31,6 +31,15 @@ export function isIOS(): boolean {
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
 
+/** True when Safari should play HLS via the native `<video>` URL (no hls.js MSE). */
+export function canPlayNativeHls(): boolean {
+  if (!isIOS()) {
+    return false;
+  }
+  const video = document.createElement('video');
+  return video.canPlayType('application/vnd.apple.mpegurl') !== '';
+}
+
 export function isIPhone(): boolean {
   return /iPhone|iPod/.test(navigator.userAgent);
 }

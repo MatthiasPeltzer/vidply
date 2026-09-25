@@ -170,6 +170,8 @@ export interface PlayerOptions {
      */
     metadataDirectives?: boolean | 'container' | 'global';
     debug: boolean;
+    /** On-screen log (also enabled with `?vidplyDebug=1` on the page URL). */
+    debugOverlay: boolean;
     classPrefix: string;
     iconType: string;
     pauseOthersOnPlay: boolean;

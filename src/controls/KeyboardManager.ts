@@ -125,6 +125,11 @@ export class KeyboardManager {
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
       return;
     }
+
+    // Let native button behavior handle Space/Enter (iOS control-bar taps).
+    if (target.tagName === 'BUTTON' || target.closest('button')) {
+      return;
+    }
     
     // Don't handle if focus is inside a menu (let menu handle its own keyboard navigation)
     const activeElement = document.activeElement;

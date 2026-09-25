@@ -8,8 +8,14 @@ import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 import { TimeUtils } from '../utils/TimeUtils.js';
 import { sanitizePosterUrl, toCssBackgroundImage } from '../utils/UrlSafe.js';
-import { reducedMotionScrollOptions, scrollIntoViewWithinScrollParent } from '../utils/PerformanceUtils.js';
+import {
+  canPlayNativeHls,
+  isIOS,
+  reducedMotionScrollOptions,
+  scrollIntoViewWithinScrollParent
+} from '../utils/PerformanceUtils.js';
 import { isPlaylistPanelRightDesktopViewport } from '../constants/layoutBreakpoints.js';
+import { candidatesFromTrack, negotiateMediaSources } from '../utils/MediaSourceNegotiation.js';
 import { TrackInfoView } from '../core/TrackInfoView.js';
 import type { TrackInfoData } from '../core/TrackInfoView.js';
 import type { Player } from '../core/Player.js';
@@ -27,6 +33,7 @@ type PlaylistTextTrack = {
 type PlaylistTrack = {
   src?: string;
   type?: string;
+  sources?: Array<{ src?: string; type?: string; label?: string }>;
   poster?: string;
   /** File this track offers for download (see `PlaylistTrack` in types/events.ts). */
   downloadUrl?: string;
@@ -104,6 +111,16 @@ export class PlaylistManager {
   // deferred callback (auto-play, guard-flag resets, live-region clears,
   // focus moves) that would otherwise run against a torn-down player.
   private _timers: Set<ReturnType<typeof setTimeout>> = new Set();
+  /** Set when the user taps play while {@link isChangingTrack} is still true. */
+  private _pendingUserPlay = false;
+  /** Supersedes in-flight {@link loadTrack} / {@link play} when the user picks another track. */
+  private _trackLoadGeneration = 0;
+
+  /** Prefetch track 0 (src + renderer) before the first user tap. */
+  private _trackPreparePromise: Promise<void> | null = null;
+
+  /** iOS: caption/chapter <track> nodes are attached after the media resource loads. */
+  private _iosPendingTextTracks: PlaylistTextTrack[] | null = null;
 
   constructor(player: Player, options: Record<string, unknown> = {}) {
     this.player = player;
@@ -399,9 +416,11 @@ export class PlaylistManager {
     // Await load so embed renderers (YouTube/Vimeo/SoundCloud) finish init
     // before we call play(). While load() runs the renderer is null; an early
     // play() would fall back into PlaylistManager.play() and load again.
-    await this.player.load(loadConfig);
+    await this.player.load({
+      ...loadConfig,
+    });
 
-    if (autoPlay) {
+    if (autoPlay && !isIOS()) {
       this.player.play();
     }
 
@@ -706,7 +725,498 @@ export class PlaylistManager {
       this.player.controlBar.updateDownloadButton();
     }
   }
-  
+
+  /** Normalize a manifest/element media URL for comparison. */
+  private static resolveMediaUrl(src: string): string {
+    try {
+      return new URL(src, window.location.href).href;
+    } catch {
+      return src;
+    }
+  }
+
+  private mediaSourcesMatch(
+    a: string | null | undefined,
+    b: string | null | undefined,
+  ): boolean {
+    if (!a || !b) {
+      return false;
+    }
+    return PlaylistManager.resolveMediaUrl(a) === PlaylistManager.resolveMediaUrl(b);
+  }
+
+  /** Whether the `<video>` / `<audio>` element already points at `src`. */
+  elementHasMediaSource(src: string | null | undefined): boolean {
+    if (!src) {
+      return false;
+    }
+    const element = this.player.element;
+    const sourceEl = element.querySelector('source');
+    const fromSource =
+      sourceEl instanceof HTMLSourceElement
+        ? sourceEl.src || sourceEl.getAttribute('src') || ''
+        : '';
+    const current =
+      element.currentSrc ||
+      fromSource ||
+      element.getAttribute('src') ||
+      element.src ||
+      '';
+    if (!current) {
+      return false;
+    }
+    return this.mediaSourcesMatch(current, src);
+  }
+
+  /** Pause → play on the same track without re-binding media (iOS playlist). */
+  canResumeCurrentTrack(index: number): boolean {
+    if (!this.player.renderer || this.isChangingTrack) {
+      return false;
+    }
+    const track = this.tracks[index];
+    if (!track) {
+      return false;
+    }
+    const playback = this.resolveTrackPlaybackSource(track, {
+      preferNativeElement: isIOS(),
+    });
+    if (!playback.src) {
+      return false;
+    }
+    if (!this.canPlayTrackWithoutReload(playback.src)) {
+      return false;
+    }
+    const media = this.player.element;
+    if (!(media instanceof HTMLMediaElement)) {
+      return false;
+    }
+    return media.readyState > 0 || media.currentTime > 0;
+  }
+
+  /**
+   * The renderer is active and the media element points at this track's URL.
+   * Does not require {@link HTMLMediaElement.readyState} — single-video players
+   * call {@link Renderer.play} without that check (required for iPhone playlists).
+   */
+  isTrackSourceAttached(index: number): boolean {
+    const track = this.tracks[index];
+    if (!track?.src || !this.player.renderer) {
+      return false;
+    }
+    return (
+      this.mediaSourcesMatch(this.player.currentSource, track.src) ||
+      this.elementHasMediaSource(track.src)
+    );
+  }
+
+  /**
+   * User can start playback with {@link Renderer.play} only — skip {@link Player.load}.
+   */
+  canPlayTrackWithoutReload(srcToLoad: string | null | undefined): boolean {
+    return this.isTrackSourceAttachedForSrc(srcToLoad);
+  }
+
+  private isTrackSourceAttachedForSrc(srcToLoad: string | null | undefined): boolean {
+    if (!srcToLoad || !this.player.renderer) {
+      return false;
+    }
+    if (this.player.shouldChangeRenderer(srcToLoad)) {
+      return false;
+    }
+    return this.elementHasMediaSource(srcToLoad);
+  }
+
+  /**
+   * Track metadata and renderer are loaded for this index (media may still be paused).
+   */
+  isTrackMediaReady(index: number): boolean {
+    if (!this.isTrackSourceAttached(index)) {
+      return false;
+    }
+    return this.player.element.readyState > 0;
+  }
+
+  /** Resolve `src` / `sources[]` the same way single-video `<source>` negotiation does. */
+  resolveTrackPlaybackSource(
+    track: PlaylistTrack,
+    options?: { preferNativeElement?: boolean },
+  ): { src: string; type?: string } {
+    const negotiated = negotiateMediaSources(candidatesFromTrack(track), options);
+    const match =
+      track.sources?.find((s) => s.src === negotiated.src) ??
+      (track.src === negotiated.src ? { src: track.src, type: track.type } : null);
+    this.player._fallbackSources =
+      negotiated.fallbacks.length > 0
+        ? negotiated.fallbacks.map((s) => ({
+            src: s.src,
+            type: s.type ?? '',
+          }))
+        : [];
+    return { src: negotiated.src, type: match?.type ?? track.type };
+  }
+
+  /** True when Safari can drive this URL via a plain `src` on the media element. */
+  usesNativeElementPlayback(src: string | null | undefined): boolean {
+    if (!src) {
+      return false;
+    }
+    if (this.player.isExternalRendererUrl(src)) {
+      return canPlayNativeHls() && src.includes('.m3u8');
+    }
+    return true;
+  }
+
+  /** Safari/iOS inline video (same requirement as single-video players). */
+  private ensureInlineVideoPlaybackAttributes(): void {
+    if (!isIOS()) {
+      return;
+    }
+    const element = this.player.element;
+    if (element.tagName === 'VIDEO') {
+      element.setAttribute('playsinline', '');
+      element.setAttribute('webkit-playsinline', '');
+    }
+  }
+
+  /**
+   * Start playback from {@link Player.play} when the playlist is paused.
+   */
+  startUserPlayback(index: number): void {
+    void this.play(index, true);
+  }
+
+  /**
+   * iOS: call {@link HTMLMediaElement.play} in the current user-gesture turn while
+   * {@link Player.initializeRenderer} is still running (deferLoad prefetch).
+   */
+  tryPrimeNativePlaybackDuringInit(index: number): boolean {
+    if (!isIOS()) {
+      return false;
+    }
+    const track = this.tracks[index];
+    if (!track) {
+      return false;
+    }
+    const playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: true });
+    if (!playback.src || !this.usesNativeElementPlayback(playback.src)) {
+      return false;
+    }
+
+    this.player.beginPreservedPlaybackDuringRendererInit(playback.src);
+    return this.player.iosNativePlayInUserGesture(playback.src, playback.type);
+  }
+
+  /** Attach deferred VTT tracks once iOS has selected the media resource. */
+  attachIosTextTracksAfterMediaLoad(): void {
+    const pending = this._iosPendingTextTracks;
+    if (!pending?.length) {
+      return;
+    }
+    const media = this.player.element;
+    if (!(media instanceof HTMLMediaElement)) {
+      return;
+    }
+    if (media.querySelector('track[src]')) {
+      this._iosPendingTextTracks = null;
+      return;
+    }
+
+    pending.forEach((tc: PlaylistTextTrack) => {
+      if (!tc?.src) {
+        return;
+      }
+      const el = document.createElement('track');
+      el.src = tc.src;
+      el.kind = tc.kind || 'captions';
+      el.srclang = tc.srclang || 'en';
+      el.label = tc.label || tc.srclang || 'Track';
+      if (tc.default) {
+        el.default = true;
+      }
+      if (tc.describedSrc) {
+        el.setAttribute('data-desc-src', tc.describedSrc);
+      }
+      media.appendChild(el);
+    });
+
+    this._iosPendingTextTracks = null;
+    this.player.invalidateTrackCache?.();
+
+    if (this.player.captionManager && typeof this.player.captionManager.loadTracks === 'function') {
+      try {
+        this.player.captionManager.tracks = [];
+        this.player.captionManager.currentTrack = null;
+        this.player.captionManager.loadTracks();
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  private completeNativeGesturePlayUi(
+    index: number,
+    track: PlaylistTrack,
+  ): void {
+    if (track.src && !this.player.originalSrc) {
+      this.player.originalSrc = track.src;
+    }
+
+    if (this.currentIndex !== index) {
+      this.selectTrack(index);
+    } else {
+      this.updateTrackInfo(track);
+      this.updatePlaylistUI();
+      this.refreshDownloadButton();
+    }
+    this.updatePlaylistUI();
+    this.refreshDownloadButton();
+    this.player.emit('playlisttrackchange', {
+      index,
+      item: track,
+      total: this.tracks.length,
+    });
+    this.isChangingTrack = false;
+    this.player.syncPlaybackUiFromMediaElement?.();
+    if (!this.player.element.paused) {
+      this.player.hidePosterOverlay?.();
+    }
+  }
+
+  /**
+   * Stage `src` and init renderer at rest (deferLoad playlists — all platforms).
+   */
+  prepareTrack(index: number): Promise<void> {
+    if (this._trackPreparePromise) {
+      return this._trackPreparePromise;
+    }
+
+    this._trackPreparePromise = (async () => {
+      if (index < 0 || index >= this.tracks.length) {
+        return;
+      }
+      const track = this.tracks[index];
+      if (!track) {
+        return;
+      }
+
+      const preferNative = isIOS();
+      const playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: preferNative });
+      if (!playback.src) {
+        return;
+      }
+
+      if (!this.usesNativeElementPlayback(playback.src)) {
+        await this.loadTrack(index);
+        return;
+      }
+
+      this.selectTrack(index);
+      this.ensureInlineVideoPlaybackAttributes();
+      this.player.stagePlaylistNativeSource(playback.src, playback.type);
+
+      if (!this.player.renderer || this.player.shouldChangeRenderer(playback.src)) {
+        await this.player.initializeRenderer();
+      }
+    })().catch(() => {
+      this._trackPreparePromise = null;
+    });
+
+    return this._trackPreparePromise;
+  }
+
+  /**
+   * Native MP4/HLS: {@link Renderer.play} in the user-gesture turn, then playlist UI.
+   */
+  private playNativeInUserGesture(
+    index: number,
+    track: PlaylistTrack,
+    srcToLoad: string,
+    mimeType?: string,
+  ): void {
+    if (isIOS()) {
+      this.ensureInlineVideoPlaybackAttributes();
+
+      const finishUi = (): void => {
+        this.player.endPreservedPlaybackDuringRendererInit();
+        this.completeNativeGesturePlayUi(index, track);
+        this.fulfillPendingUserPlay();
+      };
+
+      const abortGesturePlay = (): void => {
+        this.player.endPreservedPlaybackDuringRendererInit();
+        this.isChangingTrack = false;
+      };
+
+      const rendererReady =
+        this.player.renderer && !this.player.shouldChangeRenderer(srcToLoad);
+
+      if (rendererReady && this.canResumeCurrentTrack(index)) {
+        this.player.renderer!.play();
+        finishUi();
+        return;
+      }
+
+      if (rendererReady) {
+        if (!this.player.iosNativePlayInUserGesture(srcToLoad, mimeType)) {
+          abortGesturePlay();
+          return;
+        }
+        finishUi();
+        return;
+      }
+
+      const needsRendererInit =
+        !this.player.renderer && !this.player.isRendererInitializing();
+
+      if (needsRendererInit) {
+        this.player.beginPreservedPlaybackDuringRendererInit(srcToLoad);
+        if (!this.player.iosNativePlayInUserGesture(srcToLoad, mimeType)) {
+          abortGesturePlay();
+          return;
+        }
+        void this.player.initializeRenderer().then(finishUi).catch(abortGesturePlay);
+        return;
+      }
+
+      const needsRendererSwap =
+        Boolean(this.player.renderer) &&
+        this.player.shouldChangeRenderer(srcToLoad);
+
+      if (needsRendererSwap) {
+        if (this.currentIndex !== index) {
+          this.selectTrack(index);
+        }
+        this.player.beginPreservedPlaybackDuringRendererInit(
+          this.player.resolveMediaSourceUrl(srcToLoad),
+        );
+        this.player.teardownRendererForNativeGestureSwap();
+        if (!this.player.iosNativePlayInUserGesture(srcToLoad, mimeType)) {
+          abortGesturePlay();
+          return;
+        }
+        void this.player.initializeRenderer().then(finishUi).catch(abortGesturePlay);
+        return;
+      }
+
+      if (this.player.isRendererInitializing()) {
+        this.player.beginPreservedPlaybackDuringRendererInit(srcToLoad);
+        if (this.player.element.paused) {
+          if (!this.player.iosNativePlayInUserGesture(srcToLoad, mimeType)) {
+            abortGesturePlay();
+            return;
+          }
+        }
+        void (this._trackPreparePromise ?? Promise.resolve()).then(finishUi);
+        return;
+      }
+
+      abortGesturePlay();
+      return;
+    }
+
+    this.ensureInlineVideoPlaybackAttributes();
+    this.player.stagePlaylistNativeSource(srcToLoad, mimeType);
+
+    if (!this.player.renderer) {
+      this.player.log('play: renderer not ready — wait for prepareTrack()', 'warn');
+      this.isChangingTrack = false;
+      return;
+    }
+
+    if (this.player.shouldChangeRenderer(srcToLoad)) {
+      this.player.log('play: renderer swap required — use load path', 'warn');
+      this.isChangingTrack = false;
+      return;
+    }
+
+    if (track.src && !this.player.originalSrc) {
+      this.player.originalSrc = track.src;
+    }
+
+    this.player.renderer.play();
+    this.player.hidePosterOverlay?.();
+
+    this.completeNativeGesturePlayUi(index, track);
+    this.fulfillPendingUserPlay();
+  }
+
+  /** User tapped play while a track was still loading — run play when load finishes. */
+  queuePlayWhenTrackReady(): void {
+    this._pendingUserPlay = true;
+  }
+
+  /** Called when {@link Player.load} / track selection finishes (desktop / iPad). */
+  tryConsumePendingUserPlay(): void {
+    this.fulfillPendingUserPlay();
+  }
+
+  private fulfillPendingUserPlay(): void {
+    if (!this._pendingUserPlay) {
+      return;
+    }
+    this._pendingUserPlay = false;
+    if (!this.player.element.paused) {
+      return;
+    }
+
+    // iOS: this runs after async load() — outside any user gesture.
+    if (isIOS()) {
+      this.player.log('pending play skipped on iOS (no user gesture)', 'debug');
+      return;
+    }
+
+    if (this.player.renderer) {
+      this.player.renderer.play();
+    }
+  }
+
+  private finishPlayAfterLoad(
+    loadGeneration: number,
+    index: number,
+    track: PlaylistTrack,
+    failed: boolean,
+  ): void {
+    if (loadGeneration !== this._trackLoadGeneration) {
+      return;
+    }
+    if (failed) {
+      this.isChangingTrack = false;
+      return;
+    }
+
+    this.updateTrackInfo(track);
+    this.updatePlaylistUI();
+    this.refreshDownloadButton();
+
+    this.player.emit('playlisttrackchange', {
+      index,
+      item: track,
+      total: this.tracks.length,
+    });
+
+    // Calling load() while playback is active aborts primed iPhone play().
+    if (
+      !isIOS() &&
+      this.player.element.paused &&
+      this.player.options.deferLoad &&
+      typeof this.player.ensureLoaded === 'function'
+    ) {
+      this.player.ensureLoaded();
+    }
+
+    this.isChangingTrack = false;
+    this.fulfillPendingUserPlay();
+
+    this.player.syncPlaybackUiFromMediaElement();
+
+    if (!this.player.element.paused) {
+      this.player.hidePosterOverlay();
+    } else if (!isIOS()) {
+      this.ensureInlineVideoPlaybackAttributes();
+      this.player.renderer?.play();
+    }
+  }
+
   /**
    * Load a playlist
    * @param {Array} tracks - Array of track objects
@@ -725,14 +1235,21 @@ export class PlaylistManager {
     if (this.playlistPanel) {
       this.renderPlaylist();
     }
+
+    // iPhone: warm renderer chunks before the first tap (dynamic import in load() is too late for gestures).
+    if (isIOS() && tracks.some((t) => t.src?.includes('.m3u8'))) {
+      void import('../renderers/HLSRenderer.js');
+    }
     
     // Auto-play first track (if enabled)
     if (tracks.length > 0) {
       if (this.options.autoPlayFirst) {
-        this.play(0);
+        void this.play(0).catch(() => {
+          // ignore
+        });
+      } else if (this.player?.options?.deferLoad) {
+        void this.prepareTrack(0);
       } else {
-        // Behave like a single video: load the first track (metadata/manifest)
-        // but do not start playback.
         void this.loadTrack(0).catch(() => {
           // ignore
         });
@@ -758,13 +1275,15 @@ export class PlaylistManager {
     
     const track = this.tracks[index];
     if (!track) return;
+
+    const loadGeneration = ++this._trackLoadGeneration;
     
     // Always update UI immediately (poster, buttons, duration, etc.).
     // Note: this is UI-only; actual media loading is performed by player.load() below.
     this.selectTrack(index);
-    
-    // Set guard flag to prevent cascade of next() calls during track change
-    this.isChangingTrack = true;
+
+    // Prefetch only — do not set isChangingTrack (blocks Player.play on iPhone while
+    // the first item is loading). Generation handles superseded loads.
     
     // Check if we should recreate the player for this track type
     if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
@@ -775,6 +1294,7 @@ export class PlaylistManager {
       
       // Recreate if element type is different
       if (currentMediaType !== newElementType) {
+        this.isChangingTrack = true;
         await this.recreatePlayerForTrack(track, false);
         // Re-apply selection to the newly created player (poster/tracks/buttons)
         this.selectTrack(index);
@@ -788,43 +1308,58 @@ export class PlaylistManager {
         
         // Clear guard flag
         this.setManagedTimeout(() => {
-          this.isChangingTrack = false;
+          if (loadGeneration === this._trackLoadGeneration) {
+            this.isChangingTrack = false;
+          }
         }, 150);
         return;
       }
     }
     
-    const loadPromise = this.player.load({
-      src: track.src ?? '',
-      type: track.type,
-      poster: track.poster,
-      tracks: track.tracks || [],
-      audioDescriptionSrc: track.audioDescriptionSrc || null,
-      signLanguageSrc: track.signLanguageSrc || null,
-      signLanguageSources: track.signLanguageSources || {}
-    });
+    try {
+      const playback = this.resolveTrackPlaybackSource(track);
+      await this.player.load({
+        src: playback.src || track.src || '',
+        type: playback.type ?? track.type,
+        poster: track.poster,
+        tracks: track.tracks || [],
+        audioDescriptionSrc: track.audioDescriptionSrc || null,
+        signLanguageSrc: track.signLanguageSrc || null,
+        signLanguageSources: track.signLanguageSources || {}
+      });
 
-    // For playlist UX parity with single videos: fetch metadata/manifest now,
-    // but do not start playback.
-    if (this.player?.options?.deferLoad && typeof this.player.ensureLoaded === 'function') {
-      Promise.resolve(loadPromise)
-        .then(() => this.player?.ensureLoaded?.())
-        .catch(() => {
-          // ignore
-        });
+      if (loadGeneration !== this._trackLoadGeneration) {
+        return;
+      }
+
+      if (
+        !isIOS() &&
+        this.player?.options?.deferLoad &&
+        typeof this.player.ensureLoaded === 'function'
+      ) {
+        this.player.ensureLoaded();
+      }
+    } catch {
+      if (loadGeneration === this._trackLoadGeneration) {
+        this.isChangingTrack = false;
+        this.fulfillPendingUserPlay();
+      }
+      return;
     }
-    
+
+    if (loadGeneration !== this._trackLoadGeneration) {
+      return;
+    }
+
     // Emit event
     this.player.emit('playlisttrackchange', {
       index: index,
       item: track,
       total: this.tracks.length
     });
-    
-    // Clear guard flag after a short delay to ensure track is loaded
-    this.setManagedTimeout(() => {
-      this.isChangingTrack = false;
-    }, 150);
+
+    this.isChangingTrack = false;
+    this.fulfillPendingUserPlay();
   }
 
   /**
@@ -898,11 +1433,13 @@ export class PlaylistManager {
         this.player.originalSrc = track.src;
       }
 
-      // Replace <track> elements so captions/chapters/transcript can be detected/loaded
+      // iOS deferLoad: <track> before a gesture-time media bind breaks WebKit (SRC_NOT_SUPPORTED).
       const existing: HTMLElement[] = Array.from(this.player.element.querySelectorAll('track'));
       existing.forEach(t => t.remove());
 
-      if (Array.isArray(track.tracks)) {
+      if (isIOS()) {
+        this._iosPendingTextTracks = Array.isArray(track.tracks) ? track.tracks : null;
+      } else if (Array.isArray(track.tracks)) {
         track.tracks.forEach((tc: PlaylistTextTrack) => {
           if (!tc?.src) return;
           const el = document.createElement('track');
@@ -982,7 +1519,7 @@ export class PlaylistManager {
    * @param {number} index - Track index
    * @param {boolean} userInitiated - Whether this was triggered by user action (default: false)
    */
-  async play(index: number, _userInitiated = false) {
+  async play(index: number, userInitiated = false) {
     if (index < 0 || index >= this.tracks.length) {
       console.warn('VidPly Playlist: Invalid track index', index);
       return;
@@ -990,13 +1527,11 @@ export class PlaylistManager {
     
     const track = this.tracks[index];
     if (!track) return;
-    
-    // Set guard flag to prevent cascade of next() calls during track change
+
+    const loadGeneration = ++this._trackLoadGeneration;
+
     this.isChangingTrack = true;
-    
-    // Update current index
-    this.currentIndex = index;
-    
+
     // Check if we should recreate the player for this track type
     if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
       const currentMediaType = this.player ? 
@@ -1021,7 +1556,9 @@ export class PlaylistManager {
         
         // Clear guard flag
         this.setManagedTimeout(() => {
-          this.isChangingTrack = false;
+          if (loadGeneration === this._trackLoadGeneration) {
+            this.isChangingTrack = false;
+          }
         }, 150);
         return;
       }
@@ -1029,49 +1566,45 @@ export class PlaylistManager {
     
     // Load track into player (normal path)
     // If audio description was toggled before the first play, load the described source directly.
-    let srcToLoad = track.src;
+    const preferNative = isIOS();
+    let playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: preferNative });
+    let srcToLoad = playback.src;
+    let typeToLoad = playback.type;
     if (this.player?.audioDescriptionManager?.desiredState && track.audioDescriptionSrc) {
-      this.player.originalSrc = track.src ?? null;
-      this.player.audioDescriptionManager.originalSource = track.src ?? null;
+      this.player.originalSrc = playback.src || track.src || null;
+      this.player.audioDescriptionManager.originalSource = playback.src || track.src || null;
       this.player.audioDescriptionManager.src = track.audioDescriptionSrc;
       srcToLoad = track.audioDescriptionSrc;
+      typeToLoad = track.type;
     }
 
-    try {
-      await this.player.load({
-        src: srcToLoad ?? '',
-        type: track.type,
-        poster: track.poster,
-        tracks: track.tracks || [],
-        audioDescriptionSrc: track.audioDescriptionSrc || null,
-        signLanguageSrc: track.signLanguageSrc || null,
-        signLanguageSources: track.signLanguageSources || {}
-      });
-    } catch {
-      this.isChangingTrack = false;
+    if (userInitiated && this.usesNativeElementPlayback(srcToLoad)) {
+      this.playNativeInUserGesture(index, track, srcToLoad ?? '', typeToLoad);
       return;
     }
 
-    // Update UI
-    this.updateTrackInfo(track);
-    this.updatePlaylistUI();
-    this.refreshDownloadButton();
-    
-    // Emit event
-    this.player.emit('playlisttrackchange', {
-      index: index,
-      item: track,
-      total: this.tracks.length
-    });
-    
-    // Start playback only after load() resolved — embed renderers keep
-    // `renderer` null until init finishes; a timed play() fired too early
-    // re-entered this method and loaded the same track again (often 2–3×).
-    this.player.play();
+    this.selectTrack(index);
 
-    this.setManagedTimeout(() => {
-      this.isChangingTrack = false;
-    }, 50);
+    const loadConfig = {
+      src: srcToLoad ?? '',
+      type: typeToLoad,
+      poster: track.poster,
+      tracks: track.tracks || [],
+      audioDescriptionSrc: track.audioDescriptionSrc || null,
+      signLanguageSrc: track.signLanguageSrc || null,
+      signLanguageSources: track.signLanguageSources || {},
+    };
+
+    try {
+      await this.player.load(loadConfig);
+    } catch {
+      if (loadGeneration === this._trackLoadGeneration) {
+        this.isChangingTrack = false;
+      }
+      return;
+    }
+
+    this.finishPlayAfterLoad(loadGeneration, index, track, false);
   }
   
   /**
@@ -1160,8 +1693,8 @@ export class PlaylistManager {
     
     console.error('VidPly Playlist: Track error', e);
     
-    // Try next track
-    if (this.options.autoAdvance) {
+    // Try next track (iOS emits many transient errors while src/renderer swaps)
+    if (this.options.autoAdvance && !isIOS()) {
       this.setManagedTimeout(() => {
         this.next();
       }, 1000);

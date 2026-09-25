@@ -1,5 +1,6 @@
 import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
+import { isIOS } from '../utils/PerformanceUtils.js';
 
 export class HTML5Renderer implements Renderer {
   readonly rendererType = 'html5' as const;
@@ -33,12 +34,15 @@ export class HTML5Renderer implements Renderer {
       
       // Firefox requires an explicit load() call to fetch metadata even with preload="metadata".
       // Only call load() if preload is set to "metadata" to ensure duration is available.
-      if (this.player.options.preload === 'metadata') {
+      // iOS Safari: skip load() here — it races with an in-flight user play() during
+      // renderer init and resets WebKit into "gesture required", which breaks HLS/MP4
+      // and audio on the first tap (infinite buffering spinner).
+      if (this.player.options.preload === 'metadata' && !isIOS()) {
         this.media.load();
       }
     } else {
       this.media.preload = this.player.options.preload;
-      // Load media (eager)
+      // Load media (eager) — runs at page init, not inside a play() gesture on iOS.
       this.media.load();
     }
     
@@ -168,6 +172,10 @@ export class HTML5Renderer implements Renderer {
       this.player.handleError(this.media.error);
     }, { signal });
 
+    this.media.addEventListener('emptied', () => {
+      this.player.syncPlaybackUiFromMediaElement?.();
+    }, { signal });
+
     this.media.addEventListener('ratechange', () => {
       this.player.state.playbackSpeed = this.media.playbackRate;
       this.player.emit('ratechange', this.media.playbackRate);
@@ -197,12 +205,29 @@ export class HTML5Renderer implements Renderer {
       this._didDeferredLoad = true;
     }
 
+    if (isIOS() && !this.media.currentSrc) {
+      const fallback = this.player.currentSource;
+      const hasSourceChild = Boolean(this.media.querySelector('source[src]'));
+      if (fallback && !hasSourceChild) {
+        this.media.src = fallback;
+      }
+    }
+
     const promise = this.media.play();
 
     if (promise !== undefined) {
       promise.catch(error => {
-        this.player.log('Play failed:', error, 'warn');
-        
+        this.player.state.buffering = false;
+        this.player.state.playing = false;
+        this.player.state.paused = true;
+        this.player.emit('canplay');
+        const err = error as { name?: string; message?: string };
+        this.player.log(
+          `Play failed: ${err.name ?? 'Error'} ${err.message ?? ''}`.trim(),
+          'warn',
+        );
+        this.player.syncPlaybackUiFromMediaElement?.();
+
         // If autoplay failed, try muted autoplay
         if (this.player.options.autoplay && !this.player.state.muted) {
           this.player.log('Retrying play with muted audio', 'info');
@@ -226,8 +251,23 @@ export class HTML5Renderer implements Renderer {
       return;
     }
 
+    // Playlist selection (incl. iOS): fetch metadata/manifest without playback.
+    // This is not a user play() tap — init() still skips load() on iOS so a
+    // gesture-time play() is never preceded by load() in the same handler.
+    // iOS Safari: programmatic load() without a user gesture poisons the next
+    // Abspielen tap (deferLoad + preload metadata from TYPO3 playlists).
+    if (isIOS()) {
+      this._didDeferredLoad = true;
+      return;
+    }
+
     try {
-      if (this.media.readyState === 0) {
+      const hasSrc = Boolean(
+        this.media.currentSrc ||
+        this.media.getAttribute('src') ||
+        this.media.src
+      );
+      if (hasSrc && this.media.readyState === 0) {
         this.media.load();
       }
     } catch {

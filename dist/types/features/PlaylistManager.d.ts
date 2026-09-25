@@ -16,6 +16,11 @@ type PlaylistTextTrack = {
 type PlaylistTrack = {
     src?: string;
     type?: string;
+    sources?: Array<{
+        src?: string;
+        type?: string;
+        label?: string;
+    }>;
     poster?: string;
     /** File this track offers for download (see `PlaylistTrack` in types/events.ts). */
     downloadUrl?: string;
@@ -80,13 +85,21 @@ export declare class PlaylistManager {
     tracks: PlaylistTrack[];
     uniqueId: string;
     private _timers;
+    /** Set when the user taps play while {@link isChangingTrack} is still true. */
+    private _pendingUserPlay;
+    /** Supersedes in-flight {@link loadTrack} / {@link play} when the user picks another track. */
+    private _trackLoadGeneration;
+    /** Prefetch track 0 (src + renderer) before the first user tap. */
+    private _trackPreparePromise;
+    /** iOS: caption/chapter <track> nodes are attached after the media resource loads. */
+    private _iosPendingTextTracks;
     constructor(player: Player, options?: Record<string, unknown>);
     /**
      * Determine the media type for a track
      * @param {Object} track - Track object
      * @returns {string} - 'audio', 'video', 'youtube', 'vimeo', 'soundcloud', 'hls', 'dash'
      */
-    getTrackMediaType(track: PlaylistTrack): "audio" | "hls" | "dash" | "youtube" | "vimeo" | "soundcloud" | "video";
+    getTrackMediaType(track: PlaylistTrack): "video" | "audio" | "hls" | "dash" | "youtube" | "vimeo" | "soundcloud";
     /**
      * Recreate the player with the appropriate element type for the track
      * @param {Object} track - Track to load
@@ -145,6 +158,65 @@ export declare class PlaylistManager {
      * button is refreshed explicitly.
      */
     refreshDownloadButton(): void;
+    /** Normalize a manifest/element media URL for comparison. */
+    private static resolveMediaUrl;
+    private mediaSourcesMatch;
+    /** Whether the `<video>` / `<audio>` element already points at `src`. */
+    elementHasMediaSource(src: string | null | undefined): boolean;
+    /** Pause → play on the same track without re-binding media (iOS playlist). */
+    canResumeCurrentTrack(index: number): boolean;
+    /**
+     * The renderer is active and the media element points at this track's URL.
+     * Does not require {@link HTMLMediaElement.readyState} — single-video players
+     * call {@link Renderer.play} without that check (required for iPhone playlists).
+     */
+    isTrackSourceAttached(index: number): boolean;
+    /**
+     * User can start playback with {@link Renderer.play} only — skip {@link Player.load}.
+     */
+    canPlayTrackWithoutReload(srcToLoad: string | null | undefined): boolean;
+    private isTrackSourceAttachedForSrc;
+    /**
+     * Track metadata and renderer are loaded for this index (media may still be paused).
+     */
+    isTrackMediaReady(index: number): boolean;
+    /** Resolve `src` / `sources[]` the same way single-video `<source>` negotiation does. */
+    resolveTrackPlaybackSource(track: PlaylistTrack, options?: {
+        preferNativeElement?: boolean;
+    }): {
+        src: string;
+        type?: string;
+    };
+    /** True when Safari can drive this URL via a plain `src` on the media element. */
+    usesNativeElementPlayback(src: string | null | undefined): boolean;
+    /** Safari/iOS inline video (same requirement as single-video players). */
+    private ensureInlineVideoPlaybackAttributes;
+    /**
+     * Start playback from {@link Player.play} when the playlist is paused.
+     */
+    startUserPlayback(index: number): void;
+    /**
+     * iOS: call {@link HTMLMediaElement.play} in the current user-gesture turn while
+     * {@link Player.initializeRenderer} is still running (deferLoad prefetch).
+     */
+    tryPrimeNativePlaybackDuringInit(index: number): boolean;
+    /** Attach deferred VTT tracks once iOS has selected the media resource. */
+    attachIosTextTracksAfterMediaLoad(): void;
+    private completeNativeGesturePlayUi;
+    /**
+     * Stage `src` and init renderer at rest (deferLoad playlists — all platforms).
+     */
+    prepareTrack(index: number): Promise<void>;
+    /**
+     * Native MP4/HLS: {@link Renderer.play} in the user-gesture turn, then playlist UI.
+     */
+    private playNativeInUserGesture;
+    /** User tapped play while a track was still loading — run play when load finishes. */
+    queuePlayWhenTrackReady(): void;
+    /** Called when {@link Player.load} / track selection finishes (desktop / iPad). */
+    tryConsumePendingUserPlay(): void;
+    private fulfillPendingUserPlay;
+    private finishPlayAfterLoad;
     /**
      * Load a playlist
      * @param {Array} tracks - Array of track objects
@@ -172,7 +244,7 @@ export declare class PlaylistManager {
      * @param {number} index - Track index
      * @param {boolean} userInitiated - Whether this was triggered by user action (default: false)
      */
-    play(index: number, _userInitiated?: boolean): Promise<void>;
+    play(index: number, userInitiated?: boolean): Promise<void>;
     /**
      * Play next track
      */
