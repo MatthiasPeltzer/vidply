@@ -1567,7 +1567,7 @@ export class PlaylistManager {
     // Load track into player (normal path)
     // If audio description was toggled before the first play, load the described source directly.
     const preferNative = isIOS();
-    let playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: preferNative });
+    const playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: preferNative });
     let srcToLoad = playback.src;
     let typeToLoad = playback.type;
     if (this.player?.audioDescriptionManager?.desiredState && track.audioDescriptionSrc) {
