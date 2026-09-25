@@ -1,34 +1,34 @@
 /*!
- * VidPly v1.2.17 - Universal, Accessible Video Player
+ * VidPly v1.2.18 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 import {
   TimeUtils
-} from "./vidply.chunk-RM5MYBVQ.js";
+} from "./vidply.chunk-XZ6ACQ2H.js";
 import {
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-DS556V52.js";
+} from "./vidply.chunk-JIBDEUZW.js";
 import {
   focusElement,
   setContainerChildrenInert,
   trapFocusInContainer
-} from "./vidply.chunk-WRDA4BIK.js";
+} from "./vidply.chunk-YYYBN72S.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-FXETE4LO.js";
+} from "./vidply.chunk-NO44V2XH.js";
 import {
   CaptionManager
-} from "./vidply.chunk-PXOU272O.js";
+} from "./vidply.chunk-ZYCBYD7A.js";
 import {
   StorageManager
-} from "./vidply.chunk-V476LWAA.js";
+} from "./vidply.chunk-7IAZKXWY.js";
 import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-YNDMWZB2.js";
+} from "./vidply.chunk-XZ65GA4B.js";
 import {
   canPlayNativeHls,
   debounce,
@@ -38,7 +38,7 @@ import {
   reducedMotionScrollOptions,
   scrollIntoViewWithinScrollParent,
   throttle
-} from "./vidply.chunk-KH7YUEQO.js";
+} from "./vidply.chunk-P4F5NATG.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -2291,7 +2291,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-WW2AUHCQ.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+    import("./vidply.CaptionStyleMenu-G4MXHBCH.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
@@ -4546,7 +4546,8 @@ function negotiateMediaSources(candidates, options) {
     return { src: "", fallbacks: [] };
   }
   if (sources.length === 1) {
-    return { src: sources[0].src, fallbacks: [] };
+    const only = sources[0];
+    return { src: only?.src ?? "", fallbacks: [] };
   }
   const hasMSE = typeof MediaSource !== "undefined";
   const nativeHls = canPlayNativeHls();
@@ -4581,7 +4582,8 @@ function negotiateMediaSources(candidates, options) {
     chosen = sources[0];
   }
   const fallbacks = sources.filter((s) => s !== chosen);
-  return { src: chosen.src, fallbacks };
+  const resolved = chosen ?? sources[0];
+  return { src: resolved?.src ?? "", fallbacks };
 }
 function candidatesFromTrack(track) {
   if (Array.isArray(track.sources) && track.sources.length > 0) {
@@ -6922,21 +6924,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-RL7HB2WR.js");
+    const module = await import("./vidply.AudioDescriptionManager-G73RBAVI.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-C4NX4JTJ.js");
+    const module = await import("./vidply.SignLanguageManager-HEWUSCGS.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-SCABZWGI.js");
+    const module = await import("./vidply.FloatingPlayerManager-EZCAJEIE.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -7633,7 +7635,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-JE5IAY73.js");
+    const module = await import("./vidply.TranscriptManager-5B7NV5W4.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -8284,23 +8286,23 @@ var Player = class _Player extends EventEmitter {
   async _detectRendererClass(src) {
     switch (classifyRendererType(src)) {
       case "youtube": {
-        const module = await import("./vidply.YouTubeRenderer-QVQSP5V5.js");
+        const module = await import("./vidply.YouTubeRenderer-WIVUIW5P.js");
         return module.YouTubeRenderer ?? module.default;
       }
       case "vimeo": {
-        const module = await import("./vidply.VimeoRenderer-RQ5NFF5A.js");
+        const module = await import("./vidply.VimeoRenderer-S7W5UNV7.js");
         return module.VimeoRenderer ?? module.default;
       }
       case "hls": {
-        const module = await import("./vidply.HLSRenderer-UV2QBL7Y.js");
+        const module = await import("./vidply.HLSRenderer-7APZZ6KM.js");
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {
-        const module = await import("./vidply.DASHRenderer-HWGSANOY.js");
+        const module = await import("./vidply.DASHRenderer-5EI6M6RX.js");
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
-        const module = await import("./vidply.SoundCloudRenderer-K6PAWXJL.js");
+        const module = await import("./vidply.SoundCloudRenderer-JYESDZKV.js");
         return module.SoundCloudRenderer ?? module.default;
       }
       default:
@@ -8982,7 +8984,7 @@ var Player = class _Player extends EventEmitter {
     if (this._rendererInitInFlight) {
       this.log("play() deferred: renderer init in flight", "debug");
       const tracks2 = playlist?.tracks;
-      if (Array.isArray(tracks2) && tracks2.length > 0 && this.element.paused) {
+      if (Array.isArray(tracks2) && tracks2.length > 0 && this.element.paused && playlist) {
         const index = playlist.currentIndex >= 0 ? playlist.currentIndex : 0;
         if (playlist.tryPrimeNativePlaybackDuringInit(index)) {
           this.log("play() primed on media element during renderer init (iOS)", "debug");
@@ -9003,7 +9005,7 @@ var Player = class _Player extends EventEmitter {
       return;
     }
     const tracks = playlist?.tracks;
-    if (Array.isArray(tracks) && tracks.length > 0 && this.element.paused) {
+    if (Array.isArray(tracks) && tracks.length > 0 && this.element.paused && playlist) {
       const index = playlist.currentIndex >= 0 ? playlist.currentIndex : 0;
       if (playlist.canResumeCurrentTrack(index)) {
         this.renderer?.play();
@@ -10505,9 +10507,10 @@ var PlaylistManager = class _PlaylistManager {
         this.player.endPreservedPlaybackDuringRendererInit();
         this.isChangingTrack = false;
       };
-      const rendererReady = this.player.renderer && !this.player.shouldChangeRenderer(srcToLoad);
-      if (rendererReady && this.canResumeCurrentTrack(index)) {
-        this.player.renderer.play();
+      const renderer = this.player.renderer;
+      const rendererReady = renderer !== null && renderer !== void 0 && !this.player.shouldChangeRenderer(srcToLoad);
+      if (rendererReady && renderer && this.canResumeCurrentTrack(index)) {
+        renderer.play();
         finishUi();
         return;
       }
@@ -10647,7 +10650,7 @@ var PlaylistManager = class _PlaylistManager {
       this.renderPlaylist();
     }
     if (isIOS() && tracks.some((t) => t.src?.includes(".m3u8"))) {
-      void import("./vidply.HLSRenderer-UV2QBL7Y.js");
+      void import("./vidply.HLSRenderer-7APZZ6KM.js");
     }
     if (tracks.length > 0) {
       if (this.options.autoPlayFirst) {
@@ -10880,7 +10883,7 @@ var PlaylistManager = class _PlaylistManager {
       }
     }
     const preferNative = isIOS();
-    let playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: preferNative });
+    const playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: preferNative });
     let srcToLoad = playback.src;
     let typeToLoad = playback.type;
     if (this.player?.audioDescriptionManager?.desiredState && track.audioDescriptionSrc) {

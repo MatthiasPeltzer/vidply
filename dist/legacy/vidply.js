@@ -1,5 +1,5 @@
 /*!
- * VidPly v1.2.17 - Universal, Accessible Video Player
+ * VidPly v1.2.18 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
@@ -17067,7 +17067,8 @@
       return { src: "", fallbacks: [] };
     }
     if (sources.length === 1) {
-      return { src: sources[0].src, fallbacks: [] };
+      const only = sources[0];
+      return { src: (only == null ? void 0 : only.src) ?? "", fallbacks: [] };
     }
     const hasMSE = typeof MediaSource !== "undefined";
     const nativeHls = canPlayNativeHls();
@@ -17102,7 +17103,8 @@
       chosen = sources[0];
     }
     const fallbacks = sources.filter((s) => s !== chosen);
-    return { src: chosen.src, fallbacks };
+    const resolved = chosen ?? sources[0];
+    return { src: (resolved == null ? void 0 : resolved.src) ?? "", fallbacks };
   }
   function candidatesFromTrack(track) {
     if (Array.isArray(track.sources) && track.sources.length > 0) {
@@ -21587,7 +21589,7 @@
       if (this._rendererInitInFlight) {
         this.log("play() deferred: renderer init in flight", "debug");
         const tracks2 = playlist == null ? void 0 : playlist.tracks;
-        if (Array.isArray(tracks2) && tracks2.length > 0 && this.element.paused) {
+        if (Array.isArray(tracks2) && tracks2.length > 0 && this.element.paused && playlist) {
           const index = playlist.currentIndex >= 0 ? playlist.currentIndex : 0;
           if (playlist.tryPrimeNativePlaybackDuringInit(index)) {
             this.log("play() primed on media element during renderer init (iOS)", "debug");
@@ -21608,7 +21610,7 @@
         return;
       }
       const tracks = playlist == null ? void 0 : playlist.tracks;
-      if (Array.isArray(tracks) && tracks.length > 0 && this.element.paused) {
+      if (Array.isArray(tracks) && tracks.length > 0 && this.element.paused && playlist) {
         const index = playlist.currentIndex >= 0 ? playlist.currentIndex : 0;
         if (playlist.canResumeCurrentTrack(index)) {
           (_a = this.renderer) == null ? void 0 : _a.play();
@@ -23154,9 +23156,10 @@
           this.player.endPreservedPlaybackDuringRendererInit();
           this.isChangingTrack = false;
         };
-        const rendererReady = this.player.renderer && !this.player.shouldChangeRenderer(srcToLoad);
-        if (rendererReady && this.canResumeCurrentTrack(index)) {
-          this.player.renderer.play();
+        const renderer = this.player.renderer;
+        const rendererReady = renderer !== null && renderer !== void 0 && !this.player.shouldChangeRenderer(srcToLoad);
+        if (rendererReady && renderer && this.canResumeCurrentTrack(index)) {
+          renderer.play();
           finishUi();
           return;
         }
@@ -23537,7 +23540,7 @@
         }
       }
       const preferNative = isIOS();
-      let playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: preferNative });
+      const playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: preferNative });
       let srcToLoad = playback.src;
       let typeToLoad = playback.type;
       if (((_b = (_a = this.player) == null ? void 0 : _a.audioDescriptionManager) == null ? void 0 : _b.desiredState) && track.audioDescriptionSrc) {

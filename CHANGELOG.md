@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.18] - 2026-09-25
+
+### Added
+- Debug overlay for mobile testing (`?vidplyDebug=1` or `debugOverlay` / `debug` options): media events, play guard hits, and `play()` rejection reasons on screen.
+
+### Fixed
+- Keyboard shortcuts after clicking the video surface: focus the player region on pointer use outside controls; only defer Space/Enter on buttons (other keys work while a control is focused).
+- Debug overlay: accessible region labeling and keyboard-accessible log panel for axe on debug demo pages.
+- Control bar overflow layout checks: cancel deferred timers on destroy so Vitest workers do not run after jsdom teardown.
+- Vitest: `vmForks` pool, shared worker isolation, and capped `maxWorkers` (override via `VITEST_MAX_WORKERS`).
+- Playlists: one native play path for all platforms — `prepareTrack()` at load, synchronous `renderer.play()` on user tap, UI updates after play; embed tracks still use `Player.load()`.
+- Reset play/pause state and overlay when `HTML5Renderer.play()` is rejected; `toggle()` follows the media element for HTML5/HLS/DASH; pending play is consumed after load on iOS too.
+- iOS + `deferLoad` / `preload: metadata` (MPC-VidPly default): skip `media.load()` in `HTML5Renderer.ensureLoaded()` so playlist item selection does not block the next play tap; skip playlist `ensureLoaded()` on iOS; do not capture Space on control buttons.
+- iPhone playlists (native MP4/HLS): prepare track 0 at page load (`src` + `initializeRenderer`, no `load()`) so the first tap only calls `renderer.play()` in the gesture; prime `element.play()` when play is tapped during renderer init; avoid post-init `play()` when WebKit already started from the tap.
+- iPhone playlists (native MP4/HLS): user taps no longer call `Player.load()` — set `src`, init renderer, and `play()` in the gesture chain (same model as single-video); skip prefetch `loadTrack(0)` when `deferLoad` so the first tap is not racing async load.
+- iPhone playlists: skip `Player.load()` on user taps when the URL is already on the `<video>` (prefetch/deferLoad); sync play/pause UI from the media element after load and on `emptied` so the pause button does not stay active when WebKit aborted playback.
+- Playlists: resume playback after a user-initiated track change when the media element is still paused (including native iOS MP4/HLS); skip post-load `ensureLoaded()` on iOS primed loads so it cannot abort gesture playback.
+- iPhone playlists: scope the primed user-gesture path to `isIPhone()` (iPad uses the standard load + `renderer.play()` flow); avoid resetting `video.src` in native HLS init when primed playback is preserved; warm the HLS renderer chunk on playlist load; queue pending play via `element.play()` for native media.
+- iPhone playlists: match single-video start — `Player.play` and prefetched tracks call `renderer.play()` in the tap when the source is already on the element (no `readyState` gate); sync `renderer.play()` after priming when switching tracks without a renderer swap.
+- Playlists: drop iPhone-only priming/`void load()` branches; use the same `renderer.play()` path as single-video players when the track is already loaded, plus `playsinline` on iOS only.
+- iPhone playlists: sync `element.play()` / `renderer.play()` before `await load()` on user taps; preserve playback through `load()`; skip post-load `ensureLoaded()` while the element is already playing.
+- iPhone playlists: `loadTrack()` prefetch no longer sets `isChangingTrack` (so the play overlay works while track 0 loads); user taps during track changes sync-play in-gesture; user-initiated loads use background `load()` on iPhone.
+- iOS Safari (iPhone/iPad): skip `HTML5Renderer` `load()` during deferred init and playlist `ensureLoaded()` so it cannot race the first user `play()`; queue play until renderer init finishes; reset buffering UI and `hasStartedPlayback` on source changes; clear the buffering spinner when `play()` is rejected.
+- iOS playlists: keep native HLS URLs on the `<video>` element (do not clear src like MSE), update src on in-playlist track changes without tearing down the native renderer, and call `play()` in the user-gesture turn via `iosUserGesturePlay` instead of after `await load()`.
+- iOS playlists: pass `iosUserGesturePlay` on user-initiated track loads so `Player.load()` does not pause the media element before WebKit accepts `play()`; defer automatic `loadTrack(0)` until the first tap (UI-only `selectTrack(0)` on load); ignore superseded in-flight track loads when the user picks another item quickly.
+- iOS first play: `initializeRenderer()` no longer pauses the media element while a user-gesture load is in flight; suppress transient media errors during that window; disable playlist error auto-advance on iOS (TYPO3 init + core manager) so a failed swap cannot walk the list to the last track.
+- iOS play button: native MP4/HLS primed `element.play()` in the tap handler with `load()` finishing in the background (no `await` in the gesture turn); prefetch track 0 on load; when media is already loaded, the overlay/control play button calls `renderer.play()` directly in the gesture.
+- iOS playlists + `deferLoad`: restore `HTML5Renderer.ensureLoaded()` so prefetch calls `media.load()` (iOS had skipped it, leaving `readyState` at 0 so play could never start); single play entry via `PlaylistManager.play(..., userInitiated)`; do not re-set `video.src` when unchanged.
+- Playlists (especially iOS): `loadTrack()` now awaits `player.load()` so track 0 is actually ready on first paint; primed iOS playback survives `load()` (no pause at end of load); play taps during track changes reach the renderer or queue until load finishes.
+- Pages no longer scroll on their own while loading: the playlist UI refresh scrolled the active track into view through the document, and `Player.load()` restored a stale window offset. The playlist now scrolls only its own panel, and the scroll-restore calls are gone.
+- Play button on iOS Safari: `HTML5Renderer.play()` no longer calls `load()` before `play()`. The extra `load()` put the element back into WebKit's "gesture required" state, so the `play()` in the same tap handler was rejected whenever metadata had not been preloaded (Low Power Mode, cellular).
+- Removed the "save and restore window scroll position" workaround from every renderer's `play()`. On iOS the saved offset is read against a layout viewport that shifts with the URL bar, so writing it back moved the page instead of holding it still.
+- iOS pseudo-fullscreen keeps the visitor's scroll position: the background is pinned with an offset fixed body instead of being scrolled to the top, and exiting restores the original offset exactly. Which devices use the pseudo-fullscreen overlay is unchanged — all of iOS/iPadOS still does.
+- YouTube/Vimeo/SoundCloud on iPhone: external renderers no longer request autoplay on iOS, and the VidPly play overlay is hidden while provider controls are active so taps reach the embed instead of calling `playVideo()` without a usable gesture.
+- YouTube renderer: pass `origin` / `widget_referrer` to the IFrame API and drop a strict iframe `referrerpolicy` so embeds work on iOS over HTTP/LAN origins.
+
 ## [1.2.17] - 2026-09-24
 
 ### Fixed
@@ -829,6 +865,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of the vidply accessible media player.
 
+[1.2.18]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.17...v1.2.18
 [1.2.17]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.16...v1.2.17
 [1.2.16]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.15...v1.2.16
 [1.2.15]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.14...v1.2.15

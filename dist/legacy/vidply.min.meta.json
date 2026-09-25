@@ -338,7 +338,7 @@
       "format": "esm"
     },
     "src/utils/MediaSourceNegotiation.ts": {
-      "bytes": 2404,
+      "bytes": 2482,
       "imports": [
         {
           "path": "src/utils/PerformanceUtils.ts",
@@ -928,7 +928,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 133831,
+      "bytes": 133848,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -1119,7 +1119,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 91774,
+      "bytes": 91843,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1211,7 +1211,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1697445
+      "bytes": 1697707
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1324,7 +1324,7 @@
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 117189
+          "bytesInOutput": 117213
         },
         "src/controls/ControlBar.ts": {
           "bytesInOutput": 152206
@@ -1351,7 +1351,7 @@
           "bytesInOutput": 426
         },
         "src/utils/MediaSourceNegotiation.ts": {
-          "bytesInOutput": 1870
+          "bytesInOutput": 2008
         },
         "src/core/LazyInit.ts": {
           "bytesInOutput": 1076
@@ -1390,13 +1390,13 @@
           "bytesInOutput": 11541
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 75300
+          "bytesInOutput": 75369
         },
         "src/index.ts": {
           "bytesInOutput": 5385
         }
       },
-      "bytes": 1003027
+      "bytes": 1003258
     }
   }
 }
