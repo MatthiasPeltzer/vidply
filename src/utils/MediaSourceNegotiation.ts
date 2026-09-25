@@ -20,7 +20,8 @@ export function negotiateMediaSources(
     return { src: '', fallbacks: [] };
   }
   if (sources.length === 1) {
-    return { src: sources[0]!.src, fallbacks: [] };
+    const only = sources[0];
+    return { src: only?.src ?? '', fallbacks: [] };
   }
 
   const hasMSE = typeof MediaSource !== 'undefined';
@@ -63,7 +64,8 @@ export function negotiateMediaSources(
 
   const fallbacks = sources.filter((s) => s !== chosen);
 
-  return { src: chosen!.src, fallbacks };
+  const resolved = chosen ?? sources[0];
+  return { src: resolved?.src ?? '', fallbacks };
 }
 
 export function candidatesFromTrack(track: {

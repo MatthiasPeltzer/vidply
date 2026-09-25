@@ -2776,9 +2776,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
     if (this._rendererInitInFlight) {
       this.log('play() deferred: renderer init in flight', 'debug');
       const tracks = playlist?.tracks;
-      if (Array.isArray(tracks) && tracks.length > 0 && this.element.paused) {
-        const index = playlist!.currentIndex >= 0 ? playlist!.currentIndex : 0;
-        if (playlist!.tryPrimeNativePlaybackDuringInit(index)) {
+      if (Array.isArray(tracks) && tracks.length > 0 && this.element.paused && playlist) {
+        const index = playlist.currentIndex >= 0 ? playlist.currentIndex : 0;
+        if (playlist.tryPrimeNativePlaybackDuringInit(index)) {
           this.log('play() primed on media element during renderer init (iOS)', 'debug');
           this._playRequestedDuringRendererInit = true;
           return;
@@ -2800,13 +2800,13 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     const tracks = playlist?.tracks;
-    if (Array.isArray(tracks) && tracks.length > 0 && this.element.paused) {
-      const index = playlist!.currentIndex >= 0 ? playlist!.currentIndex : 0;
-      if (playlist!.canResumeCurrentTrack(index)) {
+    if (Array.isArray(tracks) && tracks.length > 0 && this.element.paused && playlist) {
+      const index = playlist.currentIndex >= 0 ? playlist.currentIndex : 0;
+      if (playlist.canResumeCurrentTrack(index)) {
         this.renderer?.play();
         return;
       }
-      playlist!.startUserPlayback(index);
+      playlist.startUserPlayback(index);
       return;
     }
 

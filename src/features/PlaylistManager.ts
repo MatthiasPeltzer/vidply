@@ -1047,11 +1047,12 @@ export class PlaylistManager {
         this.isChangingTrack = false;
       };
 
+      const renderer = this.player.renderer;
       const rendererReady =
-        this.player.renderer && !this.player.shouldChangeRenderer(srcToLoad);
+        renderer !== null && renderer !== undefined && !this.player.shouldChangeRenderer(srcToLoad);
 
-      if (rendererReady && this.canResumeCurrentTrack(index)) {
-        this.player.renderer!.play();
+      if (rendererReady && renderer && this.canResumeCurrentTrack(index)) {
+        renderer.play();
         finishUi();
         return;
       }
