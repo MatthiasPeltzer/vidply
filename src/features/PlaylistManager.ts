@@ -420,8 +420,10 @@ export class PlaylistManager {
       ...loadConfig,
     });
 
+    // Do not call Player.play() here — playlist switches set isChangingTrack and
+    // play() would only queue. Callers start playback via renderer after recreate.
     if (autoPlay && !isIOS()) {
-      this.player.play();
+      void this.player.renderer?.play();
     }
 
     // Keep TYPO3 host reference in sync (PlaylistInit caches player on the DIV).
@@ -1119,8 +1121,9 @@ export class PlaylistManager {
     this.player.stagePlaylistNativeSource(srcToLoad, mimeType);
 
     if (!this.player.renderer) {
-      this.player.log('play: renderer not ready — wait for prepareTrack()', 'warn');
+      this.player.log('play: renderer not ready — falling back to load()', 'debug');
       this.isChangingTrack = false;
+      void this.play(index, false);
       return;
     }
 
@@ -1135,6 +1138,7 @@ export class PlaylistManager {
     }
 
     this.player.renderer.play();
+    this._pendingUserPlay = false;
     this.player.hidePosterOverlay?.();
 
     this.completeNativeGesturePlayUi(index, track);
@@ -1148,6 +1152,11 @@ export class PlaylistManager {
 
   /** Called when {@link Player.load} / track selection finishes (desktop / iPad). */
   tryConsumePendingUserPlay(): void {
+    // {@link play} awaits load() then runs finishPlayAfterLoad — avoid double/triple
+    // renderer.play() (YouTube/Vimeo/SoundCloud stutter or reload loops).
+    if (this.isChangingTrack) {
+      return;
+    }
     this.fulfillPendingUserPlay();
   }
 
@@ -1155,8 +1164,8 @@ export class PlaylistManager {
     if (!this._pendingUserPlay) {
       return;
     }
-    this._pendingUserPlay = false;
     if (!this.player.element.paused) {
+      this._pendingUserPlay = false;
       return;
     }
 
@@ -1167,8 +1176,94 @@ export class PlaylistManager {
     }
 
     if (this.player.renderer) {
-      this.player.renderer.play();
+      void this.player.renderer.play();
     }
+  }
+
+  /** Start playback after async {@link Player.load}; retry once on `canplay` if needed. */
+  private startPlaybackAfterTrackLoad(loadGeneration: number, track: PlaylistTrack): void {
+    if (isIOS() || this.isExternalEmbedTrack(track)) {
+      return;
+    }
+
+    const attempt = (): void => {
+      if (loadGeneration !== this._trackLoadGeneration) {
+        return;
+      }
+      if (!this.player.element.paused) {
+        this._pendingUserPlay = false;
+        this.player.hidePosterOverlay?.();
+        return;
+      }
+      this.ensureInlineVideoPlaybackAttributes();
+      const playResult = this.player.renderer?.play();
+      if (playResult !== undefined && typeof (playResult as Promise<void>).then === 'function') {
+        void (playResult as Promise<void>)
+          .then(() => {
+            if (loadGeneration === this._trackLoadGeneration && !this.player.element.paused) {
+              this._pendingUserPlay = false;
+              this.player.hidePosterOverlay?.();
+            }
+          })
+          .catch(() => {
+            // A later `canplay` retry may succeed once metadata is ready.
+          });
+      }
+    };
+
+    attempt();
+
+    const media = this.player.element;
+    if (loadGeneration !== this._trackLoadGeneration || !media.paused) {
+      return;
+    }
+
+    const retryWhenReady = (): void => {
+      if (loadGeneration !== this._trackLoadGeneration) {
+        return;
+      }
+      attempt();
+    };
+
+    if (media.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
+      media.addEventListener('canplay', retryWhenReady, { once: true });
+      media.addEventListener('loadeddata', retryWhenReady, { once: true });
+    }
+
+    this.setManagedTimeout(() => {
+      if (loadGeneration === this._trackLoadGeneration && media.paused) {
+        attempt();
+      }
+    }, 120);
+  }
+
+  /** Start or resume playback once a track (or recreated player) has loaded. */
+  private beginPlaybackForLoadedTrack(
+    loadGeneration: number,
+    track: PlaylistTrack,
+    userInitiated: boolean,
+  ): void {
+    if (isIOS()) {
+      if (userInitiated) {
+        this.fulfillPendingUserPlay();
+      } else {
+        this._pendingUserPlay = false;
+      }
+      return;
+    }
+
+    if (this.isExternalEmbedTrack(track)) {
+      this._pendingUserPlay = false;
+      void this.player.renderer?.play();
+      return;
+    }
+
+    if (userInitiated || this._pendingUserPlay) {
+      this.startPlaybackAfterTrackLoad(loadGeneration, track);
+      return;
+    }
+
+    void this.player.renderer?.play();
   }
 
   private finishPlayAfterLoad(
@@ -1195,26 +1290,13 @@ export class PlaylistManager {
       total: this.tracks.length,
     });
 
-    // Calling load() while playback is active aborts primed iPhone play().
-    if (
-      !isIOS() &&
-      this.player.element.paused &&
-      this.player.options.deferLoad &&
-      typeof this.player.ensureLoaded === 'function'
-    ) {
-      this.player.ensureLoaded();
-    }
-
     this.isChangingTrack = false;
-    this.fulfillPendingUserPlay();
+    this.beginPlaybackForLoadedTrack(loadGeneration, track, this._pendingUserPlay);
 
     this.player.syncPlaybackUiFromMediaElement();
 
     if (!this.player.element.paused) {
       this.player.hidePosterOverlay();
-    } else if (!isIOS()) {
-      this.ensureInlineVideoPlaybackAttributes();
-      this.player.renderer?.play();
     }
   }
 
@@ -1242,18 +1324,15 @@ export class PlaylistManager {
       void import('../renderers/HLSRenderer.js');
     }
     
-    // Auto-play first track (if enabled)
     if (tracks.length > 0) {
       if (this.options.autoPlayFirst) {
         void this.play(0).catch(() => {
           // ignore
         });
-      } else if (this.player?.options?.deferLoad) {
-        void this.prepareTrack(0);
       } else {
-        void this.loadTrack(0).catch(() => {
-          // ignore
-        });
+        // Show first-track poster/artwork and titles without selecting a row or
+        // loading media (audio has no <video poster>; episode lists stay unselected).
+        this.presentIdleTrack(0);
       }
     }
     
@@ -1261,6 +1340,30 @@ export class PlaylistManager {
     this.updatePlaylistVisibilityInFullscreen();
   }
   
+  /**
+   * Idle playlist: show a track's poster/artwork and header without playback or selection.
+   */
+  presentIdleTrack(index: number): void {
+    if (index < 0 || index >= this.tracks.length) {
+      return;
+    }
+    const track = this.tracks[index];
+    if (!track) {
+      return;
+    }
+
+    try {
+      this.applyVideoPosterForTrack(track);
+      if (track.duration && Number(track.duration) > 0) {
+        this.player.state.duration = Number(track.duration);
+      }
+    } catch {
+      // ignore preview errors
+    }
+
+    this.updateTrackInfo(track, { listIndex: index });
+  }
+
   /**
    * Load a track without playing
    * This is the playlist equivalent of a "single video initialized but not started yet":
@@ -1385,26 +1488,7 @@ export class PlaylistManager {
     // This ensures poster + feature buttons (chapters/captions/transcript/sign-language)
     // can be updated instantly even before any media network activity happens.
     try {
-      // Poster for video element — validate the URL from the manifest
-      // before we hand it to `<video>.poster`. Without the allow-list an
-      // attacker-controlled `javascript:` or `data:text/html` value could
-      // reach the attribute.
-      if (this.player?.element?.tagName === 'VIDEO') {
-        if (track.poster) {
-          const resolved: string = typeof this.player.resolvePosterPath === 'function'
-            ? this.player.resolvePosterPath(track.poster)
-            : track.poster;
-          const posterUrl = sanitizePosterUrl(resolved);
-          if (posterUrl) {
-            (this.player.element as HTMLVideoElement).poster = posterUrl;
-            (this.player as Player & { applyPosterAspectRatio?: (url: string) => void }).applyPosterAspectRatio?.(posterUrl);
-          } else {
-            this.player.element.removeAttribute('poster');
-          }
-        } else {
-          this.player.element.removeAttribute('poster');
-        }
-      }
+      this.applyVideoPosterForTrack(track);
 
       // Update sign language / audio description sources (used for button visibility)
       this.player.audioDescriptionSrc = track.audioDescriptionSrc || null;
@@ -1529,6 +1613,12 @@ export class PlaylistManager {
     const track = this.tracks[index];
     if (!track) return;
 
+    this.selectTrack(index);
+
+    if (userInitiated) {
+      this._pendingUserPlay = true;
+    }
+
     const loadGeneration = ++this._trackLoadGeneration;
 
     this.isChangingTrack = true;
@@ -1542,25 +1632,23 @@ export class PlaylistManager {
       
       // Recreate if element type is different
       if (currentMediaType !== newElementType) {
-        await this.recreatePlayerForTrack(track, true); // true = autoPlay
-        // Update UI after recreation
+        await this.recreatePlayerForTrack(track, false);
         this.updateTrackInfo(track);
         this.updatePlaylistUI();
         this.refreshDownloadButton();
-        
-        // Emit event
+
         this.player.emit('playlisttrackchange', {
           index: index,
           item: track,
           total: this.tracks.length
         });
-        
-        // Clear guard flag
-        this.setManagedTimeout(() => {
-          if (loadGeneration === this._trackLoadGeneration) {
-            this.isChangingTrack = false;
-          }
-        }, 150);
+
+        this.isChangingTrack = false;
+        this.beginPlaybackForLoadedTrack(loadGeneration, track, userInitiated);
+        this.player.syncPlaybackUiFromMediaElement();
+        if (!this.player.element.paused) {
+          this.player.hidePosterOverlay();
+        }
         return;
       }
     }
@@ -1585,13 +1673,14 @@ export class PlaylistManager {
     if (
       userInitiated
       && this.usesNativeElementPlayback(srcToLoad)
-      && (isIOS() || this.canPlayTrackWithoutReload(srcToLoad))
+      && (
+        isIOS()
+        || (this.canPlayTrackWithoutReload(srcToLoad) && this.isTrackSourceAttached(index))
+      )
     ) {
       this.playNativeInUserGesture(index, track, srcToLoad ?? '', typeToLoad);
       return;
     }
-
-    this.selectTrack(index);
 
     const loadConfig = {
       src: srcToLoad ?? '',
@@ -1880,11 +1969,35 @@ export class PlaylistManager {
   }
   
   /**
+   * Apply a validated poster URL to a video element (playlists / idle preview).
+   */
+  private applyVideoPosterForTrack(track: PlaylistTrack): void {
+    if (this.player?.element?.tagName !== 'VIDEO') {
+      return;
+    }
+    if (track.poster) {
+      const resolved: string = typeof this.player.resolvePosterPath === 'function'
+        ? this.player.resolvePosterPath(track.poster)
+        : track.poster;
+      const posterUrl = sanitizePosterUrl(resolved);
+      if (posterUrl) {
+        (this.player.element as HTMLVideoElement).poster = posterUrl;
+        (this.player as Player & { applyPosterAspectRatio?: (url: string) => void }).applyPosterAspectRatio?.(posterUrl);
+      } else {
+        this.player.element.removeAttribute('poster');
+      }
+    } else {
+      this.player.element.removeAttribute('poster');
+    }
+  }
+
+  /**
    * Update track info display
    */
-  updateTrackInfo(track: PlaylistTrack) {
+  updateTrackInfo(track: PlaylistTrack, options?: { listIndex?: number }) {
     if (this.trackInfoView) {
       const effectiveDuration = this.getEffectiveDuration(track);
+      const listIndex = options?.listIndex ?? this.currentIndex;
       const data: TrackInfoData = {
         title: track.title,
         artist: track.artist,
@@ -1892,7 +2005,7 @@ export class PlaylistManager {
         longDescription: typeof track.longDescription === 'string' ? track.longDescription : undefined,
         date: typeof track.date === 'string' ? track.date : undefined,
         duration: effectiveDuration ? Number(effectiveDuration) : undefined,
-        trackNumber: this.currentIndex + 1,
+        trackNumber: listIndex >= 0 ? listIndex + 1 : undefined,
         totalTracks: this.tracks.length
       };
 

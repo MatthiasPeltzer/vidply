@@ -452,11 +452,10 @@ describe('PlaylistManager', () => {
       expect(manager.tracks).toEqual(mockTracks);
     });
 
-    it('should update currentIndex after loading first track', () => {
+    it('should keep currentIndex unset until the user selects a track', () => {
       manager.currentIndex = 2;
       manager.loadPlaylist(mockTracks);
-      // loadPlaylist calls loadTrack(0) which sets currentIndex to 0
-      expect(manager.currentIndex).toBe(0);
+      expect(manager.currentIndex).toBe(-1);
     });
 
     it('should add playlist class to container', () => {
@@ -473,22 +472,15 @@ describe('PlaylistManager', () => {
       expect(playSpy).toHaveBeenCalledWith(0);
     });
 
-    it('should load first track without playing when autoPlayFirst is false', () => {
+    it('should preview the first track without loading or selecting when autoPlayFirst is false', () => {
       const loadTrackSpy = vi.spyOn(manager, 'loadTrack');
+      const presentSpy = vi.spyOn(manager, 'presentIdleTrack');
 
       manager.loadPlaylist(mockTracks);
 
-      expect(loadTrackSpy).toHaveBeenCalledWith(0);
-    });
-
-    it('should prepare first track when deferLoad is enabled', async () => {
-      mockPlayer.options.deferLoad = true;
-      const prepareSpy = vi.spyOn(manager, 'prepareTrack');
-
-      manager.loadPlaylist(mockTracks);
-
-      expect(prepareSpy).toHaveBeenCalledWith(0);
-      await vi.runAllTimersAsync();
+      expect(presentSpy).toHaveBeenCalledWith(0);
+      expect(loadTrackSpy).not.toHaveBeenCalled();
+      expect(manager.currentIndex).toBe(-1);
     });
   });
 
