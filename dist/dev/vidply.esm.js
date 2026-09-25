@@ -1,34 +1,34 @@
 /*!
- * VidPly v1.2.18 - Universal, Accessible Video Player
+ * VidPly v1.2.19 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 import {
   TimeUtils
-} from "./vidply.chunk-XZ6ACQ2H.js";
+} from "./vidply.chunk-UYYM4Z6O.js";
 import {
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-JIBDEUZW.js";
+} from "./vidply.chunk-7Y7366XW.js";
 import {
   focusElement,
   setContainerChildrenInert,
   trapFocusInContainer
-} from "./vidply.chunk-YYYBN72S.js";
+} from "./vidply.chunk-UXPLQHTN.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-NO44V2XH.js";
+} from "./vidply.chunk-EJOHAHWP.js";
 import {
   CaptionManager
-} from "./vidply.chunk-ZYCBYD7A.js";
+} from "./vidply.chunk-XHJBBCRA.js";
 import {
   StorageManager
-} from "./vidply.chunk-7IAZKXWY.js";
+} from "./vidply.chunk-4N4VBG5I.js";
 import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-XZ65GA4B.js";
+} from "./vidply.chunk-4ZLOM6DE.js";
 import {
   canPlayNativeHls,
   debounce,
@@ -38,7 +38,7 @@ import {
   reducedMotionScrollOptions,
   scrollIntoViewWithinScrollParent,
   throttle
-} from "./vidply.chunk-P4F5NATG.js";
+} from "./vidply.chunk-S5ZZZKLZ.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -2291,7 +2291,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-G4MXHBCH.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+    import("./vidply.CaptionStyleMenu-U4AG44VH.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
@@ -6924,21 +6924,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-G73RBAVI.js");
+    const module = await import("./vidply.AudioDescriptionManager-7NAVPOT7.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-HEWUSCGS.js");
+    const module = await import("./vidply.SignLanguageManager-I7ZNVD7X.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-EZCAJEIE.js");
+    const module = await import("./vidply.FloatingPlayerManager-KVSBSZRC.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -7635,7 +7635,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-5B7NV5W4.js");
+    const module = await import("./vidply.TranscriptManager-EBV7IUE4.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -8286,23 +8286,23 @@ var Player = class _Player extends EventEmitter {
   async _detectRendererClass(src) {
     switch (classifyRendererType(src)) {
       case "youtube": {
-        const module = await import("./vidply.YouTubeRenderer-WIVUIW5P.js");
+        const module = await import("./vidply.YouTubeRenderer-4U5CKG4A.js");
         return module.YouTubeRenderer ?? module.default;
       }
       case "vimeo": {
-        const module = await import("./vidply.VimeoRenderer-S7W5UNV7.js");
+        const module = await import("./vidply.VimeoRenderer-NKXTT6C5.js");
         return module.VimeoRenderer ?? module.default;
       }
       case "hls": {
-        const module = await import("./vidply.HLSRenderer-7APZZ6KM.js");
+        const module = await import("./vidply.HLSRenderer-347UKRYT.js");
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {
-        const module = await import("./vidply.DASHRenderer-5EI6M6RX.js");
+        const module = await import("./vidply.DASHRenderer-URJY5WVW.js");
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
-        const module = await import("./vidply.SoundCloudRenderer-JYESDZKV.js");
+        const module = await import("./vidply.SoundCloudRenderer-X7LLYAXZ.js");
         return module.SoundCloudRenderer ?? module.default;
       }
       default:
@@ -10717,7 +10717,7 @@ var PlaylistManager = class _PlaylistManager {
       this.renderPlaylist();
     }
     if (isIOS() && tracks.some((t) => t.src?.includes(".m3u8"))) {
-      void import("./vidply.HLSRenderer-7APZZ6KM.js");
+      void import("./vidply.HLSRenderer-347UKRYT.js");
     }
     if (tracks.length > 0) {
       if (this.options.autoPlayFirst) {

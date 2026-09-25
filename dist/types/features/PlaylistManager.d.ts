@@ -216,12 +216,20 @@ export declare class PlaylistManager {
     /** Called when {@link Player.load} / track selection finishes (desktop / iPad). */
     tryConsumePendingUserPlay(): void;
     private fulfillPendingUserPlay;
+    /** Start playback after async {@link Player.load}; retry once on `canplay` if needed. */
+    private startPlaybackAfterTrackLoad;
+    /** Start or resume playback once a track (or recreated player) has loaded. */
+    private beginPlaybackForLoadedTrack;
     private finishPlayAfterLoad;
     /**
      * Load a playlist
      * @param {Array} tracks - Array of track objects
      */
     loadPlaylist(tracks: PlaylistTrack[]): void;
+    /**
+     * Idle playlist: show a track's poster/artwork and header without playback or selection.
+     */
+    presentIdleTrack(index: number): void;
     /**
      * Load a track without playing
      * This is the playlist equivalent of a "single video initialized but not started yet":
@@ -302,9 +310,15 @@ export declare class PlaylistManager {
      */
     createUI(): void;
     /**
+     * Apply a validated poster URL to a video element (playlists / idle preview).
+     */
+    private applyVideoPosterForTrack;
+    /**
      * Update track info display
      */
-    updateTrackInfo(track: PlaylistTrack): void;
+    updateTrackInfo(track: PlaylistTrack, options?: {
+        listIndex?: number;
+    }): void;
     /**
      * Resolve a track poster for CSS/artwork (absolute URL + allow-list).
      */

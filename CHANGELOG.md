@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.19] - 2026-09-25
+
+### Fixed
+- Playlists on desktop: user-initiated MP4/HLS taps call `player.load()` when the target URL is not already on the media element (native in-gesture play stays on iOS and when the source is already bound), restoring podcast, video, and mixed-media track switches.
+- Playlists: idle first track on load — artwork/poster and list UI without prefetching media or auto-playing unless `autoPlayFirst` is enabled (`presentIdleTrack`).
+- Playlists: reliable first-click play after async track loads (pending user play); YouTube/Vimeo/SoundCloud switches no longer stutter from stacked autoplay calls; mixed audio/video track changes start via `renderer.play()` after player recreation instead of queuing `Player.play()` while `isChangingTrack`.
+
+### Tests
+- Playlist unit tests: `loadPlaylist` expects idle preview when `autoPlayFirst` is false (no automatic `loadTrack(0)`).
+- Playlist e2e: start playback before asserting VOD duration, rewind/forward, and sign-language controls (idle preview on load).
+
 ## [1.2.18] - 2026-09-25
 
 ### Added
@@ -865,6 +876,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of the vidply accessible media player.
 
+[1.2.19]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.18...v1.2.19
 [1.2.18]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.17...v1.2.18
 [1.2.17]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.16...v1.2.17
 [1.2.16]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.15...v1.2.16
