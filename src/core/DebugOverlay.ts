@@ -79,7 +79,8 @@ export class DebugOverlay {
 
     const root = document.createElement('div');
     root.className = 'vidply-debug-overlay';
-    root.setAttribute('aria-hidden', 'true');
+    root.setAttribute('role', 'region');
+    root.setAttribute('aria-label', 'VidPly debug log');
     root.style.cssText =
       'position:fixed;top:12px;right:12px;left:auto;bottom:auto;width:min(420px,calc(100vw - 24px));' +
       'max-height:min(50vh,480px);z-index:2147483646;' +
@@ -110,6 +111,7 @@ export class DebugOverlay {
     clearBtn.style.cssText = copyBtn.style.cssText;
 
     const logEl = document.createElement('pre');
+    logEl.setAttribute('tabindex', '0');
     logEl.style.cssText = 'margin:0;overflow:auto;flex:1;white-space:pre-wrap;word-break:break-word;';
 
     copyBtn.addEventListener('click', () => {

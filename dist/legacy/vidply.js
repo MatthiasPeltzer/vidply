@@ -12818,6 +12818,8 @@
        *  control rebuilds (which re-call setupOverflowDetection) don't stack them.
        *  The ResizeObserver is still recreated each call for the new rightButtons. */
       __publicField(this, "_overflowGlobalBound", false);
+      /** Deferred overflow layout checks (initial stagger + fullscreen) — cleared on destroy. */
+      __publicField(this, "_overflowDeferredTimers", []);
       __publicField(this, "previewSupported", false);
       __publicField(this, "previewThumbnailCache", /* @__PURE__ */ new Map());
       __publicField(this, "previewThumbnailTimeout", null);
@@ -16159,6 +16161,9 @@
       this.overflowMenuButton.style.display = hiddenCount > 0 ? "" : "none";
     }
     checkOverflow() {
+      if (typeof window === "undefined") {
+        return;
+      }
       const isDesktop = window.innerWidth >= 768;
       const isLandscape = window.innerHeight < window.innerWidth;
       const isFullscreen = this.player.state.fullscreen;
@@ -16271,10 +16276,38 @@
       this.applyLeftClusterOverflow(priorityAttr);
       this.updateOverflowMenuVisibility();
     }
+    clearOverflowDeferredTimers() {
+      for (const id of this._overflowDeferredTimers) {
+        clearTimeout(id);
+      }
+      this._overflowDeferredTimers = [];
+    }
+    scheduleOverflowDeferred(callback, delayMs, signal) {
+      if (signal.aborted) {
+        return;
+      }
+      const id = setTimeout(() => {
+        this._overflowDeferredTimers = this._overflowDeferredTimers.filter((t) => t !== id);
+        if (signal.aborted || typeof window === "undefined") {
+          return;
+        }
+        callback();
+      }, delayMs);
+      this._overflowDeferredTimers.push(id);
+      signal.addEventListener(
+        "abort",
+        () => {
+          clearTimeout(id);
+          this._overflowDeferredTimers = this._overflowDeferredTimers.filter((t) => t !== id);
+        },
+        { once: true }
+      );
+    }
     setupOverflowDetection() {
       const signal = this.player.lifecycleSignal;
+      this.clearOverflowDeferredTimers();
       const checkOverflow = () => {
-        if (signal.aborted) return;
+        if (signal.aborted || typeof window === "undefined") return;
         this.checkOverflow();
       };
       if (this.overflowResizeObserver) {
@@ -16294,19 +16327,24 @@
           requestAnimationFrame(checkOverflow);
         }, { signal });
         this.subscribe("overflow", "fullscreenchange", () => {
-          setTimeout(() => {
-            requestAnimationFrame(checkOverflow);
-          }, 50);
+          this.scheduleOverflowDeferred(
+            () => requestAnimationFrame(checkOverflow),
+            50,
+            signal
+          );
         });
       }
       requestAnimationFrame(() => {
         checkOverflow();
-        setTimeout(() => checkOverflow(), 100);
-        setTimeout(() => checkOverflow(), 300);
-        setTimeout(() => checkOverflow(), 500);
+        this.scheduleOverflowDeferred(checkOverflow, 100, signal);
+        this.scheduleOverflowDeferred(checkOverflow, 300, signal);
+        this.scheduleOverflowDeferred(checkOverflow, 500, signal);
       });
       if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(() => {
+        void document.fonts.ready.then(() => {
+          if (signal.aborted || typeof window === "undefined") {
+            return;
+          }
           requestAnimationFrame(checkOverflow);
         });
       }
@@ -16374,6 +16412,7 @@
         this.overflowResizeObserver.disconnect();
         this.overflowResizeObserver = null;
       }
+      this.clearOverflowDeferredTimers();
       this.cleanupPreviewThumbnail();
       if (this.element && this.element.parentNode) {
         this.element.parentNode.removeChild(this.element);
@@ -16414,6 +16453,7 @@
     }
     init() {
       this.attachEvents();
+      this.attachPointerFocus();
       this.attachStateAnnouncements();
     }
     /**
@@ -16473,14 +16513,33 @@
         this.player.container.setAttribute("tabindex", "0");
       }
     }
+    /**
+     * Focus the player region on pointer use outside native controls so keyboard
+     * shortcuts (capture listener on the container) receive subsequent key events.
+     * Clicks on the video surface or SVG play overlay do not focus a control by default.
+     */
+    attachPointerFocus() {
+      this.player.container.addEventListener("pointerdown", (e) => {
+        const target = e.target;
+        if (target.closest(
+          'button, a[href], input, select, textarea, [role="menu"], [role="menuitem"], [role="slider"]'
+        )) {
+          return;
+        }
+        this.player.container.focus({ preventScroll: true });
+      });
+    }
     handleKeydown(e) {
       var _a, _b;
+      const key = e.key;
       const target = e.target;
       if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") {
         return;
       }
       if (target.tagName === "BUTTON" || target.closest("button")) {
-        return;
+        if (key === " " || key === "Spacebar" || key === "Enter") {
+          return;
+        }
       }
       const activeElement = document.activeElement;
       if (activeElement) {
@@ -16507,7 +16566,6 @@
           }
         }
       }
-      const key = e.key;
       let handled = false;
       if (key === "Escape" && this.player.state.fullscreen) {
         this.player.exitFullscreen();
@@ -18261,7 +18319,8 @@
       }
       const root = document.createElement("div");
       root.className = "vidply-debug-overlay";
-      root.setAttribute("aria-hidden", "true");
+      root.setAttribute("role", "region");
+      root.setAttribute("aria-label", "VidPly debug log");
       root.style.cssText = "position:fixed;top:12px;right:12px;left:auto;bottom:auto;width:min(420px,calc(100vw - 24px));max-height:min(50vh,480px);z-index:2147483646;background:rgba(0,0,0,.92);color:#0f0;font:12px/1.35 ui-monospace,monospace;padding:8px 10px;overflow:hidden;display:flex;flex-direction:column;gap:6px;pointer-events:auto;border:2px solid #fc0;box-shadow:0 4px 24px rgba(0,0,0,.45);";
       const toolbar = document.createElement("div");
       toolbar.style.cssText = "display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap;";
@@ -18280,6 +18339,7 @@
       clearBtn.textContent = "Clear";
       clearBtn.style.cssText = copyBtn.style.cssText;
       const logEl = document.createElement("pre");
+      logEl.setAttribute("tabindex", "0");
       logEl.style.cssText = "margin:0;overflow:auto;flex:1;white-space:pre-wrap;word-break:break-word;";
       copyBtn.addEventListener("click", () => {
         var _a;

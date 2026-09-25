@@ -35,6 +35,8 @@ export declare class ControlBar {
      *  control rebuilds (which re-call setupOverflowDetection) don't stack them.
      *  The ResizeObserver is still recreated each call for the new rightButtons. */
     private _overflowGlobalBound;
+    /** Deferred overflow layout checks (initial stagger + fullscreen) — cleared on destroy. */
+    private _overflowDeferredTimers;
     previewSupported: boolean;
     previewThumbnailCache: Map<number, string>;
     previewThumbnailTimeout: TimerHandle | null;
@@ -319,6 +321,8 @@ export declare class ControlBar {
     private applyLeftClusterOverflow;
     private updateOverflowMenuVisibility;
     checkOverflow(): void;
+    private clearOverflowDeferredTimers;
+    private scheduleOverflowDeferred;
     setupOverflowDetection(): void;
     show(): void;
     hide(): void;

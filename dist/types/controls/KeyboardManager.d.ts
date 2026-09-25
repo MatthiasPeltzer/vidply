@@ -27,6 +27,12 @@ export declare class KeyboardManager {
      */
     attachStateAnnouncements(): void;
     attachEvents(): void;
+    /**
+     * Focus the player region on pointer use outside native controls so keyboard
+     * shortcuts (capture listener on the container) receive subsequent key events.
+     * Clicks on the video surface or SVG play overlay do not focus a control by default.
+     */
+    attachPointerFocus(): void;
     handleKeydown(e: KeyboardEvent): void;
     executeAction(action: string, _event: KeyboardEvent): boolean;
     announceAction(action: string): void;

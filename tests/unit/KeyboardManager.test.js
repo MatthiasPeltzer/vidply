@@ -168,6 +168,32 @@ describe('KeyboardManager', () => {
       expect(mockPlayer.toggle).not.toHaveBeenCalled();
     });
 
+    it('should defer Space on control buttons to native activation', () => {
+      const playButton = document.createElement('button');
+      container.appendChild(playButton);
+
+      const event = new KeyboardEvent('keydown', { key: ' ', bubbles: true });
+      Object.defineProperty(event, 'target', { value: playButton });
+
+      manager.handleKeydown(event);
+
+      expect(mockPlayer.toggle).not.toHaveBeenCalled();
+    });
+
+    it('should handle player shortcuts when focus is on a control button', () => {
+      const playButton = document.createElement('button');
+      container.appendChild(playButton);
+
+      const event = new KeyboardEvent('keydown', { key: 'k', bubbles: true });
+      Object.defineProperty(event, 'target', { value: playButton });
+      const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
+
+      manager.handleKeydown(event);
+
+      expect(mockPlayer.toggle).toHaveBeenCalled();
+      expect(preventDefaultSpy).toHaveBeenCalled();
+    });
+
     it('should handle Escape key to exit fullscreen', () => {
       mockPlayer.state.fullscreen = true;
       

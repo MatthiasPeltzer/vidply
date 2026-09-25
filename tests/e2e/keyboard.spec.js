@@ -12,9 +12,9 @@ test.describe('Keyboard Navigation', () => {
     });
 
     test('should toggle play/pause with Space key', async ({page}) => {
-        // Focus the player by clicking on it
+        // Focus the player region (avoid center-click — that starts playback via the overlay)
         const player = page.locator('.vidply-player');
-        await player.click();
+        await player.focus();
 
         // Press Space to play
         await page.keyboard.press('Space');
@@ -35,7 +35,7 @@ test.describe('Keyboard Navigation', () => {
 
     test('should toggle play/pause with K key', async ({page}) => {
         const player = page.locator('.vidply-player');
-        await player.click();
+        await player.focus();
 
         // Press K to play
         await page.keyboard.press('k');
@@ -54,7 +54,7 @@ test.describe('Keyboard Navigation', () => {
 
     test('should toggle mute with M key', async ({page}) => {
         const player = page.locator('.vidply-player');
-        await player.click();
+        await player.focus();
 
         // The M key should toggle mute state
         // Check the volume icon changes or player state changes
@@ -76,7 +76,7 @@ test.describe('Keyboard Navigation', () => {
 
     test('should toggle fullscreen with F key', async ({page}) => {
         const player = page.locator('.vidply-player');
-        await player.click();
+        await player.focus();
 
         // Press F to toggle fullscreen
         // Note: Fullscreen might not work in automated tests due to browser restrictions
@@ -90,7 +90,7 @@ test.describe('Keyboard Navigation', () => {
 
     test('should seek forward with Arrow Right', async ({page}) => {
         const player = page.locator('.vidply-player');
-        await player.click();
+        await player.focus();
 
         // Start playback first
         await page.keyboard.press('Space');
@@ -107,7 +107,7 @@ test.describe('Keyboard Navigation', () => {
 
     test('should seek backward with Arrow Left', async ({page}) => {
         const player = page.locator('.vidply-player');
-        await player.click();
+        await player.focus();
 
         // Start playback and wait a bit
         await page.keyboard.press('Space');
@@ -201,7 +201,7 @@ test.describe('Additional Keyboard Shortcuts', () => {
 
     test('should seek to start with Home key', async ({page}) => {
         const player = page.locator('.vidply-player');
-        await player.click();
+        await player.focus();
 
         // Start playback and wait
         await page.keyboard.press('Space');
@@ -219,7 +219,7 @@ test.describe('Additional Keyboard Shortcuts', () => {
 
     test('should seek to end with End key', async ({page}) => {
         const player = page.locator('.vidply-player');
-        await player.click();
+        await player.focus();
 
         // Start playback
         await page.keyboard.press('Space');
@@ -234,7 +234,7 @@ test.describe('Additional Keyboard Shortcuts', () => {
 
     test('should seek with number keys (0-9)', async ({page}) => {
         const player = page.locator('.vidply-player');
-        await player.click();
+        await player.focus();
 
         // Start playback
         await page.keyboard.press('Space');
@@ -255,7 +255,7 @@ test.describe('Additional Keyboard Shortcuts', () => {
 
     test('should toggle captions with C key', async ({page}) => {
         const player = page.locator('.vidply-player');
-        await player.click();
+        await player.focus();
 
         // Press C to toggle captions
         await page.keyboard.press('c');
@@ -298,7 +298,7 @@ test.describe('Additional Keyboard Shortcuts', () => {
 
     test('should handle J key for rewind', async ({page}) => {
         const player = page.locator('.vidply-player');
-        await player.click();
+        await player.focus();
 
         // Start playback
         await page.keyboard.press('Space');
@@ -315,7 +315,7 @@ test.describe('Additional Keyboard Shortcuts', () => {
 
     test('should handle L key for forward', async ({page}) => {
         const player = page.locator('.vidply-player');
-        await player.click();
+        await player.focus();
 
         // Start playback
         await page.keyboard.press('Space');

@@ -43,6 +43,7 @@ export class KeyboardManager {
 
   init() {
     this.attachEvents();
+    this.attachPointerFocus();
     this.attachStateAnnouncements();
   }
 
@@ -119,7 +120,26 @@ export class KeyboardManager {
     }
   }
 
+  /**
+   * Focus the player region on pointer use outside native controls so keyboard
+   * shortcuts (capture listener on the container) receive subsequent key events.
+   * Clicks on the video surface or SVG play overlay do not focus a control by default.
+   */
+  attachPointerFocus(): void {
+    this.player.container.addEventListener('pointerdown', (e: PointerEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest(
+        'button, a[href], input, select, textarea, [role="menu"], [role="menuitem"], [role="slider"]'
+      )) {
+        return;
+      }
+      this.player.container.focus({ preventScroll: true });
+    });
+  }
+
   handleKeydown(e: KeyboardEvent) {
+    const key = e.key;
+
     // Don't handle if target is an input element
     const target = e.target as HTMLElement;
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
@@ -128,7 +148,9 @@ export class KeyboardManager {
 
     // Let native button behavior handle Space/Enter (iOS control-bar taps).
     if (target.tagName === 'BUTTON' || target.closest('button')) {
-      return;
+      if (key === ' ' || key === 'Spacebar' || key === 'Enter') {
+        return;
+      }
     }
     
     // Don't handle if focus is inside a menu (let menu handle its own keyboard navigation)
@@ -165,7 +187,6 @@ export class KeyboardManager {
       }
     }
 
-    const key = e.key;
     let handled = false;
 
     // Special handling for ESC key - exit fullscreen (especially for iOS pseudo-fullscreen)

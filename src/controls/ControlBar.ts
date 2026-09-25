@@ -103,6 +103,8 @@ export class ControlBar {
      *  control rebuilds (which re-call setupOverflowDetection) don't stack them.
      *  The ResizeObserver is still recreated each call for the new rightButtons. */
     private _overflowGlobalBound: boolean = false;
+    /** Deferred overflow layout checks (initial stagger + fullscreen) — cleared on destroy. */
+    private _overflowDeferredTimers: TimerHandle[] = [];
     previewSupported: boolean = false;
     previewThumbnailCache: Map<number, string> = new Map();
     previewThumbnailTimeout: TimerHandle | null = null;
@@ -4614,6 +4616,10 @@ export class ControlBar {
     }
 
     checkOverflow() {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
         const isDesktop = window.innerWidth >= 768;
         const isLandscape = window.innerHeight < window.innerWidth;
         const isFullscreen = this.player.state.fullscreen;
@@ -4751,13 +4757,44 @@ export class ControlBar {
         this.updateOverflowMenuVisibility();
     }
 
+    private clearOverflowDeferredTimers(): void {
+        for (const id of this._overflowDeferredTimers) {
+            clearTimeout(id);
+        }
+        this._overflowDeferredTimers = [];
+    }
+
+    private scheduleOverflowDeferred(callback: () => void, delayMs: number, signal: AbortSignal): void {
+        if (signal.aborted) {
+            return;
+        }
+        const id = setTimeout(() => {
+            this._overflowDeferredTimers = this._overflowDeferredTimers.filter((t) => t !== id);
+            if (signal.aborted || typeof window === 'undefined') {
+                return;
+            }
+            callback();
+        }, delayMs);
+        this._overflowDeferredTimers.push(id);
+        signal.addEventListener(
+            'abort',
+            () => {
+                clearTimeout(id);
+                this._overflowDeferredTimers = this._overflowDeferredTimers.filter((t) => t !== id);
+            },
+            { once: true },
+        );
+    }
+
     setupOverflowDetection() {
         const signal = this.player.lifecycleSignal;
+        this.clearOverflowDeferredTimers();
+
         // Every deferred callback checks the lifecycle signal first so a
         // player destroyed within the 500ms initial-check window does not
         // poke at a torn-down ControlBar.
         const checkOverflow = () => {
-            if (signal.aborted) return;
+            if (signal.aborted || typeof window === 'undefined') return;
             this.checkOverflow();
         };
 
@@ -4791,9 +4828,11 @@ export class ControlBar {
             // Check on fullscreen changes (important for desktop/tablet fullscreen)
             this.subscribe('overflow', 'fullscreenchange', () => {
                 // Use setTimeout to ensure fullscreen state is fully updated
-                setTimeout(() => {
-                    requestAnimationFrame(checkOverflow);
-                }, 50);
+                this.scheduleOverflowDeferred(
+                    () => requestAnimationFrame(checkOverflow),
+                    50,
+                    signal,
+                );
             });
         }
 
@@ -4801,14 +4840,17 @@ export class ControlBar {
         // Some browsers need more time for font loading, CSS rendering, etc.
         requestAnimationFrame(() => {
             checkOverflow();
-            setTimeout(() => checkOverflow(), 100);
-            setTimeout(() => checkOverflow(), 300);
-            setTimeout(() => checkOverflow(), 500);
+            this.scheduleOverflowDeferred(checkOverflow, 100, signal);
+            this.scheduleOverflowDeferred(checkOverflow, 300, signal);
+            this.scheduleOverflowDeferred(checkOverflow, 500, signal);
         });
 
         // Also check when fonts are loaded
         if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(() => {
+            void document.fonts.ready.then(() => {
+                if (signal.aborted || typeof window === 'undefined') {
+                    return;
+                }
                 requestAnimationFrame(checkOverflow);
             });
         }
@@ -4900,6 +4942,8 @@ export class ControlBar {
             this.overflowResizeObserver.disconnect();
             this.overflowResizeObserver = null;
         }
+
+        this.clearOverflowDeferredTimers();
 
         // Cleanup preview thumbnail resources
         this.cleanupPreviewThumbnail();

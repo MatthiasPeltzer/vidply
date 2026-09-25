@@ -156,7 +156,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 201489,
+      "bytes": 203051,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -275,7 +275,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.ts": {
-      "bytes": 14528,
+      "bytes": 15292,
       "imports": [
         {
           "path": "src/i18n/i18n.ts",
@@ -455,7 +455,7 @@
       "format": "esm"
     },
     "src/core/DebugOverlay.ts": {
-      "bytes": 6729,
+      "bytes": 6822,
       "imports": [
         {
           "path": "<runtime>",
@@ -1211,7 +1211,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1693871
+      "bytes": 1697445
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1327,7 +1327,7 @@
           "bytesInOutput": 117189
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 150835
+          "bytesInOutput": 152206
         },
         "src/utils/VideoFrameCapture.ts": {
           "bytesInOutput": 3154
@@ -1336,7 +1336,7 @@
           "bytesInOutput": 3863
         },
         "src/controls/KeyboardManager.ts": {
-          "bytesInOutput": 11955
+          "bytesInOutput": 12720
         },
         "src/core/MediaSessionManager.ts": {
           "bytesInOutput": 7899
@@ -1375,7 +1375,7 @@
           "bytesInOutput": 11474
         },
         "src/core/DebugOverlay.ts": {
-          "bytesInOutput": 6866
+          "bytesInOutput": 6963
         },
         "src/core/MetadataAlertsManager.ts": {
           "bytesInOutput": 15264
@@ -1396,7 +1396,7 @@
           "bytesInOutput": 5385
         }
       },
-      "bytes": 1000794
+      "bytes": 1003027
     }
   }
 }
