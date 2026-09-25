@@ -5,6 +5,16 @@
 
 import { test, expect } from '@playwright/test';
 
+/** Playlists show idle preview until the user starts a track; load VOD metadata for duration-based checks. */
+async function startFirstPlaylistTrack(page, player) {
+  await player.locator('button[aria-label="Play"]').click();
+  await page.waitForFunction(() => {
+    const root = document.querySelector('.vidply-has-playlist');
+    const media = root?.querySelector('video, audio');
+    return media && Number.isFinite(media.duration) && media.duration > 0;
+  }, undefined, { timeout: 15000 });
+}
+
 test.describe('Video Playlist', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/demo/playlist-video.html');
@@ -38,10 +48,7 @@ test.describe('Video Playlist', () => {
 
   test('should show rewind and forward on VOD tracks', async ({ page }) => {
     const player = page.locator('.vidply-player.vidply-has-playlist').first();
-    await page.waitForFunction(() => {
-      const media = document.querySelector('.vidply-has-playlist video, .vidply-has-playlist audio');
-      return media && Number.isFinite(media.duration) && media.duration > 0;
-    });
+    await startFirstPlaylistTrack(page, player);
     await expect(player.locator('.vidply-rewind')).toBeVisible();
     await expect(player.locator('.vidply-forward')).toBeVisible();
   });
@@ -172,10 +179,7 @@ test.describe('Audio Playlist', () => {
 
   test('should show rewind and forward on VOD tracks', async ({ page }) => {
     const player = page.locator('.vidply-player.vidply-has-playlist').first();
-    await page.waitForFunction(() => {
-      const media = document.querySelector('.vidply-has-playlist video, .vidply-has-playlist audio');
-      return media && Number.isFinite(media.duration) && media.duration > 0;
-    });
+    await startFirstPlaylistTrack(page, player);
     await expect(player.locator('.vidply-rewind')).toBeVisible();
     await expect(player.locator('.vidply-forward')).toBeVisible();
   });
@@ -214,17 +218,13 @@ test.describe('Mixed Media Playlist', () => {
 
   test('should show rewind and forward on VOD tracks', async ({ page }) => {
     const player = page.locator('.vidply-player.vidply-has-playlist').first();
-    await page.waitForFunction(() => {
-      const media = document.querySelector('.vidply-has-playlist video, .vidply-has-playlist audio');
-      return media && Number.isFinite(media.duration) && media.duration > 0;
-    });
+    await startFirstPlaylistTrack(page, player);
     await expect(player.locator('.vidply-rewind')).toBeVisible();
     await expect(player.locator('.vidply-forward')).toBeVisible();
   });
 
   test('should enable sign language overlay on tracks that provide a source', async ({ page }) => {
     const player = page.locator('.vidply-player.vidply-has-playlist').first();
-    await page.waitForSelector('.vidply-sign-language', { timeout: 15000 });
 
     const warnings = [];
     page.on('console', (msg) => {
@@ -232,6 +232,9 @@ test.describe('Mixed Media Playlist', () => {
         warnings.push(msg.text());
       }
     });
+
+    await startFirstPlaylistTrack(page, player);
+    await expect(player.locator('.vidply-sign-language')).toBeVisible({ timeout: 15000 });
 
     await player.locator('.vidply-sign-language').click();
     await page.waitForTimeout(500);
