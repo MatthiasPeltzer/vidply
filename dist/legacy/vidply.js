@@ -23219,8 +23219,8 @@
         return;
       }
       if (this.player.shouldChangeRenderer(srcToLoad)) {
-        this.player.log("play: renderer swap required — use load path", "warn");
-        this.isChangingTrack = false;
+        this.player.log("play: renderer swap required — falling back to load()", "debug");
+        void this.play(index, false);
         return;
       }
       if (track.src && !this.player.originalSrc) {
@@ -23550,7 +23550,7 @@
         srcToLoad = track.audioDescriptionSrc;
         typeToLoad = track.type;
       }
-      if (userInitiated && this.usesNativeElementPlayback(srcToLoad)) {
+      if (userInitiated && this.usesNativeElementPlayback(srcToLoad) && (isIOS() || this.canPlayTrackWithoutReload(srcToLoad))) {
         this.playNativeInUserGesture(index, track, srcToLoad ?? "", typeToLoad);
         return;
       }

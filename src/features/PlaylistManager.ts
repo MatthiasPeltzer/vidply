@@ -1125,8 +1125,8 @@ export class PlaylistManager {
     }
 
     if (this.player.shouldChangeRenderer(srcToLoad)) {
-      this.player.log('play: renderer swap required — use load path', 'warn');
-      this.isChangingTrack = false;
+      this.player.log('play: renderer swap required — falling back to load()', 'debug');
+      void this.play(index, false);
       return;
     }
 
@@ -1579,7 +1579,14 @@ export class PlaylistManager {
       typeToLoad = track.type;
     }
 
-    if (userInitiated && this.usesNativeElementPlayback(srcToLoad)) {
+    // iOS needs in-gesture native play(); desktop only when this URL is already on
+    // the media element (resume). Otherwise use player.load() so renderer swaps and
+    // new sources are applied (mixed playlists, podcast track changes, etc.).
+    if (
+      userInitiated
+      && this.usesNativeElementPlayback(srcToLoad)
+      && (isIOS() || this.canPlayTrackWithoutReload(srcToLoad))
+    ) {
       this.playNativeInUserGesture(index, track, srcToLoad ?? '', typeToLoad);
       return;
     }
