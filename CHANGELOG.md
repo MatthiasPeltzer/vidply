@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.21] - 2026-10-15
+
+### Fixed
+- YouTube/Vimeo/SoundCloud: the VidPly control bar, play overlay and spinner stay hidden while the renderer chunk, provider SDK and iframe load (previously visible until the provider's ready event). Recreated playlist players for embed tracks start hidden via the internal `externalEmbed` option; controls come back if the embed fails to load.
+
+### Tests
+- Renderer unit tests: controls hidden during YouTube/Vimeo/SoundCloud init and restored on SDK failure; Player tests for early hiding in `initializeRenderer` and the `externalEmbed` option.
+
 ## [1.2.20] - 2026-09-25
 
 ### Fixed
@@ -884,6 +892,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of the vidply accessible media player.
 
+[1.2.21]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.20...v1.2.21
 [1.2.20]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.19...v1.2.20
 [1.2.19]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.18...v1.2.19
 [1.2.18]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.17...v1.2.18
