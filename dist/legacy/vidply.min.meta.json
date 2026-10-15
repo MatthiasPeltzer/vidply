@@ -135,7 +135,7 @@
       "format": "esm"
     },
     "src/controls/CaptionStyleMenu.ts": {
-      "bytes": 12015,
+      "bytes": 10588,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -823,7 +823,7 @@
       "format": "esm"
     },
     "src/renderers/YouTubeRenderer.ts": {
-      "bytes": 12294,
+      "bytes": 12592,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -844,7 +844,7 @@
       "format": "esm"
     },
     "src/renderers/VimeoRenderer.ts": {
-      "bytes": 8679,
+      "bytes": 8975,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -907,7 +907,7 @@
       "format": "esm"
     },
     "src/renderers/SoundCloudRenderer.ts": {
-      "bytes": 14399,
+      "bytes": 14693,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -928,7 +928,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 133848,
+      "bytes": 134427,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -1119,7 +1119,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 97488,
+      "bytes": 97543,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1211,7 +1211,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1706484
+      "bytes": 1706501
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1258,7 +1258,7 @@
           "bytesInOutput": 4284
         },
         "src/controls/CaptionStyleMenu.ts": {
-          "bytesInOutput": 9714
+          "bytesInOutput": 8522
         },
         "src/utils/StorageManager.ts": {
           "bytesInOutput": 8793
@@ -1306,10 +1306,10 @@
           "bytesInOutput": 2712
         },
         "src/renderers/YouTubeRenderer.ts": {
-          "bytesInOutput": 12816
+          "bytesInOutput": 13138
         },
         "src/renderers/VimeoRenderer.ts": {
-          "bytesInOutput": 9156
+          "bytesInOutput": 9478
         },
         "src/renderers/HLSRenderer.ts": {
           "bytesInOutput": 36476
@@ -1318,13 +1318,13 @@
           "bytesInOutput": 38691
         },
         "src/renderers/SoundCloudRenderer.ts": {
-          "bytesInOutput": 14102
+          "bytesInOutput": 14410
         },
         "src/utils/EventEmitter.ts": {
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 117213
+          "bytesInOutput": 117601
         },
         "src/controls/ControlBar.ts": {
           "bytesInOutput": 152206
@@ -1390,13 +1390,13 @@
           "bytesInOutput": 11541
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 80940
+          "bytesInOutput": 80997
         },
         "src/index.ts": {
           "bytesInOutput": 5385
         }
       },
-      "bytes": 1008829
+      "bytes": 1009034
     }
   }
 }

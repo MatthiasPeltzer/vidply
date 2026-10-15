@@ -148,4 +148,32 @@ describe('YouTubeRenderer', () => {
       expect(iframeIndex).toBeLessThan(elementIndex);
     });
   });
+
+  describe('init controls visibility', () => {
+    beforeEach(() => {
+      mockPlayer.container = document.createElement('div');
+      mockPlayer.currentSource = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+      renderer = new YouTubeRenderer(mockPlayer);
+    });
+
+    it('hides VidPly controls before the YouTube IFrame API has loaded', async () => {
+      let resolveApi;
+      renderer.loadYouTubeAPI = vi.fn(() => new Promise((resolve) => { resolveApi = resolve; }));
+      renderer.initializePlayer = vi.fn().mockResolvedValue(undefined);
+
+      const pending = renderer.init();
+
+      expect(mockPlayer.container.classList.contains('vidply-external-controls')).toBe(true);
+      resolveApi();
+      await pending;
+    });
+
+    it('shows VidPly controls again when the IFrame API fails to load', async () => {
+      renderer.loadYouTubeAPI = vi.fn().mockRejectedValue(new Error('blocked'));
+
+      await expect(renderer.init()).rejects.toThrow('blocked');
+
+      expect(mockPlayer.container.classList.contains('vidply-external-controls')).toBe(false);
+    });
+  });
 });

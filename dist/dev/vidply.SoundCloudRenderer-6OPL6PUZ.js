@@ -43,9 +43,15 @@ var SoundCloudRenderer = class {
     if (!this.trackUrl || !this.isValidSoundCloudUrl(this.trackUrl)) {
       throw new Error("Invalid SoundCloud URL");
     }
-    await this.loadSoundCloudAPI();
-    this.createIframe();
-    await this.initializeWidget();
+    this.player.container?.classList.add("vidply-external-controls");
+    try {
+      await this.loadSoundCloudAPI();
+      this.createIframe();
+      await this.initializeWidget();
+    } catch (error) {
+      this.player.container?.classList.remove("vidply-external-controls");
+      throw error;
+    }
   }
   /**
    * Validate a SoundCloud URL by parsing it with the URL constructor and
@@ -367,4 +373,4 @@ export {
   SoundCloudRenderer,
   SoundCloudRenderer_default as default
 };
-//# sourceMappingURL=vidply.SoundCloudRenderer-422TELXK.js.map
+//# sourceMappingURL=vidply.SoundCloudRenderer-6OPL6PUZ.js.map

@@ -647,14 +647,12 @@
                 new Date().toLocaleTimeString() + ']</span><span>Log cleared</span></div>';
     });
     
-    // Initialize player with debug mode
-    log('Creating player instance with debug mode enabled...', 'info');
+    log('Creating player instance...', 'info');
     
     let player;
     
     try {
         player = new Player('#dash-player', {
-            debug: true,
             controls: true,
             volume: 0.8,
             autoplay: false,
@@ -844,7 +842,7 @@
         player.on('ready', () => {
             log('Player ready!', 'success');
             log('You can now test DASH playback', 'info');
-            log('Tip: Check the console for detailed dash.js logs', 'info');
+            log('Tip: Add ?vidplyDebug=1 to the URL to show the on-screen player debug log', 'info');
         });
         
         // Initial log

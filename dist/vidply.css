@@ -160,6 +160,14 @@
   --vidply-z-overlay: 2; /* Play overlay, video wrapper on mobile */
   --vidply-z-playlist: 15; /* Playlist panel in fullscreen */
   --vidply-z-transcript: 5; /* Transcript window */
+
+  /* Form fields in menus and dialogs (caption and transcript style). The
+     color scheme also decides how the browser draws the open option list.
+     --vidply-field-bg, --vidply-field-border, --vidply-field-text and
+     --vidply-option-selected-bg are optional: where a theme leaves them out,
+     the fields use its menu background, border, text and primary color. */
+  --vidply-color-scheme: dark;
+  --vidply-option-selected-text: #fff;
 }
 
 /* ============================================
@@ -221,6 +229,11 @@
   --vidply-text-subtle: #777;
   --vidply-white: #000;
   --vidply-white-rgb: 0, 0, 0;
+
+  /* Form fields */
+  --vidply-color-scheme: light;
+  --vidply-field-bg: #fff;
+  --vidply-field-border: rgb(0 0 0 / 30%);
 }
 
 /* Light theme specific overrides for controls - use opaque background, not transparent gradient */
@@ -485,79 +498,11 @@
   background: rgb(0 0 0 / 10%);
 }
 
-/* Light theme - Caption style menu (WCAG compliant) */
-.vidply-theme-light .vidply-caption-style-menu {
-  background: #f5f5f5;
-  border: 1px solid rgb(0 0 0 / 20%);
-  box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
-}
-
-.vidply-theme-light .vidply-caption-style-menu label {
-  color: #1a1a1a !important;
-  font-weight: 500;
-}
-
-.vidply-theme-light .vidply-caption-style-menu select {
-  background: #fff !important;
-  border: 1px solid rgb(0 0 0 / 30%) !important;
-  color: #1a1a1a !important;
-}
-
-.vidply-theme-light .vidply-caption-style-menu select:hover {
-  border-color: rgb(0 0 0 / 50%) !important;
-}
-
-.vidply-theme-light .vidply-caption-style-menu select:focus,
-.vidply-theme-light .vidply-caption-style-menu select:focus-visible {
-  border-color: var(--vidply-primary) !important;
-  box-shadow: 0 0 0 3px rgb(10 64 110 / 40%) !important;
-  outline: 2px solid var(--vidply-primary) !important;
-  outline-offset: 0 !important;
-}
-
-/* Light theme - Style select dropdowns specifically */
-.vidply-theme-light .vidply-style-select {
-  background: #fff !important;
-  border: 1px solid rgb(0 0 0 / 30%) !important;
-  color: #1a1a1a !important;
-}
-
-.vidply-theme-light .vidply-style-select:hover {
-  border-color: rgb(0 0 0 / 50%) !important;
-}
-
-.vidply-theme-light .vidply-style-select:focus,
-.vidply-theme-light .vidply-style-select:focus-visible {
-  border-color: var(--vidply-primary) !important;
-  box-shadow: 0 0 0 3px rgb(10 64 110 / 40%) !important;
-  outline: 2px solid var(--vidply-primary) !important;
-  outline-offset: 0 !important;
-}
-
-/* Light theme - Settings menu (including caption style popup) */
+/* Light theme - Settings menu. The caption style menu and the transcript
+   style dialog take their light colors from the theme variables. */
 .vidply-theme-light .vidply-settings-menu {
   background: #f5f5f5;
   border: 1px solid rgb(0 0 0 / 20%);
-}
-
-.vidply-theme-light .vidply-style-group {
-  color: #1a1a1a !important;
-}
-
-.vidply-theme-light .vidply-style-group label {
-  color: #1a1a1a !important;
-  font-weight: 500;
-}
-
-/* Light theme - Transcript style groups */
-.vidply-theme-light .vidply-transcript-style-group label {
-  color: #1a1a1a !important;
-}
-
-.vidply-theme-light .vidply-transcript-style-group select {
-  background: #fff !important;
-  border: 1px solid rgb(0 0 0 / 30%) !important;
-  color: #1a1a1a !important;
 }
 
 /* Light theme - All select dropdowns */
@@ -1100,6 +1045,11 @@
   /* Larger focus indicators */
   --vidply-text-primary: #fff;
   --vidply-text-secondary: #fff;
+
+  /* Form fields */
+  --vidply-field-bg: #000;
+  --vidply-field-border: #fff;
+  --vidply-option-selected-text: #000;
 }
 
 .vidply-theme-high-contrast .vidply-controls {
@@ -2514,110 +2464,15 @@ video[data-vidply]:not(.vidply-initialized) {
   flex: 1;
 }
 
-/* Caption style menu */
+/* Caption style menu - looks like the transcript style dialog; its groups,
+   labels and fields share the .vidply-transcript-style-* rules. */
 .vidply-caption-style-menu.vidply-settings-menu {
   background: var(--vidply-bg-menu);
-  padding: var(--vidply-padding-xl);
-}
-
-.vidply-style-group {
-  margin-bottom: var(--vidply-padding-xl);
-}
-
-.vidply-style-group:last-child {
-  margin-bottom: 0;
-}
-
-.vidply-style-group label {
-  font-weight: 500;
-  letter-spacing: 0.01em;
-}
-
-.vidply-style-select,
-.vidply-style-group input[type="color"],
-.vidply-style-group input[type="range"] {
-  appearance: none;
-}
-
-.vidply-style-select {
-  outline: none;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-
-.vidply-style-select:hover {
-  background: var(--vidply-white-15);
-  border-color: var(--vidply-border-hover);
-}
-
-.vidply-style-select:focus {
-  background: var(--vidply-white-15);
-  border-color: var(--vidply-border-focus);
-}
-
-.vidply-style-group input[type="color"] {
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-.vidply-style-group input[type="color"]:hover {
-  border-color: var(--vidply-border-hover);
-}
-
-.vidply-style-group input[type="color"]:focus {
-  border-color: var(--vidply-border-focus);
-  outline: var(--vidply-focus-outline-white);
-  outline-offset: 0.125rem;
-}
-
-/* 1.5rem (24px) thumb meets WCAG 2.5.8 Target Size (Minimum).
-   margin-top centers the larger thumb on the 0.375rem track in WebKit:
-   (0.375rem - 1.5rem) / 2 = -0.5625rem. */
-.vidply-style-group input[type="range"]::-webkit-slider-thumb {
-  appearance: none;
-  background: var(--vidply-primary);
-  border: 0.125rem solid var(--vidply-white);
-  border-radius: 50%;
-  box-shadow: var(--vidply-shadow-sm);
-  cursor: pointer;
-  height: 1.5rem;
-  margin-top: -0.5625rem;
-  transition: transform 0.15s ease, background 0.15s ease;
-  width: 1.5rem;
-}
-
-.vidply-style-group input[type="range"]::-webkit-slider-thumb:hover {
-  background: var(--vidply-primary-80);
-  transform: scale(1.15);
-}
-
-.vidply-style-group input[type="range"]::-moz-range-thumb {
-  background: var(--vidply-primary);
-  border: 0.125rem solid var(--vidply-white);
-  border-radius: 50%;
-  box-shadow: var(--vidply-shadow-sm);
-  cursor: pointer;
-  height: 1.5rem;
-  transition: transform 0.15s ease, background 0.15s ease;
-  width: 1.5rem;
-}
-
-.vidply-style-group input[type="range"]::-moz-range-thumb:hover {
-  background: var(--vidply-primary-80);
-  transform: scale(1.15);
-}
-
-.vidply-style-group input[type="range"]::-webkit-slider-runnable-track {
-  background: var(--vidply-white-20);
-  border-radius: 0.1875rem;
-  height: 0.375rem;
-  width: 100%;
-}
-
-.vidply-style-group input[type="range"]::-moz-range-track {
-  background: var(--vidply-white-20);
-  border-radius: 0.1875rem;
-  height: 0.375rem;
-  width: 100%;
+  border: 0.0625rem solid var(--vidply-border);
+  border-radius: 0.5rem;
+  box-shadow: var(--vidply-shadow-lg);
+  min-width: 17.5rem;
+  padding: 0.75rem;
 }
 
 /* Captions */
@@ -3481,10 +3336,13 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     margin-bottom: 0.5rem;
   }
 
-  .vidply-style-select,
-  .vidply-style-group input[type="color"] {
+  .vidply-style-select {
     font-size: 1rem;
     padding: 0.75rem;
+  }
+
+  .vidply-style-color {
+    height: 2.75rem;
   }
 
   /* Keep controls in one horizontal row on mobile */
@@ -5107,15 +4965,20 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   padding-bottom: 0.5rem;
 }
 
-.vidply-transcript-style-group {
+/* Style groups - shared by the transcript style dialog and the caption
+   style menu (.vidply-style-*). */
+.vidply-transcript-style-group,
+.vidply-style-group {
   margin-bottom: 0.75rem;
 }
 
-.vidply-transcript-style-group:last-child {
+.vidply-transcript-style-group:last-child,
+.vidply-style-group:last-child {
   margin-bottom: 0;
 }
 
-.vidply-transcript-style-group label {
+.vidply-transcript-style-group label,
+.vidply-style-group label {
   color: var(--vidply-white-90);
   display: block;
   font-size: 0.75rem;
@@ -5123,24 +4986,41 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   margin-bottom: 0.375rem;
 }
 
-/* Style Select */
-.vidply-transcript-style-select {
-  background: var(--vidply-bg-menu);
-  border: 0.0625rem solid var(--vidply-border);
+/* Style Select. The color scheme follows the theme so the browser draws the
+   open option list in matching colors. */
+.vidply-transcript-style-select,
+.vidply-style-select {
+  background: var(--vidply-field-bg, rgb(var(--vidply-bg-menu-rgb)));
+  border: 0.0625rem solid var(--vidply-field-border, var(--vidply-border));
   border-radius: 0.25rem;
-  color: var(--vidply-text);
+  color: var(--vidply-field-text, var(--vidply-text-primary));
+  color-scheme: var(--vidply-color-scheme);
   font-size: 0.875rem;
   padding: 0.25rem 0.5rem;
   transition: var(--vidply-transition-default);
   width: 100%;
 }
 
-.vidply-transcript-style-select:hover {
+.vidply-transcript-style-select option,
+.vidply-style-select option {
+  background: var(--vidply-field-bg, rgb(var(--vidply-bg-menu-rgb)));
+  color: var(--vidply-field-text, var(--vidply-text-primary));
+}
+
+.vidply-transcript-style-select option:checked,
+.vidply-style-select option:checked {
+  background: var(--vidply-option-selected-bg, var(--vidply-primary));
+  color: var(--vidply-option-selected-text);
+}
+
+.vidply-transcript-style-select:hover,
+.vidply-style-select:hover {
   background: var(--vidply-white-15);
   border-color: var(--vidply-border-hover);
 }
 
-.vidply-transcript-style-select:focus {
+.vidply-transcript-style-select:focus,
+.vidply-style-select:focus {
   background: var(--vidply-white-15);
   border-color: var(--vidply-border-focus);
   box-shadow: 0 0 0 0.1875rem var(--vidply-primary-20);
@@ -5149,9 +5029,12 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Style Color Input */
-.vidply-transcript-style-color {
-  border: 0.0625rem solid var(--vidply-border);
+.vidply-transcript-style-color,
+.vidply-style-color {
+  background: var(--vidply-field-bg, rgb(var(--vidply-bg-menu-rgb)));
+  border: 0.0625rem solid var(--vidply-field-border, var(--vidply-border));
   border-radius: 0.25rem;
+  color-scheme: var(--vidply-color-scheme);
   cursor: pointer;
   height: 2rem;
   outline: none;
@@ -5160,12 +5043,14 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   width: 100%;
 }
 
-.vidply-transcript-style-color:hover {
+.vidply-transcript-style-color:hover,
+.vidply-style-color:hover {
   border-color: var(--vidply-border-hover);
   box-shadow: 0 0 0 0.0625rem var(--vidply-primary-20);
 }
 
-.vidply-transcript-style-color:focus {
+.vidply-transcript-style-color:focus,
+.vidply-style-color:focus {
   border-color: var(--vidply-border-focus);
   box-shadow: 0 0 0 0.1875rem var(--vidply-primary-20);
   outline: var(--vidply-focus-outline);
@@ -5173,13 +5058,15 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Style Range Slider */
-.vidply-transcript-style-range-container {
+.vidply-transcript-style-range-container,
+.vidply-style-range-container {
   align-items: center;
   display: flex;
   gap: 0.75rem;
 }
 
-.vidply-transcript-style-range {
+.vidply-transcript-style-range,
+.vidply-style-range {
   appearance: none;
   background: var(--vidply-white-20);
   border-radius: 0.1875rem;
@@ -5190,11 +5077,13 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   transition: var(--vidply-transition-default);
 }
 
-.vidply-transcript-style-range:hover {
+.vidply-transcript-style-range:hover,
+.vidply-style-range:hover {
   background: var(--vidply-white-25);
 }
 
-.vidply-transcript-style-range:focus {
+.vidply-transcript-style-range:focus,
+.vidply-style-range:focus {
   background: var(--vidply-white-30);
   box-shadow: 0 0 0 0.125rem var(--vidply-primary-20);
 }
@@ -5202,7 +5091,8 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 /* 1.5rem (24px) thumb meets WCAG 2.5.8 Target Size (Minimum). The input and
    track share a 0.375rem height, so WebKit auto-centers the thumb on the
    track and no margin-top correction is needed. */
-.vidply-transcript-style-range::-webkit-slider-thumb {
+.vidply-transcript-style-range::-webkit-slider-thumb,
+.vidply-style-range::-webkit-slider-thumb {
   appearance: none;
   background: var(--vidply-primary-light);
   border: 0.125rem solid var(--vidply-white);
@@ -5214,12 +5104,14 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   width: 1.5rem;
 }
 
-.vidply-transcript-style-range::-webkit-slider-thumb:hover {
+.vidply-transcript-style-range::-webkit-slider-thumb:hover,
+.vidply-style-range::-webkit-slider-thumb:hover {
   background: var(--vidply-primary);
   transform: scale(1.15);
 }
 
-.vidply-transcript-style-range::-moz-range-thumb {
+.vidply-transcript-style-range::-moz-range-thumb,
+.vidply-style-range::-moz-range-thumb {
   background: var(--vidply-primary-light);
   border: 0.125rem solid var(--vidply-white);
   border-radius: 50%;
@@ -5230,12 +5122,14 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   width: 1.5rem;
 }
 
-.vidply-transcript-style-range::-moz-range-thumb:hover {
+.vidply-transcript-style-range::-moz-range-thumb:hover,
+.vidply-style-range::-moz-range-thumb:hover {
   background: var(--vidply-primary);
   transform: scale(1.15);
 }
 
-.vidply-transcript-style-value {
+.vidply-transcript-style-value,
+.vidply-style-value {
   color: var(--vidply-text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
@@ -6350,8 +6244,8 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   .vidply-resume-prompt-button:focus-visible,
   .vidply-style-select:focus,
   .vidply-style-select:focus-visible,
-  .vidply-style-group input[type="color"]:focus,
-  .vidply-style-group input[type="color"]:focus-visible {
+  .vidply-style-color:focus,
+  .vidply-style-color:focus-visible {
     forced-color-adjust: none;
     outline: 2px solid Highlight !important;
     outline-offset: 2px !important;

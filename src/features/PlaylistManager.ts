@@ -331,6 +331,7 @@ export class PlaylistManager {
     // win over preserved options (e.g. poster from the previous video track).
     const playerOptions = Object.assign({}, preservedPlayerOptions, {
       mediaType: elementType,
+      externalEmbed: this.isExternalEmbedTrack(track),
       poster: track.poster,
       audioDescriptionSrc: track.audioDescriptionSrc || null,
       audioDescriptionDuration: track.audioDescriptionDuration || null,

@@ -33,9 +33,15 @@ var VimeoRenderer = class {
     if (!this.videoId) {
       throw new Error("Invalid Vimeo URL");
     }
-    await this.loadVimeoAPI();
-    this.createIframe();
-    await this.initializePlayer();
+    this.player.container?.classList.add("vidply-external-controls");
+    try {
+      await this.loadVimeoAPI();
+      this.createIframe();
+      await this.initializePlayer();
+    } catch (error) {
+      this.player.container?.classList.remove("vidply-external-controls");
+      throw error;
+    }
   }
   extractVideoId(url) {
     const patterns = [
@@ -254,4 +260,4 @@ var VimeoRenderer = class {
 export {
   VimeoRenderer
 };
-//# sourceMappingURL=vidply.VimeoRenderer-KG4AWOUP.js.map
+//# sourceMappingURL=vidply.VimeoRenderer-BNWCHSF4.js.map

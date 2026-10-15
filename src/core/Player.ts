@@ -45,6 +45,8 @@ export type MetadataAlertOptions = _MetadataAlertOptions;
 import type {PlayerEventMap} from '../types/events.js';
 import type {PlayerOptions} from '../types/options.js';
 
+const EXTERNAL_CONTROL_RENDERERS: ReadonlySet<string> = new Set(['youtube', 'vimeo', 'soundcloud']);
+
 const MEDIA_ERR_LABEL: Record<number, string> = {
   1: 'MEDIA_ERR_ABORTED',
   2: 'MEDIA_ERR_NETWORK',
@@ -1359,6 +1361,10 @@ export class Player extends EventEmitter<PlayerEventMap> {
     const mediaType = this.element.tagName.toLowerCase();
     this.container.classList.add(`${this.options.classPrefix}-${mediaType}`);
 
+    if (this.options.externalEmbed) {
+      this.container.classList.add('vidply-external-controls');
+    }
+
     // Add responsive class
     if (this.options.responsive) {
       this.container.classList.add(`${this.options.classPrefix}-responsive`);
@@ -1809,6 +1815,13 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
     this.currentSource = src;
     this._pendingSource = null;
+
+    // YouTube/Vimeo/SoundCloud bring their own controls. Hide ours before the
+    // lazily imported renderer chunk arrives — a freshly recreated playlist
+    // player would otherwise show the HTML5 control bar until then.
+    if (EXTERNAL_CONTROL_RENDERERS.has(classifyRendererType(src))) {
+      this.container?.classList.add('vidply-external-controls');
+    }
 
     // Pull in the audio-description manager on demand when this source carries
     // description content (it is no longer eagerly loaded for content-less

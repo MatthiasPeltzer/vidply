@@ -2291,7 +2291,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-Y7SAS4EG.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+    import("./vidply.CaptionStyleMenu-4BDAAVXJ.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
@@ -6881,6 +6881,7 @@ var KeyboardHelp = class {
 };
 
 // src/core/Player.ts
+var EXTERNAL_CONTROL_RENDERERS = /* @__PURE__ */ new Set(["youtube", "vimeo", "soundcloud"]);
 var MEDIA_ERR_LABEL = {
   1: "MEDIA_ERR_ABORTED",
   2: "MEDIA_ERR_NETWORK",
@@ -7915,6 +7916,9 @@ var Player = class _Player extends EventEmitter {
     });
     const mediaType = this.element.tagName.toLowerCase();
     this.container.classList.add(`${this.options.classPrefix}-${mediaType}`);
+    if (this.options.externalEmbed) {
+      this.container.classList.add("vidply-external-controls");
+    }
     if (this.options.responsive) {
       this.container.classList.add(`${this.options.classPrefix}-responsive`);
     }
@@ -8236,6 +8240,9 @@ var Player = class _Player extends EventEmitter {
     }
     this.currentSource = src;
     this._pendingSource = null;
+    if (EXTERNAL_CONTROL_RENDERERS.has(classifyRendererType(src))) {
+      this.container?.classList.add("vidply-external-controls");
+    }
     if (this.hasAudioDescriptionContent()) {
       await this.ensureAudioDescriptionManager();
     }
@@ -8286,11 +8293,11 @@ var Player = class _Player extends EventEmitter {
   async _detectRendererClass(src) {
     switch (classifyRendererType(src)) {
       case "youtube": {
-        const module = await import("./vidply.YouTubeRenderer-4IV4ZWGE.js");
+        const module = await import("./vidply.YouTubeRenderer-7FGFQS3S.js");
         return module.YouTubeRenderer ?? module.default;
       }
       case "vimeo": {
-        const module = await import("./vidply.VimeoRenderer-KG4AWOUP.js");
+        const module = await import("./vidply.VimeoRenderer-BNWCHSF4.js");
         return module.VimeoRenderer ?? module.default;
       }
       case "hls": {
@@ -8302,7 +8309,7 @@ var Player = class _Player extends EventEmitter {
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
-        const module = await import("./vidply.SoundCloudRenderer-422TELXK.js");
+        const module = await import("./vidply.SoundCloudRenderer-6OPL6PUZ.js");
         return module.SoundCloudRenderer ?? module.default;
       }
       default:
@@ -9956,6 +9963,7 @@ var PlaylistManager = class _PlaylistManager {
     this.hostElement.appendChild(mediaElement);
     const playerOptions = Object.assign({}, preservedPlayerOptions, {
       mediaType: elementType,
+      externalEmbed: this.isExternalEmbedTrack(track),
       poster: track.poster,
       audioDescriptionSrc: track.audioDescriptionSrc || null,
       audioDescriptionDuration: track.audioDescriptionDuration || null,

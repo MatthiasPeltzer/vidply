@@ -30,14 +30,22 @@ export class VimeoRenderer implements Renderer {
       throw new Error('Invalid Vimeo URL');
     }
 
-    // Load Vimeo Player API
-    await this.loadVimeoAPI();
+    // Hide VidPly controls while the SDK and iframe load — Vimeo has its own.
+    this.player.container?.classList.add('vidply-external-controls');
 
-    // Create iframe
-    this.createIframe();
+    try {
+      // Load Vimeo Player API
+      await this.loadVimeoAPI();
 
-    // Initialize player
-    await this.initializePlayer();
+      // Create iframe
+      this.createIframe();
+
+      // Initialize player
+      await this.initializePlayer();
+    } catch (error) {
+      this.player.container?.classList.remove('vidply-external-controls');
+      throw error;
+    }
   }
 
   extractVideoId(url: string) {

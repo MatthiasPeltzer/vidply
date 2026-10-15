@@ -1000,4 +1000,39 @@ describe('Player', () => {
       expect(player.playButtonOverlayButton).toBeNull();
     });
   });
+
+  describe('initializeRenderer controls for external embeds', () => {
+    it.each([
+      ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
+      ['https://vimeo.com/123456789'],
+      ['https://soundcloud.com/artist/track-name'],
+    ])('hides VidPly controls before the renderer chunk for %s has loaded', (src) => {
+      player = new Player(videoElement);
+      player._detectRendererClass = vi.fn(() => new Promise(() => {}));
+      player._pendingSource = src;
+
+      void player.initializeRenderer();
+
+      expect(player.container.classList.contains('vidply-external-controls')).toBe(true);
+    });
+
+    it.each([[true], [false]])('marks the container for an external embed when externalEmbed is %s', async (externalEmbed) => {
+      player = new Player(videoElement, { externalEmbed });
+      for (let i = 0; i < 20; i++) {
+        await Promise.resolve();
+      }
+
+      expect(player.container.classList.contains('vidply-external-controls')).toBe(externalEmbed);
+    });
+
+    it('keeps VidPly controls for HTML5 sources', () => {
+      player = new Player(videoElement);
+      player._detectRendererClass = vi.fn(() => new Promise(() => {}));
+      player._pendingSource = 'https://example.com/video.mp4';
+
+      void player.initializeRenderer();
+
+      expect(player.container.classList.contains('vidply-external-controls')).toBe(false);
+    });
+  });
 });

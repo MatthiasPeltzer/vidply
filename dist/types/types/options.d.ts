@@ -26,6 +26,12 @@ export interface PlayerOptions {
     /** Render `.vidply-track-info` for standalone players; playlists use their own header. */
     showTrackInfo: boolean;
     mediaType?: 'video' | 'audio';
+    /**
+     * Internal: the player is created for a YouTube/Vimeo/SoundCloud track
+     * (playlist recreation), so VidPly controls start hidden instead of showing
+     * until the embed renderer is ready.
+     */
+    externalEmbed?: boolean;
     title?: string | null;
     artist?: string | null;
     album?: string | null;

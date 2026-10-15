@@ -91,9 +91,15 @@ var YouTubeRenderer = class _YouTubeRenderer {
       this.showIosLanFallback();
       return;
     }
-    await this.loadYouTubeAPI();
-    this.createIframe();
-    await this.initializePlayer();
+    this.player.container?.classList.add("vidply-external-controls");
+    try {
+      await this.loadYouTubeAPI();
+      this.createIframe();
+      await this.initializePlayer();
+    } catch (error) {
+      this.player.container?.classList.remove("vidply-external-controls");
+      throw error;
+    }
   }
   extractVideoId(url) {
     const id = "([^&?#/\\s]+)";
@@ -322,4 +328,4 @@ var YouTubeRenderer = class _YouTubeRenderer {
 export {
   YouTubeRenderer
 };
-//# sourceMappingURL=vidply.YouTubeRenderer-4IV4ZWGE.js.map
+//# sourceMappingURL=vidply.YouTubeRenderer-7FGFQS3S.js.map

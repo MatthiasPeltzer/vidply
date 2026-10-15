@@ -34,12 +34,6 @@ function createStyleControl(
         textContent: label,
         attributes: {
             'for': controlId
-        },
-        style: {
-            display: 'block',
-            fontSize: '12px',
-            marginBottom: '4px',
-            color: 'rgba(255,255,255,0.7)'
         }
     });
     group.appendChild(labelEl);
@@ -48,15 +42,6 @@ function createStyleControl(
         className: `${player.options.classPrefix}-style-select`,
         attributes: {
             'id': controlId
-        },
-        style: {
-            width: '100%',
-            padding: '6px',
-            background: 'var(--vidply-white)',
-            border: '1px solid var(--vidply-white-10)',
-            borderRadius: '4px',
-            color: 'var(--vidply-black)',
-            fontSize: '13px'
         }
     });
 
@@ -106,30 +91,16 @@ function createColorControl(player: Player, label: string, property: string): HT
         textContent: label,
         attributes: {
             'for': controlId
-        },
-        style: {
-            display: 'block',
-            fontSize: '12px',
-            marginBottom: '4px',
-            color: 'rgba(255,255,255,0.7)'
         }
     });
     group.appendChild(labelEl);
 
     const input = DOMUtils.createElement('input', {
+        className: `${player.options.classPrefix}-style-color`,
         attributes: {
             'id': controlId,
             type: 'color',
             value: String(player.options[property] ?? '')
-        },
-        style: {
-            width: '100%',
-            height: '32px',
-            padding: '2px',
-            background: 'rgba(255,255,255,0.1)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '4px',
-            cursor: 'pointer'
         }
     });
 
@@ -163,38 +134,21 @@ function createOpacityControl(player: Player, label: string, property: string): 
 
     const controlId = `${player.options.classPrefix}-${property}-${Date.now()}`;
 
-    const labelContainer = DOMUtils.createElement('div', {
-        style: {
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginBottom: '4px'
-        }
-    });
-
     const labelEl = DOMUtils.createElement('label', {
         textContent: label,
         attributes: {
             'for': controlId
-        },
-        style: {
-            fontSize: '12px',
-            color: 'rgba(255,255,255,0.7)'
         }
     });
+    group.appendChild(labelEl);
 
     const valueEl = DOMUtils.createElement('span', {
         textContent: Math.round(Number(player.options[property] ?? 0) * 100) + '%',
-        style: {
-            fontSize: '12px',
-            color: 'rgba(255,255,255,0.7)'
-        }
+        className: `${player.options.classPrefix}-style-value`
     });
 
-    labelContainer.appendChild(labelEl);
-    labelContainer.appendChild(valueEl);
-    group.appendChild(labelContainer);
-
     const input = DOMUtils.createElement('input', {
+        className: `${player.options.classPrefix}-style-range`,
         attributes: {
             'id': controlId,
             type: 'range',
@@ -202,10 +156,6 @@ function createOpacityControl(player: Player, label: string, property: string): 
             max: '1',
             step: '0.1',
             value: String(player.options[property])
-        },
-        style: {
-            width: '100%',
-            cursor: 'pointer'
         }
     });
 
@@ -230,7 +180,12 @@ function createOpacityControl(player: Player, label: string, property: string): 
         }
     });
 
-    group.appendChild(input);
+    const rangeContainer = DOMUtils.createElement('div', {
+        className: `${player.options.classPrefix}-style-range-container`
+    });
+    rangeContainer.appendChild(input);
+    rangeContainer.appendChild(valueEl);
+    group.appendChild(rangeContainer);
     return group;
 }
 
@@ -269,18 +224,7 @@ export function showCaptionStyleMenu(controlBar: ControlBar, button: HTMLElement
     });
     const visuallyHiddenLabel = DOMUtils.createElement('h2', {
         textContent: i18n.t('player.captionStyling'),
-        attributes: { id: menuLabelId, class: `${player.options.classPrefix}-sr-only` },
-        style: {
-            position: 'absolute',
-            width: '1px',
-            height: '1px',
-            padding: '0',
-            margin: '-1px',
-            overflow: 'hidden',
-            clip: 'rect(0,0,0,0)',
-            whiteSpace: 'nowrap',
-            border: '0'
-        }
+        attributes: { id: menuLabelId, class: `${player.options.classPrefix}-sr-only` }
     });
     menu.appendChild(visuallyHiddenLabel);
 
@@ -349,9 +293,6 @@ export function showCaptionStyleMenu(controlBar: ControlBar, button: HTMLElement
 
     // Opacity
     menu.appendChild(createOpacityControl(player, i18n.t('styleLabels.opacity'), 'captionsOpacity'));
-
-    // Set min-width for caption style menu
-    menu.style.minWidth = '220px';
 
     menu.style.visibility = 'hidden';
     menu.style.display = 'block';

@@ -102,14 +102,22 @@ export class YouTubeRenderer implements Renderer {
       return;
     }
 
-    // Load YouTube IFrame API
-    await this.loadYouTubeAPI();
+    // Hide VidPly controls while the SDK and iframe load — YouTube has its own.
+    this.player.container?.classList.add('vidply-external-controls');
 
-    // Create iframe
-    this.createIframe();
+    try {
+      // Load YouTube IFrame API
+      await this.loadYouTubeAPI();
 
-    // Initialize player
-    await this.initializePlayer();
+      // Create iframe
+      this.createIframe();
+
+      // Initialize player
+      await this.initializePlayer();
+    } catch (error) {
+      this.player.container?.classList.remove('vidply-external-controls');
+      throw error;
+    }
   }
 
   extractVideoId(url: string) {

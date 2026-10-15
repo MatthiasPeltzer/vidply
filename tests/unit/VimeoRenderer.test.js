@@ -108,6 +108,37 @@ describe('VimeoRenderer', () => {
     });
   });
 
+  describe('init', () => {
+    it('hides VidPly controls before the Vimeo SDK has loaded', async () => {
+      let resolveApi;
+      renderer.loadVimeoAPI = vi.fn(() => new Promise((resolve) => { resolveApi = resolve; }));
+      renderer.initializePlayer = vi.fn().mockResolvedValue(undefined);
+
+      const pending = renderer.init();
+
+      expect(mockPlayer.container.classList.contains('vidply-external-controls')).toBe(true);
+      resolveApi();
+      await pending;
+      expect(mockPlayer.container.classList.contains('vidply-external-controls')).toBe(true);
+    });
+
+    it('shows VidPly controls again when the Vimeo SDK fails to load', async () => {
+      renderer.loadVimeoAPI = vi.fn().mockRejectedValue(new Error('blocked'));
+
+      await expect(renderer.init()).rejects.toThrow('blocked');
+
+      expect(mockPlayer.container.classList.contains('vidply-external-controls')).toBe(false);
+    });
+
+    it('leaves controls alone for an invalid Vimeo URL', async () => {
+      mockPlayer.currentSource = 'https://example.com/video';
+
+      await expect(renderer.init()).rejects.toThrow('Invalid Vimeo URL');
+
+      expect(mockPlayer.container.classList.contains('vidply-external-controls')).toBe(false);
+    });
+  });
+
   describe('play', () => {
     it('should not call vimeo.play when not ready', () => {
       renderer.isReady = false;

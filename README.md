@@ -66,6 +66,12 @@ Try VidPly in action:
     - Swipeable touch interface
     - Responsive card layout
 
+### User testing with disabled people
+
+Paid, moderated sessions with assistive-technology users are planned to validate real-world use.
+Test plan (English / German): [accessibility-user-testing.md](./accessibility-user-testing.md) ·
+[accessibility-user-testing.de.md](./accessibility-user-testing.de.md).
+
 ### Accessibility Features (WCAG 2.2 AA Compliant)
 
 - **Full Keyboard Navigation** - All features accessible via keyboard, custom shortcuts, menu navigation with Arrow keys

@@ -83,6 +83,29 @@ describe('SoundCloudRenderer', () => {
     delete window.SC;
   });
 
+  describe('init controls visibility', () => {
+    it('hides VidPly controls before the SoundCloud widget is ready', async () => {
+      let resolveApi;
+      renderer.loadSoundCloudAPI = vi.fn(() => new Promise((resolve) => { resolveApi = resolve; }));
+      renderer.createIframe = vi.fn();
+      renderer.initializeWidget = vi.fn().mockResolvedValue(undefined);
+
+      const pending = renderer.init();
+
+      expect(container.classList.contains('vidply-external-controls')).toBe(true);
+      resolveApi();
+      await pending;
+    });
+
+    it('shows VidPly controls again when the widget fails to load', async () => {
+      renderer.loadSoundCloudAPI = vi.fn().mockRejectedValue(new Error('blocked'));
+
+      await expect(renderer.init()).rejects.toThrow('blocked');
+
+      expect(container.classList.contains('vidply-external-controls')).toBe(false);
+    });
+  });
+
   describe('constructor', () => {
     it('should store player reference', () => {
       expect(renderer.player).toBe(mockPlayer);

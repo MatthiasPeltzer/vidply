@@ -59,14 +59,22 @@ export class SoundCloudRenderer implements Renderer {
       throw new Error('Invalid SoundCloud URL');
     }
 
-    // Load SoundCloud Widget API
-    await this.loadSoundCloudAPI();
+    // Hide VidPly controls while the widget loads — SoundCloud has its own.
+    this.player.container?.classList.add('vidply-external-controls');
 
-    // Create iframe
-    this.createIframe();
+    try {
+      // Load SoundCloud Widget API
+      await this.loadSoundCloudAPI();
 
-    // Initialize widget
-    await this.initializeWidget();
+      // Create iframe
+      this.createIframe();
+
+      // Initialize widget
+      await this.initializeWidget();
+    } catch (error) {
+      this.player.container?.classList.remove('vidply-external-controls');
+      throw error;
+    }
   }
 
   /**
