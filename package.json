@@ -35,8 +35,6 @@
     "types": "tsc -p tsconfig.build.json",
     "verify": "npm run typecheck && npm run lint && npm run test && node tests/check-readme-types.mjs",
     "ci": "npm run verify",
-    "ai-sync": "ai-kit sync --apply",
-    "ai-check": "ai-kit check",
     "prepublishOnly": "npm run clean && npm run build && npm run test:all"
   },
   "keywords": [
@@ -80,7 +78,6 @@
     "access": "public"
   },
   "devDependencies": {
-    "@matthiaspeltzer/ai-kit": "github:MatthiasPeltzer/ai-kit#de2d2a1",
     "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.64.1",
     "@typescript-eslint/eslint-plugin": "^8.72.0",

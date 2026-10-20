@@ -11,8 +11,6 @@ permissions:
 
 env:
   PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
-  # @matthiaspeltzer/ai-kit is a direct GitHub dependency; npm ≥ 12 refuses git deps by default.
-  npm_config_allow_git: root
 
 jobs:
   lint:
