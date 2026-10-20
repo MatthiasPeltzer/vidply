@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.22] - 2026-10-20
+
+### Added
+- `embedChrome` (default `vidply`) and `embedChromeSoundcloud` (default `provider`): YouTube and Vimeo use chromeless iframes with the VidPly control bar; set `embedChrome: 'provider'` for legacy native embed UI.
+- Embed caption hooks: Vimeo text tracks in the CC menu; playlist sidecar WebVTT on embed items.
+- `embedProviderLinkButton` (default `true`): "Open on YouTube/Vimeo/SoundCloud" button (new tab) in the VidPly bar for embed sources.
+- Docs: how to keep the native YouTube/Vimeo UI (`embedChrome: 'provider'` / `data-embed-chrome="provider"`), embed captions via sidecar WebVTT, speed shortcuts on chromeless embeds, embed demo links.
+
+### Changed
+- Mixed playlists keep Prev/Next and the VidPly bar on YouTube/Vimeo tracks (no longer hidden via `vidply-external-controls` when `embedChrome` is `vidply`).
+
+### Fixed
+- Chromeless YouTube crop: landscape embeds clip in-frame title/logo bars via centered `scale()` inside the overflow host (fixes black/misaligned frames from legacy padding/transform crop); portrait/Shorts skip crop.
+- Chromeless embeds: center play overlay returns on pause; click the video area (wrapper) to play/pause when the iframe is non-interactive.
+- YouTube captions are never shown, with VidPly or provider controls (`cc_load_policy: 0`, captions module unloaded); use playlist sidecar WebVTT for captions on YouTube items. Chromeless YouTube: tighter crop + `clip-path` to mask title bars inside the iframe.
+
+- Sidecar WebVTT captions now display on YouTube/Vimeo/SoundCloud: cues are matched against the embed's playback time instead of the idle `<video>` element (which stayed at 0 s, so no caption ever showed).
+- Previous/next buttons are hidden when a playlist holds a single track, and synced when the playlist loads (not only on track change).
+- Keyboard help and speed shortcuts follow the speed control actually shown in the bar: no "Slower/Faster/Playback speed" rows (and no speed changes via keyboard) for chromeless YouTube/Vimeo, even after a bar rebuild leaves a stale speed button reference.
+
+### Accessibility
+- Consistent keyboard focus on the VidPly container for chromeless embeds (`disablekb` / non-interactive iframe surface).
+
 ## [1.2.21] - 2026-10-15
 
 ### Fixed
@@ -892,6 +915,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of the vidply accessible media player.
 
+[1.2.22]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.21...v1.2.22
 [1.2.21]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.20...v1.2.21
 [1.2.20]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.19...v1.2.20
 [1.2.19]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.18...v1.2.19
