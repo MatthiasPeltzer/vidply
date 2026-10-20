@@ -476,7 +476,7 @@ if (this.options.debug) {
 | [TRANSCRIPT.md](TRANSCRIPT.md) | Transcript system |
 | [KEYBOARD.md](KEYBOARD.md) | Keyboard shortcuts |
 | [BUILD.md](BUILD.md) | Build system details |
-| [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [CHANGELOG.md](../CHANGELOG.md) | Version history |
 | [Users-Guide.md](Users-Guide.md) | Integration guide |
 
 ---
