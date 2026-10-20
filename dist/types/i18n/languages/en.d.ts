@@ -39,6 +39,10 @@ export declare const en: {
         floatingPlayerExit: string;
         floatingPlayerDialog: string;
         download: string;
+        openOnYoutube: string;
+        openOnVimeo: string;
+        openOnSoundcloud: string;
+        openOnProvider: string;
         downloadWithFormat: string;
         downloadWithSize: string;
         downloadWithFormatSize: string;

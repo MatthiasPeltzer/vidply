@@ -14,6 +14,7 @@ export declare class SoundCloudRenderer implements Renderer {
     private _initController;
     constructor(player: Player);
     init(): Promise<void>;
+    private clearEmbedChromeClassesOnInitFailure;
     /**
      * Validate a SoundCloud URL by parsing it with the URL constructor and
      * checking the protocol + hostname against an explicit allow-list.

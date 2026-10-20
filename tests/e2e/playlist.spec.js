@@ -264,6 +264,24 @@ test.describe('Mixed Media Playlist', () => {
     }
   });
 
+  test('should keep VidPly controls visible on YouTube playlist items', async ({ page }) => {
+    const player = page.locator('.vidply-player.vidply-has-playlist').first();
+    const playlistPanel = player.locator('.vidply-playlist-item-button');
+
+    // YouTube is index 3 in playlist-mixed.html (0-based).
+    await playlistPanel.nth(3).click();
+    await page.waitForTimeout(1500);
+
+    await player.hover();
+    const controls = player.locator('.vidply-controls');
+    await expect(controls).toBeVisible();
+
+    const nextButton = player.locator('button[aria-label="Next track"], button[aria-label*="Next"]');
+    if (await nextButton.isVisible()) {
+      await expect(nextButton).toBeEnabled();
+    }
+  });
+
   test('should maintain player after track changes', async ({ page }) => {
     const player = page.locator('.vidply-player').first();
     

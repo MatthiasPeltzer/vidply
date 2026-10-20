@@ -1,4 +1,10 @@
 import type { Player } from '../core/Player.js';
+/** Caption track exposed by an embed renderer (Vimeo SDK). */
+export interface EmbedCaptionTrack {
+    id: string;
+    language: string;
+    label: string;
+}
 export interface QualityLevel {
     name: string;
     src?: string;
@@ -52,6 +58,10 @@ export interface Renderer {
     supportsAutoQuality?(): boolean;
     isAutoQuality?(): boolean;
     handlesOwnCaptions?(): boolean;
+    /** List provider caption/subtitle tracks for the VidPly CC menu. */
+    getEmbedCaptionTracks?(): EmbedCaptionTrack[] | Promise<EmbedCaptionTrack[]>;
+    /** Enable a provider caption track by id, or disable when `null`. */
+    setEmbedCaptionTrack?(trackId: string | null): void | Promise<void>;
     /**
      * Ask the streaming renderer to activate the text track whose language
      * matches `lang`, so segment downloads begin and cues become available.

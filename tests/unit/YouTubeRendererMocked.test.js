@@ -56,11 +56,22 @@ describe('YouTubeRenderer (Mocked)', () => {
       currentSource: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
       options: {
         classPrefix: 'vidply',
+        embedChrome: 'vidply',
         autoplay: false,
         muted: false,
         startTime: 0,
         loop: false
       },
+      usesProviderNativeChrome: vi.fn(() => false),
+      syncEmbedChromeClass: vi.fn(),
+      setEmbedChromeReproducing: vi.fn(),
+      setEmbedAspectRatio: vi.fn(),
+      clearEmbedAspectRatio: vi.fn(),
+      positionPlayOverlayOnMobile: vi.fn(),
+      resolvePosterPath: vi.fn((path) => path),
+      controlBar: { updatePlayPauseButton: vi.fn(), syncCaptionControlsFromTracks: vi.fn() },
+      captionManager: { refreshTracks: vi.fn() },
+      _forceProviderEmbedChrome: false,
       state: {
         playing: false,
         paused: true,

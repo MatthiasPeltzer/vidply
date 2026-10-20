@@ -2,6 +2,13 @@ import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
 import { loadScriptOnce } from '../utils/ScriptLoader.js';
 import {
+  applyPosterImageToVideoWrapper,
+  clearEmbedIdleCover,
+  setEmbedIdleCover
+} from '../utils/EmbedIdleCover.js';
+import { syncYoutubeEmbedAspectRatio } from '../utils/YoutubeEmbedAspectRatio.js';
+import { resolveYoutubeThumbnailPosterUrl } from '../utils/YoutubeThumbnailPoster.js';
+import {
   isIOS,
   isLikelyUnsupportedYoutubeEmbedHost,
   shouldUseYoutubeIosLanFallback
@@ -15,7 +22,10 @@ export class YouTubeRenderer implements Renderer {
   videoId: string | null;
   isReady: boolean;
   iframe: HTMLDivElement | null;
+  /** Inner mount node passed to `YT.Player` when chromeless crop wrapper is used. */
+  private youtubeMount: HTMLDivElement | null = null;
   timeUpdateInterval?: ReturnType<typeof setInterval>;
+  private endScreenPreempted = false;
 
   constructor(player: Player) {
     this.player = player;
@@ -45,6 +55,35 @@ export class YouTubeRenderer implements Renderer {
     const iframe = youtube?.getIframe?.();
     if (iframe instanceof HTMLIFrameElement) {
       iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    }
+  }
+
+  /**
+   * Chromeless mode: VidPly owns keyboard focus. Keep the cross-origin iframe
+   * out of the tab order and assistive-tech traversal (YouTube still injects
+   * links/overlays inside the frame).
+   */
+  private applyChromelessEmbedAccessibility(): void {
+    const providerChrome = this.usesProviderChrome();
+    const host = this.iframe;
+    const iframe = this.youtube?.getIframe?.();
+
+    if (host) {
+      if (providerChrome) {
+        host.removeAttribute('inert');
+      } else {
+        host.setAttribute('inert', '');
+      }
+    }
+
+    if (iframe instanceof HTMLIFrameElement) {
+      if (providerChrome) {
+        iframe.removeAttribute('tabindex');
+        iframe.removeAttribute('aria-hidden');
+      } else {
+        iframe.setAttribute('tabindex', '-1');
+        iframe.setAttribute('aria-hidden', 'true');
+      }
     }
   }
 
@@ -82,10 +121,13 @@ export class YouTubeRenderer implements Renderer {
     this.iframe.appendChild(wrap);
 
     this.isReady = true;
-    if (this.player.container) {
-      this.player.container.classList.add('vidply-external-controls');
-    }
+    this.player._forceProviderEmbedChrome = true;
+    this.player.syncEmbedChromeClass('youtube');
     this.player.emit('loadedmetadata');
+  }
+
+  private usesProviderChrome(): boolean {
+    return this.player.usesProviderNativeChrome('youtube');
   }
 
   async init() {
@@ -102,8 +144,7 @@ export class YouTubeRenderer implements Renderer {
       return;
     }
 
-    // Hide VidPly controls while the SDK and iframe load — YouTube has its own.
-    this.player.container?.classList.add('vidply-external-controls');
+    this.player.syncEmbedChromeClass('youtube');
 
     try {
       // Load YouTube IFrame API
@@ -115,9 +156,15 @@ export class YouTubeRenderer implements Renderer {
       // Initialize player
       await this.initializePlayer();
     } catch (error) {
-      this.player.container?.classList.remove('vidply-external-controls');
+      this.clearEmbedChromeClassesOnInitFailure();
       throw error;
     }
+  }
+
+  private clearEmbedChromeClassesOnInitFailure(): void {
+    const prefix = this.player.options.classPrefix;
+    this.player.container?.classList.remove(`${prefix}-external-controls`);
+    this.player.container?.classList.remove(`${prefix}-embed-chrome-vidply`);
   }
 
   extractVideoId(url: string) {
@@ -162,64 +209,201 @@ export class YouTubeRenderer implements Renderer {
     });
   }
 
+  private chromelessEmbedActive(): boolean {
+    return !this.usesProviderChrome();
+  }
+
+  /** YouTube captions never render: VidPly only shows its own sidecar WebVTT tracks. */
+  private disableInFrameCaptions(): void {
+    const youtube = this.youtube;
+    if (!youtube) {
+      return;
+    }
+    try {
+      youtube.setOption?.('captions', 'track', {});
+      youtube.unloadModule?.('captions');
+    } catch {
+      // Captions module may be unavailable for some videos.
+    }
+  }
+
+  private refreshSidecarCaptionControls(): void {
+    void Promise.resolve(this.player.captionManager?.refreshTracks()).then(() => {
+      this.player.controlBar?.syncCaptionControlsFromTracks();
+    });
+  }
+
+  private syncChromelessHostClasses(ready: boolean): void {
+    if (!this.chromelessEmbedActive() || !this.iframe) {
+      return;
+    }
+    const prefix = this.player.options.classPrefix;
+    this.iframe.classList.add(`${prefix}-youtube-chromeless-host`);
+    this.iframe.classList.toggle(`${prefix}-youtube-chromeless-ready`, ready);
+    this.player.container?.classList.toggle(`${prefix}-embed-youtube`, ready);
+  }
+
+  private applyChromelessIdlePoster(): void {
+    const raw = this.player.element.getAttribute('poster')
+      ?? (typeof this.player.options.poster === 'string' ? this.player.options.poster : null);
+    if (raw) {
+      applyPosterImageToVideoWrapper(this.player, this.player.resolvePosterPath(raw));
+      return;
+    }
+
+    void this.applyYoutubeThumbnailIdlePoster();
+  }
+
+  private async applyYoutubeThumbnailIdlePoster(): Promise<void> {
+    const videoId = this.videoId;
+    if (!videoId || !this.chromelessEmbedActive()) {
+      return;
+    }
+
+    const thumbnailUrl = await resolveYoutubeThumbnailPosterUrl(videoId);
+    if (!thumbnailUrl || videoId !== this.videoId) {
+      return;
+    }
+
+    applyPosterImageToVideoWrapper(this.player, thumbnailUrl);
+  }
+
+  private setYoutubeIdleCover(active: boolean): void {
+    if (!this.chromelessEmbedActive()) {
+      return;
+    }
+    if (active) {
+      this.applyChromelessIdlePoster();
+    }
+    setEmbedIdleCover(this.player, active);
+  }
+
   createIframe() {
     // Hide original element
     this.player.element.style.display = 'none';
+    if (this.chromelessEmbedActive()) {
+      this.setYoutubeIdleCover(true);
+    } else {
+      this.player.clearVideoPosterForExternalEmbed?.();
+    }
 
-    // Create container for iframe
+    const prefix = this.player.options.classPrefix;
+    const playerId = `youtube-player-${Math.random().toString(36).substr(2, 9)}`;
+
     this.iframe = document.createElement('div');
-    this.iframe.id = `youtube-player-${Math.random().toString(36).substr(2, 9)}`;
+    this.iframe.id = playerId;
     this.iframe.style.width = '100%';
     this.iframe.style.maxHeight = '100%';
-    
+
+    if (this.chromelessEmbedActive()) {
+      const crop = document.createElement('div');
+      crop.className = `${prefix}-youtube-crop`;
+      this.youtubeMount = document.createElement('div');
+      this.youtubeMount.id = `${playerId}-mount`;
+      crop.appendChild(this.youtubeMount);
+      this.iframe.appendChild(crop);
+    } else {
+      this.youtubeMount = null;
+    }
+
+    this.syncChromelessHostClasses(false);
+
     this.player.element.parentNode?.insertBefore(this.iframe, this.player.element);
+  }
+
+  private youtubePlayerElementId(): string {
+    return this.youtubeMount?.id ?? this.iframe?.id ?? '';
   }
 
   async initializePlayer() {
     return new Promise<void>((resolve, reject) => {
-      if (!window.YT || !this.iframe) {
+      const playerElementId = this.youtubePlayerElementId();
+      if (!window.YT || !this.iframe || !playerElementId) {
         // The SDK never became available (or the iframe container is missing).
         // Reject so Player.init() surfaces a real failure instead of treating
         // a non-functional embed as a successful initialization.
         reject(new Error('YouTube IFrame API is not available'));
         return;
       }
-      this.youtube = new window.YT.Player(this.iframe.id, {
+      const providerChrome = this.usesProviderChrome();
+      this.youtube = new window.YT.Player(playerElementId, {
         videoId: this.videoId ?? undefined,
         width: '100%',
         height: '100%',
         playerVars: {
-          controls: 1, // Use YouTube native controls
-          disablekb: 0, // Allow keyboard controls
-          fs: 1, // Allow fullscreen
+          enablejsapi: 1,
+          controls: providerChrome ? 1 : 0,
+          disablekb: providerChrome ? 0 : 1,
+          fs: providerChrome ? 1 : 0,
           modestbranding: 1,
           rel: 0,
           showinfo: 0,
           iv_load_policy: 3,
+          cc_load_policy: 0,
           playsinline: 1,
           // iOS rejects programmatic/autoplay starts inside cross-origin embeds; leave
           // the video cued so the visitor starts it with a tap on YouTube's control.
           autoplay: isIOS() ? 0 : (this.player.options.autoplay ? 1 : 0),
           mute: this.player.options.muted ? 1 : 0,
           start: this.player.options.startTime || 0,
+          ...( !providerChrome && this.player.options.loop && this.videoId
+            ? { loop: 1, playlist: this.videoId }
+            : {}),
           ...YouTubeRenderer.embedIdentityPlayerVars()
         },
         events: {
           onReady: (_event: unknown) => {
             this.isReady = true;
             YouTubeRenderer.applyEmbedReferrerPolicy(this.youtube);
+            this.applyChromelessEmbedAccessibility();
             this.attachEvents();
-            // Hide VidPly controls - YouTube has its own
-            if (this.player.container) {
-              this.player.container.classList.add('vidply-external-controls');
+            this.player.syncEmbedChromeClass('youtube');
+            this.syncChromelessHostClasses(true);
+            if (this.chromelessEmbedActive()) {
+              this.setYoutubeIdleCover(true);
             }
+            this.disableInFrameCaptions();
+            void syncYoutubeEmbedAspectRatio(this.player, this.videoId, this.iframe);
+            this.refreshSidecarCaptionControls();
             resolve();
+          },
+          // YouTube may load its captions module after ready; switch it off again.
+          onApiChange: () => {
+            this.disableInFrameCaptions();
           },
           onStateChange: (event: unknown) => this.handleStateChange(event as { data: number }),
           onError: (event: unknown) => this.handleError(event as { data: 2 | 5 | 100 | 101 | 150 })
         }
       });
     });
+  }
+
+  /**
+   * YouTube paints the end-screen before the ENDED event; stop slightly early and
+   * restore the VidPly poster cover (Google does not allow disabling that UI).
+   */
+  private maybePreemptYoutubeEndScreen(currentTime: number, duration: number): void {
+    if (this.usesProviderChrome() || !this.youtube || this.endScreenPreempted) {
+      return;
+    }
+    if (this.player.options.loop || duration <= 0) {
+      return;
+    }
+    const remaining = duration - currentTime;
+    if (remaining > 0.45 || remaining < 0) {
+      return;
+    }
+
+    this.endScreenPreempted = true;
+    this.youtube.pauseVideo();
+    this.youtube.seekTo(0, true);
+    this.player.state.playing = false;
+    this.player.state.paused = true;
+    this.player.state.ended = true;
+    this.player.state.currentTime = 0;
+    this.setYoutubeIdleCover(true);
+    this.player.controlBar?.updatePlayPauseButton();
+    this.player.emit('ended');
   }
 
   attachEvents() {
@@ -232,6 +416,8 @@ export class YouTubeRenderer implements Renderer {
 
         this.player.state.currentTime = currentTime;
         this.player.state.duration = duration;
+
+        this.maybePreemptYoutubeEndScreen(currentTime, duration);
 
         this.player.emit('timeupdate', currentTime);
       }
@@ -255,9 +441,15 @@ export class YouTubeRenderer implements Renderer {
         this.player.state.paused = false;
         this.player.state.ended = false;
         this.player.state.buffering = false;
+        if (!this.usesProviderChrome()) {
+          this.endScreenPreempted = false;
+          this.setYoutubeIdleCover(false);
+          this.player.setEmbedChromeReproducing(true);
+        }
+        this.disableInFrameCaptions();
         this.player.emit('play');
         this.player.emit('playing');
-        
+
         if (this.player.options.onPlay) {
           this.player.options.onPlay.call(this.player);
         }
@@ -266,6 +458,10 @@ export class YouTubeRenderer implements Renderer {
       case states.PAUSED:
         this.player.state.playing = false;
         this.player.state.paused = true;
+        if (!this.usesProviderChrome()) {
+          this.player.setEmbedChromeReproducing(false);
+          this.player.positionPlayOverlayOnMobile();
+        }
         this.player.emit('pause');
         
         if (this.player.options.onPause) {
@@ -274,6 +470,11 @@ export class YouTubeRenderer implements Renderer {
         break;
 
       case states.ENDED:
+        if (this.endScreenPreempted) {
+          this.endScreenPreempted = false;
+          break;
+        }
+
         this.player.state.playing = false;
         this.player.state.paused = true;
         this.player.state.ended = true;
@@ -286,6 +487,12 @@ export class YouTubeRenderer implements Renderer {
         if (this.player.options.loop && this.youtube) {
           this.youtube.seekTo(0);
           this.youtube.playVideo();
+        } else if (!this.usesProviderChrome() && this.youtube) {
+          this.youtube.pauseVideo();
+          this.youtube.seekTo(0, true);
+          this.player.setEmbedChromeReproducing(false);
+          this.setYoutubeIdleCover(true);
+          this.player.controlBar?.updatePlayPauseButton();
         }
         break;
 
@@ -329,10 +536,16 @@ export class YouTubeRenderer implements Renderer {
 
     this.videoId = videoId;
     this.player.currentSource = src;
+    this.endScreenPreempted = false;
 
     if (this.isReady && this.youtube) {
       // Cue only — PlaylistManager / Player.play() starts playback explicitly.
       this.youtube.cueVideoById(videoId);
+      if (this.chromelessEmbedActive()) {
+        this.setYoutubeIdleCover(true);
+      }
+      void syncYoutubeEmbedAspectRatio(this.player, this.videoId, this.iframe);
+      this.refreshSidecarCaptionControls();
     }
   }
 
@@ -388,9 +601,19 @@ export class YouTubeRenderer implements Renderer {
       this.youtube.destroy();
     }
 
-    if (this.iframe && this.iframe.parentNode) {
-      this.iframe.parentNode.removeChild(this.iframe);
+    if (this.iframe) {
+      this.iframe.removeAttribute('inert');
+      if (this.iframe.parentNode) {
+        this.iframe.parentNode.removeChild(this.iframe);
+      }
     }
+    this.youtubeMount = null;
+
+    const prefix = this.player.options.classPrefix;
+    this.player.container?.classList.remove(`${prefix}-embed-youtube`);
+    clearEmbedIdleCover(this.player);
+    this.player.setEmbedChromeReproducing(false);
+    this.player.clearEmbedAspectRatio?.();
 
     // Show original element
     if (this.player.element) {

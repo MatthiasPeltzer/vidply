@@ -8,17 +8,42 @@ export declare class YouTubeRenderer implements Renderer {
     videoId: string | null;
     isReady: boolean;
     iframe: HTMLDivElement | null;
+    /** Inner mount node passed to `YT.Player` when chromeless crop wrapper is used. */
+    private youtubeMount;
     timeUpdateInterval?: ReturnType<typeof setInterval>;
+    private endScreenPreempted;
     constructor(player: Player);
     /** origin + widget_referrer for YouTube's embed client-identity checks (iOS). */
     static embedIdentityPlayerVars(): Record<string, string>;
     static applyEmbedReferrerPolicy(youtube: YTPlayer | null): void;
+    /**
+     * Chromeless mode: VidPly owns keyboard focus. Keep the cross-origin iframe
+     * out of the tab order and assistive-tech traversal (YouTube still injects
+     * links/overlays inside the frame).
+     */
+    private applyChromelessEmbedAccessibility;
     private showIosLanFallback;
+    private usesProviderChrome;
     init(): Promise<void>;
+    private clearEmbedChromeClassesOnInitFailure;
     extractVideoId(url: string): string | null;
     loadYouTubeAPI(): Promise<void>;
+    private chromelessEmbedActive;
+    /** YouTube captions never render: VidPly only shows its own sidecar WebVTT tracks. */
+    private disableInFrameCaptions;
+    private refreshSidecarCaptionControls;
+    private syncChromelessHostClasses;
+    private applyChromelessIdlePoster;
+    private applyYoutubeThumbnailIdlePoster;
+    private setYoutubeIdleCover;
     createIframe(): void;
+    private youtubePlayerElementId;
     initializePlayer(): Promise<void>;
+    /**
+     * YouTube paints the end-screen before the ENDED event; stop slightly early and
+     * restore the VidPly poster cover (Google does not allow disabling that UI).
+     */
+    private maybePreemptYoutubeEndScreen;
     attachEvents(): void;
     handleStateChange(event: {
         data: number;

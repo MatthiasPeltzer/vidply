@@ -6,6 +6,19 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SoundCloudRenderer } from '../../src/renderers/SoundCloudRenderer.js';
 
+function attachEmbedChromeMocks(mockPlayer) {
+  mockPlayer.options.embedChromeSoundcloud = mockPlayer.options.embedChromeSoundcloud ?? 'provider';
+  mockPlayer.usesProviderNativeChrome = vi.fn((type) => {
+    return type === 'soundcloud'
+      && (mockPlayer.options.embedChromeSoundcloud ?? 'provider') === 'provider';
+  });
+  mockPlayer.syncEmbedChromeClass = vi.fn((type) => {
+    const provider = mockPlayer.usesProviderNativeChrome(type ?? 'soundcloud');
+    mockPlayer.container?.classList.toggle('vidply-external-controls', provider);
+    mockPlayer.container?.classList.toggle('vidply-embed-chrome-vidply', !provider);
+  });
+}
+
 describe('SoundCloudRenderer', () => {
   let renderer;
   let mockPlayer;
@@ -29,7 +42,8 @@ describe('SoundCloudRenderer', () => {
       container,
       videoWrapper: document.createElement('div'),
       options: {
-        autoplay: false
+        autoplay: false,
+        classPrefix: 'vidply',
       },
       state: {
         duration: 0,
@@ -44,6 +58,8 @@ describe('SoundCloudRenderer', () => {
       handleError: vi.fn(),
       log: vi.fn()
     };
+
+    attachEmbedChromeMocks(mockPlayer);
 
     // Mock SoundCloud Widget API
     mockWidget = {

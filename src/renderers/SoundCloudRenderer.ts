@@ -59,8 +59,7 @@ export class SoundCloudRenderer implements Renderer {
       throw new Error('Invalid SoundCloud URL');
     }
 
-    // Hide VidPly controls while the widget loads — SoundCloud has its own.
-    this.player.container?.classList.add('vidply-external-controls');
+    this.player.syncEmbedChromeClass('soundcloud');
 
     try {
       // Load SoundCloud Widget API
@@ -72,9 +71,15 @@ export class SoundCloudRenderer implements Renderer {
       // Initialize widget
       await this.initializeWidget();
     } catch (error) {
-      this.player.container?.classList.remove('vidply-external-controls');
+      this.clearEmbedChromeClassesOnInitFailure();
       throw error;
     }
+  }
+
+  private clearEmbedChromeClassesOnInitFailure(): void {
+    const prefix = this.player.options.classPrefix;
+    this.player.container?.classList.remove(`${prefix}-external-controls`);
+    this.player.container?.classList.remove(`${prefix}-embed-chrome-vidply`);
   }
 
   /**
@@ -220,10 +225,7 @@ export class SoundCloudRenderer implements Renderer {
             }
             this.attachEvents();
 
-            // Hide VidPly controls - SoundCloud has its own
-            if (this.player.container) {
-              this.player.container.classList.add('vidply-external-controls');
-            }
+            this.player.syncEmbedChromeClass('soundcloud');
 
             // Get initial sound info
             widget.getCurrentSound((sound: unknown) => {

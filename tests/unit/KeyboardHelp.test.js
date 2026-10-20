@@ -32,8 +32,18 @@ function createPlayer() {
         help: ['?']
       }
     },
-    controlBar: { controls: {} },
+    controlBar: createControlBar(),
     emit: vi.fn()
+  };
+}
+
+function createControlBar(controls = {}) {
+  return {
+    controls,
+    hasControl(name) {
+      const control = this.controls[name];
+      return Boolean(control?.isConnected && !control.hidden);
+    }
   };
 }
 
@@ -103,12 +113,48 @@ describe('KeyboardHelp', () => {
       'speed-menu': ['s'],
       help: ['?']
     };
-    player.controlBar = { controls: { speed: document.createElement('button') } };
+    const speed = document.createElement('button');
+    player.container.appendChild(speed);
+    player.controlBar = createControlBar({ speed });
 
     help.show();
 
     const actions = Array.from(player.container.querySelectorAll('.vidply-help-action'))
       .map((node) => node.textContent);
     expect(actions.some((text) => text === 'help.actions.speed-menu')).toBe(false);
+  });
+
+  describe('speed shortcuts', () => {
+    const speedActions = ['help.actions.speed-down', 'help.actions.speed-up', 'help.actions.speed-menu'];
+    const listedActions = () => Array.from(player.container.querySelectorAll('.vidply-help-action'))
+      .map((node) => node.textContent);
+
+    beforeEach(() => {
+      player.options.keyboardShortcuts = {
+        'play-pause': [' '],
+        'speed-down': ['<'],
+        'speed-up': ['>'],
+        'speed-menu': ['s'],
+        help: ['?']
+      };
+    });
+
+    it('lists them while the speed button is in the bar', () => {
+      const speed = document.createElement('button');
+      player.container.appendChild(speed);
+      player.controlBar = createControlBar({ speed });
+
+      help.show();
+
+      expect(listedActions()).toEqual(expect.arrayContaining(speedActions));
+    });
+
+    it('omits them when the speed button reference is stale after a bar rebuild', () => {
+      player.controlBar = createControlBar({ speed: document.createElement('button') });
+
+      help.show();
+
+      expect(listedActions().filter((text) => speedActions.includes(text))).toEqual([]);
+    });
   });
 });

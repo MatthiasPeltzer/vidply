@@ -621,8 +621,7 @@ export class HLSRenderer implements Renderer {
       
       if (tracksCount > 0) {
         if (this.player.captionManager) {
-          const found = this.player.captionManager.refreshTracks();
-
+          void this.player.captionManager.refreshTracks().then((found) => {
           // hls.js fires SUBTITLE_TRACKS_UPDATED when it knows about the
           // tracks, but the browser TextTrackList may not yet enumerate
           // the new TextTrack objects synchronously. Retry with increasing
@@ -635,6 +634,7 @@ export class HLSRenderer implements Renderer {
             }, delay);
             return;
           }
+          });
         }
         
         if (this.player.transcriptManager?.isVisible) {

@@ -262,13 +262,26 @@
 }
 
 .vidply-theme-light .vidply-button svg,
+.vidply-theme-light a.vidply-button svg,
 .vidply-theme-light .vidply-icon-button svg {
   fill: #333;
 }
 
 .vidply-theme-light .vidply-button:hover svg,
+.vidply-theme-light a.vidply-button:hover svg,
 .vidply-theme-light .vidply-icon-button:hover svg {
   fill: #000;
+}
+
+/* Embed provider links (YouTube/Vimeo/SoundCloud) — same tokens as transport buttons */
+.vidply-theme-light .vidply-controls a.vidply-button,
+.vidply-theme-light .vidply-controls a.vidply-button .vidply-icon {
+  color: #333;
+}
+
+.vidply-theme-light .vidply-controls a.vidply-button:hover,
+.vidply-theme-light .vidply-controls a.vidply-button:hover .vidply-icon {
+  color: #000;
 }
 
 .vidply-theme-light .vidply-progress-played {
@@ -286,13 +299,16 @@
 
 /* Light theme - Button focus states */
 .vidply-theme-light .vidply-button:focus,
-.vidply-theme-light .vidply-button:focus-visible {
+.vidply-theme-light .vidply-button:focus-visible,
+.vidply-theme-light a.vidply-button:focus,
+.vidply-theme-light a.vidply-button:focus-visible {
   box-shadow: 0 0 0 4px rgb(10 64 110 / 30%) !important;
   outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 2px !important;
 }
 
-.vidply-theme-light .vidply-button:hover {
+.vidply-theme-light .vidply-button:hover,
+.vidply-theme-light a.vidply-button:hover {
   background: rgb(0 0 0 / 10%) !important;
 }
 
@@ -954,7 +970,9 @@
 
 /* Light theme - Control bar buttons focus */
 .vidply-theme-light .vidply-control-bar button:focus,
-.vidply-theme-light .vidply-control-bar button:focus-visible {
+.vidply-theme-light .vidply-control-bar button:focus-visible,
+.vidply-theme-light .vidply-control-bar a.vidply-button:focus,
+.vidply-theme-light .vidply-control-bar a.vidply-button:focus-visible {
   box-shadow: 0 0 0 4px rgb(10 64 110 / 30%) !important;
   outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 2px !important;
@@ -1501,26 +1519,54 @@ video[data-vidply]:not(.vidply-initialized) {
   display: none !important;
 }
 
-/* YouTube and Vimeo iframe containers - keep classic 16:9 framing */
+/* YouTube iframe containers — default 16:9 until thumbnail dimensions are applied */
 .vidply-video-wrapper > iframe[id^="youtube-player-"],
-.vidply-video-wrapper > div[id^="vimeo-player-"] {
-  aspect-ratio: 16 / 9;
+.vidply-video-wrapper > div[id^="youtube-player-"]:not(.vidply-youtube-chromeless-host) {
+  aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
   height: auto;
   max-height: none !important; /* override renderer inline maxHeight=100% */
   position: relative; /* ensure absolutely-positioned iframes size against this box */
   width: 100% !important;
 }
 
-.vidply-video-wrapper > div[id^="youtube-player-"] iframe,
-.vidply-video-wrapper > div[id^="vimeo-player-"] iframe {
-  aspect-ratio: 16 / 9;
+/* Chromeless YouTube host owns aspect ratio (avoid a double-ratio gap under the embed). */
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper:has(> div[id^="youtube-player-"].vidply-youtube-chromeless-host) {
+  aspect-ratio: unset;
+}
 
-  /* Some providers inject height:100% which can ignore the intended 16:9 sizing.
-       Force the iframe itself to be 16:9 and let height be derived. */
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper:has(> div[id^="youtube-player-"]:not(.vidply-youtube-chromeless-host)) {
+  aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
+}
+
+/* Vimeo: default 16:9 until the Player SDK reports native dimensions */
+.vidply-video-wrapper > div[id^="vimeo-player-"] {
+  aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
+  height: auto;
+  max-height: none !important; /* override renderer inline maxHeight=100% */
+  position: relative;
+  width: 100% !important;
+}
+
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper:has(> div[id^="vimeo-player-"]) {
+  aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
+}
+
+.vidply-video-wrapper > div[id^="youtube-player-"]:not(.vidply-youtube-chromeless-host) iframe,
+.vidply-video-wrapper > div[id^="vimeo-player-"] iframe {
+  /* Some providers inject height:100% which can ignore the intended aspect sizing.
+       Force the iframe itself to match the host box and let height be derived. */
   display: block;
   height: auto !important;
   position: relative;
   width: 100% !important;
+}
+
+.vidply-video-wrapper > div[id^="youtube-player-"]:not(.vidply-youtube-chromeless-host) iframe {
+  aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
+}
+
+.vidply-video-wrapper > div[id^="vimeo-player-"] iframe {
+  aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
 }
 
 /* SoundCloud iframe - stable height */
@@ -1558,6 +1604,130 @@ video[data-vidply]:not(.vidply-initialized) {
 .vidply-player.vidply-external-controls .vidply-video-wrapper > .vidply-play-overlay-button {
   display: none !important;
   pointer-events: none !important;
+}
+
+/* Chromeless YouTube/Vimeo: VidPly owns transport; iframe is non-interactive. */
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > iframe[id^="youtube-player-"],
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"] iframe,
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="vimeo-player-"],
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="vimeo-player-"] iframe {
+  pointer-events: none;
+}
+
+.vidply-player.vidply-embed-chrome-vidply .vidply-controls {
+  pointer-events: auto;
+}
+
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > .vidply-play-overlay,
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > .vidply-play-overlay-button {
+  pointer-events: auto;
+}
+
+/* While chromeless embed is playing, hide the center overlay (idle + paused keep it). */
+.vidply-player.vidply-embed-chrome-vidply.vidply-embed-chrome-reproducing:not(.vidply-playlist-idle-embed) .vidply-video-wrapper > .vidply-play-overlay,
+.vidply-player.vidply-embed-chrome-vidply.vidply-embed-chrome-reproducing:not(.vidply-playlist-idle-embed) .vidply-video-wrapper > .vidply-play-overlay-button {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Paused / idle: VidPly play control above the non-interactive embed (covers provider play affordance). */
+.vidply-player.vidply-embed-chrome-vidply:not(.vidply-embed-chrome-reproducing) .vidply-video-wrapper > .vidply-play-overlay,
+.vidply-player.vidply-embed-chrome-vidply:not(.vidply-embed-chrome-reproducing) .vidply-video-wrapper > .vidply-play-overlay-button {
+  display: block !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: calc(var(--vidply-z-overlay) + 2);
+}
+
+/* Slightly larger center control on chromeless pause so it fully masks YouTube’s in-frame play glyph. */
+.vidply-player.vidply-embed-chrome-vidply:not(.vidply-embed-chrome-reproducing) .vidply-play-overlay-button .vidply-play-overlay {
+  height: clamp(3.25rem, 9vw, 5.25rem);
+  width: clamp(3.25rem, 9vw, 5.25rem);
+}
+
+/* Chromeless YouTube/Vimeo: poster + center play overlay until playback starts. */
+.vidply-player.vidply-embed-chrome-vidply.vidply-embed-idle-cover .vidply-video-wrapper > div[id^="youtube-player-"],
+.vidply-player.vidply-embed-chrome-vidply.vidply-embed-idle-cover .vidply-video-wrapper > div[id^="vimeo-player-"] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Opaque poster shield above the iframe (background alone sits behind the embed node). */
+.vidply-player.vidply-embed-chrome-vidply.vidply-embed-idle-cover .vidply-video-wrapper::before {
+  background-color: rgb(var(--vidply-black-rgb), 1);
+  background-image: var(--vidply-poster-image);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: calc(var(--vidply-z-overlay) - 2);
+}
+
+/* Chromeless YouTube: hide iframe until the IFrame API applies controls=0 (avoids a full-controls flash). */
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"].vidply-youtube-chromeless-host:not(.vidply-youtube-chromeless-ready) {
+  opacity: 0;
+}
+
+/*
+ * Crop in-iframe YouTube chrome: inner crop box inside a fixed 16:9 host.
+ * Still a cross-origin iframe; this only masks pixels, it does not remove YouTube UI.
+ */
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"].vidply-youtube-chromeless-host {
+  aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
+  background: #000;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  z-index: 0;
+}
+
+/* Fill the aspect-ratio host; optional `-chromeless-crop` may nudge the iframe only. */
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"].vidply-youtube-chromeless-host .vidply-youtube-crop {
+  height: 100%;
+  inset: 0;
+  padding-bottom: 0;
+  position: absolute;
+  transform: none;
+  width: 100%;
+}
+
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"].vidply-youtube-chromeless-host .vidply-youtube-crop iframe {
+  aspect-ratio: unset !important;
+  border: 0;
+  display: block;
+  height: 100% !important;
+  left: 0 !important;
+  position: absolute !important;
+  top: 0 !important;
+  transform-origin: center center;
+  width: 100% !important;
+}
+
+/*
+ * Landscape ~16:9: scale inside overflow:hidden host to clip in-iframe title/logo bars.
+ * Uses transform (not height/top offsets) so layout stays aligned with the host box.
+ */
+.vidply-player.vidply-embed-chrome-vidply {
+  --vidply-youtube-chromeless-crop-scale: 1.45;
+  /* Minimal upward shift: large negative values leave a black band at the bottom of the host. */
+  --vidply-youtube-chromeless-crop-shift-y: -2.5%;
+  --vidply-youtube-chromeless-crop-inset: 10% 0 6% 0;
+  /* Nudge VidPly’s center play up to cover YouTube’s in-frame pause glyph (positive = upward). */
+  --vidply-youtube-chromeless-play-overlay-shift-y: 2.75%;
+}
+
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"].vidply-youtube-chromeless-host.vidply-youtube-chromeless-crop .vidply-youtube-crop iframe {
+  clip-path: inset(var(--vidply-youtube-chromeless-crop-inset));
+  transform: translateY(var(--vidply-youtube-chromeless-crop-shift-y)) scale(var(--vidply-youtube-chromeless-crop-scale));
+}
+
+/* SoundCloud with VidPly bar: widget stays interactive above the control bar. */
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > iframe.vidply-soundcloud-iframe {
+  pointer-events: auto;
 }
 
 /* iPhone + LAN/IP — same fallback as mpc-vidply privacy layer (playlist path) */
@@ -1951,7 +2121,8 @@ video[data-vidply]:not(.vidply-initialized) {
 
 
 /* Buttons */
-.vidply-button {
+.vidply-button,
+a.vidply-button {
   align-items: center;
   background: transparent;
   border: none;
@@ -1968,17 +2139,25 @@ video[data-vidply]:not(.vidply-initialized) {
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-.vidply-button:hover {
+.vidply-button:hover,
+a.vidply-button:hover {
   background: var(--vidply-hover-bg);
 }
 
-.vidply-button:active {
+.vidply-button:active,
+a.vidply-button:active {
   transform: scale(0.95);
 }
 
-.vidply-button:focus {
+.vidply-button:focus,
+a.vidply-button:focus,
+a.vidply-button:focus-visible {
   outline: var(--vidply-focus-outline-white);
   outline-offset: 0.125rem;
+}
+
+a.vidply-button {
+  text-decoration: none;
 }
 
 .vidply-button:disabled {
@@ -2089,7 +2268,8 @@ video[data-vidply]:not(.vidply-initialized) {
 
 /* Control button icons - add backgrounds only in forced-colors mode (high contrast, color inversion) */
 @media (forced-colors: active) {
-  .vidply-controls button .vidply-icon svg {
+  .vidply-controls button .vidply-icon svg,
+  .vidply-controls a.vidply-button .vidply-icon svg {
     background: Canvas;
     border-radius: 0.1875rem;
     color: CanvasText;

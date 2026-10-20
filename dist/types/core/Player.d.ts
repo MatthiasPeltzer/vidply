@@ -24,7 +24,7 @@ export type MetadataAlertOptions = _MetadataAlertOptions;
 import type { PlayerEventMap } from '../types/events.js';
 import type { PlayerOptions } from '../types/options.js';
 import type { PlayerState } from '../types/state.js';
-import type { Renderer } from '../types/renderer.js';
+import type { Renderer, RendererType } from '../types/renderer.js';
 import type { AudioDescriptionManager } from './AudioDescriptionManager.js';
 import type { SignLanguageManager } from './SignLanguageManager.js';
 import type { FloatingPlayerManager } from './FloatingPlayerManager.js';
@@ -84,6 +84,8 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     options: PlayerOptions & Record<string, unknown>;
     state: PlayerState & Record<string, unknown>;
     renderer: Renderer | null;
+    /** When true, always use provider-native embed chrome (e.g. YouTube iOS LAN fallback). */
+    _forceProviderEmbedChrome: boolean;
     controlBar: ControlBar | null;
     captionManager: CaptionManager | null;
     keyboardManager: KeyboardManager | null;
@@ -330,6 +332,10 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
      */
     private positionOverlayOnMediaCenter;
     /**
+     * Chromeless YouTube: provider pause play sits slightly above the host box center; tune via CSS var.
+     */
+    private youtubeChromelessPlayOverlayNudgePx;
+    /**
      * Visible media surface used to center the play overlay. External renderers
      * hide the host <video>, so their iframe/container must be used instead.
      */
@@ -385,6 +391,11 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     autoGeneratePoster(): Promise<void>;
     showPosterOverlay(): void;
     hidePosterOverlay(): void;
+    /** Strip playlist/idle poster art before YouTube/Vimeo/SoundCloud iframes load. */
+    clearVideoPosterForExternalEmbed(): void;
+    /** Native embed frame ratio (e.g. Vimeo `getVideoWidth` / `getVideoHeight`). */
+    setEmbedAspectRatio(width: number, height: number): void;
+    clearEmbedAspectRatio(): void;
     /**
      * Set a managed timeout that will be cleaned up on destroy
      * @param {Function} callback - Callback function
@@ -428,6 +439,9 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
      * Align VidPly state and chrome with the media element (fixes iOS playlist taps
      * where `play` fired but a subsequent `load()` aborted playback without `pause`).
      */
+    /** HTML5/HLS/DASH drive play state from the media element; embeds use renderer state. */
+    usesMediaElementForPlaybackUi(): boolean;
+    syncPlayOverlayVisibility(): void;
     syncPlaybackUiFromMediaElement(): void;
     /**
      * Ensure the current renderer has started its initial load (metadata/manifest)
@@ -479,6 +493,22 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
      */
     updateControlBar(): void;
     shouldChangeRenderer(src: string): boolean;
+    /**
+     * Effective embed chrome mode for a provider renderer type.
+     */
+    getEffectiveEmbedChrome(rendererType: RendererType): 'vidply' | 'provider';
+    usesProviderNativeChrome(rendererType?: RendererType | null): boolean;
+    shouldHideVidplyControls(): boolean;
+    _pendingEmbedRendererType(): RendererType | null;
+    /** Keep embed flags in sync when playlists hot-swap YouTube/Vimeo without recreating the player. */
+    syncExternalEmbedOptionsForSource(src?: string | null): void;
+    /**
+     * Toggle classes for provider-native vs VidPly embed chrome.
+     * @param pendingRendererType Optional type before the renderer instance exists.
+     */
+    syncEmbedChromeClass(pendingRendererType?: RendererType): void;
+    /** True while a chromeless embed is actively playing (hides center overlay). */
+    setEmbedChromeReproducing(active: boolean): void;
     play(): void;
     pause(): void;
     stop(): void;

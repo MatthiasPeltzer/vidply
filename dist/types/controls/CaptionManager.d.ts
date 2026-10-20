@@ -11,7 +11,9 @@ import type { Player } from '../core/Player.js';
  * cues first.
  */
 export type CaptionTrackEntry = {
-    track: TextTrack;
+    track: TextTrack | null;
+    /** Provider embed caption id (Vimeo lang|kind). */
+    embedCaptionId?: string | null;
     language: string;
     label: string;
     kind: string;
@@ -36,6 +38,7 @@ export declare class CaptionManager {
     init(): void;
     createElement(): void;
     loadTracks(): void;
+    private loadEmbedCaptionTracks;
     /**
      * Sync hls.js subtitle rendition to match the given language.
      * Matches by lang, language, or falls back to name/label.
@@ -59,7 +62,7 @@ export declare class CaptionManager {
     /**
      * Refresh tracks list - useful when HLS adds subtitle tracks dynamically
      */
-    refreshTracks(): number;
+    refreshTracks(): Promise<number>;
     switchTrack(trackIndex: number): void;
     destroy(): void;
 }

@@ -6,6 +6,19 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { VimeoRenderer } from '../../src/renderers/VimeoRenderer.js';
 
+function attachEmbedChromeMocks(mockPlayer) {
+  mockPlayer.options.embedChrome = mockPlayer.options.embedChrome ?? 'vidply';
+  mockPlayer.usesProviderNativeChrome = vi.fn((type) => {
+    return (mockPlayer.options.embedChrome ?? 'vidply') === 'provider' && type === 'vimeo';
+  });
+  mockPlayer.syncEmbedChromeClass = vi.fn((type) => {
+    const provider = mockPlayer.usesProviderNativeChrome(type ?? 'vimeo');
+    mockPlayer.container?.classList.toggle('vidply-external-controls', provider);
+    mockPlayer.container?.classList.toggle('vidply-embed-chrome-vidply', !provider);
+  });
+  mockPlayer.captionManager = { refreshTracks: vi.fn() };
+}
+
 describe('VimeoRenderer', () => {
   let renderer;
   let mockPlayer;
@@ -17,16 +30,27 @@ describe('VimeoRenderer', () => {
     videoElement.src = 'https://vimeo.com/123456789';
     document.body.appendChild(videoElement);
 
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+
     mockPlayer = {
       element: videoElement,
       currentSource: 'https://vimeo.com/123456789',
-      container: document.createElement('div'),
+      container,
+      videoWrapper: document.createElement('div'),
       options: {
+        classPrefix: 'vidply',
         autoplay: false,
         muted: false,
         loop: false,
         startTime: 0
       },
+      resolvePosterPath: (path) => path,
+      showPosterOverlay: vi.fn(),
+      hidePosterOverlay: vi.fn(),
+      syncPlayOverlayVisibility: vi.fn(),
+      getPlayButtonOverlayNode: vi.fn(),
+      clearVideoPosterForExternalEmbed: vi.fn(),
       state: {
         duration: 0,
         playing: false,
@@ -44,6 +68,7 @@ describe('VimeoRenderer', () => {
       handleError: vi.fn()
     };
 
+    attachEmbedChromeMocks(mockPlayer);
     renderer = new VimeoRenderer(mockPlayer);
   });
 
@@ -109,17 +134,17 @@ describe('VimeoRenderer', () => {
   });
 
   describe('init', () => {
-    it('hides VidPly controls before the Vimeo SDK has loaded', async () => {
+    it('keeps VidPly chrome while the Vimeo SDK loads (default embedChrome)', async () => {
       let resolveApi;
       renderer.loadVimeoAPI = vi.fn(() => new Promise((resolve) => { resolveApi = resolve; }));
       renderer.initializePlayer = vi.fn().mockResolvedValue(undefined);
 
       const pending = renderer.init();
 
-      expect(mockPlayer.container.classList.contains('vidply-external-controls')).toBe(true);
+      expect(mockPlayer.container.classList.contains('vidply-external-controls')).toBe(false);
+      expect(mockPlayer.container.classList.contains('vidply-embed-chrome-vidply')).toBe(true);
       resolveApi();
       await pending;
-      expect(mockPlayer.container.classList.contains('vidply-external-controls')).toBe(true);
     });
 
     it('shows VidPly controls again when the Vimeo SDK fails to load', async () => {
@@ -354,6 +379,13 @@ describe('VimeoRenderer', () => {
       renderer.createIframe();
 
       expect(mockPlayer.element.previousSibling).toBe(renderer.iframe);
+    });
+
+    it('enables embed idle cover with VidPly chrome (poster + center play)', () => {
+      renderer.createIframe();
+
+      expect(mockPlayer.container.classList.contains('vidply-embed-idle-cover')).toBe(true);
+      expect(mockPlayer.showPosterOverlay).toHaveBeenCalled();
     });
   });
 });

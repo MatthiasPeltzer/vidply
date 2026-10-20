@@ -205,11 +205,21 @@ export class LiveStreamManager {
       return true;
     }
 
+    // YouTube/Vimeo/SoundCloud: duration comes from the widget API in player.state.
+    if (this.isExternalEmbedRenderer() && this.hasFinitePlayerDuration() && !this.resolveIsLive()) {
+      return true;
+    }
+
     return false;
   }
 
   private isDashRenderer(): boolean {
     return this.player.renderer?.rendererType === 'dash';
+  }
+
+  private isExternalEmbedRenderer(): boolean {
+    const type = this.player.renderer?.rendererType;
+    return type === 'youtube' || type === 'vimeo' || type === 'soundcloud';
   }
 
   private isPlainHtml5Renderer(): boolean {
@@ -220,6 +230,11 @@ export class LiveStreamManager {
   private hasFiniteMediaDuration(): boolean {
     const media = this.player.element;
     return Boolean(media && Number.isFinite(media.duration) && media.duration > 0);
+  }
+
+  private hasFinitePlayerDuration(): boolean {
+    const duration = this.player.state.duration;
+    return Number.isFinite(duration) && duration > 0;
   }
 
   /** VOD skip-forward, or live catch-up when behind the edge. */

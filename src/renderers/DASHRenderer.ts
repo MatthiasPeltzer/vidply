@@ -563,8 +563,7 @@ export class DASHRenderer implements Renderer {
 
       if (tracksCount > 0) {
         if (this.player.captionManager) {
-          const found = this.player.captionManager.refreshTracks();
-
+          void this.player.captionManager.refreshTracks().then((found) => {
           // dash.js fires TEXT_TRACKS_ADDED when it knows about the
           // tracks, but the browser TextTrackList may not yet enumerate
           // the new TextTrack objects synchronously. If refreshTracks
@@ -577,6 +576,7 @@ export class DASHRenderer implements Renderer {
             }, delay);
             return;
           }
+          });
         }
 
         if (!this._dashTextIsTtml && this.player.transcriptManager?.isVisible) {

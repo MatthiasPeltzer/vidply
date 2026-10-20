@@ -108,7 +108,9 @@ function parseDataAttributes(dataset: DOMStringMap): Partial<PlayerOptions> {
     floatingMinViewportWidth: 'floatingMinViewportWidth',
     lazyInit: 'lazyInit',
     lazyMargin: 'lazyMargin',
-    theme: 'theme'
+    theme: 'theme',
+    embedChrome: 'embedChrome',
+    embedChromeSoundcloud: 'embedChromeSoundcloud'
   };
 
   for (const [dataKey, optionKey] of Object.entries(attributeMap)) {

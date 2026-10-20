@@ -98,6 +98,8 @@ describe('PlaylistManager', () => {
         attachEvents: vi.fn(),
         setupAutoHide: vi.fn(),
         checkOverflow: vi.fn(),
+        syncCaptionControlsFromTracks: vi.fn(),
+        updateTrackNavigation: vi.fn(),
       },
       positionPlayOverlayOnMobile: vi.fn(),
       options: {
@@ -461,6 +463,11 @@ describe('PlaylistManager', () => {
     it('should add playlist class to container', () => {
       manager.loadPlaylist(mockTracks);
       expect(container.classList.contains('vidply-has-playlist')).toBe(true);
+    });
+
+    it('should sync previous/next buttons with the loaded tracks', () => {
+      manager.loadPlaylist(mockTracks);
+      expect(mockPlayer.controlBar.updateTrackNavigation).toHaveBeenCalled();
     });
 
     it('should auto-play first track when enabled', () => {

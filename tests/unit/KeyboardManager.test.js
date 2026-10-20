@@ -372,6 +372,7 @@ describe('KeyboardManager', () => {
     it('should show speed menu on speed-menu action', () => {
       mockPlayer.controlBar = {
         controls: { speed: document.createElement('button') },
+        hasControl: vi.fn(() => true),
         showSpeedMenu: vi.fn()
       };
       
@@ -379,6 +380,20 @@ describe('KeyboardManager', () => {
       
       expect(mockPlayer.controlBar.showSpeedMenu).toHaveBeenCalled();
       expect(result).toBe(true);
+    });
+
+    it('should ignore speed shortcuts when the bar offers no speed control', () => {
+      mockPlayer.controlBar = {
+        controls: { speed: document.createElement('button') },
+        hasControl: vi.fn(() => false),
+        showSpeedMenu: vi.fn()
+      };
+
+      expect(manager.executeAction('speed-up')).toBe(false);
+      expect(manager.executeAction('speed-down')).toBe(false);
+      expect(manager.executeAction('speed-menu')).toBe(false);
+      expect(mockPlayer.setPlaybackSpeed).not.toHaveBeenCalled();
+      expect(mockPlayer.controlBar.showSpeedMenu).not.toHaveBeenCalled();
     });
 
     it('should show quality menu on quality-menu action', () => {

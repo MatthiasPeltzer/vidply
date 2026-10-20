@@ -50,3 +50,13 @@ temp/
 # Local development helpers (path traversal vulns; see SECURITY.md)
 /server.js
 /server.cjs
+
+# ai-kit sync outputs and local agent tooling (regenerate: npm run ai-sync)
+.cursor/
+.claude/
+.agents/
+AGENTS.md
+CLAUDE.md
+ai-kit.json
+skills-lock.json
+.mcp.json

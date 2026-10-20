@@ -2,6 +2,7 @@
  * Control Bar Component
  */
 import type { Player } from '../core/Player.js';
+import { type EmbedProvider } from '../utils/EmbedProviderLinks.js';
 type TimerHandle = ReturnType<typeof setTimeout>;
 /**
  * The file the download button currently offers, together with the facts its
@@ -96,6 +97,19 @@ export declare class ControlBar {
      */
     ensureButtonTooltips(container: HTMLElement): void;
     hasChapterTracks(): boolean;
+    /**
+     * Chromeless YouTube/Vimeo: keep playback speed off the bar (VidPly chrome, embed API limits).
+     */
+    shouldHideSpeedForEmbedChrome(): boolean;
+    private shouldHideSpeedForProviderEmbedChrome;
+    /** YouTube/Vimeo with VidPly chrome expose captions via the embed API, not <track> elements. */
+    hasEmbedCaptionBridge(): boolean;
+    /** Sidecar VTT / TextTrack transcript — not available for embed-only YouTube/Vimeo. */
+    hasTranscriptSource(): boolean;
+    /**
+     * Sidecar WebVTT, native `<track>`, or playlist caption files — not provider-embed caption ids alone.
+     */
+    private hasVidPlyProvidedCaptionTracks;
     hasCaptionTracks(): boolean;
     hasQualityLevels(): boolean;
     hasAudioDescription(): boolean;
@@ -137,6 +151,17 @@ export declare class ControlBar {
     createRestartButton(): HTMLButtonElement;
     createPreviousButton(): HTMLButtonElement;
     createNextButton(): HTMLButtonElement;
+    /**
+     * Whether a control is offered on this bar right now. Bar rebuilds (e.g. a
+     * playlist switching to a chromeless YouTube/Vimeo track) can leave stale,
+     * detached references in `controls`, so presence alone is not enough.
+     */
+    hasControl(name: string): boolean;
+    /**
+     * Sync previous/next with the playlist: disabled at either end (unless the
+     * playlist loops) and hidden when the playlist holds a single track.
+     */
+    updateTrackNavigation(): void;
     createPlaylistToggleButton(): HTMLButtonElement;
     createRewindButton(): HTMLButtonElement;
     createForwardButton(): HTMLButtonElement;
@@ -169,7 +194,7 @@ export declare class ControlBar {
     formatSpeedLabel(speed: number): string;
     showSpeedMenu(button: HTMLElement): void;
     createCaptionsButton(): HTMLButtonElement;
-    showCaptionsMenu(button: HTMLElement): void;
+    showCaptionsMenu(button: HTMLElement, embedRefreshed?: boolean): void;
     updateCaptionsButton(): void;
     createTranscriptButton(): HTMLButtonElement;
     updateTranscriptButton(): void;
@@ -198,6 +223,14 @@ export declare class ControlBar {
      *   playlists, which know their track's metadata; omitted for single media,
      *   where format and size are read from the element and player options.
      */
+    resolveEmbedProviderLink(): {
+        url: string;
+        provider: EmbedProvider;
+    } | null;
+    private embedProviderLinkLabel;
+    private embedProviderIconName;
+    createEmbedProviderLinkButton(watchUrl: string, provider: EmbedProvider): HTMLAnchorElement;
+    updateEmbedProviderLinkButton(): void;
     createDownloadButton(downloadUrl: string, target?: Partial<DownloadTarget>): HTMLButtonElement;
     /**
      * Point the download button at the file that is loaded now, creating or

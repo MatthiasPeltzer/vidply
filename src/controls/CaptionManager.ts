@@ -17,7 +17,9 @@ import type { Player } from '../core/Player.js';
  * cues first.
  */
 export type CaptionTrackEntry = {
-    track: TextTrack;
+    track: TextTrack | null;
+    /** Provider embed caption id (Vimeo lang|kind). */
+    embedCaptionId?: string | null;
     language: string;
     label: string;
     kind: string;
@@ -162,6 +164,44 @@ export class CaptionManager {
                 this.enable(defaultTrackIndex);
             });
         }
+
+        void this.loadEmbedCaptionTracks();
+    }
+
+    private async loadEmbedCaptionTracks() {
+        const renderer = this.player.renderer;
+        if (!renderer?.getEmbedCaptionTracks) {
+            return;
+        }
+
+        const embedTracks = await Promise.resolve(renderer.getEmbedCaptionTracks());
+        if (!embedTracks.length) {
+            return;
+        }
+
+        let added = 0;
+        for (const embedTrack of embedTracks) {
+            if (this.tracks.some((t) => t.embedCaptionId === embedTrack.id)) {
+                continue;
+            }
+            this.tracks.push({
+                track: null,
+                embedCaptionId: embedTrack.id,
+                language: embedTrack.language,
+                label: embedTrack.label,
+                kind: 'captions',
+                index: this.tracks.length,
+                isDefault: false,
+                alternatives: []
+            });
+            added += 1;
+        }
+
+        if (added > 0) {
+            this.player.controlBar?.syncCaptionControlsFromTracks();
+        }
+
+        return added;
     }
 
     /**
@@ -241,6 +281,20 @@ export class CaptionManager {
         // Enable selected track
         const selectedTrack = this.tracks[trackIndex];
 
+        if (selectedTrack?.embedCaptionId && this.player.renderer?.setEmbedCaptionTrack) {
+            this.currentTrack = selectedTrack;
+            this.player.state.captionsEnabled = true;
+            if (selectedTrack.language) {
+                this.element.setAttribute('lang', selectedTrack.language);
+            }
+            void Promise.resolve(this.player.renderer.setEmbedCaptionTrack(
+                selectedTrack.embedCaptionId
+            )).then(() => {
+                this.player.emit('captionsenabled', selectedTrack);
+            });
+            return;
+        }
+
         if (selectedTrack && selectedTrack.track) {
             selectedTrack.track.mode = 'hidden';
             this.currentTrack = selectedTrack;
@@ -267,10 +321,12 @@ export class CaptionManager {
             if (selectedTrack.alternatives && selectedTrack.alternatives.length > 0) {
                 const altCueChangeHandler: CueChangeHandler = () => {
                     if (this.currentTrack !== selectedTrack) return;
+                    const activeTrack = selectedTrack.track;
+                    if (!activeTrack) return;
                     for (const alt of selectedTrack.alternatives) {
                         if (alt.activeCues && alt.activeCues.length > 0) {
                             this.player.log(`Switching to alternative caption track for "${selectedTrack.label}"`, 'info');
-                            selectedTrack.track.removeEventListener('cuechange', cueChangeHandler);
+                            activeTrack.removeEventListener('cuechange', cueChangeHandler);
                             selectedTrack.alternatives.forEach((a) => a.removeEventListener('cuechange', altCueChangeHandler));
                             selectedTrack.track = alt;
                             selectedTrack.track.addEventListener('cuechange', cueChangeHandler);
@@ -329,6 +385,10 @@ export class CaptionManager {
     }
 
     _cleanupTrackListeners() {
+        if (this.currentTrack?.embedCaptionId && this.player.renderer?.setEmbedCaptionTrack) {
+            void Promise.resolve(this.player.renderer.setEmbedCaptionTrack(null));
+        }
+
         if (this.currentTrack && this.currentTrack.track) {
             const cueChangeHandler = this.cueChangeHandler;
             if (cueChangeHandler) {
@@ -560,7 +620,7 @@ export class CaptionManager {
     /**
      * Refresh tracks list - useful when HLS adds subtitle tracks dynamically
      */
-    refreshTracks() {
+    async refreshTracks() {
         // Store current track info to restore after refresh
         const currentLanguage = this.currentTrack?.language;
         const wasEnabled = this.player.state.captionsEnabled;
@@ -575,6 +635,9 @@ export class CaptionManager {
         
         // Reload tracks from video element
         this.loadTracks();
+        await this.loadEmbedCaptionTracks();
+
+        this.player.controlBar?.syncCaptionControlsFromTracks();
         
         this.player.log(`Caption tracks refreshed, found ${this.tracks.length} tracks`, 'info');
         

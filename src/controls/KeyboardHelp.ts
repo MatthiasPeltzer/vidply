@@ -196,10 +196,10 @@ export class KeyboardHelp {
     const requiredControl = ACTION_REQUIRES_CONTROL[action];
     if (!requiredControl) return true;
 
-    const controlBar = (this.player as { controlBar?: { controls?: Record<string, unknown> } }).controlBar;
+    const controlBar = this.player.controlBar;
     if (!controlBar || !controlBar.controls) return true;
 
-    return Boolean(controlBar.controls[requiredControl]);
+    return controlBar.hasControl(requiredControl);
   }
 
   private getActionLabel(action: keyof KeyboardShortcuts): string {

@@ -99,7 +99,7 @@ function formatUnknownForLog(value: unknown, media?: HTMLMediaElement | null): s
   return String(value);
 }
 import type {PlayerState} from '../types/state.js';
-import type {Renderer} from '../types/renderer.js';
+import type {Renderer, RendererType} from '../types/renderer.js';
 import type {AudioDescriptionManager} from './AudioDescriptionManager.js';
 import type {SignLanguageManager} from './SignLanguageManager.js';
 import type {FloatingPlayerManager} from './FloatingPlayerManager.js';
@@ -231,6 +231,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
   options: PlayerOptions & Record<string, unknown>;
   state: PlayerState & Record<string, unknown>;
   renderer: Renderer | null = null;
+  /** When true, always use provider-native embed chrome (e.g. YouTube iOS LAN fallback). */
+  _forceProviderEmbedChrome = false;
   controlBar: ControlBar | null = null;
   captionManager: CaptionManager | null = null;
   keyboardManager: KeyboardManager | null = null;
@@ -423,6 +425,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
       startTime: 0,
       playsInline: true, // Enable inline playback on iOS (prevents native fullscreen)
 
+      embedChrome: 'vidply',
+      embedChromeSoundcloud: 'provider',
+
       // Controls
       controls: true,
       hideControlsDelay: 3000,
@@ -457,6 +462,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       floatingPosition: 'bottom-right',
       floatingMinViewportWidth: 768,
       downloadButton: false,
+      embedProviderLinkButton: true,
       downloadUrl: null,
       downloadFormat: null,
       downloadFileSize: null,
@@ -1361,9 +1367,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
     const mediaType = this.element.tagName.toLowerCase();
     this.container.classList.add(`${this.options.classPrefix}-${mediaType}`);
 
-    if (this.options.externalEmbed) {
-      this.container.classList.add('vidply-external-controls');
-    }
+    this.syncEmbedChromeClass();
 
     // Add responsive class
     if (this.options.responsive) {
@@ -1460,10 +1464,47 @@ export class Player extends EventEmitter<PlayerEventMap> {
       }
     }, {signal: this.lifecycleSignal});
 
+    // Chromeless YouTube/Vimeo: the media element is hidden; toggle from the wrapper.
+    this.videoWrapper.addEventListener('click', (e) => {
+      if (!this.container?.classList.contains(`${this.options.classPrefix}-embed-chrome-vidply`)) {
+        return;
+      }
+      const target = e.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+      const prefix = this.options.classPrefix;
+      if (target.closest(`.${prefix}-controls`)) {
+        return;
+      }
+      if (target.closest(`.${prefix}-play-overlay-button`) || target.closest(`.${prefix}-play-overlay`)) {
+        return;
+      }
+      this.toggle();
+    }, {signal: this.lifecycleSignal});
+    this.videoWrapper.style.cursor = 'pointer';
+
     this.on('play', () => {
       this.state.hasStartedPlayback = true;
+      this.state.playing = true;
+      this.state.paused = false;
+      this.state.ended = false;
       // Hide poster immediately when playing
       this.hidePosterOverlay();
+      this.syncPlayOverlayVisibility();
+    });
+
+    this.on('pause', () => {
+      this.state.playing = false;
+      this.state.paused = true;
+      this.syncPlayOverlayVisibility();
+    });
+
+    this.on('ended', () => {
+      this.state.playing = false;
+      this.state.paused = true;
+      this.state.ended = true;
+      this.syncPlayOverlayVisibility();
     });
 
     this.on('timeupdate', () => {
@@ -1648,8 +1689,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
     this.loadingOverlayElement = loading;
     this.videoWrapper.appendChild(loading);
 
-    const isExternalControls = () =>
-      this.container?.classList.contains(`${prefix}-external-controls`);
+    const isExternalControls = () => this.shouldHideVidplyControls();
 
     const showBuffering = () => {
       // Skip for external providers (YouTube, Vimeo, SoundCloud — they own
@@ -1697,7 +1737,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   positionPlayOverlayOnMobile() {
-    this.positionOverlayOnMediaCenter(this.getPlayButtonOverlayNode());
+    this.positionOverlayOnMediaCenter(this.getPlayButtonOverlayNode(), { youtubePlayOverlayNudge: true });
     this.positionOverlayOnMediaCenter(this.loadingOverlayElement);
   }
 
@@ -1706,7 +1746,10 @@ export class Player extends EventEmitter<PlayerEventMap> {
    * taller than the media (controls, aspect-ratio boxes), so plain 50%/50% CSS
    * would sit too low — same logic as the play overlay button.
    */
-  private positionOverlayOnMediaCenter(node: HTMLElement | SVGSVGElement | null) {
+  private positionOverlayOnMediaCenter(
+    node: HTMLElement | SVGSVGElement | null,
+    options: { youtubePlayOverlayNudge?: boolean } = {},
+  ) {
     if (!node) {
       return;
     }
@@ -1731,18 +1774,49 @@ export class Player extends EventEmitter<PlayerEventMap> {
       return;
     }
 
-    const mediaRect = mediaEl.getBoundingClientRect();
     const wrapperRect = this.videoWrapper?.getBoundingClientRect();
-    if (!wrapperRect || mediaRect.height <= 0) {
+    if (!wrapperRect) {
       return;
     }
 
-    const mediaCenterY = (mediaRect.top - wrapperRect.top) + (mediaRect.height / 2);
+    const mediaRect = mediaEl.getBoundingClientRect();
+    if (mediaRect.height <= 0) {
+      return;
+    }
+
     const mediaCenterX = (mediaRect.left - wrapperRect.left) + (mediaRect.width / 2);
+    let mediaCenterY = (mediaRect.top - wrapperRect.top) + (mediaRect.height / 2);
+
+    if (options.youtubePlayOverlayNudge) {
+      mediaCenterY -= this.youtubeChromelessPlayOverlayNudgePx(mediaEl, mediaRect.height);
+    }
 
     node.style.top = `${mediaCenterY}px`;
     node.style.left = `${mediaCenterX}px`;
     node.style.transform = 'translate(-50%, -50%)';
+  }
+
+  /**
+   * Chromeless YouTube: provider pause play sits slightly above the host box center; tune via CSS var.
+   */
+  private youtubeChromelessPlayOverlayNudgePx(mediaEl: HTMLElement, hostHeight: number): number {
+    const prefix = this.options.classPrefix;
+    if (
+      !mediaEl.classList.contains(`${prefix}-youtube-chromeless-host`)
+      || this.usesProviderNativeChrome('youtube')
+    ) {
+      return 0;
+    }
+
+    const raw = getComputedStyle(this.container ?? mediaEl)
+      .getPropertyValue('--vidply-youtube-chromeless-play-overlay-shift-y')
+      .trim();
+    const numeric = Number.parseFloat(raw);
+    if (!Number.isFinite(numeric) || hostHeight <= 0) {
+      return hostHeight * 0.0275;
+    }
+
+    return hostHeight * (numeric / 100);
   }
 
   /**
@@ -1816,12 +1890,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
     this.currentSource = src;
     this._pendingSource = null;
 
-    // YouTube/Vimeo/SoundCloud bring their own controls. Hide ours before the
-    // lazily imported renderer chunk arrives — a freshly recreated playlist
-    // player would otherwise show the HTML5 control bar until then.
-    if (EXTERNAL_CONTROL_RENDERERS.has(classifyRendererType(src))) {
-      this.container?.classList.add('vidply-external-controls');
-    }
+    // Sync embed chrome before the lazily imported renderer chunk arrives.
+    this.syncEmbedChromeClass(classifyRendererType(src));
 
     // Pull in the audio-description manager on demand when this source carries
     // description content (it is no longer eagerly loaded for content-less
@@ -1856,6 +1926,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
         await this.renderer.init();
       }
 
+      this.syncEmbedChromeClass(this.renderer.rendererType);
       this.invalidateTrackCache();
       rafWithTimeout(() => this.positionPlayOverlayOnMobile(), 100);
     };
@@ -2031,6 +2102,32 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
   hidePosterOverlay(): void { this.posterManager.hideOverlay(); }
 
+  /** Strip playlist/idle poster art before YouTube/Vimeo/SoundCloud iframes load. */
+  clearVideoPosterForExternalEmbed(): void {
+    if (this.element.tagName !== 'VIDEO') {
+      return;
+    }
+    this.element.removeAttribute('poster');
+    const prefix = this.options.classPrefix;
+    this.videoWrapper?.classList.remove(`${prefix}-forced-poster`);
+    this.videoWrapper?.style.removeProperty('--vidply-poster-image');
+    this.hidePosterOverlay();
+  }
+
+  /** Native embed frame ratio (e.g. Vimeo `getVideoWidth` / `getVideoHeight`). */
+  setEmbedAspectRatio(width: number, height: number): void {
+    const wrapper = this.videoWrapper;
+    if (!wrapper || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+      return;
+    }
+    wrapper.style.setProperty('--vidply-embed-aspect-ratio', `${width} / ${height}`);
+    this.positionPlayOverlayOnMobile();
+  }
+
+  clearEmbedAspectRatio(): void {
+    this.videoWrapper?.style.removeProperty('--vidply-embed-aspect-ratio');
+  }
+
   /**
    * Set a managed timeout that will be cleaned up on destroy
    * @param {Function} callback - Callback function
@@ -2107,6 +2204,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
       // Check if this is an external renderer URL
       const isExternalRenderer = this.isExternalRendererUrl(config.src);
+      this.syncExternalEmbedOptionsForSource(config.src);
 
       // Set flag early to suppress any errors that might fire during the transition
       // This prevents HTML5 element errors from triggering playlist auto-advance
@@ -2477,30 +2575,48 @@ export class Player extends EventEmitter<PlayerEventMap> {
    * Align VidPly state and chrome with the media element (fixes iOS playlist taps
    * where `play` fired but a subsequent `load()` aborted playback without `pause`).
    */
-  syncPlaybackUiFromMediaElement(): void {
-    const el = this.element;
-    const playing = !el.paused && !el.ended;
+  /** HTML5/HLS/DASH drive play state from the media element; embeds use renderer state. */
+  usesMediaElementForPlaybackUi(): boolean {
+    const rendererType = this.renderer?.rendererType;
+    return Boolean(this.renderer)
+      && (rendererType === 'html5' || rendererType === 'hls' || rendererType === 'dash');
+  }
 
-    this.state.playing = playing;
-    this.state.paused = !playing;
-    this.state.ended = el.ended;
-
-    this.controlBar?.updatePlayPauseButton();
-
+  syncPlayOverlayVisibility(): void {
     const overlayNode = this.playButtonOverlay
       ? (this.getPlayButtonOverlayNode() as HTMLElement | SVGSVGElement | null)
       : null;
-    if (overlayNode) {
-      if (playing) {
-        overlayNode.style.opacity = '0';
-        overlayNode.style.pointerEvents = 'none';
-        this.playButtonOverlayButton?.setAttribute('aria-label', i18n.t('player.pause'));
-      } else if (!el.ended) {
-        overlayNode.style.opacity = '1';
-        overlayNode.style.pointerEvents = 'auto';
-        this.playButtonOverlayButton?.setAttribute('aria-label', i18n.t('player.play'));
-      }
+    if (!overlayNode) {
+      return;
     }
+
+    const useElement = this.usesMediaElementForPlaybackUi();
+    const el = this.element;
+    const playing = useElement ? !el.paused && !el.ended : this.state.playing;
+    const ended = useElement ? el.ended : this.state.ended;
+
+    if (playing) {
+      overlayNode.style.opacity = '0';
+      overlayNode.style.pointerEvents = 'none';
+      this.playButtonOverlayButton?.setAttribute('aria-label', i18n.t('player.pause'));
+    } else if (!ended) {
+      overlayNode.style.opacity = '1';
+      overlayNode.style.pointerEvents = 'auto';
+      this.playButtonOverlayButton?.setAttribute('aria-label', i18n.t('player.play'));
+    }
+  }
+
+  syncPlaybackUiFromMediaElement(): void {
+    if (this.usesMediaElementForPlaybackUi()) {
+      const el = this.element;
+      const playing = !el.paused && !el.ended;
+      this.state.playing = playing;
+      this.state.paused = !playing;
+      this.state.ended = el.ended;
+    }
+
+    this.controlBar?.updatePlayPauseButton();
+    this.syncPlayOverlayVisibility();
   }
 
   /**
@@ -2780,6 +2896,119 @@ export class Player extends EventEmitter<PlayerEventMap> {
     return classifyRendererType(src) !== this.renderer.rendererType;
   }
 
+  /**
+   * Effective embed chrome mode for a provider renderer type.
+   */
+  getEffectiveEmbedChrome(rendererType: RendererType): 'vidply' | 'provider' {
+    if (this._forceProviderEmbedChrome) {
+      return 'provider';
+    }
+    if (rendererType === 'soundcloud') {
+      return this.options.embedChromeSoundcloud ?? 'provider';
+    }
+    if (EXTERNAL_CONTROL_RENDERERS.has(rendererType)) {
+      return this.options.embedChrome ?? 'vidply';
+    }
+    return 'vidply';
+  }
+
+  usesProviderNativeChrome(rendererType?: RendererType | null): boolean {
+    const type = rendererType
+      ?? this.renderer?.rendererType
+      ?? (this.currentSource || this._pendingSource
+        ? classifyRendererType(String(this.currentSource || this._pendingSource))
+        : null);
+    if (!type || !EXTERNAL_CONTROL_RENDERERS.has(type)) {
+      return false;
+    }
+    return this.getEffectiveEmbedChrome(type) === 'provider';
+  }
+
+  shouldHideVidplyControls(): boolean {
+    if (this.renderer?.rendererType && EXTERNAL_CONTROL_RENDERERS.has(this.renderer.rendererType)) {
+      return this.usesProviderNativeChrome(this.renderer.rendererType);
+    }
+    const pendingType = this._pendingEmbedRendererType();
+    if (pendingType) {
+      return this.getEffectiveEmbedChrome(pendingType) === 'provider';
+    }
+    return false;
+  }
+
+  _pendingEmbedRendererType(): RendererType | null {
+    if (this.options.externalEmbedRenderer
+      && EXTERNAL_CONTROL_RENDERERS.has(this.options.externalEmbedRenderer)) {
+      return this.options.externalEmbedRenderer;
+    }
+    const src = this.currentSource || this._pendingSource || '';
+    if (!src) {
+      return null;
+    }
+    const type = classifyRendererType(src);
+    return EXTERNAL_CONTROL_RENDERERS.has(type) ? type : null;
+  }
+
+  /** Keep embed flags in sync when playlists hot-swap YouTube/Vimeo without recreating the player. */
+  syncExternalEmbedOptionsForSource(src?: string | null): void {
+    if (!src) {
+      this.options.externalEmbed = false;
+      delete this.options.externalEmbedRenderer;
+      return;
+    }
+    const type = classifyRendererType(src);
+    if (EXTERNAL_CONTROL_RENDERERS.has(type)) {
+      this.options.externalEmbed = true;
+      this.options.externalEmbedRenderer = type as 'youtube' | 'vimeo' | 'soundcloud';
+    } else {
+      this.options.externalEmbed = false;
+      delete this.options.externalEmbedRenderer;
+    }
+  }
+
+  /**
+   * Toggle classes for provider-native vs VidPly embed chrome.
+   * @param pendingRendererType Optional type before the renderer instance exists.
+   */
+  syncEmbedChromeClass(pendingRendererType?: RendererType): void {
+    if (!this.container) {
+      return;
+    }
+    const prefix = this.options.classPrefix;
+    const rendererType = pendingRendererType
+      ?? this.renderer?.rendererType
+      ?? this._pendingEmbedRendererType();
+    const hideControls = rendererType && EXTERNAL_CONTROL_RENDERERS.has(rendererType)
+      ? this.getEffectiveEmbedChrome(rendererType) === 'provider'
+      : this.shouldHideVidplyControls();
+    const vidplyChrome = Boolean(
+      rendererType
+      && EXTERNAL_CONTROL_RENDERERS.has(rendererType)
+      && !hideControls
+    );
+
+    this.container.classList.toggle(`${prefix}-external-controls`, hideControls);
+    this.container.classList.toggle(`${prefix}-embed-chrome-vidply`, vidplyChrome);
+    if (!vidplyChrome) {
+      this.container.classList.remove(`${prefix}-embed-chrome-reproducing`);
+    }
+  }
+
+  /** True while a chromeless embed is actively playing (hides center overlay). */
+  setEmbedChromeReproducing(active: boolean): void {
+    if (!this.container) {
+      return;
+    }
+    const prefix = this.options.classPrefix;
+    if (!this.container.classList.contains(`${prefix}-embed-chrome-vidply`)) {
+      return;
+    }
+    this.container.classList.toggle(`${prefix}-embed-chrome-reproducing`, active);
+    if (!active) {
+      this.syncPlayOverlayVisibility();
+      this.positionPlayOverlayOnMobile();
+    }
+  }
+
   // Playback controls
   play() {
     const playlist = this.playlistManager;
@@ -2840,10 +3069,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   toggle() {
-    const rendererType = this.renderer?.rendererType;
-    const useElement =
-      Boolean(this.renderer) &&
-      (rendererType === 'html5' || rendererType === 'hls' || rendererType === 'dash');
+    const useElement = this.usesMediaElementForPlaybackUi();
     const playing = useElement ? !this.element.paused && !this.element.ended : this.state.playing;
 
     this.log(`toggle() playing=${playing}`, 'debug');

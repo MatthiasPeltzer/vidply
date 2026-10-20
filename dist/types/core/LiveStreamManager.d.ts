@@ -40,8 +40,10 @@ export declare class LiveStreamManager {
     /** True once the source is confidently VOD (not merely "not live yet"). */
     isConfirmedVod(): boolean;
     private isDashRenderer;
+    private isExternalEmbedRenderer;
     private isPlainHtml5Renderer;
     private hasFiniteMediaDuration;
+    private hasFinitePlayerDuration;
     /** VOD skip-forward, or live catch-up when behind the edge. */
     shouldShowForwardSkip(): boolean;
     /** Restart is a VOD-only affordance once the source is confirmed VOD. */

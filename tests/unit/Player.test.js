@@ -1005,24 +1005,55 @@ describe('Player', () => {
     it.each([
       ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
       ['https://vimeo.com/123456789'],
-      ['https://soundcloud.com/artist/track-name'],
-    ])('hides VidPly controls before the renderer chunk for %s has loaded', (src) => {
+    ])('uses VidPly chrome while the renderer chunk for %s loads (default embedChrome)', (src) => {
       player = new Player(videoElement);
       player._detectRendererClass = vi.fn(() => new Promise(() => {}));
       player._pendingSource = src;
 
       void player.initializeRenderer();
 
+      expect(player.container.classList.contains('vidply-external-controls')).toBe(false);
+      expect(player.container.classList.contains('vidply-embed-chrome-vidply')).toBe(true);
+    });
+
+    it('uses provider chrome for SoundCloud while the renderer chunk loads (default)', () => {
+      player = new Player(videoElement);
+      player._detectRendererClass = vi.fn(() => new Promise(() => {}));
+      player._pendingSource = 'https://soundcloud.com/artist/track-name';
+
+      void player.initializeRenderer();
+
+      expect(player.container.classList.contains('vidply-external-controls')).toBe(true);
+      expect(player.container.classList.contains('vidply-embed-chrome-vidply')).toBe(false);
+    });
+
+    it('hides VidPly controls during load when embedChrome is provider', () => {
+      player = new Player(videoElement, { embedChrome: 'provider' });
+      player._detectRendererClass = vi.fn(() => new Promise(() => {}));
+      player._pendingSource = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+
+      void player.initializeRenderer();
+
       expect(player.container.classList.contains('vidply-external-controls')).toBe(true);
     });
 
-    it.each([[true], [false]])('marks the container for an external embed when externalEmbed is %s', async (externalEmbed) => {
-      player = new Player(videoElement, { externalEmbed });
+    it.each([
+      [true, 'youtube', true],
+      [true, 'youtube', false],
+      [false, undefined, false],
+    ])('externalEmbed=%s with renderer %s and provider chrome=%s', async (externalEmbed, rendererType, providerChrome) => {
+      player = new Player(videoElement, {
+        externalEmbed,
+        externalEmbedRenderer: rendererType,
+        embedChrome: providerChrome ? 'provider' : 'vidply',
+      });
       for (let i = 0; i < 20; i++) {
         await Promise.resolve();
       }
 
-      expect(player.container.classList.contains('vidply-external-controls')).toBe(externalEmbed);
+      expect(player.container.classList.contains('vidply-external-controls')).toBe(
+        externalEmbed && providerChrome
+      );
     });
 
     it('keeps VidPly controls for HTML5 sources', () => {

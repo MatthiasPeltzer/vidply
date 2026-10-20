@@ -17,27 +17,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.ts": {
-      "bytes": 10608,
+      "bytes": 10845,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.ts": {
-      "bytes": 13055,
+      "bytes": 13292,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.ts": {
-      "bytes": 11932,
+      "bytes": 12174,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.ts": {
-      "bytes": 12199,
+      "bytes": 12445,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.ts": {
-      "bytes": 12833,
+      "bytes": 13084,
       "imports": [],
       "format": "esm"
     },
@@ -110,7 +110,7 @@
       "format": "esm"
     },
     "src/icons/Icons.ts": {
-      "bytes": 13930,
+      "bytes": 15279,
       "imports": [],
       "format": "esm"
     },
@@ -132,6 +132,22 @@
     "src/utils/DownloadInfo.ts": {
       "bytes": 4868,
       "imports": [],
+      "format": "esm"
+    },
+    "src/utils/RendererType.ts": {
+      "bytes": 863,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/utils/EmbedProviderLinks.ts": {
+      "bytes": 3200,
+      "imports": [
+        {
+          "path": "src/utils/RendererType.ts",
+          "kind": "import-statement",
+          "original": "./RendererType.js"
+        }
+      ],
       "format": "esm"
     },
     "src/controls/CaptionStyleMenu.ts": {
@@ -156,7 +172,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 203051,
+      "bytes": 212617,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -199,6 +215,16 @@
           "original": "../utils/DownloadInfo.js"
         },
         {
+          "path": "src/utils/RendererType.ts",
+          "kind": "import-statement",
+          "original": "../utils/RendererType.js"
+        },
+        {
+          "path": "src/utils/EmbedProviderLinks.ts",
+          "kind": "import-statement",
+          "original": "../utils/EmbedProviderLinks.js"
+        },
+        {
           "path": "src/controls/CaptionStyleMenu.ts",
           "kind": "dynamic-import",
           "original": "./CaptionStyleMenu.js"
@@ -239,7 +265,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.ts": {
-      "bytes": 23990,
+      "bytes": 26162,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -275,7 +301,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardManager.ts": {
-      "bytes": 15292,
+      "bytes": 15551,
       "imports": [
         {
           "path": "src/i18n/i18n.ts",
@@ -329,11 +355,6 @@
     },
     "src/utils/UrlSafe.ts": {
       "bytes": 2653,
-      "imports": [],
-      "format": "esm"
-    },
-    "src/utils/RendererType.ts": {
-      "bytes": 863,
       "imports": [],
       "format": "esm"
     },
@@ -444,7 +465,7 @@
       "format": "esm"
     },
     "src/core/LiveStreamManager.ts": {
-      "bytes": 12006,
+      "bytes": 12554,
       "imports": [
         {
           "path": "<runtime>",
@@ -523,7 +544,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardHelp.ts": {
-      "bytes": 12632,
+      "bytes": 12564,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -822,13 +843,55 @@
       "imports": [],
       "format": "esm"
     },
+    "src/utils/EmbedIdleCover.ts": {
+      "bytes": 1997,
+      "imports": [
+        {
+          "path": "src/core/PosterManager.ts",
+          "kind": "import-statement",
+          "original": "../core/PosterManager.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/utils/YoutubeThumbnailPoster.ts": {
+      "bytes": 2736,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/utils/YoutubeEmbedAspectRatio.ts": {
+      "bytes": 929,
+      "imports": [
+        {
+          "path": "src/utils/YoutubeThumbnailPoster.ts",
+          "kind": "import-statement",
+          "original": "./YoutubeThumbnailPoster.js"
+        }
+      ],
+      "format": "esm"
+    },
     "src/renderers/YouTubeRenderer.ts": {
-      "bytes": 12592,
+      "bytes": 20745,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
           "kind": "import-statement",
           "original": "../utils/ScriptLoader.js"
+        },
+        {
+          "path": "src/utils/EmbedIdleCover.ts",
+          "kind": "import-statement",
+          "original": "../utils/EmbedIdleCover.js"
+        },
+        {
+          "path": "src/utils/YoutubeEmbedAspectRatio.ts",
+          "kind": "import-statement",
+          "original": "../utils/YoutubeEmbedAspectRatio.js"
+        },
+        {
+          "path": "src/utils/YoutubeThumbnailPoster.ts",
+          "kind": "import-statement",
+          "original": "../utils/YoutubeThumbnailPoster.js"
         },
         {
           "path": "src/utils/PerformanceUtils.ts",
@@ -843,9 +906,24 @@
       ],
       "format": "esm"
     },
+    "src/utils/VimeoEmbedAspectRatio.ts": {
+      "bytes": 615,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/utils/VimeoThumbnailPoster.ts": {
+      "bytes": 756,
+      "imports": [],
+      "format": "esm"
+    },
     "src/renderers/VimeoRenderer.ts": {
-      "bytes": 8975,
+      "bytes": 12557,
       "imports": [
+        {
+          "path": "src/utils/EmbedIdleCover.ts",
+          "kind": "import-statement",
+          "original": "../utils/EmbedIdleCover.js"
+        },
         {
           "path": "src/utils/ScriptLoader.ts",
           "kind": "import-statement",
@@ -855,6 +933,16 @@
           "path": "src/utils/PerformanceUtils.ts",
           "kind": "import-statement",
           "original": "../utils/PerformanceUtils.js"
+        },
+        {
+          "path": "src/utils/VimeoEmbedAspectRatio.ts",
+          "kind": "import-statement",
+          "original": "../utils/VimeoEmbedAspectRatio.js"
+        },
+        {
+          "path": "src/utils/VimeoThumbnailPoster.ts",
+          "kind": "import-statement",
+          "original": "../utils/VimeoThumbnailPoster.js"
         },
         {
           "path": "<runtime>",
@@ -865,7 +953,7 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 38897,
+      "bytes": 38918,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -891,7 +979,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 39526,
+      "bytes": 39547,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -907,7 +995,7 @@
       "format": "esm"
     },
     "src/renderers/SoundCloudRenderer.ts": {
-      "bytes": 14693,
+      "bytes": 14705,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -928,7 +1016,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 134427,
+      "bytes": 142197,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -1119,7 +1207,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 97543,
+      "bytes": 98069,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1180,7 +1268,7 @@
       "format": "esm"
     },
     "src/index.ts": {
-      "bytes": 6801,
+      "bytes": 6885,
       "imports": [
         {
           "path": "src/core/Player.ts",
@@ -1211,7 +1299,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1706501
+      "bytes": 1777605
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1222,19 +1310,19 @@
           "bytesInOutput": 8919
         },
         "src/i18n/languages/en.ts": {
-          "bytesInOutput": 12223
+          "bytesInOutput": 12484
         },
         "src/i18n/languages/de.ts": {
-          "bytesInOutput": 13684
+          "bytesInOutput": 13929
         },
         "src/i18n/languages/es.ts": {
-          "bytesInOutput": 13582
+          "bytesInOutput": 13848
         },
         "src/i18n/languages/fr.ts": {
-          "bytesInOutput": 13834
+          "bytesInOutput": 14104
         },
         "src/i18n/languages/ja.ts": {
-          "bytesInOutput": 14494
+          "bytesInOutput": 14769
         },
         "src/i18n/translations.ts": {
           "bytesInOutput": 894
@@ -1249,13 +1337,16 @@
           "bytesInOutput": 2501
         },
         "src/icons/Icons.ts": {
-          "bytesInOutput": 13104
+          "bytesInOutput": 14471
         },
         "src/utils/FocusUtils.ts": {
           "bytesInOutput": 2539
         },
         "src/utils/PerformanceUtils.ts": {
           "bytesInOutput": 4284
+        },
+        "src/utils/VideoFrameCapture.ts": {
+          "bytesInOutput": 3266
         },
         "src/controls/CaptionStyleMenu.ts": {
           "bytesInOutput": 8522
@@ -1267,10 +1358,16 @@
           "bytesInOutput": 971
         },
         "src/controls/CaptionManager.ts": {
-          "bytesInOutput": 19405
+          "bytesInOutput": 21746
         },
         "src/renderers/HTML5Renderer.ts": {
           "bytesInOutput": 12792
+        },
+        "src/utils/UrlSafe.ts": {
+          "bytesInOutput": 1137
+        },
+        "src/core/PosterManager.ts": {
+          "bytesInOutput": 6254
         },
         "src/core/DescriptionSpeechManager.ts": {
           "bytesInOutput": 6832
@@ -1305,50 +1402,62 @@
         "src/utils/ScriptLoader.ts": {
           "bytesInOutput": 2712
         },
+        "src/utils/EmbedIdleCover.ts": {
+          "bytesInOutput": 2073
+        },
+        "src/utils/YoutubeThumbnailPoster.ts": {
+          "bytesInOutput": 2160
+        },
+        "src/utils/YoutubeEmbedAspectRatio.ts": {
+          "bytesInOutput": 708
+        },
         "src/renderers/YouTubeRenderer.ts": {
-          "bytesInOutput": 13138
+          "bytesInOutput": 22073
+        },
+        "src/utils/VimeoEmbedAspectRatio.ts": {
+          "bytesInOutput": 504
+        },
+        "src/utils/VimeoThumbnailPoster.ts": {
+          "bytesInOutput": 728
         },
         "src/renderers/VimeoRenderer.ts": {
-          "bytesInOutput": 9478
+          "bytesInOutput": 13571
         },
         "src/renderers/HLSRenderer.ts": {
-          "bytesInOutput": 36476
+          "bytesInOutput": 36520
         },
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 38691
+          "bytesInOutput": 38735
         },
         "src/renderers/SoundCloudRenderer.ts": {
-          "bytesInOutput": 14410
+          "bytesInOutput": 14579
         },
         "src/utils/EventEmitter.ts": {
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 117601
+          "bytesInOutput": 125628
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 152206
-        },
-        "src/utils/VideoFrameCapture.ts": {
-          "bytesInOutput": 3154
+          "bytesInOutput": 161214
         },
         "src/utils/DownloadInfo.ts": {
           "bytesInOutput": 3863
         },
+        "src/utils/RendererType.ts": {
+          "bytesInOutput": 426
+        },
+        "src/utils/EmbedProviderLinks.ts": {
+          "bytesInOutput": 2864
+        },
         "src/controls/KeyboardManager.ts": {
-          "bytesInOutput": 12720
+          "bytesInOutput": 13025
         },
         "src/core/MediaSessionManager.ts": {
           "bytesInOutput": 7899
         },
         "src/constants/layoutBreakpoints.ts": {
           "bytesInOutput": 329
-        },
-        "src/utils/UrlSafe.ts": {
-          "bytesInOutput": 1045
-        },
-        "src/utils/RendererType.ts": {
-          "bytesInOutput": 426
         },
         "src/utils/MediaSourceNegotiation.ts": {
           "bytesInOutput": 2008
@@ -1362,9 +1471,6 @@
         "src/core/ThemeManager.ts": {
           "bytesInOutput": 4181
         },
-        "src/core/PosterManager.ts": {
-          "bytesInOutput": 5544
-        },
         "src/core/ResumeManager.ts": {
           "bytesInOutput": 8530
         },
@@ -1372,7 +1478,7 @@
           "bytesInOutput": 6290
         },
         "src/core/LiveStreamManager.ts": {
-          "bytesInOutput": 11474
+          "bytesInOutput": 11964
         },
         "src/core/DebugOverlay.ts": {
           "bytesInOutput": 6963
@@ -1387,16 +1493,16 @@
           "bytesInOutput": 2410
         },
         "src/controls/KeyboardHelp.ts": {
-          "bytesInOutput": 11541
+          "bytesInOutput": 11534
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 80997
+          "bytesInOutput": 81619
         },
         "src/index.ts": {
-          "bytesInOutput": 5385
+          "bytesInOutput": 5473
         }
       },
-      "bytes": 1009034
+      "bytes": 1056116
     }
   }
 }

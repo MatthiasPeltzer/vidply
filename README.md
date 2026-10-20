@@ -42,9 +42,9 @@ Try VidPly in action:
 
 - **Audio & Video Playback** - Native HTML5 support for both media types
 - **Multiple Formats** - MP3, OGG, WAV (audio) / MP4, WebM (video)
-- **YouTube Integration** - Embed YouTube videos with unified controls
-- **Vimeo Integration** - Seamless Vimeo player integration
-- **SoundCloud Integration** - Play SoundCloud tracks and sets via the Widget API with unified controls
+- **YouTube Integration** - Chromeless embed with VidPly transport controls by default (`embedChrome: 'vidply'`)
+- **Vimeo Integration** - Chromeless embed with VidPly transport controls by default
+- **SoundCloud Integration** - Widget API playback; VidPly bar below the widget (`embedChromeSoundcloud` defaults to provider-style widget UI)
 - **HLS Streaming** - Adaptive bitrate streaming with quality selection and dynamic subtitle detection
   - Uses **hls.js 1.7.3** on Chrome / Firefox / Edge / desktop Safari for full feature parity (quality menu, captions,
     transcript)
@@ -504,6 +504,10 @@ const player = new Player('#video', {
   onTimeUpdate: (t) => {},
   onVolumeChange: (v) => {},
   onError: (err) => console.error(err),
+
+  // External embeds (YouTube, Vimeo, SoundCloud)
+  embedChrome: 'vidply',          // 'vidply' = chromeless iframe + VidPly bar; 'provider' = native embed UI
+  embedChromeSoundcloud: 'provider', // SoundCloud widget keeps its mini UI; VidPly bar when 'vidply'
 
   // Streaming
   hideSpeedForHls: false,         // Hide speed control for ALL HLS streams

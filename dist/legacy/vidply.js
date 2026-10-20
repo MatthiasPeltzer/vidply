@@ -1,5 +1,5 @@
 /*!
- * VidPly v1.2.20 - Universal, Accessible Video Player
+ * VidPly v1.2.21 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
@@ -292,6 +292,10 @@
           floatingPlayerExit: "Dock video",
           floatingPlayerDialog: "Floating video player. Press D to drag, R to resize, Escape to close.",
           download: "Download",
+          openOnYoutube: "Open on YouTube (opens in new tab)",
+          openOnVimeo: "Open on Vimeo (opens in new tab)",
+          openOnSoundcloud: "Open on SoundCloud (opens in new tab)",
+          openOnProvider: "Open on provider site (opens in new tab)",
           downloadWithFormat: "Download {format}",
           downloadWithSize: "Download ({size})",
           downloadWithFormatSize: "Download {format} ({size})",
@@ -566,6 +570,10 @@
           floatingPlayerExit: "Video andocken",
           floatingPlayerDialog: "Schwebender Videoplayer. D zum Verschieben, R zum Größenändern, Escape zum Schließen.",
           download: "Herunterladen",
+          openOnYoutube: "Auf YouTube öffnen (neuer Tab)",
+          openOnVimeo: "Auf Vimeo öffnen (neuer Tab)",
+          openOnSoundcloud: "Auf SoundCloud öffnen (neuer Tab)",
+          openOnProvider: "Beim Anbieter öffnen (neuer Tab)",
           downloadWithFormat: "Herunterladen {format}",
           downloadWithSize: "Herunterladen ({size})",
           downloadWithFormatSize: "Herunterladen {format} ({size})",
@@ -839,6 +847,10 @@
           floatingPlayerExit: "Anclar el vídeo",
           floatingPlayerDialog: "Reproductor de vídeo flotante. Pulsa D para mover, R para redimensionar, Escape para cerrar.",
           download: "Descargar",
+          openOnYoutube: "Abrir en YouTube (nueva pestaña)",
+          openOnVimeo: "Abrir en Vimeo (nueva pestaña)",
+          openOnSoundcloud: "Abrir en SoundCloud (nueva pestaña)",
+          openOnProvider: "Abrir en el sitio del proveedor (nueva pestaña)",
           downloadWithFormat: "Descargar {format}",
           downloadWithSize: "Descargar ({size})",
           downloadWithFormatSize: "Descargar {format} ({size})",
@@ -1109,6 +1121,10 @@
           floatingPlayerExit: "Rattacher la vidéo",
           floatingPlayerDialog: "Lecteur vidéo flottant. Appuyez sur D pour déplacer, R pour redimensionner, Échap pour fermer.",
           download: "Télécharger",
+          openOnYoutube: "Ouvrir sur YouTube (nouvel onglet)",
+          openOnVimeo: "Ouvrir sur Vimeo (nouvel onglet)",
+          openOnSoundcloud: "Ouvrir sur SoundCloud (nouvel onglet)",
+          openOnProvider: "Ouvrir sur le site du fournisseur (nouvel onglet)",
           downloadWithFormat: "Télécharger {format}",
           downloadWithSize: "Télécharger ({size})",
           downloadWithFormatSize: "Télécharger {format} ({size})",
@@ -1379,6 +1395,10 @@
           floatingPlayerExit: "ビデオを戻す",
           floatingPlayerDialog: "フローティング動画プレーヤー。Dキーで移動、Rキーでサイズ変更、Escで閉じる。",
           download: "ダウンロード",
+          openOnYoutube: "YouTubeで開く（新しいタブ）",
+          openOnVimeo: "Vimeoで開く（新しいタブ）",
+          openOnSoundcloud: "SoundCloudで開く（新しいタブ）",
+          openOnProvider: "提供サイトで開く（新しいタブ）",
           downloadWithFormat: "{format} をダウンロード",
           downloadWithSize: "ダウンロード ({size})",
           downloadWithFormatSize: "{format} をダウンロード ({size})",
@@ -2023,7 +2043,10 @@
         download: `<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>`,
         help: `<path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>`,
         chevronDown: `<path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>`,
-        chevronUp: `<path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/>`
+        chevronUp: `<path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/>`,
+        youtubeBrand: `<path d="M21.6 7.2a2.5 2.5 0 0 0-1.76-1.77C18.02 5 12 5 12 5s-6.02 0-7.84.43A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.76 1.77C5.98 19 12 19 12 19s6.02 0 7.84-.43a2.5 2.5 0 0 0 1.76-1.77A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15.5v-7l6 3.5-6 3.5z"/>`,
+        vimeoBrand: `<path d="M23.9765 6.4168c-.105 2.338-1.739 5.5429-4.894 9.6088-3.2679 4.247-6.0258 6.3699-8.2898 6.3699-1.409 0-2.578-1.294-3.553-3.881l-1.9179-7.1138c-.719-2.584-1.488-3.878-2.312-3.878-.179 0-.806.378-1.8809 1.132l-1.129-1.457a315.06 315.06 0 003.501-3.1279c1.579-1.368 2.765-2.085 3.5539-2.159 1.867-.18 3.016 1.1 3.447 3.838.465 2.953.789 4.789.971 5.5069.5389 2.45 1.1309 3.674 1.7759 3.674.502 0 1.256-.796 2.265-2.385 1.004-1.589 1.54-2.797 1.612-3.628.144-1.371-.395-2.061-1.614-2.061-.574 0-1.167.121-1.777.391 1.186-3.8679 3.434-5.7568 6.7619-5.6368 2.4729.06 3.6279 1.664 3.4929 4.7969z"/>`,
+        soundcloudBrand: `<path d="M17.5 15.5h-1c-.3 0-.5-.2-.5-.5v-7c0-.3.2-.5.5-.5h1c.3 0 .5.2.5.5v7c0 .3-.2.5-.5.5zm-3 1h-1c-.3 0-.5-.2-.5-.5v-9c0-.3.2-.5.5-.5h1c.3 0 .5.2.5.5v9c0 .3-.2.5-.5.5zm-3-2h-1c-.3 0-.5-.2-.5-.5V8c0-.3.2-.5.5-.5h1c.3 0 .5.2.5.5v6c0 .3-.2.5-.5.5zm-3 3h-1c-.3 0-.5-.2-.5-.5V6c0-.3.2-.5.5-.5h1c.3 0 .5.2.5.5v10c0 .3-.2.5-.5.5zm-3-1h-1c-.3 0-.5-.2-.5-.5V7c0-.3.2-.5.5-.5h1c.3 0 .5.2.5.5v8c0 .3-.2.5-.5.5z"/>`
       };
       svgWrapper = (paths) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">${paths}</svg>`;
       Icons = Object.fromEntries(
@@ -2263,6 +2286,101 @@
         ".ddev.local",
         ".docker.internal"
       ];
+    }
+  });
+
+  // src/utils/VideoFrameCapture.ts
+  async function captureVideoFrame(video, time, options = {}) {
+    if (!video || video.tagName !== "VIDEO") {
+      return null;
+    }
+    const { restoreState = true, quality = 0.9, maxWidth, maxHeight } = options;
+    const wasPlaying = !video.paused;
+    const originalTime = video.currentTime;
+    const originalMuted = video.muted;
+    if (restoreState) {
+      video.muted = true;
+    }
+    return new Promise((resolve) => {
+      const captureFrame = () => {
+        try {
+          let width = video.videoWidth || 640;
+          let height = video.videoHeight || 360;
+          if (maxWidth && width > maxWidth) {
+            const ratio = maxWidth / width;
+            width = maxWidth;
+            height = Math.round(height * ratio);
+          }
+          if (maxHeight && height > maxHeight) {
+            const ratio = maxHeight / height;
+            height = maxHeight;
+            width = Math.round(width * ratio);
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(null);
+            return;
+          }
+          ctx.drawImage(video, 0, 0, width, height);
+          const dataURL = canvas.toDataURL("image/jpeg", quality);
+          if (restoreState) {
+            video.currentTime = originalTime;
+            video.muted = originalMuted;
+            if (wasPlaying && !video.paused) {
+              video.play().catch((e) => {
+                if (typeof console !== "undefined" && console.debug) {
+                  console.debug("[VidPly] preview play() rejected:", e);
+                }
+              });
+            }
+          }
+          resolve(dataURL);
+        } catch (e) {
+          if (typeof console !== "undefined" && console.debug) {
+            console.debug("[VidPly] frame capture failed:", e);
+          }
+          if (restoreState) {
+            video.currentTime = originalTime;
+            video.muted = originalMuted;
+            if (wasPlaying && !video.paused) {
+              video.play().catch((err) => {
+                if (typeof console !== "undefined" && console.debug) {
+                  console.debug("[VidPly] preview play() rejected:", err);
+                }
+              });
+            }
+          }
+          resolve(null);
+        }
+      };
+      const onSeeked = () => {
+        video.removeEventListener("seeked", onSeeked);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(captureFrame);
+        });
+      };
+      const timeDiff = Math.abs(video.currentTime - time);
+      if (timeDiff < 0.1 && video.readyState >= 2) {
+        captureFrame();
+      } else if (video.readyState >= 1) {
+        video.addEventListener("seeked", onSeeked);
+        video.currentTime = time;
+      } else {
+        const onLoadedMetadata = () => {
+          video.removeEventListener("loadedmetadata", onLoadedMetadata);
+          video.addEventListener("seeked", onSeeked);
+          video.currentTime = time;
+        };
+        video.addEventListener("loadedmetadata", onLoadedMetadata);
+      }
+    });
+  }
+  var init_VideoFrameCapture = __esm({
+    "src/utils/VideoFrameCapture.ts"() {
+      "use strict";
     }
   });
 
@@ -2876,6 +2994,39 @@
               this.enable(defaultTrackIndex);
             });
           }
+          void this.loadEmbedCaptionTracks();
+        }
+        async loadEmbedCaptionTracks() {
+          var _a;
+          const renderer = this.player.renderer;
+          if (!(renderer == null ? void 0 : renderer.getEmbedCaptionTracks)) {
+            return;
+          }
+          const embedTracks = await Promise.resolve(renderer.getEmbedCaptionTracks());
+          if (!embedTracks.length) {
+            return;
+          }
+          let added = 0;
+          for (const embedTrack of embedTracks) {
+            if (this.tracks.some((t) => t.embedCaptionId === embedTrack.id)) {
+              continue;
+            }
+            this.tracks.push({
+              track: null,
+              embedCaptionId: embedTrack.id,
+              language: embedTrack.language,
+              label: embedTrack.label,
+              kind: "captions",
+              index: this.tracks.length,
+              isDefault: false,
+              alternatives: []
+            });
+            added += 1;
+          }
+          if (added > 0) {
+            (_a = this.player.controlBar) == null ? void 0 : _a.syncCaptionControlsFromTracks();
+          }
+          return added;
         }
         /**
          * Sync hls.js subtitle rendition to match the given language.
@@ -2929,11 +3080,25 @@
           });
         }
         enable(trackIndex = 0) {
+          var _a;
           if (this.tracks.length === 0) {
             return;
           }
           this._cleanupTrackListeners();
           const selectedTrack = this.tracks[trackIndex];
+          if ((selectedTrack == null ? void 0 : selectedTrack.embedCaptionId) && ((_a = this.player.renderer) == null ? void 0 : _a.setEmbedCaptionTrack)) {
+            this.currentTrack = selectedTrack;
+            this.player.state.captionsEnabled = true;
+            if (selectedTrack.language) {
+              this.element.setAttribute("lang", selectedTrack.language);
+            }
+            void Promise.resolve(this.player.renderer.setEmbedCaptionTrack(
+              selectedTrack.embedCaptionId
+            )).then(() => {
+              this.player.emit("captionsenabled", selectedTrack);
+            });
+            return;
+          }
           if (selectedTrack && selectedTrack.track) {
             selectedTrack.track.mode = "hidden";
             this.currentTrack = selectedTrack;
@@ -2949,10 +3114,12 @@
             if (selectedTrack.alternatives && selectedTrack.alternatives.length > 0) {
               const altCueChangeHandler = () => {
                 if (this.currentTrack !== selectedTrack) return;
+                const activeTrack = selectedTrack.track;
+                if (!activeTrack) return;
                 for (const alt of selectedTrack.alternatives) {
                   if (alt.activeCues && alt.activeCues.length > 0) {
                     this.player.log(`Switching to alternative caption track for "${selectedTrack.label}"`, "info");
-                    selectedTrack.track.removeEventListener("cuechange", cueChangeHandler);
+                    activeTrack.removeEventListener("cuechange", cueChangeHandler);
                     selectedTrack.alternatives.forEach((a) => a.removeEventListener("cuechange", altCueChangeHandler));
                     selectedTrack.track = alt;
                     selectedTrack.track.addEventListener("cuechange", cueChangeHandler);
@@ -3000,6 +3167,10 @@
           }
         }
         _cleanupTrackListeners() {
+          var _a, _b;
+          if (((_a = this.currentTrack) == null ? void 0 : _a.embedCaptionId) && ((_b = this.player.renderer) == null ? void 0 : _b.setEmbedCaptionTrack)) {
+            void Promise.resolve(this.player.renderer.setEmbedCaptionTrack(null));
+          }
           if (this.currentTrack && this.currentTrack.track) {
             const cueChangeHandler = this.cueChangeHandler;
             if (cueChangeHandler) {
@@ -3185,8 +3356,8 @@
         /**
          * Refresh tracks list - useful when HLS adds subtitle tracks dynamically
          */
-        refreshTracks() {
-          var _a;
+        async refreshTracks() {
+          var _a, _b;
           const currentLanguage = (_a = this.currentTrack) == null ? void 0 : _a.language;
           const wasEnabled = this.player.state.captionsEnabled;
           if (this.currentTrack) {
@@ -3194,6 +3365,8 @@
           }
           this.tracks = [];
           this.loadTracks();
+          await this.loadEmbedCaptionTracks();
+          (_b = this.player.controlBar) == null ? void 0 : _b.syncCaptionControlsFromTracks();
           this.player.log(`Caption tracks refreshed, found ${this.tracks.length} tracks`, "info");
           if (wasEnabled && currentLanguage && this.tracks.length > 0) {
             const matchingIndex = this.tracks.findIndex((t) => t.language === currentLanguage);
@@ -3537,6 +3710,188 @@
         }
         destroy() {
           this._listenerController.abort();
+        }
+      };
+    }
+  });
+
+  // src/utils/UrlSafe.ts
+  function sanitizePosterUrl(input) {
+    if (typeof input !== "string" || input.length === 0 || input.length > 4096) {
+      return null;
+    }
+    const trimmed = input.trim();
+    if (!trimmed) return null;
+    if (/[\s"'<>\\]/.test(trimmed)) return null;
+    if (trimmed.startsWith("/") || trimmed.startsWith("./") || trimmed.startsWith("../")) {
+      return trimmed;
+    }
+    try {
+      const url = new URL(trimmed, typeof window !== "undefined" ? window.location.href : "http://localhost/");
+      if (url.protocol === "https:" || url.protocol === "http:") {
+        return url.href;
+      }
+      if (url.protocol === "data:" && /^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);/i.test(trimmed)) {
+        return trimmed;
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
+  function cssEscapeUrl(url) {
+    return url.replace(/["()\\]/g, (m) => `\\${m}`);
+  }
+  function toCssBackgroundImage(input) {
+    const safe = sanitizePosterUrl(input);
+    if (!safe) return null;
+    return `url("${cssEscapeUrl(safe)}")`;
+  }
+  var init_UrlSafe = __esm({
+    "src/utils/UrlSafe.ts"() {
+      "use strict";
+    }
+  });
+
+  // src/core/PosterManager.ts
+  var PosterManager;
+  var init_PosterManager = __esm({
+    "src/core/PosterManager.ts"() {
+      "use strict";
+      init_VideoFrameCapture();
+      init_UrlSafe();
+      PosterManager = class _PosterManager {
+        constructor(player) {
+          __publicField(this, "player");
+          this.player = player;
+        }
+        /**
+         * Build a CSS `url("...")` value for a poster that is safe to
+         * interpolate into a custom property / `background-image`.
+         *
+         * - `data:image/*` URLs (e.g. an auto-captured frame) are opaque and
+         *   frequently exceed the allow-list length cap, so they bypass
+         *   {@link sanitizePosterUrl} but are still CSS-escaped and required to
+         *   carry an `image/*` MIME type.
+         * - Everything else goes through the poster allow-list.
+         *
+         * Returns `null` for anything unsafe so callers can skip the overlay.
+         */
+        static toSafeCssPoster(resolved) {
+          if (typeof resolved !== "string" || !resolved) return null;
+          if (/^data:/i.test(resolved)) {
+            if (!/^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);/i.test(resolved)) return null;
+            return `url("${cssEscapeUrl(resolved)}")`;
+          }
+          const safe = sanitizePosterUrl(resolved);
+          if (!safe) return null;
+          return `url("${cssEscapeUrl(safe)}")`;
+        }
+        /**
+         * Convert a relative poster path into an absolute URL. Absolute URLs
+         * (http/https) and root-relative paths (`/foo`) are returned as-is.
+         * Falls back to the raw string on any parse error — a malformed URL
+         * is still better than throwing and breaking the caller.
+         */
+        resolvePath(posterPath) {
+          if (!posterPath) return "";
+          if (posterPath.match(/^(https?:|\/)/)) {
+            return posterPath;
+          }
+          try {
+            const posterUrl = new URL(posterPath, window.location.href);
+            return posterUrl.href;
+          } catch {
+            return posterPath;
+          }
+        }
+        /**
+         * Capture a frame from the underlying video as a data URL suitable
+         * for use as `<video>.poster`. Returns `null` when the element is
+         * not a video, the renderer isn't ready, or the capture fails.
+         *
+         * When the control bar has a hidden "preview video" element (used
+         * for the seek hover thumbnail), we prefer that so we don't disturb
+         * the user's current playback position.
+         */
+        async generateFromVideo(time = 10) {
+          const player = this.player;
+          if (player.element.tagName !== "VIDEO") return null;
+          const renderer = player.renderer;
+          if (!renderer || !renderer.media || renderer.media.tagName !== "VIDEO") {
+            return null;
+          }
+          const video = renderer.media;
+          if (!video.duration || video.duration < time) {
+            time = Math.min(time, Math.max(1, video.duration * 0.1));
+          }
+          let videoToUse = video;
+          if (player.controlBar && player.controlBar.previewVideo && player.controlBar.previewSupported) {
+            videoToUse = player.controlBar.previewVideo;
+          }
+          const restoreState = videoToUse === video;
+          return await captureVideoFrame(videoToUse, time, {
+            restoreState,
+            quality: 0.9
+          });
+        }
+        /**
+         * Auto-generate a poster from the video at the 10-second mark if the
+         * content doesn't already have one. No-op for audio elements and for
+         * media that ships with a poster attribute or option.
+         */
+        async autoGenerate() {
+          const player = this.player;
+          const hasPoster = player.element.getAttribute("poster") || player.element.poster || player.options.poster;
+          if (hasPoster) return;
+          if (player.element.tagName !== "VIDEO") return;
+          if (!player.state.duration || player.state.duration === 0) {
+            await new Promise((resolve) => {
+              const onLoadedMetadata = () => {
+                player.element.removeEventListener("loadedmetadata", onLoadedMetadata);
+                resolve();
+              };
+              if (player.element.readyState >= 1) {
+                resolve();
+              } else {
+                player.element.addEventListener("loadedmetadata", onLoadedMetadata);
+              }
+            });
+          }
+          const posterDataURL = await this.generateFromVideo(10);
+          if (posterDataURL) {
+            player.element.poster = posterDataURL;
+            player.log("Auto-generated poster from video frame at 10 seconds", "info");
+            this.showOverlay();
+          }
+        }
+        /**
+         * Apply the poster as a CSS background on the video wrapper. This is
+         * used to keep the poster visible behind the play button when the
+         * browser wouldn't render `<video>.poster` itself (e.g. during
+         * fallback / transitional states).
+         */
+        showOverlay() {
+          const player = this.player;
+          if (!player.videoWrapper || player.element.tagName !== "VIDEO") return;
+          const poster = player.element.getAttribute("poster") || player.element.poster || player.options.poster;
+          if (!poster) return;
+          const resolvedPoster = poster.startsWith("data:") ? poster : this.resolvePath(poster);
+          const cssPoster = _PosterManager.toSafeCssPoster(resolvedPoster);
+          if (!cssPoster) return;
+          player.videoWrapper.style.setProperty("--vidply-poster-image", cssPoster);
+          player.videoWrapper.classList.add("vidply-forced-poster");
+          if (player._isAudioContent && player.container) {
+            player.container.classList.add("vidply-audio-content");
+          } else if (player.container) {
+            player.container.classList.remove("vidply-audio-content");
+          }
+        }
+        hideOverlay() {
+          const player = this.player;
+          if (!player.videoWrapper) return;
+          player.videoWrapper.classList.remove("vidply-forced-poster");
+          player.videoWrapper.style.removeProperty("--vidply-poster-image");
         }
       };
     }
@@ -9696,6 +10051,154 @@
     }
   });
 
+  // src/utils/EmbedIdleCover.ts
+  function applyPosterImageToVideoWrapper(player, resolvedUrl) {
+    const wrapper = player.videoWrapper;
+    if (!wrapper) {
+      return;
+    }
+    const cssPoster = PosterManager.toSafeCssPoster(resolvedUrl);
+    if (!cssPoster) {
+      return;
+    }
+    wrapper.style.setProperty("--vidply-poster-image", cssPoster);
+    wrapper.classList.add(`${player.options.classPrefix}-forced-poster`);
+  }
+  function applyChromelessIdlePosterFromElement(player) {
+    const raw = player.element.getAttribute("poster") ?? (typeof player.options.poster === "string" ? player.options.poster : null);
+    if (!raw) {
+      return;
+    }
+    applyPosterImageToVideoWrapper(player, player.resolvePosterPath(raw));
+  }
+  function setEmbedIdleCover(player, active) {
+    var _a, _b, _c, _d, _e;
+    const prefix = player.options.classPrefix;
+    (_a = player.container) == null ? void 0 : _a.classList.toggle(`${prefix}-embed-idle-cover`, active);
+    if (active) {
+      (_b = player.showPosterOverlay) == null ? void 0 : _b.call(player);
+      const overlayNode = (_c = player.getPlayButtonOverlayNode) == null ? void 0 : _c.call(player);
+      if (overlayNode instanceof HTMLElement || overlayNode instanceof SVGSVGElement) {
+        overlayNode.style.display = "";
+        overlayNode.style.opacity = "1";
+        overlayNode.style.pointerEvents = "auto";
+      }
+      const overlayButton = player.playButtonOverlayButton;
+      if (overlayButton) {
+        overlayButton.style.display = "";
+        overlayButton.style.opacity = "1";
+        overlayButton.style.pointerEvents = "auto";
+      }
+    } else {
+      (_d = player.hidePosterOverlay) == null ? void 0 : _d.call(player);
+      (_e = player.syncPlayOverlayVisibility) == null ? void 0 : _e.call(player);
+    }
+  }
+  function clearEmbedIdleCover(player) {
+    var _a;
+    (_a = player.container) == null ? void 0 : _a.classList.remove(`${player.options.classPrefix}-embed-idle-cover`);
+  }
+  var init_EmbedIdleCover = __esm({
+    "src/utils/EmbedIdleCover.ts"() {
+      "use strict";
+      init_PosterManager();
+    }
+  });
+
+  // src/utils/YoutubeThumbnailPoster.ts
+  function youtubeThumbnailUrl(videoId, variant) {
+    const id = encodeURIComponent(videoId);
+    return `https://i.ytimg.com/vi/${id}/${variant}default.jpg`;
+  }
+  function loadThumbnailImage(url, minWidth = 0) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        if (minWidth > 0 && img.naturalWidth <= minWidth) {
+          reject(new Error("YouTube thumbnail too small"));
+          return;
+        }
+        if (img.naturalWidth <= 0 || img.naturalHeight <= 0) {
+          reject(new Error("YouTube thumbnail has no dimensions"));
+          return;
+        }
+        resolve({ url, width: img.naturalWidth, height: img.naturalHeight });
+      };
+      img.onerror = () => reject(new Error("YouTube thumbnail failed to load"));
+      img.src = url;
+    });
+  }
+  function loadThumbnailCandidate(url, minWidth = 0) {
+    return loadThumbnailImage(url, minWidth).then((result) => result.url);
+  }
+  async function resolveYoutubeThumbnailPosterUrl(videoId) {
+    if (!videoId) {
+      return null;
+    }
+    try {
+      return await loadThumbnailCandidate(youtubeThumbnailUrl(videoId, "maxres"), 121);
+    } catch {
+    }
+    try {
+      return await loadThumbnailCandidate(youtubeThumbnailUrl(videoId, "sd"), 121);
+    } catch {
+    }
+    try {
+      return await loadThumbnailCandidate(youtubeThumbnailUrl(videoId, "hq"));
+    } catch {
+      return null;
+    }
+  }
+  async function resolveYoutubeThumbnailDimensions(videoId) {
+    if (!videoId) {
+      return null;
+    }
+    for (const variant of ["maxres", "sd", "hq"]) {
+      try {
+        const loaded = await loadThumbnailImage(youtubeThumbnailUrl(videoId, variant), variant === "maxres" ? 121 : 0);
+        return { width: loaded.width, height: loaded.height };
+      } catch {
+      }
+    }
+    return null;
+  }
+  function youtubeChromelessCropRecommended(width, height) {
+    if (width <= 0 || height <= 0) {
+      return true;
+    }
+    const ratio = width / height;
+    return ratio > 1.55 && ratio < 1.85;
+  }
+  var init_YoutubeThumbnailPoster = __esm({
+    "src/utils/YoutubeThumbnailPoster.ts"() {
+      "use strict";
+    }
+  });
+
+  // src/utils/YoutubeEmbedAspectRatio.ts
+  async function syncYoutubeEmbedAspectRatio(player, videoId, host) {
+    if (!videoId) {
+      return;
+    }
+    const dimensions = await resolveYoutubeThumbnailDimensions(videoId);
+    if (!dimensions) {
+      return;
+    }
+    player.setEmbedAspectRatio(dimensions.width, dimensions.height);
+    if (!host) {
+      return;
+    }
+    const prefix = player.options.classPrefix;
+    const useCrop = youtubeChromelessCropRecommended(dimensions.width, dimensions.height);
+    host.classList.toggle(`${prefix}-youtube-chromeless-crop`, useCrop);
+  }
+  var init_YoutubeEmbedAspectRatio = __esm({
+    "src/utils/YoutubeEmbedAspectRatio.ts"() {
+      "use strict";
+      init_YoutubeThumbnailPoster();
+    }
+  });
+
   // src/renderers/YouTubeRenderer.ts
   var YouTubeRenderer_exports = {};
   __export(YouTubeRenderer_exports, {
@@ -9706,6 +10209,9 @@
     "src/renderers/YouTubeRenderer.ts"() {
       "use strict";
       init_ScriptLoader();
+      init_EmbedIdleCover();
+      init_YoutubeEmbedAspectRatio();
+      init_YoutubeThumbnailPoster();
       init_PerformanceUtils();
       YouTubeRenderer = class _YouTubeRenderer {
         constructor(player) {
@@ -9716,7 +10222,10 @@
           __publicField(this, "videoId");
           __publicField(this, "isReady");
           __publicField(this, "iframe");
+          /** Inner mount node passed to `YT.Player` when chromeless crop wrapper is used. */
+          __publicField(this, "youtubeMount", null);
           __publicField(this, "timeUpdateInterval");
+          __publicField(this, "endScreenPreempted", false);
           this.player = player;
           this.media = player.element;
           this.youtube = null;
@@ -9746,6 +10255,33 @@
             iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
           }
         }
+        /**
+         * Chromeless mode: VidPly owns keyboard focus. Keep the cross-origin iframe
+         * out of the tab order and assistive-tech traversal (YouTube still injects
+         * links/overlays inside the frame).
+         */
+        applyChromelessEmbedAccessibility() {
+          var _a, _b;
+          const providerChrome = this.usesProviderChrome();
+          const host = this.iframe;
+          const iframe = (_b = (_a = this.youtube) == null ? void 0 : _a.getIframe) == null ? void 0 : _b.call(_a);
+          if (host) {
+            if (providerChrome) {
+              host.removeAttribute("inert");
+            } else {
+              host.setAttribute("inert", "");
+            }
+          }
+          if (iframe instanceof HTMLIFrameElement) {
+            if (providerChrome) {
+              iframe.removeAttribute("tabindex");
+              iframe.removeAttribute("aria-hidden");
+            } else {
+              iframe.setAttribute("tabindex", "-1");
+              iframe.setAttribute("aria-hidden", "true");
+            }
+          }
+        }
         showIosLanFallback() {
           var _a;
           this.player.element.style.display = "none";
@@ -9773,13 +10309,14 @@
           wrap.appendChild(message);
           this.iframe.appendChild(wrap);
           this.isReady = true;
-          if (this.player.container) {
-            this.player.container.classList.add("vidply-external-controls");
-          }
+          this.player._forceProviderEmbedChrome = true;
+          this.player.syncEmbedChromeClass("youtube");
           this.player.emit("loadedmetadata");
         }
+        usesProviderChrome() {
+          return this.player.usesProviderNativeChrome("youtube");
+        }
         async init() {
-          var _a, _b;
           const src = this.player.currentSource || this.player.element.src;
           this.videoId = this.extractVideoId(src);
           if (!this.videoId) {
@@ -9789,15 +10326,21 @@
             this.showIosLanFallback();
             return;
           }
-          (_a = this.player.container) == null ? void 0 : _a.classList.add("vidply-external-controls");
+          this.player.syncEmbedChromeClass("youtube");
           try {
             await this.loadYouTubeAPI();
             this.createIframe();
             await this.initializePlayer();
           } catch (error) {
-            (_b = this.player.container) == null ? void 0 : _b.classList.remove("vidply-external-controls");
+            this.clearEmbedChromeClassesOnInitFailure();
             throw error;
           }
+        }
+        clearEmbedChromeClassesOnInitFailure() {
+          var _a, _b;
+          const prefix = this.player.options.classPrefix;
+          (_a = this.player.container) == null ? void 0 : _a.classList.remove(`${prefix}-external-controls`);
+          (_b = this.player.container) == null ? void 0 : _b.classList.remove(`${prefix}-embed-chrome-vidply`);
         }
         extractVideoId(url) {
           const id = "([^&?#/\\s]+)";
@@ -9827,59 +10370,181 @@
             readyTimeout: 8e3
           });
         }
-        createIframe() {
+        chromelessEmbedActive() {
+          return !this.usesProviderChrome();
+        }
+        /** YouTube captions never render: VidPly only shows its own sidecar WebVTT tracks. */
+        disableInFrameCaptions() {
+          var _a, _b;
+          const youtube = this.youtube;
+          if (!youtube) {
+            return;
+          }
+          try {
+            (_a = youtube.setOption) == null ? void 0 : _a.call(youtube, "captions", "track", {});
+            (_b = youtube.unloadModule) == null ? void 0 : _b.call(youtube, "captions");
+          } catch {
+          }
+        }
+        refreshSidecarCaptionControls() {
           var _a;
+          void Promise.resolve((_a = this.player.captionManager) == null ? void 0 : _a.refreshTracks()).then(() => {
+            var _a2;
+            (_a2 = this.player.controlBar) == null ? void 0 : _a2.syncCaptionControlsFromTracks();
+          });
+        }
+        syncChromelessHostClasses(ready) {
+          var _a;
+          if (!this.chromelessEmbedActive() || !this.iframe) {
+            return;
+          }
+          const prefix = this.player.options.classPrefix;
+          this.iframe.classList.add(`${prefix}-youtube-chromeless-host`);
+          this.iframe.classList.toggle(`${prefix}-youtube-chromeless-ready`, ready);
+          (_a = this.player.container) == null ? void 0 : _a.classList.toggle(`${prefix}-embed-youtube`, ready);
+        }
+        applyChromelessIdlePoster() {
+          const raw = this.player.element.getAttribute("poster") ?? (typeof this.player.options.poster === "string" ? this.player.options.poster : null);
+          if (raw) {
+            applyPosterImageToVideoWrapper(this.player, this.player.resolvePosterPath(raw));
+            return;
+          }
+          void this.applyYoutubeThumbnailIdlePoster();
+        }
+        async applyYoutubeThumbnailIdlePoster() {
+          const videoId = this.videoId;
+          if (!videoId || !this.chromelessEmbedActive()) {
+            return;
+          }
+          const thumbnailUrl = await resolveYoutubeThumbnailPosterUrl(videoId);
+          if (!thumbnailUrl || videoId !== this.videoId) {
+            return;
+          }
+          applyPosterImageToVideoWrapper(this.player, thumbnailUrl);
+        }
+        setYoutubeIdleCover(active) {
+          if (!this.chromelessEmbedActive()) {
+            return;
+          }
+          if (active) {
+            this.applyChromelessIdlePoster();
+          }
+          setEmbedIdleCover(this.player, active);
+        }
+        createIframe() {
+          var _a, _b, _c;
           this.player.element.style.display = "none";
+          if (this.chromelessEmbedActive()) {
+            this.setYoutubeIdleCover(true);
+          } else {
+            (_b = (_a = this.player).clearVideoPosterForExternalEmbed) == null ? void 0 : _b.call(_a);
+          }
+          const prefix = this.player.options.classPrefix;
+          const playerId = `youtube-player-${Math.random().toString(36).substr(2, 9)}`;
           this.iframe = document.createElement("div");
-          this.iframe.id = `youtube-player-${Math.random().toString(36).substr(2, 9)}`;
+          this.iframe.id = playerId;
           this.iframe.style.width = "100%";
           this.iframe.style.maxHeight = "100%";
-          (_a = this.player.element.parentNode) == null ? void 0 : _a.insertBefore(this.iframe, this.player.element);
+          if (this.chromelessEmbedActive()) {
+            const crop = document.createElement("div");
+            crop.className = `${prefix}-youtube-crop`;
+            this.youtubeMount = document.createElement("div");
+            this.youtubeMount.id = `${playerId}-mount`;
+            crop.appendChild(this.youtubeMount);
+            this.iframe.appendChild(crop);
+          } else {
+            this.youtubeMount = null;
+          }
+          this.syncChromelessHostClasses(false);
+          (_c = this.player.element.parentNode) == null ? void 0 : _c.insertBefore(this.iframe, this.player.element);
+        }
+        youtubePlayerElementId() {
+          var _a, _b;
+          return ((_a = this.youtubeMount) == null ? void 0 : _a.id) ?? ((_b = this.iframe) == null ? void 0 : _b.id) ?? "";
         }
         async initializePlayer() {
           return new Promise((resolve, reject) => {
-            if (!window.YT || !this.iframe) {
+            const playerElementId = this.youtubePlayerElementId();
+            if (!window.YT || !this.iframe || !playerElementId) {
               reject(new Error("YouTube IFrame API is not available"));
               return;
             }
-            this.youtube = new window.YT.Player(this.iframe.id, {
+            const providerChrome = this.usesProviderChrome();
+            this.youtube = new window.YT.Player(playerElementId, {
               videoId: this.videoId ?? void 0,
               width: "100%",
               height: "100%",
               playerVars: {
-                controls: 1,
-                // Use YouTube native controls
-                disablekb: 0,
-                // Allow keyboard controls
-                fs: 1,
-                // Allow fullscreen
+                enablejsapi: 1,
+                controls: providerChrome ? 1 : 0,
+                disablekb: providerChrome ? 0 : 1,
+                fs: providerChrome ? 1 : 0,
                 modestbranding: 1,
                 rel: 0,
                 showinfo: 0,
                 iv_load_policy: 3,
+                cc_load_policy: 0,
                 playsinline: 1,
                 // iOS rejects programmatic/autoplay starts inside cross-origin embeds; leave
                 // the video cued so the visitor starts it with a tap on YouTube's control.
                 autoplay: isIOS() ? 0 : this.player.options.autoplay ? 1 : 0,
                 mute: this.player.options.muted ? 1 : 0,
                 start: this.player.options.startTime || 0,
+                ...!providerChrome && this.player.options.loop && this.videoId ? { loop: 1, playlist: this.videoId } : {},
                 ..._YouTubeRenderer.embedIdentityPlayerVars()
               },
               events: {
                 onReady: (_event) => {
                   this.isReady = true;
                   _YouTubeRenderer.applyEmbedReferrerPolicy(this.youtube);
+                  this.applyChromelessEmbedAccessibility();
                   this.attachEvents();
-                  if (this.player.container) {
-                    this.player.container.classList.add("vidply-external-controls");
+                  this.player.syncEmbedChromeClass("youtube");
+                  this.syncChromelessHostClasses(true);
+                  if (this.chromelessEmbedActive()) {
+                    this.setYoutubeIdleCover(true);
                   }
+                  this.disableInFrameCaptions();
+                  void syncYoutubeEmbedAspectRatio(this.player, this.videoId, this.iframe);
+                  this.refreshSidecarCaptionControls();
                   resolve();
+                },
+                // YouTube may load its captions module after ready; switch it off again.
+                onApiChange: () => {
+                  this.disableInFrameCaptions();
                 },
                 onStateChange: (event) => this.handleStateChange(event),
                 onError: (event) => this.handleError(event)
               }
             });
           });
+        }
+        /**
+         * YouTube paints the end-screen before the ENDED event; stop slightly early and
+         * restore the VidPly poster cover (Google does not allow disabling that UI).
+         */
+        maybePreemptYoutubeEndScreen(currentTime, duration) {
+          var _a;
+          if (this.usesProviderChrome() || !this.youtube || this.endScreenPreempted) {
+            return;
+          }
+          if (this.player.options.loop || duration <= 0) {
+            return;
+          }
+          const remaining = duration - currentTime;
+          if (remaining > 0.45 || remaining < 0) {
+            return;
+          }
+          this.endScreenPreempted = true;
+          this.youtube.pauseVideo();
+          this.youtube.seekTo(0, true);
+          this.player.state.playing = false;
+          this.player.state.paused = true;
+          this.player.state.ended = true;
+          this.player.state.currentTime = 0;
+          this.setYoutubeIdleCover(true);
+          (_a = this.player.controlBar) == null ? void 0 : _a.updatePlayPauseButton();
+          this.player.emit("ended");
         }
         attachEvents() {
           this.timeUpdateInterval = setInterval(() => {
@@ -9889,6 +10554,7 @@
               const duration = youtube2.getDuration();
               this.player.state.currentTime = currentTime;
               this.player.state.duration = duration;
+              this.maybePreemptYoutubeEndScreen(currentTime, duration);
               this.player.emit("timeupdate", currentTime);
             }
           }, 250);
@@ -9899,7 +10565,7 @@
           }
         }
         handleStateChange(event) {
-          var _a;
+          var _a, _b;
           const states = (_a = window.YT) == null ? void 0 : _a.PlayerState;
           if (!states) return;
           switch (event.data) {
@@ -9908,6 +10574,12 @@
               this.player.state.paused = false;
               this.player.state.ended = false;
               this.player.state.buffering = false;
+              if (!this.usesProviderChrome()) {
+                this.endScreenPreempted = false;
+                this.setYoutubeIdleCover(false);
+                this.player.setEmbedChromeReproducing(true);
+              }
+              this.disableInFrameCaptions();
               this.player.emit("play");
               this.player.emit("playing");
               if (this.player.options.onPlay) {
@@ -9917,12 +10589,20 @@
             case states.PAUSED:
               this.player.state.playing = false;
               this.player.state.paused = true;
+              if (!this.usesProviderChrome()) {
+                this.player.setEmbedChromeReproducing(false);
+                this.player.positionPlayOverlayOnMobile();
+              }
               this.player.emit("pause");
               if (this.player.options.onPause) {
                 this.player.options.onPause.call(this.player);
               }
               break;
             case states.ENDED:
+              if (this.endScreenPreempted) {
+                this.endScreenPreempted = false;
+                break;
+              }
               this.player.state.playing = false;
               this.player.state.paused = true;
               this.player.state.ended = true;
@@ -9933,6 +10613,12 @@
               if (this.player.options.loop && this.youtube) {
                 this.youtube.seekTo(0);
                 this.youtube.playVideo();
+              } else if (!this.usesProviderChrome() && this.youtube) {
+                this.youtube.pauseVideo();
+                this.youtube.seekTo(0, true);
+                this.player.setEmbedChromeReproducing(false);
+                this.setYoutubeIdleCover(true);
+                (_b = this.player.controlBar) == null ? void 0 : _b.updatePlayPauseButton();
               }
               break;
             case states.BUFFERING:
@@ -9969,8 +10655,14 @@
           }
           this.videoId = videoId;
           this.player.currentSource = src;
+          this.endScreenPreempted = false;
           if (this.isReady && this.youtube) {
             this.youtube.cueVideoById(videoId);
+            if (this.chromelessEmbedActive()) {
+              this.setYoutubeIdleCover(true);
+            }
+            void syncYoutubeEmbedAspectRatio(this.player, this.videoId, this.iframe);
+            this.refreshSidecarCaptionControls();
           }
         }
         play() {
@@ -10011,20 +10703,74 @@
           }
         }
         destroy() {
+          var _a, _b, _c;
           if (this.timeUpdateInterval) {
             clearInterval(this.timeUpdateInterval);
           }
           if (this.youtube && this.youtube.destroy) {
             this.youtube.destroy();
           }
-          if (this.iframe && this.iframe.parentNode) {
-            this.iframe.parentNode.removeChild(this.iframe);
+          if (this.iframe) {
+            this.iframe.removeAttribute("inert");
+            if (this.iframe.parentNode) {
+              this.iframe.parentNode.removeChild(this.iframe);
+            }
           }
+          this.youtubeMount = null;
+          const prefix = this.player.options.classPrefix;
+          (_a = this.player.container) == null ? void 0 : _a.classList.remove(`${prefix}-embed-youtube`);
+          clearEmbedIdleCover(this.player);
+          this.player.setEmbedChromeReproducing(false);
+          (_c = (_b = this.player).clearEmbedAspectRatio) == null ? void 0 : _c.call(_b);
           if (this.player.element) {
             this.player.element.style.display = "";
           }
         }
       };
+    }
+  });
+
+  // src/utils/VimeoEmbedAspectRatio.ts
+  async function syncVimeoEmbedAspectRatio(player, vimeo) {
+    if (typeof vimeo.getVideoWidth !== "function" || typeof vimeo.getVideoHeight !== "function") {
+      return;
+    }
+    try {
+      const [width, height] = await Promise.all([
+        vimeo.getVideoWidth(),
+        vimeo.getVideoHeight()
+      ]);
+      player.setEmbedAspectRatio(width, height);
+    } catch {
+    }
+  }
+  var init_VimeoEmbedAspectRatio = __esm({
+    "src/utils/VimeoEmbedAspectRatio.ts"() {
+      "use strict";
+    }
+  });
+
+  // src/utils/VimeoThumbnailPoster.ts
+  async function resolveVimeoThumbnailPosterUrl(videoId) {
+    if (!videoId || typeof fetch !== "function") {
+      return null;
+    }
+    const pageUrl = `https://vimeo.com/${encodeURIComponent(videoId)}`;
+    const endpoint = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(pageUrl)}`;
+    try {
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        return null;
+      }
+      const data = await response.json();
+      return typeof data.thumbnail_url === "string" && data.thumbnail_url.length > 0 ? data.thumbnail_url : null;
+    } catch {
+      return null;
+    }
+  }
+  var init_VimeoThumbnailPoster = __esm({
+    "src/utils/VimeoThumbnailPoster.ts"() {
+      "use strict";
     }
   });
 
@@ -10037,8 +10783,11 @@
   var init_VimeoRenderer = __esm({
     "src/renderers/VimeoRenderer.ts"() {
       "use strict";
+      init_EmbedIdleCover();
       init_ScriptLoader();
       init_PerformanceUtils();
+      init_VimeoEmbedAspectRatio();
+      init_VimeoThumbnailPoster();
       VimeoRenderer = class {
         constructor(player) {
           __publicField(this, "rendererType", "vimeo");
@@ -10056,21 +10805,60 @@
           this.iframe = null;
         }
         async init() {
-          var _a, _b;
           const src = this.player.currentSource || this.player.element.src;
           this.videoId = this.extractVideoId(src);
           if (!this.videoId) {
             throw new Error("Invalid Vimeo URL");
           }
-          (_a = this.player.container) == null ? void 0 : _a.classList.add("vidply-external-controls");
+          this.player.syncEmbedChromeClass("vimeo");
           try {
             await this.loadVimeoAPI();
             this.createIframe();
             await this.initializePlayer();
           } catch (error) {
-            (_b = this.player.container) == null ? void 0 : _b.classList.remove("vidply-external-controls");
+            this.clearEmbedChromeClassesOnInitFailure();
             throw error;
           }
+        }
+        clearEmbedChromeClassesOnInitFailure() {
+          var _a, _b;
+          const prefix = this.player.options.classPrefix;
+          (_a = this.player.container) == null ? void 0 : _a.classList.remove(`${prefix}-external-controls`);
+          (_b = this.player.container) == null ? void 0 : _b.classList.remove(`${prefix}-embed-chrome-vidply`);
+        }
+        usesProviderChrome() {
+          return this.player.usesProviderNativeChrome("vimeo");
+        }
+        chromelessEmbedActive() {
+          return !this.usesProviderChrome();
+        }
+        applyChromelessIdlePoster() {
+          applyChromelessIdlePosterFromElement(this.player);
+          void this.applyVimeoThumbnailIdlePoster();
+        }
+        async applyVimeoThumbnailIdlePoster() {
+          const videoId = this.videoId;
+          if (!videoId || !this.chromelessEmbedActive()) {
+            return;
+          }
+          const hasPoster = this.player.element.getAttribute("poster") ?? (typeof this.player.options.poster === "string" ? this.player.options.poster : null);
+          if (hasPoster) {
+            return;
+          }
+          const thumbnailUrl = await resolveVimeoThumbnailPosterUrl(videoId);
+          if (!thumbnailUrl || videoId !== this.videoId) {
+            return;
+          }
+          applyPosterImageToVideoWrapper(this.player, thumbnailUrl);
+        }
+        setVimeoIdleCover(active) {
+          if (!this.chromelessEmbedActive()) {
+            return;
+          }
+          if (active) {
+            this.applyChromelessIdlePoster();
+          }
+          setEmbedIdleCover(this.player, active);
         }
         extractVideoId(url) {
           const patterns = [
@@ -10095,21 +10883,27 @@
           });
         }
         createIframe() {
-          var _a;
+          var _a, _b, _c;
           this.player.element.style.display = "none";
+          if (this.chromelessEmbedActive()) {
+            this.setVimeoIdleCover(true);
+          } else {
+            (_b = (_a = this.player).clearVideoPosterForExternalEmbed) == null ? void 0 : _b.call(_a);
+          }
           this.iframe = document.createElement("div");
           this.iframe.id = `vimeo-player-${Math.random().toString(36).substr(2, 9)}`;
           this.iframe.style.width = "100%";
           this.iframe.style.maxHeight = "100%";
-          (_a = this.player.element.parentNode) == null ? void 0 : _a.insertBefore(this.iframe, this.player.element);
+          (_c = this.player.element.parentNode) == null ? void 0 : _c.insertBefore(this.iframe, this.player.element);
         }
         async initializePlayer() {
-          var _a;
+          var _a, _b;
+          const providerChrome = this.usesProviderChrome();
           const options = {
             id: this.videoId,
             width: "100%",
             height: "100%",
-            controls: true,
+            controls: providerChrome,
             autoplay: isIOS() ? false : this.player.options.autoplay,
             muted: this.player.options.muted,
             loop: this.player.options.loop,
@@ -10131,9 +10925,7 @@
             vimeoIframe.setAttribute("width", "100%");
             vimeoIframe.setAttribute("height", "100%");
           }
-          if (this.player.container) {
-            this.player.container.classList.add("vidply-external-controls");
-          }
+          this.player.syncEmbedChromeClass("vimeo");
           this.attachEvents();
           try {
             const duration = await this.vimeo.getDuration();
@@ -10142,6 +10934,8 @@
           } catch (error) {
             this.player.log("Error getting duration:", error, "warn");
           }
+          void ((_b = this.player.captionManager) == null ? void 0 : _b.refreshTracks());
+          void syncVimeoEmbedAspectRatio(this.player, this.vimeo);
         }
         attachEvents() {
           const vimeo = this.vimeo;
@@ -10150,6 +10944,10 @@
             this.player.state.playing = true;
             this.player.state.paused = false;
             this.player.state.ended = false;
+            if (!this.usesProviderChrome()) {
+              this.setVimeoIdleCover(false);
+              this.player.setEmbedChromeReproducing(true);
+            }
             this.player.emit("play");
             if (this.player.options.onPlay) {
               this.player.options.onPlay.call(this.player);
@@ -10158,6 +10956,9 @@
           vimeo.on("pause", () => {
             this.player.state.playing = false;
             this.player.state.paused = true;
+            if (!this.usesProviderChrome()) {
+              this.player.setEmbedChromeReproducing(false);
+            }
             this.player.emit("pause");
             if (this.player.options.onPause) {
               this.player.options.onPause.call(this.player);
@@ -10211,6 +11012,10 @@
             const error = args[0];
             this.player.handleError(new Error(`Vimeo error: ${(error == null ? void 0 : error.message) ?? "unknown"}`));
           });
+          vimeo.on("texttrackchange", () => {
+            var _a;
+            void ((_a = this.player.captionManager) == null ? void 0 : _a.refreshTracks());
+          });
         }
         /**
          * Switch to another Vimeo video without recreating the embed player.
@@ -10227,6 +11032,11 @@
           this.player.currentSource = src;
           if (this.isReady && this.vimeo) {
             await this.vimeo.loadVideo(Number(videoId));
+            void syncVimeoEmbedAspectRatio(this.player, this.vimeo);
+            if (this.chromelessEmbedActive()) {
+              this.setVimeoIdleCover(true);
+              void this.applyVimeoThumbnailIdlePoster();
+            }
           }
         }
         play() {
@@ -10276,13 +11086,50 @@
             this.player.state.playbackSpeed = speed;
           }
         }
+        handlesOwnCaptions() {
+          return !this.usesProviderChrome();
+        }
+        async getEmbedCaptionTracks() {
+          const vimeo = this.vimeo;
+          if (!(vimeo == null ? void 0 : vimeo.getTextTracks) || this.usesProviderChrome()) {
+            return [];
+          }
+          try {
+            const tracks = await vimeo.getTextTracks();
+            return tracks.filter((track) => track.kind === "captions" || track.kind === "subtitles").map((track) => ({
+              id: `${track.language}|${track.kind}`,
+              language: track.language,
+              label: track.label || track.language
+            }));
+          } catch {
+            return [];
+          }
+        }
+        async setEmbedCaptionTrack(trackId) {
+          const vimeo = this.vimeo;
+          if (!vimeo || this.usesProviderChrome()) {
+            return;
+          }
+          if (trackId === null) {
+            await vimeo.disableTextTrack();
+            return;
+          }
+          const [language, kind] = trackId.split("|");
+          if (language) {
+            await vimeo.enableTextTrack(language, kind || "captions");
+          }
+        }
         destroy() {
+          var _a, _b, _c, _d;
           if (this.vimeo && this.vimeo.destroy) {
             this.vimeo.destroy();
           }
           if (this.iframe && this.iframe.parentNode) {
             this.iframe.parentNode.removeChild(this.iframe);
           }
+          clearEmbedIdleCover(this.player);
+          (_b = (_a = this.player).setEmbedChromeReproducing) == null ? void 0 : _b.call(_a, false);
+          (_d = (_c = this.player).clearEmbedAspectRatio) == null ? void 0 : _d.call(_c);
           if (this.player.element) {
             this.player.element.style.display = "";
           }
@@ -10788,15 +11635,16 @@
             this.player.invalidateTrackCache();
             if (tracksCount > 0) {
               if (this.player.captionManager) {
-                const found = this.player.captionManager.refreshTracks();
-                if (found === 0 && retryCount < 5) {
-                  const delay = (retryCount + 1) * 200;
-                  this.player.log(`HLS caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`, "info");
-                  this._setTimeout(() => {
-                    this.updateCaptionButtonsForHls(retryCount + 1);
-                  }, delay);
-                  return;
-                }
+                void this.player.captionManager.refreshTracks().then((found) => {
+                  if (found === 0 && retryCount < 5) {
+                    const delay = (retryCount + 1) * 200;
+                    this.player.log(`HLS caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`, "info");
+                    this._setTimeout(() => {
+                      this.updateCaptionButtonsForHls(retryCount + 1);
+                    }, delay);
+                    return;
+                  }
+                });
               }
               if ((_a = this.player.transcriptManager) == null ? void 0 : _a.isVisible) {
                 this.player.transcriptManager.loadTranscriptData();
@@ -11630,15 +12478,16 @@
             this.player.invalidateTrackCache();
             if (tracksCount > 0) {
               if (this.player.captionManager) {
-                const found = this.player.captionManager.refreshTracks();
-                if (found === 0 && retryCount < 5) {
-                  const delay = (retryCount + 1) * 200;
-                  this.player.log(`DASH caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`, "info");
-                  this._setTimeout(() => {
-                    this.updateCaptionButtonsForDash(retryCount + 1);
-                  }, delay);
-                  return;
-                }
+                void this.player.captionManager.refreshTracks().then((found) => {
+                  if (found === 0 && retryCount < 5) {
+                    const delay = (retryCount + 1) * 200;
+                    this.player.log(`DASH caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`, "info");
+                    this._setTimeout(() => {
+                      this.updateCaptionButtonsForDash(retryCount + 1);
+                    }, delay);
+                    return;
+                  }
+                });
               }
               if (!this._dashTextIsTtml && ((_a = this.player.transcriptManager) == null ? void 0 : _a.isVisible)) {
                 this.player.transcriptManager.loadTranscriptData();
@@ -12139,20 +12988,26 @@
           this._initController = null;
         }
         async init() {
-          var _a, _b, _c;
+          var _a;
           this.trackUrl = this.player.currentSource || this.player.element.src || ((_a = this.player.element.querySelector("source")) == null ? void 0 : _a.src) || null;
           if (!this.trackUrl || !this.isValidSoundCloudUrl(this.trackUrl)) {
             throw new Error("Invalid SoundCloud URL");
           }
-          (_b = this.player.container) == null ? void 0 : _b.classList.add("vidply-external-controls");
+          this.player.syncEmbedChromeClass("soundcloud");
           try {
             await this.loadSoundCloudAPI();
             this.createIframe();
             await this.initializeWidget();
           } catch (error) {
-            (_c = this.player.container) == null ? void 0 : _c.classList.remove("vidply-external-controls");
+            this.clearEmbedChromeClassesOnInitFailure();
             throw error;
           }
+        }
+        clearEmbedChromeClassesOnInitFailure() {
+          var _a, _b;
+          const prefix = this.player.options.classPrefix;
+          (_a = this.player.container) == null ? void 0 : _a.classList.remove(`${prefix}-external-controls`);
+          (_b = this.player.container) == null ? void 0 : _b.classList.remove(`${prefix}-embed-chrome-vidply`);
         }
         /**
          * Validate a SoundCloud URL by parsing it with the URL constructor and
@@ -12268,9 +13123,7 @@
                     this._initTimeoutId = null;
                   }
                   this.attachEvents();
-                  if (this.player.container) {
-                    this.player.container.classList.add("vidply-external-controls");
-                  }
+                  this.player.syncEmbedChromeClass("soundcloud");
                   widget.getCurrentSound((sound) => {
                     const info = sound;
                     if (info) {
@@ -12528,96 +13381,7 @@
   init_i18n();
   init_FocusUtils();
   init_PerformanceUtils();
-
-  // src/utils/VideoFrameCapture.ts
-  async function captureVideoFrame(video, time, options = {}) {
-    if (!video || video.tagName !== "VIDEO") {
-      return null;
-    }
-    const { restoreState = true, quality = 0.9, maxWidth, maxHeight } = options;
-    const wasPlaying = !video.paused;
-    const originalTime = video.currentTime;
-    const originalMuted = video.muted;
-    if (restoreState) {
-      video.muted = true;
-    }
-    return new Promise((resolve) => {
-      const captureFrame = () => {
-        try {
-          let width = video.videoWidth || 640;
-          let height = video.videoHeight || 360;
-          if (maxWidth && width > maxWidth) {
-            const ratio = maxWidth / width;
-            width = maxWidth;
-            height = Math.round(height * ratio);
-          }
-          if (maxHeight && height > maxHeight) {
-            const ratio = maxHeight / height;
-            height = maxHeight;
-            width = Math.round(width * ratio);
-          }
-          const canvas = document.createElement("canvas");
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) {
-            resolve(null);
-            return;
-          }
-          ctx.drawImage(video, 0, 0, width, height);
-          const dataURL = canvas.toDataURL("image/jpeg", quality);
-          if (restoreState) {
-            video.currentTime = originalTime;
-            video.muted = originalMuted;
-            if (wasPlaying && !video.paused) {
-              video.play().catch((e) => {
-                if (typeof console !== "undefined" && console.debug) {
-                  console.debug("[VidPly] preview play() rejected:", e);
-                }
-              });
-            }
-          }
-          resolve(dataURL);
-        } catch (e) {
-          if (typeof console !== "undefined" && console.debug) {
-            console.debug("[VidPly] frame capture failed:", e);
-          }
-          if (restoreState) {
-            video.currentTime = originalTime;
-            video.muted = originalMuted;
-            if (wasPlaying && !video.paused) {
-              video.play().catch((err) => {
-                if (typeof console !== "undefined" && console.debug) {
-                  console.debug("[VidPly] preview play() rejected:", err);
-                }
-              });
-            }
-          }
-          resolve(null);
-        }
-      };
-      const onSeeked = () => {
-        video.removeEventListener("seeked", onSeeked);
-        requestAnimationFrame(() => {
-          requestAnimationFrame(captureFrame);
-        });
-      };
-      const timeDiff = Math.abs(video.currentTime - time);
-      if (timeDiff < 0.1 && video.readyState >= 2) {
-        captureFrame();
-      } else if (video.readyState >= 1) {
-        video.addEventListener("seeked", onSeeked);
-        video.currentTime = time;
-      } else {
-        const onLoadedMetadata = () => {
-          video.removeEventListener("loadedmetadata", onLoadedMetadata);
-          video.addEventListener("seeked", onSeeked);
-          video.currentTime = time;
-        };
-        video.addEventListener("loadedmetadata", onLoadedMetadata);
-      }
-    });
-  }
+  init_VideoFrameCapture();
 
   // src/utils/DownloadInfo.ts
   var MIME_TO_FORMAT = {
@@ -12743,6 +13507,105 @@
       return parts.withSizeTemplate.replace("{size}", sizeStr);
     }
     return baseLabel;
+  }
+
+  // src/utils/RendererType.ts
+  function classifyRendererType(src) {
+    if (src.includes("youtube.com") || src.includes("youtu.be") || src.includes("youtube-nocookie.com")) return "youtube";
+    if (src.includes("vimeo.com")) return "vimeo";
+    if (src.includes(".m3u8")) return "hls";
+    if (src.includes(".mpd")) return "dash";
+    if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) return "soundcloud";
+    return "html5";
+  }
+
+  // src/utils/EmbedProviderLinks.ts
+  var EMBED_PROVIDERS = ["youtube", "vimeo", "soundcloud"];
+  function isEmbedProvider(type) {
+    return typeof type === "string" && EMBED_PROVIDERS.includes(type);
+  }
+  function sanitizeProviderPageUrl(input, provider) {
+    if (typeof input !== "string" || input.length === 0 || input.length > 4096) {
+      return null;
+    }
+    const trimmed = input.trim();
+    if (/[\s"'<>\\]/.test(trimmed)) {
+      return null;
+    }
+    try {
+      const url = new URL(trimmed);
+      if (url.protocol !== "https:") {
+        return null;
+      }
+      const host = url.hostname.toLowerCase();
+      if (provider === "youtube") {
+        if (host === "youtube.com" || host === "www.youtube.com" || host === "m.youtube.com" || host === "youtu.be") {
+          return url.href;
+        }
+        return null;
+      }
+      if (provider === "vimeo") {
+        if (host === "vimeo.com" || host === "www.vimeo.com" || host === "player.vimeo.com") {
+          return url.href;
+        }
+        return null;
+      }
+      if (host === "soundcloud.com" || host === "www.soundcloud.com" || host === "m.soundcloud.com") {
+        return url.href;
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
+  function extractYoutubeWatchUrl(src) {
+    const match = src.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([^#&?/]+)/);
+    const id = match == null ? void 0 : match[1];
+    if (!id) {
+      return sanitizeProviderPageUrl(src, "youtube");
+    }
+    return sanitizeProviderPageUrl(`https://www.youtube.com/watch?v=${encodeURIComponent(id)}`, "youtube");
+  }
+  function extractVimeoWatchUrl(src) {
+    const match = src.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+    const id = match == null ? void 0 : match[1];
+    if (!id) {
+      return sanitizeProviderPageUrl(src, "vimeo");
+    }
+    return sanitizeProviderPageUrl(`https://vimeo.com/${id}`, "vimeo");
+  }
+  function extractSoundCloudWatchUrl(src) {
+    if (src.includes("w.soundcloud.com/player")) {
+      try {
+        const parsed = new URL(src, "https://example.com");
+        const inner = parsed.searchParams.get("url");
+        if (inner) {
+          return sanitizeProviderPageUrl(decodeURIComponent(inner), "soundcloud");
+        }
+      } catch {
+        return null;
+      }
+    }
+    return sanitizeProviderPageUrl(src, "soundcloud");
+  }
+  function resolveEmbedProviderWatchUrl(src, provider) {
+    if (!src) {
+      return null;
+    }
+    const resolvedProvider = provider != null && isEmbedProvider(provider) ? provider : classifyRendererType(src);
+    if (!isEmbedProvider(resolvedProvider)) {
+      return null;
+    }
+    switch (resolvedProvider) {
+      case "youtube":
+        return extractYoutubeWatchUrl(src);
+      case "vimeo":
+        return extractVimeoWatchUrl(src);
+      case "soundcloud":
+        return extractSoundCloudWatchUrl(src);
+      default:
+        return null;
+    }
   }
 
   // src/controls/ControlBar.ts
@@ -13388,6 +14251,7 @@
       });
       const hasChapters = this.hasChapterTracks();
       const hasCaptions = this.hasCaptionTracks();
+      const hasTranscript = this.hasTranscriptSource();
       const hasQualityLevels = this.hasQualityLevels();
       const hasAudioDescription = this.hasAudioDescription();
       if (this.player.options.chaptersButton && hasChapters) {
@@ -13412,7 +14276,7 @@
       const isHlsSource = typeof src === "string" && src.includes(".m3u8");
       const isDashSource = typeof src === "string" && src.includes(".mpd");
       const isVideoElement = ((_m = (_l = this.player.element) == null ? void 0 : _l.tagName) == null ? void 0 : _m.toLowerCase()) === "video";
-      const hideSpeedForThisPlayer = this.player.state.isLive || Boolean(this.player.options.hideSpeedForHls) && isHlsSource || Boolean(this.player.options.hideSpeedForHlsVideo) && isHlsSource && isVideoElement || Boolean(this.player.options.hideSpeedForDash) && isDashSource || Boolean(this.player.options.hideSpeedForDashVideo) && isDashSource && isVideoElement;
+      const hideSpeedForThisPlayer = this.player.state.isLive || this.shouldHideSpeedForEmbedChrome() || Boolean(this.player.options.hideSpeedForHls) && isHlsSource || Boolean(this.player.options.hideSpeedForHlsVideo) && isHlsSource && isVideoElement || Boolean(this.player.options.hideSpeedForDash) && isDashSource || Boolean(this.player.options.hideSpeedForDashVideo) && isDashSource && isVideoElement;
       if (this.player.options.speedButton && !hideSpeedForThisPlayer) {
         const btn = this.createSpeedButton();
         btn.dataset.overflowPriority = "1";
@@ -13425,7 +14289,7 @@
         btn.dataset.overflowPriorityMobile = "3";
         this.rightButtons.appendChild(btn);
       }
-      if (this.player.options.transcriptButton && hasCaptions) {
+      if (this.player.options.transcriptButton && hasTranscript) {
         const btn = this.createTranscriptButton();
         btn.dataset.overflowPriority = "3";
         btn.dataset.overflowPriorityMobile = "3";
@@ -13456,6 +14320,20 @@
         btn.dataset.overflowPriority = "2";
         btn.dataset.overflowPriorityMobile = "3";
         this.rightButtons.appendChild(btn);
+      }
+      if (this.player.options.embedProviderLinkButton) {
+        const embedLink = this.resolveEmbedProviderLink();
+        if (embedLink) {
+          const btn = this.createEmbedProviderLinkButton(embedLink.url, embedLink.provider);
+          btn.dataset.overflowPriority = "2";
+          btn.dataset.overflowPriorityMobile = "3";
+          DOMUtils.attachTooltip(
+            btn,
+            this.embedProviderLinkLabel(embedLink.provider),
+            this.player.options.classPrefix
+          );
+          this.rightButtons.appendChild(btn);
+        }
       }
       if (this.player.options.downloadButton) {
         const target = this.resolveDownloadTarget();
@@ -13539,8 +14417,63 @@
       }
       return false;
     }
-    hasCaptionTracks() {
+    /**
+     * Chromeless YouTube/Vimeo: keep playback speed off the bar (VidPly chrome, embed API limits).
+     */
+    shouldHideSpeedForEmbedChrome() {
+      return this.shouldHideSpeedForProviderEmbedChrome("youtube") || this.shouldHideSpeedForProviderEmbedChrome("vimeo");
+    }
+    shouldHideSpeedForProviderEmbedChrome(provider) {
+      var _a, _b, _c, _d;
+      const rendererType = (_a = this.player.renderer) == null ? void 0 : _a.rendererType;
+      if (rendererType === provider && !this.player.usesProviderNativeChrome(provider)) {
+        return true;
+      }
+      const src = this.player.currentSource || this.player._pendingSource || ((_c = (_b = this.player.element) == null ? void 0 : _b.getAttribute) == null ? void 0 : _c.call(_b, "src")) || ((_d = this.player.element) == null ? void 0 : _d.src) || "";
+      if (src && classifyRendererType(src) === provider) {
+        return this.player.getEffectiveEmbedChrome(provider) === "vidply";
+      }
+      const fromOption = this.player.options.externalEmbedRenderer;
+      if (fromOption === provider) {
+        return this.player.getEffectiveEmbedChrome(provider) === "vidply";
+      }
+      return false;
+    }
+    /** YouTube/Vimeo with VidPly chrome expose captions via the embed API, not <track> elements. */
+    hasEmbedCaptionBridge() {
       var _a, _b;
+      const opts = this.player.options;
+      const fromOption = opts.externalEmbedRenderer;
+      if (fromOption === "youtube" || fromOption === "vimeo") {
+        return this.player.getEffectiveEmbedChrome(fromOption) === "vidply";
+      }
+      const rendererType = (_a = this.player.renderer) == null ? void 0 : _a.rendererType;
+      if (rendererType === "youtube" || rendererType === "vimeo") {
+        return !this.player.usesProviderNativeChrome(rendererType);
+      }
+      const src = this.player.currentSource || this.player._pendingSource || ((_b = this.player.element) == null ? void 0 : _b.src) || "";
+      if (!src) {
+        return false;
+      }
+      const type = classifyRendererType(src);
+      if (type === "youtube" || type === "vimeo") {
+        return this.player.getEffectiveEmbedChrome(type) === "vidply";
+      }
+      return false;
+    }
+    /** Sidecar VTT / TextTrack transcript — not available for embed-only YouTube/Vimeo. */
+    hasTranscriptSource() {
+      return this.hasVidPlyProvidedCaptionTracks();
+    }
+    /**
+     * Sidecar WebVTT, native `<track>`, or playlist caption files — not provider-embed caption ids alone.
+     */
+    hasVidPlyProvidedCaptionTracks() {
+      var _a, _b, _c;
+      const managed = (_a = this.player.captionManager) == null ? void 0 : _a.tracks;
+      if (managed == null ? void 0 : managed.some((t) => t.track)) {
+        return true;
+      }
       const textTracks = this.player.element.textTracks;
       for (let i = 0; i < textTracks.length; i++) {
         const tt = textTracks[i];
@@ -13552,12 +14485,15 @@
       if (trackEls.some((el) => el.getAttribute("kind") === "captions" || el.getAttribute("kind") === "subtitles")) {
         return true;
       }
-      const current = (_b = (_a = this.player.playlistManager) == null ? void 0 : _a.getCurrentTrack) == null ? void 0 : _b.call(_a);
+      const current = (_c = (_b = this.player.playlistManager) == null ? void 0 : _b.getCurrentTrack) == null ? void 0 : _c.call(_b);
       const playlistTracks = (current == null ? void 0 : current.tracks) ?? [];
       if (playlistTracks.some((t) => (t == null ? void 0 : t.kind) === "captions" || (t == null ? void 0 : t.kind) === "subtitles")) {
         return true;
       }
       return false;
+    }
+    hasCaptionTracks() {
+      return this.hasVidPlyProvidedCaptionTracks();
     }
     hasQualityLevels() {
       if (this.player.renderer && this.player.renderer.getQualities) {
@@ -14049,14 +14985,9 @@
           this.player.playlistManager.previous();
         }
       });
-      const updateState = () => {
-        if (this.player.playlistManager) {
-          button.disabled = !this.player.playlistManager.hasPrevious() && !this.player.playlistManager.options.loop;
-        }
-      };
-      this.subscribe("controls", "playlisttrackchange", updateState);
-      updateState();
       this.controls.previous = button;
+      this.subscribe("controls", "playlisttrackchange", () => this.updateTrackNavigation());
+      this.updateTrackNavigation();
       button.dataset.overflowPriority = "3";
       button.dataset.overflowPriorityMobile = "1";
       return button;
@@ -14075,17 +15006,41 @@
           this.player.playlistManager.next();
         }
       });
-      const updateState = () => {
-        if (this.player.playlistManager) {
-          button.disabled = !this.player.playlistManager.hasNext() && !this.player.playlistManager.options.loop;
-        }
-      };
-      this.subscribe("controls", "playlisttrackchange", updateState);
-      updateState();
       this.controls.next = button;
+      this.subscribe("controls", "playlisttrackchange", () => this.updateTrackNavigation());
+      this.updateTrackNavigation();
       button.dataset.overflowPriority = "3";
       button.dataset.overflowPriorityMobile = "1";
       return button;
+    }
+    /**
+     * Whether a control is offered on this bar right now. Bar rebuilds (e.g. a
+     * playlist switching to a chromeless YouTube/Vimeo track) can leave stale,
+     * detached references in `controls`, so presence alone is not enough.
+     */
+    hasControl(name) {
+      const control = this.controls[name];
+      return Boolean((control == null ? void 0 : control.isConnected) && !control.hidden);
+    }
+    /**
+     * Sync previous/next with the playlist: disabled at either end (unless the
+     * playlist loops) and hidden when the playlist holds a single track.
+     */
+    updateTrackNavigation() {
+      const playlist = this.player.playlistManager;
+      if (!playlist) {
+        return;
+      }
+      const singleTrack = playlist.tracks.length === 1;
+      const { previous, next } = this.controls;
+      if (previous instanceof HTMLButtonElement) {
+        previous.disabled = !playlist.hasPrevious() && !playlist.options.loop;
+        previous.hidden = singleTrack;
+      }
+      if (next instanceof HTMLButtonElement) {
+        next.disabled = !playlist.hasNext() && !playlist.options.loop;
+        next.hidden = singleTrack;
+      }
     }
     createPlaylistToggleButton() {
       const panelId = this.player.playlistManager ? `${this.player.playlistManager.uniqueId}-panel` : "vidply-playlist-panel";
@@ -14855,7 +15810,13 @@
       this.controls.captions = button;
       return button;
     }
-    showCaptionsMenu(button) {
+    showCaptionsMenu(button, embedRefreshed = false) {
+      if (!embedRefreshed && this.hasEmbedCaptionBridge() && this.player.captionManager && this.player.captionManager.tracks.length === 0) {
+        void this.player.captionManager.refreshTracks().then(() => {
+          this.showCaptionsMenu(button, true);
+        });
+        return;
+      }
       const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-captions-menu`);
       if (existingMenu) {
         existingMenu.remove();
@@ -15209,6 +16170,108 @@
      *   playlists, which know their track's metadata; omitted for single media,
      *   where format and size are read from the element and player options.
      */
+    resolveEmbedProviderLink() {
+      var _a, _b, _c, _d;
+      if (!this.player.options.embedProviderLinkButton) {
+        return null;
+      }
+      const src = this.player.currentSource || this.player._pendingSource || ((_b = (_a = this.player.element) == null ? void 0 : _a.getAttribute) == null ? void 0 : _b.call(_a, "src")) || ((_c = this.player.element) == null ? void 0 : _c.src) || "";
+      if (!src) {
+        return null;
+      }
+      const rendererType = (_d = this.player.renderer) == null ? void 0 : _d.rendererType;
+      const provider = isEmbedProvider(rendererType) ? rendererType : classifyRendererType(src);
+      if (!isEmbedProvider(provider)) {
+        return null;
+      }
+      const url = resolveEmbedProviderWatchUrl(src, provider);
+      if (!url) {
+        return null;
+      }
+      return { url, provider };
+    }
+    embedProviderLinkLabel(provider) {
+      switch (provider) {
+        case "youtube":
+          return i18n.t("player.openOnYoutube");
+        case "vimeo":
+          return i18n.t("player.openOnVimeo");
+        case "soundcloud":
+          return i18n.t("player.openOnSoundcloud");
+        default:
+          return i18n.t("player.openOnProvider");
+      }
+    }
+    embedProviderIconName(provider) {
+      switch (provider) {
+        case "youtube":
+          return "youtubeBrand";
+        case "vimeo":
+          return "vimeoBrand";
+        case "soundcloud":
+          return "soundcloudBrand";
+        default:
+          return "youtubeBrand";
+      }
+    }
+    createEmbedProviderLinkButton(watchUrl, provider) {
+      const prefix = this.player.options.classPrefix;
+      const label = this.embedProviderLinkLabel(provider);
+      const link = DOMUtils.createElement("a", {
+        className: `${prefix}-button ${prefix}-embed-provider-link ${prefix}-embed-provider-${provider}`,
+        attributes: {
+          href: watchUrl,
+          target: "_blank",
+          rel: "noopener noreferrer",
+          "aria-label": label,
+          "title": label
+        }
+      });
+      link.appendChild(createIconElement(this.embedProviderIconName(provider)));
+      this.controls.embedProviderLink = link;
+      return link;
+    }
+    updateEmbedProviderLinkButton() {
+      if (!this.rightButtons) {
+        return;
+      }
+      const prefix = this.player.options.classPrefix;
+      const target = this.player.options.embedProviderLinkButton ? this.resolveEmbedProviderLink() : null;
+      const existing = this.controls.embedProviderLink;
+      const mounted = existing && this.rightButtons.contains(existing) ? existing : void 0;
+      if (!target) {
+        if (mounted) {
+          mounted.remove();
+          delete this.controls.embedProviderLink;
+          this.checkOverflow();
+        }
+        return;
+      }
+      if (!mounted) {
+        const button = this.createEmbedProviderLinkButton(target.url, target.provider);
+        button.dataset.overflowPriority = "2";
+        button.dataset.overflowPriorityMobile = "3";
+        const insertBefore = this.rightButtons.querySelector(`.${prefix}-download`) || this.rightButtons.querySelector(`.${prefix}-pip`) || this.rightButtons.querySelector(`.${prefix}-fullscreen`);
+        if (insertBefore) {
+          this.rightButtons.insertBefore(button, insertBefore);
+        } else {
+          this.rightButtons.appendChild(button);
+        }
+        DOMUtils.attachTooltip(button, this.embedProviderLinkLabel(target.provider), prefix);
+        this.checkOverflow();
+        return;
+      }
+      mounted.href = target.url;
+      mounted.classList.remove(`${prefix}-embed-provider-youtube`, `${prefix}-embed-provider-vimeo`, `${prefix}-embed-provider-soundcloud`);
+      mounted.classList.add(`${prefix}-embed-provider-${target.provider}`);
+      const label = this.embedProviderLinkLabel(target.provider);
+      mounted.setAttribute("aria-label", label);
+      mounted.setAttribute("title", label);
+      const icon = mounted.querySelector(".vidply-icon");
+      if (icon) {
+        icon.replaceWith(createIconElement(this.embedProviderIconName(target.provider)));
+      }
+    }
     createDownloadButton(downloadUrl, target) {
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-download`,
@@ -15441,6 +16504,9 @@
       this.subscribe("events", "sourcechange", () => {
         this.updatePreviewVideoSource();
         this.updateLiveControls();
+        this.syncCaptionControlsFromTracks();
+        this.updateEmbedProviderLinkButton();
+        this.updateDownloadButton();
       });
       this.subscribe("events", "volumechange", () => this.updateVolumeDisplay());
       this.subscribe("events", "progress", () => this.updateBuffered());
@@ -15554,7 +16620,7 @@
         this.controls.restart.hidden = liveManager ? !liveManager.shouldShowRestart() : true;
       }
       if (this.controls.forward) {
-        this.controls.forward.hidden = liveManager ? !liveManager.shouldShowForwardSkip() : isLive ? !behindLive : true;
+        this.controls.forward.hidden = liveManager ? !liveManager.shouldShowForwardSkip() : isLive ? !behindLive : false;
       }
       if (this.controls.goLive) {
         this.controls.goLive.hidden = !isLive || !behindLive;
@@ -15649,6 +16715,9 @@
      */
     syncCaptionControlsFromTracks() {
       if (!this.hasCaptionTracks()) {
+        if (this.controls.captions || this.controls.captionStyle || this.controls.transcript) {
+          this.removeHlsCaptionButtons(true);
+        }
         return;
       }
       if (this.player.options.captionsButton && !this.controls.captions) {
@@ -15657,7 +16726,7 @@
       if (this.player.options.captionStyleButton && !this.controls.captionStyle) {
         this.ensureCaptionStyleButton();
       }
-      if (this.player.options.transcriptButton && !this.controls.transcript) {
+      if (this.player.options.transcriptButton && this.hasTranscriptSource() && !this.controls.transcript) {
         this.ensureTranscriptButton();
       }
     }
@@ -16553,7 +17622,7 @@
       }
     }
     executeAction(action, _event) {
-      var _a;
+      var _a, _b;
       switch (action) {
         case "play-pause":
           this.player.toggle();
@@ -16595,17 +17664,23 @@
           }
           return false;
         case "speed-up":
+          if (this.player.controlBar && !this.player.controlBar.hasControl("speed")) {
+            return false;
+          }
           this.player.setPlaybackSpeed(
             Math.min(2, this.player.state.playbackSpeed + 0.25)
           );
           return true;
         case "speed-down":
+          if (this.player.controlBar && !this.player.controlBar.hasControl("speed")) {
+            return false;
+          }
           this.player.setPlaybackSpeed(
             Math.max(0.25, this.player.state.playbackSpeed - 0.25)
           );
           return true;
         case "speed-menu":
-          if (this.player.controlBar && this.player.controlBar.controls.speed) {
+          if (((_b = this.player.controlBar) == null ? void 0 : _b.controls.speed) && this.player.controlBar.hasControl("speed")) {
             this.player.controlBar.showSpeedMenu(this.player.controlBar.controls.speed);
             return true;
           }
@@ -16981,48 +18056,8 @@
     return typeof window !== "undefined" && window.matchMedia(PLAYLIST_PANEL_RIGHT_DESKTOP_MEDIA_QUERY).matches;
   }
 
-  // src/utils/UrlSafe.ts
-  function sanitizePosterUrl(input) {
-    if (typeof input !== "string" || input.length === 0 || input.length > 4096) {
-      return null;
-    }
-    const trimmed = input.trim();
-    if (!trimmed) return null;
-    if (/[\s"'<>\\]/.test(trimmed)) return null;
-    if (trimmed.startsWith("/") || trimmed.startsWith("./") || trimmed.startsWith("../")) {
-      return trimmed;
-    }
-    try {
-      const url = new URL(trimmed, typeof window !== "undefined" ? window.location.href : "http://localhost/");
-      if (url.protocol === "https:" || url.protocol === "http:") {
-        return url.href;
-      }
-      if (url.protocol === "data:" && /^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);/i.test(trimmed)) {
-        return trimmed;
-      }
-    } catch {
-      return null;
-    }
-    return null;
-  }
-  function cssEscapeUrl(url) {
-    return url.replace(/["()\\]/g, (m) => `\\${m}`);
-  }
-  function toCssBackgroundImage(input) {
-    const safe = sanitizePosterUrl(input);
-    if (!safe) return null;
-    return `url("${cssEscapeUrl(safe)}")`;
-  }
-
-  // src/utils/RendererType.ts
-  function classifyRendererType(src) {
-    if (src.includes("youtube.com") || src.includes("youtu.be") || src.includes("youtube-nocookie.com")) return "youtube";
-    if (src.includes("vimeo.com")) return "vimeo";
-    if (src.includes(".m3u8")) return "hls";
-    if (src.includes(".mpd")) return "dash";
-    if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) return "soundcloud";
-    return "html5";
-  }
+  // src/core/Player.ts
+  init_UrlSafe();
 
   // src/utils/MediaSourceNegotiation.ts
   init_PerformanceUtils();
@@ -17373,141 +18408,8 @@
     }
   };
 
-  // src/core/PosterManager.ts
-  var PosterManager = class _PosterManager {
-    constructor(player) {
-      __publicField(this, "player");
-      this.player = player;
-    }
-    /**
-     * Build a CSS `url("...")` value for a poster that is safe to
-     * interpolate into a custom property / `background-image`.
-     *
-     * - `data:image/*` URLs (e.g. an auto-captured frame) are opaque and
-     *   frequently exceed the allow-list length cap, so they bypass
-     *   {@link sanitizePosterUrl} but are still CSS-escaped and required to
-     *   carry an `image/*` MIME type.
-     * - Everything else goes through the poster allow-list.
-     *
-     * Returns `null` for anything unsafe so callers can skip the overlay.
-     */
-    static toSafeCssPoster(resolved) {
-      if (typeof resolved !== "string" || !resolved) return null;
-      if (/^data:/i.test(resolved)) {
-        if (!/^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);/i.test(resolved)) return null;
-        return `url("${cssEscapeUrl(resolved)}")`;
-      }
-      const safe = sanitizePosterUrl(resolved);
-      if (!safe) return null;
-      return `url("${cssEscapeUrl(safe)}")`;
-    }
-    /**
-     * Convert a relative poster path into an absolute URL. Absolute URLs
-     * (http/https) and root-relative paths (`/foo`) are returned as-is.
-     * Falls back to the raw string on any parse error — a malformed URL
-     * is still better than throwing and breaking the caller.
-     */
-    resolvePath(posterPath) {
-      if (!posterPath) return "";
-      if (posterPath.match(/^(https?:|\/)/)) {
-        return posterPath;
-      }
-      try {
-        const posterUrl = new URL(posterPath, window.location.href);
-        return posterUrl.href;
-      } catch {
-        return posterPath;
-      }
-    }
-    /**
-     * Capture a frame from the underlying video as a data URL suitable
-     * for use as `<video>.poster`. Returns `null` when the element is
-     * not a video, the renderer isn't ready, or the capture fails.
-     *
-     * When the control bar has a hidden "preview video" element (used
-     * for the seek hover thumbnail), we prefer that so we don't disturb
-     * the user's current playback position.
-     */
-    async generateFromVideo(time = 10) {
-      const player = this.player;
-      if (player.element.tagName !== "VIDEO") return null;
-      const renderer = player.renderer;
-      if (!renderer || !renderer.media || renderer.media.tagName !== "VIDEO") {
-        return null;
-      }
-      const video = renderer.media;
-      if (!video.duration || video.duration < time) {
-        time = Math.min(time, Math.max(1, video.duration * 0.1));
-      }
-      let videoToUse = video;
-      if (player.controlBar && player.controlBar.previewVideo && player.controlBar.previewSupported) {
-        videoToUse = player.controlBar.previewVideo;
-      }
-      const restoreState = videoToUse === video;
-      return await captureVideoFrame(videoToUse, time, {
-        restoreState,
-        quality: 0.9
-      });
-    }
-    /**
-     * Auto-generate a poster from the video at the 10-second mark if the
-     * content doesn't already have one. No-op for audio elements and for
-     * media that ships with a poster attribute or option.
-     */
-    async autoGenerate() {
-      const player = this.player;
-      const hasPoster = player.element.getAttribute("poster") || player.element.poster || player.options.poster;
-      if (hasPoster) return;
-      if (player.element.tagName !== "VIDEO") return;
-      if (!player.state.duration || player.state.duration === 0) {
-        await new Promise((resolve) => {
-          const onLoadedMetadata = () => {
-            player.element.removeEventListener("loadedmetadata", onLoadedMetadata);
-            resolve();
-          };
-          if (player.element.readyState >= 1) {
-            resolve();
-          } else {
-            player.element.addEventListener("loadedmetadata", onLoadedMetadata);
-          }
-        });
-      }
-      const posterDataURL = await this.generateFromVideo(10);
-      if (posterDataURL) {
-        player.element.poster = posterDataURL;
-        player.log("Auto-generated poster from video frame at 10 seconds", "info");
-        this.showOverlay();
-      }
-    }
-    /**
-     * Apply the poster as a CSS background on the video wrapper. This is
-     * used to keep the poster visible behind the play button when the
-     * browser wouldn't render `<video>.poster` itself (e.g. during
-     * fallback / transitional states).
-     */
-    showOverlay() {
-      const player = this.player;
-      if (!player.videoWrapper || player.element.tagName !== "VIDEO") return;
-      const poster = player.element.getAttribute("poster") || player.element.poster || player.options.poster;
-      if (!poster) return;
-      const resolvedPoster = poster.startsWith("data:") ? poster : this.resolvePath(poster);
-      const cssPoster = _PosterManager.toSafeCssPoster(resolvedPoster);
-      if (!cssPoster) return;
-      player.videoWrapper.style.setProperty("--vidply-poster-image", cssPoster);
-      player.videoWrapper.classList.add("vidply-forced-poster");
-      if (player._isAudioContent && player.container) {
-        player.container.classList.add("vidply-audio-content");
-      } else if (player.container) {
-        player.container.classList.remove("vidply-audio-content");
-      }
-    }
-    hideOverlay() {
-      const player = this.player;
-      if (!player.videoWrapper) return;
-      player.videoWrapper.classList.remove("vidply-forced-poster");
-      player.videoWrapper.style.removeProperty("--vidply-poster-image");
-    }
-  };
+  // src/core/Player.ts
+  init_PosterManager();
 
   // src/core/ResumeManager.ts
   init_DOMUtils();
@@ -18032,11 +18934,19 @@
       if (this.isDashRenderer() && this.sourceReportsLive !== true && this.hasFiniteMediaDuration() && !this.resolveIsLive()) {
         return true;
       }
+      if (this.isExternalEmbedRenderer() && this.hasFinitePlayerDuration() && !this.resolveIsLive()) {
+        return true;
+      }
       return false;
     }
     isDashRenderer() {
       var _a;
       return ((_a = this.player.renderer) == null ? void 0 : _a.rendererType) === "dash";
+    }
+    isExternalEmbedRenderer() {
+      var _a;
+      const type = (_a = this.player.renderer) == null ? void 0 : _a.rendererType;
+      return type === "youtube" || type === "vimeo" || type === "soundcloud";
     }
     isPlainHtml5Renderer() {
       const renderer = this.player.renderer;
@@ -18045,6 +18955,10 @@
     hasFiniteMediaDuration() {
       const media = this.player.element;
       return Boolean(media && Number.isFinite(media.duration) && media.duration > 0);
+    }
+    hasFinitePlayerDuration() {
+      const duration = this.player.state.duration;
+      return Number.isFinite(duration) && duration > 0;
     }
     /** VOD skip-forward, or live catch-up when behind the edge. */
     shouldShowForwardSkip() {
@@ -19212,7 +20126,7 @@
       if (!requiredControl) return true;
       const controlBar = this.player.controlBar;
       if (!controlBar || !controlBar.controls) return true;
-      return Boolean(controlBar.controls[requiredControl]);
+      return controlBar.hasControl(requiredControl);
     }
     getActionLabel(action) {
       var _a;
@@ -19487,6 +20401,8 @@
       __publicField(this, "options");
       __publicField(this, "state");
       __publicField(this, "renderer", null);
+      /** When true, always use provider-native embed chrome (e.g. YouTube iOS LAN fallback). */
+      __publicField(this, "_forceProviderEmbedChrome", false);
       __publicField(this, "controlBar", null);
       __publicField(this, "captionManager", null);
       __publicField(this, "keyboardManager", null);
@@ -19651,6 +20567,8 @@
         startTime: 0,
         playsInline: true,
         // Enable inline playback on iOS (prevents native fullscreen)
+        embedChrome: "vidply",
+        embedChromeSoundcloud: "provider",
         // Controls
         controls: true,
         hideControlsDelay: 3e3,
@@ -19685,6 +20603,7 @@
         floatingPosition: "bottom-right",
         floatingMinViewportWidth: 768,
         downloadButton: false,
+        embedProviderLinkButton: true,
         downloadUrl: null,
         downloadFormat: null,
         downloadFileSize: null,
@@ -20468,9 +21387,7 @@
       });
       const mediaType = this.element.tagName.toLowerCase();
       this.container.classList.add(`${this.options.classPrefix}-${mediaType}`);
-      if (this.options.externalEmbed) {
-        this.container.classList.add("vidply-external-controls");
-      }
+      this.syncEmbedChromeClass();
       if (this.options.responsive) {
         this.container.classList.add(`${this.options.classPrefix}-responsive`);
       }
@@ -20528,9 +21445,43 @@
           this.toggle();
         }
       }, { signal: this.lifecycleSignal });
+      this.videoWrapper.addEventListener("click", (e) => {
+        var _a2;
+        if (!((_a2 = this.container) == null ? void 0 : _a2.classList.contains(`${this.options.classPrefix}-embed-chrome-vidply`))) {
+          return;
+        }
+        const target = e.target;
+        if (!(target instanceof Element)) {
+          return;
+        }
+        const prefix = this.options.classPrefix;
+        if (target.closest(`.${prefix}-controls`)) {
+          return;
+        }
+        if (target.closest(`.${prefix}-play-overlay-button`) || target.closest(`.${prefix}-play-overlay`)) {
+          return;
+        }
+        this.toggle();
+      }, { signal: this.lifecycleSignal });
+      this.videoWrapper.style.cursor = "pointer";
       this.on("play", () => {
         this.state.hasStartedPlayback = true;
+        this.state.playing = true;
+        this.state.paused = false;
+        this.state.ended = false;
         this.hidePosterOverlay();
+        this.syncPlayOverlayVisibility();
+      });
+      this.on("pause", () => {
+        this.state.playing = false;
+        this.state.paused = true;
+        this.syncPlayOverlayVisibility();
+      });
+      this.on("ended", () => {
+        this.state.playing = false;
+        this.state.paused = true;
+        this.state.ended = true;
+        this.syncPlayOverlayVisibility();
       });
       this.on("timeupdate", () => {
         if (this.state.hasStartedPlayback && this.state.currentTime > 0) {
@@ -20667,10 +21618,7 @@
       loading.appendChild(srAnnouncer);
       this.loadingOverlayElement = loading;
       this.videoWrapper.appendChild(loading);
-      const isExternalControls = () => {
-        var _a;
-        return (_a = this.container) == null ? void 0 : _a.classList.contains(`${prefix}-external-controls`);
-      };
+      const isExternalControls = () => this.shouldHideVidplyControls();
       const showBuffering = () => {
         if (isExternalControls()) {
           return;
@@ -20704,7 +21652,7 @@
       });
     }
     positionPlayOverlayOnMobile() {
-      this.positionOverlayOnMediaCenter(this.getPlayButtonOverlayNode());
+      this.positionOverlayOnMediaCenter(this.getPlayButtonOverlayNode(), { youtubePlayOverlayNudge: true });
       this.positionOverlayOnMediaCenter(this.loadingOverlayElement);
     }
     /**
@@ -20712,7 +21660,7 @@
      * taller than the media (controls, aspect-ratio boxes), so plain 50%/50% CSS
      * would sit too low — same logic as the play overlay button.
      */
-    positionOverlayOnMediaCenter(node) {
+    positionOverlayOnMediaCenter(node, options = {}) {
       var _a;
       if (!node) {
         return;
@@ -20731,16 +21679,37 @@
         node.style.transform = "";
         return;
       }
-      const mediaRect = mediaEl.getBoundingClientRect();
       const wrapperRect = (_a = this.videoWrapper) == null ? void 0 : _a.getBoundingClientRect();
-      if (!wrapperRect || mediaRect.height <= 0) {
+      if (!wrapperRect) {
         return;
       }
-      const mediaCenterY = mediaRect.top - wrapperRect.top + mediaRect.height / 2;
+      const mediaRect = mediaEl.getBoundingClientRect();
+      if (mediaRect.height <= 0) {
+        return;
+      }
       const mediaCenterX = mediaRect.left - wrapperRect.left + mediaRect.width / 2;
+      let mediaCenterY = mediaRect.top - wrapperRect.top + mediaRect.height / 2;
+      if (options.youtubePlayOverlayNudge) {
+        mediaCenterY -= this.youtubeChromelessPlayOverlayNudgePx(mediaEl, mediaRect.height);
+      }
       node.style.top = `${mediaCenterY}px`;
       node.style.left = `${mediaCenterX}px`;
       node.style.transform = "translate(-50%, -50%)";
+    }
+    /**
+     * Chromeless YouTube: provider pause play sits slightly above the host box center; tune via CSS var.
+     */
+    youtubeChromelessPlayOverlayNudgePx(mediaEl, hostHeight) {
+      const prefix = this.options.classPrefix;
+      if (!mediaEl.classList.contains(`${prefix}-youtube-chromeless-host`) || this.usesProviderNativeChrome("youtube")) {
+        return 0;
+      }
+      const raw = getComputedStyle(this.container ?? mediaEl).getPropertyValue("--vidply-youtube-chromeless-play-overlay-shift-y").trim();
+      const numeric = Number.parseFloat(raw);
+      if (!Number.isFinite(numeric) || hostHeight <= 0) {
+        return hostHeight * 0.0275;
+      }
+      return hostHeight * (numeric / 100);
     }
     /**
      * Visible media surface used to center the play overlay. External renderers
@@ -20771,7 +21740,7 @@
       return Boolean((_a = this.container) == null ? void 0 : _a.classList.contains("vidply-playlist-panel-right")) && !this.state.fullscreen && isPlaylistPanelRightDesktopViewport();
     }
     async initializeRenderer() {
-      var _a, _b, _c, _d, _e, _f, _g;
+      var _a, _b, _c, _d, _e, _f;
       (_a = this.liveStreamManager) == null ? void 0 : _a.resetForSourceChange();
       if (!this._preservePlaybackDuringRendererInit) {
         this.resetPlaybackStateForSourceChange();
@@ -20801,13 +21770,11 @@
       }
       this.currentSource = src;
       this._pendingSource = null;
-      if (EXTERNAL_CONTROL_RENDERERS.has(classifyRendererType(src))) {
-        (_d = this.container) == null ? void 0 : _d.classList.add("vidply-external-controls");
-      }
+      this.syncEmbedChromeClass(classifyRendererType(src));
       if (this.hasAudioDescriptionContent()) {
         await this.ensureAudioDescriptionManager();
       }
-      (_e = this.audioDescriptionManager) == null ? void 0 : _e.initFromSourceElements(this.sourceElements, this.trackElements);
+      (_d = this.audioDescriptionManager) == null ? void 0 : _d.initFromSourceElements(this.sourceElements, this.trackElements);
       if (!this.originalSrc) {
         this.originalSrc = src;
       }
@@ -20830,6 +21797,7 @@
         } else {
           await this.renderer.init();
         }
+        this.syncEmbedChromeClass(this.renderer.rendererType);
         this.invalidateTrackCache();
         rafWithTimeout(() => this.positionPlayOverlayOnMobile(), 100);
       };
@@ -20842,9 +21810,9 @@
         if (this._playRequestedDuringRendererInit) {
           this._playRequestedDuringRendererInit = false;
           if (isIOS()) {
-            (_f = this.syncPlaybackUiFromMediaElement) == null ? void 0 : _f.call(this);
+            (_e = this.syncPlaybackUiFromMediaElement) == null ? void 0 : _e.call(this);
             if (!this.element.paused) {
-              (_g = this.hidePosterOverlay) == null ? void 0 : _g.call(this);
+              (_f = this.hidePosterOverlay) == null ? void 0 : _f.call(this);
             }
           } else {
             this.play();
@@ -20978,6 +21946,31 @@
     hidePosterOverlay() {
       this.posterManager.hideOverlay();
     }
+    /** Strip playlist/idle poster art before YouTube/Vimeo/SoundCloud iframes load. */
+    clearVideoPosterForExternalEmbed() {
+      var _a, _b;
+      if (this.element.tagName !== "VIDEO") {
+        return;
+      }
+      this.element.removeAttribute("poster");
+      const prefix = this.options.classPrefix;
+      (_a = this.videoWrapper) == null ? void 0 : _a.classList.remove(`${prefix}-forced-poster`);
+      (_b = this.videoWrapper) == null ? void 0 : _b.style.removeProperty("--vidply-poster-image");
+      this.hidePosterOverlay();
+    }
+    /** Native embed frame ratio (e.g. Vimeo `getVideoWidth` / `getVideoHeight`). */
+    setEmbedAspectRatio(width, height) {
+      const wrapper = this.videoWrapper;
+      if (!wrapper || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+        return;
+      }
+      wrapper.style.setProperty("--vidply-embed-aspect-ratio", `${width} / ${height}`);
+      this.positionPlayOverlayOnMobile();
+    }
+    clearEmbedAspectRatio() {
+      var _a;
+      (_a = this.videoWrapper) == null ? void 0 : _a.style.removeProperty("--vidply-embed-aspect-ratio");
+    }
     /**
      * Set a managed timeout that will be cleaned up on destroy
      * @param {Function} callback - Callback function
@@ -21040,6 +22033,7 @@
         existingTracks.forEach((track) => track.remove());
         this.invalidateTrackCache();
         const isExternalRenderer = this.isExternalRendererUrl(config.src);
+        this.syncExternalEmbedOptionsForSource(config.src);
         if (isExternalRenderer) {
           this._switchingRenderer = true;
         }
@@ -21307,26 +22301,43 @@
      * Align VidPly state and chrome with the media element (fixes iOS playlist taps
      * where `play` fired but a subsequent `load()` aborted playback without `pause`).
      */
-    syncPlaybackUiFromMediaElement() {
-      var _a, _b, _c;
-      const el = this.element;
-      const playing = !el.paused && !el.ended;
-      this.state.playing = playing;
-      this.state.paused = !playing;
-      this.state.ended = el.ended;
-      (_a = this.controlBar) == null ? void 0 : _a.updatePlayPauseButton();
+    /** HTML5/HLS/DASH drive play state from the media element; embeds use renderer state. */
+    usesMediaElementForPlaybackUi() {
+      var _a;
+      const rendererType = (_a = this.renderer) == null ? void 0 : _a.rendererType;
+      return Boolean(this.renderer) && (rendererType === "html5" || rendererType === "hls" || rendererType === "dash");
+    }
+    syncPlayOverlayVisibility() {
+      var _a, _b;
       const overlayNode = this.playButtonOverlay ? this.getPlayButtonOverlayNode() : null;
-      if (overlayNode) {
-        if (playing) {
-          overlayNode.style.opacity = "0";
-          overlayNode.style.pointerEvents = "none";
-          (_b = this.playButtonOverlayButton) == null ? void 0 : _b.setAttribute("aria-label", i18n.t("player.pause"));
-        } else if (!el.ended) {
-          overlayNode.style.opacity = "1";
-          overlayNode.style.pointerEvents = "auto";
-          (_c = this.playButtonOverlayButton) == null ? void 0 : _c.setAttribute("aria-label", i18n.t("player.play"));
-        }
+      if (!overlayNode) {
+        return;
       }
+      const useElement = this.usesMediaElementForPlaybackUi();
+      const el = this.element;
+      const playing = useElement ? !el.paused && !el.ended : this.state.playing;
+      const ended = useElement ? el.ended : this.state.ended;
+      if (playing) {
+        overlayNode.style.opacity = "0";
+        overlayNode.style.pointerEvents = "none";
+        (_a = this.playButtonOverlayButton) == null ? void 0 : _a.setAttribute("aria-label", i18n.t("player.pause"));
+      } else if (!ended) {
+        overlayNode.style.opacity = "1";
+        overlayNode.style.pointerEvents = "auto";
+        (_b = this.playButtonOverlayButton) == null ? void 0 : _b.setAttribute("aria-label", i18n.t("player.play"));
+      }
+    }
+    syncPlaybackUiFromMediaElement() {
+      var _a;
+      if (this.usesMediaElementForPlaybackUi()) {
+        const el = this.element;
+        const playing = !el.paused && !el.ended;
+        this.state.playing = playing;
+        this.state.paused = !playing;
+        this.state.ended = el.ended;
+      }
+      (_a = this.controlBar) == null ? void 0 : _a.updatePlayPauseButton();
+      this.syncPlayOverlayVisibility();
     }
     /**
      * Ensure the current renderer has started its initial load (metadata/manifest)
@@ -21553,6 +22564,103 @@
       if (!this.renderer) return true;
       return classifyRendererType(src) !== this.renderer.rendererType;
     }
+    /**
+     * Effective embed chrome mode for a provider renderer type.
+     */
+    getEffectiveEmbedChrome(rendererType) {
+      if (this._forceProviderEmbedChrome) {
+        return "provider";
+      }
+      if (rendererType === "soundcloud") {
+        return this.options.embedChromeSoundcloud ?? "provider";
+      }
+      if (EXTERNAL_CONTROL_RENDERERS.has(rendererType)) {
+        return this.options.embedChrome ?? "vidply";
+      }
+      return "vidply";
+    }
+    usesProviderNativeChrome(rendererType) {
+      var _a;
+      const type = rendererType ?? ((_a = this.renderer) == null ? void 0 : _a.rendererType) ?? (this.currentSource || this._pendingSource ? classifyRendererType(String(this.currentSource || this._pendingSource)) : null);
+      if (!type || !EXTERNAL_CONTROL_RENDERERS.has(type)) {
+        return false;
+      }
+      return this.getEffectiveEmbedChrome(type) === "provider";
+    }
+    shouldHideVidplyControls() {
+      var _a;
+      if (((_a = this.renderer) == null ? void 0 : _a.rendererType) && EXTERNAL_CONTROL_RENDERERS.has(this.renderer.rendererType)) {
+        return this.usesProviderNativeChrome(this.renderer.rendererType);
+      }
+      const pendingType = this._pendingEmbedRendererType();
+      if (pendingType) {
+        return this.getEffectiveEmbedChrome(pendingType) === "provider";
+      }
+      return false;
+    }
+    _pendingEmbedRendererType() {
+      if (this.options.externalEmbedRenderer && EXTERNAL_CONTROL_RENDERERS.has(this.options.externalEmbedRenderer)) {
+        return this.options.externalEmbedRenderer;
+      }
+      const src = this.currentSource || this._pendingSource || "";
+      if (!src) {
+        return null;
+      }
+      const type = classifyRendererType(src);
+      return EXTERNAL_CONTROL_RENDERERS.has(type) ? type : null;
+    }
+    /** Keep embed flags in sync when playlists hot-swap YouTube/Vimeo without recreating the player. */
+    syncExternalEmbedOptionsForSource(src) {
+      if (!src) {
+        this.options.externalEmbed = false;
+        delete this.options.externalEmbedRenderer;
+        return;
+      }
+      const type = classifyRendererType(src);
+      if (EXTERNAL_CONTROL_RENDERERS.has(type)) {
+        this.options.externalEmbed = true;
+        this.options.externalEmbedRenderer = type;
+      } else {
+        this.options.externalEmbed = false;
+        delete this.options.externalEmbedRenderer;
+      }
+    }
+    /**
+     * Toggle classes for provider-native vs VidPly embed chrome.
+     * @param pendingRendererType Optional type before the renderer instance exists.
+     */
+    syncEmbedChromeClass(pendingRendererType) {
+      var _a;
+      if (!this.container) {
+        return;
+      }
+      const prefix = this.options.classPrefix;
+      const rendererType = pendingRendererType ?? ((_a = this.renderer) == null ? void 0 : _a.rendererType) ?? this._pendingEmbedRendererType();
+      const hideControls = rendererType && EXTERNAL_CONTROL_RENDERERS.has(rendererType) ? this.getEffectiveEmbedChrome(rendererType) === "provider" : this.shouldHideVidplyControls();
+      const vidplyChrome = Boolean(
+        rendererType && EXTERNAL_CONTROL_RENDERERS.has(rendererType) && !hideControls
+      );
+      this.container.classList.toggle(`${prefix}-external-controls`, hideControls);
+      this.container.classList.toggle(`${prefix}-embed-chrome-vidply`, vidplyChrome);
+      if (!vidplyChrome) {
+        this.container.classList.remove(`${prefix}-embed-chrome-reproducing`);
+      }
+    }
+    /** True while a chromeless embed is actively playing (hides center overlay). */
+    setEmbedChromeReproducing(active) {
+      if (!this.container) {
+        return;
+      }
+      const prefix = this.options.classPrefix;
+      if (!this.container.classList.contains(`${prefix}-embed-chrome-vidply`)) {
+        return;
+      }
+      this.container.classList.toggle(`${prefix}-embed-chrome-reproducing`, active);
+      if (!active) {
+        this.syncPlayOverlayVisibility();
+        this.positionPlayOverlayOnMobile();
+      }
+    }
     // Playback controls
     play() {
       var _a;
@@ -21605,9 +22713,7 @@
       this.seek(0);
     }
     toggle() {
-      var _a;
-      const rendererType = (_a = this.renderer) == null ? void 0 : _a.rendererType;
-      const useElement = Boolean(this.renderer) && (rendererType === "html5" || rendererType === "hls" || rendererType === "dash");
+      const useElement = this.usesMediaElementForPlaybackUi();
       const playing = useElement ? !this.element.paused && !this.element.ended : this.state.playing;
       this.log(`toggle() playing=${playing}`, "debug");
       if (playing) {
@@ -22398,6 +23504,7 @@
   init_Icons();
   init_i18n();
   init_TimeUtils();
+  init_UrlSafe();
   init_PerformanceUtils();
   var playlistInstanceCounter = 0;
   var PlaylistManager = class _PlaylistManager {
@@ -22553,24 +23660,26 @@
           source.type = track.type;
         }
         mediaElement.appendChild(source);
-        if (track.tracks && track.tracks.length > 0) {
-          track.tracks.forEach((trackConfig) => {
-            const trackEl = document.createElement("track");
-            trackEl.src = trackConfig.src || "";
-            trackEl.kind = trackConfig.kind || "captions";
-            trackEl.srclang = trackConfig.srclang || "en";
-            trackEl.label = trackConfig.label || trackConfig.srclang || "";
-            if (trackConfig.default) {
-              trackEl.default = true;
-            }
-            mediaElement.appendChild(trackEl);
-          });
-        }
+      }
+      if (track.tracks && track.tracks.length > 0) {
+        track.tracks.forEach((trackConfig) => {
+          const trackEl = document.createElement("track");
+          trackEl.src = trackConfig.src || "";
+          trackEl.kind = trackConfig.kind || "captions";
+          trackEl.srclang = trackConfig.srclang || "en";
+          trackEl.label = trackConfig.label || trackConfig.srclang || "";
+          if (trackConfig.default) {
+            trackEl.default = true;
+          }
+          mediaElement.appendChild(trackEl);
+        });
       }
       this.hostElement.appendChild(mediaElement);
+      const embedRenderer = this.isExternalEmbedTrack(track) ? this.getTrackMediaType(track) : void 0;
       const playerOptions = Object.assign({}, preservedPlayerOptions, {
         mediaType: elementType,
         externalEmbed: this.isExternalEmbedTrack(track),
+        externalEmbedRenderer: embedRenderer === "youtube" || embedRenderer === "vimeo" || embedRenderer === "soundcloud" ? embedRenderer : void 0,
         poster: track.poster,
         audioDescriptionSrc: track.audioDescriptionSrc || null,
         audioDescriptionDuration: track.audioDescriptionDuration || null,
@@ -22860,9 +23969,12 @@
      * button is refreshed explicitly.
      */
     refreshDownloadButton() {
-      var _a;
+      var _a, _b;
       if (typeof ((_a = this.player.controlBar) == null ? void 0 : _a.updateDownloadButton) === "function") {
         this.player.controlBar.updateDownloadButton();
+      }
+      if (typeof ((_b = this.player.controlBar) == null ? void 0 : _b.updateEmbedProviderLinkButton) === "function") {
+        this.player.controlBar.updateEmbedProviderLinkButton();
       }
     }
     /** Normalize a manifest/element media URL for comparison. */
@@ -23305,6 +24417,7 @@
       void ((_b = this.player.renderer) == null ? void 0 : _b.play());
     }
     finishPlayAfterLoad(loadGeneration, index, track, failed) {
+      var _a;
       if (loadGeneration !== this._trackLoadGeneration) {
         return;
       }
@@ -23323,6 +24436,7 @@
       this.isChangingTrack = false;
       this.beginPlaybackForLoadedTrack(loadGeneration, track, this._pendingUserPlay);
       this.player.syncPlaybackUiFromMediaElement();
+      (_a = this.player.controlBar) == null ? void 0 : _a.syncCaptionControlsFromTracks();
       if (!this.player.element.paused) {
         this.player.hidePosterOverlay();
       }
@@ -23332,6 +24446,7 @@
      * @param {Array} tracks - Array of track objects
      */
     loadPlaylist(tracks) {
+      var _a;
       this.tracks = tracks;
       this.currentIndex = -1;
       if (this.container) {
@@ -23341,9 +24456,10 @@
       if (this.playlistPanel) {
         this.renderPlaylist();
       }
+      (_a = this.player.controlBar) == null ? void 0 : _a.updateTrackNavigation();
       if (isIOS() && tracks.some((t) => {
-        var _a;
-        return (_a = t.src) == null ? void 0 : _a.includes(".m3u8");
+        var _a2;
+        return (_a2 = t.src) == null ? void 0 : _a2.includes(".m3u8");
       })) {
         void Promise.resolve().then(() => (init_HLSRenderer(), HLSRenderer_exports));
       }
@@ -23845,7 +24961,7 @@
       }
       this.removeStaleExternalEmbedNodes();
       try {
-        (_a = player.container) == null ? void 0 : _a.classList.remove("vidply-external-controls");
+        (_a = player.syncEmbedChromeClass) == null ? void 0 : _a.call(player);
         this.applyVideoPosterForTrack(track);
         (_b = player.showPosterOverlay) == null ? void 0 : _b.call(player);
         if (track.duration && Number(track.duration) > 0) {
@@ -24641,7 +25757,9 @@
       floatingMinViewportWidth: "floatingMinViewportWidth",
       lazyInit: "lazyInit",
       lazyMargin: "lazyMargin",
-      theme: "theme"
+      theme: "theme",
+      embedChrome: "embedChrome",
+      embedChromeSoundcloud: "embedChromeSoundcloud"
     };
     for (const [dataKey, optionKey] of Object.entries(attributeMap)) {
       if (isForbiddenKey(optionKey)) continue;

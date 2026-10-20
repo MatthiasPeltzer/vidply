@@ -32,6 +32,22 @@ export interface PlayerOptions {
      * until the embed renderer is ready.
      */
     externalEmbed?: boolean;
+    /**
+     * Internal: embed provider for {@link externalEmbed} playlist recreation
+     * (used before `currentSource` is set).
+     */
+    externalEmbedRenderer?: 'youtube' | 'vimeo' | 'soundcloud';
+    /**
+     * Who renders transport UI for YouTube/Vimeo embeds. Default `vidply` uses
+     * chromeless iframes and the VidPly control bar. `provider` keeps native
+     * embed controls (legacy behaviour).
+     */
+    embedChrome?: 'vidply' | 'provider';
+    /**
+     * SoundCloud widget chrome cannot be fully hidden; defaults to `provider`
+     * unless explicitly set to `vidply` (VidPly bar below reduced widget).
+     */
+    embedChromeSoundcloud?: 'vidply' | 'provider';
     title?: string | null;
     artist?: string | null;
     album?: string | null;
@@ -90,6 +106,8 @@ export interface PlayerOptions {
     floatingPosition: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
     floatingMinViewportWidth: number;
     downloadButton: boolean;
+    /** Link to YouTube/Vimeo/SoundCloud watch page (new tab) when the source is an embed. */
+    embedProviderLinkButton: boolean;
     downloadUrl: string | null;
     downloadFormat: string | null;
     downloadFileSize: number | null;

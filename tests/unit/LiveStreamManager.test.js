@@ -294,6 +294,16 @@ describe('LiveStreamManager', () => {
     expect(manager.shouldShowForwardSkip()).toBe(true);
   });
 
+  it('confirms YouTube VOD from player.state.duration for skip-forward', () => {
+    player.renderer = { rendererType: 'youtube' };
+    player.state.duration = 312;
+    manager.refresh();
+
+    expect(manager.isConfirmedVod()).toBe(true);
+    expect(manager.shouldShowForwardSkip()).toBe(true);
+    expect(manager.shouldShowRestart()).toBe(true);
+  });
+
   it('does not confirm VOD from finite duration on HLS before the playlist reports VOD', () => {
     player.renderer = { rendererType: 'hls', hls: null };
     Object.defineProperty(player.element, 'duration', {

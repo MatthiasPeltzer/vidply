@@ -308,30 +308,36 @@ export class PlaylistManager {
         source.type = track.type;
       }
       mediaElement.appendChild(source);
-      
-      // Add tracks (captions, chapters, etc.)
-      if (track.tracks && track.tracks.length > 0) {
-        track.tracks.forEach((trackConfig: PlaylistTextTrack) => {
-          const trackEl = document.createElement('track');
-          trackEl.src = trackConfig.src || '';
-          trackEl.kind = trackConfig.kind || 'captions';
-          trackEl.srclang = trackConfig.srclang || 'en';
-          trackEl.label = trackConfig.label || trackConfig.srclang || '';
-          if (trackConfig.default) {
-            trackEl.default = true;
-          }
-          mediaElement.appendChild(trackEl);
-        });
-      }
+    }
+
+    // Sidecar WebVTT (captions/chapters) also applies to embed tracks when provided.
+    if (track.tracks && track.tracks.length > 0) {
+      track.tracks.forEach((trackConfig: PlaylistTextTrack) => {
+        const trackEl = document.createElement('track');
+        trackEl.src = trackConfig.src || '';
+        trackEl.kind = trackConfig.kind || 'captions';
+        trackEl.srclang = trackConfig.srclang || 'en';
+        trackEl.label = trackConfig.label || trackConfig.srclang || '';
+        if (trackConfig.default) {
+          trackEl.default = true;
+        }
+        mediaElement.appendChild(trackEl);
+      });
     }
     
     this.hostElement.appendChild(mediaElement);
     
     // Create new player with the media element — track-specific fields must
     // win over preserved options (e.g. poster from the previous video track).
+    const embedRenderer = this.isExternalEmbedTrack(track)
+      ? this.getTrackMediaType(track)
+      : undefined;
     const playerOptions = Object.assign({}, preservedPlayerOptions, {
       mediaType: elementType,
       externalEmbed: this.isExternalEmbedTrack(track),
+      externalEmbedRenderer: embedRenderer === 'youtube' || embedRenderer === 'vimeo' || embedRenderer === 'soundcloud'
+        ? embedRenderer
+        : undefined,
       poster: track.poster,
       audioDescriptionSrc: track.audioDescriptionSrc || null,
       audioDescriptionDuration: track.audioDescriptionDuration || null,
@@ -726,6 +732,9 @@ export class PlaylistManager {
   refreshDownloadButton() {
     if (typeof this.player.controlBar?.updateDownloadButton === 'function') {
       this.player.controlBar.updateDownloadButton();
+    }
+    if (typeof this.player.controlBar?.updateEmbedProviderLinkButton === 'function') {
+      this.player.controlBar.updateEmbedProviderLinkButton();
     }
   }
 
@@ -1295,6 +1304,7 @@ export class PlaylistManager {
     this.beginPlaybackForLoadedTrack(loadGeneration, track, this._pendingUserPlay);
 
     this.player.syncPlaybackUiFromMediaElement();
+    this.player.controlBar?.syncCaptionControlsFromTracks();
 
     if (!this.player.element.paused) {
       this.player.hidePosterOverlay();
@@ -1319,6 +1329,7 @@ export class PlaylistManager {
     if (this.playlistPanel) {
       this.renderPlaylist();
     }
+    this.player.controlBar?.updateTrackNavigation();
 
     // iPhone: warm renderer chunks before the first tap (dynamic import in load() is too late for gestures).
     if (isIOS() && tracks.some((t) => t.src?.includes('.m3u8'))) {
@@ -2006,7 +2017,7 @@ export class PlaylistManager {
     this.removeStaleExternalEmbedNodes();
 
     try {
-      player.container?.classList.remove('vidply-external-controls');
+      player.syncEmbedChromeClass?.();
       this.applyVideoPosterForTrack(track);
       player.showPosterOverlay?.();
       if (track.duration && Number(track.duration) > 0) {

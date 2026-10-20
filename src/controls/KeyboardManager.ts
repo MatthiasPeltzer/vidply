@@ -269,12 +269,18 @@ export class KeyboardManager {
         return false;
 
       case 'speed-up':
+        if (this.player.controlBar && !this.player.controlBar.hasControl('speed')) {
+          return false;
+        }
         this.player.setPlaybackSpeed(
           Math.min(2, this.player.state.playbackSpeed + 0.25)
         );
         return true;
 
       case 'speed-down':
+        if (this.player.controlBar && !this.player.controlBar.hasControl('speed')) {
+          return false;
+        }
         this.player.setPlaybackSpeed(
           Math.max(0.25, this.player.state.playbackSpeed - 0.25)
         );
@@ -282,7 +288,7 @@ export class KeyboardManager {
 
       case 'speed-menu':
         // Open speed menu
-        if (this.player.controlBar && this.player.controlBar.controls.speed) {
+        if (this.player.controlBar?.controls.speed && this.player.controlBar.hasControl('speed')) {
           this.player.controlBar.showSpeedMenu(this.player.controlBar.controls.speed);
           return true;
         }

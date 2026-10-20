@@ -228,6 +228,8 @@ interface YTPlayer {
   getCurrentTime(): number;
   getPlayerState(): number;
   getIframe(): HTMLIFrameElement;
+  unloadModule?(moduleName: string): void;
+  setOption?(module: string, option: string, value: unknown): void;
   destroy(): void;
 }
 
@@ -263,6 +265,13 @@ interface VimeoPlayerOptions {
   transparent?: boolean;
 }
 
+interface VimeoTextTrack {
+  kind: string;
+  label: string;
+  language: string;
+  mode?: string;
+}
+
 interface VimeoPlayer {
   on(event: string, callback: (...args: unknown[]) => void): void;
   off(event: string, callback?: (...args: unknown[]) => void): void;
@@ -273,8 +282,13 @@ interface VimeoPlayer {
   setVolume(volume: number): Promise<number>;
   setPlaybackRate(rate: number): Promise<number>;
   getDuration(): Promise<number>;
+  getVideoWidth(): Promise<number>;
+  getVideoHeight(): Promise<number>;
   getCurrentTime(): Promise<number>;
   getVolume(): Promise<number>;
+  getTextTracks(): Promise<VimeoTextTrack[]>;
+  enableTextTrack(language: string, kind?: string): Promise<VimeoTextTrack>;
+  disableTextTrack(): Promise<void>;
   destroy(): Promise<void>;
   ready(): Promise<void>;
 }

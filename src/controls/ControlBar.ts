@@ -19,6 +19,12 @@ import type { Player } from '../core/Player.js';
 import type { CaptionManager } from './CaptionManager.js';
 import type { QualityLevel } from '../types/renderer.js';
 import type { PlayerEventMap } from '../types/events.js';
+import { classifyRendererType } from '../utils/RendererType.js';
+import {
+  isEmbedProvider,
+  resolveEmbedProviderWatchUrl,
+  type EmbedProvider
+} from '../utils/EmbedProviderLinks.js';
 
 type TimerHandle = ReturnType<typeof setTimeout>;
 
@@ -933,6 +939,7 @@ export class ControlBar {
         // Check for available features
         const hasChapters = this.hasChapterTracks();
         const hasCaptions = this.hasCaptionTracks();
+        const hasTranscript = this.hasTranscriptSource();
         const hasQualityLevels = this.hasQualityLevels();
         const hasAudioDescription = this.hasAudioDescription();
 
@@ -985,6 +992,7 @@ export class ControlBar {
         const isVideoElement = this.player.element?.tagName?.toLowerCase() === 'video';
         const hideSpeedForThisPlayer =
             this.player.state.isLive
+            || this.shouldHideSpeedForEmbedChrome()
             || (Boolean(this.player.options.hideSpeedForHls) && isHlsSource)
             || (Boolean(this.player.options.hideSpeedForHlsVideo) && isHlsSource && isVideoElement)
             || (Boolean(this.player.options.hideSpeedForDash) && isDashSource)
@@ -1005,7 +1013,7 @@ export class ControlBar {
         }
 
         // 6. Transcript button
-        if (this.player.options.transcriptButton && hasCaptions) {
+        if (this.player.options.transcriptButton && hasTranscript) {
             const btn = this.createTranscriptButton();
             btn.dataset.overflowPriority = '3';
             btn.dataset.overflowPriorityMobile = '3';
@@ -1045,6 +1053,21 @@ export class ControlBar {
             btn.dataset.overflowPriority = '2';
             btn.dataset.overflowPriorityMobile = '3';
             this.rightButtons.appendChild(btn);
+        }
+
+        if (this.player.options.embedProviderLinkButton) {
+            const embedLink = this.resolveEmbedProviderLink();
+            if (embedLink) {
+                const btn = this.createEmbedProviderLinkButton(embedLink.url, embedLink.provider);
+                btn.dataset.overflowPriority = '2';
+                btn.dataset.overflowPriorityMobile = '3';
+                DOMUtils.attachTooltip(
+                    btn,
+                    this.embedProviderLinkLabel(embedLink.provider),
+                    this.player.options.classPrefix
+                );
+                this.rightButtons.appendChild(btn);
+            }
         }
 
         // Download button — in playlists the offered file belongs to the
@@ -1182,8 +1205,70 @@ export class ControlBar {
         return false;
     }
 
-    hasCaptionTracks() {
-        // 1) Prefer already-loaded TextTracks (skip stale tracks from previous dash.js)
+    /**
+     * Chromeless YouTube/Vimeo: keep playback speed off the bar (VidPly chrome, embed API limits).
+     */
+    shouldHideSpeedForEmbedChrome(): boolean {
+        return this.shouldHideSpeedForProviderEmbedChrome('youtube')
+            || this.shouldHideSpeedForProviderEmbedChrome('vimeo');
+    }
+
+    private shouldHideSpeedForProviderEmbedChrome(provider: 'youtube' | 'vimeo'): boolean {
+        const rendererType = this.player.renderer?.rendererType;
+        if (rendererType === provider && !this.player.usesProviderNativeChrome(provider)) {
+            return true;
+        }
+        const src = this.player.currentSource
+            || this.player._pendingSource
+            || this.player.element?.getAttribute?.('src')
+            || this.player.element?.src
+            || '';
+        if (src && classifyRendererType(src) === provider) {
+            return this.player.getEffectiveEmbedChrome(provider) === 'vidply';
+        }
+        const fromOption = this.player.options.externalEmbedRenderer;
+        if (fromOption === provider) {
+            return this.player.getEffectiveEmbedChrome(provider) === 'vidply';
+        }
+        return false;
+    }
+
+    /** YouTube/Vimeo with VidPly chrome expose captions via the embed API, not <track> elements. */
+    hasEmbedCaptionBridge(): boolean {
+        const opts = this.player.options;
+        const fromOption = opts.externalEmbedRenderer;
+        if (fromOption === 'youtube' || fromOption === 'vimeo') {
+            return this.player.getEffectiveEmbedChrome(fromOption) === 'vidply';
+        }
+        const rendererType = this.player.renderer?.rendererType;
+        if (rendererType === 'youtube' || rendererType === 'vimeo') {
+            return !this.player.usesProviderNativeChrome(rendererType);
+        }
+        const src = this.player.currentSource || this.player._pendingSource || this.player.element?.src || '';
+        if (!src) {
+            return false;
+        }
+        const type = classifyRendererType(src);
+        if (type === 'youtube' || type === 'vimeo') {
+            return this.player.getEffectiveEmbedChrome(type) === 'vidply';
+        }
+        return false;
+    }
+
+    /** Sidecar VTT / TextTrack transcript — not available for embed-only YouTube/Vimeo. */
+    hasTranscriptSource(): boolean {
+        return this.hasVidPlyProvidedCaptionTracks();
+    }
+
+    /**
+     * Sidecar WebVTT, native `<track>`, or playlist caption files — not provider-embed caption ids alone.
+     */
+    private hasVidPlyProvidedCaptionTracks(): boolean {
+        const managed = this.player.captionManager?.tracks;
+        if (managed?.some((t) => t.track)) {
+            return true;
+        }
+
         const textTracks = this.player.element.textTracks;
         for (let i = 0; i < textTracks.length; i++) {
             const tt = textTracks[i];
@@ -1192,20 +1277,22 @@ export class ControlBar {
             }
         }
 
-        // 2) Fallback to DOM <track> elements
         const trackEls: HTMLElement[] = Array.from(this.player.element.querySelectorAll('track'));
-        if (trackEls.some(el => el.getAttribute('kind') === 'captions' || el.getAttribute('kind') === 'subtitles')) {
+        if (trackEls.some((el) => el.getAttribute('kind') === 'captions' || el.getAttribute('kind') === 'subtitles')) {
             return true;
         }
 
-        // 3) Playlist metadata fallback
         const current = this.player.playlistManager?.getCurrentTrack?.();
         const playlistTracks = (current?.tracks ?? []) as Array<{ kind?: string }>;
-        if (playlistTracks.some(t => t?.kind === 'captions' || t?.kind === 'subtitles')) {
+        if (playlistTracks.some((t) => t?.kind === 'captions' || t?.kind === 'subtitles')) {
             return true;
         }
 
         return false;
+    }
+
+    hasCaptionTracks() {
+        return this.hasVidPlyProvidedCaptionTracks();
     }
 
     hasQualityLevels() {
@@ -1870,16 +1957,10 @@ export class ControlBar {
             }
         });
 
-        // Update button state
-        const updateState = () => {
-            if (this.player.playlistManager) {
-                (button as HTMLButtonElement).disabled = !this.player.playlistManager.hasPrevious() && !this.player.playlistManager.options.loop;
-            }
-        };
-        this.subscribe('controls', 'playlisttrackchange', updateState);
-        updateState();
-
         this.controls.previous = button;
+        this.subscribe('controls', 'playlisttrackchange', () => this.updateTrackNavigation());
+        this.updateTrackNavigation();
+
         button.dataset.overflowPriority = '3';
         button.dataset.overflowPriorityMobile = '1';
         return button;
@@ -1902,19 +1983,45 @@ export class ControlBar {
             }
         });
 
-        // Update button state
-        const updateState = () => {
-            if (this.player.playlistManager) {
-                (button as HTMLButtonElement).disabled = !this.player.playlistManager.hasNext() && !this.player.playlistManager.options.loop;
-            }
-        };
-        this.subscribe('controls', 'playlisttrackchange', updateState);
-        updateState();
-
         this.controls.next = button;
+        this.subscribe('controls', 'playlisttrackchange', () => this.updateTrackNavigation());
+        this.updateTrackNavigation();
+
         button.dataset.overflowPriority = '3';
         button.dataset.overflowPriorityMobile = '1';
         return button;
+    }
+
+    /**
+     * Whether a control is offered on this bar right now. Bar rebuilds (e.g. a
+     * playlist switching to a chromeless YouTube/Vimeo track) can leave stale,
+     * detached references in `controls`, so presence alone is not enough.
+     */
+    hasControl(name: string): boolean {
+        const control = this.controls[name];
+        return Boolean(control?.isConnected && !control.hidden);
+    }
+
+    /**
+     * Sync previous/next with the playlist: disabled at either end (unless the
+     * playlist loops) and hidden when the playlist holds a single track.
+     */
+    updateTrackNavigation(): void {
+        const playlist = this.player.playlistManager;
+        if (!playlist) {
+            return;
+        }
+
+        const singleTrack = playlist.tracks.length === 1;
+        const { previous, next } = this.controls;
+        if (previous instanceof HTMLButtonElement) {
+            previous.disabled = !playlist.hasPrevious() && !playlist.options.loop;
+            previous.hidden = singleTrack;
+        }
+        if (next instanceof HTMLButtonElement) {
+            next.disabled = !playlist.hasNext() && !playlist.options.loop;
+            next.hidden = singleTrack;
+        }
     }
 
     createPlaylistToggleButton() {
@@ -2929,7 +3036,19 @@ export class ControlBar {
         return button;
     }
 
-    showCaptionsMenu(button: HTMLElement) {
+    showCaptionsMenu(button: HTMLElement, embedRefreshed = false) {
+        if (
+            !embedRefreshed
+            && this.hasEmbedCaptionBridge()
+            && this.player.captionManager
+            && this.player.captionManager.tracks.length === 0
+        ) {
+            void this.player.captionManager.refreshTracks().then(() => {
+                this.showCaptionsMenu(button, true);
+            });
+            return;
+        }
+
         // Remove existing menu if any (toggle behavior)
         const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-captions-menu`);
         if (existingMenu) {
@@ -3393,6 +3512,131 @@ export class ControlBar {
      *   playlists, which know their track's metadata; omitted for single media,
      *   where format and size are read from the element and player options.
      */
+    resolveEmbedProviderLink(): { url: string; provider: EmbedProvider } | null {
+        if (!this.player.options.embedProviderLinkButton) {
+            return null;
+        }
+
+        const src = this.player.currentSource
+            || this.player._pendingSource
+            || this.player.element?.getAttribute?.('src')
+            || this.player.element?.src
+            || '';
+        if (!src) {
+            return null;
+        }
+
+        const rendererType = this.player.renderer?.rendererType;
+        const provider = isEmbedProvider(rendererType)
+            ? rendererType
+            : classifyRendererType(src);
+        if (!isEmbedProvider(provider)) {
+            return null;
+        }
+
+        const url = resolveEmbedProviderWatchUrl(src, provider);
+        if (!url) {
+            return null;
+        }
+
+        return { url, provider };
+    }
+
+    private embedProviderLinkLabel(provider: EmbedProvider): string {
+        switch (provider) {
+            case 'youtube':
+                return i18n.t('player.openOnYoutube');
+            case 'vimeo':
+                return i18n.t('player.openOnVimeo');
+            case 'soundcloud':
+                return i18n.t('player.openOnSoundcloud');
+            default:
+                return i18n.t('player.openOnProvider');
+        }
+    }
+
+    private embedProviderIconName(provider: EmbedProvider): string {
+        switch (provider) {
+            case 'youtube':
+                return 'youtubeBrand';
+            case 'vimeo':
+                return 'vimeoBrand';
+            case 'soundcloud':
+                return 'soundcloudBrand';
+            default:
+                return 'youtubeBrand';
+        }
+    }
+
+    createEmbedProviderLinkButton(watchUrl: string, provider: EmbedProvider): HTMLAnchorElement {
+        const prefix = this.player.options.classPrefix;
+        const label = this.embedProviderLinkLabel(provider);
+        const link = DOMUtils.createElement('a', {
+            className: `${prefix}-button ${prefix}-embed-provider-link ${prefix}-embed-provider-${provider}`,
+            attributes: {
+                href: watchUrl,
+                target: '_blank',
+                rel: 'noopener noreferrer',
+                'aria-label': label,
+                'title': label
+            }
+        }) as HTMLAnchorElement;
+
+        link.appendChild(createIconElement(this.embedProviderIconName(provider)));
+        this.controls.embedProviderLink = link;
+        return link;
+    }
+
+    updateEmbedProviderLinkButton(): void {
+        if (!this.rightButtons) {
+            return;
+        }
+
+        const prefix = this.player.options.classPrefix;
+        const target = this.player.options.embedProviderLinkButton
+            ? this.resolveEmbedProviderLink()
+            : null;
+        const existing = this.controls.embedProviderLink as HTMLAnchorElement | undefined;
+        const mounted = existing && this.rightButtons.contains(existing) ? existing : undefined;
+
+        if (!target) {
+            if (mounted) {
+                mounted.remove();
+                delete this.controls.embedProviderLink;
+                this.checkOverflow();
+            }
+            return;
+        }
+
+        if (!mounted) {
+            const button = this.createEmbedProviderLinkButton(target.url, target.provider);
+            button.dataset.overflowPriority = '2';
+            button.dataset.overflowPriorityMobile = '3';
+            const insertBefore = this.rightButtons.querySelector(`.${prefix}-download`)
+                || this.rightButtons.querySelector(`.${prefix}-pip`)
+                || this.rightButtons.querySelector(`.${prefix}-fullscreen`);
+            if (insertBefore) {
+                this.rightButtons.insertBefore(button, insertBefore);
+            } else {
+                this.rightButtons.appendChild(button);
+            }
+            DOMUtils.attachTooltip(button, this.embedProviderLinkLabel(target.provider), prefix);
+            this.checkOverflow();
+            return;
+        }
+
+        mounted.href = target.url;
+        mounted.classList.remove(`${prefix}-embed-provider-youtube`, `${prefix}-embed-provider-vimeo`, `${prefix}-embed-provider-soundcloud`);
+        mounted.classList.add(`${prefix}-embed-provider-${target.provider}`);
+        const label = this.embedProviderLinkLabel(target.provider);
+        mounted.setAttribute('aria-label', label);
+        mounted.setAttribute('title', label);
+        const icon = mounted.querySelector('.vidply-icon');
+        if (icon) {
+            icon.replaceWith(createIconElement(this.embedProviderIconName(target.provider)));
+        }
+    }
+
     createDownloadButton(downloadUrl: string, target?: Partial<DownloadTarget>) {
         const button = DOMUtils.createElement('button', {
             className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-download`,
@@ -3680,6 +3924,9 @@ export class ControlBar {
             // Update preview video source when source changes (for playlists)
             this.updatePreviewVideoSource();
             this.updateLiveControls();
+            this.syncCaptionControlsFromTracks();
+            this.updateEmbedProviderLinkButton();
+            this.updateDownloadButton();
         });
         this.subscribe('events', 'volumechange', () => this.updateVolumeDisplay());
         this.subscribe('events', 'progress', () => this.updateBuffered());
@@ -3814,7 +4061,7 @@ export class ControlBar {
         if (this.controls.forward) {
             this.controls.forward.hidden = liveManager
                 ? !liveManager.shouldShowForwardSkip()
-                : isLive ? !behindLive : true;
+                : isLive ? !behindLive : false;
         }
 
         if (this.controls.goLive) {
@@ -3953,6 +4200,9 @@ export class ControlBar {
      */
     syncCaptionControlsFromTracks(): void {
         if (!this.hasCaptionTracks()) {
+            if (this.controls.captions || this.controls.captionStyle || this.controls.transcript) {
+                this.removeHlsCaptionButtons(true);
+            }
             return;
         }
 
@@ -3962,7 +4212,7 @@ export class ControlBar {
         if (this.player.options.captionStyleButton && !this.controls.captionStyle) {
             this.ensureCaptionStyleButton();
         }
-        if (this.player.options.transcriptButton && !this.controls.transcript) {
+        if (this.player.options.transcriptButton && this.hasTranscriptSource() && !this.controls.transcript) {
             this.ensureTranscriptButton();
         }
     }
