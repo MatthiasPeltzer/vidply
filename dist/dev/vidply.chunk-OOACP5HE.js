@@ -19,6 +19,7 @@ import {
 } from "./vidply.chunk-4BYV3MA7.js";
 
 // src/controls/CaptionManager.ts
+var EMBED_CLOCK_RENDERERS = /* @__PURE__ */ new Set(["youtube", "vimeo", "soundcloud"]);
 var CaptionManager = class {
   player;
   _altCueChangeHandler = null;
@@ -327,7 +328,8 @@ var CaptionManager = class {
     if (this.currentTrack.track.mode === "showing") {
       this.currentTrack.track.mode = "hidden";
     }
-    if (!this.currentTrack.track.activeCues) {
+    const activeCues = this.resolveActiveCues(this.currentTrack.track);
+    if (!activeCues) {
       if (this.currentTrack.track.cues && this.currentTrack.track.cues.length > 0) {
         if (this.currentCue) {
           this.element.replaceChildren();
@@ -337,7 +339,6 @@ var CaptionManager = class {
       }
       return;
     }
-    const activeCues = this.currentTrack.track.activeCues;
     const isAudioPlayer = this.player.element.tagName.toLowerCase() === "audio";
     if (activeCues.length > 0) {
       const cue = activeCues[0];
@@ -382,6 +383,28 @@ var CaptionManager = class {
       }
       this.currentCue = null;
     }
+  }
+  /**
+   * YouTube/Vimeo/SoundCloud play inside an iframe: the `<video>`/`<audio>`
+   * element holding sidecar `<track>`s never advances, so the browser's
+   * `activeCues` stay pinned to 0 s. Match cues against the player clock.
+   */
+  resolveActiveCues(track) {
+    if (!EMBED_CLOCK_RENDERERS.has(this.player.renderer?.rendererType ?? "")) {
+      return track.activeCues;
+    }
+    if (!track.cues) {
+      return null;
+    }
+    const time = this.player.state.currentTime;
+    const active = [];
+    for (let i = 0; i < track.cues.length; i++) {
+      const cue = track.cues[i];
+      if (cue && cue.startTime <= time && time < cue.endTime) {
+        active.push(cue);
+      }
+    }
+    return active;
   }
   positionCaptionsOnMobile() {
     if (!this.element || this.element.style.display === "none") {
@@ -510,4 +533,4 @@ var CaptionManager = class {
 export {
   CaptionManager
 };
-//# sourceMappingURL=vidply.chunk-J55QEYR4.js.map
+//# sourceMappingURL=vidply.chunk-OOACP5HE.js.map

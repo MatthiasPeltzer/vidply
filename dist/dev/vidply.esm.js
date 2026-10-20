@@ -27,7 +27,7 @@ import {
 } from "./vidply.chunk-ROTTE66M.js";
 import {
   CaptionManager
-} from "./vidply.chunk-J55QEYR4.js";
+} from "./vidply.chunk-OOACP5HE.js";
 import {
   StorageManager
 } from "./vidply.chunk-RCZZYLBQ.js";
@@ -6982,7 +6982,7 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-FM4EH22C.js");
+    const module = await import("./vidply.AudioDescriptionManager-DS5BFO2I.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;

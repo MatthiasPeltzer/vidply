@@ -25,6 +25,9 @@ Try VidPly in action:
   playlist
 - **[HLS Streaming](https://matthiaspeltzer.github.io/vidply/demo/hls-test.html)** - Adaptive bitrate streaming demo
 - **[DASH Streaming](https://matthiaspeltzer.github.io/vidply/demo/dash-test.html)** - MPEG-DASH streaming demo
+- **[YouTube](https://matthiaspeltzer.github.io/vidply/demo/single-player-youtube.html)**,
+  **[Vimeo](https://matthiaspeltzer.github.io/vidply/demo/single-player-vimeo.html)** and
+  **[SoundCloud](https://matthiaspeltzer.github.io/vidply/demo/single-player-soundcloud.html)** - Single embed players
 
 ## Why VidPly?
 
@@ -251,6 +254,35 @@ That's it! The player auto-initializes.
 <video data-vidply src="https://vimeo.com/VIDEO_ID"></video>
 ```
 
+### Native YouTube / Vimeo Controls
+
+By default (`embedChrome: 'vidply'`) YouTube and Vimeo play in a chromeless iframe and VidPly renders the control bar,
+play overlay and keyboard shortcuts. To use only the provider's own player UI instead, set `embedChrome` to
+`'provider'`:
+
+```html
+<video data-vidply data-embed-chrome="provider" src="https://www.youtube.com/watch?v=VIDEO_ID"></video>
+
+<!-- or via the JSON options blob -->
+<video data-vidply data-vidply-options='{"embedChrome": "provider"}' src="https://vimeo.com/VIDEO_ID"></video>
+```
+
+```javascript
+const player = new Player('#my-video', { embedChrome: 'provider' });
+```
+
+With `'provider'`:
+
+- The VidPly control bar and centered play overlay are hidden; play, seek, volume, fullscreen and keyboard input are
+  handled by the YouTube / Vimeo iframe.
+- VidPly-only controls in the bar (captions menu, transcript, download, "Open on YouTube/Vimeo" link) are not available.
+- The setting applies to every YouTube/Vimeo track of the player, including those in mixed playlists.
+- YouTube captions stay off in both modes (`cc_load_policy: 0`); use playlist sidecar WebVTT (`tracks`) with
+  `embedChrome: 'vidply'` if you need captions on YouTube items.
+
+SoundCloud has its own switch, `embedChromeSoundcloud`, which defaults to `'provider'` (the widget keeps its mini UI).
+Set it to `'vidply'` (or `data-embed-chrome-soundcloud="vidply"`) to show the VidPly bar below a reduced widget.
+
 ### Audio Player
 
 ```html
@@ -403,6 +435,7 @@ const player = new Player('#video', {
   downloadFormat: null,         // Optional override for the displayed download format (e.g. "MP4")
   downloadFileSize: null,       // Optional override for the displayed file size (bytes)
   downloadFetchSize: true,      // Issue a HEAD request to detect file size when not provided
+  embedProviderLinkButton: true, // "Open on YouTube/Vimeo/SoundCloud" link (new tab) for embed sources
 
   // Custom Floating Player (in-page miniplayer / "own PiP")
   floating: false,                          // Enable the custom floating player; also disables native browser PiP
@@ -506,7 +539,8 @@ const player = new Player('#video', {
   onError: (err) => console.error(err),
 
   // External embeds (YouTube, Vimeo, SoundCloud)
-  embedChrome: 'vidply',          // 'vidply' = chromeless iframe + VidPly bar; 'provider' = native embed UI
+  // See "Native YouTube / Vimeo Controls" above for what 'provider' changes.
+  embedChrome: 'vidply',          // 'vidply' = chromeless iframe + VidPly bar; 'provider' = native embed UI only
   embedChromeSoundcloud: 'provider', // SoundCloud widget keeps its mini UI; VidPly bar when 'vidply'
 
   // Streaming
@@ -552,6 +586,10 @@ const player = new Player('#video', {
 | <kbd>R</kbd>                                   | Toggle Resize Mode (Transcript/Sign Language) |
 | <kbd>Escape</kbd>                              | Exit Drag/Resize Mode or Close Menus          |
 | <kbd>Home</kbd>                                | Reset Transcript/Sign Language Position       |
+
+Shortcuts only act on controls that exist in the bar: chromeless YouTube/Vimeo have no speed control, so
+<kbd><</kbd>, <kbd>></kbd> and <kbd>S</kbd> do nothing there and are left out of the shortcuts help. With
+`embedChrome: 'provider'` the VidPly bar is hidden and the provider iframe handles keyboard input.
 
 ## API Reference
 

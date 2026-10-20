@@ -178,6 +178,9 @@ That's it!
 ></video>
 ```
 
+YouTube and Vimeo use the VidPly control bar by default. Add `data-embed-chrome="provider"` to keep the native
+YouTube/Vimeo player UI instead.
+
 ### Example 5: SoundCloud Track
 
 ```html

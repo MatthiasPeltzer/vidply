@@ -265,7 +265,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.ts": {
-      "bytes": 26162,
+      "bytes": 27116,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1299,7 +1299,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1777605
+      "bytes": 1779083
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1358,7 +1358,7 @@
           "bytesInOutput": 971
         },
         "src/controls/CaptionManager.ts": {
-          "bytesInOutput": 21746
+          "bytesInOutput": 22741
         },
         "src/renderers/HTML5Renderer.ts": {
           "bytesInOutput": 12792
@@ -1502,7 +1502,7 @@
           "bytesInOutput": 5473
         }
       },
-      "bytes": 1056116
+      "bytes": 1057111
     }
   }
 }

@@ -99,7 +99,7 @@ export declare class PlaylistManager {
      * @param {Object} track - Track object
      * @returns {string} - 'audio', 'video', 'youtube', 'vimeo', 'soundcloud', 'hls', 'dash'
      */
-    getTrackMediaType(track: PlaylistTrack): "video" | "audio" | "hls" | "dash" | "youtube" | "vimeo" | "soundcloud";
+    getTrackMediaType(track: PlaylistTrack): "video" | "youtube" | "vimeo" | "soundcloud" | "audio" | "hls" | "dash";
     /**
      * Recreate the player with the appropriate element type for the track
      * @param {Object} track - Track to load

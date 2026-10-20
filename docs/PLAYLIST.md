@@ -115,6 +115,12 @@ import { Player, PlaylistManager } from 'vidply';
 }
 ```
 
+`tracks` also applies to YouTube and Vimeo items. YouTube's own captions are never shown, so sidecar WebVTT is the
+only way to caption YouTube items; Vimeo's built-in text tracks appear in the CC menu as well. This needs the default
+`embedChrome: 'vidply'` — with `'provider'` the VidPly bar (and its captions menu) is hidden on embed tracks.
+
+Previous/Next buttons are hidden when the playlist holds a single track.
+
 ### Per-Track Downloads
 
 The download button follows the playlist: set `downloadUrl` on the tracks that

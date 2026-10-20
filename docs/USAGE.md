@@ -205,7 +205,15 @@ document.getElementById('speedSelect').addEventListener('change', (e) => {
 <audio data-vidply src="https://soundcloud.com/artist/track-name"></audio>
 
 <!-- These will automatically use the appropriate renderer -->
+
+<!-- Native YouTube/Vimeo UI only (no VidPly control bar) -->
+<video data-vidply data-embed-chrome="provider" src="https://www.youtube.com/watch?v=dQw4w9WgXcQ"></video>
 ```
+
+YouTube and Vimeo default to `embedChrome: 'vidply'` (chromeless iframe + VidPly controls). `embedChrome: 'provider'`
+hides the VidPly bar and play overlay and leaves playback to the provider UI. SoundCloud uses
+`embedChromeSoundcloud`, which defaults to `'provider'`. Set `embedProviderLinkButton: false` to drop the
+"Open on YouTube/Vimeo/SoundCloud" button from the VidPly bar.
 
 ### HLS Streaming
 

@@ -2888,7 +2888,7 @@
   });
 
   // src/controls/CaptionManager.ts
-  var CaptionManager;
+  var EMBED_CLOCK_RENDERERS, CaptionManager;
   var init_CaptionManager = __esm({
     "src/controls/CaptionManager.ts"() {
       "use strict";
@@ -2897,6 +2897,7 @@
       init_StorageManager();
       init_PerformanceUtils();
       init_TrackLabelUtils();
+      EMBED_CLOCK_RENDERERS = /* @__PURE__ */ new Set(["youtube", "vimeo", "soundcloud"]);
       CaptionManager = class {
         constructor(player) {
           __publicField(this, "player");
@@ -3210,7 +3211,8 @@
           if (this.currentTrack.track.mode === "showing") {
             this.currentTrack.track.mode = "hidden";
           }
-          if (!this.currentTrack.track.activeCues) {
+          const activeCues = this.resolveActiveCues(this.currentTrack.track);
+          if (!activeCues) {
             if (this.currentTrack.track.cues && this.currentTrack.track.cues.length > 0) {
               if (this.currentCue) {
                 this.element.replaceChildren();
@@ -3220,7 +3222,6 @@
             }
             return;
           }
-          const activeCues = this.currentTrack.track.activeCues;
           const isAudioPlayer = this.player.element.tagName.toLowerCase() === "audio";
           if (activeCues.length > 0) {
             const cue = activeCues[0];
@@ -3265,6 +3266,29 @@
             }
             this.currentCue = null;
           }
+        }
+        /**
+         * YouTube/Vimeo/SoundCloud play inside an iframe: the `<video>`/`<audio>`
+         * element holding sidecar `<track>`s never advances, so the browser's
+         * `activeCues` stay pinned to 0 s. Match cues against the player clock.
+         */
+        resolveActiveCues(track) {
+          var _a;
+          if (!EMBED_CLOCK_RENDERERS.has(((_a = this.player.renderer) == null ? void 0 : _a.rendererType) ?? "")) {
+            return track.activeCues;
+          }
+          if (!track.cues) {
+            return null;
+          }
+          const time = this.player.state.currentTime;
+          const active = [];
+          for (let i = 0; i < track.cues.length; i++) {
+            const cue = track.cues[i];
+            if (cue && cue.startTime <= time && time < cue.endTime) {
+              active.push(cue);
+            }
+          }
+          return active;
         }
         positionCaptionsOnMobile() {
           var _a, _b;

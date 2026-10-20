@@ -30,6 +30,8 @@ export type CaptionTrackEntry = {
 
 type CueChangeHandler = () => void;
 
+const EMBED_CLOCK_RENDERERS: ReadonlySet<string> = new Set(['youtube', 'vimeo', 'soundcloud']);
+
 export class CaptionManager {
     player: Player;
     _altCueChangeHandler: CueChangeHandler | null = null;
@@ -438,7 +440,8 @@ export class CaptionManager {
             this.currentTrack.track.mode = 'hidden';
         }
 
-        if (!this.currentTrack.track.activeCues) {
+        const activeCues = this.resolveActiveCues(this.currentTrack.track);
+        if (!activeCues) {
             if (this.currentTrack.track.cues && this.currentTrack.track.cues.length > 0) {
                 if (this.currentCue) {
                     this.element.replaceChildren();
@@ -449,7 +452,6 @@ export class CaptionManager {
             return;
         }
 
-        const activeCues = this.currentTrack.track.activeCues;
         const isAudioPlayer = this.player.element.tagName.toLowerCase() === 'audio';
 
         if (activeCues.length > 0) {
@@ -507,6 +509,29 @@ export class CaptionManager {
             }
             this.currentCue = null;
         }
+    }
+
+    /**
+     * YouTube/Vimeo/SoundCloud play inside an iframe: the `<video>`/`<audio>`
+     * element holding sidecar `<track>`s never advances, so the browser's
+     * `activeCues` stay pinned to 0 s. Match cues against the player clock.
+     */
+    private resolveActiveCues(track: TextTrack): ArrayLike<TextTrackCue> | null {
+        if (!EMBED_CLOCK_RENDERERS.has(this.player.renderer?.rendererType ?? '')) {
+            return track.activeCues;
+        }
+        if (!track.cues) {
+            return null;
+        }
+        const time = this.player.state.currentTime;
+        const active: TextTrackCue[] = [];
+        for (let i = 0; i < track.cues.length; i++) {
+            const cue = track.cues[i];
+            if (cue && cue.startTime <= time && time < cue.endTime) {
+                active.push(cue);
+            }
+        }
+        return active;
     }
     
     positionCaptionsOnMobile() {

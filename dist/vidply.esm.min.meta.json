@@ -244,7 +244,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.ts": {
-      "bytes": 26162,
+      "bytes": 27116,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1564,7 +1564,7 @@
           "kind": "import-statement"
         },
         {
-          "path": "dist/prod/vidply.chunk-6U6V57HW.min.js",
+          "path": "dist/prod/vidply.chunk-OFNTF65M.min.js",
           "kind": "import-statement"
         },
         {
@@ -1584,7 +1584,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.AudioDescriptionManager-27B62SPJ.min.js",
+          "path": "dist/prod/vidply.AudioDescriptionManager-WOP4LFGN.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -1945,16 +1945,16 @@
       },
       "bytes": 10638
     },
-    "dist/prod/vidply.AudioDescriptionManager-27B62SPJ.min.js.map": {
+    "dist/prod/vidply.AudioDescriptionManager-WOP4LFGN.min.js.map": {
       "imports": [],
       "exports": [],
       "inputs": {},
       "bytes": 57931
     },
-    "dist/prod/vidply.AudioDescriptionManager-27B62SPJ.min.js": {
+    "dist/prod/vidply.AudioDescriptionManager-WOP4LFGN.min.js": {
       "imports": [
         {
-          "path": "dist/prod/vidply.chunk-6U6V57HW.min.js",
+          "path": "dist/prod/vidply.chunk-OFNTF65M.min.js",
           "kind": "import-statement"
         },
         {
@@ -1984,13 +1984,13 @@
       },
       "bytes": 28831
     },
-    "dist/prod/vidply.chunk-6U6V57HW.min.js.map": {
+    "dist/prod/vidply.chunk-OFNTF65M.min.js.map": {
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 38082
+      "bytes": 39528
     },
-    "dist/prod/vidply.chunk-6U6V57HW.min.js": {
+    "dist/prod/vidply.chunk-OFNTF65M.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-SY6R4OAP.min.js",
@@ -2010,10 +2010,10 @@
       ],
       "inputs": {
         "src/controls/CaptionManager.ts": {
-          "bytesInOutput": 17784
+          "bytesInOutput": 18574
         }
       },
-      "bytes": 18261
+      "bytes": 19051
     },
     "dist/prod/vidply.chunk-SY6R4OAP.min.js.map": {
       "imports": [],

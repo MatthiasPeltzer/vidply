@@ -49,6 +49,12 @@ export declare class CaptionManager {
     _cleanupTrackListeners(): void;
     disable(): void;
     updateCaptions(): void;
+    /**
+     * YouTube/Vimeo/SoundCloud play inside an iframe: the `<video>`/`<audio>`
+     * element holding sidecar `<track>`s never advances, so the browser's
+     * `activeCues` stay pinned to 0 s. Match cues against the player clock.
+     */
+    private resolveActiveCues;
     positionCaptionsOnMobile(): void;
     updateStyles(): void;
     hexToRgba(hex: string, alpha: number): string;

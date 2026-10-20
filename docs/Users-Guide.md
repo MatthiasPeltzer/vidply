@@ -112,11 +112,28 @@ Or with full URL:
 <video data-vidply src="https://vimeo.com/VIDEO_ID"></video>
 ```
 
+### VidPly or Native Embed Controls
+
+YouTube and Vimeo play in a chromeless iframe with the VidPly control bar by default (`embedChrome: 'vidply'`).
+To keep only the provider's own player UI, set `embedChrome: 'provider'`:
+
+```html
+<video data-vidply data-embed-chrome="provider" src="https://www.youtube.com/watch?v=VIDEO_ID"></video>
+```
+
+With `'provider'` the VidPly control bar and play overlay are hidden and the iframe handles playback and keyboard
+input, so VidPly-only controls (captions menu, transcript, download, "Open on YouTube/Vimeo" link) are not available.
+YouTube captions are never shown in either mode; add sidecar WebVTT via playlist `tracks` with `embedChrome: 'vidply'`
+when captions are needed.
+
 ### SoundCloud
 
 ```html
 <audio data-vidply src="https://soundcloud.com/artist/track-name"></audio>
 ```
+
+SoundCloud keeps its widget UI by default (`embedChromeSoundcloud: 'provider'`); set
+`data-embed-chrome-soundcloud="vidply"` to show the VidPly bar below the widget.
 
 The SoundCloud Widget API is auto-detected for any URL containing `soundcloud.com`. The widget is loaded on demand and integrates with the standard VidPly play / pause / seek / volume controls.
 

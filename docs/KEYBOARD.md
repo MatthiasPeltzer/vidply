@@ -73,6 +73,11 @@ When any menu is open (captions, speed, quality, chapters, or caption style), yo
 - **Speed Menu** (<kbd>S</kbd>)  
   Opens the speed selection menu with preset speed options. The currently active speed is auto-focused.
 
+Speed shortcuts only work when the speed control is shown in the bar. Chromeless YouTube/Vimeo
+(`embedChrome: 'vidply'`) and live streams have no speed control, so these keys do nothing there and are left out of
+the shortcuts help. With `embedChrome: 'provider'` the VidPly bar is hidden and the YouTube/Vimeo iframe handles
+keyboard input.
+
 ### Caption Controls
 
 - **Captions Menu** (<kbd>C</kbd>)  
