@@ -15,6 +15,9 @@ import {
 } from '../utils/PerformanceUtils.js';
 
 export class YouTubeRenderer implements Renderer {
+  /** Privacy-enhanced embed host (no cookies until the visitor starts playback). */
+  static readonly EMBED_HOST = 'https://www.youtube-nocookie.com';
+
   readonly rendererType = 'youtube' as const;
   player: Player;
   media: HTMLMediaElement;
@@ -49,6 +52,32 @@ export class YouTubeRenderer implements Renderer {
       vars.widget_referrer = window.location.href;
     }
     return vars;
+  }
+
+  /**
+   * Chromium enforces `Permissions-Policy: autoplay=()`: `playVideo()` from
+   * VidPly controls is then silently ignored and only a click inside the
+   * iframe starts playback. Only the page's own allowance is checked — the
+   * API reports cross-origin frames as blocked even when `allow="autoplay"`
+   * delegates it. Firefox has no such API, so `undefined` counts as allowed.
+   */
+  static isEmbedAutoplayBlockedByPermissionsPolicy(): boolean {
+    if (typeof document === 'undefined') {
+      return false;
+    }
+    const doc = document as Document & {
+      permissionsPolicy?: { allowsFeature(feature: string, origin?: string): boolean };
+      featurePolicy?: { allowsFeature(feature: string, origin?: string): boolean };
+    };
+    const policy = doc.permissionsPolicy ?? doc.featurePolicy;
+    if (!policy?.allowsFeature) {
+      return false;
+    }
+    try {
+      return !policy.allowsFeature('autoplay');
+    } catch {
+      return false;
+    }
   }
 
   static applyEmbedReferrerPolicy(youtube: YTPlayer | null) {
@@ -142,6 +171,15 @@ export class YouTubeRenderer implements Renderer {
     if (shouldUseYoutubeIosLanFallback()) {
       this.showIosLanFallback();
       return;
+    }
+
+    if (!this.usesProviderChrome() && YouTubeRenderer.isEmbedAutoplayBlockedByPermissionsPolicy()) {
+      this.player.log(
+        'Permissions-Policy blocks autoplay; using YouTube\'s own controls. '
+          + `Allow it with e.g. 'Permissions-Policy: autoplay=(self "${YouTubeRenderer.EMBED_HOST}")'.`,
+        'warn'
+      );
+      this.player._forceProviderEmbedChrome = true;
     }
 
     this.player.syncEmbedChromeClass('youtube');
@@ -327,6 +365,7 @@ export class YouTubeRenderer implements Renderer {
       }
       const providerChrome = this.usesProviderChrome();
       this.youtube = new window.YT.Player(playerElementId, {
+        host: YouTubeRenderer.EMBED_HOST,
         videoId: this.videoId ?? undefined,
         width: '100%',
         height: '100%',

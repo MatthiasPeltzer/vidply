@@ -159,7 +159,9 @@ export class VimeoRenderer implements Renderer {
       autoplay: isIOS() ? false : this.player.options.autoplay,
       muted: this.player.options.muted,
       loop: this.player.options.loop,
-      keyboard: false
+      keyboard: false,
+      // Do Not Track: no session data or analytics cookies from the embed.
+      dnt: true
     };
 
     if (this.player.options.startTime > 0) {

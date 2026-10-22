@@ -10228,7 +10228,7 @@
   __export(YouTubeRenderer_exports, {
     YouTubeRenderer: () => YouTubeRenderer
   });
-  var YouTubeRenderer;
+  var _YouTubeRenderer, YouTubeRenderer;
   var init_YouTubeRenderer = __esm({
     "src/renderers/YouTubeRenderer.ts"() {
       "use strict";
@@ -10237,7 +10237,7 @@
       init_YoutubeEmbedAspectRatio();
       init_YoutubeThumbnailPoster();
       init_PerformanceUtils();
-      YouTubeRenderer = class _YouTubeRenderer {
+      _YouTubeRenderer = class _YouTubeRenderer {
         constructor(player) {
           __publicField(this, "rendererType", "youtube");
           __publicField(this, "player");
@@ -10271,6 +10271,28 @@
             vars.widget_referrer = window.location.href;
           }
           return vars;
+        }
+        /**
+         * Chromium enforces `Permissions-Policy: autoplay=()`: `playVideo()` from
+         * VidPly controls is then silently ignored and only a click inside the
+         * iframe starts playback. Only the page's own allowance is checked — the
+         * API reports cross-origin frames as blocked even when `allow="autoplay"`
+         * delegates it. Firefox has no such API, so `undefined` counts as allowed.
+         */
+        static isEmbedAutoplayBlockedByPermissionsPolicy() {
+          if (typeof document === "undefined") {
+            return false;
+          }
+          const doc = document;
+          const policy = doc.permissionsPolicy ?? doc.featurePolicy;
+          if (!(policy == null ? void 0 : policy.allowsFeature)) {
+            return false;
+          }
+          try {
+            return !policy.allowsFeature("autoplay");
+          } catch {
+            return false;
+          }
         }
         static applyEmbedReferrerPolicy(youtube) {
           var _a;
@@ -10349,6 +10371,13 @@
           if (shouldUseYoutubeIosLanFallback()) {
             this.showIosLanFallback();
             return;
+          }
+          if (!this.usesProviderChrome() && _YouTubeRenderer.isEmbedAutoplayBlockedByPermissionsPolicy()) {
+            this.player.log(
+              `Permissions-Policy blocks autoplay; using YouTube's own controls. Allow it with e.g. 'Permissions-Policy: autoplay=(self "${_YouTubeRenderer.EMBED_HOST}")'.`,
+              "warn"
+            );
+            this.player._forceProviderEmbedChrome = true;
           }
           this.player.syncEmbedChromeClass("youtube");
           try {
@@ -10495,6 +10524,7 @@
             }
             const providerChrome = this.usesProviderChrome();
             this.youtube = new window.YT.Player(playerElementId, {
+              host: _YouTubeRenderer.EMBED_HOST,
               videoId: this.videoId ?? void 0,
               width: "100%",
               height: "100%",
@@ -10751,6 +10781,9 @@
           }
         }
       };
+      /** Privacy-enhanced embed host (no cookies until the visitor starts playback). */
+      __publicField(_YouTubeRenderer, "EMBED_HOST", "https://www.youtube-nocookie.com");
+      YouTubeRenderer = _YouTubeRenderer;
     }
   });
 
@@ -10931,7 +10964,9 @@
             autoplay: isIOS() ? false : this.player.options.autoplay,
             muted: this.player.options.muted,
             loop: this.player.options.loop,
-            keyboard: false
+            keyboard: false,
+            // Do Not Track: no session data or analytics cookies from the embed.
+            dnt: true
           };
           if (this.player.options.startTime > 0) {
             options.startTime = this.player.options.startTime;
@@ -21474,15 +21509,12 @@
         if (!((_a2 = this.container) == null ? void 0 : _a2.classList.contains(`${this.options.classPrefix}-embed-chrome-vidply`))) {
           return;
         }
-        const target = e.target;
-        if (!(target instanceof Element)) {
-          return;
-        }
         const prefix = this.options.classPrefix;
-        if (target.closest(`.${prefix}-controls`)) {
-          return;
-        }
-        if (target.closest(`.${prefix}-play-overlay-button`) || target.closest(`.${prefix}-play-overlay`)) {
+        const ignore = [`${prefix}-controls`, `${prefix}-play-overlay-button`, `${prefix}-play-overlay`];
+        const fromControl = e.composedPath().some(
+          (node) => node instanceof Element && ignore.some((cls) => node.classList.contains(cls))
+        );
+        if (fromControl || !(e.target instanceof Element)) {
           return;
         }
         this.toggle();

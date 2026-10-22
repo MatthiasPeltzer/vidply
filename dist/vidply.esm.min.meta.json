@@ -739,7 +739,7 @@
       "format": "esm"
     },
     "src/renderers/YouTubeRenderer.ts": {
-      "bytes": 20745,
+      "bytes": 22344,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -780,7 +780,7 @@
       "format": "esm"
     },
     "src/renderers/VimeoRenderer.ts": {
-      "bytes": 12557,
+      "bytes": 12650,
       "imports": [
         {
           "path": "src/utils/EmbedIdleCover.ts",
@@ -859,7 +859,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 142197,
+      "bytes": 142459,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -1321,13 +1321,13 @@
       },
       "bytes": 26010
     },
-    "dist/prod/vidply.YouTubeRenderer-I2YQOOPD.min.js.map": {
+    "dist/prod/vidply.YouTubeRenderer-ZGINFYQJ.min.js.map": {
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 38447
+      "bytes": 40613
     },
-    "dist/prod/vidply.YouTubeRenderer-I2YQOOPD.min.js": {
+    "dist/prod/vidply.YouTubeRenderer-ZGINFYQJ.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-RNRHGNCZ.min.js",
@@ -1358,18 +1358,18 @@
           "bytesInOutput": 515
         },
         "src/renderers/YouTubeRenderer.ts": {
-          "bytesInOutput": 17396
+          "bytesInOutput": 18728
         }
       },
-      "bytes": 20472
+      "bytes": 21804
     },
-    "dist/prod/vidply.VimeoRenderer-4QGZ2VSF.min.js.map": {
+    "dist/prod/vidply.VimeoRenderer-SP2WODMS.min.js.map": {
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 23090
+      "bytes": 23205
     },
-    "dist/prod/vidply.VimeoRenderer-4QGZ2VSF.min.js": {
+    "dist/prod/vidply.VimeoRenderer-SP2WODMS.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-RNRHGNCZ.min.js",
@@ -1400,10 +1400,10 @@
           "bytesInOutput": 576
         },
         "src/renderers/VimeoRenderer.ts": {
-          "bytesInOutput": 10478
+          "bytesInOutput": 10571
         }
       },
-      "bytes": 12020
+      "bytes": 12113
     },
     "dist/prod/vidply.chunk-RNRHGNCZ.min.js.map": {
       "imports": [],
@@ -1539,7 +1539,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 877350
+      "bytes": 877644
     },
     "dist/prod/vidply.esm.min.js": {
       "imports": [
@@ -1600,11 +1600,11 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.YouTubeRenderer-I2YQOOPD.min.js",
+          "path": "dist/prod/vidply.YouTubeRenderer-ZGINFYQJ.min.js",
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.VimeoRenderer-4QGZ2VSF.min.js",
+          "path": "dist/prod/vidply.VimeoRenderer-SP2WODMS.min.js",
           "kind": "dynamic-import"
         },
         {
@@ -1692,7 +1692,7 @@
           "bytesInOutput": 10270
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 112617
+          "bytesInOutput": 112655
         },
         "src/features/PlaylistManager.ts": {
           "bytesInOutput": 74533
@@ -1701,7 +1701,7 @@
           "bytesInOutput": 5158
         }
       },
-      "bytes": 448685
+      "bytes": 448723
     },
     "dist/prod/vidply.chunk-IWSMTZTQ.min.js.map": {
       "imports": [],

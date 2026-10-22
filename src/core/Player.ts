@@ -1469,15 +1469,15 @@ export class Player extends EventEmitter<PlayerEventMap> {
       if (!this.container?.classList.contains(`${this.options.classPrefix}-embed-chrome-vidply`)) {
         return;
       }
-      const target = e.target;
-      if (!(target instanceof Element)) {
-        return;
-      }
       const prefix = this.options.classPrefix;
-      if (target.closest(`.${prefix}-controls`)) {
-        return;
-      }
-      if (target.closest(`.${prefix}-play-overlay-button`) || target.closest(`.${prefix}-play-overlay`)) {
+      // composedPath() is fixed at dispatch time: a button that swaps its icon
+      // markup in its own click handler (fullscreen) detaches `e.target`, so
+      // `target.closest()` would no longer find the control bar.
+      const ignore = [`${prefix}-controls`, `${prefix}-play-overlay-button`, `${prefix}-play-overlay`];
+      const fromControl = e.composedPath().some(
+        (node) => node instanceof Element && ignore.some((cls) => node.classList.contains(cls))
+      );
+      if (fromControl || !(e.target instanceof Element)) {
         return;
       }
       this.toggle();

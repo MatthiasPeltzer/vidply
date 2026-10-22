@@ -103,6 +103,8 @@ async function syncYoutubeEmbedAspectRatio(player, videoId, host) {
 
 // src/renderers/YouTubeRenderer.ts
 var YouTubeRenderer = class _YouTubeRenderer {
+  /** Privacy-enhanced embed host (no cookies until the visitor starts playback). */
+  static EMBED_HOST = "https://www.youtube-nocookie.com";
   rendererType = "youtube";
   player;
   media;
@@ -135,6 +137,28 @@ var YouTubeRenderer = class _YouTubeRenderer {
       vars.widget_referrer = window.location.href;
     }
     return vars;
+  }
+  /**
+   * Chromium enforces `Permissions-Policy: autoplay=()`: `playVideo()` from
+   * VidPly controls is then silently ignored and only a click inside the
+   * iframe starts playback. Only the page's own allowance is checked — the
+   * API reports cross-origin frames as blocked even when `allow="autoplay"`
+   * delegates it. Firefox has no such API, so `undefined` counts as allowed.
+   */
+  static isEmbedAutoplayBlockedByPermissionsPolicy() {
+    if (typeof document === "undefined") {
+      return false;
+    }
+    const doc = document;
+    const policy = doc.permissionsPolicy ?? doc.featurePolicy;
+    if (!policy?.allowsFeature) {
+      return false;
+    }
+    try {
+      return !policy.allowsFeature("autoplay");
+    } catch {
+      return false;
+    }
   }
   static applyEmbedReferrerPolicy(youtube) {
     const iframe = youtube?.getIframe?.();
@@ -210,6 +234,13 @@ var YouTubeRenderer = class _YouTubeRenderer {
     if (shouldUseYoutubeIosLanFallback()) {
       this.showIosLanFallback();
       return;
+    }
+    if (!this.usesProviderChrome() && _YouTubeRenderer.isEmbedAutoplayBlockedByPermissionsPolicy()) {
+      this.player.log(
+        `Permissions-Policy blocks autoplay; using YouTube's own controls. Allow it with e.g. 'Permissions-Policy: autoplay=(self "${_YouTubeRenderer.EMBED_HOST}")'.`,
+        "warn"
+      );
+      this.player._forceProviderEmbedChrome = true;
     }
     this.player.syncEmbedChromeClass("youtube");
     try {
@@ -349,6 +380,7 @@ var YouTubeRenderer = class _YouTubeRenderer {
       }
       const providerChrome = this.usesProviderChrome();
       this.youtube = new window.YT.Player(playerElementId, {
+        host: _YouTubeRenderer.EMBED_HOST,
         videoId: this.videoId ?? void 0,
         width: "100%",
         height: "100%",
@@ -605,4 +637,4 @@ var YouTubeRenderer = class _YouTubeRenderer {
 export {
   YouTubeRenderer
 };
-//# sourceMappingURL=vidply.YouTubeRenderer-BB7BRVA3.js.map
+//# sourceMappingURL=vidply.YouTubeRenderer-JTCDSPOH.js.map

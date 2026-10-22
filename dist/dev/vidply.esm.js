@@ -8040,15 +8040,12 @@ var Player = class _Player extends EventEmitter {
       if (!this.container?.classList.contains(`${this.options.classPrefix}-embed-chrome-vidply`)) {
         return;
       }
-      const target = e.target;
-      if (!(target instanceof Element)) {
-        return;
-      }
       const prefix = this.options.classPrefix;
-      if (target.closest(`.${prefix}-controls`)) {
-        return;
-      }
-      if (target.closest(`.${prefix}-play-overlay-button`) || target.closest(`.${prefix}-play-overlay`)) {
+      const ignore = [`${prefix}-controls`, `${prefix}-play-overlay-button`, `${prefix}-play-overlay`];
+      const fromControl = e.composedPath().some(
+        (node) => node instanceof Element && ignore.some((cls) => node.classList.contains(cls))
+      );
+      if (fromControl || !(e.target instanceof Element)) {
         return;
       }
       this.toggle();
@@ -8406,11 +8403,11 @@ var Player = class _Player extends EventEmitter {
   async _detectRendererClass(src) {
     switch (classifyRendererType(src)) {
       case "youtube": {
-        const module = await import("./vidply.YouTubeRenderer-BB7BRVA3.js");
+        const module = await import("./vidply.YouTubeRenderer-JTCDSPOH.js");
         return module.YouTubeRenderer ?? module.default;
       }
       case "vimeo": {
-        const module = await import("./vidply.VimeoRenderer-PGBNTMNB.js");
+        const module = await import("./vidply.VimeoRenderer-EX3M34F6.js");
         return module.VimeoRenderer ?? module.default;
       }
       case "hls": {

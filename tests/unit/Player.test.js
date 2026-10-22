@@ -1001,6 +1001,49 @@ describe('Player', () => {
     });
   });
 
+  describe('chromeless embed wrapper click', () => {
+    function mountSwappingControl(wrapper) {
+      const controls = document.createElement('div');
+      controls.className = 'vidply-controls';
+      const button = document.createElement('button');
+      const icon = document.createElement('span');
+      icon.className = 'vidply-icon';
+      icon.innerHTML = '<svg><path d="M0 0"></path></svg>';
+      button.appendChild(icon);
+      controls.appendChild(button);
+      wrapper.appendChild(controls);
+      // Same as updateFullscreenButton(): icon markup replaced during the click.
+      button.addEventListener('click', () => {
+        icon.innerHTML = '<svg><path d="M1 1"></path></svg>';
+      });
+      return icon.querySelector('path');
+    }
+
+    beforeEach(async () => {
+      player = new Player(videoElement);
+      for (let i = 0; i < 20; i++) {
+        await Promise.resolve();
+      }
+      player.container.classList.add('vidply-embed-chrome-vidply');
+      player.toggle = vi.fn();
+    });
+
+    it('toggles playback when the video area is clicked', () => {
+      player.videoWrapper.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      expect(player.toggle).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores a control click whose target is detached while dispatching (fullscreen)', () => {
+      const path = mountSwappingControl(player.videoWrapper);
+
+      path.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      expect(path.isConnected).toBe(false);
+      expect(player.toggle).not.toHaveBeenCalled();
+    });
+  });
+
   describe('initializeRenderer controls for external embeds', () => {
     it.each([
       ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'],

@@ -204,6 +204,7 @@ interface DashJsStatic {
 }
 
 interface YTPlayerOptions {
+  host?: string;
   height?: string | number;
   width?: string | number;
   videoId?: string;
@@ -256,6 +257,7 @@ interface VimeoPlayerOptions {
   byline?: boolean;
   color?: string;
   controls?: boolean;
+  dnt?: boolean;
   loop?: boolean;
   muted?: boolean;
   portrait?: boolean;

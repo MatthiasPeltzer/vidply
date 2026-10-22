@@ -871,7 +871,7 @@
       "format": "esm"
     },
     "src/renderers/YouTubeRenderer.ts": {
-      "bytes": 20745,
+      "bytes": 22344,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -917,7 +917,7 @@
       "format": "esm"
     },
     "src/renderers/VimeoRenderer.ts": {
-      "bytes": 12557,
+      "bytes": 12650,
       "imports": [
         {
           "path": "src/utils/EmbedIdleCover.ts",
@@ -1016,7 +1016,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 142197,
+      "bytes": 142459,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -1299,7 +1299,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1779083
+      "bytes": 1781686
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1412,7 +1412,7 @@
           "bytesInOutput": 708
         },
         "src/renderers/YouTubeRenderer.ts": {
-          "bytesInOutput": 22073
+          "bytesInOutput": 23708
         },
         "src/utils/VimeoEmbedAspectRatio.ts": {
           "bytesInOutput": 504
@@ -1421,7 +1421,7 @@
           "bytesInOutput": 728
         },
         "src/renderers/VimeoRenderer.ts": {
-          "bytesInOutput": 13571
+          "bytesInOutput": 13676
         },
         "src/renderers/HLSRenderer.ts": {
           "bytesInOutput": 36520
@@ -1436,7 +1436,7 @@
           "bytesInOutput": 1054
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 125628
+          "bytesInOutput": 125660
         },
         "src/controls/ControlBar.ts": {
           "bytesInOutput": 161214
@@ -1502,7 +1502,7 @@
           "bytesInOutput": 5473
         }
       },
-      "bytes": 1057111
+      "bytes": 1058883
     }
   }
 }

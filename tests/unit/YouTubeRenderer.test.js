@@ -225,6 +225,66 @@ describe('YouTubeRenderer', () => {
     });
   });
 
+  describe('Permissions-Policy autoplay fallback', () => {
+    beforeEach(() => {
+      mockPlayer.container = document.createElement('div');
+      mockPlayer.currentSource = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+      mockPlayer.log = vi.fn();
+      attachEmbedChromeMocks(mockPlayer);
+      mockPlayer.usesProviderNativeChrome = vi.fn(() => mockPlayer._forceProviderEmbedChrome);
+      renderer = new YouTubeRenderer(mockPlayer);
+      renderer.loadYouTubeAPI = vi.fn().mockResolvedValue(undefined);
+      renderer.createIframe = vi.fn();
+      renderer.initializePlayer = vi.fn().mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      delete document.featurePolicy;
+    });
+
+    it('switches to YouTube controls when the page blocks autoplay', async () => {
+      document.featurePolicy = { allowsFeature: vi.fn(() => false) };
+
+      await renderer.init();
+
+      expect(document.featurePolicy.allowsFeature).toHaveBeenCalledWith('autoplay');
+      expect(mockPlayer._forceProviderEmbedChrome).toBe(true);
+      expect(mockPlayer.log).toHaveBeenCalledWith(expect.stringContaining('Permissions-Policy'), 'warn');
+    });
+
+    it('keeps VidPly controls when autoplay is allowed', async () => {
+      document.featurePolicy = { allowsFeature: vi.fn(() => true) };
+
+      await renderer.init();
+
+      expect(mockPlayer._forceProviderEmbedChrome).toBe(false);
+    });
+
+    it('keeps VidPly controls when the browser has no Permissions Policy API', async () => {
+      await renderer.init();
+
+      expect(mockPlayer._forceProviderEmbedChrome).toBe(false);
+      expect(mockPlayer.log).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('privacy-enhanced embed host', () => {
+    it('creates the player on youtube-nocookie.com', () => {
+      mockPlayer.container = document.createElement('div');
+      attachEmbedChromeMocks(mockPlayer);
+      renderer = new YouTubeRenderer(mockPlayer);
+      window.YT = { Player: vi.fn() };
+      renderer.videoId = 'dQw4w9WgXcQ';
+      renderer.iframe = document.createElement('div');
+      renderer.iframe.id = 'youtube-player-test';
+
+      void renderer.initializePlayer();
+
+      expect(window.YT.Player.mock.calls[0][1].host).toBe('https://www.youtube-nocookie.com');
+      delete window.YT;
+    });
+  });
+
   describe('YouTube captions are never shown', () => {
     beforeEach(() => {
       mockPlayer.container = document.createElement('div');

@@ -1,6 +1,8 @@
 import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
 export declare class YouTubeRenderer implements Renderer {
+    /** Privacy-enhanced embed host (no cookies until the visitor starts playback). */
+    static readonly EMBED_HOST = "https://www.youtube-nocookie.com";
     readonly rendererType: "youtube";
     player: Player;
     media: HTMLMediaElement;
@@ -15,6 +17,14 @@ export declare class YouTubeRenderer implements Renderer {
     constructor(player: Player);
     /** origin + widget_referrer for YouTube's embed client-identity checks (iOS). */
     static embedIdentityPlayerVars(): Record<string, string>;
+    /**
+     * Chromium enforces `Permissions-Policy: autoplay=()`: `playVideo()` from
+     * VidPly controls is then silently ignored and only a click inside the
+     * iframe starts playback. Only the page's own allowance is checked — the
+     * API reports cross-origin frames as blocked even when `allow="autoplay"`
+     * delegates it. Firefox has no such API, so `undefined` counts as allowed.
+     */
+    static isEmbedAutoplayBlockedByPermissionsPolicy(): boolean;
     static applyEmbedReferrerPolicy(youtube: YTPlayer | null): void;
     /**
      * Chromeless mode: VidPly owns keyboard focus. Keep the cross-origin iframe

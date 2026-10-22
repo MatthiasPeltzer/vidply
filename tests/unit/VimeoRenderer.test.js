@@ -388,4 +388,19 @@ describe('VimeoRenderer', () => {
       expect(mockPlayer.showPosterOverlay).toHaveBeenCalled();
     });
   });
+
+  describe('initializePlayer', () => {
+    it('requests Do Not Track from the Vimeo embed', async () => {
+      const Player = vi.fn(() => {
+        throw new Error('stop after options');
+      });
+      window.Vimeo = { Player };
+      renderer.videoId = '123456789';
+      renderer.createIframe();
+
+      await expect(renderer.initializePlayer()).rejects.toThrow('stop after options');
+
+      expect(Player.mock.calls[0][1].dnt).toBe(true);
+    });
+  });
 });

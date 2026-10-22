@@ -168,7 +168,9 @@ var VimeoRenderer = class {
       autoplay: isIOS() ? false : this.player.options.autoplay,
       muted: this.player.options.muted,
       loop: this.player.options.loop,
-      keyboard: false
+      keyboard: false,
+      // Do Not Track: no session data or analytics cookies from the embed.
+      dnt: true
     };
     if (this.player.options.startTime > 0) {
       options.startTime = this.player.options.startTime;
@@ -397,4 +399,4 @@ var VimeoRenderer = class {
 export {
   VimeoRenderer
 };
-//# sourceMappingURL=vidply.VimeoRenderer-PGBNTMNB.js.map
+//# sourceMappingURL=vidply.VimeoRenderer-EX3M34F6.js.map
