@@ -555,6 +555,12 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     savePlayerPreferences(): void;
     enterFullscreen(): void;
     exitFullscreen(): void;
+    /**
+     * After leaving fullscreen: return focus to the fullscreen button (WCAG 2.4.3)
+     * and bring the player back into view when the page layout shifted under it.
+     * Runs a frame later so the browser has restored the normal layout first.
+     */
+    restoreFocusAfterFullscreen(): void;
     toggleFullscreen(): void;
     _enablePseudoFullscreen(): void;
     _disablePseudoFullscreen(): void;

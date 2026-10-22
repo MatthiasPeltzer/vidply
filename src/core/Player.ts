@@ -3342,6 +3342,35 @@ export class Player extends EventEmitter<PlayerEventMap> {
     this.state.fullscreen = false;
     this.container.classList.remove(`${this.options.classPrefix}-fullscreen`);
     this.emit('fullscreenchange', false);
+
+    // Native exit is finished asynchronously; ResponsiveManager restores focus
+    // on the browser's fullscreenchange event instead.
+    if (!isInNativeFullscreen) {
+      this.restoreFocusAfterFullscreen();
+    }
+  }
+
+  /**
+   * After leaving fullscreen: return focus to the fullscreen button (WCAG 2.4.3)
+   * and bring the player back into view when the page layout shifted under it.
+   * Runs a frame later so the browser has restored the normal layout first.
+   */
+  restoreFocusAfterFullscreen(): void {
+    requestAnimationFrame(() => {
+      const container = this.container;
+      if (!container?.isConnected || this.state.fullscreen) {
+        return;
+      }
+      const rect = container.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      if (rect.top < 0 || rect.bottom > viewportHeight) {
+        container.scrollIntoView({ block: rect.height > viewportHeight ? 'start' : 'nearest' });
+      }
+      const button = this.controlBar?.controls.fullscreen;
+      if (button instanceof HTMLElement && button.isConnected && (button.checkVisibility?.() ?? true)) {
+        button.focus({ preventScroll: true });
+      }
+    });
   }
 
   toggleFullscreen() {

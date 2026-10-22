@@ -5283,6 +5283,7 @@ var ResponsiveManager = class {
   player;
   orientationQuery = null;
   orientationHandler = null;
+  ownsNativeFullscreen = false;
   constructor(player) {
     this.player = player;
   }
@@ -5351,9 +5352,14 @@ var ResponsiveManager = class {
     const player = this.player;
     player.fullscreenChangeHandler = () => {
       const doc = document;
-      const isFullscreen = Boolean(
-        document.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement
-      );
+      const fullscreenElement = document.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement || null;
+      const isFullscreen = Boolean(fullscreenElement);
+      if (fullscreenElement === player.container) {
+        this.ownsNativeFullscreen = true;
+      } else if (this.ownsNativeFullscreen) {
+        this.ownsNativeFullscreen = false;
+        player.restoreFocusAfterFullscreen();
+      }
       if (player.state.fullscreen === isFullscreen) return;
       player.state.fullscreen = isFullscreen;
       if (!player.pseudoFullscreen) {
@@ -9486,6 +9492,31 @@ var Player = class _Player extends EventEmitter {
     this.state.fullscreen = false;
     this.container.classList.remove(`${this.options.classPrefix}-fullscreen`);
     this.emit("fullscreenchange", false);
+    if (!isInNativeFullscreen) {
+      this.restoreFocusAfterFullscreen();
+    }
+  }
+  /**
+   * After leaving fullscreen: return focus to the fullscreen button (WCAG 2.4.3)
+   * and bring the player back into view when the page layout shifted under it.
+   * Runs a frame later so the browser has restored the normal layout first.
+   */
+  restoreFocusAfterFullscreen() {
+    requestAnimationFrame(() => {
+      const container = this.container;
+      if (!container?.isConnected || this.state.fullscreen) {
+        return;
+      }
+      const rect = container.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      if (rect.top < 0 || rect.bottom > viewportHeight) {
+        container.scrollIntoView({ block: rect.height > viewportHeight ? "start" : "nearest" });
+      }
+      const button = this.controlBar?.controls.fullscreen;
+      if (button instanceof HTMLElement && button.isConnected && (button.checkVisibility?.() ?? true)) {
+        button.focus({ preventScroll: true });
+      }
+    });
   }
   toggleFullscreen() {
     if (this.state.fullscreen) {

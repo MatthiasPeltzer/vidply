@@ -22,6 +22,7 @@ export declare class ResponsiveManager {
     private readonly player;
     private orientationQuery;
     private orientationHandler;
+    private ownsNativeFullscreen;
     constructor(player: Player);
     setup(): void;
     private setupResizeTracking;

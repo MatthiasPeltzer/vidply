@@ -874,6 +874,81 @@ describe('Player', () => {
     });
   });
 
+  describe('focus and scroll after leaving fullscreen', () => {
+    let fullscreenElement;
+
+    const rect = (top, height) => ({ top, bottom: top + height, height, left: 0, right: 0, width: 0, x: 0, y: top });
+
+    beforeEach(async () => {
+      fullscreenElement = null;
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        get: () => fullscreenElement,
+      });
+      vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+        cb(0);
+        return 1;
+      });
+      player = new Player(videoElement);
+      for (let i = 0; i < 20; i++) {
+        await Promise.resolve();
+      }
+      player.container.scrollIntoView = vi.fn();
+      const fullscreenButton = document.createElement('button');
+      player.container.appendChild(fullscreenButton);
+      player.controlBar.controls = { fullscreen: fullscreenButton };
+      player.controlBar.updateFullscreenButton = vi.fn();
+    });
+
+    afterEach(() => {
+      delete document.fullscreenElement;
+    });
+
+    it('focuses the fullscreen button and scrolls the player back into view', () => {
+      player.container.getBoundingClientRect = () => rect(-400, 300);
+
+      player.restoreFocusAfterFullscreen();
+
+      expect(document.activeElement).toBe(player.controlBar.controls.fullscreen);
+      expect(player.container.scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
+    });
+
+    it('does not scroll when the player is already visible', () => {
+      player.container.getBoundingClientRect = () => rect(10, 300);
+
+      player.restoreFocusAfterFullscreen();
+
+      expect(document.activeElement).toBe(player.controlBar.controls.fullscreen);
+      expect(player.container.scrollIntoView).not.toHaveBeenCalled();
+    });
+
+    it('restores focus when the browser leaves native fullscreen after exitFullscreen()', () => {
+      const restore = vi.spyOn(player, 'restoreFocusAfterFullscreen');
+      document.exitFullscreen = vi.fn();
+
+      fullscreenElement = player.container;
+      player.fullscreenChangeHandler();
+      player.exitFullscreen();
+      expect(restore).not.toHaveBeenCalled();
+
+      fullscreenElement = null;
+      player.fullscreenChangeHandler();
+      expect(restore).toHaveBeenCalledTimes(1);
+      delete document.exitFullscreen;
+    });
+
+    it('ignores fullscreen exits of other elements', () => {
+      const restore = vi.spyOn(player, 'restoreFocusAfterFullscreen');
+
+      fullscreenElement = document.createElement('div');
+      player.fullscreenChangeHandler();
+      fullscreenElement = null;
+      player.fullscreenChangeHandler();
+
+      expect(restore).not.toHaveBeenCalled();
+    });
+  });
+
   describe('PiP methods', () => {
     it('enterPiP should request picture in picture if supported', async () => {
       player = new Player(videoElement);

@@ -26,6 +26,7 @@ export class ResponsiveManager {
   private readonly player: Player;
   private orientationQuery: MediaQueryList | null = null;
   private orientationHandler: ((e: MediaQueryListEvent) => void) | null = null;
+  private ownsNativeFullscreen = false;
 
   constructor(player: Player) {
     this.player = player;
@@ -136,12 +137,21 @@ export class ResponsiveManager {
         mozFullScreenElement?: Element | null;
         msFullscreenElement?: Element | null;
       };
-      const isFullscreen = Boolean(
-        document.fullscreenElement ||
-        doc.webkitFullscreenElement ||
-        doc.mozFullScreenElement ||
-        doc.msFullscreenElement
-      );
+      const fullscreenElement = document.fullscreenElement
+        || doc.webkitFullscreenElement
+        || doc.mozFullScreenElement
+        || doc.msFullscreenElement
+        || null;
+      const isFullscreen = Boolean(fullscreenElement);
+
+      // Tracked separately from state.fullscreen: exitFullscreen() clears that
+      // optimistically before the browser has actually left fullscreen.
+      if (fullscreenElement === player.container) {
+        this.ownsNativeFullscreen = true;
+      } else if (this.ownsNativeFullscreen) {
+        this.ownsNativeFullscreen = false;
+        player.restoreFocusAfterFullscreen();
+      }
 
       if (player.state.fullscreen === isFullscreen) return;
 
