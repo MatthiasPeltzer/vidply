@@ -7064,6 +7064,8 @@ var Player = class _Player extends EventEmitter {
   renderer = null;
   /** When true, always use provider-native embed chrome (e.g. YouTube iOS LAN fallback). */
   _forceProviderEmbedChrome = false;
+  /** Viewport top of the container when native fullscreen was requested. */
+  _preFullscreenViewportTop = null;
   controlBar = null;
   captionManager = null;
   keyboardManager = null;
@@ -9448,6 +9450,7 @@ var Player = class _Player extends EventEmitter {
       this._enablePseudoFullscreen();
       return;
     }
+    this._preFullscreenViewportTop = elem.getBoundingClientRect().top;
     if (elem.requestFullscreen) {
       fullscreenPromise = elem.requestFullscreen();
     } else if (elem.webkitRequestFullscreen) {
@@ -9497,26 +9500,38 @@ var Player = class _Player extends EventEmitter {
     }
   }
   /**
-   * After leaving fullscreen: return focus to the fullscreen button (WCAG 2.4.3)
-   * and bring the player back into view when the page layout shifted under it.
-   * Runs a frame later so the browser has restored the normal layout first.
+   * After leaving fullscreen: put the player back where it was in the viewport
+   * and return focus to the fullscreen button (WCAG 2.4.3). Waits two frames so
+   * the browser has restored the page layout first.
    */
   restoreFocusAfterFullscreen() {
-    requestAnimationFrame(() => {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
       const container = this.container;
       if (!container?.isConnected || this.state.fullscreen) {
         return;
       }
-      const rect = container.getBoundingClientRect();
-      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-      if (rect.top < 0 || rect.bottom > viewportHeight) {
-        container.scrollIntoView({ block: rect.height > viewportHeight ? "start" : "nearest" });
+      const previousTop = this._preFullscreenViewportTop;
+      this._preFullscreenViewportTop = null;
+      if (previousTop !== null) {
+        const drift = container.getBoundingClientRect().top - previousTop;
+        if (Math.abs(drift) >= 1) {
+          window.scrollBy({ top: drift, behavior: "instant" });
+        }
       }
       const button = this.controlBar?.controls.fullscreen;
-      if (button instanceof HTMLElement && button.isConnected && (button.checkVisibility?.() ?? true)) {
-        button.focus({ preventScroll: true });
+      if (!(button instanceof HTMLElement) || !button.isConnected || !(button.checkVisibility?.() ?? true)) {
+        return;
       }
-    });
+      const alreadyFocused = document.activeElement === button;
+      button.focus();
+      if (alreadyFocused) {
+        const rect = button.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        if (rect.top < 0 || rect.bottom > viewportHeight) {
+          button.scrollIntoView({ block: "nearest", inline: "nearest" });
+        }
+      }
+    }));
   }
   toggleFullscreen() {
     if (this.state.fullscreen) {

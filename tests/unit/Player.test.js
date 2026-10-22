@@ -874,8 +874,9 @@ describe('Player', () => {
     });
   });
 
-  describe('focus and scroll after leaving fullscreen', () => {
+  describe('focus after leaving fullscreen', () => {
     let fullscreenElement;
+    let fullscreenButton;
 
     const rect = (top, height) => ({ top, bottom: top + height, height, left: 0, right: 0, width: 0, x: 0, y: top });
 
@@ -894,7 +895,8 @@ describe('Player', () => {
         await Promise.resolve();
       }
       player.container.scrollIntoView = vi.fn();
-      const fullscreenButton = document.createElement('button');
+      fullscreenButton = document.createElement('button');
+      fullscreenButton.scrollIntoView = vi.fn();
       player.container.appendChild(fullscreenButton);
       player.controlBar.controls = { fullscreen: fullscreenButton };
       player.controlBar.updateFullscreenButton = vi.fn();
@@ -904,22 +906,52 @@ describe('Player', () => {
       delete document.fullscreenElement;
     });
 
-    it('focuses the fullscreen button and scrolls the player back into view', () => {
+    it('focuses the fullscreen button without scrolling the player', () => {
       player.container.getBoundingClientRect = () => rect(-400, 300);
+      fullscreenButton.getBoundingClientRect = () => rect(-150, 40);
 
       player.restoreFocusAfterFullscreen();
 
-      expect(document.activeElement).toBe(player.controlBar.controls.fullscreen);
-      expect(player.container.scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
+      expect(document.activeElement).toBe(fullscreenButton);
+      expect(player.container.scrollIntoView).not.toHaveBeenCalled();
     });
 
-    it('does not scroll when the player is already visible', () => {
-      player.container.getBoundingClientRect = () => rect(10, 300);
+    it('reveals a button that kept focus but is off-screen', () => {
+      fullscreenButton.focus();
+      fullscreenButton.getBoundingClientRect = () => rect(-150, 40);
 
       player.restoreFocusAfterFullscreen();
 
-      expect(document.activeElement).toBe(player.controlBar.controls.fullscreen);
+      expect(document.activeElement).toBe(fullscreenButton);
+      expect(fullscreenButton.scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' });
       expect(player.container.scrollIntoView).not.toHaveBeenCalled();
+    });
+
+    it('puts the player back at its viewport position from before native fullscreen', () => {
+      const scrollBy = vi.spyOn(window, 'scrollBy').mockImplementation(() => {});
+      player.container.getBoundingClientRect = () => rect(200, 300);
+      document.exitFullscreen = vi.fn();
+      player.container.requestFullscreen = vi.fn(() => Promise.resolve());
+      player.enterFullscreen();
+      player.state.fullscreen = false;
+
+      player.container.getBoundingClientRect = () => rect(-450, 300);
+      player.restoreFocusAfterFullscreen();
+
+      expect(scrollBy).toHaveBeenCalledWith({ top: -650, behavior: 'instant' });
+      scrollBy.mockClear();
+      player.restoreFocusAfterFullscreen();
+      expect(scrollBy).not.toHaveBeenCalled();
+      delete document.exitFullscreen;
+    });
+
+    it('does not scroll when the focused button is visible', () => {
+      fullscreenButton.focus();
+      fullscreenButton.getBoundingClientRect = () => rect(300, 40);
+
+      player.restoreFocusAfterFullscreen();
+
+      expect(fullscreenButton.scrollIntoView).not.toHaveBeenCalled();
     });
 
     it('restores focus when the browser leaves native fullscreen after exitFullscreen()', () => {

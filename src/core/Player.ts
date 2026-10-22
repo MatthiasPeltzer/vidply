@@ -233,6 +233,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
   renderer: Renderer | null = null;
   /** When true, always use provider-native embed chrome (e.g. YouTube iOS LAN fallback). */
   _forceProviderEmbedChrome = false;
+  /** Viewport top of the container when native fullscreen was requested. */
+  private _preFullscreenViewportTop: number | null = null;
   controlBar: ControlBar | null = null;
   captionManager: CaptionManager | null = null;
   keyboardManager: KeyboardManager | null = null;
@@ -3280,6 +3282,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
       return;
     }
 
+    this._preFullscreenViewportTop = elem.getBoundingClientRect().top;
+
     if (elem.requestFullscreen) {
       fullscreenPromise = elem.requestFullscreen();
     } else if (elem.webkitRequestFullscreen) {
@@ -3351,26 +3355,42 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   /**
-   * After leaving fullscreen: return focus to the fullscreen button (WCAG 2.4.3)
-   * and bring the player back into view when the page layout shifted under it.
-   * Runs a frame later so the browser has restored the normal layout first.
+   * After leaving fullscreen: put the player back where it was in the viewport
+   * and return focus to the fullscreen button (WCAG 2.4.3). Waits two frames so
+   * the browser has restored the page layout first.
    */
   restoreFocusAfterFullscreen(): void {
-    requestAnimationFrame(() => {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
       const container = this.container;
       if (!container?.isConnected || this.state.fullscreen) {
         return;
       }
-      const rect = container.getBoundingClientRect();
-      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-      if (rect.top < 0 || rect.bottom > viewportHeight) {
-        container.scrollIntoView({ block: rect.height > viewportHeight ? 'start' : 'nearest' });
+      // While fullscreen, the page height collapses and the browser clamps the
+      // scroll position, so its own restore lands somewhere else.
+      const previousTop = this._preFullscreenViewportTop;
+      this._preFullscreenViewportTop = null;
+      if (previousTop !== null) {
+        const drift = container.getBoundingClientRect().top - previousTop;
+        if (Math.abs(drift) >= 1) {
+          window.scrollBy({ top: drift, behavior: 'instant' });
+        }
       }
       const button = this.controlBar?.controls.fullscreen;
-      if (button instanceof HTMLElement && button.isConnected && (button.checkVisibility?.() ?? true)) {
-        button.focus({ preventScroll: true });
+      if (!(button instanceof HTMLElement) || !button.isConnected || !(button.checkVisibility?.() ?? true)) {
+        return;
       }
-    });
+      const alreadyFocused = document.activeElement === button;
+      button.focus();
+      // focus() does not scroll when the button kept focus through fullscreen;
+      // reveal it the same minimal way focus() would have.
+      if (alreadyFocused) {
+        const rect = button.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        if (rect.top < 0 || rect.bottom > viewportHeight) {
+          button.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        }
+      }
+    }));
   }
 
   toggleFullscreen() {

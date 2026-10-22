@@ -86,6 +86,8 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     renderer: Renderer | null;
     /** When true, always use provider-native embed chrome (e.g. YouTube iOS LAN fallback). */
     _forceProviderEmbedChrome: boolean;
+    /** Viewport top of the container when native fullscreen was requested. */
+    private _preFullscreenViewportTop;
     controlBar: ControlBar | null;
     captionManager: CaptionManager | null;
     keyboardManager: KeyboardManager | null;
@@ -556,9 +558,9 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     enterFullscreen(): void;
     exitFullscreen(): void;
     /**
-     * After leaving fullscreen: return focus to the fullscreen button (WCAG 2.4.3)
-     * and bring the player back into view when the page layout shifted under it.
-     * Runs a frame later so the browser has restored the normal layout first.
+     * After leaving fullscreen: put the player back where it was in the viewport
+     * and return focus to the fullscreen button (WCAG 2.4.3). Waits two frames so
+     * the browser has restored the page layout first.
      */
     restoreFocusAfterFullscreen(): void;
     toggleFullscreen(): void;
