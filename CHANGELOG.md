@@ -5,14 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.24] - 2026-10-23
 
 ### Added
 - Chromeless YouTube: when the IFrame API exposes a working captions `tracklist`, provider caption tracks appear in the VidPly CC menu (uploaded captions preferred over auto-generated, labeled fallback).
 
 ### Changed
 - Chromeless YouTube: stop unloading the captions module when the embed caption bridge is active; sidecar `<track>` WebVTT still overrides provider tracks.
+- Chromeless YouTube: remove scale/`clip-path` crop masking; the embed iframe fills the aspect-ratio host at 100%.
 - Caption style control: shown only when VidPly renders sidecar/native captions, not for YouTube/Vimeo in-frame provider captions alone.
+
+## [1.2.23] - 2026-10-22
+
+### Added
+- Fullscreen exit: restore keyboard focus and scroll the player back into view when leaving fullscreen.
+
+### Fixed
+- Fullscreen exit: keep the page scroll position instead of jumping when the player leaves fullscreen.
+- Chromeless embeds: pause correctly when exiting fullscreen; respect Chromium `Permissions-Policy` autoplay limits (fall back to provider controls when programmatic play is blocked); use privacy-enhanced YouTube host (`youtube-nocookie.com`) where applicable.
 
 ## [1.2.22] - 2026-10-20
 
@@ -924,6 +934,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of the vidply accessible media player.
 
+[1.2.24]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.23...v1.2.24
+[1.2.23]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.22...v1.2.23
 [1.2.22]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.21...v1.2.22
 [1.2.21]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.20...v1.2.21
 [1.2.20]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.19...v1.2.20
