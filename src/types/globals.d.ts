@@ -229,6 +229,8 @@ interface YTPlayer {
   getCurrentTime(): number;
   getPlayerState(): number;
   getIframe(): HTMLIFrameElement;
+  getOptions?(module?: string): string[];
+  getOption?(module: string, option: string): unknown;
   unloadModule?(moduleName: string): void;
   setOption?(module: string, option: string, value: unknown): void;
   destroy(): void;

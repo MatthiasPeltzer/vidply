@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Chromeless YouTube: when the IFrame API exposes a working captions `tracklist`, provider caption tracks appear in the VidPly CC menu (uploaded captions preferred over auto-generated, labeled fallback).
+
+### Changed
+- Chromeless YouTube: stop unloading the captions module when the embed caption bridge is active; sidecar `<track>` WebVTT still overrides provider tracks.
+- Caption style control: shown only when VidPly renders sidecar/native captions, not for YouTube/Vimeo in-frame provider captions alone.
+
 ## [1.2.22] - 2026-10-20
 
 ### Added

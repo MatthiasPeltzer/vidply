@@ -18,6 +18,87 @@ import {
   shouldUseYoutubeIosLanFallback
 } from "./vidply.chunk-3BUWHH6H.js";
 
+// src/utils/YoutubeEmbedCaptions.ts
+function normalizeYoutubeVssId(track) {
+  return String(track.vssId ?? track.vss_id ?? "").trim();
+}
+function isYoutubeAsrTrack(track) {
+  const kind = String(track.kind ?? "").toLowerCase();
+  if (kind === "asr") {
+    return true;
+  }
+  return normalizeYoutubeVssId(track).startsWith("a.");
+}
+function languageKeyFromYoutubeTrack(track) {
+  const code = String(track.languageCode ?? "").trim().toLowerCase();
+  if (code) {
+    return code.split("-")[0] ?? code;
+  }
+  const vss = normalizeYoutubeVssId(track);
+  if (vss.startsWith("a.")) {
+    return vss.slice(2);
+  }
+  if (vss.startsWith(".")) {
+    return vss.slice(1);
+  }
+  return vss;
+}
+function filterYoutubeCaptionTracklist(rawList) {
+  if (!Array.isArray(rawList) || rawList.length === 0) {
+    return [];
+  }
+  const typed = rawList;
+  const byLang = /* @__PURE__ */ new Map();
+  for (const track of typed) {
+    const key = languageKeyFromYoutubeTrack(track);
+    if (!key) {
+      continue;
+    }
+    const bucket = byLang.get(key) ?? [];
+    bucket.push(track);
+    byLang.set(key, bucket);
+  }
+  const result = [];
+  for (const tracks of byLang.values()) {
+    const uploaded = tracks.find((t) => !isYoutubeAsrTrack(t));
+    const chosen = uploaded ?? tracks.find((t) => isYoutubeAsrTrack(t));
+    if (!chosen) {
+      continue;
+    }
+    const vssId = normalizeYoutubeVssId(chosen);
+    const id = vssId || `${chosen.languageCode ?? ""}|${chosen.kind ?? ""}`;
+    const baseName = chosen.displayName || chosen.languageName || chosen.languageCode || id;
+    const label = uploaded ? baseName : `${baseName} (auto-generated)`;
+    result.push({
+      id,
+      language: chosen.languageCode ?? languageKeyFromYoutubeTrack(chosen),
+      label,
+      raw: chosen
+    });
+  }
+  return result.sort((a, b) => a.label.localeCompare(b.label));
+}
+function readYoutubeCaptionTracklist(youtube) {
+  try {
+    const list = youtube.getOption?.("captions", "tracklist");
+    if (!Array.isArray(list)) {
+      return null;
+    }
+    return list;
+  } catch {
+    return null;
+  }
+}
+function probeYoutubeCaptionTrack(youtube, track) {
+  try {
+    youtube.setOption?.("captions", "track", track);
+    youtube.setOption?.("captions", "track", {});
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // src/utils/YoutubeThumbnailPoster.ts
 function youtubeThumbnailUrl(videoId, variant) {
   const id = encodeURIComponent(videoId);
@@ -75,16 +156,9 @@ async function resolveYoutubeThumbnailDimensions(videoId) {
   }
   return null;
 }
-function youtubeChromelessCropRecommended(width, height) {
-  if (width <= 0 || height <= 0) {
-    return true;
-  }
-  const ratio = width / height;
-  return ratio > 1.55 && ratio < 1.85;
-}
 
 // src/utils/YoutubeEmbedAspectRatio.ts
-async function syncYoutubeEmbedAspectRatio(player, videoId, host) {
+async function syncYoutubeEmbedAspectRatio(player, videoId) {
   if (!videoId) {
     return;
   }
@@ -93,12 +167,6 @@ async function syncYoutubeEmbedAspectRatio(player, videoId, host) {
     return;
   }
   player.setEmbedAspectRatio(dimensions.width, dimensions.height);
-  if (!host) {
-    return;
-  }
-  const prefix = player.options.classPrefix;
-  const useCrop = youtubeChromelessCropRecommended(dimensions.width, dimensions.height);
-  host.classList.toggle(`${prefix}-youtube-chromeless-crop`, useCrop);
 }
 
 // src/renderers/YouTubeRenderer.ts
@@ -116,6 +184,10 @@ var YouTubeRenderer = class _YouTubeRenderer {
   youtubeMount = null;
   timeUpdateInterval;
   endScreenPreempted = false;
+  /** When true, VidPly CC menu drives YouTube in-frame captions via setOption. */
+  embedCaptionBridgeActive = false;
+  youtubeEmbedCaptionMenu = [];
+  youtubeEmbedCaptionTracks = /* @__PURE__ */ new Map();
   constructor(player) {
     this.player = player;
     this.media = player.element;
@@ -288,17 +360,98 @@ var YouTubeRenderer = class _YouTubeRenderer {
   chromelessEmbedActive() {
     return !this.usesProviderChrome();
   }
-  /** YouTube captions never render: VidPly only shows its own sidecar WebVTT tracks. */
-  disableInFrameCaptions() {
+  hasSidecarCaptionTracks() {
+    const el = this.player.element;
+    const trackEls = el.querySelectorAll('track[kind="captions"], track[kind="subtitles"]');
+    if (trackEls.length > 0) {
+      return true;
+    }
+    const textTracks = el.textTracks;
+    for (let i = 0; i < textTracks.length; i++) {
+      const tt = textTracks[i];
+      if (tt && (tt.kind === "captions" || tt.kind === "subtitles")) {
+        return true;
+      }
+    }
+    return false;
+  }
+  unloadInFrameCaptionsModule() {
     const youtube = this.youtube;
     if (!youtube) {
       return;
     }
     try {
       youtube.setOption?.("captions", "track", {});
+    } catch {
+    }
+    try {
       youtube.unloadModule?.("captions");
     } catch {
     }
+    this.embedCaptionBridgeActive = false;
+    this.youtubeEmbedCaptionMenu = [];
+    this.youtubeEmbedCaptionTracks.clear();
+  }
+  /**
+   * When the embed caption bridge is inactive, unload YouTube's captions module.
+   * When active, only clear the active track if VidPly captions are off.
+   */
+  syncInFrameCaptionsWithVidPly() {
+    const youtube = this.youtube;
+    if (!youtube) {
+      return;
+    }
+    if (this.usesProviderChrome() || !this.chromelessEmbedActive()) {
+      this.unloadInFrameCaptionsModule();
+      return;
+    }
+    if (this.hasSidecarCaptionTracks()) {
+      this.unloadInFrameCaptionsModule();
+      return;
+    }
+    if (!this.embedCaptionBridgeActive) {
+      this.unloadInFrameCaptionsModule();
+      return;
+    }
+    if (!this.player.state.captionsEnabled) {
+      try {
+        youtube.setOption?.("captions", "track", {});
+      } catch {
+      }
+    }
+  }
+  syncEmbedCaptionBridgeFromApi() {
+    const youtube = this.youtube;
+    if (!youtube || this.usesProviderChrome() || !this.chromelessEmbedActive()) {
+      return;
+    }
+    if (this.hasSidecarCaptionTracks()) {
+      if (this.embedCaptionBridgeActive) {
+        this.unloadInFrameCaptionsModule();
+        this.refreshSidecarCaptionControls();
+      }
+      return;
+    }
+    const rawList = readYoutubeCaptionTracklist(youtube);
+    if (!rawList?.length) {
+      return;
+    }
+    const filtered = filterYoutubeCaptionTracklist(rawList);
+    if (filtered.length === 0) {
+      return;
+    }
+    const probeTrack = filtered[0]?.raw;
+    if (!probeTrack || !probeYoutubeCaptionTrack(youtube, probeTrack)) {
+      this.unloadInFrameCaptionsModule();
+      return;
+    }
+    this.embedCaptionBridgeActive = true;
+    this.youtubeEmbedCaptionMenu = filtered.map(({ id, language, label }) => ({ id, language, label }));
+    this.youtubeEmbedCaptionTracks.clear();
+    for (const entry of filtered) {
+      this.youtubeEmbedCaptionTracks.set(entry.id, entry.raw);
+    }
+    this.refreshSidecarCaptionControls();
   }
   refreshSidecarCaptionControls() {
     void Promise.resolve(this.player.captionManager?.refreshTracks()).then(() => {
@@ -414,14 +567,15 @@ var YouTubeRenderer = class _YouTubeRenderer {
             if (this.chromelessEmbedActive()) {
               this.setYoutubeIdleCover(true);
             }
-            this.disableInFrameCaptions();
-            void syncYoutubeEmbedAspectRatio(this.player, this.videoId, this.iframe);
+            this.syncEmbedCaptionBridgeFromApi();
+            this.syncInFrameCaptionsWithVidPly();
+            void syncYoutubeEmbedAspectRatio(this.player, this.videoId);
             this.refreshSidecarCaptionControls();
             resolve();
           },
-          // YouTube may load its captions module after ready; switch it off again.
           onApiChange: () => {
-            this.disableInFrameCaptions();
+            this.syncEmbedCaptionBridgeFromApi();
+            this.syncInFrameCaptionsWithVidPly();
           },
           onStateChange: (event) => this.handleStateChange(event),
           onError: (event) => this.handleError(event)
@@ -487,7 +641,7 @@ var YouTubeRenderer = class _YouTubeRenderer {
           this.setYoutubeIdleCover(false);
           this.player.setEmbedChromeReproducing(true);
         }
-        this.disableInFrameCaptions();
+        this.syncInFrameCaptionsWithVidPly();
         this.player.emit("play");
         this.player.emit("playing");
         if (this.player.options.onPlay) {
@@ -564,12 +718,17 @@ var YouTubeRenderer = class _YouTubeRenderer {
     this.videoId = videoId;
     this.player.currentSource = src;
     this.endScreenPreempted = false;
+    this.embedCaptionBridgeActive = false;
+    this.youtubeEmbedCaptionMenu = [];
+    this.youtubeEmbedCaptionTracks.clear();
     if (this.isReady && this.youtube) {
       this.youtube.cueVideoById(videoId);
       if (this.chromelessEmbedActive()) {
         this.setYoutubeIdleCover(true);
       }
-      void syncYoutubeEmbedAspectRatio(this.player, this.videoId, this.iframe);
+      void syncYoutubeEmbedAspectRatio(this.player, this.videoId);
+      this.syncEmbedCaptionBridgeFromApi();
+      this.syncInFrameCaptionsWithVidPly();
       this.refreshSidecarCaptionControls();
     }
   }
@@ -610,6 +769,29 @@ var YouTubeRenderer = class _YouTubeRenderer {
       this.player.state.playbackSpeed = speed;
     }
   }
+  handlesOwnCaptions() {
+    return this.embedCaptionBridgeActive && !this.usesProviderChrome();
+  }
+  async getEmbedCaptionTracks() {
+    if (!this.embedCaptionBridgeActive || this.usesProviderChrome()) {
+      return [];
+    }
+    return [...this.youtubeEmbedCaptionMenu];
+  }
+  async setEmbedCaptionTrack(trackId) {
+    const youtube = this.youtube;
+    if (!youtube || !this.embedCaptionBridgeActive || this.usesProviderChrome()) {
+      return;
+    }
+    if (trackId === null) {
+      youtube.setOption?.("captions", "track", {});
+      return;
+    }
+    const raw = this.youtubeEmbedCaptionTracks.get(trackId);
+    if (raw) {
+      youtube.setOption?.("captions", "track", raw);
+    }
+  }
   destroy() {
     if (this.timeUpdateInterval) {
       clearInterval(this.timeUpdateInterval);
@@ -624,6 +806,9 @@ var YouTubeRenderer = class _YouTubeRenderer {
       }
     }
     this.youtubeMount = null;
+    this.embedCaptionBridgeActive = false;
+    this.youtubeEmbedCaptionMenu = [];
+    this.youtubeEmbedCaptionTracks.clear();
     const prefix = this.player.options.classPrefix;
     this.player.container?.classList.remove(`${prefix}-embed-youtube`);
     clearEmbedIdleCover(this.player);
@@ -637,4 +822,4 @@ var YouTubeRenderer = class _YouTubeRenderer {
 export {
   YouTubeRenderer
 };
-//# sourceMappingURL=vidply.YouTubeRenderer-UMTQUYYF.js.map
+//# sourceMappingURL=vidply.YouTubeRenderer-GFQH27FI.js.map

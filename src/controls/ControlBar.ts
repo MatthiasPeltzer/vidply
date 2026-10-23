@@ -968,8 +968,8 @@ export class ControlBar {
             this.rightButtons.appendChild(btn);
         }
 
-        // 3. Caption styling button
-        if (this.player.options.captionStyleButton && hasCaptions) {
+        // 3. Caption styling button (sidecar / native tracks only — not YouTube/Vimeo in-frame CC)
+        if (this.player.options.captionStyleButton && this.hasCaptionStyleSource()) {
             const btn = this.createCaptionStyleButton();
             btn.dataset.overflowPriority = '3';
             btn.dataset.overflowPriorityMobile = '3';
@@ -1260,6 +1260,11 @@ export class ControlBar {
         return this.hasVidPlyProvidedCaptionTracks();
     }
 
+    /** Caption font/colors apply only to VidPly’s overlay, not provider in-frame captions. */
+    hasCaptionStyleSource(): boolean {
+        return this.hasVidPlyProvidedCaptionTracks();
+    }
+
     /**
      * Sidecar WebVTT, native `<track>`, or playlist caption files — not provider-embed caption ids alone.
      */
@@ -1292,7 +1297,14 @@ export class ControlBar {
     }
 
     hasCaptionTracks() {
-        return this.hasVidPlyProvidedCaptionTracks();
+        if (this.hasVidPlyProvidedCaptionTracks()) {
+            return true;
+        }
+        const managed = this.player.captionManager?.tracks;
+        if (this.hasEmbedCaptionBridge() && managed?.some((t) => t.embedCaptionId)) {
+            return true;
+        }
+        return false;
     }
 
     hasQualityLevels() {
@@ -4209,8 +4221,10 @@ export class ControlBar {
         if (this.player.options.captionsButton && !this.controls.captions) {
             this.ensureCaptionsButton();
         }
-        if (this.player.options.captionStyleButton && !this.controls.captionStyle) {
+        if (this.player.options.captionStyleButton && this.hasCaptionStyleSource() && !this.controls.captionStyle) {
             this.ensureCaptionStyleButton();
+        } else if (this.controls.captionStyle && !this.hasCaptionStyleSource()) {
+            this.removeCaptionStyleButton();
         }
         if (this.player.options.transcriptButton && this.hasTranscriptSource() && !this.controls.transcript) {
             this.ensureTranscriptButton();
@@ -4250,9 +4264,22 @@ export class ControlBar {
     /**
      * Dynamically add caption style button if HLS subtitle tracks become available
      */
+    removeCaptionStyleButton() {
+        if (!this.controls.captionStyle) {
+            return;
+        }
+        this.controls.captionStyle.remove();
+        delete this.controls.captionStyle;
+        this.checkOverflow();
+    }
+
     ensureCaptionStyleButton() {
         // Skip if caption style button is disabled
         if (!this.player.options.captionStyleButton) return;
+
+        if (!this.hasCaptionStyleSource()) {
+            return;
+        }
         
         // Skip if button already exists
         if (this.controls.captionStyle) return;

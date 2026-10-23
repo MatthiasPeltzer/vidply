@@ -172,7 +172,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 212617,
+      "bytes": 213599,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -265,7 +265,7 @@
       "format": "esm"
     },
     "src/controls/CaptionManager.ts": {
-      "bytes": 27116,
+      "bytes": 27700,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -838,6 +838,11 @@
       ],
       "format": "esm"
     },
+    "src/utils/YoutubeEmbedCaptions.ts": {
+      "bytes": 3362,
+      "imports": [],
+      "format": "esm"
+    },
     "src/utils/ScriptLoader.ts": {
       "bytes": 5511,
       "imports": [],
@@ -855,12 +860,12 @@
       "format": "esm"
     },
     "src/utils/YoutubeThumbnailPoster.ts": {
-      "bytes": 2736,
+      "bytes": 2436,
       "imports": [],
       "format": "esm"
     },
     "src/utils/YoutubeEmbedAspectRatio.ts": {
-      "bytes": 929,
+      "bytes": 622,
       "imports": [
         {
           "path": "src/utils/YoutubeThumbnailPoster.ts",
@@ -871,8 +876,13 @@
       "format": "esm"
     },
     "src/renderers/YouTubeRenderer.ts": {
-      "bytes": 22344,
+      "bytes": 26569,
       "imports": [
+        {
+          "path": "src/utils/YoutubeEmbedCaptions.ts",
+          "kind": "import-statement",
+          "original": "../utils/YoutubeEmbedCaptions.js"
+        },
         {
           "path": "src/utils/ScriptLoader.ts",
           "kind": "import-statement",
@@ -1299,7 +1309,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1785372
+      "bytes": 1799175
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1358,7 +1368,7 @@
           "bytesInOutput": 971
         },
         "src/controls/CaptionManager.ts": {
-          "bytesInOutput": 22741
+          "bytesInOutput": 23324
         },
         "src/renderers/HTML5Renderer.ts": {
           "bytesInOutput": 12792
@@ -1399,6 +1409,9 @@
         "src/controls/TranscriptManager.ts": {
           "bytesInOutput": 96073
         },
+        "src/utils/YoutubeEmbedCaptions.ts": {
+          "bytesInOutput": 2676
+        },
         "src/utils/ScriptLoader.ts": {
           "bytesInOutput": 2712
         },
@@ -1406,13 +1419,13 @@
           "bytesInOutput": 2073
         },
         "src/utils/YoutubeThumbnailPoster.ts": {
-          "bytesInOutput": 2160
+          "bytesInOutput": 1958
         },
         "src/utils/YoutubeEmbedAspectRatio.ts": {
-          "bytesInOutput": 708
+          "bytesInOutput": 454
         },
         "src/renderers/YouTubeRenderer.ts": {
-          "bytesInOutput": 23708
+          "bytesInOutput": 28422
         },
         "src/utils/VimeoEmbedAspectRatio.ts": {
           "bytesInOutput": 504
@@ -1439,7 +1452,7 @@
           "bytesInOutput": 127544
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 161214
+          "bytesInOutput": 162141
         },
         "src/utils/DownloadInfo.ts": {
           "bytesInOutput": 3863
@@ -1502,7 +1515,7 @@
           "bytesInOutput": 5473
         }
       },
-      "bytes": 1061115
+      "bytes": 1069599
     }
   }
 }

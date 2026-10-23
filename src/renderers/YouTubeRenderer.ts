@@ -1,5 +1,11 @@
-import type { Renderer } from '../types/renderer.js';
+import type { EmbedCaptionTrack, Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
+import {
+  filterYoutubeCaptionTracklist,
+  probeYoutubeCaptionTrack,
+  readYoutubeCaptionTracklist,
+  type YoutubeCaptionTrackRaw
+} from '../utils/YoutubeEmbedCaptions.js';
 import { loadScriptOnce } from '../utils/ScriptLoader.js';
 import {
   applyPosterImageToVideoWrapper,
@@ -29,6 +35,10 @@ export class YouTubeRenderer implements Renderer {
   private youtubeMount: HTMLDivElement | null = null;
   timeUpdateInterval?: ReturnType<typeof setInterval>;
   private endScreenPreempted = false;
+  /** When true, VidPly CC menu drives YouTube in-frame captions via setOption. */
+  private embedCaptionBridgeActive = false;
+  private youtubeEmbedCaptionMenu: EmbedCaptionTrack[] = [];
+  private youtubeEmbedCaptionTracks = new Map<string, YoutubeCaptionTrackRaw>();
 
   constructor(player: Player) {
     this.player = player;
@@ -251,18 +261,114 @@ export class YouTubeRenderer implements Renderer {
     return !this.usesProviderChrome();
   }
 
-  /** YouTube captions never render: VidPly only shows its own sidecar WebVTT tracks. */
-  private disableInFrameCaptions(): void {
+  private hasSidecarCaptionTracks(): boolean {
+    const el = this.player.element;
+    const trackEls = el.querySelectorAll('track[kind="captions"], track[kind="subtitles"]');
+    if (trackEls.length > 0) {
+      return true;
+    }
+    const textTracks = el.textTracks;
+    for (let i = 0; i < textTracks.length; i++) {
+      const tt = textTracks[i];
+      if (tt && (tt.kind === 'captions' || tt.kind === 'subtitles')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private unloadInFrameCaptionsModule(): void {
     const youtube = this.youtube;
     if (!youtube) {
       return;
     }
     try {
       youtube.setOption?.('captions', 'track', {});
+    } catch {
+      // ignore
+    }
+    try {
       youtube.unloadModule?.('captions');
     } catch {
       // Captions module may be unavailable for some videos.
     }
+    this.embedCaptionBridgeActive = false;
+    this.youtubeEmbedCaptionMenu = [];
+    this.youtubeEmbedCaptionTracks.clear();
+  }
+
+  /**
+   * When the embed caption bridge is inactive, unload YouTube's captions module.
+   * When active, only clear the active track if VidPly captions are off.
+   */
+  private syncInFrameCaptionsWithVidPly(): void {
+    const youtube = this.youtube;
+    if (!youtube) {
+      return;
+    }
+
+    if (this.usesProviderChrome() || !this.chromelessEmbedActive()) {
+      this.unloadInFrameCaptionsModule();
+      return;
+    }
+
+    if (this.hasSidecarCaptionTracks()) {
+      this.unloadInFrameCaptionsModule();
+      return;
+    }
+
+    if (!this.embedCaptionBridgeActive) {
+      this.unloadInFrameCaptionsModule();
+      return;
+    }
+
+    if (!this.player.state.captionsEnabled) {
+      try {
+        youtube.setOption?.('captions', 'track', {});
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  private syncEmbedCaptionBridgeFromApi(): void {
+    const youtube = this.youtube;
+    if (!youtube || this.usesProviderChrome() || !this.chromelessEmbedActive()) {
+      return;
+    }
+
+    if (this.hasSidecarCaptionTracks()) {
+      if (this.embedCaptionBridgeActive) {
+        this.unloadInFrameCaptionsModule();
+        this.refreshSidecarCaptionControls();
+      }
+      return;
+    }
+
+    const rawList = readYoutubeCaptionTracklist(youtube);
+    if (!rawList?.length) {
+      return;
+    }
+
+    const filtered = filterYoutubeCaptionTracklist(rawList);
+    if (filtered.length === 0) {
+      return;
+    }
+
+    const probeTrack = filtered[0]?.raw;
+    if (!probeTrack || !probeYoutubeCaptionTrack(youtube, probeTrack)) {
+      this.unloadInFrameCaptionsModule();
+      return;
+    }
+
+    this.embedCaptionBridgeActive = true;
+    this.youtubeEmbedCaptionMenu = filtered.map(({ id, language, label }) => ({ id, language, label }));
+    this.youtubeEmbedCaptionTracks.clear();
+    for (const entry of filtered) {
+      this.youtubeEmbedCaptionTracks.set(entry.id, entry.raw);
+    }
+
+    this.refreshSidecarCaptionControls();
   }
 
   private refreshSidecarCaptionControls(): void {
@@ -401,14 +507,15 @@ export class YouTubeRenderer implements Renderer {
             if (this.chromelessEmbedActive()) {
               this.setYoutubeIdleCover(true);
             }
-            this.disableInFrameCaptions();
-            void syncYoutubeEmbedAspectRatio(this.player, this.videoId, this.iframe);
+            this.syncEmbedCaptionBridgeFromApi();
+            this.syncInFrameCaptionsWithVidPly();
+            void syncYoutubeEmbedAspectRatio(this.player, this.videoId);
             this.refreshSidecarCaptionControls();
             resolve();
           },
-          // YouTube may load its captions module after ready; switch it off again.
           onApiChange: () => {
-            this.disableInFrameCaptions();
+            this.syncEmbedCaptionBridgeFromApi();
+            this.syncInFrameCaptionsWithVidPly();
           },
           onStateChange: (event: unknown) => this.handleStateChange(event as { data: number }),
           onError: (event: unknown) => this.handleError(event as { data: 2 | 5 | 100 | 101 | 150 })
@@ -485,7 +592,7 @@ export class YouTubeRenderer implements Renderer {
           this.setYoutubeIdleCover(false);
           this.player.setEmbedChromeReproducing(true);
         }
-        this.disableInFrameCaptions();
+        this.syncInFrameCaptionsWithVidPly();
         this.player.emit('play');
         this.player.emit('playing');
 
@@ -576,6 +683,9 @@ export class YouTubeRenderer implements Renderer {
     this.videoId = videoId;
     this.player.currentSource = src;
     this.endScreenPreempted = false;
+    this.embedCaptionBridgeActive = false;
+    this.youtubeEmbedCaptionMenu = [];
+    this.youtubeEmbedCaptionTracks.clear();
 
     if (this.isReady && this.youtube) {
       // Cue only — PlaylistManager / Player.play() starts playback explicitly.
@@ -583,7 +693,9 @@ export class YouTubeRenderer implements Renderer {
       if (this.chromelessEmbedActive()) {
         this.setYoutubeIdleCover(true);
       }
-      void syncYoutubeEmbedAspectRatio(this.player, this.videoId, this.iframe);
+      void syncYoutubeEmbedAspectRatio(this.player, this.videoId);
+      this.syncEmbedCaptionBridgeFromApi();
+      this.syncInFrameCaptionsWithVidPly();
       this.refreshSidecarCaptionControls();
     }
   }
@@ -631,6 +743,32 @@ export class YouTubeRenderer implements Renderer {
     }
   }
 
+  handlesOwnCaptions(): boolean {
+    return this.embedCaptionBridgeActive && !this.usesProviderChrome();
+  }
+
+  async getEmbedCaptionTracks(): Promise<EmbedCaptionTrack[]> {
+    if (!this.embedCaptionBridgeActive || this.usesProviderChrome()) {
+      return [];
+    }
+    return [...this.youtubeEmbedCaptionMenu];
+  }
+
+  async setEmbedCaptionTrack(trackId: string | null): Promise<void> {
+    const youtube = this.youtube;
+    if (!youtube || !this.embedCaptionBridgeActive || this.usesProviderChrome()) {
+      return;
+    }
+    if (trackId === null) {
+      youtube.setOption?.('captions', 'track', {});
+      return;
+    }
+    const raw = this.youtubeEmbedCaptionTracks.get(trackId);
+    if (raw) {
+      youtube.setOption?.('captions', 'track', raw);
+    }
+  }
+
   destroy() {
     if (this.timeUpdateInterval) {
       clearInterval(this.timeUpdateInterval);
@@ -647,6 +785,9 @@ export class YouTubeRenderer implements Renderer {
       }
     }
     this.youtubeMount = null;
+    this.embedCaptionBridgeActive = false;
+    this.youtubeEmbedCaptionMenu = [];
+    this.youtubeEmbedCaptionTracks.clear();
 
     const prefix = this.player.options.classPrefix;
     this.player.container?.classList.remove(`${prefix}-embed-youtube`);

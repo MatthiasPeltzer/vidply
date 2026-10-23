@@ -38,6 +38,7 @@ export declare class CaptionManager {
     init(): void;
     createElement(): void;
     loadTracks(): void;
+    private hasSidecarCaptionTracks;
     private loadEmbedCaptionTracks;
     /**
      * Sync hls.js subtitle rendition to match the given language.

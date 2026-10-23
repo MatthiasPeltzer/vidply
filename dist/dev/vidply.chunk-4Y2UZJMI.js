@@ -119,9 +119,22 @@ var CaptionManager = class {
     }
     void this.loadEmbedCaptionTracks();
   }
+  hasSidecarCaptionTracks() {
+    for (let i = 0; i < this.player.element.textTracks.length; i++) {
+      const tt = this.player.element.textTracks[i];
+      if (tt && (tt.kind === "captions" || tt.kind === "subtitles")) {
+        return true;
+      }
+    }
+    const trackEls = this.player.element.querySelectorAll('track[kind="captions"], track[kind="subtitles"]');
+    return trackEls.length > 0;
+  }
   async loadEmbedCaptionTracks() {
     const renderer = this.player.renderer;
     if (!renderer?.getEmbedCaptionTracks) {
+      return;
+    }
+    if (renderer.rendererType === "youtube" && this.hasSidecarCaptionTracks()) {
       return;
     }
     const embedTracks = await Promise.resolve(renderer.getEmbedCaptionTracks());
@@ -533,4 +546,4 @@ var CaptionManager = class {
 export {
   CaptionManager
 };
-//# sourceMappingURL=vidply.chunk-N3ZGYO33.js.map
+//# sourceMappingURL=vidply.chunk-4Y2UZJMI.js.map

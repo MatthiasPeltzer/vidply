@@ -1672,10 +1672,7 @@ video[data-vidply]:not(.vidply-initialized) {
   opacity: 0;
 }
 
-/*
- * Crop in-iframe YouTube chrome: inner crop box inside a fixed 16:9 host.
- * Still a cross-origin iframe; this only masks pixels, it does not remove YouTube UI.
- */
+/* Chromeless YouTube host: iframe fills the aspect-ratio box at 100% (no scaling or cropping). */
 .vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"].vidply-youtube-chromeless-host {
   aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
   background: #000;
@@ -1685,7 +1682,7 @@ video[data-vidply]:not(.vidply-initialized) {
   z-index: 0;
 }
 
-/* Fill the aspect-ratio host; optional `-chromeless-crop` may nudge the iframe only. */
+/* Fill the aspect-ratio host. */
 .vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"].vidply-youtube-chromeless-host .vidply-youtube-crop {
   height: 100%;
   inset: 0;
@@ -1707,22 +1704,9 @@ video[data-vidply]:not(.vidply-initialized) {
   width: 100% !important;
 }
 
-/*
- * Landscape ~16:9: scale inside overflow:hidden host to clip in-iframe title/logo bars.
- * Uses transform (not height/top offsets) so layout stays aligned with the host box.
- */
 .vidply-player.vidply-embed-chrome-vidply {
-  --vidply-youtube-chromeless-crop-scale: 1.45;
-  /* Minimal upward shift: large negative values leave a black band at the bottom of the host. */
-  --vidply-youtube-chromeless-crop-shift-y: -2.5%;
-  --vidply-youtube-chromeless-crop-inset: 10% 0 6% 0;
   /* Nudge VidPly’s center play up to cover YouTube’s in-frame pause glyph (positive = upward). */
   --vidply-youtube-chromeless-play-overlay-shift-y: 2.75%;
-}
-
-.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"].vidply-youtube-chromeless-host.vidply-youtube-chromeless-crop .vidply-youtube-crop iframe {
-  clip-path: inset(var(--vidply-youtube-chromeless-crop-inset));
-  transform: translateY(var(--vidply-youtube-chromeless-crop-shift-y)) scale(var(--vidply-youtube-chromeless-crop-scale));
 }
 
 /* SoundCloud with VidPly bar: widget stays interactive above the control bar. */

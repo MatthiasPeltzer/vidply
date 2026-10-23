@@ -1,4 +1,4 @@
-import type { Renderer } from '../types/renderer.js';
+import type { EmbedCaptionTrack, Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
 export declare class YouTubeRenderer implements Renderer {
     /** Privacy-enhanced embed host (no cookies until the visitor starts playback). */
@@ -14,6 +14,10 @@ export declare class YouTubeRenderer implements Renderer {
     private youtubeMount;
     timeUpdateInterval?: ReturnType<typeof setInterval>;
     private endScreenPreempted;
+    /** When true, VidPly CC menu drives YouTube in-frame captions via setOption. */
+    private embedCaptionBridgeActive;
+    private youtubeEmbedCaptionMenu;
+    private youtubeEmbedCaptionTracks;
     constructor(player: Player);
     /** origin + widget_referrer for YouTube's embed client-identity checks (iOS). */
     static embedIdentityPlayerVars(): Record<string, string>;
@@ -39,8 +43,14 @@ export declare class YouTubeRenderer implements Renderer {
     extractVideoId(url: string): string | null;
     loadYouTubeAPI(): Promise<void>;
     private chromelessEmbedActive;
-    /** YouTube captions never render: VidPly only shows its own sidecar WebVTT tracks. */
-    private disableInFrameCaptions;
+    private hasSidecarCaptionTracks;
+    private unloadInFrameCaptionsModule;
+    /**
+     * When the embed caption bridge is inactive, unload YouTube's captions module.
+     * When active, only clear the active track if VidPly captions are off.
+     */
+    private syncInFrameCaptionsWithVidPly;
+    private syncEmbedCaptionBridgeFromApi;
     private refreshSidecarCaptionControls;
     private syncChromelessHostClasses;
     private applyChromelessIdlePoster;
@@ -72,6 +82,9 @@ export declare class YouTubeRenderer implements Renderer {
     setVolume(volume: number): void;
     setMuted(muted: boolean): void;
     setPlaybackSpeed(speed: number): void;
+    handlesOwnCaptions(): boolean;
+    getEmbedCaptionTracks(): Promise<EmbedCaptionTrack[]>;
+    setEmbedCaptionTrack(trackId: string | null): Promise<void>;
     destroy(): void;
 }
 //# sourceMappingURL=YouTubeRenderer.d.ts.map

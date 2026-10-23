@@ -106,6 +106,8 @@ export declare class ControlBar {
     hasEmbedCaptionBridge(): boolean;
     /** Sidecar VTT / TextTrack transcript — not available for embed-only YouTube/Vimeo. */
     hasTranscriptSource(): boolean;
+    /** Caption font/colors apply only to VidPly’s overlay, not provider in-frame captions. */
+    hasCaptionStyleSource(): boolean;
     /**
      * Sidecar WebVTT, native `<track>`, or playlist caption files — not provider-embed caption ids alone.
      */
@@ -305,6 +307,7 @@ export declare class ControlBar {
     /**
      * Dynamically add caption style button if HLS subtitle tracks become available
      */
+    removeCaptionStyleButton(): void;
     ensureCaptionStyleButton(): void;
     /**
      * Dynamically add transcript button if HLS subtitle tracks become available

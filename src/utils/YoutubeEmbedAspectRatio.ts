@@ -1,8 +1,5 @@
 import type { Player } from '../core/Player.js';
-import {
-  resolveYoutubeThumbnailDimensions,
-  youtubeChromelessCropRecommended
-} from './YoutubeThumbnailPoster.js';
+import { resolveYoutubeThumbnailDimensions } from './YoutubeThumbnailPoster.js';
 
 /**
  * YouTube’s IFrame API does not expose video width/height (unlike Vimeo).
@@ -10,8 +7,7 @@ import {
  */
 export async function syncYoutubeEmbedAspectRatio(
   player: Player,
-  videoId: string | null,
-  host: HTMLDivElement | null
+  videoId: string | null
 ): Promise<void> {
   if (!videoId) {
     return;
@@ -23,12 +19,4 @@ export async function syncYoutubeEmbedAspectRatio(
   }
 
   player.setEmbedAspectRatio(dimensions.width, dimensions.height);
-
-  if (!host) {
-    return;
-  }
-
-  const prefix = player.options.classPrefix;
-  const useCrop = youtubeChromelessCropRecommended(dimensions.width, dimensions.height);
-  host.classList.toggle(`${prefix}-youtube-chromeless-crop`, useCrop);
 }

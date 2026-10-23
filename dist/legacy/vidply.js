@@ -2997,10 +2997,23 @@
           }
           void this.loadEmbedCaptionTracks();
         }
+        hasSidecarCaptionTracks() {
+          for (let i = 0; i < this.player.element.textTracks.length; i++) {
+            const tt = this.player.element.textTracks[i];
+            if (tt && (tt.kind === "captions" || tt.kind === "subtitles")) {
+              return true;
+            }
+          }
+          const trackEls = this.player.element.querySelectorAll('track[kind="captions"], track[kind="subtitles"]');
+          return trackEls.length > 0;
+        }
         async loadEmbedCaptionTracks() {
           var _a;
           const renderer = this.player.renderer;
           if (!(renderer == null ? void 0 : renderer.getEmbedCaptionTracks)) {
+            return;
+          }
+          if (renderer.rendererType === "youtube" && this.hasSidecarCaptionTracks()) {
             return;
           }
           const embedTracks = await Promise.resolve(renderer.getEmbedCaptionTracks());
@@ -9987,6 +10000,94 @@
     }
   });
 
+  // src/utils/YoutubeEmbedCaptions.ts
+  function normalizeYoutubeVssId(track) {
+    return String(track.vssId ?? track.vss_id ?? "").trim();
+  }
+  function isYoutubeAsrTrack(track) {
+    const kind = String(track.kind ?? "").toLowerCase();
+    if (kind === "asr") {
+      return true;
+    }
+    return normalizeYoutubeVssId(track).startsWith("a.");
+  }
+  function languageKeyFromYoutubeTrack(track) {
+    const code = String(track.languageCode ?? "").trim().toLowerCase();
+    if (code) {
+      return code.split("-")[0] ?? code;
+    }
+    const vss = normalizeYoutubeVssId(track);
+    if (vss.startsWith("a.")) {
+      return vss.slice(2);
+    }
+    if (vss.startsWith(".")) {
+      return vss.slice(1);
+    }
+    return vss;
+  }
+  function filterYoutubeCaptionTracklist(rawList) {
+    if (!Array.isArray(rawList) || rawList.length === 0) {
+      return [];
+    }
+    const typed = rawList;
+    const byLang = /* @__PURE__ */ new Map();
+    for (const track of typed) {
+      const key = languageKeyFromYoutubeTrack(track);
+      if (!key) {
+        continue;
+      }
+      const bucket = byLang.get(key) ?? [];
+      bucket.push(track);
+      byLang.set(key, bucket);
+    }
+    const result = [];
+    for (const tracks of byLang.values()) {
+      const uploaded = tracks.find((t) => !isYoutubeAsrTrack(t));
+      const chosen = uploaded ?? tracks.find((t) => isYoutubeAsrTrack(t));
+      if (!chosen) {
+        continue;
+      }
+      const vssId = normalizeYoutubeVssId(chosen);
+      const id = vssId || `${chosen.languageCode ?? ""}|${chosen.kind ?? ""}`;
+      const baseName = chosen.displayName || chosen.languageName || chosen.languageCode || id;
+      const label = uploaded ? baseName : `${baseName} (auto-generated)`;
+      result.push({
+        id,
+        language: chosen.languageCode ?? languageKeyFromYoutubeTrack(chosen),
+        label,
+        raw: chosen
+      });
+    }
+    return result.sort((a, b) => a.label.localeCompare(b.label));
+  }
+  function readYoutubeCaptionTracklist(youtube) {
+    var _a;
+    try {
+      const list = (_a = youtube.getOption) == null ? void 0 : _a.call(youtube, "captions", "tracklist");
+      if (!Array.isArray(list)) {
+        return null;
+      }
+      return list;
+    } catch {
+      return null;
+    }
+  }
+  function probeYoutubeCaptionTrack(youtube, track) {
+    var _a, _b;
+    try {
+      (_a = youtube.setOption) == null ? void 0 : _a.call(youtube, "captions", "track", track);
+      (_b = youtube.setOption) == null ? void 0 : _b.call(youtube, "captions", "track", {});
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  var init_YoutubeEmbedCaptions = __esm({
+    "src/utils/YoutubeEmbedCaptions.ts"() {
+      "use strict";
+    }
+  });
+
   // src/utils/ScriptLoader.ts
   function findExistingScript(url) {
     const scripts = document.getElementsByTagName("script");
@@ -10186,13 +10287,6 @@
     }
     return null;
   }
-  function youtubeChromelessCropRecommended(width, height) {
-    if (width <= 0 || height <= 0) {
-      return true;
-    }
-    const ratio = width / height;
-    return ratio > 1.55 && ratio < 1.85;
-  }
   var init_YoutubeThumbnailPoster = __esm({
     "src/utils/YoutubeThumbnailPoster.ts"() {
       "use strict";
@@ -10200,7 +10294,7 @@
   });
 
   // src/utils/YoutubeEmbedAspectRatio.ts
-  async function syncYoutubeEmbedAspectRatio(player, videoId, host) {
+  async function syncYoutubeEmbedAspectRatio(player, videoId) {
     if (!videoId) {
       return;
     }
@@ -10209,12 +10303,6 @@
       return;
     }
     player.setEmbedAspectRatio(dimensions.width, dimensions.height);
-    if (!host) {
-      return;
-    }
-    const prefix = player.options.classPrefix;
-    const useCrop = youtubeChromelessCropRecommended(dimensions.width, dimensions.height);
-    host.classList.toggle(`${prefix}-youtube-chromeless-crop`, useCrop);
   }
   var init_YoutubeEmbedAspectRatio = __esm({
     "src/utils/YoutubeEmbedAspectRatio.ts"() {
@@ -10232,6 +10320,7 @@
   var init_YouTubeRenderer = __esm({
     "src/renderers/YouTubeRenderer.ts"() {
       "use strict";
+      init_YoutubeEmbedCaptions();
       init_ScriptLoader();
       init_EmbedIdleCover();
       init_YoutubeEmbedAspectRatio();
@@ -10250,6 +10339,10 @@
           __publicField(this, "youtubeMount", null);
           __publicField(this, "timeUpdateInterval");
           __publicField(this, "endScreenPreempted", false);
+          /** When true, VidPly CC menu drives YouTube in-frame captions via setOption. */
+          __publicField(this, "embedCaptionBridgeActive", false);
+          __publicField(this, "youtubeEmbedCaptionMenu", []);
+          __publicField(this, "youtubeEmbedCaptionTracks", /* @__PURE__ */ new Map());
           this.player = player;
           this.media = player.element;
           this.youtube = null;
@@ -10426,8 +10519,22 @@
         chromelessEmbedActive() {
           return !this.usesProviderChrome();
         }
-        /** YouTube captions never render: VidPly only shows its own sidecar WebVTT tracks. */
-        disableInFrameCaptions() {
+        hasSidecarCaptionTracks() {
+          const el = this.player.element;
+          const trackEls = el.querySelectorAll('track[kind="captions"], track[kind="subtitles"]');
+          if (trackEls.length > 0) {
+            return true;
+          }
+          const textTracks = el.textTracks;
+          for (let i = 0; i < textTracks.length; i++) {
+            const tt = textTracks[i];
+            if (tt && (tt.kind === "captions" || tt.kind === "subtitles")) {
+              return true;
+            }
+          }
+          return false;
+        }
+        unloadInFrameCaptionsModule() {
           var _a, _b;
           const youtube = this.youtube;
           if (!youtube) {
@@ -10435,9 +10542,78 @@
           }
           try {
             (_a = youtube.setOption) == null ? void 0 : _a.call(youtube, "captions", "track", {});
+          } catch {
+          }
+          try {
             (_b = youtube.unloadModule) == null ? void 0 : _b.call(youtube, "captions");
           } catch {
           }
+          this.embedCaptionBridgeActive = false;
+          this.youtubeEmbedCaptionMenu = [];
+          this.youtubeEmbedCaptionTracks.clear();
+        }
+        /**
+         * When the embed caption bridge is inactive, unload YouTube's captions module.
+         * When active, only clear the active track if VidPly captions are off.
+         */
+        syncInFrameCaptionsWithVidPly() {
+          var _a;
+          const youtube = this.youtube;
+          if (!youtube) {
+            return;
+          }
+          if (this.usesProviderChrome() || !this.chromelessEmbedActive()) {
+            this.unloadInFrameCaptionsModule();
+            return;
+          }
+          if (this.hasSidecarCaptionTracks()) {
+            this.unloadInFrameCaptionsModule();
+            return;
+          }
+          if (!this.embedCaptionBridgeActive) {
+            this.unloadInFrameCaptionsModule();
+            return;
+          }
+          if (!this.player.state.captionsEnabled) {
+            try {
+              (_a = youtube.setOption) == null ? void 0 : _a.call(youtube, "captions", "track", {});
+            } catch {
+            }
+          }
+        }
+        syncEmbedCaptionBridgeFromApi() {
+          var _a;
+          const youtube = this.youtube;
+          if (!youtube || this.usesProviderChrome() || !this.chromelessEmbedActive()) {
+            return;
+          }
+          if (this.hasSidecarCaptionTracks()) {
+            if (this.embedCaptionBridgeActive) {
+              this.unloadInFrameCaptionsModule();
+              this.refreshSidecarCaptionControls();
+            }
+            return;
+          }
+          const rawList = readYoutubeCaptionTracklist(youtube);
+          if (!(rawList == null ? void 0 : rawList.length)) {
+            return;
+          }
+          const filtered = filterYoutubeCaptionTracklist(rawList);
+          if (filtered.length === 0) {
+            return;
+          }
+          const probeTrack = (_a = filtered[0]) == null ? void 0 : _a.raw;
+          if (!probeTrack || !probeYoutubeCaptionTrack(youtube, probeTrack)) {
+            this.unloadInFrameCaptionsModule();
+            return;
+          }
+          this.embedCaptionBridgeActive = true;
+          this.youtubeEmbedCaptionMenu = filtered.map(({ id, language, label }) => ({ id, language, label }));
+          this.youtubeEmbedCaptionTracks.clear();
+          for (const entry of filtered) {
+            this.youtubeEmbedCaptionTracks.set(entry.id, entry.raw);
+          }
+          this.refreshSidecarCaptionControls();
         }
         refreshSidecarCaptionControls() {
           var _a;
@@ -10558,14 +10734,15 @@
                   if (this.chromelessEmbedActive()) {
                     this.setYoutubeIdleCover(true);
                   }
-                  this.disableInFrameCaptions();
-                  void syncYoutubeEmbedAspectRatio(this.player, this.videoId, this.iframe);
+                  this.syncEmbedCaptionBridgeFromApi();
+                  this.syncInFrameCaptionsWithVidPly();
+                  void syncYoutubeEmbedAspectRatio(this.player, this.videoId);
                   this.refreshSidecarCaptionControls();
                   resolve();
                 },
-                // YouTube may load its captions module after ready; switch it off again.
                 onApiChange: () => {
-                  this.disableInFrameCaptions();
+                  this.syncEmbedCaptionBridgeFromApi();
+                  this.syncInFrameCaptionsWithVidPly();
                 },
                 onStateChange: (event) => this.handleStateChange(event),
                 onError: (event) => this.handleError(event)
@@ -10633,7 +10810,7 @@
                 this.setYoutubeIdleCover(false);
                 this.player.setEmbedChromeReproducing(true);
               }
-              this.disableInFrameCaptions();
+              this.syncInFrameCaptionsWithVidPly();
               this.player.emit("play");
               this.player.emit("playing");
               if (this.player.options.onPlay) {
@@ -10710,12 +10887,17 @@
           this.videoId = videoId;
           this.player.currentSource = src;
           this.endScreenPreempted = false;
+          this.embedCaptionBridgeActive = false;
+          this.youtubeEmbedCaptionMenu = [];
+          this.youtubeEmbedCaptionTracks.clear();
           if (this.isReady && this.youtube) {
             this.youtube.cueVideoById(videoId);
             if (this.chromelessEmbedActive()) {
               this.setYoutubeIdleCover(true);
             }
-            void syncYoutubeEmbedAspectRatio(this.player, this.videoId, this.iframe);
+            void syncYoutubeEmbedAspectRatio(this.player, this.videoId);
+            this.syncEmbedCaptionBridgeFromApi();
+            this.syncInFrameCaptionsWithVidPly();
             this.refreshSidecarCaptionControls();
           }
         }
@@ -10756,6 +10938,30 @@
             this.player.state.playbackSpeed = speed;
           }
         }
+        handlesOwnCaptions() {
+          return this.embedCaptionBridgeActive && !this.usesProviderChrome();
+        }
+        async getEmbedCaptionTracks() {
+          if (!this.embedCaptionBridgeActive || this.usesProviderChrome()) {
+            return [];
+          }
+          return [...this.youtubeEmbedCaptionMenu];
+        }
+        async setEmbedCaptionTrack(trackId) {
+          var _a, _b;
+          const youtube = this.youtube;
+          if (!youtube || !this.embedCaptionBridgeActive || this.usesProviderChrome()) {
+            return;
+          }
+          if (trackId === null) {
+            (_a = youtube.setOption) == null ? void 0 : _a.call(youtube, "captions", "track", {});
+            return;
+          }
+          const raw = this.youtubeEmbedCaptionTracks.get(trackId);
+          if (raw) {
+            (_b = youtube.setOption) == null ? void 0 : _b.call(youtube, "captions", "track", raw);
+          }
+        }
         destroy() {
           var _a, _b, _c;
           if (this.timeUpdateInterval) {
@@ -10771,6 +10977,9 @@
             }
           }
           this.youtubeMount = null;
+          this.embedCaptionBridgeActive = false;
+          this.youtubeEmbedCaptionMenu = [];
+          this.youtubeEmbedCaptionTracks.clear();
           const prefix = this.player.options.classPrefix;
           (_a = this.player.container) == null ? void 0 : _a.classList.remove(`${prefix}-embed-youtube`);
           clearEmbedIdleCover(this.player);
@@ -14325,7 +14534,7 @@
         btn.dataset.overflowPriorityMobile = "3";
         this.rightButtons.appendChild(btn);
       }
-      if (this.player.options.captionStyleButton && hasCaptions) {
+      if (this.player.options.captionStyleButton && this.hasCaptionStyleSource()) {
         const btn = this.createCaptionStyleButton();
         btn.dataset.overflowPriority = "3";
         btn.dataset.overflowPriorityMobile = "3";
@@ -14524,6 +14733,10 @@
     hasTranscriptSource() {
       return this.hasVidPlyProvidedCaptionTracks();
     }
+    /** Caption font/colors apply only to VidPly’s overlay, not provider in-frame captions. */
+    hasCaptionStyleSource() {
+      return this.hasVidPlyProvidedCaptionTracks();
+    }
     /**
      * Sidecar WebVTT, native `<track>`, or playlist caption files — not provider-embed caption ids alone.
      */
@@ -14552,7 +14765,15 @@
       return false;
     }
     hasCaptionTracks() {
-      return this.hasVidPlyProvidedCaptionTracks();
+      var _a;
+      if (this.hasVidPlyProvidedCaptionTracks()) {
+        return true;
+      }
+      const managed = (_a = this.player.captionManager) == null ? void 0 : _a.tracks;
+      if (this.hasEmbedCaptionBridge() && (managed == null ? void 0 : managed.some((t) => t.embedCaptionId))) {
+        return true;
+      }
+      return false;
     }
     hasQualityLevels() {
       if (this.player.renderer && this.player.renderer.getQualities) {
@@ -16782,8 +17003,10 @@
       if (this.player.options.captionsButton && !this.controls.captions) {
         this.ensureCaptionsButton();
       }
-      if (this.player.options.captionStyleButton && !this.controls.captionStyle) {
+      if (this.player.options.captionStyleButton && this.hasCaptionStyleSource() && !this.controls.captionStyle) {
         this.ensureCaptionStyleButton();
+      } else if (this.controls.captionStyle && !this.hasCaptionStyleSource()) {
+        this.removeCaptionStyleButton();
       }
       if (this.player.options.transcriptButton && this.hasTranscriptSource() && !this.controls.transcript) {
         this.ensureTranscriptButton();
@@ -16813,8 +17036,19 @@
     /**
      * Dynamically add caption style button if HLS subtitle tracks become available
      */
+    removeCaptionStyleButton() {
+      if (!this.controls.captionStyle) {
+        return;
+      }
+      this.controls.captionStyle.remove();
+      delete this.controls.captionStyle;
+      this.checkOverflow();
+    }
     ensureCaptionStyleButton() {
       if (!this.player.options.captionStyleButton) return;
+      if (!this.hasCaptionStyleSource()) {
+        return;
+      }
       if (this.controls.captionStyle) return;
       const btn = this.createCaptionStyleButton();
       btn.dataset.overflowPriority = "3";

@@ -10,6 +10,4 @@ export declare function resolveYoutubeThumbnailDimensions(videoId: string): Prom
     width: number;
     height: number;
 } | null>;
-/** In-iframe chrome crop is only tuned for landscape ~16:9 YouTube frames. */
-export declare function youtubeChromelessCropRecommended(width: number, height: number): boolean;
 //# sourceMappingURL=YoutubeThumbnailPoster.d.ts.map

@@ -170,9 +170,24 @@ export class CaptionManager {
         void this.loadEmbedCaptionTracks();
     }
 
+    private hasSidecarCaptionTracks(): boolean {
+        for (let i = 0; i < this.player.element.textTracks.length; i++) {
+            const tt = this.player.element.textTracks[i];
+            if (tt && (tt.kind === 'captions' || tt.kind === 'subtitles')) {
+                return true;
+            }
+        }
+        const trackEls = this.player.element.querySelectorAll('track[kind="captions"], track[kind="subtitles"]');
+        return trackEls.length > 0;
+    }
+
     private async loadEmbedCaptionTracks() {
         const renderer = this.player.renderer;
         if (!renderer?.getEmbedCaptionTracks) {
+            return;
+        }
+
+        if (renderer.rendererType === 'youtube' && this.hasSidecarCaptionTracks()) {
             return;
         }
 

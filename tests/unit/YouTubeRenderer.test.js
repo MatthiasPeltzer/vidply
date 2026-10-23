@@ -285,46 +285,113 @@ describe('YouTubeRenderer', () => {
     });
   });
 
-  describe('YouTube captions are never shown', () => {
+  describe('YouTube embed caption bridge', () => {
     beforeEach(() => {
       mockPlayer.container = document.createElement('div');
       mockPlayer.currentSource = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+      attachEmbedChromeMocks(mockPlayer, 'youtube');
+      mockPlayer.options.embedChrome = 'vidply';
+      mockPlayer.captionManager = { refreshTracks: vi.fn().mockResolvedValue(0) };
+      mockPlayer.controlBar = { syncCaptionControlsFromTracks: vi.fn() };
       renderer = new YouTubeRenderer(mockPlayer);
+      renderer.iframe = document.createElement('div');
+    });
+
+    it('exposes embed caption API methods', () => {
+      expect(typeof renderer.getEmbedCaptionTracks).toBe('function');
+      expect(typeof renderer.setEmbedCaptionTrack).toBe('function');
+    });
+
+    it('returns no embed tracks until the bridge is active', async () => {
+      await expect(renderer.getEmbedCaptionTracks()).resolves.toEqual([]);
+    });
+
+    it('lists filtered tracks after a successful API discovery', async () => {
       renderer.youtube = {
+        getOption: vi.fn((module, option) => {
+          if (module === 'captions' && option === 'tracklist') {
+            return [{ languageCode: 'en', displayName: 'English', vssId: '.en' }];
+          }
+          return null;
+        }),
         setOption: vi.fn(),
         unloadModule: vi.fn()
       };
+      renderer['syncEmbedCaptionBridgeFromApi']();
+      await expect(renderer.getEmbedCaptionTracks()).resolves.toEqual([
+        { id: '.en', language: 'en', label: 'English' }
+      ]);
+      expect(renderer.handlesOwnCaptions()).toBe(true);
     });
 
-    afterEach(() => {
-      delete window.YT;
+    it('labels ASR-only tracks as auto-generated', async () => {
+      renderer.youtube = {
+        getOption: vi.fn(() => [
+          { languageCode: 'de', displayName: 'German', kind: 'asr', vssId: 'a.de' }
+        ]),
+        setOption: vi.fn(),
+        unloadModule: vi.fn()
+      };
+      renderer['syncEmbedCaptionBridgeFromApi']();
+      await expect(renderer.getEmbedCaptionTracks()).resolves.toEqual([
+        { id: 'a.de', language: 'de', label: 'German (auto-generated)' }
+      ]);
     });
 
-    it('does not offer YouTube caption tracks to the VidPly CC menu', () => {
-      expect(renderer.getEmbedCaptionTracks).toBeUndefined();
-      expect(renderer.setEmbedCaptionTrack).toBeUndefined();
-    });
-
-    it.each(['vidply', 'provider'])('switches YouTube captions off with %s chrome', (embedChrome) => {
-      attachEmbedChromeMocks(mockPlayer, 'youtube');
-      mockPlayer.options.embedChrome = embedChrome;
-      renderer.disableInFrameCaptions();
-      expect(renderer.youtube.setOption).toHaveBeenCalledWith('captions', 'track', {});
+    it('does not activate the bridge when setOption probe fails', async () => {
+      renderer.youtube = {
+        getOption: vi.fn(() => [{ languageCode: 'en', vssId: '.en' }]),
+        setOption: vi.fn(() => {
+          throw new Error('fail');
+        }),
+        unloadModule: vi.fn()
+      };
+      renderer['syncEmbedCaptionBridgeFromApi']();
+      await expect(renderer.getEmbedCaptionTracks()).resolves.toEqual([]);
       expect(renderer.youtube.unloadModule).toHaveBeenCalledWith('captions');
     });
 
-    it.each(['vidply', 'provider'])('requests cc_load_policy 0 with %s chrome', (embedChrome) => {
-      attachEmbedChromeMocks(mockPlayer, 'youtube');
-      mockPlayer.options.embedChrome = embedChrome;
+    it('skips the bridge when sidecar track elements exist', async () => {
+      const track = document.createElement('track');
+      track.setAttribute('kind', 'captions');
+      track.setAttribute('src', '/captions.vtt');
+      mockPlayer.element.appendChild(track);
+      renderer.youtube = {
+        getOption: vi.fn(() => [{ languageCode: 'en', vssId: '.en' }]),
+        setOption: vi.fn(),
+        unloadModule: vi.fn()
+      };
+      renderer['syncEmbedCaptionBridgeFromApi']();
+      await expect(renderer.getEmbedCaptionTracks()).resolves.toEqual([]);
+      expect(renderer.handlesOwnCaptions()).toBe(false);
+      expect(renderer.youtube.unloadModule).not.toHaveBeenCalled();
+      track.remove();
+    });
+
+    it('setEmbedCaptionTrack selects a YouTube track by id', async () => {
+      const raw = { languageCode: 'en', vssId: '.en' };
+      renderer.youtube = {
+        getOption: vi.fn(() => [raw]),
+        setOption: vi.fn(),
+        unloadModule: vi.fn()
+      };
+      renderer['syncEmbedCaptionBridgeFromApi']();
+      await renderer.setEmbedCaptionTrack('.en');
+      expect(renderer.youtube.setOption).toHaveBeenCalledWith('captions', 'track', raw);
+      await renderer.setEmbedCaptionTrack(null);
+      expect(renderer.youtube.setOption).toHaveBeenCalledWith('captions', 'track', {});
+    });
+
+    it('requests cc_load_policy 0 with vidply chrome', () => {
       window.YT = { Player: vi.fn() };
       renderer.videoId = 'dQw4w9WgXcQ';
-      renderer.iframe = document.createElement('div');
       renderer.iframe.id = 'youtube-player-test';
 
       void renderer.initializePlayer();
 
       const config = window.YT.Player.mock.calls[0][1];
       expect(config.playerVars.cc_load_policy).toBe(0);
+      delete window.YT;
     });
   });
 });

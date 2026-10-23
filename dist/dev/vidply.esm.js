@@ -27,7 +27,7 @@ import {
 } from "./vidply.chunk-3TFNDHM6.js";
 import {
   CaptionManager
-} from "./vidply.chunk-N3ZGYO33.js";
+} from "./vidply.chunk-4Y2UZJMI.js";
 import {
   StorageManager
 } from "./vidply.chunk-F6NVSZZU.js";
@@ -969,7 +969,7 @@ var ControlBar = class {
       btn.dataset.overflowPriorityMobile = "3";
       this.rightButtons.appendChild(btn);
     }
-    if (this.player.options.captionStyleButton && hasCaptions) {
+    if (this.player.options.captionStyleButton && this.hasCaptionStyleSource()) {
       const btn = this.createCaptionStyleButton();
       btn.dataset.overflowPriority = "3";
       btn.dataset.overflowPriorityMobile = "3";
@@ -1165,6 +1165,10 @@ var ControlBar = class {
   hasTranscriptSource() {
     return this.hasVidPlyProvidedCaptionTracks();
   }
+  /** Caption font/colors apply only to VidPly’s overlay, not provider in-frame captions. */
+  hasCaptionStyleSource() {
+    return this.hasVidPlyProvidedCaptionTracks();
+  }
   /**
    * Sidecar WebVTT, native `<track>`, or playlist caption files — not provider-embed caption ids alone.
    */
@@ -1192,7 +1196,14 @@ var ControlBar = class {
     return false;
   }
   hasCaptionTracks() {
-    return this.hasVidPlyProvidedCaptionTracks();
+    if (this.hasVidPlyProvidedCaptionTracks()) {
+      return true;
+    }
+    const managed = this.player.captionManager?.tracks;
+    if (this.hasEmbedCaptionBridge() && managed?.some((t) => t.embedCaptionId)) {
+      return true;
+    }
+    return false;
   }
   hasQualityLevels() {
     if (this.player.renderer && this.player.renderer.getQualities) {
@@ -3407,8 +3418,10 @@ var ControlBar = class {
     if (this.player.options.captionsButton && !this.controls.captions) {
       this.ensureCaptionsButton();
     }
-    if (this.player.options.captionStyleButton && !this.controls.captionStyle) {
+    if (this.player.options.captionStyleButton && this.hasCaptionStyleSource() && !this.controls.captionStyle) {
       this.ensureCaptionStyleButton();
+    } else if (this.controls.captionStyle && !this.hasCaptionStyleSource()) {
+      this.removeCaptionStyleButton();
     }
     if (this.player.options.transcriptButton && this.hasTranscriptSource() && !this.controls.transcript) {
       this.ensureTranscriptButton();
@@ -3438,8 +3451,19 @@ var ControlBar = class {
   /**
    * Dynamically add caption style button if HLS subtitle tracks become available
    */
+  removeCaptionStyleButton() {
+    if (!this.controls.captionStyle) {
+      return;
+    }
+    this.controls.captionStyle.remove();
+    delete this.controls.captionStyle;
+    this.checkOverflow();
+  }
   ensureCaptionStyleButton() {
     if (!this.player.options.captionStyleButton) return;
+    if (!this.hasCaptionStyleSource()) {
+      return;
+    }
     if (this.controls.captionStyle) return;
     const btn = this.createCaptionStyleButton();
     btn.dataset.overflowPriority = "3";
@@ -6988,7 +7012,7 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-2CJHXKME.js");
+    const module = await import("./vidply.AudioDescriptionManager-MNFO43UP.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
@@ -8411,7 +8435,7 @@ var Player = class _Player extends EventEmitter {
   async _detectRendererClass(src) {
     switch (classifyRendererType(src)) {
       case "youtube": {
-        const module = await import("./vidply.YouTubeRenderer-UMTQUYYF.js");
+        const module = await import("./vidply.YouTubeRenderer-GFQH27FI.js");
         return module.YouTubeRenderer ?? module.default;
       }
       case "vimeo": {

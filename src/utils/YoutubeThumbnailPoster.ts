@@ -75,12 +75,3 @@ export async function resolveYoutubeThumbnailDimensions(
 
   return null;
 }
-
-/** In-iframe chrome crop is only tuned for landscape ~16:9 YouTube frames. */
-export function youtubeChromelessCropRecommended(width: number, height: number): boolean {
-  if (width <= 0 || height <= 0) {
-    return true;
-  }
-  const ratio = width / height;
-  return ratio > 1.55 && ratio < 1.85;
-}

@@ -1,17 +1,4 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import {
-  youtubeChromelessCropRecommended
-} from '../../src/utils/YoutubeThumbnailPoster.js';
-
-describe('youtubeChromelessCropRecommended', () => {
-  it('recommends crop near 16:9', () => {
-    expect(youtubeChromelessCropRecommended(1920, 1080)).toBe(true);
-  });
-
-  it('skips crop for portrait', () => {
-    expect(youtubeChromelessCropRecommended(1080, 1920)).toBe(false);
-  });
-});
 
 describe('resolveYoutubeThumbnailDimensions', () => {
   afterEach(() => {
