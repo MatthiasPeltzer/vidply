@@ -451,8 +451,8 @@
             "seek-forward-live": "Seek forward (when behind live)",
             "volume-up": "Volume up",
             "volume-down": "Volume down",
-            "mute": "Mute / Unmute",
-            "captions": "Toggle captions",
+            mute: "Mute / Unmute",
+            captions: "Toggle captions",
             "caption-style-menu": "Caption styling",
             "speed-down": "Decrease speed",
             "speed-up": "Increase speed",
@@ -460,8 +460,8 @@
             "quality-menu": "Quality",
             "chapters-menu": "Chapters",
             "transcript-toggle": "Toggle transcript",
-            "fullscreen": "Toggle fullscreen",
-            "help": "Keyboard shortcuts"
+            fullscreen: "Toggle fullscreen",
+            help: "Keyboard shortcuts"
           },
           live: {
             skipBack: "Skip back",
@@ -728,8 +728,8 @@
             "seek-forward-live": "Vorspulen (wenn hinter Live)",
             "volume-up": "Lauter",
             "volume-down": "Leiser",
-            "mute": "Stumm / Ton an",
-            "captions": "Untertitel umschalten",
+            mute: "Stumm / Ton an",
+            captions: "Untertitel umschalten",
             "caption-style-menu": "Untertitel-Stil",
             "speed-down": "Langsamer",
             "speed-up": "Schneller",
@@ -737,8 +737,8 @@
             "quality-menu": "Qualität",
             "chapters-menu": "Kapitel",
             "transcript-toggle": "Transkript umschalten",
-            "fullscreen": "Vollbild umschalten",
-            "help": "Tastaturkürzel"
+            fullscreen: "Vollbild umschalten",
+            help: "Tastaturkürzel"
           },
           live: {
             skipBack: "Zurückspringen",
@@ -1002,8 +1002,8 @@
             "seek-forward-live": "Avanzar (cuando va retrasado respecto al directo)",
             "volume-up": "Subir volumen",
             "volume-down": "Bajar volumen",
-            "mute": "Silenciar / Activar sonido",
-            "captions": "Alternar subtítulos",
+            mute: "Silenciar / Activar sonido",
+            captions: "Alternar subtítulos",
             "caption-style-menu": "Estilo de subtítulos",
             "speed-down": "Reducir velocidad",
             "speed-up": "Aumentar velocidad",
@@ -1011,8 +1011,8 @@
             "quality-menu": "Calidad",
             "chapters-menu": "Capítulos",
             "transcript-toggle": "Alternar transcripción",
-            "fullscreen": "Alternar pantalla completa",
-            "help": "Atajos de teclado"
+            fullscreen: "Alternar pantalla completa",
+            help: "Atajos de teclado"
           },
           live: {
             skipBack: "Retroceder",
@@ -1276,8 +1276,8 @@
             "seek-forward-live": "Avancer (en retard sur le direct)",
             "volume-up": "Augmenter le volume",
             "volume-down": "Baisser le volume",
-            "mute": "Couper / Activer le son",
-            "captions": "Activer/désactiver les sous-titres",
+            mute: "Couper / Activer le son",
+            captions: "Activer/désactiver les sous-titres",
             "caption-style-menu": "Style des sous-titres",
             "speed-down": "Ralentir",
             "speed-up": "Accélérer",
@@ -1285,8 +1285,8 @@
             "quality-menu": "Qualité",
             "chapters-menu": "Chapitres",
             "transcript-toggle": "Activer/désactiver la transcription",
-            "fullscreen": "Activer/désactiver le plein écran",
-            "help": "Raccourcis clavier"
+            fullscreen: "Activer/désactiver le plein écran",
+            help: "Raccourcis clavier"
           },
           live: {
             skipBack: "Reculer",
@@ -1550,8 +1550,8 @@
             "seek-forward-live": "早送り（ライブより遅れているとき）",
             "volume-up": "音量を上げる",
             "volume-down": "音量を下げる",
-            "mute": "ミュート / ミュート解除",
-            "captions": "字幕の切り替え",
+            mute: "ミュート / ミュート解除",
+            captions: "字幕の切り替え",
             "caption-style-menu": "字幕スタイル",
             "speed-down": "速度を下げる",
             "speed-up": "速度を上げる",
@@ -1559,8 +1559,8 @@
             "quality-menu": "画質",
             "chapters-menu": "チャプター",
             "transcript-toggle": "文字起こしの切り替え",
-            "fullscreen": "全画面表示の切り替え",
-            "help": "キーボードショートカット"
+            fullscreen: "全画面表示の切り替え",
+            help: "キーボードショートカット"
           },
           live: {
             skipBack: "巻き戻し",
@@ -1832,8 +1832,12 @@
                   if (typeof window !== "undefined" && window.jsyaml) {
                     loadedTranslations = window.jsyaml.load(utf8Text);
                   } else {
-                    console.warn("YAML parsing requires js-yaml library. Please include it or use JSON format.");
-                    throw new Error("YAML parsing not available. Please use JSON format or include js-yaml library.");
+                    console.warn(
+                      "YAML parsing requires js-yaml library. Please include it or use JSON format."
+                    );
+                    throw new Error(
+                      "YAML parsing not available. Please use JSON format or include js-yaml library."
+                    );
                   }
                 }
               } else {
@@ -1965,7 +1969,10 @@
     feOffset.setAttribute("dx", "0");
     feOffset.setAttribute("dy", "2");
     feOffset.setAttribute("result", "offsetblur");
-    const feComponentTransfer = document.createElementNS("http://www.w3.org/2000/svg", "feComponentTransfer");
+    const feComponentTransfer = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "feComponentTransfer"
+    );
     const feFuncA = document.createElementNS("http://www.w3.org/2000/svg", "feFuncA");
     feFuncA.setAttribute("type", "linear");
     feFuncA.setAttribute("slope", "0.3");
@@ -2401,14 +2408,14 @@
     const labelEl = DOMUtils.createElement("label", {
       textContent: label,
       attributes: {
-        "for": controlId
+        for: controlId
       }
     });
     group.appendChild(labelEl);
     const select = DOMUtils.createElement("select", {
       className: `${player.options.classPrefix}-style-select`,
       attributes: {
-        "id": controlId
+        id: controlId
       }
     });
     const currentValue = player.options[property];
@@ -2449,14 +2456,14 @@
     const labelEl = DOMUtils.createElement("label", {
       textContent: label,
       attributes: {
-        "for": controlId
+        for: controlId
       }
     });
     group.appendChild(labelEl);
     const input = DOMUtils.createElement("input", {
       className: `${player.options.classPrefix}-style-color`,
       attributes: {
-        "id": controlId,
+        id: controlId,
         type: "color",
         value: String(player.options[property] ?? "")
       }
@@ -2488,7 +2495,7 @@
     const labelEl = DOMUtils.createElement("label", {
       textContent: label,
       attributes: {
-        "for": controlId
+        for: controlId
       }
     });
     group.appendChild(labelEl);
@@ -2499,7 +2506,7 @@
     const input = DOMUtils.createElement("input", {
       className: `${player.options.classPrefix}-style-range`,
       attributes: {
-        "id": controlId,
+        id: controlId,
         type: "range",
         min: "0",
         max: "1",
@@ -2519,10 +2526,7 @@
       valueEl.textContent = Math.round(value * 100) + "%";
       player.options[property] = value;
       if (player.captionManager) {
-        player.captionManager.setCaptionStyle(
-          captionStylePropertyName(property),
-          value
-        );
+        player.captionManager.setCaptionStyle(captionStylePropertyName(property), value);
       }
     });
     const rangeContainer = DOMUtils.createElement("div", {
@@ -2535,7 +2539,9 @@
   }
   function showCaptionStyleMenu(controlBar, button) {
     const player = controlBar.player;
-    const existingMenu = player.container.querySelector(`.${player.options.classPrefix}-caption-style-menu`);
+    const existingMenu = player.container.querySelector(
+      `.${player.options.classPrefix}-caption-style-menu`
+    );
     if (existingMenu) {
       existingMenu.remove();
       button.setAttribute("aria-expanded", "false");
@@ -2549,7 +2555,7 @@
     const menu = DOMUtils.createElement("div", {
       className: `${player.options.classPrefix}-caption-style-menu ${player.options.classPrefix}-menu ${player.options.classPrefix}-settings-menu`,
       attributes: {
-        "role": "dialog",
+        role: "dialog",
         "aria-modal": "true",
         "aria-labelledby": menuLabelId
       }
@@ -2567,7 +2573,7 @@
         className: `${player.options.classPrefix}-menu-item`,
         textContent: i18n.t("player.noCaptions"),
         attributes: {
-          "role": "status"
+          role: "status"
         },
         style: { opacity: "0.5", cursor: "default", padding: "12px 16px" }
       });
@@ -2582,29 +2588,25 @@
       controlBar.attachMenuCloseHandler(menu, button, true);
       return;
     }
-    menu.appendChild(createStyleControl(
-      player,
-      i18n.t("styleLabels.fontSize"),
-      "captionsFontSize",
-      [
+    menu.appendChild(
+      createStyleControl(player, i18n.t("styleLabels.fontSize"), "captionsFontSize", [
         { label: i18n.t("fontSizes.small"), value: "87.5%" },
         { label: i18n.t("fontSizes.normal"), value: "100%" },
         { label: i18n.t("fontSizes.large"), value: "125%" },
         { label: i18n.t("fontSizes.xlarge"), value: "150%" }
-      ]
-    ));
-    menu.appendChild(createStyleControl(
-      player,
-      i18n.t("styleLabels.font"),
-      "captionsFontFamily",
-      [
+      ])
+    );
+    menu.appendChild(
+      createStyleControl(player, i18n.t("styleLabels.font"), "captionsFontFamily", [
         { label: i18n.t("fontFamilies.sansSerif"), value: "sans-serif" },
         { label: i18n.t("fontFamilies.serif"), value: "serif" },
         { label: i18n.t("fontFamilies.monospace"), value: "monospace" }
-      ]
-    ));
+      ])
+    );
     menu.appendChild(createColorControl(player, i18n.t("styleLabels.textColor"), "captionsColor"));
-    menu.appendChild(createColorControl(player, i18n.t("styleLabels.background"), "captionsBackgroundColor"));
+    menu.appendChild(
+      createColorControl(player, i18n.t("styleLabels.background"), "captionsBackgroundColor")
+    );
     menu.appendChild(createOpacityControl(player, i18n.t("styleLabels.opacity"), "captionsOpacity"));
     menu.style.visibility = "hidden";
     menu.style.display = "block";
@@ -2760,7 +2762,11 @@
           return this.set("caption_preferences", shallowSanitize(preferences));
         }
         getCaptionPreferences() {
-          return this.get("caption_preferences", null, isPlainObject);
+          return this.get(
+            "caption_preferences",
+            null,
+            isPlainObject
+          );
         }
         savePlayerPreferences(preferences) {
           const sanitized = shallowSanitize(preferences);
@@ -2773,7 +2779,11 @@
           return this.set("player_preferences", sanitized);
         }
         getPlayerPreferences() {
-          const value = this.get("player_preferences", null, isPlainObject);
+          const value = this.get(
+            "player_preferences",
+            null,
+            isPlainObject
+          );
           if (!value) return null;
           if (typeof value.volume === "number") {
             value.volume = clamp(value.volume, 0, 1);
@@ -2787,13 +2797,21 @@
           return this.set("sign_language_preferences", shallowSanitize(preferences));
         }
         getSignLanguagePreferences() {
-          return this.get("sign_language_preferences", null, isPlainObject);
+          return this.get(
+            "sign_language_preferences",
+            null,
+            isPlainObject
+          );
         }
         saveFloatingPreferences(preferences) {
           return this.set("floating_preferences", shallowSanitize(preferences));
         }
         getFloatingPreferences() {
-          return this.get("floating_preferences", null, isPlainObject);
+          return this.get(
+            "floating_preferences",
+            null,
+            isPlainObject
+          );
         }
         /**
          * Persist watch progress for a video id. Numeric inputs are validated +
@@ -2921,9 +2939,11 @@
           const saved = this.storage.getCaptionPreferences();
           if (saved) {
             if (typeof saved.fontSize === "string") this.player.options.captionsFontSize = saved.fontSize;
-            if (typeof saved.fontFamily === "string") this.player.options.captionsFontFamily = saved.fontFamily;
+            if (typeof saved.fontFamily === "string")
+              this.player.options.captionsFontFamily = saved.fontFamily;
             if (typeof saved.color === "string") this.player.options.captionsColor = saved.color;
-            if (typeof saved.backgroundColor === "string") this.player.options.captionsBackgroundColor = saved.backgroundColor;
+            if (typeof saved.backgroundColor === "string")
+              this.player.options.captionsBackgroundColor = saved.backgroundColor;
             if (typeof saved.opacity === "number") this.player.options.captionsOpacity = saved.opacity;
           }
         }
@@ -2948,7 +2968,7 @@
           this.element = DOMUtils.createElement("div", {
             className: `${this.player.options.classPrefix}-captions`,
             attributes: {
-              "role": "region",
+              role: "region",
               "aria-label": i18n.t("player.captions"),
               "aria-live": "polite"
             }
@@ -3004,7 +3024,9 @@
               return true;
             }
           }
-          const trackEls = this.player.element.querySelectorAll('track[kind="captions"], track[kind="subtitles"]');
+          const trackEls = this.player.element.querySelectorAll(
+            'track[kind="captions"], track[kind="subtitles"]'
+          );
           return trackEls.length > 0;
         }
         async loadEmbedCaptionTracks() {
@@ -3057,9 +3079,7 @@
             return tLang === normalizedTarget || tLang !== "" && (tLang.startsWith(normalizedTarget) || normalizedTarget.startsWith(tLang));
           }) : -1;
           if (hlsIndex < 0 && targetLabel) {
-            hlsIndex = tracks.findIndex(
-              (t) => t.name === targetLabel
-            );
+            hlsIndex = tracks.findIndex((t) => t.name === targetLabel);
           }
           if (hlsIndex < 0 && tracks.length > 0) {
             const defaultIndex = tracks.findIndex((t) => t.default);
@@ -3067,7 +3087,10 @@
           }
           if (hlsIndex >= 0 && renderer.hls.subtitleTrack !== hlsIndex) {
             renderer.hls.subtitleTrack = hlsIndex;
-            this.player.log(`HLS subtitle track set to index ${hlsIndex} (${targetLang || targetLabel || "default"})`, "info");
+            this.player.log(
+              `HLS subtitle track set to index ${hlsIndex} (${targetLang || targetLabel || "default"})`,
+              "info"
+            );
           }
         }
         attachEvents() {
@@ -3106,9 +3129,9 @@
             if (selectedTrack.language) {
               this.element.setAttribute("lang", selectedTrack.language);
             }
-            void Promise.resolve(this.player.renderer.setEmbedCaptionTrack(
-              selectedTrack.embedCaptionId
-            )).then(() => {
+            void Promise.resolve(
+              this.player.renderer.setEmbedCaptionTrack(selectedTrack.embedCaptionId)
+            ).then(() => {
               this.player.emit("captionsenabled", selectedTrack);
             });
             return;
@@ -3132,9 +3155,14 @@
                 if (!activeTrack) return;
                 for (const alt of selectedTrack.alternatives) {
                   if (alt.activeCues && alt.activeCues.length > 0) {
-                    this.player.log(`Switching to alternative caption track for "${selectedTrack.label}"`, "info");
+                    this.player.log(
+                      `Switching to alternative caption track for "${selectedTrack.label}"`,
+                      "info"
+                    );
                     activeTrack.removeEventListener("cuechange", cueChangeHandler);
-                    selectedTrack.alternatives.forEach((a) => a.removeEventListener("cuechange", altCueChangeHandler));
+                    selectedTrack.alternatives.forEach(
+                      (a) => a.removeEventListener("cuechange", altCueChangeHandler)
+                    );
                     selectedTrack.track = alt;
                     selectedTrack.track.addEventListener("cuechange", cueChangeHandler);
                     this._altCueChangeHandler = null;
@@ -3246,8 +3274,12 @@
               }
               const fragment = DOMUtils.renderVTTToDOM(rawText);
               if (isAudioPlayer) {
-                const existingCues = this.element.querySelectorAll(`.${this.player.options.classPrefix}-caption-cue`);
-                existingCues.forEach((el) => el.classList.remove(`${this.player.options.classPrefix}-caption-active`));
+                const existingCues = this.element.querySelectorAll(
+                  `.${this.player.options.classPrefix}-caption-cue`
+                );
+                existingCues.forEach(
+                  (el) => el.classList.remove(`${this.player.options.classPrefix}-caption-active`)
+                );
                 const cueId = `cue-${cue.startTime}-${cue.endTime}`;
                 let cueElement = this.element.querySelector(`[data-cue-id="${cueId}"]`);
                 if (!cueElement) {
@@ -3475,106 +3507,166 @@
         }
         attachEvents() {
           const { signal } = this._listenerController;
-          this.media.addEventListener("loadedmetadata", () => {
-            this.player.state.duration = this.media.duration;
-            this.player.emit("loadedmetadata");
-            if (this.media.tagName === "VIDEO") {
-              this.player.autoGeneratePoster().catch((error) => {
-                this.player.log("Failed to auto-generate poster:", error, "warn");
-              });
-            }
-          }, { signal });
-          this.media.addEventListener("durationchange", () => {
-            const duration = this.media.duration;
-            if (duration && isFinite(duration) && duration > 0) {
-              this.player.state.duration = duration;
-              this.player.emit("durationchange", duration);
-            }
-          }, { signal });
-          this.media.addEventListener("play", () => {
-            this.player.state.playing = true;
-            this.player.state.paused = false;
-            this.player.state.ended = false;
-            this.player.emit("play");
-            if (this.player.options.onPlay) {
-              this.player.options.onPlay.call(this.player);
-            }
-            if (this.player.options.pauseOthersOnPlay) {
-              this.pauseOtherPlayers();
-            }
-          }, { signal });
-          this.media.addEventListener("pause", () => {
-            this.player.state.playing = false;
-            this.player.state.paused = true;
-            this.player.emit("pause");
-            if (this.player.options.onPause) {
-              this.player.options.onPause.call(this.player);
-            }
-          }, { signal });
-          this.media.addEventListener("ended", () => {
-            this.player.state.playing = false;
-            this.player.state.paused = true;
-            this.player.state.ended = true;
-            this.player.emit("ended");
-            if (this.player.options.onEnded) {
-              this.player.options.onEnded.call(this.player);
-            }
-            if (this.player.options.loop) {
-              this.player.seek(0);
-              this.player.play();
-            }
-          }, { signal });
-          this.media.addEventListener("timeupdate", () => {
-            this.player.state.currentTime = this.media.currentTime;
-            this.player.emit("timeupdate", this.media.currentTime);
-            if (this.player.options.onTimeUpdate) {
-              this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
-            }
-          }, { signal });
-          this.media.addEventListener("volumechange", () => {
-            if (!this.player.shouldSyncVolumeFromMedia()) {
-              return;
-            }
-            this.player.state.volume = this.media.volume;
-            this.player.state.muted = this.media.muted;
-            this.player.emit("volumechange", this.media.volume);
-            if (this.player.options.onVolumeChange) {
-              this.player.options.onVolumeChange.call(this.player, this.media.volume);
-            }
-          }, { signal });
-          this.media.addEventListener("seeking", () => {
-            this.player.state.seeking = true;
-            this.player.emit("seeking");
-          }, { signal });
-          this.media.addEventListener("seeked", () => {
-            this.player.state.seeking = false;
-            this.player.emit("seeked");
-          }, { signal });
-          this.media.addEventListener("waiting", () => {
-            this.player.state.buffering = true;
-            this.player.emit("waiting");
-          }, { signal });
-          this.media.addEventListener("canplay", () => {
-            this.player.state.buffering = false;
-            this.player.emit("canplay");
-          }, { signal });
-          this.media.addEventListener("progress", () => {
-            if (this.media.buffered.length > 0) {
-              const buffered = this.media.buffered.end(this.media.buffered.length - 1);
-              this.player.emit("progress", buffered);
-            }
-          }, { signal });
-          this.media.addEventListener("error", (_e) => {
-            this.player.handleError(this.media.error);
-          }, { signal });
-          this.media.addEventListener("emptied", () => {
-            var _a, _b;
-            (_b = (_a = this.player).syncPlaybackUiFromMediaElement) == null ? void 0 : _b.call(_a);
-          }, { signal });
-          this.media.addEventListener("ratechange", () => {
-            this.player.state.playbackSpeed = this.media.playbackRate;
-            this.player.emit("ratechange", this.media.playbackRate);
-          }, { signal });
+          this.media.addEventListener(
+            "loadedmetadata",
+            () => {
+              this.player.state.duration = this.media.duration;
+              this.player.emit("loadedmetadata");
+              if (this.media.tagName === "VIDEO") {
+                this.player.autoGeneratePoster().catch((error) => {
+                  this.player.log("Failed to auto-generate poster:", error, "warn");
+                });
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "durationchange",
+            () => {
+              const duration = this.media.duration;
+              if (duration && isFinite(duration) && duration > 0) {
+                this.player.state.duration = duration;
+                this.player.emit("durationchange", duration);
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "play",
+            () => {
+              this.player.state.playing = true;
+              this.player.state.paused = false;
+              this.player.state.ended = false;
+              this.player.emit("play");
+              if (this.player.options.onPlay) {
+                this.player.options.onPlay.call(this.player);
+              }
+              if (this.player.options.pauseOthersOnPlay) {
+                this.pauseOtherPlayers();
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "pause",
+            () => {
+              this.player.state.playing = false;
+              this.player.state.paused = true;
+              this.player.emit("pause");
+              if (this.player.options.onPause) {
+                this.player.options.onPause.call(this.player);
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "ended",
+            () => {
+              this.player.state.playing = false;
+              this.player.state.paused = true;
+              this.player.state.ended = true;
+              this.player.emit("ended");
+              if (this.player.options.onEnded) {
+                this.player.options.onEnded.call(this.player);
+              }
+              if (this.player.options.loop) {
+                this.player.seek(0);
+                this.player.play();
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "timeupdate",
+            () => {
+              this.player.state.currentTime = this.media.currentTime;
+              this.player.emit("timeupdate", this.media.currentTime);
+              if (this.player.options.onTimeUpdate) {
+                this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "volumechange",
+            () => {
+              if (!this.player.shouldSyncVolumeFromMedia()) {
+                return;
+              }
+              this.player.state.volume = this.media.volume;
+              this.player.state.muted = this.media.muted;
+              this.player.emit("volumechange", this.media.volume);
+              if (this.player.options.onVolumeChange) {
+                this.player.options.onVolumeChange.call(this.player, this.media.volume);
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "seeking",
+            () => {
+              this.player.state.seeking = true;
+              this.player.emit("seeking");
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "seeked",
+            () => {
+              this.player.state.seeking = false;
+              this.player.emit("seeked");
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "waiting",
+            () => {
+              this.player.state.buffering = true;
+              this.player.emit("waiting");
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "canplay",
+            () => {
+              this.player.state.buffering = false;
+              this.player.emit("canplay");
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "progress",
+            () => {
+              if (this.media.buffered.length > 0) {
+                const buffered = this.media.buffered.end(this.media.buffered.length - 1);
+                this.player.emit("progress", buffered);
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "error",
+            (_e) => {
+              this.player.handleError(this.media.error);
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "emptied",
+            () => {
+              var _a, _b;
+              (_b = (_a = this.player).syncPlaybackUiFromMediaElement) == null ? void 0 : _b.call(_a);
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "ratechange",
+            () => {
+              this.player.state.playbackSpeed = this.media.playbackRate;
+              this.player.emit("ratechange", this.media.playbackRate);
+            },
+            { signal }
+          );
         }
         pauseOtherPlayers() {
           const allPlayers = document.querySelectorAll(".vidply-player");
@@ -3607,10 +3699,7 @@
               this.player.state.paused = true;
               this.player.emit("canplay");
               const err = error;
-              this.player.log(
-                `Play failed: ${err.name ?? "Error"} ${err.message ?? ""}`.trim(),
-                "warn"
-              );
+              this.player.log(`Play failed: ${err.name ?? "Error"} ${err.message ?? ""}`.trim(), "warn");
               (_b = (_a = this.player).syncPlaybackUiFromMediaElement) == null ? void 0 : _b.call(_a);
               if (this.player.options.autoplay && !this.player.state.muted) {
                 this.player.log("Retrying play with muted audio", "info");
@@ -3687,7 +3776,7 @@
         }
         /**
          * Extract height from quality label (e.g., "1080p" -> 1080)
-         * @param {string} label 
+         * @param {string} label
          * @returns {number}
          */
         extractHeightFromLabel(label) {
@@ -3764,7 +3853,10 @@
       return trimmed;
     }
     try {
-      const url = new URL(trimmed, typeof window !== "undefined" ? window.location.href : "http://localhost/");
+      const url = new URL(
+        trimmed,
+        typeof window !== "undefined" ? window.location.href : "http://localhost/"
+      );
       if (url.protocol === "https:" || url.protocol === "http:") {
         return url.href;
       }
@@ -4238,7 +4330,9 @@
                 originalTrackSrc: trackEl.getAttribute("data-orig-src") || trackEl.getAttribute("src"),
                 explicit: true
               });
-              this.player.log(`Found explicit described ${trackKind} track: ${trackEl.getAttribute("src")} -> ${trackDescSrc}`);
+              this.player.log(
+                `Found explicit described ${trackKind} track: ${trackEl.getAttribute("src")} -> ${trackDescSrc}`
+              );
             }
           });
         }
@@ -4281,7 +4375,13 @@
           const shouldKeepPoster = currentTime < 0.1 && !wasPlaying;
           const currentCaptionText = this._getCurrentCaptionText();
           if (this.sourceElement) {
-            await this._enableWithSourceElement(currentTime, wasPlaying, posterValue, shouldKeepPoster, currentCaptionText);
+            await this._enableWithSourceElement(
+              currentTime,
+              wasPlaying,
+              posterValue,
+              shouldKeepPoster,
+              currentCaptionText
+            );
           } else if (this.src) {
             await this._enableWithDirectSrc(currentTime, wasPlaying, posterValue, shouldKeepPoster);
           } else if (hasTracksWithDesc) {
@@ -4319,7 +4419,13 @@
           const shouldKeepPoster = currentTime < 0.1 && !wasPlaying;
           const currentCaptionText = this._getCurrentCaptionText();
           if (this.sourceElement) {
-            await this._disableWithSourceElement(currentTime, wasPlaying, posterValue, shouldKeepPoster, currentCaptionText);
+            await this._disableWithSourceElement(
+              currentTime,
+              wasPlaying,
+              posterValue,
+              shouldKeepPoster,
+              currentCaptionText
+            );
           } else if (this.src) {
             await this._disableWithDirectSrc(currentTime, wasPlaying, posterValue);
           }
@@ -4488,7 +4594,10 @@
                       const trackElement = trackInfo.trackElement;
                       const newTextTrack = trackElement.track;
                       if (newTextTrack) {
-                        const modeInfo = trackModes.get(trackInfo) || { wasShowing: false, wasHidden: false };
+                        const modeInfo = trackModes.get(trackInfo) || {
+                          wasShowing: false,
+                          wasHidden: false
+                        };
                         newTextTrack.mode = "hidden";
                         const restoreMode = () => {
                           if (modeInfo.wasShowing || modeInfo.wasHidden) {
@@ -4948,7 +5057,9 @@
                 handle.addEventListener("pointerdown", this.handlers.resizeHandlePointerDown);
               } else {
                 handle.addEventListener("mousedown", this.handlers.resizeHandleMousedown);
-                handle.addEventListener("touchstart", this.handlers.resizeHandleMousedown, { passive: false });
+                handle.addEventListener("touchstart", this.handlers.resizeHandleMousedown, {
+                  passive: false
+                });
               }
               const managed = handle.dataset.vidplyManagedResize === "true";
               this.resizeHandlesManaged.set(handle, managed);
@@ -5627,7 +5738,9 @@
   }
   function attachMenuKeyboardNavigation(menu, button, itemSelector, onClose) {
     if (!menu) return void 0;
-    const menuItems = Array.from(menu.querySelectorAll(itemSelector)).filter((item) => item.getAttribute("aria-disabled") !== "true");
+    const menuItems = Array.from(menu.querySelectorAll(itemSelector)).filter(
+      (item) => item.getAttribute("aria-disabled") !== "true"
+    );
     if (menuItems.length === 0) return void 0;
     const handleKeyDown = (e) => {
       const currentIndex = menuItems.indexOf(document.activeElement);
@@ -5718,7 +5831,9 @@
   function focusFirstMenuItem(menu, itemSelector, delay = 0) {
     if (!menu) return;
     setTimeout(() => {
-      const menuItems = Array.from(menu.querySelectorAll(itemSelector)).filter((item) => item.getAttribute("aria-disabled") !== "true");
+      const menuItems = Array.from(menu.querySelectorAll(itemSelector)).filter(
+        (item) => item.getAttribute("aria-disabled") !== "true"
+      );
       const firstItem = menuItems[0];
       if (firstItem) {
         menuItems.forEach((item, index) => {
@@ -6492,7 +6607,9 @@
           const currentTime = this.player.state.currentTime;
           const wasPlaying = this.player.state.playing;
           if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
-            Array.from(el.querySelectorAll("source")).forEach((source) => source.remove());
+            Array.from(el.querySelectorAll("source")).forEach(
+              (source) => source.remove()
+            );
             const trackNode = el.querySelector("track");
             this.mainViewOriginalSources.forEach((source) => {
               if (trackNode) {
@@ -6646,15 +6763,15 @@
          */
         getLanguageLabel(langCode) {
           const langNames = {
-            "en": "English",
-            "de": "Deutsch",
-            "es": "Español",
-            "fr": "Français",
-            "it": "Italiano",
-            "ja": "日本語",
-            "pt": "Português",
-            "ar": "العربية",
-            "hi": "हिन्दी"
+            en: "English",
+            de: "Deutsch",
+            es: "Español",
+            fr: "Français",
+            it: "Italiano",
+            ja: "日本語",
+            pt: "Português",
+            ar: "العربية",
+            hi: "हिन्दी"
           };
           return langNames[langCode] || langCode.toUpperCase();
         }
@@ -6693,7 +6810,7 @@
           const classPrefix = this.player.options.classPrefix;
           this.header = DOMUtils.createElement("div", {
             className: `${classPrefix}-sign-language-header`,
-            attributes: { "tabindex": "0" }
+            attributes: { tabindex: "0" }
           });
           const headerLeft = DOMUtils.createElement("div", {
             className: `${classPrefix}-sign-language-header-left`
@@ -6720,7 +6837,7 @@
           this.settingsButton = DOMUtils.createElement("button", {
             className: `${classPrefix}-sign-language-settings`,
             attributes: {
-              "type": "button",
+              type: "button",
               "aria-label": ariaLabel,
               "aria-expanded": "false"
             }
@@ -6843,22 +6960,26 @@
           const closeButton = DOMUtils.createElement("button", {
             className: `${classPrefix}-sign-language-close`,
             attributes: {
-              "type": "button",
+              type: "button",
               "aria-label": ariaLabel
             }
           });
           closeButton.appendChild(createIconElement("close"));
           DOMUtils.attachTooltip(closeButton, ariaLabel, classPrefix);
-          closeButton.addEventListener("click", () => {
-            var _a, _b;
-            this.disable();
-            const signLanguageButton = (_b = (_a = this.player.controlBar) == null ? void 0 : _a.controls) == null ? void 0 : _b.signLanguage;
-            if (signLanguageButton) {
-              this.player.setManagedTimeout(() => {
-                signLanguageButton.focus({ preventScroll: true });
-              }, 0);
-            }
-          }, { signal: this.player.lifecycleSignal });
+          closeButton.addEventListener(
+            "click",
+            () => {
+              var _a, _b;
+              this.disable();
+              const signLanguageButton = (_b = (_a = this.player.controlBar) == null ? void 0 : _a.controls) == null ? void 0 : _b.signLanguage;
+              if (signLanguageButton) {
+                this.player.setManagedTimeout(() => {
+                  signLanguageButton.focus({ preventScroll: true });
+                }, 0);
+              }
+            },
+            { signal: this.player.lifecycleSignal }
+          );
           return closeButton;
         }
         /**
@@ -7101,8 +7222,14 @@
               left = videoWrapperLeft + videoWrapperWidth - wrapperWidth - margin;
               top = videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight;
           }
-          left = Math.max(videoWrapperLeft, Math.min(left, videoWrapperLeft + videoWrapperWidth - wrapperWidth));
-          top = Math.max(videoWrapperTop, Math.min(top, videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight));
+          left = Math.max(
+            videoWrapperLeft,
+            Math.min(left, videoWrapperLeft + videoWrapperWidth - wrapperWidth)
+          );
+          top = Math.max(
+            videoWrapperTop,
+            Math.min(top, videoWrapperTop + videoWrapperHeight - wrapperHeight - controlsHeight)
+          );
           this.wrapper.style.left = `${left}px`;
           this.wrapper.style.top = `${top}px`;
           this.wrapper.style.right = "auto";
@@ -7218,7 +7345,9 @@
           if (this.inMainView && this.player.element) {
             const el = this.player.element;
             if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
-              Array.from(el.querySelectorAll("source")).forEach((source) => source.remove());
+              Array.from(el.querySelectorAll("source")).forEach(
+                (source) => source.remove()
+              );
               const trackNode = el.querySelector("track");
               this.mainViewOriginalSources.forEach((source) => {
                 if (trackNode) {
@@ -7503,9 +7632,11 @@
         }
         _claimSingleton() {
           try {
-            window.dispatchEvent(new CustomEvent(FLOATING_CLAIM_EVENT, {
-              detail: { claimId: this._claimId }
-            }));
+            window.dispatchEvent(
+              new CustomEvent(FLOATING_CLAIM_EVENT, {
+                detail: { claimId: this._claimId }
+              })
+            );
           } catch {
           }
         }
@@ -7558,37 +7689,40 @@
           if (!("IntersectionObserver" in window)) return;
           if (!this.player.container) return;
           this.observerTarget = this.player.container;
-          this.intersectionObserver = new IntersectionObserver((entries) => {
-            const entry = entries[entries.length - 1];
-            if (!entry) return;
-            this.lastRatio = entry.intersectionRatio;
-            if (this.player.options.debug) {
-              try {
-                console.log("[vidply:floating] intersection", {
-                  ratio: Number(entry.intersectionRatio.toFixed(3)),
-                  state: this.player.state.floating,
-                  paused: this.player.state.paused,
-                  hasStartedPlayback: this.player.state.hasStartedPlayback,
-                  dismissed: this._autoDismissedThisPlay
-                });
-              } catch {
+          this.intersectionObserver = new IntersectionObserver(
+            (entries) => {
+              const entry = entries[entries.length - 1];
+              if (!entry) return;
+              this.lastRatio = entry.intersectionRatio;
+              if (this.player.options.debug) {
+                try {
+                  console.log("[vidply:floating] intersection", {
+                    ratio: Number(entry.intersectionRatio.toFixed(3)),
+                    state: this.player.state.floating,
+                    paused: this.player.state.paused,
+                    hasStartedPlayback: this.player.state.hasStartedPlayback,
+                    dismissed: this._autoDismissedThisPlay
+                  });
+                } catch {
+                }
               }
-            }
-            if (this.player.state.floating === "auto") {
-              if (entry.intersectionRatio >= 0.5) {
-                this.exit("auto");
+              if (this.player.state.floating === "auto") {
+                if (entry.intersectionRatio >= 0.5) {
+                  this.exit("auto");
+                }
+                return;
               }
-              return;
-            }
-            if (this.player.state.floating === "pinned") {
-              return;
-            }
-            if (entry.intersectionRatio < 0.1 && this._canFloat("auto")) {
-              const AUTO_EXIT_COOLDOWN_MS = 500;
-              if (Date.now() - this._lastAutoExitTime < AUTO_EXIT_COOLDOWN_MS) return;
-              this.enter("auto");
-            }
-          }, { threshold: [0, 0.1, 0.5, 0.9] });
+              if (this.player.state.floating === "pinned") {
+                return;
+              }
+              if (entry.intersectionRatio < 0.1 && this._canFloat("auto")) {
+                const AUTO_EXIT_COOLDOWN_MS = 500;
+                if (Date.now() - this._lastAutoExitTime < AUTO_EXIT_COOLDOWN_MS) return;
+                this.enter("auto");
+              }
+            },
+            { threshold: [0, 0.1, 0.5, 0.9] }
+          );
           this.intersectionObserver.observe(this.observerTarget);
         }
         _retargetObserver(target) {
@@ -7613,11 +7747,11 @@
           this.shell = DOMUtils.createElement("div", {
             className: `${this.classPrefix}-floating-shell`,
             attributes: {
-              "role": "dialog",
+              role: "dialog",
               "aria-modal": "false",
               "aria-label": i18n.t("player.floatingPlayer"),
               "data-vidply-floating": "true",
-              "tabindex": "-1"
+              tabindex: "-1"
             }
           });
           this.dragHandle = DOMUtils.createElement("div", {
@@ -7628,9 +7762,9 @@
           this.closeButton = DOMUtils.createElement("button", {
             className: `${this.classPrefix}-floating-close`,
             attributes: {
-              "type": "button",
+              type: "button",
               "aria-label": i18n.t("player.floatingPlayerClose"),
-              "title": i18n.t("player.floatingPlayerClose")
+              title: i18n.t("player.floatingPlayerClose")
             }
           });
           this.closeButton.appendChild(createIconElement("close"));
@@ -7659,13 +7793,15 @@
         }
         _createResizeHandles() {
           const dirs = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
-          this.resizeHandles = dirs.map((dir) => DOMUtils.createElement("div", {
-            className: `${this.classPrefix}-floating-resize-handle ${this.classPrefix}-floating-resize-${dir}`,
-            attributes: {
-              "data-direction": dir,
-              "aria-hidden": "true"
-            }
-          }));
+          this.resizeHandles = dirs.map(
+            (dir) => DOMUtils.createElement("div", {
+              className: `${this.classPrefix}-floating-resize-handle ${this.classPrefix}-floating-resize-${dir}`,
+              attributes: {
+                "data-direction": dir,
+                "aria-hidden": "true"
+              }
+            })
+          );
         }
         _teardownShell() {
           if (this.draggable) {
@@ -7705,7 +7841,10 @@
           });
           this.placeholder.style.width = `${Math.max(1, rect.width)}px`;
           this.placeholder.style.height = `${Math.max(1, rect.height)}px`;
-          const placeholderIcon = createIconElement("pip", `${this.classPrefix}-floating-placeholder-icon`);
+          const placeholderIcon = createIconElement(
+            "pip",
+            `${this.classPrefix}-floating-placeholder-icon`
+          );
           this.placeholder.appendChild(placeholderIcon);
           this.originalParent.insertBefore(this.placeholder, container);
           this.shell.appendChild(container);
@@ -8026,7 +8165,9 @@
             if (!this.isVisible) return;
             if (this.currentTranscriptLanguage && this._vttCache.has(this.currentTranscriptLanguage) && !this._isLiveTranscriptSource()) {
               const cached = this._vttCache.get(this.currentTranscriptLanguage);
-              const track = this._resolveCaptionTrackForTranscript(this.player.textTracks);
+              const track = this._resolveCaptionTrackForTranscript(
+                this.player.textTracks
+              );
               const trackCueCount = ((_a = track == null ? void 0 : track.cues) == null ? void 0 : _a.length) ?? 0;
               if (cached && (trackCueCount === 0 || cached.length >= trackCueCount)) {
                 return;
@@ -8182,16 +8323,16 @@
           this.transcriptWindow = DOMUtils.createElement("div", {
             className: `${this.player.options.classPrefix}-transcript-window`,
             attributes: {
-              "role": "dialog",
+              role: "dialog",
               "aria-label": i18n.t("transcript.ariaLabel"),
               "aria-modal": "false",
-              "tabindex": "-1"
+              tabindex: "-1"
             }
           });
           this.transcriptHeader = DOMUtils.createElement("div", {
             className: `${this.player.options.classPrefix}-transcript-header`,
             attributes: {
-              "tabindex": "0"
+              tabindex: "0"
             }
           });
           this.headerLeft = DOMUtils.createElement("div", {
@@ -8201,7 +8342,7 @@
           this.settingsButton = DOMUtils.createElement("button", {
             className: `${this.player.options.classPrefix}-transcript-settings`,
             attributes: {
-              "type": "button",
+              type: "button",
               "aria-label": settingsAriaLabel,
               "aria-expanded": "false"
             }
@@ -8276,15 +8417,10 @@
                 }
               });
               timestampsOption.setAttribute("role", "switch");
-              timestampsOption.setAttribute(
-                "aria-checked",
-                this.showTimestamps ? "true" : "false"
-              );
+              timestampsOption.setAttribute("aria-checked", this.showTimestamps ? "true" : "false");
               stripInlineTooltip(timestampsOption);
               this.showTimestampsButton = timestampsOption;
-              this.showTimestampsText = timestampsOption.querySelector(
-                `.${classPrefix}-settings-text`
-              );
+              this.showTimestampsText = timestampsOption.querySelector(`.${classPrefix}-settings-text`);
               this.updateShowTimestampsState();
               menu.appendChild(timestampsOption);
             }
@@ -8320,13 +8456,13 @@
           const autoscrollLabel = DOMUtils.createElement("label", {
             className: `${this.player.options.classPrefix}-transcript-autoscroll-label`,
             attributes: {
-              "for": autoscrollId
+              for: autoscrollId
             }
           });
           this.autoscrollCheckbox = DOMUtils.createElement("input", {
             attributes: {
-              "id": autoscrollId,
-              "type": "checkbox"
+              id: autoscrollId,
+              type: "checkbox"
             }
           });
           if (this.autoscrollEnabled) {
@@ -8361,7 +8497,7 @@
           const languageSelectorWrapper = DOMUtils.createElement("div", {
             className: `${this.player.options.classPrefix}-transcript-language-wrapper`,
             attributes: {
-              "style": "display: none;"
+              style: "display: none;"
             }
           });
           languageSelectorWrapper.appendChild(languageLabel);
@@ -8375,7 +8511,7 @@
           const closeButton = DOMUtils.createElement("button", {
             className: `${this.player.options.classPrefix}-transcript-close`,
             attributes: {
-              "type": "button",
+              type: "button",
               "aria-label": closeAriaLabel
             }
           });
@@ -8431,7 +8567,16 @@
         createResizeHandles() {
           const transcriptWindow = this.transcriptWindow;
           if (!transcriptWindow) return;
-          const directions = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
+          const directions = [
+            "n",
+            "s",
+            "e",
+            "w",
+            "ne",
+            "nw",
+            "se",
+            "sw"
+          ];
           this.transcriptResizeHandles = directions.map((direction) => {
             const handle = DOMUtils.createElement("div", {
               className: `${this.player.options.classPrefix}-transcript-resize-handle ${this.player.options.classPrefix}-transcript-resize-${direction}`,
@@ -8501,7 +8646,10 @@
             const fullscreenMinWidth = 260;
             const fullscreenAvailable = Math.max(fullscreenMinWidth, window.innerWidth - 40);
             const fullscreenDesired = parseFloat(this.transcriptWindow.style.width) || 400;
-            const fullscreenWidth = Math.max(fullscreenMinWidth, Math.min(fullscreenDesired, fullscreenAvailable));
+            const fullscreenWidth = Math.max(
+              fullscreenMinWidth,
+              Math.min(fullscreenDesired, fullscreenAvailable)
+            );
             this.transcriptWindow.style.width = `${fullscreenWidth}px`;
             this.transcriptWindow.style.maxWidth = "none";
             this.transcriptWindow.style.borderRadius = "8px";
@@ -8606,12 +8754,7 @@
           if (!container) {
             return;
           }
-          this.inertedElements = setContainerChildrenInert(
-            container,
-            null,
-            false,
-            this.inertedElements
-          );
+          this.inertedElements = setContainerChildrenInert(container, null, false, this.inertedElements);
         }
         /**
          * Get available transcript languages from tracks
@@ -8654,7 +8797,7 @@
           }
           this.availableTranscriptLanguages.forEach((langInfo) => {
             const attrs = {
-              "value": langInfo.language || langInfo.label
+              value: langInfo.language || langInfo.label
             };
             if (langInfo.language) {
               attrs["lang"] = langInfo.language;
@@ -8855,11 +8998,7 @@
               const useBulkVtt = Boolean(
                 vttCues && vttCues.length > 0 && (trackCueCount === 0 || vttCues.length >= trackCueCount)
               );
-              this._renderTranscriptCues(
-                useBulkVtt ? vttCues : null,
-                captionTrack,
-                descriptionTrack
-              );
+              this._renderTranscriptCues(useBulkVtt ? vttCues : null, captionTrack, descriptionTrack);
             });
             return;
           }
@@ -8885,9 +9024,13 @@
             (_d = this.transcriptContent) == null ? void 0 : _d.appendChild(loadingMessage);
             const hasSidecarElement = (_f = (_e = this.player).findTrackElement) == null ? void 0 : _f.call(_e, primaryTrack);
             if (hasSidecarElement) {
-              primaryTrack.addEventListener("load", () => {
-                this.loadTranscriptData();
-              }, { once: true });
+              primaryTrack.addEventListener(
+                "load",
+                () => {
+                  this.loadTranscriptData();
+                },
+                { once: true }
+              );
               this.setManagedTimeout(() => {
                 this.loadTranscriptData();
               }, 1e3);
@@ -8974,7 +9117,7 @@
           const entry = DOMUtils.createElement("button", {
             className: `${this.player.options.classPrefix}-transcript-entry ${this.player.options.classPrefix}-transcript-${type}`,
             attributes: {
-              "type": "button",
+              type: "button",
               "data-start": String(cue.startTime),
               "data-end": String(cue.endTime),
               "data-type": type,
@@ -9099,7 +9242,9 @@
         }
         _pickTranscriptTrackFromGroup(group) {
           if (this._isLiveTranscriptSource()) {
-            return group.reduce((best, track) => this._getTrackMaxCueStartTime(track) > this._getTrackMaxCueStartTime(best) ? track : best);
+            return group.reduce(
+              (best, track) => this._getTrackMaxCueStartTime(track) > this._getTrackMaxCueStartTime(best) ? track : best
+            );
           }
           return group.reduce((best, track) => {
             var _a, _b;
@@ -9164,7 +9309,9 @@
           if (!this.transcriptContent) {
             return;
           }
-          const captionTrack = this._resolveCaptionTrackForTranscript(this.player.textTracks);
+          const captionTrack = this._resolveCaptionTrackForTranscript(
+            this.player.textTracks
+          );
           if (!((_a = captionTrack == null ? void 0 : captionTrack.cues) == null ? void 0 : _a.length)) {
             return;
           }
@@ -9172,7 +9319,9 @@
             this.currentTranscriptLanguage = captionTrack.language;
           }
           const existingKeys = new Set(
-            this.transcriptEntries.map((entry) => this._cueDedupeKey({ cue: entry.cue, type: entry.type }))
+            this.transcriptEntries.map(
+              (entry) => this._cueDedupeKey({ cue: entry.cue, type: entry.type })
+            )
           );
           Array.from(captionTrack.cues).forEach((cue) => {
             var _a2;
@@ -9229,7 +9378,9 @@
           const seen = [];
           for (const entry of sorted) {
             const text = this._normalizedCueText(entry.cue);
-            const isDuplicate = text !== "" && seen.some((prior) => prior.type === entry.type && prior.text === text && Math.abs(prior.startTime - entry.startTime) < windowSec);
+            const isDuplicate = text !== "" && seen.some(
+              (prior) => prior.type === entry.type && prior.text === text && Math.abs(prior.startTime - entry.startTime) < windowSec
+            );
             if (isDuplicate) {
               entry.element.remove();
               continue;
@@ -9504,9 +9655,7 @@
          */
         enableMoveMode() {
           var _a;
-          (_a = this.transcriptWindow) == null ? void 0 : _a.classList.add(
-            `${this.player.options.classPrefix}-transcript-move-mode`
-          );
+          (_a = this.transcriptWindow) == null ? void 0 : _a.classList.add(`${this.player.options.classPrefix}-transcript-move-mode`);
           setTimeout(() => {
             var _a2;
             (_a2 = this.transcriptWindow) == null ? void 0 : _a2.classList.remove(
@@ -9560,7 +9709,9 @@
         }
         updateTimestampVisibility() {
           if (!this.transcriptContent) return;
-          const timestamps = this.transcriptContent.querySelectorAll(`.${this.player.options.classPrefix}-transcript-time`);
+          const timestamps = this.transcriptContent.querySelectorAll(
+            `.${this.player.options.classPrefix}-transcript-time`
+          );
           timestamps.forEach((timestamp) => {
             timestamp.style.display = this.showTimestamps ? "" : "none";
           });
@@ -9640,16 +9791,12 @@
             className: `${this.player.options.classPrefix}-transcript-style-title`
           });
           styleDialog.appendChild(title);
-          const fontSizeControl = this.createStyleSelectControl(
-            i18n.t("captions.fontSize"),
-            "fontSize",
-            [
-              { label: i18n.t("fontSizes.small"), value: "90%" },
-              { label: i18n.t("fontSizes.normal"), value: "100%" },
-              { label: i18n.t("fontSizes.large"), value: "110%" },
-              { label: i18n.t("fontSizes.xlarge"), value: "120%" }
-            ]
-          );
+          const fontSizeControl = this.createStyleSelectControl(i18n.t("captions.fontSize"), "fontSize", [
+            { label: i18n.t("fontSizes.small"), value: "90%" },
+            { label: i18n.t("fontSizes.normal"), value: "100%" },
+            { label: i18n.t("fontSizes.large"), value: "110%" },
+            { label: i18n.t("fontSizes.xlarge"), value: "120%" }
+          ]);
           styleDialog.appendChild(fontSizeControl);
           const fontFamilyControl = this.createStyleSelectControl(
             i18n.t("captions.fontFamily"),
@@ -9663,7 +9810,10 @@
           styleDialog.appendChild(fontFamilyControl);
           const colorControl = this.createStyleColorControl(i18n.t("captions.color"), "color");
           styleDialog.appendChild(colorControl);
-          const bgColorControl = this.createStyleColorControl(i18n.t("captions.backgroundColor"), "backgroundColor");
+          const bgColorControl = this.createStyleColorControl(
+            i18n.t("captions.backgroundColor"),
+            "backgroundColor"
+          );
           styleDialog.appendChild(bgColorControl);
           const opacityControl = this.createStyleOpacityControl(i18n.t("captions.opacity"), "opacity");
           styleDialog.appendChild(opacityControl);
@@ -9671,7 +9821,7 @@
             className: `${this.player.options.classPrefix}-transcript-style-close`,
             textContent: i18n.t("settings.close"),
             attributes: {
-              "type": "button"
+              type: "button"
             }
           });
           closeBtn.addEventListener("click", () => this.hideStyleDialog());
@@ -9685,9 +9835,7 @@
               return;
             }
             if (e.key === "Tab") {
-              const focusableElements = styleDialog.querySelectorAll(
-                "select, input, button"
-              );
+              const focusableElements = styleDialog.querySelectorAll("select, input, button");
               const firstElement = focusableElements[0];
               const lastElement = focusableElements[focusableElements.length - 1];
               if (!firstElement || !lastElement) return;
@@ -9749,21 +9897,21 @@
           const labelEl = DOMUtils.createElement("label", {
             textContent: label,
             attributes: {
-              "for": controlId
+              for: controlId
             }
           });
           group.appendChild(labelEl);
           const select = DOMUtils.createElement("select", {
             className: `${this.player.options.classPrefix}-transcript-style-select`,
             attributes: {
-              "id": controlId
+              id: controlId
             }
           });
           options.forEach((opt) => {
             const option = DOMUtils.createElement("option", {
               textContent: opt.label,
               attributes: {
-                "value": opt.value
+                value: opt.value
               }
             });
             if (this.transcriptStyle[property] === opt.value) {
@@ -9790,15 +9938,15 @@
           const labelEl = DOMUtils.createElement("label", {
             textContent: label,
             attributes: {
-              "for": controlId
+              for: controlId
             }
           });
           group.appendChild(labelEl);
           const input = DOMUtils.createElement("input", {
             attributes: {
-              "id": controlId,
-              "type": "color",
-              "value": this.transcriptStyle[property]
+              id: controlId,
+              type: "color",
+              value: this.transcriptStyle[property]
             },
             className: `${this.player.options.classPrefix}-transcript-style-color`
           });
@@ -9821,7 +9969,7 @@
           const labelEl = DOMUtils.createElement("label", {
             textContent: label,
             attributes: {
-              "for": controlId
+              for: controlId
             }
           });
           group.appendChild(labelEl);
@@ -9832,12 +9980,12 @@
           });
           const input = DOMUtils.createElement("input", {
             attributes: {
-              "id": controlId,
-              "type": "range",
-              "min": "0",
-              "max": "1",
-              "step": "0.1",
-              "value": String(this.transcriptStyle[opacityProperty])
+              id: controlId,
+              type: "range",
+              min: "0",
+              max: "1",
+              step: "0.1",
+              value: String(this.transcriptStyle[opacityProperty])
             },
             className: `${this.player.options.classPrefix}-transcript-style-range`
           });
@@ -9875,13 +10023,17 @@
             this.transcriptContent.style.fontFamily = this.transcriptStyle.fontFamily;
             this.transcriptContent.style.color = this.transcriptStyle.color;
           }
-          const textEntries = this.transcriptWindow.querySelectorAll(`.${this.player.options.classPrefix}-transcript-text`);
+          const textEntries = this.transcriptWindow.querySelectorAll(
+            `.${this.player.options.classPrefix}-transcript-text`
+          );
           textEntries.forEach((entry) => {
             entry.style.fontSize = this.transcriptStyle.fontSize;
             entry.style.fontFamily = this.transcriptStyle.fontFamily;
             entry.style.color = this.transcriptStyle.color;
           });
-          const timeEntries = this.transcriptWindow.querySelectorAll(`.${this.player.options.classPrefix}-transcript-time`);
+          const timeEntries = this.transcriptWindow.querySelectorAll(
+            `.${this.player.options.classPrefix}-transcript-time`
+          );
           timeEntries.forEach((entry) => {
             entry.style.fontFamily = this.transcriptStyle.fontFamily;
           });
@@ -9918,7 +10070,12 @@
           this.hideResizeModeIndicator();
           const container = this.player.container;
           if (container) {
-            this.inertedElements = setContainerChildrenInert(container, null, false, this.inertedElements);
+            this.inertedElements = setContainerChildrenInert(
+              container,
+              null,
+              false,
+              this.inertedElements
+            );
           }
           if (this._panel) {
             this._panel.destroy();
@@ -10136,11 +10293,9 @@
           return;
         }
         existing.addEventListener("load", onLoad, { once: true });
-        existing.addEventListener(
-          "error",
-          () => reject(new Error(`Failed to load script: ${url}`)),
-          { once: true }
-        );
+        existing.addEventListener("error", () => reject(new Error(`Failed to load script: ${url}`)), {
+          once: true
+        });
         return;
       }
       const script = document.createElement("script");
@@ -10280,7 +10435,10 @@
     }
     for (const variant of ["maxres", "sd", "hq"]) {
       try {
-        const loaded = await loadThumbnailImage(youtubeThumbnailUrl(videoId, variant), variant === "maxres" ? 121 : 0);
+        const loaded = await loadThumbnailImage(
+          youtubeThumbnailUrl(videoId, variant),
+          variant === "maxres" ? 121 : 0
+        );
         return { width: loaded.width, height: loaded.height };
       } catch {
       }
@@ -10608,7 +10766,11 @@
             return;
           }
           this.embedCaptionBridgeActive = true;
-          this.youtubeEmbedCaptionMenu = filtered.map(({ id, language, label }) => ({ id, language, label }));
+          this.youtubeEmbedCaptionMenu = filtered.map(({ id, language, label }) => ({
+            id,
+            language,
+            label
+          }));
           this.youtubeEmbedCaptionTracks.clear();
           for (const entry of filtered) {
             this.youtubeEmbedCaptionTracks.set(entry.id, entry.raw);
@@ -11002,10 +11164,7 @@
       return;
     }
     try {
-      const [width, height] = await Promise.all([
-        vimeo.getVideoWidth(),
-        vimeo.getVideoHeight()
-      ]);
+      const [width, height] = await Promise.all([vimeo.getVideoWidth(), vimeo.getVideoHeight()]);
       player.setEmbedAspectRatio(width, height);
     } catch {
     }
@@ -11687,8 +11846,8 @@
          */
         async loadHlsJs() {
           return loadPinnedScript({
-            defaultUrl: "https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js",
-            defaultIntegrity: "sha384-cciJ0zi8d1uMKC2zJd7jvPY4HQt7W4ByUI/FlMkltvBi31aW61rcpVBhpmW8/NwX",
+            defaultUrl: "https://cdn.jsdelivr.net/npm/hls.js@1.7.4/dist/hls.min.js",
+            defaultIntegrity: "sha384-p9vgU/7IYJWd3I4STrtqxqR/2cAQlhIX7D/HrTnIMEjjcUox165b7se7sxmm3zDg",
             url: this.player.options.hlsScriptUrl,
             integrity: this.player.options.hlsScriptIntegrity
           });
@@ -11739,7 +11898,9 @@
           });
           hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (...args) => {
             const data = args[1];
-            this.player.log("HLS subtitle tracks updated, found " + data.subtitleTracks.length + " tracks");
+            this.player.log(
+              "HLS subtitle tracks updated, found " + data.subtitleTracks.length + " tracks"
+            );
             this.player.emit("hlssubtitletracksupdated", data);
             this._hlsSubtitleTracksCount = data.subtitleTracks.length;
             this.updateCaptionButtonsForHls();
@@ -11906,7 +12067,10 @@
                 void this.player.captionManager.refreshTracks().then((found) => {
                   if (found === 0 && retryCount < 5) {
                     const delay = (retryCount + 1) * 200;
-                    this.player.log(`HLS caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`, "info");
+                    this.player.log(
+                      `HLS caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`,
+                      "info"
+                    );
                     this._setTimeout(() => {
                       this.updateCaptionButtonsForHls(retryCount + 1);
                     }, delay);
@@ -11981,95 +12145,146 @@
         }
         attachMediaEvents() {
           const { signal } = this._listenerController;
-          this.media.addEventListener("loadedmetadata", () => {
-            this.player.state.duration = this.media.duration;
-            this.player.emit("loadedmetadata");
-          }, { signal });
-          this.media.addEventListener("durationchange", () => {
-            const duration = this.media.duration;
-            if (duration && isFinite(duration) && duration > 0) {
-              this.player.state.duration = duration;
-              this.player.emit("durationchange", duration);
-            }
-          }, { signal });
-          this.media.addEventListener("play", () => {
-            this.player.state.playing = true;
-            this.player.state.paused = false;
-            this.player.state.ended = false;
-            this.player.emit("play");
-            if (this.player.options.onPlay) {
-              this.player.options.onPlay.call(this.player);
-            }
-          }, { signal });
-          this.media.addEventListener("pause", () => {
-            this.player.state.playing = false;
-            this.player.state.paused = true;
-            this.player.emit("pause");
-            if (this.player.options.onPause) {
-              this.player.options.onPause.call(this.player);
-            }
-          }, { signal });
-          this.media.addEventListener("ended", () => {
-            this.player.state.playing = false;
-            this.player.state.paused = true;
-            this.player.state.ended = true;
-            this.player.emit("ended");
-            if (this.player.options.onEnded) {
-              this.player.options.onEnded.call(this.player);
-            }
-            if (this.player.options.loop) {
-              this.player.seek(0);
-              this.player.play();
-            }
-          }, { signal });
-          this.media.addEventListener("timeupdate", () => {
-            this.player.state.currentTime = this.media.currentTime;
-            this.player.emit("timeupdate", this.media.currentTime);
-            if (this.player.options.onTimeUpdate) {
-              this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
-            }
-          }, { signal });
-          this.media.addEventListener("volumechange", () => {
-            if (!this.player.shouldSyncVolumeFromMedia()) {
-              return;
-            }
-            this.player.state.volume = this.media.volume;
-            this.player.state.muted = this.media.muted;
-            this.player.emit("volumechange", this.media.volume);
-          }, { signal });
-          this.media.addEventListener("waiting", () => {
-            this.player.state.buffering = true;
-            this.player.emit("waiting");
-          }, { signal });
-          this.media.addEventListener("seeking", () => {
-            this.player.state.seeking = true;
-            this.player.emit("seeking");
-            if (!this._isTimeBuffered(this.media.currentTime)) {
+          this.media.addEventListener(
+            "loadedmetadata",
+            () => {
+              this.player.state.duration = this.media.duration;
+              this.player.emit("loadedmetadata");
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "durationchange",
+            () => {
+              const duration = this.media.duration;
+              if (duration && isFinite(duration) && duration > 0) {
+                this.player.state.duration = duration;
+                this.player.emit("durationchange", duration);
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "play",
+            () => {
+              this.player.state.playing = true;
+              this.player.state.paused = false;
+              this.player.state.ended = false;
+              this.player.emit("play");
+              if (this.player.options.onPlay) {
+                this.player.options.onPlay.call(this.player);
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "pause",
+            () => {
+              this.player.state.playing = false;
+              this.player.state.paused = true;
+              this.player.emit("pause");
+              if (this.player.options.onPause) {
+                this.player.options.onPause.call(this.player);
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "ended",
+            () => {
+              this.player.state.playing = false;
+              this.player.state.paused = true;
+              this.player.state.ended = true;
+              this.player.emit("ended");
+              if (this.player.options.onEnded) {
+                this.player.options.onEnded.call(this.player);
+              }
+              if (this.player.options.loop) {
+                this.player.seek(0);
+                this.player.play();
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "timeupdate",
+            () => {
+              this.player.state.currentTime = this.media.currentTime;
+              this.player.emit("timeupdate", this.media.currentTime);
+              if (this.player.options.onTimeUpdate) {
+                this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "volumechange",
+            () => {
+              if (!this.player.shouldSyncVolumeFromMedia()) {
+                return;
+              }
+              this.player.state.volume = this.media.volume;
+              this.player.state.muted = this.media.muted;
+              this.player.emit("volumechange", this.media.volume);
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "waiting",
+            () => {
               this.player.state.buffering = true;
               this.player.emit("waiting");
-            }
-          }, { signal });
-          this.media.addEventListener("seeked", () => {
-            this.player.state.seeking = false;
-            this.player.emit("seeked");
-            if (this.media.paused && this.hls) {
-              try {
-                this.hls.stopLoad();
-              } catch {
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "seeking",
+            () => {
+              this.player.state.seeking = true;
+              this.player.emit("seeking");
+              if (!this._isTimeBuffered(this.media.currentTime)) {
+                this.player.state.buffering = true;
+                this.player.emit("waiting");
               }
-            }
-          }, { signal });
-          this.media.addEventListener("canplay", () => {
-            this.player.state.buffering = false;
-            this.player.emit("canplay");
-          }, { signal });
-          this.media.addEventListener("error", () => {
-            this.player.handleError(this.media.error);
-          }, { signal });
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "seeked",
+            () => {
+              this.player.state.seeking = false;
+              this.player.emit("seeked");
+              if (this.media.paused && this.hls) {
+                try {
+                  this.hls.stopLoad();
+                } catch {
+                }
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "canplay",
+            () => {
+              this.player.state.buffering = false;
+              this.player.emit("canplay");
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "error",
+            () => {
+              this.player.handleError(this.media.error);
+            },
+            { signal }
+          );
         }
         handleHlsError(data) {
           var _a, _b, _c;
-          this.player.log(`HLS Error - Type: ${data.type}, Details: ${data.details}, Fatal: ${data.fatal}`, "warn");
+          this.player.log(
+            `HLS Error - Type: ${data.type}, Details: ${data.details}, Fatal: ${data.fatal}`,
+            "warn"
+          );
           if (data.response) {
             this.player.log(`Response code: ${data.response.code}, URL: ${data.response.url}`, "warn");
           }
@@ -12186,7 +12401,13 @@
               const height = Number(entry.height) || 0;
               const kb = entry.bitrate > 0 ? Math.round(entry.bitrate / 1e3) : 0;
               const name = height > 0 ? `${height}p` : kb > 0 ? `${kb} kb` : "Auto";
-              return { index: entry.index, height: entry.height, width: entry.width, bitrate: entry.bitrate, name };
+              return {
+                index: entry.index,
+                height: entry.height,
+                width: entry.width,
+                bitrate: entry.bitrate,
+                name
+              };
             });
           }
           return [];
@@ -12515,7 +12736,9 @@
             this._dashTextIsTtml = tracks.some(
               (t) => t.isTTML || /stpp|ttml/i.test(t.codec || "") || /ttml/i.test(t.mimeType || "")
             );
-            this.player.log(`DASH text tracks added: ${tracks.length} tracks, format: ${this._dashTextIsTtml ? "TTML" : "WebVTT"}`);
+            this.player.log(
+              `DASH text tracks added: ${tracks.length} tracks, format: ${this._dashTextIsTtml ? "TTML" : "WebVTT"}`
+            );
             this._dashSubtitleTracksCount = tracks.length;
             this.player.emit("dashsubtitletracksupdated", { tracks });
             this.updateCaptionButtonsForDash();
@@ -12749,7 +12972,10 @@
                 void this.player.captionManager.refreshTracks().then((found) => {
                   if (found === 0 && retryCount < 5) {
                     const delay = (retryCount + 1) * 200;
-                    this.player.log(`DASH caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`, "info");
+                    this.player.log(
+                      `DASH caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`,
+                      "info"
+                    );
                     this._setTimeout(() => {
                       this.updateCaptionButtonsForDash(retryCount + 1);
                     }, delay);
@@ -12794,85 +13020,133 @@
         }
         attachMediaEvents() {
           const { signal } = this._listenerController;
-          this.media.addEventListener("loadedmetadata", () => {
-            this.player.state.duration = this.media.duration;
-            this.player.emit("loadedmetadata");
-          }, { signal });
-          this.media.addEventListener("durationchange", () => {
-            const duration = this.media.duration;
-            if (duration && isFinite(duration) && duration > 0) {
-              this.player.state.duration = duration;
-              this.player.emit("durationchange", duration);
-            }
-          }, { signal });
-          this.media.addEventListener("play", () => {
-            this.player.state.playing = true;
-            this.player.state.paused = false;
-            this.player.state.ended = false;
-            this.player.emit("play");
-            if (this.player.options.onPlay) {
-              this.player.options.onPlay.call(this.player);
-            }
-          }, { signal });
-          this.media.addEventListener("pause", () => {
-            this.player.state.playing = false;
-            this.player.state.paused = true;
-            this.player.emit("pause");
-            if (this.player.options.onPause) {
-              this.player.options.onPause.call(this.player);
-            }
-          }, { signal });
-          this.media.addEventListener("ended", () => {
-            this.player.state.playing = false;
-            this.player.state.paused = true;
-            this.player.state.ended = true;
-            this.player.emit("ended");
-            if (this.player.options.onEnded) {
-              this.player.options.onEnded.call(this.player);
-            }
-            if (this.player.options.loop) {
-              this.player.seek(0);
-              this.player.play();
-            }
-          }, { signal });
-          this.media.addEventListener("timeupdate", () => {
-            this.player.state.currentTime = this.media.currentTime;
-            this.player.emit("timeupdate", this.media.currentTime);
-            if (this.player.options.onTimeUpdate) {
-              this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
-            }
-          }, { signal });
-          this.media.addEventListener("volumechange", () => {
-            if (!this.player.shouldSyncVolumeFromMedia()) {
-              return;
-            }
-            this.player.state.volume = this.media.volume;
-            this.player.state.muted = this.media.muted;
-            this.player.emit("volumechange", this.media.volume);
-          }, { signal });
-          this.media.addEventListener("seeking", () => {
-            this.player.state.seeking = true;
-            this.player.emit("seeking");
-            if (!this._isTimeBuffered(this.media.currentTime)) {
+          this.media.addEventListener(
+            "loadedmetadata",
+            () => {
+              this.player.state.duration = this.media.duration;
+              this.player.emit("loadedmetadata");
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "durationchange",
+            () => {
+              const duration = this.media.duration;
+              if (duration && isFinite(duration) && duration > 0) {
+                this.player.state.duration = duration;
+                this.player.emit("durationchange", duration);
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "play",
+            () => {
+              this.player.state.playing = true;
+              this.player.state.paused = false;
+              this.player.state.ended = false;
+              this.player.emit("play");
+              if (this.player.options.onPlay) {
+                this.player.options.onPlay.call(this.player);
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "pause",
+            () => {
+              this.player.state.playing = false;
+              this.player.state.paused = true;
+              this.player.emit("pause");
+              if (this.player.options.onPause) {
+                this.player.options.onPause.call(this.player);
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "ended",
+            () => {
+              this.player.state.playing = false;
+              this.player.state.paused = true;
+              this.player.state.ended = true;
+              this.player.emit("ended");
+              if (this.player.options.onEnded) {
+                this.player.options.onEnded.call(this.player);
+              }
+              if (this.player.options.loop) {
+                this.player.seek(0);
+                this.player.play();
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "timeupdate",
+            () => {
+              this.player.state.currentTime = this.media.currentTime;
+              this.player.emit("timeupdate", this.media.currentTime);
+              if (this.player.options.onTimeUpdate) {
+                this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "volumechange",
+            () => {
+              if (!this.player.shouldSyncVolumeFromMedia()) {
+                return;
+              }
+              this.player.state.volume = this.media.volume;
+              this.player.state.muted = this.media.muted;
+              this.player.emit("volumechange", this.media.volume);
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "seeking",
+            () => {
+              this.player.state.seeking = true;
+              this.player.emit("seeking");
+              if (!this._isTimeBuffered(this.media.currentTime)) {
+                this.player.state.buffering = true;
+                this.player.emit("waiting");
+              }
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "seeked",
+            () => {
+              this.player.state.seeking = false;
+              this.player.emit("seeked");
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "waiting",
+            () => {
               this.player.state.buffering = true;
               this.player.emit("waiting");
-            }
-          }, { signal });
-          this.media.addEventListener("seeked", () => {
-            this.player.state.seeking = false;
-            this.player.emit("seeked");
-          }, { signal });
-          this.media.addEventListener("waiting", () => {
-            this.player.state.buffering = true;
-            this.player.emit("waiting");
-          }, { signal });
-          this.media.addEventListener("canplay", () => {
-            this.player.state.buffering = false;
-            this.player.emit("canplay");
-          }, { signal });
-          this.media.addEventListener("error", () => {
-            this.player.handleError(this.media.error);
-          }, { signal });
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "canplay",
+            () => {
+              this.player.state.buffering = false;
+              this.player.emit("canplay");
+            },
+            { signal }
+          );
+          this.media.addEventListener(
+            "error",
+            () => {
+              this.player.handleError(this.media.error);
+            },
+            { signal }
+          );
         }
         handleDashError(e) {
           const wrapped = e;
@@ -13072,7 +13346,9 @@
             });
           }
           if (dashIndex < 0) return false;
-          this.player.log(`Activating DASH text track index ${dashIndex} for transcript language "${lang}"`);
+          this.player.log(
+            `Activating DASH text track index ${dashIndex} for transcript language "${lang}"`
+          );
           try {
             this.dash.setTextTrack(dashIndex);
           } catch {
@@ -13380,35 +13656,41 @@
               return;
             }
             this._initController = new AbortController();
-            iframe.addEventListener("load", () => {
-              try {
-                const widget = SC.Widget(iframe);
-                this.widget = widget;
-                widget.bind(SC.Widget.Events.READY, () => {
-                  this.isReady = true;
-                  if (this._initTimeoutId !== null) {
-                    clearTimeout(this._initTimeoutId);
-                    this._initTimeoutId = null;
-                  }
-                  this.attachEvents();
-                  this.player.syncEmbedChromeClass("soundcloud");
-                  widget.getCurrentSound((sound) => {
-                    const info = sound;
-                    if (info) {
-                      this.player.state.duration = info.duration / 1e3;
-                      this.player.emit("loadedmetadata");
+            iframe.addEventListener(
+              "load",
+              () => {
+                try {
+                  const widget = SC.Widget(iframe);
+                  this.widget = widget;
+                  widget.bind(SC.Widget.Events.READY, () => {
+                    this.isReady = true;
+                    if (this._initTimeoutId !== null) {
+                      clearTimeout(this._initTimeoutId);
+                      this._initTimeoutId = null;
                     }
+                    this.attachEvents();
+                    this.player.syncEmbedChromeClass("soundcloud");
+                    widget.getCurrentSound((sound) => {
+                      const info = sound;
+                      if (info) {
+                        this.player.state.duration = info.duration / 1e3;
+                        this.player.emit("loadedmetadata");
+                      }
+                    });
+                    resolve();
                   });
-                  resolve();
-                });
-                widget.bind(SC.Widget.Events.ERROR, (...args) => {
-                  const error = args[0];
-                  this.player.handleError(new Error(`SoundCloud error: ${(error == null ? void 0 : error.message) || "Unknown error"}`));
-                });
-              } catch (error) {
-                reject(error);
-              }
-            }, { signal: this._initController.signal });
+                  widget.bind(SC.Widget.Events.ERROR, (...args) => {
+                    const error = args[0];
+                    this.player.handleError(
+                      new Error(`SoundCloud error: ${(error == null ? void 0 : error.message) || "Unknown error"}`)
+                    );
+                  });
+                } catch (error) {
+                  reject(error);
+                }
+              },
+              { signal: this._initController.signal }
+            );
             this._initTimeoutId = setTimeout(() => {
               this._initTimeoutId = null;
               if (!this.isReady) {
@@ -13619,9 +13901,7 @@
       if (!listener) {
         delete this.events[event];
       } else {
-        this.events[event] = listeners.filter(
-          (l) => l !== listener
-        );
+        this.events[event] = listeners.filter((l) => l !== listener);
       }
       return this;
     }
@@ -13779,7 +14059,8 @@
 
   // src/utils/RendererType.ts
   function classifyRendererType(src) {
-    if (src.includes("youtube.com") || src.includes("youtu.be") || src.includes("youtube-nocookie.com")) return "youtube";
+    if (src.includes("youtube.com") || src.includes("youtu.be") || src.includes("youtube-nocookie.com"))
+      return "youtube";
     if (src.includes("vimeo.com")) return "vimeo";
     if (src.includes(".m3u8")) return "hls";
     if (src.includes(".mpd")) return "dash";
@@ -13832,7 +14113,10 @@
     if (!id) {
       return sanitizeProviderPageUrl(src, "youtube");
     }
-    return sanitizeProviderPageUrl(`https://www.youtube.com/watch?v=${encodeURIComponent(id)}`, "youtube");
+    return sanitizeProviderPageUrl(
+      `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`,
+      "youtube"
+    );
   }
   function extractVimeoWatchUrl(src) {
     const match = src.match(/vimeo\.com\/(?:video\/)?(\d+)/);
@@ -13997,27 +14281,35 @@
      */
     setupGlobalDragListeners() {
       const signal = this.player.lifecycleSignal;
-      document.addEventListener("mousemove", (e) => {
-        if (this.isDraggingProgress && this._progressBarRect) {
-          const rect = this._progressBarRect;
-          const percent = rect.width > 0 ? Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) : 0;
-          const { start, end } = this.getProgressSeekRange();
-          const span = end - start;
-          this.player.seek(span > 0 ? start + percent * span : 0);
-          return;
-        }
-        if (this.isDraggingVolume && this._activeVolumeTrack) {
-          const rect = this._activeVolumeTrack.getBoundingClientRect();
-          const percent = Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height));
-          this.player.setVolume(percent);
-        }
-      }, { signal });
-      document.addEventListener("mouseup", () => {
-        this.isDraggingProgress = false;
-        this._progressBarRect = null;
-        this.isDraggingVolume = false;
-        this._activeVolumeTrack = null;
-      }, { signal });
+      document.addEventListener(
+        "mousemove",
+        (e) => {
+          if (this.isDraggingProgress && this._progressBarRect) {
+            const rect = this._progressBarRect;
+            const percent = rect.width > 0 ? Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) : 0;
+            const { start, end } = this.getProgressSeekRange();
+            const span = end - start;
+            this.player.seek(span > 0 ? start + percent * span : 0);
+            return;
+          }
+          if (this.isDraggingVolume && this._activeVolumeTrack) {
+            const rect = this._activeVolumeTrack.getBoundingClientRect();
+            const percent = Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height));
+            this.player.setVolume(percent);
+          }
+        },
+        { signal }
+      );
+      document.addEventListener(
+        "mouseup",
+        () => {
+          this.isDraggingProgress = false;
+          this._progressBarRect = null;
+          this.isDraggingVolume = false;
+          this._activeVolumeTrack = null;
+        },
+        { signal }
+      );
     }
     // Helper method to detect touch devices
     isTouchDevice() {
@@ -14026,7 +14318,9 @@
     // Smart menu positioning to avoid overflow
     positionMenu(menu, button, immediate = false) {
       const mobile = isMobile();
-      const isOverflowMenu = menu.classList.contains(`${this.player.options.classPrefix}-overflow-menu-list`);
+      const isOverflowMenu = menu.classList.contains(
+        `${this.player.options.classPrefix}-overflow-menu-list`
+      );
       const isFullscreen = this.player.state.fullscreen;
       const menuInPlayerContainer = menu.parentElement === this.player.container;
       if (menuInPlayerContainer && (isFullscreen || isOverflowMenu)) {
@@ -14076,7 +14370,9 @@
         return;
       }
       if (mobile) {
-        const isVolumeMenu = menu.classList.contains(`${this.player.options.classPrefix}-volume-menu`);
+        const isVolumeMenu = menu.classList.contains(
+          `${this.player.options.classPrefix}-volume-menu`
+        );
         const doMobilePositioning = () => {
           const parentContainer = button.parentElement;
           if (!parentContainer) return;
@@ -14266,7 +14562,9 @@
             if (signLanguageWrapper && signLanguageWrapper.contains(activeElement) || transcriptWindow && transcriptWindow.contains(activeElement)) {
               return;
             }
-            const controlBarButtons = Array.from(this.element.querySelectorAll("button"));
+            const controlBarButtons = Array.from(
+              this.element.querySelectorAll("button")
+            );
             const isFocusOnAnotherButton = activeElement !== null && controlBarButtons.includes(activeElement) && activeElement !== button;
             const isRelatedTargetAnotherButton = relatedTarget !== null && relatedTarget instanceof Element && controlBarButtons.includes(relatedTarget) && relatedTarget !== button;
             if (isFocusOnAnotherButton || isRelatedTargetAnotherButton) {
@@ -14458,7 +14756,7 @@
       this.element = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-controls`,
         attributes: {
-          "role": "region",
+          role: "region",
           "aria-label": i18n.t("player.label") + " controls"
         }
       });
@@ -14660,7 +14958,9 @@
         if (button.querySelector(`.${this.player.options.classPrefix}-button-text`)) {
           return;
         }
-        if (button.getAttribute("role") === "menuitem" || button.classList.contains(`${this.player.options.classPrefix}-settings-item`) || button.classList.contains(`${this.player.options.classPrefix}-menu-item`) || button.classList.contains(`${this.player.options.classPrefix}-transcript-settings-item`) || button.classList.contains(`${this.player.options.classPrefix}-sign-language-settings-item`) || button.classList.contains(`${this.player.options.classPrefix}-popup-settings-item`)) {
+        if (button.getAttribute("role") === "menuitem" || button.classList.contains(`${this.player.options.classPrefix}-settings-item`) || button.classList.contains(`${this.player.options.classPrefix}-menu-item`) || button.classList.contains(`${this.player.options.classPrefix}-transcript-settings-item`) || button.classList.contains(
+          `${this.player.options.classPrefix}-sign-language-settings-item`
+        ) || button.classList.contains(`${this.player.options.classPrefix}-popup-settings-item`)) {
           return;
         }
         const ariaLabel = button.getAttribute("aria-label");
@@ -14754,7 +15054,9 @@
         }
       }
       const trackEls = Array.from(this.player.element.querySelectorAll("track"));
-      if (trackEls.some((el) => el.getAttribute("kind") === "captions" || el.getAttribute("kind") === "subtitles")) {
+      if (trackEls.some(
+        (el) => el.getAttribute("kind") === "captions" || el.getAttribute("kind") === "subtitles"
+      )) {
         return true;
       }
       const current = (_c = (_b = this.player.playlistManager) == null ? void 0 : _b.getCurrentTrack) == null ? void 0 : _c.call(_b);
@@ -14798,13 +15100,13 @@
       const progressContainer = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-progress-container`,
         attributes: {
-          "role": "slider",
+          role: "slider",
           "aria-label": i18n.t("player.progress"),
           "aria-orientation": "horizontal",
           "aria-valuemin": "0",
           "aria-valuemax": "100",
           "aria-valuenow": "0",
-          "tabindex": "0"
+          tabindex: "0"
         }
       });
       this.controls.buffered = DOMUtils.createElement("div", {
@@ -14923,12 +15225,16 @@
         this.player.log("Preview video failed to load:", e, "warn");
         this.previewSupported = false;
       });
-      this.previewVideo.addEventListener("loadedmetadata", () => {
-        this.previewVideoReady = true;
-        if (this.player.options.thumbnailPregenerate) {
-          this.pregenerateThumbnails();
-        }
-      }, { once: true });
+      this.previewVideo.addEventListener(
+        "loadedmetadata",
+        () => {
+          this.previewVideoReady = true;
+          if (this.player.options.thumbnailPregenerate) {
+            this.pregenerateThumbnails();
+          }
+        },
+        { once: true }
+      );
       if (this.player.container) {
         this.player.container.appendChild(this.previewVideo);
       }
@@ -15220,7 +15526,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-play-pause`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.play")
         }
       });
@@ -15237,9 +15543,9 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-restart`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.restart"),
-          "hidden": "true"
+          hidden: "true"
         }
       });
       button.appendChild(createIconElement("restart"));
@@ -15255,7 +15561,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-previous`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.previous")
         }
       });
@@ -15276,7 +15582,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-next`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.next")
         }
       });
@@ -15327,7 +15633,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-playlist-toggle`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.playlist"),
           "aria-expanded": "false",
           "aria-pressed": "false",
@@ -15350,7 +15656,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-rewind`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.rewindSeconds", { seconds })
         }
       });
@@ -15367,9 +15673,9 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-forward`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.forwardSeconds", { seconds }),
-          "hidden": "true"
+          hidden: "true"
         }
       });
       button.appendChild(createIconElement("forward"));
@@ -15385,9 +15691,9 @@
       const button = DOMUtils.createElement("button", {
         className: `${prefix}-button ${prefix}-go-live`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.goLive"),
-          "hidden": "true"
+          hidden: "true"
         },
         textContent: i18n.t("player.goLiveShort")
       });
@@ -15400,7 +15706,7 @@
       const muteButton = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-mute`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.mute")
         }
       });
@@ -15417,7 +15723,7 @@
       const muteButton = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-mute`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.volume"),
           "aria-expanded": "false"
         }
@@ -15436,7 +15742,9 @@
       return muteButton;
     }
     showVolumeSlider(button) {
-      const existingSlider = this.player.container.querySelector(`.${this.player.options.classPrefix}-volume-menu`);
+      const existingSlider = this.player.container.querySelector(
+        `.${this.player.options.classPrefix}-volume-menu`
+      );
       if (existingSlider) {
         existingSlider.remove();
         button.setAttribute("aria-expanded", "false");
@@ -15449,14 +15757,14 @@
       const volumeSlider = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-volume-slider`,
         attributes: {
-          "role": "slider",
+          role: "slider",
           "aria-label": i18n.t("player.volume"),
           "aria-orientation": "vertical",
           "aria-valuemin": "0",
           "aria-valuemax": "100",
           "aria-valuenow": String(initialPercent),
           "aria-valuetext": this.player.state.muted ? i18n.t("player.muted") : i18n.t("player.volumePercent", { percent: initialPercent }),
-          "tabindex": "0"
+          tabindex: "0"
         }
       });
       const volumeTrack = DOMUtils.createElement("div", {
@@ -15486,29 +15794,41 @@
         this._activeVolumeTrack = volumeTrack;
         updateVolume(e.clientY);
       });
-      volumeSlider.addEventListener("touchstart", (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        this.isDraggingVolume = true;
-        this._activeVolumeTrack = volumeTrack;
-        const touch = e.touches[0];
-        if (!touch) return;
-        updateVolume(touch.clientY);
-      }, { passive: false });
-      volumeSlider.addEventListener("touchmove", (e) => {
-        if (this.isDraggingVolume) {
+      volumeSlider.addEventListener(
+        "touchstart",
+        (e) => {
+          e.stopPropagation();
           e.preventDefault();
+          this.isDraggingVolume = true;
+          this._activeVolumeTrack = volumeTrack;
           const touch = e.touches[0];
           if (!touch) return;
           updateVolume(touch.clientY);
-        }
-      }, { passive: false });
-      volumeSlider.addEventListener("touchend", (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        this.isDraggingVolume = false;
-        this._activeVolumeTrack = null;
-      }, { passive: false });
+        },
+        { passive: false }
+      );
+      volumeSlider.addEventListener(
+        "touchmove",
+        (e) => {
+          if (this.isDraggingVolume) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            if (!touch) return;
+            updateVolume(touch.clientY);
+          }
+        },
+        { passive: false }
+      );
+      volumeSlider.addEventListener(
+        "touchend",
+        (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          this.isDraggingVolume = false;
+          this._activeVolumeTrack = null;
+        },
+        { passive: false }
+      );
       volumeSlider.addEventListener("touchcancel", () => {
         this.isDraggingVolume = false;
         this._activeVolumeTrack = null;
@@ -15554,7 +15874,7 @@
       const container = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-time`,
         attributes: {
-          "role": "group",
+          role: "group",
           "aria-label": i18n.t("time.display")
         }
       });
@@ -15702,7 +16022,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-chapters`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.chapters"),
           "aria-expanded": "false"
         }
@@ -15715,7 +16035,9 @@
       return button;
     }
     showChaptersMenu(button) {
-      const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-chapters-menu`);
+      const existingMenu = this.player.container.querySelector(
+        `.${this.player.options.classPrefix}-chapters-menu`
+      );
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
@@ -15728,21 +16050,19 @@
       const menu = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-chapters-menu ${this.player.options.classPrefix}-menu`,
         attributes: {
-          "role": "menu",
+          role: "menu",
           "aria-label": i18n.t("player.chapters")
         }
       });
-      const chapterTracks = Array.from(this.player.element.textTracks).filter(
-        (track) => track.kind === "chapters"
-      );
+      const chapterTracks = Array.from(this.player.element.textTracks).filter((track) => track.kind === "chapters");
       if (chapterTracks.length === 0) {
         const noChaptersItem = DOMUtils.createElement("div", {
           className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
           textContent: i18n.t("player.noChapters"),
           attributes: {
-            "role": "menuitem",
+            role: "menuitem",
             "aria-disabled": "true",
-            "tabindex": "-1"
+            tabindex: "-1"
           },
           style: { opacity: "0.5", cursor: "default" }
         });
@@ -15757,9 +16077,9 @@
             className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
             textContent: i18n.t("player.loadingChapters"),
             attributes: {
-              "role": "menuitem",
+              role: "menuitem",
               "aria-disabled": "true",
-              "tabindex": "-1"
+              tabindex: "-1"
             },
             style: { opacity: "0.5", cursor: "default" }
           });
@@ -15782,9 +16102,9 @@
             const item = DOMUtils.createElement("button", {
               className: `${this.player.options.classPrefix}-menu-item`,
               attributes: {
-                "type": "button",
-                "role": "menuitem",
-                "tabindex": "-1"
+                type: "button",
+                role: "menuitem",
+                tabindex: "-1"
               }
             });
             const timeLabel = DOMUtils.createElement("span", {
@@ -15809,7 +16129,9 @@
           }
           this.attachMenuKeyboardNavigation(menu, button);
           setTimeout(() => {
-            const firstItem = menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+            const firstItem = menu.querySelector(
+              `.${this.player.options.classPrefix}-menu-item`
+            );
             if (firstItem) {
               firstItem.focus({ preventScroll: true });
             }
@@ -15830,7 +16152,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-quality`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": ariaLabel,
           "aria-expanded": "false"
         }
@@ -15851,7 +16173,9 @@
       return button;
     }
     showQualityMenu(button) {
-      const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-quality-menu`);
+      const existingMenu = this.player.container.querySelector(
+        `.${this.player.options.classPrefix}-quality-menu`
+      );
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
@@ -15864,7 +16188,7 @@
       const menu = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-quality-menu ${this.player.options.classPrefix}-menu`,
         attributes: {
-          "role": "menu",
+          role: "menu",
           "aria-label": i18n.t("player.quality")
         }
       });
@@ -15877,7 +16201,7 @@
             className: `${this.player.options.classPrefix}-menu-item`,
             textContent: i18n.t("player.autoQuality"),
             attributes: {
-              "role": "menuitem"
+              role: "menuitem"
             },
             style: { opacity: "0.5", cursor: "default" }
           });
@@ -15889,9 +16213,9 @@
               className: `${this.player.options.classPrefix}-menu-item`,
               textContent: i18n.t("player.auto"),
               attributes: {
-                "type": "button",
-                "role": "menuitem",
-                "tabindex": "-1"
+                type: "button",
+                role: "menuitem",
+                tabindex: "-1"
               }
             });
             const isAuto = typeof this.player.renderer.isAutoQuality === "function" && this.player.renderer.isAutoQuality();
@@ -15914,9 +16238,9 @@
               className: `${this.player.options.classPrefix}-menu-item`,
               textContent: quality.name || `${quality.height}p`,
               attributes: {
-                "type": "button",
-                "role": "menuitem",
-                "tabindex": "-1"
+                type: "button",
+                role: "menuitem",
+                tabindex: "-1"
               }
             });
             if (quality.index === currentQuality) {
@@ -15963,7 +16287,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-caption-style`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": ariaLabel,
           "aria-expanded": "false"
         }
@@ -15984,13 +16308,15 @@
       return button;
     }
     showCaptionStyleMenu(button) {
-      Promise.resolve().then(() => (init_CaptionStyleMenu(), CaptionStyleMenu_exports)).then(({ showCaptionStyleMenu: showCaptionStyleMenu2 }) => showCaptionStyleMenu2(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+      Promise.resolve().then(() => (init_CaptionStyleMenu(), CaptionStyleMenu_exports)).then(({ showCaptionStyleMenu: showCaptionStyleMenu2 }) => showCaptionStyleMenu2(this, button)).catch(
+        (error) => this.player.log("Failed to load caption style menu:", error, "error")
+      );
     }
     createSpeedButton() {
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-speed`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.speed"),
           "aria-expanded": "false"
         }
@@ -16019,7 +16345,9 @@
       return `${speedStr}×`;
     }
     showSpeedMenu(button) {
-      const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-speed-menu`);
+      const existingMenu = this.player.container.querySelector(
+        `.${this.player.options.classPrefix}-speed-menu`
+      );
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
@@ -16032,7 +16360,7 @@
       const menu = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-speed-menu ${this.player.options.classPrefix}-menu`,
         attributes: {
-          "role": "menu"
+          role: "menu"
         }
       });
       const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
@@ -16042,9 +16370,9 @@
           className: `${this.player.options.classPrefix}-menu-item`,
           textContent: this.formatSpeedLabel(speed),
           attributes: {
-            "type": "button",
-            "role": "menuitem",
-            "tabindex": "-1"
+            type: "button",
+            role: "menuitem",
+            tabindex: "-1"
           }
         });
         if (speed === this.player.state.playbackSpeed) {
@@ -16078,7 +16406,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-captions-button`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.captions"),
           "aria-expanded": "false"
         }
@@ -16097,7 +16425,9 @@
         });
         return;
       }
-      const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-captions-menu`);
+      const existingMenu = this.player.container.querySelector(
+        `.${this.player.options.classPrefix}-captions-menu`
+      );
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
@@ -16110,7 +16440,7 @@
       const menu = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-captions-menu ${this.player.options.classPrefix}-menu`,
         attributes: {
-          "role": "menu",
+          role: "menu",
           "aria-label": i18n.t("captions.select")
         }
       });
@@ -16119,7 +16449,7 @@
           className: `${this.player.options.classPrefix}-menu-item`,
           textContent: i18n.t("player.noCaptions"),
           attributes: {
-            "role": "menuitem"
+            role: "menuitem"
           },
           style: { opacity: "0.5", cursor: "default" }
         });
@@ -16133,9 +16463,9 @@
         className: `${this.player.options.classPrefix}-menu-item`,
         textContent: i18n.t("captions.off"),
         attributes: {
-          "type": "button",
-          "role": "menuitem",
-          "tabindex": "-1"
+          type: "button",
+          role: "menuitem",
+          tabindex: "-1"
         }
       });
       if (!this.player.state.captionsEnabled) {
@@ -16155,10 +16485,10 @@
           className: `${this.player.options.classPrefix}-menu-item`,
           textContent: track.label,
           attributes: {
-            "type": "button",
-            "role": "menuitem",
-            "lang": track.language,
-            "tabindex": "-1"
+            type: "button",
+            role: "menuitem",
+            lang: track.language,
+            tabindex: "-1"
           }
         });
         const captionManager = this.player.captionManager;
@@ -16196,7 +16526,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-transcript`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.transcript"),
           "aria-expanded": "false"
         }
@@ -16219,7 +16549,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-help`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": ariaLabel,
           "aria-haspopup": "dialog"
         }
@@ -16237,9 +16567,9 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-audio-description`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": ariaLabel,
-          "role": "switch",
+          role: "switch",
           "aria-checked": "false"
         }
       });
@@ -16266,7 +16596,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-sign-language`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": ariaLabel,
           "aria-expanded": "false"
         }
@@ -16301,7 +16631,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-sign-language-main-view`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": ariaLabel,
           "aria-pressed": "false"
         }
@@ -16346,8 +16676,12 @@
           const btn = this.createAudioDescriptionButton();
           btn.dataset.overflowPriority = "2";
           btn.dataset.overflowPriorityMobile = "3";
-          const transcriptBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-transcript`);
-          const playlistBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
+          const transcriptBtn = this.rightButtons.querySelector(
+            `.${this.player.options.classPrefix}-transcript`
+          );
+          const playlistBtn = this.rightButtons.querySelector(
+            `.${this.player.options.classPrefix}-playlist-toggle`
+          );
           const insertBefore = transcriptBtn || playlistBtn || null;
           if (insertBefore) {
             this.rightButtons.insertBefore(btn, insertBefore);
@@ -16410,7 +16744,8 @@
         }
       } else {
         if (this.controls.signLanguage) this.controls.signLanguage.style.display = "none";
-        if (this.controls.signLanguageMainView) this.controls.signLanguageMainView.style.display = "none";
+        if (this.controls.signLanguageMainView)
+          this.controls.signLanguageMainView.style.display = "none";
       }
     }
     createPipButton() {
@@ -16421,7 +16756,7 @@
       const button = DOMUtils.createElement("button", {
         className,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t(labelKey),
           "aria-pressed": "false"
         }
@@ -16504,7 +16839,7 @@
           target: "_blank",
           rel: "noopener noreferrer",
           "aria-label": label,
-          "title": label
+          title: label
         }
       });
       link.appendChild(createIconElement(this.embedProviderIconName(provider)));
@@ -16542,7 +16877,11 @@
         return;
       }
       mounted.href = target.url;
-      mounted.classList.remove(`${prefix}-embed-provider-youtube`, `${prefix}-embed-provider-vimeo`, `${prefix}-embed-provider-soundcloud`);
+      mounted.classList.remove(
+        `${prefix}-embed-provider-youtube`,
+        `${prefix}-embed-provider-vimeo`,
+        `${prefix}-embed-provider-soundcloud`
+      );
       mounted.classList.add(`${prefix}-embed-provider-${target.provider}`);
       const label = this.embedProviderLinkLabel(target.provider);
       mounted.setAttribute("aria-label", label);
@@ -16556,7 +16895,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-download`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.download")
         }
       });
@@ -16682,7 +17021,10 @@
       } else {
         delete button.dataset.vidplyDownloadSize;
       }
-      this.updateDownloadButtonLabel(button, this.composeDownloadLabel(target.format, target.sizeBytes));
+      this.updateDownloadButtonLabel(
+        button,
+        this.composeDownloadLabel(target.format, target.sizeBytes)
+      );
       if (this.player.options.downloadFetchSize === false || target.sizeBytes != null) return;
       fetchContentLength(target.url).then((sizeBytes) => {
         if (sizeBytes == null || button.dataset.vidplyDownloadUrl !== target.url) return;
@@ -16745,7 +17087,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-fullscreen`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": i18n.t("player.fullscreen")
         }
       });
@@ -16798,8 +17140,16 @@
       this.subscribe("events", "audiodescriptiondisabled", () => this.updateAudioDescriptionButton());
       this.subscribe("events", "signlanguageenabled", () => this.updateSignLanguageButton());
       this.subscribe("events", "signlanguagedisabled", () => this.updateSignLanguageButton());
-      this.subscribe("events", "signlanguageinmainviewenabled", () => this.updateSignLanguageInMainViewButton());
-      this.subscribe("events", "signlanguageinmainviewdisabled", () => this.updateSignLanguageInMainViewButton());
+      this.subscribe(
+        "events",
+        "signlanguageinmainviewenabled",
+        () => this.updateSignLanguageInMainViewButton()
+      );
+      this.subscribe(
+        "events",
+        "signlanguageinmainviewdisabled",
+        () => this.updateSignLanguageInMainViewButton()
+      );
       this.subscribe("events", "qualitychange", () => this.updateQualityIndicator());
       this.subscribe("events", "hlslevelswitched", () => this.updateQualityIndicator());
       this.subscribe("events", "hlsmanifestparsed", () => {
@@ -16941,12 +17291,17 @@
           const volumePercent = this.player.state.muted ? 0 : Math.round(percent);
           const newMuteAriaLabel = this.isTouchDevice() ? this.player.state.muted ? i18n.t("player.unmute") : i18n.t("player.mute") : `${i18n.t("player.volume")} ${volumePercent}%`;
           this.controls.mute.setAttribute("aria-label", newMuteAriaLabel);
-          DOMUtils.attachTooltip(this.controls.mute, newMuteAriaLabel, this.player.options.classPrefix);
+          DOMUtils.attachTooltip(
+            this.controls.mute,
+            newMuteAriaLabel,
+            this.player.options.classPrefix
+          );
         }
       }
     }
     updateBuffered() {
-      if (!this.controls.buffered || !this.player.element.buffered || this.player.element.buffered.length === 0) return;
+      if (!this.controls.buffered || !this.player.element.buffered || this.player.element.buffered.length === 0)
+        return;
       const buffered = this.player.element.buffered.end(this.player.element.buffered.length - 1);
       const { start, end } = this.getProgressSeekRange();
       const span = end - start;
@@ -16979,8 +17334,12 @@
       if (this.controls.quality) return;
       if (!this.hasQualityLevels()) return;
       const qualityButton = this.createQualityButton();
-      const speedButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-speed`);
-      const captionStyleButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-caption-style`);
+      const speedButton = this.rightButtons.querySelector(
+        `.${this.player.options.classPrefix}-speed`
+      );
+      const captionStyleButton = this.rightButtons.querySelector(
+        `.${this.player.options.classPrefix}-caption-style`
+      );
       const insertBefore = captionStyleButton || speedButton;
       if (insertBefore) {
         this.rightButtons.insertBefore(qualityButton, insertBefore);
@@ -17022,7 +17381,9 @@
       const btn = this.createCaptionsButton();
       btn.dataset.overflowPriority = "1";
       btn.dataset.overflowPriorityMobile = "3";
-      const chaptersButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-chapters`);
+      const chaptersButton = this.rightButtons.querySelector(
+        `.${this.player.options.classPrefix}-chapters`
+      );
       if (chaptersButton && chaptersButton.nextSibling) {
         this.rightButtons.insertBefore(btn, chaptersButton.nextSibling);
       } else if (chaptersButton) {
@@ -17053,7 +17414,9 @@
       const btn = this.createCaptionStyleButton();
       btn.dataset.overflowPriority = "3";
       btn.dataset.overflowPriorityMobile = "3";
-      const captionsButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-captions-button`);
+      const captionsButton = this.rightButtons.querySelector(
+        `.${this.player.options.classPrefix}-captions-button`
+      );
       if (captionsButton) {
         captionsButton.after(btn);
       } else {
@@ -17071,9 +17434,15 @@
       const btn = this.createTranscriptButton();
       btn.dataset.overflowPriority = "3";
       btn.dataset.overflowPriorityMobile = "3";
-      const adButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-audio-description`);
-      const speedButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-speed`);
-      const captionStyleButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-caption-style`);
+      const adButton = this.rightButtons.querySelector(
+        `.${this.player.options.classPrefix}-audio-description`
+      );
+      const speedButton = this.rightButtons.querySelector(
+        `.${this.player.options.classPrefix}-speed`
+      );
+      const captionStyleButton = this.rightButtons.querySelector(
+        `.${this.player.options.classPrefix}-caption-style`
+      );
       if (adButton) {
         adButton.after(btn);
       } else if (speedButton) {
@@ -17081,9 +17450,13 @@
       } else if (captionStyleButton) {
         captionStyleButton.after(btn);
       } else {
-        const qualityButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-quality`);
+        const qualityButton = this.rightButtons.querySelector(
+          `.${this.player.options.classPrefix}-quality`
+        );
         const pipButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-pip`);
-        const fullscreenButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-fullscreen`);
+        const fullscreenButton = this.rightButtons.querySelector(
+          `.${this.player.options.classPrefix}-fullscreen`
+        );
         const insertBefore = qualityButton || pipButton || fullscreenButton;
         if (insertBefore) {
           this.rightButtons.insertBefore(btn, insertBefore);
@@ -17102,7 +17475,9 @@
      */
     removeHlsCaptionButtons(force = false) {
       if (!force) {
-        const trackElements = this.player.element.querySelectorAll('track[kind="captions"], track[kind="subtitles"]');
+        const trackElements = this.player.element.querySelectorAll(
+          'track[kind="captions"], track[kind="subtitles"]'
+        );
         if (trackElements.length > 0) {
           this.player.log("Keeping caption buttons - native track elements exist", "info");
           return;
@@ -17136,7 +17511,9 @@
         const tt = textTracks[i];
         if (tt) tt.mode = "disabled";
       }
-      const captionsContainer = (_a = this.player.container) == null ? void 0 : _a.querySelector(`.${this.player.options.classPrefix}-captions`);
+      const captionsContainer = (_a = this.player.container) == null ? void 0 : _a.querySelector(
+        `.${this.player.options.classPrefix}-captions`
+      );
       if (captionsContainer) {
         captionsContainer.textContent = "";
         captionsContainer.style.display = "none";
@@ -17175,7 +17552,9 @@
           const delay = this.player.state.fullscreen ? this.player.options.hideControlsDelay * 1.5 : this.player.options.hideControlsDelay;
           this.hideTimeout = setTimeout(() => {
             this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
-            this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+            this.player.container.classList.remove(
+              `${this.player.options.classPrefix}-controls-visible`
+            );
             this.player.state.controlsVisible = false;
           }, delay);
         }
@@ -17203,7 +17582,9 @@
             this.hideTimeout = setTimeout(() => {
               if (this.player.state.playing) {
                 this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
-                this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+                this.player.container.classList.remove(
+                  `${this.player.options.classPrefix}-controls-visible`
+                );
                 this.player.state.controlsVisible = false;
               }
             }, this.player.options.hideControlsDelay * 2);
@@ -17217,7 +17598,7 @@
       const button = DOMUtils.createElement("button", {
         className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-overflow-menu`,
         attributes: {
-          "type": "button",
+          type: "button",
           "aria-label": ariaLabel,
           "aria-expanded": "false"
         }
@@ -17232,7 +17613,9 @@
     }
     showOverflowMenu(button) {
       var _a;
-      const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-overflow-menu-list`);
+      const existingMenu = this.player.container.querySelector(
+        `.${this.player.options.classPrefix}-overflow-menu-list`
+      );
       if (existingMenu) {
         existingMenu.remove();
         button.setAttribute("aria-expanded", "false");
@@ -17245,22 +17628,26 @@
       const menu = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-overflow-menu-list ${this.player.options.classPrefix}-menu`,
         attributes: {
-          "role": "menu",
+          role: "menu",
           "aria-label": i18n.t("player.moreOptions")
         }
       });
       const overflowButtons = [
-        ...Array.from(((_a = this.leftButtons) == null ? void 0 : _a.querySelectorAll('button[data-in-overflow="true"]')) ?? []),
-        ...Array.from(this.rightButtons.querySelectorAll('button[data-in-overflow="true"]'))
+        ...Array.from(
+          ((_a = this.leftButtons) == null ? void 0 : _a.querySelectorAll('button[data-in-overflow="true"]')) ?? []
+        ),
+        ...Array.from(
+          this.rightButtons.querySelectorAll('button[data-in-overflow="true"]')
+        )
       ];
       if (overflowButtons.length === 0) {
         const noItemsText = DOMUtils.createElement("div", {
           className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
           textContent: i18n.t("player.noMoreOptions"),
           attributes: {
-            "role": "menuitem",
+            role: "menuitem",
             "aria-disabled": "true",
-            "tabindex": "-1"
+            tabindex: "-1"
           },
           style: { opacity: "0.5", cursor: "default" }
         });
@@ -17270,9 +17657,9 @@
           const item = DOMUtils.createElement("button", {
             className: `${this.player.options.classPrefix}-menu-item`,
             attributes: {
-              "type": "button",
-              "role": "menuitem",
-              "tabindex": "-1"
+              type: "button",
+              role: "menuitem",
+              tabindex: "-1"
             }
           });
           const label = btn.getAttribute("aria-label") || btn.getAttribute("title") || "";
@@ -17309,7 +17696,9 @@
         });
         this.attachMenuKeyboardNavigation(menu, button);
         setTimeout(() => {
-          const firstItem = menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+          const firstItem = menu.querySelector(
+            `.${this.player.options.classPrefix}-menu-item`
+          );
           if (firstItem && firstItem.tagName === "BUTTON") {
             firstItem.focus({ preventScroll: true });
           }
@@ -17650,15 +18039,15 @@
       }
       if (!this._overflowGlobalBound) {
         this._overflowGlobalBound = true;
-        window.addEventListener("resize", () => {
-          requestAnimationFrame(checkOverflow);
-        }, { signal });
+        window.addEventListener(
+          "resize",
+          () => {
+            requestAnimationFrame(checkOverflow);
+          },
+          { signal }
+        );
         this.subscribe("overflow", "fullscreenchange", () => {
-          this.scheduleOverflowDeferred(
-            () => requestAnimationFrame(checkOverflow),
-            50,
-            signal
-          );
+          this.scheduleOverflowDeferred(() => requestAnimationFrame(checkOverflow), 50, signal);
         });
       }
       requestAnimationFrame(() => {
@@ -17708,9 +18097,13 @@
         if (mainVideo.crossOrigin) {
           this.previewVideo.crossOrigin = mainVideo.crossOrigin;
         }
-        this.previewVideo.addEventListener("loadedmetadata", () => {
-          this.previewVideoReady = true;
-        }, { once: true });
+        this.previewVideo.addEventListener(
+          "loadedmetadata",
+          () => {
+            this.previewVideoReady = true;
+          },
+          { once: true }
+        );
       } else if (newSrc && !this.previewVideoReady && this.previewVideo.readyState >= 1) {
         this.previewVideoReady = true;
       }
@@ -17809,13 +18202,18 @@
         this.player.on(event, wrapped);
         this._stateAnnouncers.push({ event, handler: wrapped });
       };
-      this._stateAnnouncers.push({ event: "ready", handler: onReady });
+      this._stateAnnouncers.push({
+        event: "ready",
+        handler: onReady
+      });
       register("play", () => this.announce(i18n.t("player.playing")));
       register("pause", () => this.announce(i18n.t("player.paused")));
       register("captionsenabled", () => this.announce(i18n.t("player.captionsOn")));
       register("captionsdisabled", () => this.announce(i18n.t("player.captionsOff")));
       register("fullscreenchange", () => {
-        this.announce(this.player.state.fullscreen ? i18n.t("player.fullscreen") : i18n.t("player.exitFullscreen"));
+        this.announce(
+          this.player.state.fullscreen ? i18n.t("player.fullscreen") : i18n.t("player.exitFullscreen")
+        );
       });
       register("ratechange", () => {
         const rate = this.player.state.playbackSpeed;
@@ -17833,9 +18231,13 @@
       });
     }
     attachEvents() {
-      this.player.container.addEventListener("keydown", (e) => {
-        this.handleKeydown(e);
-      }, true);
+      this.player.container.addEventListener(
+        "keydown",
+        (e) => {
+          this.handleKeydown(e);
+        },
+        true
+      );
       if (!this.player.container.hasAttribute("tabindex")) {
         this.player.container.setAttribute("tabindex", "0");
       }
@@ -17960,17 +18362,13 @@
           if (this.player.controlBar && !this.player.controlBar.hasControl("speed")) {
             return false;
           }
-          this.player.setPlaybackSpeed(
-            Math.min(2, this.player.state.playbackSpeed + 0.25)
-          );
+          this.player.setPlaybackSpeed(Math.min(2, this.player.state.playbackSpeed + 0.25));
           return true;
         case "speed-down":
           if (this.player.controlBar && !this.player.controlBar.hasControl("speed")) {
             return false;
           }
-          this.player.setPlaybackSpeed(
-            Math.max(0.25, this.player.state.playbackSpeed - 0.25)
-          );
+          this.player.setPlaybackSpeed(Math.max(0.25, this.player.state.playbackSpeed - 0.25));
           return true;
         case "speed-menu":
           if (((_b = this.player.controlBar) == null ? void 0 : _b.controls.speed) && this.player.controlBar.hasControl("speed")) {
@@ -19659,11 +20057,14 @@
         this.cueChangeHandler = () => {
           const activeCues = Array.from(metadataTrack.activeCues || []);
           if (activeCues.length > 0 && player.options.debug) {
-            player.log("[Metadata] Active cues:", activeCues.map((c) => ({
-              start: c.startTime,
-              end: c.endTime,
-              text: c.text
-            })));
+            player.log(
+              "[Metadata] Active cues:",
+              activeCues.map((c) => ({
+                start: c.startTime,
+                end: c.endTime,
+                text: c.text
+              }))
+            );
           }
           activeCues.forEach((cue) => this.handleCue(cue));
         };
@@ -19780,7 +20181,10 @@
     handleAlert(selector, options = {}) {
       const player = this.player;
       if (!selector) return void 0;
-      const config = this.resolveConfig(player.options.metadataAlerts, selector) || {};
+      const config = this.resolveConfig(
+        player.options.metadataAlerts,
+        selector
+      ) || {};
       const element = options.element || this.resolveElement(selector);
       if (!element) {
         if (player.options.debug) player.log("[Metadata] Alert element not found:", selector);
@@ -20145,50 +20549,64 @@
       }
       this.element.replaceChildren();
       if (isPlaylistContext) {
-        this.element.appendChild(DOMUtils.createElement("span", {
-          className: `${prefix}-sr-only`,
-          attributes: { "aria-live": "polite" },
-          textContent: playlistAnnouncement
-        }));
+        this.element.appendChild(
+          DOMUtils.createElement("span", {
+            className: `${prefix}-sr-only`,
+            attributes: { "aria-live": "polite" },
+            textContent: playlistAnnouncement
+          })
+        );
       }
       if (showTrackHeader) {
         const header = DOMUtils.createElement("div", {
           className: `${prefix}-track-header`
         });
-        header.appendChild(DOMUtils.createElement("span", {
-          className: `${prefix}-track-number`,
-          textContent: i18n.t("playlist.trackOf", { current: trackNumber, total: totalTracks })
-        }));
+        header.appendChild(
+          DOMUtils.createElement("span", {
+            className: `${prefix}-track-number`,
+            textContent: i18n.t("playlist.trackOf", { current: trackNumber, total: totalTracks })
+          })
+        );
         if (trackDuration) {
-          header.appendChild(DOMUtils.createElement("span", {
-            className: `${prefix}-track-duration`,
-            textContent: trackDuration
-          }));
+          header.appendChild(
+            DOMUtils.createElement("span", {
+              className: `${prefix}-track-duration`,
+              textContent: trackDuration
+            })
+          );
         }
         this.element.appendChild(header);
       }
-      this.element.appendChild(DOMUtils.createElement("p", {
-        className: `${prefix}-track-title`,
-        attributes: { id: this.titleElementId },
-        textContent: trackTitle
-      }));
+      this.element.appendChild(
+        DOMUtils.createElement("p", {
+          className: `${prefix}-track-title`,
+          attributes: { id: this.titleElementId },
+          textContent: trackTitle
+        })
+      );
       if (trackArtist) {
-        this.element.appendChild(DOMUtils.createElement("p", {
-          className: `${prefix}-track-artist`,
-          textContent: trackArtist
-        }));
+        this.element.appendChild(
+          DOMUtils.createElement("p", {
+            className: `${prefix}-track-artist`,
+            textContent: trackArtist
+          })
+        );
       }
       if (trackDate) {
-        this.element.appendChild(DOMUtils.createElement("p", {
-          className: `${prefix}-track-date`,
-          textContent: trackDate
-        }));
+        this.element.appendChild(
+          DOMUtils.createElement("p", {
+            className: `${prefix}-track-date`,
+            textContent: trackDate
+          })
+        );
       }
       if (trackDescription) {
-        this.element.appendChild(DOMUtils.createElement("p", {
-          className: `${prefix}-track-description`,
-          textContent: trackDescription
-        }));
+        this.element.appendChild(
+          DOMUtils.createElement("p", {
+            className: `${prefix}-track-description`,
+            textContent: trackDescription
+          })
+        );
       }
       if (longDescription) {
         const showLabel = i18n.t("trackInfo.descriptionShow");
@@ -20443,10 +20861,12 @@
       const section = DOMUtils.createElement("div", {
         className: `${this.prefix}-help-live-section`
       });
-      section.appendChild(DOMUtils.createElement("h3", {
-        className: `${this.prefix}-help-live-title`,
-        textContent: i18n.t("help.liveSectionTitle")
-      }));
+      section.appendChild(
+        DOMUtils.createElement("h3", {
+          className: `${this.prefix}-help-live-title`,
+          textContent: i18n.t("help.liveSectionTitle")
+        })
+      );
       const list = DOMUtils.createElement("dl", {
         className: `${this.prefix}-help-list ${this.prefix}-help-live-list`
       });
@@ -20477,14 +20897,18 @@
         }
       );
       for (const row of rows) {
-        list.appendChild(DOMUtils.createElement("dt", {
-          className: `${this.prefix}-help-action`,
-          textContent: row.term
-        }));
-        list.appendChild(DOMUtils.createElement("dd", {
-          className: `${this.prefix}-help-desc`,
-          textContent: row.desc
-        }));
+        list.appendChild(
+          DOMUtils.createElement("dt", {
+            className: `${this.prefix}-help-action`,
+            textContent: row.term
+          })
+        );
+        list.appendChild(
+          DOMUtils.createElement("dd", {
+            className: `${this.prefix}-help-desc`,
+            textContent: row.desc
+          })
+        );
       }
       section.appendChild(list);
       return section;
@@ -20815,7 +21239,9 @@
       this.instanceId = playerInstanceCounter;
       if (this.element.tagName !== "VIDEO" && this.element.tagName !== "AUDIO") {
         const requested = typeof options.mediaType === "string" ? options.mediaType.toLowerCase() : "video";
-        const mediaType = ALLOWED_MEDIA_TYPES.includes(requested) ? requested : "video";
+        const mediaType = ALLOWED_MEDIA_TYPES.includes(
+          requested
+        ) ? requested : "video";
         if (mediaType !== requested) {
           console.warn(`[VidPly] Ignoring unsafe mediaType "${requested}", falling back to "video"`);
         }
@@ -20952,9 +21378,9 @@
           "volume-down": ["ArrowDown"],
           "seek-forward": ["ArrowRight"],
           "seek-backward": ["ArrowLeft"],
-          "mute": ["m"],
-          "fullscreen": ["f"],
-          "captions": ["c"],
+          mute: ["m"],
+          fullscreen: ["f"],
+          captions: ["c"],
           "caption-style-menu": ["a"],
           "speed-up": [">"],
           "speed-down": ["<"],
@@ -20962,7 +21388,7 @@
           "quality-menu": ["q"],
           "chapters-menu": ["j"],
           "transcript-toggle": ["t"],
-          "help": ["?"]
+          help: ["?"]
         },
         // Accessibility
         ariaLabels: {},
@@ -21198,14 +21624,9 @@
         return null;
       }
       if ("IntersectionObserver" in window) {
-        observeForLazyInit(
-          element,
-          options,
-          margin,
-          (target, opts) => {
-            new _Player(target, opts);
-          }
-        );
+        observeForLazyInit(element, options, margin, (target, opts) => {
+          new _Player(target, opts);
+        });
         return { cancel: () => cancelLazyInit(element) };
       }
       new _Player(element, options);
@@ -21681,9 +22102,9 @@
       this.container = DOMUtils.createElement("div", {
         className: `${this.options.classPrefix}-player`,
         attributes: {
-          "role": "region",
+          role: "region",
           "aria-label": playerLabel,
-          "tabindex": "0"
+          tabindex: "0"
         }
       });
       const mediaType = this.element.tagName.toLowerCase();
@@ -21741,26 +22162,38 @@
       this.element.vidply = this;
       _Player.instances.push(this);
       this.element.style.cursor = "pointer";
-      this.element.addEventListener("click", (e) => {
-        if (e.target === this.element) {
+      this.element.addEventListener(
+        "click",
+        (e) => {
+          if (e.target === this.element) {
+            this.toggle();
+          }
+        },
+        { signal: this.lifecycleSignal }
+      );
+      this.videoWrapper.addEventListener(
+        "click",
+        (e) => {
+          var _a2;
+          if (!((_a2 = this.container) == null ? void 0 : _a2.classList.contains(`${this.options.classPrefix}-embed-chrome-vidply`))) {
+            return;
+          }
+          const prefix = this.options.classPrefix;
+          const ignore = [
+            `${prefix}-controls`,
+            `${prefix}-play-overlay-button`,
+            `${prefix}-play-overlay`
+          ];
+          const fromControl = e.composedPath().some(
+            (node) => node instanceof Element && ignore.some((cls) => node.classList.contains(cls))
+          );
+          if (fromControl || !(e.target instanceof Element)) {
+            return;
+          }
           this.toggle();
-        }
-      }, { signal: this.lifecycleSignal });
-      this.videoWrapper.addEventListener("click", (e) => {
-        var _a2;
-        if (!((_a2 = this.container) == null ? void 0 : _a2.classList.contains(`${this.options.classPrefix}-embed-chrome-vidply`))) {
-          return;
-        }
-        const prefix = this.options.classPrefix;
-        const ignore = [`${prefix}-controls`, `${prefix}-play-overlay-button`, `${prefix}-play-overlay`];
-        const fromControl = e.composedPath().some(
-          (node) => node instanceof Element && ignore.some((cls) => node.classList.contains(cls))
-        );
-        if (fromControl || !(e.target instanceof Element)) {
-          return;
-        }
-        this.toggle();
-      }, { signal: this.lifecycleSignal });
+        },
+        { signal: this.lifecycleSignal }
+      );
       this.videoWrapper.style.cursor = "pointer";
       this.on("play", () => {
         this.state.hasStartedPlayback = true;
@@ -21786,11 +22219,15 @@
           this.hidePosterOverlay();
         }
       });
-      this.element.addEventListener("loadeddata", () => {
-        if (this.state.hasStartedPlayback && (this.state.playing || this.state.currentTime > 0)) {
-          this.hidePosterOverlay();
-        }
-      }, { once: true });
+      this.element.addEventListener(
+        "loadeddata",
+        () => {
+          if (this.state.hasStartedPlayback && (this.state.playing || this.state.currentTime > 0)) {
+            this.hidePosterOverlay();
+          }
+        },
+        { once: true }
+      );
       this.applyTheme();
     }
     /**
@@ -21950,7 +22387,9 @@
       });
     }
     positionPlayOverlayOnMobile() {
-      this.positionOverlayOnMediaCenter(this.getPlayButtonOverlayNode(), { youtubePlayOverlayNudge: true });
+      this.positionOverlayOnMediaCenter(this.getPlayButtonOverlayNode(), {
+        youtubePlayOverlayNudge: true
+      });
       this.positionOverlayOnMediaCenter(this.loadingOverlayElement);
     }
     /**
@@ -22087,7 +22526,10 @@
           await Promise.race([
             this.renderer.init(),
             new Promise((_, reject) => {
-              timer = setTimeout(() => reject(new Error(`Renderer init timed out after ${initTimeout}ms`)), initTimeout);
+              timer = setTimeout(
+                () => reject(new Error(`Renderer init timed out after ${initTimeout}ms`)),
+                initTimeout
+              );
             })
           ]).finally(() => {
             if (timer !== void 0) clearTimeout(timer);
@@ -23237,34 +23679,36 @@
      * the browser has restored the page layout first.
      */
     restoreFocusAfterFullscreen() {
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        var _a, _b;
-        const container = this.container;
-        if (!(container == null ? void 0 : container.isConnected) || this.state.fullscreen) {
-          return;
-        }
-        const previousTop = this._preFullscreenViewportTop;
-        this._preFullscreenViewportTop = null;
-        if (previousTop !== null) {
-          const drift = container.getBoundingClientRect().top - previousTop;
-          if (Math.abs(drift) >= 1) {
-            window.scrollBy({ top: drift, behavior: "instant" });
+      requestAnimationFrame(
+        () => requestAnimationFrame(() => {
+          var _a, _b;
+          const container = this.container;
+          if (!(container == null ? void 0 : container.isConnected) || this.state.fullscreen) {
+            return;
           }
-        }
-        const button = (_a = this.controlBar) == null ? void 0 : _a.controls.fullscreen;
-        if (!(button instanceof HTMLElement) || !button.isConnected || !(((_b = button.checkVisibility) == null ? void 0 : _b.call(button)) ?? true)) {
-          return;
-        }
-        const alreadyFocused = document.activeElement === button;
-        button.focus();
-        if (alreadyFocused) {
-          const rect = button.getBoundingClientRect();
-          const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-          if (rect.top < 0 || rect.bottom > viewportHeight) {
-            button.scrollIntoView({ block: "nearest", inline: "nearest" });
+          const previousTop = this._preFullscreenViewportTop;
+          this._preFullscreenViewportTop = null;
+          if (previousTop !== null) {
+            const drift = container.getBoundingClientRect().top - previousTop;
+            if (Math.abs(drift) >= 1) {
+              window.scrollBy({ top: drift, behavior: "instant" });
+            }
           }
-        }
-      }));
+          const button = (_a = this.controlBar) == null ? void 0 : _a.controls.fullscreen;
+          if (!(button instanceof HTMLElement) || !button.isConnected || !(((_b = button.checkVisibility) == null ? void 0 : _b.call(button)) ?? true)) {
+            return;
+          }
+          const alreadyFocused = document.activeElement === button;
+          button.focus();
+          if (alreadyFocused) {
+            const rect = button.getBoundingClientRect();
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+            if (rect.top < 0 || rect.bottom > viewportHeight) {
+              button.scrollIntoView({ block: "nearest", inline: "nearest" });
+            }
+          }
+        })
+      );
     }
     toggleFullscreen() {
       if (this.state.fullscreen) {
@@ -23366,7 +23810,10 @@
         return response.ok;
       } catch (error) {
         if (this.options.debug) {
-          this.log(`validateTrackExists("${url}") failed: ${(error == null ? void 0 : error.message) ?? error}`, "warn");
+          this.log(
+            `validateTrackExists("${url}") failed: ${(error == null ? void 0 : error.message) ?? error}`,
+            "warn"
+          );
         }
         return false;
       }
@@ -23509,7 +23956,9 @@
     }
     // Settings dialog removed - using individual control buttons instead
     showSettings() {
-      console.warn("[VidPly] Settings dialog has been removed. Use individual control buttons (speed, captions, etc.)");
+      console.warn(
+        "[VidPly] Settings dialog has been removed. Use individual control buttons (speed, captions, etc.)"
+      );
     }
     hideSettings() {
     }
@@ -23794,7 +24243,9 @@
     // so call sites inside `handleMetadataCue` and external callers
     // (e.g. TranscriptManager integration tests) keep working.
     normalizeMetadataSelector(selector) {
-      return (this.metadataAlertsManager ?? this._ensureMetadataManager()).normalizeSelector(selector);
+      return (this.metadataAlertsManager ?? this._ensureMetadataManager()).normalizeSelector(
+        selector
+      );
     }
     resolveMetadataConfig(map, key) {
       return (this.metadataAlertsManager ?? this._ensureMetadataManager()).resolveConfig(map, key);
@@ -23806,7 +24257,10 @@
       (this.metadataAlertsManager ?? this._ensureMetadataManager()).restoreContent(element, config);
     }
     focusMetadataTarget(target, fallbackElement = null) {
-      (this.metadataAlertsManager ?? this._ensureMetadataManager()).focusTarget(target, fallbackElement);
+      (this.metadataAlertsManager ?? this._ensureMetadataManager()).focusTarget(
+        target,
+        fallbackElement
+      );
     }
     /** Internal helper: lazily creates the manager for external
      *  entry points that didn't come via `setupMetadataHandling`. */
@@ -23817,7 +24271,10 @@
       return this.metadataAlertsManager;
     }
     handleMetadataAlert(selector, options = {}) {
-      return (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleAlert(selector, options);
+      return (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleAlert(
+        selector,
+        options
+      );
     }
     handleMetadataHashtags(hashtags) {
       (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleHashtags(hashtags);
@@ -23989,7 +24446,9 @@
       if (elementType === "video" && track.poster && (mediaType === "video" || mediaType === "hls" || mediaType === "dash")) {
         mediaElement.setAttribute("poster", track.poster);
       }
-      const isExternalRenderer = ["youtube", "vimeo", "soundcloud", "hls", "dash"].includes(mediaType);
+      const isExternalRenderer = ["youtube", "vimeo", "soundcloud", "hls", "dash"].includes(
+        mediaType
+      );
       if (!isExternalRenderer) {
         const source = document.createElement("source");
         source.src = track.src || "";
@@ -24543,7 +25002,9 @@
           return;
         }
         const preferNative = isIOS();
-        const playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: preferNative });
+        const playback = this.resolveTrackPlaybackSource(track, {
+          preferNativeElement: preferNative
+        });
         if (!playback.src) {
           return;
         }
@@ -25472,7 +25933,11 @@
         this.hideTrackArtworkElements(true);
         return;
       }
-      const forcedHidden = ((_a = this.trackArtworkElement) == null ? void 0 : _a.getAttribute("data-vidply-artwork-forced-hidden")) === "true" || ((_b = this.container) == null ? void 0 : _b.querySelector('.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]')) instanceof HTMLElement || ((_c = this.playlistMainElement) == null ? void 0 : _c.querySelector('.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]')) instanceof HTMLElement;
+      const forcedHidden = ((_a = this.trackArtworkElement) == null ? void 0 : _a.getAttribute("data-vidply-artwork-forced-hidden")) === "true" || ((_b = this.container) == null ? void 0 : _b.querySelector(
+        '.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]'
+      )) instanceof HTMLElement || ((_c = this.playlistMainElement) == null ? void 0 : _c.querySelector(
+        '.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]'
+      )) instanceof HTMLElement;
       if (forcedHidden) {
         return;
       }
@@ -25689,7 +26154,9 @@
      */
     handlePlaylistItemKeydown(e, index) {
       if (!this.playlistPanel) return;
-      const buttons = Array.from(this.playlistPanel.querySelectorAll(".vidply-playlist-item-button"));
+      const buttons = Array.from(
+        this.playlistPanel.querySelectorAll(".vidply-playlist-item-button")
+      );
       let newIndex = -1;
       let announcement = "";
       switch (e.key) {
@@ -25717,7 +26184,10 @@
           if (index < buttons.length - 1) {
             newIndex = index + 1;
           } else {
-            announcement = i18n.t("playlist.endOfPlaylist", { current: buttons.length, total: buttons.length });
+            announcement = i18n.t("playlist.endOfPlaylist", {
+              current: buttons.length,
+              total: buttons.length
+            });
           }
           break;
         case "ArrowUp":
@@ -25734,7 +26204,10 @@
           e.stopPropagation();
           newIndex = Math.min(index + 5, buttons.length - 1);
           if (newIndex === buttons.length - 1 && index !== newIndex) {
-            announcement = i18n.t("playlist.jumpedToLastTrack", { current: newIndex + 1, total: buttons.length });
+            announcement = i18n.t("playlist.jumpedToLastTrack", {
+              current: newIndex + 1,
+              total: buttons.length
+            });
           }
           break;
         case "PageUp":
@@ -25758,7 +26231,10 @@
           e.stopPropagation();
           newIndex = buttons.length - 1;
           if (index !== buttons.length - 1) {
-            announcement = i18n.t("playlist.lastTrack", { current: buttons.length, total: buttons.length });
+            announcement = i18n.t("playlist.lastTrack", {
+              current: buttons.length,
+              total: buttons.length
+            });
           }
           break;
       }
@@ -25936,7 +26412,9 @@
         this.isPanelVisible = true;
         if (this.tracks.length > 0) {
           this.setManagedTimeout(() => {
-            const firstItem = playlistPanel.querySelector('.vidply-playlist-item[tabindex="0"]');
+            const firstItem = playlistPanel.querySelector(
+              '.vidply-playlist-item[tabindex="0"]'
+            );
             if (firstItem) {
               firstItem.focus({ preventScroll: true });
             }

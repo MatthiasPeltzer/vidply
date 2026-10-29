@@ -95,7 +95,7 @@ describe('Player Initialization Paths', () => {
       document.body.appendChild(video);
 
       const player = new Player(video);
-      
+
       expect(player.element).toBe(video);
       expect(player.element.tagName).toBe('VIDEO');
     });
@@ -107,7 +107,7 @@ describe('Player Initialization Paths', () => {
       document.body.appendChild(video);
 
       const player = new Player('#my-video');
-      
+
       expect(player.element.id).toBe('my-video');
     });
 
@@ -127,7 +127,7 @@ describe('Player Initialization Paths', () => {
       document.body.appendChild(div);
 
       const player = new Player(div);
-      
+
       expect(player.element.tagName).toBe('VIDEO');
     });
 
@@ -136,7 +136,7 @@ describe('Player Initialization Paths', () => {
       document.body.appendChild(div);
 
       const player = new Player(div, { mediaType: 'audio' });
-      
+
       expect(player.element.tagName).toBe('AUDIO');
     });
 
@@ -150,7 +150,7 @@ describe('Player Initialization Paths', () => {
       document.body.appendChild(div);
 
       const player = new Player(div);
-      
+
       const copiedTracks = player.element.querySelectorAll('track');
       expect(copiedTracks.length).toBe(1);
       expect(copiedTracks[0].src).toContain('captions.vtt');
@@ -164,7 +164,7 @@ describe('Player Initialization Paths', () => {
       document.body.appendChild(div);
 
       const player = new Player(div);
-      
+
       // id, class, and data- attributes should NOT be copied
       expect(player.element.id).not.toBe('original-id');
       expect(player.element.className).not.toBe('original-class');
@@ -180,7 +180,7 @@ describe('Player Initialization Paths', () => {
 
       const player1 = new Player(video1);
       const player2 = new Player(video2);
-      
+
       expect(player1.instanceId).toBeDefined();
       expect(player2.instanceId).toBeDefined();
       expect(player1.instanceId).not.toBe(player2.instanceId);
@@ -194,7 +194,7 @@ describe('Player Initialization Paths', () => {
 
       const player1 = new Player(video1);
       const player2 = new Player(video2);
-      
+
       expect(player2.instanceId).toBeGreaterThan(player1.instanceId);
     });
   });
@@ -205,7 +205,7 @@ describe('Player Initialization Paths', () => {
       document.body.appendChild(video);
 
       const player = new Player(video);
-      
+
       expect(player.options.volume).toBe(0.8);
       expect(player.options.playbackSpeed).toBe(1.0);
       expect(player.options.responsive).toBe(true);
@@ -221,7 +221,7 @@ describe('Player Initialization Paths', () => {
         autoplay: true,
         customOption: 'test'
       });
-      
+
       expect(player.options.volume).toBe(0.5);
       expect(player.options.autoplay).toBe(true);
       expect(player.options.customOption).toBe('test');
@@ -238,7 +238,7 @@ describe('Player Initialization Paths', () => {
         height: 720,
         poster: 'poster.jpg'
       });
-      
+
       expect(player.options.width).toBe(1280);
       expect(player.options.height).toBe(720);
       expect(player.options.poster).toBe('poster.jpg');
@@ -255,7 +255,7 @@ describe('Player Initialization Paths', () => {
         preload: 'auto',
         startTime: 30
       });
-      
+
       expect(player.options.autoplay).toBe(true);
       expect(player.options.loop).toBe(true);
       expect(player.options.muted).toBe(true);
@@ -264,12 +264,15 @@ describe('Player Initialization Paths', () => {
     });
 
     it('ignores stale localStorage volume/mute when CMS defaults change', () => {
-      localStorage.setItem('vidply_player_preferences', JSON.stringify({
-        configKey: 'false|0.8',
-        volume: 0.25,
-        muted: false,
-        playbackSpeed: 1.5
-      }));
+      localStorage.setItem(
+        'vidply_player_preferences',
+        JSON.stringify({
+          configKey: 'false|0.8',
+          volume: 0.25,
+          muted: false,
+          playbackSpeed: 1.5
+        })
+      );
 
       const video = document.createElement('video');
       document.body.appendChild(video);
@@ -282,12 +285,15 @@ describe('Player Initialization Paths', () => {
     });
 
     it('restores localStorage volume/mute when CMS config matches', () => {
-      localStorage.setItem('vidply_player_preferences', JSON.stringify({
-        configKey: 'true|0.8',
-        volume: 0.55,
-        muted: false,
-        playbackSpeed: 1
-      }));
+      localStorage.setItem(
+        'vidply_player_preferences',
+        JSON.stringify({
+          configKey: 'true|0.8',
+          volume: 0.55,
+          muted: false,
+          playbackSpeed: 1
+        })
+      );
 
       const video = document.createElement('video');
       document.body.appendChild(video);
@@ -308,7 +314,7 @@ describe('Player Initialization Paths', () => {
         playPauseButton: false,
         fullscreenButton: false
       });
-      
+
       expect(player.options.controls).toBe(false);
       expect(player.options.hideControlsDelay).toBe(5000);
       expect(player.options.playPauseButton).toBe(false);
@@ -325,7 +331,7 @@ describe('Player Initialization Paths', () => {
         captionsFontSize: '120%',
         captionsColor: '#FFFF00'
       });
-      
+
       expect(player.options.captions).toBe(true);
       expect(player.options.captionsDefault).toBe(true);
       expect(player.options.captionsFontSize).toBe('120%');
@@ -343,7 +349,7 @@ describe('Player Initialization Paths', () => {
           'custom-action': ['x']
         }
       });
-      
+
       expect(player.options.keyboard).toBe(true);
       expect(player.options.keyboardShortcuts['play-pause']).toEqual(['Space']);
       expect(player.options.keyboardShortcuts['custom-action']).toEqual(['x']);
@@ -360,7 +366,7 @@ describe('Player Initialization Paths', () => {
         signLanguageSrc: '/videos/sign.mp4',
         signLanguagePosition: 'top-left'
       });
-      
+
       expect(player.options.audioDescription).toBe(true);
       expect(player.options.audioDescriptionSrc).toBe('/videos/ad.mp4');
       expect(player.options.signLanguage).toBe(true);
@@ -381,7 +387,7 @@ describe('Player Initialization Paths', () => {
         onPlay,
         onPause
       });
-      
+
       expect(player.options.onReady).toBe(onReady);
       expect(player.options.onPlay).toBe(onPlay);
       expect(player.options.onPause).toBe(onPause);
@@ -395,7 +401,7 @@ describe('Player Initialization Paths', () => {
         language: 'de',
         languages: ['en', 'de', 'fr']
       });
-      
+
       expect(player.options.language).toBe('de');
       expect(player.options.languages).toEqual(['en', 'de', 'fr']);
     });
@@ -409,7 +415,7 @@ describe('Player Initialization Paths', () => {
         classPrefix: 'custom-player',
         pauseOthersOnPlay: false
       });
-      
+
       expect(player.options.debug).toBe(true);
       expect(player.options.classPrefix).toBe('custom-player');
       expect(player.options.pauseOthersOnPlay).toBe(false);
@@ -422,7 +428,7 @@ describe('Player Initialization Paths', () => {
       document.body.appendChild(video);
 
       const player = new Player(video);
-      
+
       expect(player.state).toBeDefined();
     });
 
@@ -431,7 +437,7 @@ describe('Player Initialization Paths', () => {
       document.body.appendChild(video);
 
       const player = new Player(video);
-      
+
       expect(player._originalElement).toBe(video);
     });
   });

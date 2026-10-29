@@ -58,7 +58,8 @@ function createPlayer(options = {}, tracks = null, currentIndex = 0) {
     player.playlistManager = {
       tracks,
       currentIndex,
-      getCurrentTrack: () => player.playlistManager.tracks[player.playlistManager.currentIndex] || null
+      getCurrentTrack: () =>
+        player.playlistManager.tracks[player.playlistManager.currentIndex] || null
     };
   }
 
@@ -96,7 +97,9 @@ describe('ControlBar download button', () => {
 
   describe('resolveDownloadTarget', () => {
     it('uses the player option for single media and infers the format', () => {
-      const controlBar = createControlBar(createPlayer({ downloadUrl: 'https://example.com/talk.mp4' }));
+      const controlBar = createControlBar(
+        createPlayer({ downloadUrl: 'https://example.com/talk.mp4' })
+      );
 
       expect(controlBar.resolveDownloadTarget()).toEqual({
         url: 'https://example.com/talk.mp4',
@@ -248,21 +251,33 @@ describe('ControlBar download button', () => {
     });
 
     it('asks the server when the size is unknown and relabels the button', async () => {
-      const tracks = [{ src: 'one.mp3', type: 'audio/mpeg', downloadUrl: 'https://example.com/one.mp3' }];
+      const tracks = [
+        { src: 'one.mp3', type: 'audio/mpeg', downloadUrl: 'https://example.com/one.mp3' }
+      ];
       const controlBar = createControlBar(createPlayer({}, tracks, 0));
 
       controlBar.updateDownloadButton();
       await vi.waitFor(() => {
-        expect(controlBar.controls.download.getAttribute('aria-label')).toBe('Download MP3 (2.0 MB)');
+        expect(controlBar.controls.download.getAttribute('aria-label')).toBe(
+          'Download MP3 (2.0 MB)'
+        );
       });
 
-      expect(global.fetch).toHaveBeenCalledWith('https://example.com/one.mp3', expect.objectContaining({ method: 'HEAD' }));
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://example.com/one.mp3',
+        expect.objectContaining({ method: 'HEAD' })
+      );
     });
 
     it('drops a size that arrives after the track changed', async () => {
       const tracks = [
         { src: 'one.mp3', type: 'audio/mpeg', downloadUrl: 'https://example.com/one.mp3' },
-        { src: 'two.mp3', type: 'audio/mpeg', downloadUrl: 'https://example.com/two.mp3', downloadFileSize: 1_048_576 }
+        {
+          src: 'two.mp3',
+          type: 'audio/mpeg',
+          downloadUrl: 'https://example.com/two.mp3',
+          downloadFileSize: 1_048_576
+        }
       ];
       const player = createPlayer({}, tracks, 0);
       const controlBar = createControlBar(player);

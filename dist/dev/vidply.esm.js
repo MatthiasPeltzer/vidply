@@ -5,18 +5,18 @@
  */
 import {
   TimeUtils
-} from "./vidply.chunk-UJILGART.js";
+} from "./vidply.chunk-PWVRNDW4.js";
 import {
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-WVHF557P.js";
+} from "./vidply.chunk-YKW2GRTQ.js";
 import {
   PosterManager,
   captureVideoFrame,
   cssEscapeUrl,
   sanitizePosterUrl,
   toCssBackgroundImage
-} from "./vidply.chunk-RUHYLTQC.js";
+} from "./vidply.chunk-WIBXLR2F.js";
 import {
   focusElement,
   setContainerChildrenInert,
@@ -24,18 +24,18 @@ import {
 } from "./vidply.chunk-6RBUOOPF.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-LMT7SWVP.js";
+} from "./vidply.chunk-NML4PFMS.js";
 import {
   CaptionManager
-} from "./vidply.chunk-F6ZPLBF4.js";
+} from "./vidply.chunk-JJVLXZKP.js";
 import {
   StorageManager
-} from "./vidply.chunk-3PBOSEC7.js";
+} from "./vidply.chunk-3PQLFE6D.js";
 import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-SGUTND4P.js";
+} from "./vidply.chunk-KQLUIWJH.js";
 import {
   canPlayNativeHls,
   debounce,
@@ -45,7 +45,7 @@ import {
   reducedMotionScrollOptions,
   scrollIntoViewWithinScrollParent,
   throttle
-} from "./vidply.chunk-A2QVHDUC.js";
+} from "./vidply.chunk-LML5OAY6.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -69,9 +69,7 @@ var EventEmitter = class {
     if (!listener) {
       delete this.events[event];
     } else {
-      this.events[event] = listeners.filter(
-        (l) => l !== listener
-      );
+      this.events[event] = listeners.filter((l) => l !== listener);
     }
     return this;
   }
@@ -216,7 +214,8 @@ function buildDownloadLabel(parts) {
 
 // src/utils/RendererType.ts
 function classifyRendererType(src) {
-  if (src.includes("youtube.com") || src.includes("youtu.be") || src.includes("youtube-nocookie.com")) return "youtube";
+  if (src.includes("youtube.com") || src.includes("youtu.be") || src.includes("youtube-nocookie.com"))
+    return "youtube";
   if (src.includes("vimeo.com")) return "vimeo";
   if (src.includes(".m3u8")) return "hls";
   if (src.includes(".mpd")) return "dash";
@@ -269,7 +268,10 @@ function extractYoutubeWatchUrl(src) {
   if (!id) {
     return sanitizeProviderPageUrl(src, "youtube");
   }
-  return sanitizeProviderPageUrl(`https://www.youtube.com/watch?v=${encodeURIComponent(id)}`, "youtube");
+  return sanitizeProviderPageUrl(
+    `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`,
+    "youtube"
+  );
 }
 function extractVimeoWatchUrl(src) {
   const match = src.match(/vimeo\.com\/(?:video\/)?(\d+)/);
@@ -434,27 +436,35 @@ var ControlBar = class {
    */
   setupGlobalDragListeners() {
     const signal = this.player.lifecycleSignal;
-    document.addEventListener("mousemove", (e) => {
-      if (this.isDraggingProgress && this._progressBarRect) {
-        const rect = this._progressBarRect;
-        const percent = rect.width > 0 ? Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) : 0;
-        const { start, end } = this.getProgressSeekRange();
-        const span = end - start;
-        this.player.seek(span > 0 ? start + percent * span : 0);
-        return;
-      }
-      if (this.isDraggingVolume && this._activeVolumeTrack) {
-        const rect = this._activeVolumeTrack.getBoundingClientRect();
-        const percent = Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height));
-        this.player.setVolume(percent);
-      }
-    }, { signal });
-    document.addEventListener("mouseup", () => {
-      this.isDraggingProgress = false;
-      this._progressBarRect = null;
-      this.isDraggingVolume = false;
-      this._activeVolumeTrack = null;
-    }, { signal });
+    document.addEventListener(
+      "mousemove",
+      (e) => {
+        if (this.isDraggingProgress && this._progressBarRect) {
+          const rect = this._progressBarRect;
+          const percent = rect.width > 0 ? Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) : 0;
+          const { start, end } = this.getProgressSeekRange();
+          const span = end - start;
+          this.player.seek(span > 0 ? start + percent * span : 0);
+          return;
+        }
+        if (this.isDraggingVolume && this._activeVolumeTrack) {
+          const rect = this._activeVolumeTrack.getBoundingClientRect();
+          const percent = Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height));
+          this.player.setVolume(percent);
+        }
+      },
+      { signal }
+    );
+    document.addEventListener(
+      "mouseup",
+      () => {
+        this.isDraggingProgress = false;
+        this._progressBarRect = null;
+        this.isDraggingVolume = false;
+        this._activeVolumeTrack = null;
+      },
+      { signal }
+    );
   }
   // Helper method to detect touch devices
   isTouchDevice() {
@@ -463,7 +473,9 @@ var ControlBar = class {
   // Smart menu positioning to avoid overflow
   positionMenu(menu, button, immediate = false) {
     const mobile = isMobile();
-    const isOverflowMenu = menu.classList.contains(`${this.player.options.classPrefix}-overflow-menu-list`);
+    const isOverflowMenu = menu.classList.contains(
+      `${this.player.options.classPrefix}-overflow-menu-list`
+    );
     const isFullscreen = this.player.state.fullscreen;
     const menuInPlayerContainer = menu.parentElement === this.player.container;
     if (menuInPlayerContainer && (isFullscreen || isOverflowMenu)) {
@@ -513,7 +525,9 @@ var ControlBar = class {
       return;
     }
     if (mobile) {
-      const isVolumeMenu = menu.classList.contains(`${this.player.options.classPrefix}-volume-menu`);
+      const isVolumeMenu = menu.classList.contains(
+        `${this.player.options.classPrefix}-volume-menu`
+      );
       const doMobilePositioning = () => {
         const parentContainer = button.parentElement;
         if (!parentContainer) return;
@@ -702,7 +716,9 @@ var ControlBar = class {
           if (signLanguageWrapper && signLanguageWrapper.contains(activeElement) || transcriptWindow && transcriptWindow.contains(activeElement)) {
             return;
           }
-          const controlBarButtons = Array.from(this.element.querySelectorAll("button"));
+          const controlBarButtons = Array.from(
+            this.element.querySelectorAll("button")
+          );
           const isFocusOnAnotherButton = activeElement !== null && controlBarButtons.includes(activeElement) && activeElement !== button;
           const isRelatedTargetAnotherButton = relatedTarget !== null && relatedTarget instanceof Element && controlBarButtons.includes(relatedTarget) && relatedTarget !== button;
           if (isFocusOnAnotherButton || isRelatedTargetAnotherButton) {
@@ -894,7 +910,7 @@ var ControlBar = class {
     this.element = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-controls`,
       attributes: {
-        "role": "region",
+        role: "region",
         "aria-label": i18n.t("player.label") + " controls"
       }
     });
@@ -1095,7 +1111,9 @@ var ControlBar = class {
       if (button.querySelector(`.${this.player.options.classPrefix}-button-text`)) {
         return;
       }
-      if (button.getAttribute("role") === "menuitem" || button.classList.contains(`${this.player.options.classPrefix}-settings-item`) || button.classList.contains(`${this.player.options.classPrefix}-menu-item`) || button.classList.contains(`${this.player.options.classPrefix}-transcript-settings-item`) || button.classList.contains(`${this.player.options.classPrefix}-sign-language-settings-item`) || button.classList.contains(`${this.player.options.classPrefix}-popup-settings-item`)) {
+      if (button.getAttribute("role") === "menuitem" || button.classList.contains(`${this.player.options.classPrefix}-settings-item`) || button.classList.contains(`${this.player.options.classPrefix}-menu-item`) || button.classList.contains(`${this.player.options.classPrefix}-transcript-settings-item`) || button.classList.contains(
+        `${this.player.options.classPrefix}-sign-language-settings-item`
+      ) || button.classList.contains(`${this.player.options.classPrefix}-popup-settings-item`)) {
         return;
       }
       const ariaLabel = button.getAttribute("aria-label");
@@ -1185,7 +1203,9 @@ var ControlBar = class {
       }
     }
     const trackEls = Array.from(this.player.element.querySelectorAll("track"));
-    if (trackEls.some((el) => el.getAttribute("kind") === "captions" || el.getAttribute("kind") === "subtitles")) {
+    if (trackEls.some(
+      (el) => el.getAttribute("kind") === "captions" || el.getAttribute("kind") === "subtitles"
+    )) {
       return true;
     }
     const current = this.player.playlistManager?.getCurrentTrack?.();
@@ -1228,13 +1248,13 @@ var ControlBar = class {
     const progressContainer = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-progress-container`,
       attributes: {
-        "role": "slider",
+        role: "slider",
         "aria-label": i18n.t("player.progress"),
         "aria-orientation": "horizontal",
         "aria-valuemin": "0",
         "aria-valuemax": "100",
         "aria-valuenow": "0",
-        "tabindex": "0"
+        tabindex: "0"
       }
     });
     this.controls.buffered = DOMUtils.createElement("div", {
@@ -1352,12 +1372,16 @@ var ControlBar = class {
       this.player.log("Preview video failed to load:", e, "warn");
       this.previewSupported = false;
     });
-    this.previewVideo.addEventListener("loadedmetadata", () => {
-      this.previewVideoReady = true;
-      if (this.player.options.thumbnailPregenerate) {
-        this.pregenerateThumbnails();
-      }
-    }, { once: true });
+    this.previewVideo.addEventListener(
+      "loadedmetadata",
+      () => {
+        this.previewVideoReady = true;
+        if (this.player.options.thumbnailPregenerate) {
+          this.pregenerateThumbnails();
+        }
+      },
+      { once: true }
+    );
     if (this.player.container) {
       this.player.container.appendChild(this.previewVideo);
     }
@@ -1648,7 +1672,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-play-pause`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.play")
       }
     });
@@ -1665,9 +1689,9 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-restart`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.restart"),
-        "hidden": "true"
+        hidden: "true"
       }
     });
     button.appendChild(createIconElement("restart"));
@@ -1683,7 +1707,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-previous`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.previous")
       }
     });
@@ -1704,7 +1728,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-next`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.next")
       }
     });
@@ -1755,7 +1779,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-playlist-toggle`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.playlist"),
         "aria-expanded": "false",
         "aria-pressed": "false",
@@ -1778,7 +1802,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-rewind`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.rewindSeconds", { seconds })
       }
     });
@@ -1795,9 +1819,9 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-forward`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.forwardSeconds", { seconds }),
-        "hidden": "true"
+        hidden: "true"
       }
     });
     button.appendChild(createIconElement("forward"));
@@ -1813,9 +1837,9 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${prefix}-button ${prefix}-go-live`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.goLive"),
-        "hidden": "true"
+        hidden: "true"
       },
       textContent: i18n.t("player.goLiveShort")
     });
@@ -1828,7 +1852,7 @@ var ControlBar = class {
     const muteButton = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-mute`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.mute")
       }
     });
@@ -1845,7 +1869,7 @@ var ControlBar = class {
     const muteButton = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-mute`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.volume"),
         "aria-expanded": "false"
       }
@@ -1864,7 +1888,9 @@ var ControlBar = class {
     return muteButton;
   }
   showVolumeSlider(button) {
-    const existingSlider = this.player.container.querySelector(`.${this.player.options.classPrefix}-volume-menu`);
+    const existingSlider = this.player.container.querySelector(
+      `.${this.player.options.classPrefix}-volume-menu`
+    );
     if (existingSlider) {
       existingSlider.remove();
       button.setAttribute("aria-expanded", "false");
@@ -1877,14 +1903,14 @@ var ControlBar = class {
     const volumeSlider = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-volume-slider`,
       attributes: {
-        "role": "slider",
+        role: "slider",
         "aria-label": i18n.t("player.volume"),
         "aria-orientation": "vertical",
         "aria-valuemin": "0",
         "aria-valuemax": "100",
         "aria-valuenow": String(initialPercent),
         "aria-valuetext": this.player.state.muted ? i18n.t("player.muted") : i18n.t("player.volumePercent", { percent: initialPercent }),
-        "tabindex": "0"
+        tabindex: "0"
       }
     });
     const volumeTrack = DOMUtils.createElement("div", {
@@ -1914,29 +1940,41 @@ var ControlBar = class {
       this._activeVolumeTrack = volumeTrack;
       updateVolume(e.clientY);
     });
-    volumeSlider.addEventListener("touchstart", (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      this.isDraggingVolume = true;
-      this._activeVolumeTrack = volumeTrack;
-      const touch = e.touches[0];
-      if (!touch) return;
-      updateVolume(touch.clientY);
-    }, { passive: false });
-    volumeSlider.addEventListener("touchmove", (e) => {
-      if (this.isDraggingVolume) {
+    volumeSlider.addEventListener(
+      "touchstart",
+      (e) => {
+        e.stopPropagation();
         e.preventDefault();
+        this.isDraggingVolume = true;
+        this._activeVolumeTrack = volumeTrack;
         const touch = e.touches[0];
         if (!touch) return;
         updateVolume(touch.clientY);
-      }
-    }, { passive: false });
-    volumeSlider.addEventListener("touchend", (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      this.isDraggingVolume = false;
-      this._activeVolumeTrack = null;
-    }, { passive: false });
+      },
+      { passive: false }
+    );
+    volumeSlider.addEventListener(
+      "touchmove",
+      (e) => {
+        if (this.isDraggingVolume) {
+          e.preventDefault();
+          const touch = e.touches[0];
+          if (!touch) return;
+          updateVolume(touch.clientY);
+        }
+      },
+      { passive: false }
+    );
+    volumeSlider.addEventListener(
+      "touchend",
+      (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        this.isDraggingVolume = false;
+        this._activeVolumeTrack = null;
+      },
+      { passive: false }
+    );
     volumeSlider.addEventListener("touchcancel", () => {
       this.isDraggingVolume = false;
       this._activeVolumeTrack = null;
@@ -1982,7 +2020,7 @@ var ControlBar = class {
     const container = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-time`,
       attributes: {
-        "role": "group",
+        role: "group",
         "aria-label": i18n.t("time.display")
       }
     });
@@ -2128,7 +2166,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-chapters`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.chapters"),
         "aria-expanded": "false"
       }
@@ -2141,7 +2179,9 @@ var ControlBar = class {
     return button;
   }
   showChaptersMenu(button) {
-    const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-chapters-menu`);
+    const existingMenu = this.player.container.querySelector(
+      `.${this.player.options.classPrefix}-chapters-menu`
+    );
     if (existingMenu) {
       existingMenu.remove();
       button.setAttribute("aria-expanded", "false");
@@ -2154,21 +2194,19 @@ var ControlBar = class {
     const menu = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-chapters-menu ${this.player.options.classPrefix}-menu`,
       attributes: {
-        "role": "menu",
+        role: "menu",
         "aria-label": i18n.t("player.chapters")
       }
     });
-    const chapterTracks = Array.from(this.player.element.textTracks).filter(
-      (track) => track.kind === "chapters"
-    );
+    const chapterTracks = Array.from(this.player.element.textTracks).filter((track) => track.kind === "chapters");
     if (chapterTracks.length === 0) {
       const noChaptersItem = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
         textContent: i18n.t("player.noChapters"),
         attributes: {
-          "role": "menuitem",
+          role: "menuitem",
           "aria-disabled": "true",
-          "tabindex": "-1"
+          tabindex: "-1"
         },
         style: { opacity: "0.5", cursor: "default" }
       });
@@ -2183,9 +2221,9 @@ var ControlBar = class {
           className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
           textContent: i18n.t("player.loadingChapters"),
           attributes: {
-            "role": "menuitem",
+            role: "menuitem",
             "aria-disabled": "true",
-            "tabindex": "-1"
+            tabindex: "-1"
           },
           style: { opacity: "0.5", cursor: "default" }
         });
@@ -2208,9 +2246,9 @@ var ControlBar = class {
           const item = DOMUtils.createElement("button", {
             className: `${this.player.options.classPrefix}-menu-item`,
             attributes: {
-              "type": "button",
-              "role": "menuitem",
-              "tabindex": "-1"
+              type: "button",
+              role: "menuitem",
+              tabindex: "-1"
             }
           });
           const timeLabel = DOMUtils.createElement("span", {
@@ -2235,7 +2273,9 @@ var ControlBar = class {
         }
         this.attachMenuKeyboardNavigation(menu, button);
         setTimeout(() => {
-          const firstItem = menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+          const firstItem = menu.querySelector(
+            `.${this.player.options.classPrefix}-menu-item`
+          );
           if (firstItem) {
             firstItem.focus({ preventScroll: true });
           }
@@ -2256,7 +2296,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-quality`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": ariaLabel,
         "aria-expanded": "false"
       }
@@ -2277,7 +2317,9 @@ var ControlBar = class {
     return button;
   }
   showQualityMenu(button) {
-    const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-quality-menu`);
+    const existingMenu = this.player.container.querySelector(
+      `.${this.player.options.classPrefix}-quality-menu`
+    );
     if (existingMenu) {
       existingMenu.remove();
       button.setAttribute("aria-expanded", "false");
@@ -2290,7 +2332,7 @@ var ControlBar = class {
     const menu = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-quality-menu ${this.player.options.classPrefix}-menu`,
       attributes: {
-        "role": "menu",
+        role: "menu",
         "aria-label": i18n.t("player.quality")
       }
     });
@@ -2303,7 +2345,7 @@ var ControlBar = class {
           className: `${this.player.options.classPrefix}-menu-item`,
           textContent: i18n.t("player.autoQuality"),
           attributes: {
-            "role": "menuitem"
+            role: "menuitem"
           },
           style: { opacity: "0.5", cursor: "default" }
         });
@@ -2315,9 +2357,9 @@ var ControlBar = class {
             className: `${this.player.options.classPrefix}-menu-item`,
             textContent: i18n.t("player.auto"),
             attributes: {
-              "type": "button",
-              "role": "menuitem",
-              "tabindex": "-1"
+              type: "button",
+              role: "menuitem",
+              tabindex: "-1"
             }
           });
           const isAuto = typeof this.player.renderer.isAutoQuality === "function" && this.player.renderer.isAutoQuality();
@@ -2339,9 +2381,9 @@ var ControlBar = class {
             className: `${this.player.options.classPrefix}-menu-item`,
             textContent: quality.name || `${quality.height}p`,
             attributes: {
-              "type": "button",
-              "role": "menuitem",
-              "tabindex": "-1"
+              type: "button",
+              role: "menuitem",
+              tabindex: "-1"
             }
           });
           if (quality.index === currentQuality) {
@@ -2387,7 +2429,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-caption-style`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": ariaLabel,
         "aria-expanded": "false"
       }
@@ -2408,13 +2450,15 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-WK2ZOYCO.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch((error) => this.player.log("Failed to load caption style menu:", error, "error"));
+    import("./vidply.CaptionStyleMenu-VDCSEIDR.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch(
+      (error) => this.player.log("Failed to load caption style menu:", error, "error")
+    );
   }
   createSpeedButton() {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-speed`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.speed"),
         "aria-expanded": "false"
       }
@@ -2443,7 +2487,9 @@ var ControlBar = class {
     return `${speedStr}×`;
   }
   showSpeedMenu(button) {
-    const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-speed-menu`);
+    const existingMenu = this.player.container.querySelector(
+      `.${this.player.options.classPrefix}-speed-menu`
+    );
     if (existingMenu) {
       existingMenu.remove();
       button.setAttribute("aria-expanded", "false");
@@ -2456,7 +2502,7 @@ var ControlBar = class {
     const menu = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-speed-menu ${this.player.options.classPrefix}-menu`,
       attributes: {
-        "role": "menu"
+        role: "menu"
       }
     });
     const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
@@ -2466,9 +2512,9 @@ var ControlBar = class {
         className: `${this.player.options.classPrefix}-menu-item`,
         textContent: this.formatSpeedLabel(speed),
         attributes: {
-          "type": "button",
-          "role": "menuitem",
-          "tabindex": "-1"
+          type: "button",
+          role: "menuitem",
+          tabindex: "-1"
         }
       });
       if (speed === this.player.state.playbackSpeed) {
@@ -2502,7 +2548,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-captions-button`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.captions"),
         "aria-expanded": "false"
       }
@@ -2521,7 +2567,9 @@ var ControlBar = class {
       });
       return;
     }
-    const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-captions-menu`);
+    const existingMenu = this.player.container.querySelector(
+      `.${this.player.options.classPrefix}-captions-menu`
+    );
     if (existingMenu) {
       existingMenu.remove();
       button.setAttribute("aria-expanded", "false");
@@ -2534,7 +2582,7 @@ var ControlBar = class {
     const menu = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-captions-menu ${this.player.options.classPrefix}-menu`,
       attributes: {
-        "role": "menu",
+        role: "menu",
         "aria-label": i18n.t("captions.select")
       }
     });
@@ -2543,7 +2591,7 @@ var ControlBar = class {
         className: `${this.player.options.classPrefix}-menu-item`,
         textContent: i18n.t("player.noCaptions"),
         attributes: {
-          "role": "menuitem"
+          role: "menuitem"
         },
         style: { opacity: "0.5", cursor: "default" }
       });
@@ -2557,9 +2605,9 @@ var ControlBar = class {
       className: `${this.player.options.classPrefix}-menu-item`,
       textContent: i18n.t("captions.off"),
       attributes: {
-        "type": "button",
-        "role": "menuitem",
-        "tabindex": "-1"
+        type: "button",
+        role: "menuitem",
+        tabindex: "-1"
       }
     });
     if (!this.player.state.captionsEnabled) {
@@ -2579,10 +2627,10 @@ var ControlBar = class {
         className: `${this.player.options.classPrefix}-menu-item`,
         textContent: track.label,
         attributes: {
-          "type": "button",
-          "role": "menuitem",
-          "lang": track.language,
-          "tabindex": "-1"
+          type: "button",
+          role: "menuitem",
+          lang: track.language,
+          tabindex: "-1"
         }
       });
       const captionManager = this.player.captionManager;
@@ -2619,7 +2667,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-transcript`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.transcript"),
         "aria-expanded": "false"
       }
@@ -2642,7 +2690,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-help`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": ariaLabel,
         "aria-haspopup": "dialog"
       }
@@ -2660,9 +2708,9 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-audio-description`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": ariaLabel,
-        "role": "switch",
+        role: "switch",
         "aria-checked": "false"
       }
     });
@@ -2689,7 +2737,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-sign-language`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": ariaLabel,
         "aria-expanded": "false"
       }
@@ -2724,7 +2772,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-sign-language-main-view`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": ariaLabel,
         "aria-pressed": "false"
       }
@@ -2768,8 +2816,12 @@ var ControlBar = class {
         const btn = this.createAudioDescriptionButton();
         btn.dataset.overflowPriority = "2";
         btn.dataset.overflowPriorityMobile = "3";
-        const transcriptBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-transcript`);
-        const playlistBtn = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-playlist-toggle`);
+        const transcriptBtn = this.rightButtons.querySelector(
+          `.${this.player.options.classPrefix}-transcript`
+        );
+        const playlistBtn = this.rightButtons.querySelector(
+          `.${this.player.options.classPrefix}-playlist-toggle`
+        );
         const insertBefore = transcriptBtn || playlistBtn || null;
         if (insertBefore) {
           this.rightButtons.insertBefore(btn, insertBefore);
@@ -2832,7 +2884,8 @@ var ControlBar = class {
       }
     } else {
       if (this.controls.signLanguage) this.controls.signLanguage.style.display = "none";
-      if (this.controls.signLanguageMainView) this.controls.signLanguageMainView.style.display = "none";
+      if (this.controls.signLanguageMainView)
+        this.controls.signLanguageMainView.style.display = "none";
     }
   }
   createPipButton() {
@@ -2843,7 +2896,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t(labelKey),
         "aria-pressed": "false"
       }
@@ -2925,7 +2978,7 @@ var ControlBar = class {
         target: "_blank",
         rel: "noopener noreferrer",
         "aria-label": label,
-        "title": label
+        title: label
       }
     });
     link.appendChild(createIconElement(this.embedProviderIconName(provider)));
@@ -2963,7 +3016,11 @@ var ControlBar = class {
       return;
     }
     mounted.href = target.url;
-    mounted.classList.remove(`${prefix}-embed-provider-youtube`, `${prefix}-embed-provider-vimeo`, `${prefix}-embed-provider-soundcloud`);
+    mounted.classList.remove(
+      `${prefix}-embed-provider-youtube`,
+      `${prefix}-embed-provider-vimeo`,
+      `${prefix}-embed-provider-soundcloud`
+    );
     mounted.classList.add(`${prefix}-embed-provider-${target.provider}`);
     const label = this.embedProviderLinkLabel(target.provider);
     mounted.setAttribute("aria-label", label);
@@ -2977,7 +3034,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-download`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.download")
       }
     });
@@ -3100,7 +3157,10 @@ var ControlBar = class {
     } else {
       delete button.dataset.vidplyDownloadSize;
     }
-    this.updateDownloadButtonLabel(button, this.composeDownloadLabel(target.format, target.sizeBytes));
+    this.updateDownloadButtonLabel(
+      button,
+      this.composeDownloadLabel(target.format, target.sizeBytes)
+    );
     if (this.player.options.downloadFetchSize === false || target.sizeBytes != null) return;
     fetchContentLength(target.url).then((sizeBytes) => {
       if (sizeBytes == null || button.dataset.vidplyDownloadUrl !== target.url) return;
@@ -3161,7 +3221,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-fullscreen`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": i18n.t("player.fullscreen")
       }
     });
@@ -3214,8 +3274,16 @@ var ControlBar = class {
     this.subscribe("events", "audiodescriptiondisabled", () => this.updateAudioDescriptionButton());
     this.subscribe("events", "signlanguageenabled", () => this.updateSignLanguageButton());
     this.subscribe("events", "signlanguagedisabled", () => this.updateSignLanguageButton());
-    this.subscribe("events", "signlanguageinmainviewenabled", () => this.updateSignLanguageInMainViewButton());
-    this.subscribe("events", "signlanguageinmainviewdisabled", () => this.updateSignLanguageInMainViewButton());
+    this.subscribe(
+      "events",
+      "signlanguageinmainviewenabled",
+      () => this.updateSignLanguageInMainViewButton()
+    );
+    this.subscribe(
+      "events",
+      "signlanguageinmainviewdisabled",
+      () => this.updateSignLanguageInMainViewButton()
+    );
     this.subscribe("events", "qualitychange", () => this.updateQualityIndicator());
     this.subscribe("events", "hlslevelswitched", () => this.updateQualityIndicator());
     this.subscribe("events", "hlsmanifestparsed", () => {
@@ -3356,12 +3424,17 @@ var ControlBar = class {
         const volumePercent = this.player.state.muted ? 0 : Math.round(percent);
         const newMuteAriaLabel = this.isTouchDevice() ? this.player.state.muted ? i18n.t("player.unmute") : i18n.t("player.mute") : `${i18n.t("player.volume")} ${volumePercent}%`;
         this.controls.mute.setAttribute("aria-label", newMuteAriaLabel);
-        DOMUtils.attachTooltip(this.controls.mute, newMuteAriaLabel, this.player.options.classPrefix);
+        DOMUtils.attachTooltip(
+          this.controls.mute,
+          newMuteAriaLabel,
+          this.player.options.classPrefix
+        );
       }
     }
   }
   updateBuffered() {
-    if (!this.controls.buffered || !this.player.element.buffered || this.player.element.buffered.length === 0) return;
+    if (!this.controls.buffered || !this.player.element.buffered || this.player.element.buffered.length === 0)
+      return;
     const buffered = this.player.element.buffered.end(this.player.element.buffered.length - 1);
     const { start, end } = this.getProgressSeekRange();
     const span = end - start;
@@ -3394,8 +3467,12 @@ var ControlBar = class {
     if (this.controls.quality) return;
     if (!this.hasQualityLevels()) return;
     const qualityButton = this.createQualityButton();
-    const speedButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-speed`);
-    const captionStyleButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-caption-style`);
+    const speedButton = this.rightButtons.querySelector(
+      `.${this.player.options.classPrefix}-speed`
+    );
+    const captionStyleButton = this.rightButtons.querySelector(
+      `.${this.player.options.classPrefix}-caption-style`
+    );
     const insertBefore = captionStyleButton || speedButton;
     if (insertBefore) {
       this.rightButtons.insertBefore(qualityButton, insertBefore);
@@ -3437,7 +3514,9 @@ var ControlBar = class {
     const btn = this.createCaptionsButton();
     btn.dataset.overflowPriority = "1";
     btn.dataset.overflowPriorityMobile = "3";
-    const chaptersButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-chapters`);
+    const chaptersButton = this.rightButtons.querySelector(
+      `.${this.player.options.classPrefix}-chapters`
+    );
     if (chaptersButton && chaptersButton.nextSibling) {
       this.rightButtons.insertBefore(btn, chaptersButton.nextSibling);
     } else if (chaptersButton) {
@@ -3468,7 +3547,9 @@ var ControlBar = class {
     const btn = this.createCaptionStyleButton();
     btn.dataset.overflowPriority = "3";
     btn.dataset.overflowPriorityMobile = "3";
-    const captionsButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-captions-button`);
+    const captionsButton = this.rightButtons.querySelector(
+      `.${this.player.options.classPrefix}-captions-button`
+    );
     if (captionsButton) {
       captionsButton.after(btn);
     } else {
@@ -3486,9 +3567,15 @@ var ControlBar = class {
     const btn = this.createTranscriptButton();
     btn.dataset.overflowPriority = "3";
     btn.dataset.overflowPriorityMobile = "3";
-    const adButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-audio-description`);
-    const speedButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-speed`);
-    const captionStyleButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-caption-style`);
+    const adButton = this.rightButtons.querySelector(
+      `.${this.player.options.classPrefix}-audio-description`
+    );
+    const speedButton = this.rightButtons.querySelector(
+      `.${this.player.options.classPrefix}-speed`
+    );
+    const captionStyleButton = this.rightButtons.querySelector(
+      `.${this.player.options.classPrefix}-caption-style`
+    );
     if (adButton) {
       adButton.after(btn);
     } else if (speedButton) {
@@ -3496,9 +3583,13 @@ var ControlBar = class {
     } else if (captionStyleButton) {
       captionStyleButton.after(btn);
     } else {
-      const qualityButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-quality`);
+      const qualityButton = this.rightButtons.querySelector(
+        `.${this.player.options.classPrefix}-quality`
+      );
       const pipButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-pip`);
-      const fullscreenButton = this.rightButtons.querySelector(`.${this.player.options.classPrefix}-fullscreen`);
+      const fullscreenButton = this.rightButtons.querySelector(
+        `.${this.player.options.classPrefix}-fullscreen`
+      );
       const insertBefore = qualityButton || pipButton || fullscreenButton;
       if (insertBefore) {
         this.rightButtons.insertBefore(btn, insertBefore);
@@ -3517,7 +3608,9 @@ var ControlBar = class {
    */
   removeHlsCaptionButtons(force = false) {
     if (!force) {
-      const trackElements = this.player.element.querySelectorAll('track[kind="captions"], track[kind="subtitles"]');
+      const trackElements = this.player.element.querySelectorAll(
+        'track[kind="captions"], track[kind="subtitles"]'
+      );
       if (trackElements.length > 0) {
         this.player.log("Keeping caption buttons - native track elements exist", "info");
         return;
@@ -3550,7 +3643,9 @@ var ControlBar = class {
       const tt = textTracks[i];
       if (tt) tt.mode = "disabled";
     }
-    const captionsContainer = this.player.container?.querySelector(`.${this.player.options.classPrefix}-captions`);
+    const captionsContainer = this.player.container?.querySelector(
+      `.${this.player.options.classPrefix}-captions`
+    );
     if (captionsContainer) {
       captionsContainer.textContent = "";
       captionsContainer.style.display = "none";
@@ -3589,7 +3684,9 @@ var ControlBar = class {
         const delay = this.player.state.fullscreen ? this.player.options.hideControlsDelay * 1.5 : this.player.options.hideControlsDelay;
         this.hideTimeout = setTimeout(() => {
           this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
-          this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+          this.player.container.classList.remove(
+            `${this.player.options.classPrefix}-controls-visible`
+          );
           this.player.state.controlsVisible = false;
         }, delay);
       }
@@ -3617,7 +3714,9 @@ var ControlBar = class {
           this.hideTimeout = setTimeout(() => {
             if (this.player.state.playing) {
               this.element.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
-              this.player.container.classList.remove(`${this.player.options.classPrefix}-controls-visible`);
+              this.player.container.classList.remove(
+                `${this.player.options.classPrefix}-controls-visible`
+              );
               this.player.state.controlsVisible = false;
             }
           }, this.player.options.hideControlsDelay * 2);
@@ -3631,7 +3730,7 @@ var ControlBar = class {
     const button = DOMUtils.createElement("button", {
       className: `${this.player.options.classPrefix}-button ${this.player.options.classPrefix}-overflow-menu`,
       attributes: {
-        "type": "button",
+        type: "button",
         "aria-label": ariaLabel,
         "aria-expanded": "false"
       }
@@ -3645,7 +3744,9 @@ var ControlBar = class {
     return button;
   }
   showOverflowMenu(button) {
-    const existingMenu = this.player.container.querySelector(`.${this.player.options.classPrefix}-overflow-menu-list`);
+    const existingMenu = this.player.container.querySelector(
+      `.${this.player.options.classPrefix}-overflow-menu-list`
+    );
     if (existingMenu) {
       existingMenu.remove();
       button.setAttribute("aria-expanded", "false");
@@ -3658,22 +3759,26 @@ var ControlBar = class {
     const menu = DOMUtils.createElement("div", {
       className: `${this.player.options.classPrefix}-overflow-menu-list ${this.player.options.classPrefix}-menu`,
       attributes: {
-        "role": "menu",
+        role: "menu",
         "aria-label": i18n.t("player.moreOptions")
       }
     });
     const overflowButtons = [
-      ...Array.from(this.leftButtons?.querySelectorAll('button[data-in-overflow="true"]') ?? []),
-      ...Array.from(this.rightButtons.querySelectorAll('button[data-in-overflow="true"]'))
+      ...Array.from(
+        this.leftButtons?.querySelectorAll('button[data-in-overflow="true"]') ?? []
+      ),
+      ...Array.from(
+        this.rightButtons.querySelectorAll('button[data-in-overflow="true"]')
+      )
     ];
     if (overflowButtons.length === 0) {
       const noItemsText = DOMUtils.createElement("div", {
         className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
         textContent: i18n.t("player.noMoreOptions"),
         attributes: {
-          "role": "menuitem",
+          role: "menuitem",
           "aria-disabled": "true",
-          "tabindex": "-1"
+          tabindex: "-1"
         },
         style: { opacity: "0.5", cursor: "default" }
       });
@@ -3683,9 +3788,9 @@ var ControlBar = class {
         const item = DOMUtils.createElement("button", {
           className: `${this.player.options.classPrefix}-menu-item`,
           attributes: {
-            "type": "button",
-            "role": "menuitem",
-            "tabindex": "-1"
+            type: "button",
+            role: "menuitem",
+            tabindex: "-1"
           }
         });
         const label = btn.getAttribute("aria-label") || btn.getAttribute("title") || "";
@@ -3722,7 +3827,9 @@ var ControlBar = class {
       });
       this.attachMenuKeyboardNavigation(menu, button);
       setTimeout(() => {
-        const firstItem = menu.querySelector(`.${this.player.options.classPrefix}-menu-item`);
+        const firstItem = menu.querySelector(
+          `.${this.player.options.classPrefix}-menu-item`
+        );
         if (firstItem && firstItem.tagName === "BUTTON") {
           firstItem.focus({ preventScroll: true });
         }
@@ -4061,15 +4168,15 @@ var ControlBar = class {
     }
     if (!this._overflowGlobalBound) {
       this._overflowGlobalBound = true;
-      window.addEventListener("resize", () => {
-        requestAnimationFrame(checkOverflow);
-      }, { signal });
+      window.addEventListener(
+        "resize",
+        () => {
+          requestAnimationFrame(checkOverflow);
+        },
+        { signal }
+      );
       this.subscribe("overflow", "fullscreenchange", () => {
-        this.scheduleOverflowDeferred(
-          () => requestAnimationFrame(checkOverflow),
-          50,
-          signal
-        );
+        this.scheduleOverflowDeferred(() => requestAnimationFrame(checkOverflow), 50, signal);
       });
     }
     requestAnimationFrame(() => {
@@ -4118,9 +4225,13 @@ var ControlBar = class {
       if (mainVideo.crossOrigin) {
         this.previewVideo.crossOrigin = mainVideo.crossOrigin;
       }
-      this.previewVideo.addEventListener("loadedmetadata", () => {
-        this.previewVideoReady = true;
-      }, { once: true });
+      this.previewVideo.addEventListener(
+        "loadedmetadata",
+        () => {
+          this.previewVideoReady = true;
+        },
+        { once: true }
+      );
     } else if (newSrc && !this.previewVideoReady && this.previewVideo.readyState >= 1) {
       this.previewVideoReady = true;
     }
@@ -4214,13 +4325,18 @@ var KeyboardManager = class {
       this.player.on(event, wrapped);
       this._stateAnnouncers.push({ event, handler: wrapped });
     };
-    this._stateAnnouncers.push({ event: "ready", handler: onReady });
+    this._stateAnnouncers.push({
+      event: "ready",
+      handler: onReady
+    });
     register("play", () => this.announce(i18n.t("player.playing")));
     register("pause", () => this.announce(i18n.t("player.paused")));
     register("captionsenabled", () => this.announce(i18n.t("player.captionsOn")));
     register("captionsdisabled", () => this.announce(i18n.t("player.captionsOff")));
     register("fullscreenchange", () => {
-      this.announce(this.player.state.fullscreen ? i18n.t("player.fullscreen") : i18n.t("player.exitFullscreen"));
+      this.announce(
+        this.player.state.fullscreen ? i18n.t("player.fullscreen") : i18n.t("player.exitFullscreen")
+      );
     });
     register("ratechange", () => {
       const rate = this.player.state.playbackSpeed;
@@ -4238,9 +4354,13 @@ var KeyboardManager = class {
     });
   }
   attachEvents() {
-    this.player.container.addEventListener("keydown", (e) => {
-      this.handleKeydown(e);
-    }, true);
+    this.player.container.addEventListener(
+      "keydown",
+      (e) => {
+        this.handleKeydown(e);
+      },
+      true
+    );
     if (!this.player.container.hasAttribute("tabindex")) {
       this.player.container.setAttribute("tabindex", "0");
     }
@@ -4363,17 +4483,13 @@ var KeyboardManager = class {
         if (this.player.controlBar && !this.player.controlBar.hasControl("speed")) {
           return false;
         }
-        this.player.setPlaybackSpeed(
-          Math.min(2, this.player.state.playbackSpeed + 0.25)
-        );
+        this.player.setPlaybackSpeed(Math.min(2, this.player.state.playbackSpeed + 0.25));
         return true;
       case "speed-down":
         if (this.player.controlBar && !this.player.controlBar.hasControl("speed")) {
           return false;
         }
-        this.player.setPlaybackSpeed(
-          Math.max(0.25, this.player.state.playbackSpeed - 0.25)
-        );
+        this.player.setPlaybackSpeed(Math.max(0.25, this.player.state.playbackSpeed - 0.25));
         return true;
       case "speed-menu":
         if (this.player.controlBar?.controls.speed && this.player.controlBar.hasControl("speed")) {
@@ -6027,11 +6143,14 @@ var MetadataAlertsManager = class {
       this.cueChangeHandler = () => {
         const activeCues = Array.from(metadataTrack.activeCues || []);
         if (activeCues.length > 0 && player.options.debug) {
-          player.log("[Metadata] Active cues:", activeCues.map((c) => ({
-            start: c.startTime,
-            end: c.endTime,
-            text: c.text
-          })));
+          player.log(
+            "[Metadata] Active cues:",
+            activeCues.map((c) => ({
+              start: c.startTime,
+              end: c.endTime,
+              text: c.text
+            }))
+          );
         }
         activeCues.forEach((cue) => this.handleCue(cue));
       };
@@ -6146,7 +6265,10 @@ var MetadataAlertsManager = class {
   handleAlert(selector, options = {}) {
     const player = this.player;
     if (!selector) return void 0;
-    const config = this.resolveConfig(player.options.metadataAlerts, selector) || {};
+    const config = this.resolveConfig(
+      player.options.metadataAlerts,
+      selector
+    ) || {};
     const element = options.element || this.resolveElement(selector);
     if (!element) {
       if (player.options.debug) player.log("[Metadata] Alert element not found:", selector);
@@ -6505,50 +6627,64 @@ var TrackInfoView = class _TrackInfoView {
     }
     this.element.replaceChildren();
     if (isPlaylistContext) {
-      this.element.appendChild(DOMUtils.createElement("span", {
-        className: `${prefix}-sr-only`,
-        attributes: { "aria-live": "polite" },
-        textContent: playlistAnnouncement
-      }));
+      this.element.appendChild(
+        DOMUtils.createElement("span", {
+          className: `${prefix}-sr-only`,
+          attributes: { "aria-live": "polite" },
+          textContent: playlistAnnouncement
+        })
+      );
     }
     if (showTrackHeader) {
       const header = DOMUtils.createElement("div", {
         className: `${prefix}-track-header`
       });
-      header.appendChild(DOMUtils.createElement("span", {
-        className: `${prefix}-track-number`,
-        textContent: i18n.t("playlist.trackOf", { current: trackNumber, total: totalTracks })
-      }));
+      header.appendChild(
+        DOMUtils.createElement("span", {
+          className: `${prefix}-track-number`,
+          textContent: i18n.t("playlist.trackOf", { current: trackNumber, total: totalTracks })
+        })
+      );
       if (trackDuration) {
-        header.appendChild(DOMUtils.createElement("span", {
-          className: `${prefix}-track-duration`,
-          textContent: trackDuration
-        }));
+        header.appendChild(
+          DOMUtils.createElement("span", {
+            className: `${prefix}-track-duration`,
+            textContent: trackDuration
+          })
+        );
       }
       this.element.appendChild(header);
     }
-    this.element.appendChild(DOMUtils.createElement("p", {
-      className: `${prefix}-track-title`,
-      attributes: { id: this.titleElementId },
-      textContent: trackTitle
-    }));
+    this.element.appendChild(
+      DOMUtils.createElement("p", {
+        className: `${prefix}-track-title`,
+        attributes: { id: this.titleElementId },
+        textContent: trackTitle
+      })
+    );
     if (trackArtist) {
-      this.element.appendChild(DOMUtils.createElement("p", {
-        className: `${prefix}-track-artist`,
-        textContent: trackArtist
-      }));
+      this.element.appendChild(
+        DOMUtils.createElement("p", {
+          className: `${prefix}-track-artist`,
+          textContent: trackArtist
+        })
+      );
     }
     if (trackDate) {
-      this.element.appendChild(DOMUtils.createElement("p", {
-        className: `${prefix}-track-date`,
-        textContent: trackDate
-      }));
+      this.element.appendChild(
+        DOMUtils.createElement("p", {
+          className: `${prefix}-track-date`,
+          textContent: trackDate
+        })
+      );
     }
     if (trackDescription) {
-      this.element.appendChild(DOMUtils.createElement("p", {
-        className: `${prefix}-track-description`,
-        textContent: trackDescription
-      }));
+      this.element.appendChild(
+        DOMUtils.createElement("p", {
+          className: `${prefix}-track-description`,
+          textContent: trackDescription
+        })
+      );
     }
     if (longDescription) {
       const showLabel = i18n.t("trackInfo.descriptionShow");
@@ -6793,10 +6929,12 @@ var KeyboardHelp = class {
     const section = DOMUtils.createElement("div", {
       className: `${this.prefix}-help-live-section`
     });
-    section.appendChild(DOMUtils.createElement("h3", {
-      className: `${this.prefix}-help-live-title`,
-      textContent: i18n.t("help.liveSectionTitle")
-    }));
+    section.appendChild(
+      DOMUtils.createElement("h3", {
+        className: `${this.prefix}-help-live-title`,
+        textContent: i18n.t("help.liveSectionTitle")
+      })
+    );
     const list = DOMUtils.createElement("dl", {
       className: `${this.prefix}-help-list ${this.prefix}-help-live-list`
     });
@@ -6827,14 +6965,18 @@ var KeyboardHelp = class {
       }
     );
     for (const row of rows) {
-      list.appendChild(DOMUtils.createElement("dt", {
-        className: `${this.prefix}-help-action`,
-        textContent: row.term
-      }));
-      list.appendChild(DOMUtils.createElement("dd", {
-        className: `${this.prefix}-help-desc`,
-        textContent: row.desc
-      }));
+      list.appendChild(
+        DOMUtils.createElement("dt", {
+          className: `${this.prefix}-help-action`,
+          textContent: row.term
+        })
+      );
+      list.appendChild(
+        DOMUtils.createElement("dd", {
+          className: `${this.prefix}-help-desc`,
+          textContent: row.desc
+        })
+      );
     }
     section.appendChild(list);
     return section;
@@ -7012,21 +7154,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-QN3WH4QP.js");
+    const module = await import("./vidply.AudioDescriptionManager-MIO3JVS5.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-KXXKFUJE.js");
+    const module = await import("./vidply.SignLanguageManager-CFXCZ2PC.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-VKNGXICV.js");
+    const module = await import("./vidply.FloatingPlayerManager-RNITRGB2.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -7063,14 +7205,9 @@ var Player = class _Player extends EventEmitter {
       return null;
     }
     if ("IntersectionObserver" in window) {
-      observeForLazyInit(
-        element,
-        options,
-        margin,
-        (target, opts) => {
-          new _Player(target, opts);
-        }
-      );
+      observeForLazyInit(element, options, margin, (target, opts) => {
+        new _Player(target, opts);
+      });
       return { cancel: () => cancelLazyInit(element) };
     }
     new _Player(element, options);
@@ -7203,7 +7340,9 @@ var Player = class _Player extends EventEmitter {
     this.instanceId = playerInstanceCounter;
     if (this.element.tagName !== "VIDEO" && this.element.tagName !== "AUDIO") {
       const requested = typeof options.mediaType === "string" ? options.mediaType.toLowerCase() : "video";
-      const mediaType = ALLOWED_MEDIA_TYPES.includes(requested) ? requested : "video";
+      const mediaType = ALLOWED_MEDIA_TYPES.includes(
+        requested
+      ) ? requested : "video";
       if (mediaType !== requested) {
         console.warn(`[VidPly] Ignoring unsafe mediaType "${requested}", falling back to "video"`);
       }
@@ -7340,9 +7479,9 @@ var Player = class _Player extends EventEmitter {
         "volume-down": ["ArrowDown"],
         "seek-forward": ["ArrowRight"],
         "seek-backward": ["ArrowLeft"],
-        "mute": ["m"],
-        "fullscreen": ["f"],
-        "captions": ["c"],
+        mute: ["m"],
+        fullscreen: ["f"],
+        captions: ["c"],
         "caption-style-menu": ["a"],
         "speed-up": [">"],
         "speed-down": ["<"],
@@ -7350,7 +7489,7 @@ var Player = class _Player extends EventEmitter {
         "quality-menu": ["q"],
         "chapters-menu": ["j"],
         "transcript-toggle": ["t"],
-        "help": ["?"]
+        help: ["?"]
       },
       // Accessibility
       ariaLabels: {},
@@ -7730,7 +7869,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-UVEV5CPM.js");
+    const module = await import("./vidply.TranscriptManager-BIYCA5LH.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -8003,9 +8142,9 @@ var Player = class _Player extends EventEmitter {
     this.container = DOMUtils.createElement("div", {
       className: `${this.options.classPrefix}-player`,
       attributes: {
-        "role": "region",
+        role: "region",
         "aria-label": playerLabel,
-        "tabindex": "0"
+        tabindex: "0"
       }
     });
     const mediaType = this.element.tagName.toLowerCase();
@@ -8063,25 +8202,37 @@ var Player = class _Player extends EventEmitter {
     this.element.vidply = this;
     _Player.instances.push(this);
     this.element.style.cursor = "pointer";
-    this.element.addEventListener("click", (e) => {
-      if (e.target === this.element) {
+    this.element.addEventListener(
+      "click",
+      (e) => {
+        if (e.target === this.element) {
+          this.toggle();
+        }
+      },
+      { signal: this.lifecycleSignal }
+    );
+    this.videoWrapper.addEventListener(
+      "click",
+      (e) => {
+        if (!this.container?.classList.contains(`${this.options.classPrefix}-embed-chrome-vidply`)) {
+          return;
+        }
+        const prefix = this.options.classPrefix;
+        const ignore = [
+          `${prefix}-controls`,
+          `${prefix}-play-overlay-button`,
+          `${prefix}-play-overlay`
+        ];
+        const fromControl = e.composedPath().some(
+          (node) => node instanceof Element && ignore.some((cls) => node.classList.contains(cls))
+        );
+        if (fromControl || !(e.target instanceof Element)) {
+          return;
+        }
         this.toggle();
-      }
-    }, { signal: this.lifecycleSignal });
-    this.videoWrapper.addEventListener("click", (e) => {
-      if (!this.container?.classList.contains(`${this.options.classPrefix}-embed-chrome-vidply`)) {
-        return;
-      }
-      const prefix = this.options.classPrefix;
-      const ignore = [`${prefix}-controls`, `${prefix}-play-overlay-button`, `${prefix}-play-overlay`];
-      const fromControl = e.composedPath().some(
-        (node) => node instanceof Element && ignore.some((cls) => node.classList.contains(cls))
-      );
-      if (fromControl || !(e.target instanceof Element)) {
-        return;
-      }
-      this.toggle();
-    }, { signal: this.lifecycleSignal });
+      },
+      { signal: this.lifecycleSignal }
+    );
     this.videoWrapper.style.cursor = "pointer";
     this.on("play", () => {
       this.state.hasStartedPlayback = true;
@@ -8107,11 +8258,15 @@ var Player = class _Player extends EventEmitter {
         this.hidePosterOverlay();
       }
     });
-    this.element.addEventListener("loadeddata", () => {
-      if (this.state.hasStartedPlayback && (this.state.playing || this.state.currentTime > 0)) {
-        this.hidePosterOverlay();
-      }
-    }, { once: true });
+    this.element.addEventListener(
+      "loadeddata",
+      () => {
+        if (this.state.hasStartedPlayback && (this.state.playing || this.state.currentTime > 0)) {
+          this.hidePosterOverlay();
+        }
+      },
+      { once: true }
+    );
     this.applyTheme();
   }
   /**
@@ -8268,7 +8423,9 @@ var Player = class _Player extends EventEmitter {
     });
   }
   positionPlayOverlayOnMobile() {
-    this.positionOverlayOnMediaCenter(this.getPlayButtonOverlayNode(), { youtubePlayOverlayNudge: true });
+    this.positionOverlayOnMediaCenter(this.getPlayButtonOverlayNode(), {
+      youtubePlayOverlayNudge: true
+    });
     this.positionOverlayOnMediaCenter(this.loadingOverlayElement);
   }
   /**
@@ -8401,7 +8558,10 @@ var Player = class _Player extends EventEmitter {
         await Promise.race([
           this.renderer.init(),
           new Promise((_, reject) => {
-            timer = setTimeout(() => reject(new Error(`Renderer init timed out after ${initTimeout}ms`)), initTimeout);
+            timer = setTimeout(
+              () => reject(new Error(`Renderer init timed out after ${initTimeout}ms`)),
+              initTimeout
+            );
           })
         ]).finally(() => {
           if (timer !== void 0) clearTimeout(timer);
@@ -8435,23 +8595,23 @@ var Player = class _Player extends EventEmitter {
   async _detectRendererClass(src) {
     switch (classifyRendererType(src)) {
       case "youtube": {
-        const module = await import("./vidply.YouTubeRenderer-DZLVZ6XG.js");
+        const module = await import("./vidply.YouTubeRenderer-FZ4RBK5L.js");
         return module.YouTubeRenderer ?? module.default;
       }
       case "vimeo": {
-        const module = await import("./vidply.VimeoRenderer-CPQ77WAS.js");
+        const module = await import("./vidply.VimeoRenderer-7UG2IHAK.js");
         return module.VimeoRenderer ?? module.default;
       }
       case "hls": {
-        const module = await import("./vidply.HLSRenderer-4Z33OLPX.js");
+        const module = await import("./vidply.HLSRenderer-QM5C6QON.js");
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {
-        const module = await import("./vidply.DASHRenderer-MVNA6WOC.js");
+        const module = await import("./vidply.DASHRenderer-G4KRSWP3.js");
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
-        const module = await import("./vidply.SoundCloudRenderer-FYZN6MWC.js");
+        const module = await import("./vidply.SoundCloudRenderer-QPTG6RHB.js");
         return module.SoundCloudRenderer ?? module.default;
       }
       default:
@@ -9529,33 +9689,35 @@ var Player = class _Player extends EventEmitter {
    * the browser has restored the page layout first.
    */
   restoreFocusAfterFullscreen() {
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      const container = this.container;
-      if (!container?.isConnected || this.state.fullscreen) {
-        return;
-      }
-      const previousTop = this._preFullscreenViewportTop;
-      this._preFullscreenViewportTop = null;
-      if (previousTop !== null) {
-        const drift = container.getBoundingClientRect().top - previousTop;
-        if (Math.abs(drift) >= 1) {
-          window.scrollBy({ top: drift, behavior: "instant" });
+    requestAnimationFrame(
+      () => requestAnimationFrame(() => {
+        const container = this.container;
+        if (!container?.isConnected || this.state.fullscreen) {
+          return;
         }
-      }
-      const button = this.controlBar?.controls.fullscreen;
-      if (!(button instanceof HTMLElement) || !button.isConnected || !(button.checkVisibility?.() ?? true)) {
-        return;
-      }
-      const alreadyFocused = document.activeElement === button;
-      button.focus();
-      if (alreadyFocused) {
-        const rect = button.getBoundingClientRect();
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-        if (rect.top < 0 || rect.bottom > viewportHeight) {
-          button.scrollIntoView({ block: "nearest", inline: "nearest" });
+        const previousTop = this._preFullscreenViewportTop;
+        this._preFullscreenViewportTop = null;
+        if (previousTop !== null) {
+          const drift = container.getBoundingClientRect().top - previousTop;
+          if (Math.abs(drift) >= 1) {
+            window.scrollBy({ top: drift, behavior: "instant" });
+          }
         }
-      }
-    }));
+        const button = this.controlBar?.controls.fullscreen;
+        if (!(button instanceof HTMLElement) || !button.isConnected || !(button.checkVisibility?.() ?? true)) {
+          return;
+        }
+        const alreadyFocused = document.activeElement === button;
+        button.focus();
+        if (alreadyFocused) {
+          const rect = button.getBoundingClientRect();
+          const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+          if (rect.top < 0 || rect.bottom > viewportHeight) {
+            button.scrollIntoView({ block: "nearest", inline: "nearest" });
+          }
+        }
+      })
+    );
   }
   toggleFullscreen() {
     if (this.state.fullscreen) {
@@ -9655,7 +9817,10 @@ var Player = class _Player extends EventEmitter {
       return response.ok;
     } catch (error) {
       if (this.options.debug) {
-        this.log(`validateTrackExists("${url}") failed: ${error?.message ?? error}`, "warn");
+        this.log(
+          `validateTrackExists("${url}") failed: ${error?.message ?? error}`,
+          "warn"
+        );
       }
       return false;
     }
@@ -9789,7 +9954,9 @@ var Player = class _Player extends EventEmitter {
   }
   // Settings dialog removed - using individual control buttons instead
   showSettings() {
-    console.warn("[VidPly] Settings dialog has been removed. Use individual control buttons (speed, captions, etc.)");
+    console.warn(
+      "[VidPly] Settings dialog has been removed. Use individual control buttons (speed, captions, etc.)"
+    );
   }
   hideSettings() {
   }
@@ -10071,7 +10238,9 @@ var Player = class _Player extends EventEmitter {
   // so call sites inside `handleMetadataCue` and external callers
   // (e.g. TranscriptManager integration tests) keep working.
   normalizeMetadataSelector(selector) {
-    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).normalizeSelector(selector);
+    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).normalizeSelector(
+      selector
+    );
   }
   resolveMetadataConfig(map, key) {
     return (this.metadataAlertsManager ?? this._ensureMetadataManager()).resolveConfig(map, key);
@@ -10083,7 +10252,10 @@ var Player = class _Player extends EventEmitter {
     (this.metadataAlertsManager ?? this._ensureMetadataManager()).restoreContent(element, config);
   }
   focusMetadataTarget(target, fallbackElement = null) {
-    (this.metadataAlertsManager ?? this._ensureMetadataManager()).focusTarget(target, fallbackElement);
+    (this.metadataAlertsManager ?? this._ensureMetadataManager()).focusTarget(
+      target,
+      fallbackElement
+    );
   }
   /** Internal helper: lazily creates the manager for external
    *  entry points that didn't come via `setupMetadataHandling`. */
@@ -10094,7 +10266,10 @@ var Player = class _Player extends EventEmitter {
     return this.metadataAlertsManager;
   }
   handleMetadataAlert(selector, options = {}) {
-    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleAlert(selector, options);
+    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleAlert(
+      selector,
+      options
+    );
   }
   handleMetadataHashtags(hashtags) {
     (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleHashtags(hashtags);
@@ -10250,7 +10425,9 @@ var PlaylistManager = class _PlaylistManager {
     if (elementType === "video" && track.poster && (mediaType === "video" || mediaType === "hls" || mediaType === "dash")) {
       mediaElement.setAttribute("poster", track.poster);
     }
-    const isExternalRenderer = ["youtube", "vimeo", "soundcloud", "hls", "dash"].includes(mediaType);
+    const isExternalRenderer = ["youtube", "vimeo", "soundcloud", "hls", "dash"].includes(
+      mediaType
+    );
     if (!isExternalRenderer) {
       const source = document.createElement("source");
       source.src = track.src || "";
@@ -10798,7 +10975,9 @@ var PlaylistManager = class _PlaylistManager {
         return;
       }
       const preferNative = isIOS();
-      const playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: preferNative });
+      const playback = this.resolveTrackPlaybackSource(track, {
+        preferNativeElement: preferNative
+      });
       if (!playback.src) {
         return;
       }
@@ -11044,7 +11223,7 @@ var PlaylistManager = class _PlaylistManager {
     }
     this.player.controlBar?.updateTrackNavigation();
     if (isIOS() && tracks.some((t) => t.src?.includes(".m3u8"))) {
-      void import("./vidply.HLSRenderer-4Z33OLPX.js");
+      void import("./vidply.HLSRenderer-QM5C6QON.js");
     }
     if (tracks.length > 0) {
       if (this.options.autoPlayFirst) {
@@ -11708,7 +11887,11 @@ var PlaylistManager = class _PlaylistManager {
       this.hideTrackArtworkElements(true);
       return;
     }
-    const forcedHidden = this.trackArtworkElement?.getAttribute("data-vidply-artwork-forced-hidden") === "true" || this.container?.querySelector('.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]') instanceof HTMLElement || this.playlistMainElement?.querySelector('.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]') instanceof HTMLElement;
+    const forcedHidden = this.trackArtworkElement?.getAttribute("data-vidply-artwork-forced-hidden") === "true" || this.container?.querySelector(
+      '.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]'
+    ) instanceof HTMLElement || this.playlistMainElement?.querySelector(
+      '.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]'
+    ) instanceof HTMLElement;
     if (forcedHidden) {
       return;
     }
@@ -11925,7 +12108,9 @@ var PlaylistManager = class _PlaylistManager {
    */
   handlePlaylistItemKeydown(e, index) {
     if (!this.playlistPanel) return;
-    const buttons = Array.from(this.playlistPanel.querySelectorAll(".vidply-playlist-item-button"));
+    const buttons = Array.from(
+      this.playlistPanel.querySelectorAll(".vidply-playlist-item-button")
+    );
     let newIndex = -1;
     let announcement = "";
     switch (e.key) {
@@ -11953,7 +12138,10 @@ var PlaylistManager = class _PlaylistManager {
         if (index < buttons.length - 1) {
           newIndex = index + 1;
         } else {
-          announcement = i18n.t("playlist.endOfPlaylist", { current: buttons.length, total: buttons.length });
+          announcement = i18n.t("playlist.endOfPlaylist", {
+            current: buttons.length,
+            total: buttons.length
+          });
         }
         break;
       case "ArrowUp":
@@ -11970,7 +12158,10 @@ var PlaylistManager = class _PlaylistManager {
         e.stopPropagation();
         newIndex = Math.min(index + 5, buttons.length - 1);
         if (newIndex === buttons.length - 1 && index !== newIndex) {
-          announcement = i18n.t("playlist.jumpedToLastTrack", { current: newIndex + 1, total: buttons.length });
+          announcement = i18n.t("playlist.jumpedToLastTrack", {
+            current: newIndex + 1,
+            total: buttons.length
+          });
         }
         break;
       case "PageUp":
@@ -11994,7 +12185,10 @@ var PlaylistManager = class _PlaylistManager {
         e.stopPropagation();
         newIndex = buttons.length - 1;
         if (index !== buttons.length - 1) {
-          announcement = i18n.t("playlist.lastTrack", { current: buttons.length, total: buttons.length });
+          announcement = i18n.t("playlist.lastTrack", {
+            current: buttons.length,
+            total: buttons.length
+          });
         }
         break;
     }
@@ -12171,7 +12365,9 @@ var PlaylistManager = class _PlaylistManager {
       this.isPanelVisible = true;
       if (this.tracks.length > 0) {
         this.setManagedTimeout(() => {
-          const firstItem = playlistPanel.querySelector('.vidply-playlist-item[tabindex="0"]');
+          const firstItem = playlistPanel.querySelector(
+            '.vidply-playlist-item[tabindex="0"]'
+          );
           if (firstItem) {
             firstItem.focus({ preventScroll: true });
           }

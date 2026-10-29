@@ -12,13 +12,13 @@ function createMockPlayer(overrides = {}) {
     options: {
       classPrefix: 'vidply',
       liveStream: 'auto',
-      liveBehindThreshold: 5,
+      liveBehindThreshold: 5
     },
     state: {
       currentTime: 0,
       isLive: false,
       behindLive: false,
-      liveEdge: null,
+      liveEdge: null
     },
     element: document.createElement('audio'),
     renderer: null,
@@ -39,7 +39,7 @@ function createMockPlayer(overrides = {}) {
     },
     seek: vi.fn(),
     play: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
+    ...overrides
   };
 
   return player;
@@ -69,7 +69,7 @@ describe('LiveStreamManager', () => {
     player.options.liveStream = false;
     Object.defineProperty(player.element, 'duration', {
       configurable: true,
-      value: Infinity,
+      value: Infinity
     });
     expect(manager.resolveIsLive()).toBe(false);
   });
@@ -77,7 +77,7 @@ describe('LiveStreamManager', () => {
   it('detects live streams from Infinity duration in auto mode', () => {
     Object.defineProperty(player.element, 'duration', {
       configurable: true,
-      value: Infinity,
+      value: Infinity
     });
     manager.refresh();
     expect(player.state.isLive).toBe(true);
@@ -87,7 +87,7 @@ describe('LiveStreamManager', () => {
   it('does not treat unknown duration as live before metadata is loaded', () => {
     Object.defineProperty(player.element, 'duration', {
       configurable: true,
-      value: NaN,
+      value: NaN
     });
     manager.refresh();
     expect(player.state.isLive).toBe(false);
@@ -101,8 +101,8 @@ describe('LiveStreamManager', () => {
       value: {
         length: 1,
         start: () => 100,
-        end: () => 200,
-      },
+        end: () => 200
+      }
     });
     player.state.currentTime = 180;
     manager.refresh();
@@ -117,8 +117,8 @@ describe('LiveStreamManager', () => {
       value: {
         length: 1,
         start: () => 0,
-        end: () => 100,
-      },
+        end: () => 100
+      }
     });
     player.state.currentTime = 95;
     expect(manager.clampSeekTime(110)).toBe(100);
@@ -131,8 +131,8 @@ describe('LiveStreamManager', () => {
       value: {
         length: 1,
         start: () => 0,
-        end: () => 250,
-      },
+        end: () => 250
+      }
     });
     manager.seekToLive();
     expect(player.seek).toHaveBeenCalledWith(250);
@@ -143,12 +143,12 @@ describe('LiveStreamManager', () => {
     player.renderer = {
       rendererType: 'hls',
       hls: {
-        latestLevelDetails: { live: false },
-      },
+        latestLevelDetails: { live: false }
+      }
     };
     Object.defineProperty(player.element, 'duration', {
       configurable: true,
-      value: Infinity,
+      value: Infinity
     });
     expect(manager.resolveIsLive()).toBe(false);
   });
@@ -156,7 +156,7 @@ describe('LiveStreamManager', () => {
   it('evaluates live HLS playlists via latestLevelDetails.live', () => {
     manager.evaluateHls({
       liveSyncPosition: 42,
-      latestLevelDetails: { live: true },
+      latestLevelDetails: { live: true }
     });
     expect(player.state.isLive).toBe(true);
   });
@@ -164,7 +164,7 @@ describe('LiveStreamManager', () => {
   it('does not treat VOD HLS liveSyncPosition as live (Apple BipBop case)', () => {
     manager.evaluateHls({
       liveSyncPosition: 597,
-      latestLevelDetails: { live: false, edge: 600 },
+      latestLevelDetails: { live: false, edge: 600 }
     });
     expect(player.state.isLive).toBe(false);
     expect(player.container.classList.contains('vidply-is-live')).toBe(false);
@@ -173,7 +173,7 @@ describe('LiveStreamManager', () => {
   it('ignores HLS liveSyncPosition until the level playlist is loaded', () => {
     Object.defineProperty(player.element, 'duration', {
       configurable: true,
-      value: 600,
+      value: 600
     });
     manager.evaluateHls({ liveSyncPosition: 597 });
     manager.refresh();
@@ -182,7 +182,7 @@ describe('LiveStreamManager', () => {
 
   it('resets live state on sourcechange', () => {
     manager.evaluateHls({
-      latestLevelDetails: { live: true },
+      latestLevelDetails: { live: true }
     });
     expect(player.state.isLive).toBe(true);
 
@@ -194,7 +194,7 @@ describe('LiveStreamManager', () => {
 
   it('resetForSourceChange clears a prior live report', () => {
     manager.evaluateHls({
-      latestLevelDetails: { live: true },
+      latestLevelDetails: { live: true }
     });
     expect(player.state.isLive).toBe(true);
 
@@ -224,7 +224,7 @@ describe('LiveStreamManager', () => {
     manager.evaluateDash({
       isDynamic: () => {
         throw new Error('PLAYBACK_NOT_INITIALIZED_ERROR');
-      },
+      }
     });
     expect(manager.isConfirmedVod()).toBe(false);
 
@@ -236,7 +236,7 @@ describe('LiveStreamManager', () => {
     player.renderer = { rendererType: 'dash' };
     Object.defineProperty(player.element, 'duration', {
       configurable: true,
-      value: 120,
+      value: 120
     });
     manager.refresh();
 
@@ -251,19 +251,25 @@ describe('LiveStreamManager', () => {
       value: {
         length: 1,
         start: () => 0,
-        end: () => 200,
-      },
+        end: () => 200
+      }
     });
     player.state.currentTime = 185;
     expect(manager.getSecondsBehindLive()).toBe(15);
   });
 
   it('parses VOD HLS media playlists from ENDLIST / PLAYLIST-TYPE:VOD', () => {
-    expect(manager.parseHlsMediaPlaylistLive('#EXTM3U\n#EXT-X-PLAYLIST-TYPE:VOD\n#EXTINF:6,\nfile.ts\n#EXT-X-ENDLIST')).toBe(false);
+    expect(
+      manager.parseHlsMediaPlaylistLive(
+        '#EXTM3U\n#EXT-X-PLAYLIST-TYPE:VOD\n#EXTINF:6,\nfile.ts\n#EXT-X-ENDLIST'
+      )
+    ).toBe(false);
   });
 
   it('parses live HLS media playlists without ENDLIST', () => {
-    expect(manager.parseHlsMediaPlaylistLive('#EXTM3U\n#EXT-X-TARGETDURATION:2\n#EXTINF:2,\nseg.ts')).toBe(true);
+    expect(
+      manager.parseHlsMediaPlaylistLive('#EXTM3U\n#EXT-X-TARGETDURATION:2\n#EXTINF:2,\nseg.ts')
+    ).toBe(true);
   });
 
   it('hides forward/restart until VOD is confirmed under liveStream auto', () => {
@@ -285,7 +291,7 @@ describe('LiveStreamManager', () => {
   it('confirms VOD from finite HTML5 media duration under liveStream auto', () => {
     Object.defineProperty(player.element, 'duration', {
       configurable: true,
-      value: 265.9,
+      value: 265.9
     });
     manager.refresh();
 
@@ -308,7 +314,7 @@ describe('LiveStreamManager', () => {
     player.renderer = { rendererType: 'hls', hls: null };
     Object.defineProperty(player.element, 'duration', {
       configurable: true,
-      value: 600,
+      value: 600
     });
     manager.refresh();
 

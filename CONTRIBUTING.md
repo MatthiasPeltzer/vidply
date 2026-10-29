@@ -46,6 +46,7 @@ tests/          Vitest (unit + integration) and Playwright (e2e)
 
 - The project is **strict TypeScript** (`tsconfig.json` enables `strict`, `noImplicitAny`, `useUnknownInCatchVariables`, etc.).
 - New code must compile with `npm run typecheck` (`tsc --noEmit`).
+- Formatting is enforced with Prettier (`prettier.config.js`, same as `.editorconfig`: 100 columns, single quotes, semicolons, LF). Run `npm run format` before commit if `format:check` fails. `demo/` is in `.prettierignore` (hand-edited pages).
 - Avoid `: any`, `as any`, `as unknown as X` and `!` non-null assertions. If you must, add a one-line comment explaining why and prefer narrowing helpers (`if (x !== null)`) or type guards.
 - Public API types live in `src/types/`. When you add an event, add it to `PlayerEventMap`. When you add an option, add it to `PlayerOptions`.
 
@@ -87,7 +88,8 @@ Before opening a PR, run:
 
 ```bash
 npm run typecheck
-npm run lint            # if eslint is configured
+npm run format:check    # Prettier (or npm run format to apply)
+npm run lint
 npm run test            # vitest unit + integration
 npm run test:e2e:install # one-time: install Playwright Chromium (+ OS deps on Linux CI)
 npm run test:e2e        # Playwright (requires Chromium installed)

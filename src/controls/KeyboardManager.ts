@@ -62,7 +62,9 @@ export class KeyboardManager {
     // Defensive: the player exposes an EventEmitter `on`/`off` API at runtime.
     if (typeof this.player.on !== 'function') return;
 
-    const onReady = () => { this._announceReady = true; };
+    const onReady = () => {
+      this._announceReady = true;
+    };
     this.player.on('ready', onReady);
 
     const register = (event: string, handler: () => void) => {
@@ -76,16 +78,19 @@ export class KeyboardManager {
     };
 
     // Track the 'ready' handler too so destroy() detaches it.
-    this._stateAnnouncers.push({ event: 'ready', handler: onReady as (...args: unknown[]) => void });
+    this._stateAnnouncers.push({
+      event: 'ready',
+      handler: onReady as (...args: unknown[]) => void
+    });
 
     register('play', () => this.announce(i18n.t('player.playing')));
     register('pause', () => this.announce(i18n.t('player.paused')));
     register('captionsenabled', () => this.announce(i18n.t('player.captionsOn')));
     register('captionsdisabled', () => this.announce(i18n.t('player.captionsOff')));
     register('fullscreenchange', () => {
-      this.announce(this.player.state.fullscreen
-        ? i18n.t('player.fullscreen')
-        : i18n.t('player.exitFullscreen'));
+      this.announce(
+        this.player.state.fullscreen ? i18n.t('player.fullscreen') : i18n.t('player.exitFullscreen')
+      );
     });
     register('ratechange', () => {
       const rate = this.player.state.playbackSpeed;
@@ -96,9 +101,7 @@ export class KeyboardManager {
       // level changes are debounced via _announceVolume.
       if (this.player.state.muted !== this._prevMuted) {
         this._prevMuted = this.player.state.muted;
-        this.announce(this.player.state.muted
-          ? i18n.t('player.muted')
-          : i18n.t('player.unmuted'));
+        this.announce(this.player.state.muted ? i18n.t('player.muted') : i18n.t('player.unmuted'));
         return;
       }
       if (!this.player.state.muted) {
@@ -110,9 +113,13 @@ export class KeyboardManager {
   attachEvents() {
     // Listen for keyboard events on the player container using CAPTURE phase
     // This ensures we intercept events before they reach child elements
-    this.player.container.addEventListener('keydown', (e: KeyboardEvent) => {
-      this.handleKeydown(e);
-    }, true); // Use capture phase
+    this.player.container.addEventListener(
+      'keydown',
+      (e: KeyboardEvent) => {
+        this.handleKeydown(e);
+      },
+      true
+    ); // Use capture phase
 
     // Make player container focusable
     if (!this.player.container.hasAttribute('tabindex')) {
@@ -128,9 +135,11 @@ export class KeyboardManager {
   attachPointerFocus(): void {
     this.player.container.addEventListener('pointerdown', (e: PointerEvent) => {
       const target = e.target as HTMLElement;
-      if (target.closest(
-        'button, a[href], input, select, textarea, [role="menu"], [role="menuitem"], [role="slider"]'
-      )) {
+      if (
+        target.closest(
+          'button, a[href], input, select, textarea, [role="menu"], [role="menuitem"], [role="slider"]'
+        )
+      ) {
         return;
       }
       this.player.container.focus({ preventScroll: true });
@@ -142,7 +151,11 @@ export class KeyboardManager {
 
     // Don't handle if target is an input element
     const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
+    if (
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'SELECT'
+    ) {
       return;
     }
 
@@ -152,7 +165,7 @@ export class KeyboardManager {
         return;
       }
     }
-    
+
     // Don't handle if focus is inside a menu (let menu handle its own keyboard navigation)
     const activeElement = document.activeElement;
     if (activeElement) {
@@ -160,12 +173,12 @@ export class KeyboardManager {
       if (menu) {
         return; // Let the menu handle keyboard events
       }
-      
-        // Don't handle if focus is on a playlist button (let playlist handle navigation)
-        const playlistButton = activeElement.closest('.vidply-playlist-item-button');
-        if (playlistButton) {
-          return; // Let the playlist handle keyboard events
-        }
+
+      // Don't handle if focus is on a playlist button (let playlist handle navigation)
+      const playlistButton = activeElement.closest('.vidply-playlist-item-button');
+      if (playlistButton) {
+        return; // Let the playlist handle keyboard events
+      }
 
       // Don't steal arrow keys when the sign-language overlay is in keyboard drag/resize mode.
       // DraggableResizable listens on the overlay itself, but we run in CAPTURE phase, so we must opt out here.
@@ -210,7 +223,7 @@ export class KeyboardManager {
         }
       }
     }
-    
+
     // Log unhandled keys for debugging (in development)
     if (!handled && this.player.options.debug) {
       console.log('[VidPly] Unhandled key:', e.key, 'code:', e.code, 'shiftKey:', e.shiftKey);
@@ -272,18 +285,14 @@ export class KeyboardManager {
         if (this.player.controlBar && !this.player.controlBar.hasControl('speed')) {
           return false;
         }
-        this.player.setPlaybackSpeed(
-          Math.min(2, this.player.state.playbackSpeed + 0.25)
-        );
+        this.player.setPlaybackSpeed(Math.min(2, this.player.state.playbackSpeed + 0.25));
         return true;
 
       case 'speed-down':
         if (this.player.controlBar && !this.player.controlBar.hasControl('speed')) {
           return false;
         }
-        this.player.setPlaybackSpeed(
-          Math.max(0.25, this.player.state.playbackSpeed - 0.25)
-        );
+        this.player.setPlaybackSpeed(Math.max(0.25, this.player.state.playbackSpeed - 0.25));
         return true;
 
       case 'speed-menu':
@@ -338,9 +347,7 @@ export class KeyboardManager {
 
     switch (action) {
       case 'play-pause':
-        message = this.player.state.playing
-          ? i18n.t('player.playing')
-          : i18n.t('player.paused');
+        message = this.player.state.playing ? i18n.t('player.playing') : i18n.t('player.paused');
         break;
       case 'volume-up':
       case 'volume-down': {
@@ -349,9 +356,7 @@ export class KeyboardManager {
         break;
       }
       case 'mute':
-        message = this.player.state.muted
-          ? i18n.t('player.muted')
-          : i18n.t('player.unmuted');
+        message = this.player.state.muted ? i18n.t('player.muted') : i18n.t('player.unmuted');
         break;
       case 'fullscreen':
         message = this.player.state.fullscreen
@@ -433,4 +438,3 @@ export class KeyboardManager {
     this.announcer = null;
   }
 }
-

@@ -9,24 +9,24 @@
 
 ## 1. Scope and test pages
 
-| Phase | Where | When |
-|--------|--------|------|
-| **A (required)** | Published demo pages below | First sprint |
+| Phase            | Where                                                               | When                                                       |
+| ---------------- | ------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **A (required)** | Published demo pages below                                          | First sprint                                               |
 | **B (optional)** | One TYPO3 page with **mpc-vidply** and **privacy layer** on staging | After phase A, if consent/privacy flow matters for go-live |
 
 ### Canonical test pages
 
-| Page | URL | Use in testing |
-|------|-----|----------------|
-| **Single audio (minimal)** | [single-player-audio.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-audio.html) | Baseline controls only — no captions, transcript, or extra buttons |
-| **Single video (full)** | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html) | WWA sample: multi-language captions, chapters, transcript, sign-language inset, audio description (described-video swap), optional floating player (desktop) |
-| **VTT speech AD** | [single-player-vtt-speech.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-vtt-speech.html) | Descriptions via WebVTT + browser speech synthesis |
-| **Audio playlist** | [playlist-audio.html](https://matthiaspeltzer.github.io/vidply/demo/playlist-audio.html) | Playlist navigation, per-track captions/chapters |
-| **Video playlist** | [playlist-video.html](https://matthiaspeltzer.github.io/vidply/demo/playlist-video.html) | Video playlist, thumbnails, per-video captions |
-| **Single playlist** | [single-playlist.html](https://matthiaspeltzer.github.io/vidply/demo/single-playlist.html) | Compact 3-item video playlist (lighter alternative to T8) |
-| **Mixed media playlist** | [playlist-mixed.html](https://matthiaspeltzer.github.io/vidply/demo/playlist-mixed.html) | HTML5, HLS, YouTube, Vimeo, SoundCloud in one list — **optional** sprint only |
-| **HLS** | [single-player-hls.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-hls.html) | Adaptive streaming — **optional** |
-| **DASH** | [single-player-dash.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-dash.html) | MPEG-DASH — **optional** |
+| Page                       | URL                                                                                                          | Use in testing                                                                                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Single audio (minimal)** | [single-player-audio.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-audio.html)           | Baseline controls only — no captions, transcript, or extra buttons                                                                                           |
+| **Single video (full)**    | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html)           | WWA sample: multi-language captions, chapters, transcript, sign-language inset, audio description (described-video swap), optional floating player (desktop) |
+| **VTT speech AD**          | [single-player-vtt-speech.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-vtt-speech.html) | Descriptions via WebVTT + browser speech synthesis                                                                                                           |
+| **Audio playlist**         | [playlist-audio.html](https://matthiaspeltzer.github.io/vidply/demo/playlist-audio.html)                     | Playlist navigation, per-track captions/chapters                                                                                                             |
+| **Video playlist**         | [playlist-video.html](https://matthiaspeltzer.github.io/vidply/demo/playlist-video.html)                     | Video playlist, thumbnails, per-video captions                                                                                                               |
+| **Single playlist**        | [single-playlist.html](https://matthiaspeltzer.github.io/vidply/demo/single-playlist.html)                   | Compact 3-item video playlist (lighter alternative to T8)                                                                                                    |
+| **Mixed media playlist**   | [playlist-mixed.html](https://matthiaspeltzer.github.io/vidply/demo/playlist-mixed.html)                     | HTML5, HLS, YouTube, Vimeo, SoundCloud in one list — **optional** sprint only                                                                                |
+| **HLS**                    | [single-player-hls.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-hls.html)               | Adaptive streaming — **optional**                                                                                                                            |
+| **DASH**                   | [single-player-dash.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-dash.html)             | MPEG-DASH — **optional**                                                                                                                                     |
 
 **Out of scope for round 1 (required tasks):** Third-party embed tracks on [playlist-mixed.html](https://matthiaspeltzer.github.io/vidply/demo/playlist-mixed.html) (YouTube, Vimeo, SoundCloud); floating-player scroll behaviour on [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html) (≥768 px desktop); TYPO3 **mpc-vidply** (phase B).
 
@@ -36,13 +36,13 @@
 
 ## 2. Who to recruit (target 6–8 people, paid)
 
-| Role | Experience needed | Min. n | Must-have tasks |
-|------|-------------------|--------|------------------|
-| **Blind / screen reader** | Daily use of NVDA, JAWS, or VoiceOver on desktop (note browser) | 2 | T1, T2, T4, T6, T7 |
-| **Deaf / hard of hearing** | Relies on **captions and/or transcripts** (note if sign language user) | 2 | T2, T3, T4, T7 |
-| **Motor / keyboard-only** | No mouse; keyboard or **switch** (specify) | 1–2 | T1, T5, T6, T8 |
-| **Low vision** | Zoom 200%+ and/or high contrast / Windows HCM | 1 | T2, T5, T7 |
-| **Cognitive / learning** (optional) | Willing to try the short task set | 1 | T1, T2, T7 |
+| Role                                | Experience needed                                                      | Min. n | Must-have tasks    |
+| ----------------------------------- | ---------------------------------------------------------------------- | ------ | ------------------ |
+| **Blind / screen reader**           | Daily use of NVDA, JAWS, or VoiceOver on desktop (note browser)        | 2      | T1, T2, T4, T6, T7 |
+| **Deaf / hard of hearing**          | Relies on **captions and/or transcripts** (note if sign language user) | 2      | T2, T3, T4, T7     |
+| **Motor / keyboard-only**           | No mouse; keyboard or **switch** (specify)                             | 1–2    | T1, T5, T6, T8     |
+| **Low vision**                      | Zoom 200%+ and/or high contrast / Windows HCM                          | 1      | T2, T5, T7         |
+| **Cognitive / learning** (optional) | Willing to try the short task set                                      | 1      | T1, T2, T7         |
 
 Prefer **varied AT and browser pairs** (not only NVDA + Chrome). Demo pages use **English** UI labels; note if that limits any participant.
 
@@ -54,23 +54,23 @@ Prefer **varied AT and browser pairs** (not only NVDA + Chrome). Demo pages use 
 
 Participants use **their own environment** (remote). Screen share optional. Read tasks aloud. Do not show where controls are unless they are stuck **after 3–5 minutes** (then log “needed hint”).
 
-| ID | Task | Page | Observe |
-|----|------|------|---------|
-| **T1** | Play, pause, volume/mute, seek ~30 s — **keyboard only** (keyboard help allowed). | [single-player-audio.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-audio.html) | Focus, shortcuts, screen reader announcements, lost focus on **minimal** chrome |
-| **T2** | Turn **captions on**, switch **language**, open **caption styling**, change one setting, return to readable defaults. | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html) | Menu roving, `aria-checked`, readability/contrast |
-| **T3** | Open **transcript**, jump to a later line to move playback, **close** transcript and return to controls. | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html) | Focus trap exit, click-to-seek, scroll |
-| **T4** | With captions/transcript as preferred: follow **~2 minutes** of content; comment on timing and readability. | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html) | DHH-specific issues (size, placement, lag) |
-| **T5** | Enable **sign language inset**: reposition/resize **as they usually would**; dismiss or minimize if available. | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html) | Drag vs keyboard resize, overlap with captions |
-| **T6** | Enable **audio description** (AD button / described video); say whether AD is usable. | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html) | Track swap, pause behaviour, conflict with screen reader |
-| **T7** | Open **keyboard help**, find play and caption shortcuts; use **one** shortcut from the dialog. | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html) | Dialog size on **video** player |
-| **T7b** (optional) | Same as T7 on **audio-only** player (help dialog height). | [single-player-audio.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-audio.html) | Dialog not clipped on short audio layout |
-| **T8** | In **playlist**: play item 2, **previous/next**, open playlist panel, select another item. | [playlist-audio.html](https://matthiaspeltzer.github.io/vidply/demo/playlist-audio.html) or [playlist-video.html](https://matthiaspeltzer.github.io/vidply/demo/playlist-video.html) | Announcements, focus, auto-advance |
-| **T9** (optional) | **VTT speech AD**: enable AD, follow one spoken description cue; try transcript if useful. | [single-player-vtt-speech.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-vtt-speech.html) | Speech quality, pause/resume, screen reader interference |
-| **T10** (optional) | **HLS**: play stream, change quality if offered, turn captions on if available. | [single-player-hls.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-hls.html) | Streaming menus, caption sync |
-| **T11** (optional) | **DASH**: same as T10 for DASH. | [single-player-dash.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-dash.html) | As T10 |
-| **T12** (optional) | **Mixed playlist**: switch from one **HTML5** track to another (avoid embed items unless participant agrees). | [playlist-mixed.html](https://matthiaspeltzer.github.io/vidply/demo/playlist-mixed.html) | Renderer swap, focus, unified controls |
-| **T13** (optional) | **Compact playlist**: next/previous across three videos. | [single-playlist.html](https://matthiaspeltzer.github.io/vidply/demo/single-playlist.html) | Simpler playlist UX |
-| **T14** (optional, desktop ≥768 px) | **Floating player**: start playback, scroll until video leaves viewport, use floating window, dock again. | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html) | Keyboard access to float chrome, captions in float |
+| ID                                  | Task                                                                                                                  | Page                                                                                                                                                                                 | Observe                                                                         |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| **T1**                              | Play, pause, volume/mute, seek ~30 s — **keyboard only** (keyboard help allowed).                                     | [single-player-audio.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-audio.html)                                                                                   | Focus, shortcuts, screen reader announcements, lost focus on **minimal** chrome |
+| **T2**                              | Turn **captions on**, switch **language**, open **caption styling**, change one setting, return to readable defaults. | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html)                                                                                   | Menu roving, `aria-checked`, readability/contrast                               |
+| **T3**                              | Open **transcript**, jump to a later line to move playback, **close** transcript and return to controls.              | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html)                                                                                   | Focus trap exit, click-to-seek, scroll                                          |
+| **T4**                              | With captions/transcript as preferred: follow **~2 minutes** of content; comment on timing and readability.           | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html)                                                                                   | DHH-specific issues (size, placement, lag)                                      |
+| **T5**                              | Enable **sign language inset**: reposition/resize **as they usually would**; dismiss or minimize if available.        | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html)                                                                                   | Drag vs keyboard resize, overlap with captions                                  |
+| **T6**                              | Enable **audio description** (AD button / described video); say whether AD is usable.                                 | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html)                                                                                   | Track swap, pause behaviour, conflict with screen reader                        |
+| **T7**                              | Open **keyboard help**, find play and caption shortcuts; use **one** shortcut from the dialog.                        | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html)                                                                                   | Dialog size on **video** player                                                 |
+| **T7b** (optional)                  | Same as T7 on **audio-only** player (help dialog height).                                                             | [single-player-audio.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-audio.html)                                                                                   | Dialog not clipped on short audio layout                                        |
+| **T8**                              | In **playlist**: play item 2, **previous/next**, open playlist panel, select another item.                            | [playlist-audio.html](https://matthiaspeltzer.github.io/vidply/demo/playlist-audio.html) or [playlist-video.html](https://matthiaspeltzer.github.io/vidply/demo/playlist-video.html) | Announcements, focus, auto-advance                                              |
+| **T9** (optional)                   | **VTT speech AD**: enable AD, follow one spoken description cue; try transcript if useful.                            | [single-player-vtt-speech.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-vtt-speech.html)                                                                         | Speech quality, pause/resume, screen reader interference                        |
+| **T10** (optional)                  | **HLS**: play stream, change quality if offered, turn captions on if available.                                       | [single-player-hls.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-hls.html)                                                                                       | Streaming menus, caption sync                                                   |
+| **T11** (optional)                  | **DASH**: same as T10 for DASH.                                                                                       | [single-player-dash.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-dash.html)                                                                                     | As T10                                                                          |
+| **T12** (optional)                  | **Mixed playlist**: switch from one **HTML5** track to another (avoid embed items unless participant agrees).         | [playlist-mixed.html](https://matthiaspeltzer.github.io/vidply/demo/playlist-mixed.html)                                                                                             | Renderer swap, focus, unified controls                                          |
+| **T13** (optional)                  | **Compact playlist**: next/previous across three videos.                                                              | [single-playlist.html](https://matthiaspeltzer.github.io/vidply/demo/single-playlist.html)                                                                                           | Simpler playlist UX                                                             |
+| **T14** (optional, desktop ≥768 px) | **Floating player**: start playback, scroll until video leaves viewport, use floating window, dock again.             | [single-player-video.html](https://matthiaspeltzer.github.io/vidply/demo/single-player-video.html)                                                                                   | Keyboard access to float chrome, captions in float                              |
 
 **Closing (5 min):** “What would make you **stop using** this player?” “Anything **easier than YouTube or the native player**?” “One change for **your** community?”
 
@@ -124,10 +124,10 @@ are core features—not add-ons.
 
 ### Testing with disabled people
 
-| Round | Date | Participants | Scope |
-|-------|------|--------------|--------|
-| 1 | _TBD_ | _n_ screen reader / DHH / keyboard / low vision | Public demos ([test plan](./accessibility-user-testing.md)) |
-| Retest | _TBD_ | _subset_ | Fixes from round 1 |
+| Round  | Date  | Participants                                    | Scope                                                       |
+| ------ | ----- | ----------------------------------------------- | ----------------------------------------------------------- |
+| 1      | _TBD_ | _n_ screen reader / DHH / keyboard / low vision | Public demos ([test plan](./accessibility-user-testing.md)) |
+| Retest | _TBD_ | _subset_                                        | Fixes from round 1                                          |
 
 **Help wanted:** Assistive technology users interested in a **paid** remote session (~60 minutes):
 _[contact email]_.

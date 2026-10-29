@@ -145,7 +145,7 @@ const languages = [
   { code: 'fr', name: 'French', page: '/demo/demo-fr.html' },
   { code: 'es', name: 'Spanish', page: '/demo/demo-es.html' },
   { code: 'ja', name: 'Japanese', page: '/demo/demo-jp.html' },
-  { code: 'it', name: 'Italian', page: '/demo/demo-it.html' }  // Falls back to English if no Italian translation
+  { code: 'it', name: 'Italian', page: '/demo/demo-it.html' } // Falls back to English if no Italian translation
 ];
 
 // Helper function to create button selector with fallback to English
@@ -172,7 +172,9 @@ for (const lang of languages) {
     test('should have play button with correct label', async ({ page }) => {
       const player = page.locator('.vidply-player').first();
       const t = translations[lang.code] || translations.en;
-      const playButton = player.locator(`button[aria-label="${t.play}"], button[aria-label="${translations.en.play}"]`);
+      const playButton = player.locator(
+        `button[aria-label="${t.play}"], button[aria-label="${translations.en.play}"]`
+      );
       await expect(playButton).toBeVisible();
     });
 
@@ -181,7 +183,9 @@ for (const lang of languages) {
       const videoPlayer = page.locator('.vidply-player.vidply-video').first();
       if (await videoPlayer.isVisible()) {
         const t = translations[lang.code] || translations.en;
-        const fullscreenButton = videoPlayer.locator(`button[aria-label="${t.fullscreen}"], button[aria-label="${translations.en.fullscreen}"]`);
+        const fullscreenButton = videoPlayer.locator(
+          `button[aria-label="${t.fullscreen}"], button[aria-label="${translations.en.fullscreen}"]`
+        );
         await expect(fullscreenButton).toBeVisible();
       }
     });
@@ -195,8 +199,8 @@ for (const lang of languages) {
       // prefix to cover both forms.
       const volumeButton = player.locator(
         `button[aria-label^="${t.volume}"], button[aria-label^="${translations.en.volume}"], ` +
-        `button[aria-label^="${t.mute}"], button[aria-label^="${translations.en.mute}"], ` +
-        `button[aria-label^="${t.unmute}"], button[aria-label^="${translations.en.unmute}"]`
+          `button[aria-label^="${t.mute}"], button[aria-label^="${translations.en.mute}"], ` +
+          `button[aria-label^="${t.unmute}"], button[aria-label^="${translations.en.unmute}"]`
       );
       await expect(volumeButton.first()).toBeVisible();
     });
@@ -204,8 +208,10 @@ for (const lang of languages) {
     test('should have captions button with correct label', async ({ page }) => {
       const player = page.locator('.vidply-player').first();
       const t = translations[lang.code] || translations.en;
-      const captionsButton = player.locator(`button[aria-label="${t.captions}"], button[aria-label="${translations.en.captions}"]`);
-      
+      const captionsButton = player.locator(
+        `button[aria-label="${t.captions}"], button[aria-label="${translations.en.captions}"]`
+      );
+
       // Captions button may not be present if video has no captions
       const isVisible = await captionsButton.isVisible().catch(() => false);
       if (isVisible) {
@@ -219,9 +225,9 @@ for (const lang of languages) {
       // Speed button or settings button
       const settingsButton = player.locator(
         `button[aria-label="${t.speed}"], button[aria-label="${translations.en.speed}"], ` +
-        `button[aria-label="${t.settings}"], button[aria-label="${translations.en.settings}"]`
+          `button[aria-label="${t.settings}"], button[aria-label="${translations.en.settings}"]`
       );
-      
+
       const isVisible = await settingsButton.isVisible().catch(() => false);
       if (isVisible) {
         await expect(settingsButton).toBeVisible();
@@ -231,8 +237,10 @@ for (const lang of languages) {
     test('should have transcript button with correct label if available', async ({ page }) => {
       const player = page.locator('.vidply-player').first();
       const t = translations[lang.code] || translations.en;
-      const transcriptButton = player.locator(`button[aria-label="${t.transcript}"], button[aria-label="${translations.en.transcript}"]`);
-      
+      const transcriptButton = player.locator(
+        `button[aria-label="${t.transcript}"], button[aria-label="${translations.en.transcript}"]`
+      );
+
       const isVisible = await transcriptButton.isVisible().catch(() => false);
       if (isVisible) {
         await expect(transcriptButton).toBeVisible();
@@ -242,8 +250,10 @@ for (const lang of languages) {
     test('should have chapters button with correct label if available', async ({ page }) => {
       const player = page.locator('.vidply-player').first();
       const t = translations[lang.code] || translations.en;
-      const chaptersButton = player.locator(`button[aria-label="${t.chapters}"], button[aria-label="${translations.en.chapters}"]`);
-      
+      const chaptersButton = player.locator(
+        `button[aria-label="${t.chapters}"], button[aria-label="${translations.en.chapters}"]`
+      );
+
       const isVisible = await chaptersButton.isVisible().catch(() => false);
       if (isVisible) {
         await expect(chaptersButton).toBeVisible();
@@ -254,8 +264,10 @@ for (const lang of languages) {
       const player = page.locator('.vidply-player').first();
       const t = translations[lang.code] || translations.en;
       // Could be "Rewind" or "Rewind X seconds"
-      const rewindButton = player.locator(`button[aria-label^="${t.rewind}"], button[aria-label^="${translations.en.rewind}"]`);
-      
+      const rewindButton = player.locator(
+        `button[aria-label^="${t.rewind}"], button[aria-label^="${translations.en.rewind}"]`
+      );
+
       const isVisible = await rewindButton.isVisible().catch(() => false);
       // Not all players have rewind button visible by default
     });
@@ -264,8 +276,10 @@ for (const lang of languages) {
       const player = page.locator('.vidply-player').first();
       const t = translations[lang.code] || translations.en;
       // Could be "Forward" or "Forward X seconds"
-      const forwardButton = player.locator(`button[aria-label^="${t.forward}"], button[aria-label^="${translations.en.forward}"]`);
-      
+      const forwardButton = player.locator(
+        `button[aria-label^="${t.forward}"], button[aria-label^="${translations.en.forward}"]`
+      );
+
       const isVisible = await forwardButton.isVisible().catch(() => false);
       // Not all players have forward button visible by default
     });
@@ -273,8 +287,10 @@ for (const lang of languages) {
     test('should have more options button if available', async ({ page }) => {
       const player = page.locator('.vidply-player').first();
       const t = translations[lang.code] || translations.en;
-      const moreButton = player.locator(`button[aria-label="${t.moreOptions}"], button[aria-label="${translations.en.moreOptions}"]`);
-      
+      const moreButton = player.locator(
+        `button[aria-label="${t.moreOptions}"], button[aria-label="${translations.en.moreOptions}"]`
+      );
+
       const isVisible = await moreButton.isVisible().catch(() => false);
       if (isVisible) {
         await expect(moreButton).toBeVisible();
@@ -284,14 +300,18 @@ for (const lang of languages) {
     test('should show pause button after playing', async ({ page }) => {
       const player = page.locator('.vidply-player').first();
       const t = translations[lang.code] || translations.en;
-      
+
       // Click play
-      const playButton = player.locator(`button[aria-label="${t.play}"], button[aria-label="${translations.en.play}"]`);
+      const playButton = player.locator(
+        `button[aria-label="${t.play}"], button[aria-label="${translations.en.play}"]`
+      );
       await playButton.click();
       await page.waitForTimeout(1500);
-      
+
       // Check pause button appears
-      const pauseButton = player.locator(`button[aria-label="${t.pause}"], button[aria-label="${translations.en.pause}"]`);
+      const pauseButton = player.locator(
+        `button[aria-label="${t.pause}"], button[aria-label="${translations.en.pause}"]`
+      );
       await expect(pauseButton).toBeVisible({ timeout: 5000 });
     });
 
@@ -320,10 +340,10 @@ test.describe('German Demo Page - Multiple Players', () => {
   test('should have video and audio players', async ({ page }) => {
     const videoPlayers = page.locator('.vidply-player.vidply-video');
     const audioPlayers = page.locator('.vidply-player.vidply-audio');
-    
+
     const videoCount = await videoPlayers.count();
     const audioCount = await audioPlayers.count();
-    
+
     // Should have at least one of each type
     expect(videoCount + audioCount).toBeGreaterThan(1);
   });
@@ -331,10 +351,12 @@ test.describe('German Demo Page - Multiple Players', () => {
   test('each player should have play button', async ({ page }) => {
     const players = page.locator('.vidply-player');
     const count = await players.count();
-    
+
     for (let i = 0; i < count; i++) {
       const player = players.nth(i);
-      const playButton = player.locator('button[aria-label="Abspielen"], button[aria-label="Play"]');
+      const playButton = player.locator(
+        'button[aria-label="Abspielen"], button[aria-label="Play"]'
+      );
       await expect(playButton).toBeVisible();
     }
   });
@@ -350,8 +372,8 @@ test.describe('German Demo Page - Multiple Players', () => {
       // "Unmute". Match by prefix so the level suffix doesn't break the test.
       const volumeButton = player.locator(
         'button[aria-label^="Lautstärke"], button[aria-label^="Volume"], ' +
-        'button[aria-label^="Stumm"], button[aria-label^="Mute"], ' +
-        'button[aria-label^="Ton ein"], button[aria-label^="Unmute"]'
+          'button[aria-label^="Stumm"], button[aria-label^="Mute"], ' +
+          'button[aria-label^="Ton ein"], button[aria-label^="Unmute"]'
       );
       await expect(volumeButton.first()).toBeVisible();
     }
@@ -360,10 +382,12 @@ test.describe('German Demo Page - Multiple Players', () => {
   test('video players should have fullscreen button', async ({ page }) => {
     const videoPlayers = page.locator('.vidply-player.vidply-video');
     const count = await videoPlayers.count();
-    
+
     for (let i = 0; i < count; i++) {
       const player = videoPlayers.nth(i);
-      const fullscreenButton = player.locator('button[aria-label="Vollbild"], button[aria-label="Fullscreen"]');
+      const fullscreenButton = player.locator(
+        'button[aria-label="Vollbild"], button[aria-label="Fullscreen"]'
+      );
       await expect(fullscreenButton).toBeVisible();
     }
   });
@@ -375,24 +399,26 @@ test.describe('Caption Languages', () => {
     test(`${lang.name} page should have caption language options`, async ({ page }) => {
       await page.goto(lang.page);
       await page.waitForSelector('.vidply-player', { timeout: 15000 });
-      
+
       const player = page.locator('.vidply-player').first();
       const t = translations[lang.code] || translations.en;
-      const captionsButton = player.locator(`button[aria-label="${t.captions}"], button[aria-label="${translations.en.captions}"]`);
-      
+      const captionsButton = player.locator(
+        `button[aria-label="${t.captions}"], button[aria-label="${translations.en.captions}"]`
+      );
+
       if (await captionsButton.isVisible()) {
         await captionsButton.click();
         await page.waitForTimeout(500);
-        
+
         // Check for caption menu
         const menu = page.locator('[role="menu"]');
         if (await menu.isVisible()) {
           const menuItems = menu.locator('[role="menuitemradio"], button');
           const count = await menuItems.count();
-          
+
           // Should have at least Off + some languages
           expect(count).toBeGreaterThan(0);
-          
+
           // Close menu
           await page.keyboard.press('Escape');
         }
@@ -407,23 +433,27 @@ test.describe('Playback Controls with Translated Labels', () => {
     test(`${lang.name}: play and pause should work`, async ({ page }) => {
       await page.goto(lang.page);
       await page.waitForSelector('.vidply-player', { timeout: 15000 });
-      
+
       const player = page.locator('.vidply-player').first();
       const t = translations[lang.code] || translations.en;
-      
+
       // Play
-      const playButton = player.locator(`button[aria-label="${t.play}"], button[aria-label="${translations.en.play}"]`);
+      const playButton = player.locator(
+        `button[aria-label="${t.play}"], button[aria-label="${translations.en.play}"]`
+      );
       await playButton.click();
       await page.waitForTimeout(1500);
-      
+
       // Verify pause button appears
-      const pauseButton = player.locator(`button[aria-label="${t.pause}"], button[aria-label="${translations.en.pause}"]`);
+      const pauseButton = player.locator(
+        `button[aria-label="${t.pause}"], button[aria-label="${translations.en.pause}"]`
+      );
       await expect(pauseButton).toBeVisible({ timeout: 5000 });
-      
+
       // Pause
       await pauseButton.click();
       await page.waitForTimeout(500);
-      
+
       // Verify play button returns
       await expect(playButton).toBeVisible({ timeout: 5000 });
     });
@@ -436,25 +466,27 @@ test.describe('Keyboard Shortcuts Across Languages', () => {
     test(`${lang.name}: Space should toggle play/pause`, async ({ page }) => {
       await page.goto(lang.page);
       await page.waitForSelector('.vidply-player', { timeout: 15000 });
-      
+
       const player = page.locator('.vidply-player').first();
       await player.click();
       await page.waitForTimeout(300);
-      
+
       // Space to play
       await page.keyboard.press('Space');
       await page.waitForTimeout(1000);
-      
+
       const t = translations[lang.code] || translations.en;
-      const pauseButton = player.locator(`button[aria-label="${t.pause}"], button[aria-label="${translations.en.pause}"]`);
-      
+      const pauseButton = player.locator(
+        `button[aria-label="${t.pause}"], button[aria-label="${translations.en.pause}"]`
+      );
+
       // Pause button should be visible (playing state)
       const isPlaying = await pauseButton.isVisible().catch(() => false);
-      
+
       // Space to pause
       await page.keyboard.press('Space');
       await page.waitForTimeout(500);
-      
+
       // Player should still be functional
       await expect(player).toBeVisible();
     });
@@ -462,19 +494,19 @@ test.describe('Keyboard Shortcuts Across Languages', () => {
     test(`${lang.name}: M should toggle mute`, async ({ page }) => {
       await page.goto(lang.page);
       await page.waitForSelector('.vidply-player', { timeout: 15000 });
-      
+
       const player = page.locator('.vidply-player').first();
       await player.click();
       await page.waitForTimeout(300);
-      
+
       // Press M to mute
       await page.keyboard.press('m');
       await page.waitForTimeout(500);
-      
+
       // Press M again to unmute
       await page.keyboard.press('m');
       await page.waitForTimeout(500);
-      
+
       // Player should still be functional
       await expect(player).toBeVisible();
     });

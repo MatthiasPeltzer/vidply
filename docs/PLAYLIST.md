@@ -9,32 +9,32 @@ The `PlaylistManager` allows you to create audio and video playlists with automa
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <link rel="stylesheet" href="vidply.css">
-</head>
-<body>
-  <div id="player"></div>
+  <head>
+    <link rel="stylesheet" href="vidply.css" />
+  </head>
+  <body>
+    <div id="player"></div>
 
-  <script type="module">
-    import { Player, PlaylistManager } from 'vidply';
+    <script type="module">
+      import { Player, PlaylistManager } from 'vidply';
 
-    // 1. Create player
-    const player = new Player('#player');
+      // 1. Create player
+      const player = new Player('#player');
 
-    // 2. Create playlist
-    const playlist = new PlaylistManager(player, {
-      autoAdvance: true,
-      showPanel: true
-    });
+      // 2. Create playlist
+      const playlist = new PlaylistManager(player, {
+        autoAdvance: true,
+        showPanel: true
+      });
 
-    // 3. Load tracks
-    playlist.loadPlaylist([
-      { src: 'song1.mp3', type: 'audio/mp3', title: 'Song 1', artist: 'Artist 1' },
-      { src: 'song2.mp3', type: 'audio/mp3', title: 'Song 2', artist: 'Artist 2' },
-      { src: 'song3.mp3', type: 'audio/mp3', title: 'Song 3', artist: 'Artist 3' }
-    ]);
-  </script>
-</body>
+      // 3. Load tracks
+      playlist.loadPlaylist([
+        { src: 'song1.mp3', type: 'audio/mp3', title: 'Song 1', artist: 'Artist 1' },
+        { src: 'song2.mp3', type: 'audio/mp3', title: 'Song 2', artist: 'Artist 2' },
+        { src: 'song3.mp3', type: 'audio/mp3', title: 'Song 3', artist: 'Artist 3' }
+      ]);
+    </script>
+  </body>
 </html>
 ```
 
@@ -127,7 +127,7 @@ The download button follows the playlist: set `downloadUrl` on the tracks that
 may be downloaded and the button offers the selected track's file, relabels
 itself with that file's format and size, and disappears on tracks that have no
 `downloadUrl`. It needs `downloadButton: true` in the player options — the
-per-track URL only decides *which* file is offered, not whether the button
+per-track URL only decides _which_ file is offered, not whether the button
 exists at all.
 
 ```javascript
@@ -152,6 +152,7 @@ Playlists that set `downloadUrl` on no track at all keep the player-wide target
 ## API Methods
 
 ### loadPlaylist(items)
+
 Load an array of track items into the playlist.
 
 - If `autoPlayFirst: true` (default): first track will start playing.
@@ -165,9 +166,11 @@ playlist.loadPlaylist([
 ```
 
 **Parameters:**
+
 - `items` (Array): Array of track objects (see Track Object Structure above)
 
 ### addItem(item)
+
 Add a single track to the playlist.
 
 ```javascript
@@ -179,9 +182,11 @@ playlist.addItem({
 ```
 
 **Parameters:**
+
 - `item` (Object): Track object (see Track Object Structure above)
 
 ### play(index)
+
 Play a specific track by index (0-based).
 
 ```javascript
@@ -189,9 +194,11 @@ playlist.play(2); // Play third track (0-based index)
 ```
 
 **Parameters:**
+
 - `index` (Number): Zero-based index of the track to play
 
 ### next()
+
 Play the next track.
 
 ```javascript
@@ -199,6 +206,7 @@ playlist.next();
 ```
 
 ### previous()
+
 Play the previous track.
 
 ```javascript
@@ -206,6 +214,7 @@ playlist.previous();
 ```
 
 ### hasNext()
+
 Check if there's a next track.
 
 ```javascript
@@ -215,6 +224,7 @@ if (playlist.hasNext()) {
 ```
 
 ### hasPrevious()
+
 Check if there's a previous track.
 
 ```javascript
@@ -224,6 +234,7 @@ if (playlist.hasPrevious()) {
 ```
 
 ### getCurrentTrack()
+
 Get the current track object.
 
 ```javascript
@@ -232,6 +243,7 @@ console.log(track.title);
 ```
 
 ### togglePanel()
+
 Toggle playlist panel visibility.
 
 ```javascript
@@ -242,9 +254,9 @@ playlist.togglePanel();
 
 ```javascript
 // Navigate
-playlist.next();              // Go to next track
-playlist.previous();          // Go to previous track
-playlist.play(2);             // Play track at index 2
+playlist.next(); // Go to next track
+playlist.previous(); // Go to previous track
+playlist.play(2); // Play track at index 2
 
 // Check state
 if (playlist.hasNext()) {
@@ -416,10 +428,10 @@ playlist.loadPlaylist(tracks);
 // Listen for track changes
 player.on('playlisttrackchange', (e) => {
   console.log(`Now playing: ${e.item.title} by ${e.item.artist}`);
-  
+
   // Optional: Update document title
   document.title = `${e.item.title} - ${e.item.artist}`;
-  
+
   // Optional: Update media session API
   if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
@@ -435,8 +447,8 @@ document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
     return; // Don't interfere with form inputs
   }
-  
-  switch(e.key) {
+
+  switch (e.key) {
     case 'ArrowLeft':
       if (e.shiftKey) {
         playlist.previous();
@@ -475,6 +487,7 @@ All menus (chapters, quality, captions, etc.) remain accessible in fullscreen vi
 ### Track Info Display
 
 Appears above the controls, showing:
+
 - Track number (e.g., "3 / 10")
 - Track title
 - Artist name (if provided)
@@ -484,6 +497,7 @@ Appears above the controls, showing:
 A scrollable list showing all tracks. Default placement is **below** the player; with `panelPosition: 'right'` (or `data-playlist-panel-position="right"`) the player and controls sit in the left column and the playlist occupies the right column from **`75rem`** viewport width upward. On narrower viewports the list always stacks below the player.
 
 Each panel shows:
+
 - Track thumbnails (if provided)
 - Track numbers
 - Track titles and artists
@@ -493,6 +507,7 @@ Each panel shows:
 ### Navigation Buttons
 
 When a playlist is active:
+
 - **Previous button** - Replaces rewind button
 - **Next button** - Replaces forward button
 - Buttons are disabled at playlist boundaries (unless loop is enabled)
@@ -564,6 +579,7 @@ The button supports keyboard access (Tab, Enter) and exposes `aria-expanded`, `a
 ### Screen Reader Support
 
 The playlist includes extensive screen reader support:
+
 - Live region announcements when navigating (e.g., "End of playlist. 5 of 5.")
 - Boundary announcements (beginning/end of playlist)
 - Track position announcements (e.g., "Track 3 of 10")
@@ -580,7 +596,7 @@ document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
     return;
   }
-  
+
   if (e.key === 'ArrowRight' && e.shiftKey) {
     playlist.next();
     e.preventDefault();
@@ -621,6 +637,7 @@ const musicPlayer = new PlaylistManager(player, {
 ```
 
 Perfect for:
+
 - Album playback
 - Artist discography
 - Music compilations
@@ -629,13 +646,14 @@ Perfect for:
 
 ```javascript
 const podcast = new PlaylistManager(player, {
-  autoAdvance: false,  // Manual navigation
+  autoAdvance: false, // Manual navigation
   loop: false,
   showPanel: true
 });
 ```
 
 Perfect for:
+
 - Podcast series
 - Episode collections
 - Interview playlists
@@ -644,13 +662,14 @@ Perfect for:
 
 ```javascript
 const series = new PlaylistManager(player, {
-  autoAdvance: true,   // Binge watching
+  autoAdvance: true, // Binge watching
   loop: false,
   showPanel: true
 });
 ```
 
 Perfect for:
+
 - TV series episodes
 - Video courses
 - Tutorial series
@@ -685,6 +704,7 @@ mixedPlaylist.loadPlaylist([
 ```
 
 Perfect for:
+
 - Mixed content courses (video lectures + audio supplements)
 - Multimedia presentations
 - Content with both video and audio episodes
@@ -701,6 +721,7 @@ const audiobook = new PlaylistManager(player, {
 ```
 
 Perfect for:
+
 - Chapter navigation
 - Multi-part stories
 - Audio learning content
@@ -736,11 +757,13 @@ Ensure the `tracks` array is included in each playlist item that has captions. T
 ## Browser Support
 
 The playlist feature works in all modern browsers that support:
+
 - ES6 Modules
 - HTML5 Media Elements
 - WebVTT (for captions/chapters)
 
 Tested in:
+
 - Chrome/Edge 90+
 - Firefox 88+
 - Safari 14+
@@ -749,6 +772,7 @@ Tested in:
 ## Demos
 
 See the complete demos:
+
 - **Audio Playlist**: [demo/playlist-audio.html](../demo/playlist-audio.html)
 - **Video Playlist**: [demo/playlist-video.html](../demo/playlist-video.html)
 - **Mixed Media Playlist**: [demo/playlist-mixed.html](../demo/playlist-mixed.html)

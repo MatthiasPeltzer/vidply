@@ -83,7 +83,7 @@ describe('PlaylistManager', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
     vi.useFakeTimers();
-    
+
     container = document.createElement('div');
     document.body.appendChild(container);
 
@@ -99,7 +99,7 @@ describe('PlaylistManager', () => {
         setupAutoHide: vi.fn(),
         checkOverflow: vi.fn(),
         syncCaptionControlsFromTracks: vi.fn(),
-        updateTrackNavigation: vi.fn(),
+        updateTrackNavigation: vi.fn()
       },
       positionPlayOverlayOnMobile: vi.fn(),
       options: {
@@ -134,7 +134,7 @@ describe('PlaylistManager', () => {
       isExternalRendererUrl: vi.fn(() => false),
       shouldChangeRenderer: vi.fn(() => false),
       isExternalRendererUrl: vi.fn(() => false),
-      log: vi.fn(),
+      log: vi.fn()
     };
 
     container.appendChild(mockPlayer.element);
@@ -167,7 +167,7 @@ describe('PlaylistManager', () => {
 
     it('should set default options', () => {
       manager = new PlaylistManager(mockPlayer);
-      
+
       expect(manager.options.autoAdvance).toBe(true);
       expect(manager.options.autoPlayFirst).toBe(true);
       expect(manager.options.loop).toBe(false);
@@ -180,7 +180,7 @@ describe('PlaylistManager', () => {
         autoAdvance: false,
         loop: true
       });
-      
+
       expect(manager.options.autoAdvance).toBe(false);
       expect(manager.options.loop).toBe(true);
     });
@@ -192,14 +192,14 @@ describe('PlaylistManager', () => {
 
     it('should attach event listeners', () => {
       manager = new PlaylistManager(mockPlayer);
-      
+
       expect(mockPlayer.on).toHaveBeenCalledWith('ended', expect.any(Function));
       expect(mockPlayer.on).toHaveBeenCalledWith('error', expect.any(Function));
     });
 
     it('should load tracks if provided in options', () => {
       manager = new PlaylistManager(mockPlayer, { tracks: mockTracks });
-      
+
       expect(manager.tracks).toEqual(mockTracks);
     });
   });
@@ -256,12 +256,21 @@ describe('PlaylistManager', () => {
       mockPlayer.element = document.createElement('audio');
       mockPlayer.videoWrapper.appendChild(mockPlayer.element);
 
-      manager = new PlaylistManager(mockPlayer, { showPanel: true, panelPosition: 'right', autoPlayFirst: false });
+      manager = new PlaylistManager(mockPlayer, {
+        showPanel: true,
+        panelPosition: 'right',
+        autoPlayFirst: false
+      });
       manager.loadPlaylist([
         { src: 'track1.mp3', type: 'audio/mp3', title: 'Track 1', poster: 'poster.jpg' },
-        { src: 'track2.mp3', type: 'audio/mp3', title: 'Track 2' },
+        { src: 'track2.mp3', type: 'audio/mp3', title: 'Track 2' }
       ]);
-      manager.updateTrackInfo({ src: 'track1.mp3', type: 'audio/mp3', title: 'Track 1', poster: 'poster.jpg' });
+      manager.updateTrackInfo({
+        src: 'track1.mp3',
+        type: 'audio/mp3',
+        title: 'Track 1',
+        poster: 'poster.jpg'
+      });
 
       const main = container.querySelector('.vidply-playlist-main');
       const artwork = main?.querySelector('.vidply-track-artwork');
@@ -290,7 +299,7 @@ describe('PlaylistManager', () => {
         src: 'track1.mp3',
         type: 'audio/mp3',
         title: 'Track 1',
-        poster: 'album.jpg',
+        poster: 'album.jpg'
       });
 
       expect(mockPlayer.resolvePosterPath).toHaveBeenCalledWith('album.jpg');
@@ -309,7 +318,7 @@ describe('PlaylistManager', () => {
       manager = new PlaylistManager(mockPlayer, {
         showPanel: false,
         autoPlayFirst: false,
-        panelPosition: 'right',
+        panelPosition: 'right'
       });
       manager.trackArtworkElement = null;
 
@@ -328,7 +337,7 @@ describe('PlaylistManager', () => {
         src: 'track.mp3',
         type: 'audio/mpeg',
         title: 'Audio track',
-        poster: '/fileadmin/poster.jpg',
+        poster: '/fileadmin/poster.jpg'
       });
 
       expect(manager.trackArtworkElement).toBe(artwork);
@@ -353,7 +362,7 @@ describe('PlaylistManager', () => {
         title: 'Vimeo track',
         type: 'vimeo',
         src: 'https://vimeo.com/72632269',
-        poster: '/fileadmin/vimeo-poster.jpg',
+        poster: '/fileadmin/vimeo-poster.jpg'
       });
 
       expect(artwork.style.display).toBe('none');
@@ -375,7 +384,7 @@ describe('PlaylistManager', () => {
         title: 'SoundCloud track',
         type: 'soundcloud',
         src: 'https://soundcloud.com/example/track',
-        poster: '/fileadmin/sc-poster.jpg',
+        poster: '/fileadmin/sc-poster.jpg'
       });
 
       expect(artwork.style.display).toBe('none');
@@ -396,7 +405,9 @@ describe('PlaylistManager', () => {
 
       manager.loadOptionsFromAttributes(newContainer);
       expect(newContainer.querySelector('.vidply-playlist-main')).not.toBeNull();
-      expect(newContainer.querySelector('.vidply-playlist-main .vidply-video-wrapper')).not.toBeNull();
+      expect(
+        newContainer.querySelector('.vidply-playlist-main .vidply-video-wrapper')
+      ).not.toBeNull();
       expect(newContainer.classList.contains('vidply-has-playlist')).toBe(true);
       expect(newContainer.classList.contains('vidply-playlist-panel-right')).toBe(true);
 
@@ -427,8 +438,12 @@ describe('PlaylistManager', () => {
     });
 
     it('should detect SoundCloud URLs', () => {
-      expect(manager.getTrackMediaType({ src: 'https://soundcloud.com/artist/track' })).toBe('soundcloud');
-      expect(manager.getTrackMediaType({ src: 'https://api.soundcloud.com/tracks/123' })).toBe('soundcloud');
+      expect(manager.getTrackMediaType({ src: 'https://soundcloud.com/artist/track' })).toBe(
+        'soundcloud'
+      );
+      expect(manager.getTrackMediaType({ src: 'https://api.soundcloud.com/tracks/123' })).toBe(
+        'soundcloud'
+      );
     });
 
     it('should detect HLS URLs', () => {
@@ -473,9 +488,9 @@ describe('PlaylistManager', () => {
     it('should auto-play first track when enabled', () => {
       manager.options.autoPlayFirst = true;
       const playSpy = vi.spyOn(manager, 'play');
-      
+
       manager.loadPlaylist(mockTracks);
-      
+
       expect(playSpy).toHaveBeenCalledWith(0);
     });
 
@@ -530,19 +545,24 @@ describe('PlaylistManager', () => {
 
     it('should load track into player', async () => {
       await manager.play(1);
-      
-      expect(mockPlayer.load).toHaveBeenCalledWith(expect.objectContaining({
-        src: 'track2.mp3'
-      }));
+
+      expect(mockPlayer.load).toHaveBeenCalledWith(
+        expect.objectContaining({
+          src: 'track2.mp3'
+        })
+      );
     });
 
     it('should emit playlisttrackchange event', async () => {
       await manager.play(0);
-      
-      expect(mockPlayer.emit).toHaveBeenCalledWith('playlisttrackchange', expect.objectContaining({
-        index: 0,
-        total: 3
-      }));
+
+      expect(mockPlayer.emit).toHaveBeenCalledWith(
+        'playlisttrackchange',
+        expect.objectContaining({
+          index: 0,
+          total: 3
+        })
+      );
     });
 
     it('should call renderer.play after load completes', async () => {
@@ -556,7 +576,7 @@ describe('PlaylistManager', () => {
       mockPlayer.element.setAttribute('src', 'track1.mp3');
       Object.defineProperty(mockPlayer.element, 'readyState', {
         configurable: true,
-        get: () => 0,
+        get: () => 0
       });
       manager.tracks = mockTracks;
       manager.currentIndex = 0;
@@ -581,9 +601,10 @@ describe('PlaylistManager', () => {
     it('should load embed tracks only once when init outlasts the old autoplay delay', async () => {
       let resolveLoad;
       mockPlayer.load.mockImplementation(
-        () => new Promise((resolve) => {
-          resolveLoad = resolve;
-        })
+        () =>
+          new Promise((resolve) => {
+            resolveLoad = resolve;
+          })
       );
 
       const playPromise = manager.play(1);
@@ -600,17 +621,17 @@ describe('PlaylistManager', () => {
 
     it('should warn on invalid index', async () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      
+
       await manager.play(-1);
-      
+
       expect(warnSpy).toHaveBeenCalled();
     });
 
     it('should warn on out of range index', async () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      
+
       await manager.play(10);
-      
+
       expect(warnSpy).toHaveBeenCalled();
     });
   });
@@ -624,18 +645,18 @@ describe('PlaylistManager', () => {
 
     it('should play next track', () => {
       const playSpy = vi.spyOn(manager, 'play');
-      
+
       manager.next();
-      
+
       expect(playSpy).toHaveBeenCalledWith(1);
     });
 
     it('should not advance past last track without loop', () => {
       manager.currentIndex = 2;
       const playSpy = vi.spyOn(manager, 'play');
-      
+
       manager.next();
-      
+
       expect(playSpy).not.toHaveBeenCalled();
     });
 
@@ -643,9 +664,9 @@ describe('PlaylistManager', () => {
       manager.options.loop = true;
       manager.currentIndex = 2;
       const playSpy = vi.spyOn(manager, 'play');
-      
+
       manager.next();
-      
+
       expect(playSpy).toHaveBeenCalledWith(0);
     });
   });
@@ -659,18 +680,18 @@ describe('PlaylistManager', () => {
 
     it('should play previous track', () => {
       const playSpy = vi.spyOn(manager, 'play');
-      
+
       manager.previous();
-      
+
       expect(playSpy).toHaveBeenCalledWith(0);
     });
 
     it('should not go before first track without loop', () => {
       manager.currentIndex = 0;
       const playSpy = vi.spyOn(manager, 'play');
-      
+
       manager.previous();
-      
+
       expect(playSpy).not.toHaveBeenCalled();
     });
 
@@ -678,9 +699,9 @@ describe('PlaylistManager', () => {
       manager.options.loop = true;
       manager.currentIndex = 0;
       const playSpy = vi.spyOn(manager, 'play');
-      
+
       manager.previous();
-      
+
       expect(playSpy).toHaveBeenCalledWith(2);
     });
   });
@@ -694,27 +715,27 @@ describe('PlaylistManager', () => {
 
     it('should auto-advance when enabled', () => {
       const nextSpy = vi.spyOn(manager, 'next');
-      
+
       manager.handleTrackEnd();
-      
+
       expect(nextSpy).toHaveBeenCalled();
     });
 
     it('should not auto-advance when disabled', () => {
       manager.options.autoAdvance = false;
       const nextSpy = vi.spyOn(manager, 'next');
-      
+
       manager.handleTrackEnd();
-      
+
       expect(nextSpy).not.toHaveBeenCalled();
     });
 
     it('should not advance when already changing tracks', () => {
       manager.isChangingTrack = true;
       const nextSpy = vi.spyOn(manager, 'next');
-      
+
       manager.handleTrackEnd();
-      
+
       expect(nextSpy).not.toHaveBeenCalled();
     });
   });
@@ -727,17 +748,17 @@ describe('PlaylistManager', () => {
 
     it('should return current track', () => {
       manager.currentIndex = 1;
-      
+
       const track = manager.getCurrentTrack();
-      
+
       expect(track).toEqual(mockTracks[1]);
     });
 
     it('should return null when no track selected', () => {
       manager.currentIndex = -1;
-      
+
       const track = manager.getCurrentTrack();
-      
+
       expect(track).toBeNull();
     });
   });
@@ -751,7 +772,7 @@ describe('PlaylistManager', () => {
 
     it('should return playlist info', () => {
       const info = manager.getPlaylistInfo();
-      
+
       expect(info.currentIndex).toBe(1);
       expect(info.totalTracks).toBe(3);
       expect(info.currentTrack).toEqual(mockTracks[1]);
@@ -814,9 +835,9 @@ describe('PlaylistManager', () => {
 
     it('should add track to playlist', () => {
       const newTrack = { src: 'new.mp3', title: 'New Track' };
-      
+
       manager.addTrack(newTrack);
-      
+
       expect(manager.tracks).toHaveLength(4);
       expect(manager.tracks[3]).toEqual(newTrack);
     });
@@ -830,23 +851,23 @@ describe('PlaylistManager', () => {
 
     it('should remove track at index', () => {
       manager.removeTrack(1);
-      
+
       expect(manager.tracks).toHaveLength(2);
       expect(manager.tracks[1].title).toBe('Track 3');
     });
 
     it('should adjust currentIndex when removing before current', () => {
       manager.currentIndex = 2;
-      
+
       manager.removeTrack(0);
-      
+
       expect(manager.currentIndex).toBe(1);
     });
 
     it('should ignore invalid index', () => {
       manager.removeTrack(-1);
       expect(manager.tracks).toHaveLength(3);
-      
+
       manager.removeTrack(10);
       expect(manager.tracks).toHaveLength(3);
     });
@@ -880,7 +901,7 @@ describe('PlaylistManager', () => {
 
     it('should show panel when hidden', () => {
       manager.togglePanel();
-      
+
       expect(manager.playlistPanel.style.display).toBe('block');
       expect(manager.isPanelVisible).toBe(true);
     });
@@ -888,9 +909,9 @@ describe('PlaylistManager', () => {
     it('should hide panel when shown', () => {
       manager.playlistPanel.style.display = 'block';
       manager.isPanelVisible = true;
-      
+
       manager.togglePanel();
-      
+
       expect(manager.playlistPanel.style.display).toBe('none');
       expect(manager.isPanelVisible).toBe(false);
     });
@@ -906,7 +927,7 @@ describe('PlaylistManager', () => {
         matches: query === '(width >= 75rem)',
         media: query,
         addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
+        removeEventListener: vi.fn()
       }));
 
       manager.togglePanel(false);
@@ -920,23 +941,23 @@ describe('PlaylistManager', () => {
 
     it('should force show with true parameter', () => {
       manager.togglePanel(true);
-      
+
       expect(manager.playlistPanel.style.display).toBe('block');
     });
 
     it('should force hide with false parameter', () => {
       manager.playlistPanel.style.display = 'block';
-      
+
       manager.togglePanel(false);
-      
+
       expect(manager.playlistPanel.style.display).toBe('none');
     });
 
     it('should return false when no panel', () => {
       manager.playlistPanel = null;
-      
+
       const result = manager.togglePanel();
-      
+
       expect(result).toBe(false);
     });
   });
@@ -946,9 +967,9 @@ describe('PlaylistManager', () => {
       manager = new PlaylistManager(mockPlayer, { showPanel: true });
       manager.playlistPanel = document.createElement('div');
       const toggleSpy = vi.spyOn(manager, 'togglePanel');
-      
+
       manager.showPanel();
-      
+
       expect(toggleSpy).toHaveBeenCalledWith(true);
     });
   });
@@ -958,9 +979,9 @@ describe('PlaylistManager', () => {
       manager = new PlaylistManager(mockPlayer, { showPanel: true });
       manager.playlistPanel = document.createElement('div');
       const toggleSpy = vi.spyOn(manager, 'togglePanel');
-      
+
       manager.hidePanel();
-      
+
       expect(toggleSpy).toHaveBeenCalledWith(false);
     });
   });
@@ -1004,35 +1025,35 @@ describe('PlaylistManager', () => {
 
     it('should return regular duration when AD is disabled', () => {
       const track = { duration: 180 };
-      
+
       const duration = manager.getEffectiveDuration(track);
-      
+
       expect(duration).toBe(180);
     });
 
     it('should return AD duration when AD is enabled and available', () => {
       mockPlayer.state.audioDescriptionEnabled = true;
       const track = { duration: 180, audioDescriptionDuration: 200 };
-      
+
       const duration = manager.getEffectiveDuration(track);
-      
+
       expect(duration).toBe(200);
     });
 
     it('should return regular duration when AD enabled but no AD duration', () => {
       mockPlayer.state.audioDescriptionEnabled = true;
       const track = { duration: 180 };
-      
+
       const duration = manager.getEffectiveDuration(track);
-      
+
       expect(duration).toBe(180);
     });
 
     it('should return null for track without duration', () => {
       const track = { src: 'test.mp3' };
-      
+
       const duration = manager.getEffectiveDuration(track);
-      
+
       expect(duration).toBeNull();
     });
 
@@ -1050,7 +1071,7 @@ describe('PlaylistManager', () => {
 
     it('should remove event listeners', () => {
       manager.destroy();
-      
+
       expect(mockPlayer.off).toHaveBeenCalledWith('ended', expect.any(Function));
       expect(mockPlayer.off).toHaveBeenCalledWith('error', expect.any(Function));
     });
@@ -1058,17 +1079,17 @@ describe('PlaylistManager', () => {
     it('should remove UI elements', () => {
       manager.trackInfoElement = document.createElement('div');
       container.appendChild(manager.trackInfoElement);
-      
+
       manager.destroy();
-      
+
       expect(manager.tracks).toEqual([]);
     });
 
     it('should call clear', () => {
       const clearSpy = vi.spyOn(manager, 'clear');
-      
+
       manager.destroy();
-      
+
       expect(clearSpy).toHaveBeenCalled();
     });
   });
@@ -1084,7 +1105,7 @@ describe('PlaylistManager', () => {
         { src: 'track1.mp3', title: 'Episode 11', date: '18. Mai 2021' },
         0
       );
-      
+
       const date = item.querySelector('.vidply-playlist-item-date');
       expect(date).not.toBeNull();
       expect(date.textContent).toBe('18. Mai 2021');
@@ -1092,7 +1113,7 @@ describe('PlaylistManager', () => {
 
     it('should omit the date element when no date is set', () => {
       const item = manager.createPlaylistItem({ src: 'track1.mp3', title: 'Episode 11' }, 0);
-      
+
       expect(item.querySelector('.vidply-playlist-item-date')).toBeNull();
     });
 
@@ -1101,7 +1122,7 @@ describe('PlaylistManager', () => {
         { src: 'track1.mp3', title: 'Episode 11', duration: 180, date: '18. Mai 2021' },
         0
       );
-      
+
       const label = item.querySelector('.vidply-playlist-item-button').getAttribute('aria-label');
       expect(label).toContain('18. Mai 2021');
       expect(label).toContain('3 minutes, 0 seconds');
@@ -1111,9 +1132,9 @@ describe('PlaylistManager', () => {
       manager.trackInfoView = new TrackInfoView('vidply');
       manager.currentIndex = 0;
       manager.tracks = [{ src: 'track1.mp3', title: 'Episode 11', date: '18. Mai 2021' }];
-      
+
       manager.updateTrackInfo({ src: 'track1.mp3', title: 'Episode 11', date: '18. Mai 2021' });
-      
+
       const date = manager.trackInfoView.element.querySelector('.vidply-track-date');
       expect(date).not.toBeNull();
       expect(date.textContent).toBe('18. Mai 2021');
@@ -1122,7 +1143,9 @@ describe('PlaylistManager', () => {
     it('should render a long-description toggle in the track info panel', () => {
       manager.trackInfoView = new TrackInfoView('vidply');
       manager.currentIndex = 0;
-      manager.tracks = [{ src: 'track1.mp3', title: 'Episode 11', longDescription: '<p>Notes</p>' }];
+      manager.tracks = [
+        { src: 'track1.mp3', title: 'Episode 11', longDescription: '<p>Notes</p>' }
+      ];
 
       manager.updateTrackInfo({
         src: 'track1.mp3',
@@ -1130,8 +1153,14 @@ describe('PlaylistManager', () => {
         longDescription: '<p>Notes</p>'
       });
 
-      expect(manager.trackInfoView.element.querySelector('.vidply-track-longdesc-toggle')).not.toBeNull();
-      expect(manager.trackInfoView.element.querySelector('.vidply-track-longdesc')?.hasAttribute('hidden')).toBe(true);
+      expect(
+        manager.trackInfoView.element.querySelector('.vidply-track-longdesc-toggle')
+      ).not.toBeNull();
+      expect(
+        manager.trackInfoView.element
+          .querySelector('.vidply-track-longdesc')
+          ?.hasAttribute('hidden')
+      ).toBe(true);
     });
   });
 
@@ -1143,7 +1172,7 @@ describe('PlaylistManager', () => {
       const embedDestroy = vi.fn();
       mockPlayer.renderer = {
         rendererType: 'youtube',
-        destroy: embedDestroy,
+        destroy: embedDestroy
       };
       mockPlayer.shouldChangeRenderer = vi.fn((src) => src.includes('.mp4'));
       mockPlayer.resolveMediaSourceUrl = vi.fn((src) => src);
@@ -1159,7 +1188,7 @@ describe('PlaylistManager', () => {
       mockPlayer.playlistManager = manager;
       manager.tracks = [
         { src: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', title: 'YT' },
-        { src: 'https://example.com/video.mp4', title: 'MP4', type: 'video/mp4' },
+        { src: 'https://example.com/video.mp4', title: 'MP4', type: 'video/mp4' }
       ];
       manager.currentIndex = 0;
 
@@ -1168,7 +1197,7 @@ describe('PlaylistManager', () => {
       expect(mockPlayer.teardownRendererForNativeGestureSwap).toHaveBeenCalled();
       expect(mockPlayer.iosNativePlayInUserGesture).toHaveBeenCalledWith(
         'https://example.com/video.mp4',
-        'video/mp4',
+        'video/mp4'
       );
       expect(mockPlayer.initializeRenderer).toHaveBeenCalled();
       expect(manager.currentIndex).toBe(1);

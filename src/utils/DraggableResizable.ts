@@ -7,7 +7,8 @@ export interface DraggableResizableOptions {
   onDrag?: ((pos: { x?: number; y?: number; centered?: boolean }) => void) | null;
   onDragEnd?: (() => void) | null;
   onResizeStart?: (() => void) | null;
-  onResize?: ((dims: { width: number; height: number; left?: number; top?: number }) => void) | null;
+  onResize?:
+    ((dims: { width: number; height: number; left?: number; top?: number }) => void) | null;
   onResizeEnd?: (() => void) | null;
   constrainToViewport?: boolean;
   minWidth?: number;
@@ -26,7 +27,9 @@ export interface DraggableResizableOptions {
   storageKey?: string | null;
 }
 
-interface ResolvedOptions extends Required<Omit<DraggableResizableOptions, 'maxWidth' | 'maxHeight'>> {
+interface ResolvedOptions extends Required<
+  Omit<DraggableResizableOptions, 'maxWidth' | 'maxHeight'>
+> {
   maxWidth: number | (() => number) | null;
   maxHeight: number | (() => number) | null;
 }
@@ -167,7 +170,8 @@ export class DraggableResizable {
   }
 
   showResizeHandle(handle: HTMLElement): void {
-    const original = handle.dataset.originalDisplay !== undefined ? handle.dataset.originalDisplay : '';
+    const original =
+      handle.dataset.originalDisplay !== undefined ? handle.dataset.originalDisplay : '';
     handle.style.display = original;
     handle.removeAttribute('aria-hidden');
   }
@@ -177,7 +181,7 @@ export class DraggableResizable {
       return;
     }
 
-    this.options.resizeHandles.forEach(handle => {
+    this.options.resizeHandles.forEach((handle) => {
       if (!this.resizeHandlesManaged.get(handle)) {
         return;
       }
@@ -192,7 +196,7 @@ export class DraggableResizable {
 
   init(): void {
     const dragHandle = this.options.dragHandle || this.element;
-    
+
     // Prefer Pointer Events when available (covers mouse + touch in one codepath)
     if (typeof window !== 'undefined' && 'PointerEvent' in window) {
       dragHandle.addEventListener('pointerdown', this.handlers.pointerdown);
@@ -218,18 +222,20 @@ export class DraggableResizable {
       document.addEventListener('touchmove', this.handlers.touchmove, { passive: false });
       document.addEventListener('touchend', this.handlers.touchend);
     }
-    
+
     // Keyboard events
     this.element.addEventListener('keydown', this.handlers.keydown);
-    
+
     // Resize handles
     if (this.options.resizeHandles && this.options.resizeHandles.length > 0) {
-      this.options.resizeHandles.forEach(handle => {
+      this.options.resizeHandles.forEach((handle) => {
         if (typeof window !== 'undefined' && 'PointerEvent' in window) {
           handle.addEventListener('pointerdown', this.handlers.resizeHandlePointerDown);
         } else {
           handle.addEventListener('mousedown', this.handlers.resizeHandleMousedown);
-          handle.addEventListener('touchstart', this.handlers.resizeHandleMousedown, { passive: false });
+          handle.addEventListener('touchstart', this.handlers.resizeHandleMousedown, {
+            passive: false
+          });
         }
 
         const managed = handle.dataset.vidplyManagedResize === 'true';
@@ -298,7 +304,7 @@ export class DraggableResizable {
     if (target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
       return;
     }
-    
+
     // Call custom handler if provided
     if (this.options.onDragStart && !this.options.onDragStart(e)) {
       return;
@@ -313,7 +319,7 @@ export class DraggableResizable {
     if (target.classList.contains(`${this.options.classPrefix}-resize-handle`)) {
       return;
     }
-    
+
     // Call custom handler if provided
     if (this.options.onDragStart && !this.options.onDragStart(e)) {
       return;
@@ -354,10 +360,10 @@ export class DraggableResizable {
   onResizeHandleMouseDown(e: MouseEvent | TouchEvent): void {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const handle = e.target as HTMLElement;
     this.resizeDirection = handle.getAttribute('data-direction');
-    
+
     const clientX = 'clientX' in e ? e.clientX : e.touches?.[0]?.clientX;
     const clientY = 'clientY' in e ? e.clientY : e.touches?.[0]?.clientY;
     if (clientX === undefined || clientY === undefined) return;
@@ -418,8 +424,7 @@ export class DraggableResizable {
       const target = e.target as HTMLElement | null;
       const isEditable =
         target !== null &&
-        (target.isContentEditable ||
-          /^(input|textarea|select)$/i.test(target.tagName));
+        (target.isContentEditable || /^(input|textarea|select)$/i.test(target.tagName));
       const hasModifier = e.ctrlKey || e.metaKey || e.altKey;
       if (isEditable || hasModifier) {
         return;
@@ -482,21 +487,22 @@ export class DraggableResizable {
   startDragging(clientX: number, clientY: number): void {
     // Get current rendered position BEFORE any changes
     const rect = this.element.getBoundingClientRect();
-    
+
     // Convert position to left/top IMMEDIATELY (before setting any state)
     // Check if element is using right/bottom/transform positioning
     const computedStyle = window.getComputedStyle(this.element);
-    const needsConversion = computedStyle.right !== 'auto' || 
-                           computedStyle.bottom !== 'auto' || 
-                           computedStyle.transform !== 'none';
-    
+    const needsConversion =
+      computedStyle.right !== 'auto' ||
+      computedStyle.bottom !== 'auto' ||
+      computedStyle.transform !== 'none';
+
     this.positionOffsetX = 0;
     this.positionOffsetY = 0;
 
     if (needsConversion) {
       // Determine the correct left/top values based on position type
       let targetLeft, targetTop;
-      
+
       if (computedStyle.position === 'absolute') {
         // position: absolute uses container-relative coordinates
         const offsetParent = this.element.offsetParent || document.body;
@@ -521,53 +527,59 @@ export class DraggableResizable {
         this.positionOffsetX = rect.left - targetLeft;
         this.positionOffsetY = rect.top - targetTop;
       }
-      
+
       // Build complete style update atomically
       const currentCssText = this.element.style.cssText;
       let newCssText = currentCssText
         .split(';')
-        .filter(rule => {
+        .filter((rule) => {
           const trimmed = rule.trim();
           // Filter out empty rules
           if (!trimmed) return false;
-          
+
           const colonIndex = trimmed.indexOf(':');
           if (colonIndex === -1) return false;
-          
+
           const property = trimmed.substring(0, colonIndex).trim();
           const value = trimmed.substring(colonIndex + 1).trim();
-          
+
           // Skip if value is empty or just whitespace (this catches empty border properties)
           if (!value || value === '') return false;
-          
+
           // Skip positioning properties
-          if (property === 'right' || property === 'bottom' || property === 'transform' ||
-              property === 'left' || property === 'top' || property === 'inset') {
+          if (
+            property === 'right' ||
+            property === 'bottom' ||
+            property === 'transform' ||
+            property === 'left' ||
+            property === 'top' ||
+            property === 'inset'
+          ) {
             return false;
           }
-          
+
           // Skip border-image properties (these can have empty values that cause parse errors)
           if (property.startsWith('border-image')) {
             return false;
           }
-          
+
           return true;
         })
         .join('; ');
-      
+
       if (newCssText) newCssText += '; ';
       newCssText += `left: ${targetLeft}px; top: ${targetTop}px; right: auto; bottom: auto; transform: none`;
-      
+
       // Apply all at once
       this.element.style.cssText = newCssText;
     }
-    
+
     // Now calculate offsets based on CURRENT position (after conversion)
     // Re-get rect after potential position change
     const finalRect = this.element.getBoundingClientRect();
     this.dragOffsetX = clientX - finalRect.left;
     this.dragOffsetY = clientY - finalRect.top;
-    
+
     this.isDragging = true;
     this.element.classList.add(`${this.options.classPrefix}-dragging`);
     document.body.style.cursor = 'grabbing';
@@ -586,27 +598,27 @@ export class DraggableResizable {
     // Calculate new position: current mouse position minus the offset where user clicked
     let newX = clientX - this.dragOffsetX - this.positionOffsetX;
     let newY = clientY - this.dragOffsetY - this.positionOffsetY;
-    
+
     // Constrain to viewport if needed
     if (this.options.constrainToViewport) {
       const rect = this.element.getBoundingClientRect();
       const viewportWidth = document.documentElement.clientWidth;
       const viewportHeight = document.documentElement.clientHeight;
-      
+
       // Keep at least 100px visible
       const minVisible = 100;
       const minX = -(rect.width - minVisible);
       const minY = -(rect.height - minVisible);
       const maxX = viewportWidth - minVisible;
       const maxY = viewportHeight - minVisible;
-      
+
       newX = Math.max(minX, Math.min(newX, maxX));
       newY = Math.max(minY, Math.min(newY, maxY));
     }
-    
+
     this.element.style.left = `${newX}px`;
     this.element.style.top = `${newY}px`;
-    
+
     // Call custom handler if provided
     if (this.options.onDrag) {
       this.options.onDrag({ x: newX, y: newY });
@@ -623,10 +635,10 @@ export class DraggableResizable {
     if ('PointerEvent' in window) {
       document.removeEventListener('pointermove', this.handlers.pointermove);
     }
-    
+
     // Mark as manually positioned
     this.manuallyPositioned = true;
-    
+
     // Call custom handler if provided
     if (this.options.onDragEnd) {
       this.options.onDragEnd();
@@ -637,13 +649,13 @@ export class DraggableResizable {
     this.isResizing = true;
     this.resizeStartX = clientX;
     this.resizeStartY = clientY;
-    
+
     const rect = this.element.getBoundingClientRect();
     this.resizeStartWidth = rect.width;
     this.resizeStartHeight = rect.height;
     this.resizeStartLeft = rect.left;
     this.resizeStartTop = rect.top;
-    
+
     this.element.classList.add(`${this.options.classPrefix}-resizing`);
     document.body.style.userSelect = 'none';
 
@@ -652,7 +664,7 @@ export class DraggableResizable {
     if ('PointerEvent' in window) {
       document.addEventListener('pointermove', this.handlers.pointermove, { passive: false });
     }
-    
+
     // Call custom handler if provided
     if (this.options.onResizeStart) {
       this.options.onResizeStart();
@@ -664,7 +676,7 @@ export class DraggableResizable {
 
     const deltaX = clientX - this.resizeStartX;
     const deltaY = clientY - this.resizeStartY;
-    
+
     let newWidth = this.resizeStartWidth;
     let newHeight = this.resizeStartHeight;
     let newLeft = this.resizeStartLeft;
@@ -682,9 +694,8 @@ export class DraggableResizable {
       newWidth = proposedWidth;
     }
 
-    const maxWidthOption = typeof this.options.maxWidth === 'function'
-      ? this.options.maxWidth()
-      : this.options.maxWidth;
+    const maxWidthOption =
+      typeof this.options.maxWidth === 'function' ? this.options.maxWidth() : this.options.maxWidth;
     if (typeof maxWidthOption === 'number' && Number.isFinite(maxWidthOption)) {
       const clampedWidth = Math.min(newWidth, maxWidthOption);
       if (clampedWidth !== newWidth && resizeDirection.includes('w')) {
@@ -704,9 +715,10 @@ export class DraggableResizable {
         newHeight = proposedHeight;
       }
 
-      const maxHeightOption = typeof this.options.maxHeight === 'function'
-        ? this.options.maxHeight()
-        : this.options.maxHeight;
+      const maxHeightOption =
+        typeof this.options.maxHeight === 'function'
+          ? this.options.maxHeight()
+          : this.options.maxHeight;
       if (typeof maxHeightOption === 'number' && Number.isFinite(maxHeightOption)) {
         const clampedHeight = Math.min(newHeight, maxHeightOption);
         if (clampedHeight !== newHeight && resizeDirection.includes('n')) {
@@ -723,7 +735,7 @@ export class DraggableResizable {
     } else {
       this.element.style.height = 'auto';
     }
-    
+
     // Apply new position if resizing from west or north
     if (resizeDirection.includes('w')) {
       this.element.style.left = `${newLeft}px`;
@@ -731,7 +743,7 @@ export class DraggableResizable {
     if (resizeDirection.includes('n') && !this.options.maintainAspectRatio) {
       this.element.style.top = `${newTop}px`;
     }
-    
+
     // Call custom handler if provided
     if (this.options.onResize) {
       this.options.onResize({ width: newWidth, height: newHeight, left: newLeft, top: newTop });
@@ -748,10 +760,10 @@ export class DraggableResizable {
     if ('PointerEvent' in window) {
       document.removeEventListener('pointermove', this.handlers.pointermove);
     }
-    
+
     // Mark as manually positioned
     this.manuallyPositioned = true;
-    
+
     // Call custom handler if provided
     if (this.options.onResizeEnd) {
       this.options.onResizeEnd();
@@ -865,11 +877,11 @@ export class DraggableResizable {
 
   keyboardDrag(key: string, shiftKey: boolean): void {
     const step = shiftKey ? this.options.keyboardStepLarge : this.options.keyboardStep;
-    
+
     // Get current position
     let currentLeft = parseFloat(this.element.style.left) || 0;
     let currentTop = parseFloat(this.element.style.top) || 0;
-    
+
     // If element is still centered with transform, convert to absolute position first
     const computedStyle = window.getComputedStyle(this.element);
     if (computedStyle.transform !== 'none') {
@@ -880,12 +892,12 @@ export class DraggableResizable {
       this.element.style.left = `${currentLeft}px`;
       this.element.style.top = `${currentTop}px`;
     }
-    
+
     // Calculate new position
     let newX = currentLeft;
     let newY = currentTop;
 
-    switch(key) {
+    switch (key) {
       case 'ArrowLeft':
         newX -= step;
         break;
@@ -903,7 +915,7 @@ export class DraggableResizable {
     // Apply position
     this.element.style.left = `${newX}px`;
     this.element.style.top = `${newY}px`;
-    
+
     // Call custom handler if provided
     if (this.options.onDrag) {
       this.options.onDrag({ x: newX, y: newY });
@@ -913,12 +925,12 @@ export class DraggableResizable {
   keyboardResize(key: string, shiftKey: boolean): void {
     const step = shiftKey ? this.options.keyboardStepLarge : this.options.keyboardStep;
     const rect = this.element.getBoundingClientRect();
-    
+
     let width = rect.width;
     let height = rect.height;
 
     // Adjust width/height based on arrow key
-    switch(key) {
+    switch (key) {
       case 'ArrowLeft':
         width -= step;
         break;
@@ -952,7 +964,7 @@ export class DraggableResizable {
     } else {
       this.element.style.height = 'auto';
     }
-    
+
     // Call custom handler if provided
     if (this.options.onResize) {
       this.options.onResize({ width, height });
@@ -965,10 +977,10 @@ export class DraggableResizable {
     this.element.style.transform = 'translate(-50%, -50%)';
     this.element.style.right = '';
     this.element.style.bottom = '';
-    
+
     // Clear manual positioning flag
     this.manuallyPositioned = false;
-    
+
     // Call custom handler if provided
     if (this.options.onDrag) {
       this.options.onDrag({ centered: true });
@@ -977,14 +989,14 @@ export class DraggableResizable {
 
   destroy(): void {
     const dragHandle = this.options.dragHandle || this.element;
-    
+
     this.disablePointerResizeMode();
-    
+
     // Remove drag events
     dragHandle.removeEventListener('mousedown', this.handlers.mousedown);
     dragHandle.removeEventListener('touchstart', this.handlers.touchstart);
     dragHandle.removeEventListener('pointerdown', this.handlers.pointerdown);
-    
+
     // Remove document-level events
     document.removeEventListener('mousemove', this.handlers.mousemove);
     document.removeEventListener('mouseup', this.handlers.mouseup);
@@ -993,19 +1005,19 @@ export class DraggableResizable {
     document.removeEventListener('pointermove', this.handlers.pointermove);
     document.removeEventListener('pointerup', this.handlers.pointerup);
     document.removeEventListener('pointercancel', this.handlers.pointercancel);
-    
+
     // Remove keyboard events
     this.element.removeEventListener('keydown', this.handlers.keydown);
-    
+
     // Remove resize handle events
     if (this.options.resizeHandles && this.options.resizeHandles.length > 0) {
-      this.options.resizeHandles.forEach(handle => {
+      this.options.resizeHandles.forEach((handle) => {
         handle.removeEventListener('mousedown', this.handlers.resizeHandleMousedown);
         handle.removeEventListener('touchstart', this.handlers.resizeHandleMousedown);
         handle.removeEventListener('pointerdown', this.handlers.resizeHandlePointerDown);
       });
     }
-    
+
     // Clean up classes
     this.element.classList.remove(
       `${this.options.classPrefix}-dragging`,
@@ -1015,4 +1027,3 @@ export class DraggableResizable {
     );
   }
 }
-

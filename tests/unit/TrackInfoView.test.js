@@ -112,10 +112,18 @@ describe('TrackInfoView', () => {
     expect(view.element.querySelector('.vidply-track-artist')?.tagName).toBe('P');
     expect(view.element.querySelector('.vidply-track-description')?.tagName).toBe('P');
     expect(view.element.querySelector('.vidply-sr-only')).toBeNull();
-    expect(view.element.querySelector('.vidply-track-title')?.getAttribute('aria-hidden')).toBeNull();
-    expect(view.element.querySelector('.vidply-track-artist')?.getAttribute('aria-hidden')).toBeNull();
-    expect(view.element.querySelector('.vidply-track-description')?.getAttribute('aria-hidden')).toBeNull();
-    expect(view.element.querySelector('.vidply-track-actions')?.getAttribute('aria-hidden')).toBeNull();
+    expect(
+      view.element.querySelector('.vidply-track-title')?.getAttribute('aria-hidden')
+    ).toBeNull();
+    expect(
+      view.element.querySelector('.vidply-track-artist')?.getAttribute('aria-hidden')
+    ).toBeNull();
+    expect(
+      view.element.querySelector('.vidply-track-description')?.getAttribute('aria-hidden')
+    ).toBeNull();
+    expect(
+      view.element.querySelector('.vidply-track-actions')?.getAttribute('aria-hidden')
+    ).toBeNull();
 
     const toggle = view.element.querySelector('.vidply-track-longdesc-toggle');
     const panel = view.element.querySelector('.vidply-track-longdesc');
@@ -133,6 +141,8 @@ describe('TrackInfoView', () => {
 
     const liveRegion = view.element.querySelector('.vidply-sr-only[aria-live="polite"]');
     expect(liveRegion?.textContent).toContain('Episode 11');
-    expect(view.element.querySelector('.vidply-track-longdesc-toggle')?.closest('[aria-hidden="true"]')).toBeNull();
+    expect(
+      view.element.querySelector('.vidply-track-longdesc-toggle')?.closest('[aria-hidden="true"]')
+    ).toBeNull();
   });
 });

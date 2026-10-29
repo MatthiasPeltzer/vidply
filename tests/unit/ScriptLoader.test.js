@@ -6,7 +6,11 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { loadScriptOnce, loadPinnedScript, _resetScriptLoaderCache } from '../../src/utils/ScriptLoader.js';
+import {
+  loadScriptOnce,
+  loadPinnedScript,
+  _resetScriptLoaderCache
+} from '../../src/utils/ScriptLoader.js';
 
 const PINNED = {
   defaultUrl: 'https://cdn.example.com/lib@1.0.0/lib.min.js',

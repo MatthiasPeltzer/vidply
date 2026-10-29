@@ -112,7 +112,8 @@ export class DebugOverlay {
 
     const logEl = document.createElement('pre');
     logEl.setAttribute('tabindex', '0');
-    logEl.style.cssText = 'margin:0;overflow:auto;flex:1;white-space:pre-wrap;word-break:break-word;';
+    logEl.style.cssText =
+      'margin:0;overflow:auto;flex:1;white-space:pre-wrap;word-break:break-word;';
 
     copyBtn.addEventListener('click', () => {
       void navigator.clipboard?.writeText(this.lines.join('\n')).catch(() => {
@@ -195,7 +196,7 @@ export class DebugOverlay {
       'suspend',
       'abort',
       'emptied',
-      'error',
+      'error'
     ] as const;
 
     for (const type of events) {
@@ -208,7 +209,7 @@ export class DebugOverlay {
               1: 'ABORTED',
               2: 'NETWORK',
               3: 'DECODE',
-              4: 'SRC_NOT_SUPPORTED',
+              4: 'SRC_NOT_SUPPORTED'
             };
             const label = labels[media.error.code] ?? String(media.error.code);
             const msg = media.error.message?.trim();
@@ -216,7 +217,7 @@ export class DebugOverlay {
           }
           this.append(`media:${type}${extra}`, activePlayer ?? undefined);
         },
-        { signal },
+        { signal }
       );
     }
   }

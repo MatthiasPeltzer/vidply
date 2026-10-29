@@ -14,7 +14,7 @@ describe('HTML5Renderer', () => {
 
   beforeEach(() => {
     document.body.innerHTML = '';
-    
+
     mockMedia = document.createElement('video');
     mockMedia.controls = true;
     document.body.appendChild(mockMedia);
@@ -47,7 +47,7 @@ describe('HTML5Renderer', () => {
       play: vi.fn(),
       autoGeneratePoster: vi.fn().mockResolvedValue(null),
       shouldSyncVolumeFromMedia: vi.fn(() => true),
-      syncPlaybackUiFromMediaElement: vi.fn(),
+      syncPlaybackUiFromMediaElement: vi.fn()
     };
 
     renderer = new HTML5Renderer(mockPlayer);
@@ -93,9 +93,9 @@ describe('HTML5Renderer', () => {
       mockPlayer.options.deferLoad = true;
       mockPlayer.options.preload = 'none';
       const loadSpy = vi.spyOn(mockMedia, 'load');
-      
+
       await renderer.init();
-      
+
       expect(loadSpy).not.toHaveBeenCalled();
     });
 
@@ -114,9 +114,9 @@ describe('HTML5Renderer', () => {
     it('should call load when deferLoad is false', async () => {
       mockPlayer.options.deferLoad = false;
       const loadSpy = vi.spyOn(mockMedia, 'load');
-      
+
       await renderer.init();
-      
+
       expect(loadSpy).toHaveBeenCalled();
     });
   });
@@ -154,9 +154,11 @@ describe('HTML5Renderer', () => {
     it('should reset state and sync UI when play() is rejected', async () => {
       mockPlayer.state.playing = true;
       mockPlayer.state.paused = false;
-      mockMedia.play = vi.fn().mockRejectedValue(
-        Object.assign(new Error('NotAllowedError'), { name: 'NotAllowedError' }),
-      );
+      mockMedia.play = vi
+        .fn()
+        .mockRejectedValue(
+          Object.assign(new Error('NotAllowedError'), { name: 'NotAllowedError' })
+        );
 
       renderer.play();
       await Promise.resolve();
@@ -171,10 +173,10 @@ describe('HTML5Renderer', () => {
       // This test verifies the _didDeferredLoad flag is respected
       mockPlayer.options.deferLoad = true;
       renderer._didDeferredLoad = true;
-      
+
       // Record initial _didDeferredLoad value before play
       const flagBefore = renderer._didDeferredLoad;
-      
+
       renderer.play();
 
       // Flag should remain true (not reset) - proving we didn't go through the load branch
@@ -339,17 +341,17 @@ describe('HTML5Renderer', () => {
       source1.src = 'video-720.mp4';
       source1.setAttribute('data-quality', '720p');
       source1.setAttribute('data-height', '720');
-      
+
       const source2 = document.createElement('source');
       source2.src = 'video-1080.mp4';
       source2.setAttribute('data-quality', '1080p');
       source2.setAttribute('data-height', '1080');
-      
+
       mockMedia.appendChild(source1);
       mockMedia.appendChild(source2);
 
       const qualities = renderer.getQualities();
-      
+
       expect(qualities.length).toBe(2);
       expect(qualities[0].height).toBe(720);
       expect(qualities[1].height).toBe(1080);
@@ -450,27 +452,27 @@ describe('HTML5Renderer', () => {
     it('should call onPlay callback if provided', () => {
       const onPlay = vi.fn();
       mockPlayer.options.onPlay = onPlay;
-      
+
       mockMedia.dispatchEvent(new Event('play'));
-      
+
       expect(onPlay).toHaveBeenCalled();
     });
 
     it('should call onPause callback if provided', () => {
       const onPause = vi.fn();
       mockPlayer.options.onPause = onPause;
-      
+
       mockMedia.dispatchEvent(new Event('pause'));
-      
+
       expect(onPause).toHaveBeenCalled();
     });
 
     it('should call onEnded callback if provided', () => {
       const onEnded = vi.fn();
       mockPlayer.options.onEnded = onEnded;
-      
+
       mockMedia.dispatchEvent(new Event('ended'));
-      
+
       expect(onEnded).toHaveBeenCalled();
     });
   });

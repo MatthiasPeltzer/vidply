@@ -30,15 +30,11 @@
 
 import { DOMUtils } from './DOMUtils.js';
 import { i18n } from '../i18n/i18n.js';
-import {
-  attachMenuKeyboardNavigation,
-  createMenuItem,
-  focusFirstMenuItem,
-} from './MenuUtils.js';
+import { attachMenuKeyboardNavigation, createMenuItem, focusFirstMenuItem } from './MenuUtils.js';
 import {
   positionSettingsMenu,
   positionSettingsMenuDeferred,
-  updateToggleMenuItem,
+  updateToggleMenuItem
 } from './DraggablePanelMenu.js';
 
 import type { Player } from '../core/Player.js';
@@ -250,7 +246,7 @@ export class DraggablePanel {
       enabledText: i18n.t(this.opts.i18nKeys.disableDrag),
       disabledText: i18n.t(this.opts.i18nKeys.enableDrag),
       enabledAria: i18n.t(this.opts.i18nKeys.disableDragAria),
-      disabledAria: i18n.t(this.opts.i18nKeys.enableDragAria),
+      disabledAria: i18n.t(this.opts.i18nKeys.enableDragAria)
     });
   }
 
@@ -261,7 +257,7 @@ export class DraggablePanel {
       enabledText: i18n.t(this.opts.i18nKeys.disableResize),
       disabledText: i18n.t(this.opts.i18nKeys.enableResize),
       enabledAria: i18n.t(this.opts.i18nKeys.disableResizeAria),
-      disabledAria: i18n.t(this.opts.i18nKeys.enableResizeAria),
+      disabledAria: i18n.t(this.opts.i18nKeys.enableResizeAria)
     });
   }
 
@@ -283,12 +279,11 @@ export class DraggablePanel {
     this.hideBadge();
 
     const className =
-      this.opts.badgeClass ??
-      `${this.classPrefix}-${this.opts.namespace}-mode-badge`;
+      this.opts.badgeClass ?? `${this.classPrefix}-${this.opts.namespace}-mode-badge`;
     const badge = DOMUtils.createElement('span', {
       className,
       textContent: text,
-      attributes: { 'aria-hidden': 'true' },
+      attributes: { 'aria-hidden': 'true' }
     });
     host.appendChild(badge);
     this._modeBadge = badge;
@@ -307,7 +302,7 @@ export class DraggablePanel {
     positionSettingsMenuDeferred(this.settingsMenu, this.opts.settingsButton, {
       align: this.opts.menuAlign,
       gap: this.opts.menuGap ?? 4,
-      spaceReserve: this.opts.menuSpaceReserve ?? 20,
+      spaceReserve: this.opts.menuSpaceReserve ?? 20
     });
   }
 
@@ -351,7 +346,7 @@ export class DraggablePanel {
 
     const menu = DOMUtils.createElement('div', {
       className: this.menuClass,
-      attributes: { role: 'menu' },
+      attributes: { role: 'menu' }
     });
     this.settingsMenu = menu;
 
@@ -366,7 +361,7 @@ export class DraggablePanel {
         event.stopPropagation();
         this.opts.onDragItemClick(this);
         this.refreshState();
-      },
+      }
     });
     dragOption.setAttribute('role', 'switch');
     dragOption.setAttribute('aria-checked', 'false');
@@ -386,7 +381,7 @@ export class DraggablePanel {
         event.stopPropagation();
         this.opts.onResizeItemClick(this);
         this.refreshState();
-      },
+      }
     });
     resizeOption.setAttribute('role', 'switch');
     resizeOption.setAttribute('aria-checked', 'false');
@@ -402,7 +397,7 @@ export class DraggablePanel {
         menu,
         itemClass: this.itemClass,
         classPrefix: this.classPrefix,
-        stripInlineTooltip: (item) => this._stripInlineTooltip(item),
+        stripInlineTooltip: (item) => this._stripInlineTooltip(item)
       });
     }
 
@@ -411,7 +406,7 @@ export class DraggablePanel {
       itemClass: this.itemClass,
       icon: 'close',
       label: i18nKeys.closeMenu,
-      onClick: () => this.hide(),
+      onClick: () => this.hide()
     });
     this._stripInlineTooltip(closeOption);
     menu.appendChild(closeOption);
@@ -468,7 +463,7 @@ export class DraggablePanel {
     positionSettingsMenu(this.settingsMenu, this.opts.settingsButton, {
       align: this.opts.menuAlign,
       gap: this.opts.menuGap ?? 4,
-      spaceReserve: this.opts.menuSpaceReserve ?? 20,
+      spaceReserve: this.opts.menuSpaceReserve ?? 20
     });
   }
 
@@ -531,7 +526,7 @@ export class DraggablePanel {
       if (!handler) return;
       document.addEventListener('mousedown', handler, {
         capture: true,
-        signal: this.opts.player.lifecycleSignal,
+        signal: this.opts.player.lifecycleSignal
       });
       this._documentClickAdded = true;
     }, 300);

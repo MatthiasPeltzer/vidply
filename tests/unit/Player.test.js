@@ -174,7 +174,7 @@ describe('Player', () => {
   describe('play', () => {
     it('should have play method', () => {
       player = new Player(videoElement);
-      
+
       expect(typeof player.play).toBe('function');
     });
   });
@@ -182,7 +182,7 @@ describe('Player', () => {
   describe('pause', () => {
     it('should have pause method', () => {
       player = new Player(videoElement);
-      
+
       expect(typeof player.pause).toBe('function');
     });
   });
@@ -190,7 +190,7 @@ describe('Player', () => {
   describe('stop', () => {
     it('should have stop method', () => {
       player = new Player(videoElement);
-      
+
       expect(typeof player.stop).toBe('function');
     });
   });
@@ -198,7 +198,7 @@ describe('Player', () => {
   describe('toggle', () => {
     it('should have toggle method', () => {
       player = new Player(videoElement);
-      
+
       expect(typeof player.toggle).toBe('function');
     });
   });
@@ -206,7 +206,7 @@ describe('Player', () => {
   describe('seek', () => {
     it('should have seek method', () => {
       player = new Player(videoElement);
-      
+
       expect(typeof player.seek).toBe('function');
     });
   });
@@ -214,16 +214,16 @@ describe('Player', () => {
   describe('seekForward', () => {
     it('should have seekForward method', () => {
       player = new Player(videoElement);
-      
+
       expect(typeof player.seekForward).toBe('function');
     });
 
     it('should call seek', () => {
       player = new Player(videoElement);
       const seekSpy = vi.spyOn(player, 'seek');
-      
+
       player.seekForward();
-      
+
       expect(seekSpy).toHaveBeenCalled();
     });
   });
@@ -231,16 +231,16 @@ describe('Player', () => {
   describe('seekBackward', () => {
     it('should have seekBackward method', () => {
       player = new Player(videoElement);
-      
+
       expect(typeof player.seekBackward).toBe('function');
     });
 
     it('should call seek', () => {
       player = new Player(videoElement);
       const seekSpy = vi.spyOn(player, 'seek');
-      
+
       player.seekBackward();
-      
+
       expect(seekSpy).toHaveBeenCalled();
     });
   });
@@ -248,18 +248,18 @@ describe('Player', () => {
   describe('setVolume', () => {
     it('should update state volume', () => {
       player = new Player(videoElement);
-      
+
       player.setVolume(0.5);
-      
+
       expect(player.state.volume).toBe(0.5);
     });
 
     it('should clamp volume to 0-1 range', () => {
       player = new Player(videoElement);
-      
+
       player.setVolume(1.5);
       expect(player.state.volume).toBe(1);
-      
+
       player.setVolume(-0.5);
       expect(player.state.volume).toBe(0);
     });
@@ -269,9 +269,9 @@ describe('Player', () => {
     it('should return current volume', () => {
       player = new Player(videoElement);
       player.state.volume = 0.7;
-      
+
       const volume = player.getVolume();
-      
+
       expect(volume).toBe(0.7);
     });
   });
@@ -279,9 +279,9 @@ describe('Player', () => {
   describe('mute', () => {
     it('should set muted state to true', () => {
       player = new Player(videoElement);
-      
+
       player.mute();
-      
+
       expect(player.state.muted).toBe(true);
     });
   });
@@ -290,9 +290,9 @@ describe('Player', () => {
     it('should set muted state to false', () => {
       player = new Player(videoElement);
       player.state.muted = true;
-      
+
       player.unmute();
-      
+
       expect(player.state.muted).toBe(false);
     });
   });
@@ -302,9 +302,9 @@ describe('Player', () => {
       player = new Player(videoElement);
       player.state.muted = false;
       const muteSpy = vi.spyOn(player, 'mute');
-      
+
       player.toggleMute();
-      
+
       expect(muteSpy).toHaveBeenCalled();
     });
 
@@ -312,9 +312,9 @@ describe('Player', () => {
       player = new Player(videoElement);
       player.state.muted = true;
       const unmuteSpy = vi.spyOn(player, 'unmute');
-      
+
       player.toggleMute();
-      
+
       expect(unmuteSpy).toHaveBeenCalled();
     });
   });
@@ -322,18 +322,18 @@ describe('Player', () => {
   describe('setPlaybackSpeed', () => {
     it('should update state playbackSpeed', () => {
       player = new Player(videoElement);
-      
+
       player.setPlaybackSpeed(1.5);
-      
+
       expect(player.state.playbackSpeed).toBe(1.5);
     });
 
     it('should emit playbackspeedchange event', () => {
       player = new Player(videoElement);
       const emitSpy = vi.spyOn(player, 'emit');
-      
+
       player.setPlaybackSpeed(2);
-      
+
       expect(emitSpy).toHaveBeenCalledWith('playbackspeedchange', 2);
     });
   });
@@ -342,9 +342,9 @@ describe('Player', () => {
     it('should return current playback speed', () => {
       player = new Player(videoElement);
       player.state.playbackSpeed = 1.25;
-      
+
       const speed = player.getPlaybackSpeed();
-      
+
       expect(speed).toBe(1.25);
     });
   });
@@ -353,9 +353,9 @@ describe('Player', () => {
     it('should return current time from state', () => {
       player = new Player(videoElement);
       player.state.currentTime = 45;
-      
+
       const time = player.getCurrentTime();
-      
+
       expect(time).toBe(45);
     });
   });
@@ -364,9 +364,9 @@ describe('Player', () => {
     it('should return duration from state', () => {
       player = new Player(videoElement);
       player.state.duration = 120;
-      
+
       const duration = player.getDuration();
-      
+
       expect(duration).toBe(120);
     });
   });
@@ -374,7 +374,7 @@ describe('Player', () => {
   describe('isPlaying', () => {
     it('should return boolean', () => {
       player = new Player(videoElement);
-      
+
       expect(typeof player.isPlaying()).toBe('boolean');
     });
 
@@ -382,7 +382,7 @@ describe('Player', () => {
       player = new Player(videoElement);
       player.state.paused = true;
       player.state.playing = false;
-      
+
       expect(player.isPlaying()).toBe(false);
     });
   });
@@ -391,14 +391,14 @@ describe('Player', () => {
     it('should return true when paused', () => {
       player = new Player(videoElement);
       player.state.paused = true;
-      
+
       expect(player.isPaused()).toBe(true);
     });
 
     it('should return false when playing', () => {
       player = new Player(videoElement);
       player.state.paused = false;
-      
+
       expect(player.isPaused()).toBe(false);
     });
   });
@@ -407,14 +407,14 @@ describe('Player', () => {
     it('should return true when ended', () => {
       player = new Player(videoElement);
       player.state.ended = true;
-      
+
       expect(player.isEnded()).toBe(true);
     });
 
     it('should return false when not ended', () => {
       player = new Player(videoElement);
       player.state.ended = false;
-      
+
       expect(player.isEnded()).toBe(false);
     });
   });
@@ -423,14 +423,14 @@ describe('Player', () => {
     it('should return true when muted', () => {
       player = new Player(videoElement);
       player.state.muted = true;
-      
+
       expect(player.isMuted()).toBe(true);
     });
 
     it('should return false when not muted', () => {
       player = new Player(videoElement);
       player.state.muted = false;
-      
+
       expect(player.isMuted()).toBe(false);
     });
   });
@@ -439,7 +439,7 @@ describe('Player', () => {
     it('should return fullscreen state', () => {
       player = new Player(videoElement);
       player.state.fullscreen = true;
-      
+
       expect(player.isFullscreen()).toBe(true);
     });
   });
@@ -447,13 +447,13 @@ describe('Player', () => {
   describe('showNotice', () => {
     it('should have showNotice method', () => {
       player = new Player(videoElement);
-      
+
       expect(typeof player.showNotice).toBe('function');
     });
 
     it('should not throw when called', () => {
       player = new Player(videoElement);
-      
+
       expect(() => player.showNotice('Test message')).not.toThrow();
     });
   });
@@ -462,9 +462,9 @@ describe('Player', () => {
     it('should log when debug is enabled', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       player = new Player(videoElement, { debug: true });
-      
+
       player.log('Test message');
-      
+
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
@@ -472,9 +472,9 @@ describe('Player', () => {
     it('should not log when debug is disabled', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       player = new Player(videoElement, { debug: false });
-      
+
       player.log('Test message');
-      
+
       // Should not log unless it's the initialization logs
       consoleSpy.mockRestore();
     });
@@ -484,18 +484,18 @@ describe('Player', () => {
     it('should emit error event', () => {
       player = new Player(videoElement);
       const emitSpy = vi.spyOn(player, 'emit');
-      
+
       player.handleError(new Error('Test error'));
-      
+
       expect(emitSpy).toHaveBeenCalledWith('error', expect.any(Object));
     });
 
     it('should log error when debug enabled', () => {
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       player = new Player(videoElement, { debug: true });
-      
+
       player.handleError(new Error('Test error'));
-      
+
       expect(errorSpy).toHaveBeenCalled();
       errorSpy.mockRestore();
     });
@@ -504,32 +504,32 @@ describe('Player', () => {
   describe('isExternalRendererUrl', () => {
     it('should detect YouTube URLs', () => {
       player = new Player(videoElement);
-      
+
       expect(player.isExternalRendererUrl('https://www.youtube.com/watch?v=abc123')).toBe(true);
       expect(player.isExternalRendererUrl('https://youtu.be/abc123')).toBe(true);
     });
 
     it('should detect Vimeo URLs', () => {
       player = new Player(videoElement);
-      
+
       expect(player.isExternalRendererUrl('https://vimeo.com/123456')).toBe(true);
     });
 
     it('should detect SoundCloud URLs', () => {
       player = new Player(videoElement);
-      
+
       expect(player.isExternalRendererUrl('https://soundcloud.com/artist/track')).toBe(true);
     });
 
     it('should detect HLS URLs', () => {
       player = new Player(videoElement);
-      
+
       expect(player.isExternalRendererUrl('https://example.com/video.m3u8')).toBe(true);
     });
 
     it('should return false for regular video URLs', () => {
       player = new Player(videoElement);
-      
+
       expect(player.isExternalRendererUrl('https://example.com/video.mp4')).toBe(false);
       expect(player.isExternalRendererUrl('/videos/test.webm')).toBe(false);
     });
@@ -538,29 +538,29 @@ describe('Player', () => {
   describe('stripVTTFormatting', () => {
     it('should remove VTT tags', () => {
       player = new Player(videoElement);
-      
+
       const input = '<v Speaker>Hello world</v>';
       const result = player.stripVTTFormatting(input);
-      
+
       // Method may lowercase the result
       expect(result.toLowerCase()).toBe('hello world');
     });
 
     it('should handle multiple tags', () => {
       player = new Player(videoElement);
-      
+
       const input = '<b>Bold</b> and <i>italic</i>';
       const result = player.stripVTTFormatting(input);
-      
+
       expect(result.toLowerCase()).toBe('bold and italic');
     });
 
     it('should replace newlines with spaces', () => {
       player = new Player(videoElement);
-      
+
       const input = 'Line one\nLine two';
       const result = player.stripVTTFormatting(input);
-      
+
       expect(result.toLowerCase()).toBe('line one line two');
     });
   });
@@ -568,9 +568,9 @@ describe('Player', () => {
   describe('findTextTrack', () => {
     it('should return undefined when no tracks exist', () => {
       player = new Player(videoElement);
-      
+
       const track = player.findTextTrack('captions');
-      
+
       expect(track).toBeUndefined();
     });
 
@@ -581,13 +581,13 @@ describe('Player', () => {
       trackEl.setAttribute('srclang', 'en');
       trackEl.setAttribute('src', 'captions.vtt');
       videoElement.appendChild(trackEl);
-      
+
       player = new Player(videoElement);
-      
+
       // The findTextTrack method searches element.textTracks
       // In jsdom, textTracks may not be fully populated
       const track = player.findTextTrack('captions');
-      
+
       // Just verify method doesn't throw
       expect(typeof player.findTextTrack).toBe('function');
     });
@@ -599,11 +599,11 @@ describe('Player', () => {
       source.setAttribute('data-test', 'value');
       source.setAttribute('src', 'test.mp4');
       videoElement.appendChild(source);
-      
+
       player = new Player(videoElement);
-      
+
       const found = player.findSourceElement('data-test');
-      
+
       expect(found).not.toBeNull();
     });
 
@@ -616,11 +616,11 @@ describe('Player', () => {
       source2.setAttribute('src', 'test2.webm');
       videoElement.appendChild(source1);
       videoElement.appendChild(source2);
-      
+
       player = new Player(videoElement);
-      
+
       const found = player.findSourceElement('type', 'video/webm');
-      
+
       expect(found).not.toBeNull();
       expect(found.getAttribute('type')).toBe('video/webm');
     });
@@ -629,22 +629,22 @@ describe('Player', () => {
   describe('setManagedTimeout', () => {
     it('should return timeout ID', () => {
       player = new Player(videoElement);
-      
+
       const id = player.setManagedTimeout(() => {}, 1000);
-      
+
       expect(id).toBeDefined();
     });
 
     it('should execute callback after delay', () => {
       player = new Player(videoElement);
       const callback = vi.fn();
-      
+
       player.setManagedTimeout(callback, 1000);
-      
+
       expect(callback).not.toHaveBeenCalled();
-      
+
       vi.advanceTimersByTime(1000);
-      
+
       expect(callback).toHaveBeenCalled();
     });
   });
@@ -653,12 +653,12 @@ describe('Player', () => {
     it('should clear timeout', () => {
       player = new Player(videoElement);
       const callback = vi.fn();
-      
+
       const id = player.setManagedTimeout(callback, 1000);
       player.clearManagedTimeout(id);
-      
+
       vi.advanceTimersByTime(2000);
-      
+
       expect(callback).not.toHaveBeenCalled();
     });
   });
@@ -667,19 +667,19 @@ describe('Player', () => {
     it('enableCaptions should not throw when captionManager is null', () => {
       player = new Player(videoElement);
       // captionManager may be null in unit tests
-      
+
       expect(() => player.enableCaptions()).not.toThrow();
     });
 
     it('disableCaptions should not throw when captionManager is null', () => {
       player = new Player(videoElement);
-      
+
       expect(() => player.disableCaptions()).not.toThrow();
     });
 
     it('toggleCaptions should not throw when captionManager is null', () => {
       player = new Player(videoElement);
-      
+
       expect(() => player.toggleCaptions()).not.toThrow();
     });
   });
@@ -694,7 +694,7 @@ describe('Player', () => {
       };
 
       await player.enableAudioDescription();
-      
+
       expect(player.audioDescriptionManager.enable).toHaveBeenCalled();
     });
 
@@ -707,7 +707,7 @@ describe('Player', () => {
       };
 
       await player.disableAudioDescription();
-      
+
       expect(player.audioDescriptionManager.disable).toHaveBeenCalled();
     });
 
@@ -720,7 +720,7 @@ describe('Player', () => {
       };
 
       await player.toggleAudioDescription();
-      
+
       expect(player.audioDescriptionManager.toggle).toHaveBeenCalled();
     });
   });
@@ -769,7 +769,7 @@ describe('Player', () => {
   describe('state management', () => {
     it('should initialize state correctly', () => {
       player = new Player(videoElement);
-      
+
       expect(player.state.paused).toBe(true);
       expect(player.state.volume).toBe(0.8);
       expect(player.state.muted).toBe(false);
@@ -779,25 +779,25 @@ describe('Player', () => {
 
     it('should update state on volume change', () => {
       player = new Player(videoElement);
-      
+
       player.setVolume(0.3);
-      
+
       expect(player.state.volume).toBe(0.3);
     });
 
     it('should update state on mute', () => {
       player = new Player(videoElement);
-      
+
       player.mute();
-      
+
       expect(player.state.muted).toBe(true);
     });
 
     it('should update state on speed change', () => {
       player = new Player(videoElement);
-      
+
       player.setPlaybackSpeed(1.5);
-      
+
       expect(player.state.playbackSpeed).toBe(1.5);
     });
   });
@@ -807,10 +807,10 @@ describe('Player', () => {
       player = new Player(videoElement);
       const listener = vi.fn();
       player.on('play', listener);
-      
+
       // Simulate play triggering
       player.emit('play');
-      
+
       expect(listener).toHaveBeenCalled();
     });
 
@@ -818,9 +818,9 @@ describe('Player', () => {
       player = new Player(videoElement);
       const listener = vi.fn();
       player.on('pause', listener);
-      
+
       player.emit('pause');
-      
+
       expect(listener).toHaveBeenCalled();
     });
 
@@ -828,9 +828,9 @@ describe('Player', () => {
       player = new Player(videoElement);
       const listener = vi.fn();
       player.on('timeupdate', listener);
-      
+
       player.emit('timeupdate', { currentTime: 10 });
-      
+
       expect(listener).toHaveBeenCalledWith({ currentTime: 10 });
     });
   });
@@ -838,16 +838,16 @@ describe('Player', () => {
   describe('destroy', () => {
     it('should not throw when called', () => {
       player = new Player(videoElement);
-      
+
       expect(() => player.destroy()).not.toThrow();
     });
 
     it('should be callable multiple times safely', () => {
       player = new Player(videoElement);
-      
+
       player.destroy();
       player.destroy(); // Should not throw
-      
+
       // The method should handle being called multiple times
     });
   });
@@ -857,9 +857,9 @@ describe('Player', () => {
       player = new Player(videoElement);
       player.state.fullscreen = false;
       const enterSpy = vi.spyOn(player, 'enterFullscreen').mockResolvedValue();
-      
+
       await player.toggleFullscreen();
-      
+
       expect(enterSpy).toHaveBeenCalled();
     });
 
@@ -867,9 +867,9 @@ describe('Player', () => {
       player = new Player(videoElement);
       player.state.fullscreen = true;
       const exitSpy = vi.spyOn(player, 'exitFullscreen').mockResolvedValue();
-      
+
       await player.toggleFullscreen();
-      
+
       expect(exitSpy).toHaveBeenCalled();
     });
   });
@@ -878,13 +878,22 @@ describe('Player', () => {
     let fullscreenElement;
     let fullscreenButton;
 
-    const rect = (top, height) => ({ top, bottom: top + height, height, left: 0, right: 0, width: 0, x: 0, y: top });
+    const rect = (top, height) => ({
+      top,
+      bottom: top + height,
+      height,
+      left: 0,
+      right: 0,
+      width: 0,
+      x: 0,
+      y: top
+    });
 
     beforeEach(async () => {
       fullscreenElement = null;
       Object.defineProperty(document, 'fullscreenElement', {
         configurable: true,
-        get: () => fullscreenElement,
+        get: () => fullscreenElement
       });
       vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
         cb(0);
@@ -923,7 +932,10 @@ describe('Player', () => {
       player.restoreFocusAfterFullscreen();
 
       expect(document.activeElement).toBe(fullscreenButton);
-      expect(fullscreenButton.scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' });
+      expect(fullscreenButton.scrollIntoView).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest'
+      });
       expect(player.container.scrollIntoView).not.toHaveBeenCalled();
     });
 
@@ -985,9 +997,9 @@ describe('Player', () => {
     it('enterPiP should request picture in picture if supported', async () => {
       player = new Player(videoElement);
       player.element.requestPictureInPicture = vi.fn().mockResolvedValue();
-      
+
       await player.enterPiP();
-      
+
       expect(player.element.requestPictureInPicture).toHaveBeenCalled();
     });
 
@@ -995,9 +1007,9 @@ describe('Player', () => {
       player = new Player(videoElement);
       const enterSpy = vi.spyOn(player, 'enterPiP').mockResolvedValue();
       document.pictureInPictureElement = null;
-      
+
       await player.togglePiP();
-      
+
       expect(enterSpy).toHaveBeenCalled();
     });
   });
@@ -1021,20 +1033,22 @@ describe('Player', () => {
 
     it('should create the overlay for video by default', async () => {
       player = await createPlayer(videoElement);
-      
+
       expect(player.playButtonOverlay).not.toBeNull();
       expect(player.playButtonOverlayButton).toBeNull();
     });
 
     it('should not create the overlay for video when disabled', async () => {
       player = await createPlayer(videoElement, { playButtonOverlay: false });
-      
+
       expect(player.playButtonOverlay).toBeNull();
     });
 
     it('should not create the overlay for audio by default', async () => {
-      player = await createPlayer(createAudioElement(), { poster: 'https://example.com/cover.jpg' });
-      
+      player = await createPlayer(createAudioElement(), {
+        poster: 'https://example.com/cover.jpg'
+      });
+
       expect(player.playButtonOverlay).toBeNull();
       expect(player.playButtonOverlayButton).toBeNull();
     });
@@ -1044,7 +1058,7 @@ describe('Player', () => {
         playButtonOverlay: true,
         poster: 'https://example.com/cover.jpg'
       });
-      
+
       const button = player.playButtonOverlayButton;
       expect(button).not.toBeNull();
       expect(button.tagName).toBe('BUTTON');
@@ -1058,7 +1072,7 @@ describe('Player', () => {
         playButtonOverlay: true,
         poster: 'https://example.com/cover.jpg'
       });
-      
+
       expect(player.trackArtworkElement).not.toBeNull();
       expect(player.playButtonOverlayButton.parentNode).toBe(player.trackArtworkElement);
       // A focusable control must not sit inside an aria-hidden subtree
@@ -1071,13 +1085,13 @@ describe('Player', () => {
         poster: 'https://example.com/cover.jpg'
       });
       const toggleSpy = vi.spyOn(player, 'toggle').mockImplementation(() => {});
-      
+
       player.playButtonOverlayButton.click();
       expect(toggleSpy).toHaveBeenCalled();
-      
+
       player.emit('play');
       expect(player.playButtonOverlayButton.getAttribute('aria-label')).toBe('player.pause');
-      
+
       player.emit('pause');
       expect(player.playButtonOverlayButton.getAttribute('aria-label')).toBe('player.play');
     });
@@ -1087,9 +1101,9 @@ describe('Player', () => {
       const artwork = document.createElement('div');
       artwork.setAttribute('aria-hidden', 'true');
       container.appendChild(artwork);
-      
+
       player.mountPlayButtonOverlay(artwork);
-      
+
       expect(player.playButtonOverlayButton.parentNode).toBe(artwork);
       expect(artwork.hasAttribute('aria-hidden')).toBe(false);
     });
@@ -1100,9 +1114,9 @@ describe('Player', () => {
         poster: 'https://example.com/cover.jpg'
       });
       const button = player.playButtonOverlayButton;
-      
+
       player.destroy();
-      
+
       expect(button.parentNode).toBeNull();
       expect(player.playButtonOverlayButton).toBeNull();
     });
@@ -1152,19 +1166,19 @@ describe('Player', () => {
   });
 
   describe('initializeRenderer controls for external embeds', () => {
-    it.each([
-      ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
-      ['https://vimeo.com/123456789'],
-    ])('uses VidPly chrome while the renderer chunk for %s loads (default embedChrome)', (src) => {
-      player = new Player(videoElement);
-      player._detectRendererClass = vi.fn(() => new Promise(() => {}));
-      player._pendingSource = src;
+    it.each([['https://www.youtube.com/watch?v=dQw4w9WgXcQ'], ['https://vimeo.com/123456789']])(
+      'uses VidPly chrome while the renderer chunk for %s loads (default embedChrome)',
+      (src) => {
+        player = new Player(videoElement);
+        player._detectRendererClass = vi.fn(() => new Promise(() => {}));
+        player._pendingSource = src;
 
-      void player.initializeRenderer();
+        void player.initializeRenderer();
 
-      expect(player.container.classList.contains('vidply-external-controls')).toBe(false);
-      expect(player.container.classList.contains('vidply-embed-chrome-vidply')).toBe(true);
-    });
+        expect(player.container.classList.contains('vidply-external-controls')).toBe(false);
+        expect(player.container.classList.contains('vidply-embed-chrome-vidply')).toBe(true);
+      }
+    );
 
     it('uses provider chrome for SoundCloud while the renderer chunk loads (default)', () => {
       player = new Player(videoElement);
@@ -1190,21 +1204,24 @@ describe('Player', () => {
     it.each([
       [true, 'youtube', true],
       [true, 'youtube', false],
-      [false, undefined, false],
-    ])('externalEmbed=%s with renderer %s and provider chrome=%s', async (externalEmbed, rendererType, providerChrome) => {
-      player = new Player(videoElement, {
-        externalEmbed,
-        externalEmbedRenderer: rendererType,
-        embedChrome: providerChrome ? 'provider' : 'vidply',
-      });
-      for (let i = 0; i < 20; i++) {
-        await Promise.resolve();
-      }
+      [false, undefined, false]
+    ])(
+      'externalEmbed=%s with renderer %s and provider chrome=%s',
+      async (externalEmbed, rendererType, providerChrome) => {
+        player = new Player(videoElement, {
+          externalEmbed,
+          externalEmbedRenderer: rendererType,
+          embedChrome: providerChrome ? 'provider' : 'vidply'
+        });
+        for (let i = 0; i < 20; i++) {
+          await Promise.resolve();
+        }
 
-      expect(player.container.classList.contains('vidply-external-controls')).toBe(
-        externalEmbed && providerChrome
-      );
-    });
+        expect(player.container.classList.contains('vidply-external-controls')).toBe(
+          externalEmbed && providerChrome
+        );
+      }
+    );
 
     it('keeps VidPly controls for HTML5 sources', () => {
       player = new Player(videoElement);

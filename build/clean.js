@@ -15,4 +15,3 @@ try {
   console.error('❌ Error cleaning dist:', error);
   process.exit(1);
 }
-

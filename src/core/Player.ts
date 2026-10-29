@@ -3,35 +3,41 @@
  * Main Player Class
  */
 
-import {EventEmitter} from '../utils/EventEmitter.js';
-import {DOMUtils} from '../utils/DOMUtils.js';
-import {ControlBar} from '../controls/ControlBar.js';
-import {CaptionManager} from '../controls/CaptionManager.js';
-import {KeyboardManager} from '../controls/KeyboardManager.js';
-import {MediaSessionManager} from './MediaSessionManager.js';
-import {HTML5Renderer} from '../renderers/HTML5Renderer.js';
-import {createPlayOverlay} from '../icons/Icons.js';
-import {i18n} from '../i18n/i18n.js';
-import {StorageManager} from '../utils/StorageManager.js';
-import {DraggableResizable} from '../utils/DraggableResizable.js';
-import {canPlayNativeHls, debounce, isIOS, isMobile, rafWithTimeout} from '../utils/PerformanceUtils.js';
-import {isPlaylistPanelRightDesktopViewport} from '../constants/layoutBreakpoints.js';
-import {sanitizePosterUrl, cssEscapeUrl} from '../utils/UrlSafe.js';
-import {classifyRendererType} from '../utils/RendererType.js';
+import { EventEmitter } from '../utils/EventEmitter.js';
+import { DOMUtils } from '../utils/DOMUtils.js';
+import { ControlBar } from '../controls/ControlBar.js';
+import { CaptionManager } from '../controls/CaptionManager.js';
+import { KeyboardManager } from '../controls/KeyboardManager.js';
+import { MediaSessionManager } from './MediaSessionManager.js';
+import { HTML5Renderer } from '../renderers/HTML5Renderer.js';
+import { createPlayOverlay } from '../icons/Icons.js';
+import { i18n } from '../i18n/i18n.js';
+import { StorageManager } from '../utils/StorageManager.js';
+import { DraggableResizable } from '../utils/DraggableResizable.js';
+import {
+  canPlayNativeHls,
+  debounce,
+  isIOS,
+  isMobile,
+  rafWithTimeout
+} from '../utils/PerformanceUtils.js';
+import { isPlaylistPanelRightDesktopViewport } from '../constants/layoutBreakpoints.js';
+import { sanitizePosterUrl, cssEscapeUrl } from '../utils/UrlSafe.js';
+import { classifyRendererType } from '../utils/RendererType.js';
 import {
   candidatesFromTrack,
   negotiateMediaSources,
   type MediaSourceCandidate,
-  type NegotiatedMediaSource,
+  type NegotiatedMediaSource
 } from '../utils/MediaSourceNegotiation.js';
-import {observeForLazyInit, cancelLazyInit, type LazyHandle} from './LazyInit.js';
-import {PseudoFullscreenController} from './PseudoFullscreen.js';
-import {ThemeManager, PLAYER_THEMES, type ThemeName} from './ThemeManager.js';
-import {PosterManager} from './PosterManager.js';
-import {ResumeManager} from './ResumeManager.js';
-import {ResponsiveManager} from './ResponsiveManager.js';
-import {LiveStreamManager} from './LiveStreamManager.js';
-import {DebugOverlay} from './DebugOverlay.js';
+import { observeForLazyInit, cancelLazyInit, type LazyHandle } from './LazyInit.js';
+import { PseudoFullscreenController } from './PseudoFullscreen.js';
+import { ThemeManager, PLAYER_THEMES, type ThemeName } from './ThemeManager.js';
+import { PosterManager } from './PosterManager.js';
+import { ResumeManager } from './ResumeManager.js';
+import { ResponsiveManager } from './ResponsiveManager.js';
+import { LiveStreamManager } from './LiveStreamManager.js';
+import { DebugOverlay } from './DebugOverlay.js';
 import {
   MetadataAlertsManager,
   type MetadataAlertConfig as _MetadataAlertConfig,
@@ -42,8 +48,8 @@ import {
 // `core/Player.js` keep working.
 export type MetadataAlertConfig = _MetadataAlertConfig;
 export type MetadataAlertOptions = _MetadataAlertOptions;
-import type {PlayerEventMap} from '../types/events.js';
-import type {PlayerOptions} from '../types/options.js';
+import type { PlayerEventMap } from '../types/events.js';
+import type { PlayerOptions } from '../types/options.js';
 
 const EXTERNAL_CONTROL_RENDERERS: ReadonlySet<string> = new Set(['youtube', 'vimeo', 'soundcloud']);
 
@@ -51,7 +57,7 @@ const MEDIA_ERR_LABEL: Record<number, string> = {
   1: 'MEDIA_ERR_ABORTED',
   2: 'MEDIA_ERR_NETWORK',
   3: 'MEDIA_ERR_DECODE',
-  4: 'MEDIA_ERR_SRC_NOT_SUPPORTED',
+  4: 'MEDIA_ERR_SRC_NOT_SUPPORTED'
 };
 
 /** MediaError and DOM objects often stringify as `{}` in the debug overlay. */
@@ -65,7 +71,8 @@ function formatUnknownForLog(value: unknown, media?: HTMLMediaElement | null): s
   if (value instanceof Error) {
     return value.name || 'Error';
   }
-  const MediaErrorCtor = typeof globalThis.MediaError !== 'undefined' ? globalThis.MediaError : null;
+  const MediaErrorCtor =
+    typeof globalThis.MediaError !== 'undefined' ? globalThis.MediaError : null;
   const asMedia =
     MediaErrorCtor && value instanceof MediaErrorCtor
       ? value
@@ -82,7 +89,9 @@ function formatUnknownForLog(value: unknown, media?: HTMLMediaElement | null): s
     elErr &&
     (value === null ||
       value === undefined ||
-      (typeof value === 'object' && !Array.isArray(value) && Object.keys(value as object).length === 0))
+      (typeof value === 'object' &&
+        !Array.isArray(value) &&
+        Object.keys(value as object).length === 0))
   ) {
     const label = MEDIA_ERR_LABEL[elErr.code] ?? `MediaError code=${elErr.code}`;
     const msg = elErr.message?.trim();
@@ -98,16 +107,16 @@ function formatUnknownForLog(value: unknown, media?: HTMLMediaElement | null): s
   }
   return String(value);
 }
-import type {PlayerState} from '../types/state.js';
-import type {Renderer, RendererType} from '../types/renderer.js';
-import type {AudioDescriptionManager} from './AudioDescriptionManager.js';
-import type {SignLanguageManager} from './SignLanguageManager.js';
-import type {FloatingPlayerManager} from './FloatingPlayerManager.js';
-import type {TranscriptManager} from '../controls/TranscriptManager.js';
-import type {PlaylistManager} from '../features/PlaylistManager.js';
-import {TrackInfoView} from './TrackInfoView.js';
-import type {TrackInfoData} from './TrackInfoView.js';
-import {KeyboardHelp} from '../controls/KeyboardHelp.js';
+import type { PlayerState } from '../types/state.js';
+import type { Renderer, RendererType } from '../types/renderer.js';
+import type { AudioDescriptionManager } from './AudioDescriptionManager.js';
+import type { SignLanguageManager } from './SignLanguageManager.js';
+import type { FloatingPlayerManager } from './FloatingPlayerManager.js';
+import type { TranscriptManager } from '../controls/TranscriptManager.js';
+import type { PlaylistManager } from '../features/PlaylistManager.js';
+import { TrackInfoView } from './TrackInfoView.js';
+import type { TrackInfoData } from './TrackInfoView.js';
+import { KeyboardHelp } from '../controls/KeyboardHelp.js';
 
 // Typed dynamic loaders. Each loader returns the constructor for the
 // lazily imported manager, so call sites get full IntelliSense and
@@ -210,12 +219,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     if ('IntersectionObserver' in window) {
-      observeForLazyInit<Partial<PlayerOptions>>(
-        element,
-        options,
-        margin,
-        (target, opts) => { new Player(target, opts); }
-      );
+      observeForLazyInit<Partial<PlayerOptions>>(element, options, margin, (target, opts) => {
+        new Player(target, opts);
+      });
       return { cancel: () => cancelLazyInit(element) };
     }
     new Player(element, options);
@@ -342,7 +348,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
   constructor(element: string | HTMLElement, options: Record<string, unknown> = {}) {
     super();
 
-    this.element = (typeof element === 'string' ? document.querySelector(element) : element) as HTMLMediaElement;
+    this.element = (
+      typeof element === 'string' ? document.querySelector(element) : element
+    ) as HTMLMediaElement;
     if (!this.element) {
       throw new Error('VidPly: Element not found');
     }
@@ -356,8 +364,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
     // cannot smuggle, say, `script` or `object` via a `data-vidply-options`
     // attribute they control.
     if (this.element.tagName !== 'VIDEO' && this.element.tagName !== 'AUDIO') {
-      const requested = typeof options.mediaType === 'string' ? options.mediaType.toLowerCase() : 'video';
-      const mediaType: AllowedMediaType = (ALLOWED_MEDIA_TYPES as readonly string[]).includes(requested)
+      const requested =
+        typeof options.mediaType === 'string' ? options.mediaType.toLowerCase() : 'video';
+      const mediaType: AllowedMediaType = (ALLOWED_MEDIA_TYPES as readonly string[]).includes(
+        requested
+      )
         ? (requested as AllowedMediaType)
         : 'video';
       if (mediaType !== requested) {
@@ -366,7 +377,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       const mediaElement = document.createElement(mediaType);
 
       // Copy attributes from the div to the media element
-      Array.from(this.element.attributes).forEach(attr => {
+      Array.from(this.element.attributes).forEach((attr) => {
         if (attr.name !== 'id' && attr.name !== 'class' && !attr.name.startsWith('data-')) {
           mediaElement.setAttribute(attr.name, attr.value);
         }
@@ -514,9 +525,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
         'volume-down': ['ArrowDown'],
         'seek-forward': ['ArrowRight'],
         'seek-backward': ['ArrowLeft'],
-        'mute': ['m'],
-        'fullscreen': ['f'],
-        'captions': ['c'],
+        mute: ['m'],
+        fullscreen: ['f'],
+        captions: ['c'],
         'caption-style-menu': ['a'],
         'speed-up': ['>'],
         'speed-down': ['<'],
@@ -524,7 +535,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
         'quality-menu': ['q'],
         'chapters-menu': ['j'],
         'transcript-toggle': ['t'],
-        'help': ['?']
+        help: ['?']
       },
 
       // Accessibility
@@ -540,26 +551,26 @@ export class Player extends EventEmitter<PlayerEventMap> {
       languages: ['en'],
 
       // Resume Playback
-      resumePlayback: false,      // Enable saving and resuming playback position
-      resumeThreshold: 10,        // Don't resume if < threshold seconds watched
-      resumePrompt: true,         // Show prompt to resume (false = auto-resume silently)
+      resumePlayback: false, // Enable saving and resuming playback position
+      resumeThreshold: 10, // Don't resume if < threshold seconds watched
+      resumePrompt: true, // Show prompt to resume (false = auto-resume silently)
 
       // Thumbnail Preview
-      thumbnailPreview: true,          // Enable/disable thumbnail preview on seek bar
-      thumbnailCacheSize: 50,          // Max cached thumbnails (default increased from 20)
-      thumbnailPregenerate: true,      // Pre-generate thumbnails during idle time
-      thumbnailInterval: 10,           // Pre-generation interval in seconds
-      thumbnailWidth: 160,             // Thumbnail width
-      thumbnailHeight: 90,             // Thumbnail height
-      thumbnailQuality: 0.8,           // Thumbnail JPEG quality
+      thumbnailPreview: true, // Enable/disable thumbnail preview on seek bar
+      thumbnailCacheSize: 50, // Max cached thumbnails (default increased from 20)
+      thumbnailPregenerate: true, // Pre-generate thumbnails during idle time
+      thumbnailInterval: 10, // Pre-generation interval in seconds
+      thumbnailWidth: 160, // Thumbnail width
+      thumbnailHeight: 90, // Thumbnail height
+      thumbnailQuality: 0.8, // Thumbnail JPEG quality
 
       // Lazy Loading (primarily used by index.js auto-init)
-      lazyInit: true,                  // Enable lazy initialization via IntersectionObserver
-      lazyMargin: '200px',             // Root margin for IntersectionObserver
+      lazyInit: true, // Enable lazy initialization via IntersectionObserver
+      lazyMargin: '200px', // Root margin for IntersectionObserver
 
       // Theming
-      theme: 'dark',                   // Theme: 'dark', 'light', 'minimal', 'high-contrast'
-      themeVariables: {},              // Custom CSS variable overrides (e.g., { 'primary': '#ff0000' })
+      theme: 'dark', // Theme: 'dark', 'light', 'minimal', 'high-contrast'
+      themeVariables: {}, // Custom CSS variable overrides (e.g., { 'primary': '#ff0000' })
 
       // Advanced
       debug: false,
@@ -794,7 +805,10 @@ export class Player extends EventEmitter<PlayerEventMap> {
   /**
    * Show a small in-player notice (non-blocking), also announced to screen readers.
    */
-  showNotice(message: string, {timeout = 2500, priority = 'polite' as 'polite' | 'assertive'} = {}) {
+  showNotice(
+    message: string,
+    { timeout = 2500, priority = 'polite' as 'polite' | 'assertive' } = {}
+  ) {
     try {
       if (!message) return;
       if (!this.container) return;
@@ -897,7 +911,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
         try {
           const mediaEl = this.element as HTMLMediaElement & {
             disablePictureInPicture?: boolean;
-            disableRemotePlayback?: boolean
+            disableRemotePlayback?: boolean;
           };
           mediaEl.disablePictureInPicture = true;
           mediaEl.disableRemotePlayback = true;
@@ -1064,7 +1078,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     const hasSourceElementsWithDesc = this.sourceElements.some(
-      (el: HTMLSourceElement) => el.getAttribute('data-desc-src') || el.getAttribute('data-orig-src')
+      (el: HTMLSourceElement) =>
+        el.getAttribute('data-desc-src') || el.getAttribute('data-orig-src')
     );
     if (hasSourceElementsWithDesc) {
       return true;
@@ -1111,9 +1126,10 @@ export class Player extends EventEmitter<PlayerEventMap> {
     if (src && src.length > 0) {
       return true;
     }
-    const sources = (this.signLanguageSources && Object.keys(this.signLanguageSources).length > 0)
-      ? this.signLanguageSources
-      : (this.options.signLanguageSources || {});
+    const sources =
+      this.signLanguageSources && Object.keys(this.signLanguageSources).length > 0
+        ? this.signLanguageSources
+        : this.options.signLanguageSources || {};
     return Object.keys(sources).length > 0;
   }
 
@@ -1209,7 +1225,10 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
     // Check if this language is available as a built-in that can be loaded on demand
     const i18nWithLoaders = i18n as unknown as { builtInLanguageLoaders?: Record<string, unknown> };
-    if (i18nWithLoaders.builtInLanguageLoaders && i18nWithLoaders.builtInLanguageLoaders[normalizedLang]) {
+    if (
+      i18nWithLoaders.builtInLanguageLoaders &&
+      i18nWithLoaders.builtInLanguageLoaders[normalizedLang]
+    ) {
       return normalizedLang;
     }
 
@@ -1261,11 +1280,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
     };
 
     const hasContent = Boolean(
-      (data.title ?? '').trim()
-      || (data.artist ?? '').trim()
-      || (data.description ?? '').trim()
-      || (data.longDescription ?? '').trim()
-      || (data.date ?? '').trim()
+      (data.title ?? '').trim() ||
+      (data.artist ?? '').trim() ||
+      (data.description ?? '').trim() ||
+      (data.longDescription ?? '').trim() ||
+      (data.date ?? '').trim()
     );
 
     return hasContent ? data : null;
@@ -1278,7 +1297,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
    */
   getVideoId() {
     // First check for explicit video ID attribute
-    const explicitId = this.element.getAttribute('data-video-id') ||
+    const explicitId =
+      this.element.getAttribute('data-video-id') ||
       this.element.dataset.videoId ||
       this._originalElement?.getAttribute('data-video-id') ||
       this._originalElement?.dataset?.videoId;
@@ -1310,7 +1330,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return 'v_' + Math.abs(hash).toString(36);
@@ -1318,35 +1338,48 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
   // Resume-playback delegates. Implementations live in
   // `core/ResumeManager.ts`; these stubs keep the public API.
-  saveProgress(): void { this.resumeManager?.saveProgress(); }
+  saveProgress(): void {
+    this.resumeManager?.saveProgress();
+  }
 
-  checkForResume(): void { this.resumeManager?.checkForResume(); }
+  checkForResume(): void {
+    this.resumeManager?.checkForResume();
+  }
 
-  showResumePrompt(savedTime: number): void { this.resumeManager?.showPrompt(savedTime); }
+  showResumePrompt(savedTime: number): void {
+    this.resumeManager?.showPrompt(savedTime);
+  }
 
-  hideResumePrompt(): void { this.resumeManager?.hidePrompt(); }
+  hideResumePrompt(): void {
+    this.resumeManager?.hidePrompt();
+  }
 
   // Theme delegates. All four keep their original names so external
   // callers keep working; the real work is in `core/ThemeManager.ts`.
-  applyTheme(): void { this.themeManager.apply(); }
+  applyTheme(): void {
+    this.themeManager.apply();
+  }
 
   setTheme(themeName: ThemeName, customVariables: Record<string, string> = {}): void {
     this.themeManager.set(themeName, customVariables);
   }
 
-  getTheme(): ThemeName | undefined { return this.themeManager.get(); }
+  getTheme(): ThemeName | undefined {
+    return this.themeManager.get();
+  }
 
   setThemeVariable(variableName: string, value: string): void {
     this.themeManager.setVariable(variableName, value);
   }
 
-  resetTheme(): void { this.themeManager.reset(); }
+  resetTheme(): void {
+    this.themeManager.reset();
+  }
 
   createContainer() {
     // Create main container with unique label for multiple players on same page
-    const playerLabel = this.instanceId > 1
-      ? `${i18n.t('player.label')} ${this.instanceId}`
-      : i18n.t('player.label');
+    const playerLabel =
+      this.instanceId > 1 ? `${i18n.t('player.label')} ${this.instanceId}` : i18n.t('player.label');
 
     // Use role="region" (a labelled perceivable section) rather than
     // role="application". role="application" forces most screen readers into
@@ -1359,9 +1392,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
     this.container = DOMUtils.createElement('div', {
       className: `${this.options.classPrefix}-player`,
       attributes: {
-        'role': 'region',
+        role: 'region',
         'aria-label': playerLabel,
-        'tabindex': '0'
+        tabindex: '0'
       }
     });
 
@@ -1422,15 +1455,13 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
     // Set dimensions
     if (this.options.width) {
-      this.container.style.width = typeof this.options.width === 'number'
-        ? `${this.options.width}px`
-        : this.options.width;
+      this.container.style.width =
+        typeof this.options.width === 'number' ? `${this.options.width}px` : this.options.width;
     }
 
     if (this.options.height) {
-      this.container.style.height = typeof this.options.height === 'number'
-        ? `${this.options.height}px`
-        : this.options.height;
+      this.container.style.height =
+        typeof this.options.height === 'number' ? `${this.options.height}px` : this.options.height;
     }
 
     // Set a poster (convert relative paths to absolute URLs). The
@@ -1460,30 +1491,46 @@ export class Player extends EventEmitter<PlayerEventMap> {
     // destroy() removes it without an explicit removeEventListener
     // pair.
     this.element.style.cursor = 'pointer';
-    this.element.addEventListener('click', (e) => {
-      if (e.target === this.element) {
-        this.toggle();
-      }
-    }, {signal: this.lifecycleSignal});
+    this.element.addEventListener(
+      'click',
+      (e) => {
+        if (e.target === this.element) {
+          this.toggle();
+        }
+      },
+      { signal: this.lifecycleSignal }
+    );
 
     // Chromeless YouTube/Vimeo: the media element is hidden; toggle from the wrapper.
-    this.videoWrapper.addEventListener('click', (e) => {
-      if (!this.container?.classList.contains(`${this.options.classPrefix}-embed-chrome-vidply`)) {
-        return;
-      }
-      const prefix = this.options.classPrefix;
-      // composedPath() is fixed at dispatch time: a button that swaps its icon
-      // markup in its own click handler (fullscreen) detaches `e.target`, so
-      // `target.closest()` would no longer find the control bar.
-      const ignore = [`${prefix}-controls`, `${prefix}-play-overlay-button`, `${prefix}-play-overlay`];
-      const fromControl = e.composedPath().some(
-        (node) => node instanceof Element && ignore.some((cls) => node.classList.contains(cls))
-      );
-      if (fromControl || !(e.target instanceof Element)) {
-        return;
-      }
-      this.toggle();
-    }, {signal: this.lifecycleSignal});
+    this.videoWrapper.addEventListener(
+      'click',
+      (e) => {
+        if (
+          !this.container?.classList.contains(`${this.options.classPrefix}-embed-chrome-vidply`)
+        ) {
+          return;
+        }
+        const prefix = this.options.classPrefix;
+        // composedPath() is fixed at dispatch time: a button that swaps its icon
+        // markup in its own click handler (fullscreen) detaches `e.target`, so
+        // `target.closest()` would no longer find the control bar.
+        const ignore = [
+          `${prefix}-controls`,
+          `${prefix}-play-overlay-button`,
+          `${prefix}-play-overlay`
+        ];
+        const fromControl = e
+          .composedPath()
+          .some(
+            (node) => node instanceof Element && ignore.some((cls) => node.classList.contains(cls))
+          );
+        if (fromControl || !(e.target instanceof Element)) {
+          return;
+        }
+        this.toggle();
+      },
+      { signal: this.lifecycleSignal }
+    );
     this.videoWrapper.style.cursor = 'pointer';
 
     this.on('play', () => {
@@ -1530,11 +1577,15 @@ export class Player extends EventEmitter<PlayerEventMap> {
     // segments at attachSource time, which triggers loadeddata before
     // the user clicks play. Hiding the poster there reveals the first
     // decoded frame instead of the artwork the publisher chose.
-    this.element.addEventListener('loadeddata', () => {
-      if (this.state.hasStartedPlayback && (this.state.playing || this.state.currentTime > 0)) {
-        this.hidePosterOverlay();
-      }
-    }, {once: true});
+    this.element.addEventListener(
+      'loadeddata',
+      () => {
+        if (this.state.hasStartedPlayback && (this.state.playing || this.state.currentTime > 0)) {
+          this.hidePosterOverlay();
+        }
+      },
+      { once: true }
+    );
 
     // Apply theme
     this.applyTheme();
@@ -1571,8 +1622,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
       return;
     }
 
-    const target = host
-      ?? (this.element.tagName === 'AUDIO'
+    const target =
+      host ??
+      (this.element.tagName === 'AUDIO'
         ? (this.trackArtworkElement ?? this.container)
         : this.videoWrapper);
 
@@ -1642,7 +1694,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }, 150);
     this.debouncedPositionPlayOverlay = debouncedPosition;
 
-    window.addEventListener('resize', debouncedPosition, {signal: this.lifecycleSignal});
+    window.addEventListener('resize', debouncedPosition, { signal: this.lifecycleSignal });
 
     this.on('loadedmetadata', () => {
       this.positionPlayOverlayOnMobile();
@@ -1739,7 +1791,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   positionPlayOverlayOnMobile() {
-    this.positionOverlayOnMediaCenter(this.getPlayButtonOverlayNode(), { youtubePlayOverlayNudge: true });
+    this.positionOverlayOnMediaCenter(this.getPlayButtonOverlayNode(), {
+      youtubePlayOverlayNudge: true
+    });
     this.positionOverlayOnMediaCenter(this.loadingOverlayElement);
   }
 
@@ -1750,7 +1804,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
    */
   private positionOverlayOnMediaCenter(
     node: HTMLElement | SVGSVGElement | null,
-    options: { youtubePlayOverlayNudge?: boolean } = {},
+    options: { youtubePlayOverlayNudge?: boolean } = {}
   ) {
     if (!node) {
       return;
@@ -1765,9 +1819,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
 
     const needsManualPosition =
-      isMobile()
-      || this.isPlaylistPanelRightDesktop()
-      || mediaEl !== this.element;
+      isMobile() || this.isPlaylistPanelRightDesktop() || mediaEl !== this.element;
 
     if (!needsManualPosition) {
       node.style.top = '';
@@ -1786,8 +1838,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
       return;
     }
 
-    const mediaCenterX = (mediaRect.left - wrapperRect.left) + (mediaRect.width / 2);
-    let mediaCenterY = (mediaRect.top - wrapperRect.top) + (mediaRect.height / 2);
+    const mediaCenterX = mediaRect.left - wrapperRect.left + mediaRect.width / 2;
+    let mediaCenterY = mediaRect.top - wrapperRect.top + mediaRect.height / 2;
 
     if (options.youtubePlayOverlayNudge) {
       mediaCenterY -= this.youtubeChromelessPlayOverlayNudgePx(mediaEl, mediaRect.height);
@@ -1804,8 +1856,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
   private youtubeChromelessPlayOverlayNudgePx(mediaEl: HTMLElement, hostHeight: number): number {
     const prefix = this.options.classPrefix;
     if (
-      !mediaEl.classList.contains(`${prefix}-youtube-chromeless-host`)
-      || this.usesProviderNativeChrome('youtube')
+      !mediaEl.classList.contains(`${prefix}-youtube-chromeless-host`) ||
+      this.usesProviderNativeChrome('youtube')
     ) {
       return 0;
     }
@@ -1832,7 +1884,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       const externalSelectors = [
         'div[id^="youtube-player-"]',
         'iframe[id^="vimeo-player-"]',
-        `iframe.${prefix}-soundcloud-iframe`,
+        `iframe.${prefix}-soundcloud-iframe`
       ];
 
       for (const selector of externalSelectors) {
@@ -1851,9 +1903,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   private isPlaylistPanelRightDesktop(): boolean {
-    return Boolean(this.container?.classList.contains('vidply-playlist-panel-right'))
-      && !this.state.fullscreen
-      && isPlaylistPanelRightDesktopViewport();
+    return (
+      Boolean(this.container?.classList.contains('vidply-playlist-panel-right')) &&
+      !this.state.fullscreen &&
+      isPlaylistPanelRightDesktopViewport()
+    );
   }
 
   async initializeRenderer() {
@@ -1919,8 +1973,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
         await Promise.race([
           this.renderer.init(),
           new Promise<never>((_, reject) => {
-            timer = setTimeout(() => reject(new Error(`Renderer init timed out after ${initTimeout}ms`)), initTimeout);
-          }),
+            timer = setTimeout(
+              () => reject(new Error(`Renderer init timed out after ${initTimeout}ms`)),
+              initTimeout
+            );
+          })
         ]).finally(() => {
           if (timer !== undefined) clearTimeout(timer);
         });
@@ -1959,23 +2016,23 @@ export class Player extends EventEmitter<PlayerEventMap> {
     type RendererModule = Record<string, RendererCtor | undefined> & { default?: RendererCtor };
     switch (classifyRendererType(src)) {
       case 'youtube': {
-        const module = await import('../renderers/YouTubeRenderer.js') as RendererModule;
+        const module = (await import('../renderers/YouTubeRenderer.js')) as RendererModule;
         return (module.YouTubeRenderer ?? module.default) as RendererCtor;
       }
       case 'vimeo': {
-        const module = await import('../renderers/VimeoRenderer.js') as RendererModule;
+        const module = (await import('../renderers/VimeoRenderer.js')) as RendererModule;
         return (module.VimeoRenderer ?? module.default) as RendererCtor;
       }
       case 'hls': {
-        const module = await import('../renderers/HLSRenderer.js') as RendererModule;
+        const module = (await import('../renderers/HLSRenderer.js')) as RendererModule;
         return (module.HLSRenderer ?? module.default) as RendererCtor;
       }
       case 'dash': {
-        const module = await import('../renderers/DASHRenderer.js') as RendererModule;
+        const module = (await import('../renderers/DASHRenderer.js')) as RendererModule;
         return (module.DASHRenderer ?? module.default) as RendererCtor;
       }
       case 'soundcloud': {
-        const module = await import('../renderers/SoundCloudRenderer.js') as RendererModule;
+        const module = (await import('../renderers/SoundCloudRenderer.js')) as RendererModule;
         return (module.SoundCloudRenderer ?? module.default) as RendererCtor;
       }
       default:
@@ -1985,19 +2042,19 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
   _selectBestSource(sourceElements: HTMLSourceElement[]): {
     src: string;
-    fallbacks: Array<{ src: string; type: string }>
+    fallbacks: Array<{ src: string; type: string }>;
   } {
     const candidates: MediaSourceCandidate[] = sourceElements.map((el) => ({
       src: el.src || el.getAttribute('src') || '',
-      type: el.type || el.getAttribute('type') || '',
+      type: el.type || el.getAttribute('type') || ''
     }));
     const negotiated = negotiateMediaSources(candidates);
     return {
       src: negotiated.src,
       fallbacks: negotiated.fallbacks.map((s) => ({
         src: s.src,
-        type: s.type ?? '',
-      })),
+        type: s.type ?? ''
+      }))
     };
   }
 
@@ -2008,7 +2065,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       type?: string;
       sources?: Array<{ src?: string; type?: string }>;
     },
-    options?: { preferNativeElement?: boolean },
+    options?: { preferNativeElement?: boolean }
   ): NegotiatedMediaSource {
     return negotiateMediaSources(candidatesFromTrack(track), options);
   }
@@ -2100,9 +2157,13 @@ export class Player extends EventEmitter<PlayerEventMap> {
     return this.posterManager.autoGenerate();
   }
 
-  showPosterOverlay(): void { this.posterManager.showOverlay(); }
+  showPosterOverlay(): void {
+    this.posterManager.showOverlay();
+  }
 
-  hidePosterOverlay(): void { this.posterManager.hideOverlay(); }
+  hidePosterOverlay(): void {
+    this.posterManager.hideOverlay();
+  }
 
   /** Strip playlist/idle poster art before YouTube/Vimeo/SoundCloud iframes load. */
   clearVideoPosterForExternalEmbed(): void {
@@ -2119,7 +2180,13 @@ export class Player extends EventEmitter<PlayerEventMap> {
   /** Native embed frame ratio (e.g. Vimeo `getVideoWidth` / `getVideoHeight`). */
   setEmbedAspectRatio(width: number, height: number): void {
     const wrapper = this.videoWrapper;
-    if (!wrapper || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    if (
+      !wrapper ||
+      !Number.isFinite(width) ||
+      !Number.isFinite(height) ||
+      width <= 0 ||
+      height <= 0
+    ) {
       return;
     }
     wrapper.style.setProperty('--vidply-embed-aspect-ratio', `${width} / ${height}`);
@@ -2173,13 +2240,15 @@ export class Player extends EventEmitter<PlayerEventMap> {
    */
   isExternalRendererUrl(src: string | null | undefined) {
     if (!src) return false;
-    return src.includes('youtube.com') ||
+    return (
+      src.includes('youtube.com') ||
       src.includes('youtu.be') ||
       src.includes('vimeo.com') ||
       src.includes('soundcloud.com') ||
       src.includes('api.soundcloud.com') ||
       src.includes('.m3u8') ||
-      src.includes('.mpd');
+      src.includes('.mpd')
+    );
   }
 
   async load(config: PlayerLoadConfig) {
@@ -2196,7 +2265,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
         this.pause();
       }
       this.resetPlaybackStateForSourceChange({
-        pauseElement: !preserveElementPlayback,
+        pauseElement: !preserveElementPlayback
       });
 
       // Clear existing text tracks
@@ -2245,7 +2314,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
         this.element.removeAttribute('src');
         // Also clear any source elements to prevent errors
         const sources = this.element.querySelectorAll('source');
-        sources.forEach(s => s.removeAttribute('src'));
+        sources.forEach((s) => s.removeAttribute('src'));
       }
 
       // Store the source URL for external renderers to access
@@ -2312,7 +2381,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
           // Insert tracks at the beginning (before any flow content) for HTML5 validity
           const firstChild = this.element.firstChild;
-          if (firstChild && firstChild.nodeType === Node.ELEMENT_NODE && (firstChild as Element).tagName !== 'TRACK') {
+          if (
+            firstChild &&
+            firstChild.nodeType === Node.ELEMENT_NODE &&
+            (firstChild as Element).tagName !== 'TRACK'
+          ) {
             this.element.insertBefore(track, firstChild);
           } else {
             this.element.appendChild(track);
@@ -2359,10 +2432,16 @@ export class Player extends EventEmitter<PlayerEventMap> {
       // DASH and HLS renderers manage their own source loading via MSE/hls.js
       // and must be fully destroyed+reinitialized when switching sources,
       // even when the renderer type stays the same.
-      const streamingRenderer = this.renderer as { dash?: unknown; hls?: unknown; isStreaming?: boolean } | null;
+      const streamingRenderer = this.renderer as {
+        dash?: unknown;
+        hls?: unknown;
+        isStreaming?: boolean;
+      } | null;
       const needsFullReinit = Boolean(
-        !shouldChangeRenderer && streamingRenderer &&
-        (streamingRenderer.dash || (streamingRenderer.hls && streamingRenderer.isStreaming !== false))
+        !shouldChangeRenderer &&
+        streamingRenderer &&
+        (streamingRenderer.dash ||
+          (streamingRenderer.hls && streamingRenderer.isStreaming !== false))
       );
 
       // Destroy old renderer if changing types or if MSE-based renderer needs reinit
@@ -2512,7 +2591,6 @@ export class Player extends EventEmitter<PlayerEventMap> {
       this.emit('sourcechange', config);
       this.syncPlaybackUiFromMediaElement();
       this.log('Media loaded successfully');
-
     } catch (error: unknown) {
       this.handleError(error);
     } finally {
@@ -2580,8 +2658,10 @@ export class Player extends EventEmitter<PlayerEventMap> {
   /** HTML5/HLS/DASH drive play state from the media element; embeds use renderer state. */
   usesMediaElementForPlaybackUi(): boolean {
     const rendererType = this.renderer?.rendererType;
-    return Boolean(this.renderer)
-      && (rendererType === 'html5' || rendererType === 'hls' || rendererType === 'dash');
+    return (
+      Boolean(this.renderer) &&
+      (rendererType === 'html5' || rendererType === 'hls' || rendererType === 'dash')
+    );
   }
 
   syncPlayOverlayVisibility(): void {
@@ -2713,7 +2793,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
   private mountNativeSourceOnElement(
     media: HTMLMediaElement,
     absolute: string,
-    mimeType?: string,
+    mimeType?: string
   ): void {
     media.querySelectorAll('source').forEach((node) => node.remove());
     media.removeAttribute('src');
@@ -2774,7 +2854,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
   private bindIosPlaylistMediaInUserGesture(
     media: HTMLMediaElement,
     absolute: string,
-    mimeType?: string,
+    mimeType?: string
   ): void {
     media.querySelectorAll('track').forEach((node) => node.remove());
     this.mountNativeSourceOnElement(media, absolute, mimeType);
@@ -2825,7 +2905,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
     };
     media.addEventListener('loadedmetadata', attachTextTracks, { once: true });
 
-    const renderer = this.renderer as { media?: HTMLMediaElement; play?: () => Promise<void> | void; rendererType?: string } | null;
+    const renderer = this.renderer as {
+      media?: HTMLMediaElement;
+      play?: () => Promise<void> | void;
+      rendererType?: string;
+    } | null;
     if (renderer && 'media' in renderer) {
       renderer.media = media;
     }
@@ -2844,7 +2928,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
           this.state.paused = true;
           this.log(
             `Play failed: ${err.name ?? 'Error'} ${err.message ?? ''} | ${snap()}`.trim(),
-            'warn',
+            'warn'
           );
           this.syncPlaybackUiFromMediaElement?.();
         });
@@ -2854,7 +2938,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       const err = error as { name?: string; message?: string };
       this.log(
         `Play failed: ${err.name ?? 'Error'} ${err.message ?? ''} | ${snap()}`.trim(),
-        'warn',
+        'warn'
       );
       return false;
     }
@@ -2915,9 +2999,10 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   usesProviderNativeChrome(rendererType?: RendererType | null): boolean {
-    const type = rendererType
-      ?? this.renderer?.rendererType
-      ?? (this.currentSource || this._pendingSource
+    const type =
+      rendererType ??
+      this.renderer?.rendererType ??
+      (this.currentSource || this._pendingSource
         ? classifyRendererType(String(this.currentSource || this._pendingSource))
         : null);
     if (!type || !EXTERNAL_CONTROL_RENDERERS.has(type)) {
@@ -2938,8 +3023,10 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   _pendingEmbedRendererType(): RendererType | null {
-    if (this.options.externalEmbedRenderer
-      && EXTERNAL_CONTROL_RENDERERS.has(this.options.externalEmbedRenderer)) {
+    if (
+      this.options.externalEmbedRenderer &&
+      EXTERNAL_CONTROL_RENDERERS.has(this.options.externalEmbedRenderer)
+    ) {
       return this.options.externalEmbedRenderer;
     }
     const src = this.currentSource || this._pendingSource || '';
@@ -2976,16 +3063,14 @@ export class Player extends EventEmitter<PlayerEventMap> {
       return;
     }
     const prefix = this.options.classPrefix;
-    const rendererType = pendingRendererType
-      ?? this.renderer?.rendererType
-      ?? this._pendingEmbedRendererType();
-    const hideControls = rendererType && EXTERNAL_CONTROL_RENDERERS.has(rendererType)
-      ? this.getEffectiveEmbedChrome(rendererType) === 'provider'
-      : this.shouldHideVidplyControls();
+    const rendererType =
+      pendingRendererType ?? this.renderer?.rendererType ?? this._pendingEmbedRendererType();
+    const hideControls =
+      rendererType && EXTERNAL_CONTROL_RENDERERS.has(rendererType)
+        ? this.getEffectiveEmbedChrome(rendererType) === 'provider'
+        : this.shouldHideVidplyControls();
     const vidplyChrome = Boolean(
-      rendererType
-      && EXTERNAL_CONTROL_RENDERERS.has(rendererType)
-      && !hideControls
+      rendererType && EXTERNAL_CONTROL_RENDERERS.has(rendererType) && !hideControls
     );
 
     this.container.classList.toggle(`${prefix}-external-controls`, hideControls);
@@ -3092,7 +3177,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
     if (typeof time !== 'number' || !Number.isFinite(time)) return;
     const safeTime = this.liveStreamManager
       ? this.liveStreamManager.clampSeekTime(time)
-      : (time < 0 ? 0 : time);
+      : time < 0
+        ? 0
+        : time;
     // Any user-initiated seek (seekbar drag/click, keyboard arrow,
     // skip buttons) flows through this method, so it's the right place
     // to drop the poster overlay: scrubbing communicates "I want to see
@@ -3107,7 +3194,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
     }
   }
 
-  seekForward(interval: number = (this.options.seekInterval as number)): void {
+  seekForward(interval: number = this.options.seekInterval as number): void {
     const step = Number.isFinite(interval) ? interval : 5;
     let targetTime = this.state.currentTime + step;
     if (this.liveStreamManager?.resolveIsLive()) {
@@ -3121,7 +3208,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
     this.seek(targetTime);
   }
 
-  seekBackward(interval: number = (this.options.seekInterval as number)): void {
+  seekBackward(interval: number = this.options.seekInterval as number): void {
     const step = Number.isFinite(interval) ? interval : 5;
     const minTime = this.liveStreamManager?.resolveIsLive()
       ? this.liveStreamManager.getSeekableStart()
@@ -3274,7 +3361,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
     };
     let fullscreenPromise: Promise<void> | void | null = null;
 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     if (isIOS) {
@@ -3301,8 +3389,12 @@ export class Player extends EventEmitter<PlayerEventMap> {
       });
     }
 
-    if (!elem.requestFullscreen && !elem.webkitRequestFullscreen &&
-      !elem.mozRequestFullScreen && !elem.msRequestFullscreen) {
+    if (
+      !elem.requestFullscreen &&
+      !elem.webkitRequestFullscreen &&
+      !elem.mozRequestFullScreen &&
+      !elem.msRequestFullscreen
+    ) {
       this._enablePseudoFullscreen();
     } else {
       // Optimistically set state (will be corrected by fullscreenChangeHandler if it fails)
@@ -3360,37 +3452,43 @@ export class Player extends EventEmitter<PlayerEventMap> {
    * the browser has restored the page layout first.
    */
   restoreFocusAfterFullscreen(): void {
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      const container = this.container;
-      if (!container?.isConnected || this.state.fullscreen) {
-        return;
-      }
-      // While fullscreen, the page height collapses and the browser clamps the
-      // scroll position, so its own restore lands somewhere else.
-      const previousTop = this._preFullscreenViewportTop;
-      this._preFullscreenViewportTop = null;
-      if (previousTop !== null) {
-        const drift = container.getBoundingClientRect().top - previousTop;
-        if (Math.abs(drift) >= 1) {
-          window.scrollBy({ top: drift, behavior: 'instant' });
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const container = this.container;
+        if (!container?.isConnected || this.state.fullscreen) {
+          return;
         }
-      }
-      const button = this.controlBar?.controls.fullscreen;
-      if (!(button instanceof HTMLElement) || !button.isConnected || !(button.checkVisibility?.() ?? true)) {
-        return;
-      }
-      const alreadyFocused = document.activeElement === button;
-      button.focus();
-      // focus() does not scroll when the button kept focus through fullscreen;
-      // reveal it the same minimal way focus() would have.
-      if (alreadyFocused) {
-        const rect = button.getBoundingClientRect();
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-        if (rect.top < 0 || rect.bottom > viewportHeight) {
-          button.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        // While fullscreen, the page height collapses and the browser clamps the
+        // scroll position, so its own restore lands somewhere else.
+        const previousTop = this._preFullscreenViewportTop;
+        this._preFullscreenViewportTop = null;
+        if (previousTop !== null) {
+          const drift = container.getBoundingClientRect().top - previousTop;
+          if (Math.abs(drift) >= 1) {
+            window.scrollBy({ top: drift, behavior: 'instant' });
+          }
         }
-      }
-    }));
+        const button = this.controlBar?.controls.fullscreen;
+        if (
+          !(button instanceof HTMLElement) ||
+          !button.isConnected ||
+          !(button.checkVisibility?.() ?? true)
+        ) {
+          return;
+        }
+        const alreadyFocused = document.activeElement === button;
+        button.focus();
+        // focus() does not scroll when the button kept focus through fullscreen;
+        // reveal it the same minimal way focus() would have.
+        if (alreadyFocused) {
+          const rect = button.getBoundingClientRect();
+          const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+          if (rect.top < 0 || rect.bottom > viewportHeight) {
+            button.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+          }
+        }
+      })
+    );
   }
 
   toggleFullscreen() {
@@ -3429,7 +3527,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       return;
     }
     const pipElement = this.element as HTMLVideoElement & {
-      requestPictureInPicture?: () => Promise<PictureInPictureWindow>
+      requestPictureInPicture?: () => Promise<PictureInPictureWindow>;
     };
     if (typeof pipElement.requestPictureInPicture === 'function') {
       pipElement.requestPictureInPicture();
@@ -3500,15 +3598,23 @@ export class Player extends EventEmitter<PlayerEventMap> {
     if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
       signals.push(AbortSignal.timeout(8000));
     }
-    const signal = signals.length === 1 ? signals[0] : (AbortSignal as {
-      any?: (signals: AbortSignal[]) => AbortSignal
-    }).any?.(signals) ?? signals[0];
+    const signal =
+      signals.length === 1
+        ? signals[0]
+        : ((
+            AbortSignal as {
+              any?: (signals: AbortSignal[]) => AbortSignal;
+            }
+          ).any?.(signals) ?? signals[0]);
     try {
-      const response = await fetch(url, {method: 'HEAD', cache: 'no-cache', signal});
+      const response = await fetch(url, { method: 'HEAD', cache: 'no-cache', signal });
       return response.ok;
     } catch (error: unknown) {
       if (this.options.debug) {
-        this.log(`validateTrackExists("${url}") failed: ${(error as Error)?.message ?? error}`, 'warn');
+        this.log(
+          `validateTrackExists("${url}") failed: ${(error as Error)?.message ?? error}`,
+          'warn'
+        );
       }
       return false;
     }
@@ -3535,10 +3641,16 @@ export class Player extends EventEmitter<PlayerEventMap> {
    * @param {Array} tracks - Array of caption tracks to search in
    * @returns {number|null} Start time of matching caption, or null if not found
    */
-  findMatchingCaptionTime(targetText: string | null | undefined, tracks: Array<{
-    kind?: string;
-    track?: TextTrack | null
-  }> | null | undefined) {
+  findMatchingCaptionTime(
+    targetText: string | null | undefined,
+    tracks:
+      | Array<{
+          kind?: string;
+          track?: TextTrack | null;
+        }>
+      | null
+      | undefined
+  ) {
     if (!targetText || !tracks || tracks.length === 0) {
       return null;
     }
@@ -3592,7 +3704,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   async toggleAudioDescription() {
-    if (this.options.requirePlaybackForAccessibilityToggles && !this.renderer && this.playlistManager?.tracks?.length) {
+    if (
+      this.options.requirePlaybackForAccessibilityToggles &&
+      !this.renderer &&
+      this.playlistManager?.tracks?.length
+    ) {
       this.showNotice(i18n.t('player.startPlaybackForAudioDescription'));
       return;
     }
@@ -3626,7 +3742,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
   }
 
   async toggleSignLanguage() {
-    if (this.options.requirePlaybackForAccessibilityToggles && !this.renderer && this.playlistManager?.tracks?.length) {
+    if (
+      this.options.requirePlaybackForAccessibilityToggles &&
+      !this.renderer &&
+      this.playlistManager?.tracks?.length
+    ) {
       this.showNotice(i18n.t('player.startPlaybackForSignLanguage'));
       return;
     }
@@ -3668,8 +3788,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
     return this.signLanguageManager?.showSettingsMenu();
   }
 
-  hideSignLanguageSettingsMenu({focusButton = true} = {}) {
-    return this.signLanguageManager?.hideSettingsMenu({focusButton});
+  hideSignLanguageSettingsMenu({ focusButton = true } = {}) {
+    return this.signLanguageManager?.hideSettingsMenu({ focusButton });
   }
 
   constrainSignLanguagePosition() {
@@ -3686,7 +3806,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
   // Settings dialog removed - using individual control buttons instead
   showSettings() {
-    console.warn('[VidPly] Settings dialog has been removed. Use individual control buttons (speed, captions, etc.)');
+    console.warn(
+      '[VidPly] Settings dialog has been removed. Use individual control buttons (speed, captions, etc.)'
+    );
   }
 
   hideSettings() {
@@ -3748,7 +3870,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
   handleError(error: unknown) {
     const mediaEl = this.element instanceof HTMLMediaElement ? this.element : null;
     const detail = formatUnknownForLog(error, mediaEl);
-    const MediaErrorCtor = typeof globalThis.MediaError !== 'undefined' ? globalThis.MediaError : null;
+    const MediaErrorCtor =
+      typeof globalThis.MediaError !== 'undefined' ? globalThis.MediaError : null;
     const mediaCode =
       (MediaErrorCtor && error instanceof MediaErrorCtor ? error.code : undefined) ??
       (error && typeof error === 'object' && 'code' in error
@@ -3898,7 +4021,10 @@ export class Player extends EventEmitter<PlayerEventMap> {
     this.cleanupSignLanguage();
 
     // Cascade-destroy lazy-loaded managers that own their own listeners.
-    if (this.audioDescriptionManager && typeof this.audioDescriptionManager.destroy === 'function') {
+    if (
+      this.audioDescriptionManager &&
+      typeof this.audioDescriptionManager.destroy === 'function'
+    ) {
       try {
         this.audioDescriptionManager.destroy();
       } catch (err) {
@@ -4060,7 +4186,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
   // so call sites inside `handleMetadataCue` and external callers
   // (e.g. TranscriptManager integration tests) keep working.
   normalizeMetadataSelector(selector: unknown): string | null {
-    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).normalizeSelector(selector);
+    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).normalizeSelector(
+      selector
+    );
   }
 
   resolveMetadataConfig(
@@ -4070,16 +4198,28 @@ export class Player extends EventEmitter<PlayerEventMap> {
     return (this.metadataAlertsManager ?? this._ensureMetadataManager()).resolveConfig(map, key);
   }
 
-  cacheMetadataAlertContent(element: HTMLElement | null | undefined, config: MetadataAlertConfig = {}): void {
+  cacheMetadataAlertContent(
+    element: HTMLElement | null | undefined,
+    config: MetadataAlertConfig = {}
+  ): void {
     (this.metadataAlertsManager ?? this._ensureMetadataManager()).cacheContent(element, config);
   }
 
-  restoreMetadataAlertContent(element: HTMLElement | null | undefined, config: MetadataAlertConfig = {}): void {
+  restoreMetadataAlertContent(
+    element: HTMLElement | null | undefined,
+    config: MetadataAlertConfig = {}
+  ): void {
     (this.metadataAlertsManager ?? this._ensureMetadataManager()).restoreContent(element, config);
   }
 
-  focusMetadataTarget(target: string | null | undefined, fallbackElement: HTMLElement | null = null): void {
-    (this.metadataAlertsManager ?? this._ensureMetadataManager()).focusTarget(target, fallbackElement);
+  focusMetadataTarget(
+    target: string | null | undefined,
+    fallbackElement: HTMLElement | null = null
+  ): void {
+    (this.metadataAlertsManager ?? this._ensureMetadataManager()).focusTarget(
+      target,
+      fallbackElement
+    );
   }
 
   /** Internal helper: lazily creates the manager for external
@@ -4091,8 +4231,14 @@ export class Player extends EventEmitter<PlayerEventMap> {
     return this.metadataAlertsManager;
   }
 
-  handleMetadataAlert(selector: string, options: MetadataAlertOptions = {}): HTMLElement | undefined {
-    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleAlert(selector, options);
+  handleMetadataAlert(
+    selector: string,
+    options: MetadataAlertOptions = {}
+  ): HTMLElement | undefined {
+    return (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleAlert(
+      selector,
+      options
+    );
   }
 
   handleMetadataHashtags(hashtags: string[] | null | undefined): void {
@@ -4102,6 +4248,4 @@ export class Player extends EventEmitter<PlayerEventMap> {
   handleMetadataCue(cue: VTTCue | TextTrackCue): void {
     (this.metadataAlertsManager ?? this._ensureMetadataManager()).handleCue(cue);
   }
-
 }
-

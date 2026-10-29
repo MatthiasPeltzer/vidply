@@ -214,18 +214,19 @@ export class KeyboardHelp {
       return null;
     }
 
-    const seekSeconds = Number(this.player.options.seekInterval) > 0
-      ? Number(this.player.options.seekInterval)
-      : 10;
+    const seekSeconds =
+      Number(this.player.options.seekInterval) > 0 ? Number(this.player.options.seekInterval) : 10;
 
     const section = DOMUtils.createElement('div', {
       className: `${this.prefix}-help-live-section`
     });
 
-    section.appendChild(DOMUtils.createElement('h3', {
-      className: `${this.prefix}-help-live-title`,
-      textContent: i18n.t('help.liveSectionTitle')
-    }));
+    section.appendChild(
+      DOMUtils.createElement('h3', {
+        className: `${this.prefix}-help-live-title`,
+        textContent: i18n.t('help.liveSectionTitle')
+      })
+    );
 
     const list = DOMUtils.createElement('dl', {
       className: `${this.prefix}-help-list ${this.prefix}-help-live-list`
@@ -261,14 +262,18 @@ export class KeyboardHelp {
     );
 
     for (const row of rows) {
-      list.appendChild(DOMUtils.createElement('dt', {
-        className: `${this.prefix}-help-action`,
-        textContent: row.term
-      }));
-      list.appendChild(DOMUtils.createElement('dd', {
-        className: `${this.prefix}-help-desc`,
-        textContent: row.desc
-      }));
+      list.appendChild(
+        DOMUtils.createElement('dt', {
+          className: `${this.prefix}-help-action`,
+          textContent: row.term
+        })
+      );
+      list.appendChild(
+        DOMUtils.createElement('dd', {
+          className: `${this.prefix}-help-desc`,
+          textContent: row.desc
+        })
+      );
     }
 
     section.appendChild(list);
@@ -292,7 +297,10 @@ export class KeyboardHelp {
       className: `${this.prefix}-help-list`
     });
 
-    const shortcuts = this.player.options.keyboardShortcuts as unknown as Record<string, string[] | undefined>;
+    const shortcuts = this.player.options.keyboardShortcuts as unknown as Record<
+      string,
+      string[] | undefined
+    >;
 
     for (const action of ACTION_ORDER) {
       const keys = shortcuts[action];
@@ -344,7 +352,9 @@ export class KeyboardHelp {
       this._content.replaceChildren(this.buildContent());
     }
 
-    const active = (typeof document !== 'undefined' ? document.activeElement : null) as HTMLElement | null;
+    const active = (
+      typeof document !== 'undefined' ? document.activeElement : null
+    ) as HTMLElement | null;
     this._triggerElement = active && typeof active.focus === 'function' ? active : null;
 
     this.overlay.style.display = 'flex';

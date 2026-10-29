@@ -15,8 +15,9 @@ describe('EmbedProviderLinks', () => {
   });
 
   it('unwraps SoundCloud widget URLs', () => {
-    const widget = 'https://w.soundcloud.com/player/?url='
-      + encodeURIComponent('https://soundcloud.com/artist/track');
+    const widget =
+      'https://w.soundcloud.com/player/?url=' +
+      encodeURIComponent('https://soundcloud.com/artist/track');
     expect(resolveEmbedProviderWatchUrl(widget)).toBe('https://soundcloud.com/artist/track');
   });
 

@@ -37,7 +37,7 @@ test.describe('Captions', () => {
     // The demo has multiple caption tracks
     const menuItems = page.locator('[role="menu"] [role="menuitemradio"], [role="menu"] button');
     const count = await menuItems.count();
-    
+
     // Should have Off + language options
     expect(count).toBeGreaterThan(1);
   });
@@ -61,7 +61,7 @@ test.describe('Captions', () => {
 
     // Click English option
     const englishOption = page.locator('[role="menu"] >> text=English').first();
-    
+
     if (await englishOption.isVisible()) {
       await englishOption.click();
       await page.waitForTimeout(500);
@@ -102,7 +102,7 @@ test.describe('Chapters', () => {
     // Check for chapter items
     const chapterItems = page.locator('[role="menu"][aria-label="Chapters"] [role="menuitem"]');
     const count = await chapterItems.count();
-    
+
     // The demo video has chapters defined
     expect(count).toBeGreaterThan(0);
   });
@@ -114,8 +114,10 @@ test.describe('Chapters', () => {
     await page.waitForTimeout(500);
 
     // Click first chapter
-    const firstChapter = page.locator('[role="menu"][aria-label="Chapters"] [role="menuitem"]').first();
-    
+    const firstChapter = page
+      .locator('[role="menu"][aria-label="Chapters"] [role="menuitem"]')
+      .first();
+
     if (await firstChapter.isVisible()) {
       await firstChapter.click();
       await page.waitForTimeout(500);
@@ -150,7 +152,7 @@ test.describe('Transcript', () => {
 
   test('should close transcript when toggle clicked again', async ({ page }) => {
     const transcriptButton = page.locator('button[aria-label="Toggle transcript"]');
-    
+
     // Open transcript
     await transcriptButton.click();
     await page.waitForTimeout(500);
@@ -165,7 +167,9 @@ test.describe('Transcript', () => {
     await page.waitForTimeout(500);
 
     // Button aria-expanded should be false now
-    const collapsedButton = page.locator('button[aria-label="Toggle transcript"][aria-expanded="false"]');
+    const collapsedButton = page.locator(
+      'button[aria-label="Toggle transcript"][aria-expanded="false"]'
+    );
     await expect(collapsedButton).toBeVisible({ timeout: 3000 });
   });
 
@@ -187,8 +191,10 @@ test.describe('Sign Language', () => {
   });
 
   test('should have sign language button', async ({ page }) => {
-    // Initial label is "Sign language video" 
-    const signButton = page.locator('button[aria-label="Sign language video"], button[aria-label="Show sign language video"]');
+    // Initial label is "Sign language video"
+    const signButton = page.locator(
+      'button[aria-label="Sign language video"], button[aria-label="Show sign language video"]'
+    );
     await expect(signButton.first()).toBeVisible();
   });
 
@@ -199,18 +205,25 @@ test.describe('Sign Language', () => {
     await page.waitForTimeout(1000);
 
     // Click sign language button
-    const signButton = page.locator('button[aria-label="Sign language video"], button[aria-label="Show sign language video"]');
+    const signButton = page.locator(
+      'button[aria-label="Sign language video"], button[aria-label="Show sign language video"]'
+    );
     await signButton.first().click();
     await page.waitForTimeout(500);
 
     // Sign language wrapper should appear or button aria-expanded should change
     const signWrapper = page.locator('.vidply-sign-language-wrapper');
-    const expandedButton = page.locator('button[aria-label="Sign language video"][aria-expanded="true"], button[aria-label="Hide sign language video"]');
-    
+    const expandedButton = page.locator(
+      'button[aria-label="Sign language video"][aria-expanded="true"], button[aria-label="Hide sign language video"]'
+    );
+
     // Either the button changed state or the wrapper is visible
-    const buttonExpanded = await expandedButton.first().isVisible().catch(() => false);
+    const buttonExpanded = await expandedButton
+      .first()
+      .isVisible()
+      .catch(() => false);
     const wrapperVisible = await signWrapper.isVisible().catch(() => false);
-    
+
     expect(buttonExpanded || wrapperVisible).toBeTruthy();
   });
 });
@@ -239,7 +252,9 @@ test.describe('Audio Description', () => {
     await page.waitForTimeout(500);
 
     // The aria-checked should change to true
-    const checkedButton = page.locator('button[aria-label="Audio description"][aria-checked="true"]');
+    const checkedButton = page.locator(
+      'button[aria-label="Audio description"][aria-checked="true"]'
+    );
     await expect(checkedButton).toBeVisible({ timeout: 3000 });
   });
 });

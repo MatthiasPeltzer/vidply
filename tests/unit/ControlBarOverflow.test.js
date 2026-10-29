@@ -19,14 +19,17 @@ function createOverflowControlBar() {
   const controlBar = Object.create(ControlBar.prototype);
   controlBar.player = {
     options: { classPrefix: 'vidply', debug: false },
-    state: { fullscreen: false },
+    state: { fullscreen: false }
   };
   controlBar.rightButtons = document.createElement('div');
   controlBar.rightButtons.className = 'vidply-controls-right';
   controlBar.overflowMenuButton = document.createElement('button');
   controlBar.overflowMenuButton.className = 'vidply-button vidply-overflow-menu';
   controlBar.overflowMenuButton.style.display = 'none';
-  Object.defineProperty(controlBar.overflowMenuButton, 'offsetWidth', { value: 44, configurable: true });
+  Object.defineProperty(controlBar.overflowMenuButton, 'offsetWidth', {
+    value: 44,
+    configurable: true
+  });
   controlBar.rightButtons.appendChild(controlBar.overflowMenuButton);
   controlBar.measureControlButton = ControlBar.prototype.measureControlButton;
   controlBar.getOverflowPriority = ControlBar.prototype.getOverflowPriority;
@@ -52,7 +55,10 @@ describe('ControlBar.checkOverflow', () => {
 
   afterEach(() => {
     Object.defineProperty(window, 'innerWidth', { value: originalInnerWidth, configurable: true });
-    Object.defineProperty(window, 'innerHeight', { value: originalInnerHeight, configurable: true });
+    Object.defineProperty(window, 'innerHeight', {
+      value: originalInnerHeight,
+      configurable: true
+    });
   });
 
   it('shows the overflow menu on desktop when right-side buttons do not fit', () => {
@@ -65,14 +71,21 @@ describe('ControlBar.checkOverflow', () => {
     controlBar.rightButtons.appendChild(createButton('Download', '3'));
     controlBar.rightButtons.appendChild(createFullscreenButton());
 
-    Object.defineProperty(controlBar.rightButtons, 'offsetWidth', { value: 120, configurable: true });
+    Object.defineProperty(controlBar.rightButtons, 'offsetWidth', {
+      value: 120,
+      configurable: true
+    });
 
     controlBar.checkOverflow();
 
-    const overflowItems = controlBar.rightButtons.querySelectorAll('button[data-in-overflow="true"]');
+    const overflowItems = controlBar.rightButtons.querySelectorAll(
+      'button[data-in-overflow="true"]'
+    );
     expect(overflowItems.length).toBeGreaterThan(0);
     expect(controlBar.overflowMenuButton.style.display).not.toBe('none');
-    expect(controlBar.rightButtons.querySelector('.vidply-fullscreen').style.display).not.toBe('none');
+    expect(controlBar.rightButtons.querySelector('.vidply-fullscreen').style.display).not.toBe(
+      'none'
+    );
   });
 
   it('keeps all buttons visible on desktop when they fit', () => {
@@ -83,13 +96,16 @@ describe('ControlBar.checkOverflow', () => {
     controlBar.rightButtons.appendChild(createButton('Captions', '1'));
     controlBar.rightButtons.appendChild(createFullscreenButton());
 
-    Object.defineProperty(controlBar.rightButtons, 'offsetWidth', { value: 400, configurable: true });
+    Object.defineProperty(controlBar.rightButtons, 'offsetWidth', {
+      value: 400,
+      configurable: true
+    });
 
     controlBar.checkOverflow();
 
     const hiddenButtons = [...controlBar.rightButtons.querySelectorAll('button')]
-      .filter(btn => !btn.classList.contains('vidply-overflow-menu'))
-      .filter(btn => btn.style.display === 'none');
+      .filter((btn) => !btn.classList.contains('vidply-overflow-menu'))
+      .filter((btn) => btn.style.display === 'none');
 
     expect(hiddenButtons).toHaveLength(0);
     expect(controlBar.overflowMenuButton.style.display).toBe('none');
@@ -107,7 +123,10 @@ describe('ControlBar.checkOverflow', () => {
     controlBar.rightButtons.appendChild(createButton('Sign language', '3'));
     controlBar.rightButtons.appendChild(createFullscreenButton());
 
-    Object.defineProperty(controlBar.rightButtons, 'offsetWidth', { value: 160, configurable: true });
+    Object.defineProperty(controlBar.rightButtons, 'offsetWidth', {
+      value: 160,
+      configurable: true
+    });
 
     controlBar.checkOverflow();
 
@@ -127,13 +146,22 @@ describe('ControlBar.checkOverflow', () => {
     controlBar.rightButtons.appendChild(createButton('Download', '3'));
     controlBar.rightButtons.appendChild(createFullscreenButton());
 
-    Object.defineProperty(controlBar.rightButtons, 'offsetWidth', { value: 320, configurable: true });
+    Object.defineProperty(controlBar.rightButtons, 'offsetWidth', {
+      value: 320,
+      configurable: true
+    });
 
     controlBar.checkOverflow();
 
-    expect(controlBar.rightButtons.querySelector('button[aria-label="Transcript"]').style.display).toBe('none');
-    expect(controlBar.rightButtons.querySelector('button[aria-label="Download"]').style.display).toBe('none');
-    expect(controlBar.rightButtons.querySelector('.vidply-fullscreen').style.display).not.toBe('none');
+    expect(
+      controlBar.rightButtons.querySelector('button[aria-label="Transcript"]').style.display
+    ).toBe('none');
+    expect(
+      controlBar.rightButtons.querySelector('button[aria-label="Download"]').style.display
+    ).toBe('none');
+    expect(controlBar.rightButtons.querySelector('.vidply-fullscreen').style.display).not.toBe(
+      'none'
+    );
     expect(controlBar.overflowMenuButton.style.display).not.toBe('none');
   });
 
@@ -173,22 +201,35 @@ describe('ControlBar.checkOverflow', () => {
     controlBar.rightButtons.insertBefore(playlist, controlBar.overflowMenuButton);
     controlBar.rightButtons.insertBefore(createFullscreenButton(), controlBar.overflowMenuButton);
 
-    Object.defineProperty(controlBar.rightButtons, 'offsetWidth', { value: 72, configurable: true });
+    Object.defineProperty(controlBar.rightButtons, 'offsetWidth', {
+      value: 72,
+      configurable: true
+    });
     Object.defineProperty(controlBar.rightButtons, 'getBoundingClientRect', {
       value: () => ({ width: 72, height: 32, top: 0, left: 200, right: 272, bottom: 32 }),
-      configurable: true,
+      configurable: true
     });
 
     controlBar.checkOverflow();
 
     expect(controlBar.leftButtons.querySelector('.vidply-previous').style.display).not.toBe('none');
-    expect(controlBar.leftButtons.querySelector('.vidply-play-pause').style.display).not.toBe('none');
-    expect(controlBar.rightButtons.querySelector('.vidply-playlist-toggle').style.display).toBe('none');
-    expect(controlBar.rightButtons.querySelector('.vidply-playlist-toggle').dataset.inOverflow).toBe('true');
+    expect(controlBar.leftButtons.querySelector('.vidply-play-pause').style.display).not.toBe(
+      'none'
+    );
+    expect(controlBar.rightButtons.querySelector('.vidply-playlist-toggle').style.display).toBe(
+      'none'
+    );
+    expect(
+      controlBar.rightButtons.querySelector('.vidply-playlist-toggle').dataset.inOverflow
+    ).toBe('true');
     expect(controlBar.leftButtons.querySelector('.vidply-next').style.display).not.toBe('none');
     expect(controlBar.leftButtons.querySelector('.vidply-mute').style.display).not.toBe('none');
-    expect(controlBar.leftButtons.querySelector('.vidply-previous').dataset.inOverflow).toBe('false');
-    expect(controlBar.rightButtons.querySelector('.vidply-fullscreen').style.display).not.toBe('none');
+    expect(controlBar.leftButtons.querySelector('.vidply-previous').dataset.inOverflow).toBe(
+      'false'
+    );
+    expect(controlBar.rightButtons.querySelector('.vidply-fullscreen').style.display).not.toBe(
+      'none'
+    );
     expect(controlBar.overflowMenuButton.style.display).not.toBe('none');
   });
 });

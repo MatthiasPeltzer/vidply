@@ -32,11 +32,17 @@ export function sanitizePosterUrl(input: unknown): string | null {
     return trimmed;
   }
   try {
-    const url = new URL(trimmed, typeof window !== 'undefined' ? window.location.href : 'http://localhost/');
+    const url = new URL(
+      trimmed,
+      typeof window !== 'undefined' ? window.location.href : 'http://localhost/'
+    );
     if (url.protocol === 'https:' || url.protocol === 'http:') {
       return url.href;
     }
-    if (url.protocol === 'data:' && /^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);/i.test(trimmed)) {
+    if (
+      url.protocol === 'data:' &&
+      /^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);/i.test(trimmed)
+    ) {
       return trimmed;
     }
   } catch {

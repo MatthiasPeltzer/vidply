@@ -6,9 +6,9 @@ describe('negotiateMediaSources', () => {
     const result = negotiateMediaSources(
       [
         { src: 'https://example.test/video.mpd', type: 'application/dash+xml' },
-        { src: 'https://example.test/video.mp4', type: 'video/mp4' },
+        { src: 'https://example.test/video.mp4', type: 'video/mp4' }
       ],
-      { preferNativeElement: true },
+      { preferNativeElement: true }
     );
     expect(result.src).toContain('.mp4');
   });
@@ -16,7 +16,7 @@ describe('negotiateMediaSources', () => {
   it('prefers DASH when MSE is available and native mode is off', () => {
     const result = negotiateMediaSources([
       { src: 'https://example.test/video.mpd', type: 'application/dash+xml' },
-      { src: 'https://example.test/video.mp4', type: 'video/mp4' },
+      { src: 'https://example.test/video.mp4', type: 'video/mp4' }
     ]);
     if (typeof MediaSource !== 'undefined') {
       expect(result.src).toContain('.mpd');

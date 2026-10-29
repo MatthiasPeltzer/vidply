@@ -57,7 +57,7 @@ vi.mock('../../src/utils/FocusUtils.js', async (importOriginal) => {
   return {
     ...actual,
     focusElement: vi.fn(),
-    focusFirstElement: vi.fn(),
+    focusFirstElement: vi.fn()
   };
 });
 
@@ -94,7 +94,7 @@ describe('TranscriptManager', () => {
 
   beforeEach(async () => {
     document.body.innerHTML = '';
-    
+
     mockPlayer = {
       options: {
         classPrefix: 'vidply',
@@ -123,10 +123,13 @@ describe('TranscriptManager', () => {
       pause: vi.fn(),
       handleMetadataCue: vi.fn(),
       invalidateTrackCache: vi.fn(),
-      setManagedTimeout: vi.fn((cb) => { cb(); return 1; }),
+      setManagedTimeout: vi.fn((cb) => {
+        cb();
+        return 1;
+      }),
       clearManagedTimeout: vi.fn()
     };
-    
+
     document.body.appendChild(mockPlayer.container);
     mockPlayer.container.appendChild(mockPlayer.videoWrapper);
     mockPlayer.videoWrapper.appendChild(mockPlayer.element);
@@ -233,8 +236,8 @@ describe('TranscriptManager', () => {
 
       manager.handleMetadataCue(cue);
 
-      const metadataEmits = mockPlayer.emit.mock.calls.filter(
-        call => String(call[0]).startsWith('metadata')
+      const metadataEmits = mockPlayer.emit.mock.calls.filter((call) =>
+        String(call[0]).startsWith('metadata')
       );
       expect(metadataEmits.length).toBe(0);
     });
@@ -244,7 +247,7 @@ describe('TranscriptManager', () => {
     beforeEach(() => {
       manager = new TranscriptManager(mockPlayer);
       manager.isVisible = true;
-      
+
       // Create mock entries
       manager.transcriptEntries = [
         { startTime: 0, endTime: 5, element: document.createElement('div') },
@@ -284,20 +287,26 @@ describe('TranscriptManager', () => {
 
       manager.updateActiveEntry();
 
-      expect(manager.currentActiveEntry.element.classList.contains('vidply-transcript-entry-active')).toBe(true);
+      expect(
+        manager.currentActiveEntry.element.classList.contains('vidply-transcript-entry-active')
+      ).toBe(true);
     });
 
     it('should remove active class from previous entry', () => {
       mockPlayer.state.currentTime = 7;
       manager.updateActiveEntry();
-      
+
       const previousEntry = manager.currentActiveEntry;
-      
+
       mockPlayer.state.currentTime = 12;
       manager.updateActiveEntry();
 
-      expect(previousEntry.element.classList.contains('vidply-transcript-entry-active')).toBe(false);
-      expect(manager.currentActiveEntry.element.classList.contains('vidply-transcript-entry-active')).toBe(true);
+      expect(previousEntry.element.classList.contains('vidply-transcript-entry-active')).toBe(
+        false
+      );
+      expect(
+        manager.currentActiveEntry.element.classList.contains('vidply-transcript-entry-active')
+      ).toBe(true);
     });
 
     it('should handle time between entries', () => {
@@ -307,7 +316,9 @@ describe('TranscriptManager', () => {
 
       // Should clear any previous active entry
       if (manager.currentActiveEntry) {
-        expect(manager.currentActiveEntry.element.classList.contains('vidply-transcript-entry-active')).toBe(false);
+        expect(
+          manager.currentActiveEntry.element.classList.contains('vidply-transcript-entry-active')
+        ).toBe(false);
       }
     });
   });
@@ -325,7 +336,7 @@ describe('TranscriptManager', () => {
 
     it('should initialize transcript style from options', () => {
       manager = new TranscriptManager(mockPlayer);
-      
+
       expect(manager.transcriptStyle.fontSize).toBe('100%');
       expect(manager.transcriptStyle.fontFamily).toBe('sans-serif');
       expect(manager.transcriptStyle.color).toBe('#ffffff');
@@ -333,7 +344,7 @@ describe('TranscriptManager', () => {
 
     it('should set up event listeners', () => {
       manager = new TranscriptManager(mockPlayer);
-      
+
       expect(mockPlayer.on).toHaveBeenCalledWith('timeupdate', expect.any(Function));
       expect(mockPlayer.on).toHaveBeenCalledWith('audiodescriptionenabled', expect.any(Function));
       expect(mockPlayer.on).toHaveBeenCalledWith('audiodescriptiondisabled', expect.any(Function));
@@ -375,18 +386,18 @@ describe('TranscriptManager', () => {
     it('should show transcript when hidden', () => {
       manager.isVisible = false;
       const showSpy = vi.spyOn(manager, 'showTranscript');
-      
+
       manager.toggleTranscript();
-      
+
       expect(showSpy).toHaveBeenCalled();
     });
 
     it('should hide transcript when visible', () => {
       manager.isVisible = true;
       const hideSpy = vi.spyOn(manager, 'hideTranscript');
-      
+
       manager.toggleTranscript();
-      
+
       expect(hideSpy).toHaveBeenCalled();
     });
   });
@@ -398,15 +409,15 @@ describe('TranscriptManager', () => {
 
     it('should create transcript window if not exists', () => {
       expect(manager.transcriptWindow).toBeNull();
-      
+
       manager.showTranscript();
-      
+
       expect(manager.transcriptWindow).not.toBeNull();
     });
 
     it('should set isVisible to true', () => {
       manager.showTranscript();
-      
+
       expect(manager.isVisible).toBe(true);
     });
 
@@ -416,13 +427,13 @@ describe('TranscriptManager', () => {
       manager.transcriptContent = document.createElement('div');
 
       manager.showTranscript();
-      
+
       expect(manager.transcriptWindow.style.display).toBe('flex');
     });
 
     it('should set isVisible to true when showing', () => {
       manager.showTranscript();
-      
+
       expect(manager.isVisible).toBe(true);
     });
   });
@@ -437,19 +448,19 @@ describe('TranscriptManager', () => {
 
     it('should hide transcript window', () => {
       manager.hideTranscript();
-      
+
       expect(manager.transcriptWindow.style.display).toBe('none');
     });
 
     it('should set isVisible to false', () => {
       manager.hideTranscript();
-      
+
       expect(manager.isVisible).toBe(false);
     });
 
     it('should call updateTranscriptButton on controlBar', () => {
       manager.hideTranscript();
-      
+
       expect(mockPlayer.controlBar.updateTranscriptButton).toHaveBeenCalled();
     });
 
@@ -457,9 +468,9 @@ describe('TranscriptManager', () => {
       const transcriptButton = document.createElement('button');
       transcriptButton.focus = vi.fn();
       mockPlayer.controlBar.controls.transcript = transcriptButton;
-      
+
       manager.hideTranscript({ focusButton: true });
-      
+
       expect(transcriptButton.focus).toHaveBeenCalledWith({ preventScroll: true });
     });
   });
@@ -471,32 +482,32 @@ describe('TranscriptManager', () => {
 
     it('should create window with dialog role', () => {
       manager.createTranscriptWindow();
-      
+
       expect(manager.transcriptWindow.getAttribute('role')).toBe('dialog');
     });
 
     it('should create header element', () => {
       manager.createTranscriptWindow();
-      
+
       expect(manager.transcriptHeader).not.toBeNull();
     });
 
     it('should create settings button', () => {
       manager.createTranscriptWindow();
-      
+
       expect(manager.settingsButton).not.toBeNull();
       expect(manager.settingsButton.tagName).toBe('BUTTON');
     });
 
     it('should create content container', () => {
       manager.createTranscriptWindow();
-      
+
       expect(manager.transcriptContent).not.toBeNull();
     });
 
     it('should create autoscroll checkbox', () => {
       manager.createTranscriptWindow();
-      
+
       expect(manager.autoscrollCheckbox).not.toBeNull();
       expect(manager.autoscrollCheckbox.type).toBe('checkbox');
     });
@@ -504,20 +515,20 @@ describe('TranscriptManager', () => {
     it('should set autoscroll checkbox based on preference', () => {
       manager.autoscrollEnabled = true;
       manager.createTranscriptWindow();
-      
+
       expect(manager.autoscrollCheckbox.checked).toBe(true);
     });
 
     it('should create live region for announcements', () => {
       manager.createTranscriptWindow();
-      
+
       expect(manager.liveRegion).not.toBeNull();
       expect(manager.liveRegion.getAttribute('aria-live')).toBe('polite');
     });
 
     it('should create language selector', () => {
       manager.createTranscriptWindow();
-      
+
       expect(manager.languageSelector).not.toBeNull();
       expect(manager.languageLabel).not.toBeNull();
     });
@@ -532,7 +543,7 @@ describe('TranscriptManager', () => {
     it('should update autoscrollEnabled when checkbox changes', () => {
       manager.autoscrollCheckbox.checked = false;
       manager.autoscrollCheckbox.dispatchEvent(new Event('change'));
-      
+
       expect(manager.autoscrollEnabled).toBe(false);
     });
   });
@@ -636,7 +647,7 @@ describe('TranscriptManager', () => {
 
     it('should create draggableResizable when window is created', () => {
       manager.createTranscriptWindow();
-      
+
       // setupDragAndDrop creates the draggableResizable
       expect(manager.draggableResizable).not.toBeNull();
     });
@@ -656,7 +667,7 @@ describe('TranscriptManager', () => {
         startTime: 12,
         endTime: 14,
         text: 'Guten Abend',
-        id: 'cue-1',
+        id: 'cue-1'
       };
       const duplicateCueList = {
         0: cue,
@@ -665,34 +676,40 @@ describe('TranscriptManager', () => {
         [Symbol.iterator]: function* () {
           yield cue;
           yield cue;
-        },
+        }
       };
 
-      mockPlayer.textTracks = [{
-        kind: 'subtitles',
-        language: 'de',
-        label: 'Deutsch',
-        mode: 'hidden',
-        cues: duplicateCueList,
-      }];
+      mockPlayer.textTracks = [
+        {
+          kind: 'subtitles',
+          language: 'de',
+          label: 'Deutsch',
+          mode: 'hidden',
+          cues: duplicateCueList
+        }
+      ];
 
       manager._syncLiveTranscriptCues();
       manager._syncLiveTranscriptCues();
 
       expect(manager.transcriptEntries).toHaveLength(1);
-      expect(manager.transcriptContent.querySelectorAll('.vidply-transcript-entry')).toHaveLength(1);
+      expect(manager.transcriptContent.querySelectorAll('.vidply-transcript-entry')).toHaveLength(
+        1
+      );
     });
 
     it('should treat shifted live timestamps as the same line', () => {
       const cueA = { startTime: 12.04, endTime: 14.1, text: 'Guten Abend', id: 'a' };
       const cueB = { startTime: 12.51, endTime: 14.6, text: 'Guten Abend', id: 'b' };
-      mockPlayer.textTracks = [{
-        kind: 'subtitles',
-        language: 'de',
-        label: 'Deutsch',
-        mode: 'hidden',
-        cues: [cueA, cueB],
-      }];
+      mockPlayer.textTracks = [
+        {
+          kind: 'subtitles',
+          language: 'de',
+          label: 'Deutsch',
+          mode: 'hidden',
+          cues: [cueA, cueB]
+        }
+      ];
 
       manager._syncLiveTranscriptCues();
 
@@ -704,15 +721,17 @@ describe('TranscriptManager', () => {
       const cues = [
         { startTime: 7198.58, endTime: 7200.02, text: sentence, id: 'a' },
         { startTime: 7202.02, endTime: 7203.02, text: sentence, id: 'b' },
-        { startTime: 7200.02, endTime: 7202.02, text: sentence, id: 'c' },
+        { startTime: 7200.02, endTime: 7202.02, text: sentence, id: 'c' }
       ];
-      mockPlayer.textTracks = [{
-        kind: 'subtitles',
-        language: 'de',
-        label: 'Deutsch',
-        mode: 'hidden',
-        cues,
-      }];
+      mockPlayer.textTracks = [
+        {
+          kind: 'subtitles',
+          language: 'de',
+          label: 'Deutsch',
+          mode: 'hidden',
+          cues
+        }
+      ];
 
       manager._syncLiveTranscriptCues();
 
@@ -723,21 +742,24 @@ describe('TranscriptManager', () => {
     it('should sort live transcript entries by start time', () => {
       const cues = [
         { startTime: 20, endTime: 22, text: 'Zweiter Satz', id: 'b' },
-        { startTime: 10, endTime: 12, text: 'Erster Satz', id: 'a' },
+        { startTime: 10, endTime: 12, text: 'Erster Satz', id: 'a' }
       ];
-      mockPlayer.textTracks = [{
-        kind: 'subtitles',
-        language: 'de',
-        label: 'Deutsch',
-        mode: 'hidden',
-        cues,
-      }];
+      mockPlayer.textTracks = [
+        {
+          kind: 'subtitles',
+          language: 'de',
+          label: 'Deutsch',
+          mode: 'hidden',
+          cues
+        }
+      ];
 
       manager._syncLiveTranscriptCues();
 
       expect(manager.transcriptEntries.map((entry) => entry.startTime)).toEqual([10, 20]);
-      const domOrder = [...manager.transcriptContent.querySelectorAll('.vidply-transcript-entry')]
-        .map((node) => node.querySelector('.vidply-transcript-text')?.textContent);
+      const domOrder = [
+        ...manager.transcriptContent.querySelectorAll('.vidply-transcript-entry')
+      ].map((node) => node.querySelector('.vidply-transcript-text')?.textContent);
       expect(domOrder).toEqual(['Erster Satz', 'Zweiter Satz']);
     });
 
@@ -762,7 +784,9 @@ describe('TranscriptManager', () => {
       manager = new TranscriptManager(mockPlayer);
       manager.createTranscriptWindow();
       manager.isVisible = true;
-      manager.transcriptContent = manager.transcriptWindow.querySelector('.vidply-transcript-content');
+      manager.transcriptContent = manager.transcriptWindow.querySelector(
+        '.vidply-transcript-content'
+      );
 
       const makeEntry = (startTime, text) => {
         const cue = { startTime, endTime: startTime + 2, text, id: String(startTime) };
@@ -774,7 +798,7 @@ describe('TranscriptManager', () => {
           cue,
           type: 'caption',
           startTime,
-          endTime: startTime + 2,
+          endTime: startTime + 2
         });
         manager.transcriptContent.appendChild(element);
         return element;

@@ -99,11 +99,9 @@ export function loadScriptOnce(url: string, options: LoadScriptOptions = {}): Pr
         return;
       }
       existing.addEventListener('load', onLoad, { once: true });
-      existing.addEventListener(
-        'error',
-        () => reject(new Error(`Failed to load script: ${url}`)),
-        { once: true }
-      );
+      existing.addEventListener('error', () => reject(new Error(`Failed to load script: ${url}`)), {
+        once: true
+      });
       return;
     }
 

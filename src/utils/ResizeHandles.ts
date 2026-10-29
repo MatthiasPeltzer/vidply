@@ -13,7 +13,7 @@ export function createResizeHandles(
   const handles = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
   const createdHandles: ResizeHandle[] = [];
 
-  handles.forEach(direction => {
+  handles.forEach((direction) => {
     const handle = DOMUtils.createElement('div', {
       className: `${classPrefix}-resize-handle ${classPrefix}-resize-handle-${direction} ${classPrefix}-${handlePrefix}-${direction}`
     });
@@ -26,7 +26,7 @@ export function createResizeHandles(
 
 export function removeResizeHandles(element: HTMLElement, classPrefix: string): void {
   const handles = element.querySelectorAll(`.${classPrefix}-resize-handle`);
-  handles.forEach(handle => {
+  handles.forEach((handle) => {
     handle.parentNode?.removeChild(handle);
   });
 }

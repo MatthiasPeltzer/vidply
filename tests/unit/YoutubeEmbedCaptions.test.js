@@ -52,9 +52,11 @@ describe('YoutubeEmbedCaptions', () => {
 
     it('returns the array from getOption', () => {
       const tracks = [{ languageCode: 'en', vssId: '.en' }];
-      expect(readYoutubeCaptionTracklist({
-        getOption: vi.fn(() => tracks)
-      })).toEqual(tracks);
+      expect(
+        readYoutubeCaptionTracklist({
+          getOption: vi.fn(() => tracks)
+        })
+      ).toEqual(tracks);
     });
   });
 

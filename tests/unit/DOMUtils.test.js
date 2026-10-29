@@ -22,7 +22,7 @@ describe('DOMUtils', () => {
         attributes: {
           'aria-label': 'Play',
           'data-action': 'play',
-          'disabled': 'true'
+          disabled: 'true'
         }
       });
       expect(button.getAttribute('aria-label')).toBe('Play');
@@ -92,9 +92,9 @@ describe('DOMUtils', () => {
     it('should remove display:none from element', () => {
       const element = document.createElement('div');
       element.style.display = 'none';
-      
+
       DOMUtils.show(element);
-      
+
       expect(element.style.display).toBe('');
     });
 
@@ -106,9 +106,9 @@ describe('DOMUtils', () => {
   describe('hide', () => {
     it('should set display to none', () => {
       const element = document.createElement('div');
-      
+
       DOMUtils.hide(element);
-      
+
       expect(element.style.display).toBe('none');
     });
 
@@ -121,9 +121,9 @@ describe('DOMUtils', () => {
     it('should set initial opacity and trigger transition', () => {
       const element = document.createElement('div');
       element.style.display = 'none';
-      
+
       DOMUtils.fadeIn(element, 300);
-      
+
       expect(element.style.display).toBe('');
       expect(element.style.transition).toContain('opacity');
       expect(element.style.opacity).toBe('1');
@@ -132,12 +132,12 @@ describe('DOMUtils', () => {
     it('should call onComplete callback', async () => {
       const element = document.createElement('div');
       const onComplete = vi.fn();
-      
+
       DOMUtils.fadeIn(element, 50, onComplete);
-      
+
       // Wait for timeout fallback
-      await new Promise(resolve => setTimeout(resolve, 150));
-      
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
       expect(onComplete).toHaveBeenCalled();
     });
 
@@ -150,9 +150,9 @@ describe('DOMUtils', () => {
     it('should set opacity to 0', () => {
       const element = document.createElement('div');
       element.style.opacity = '1';
-      
+
       DOMUtils.fadeOut(element, 300);
-      
+
       expect(element.style.opacity).toBe('0');
       expect(element.style.transition).toContain('opacity');
     });
@@ -160,12 +160,12 @@ describe('DOMUtils', () => {
     it('should call onComplete callback', async () => {
       const element = document.createElement('div');
       const onComplete = vi.fn();
-      
+
       DOMUtils.fadeOut(element, 50, onComplete);
-      
+
       // Wait for timeout fallback
-      await new Promise(resolve => setTimeout(resolve, 150));
-      
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
       expect(onComplete).toHaveBeenCalled();
     });
 
@@ -178,9 +178,9 @@ describe('DOMUtils', () => {
     it('should return position and dimensions', () => {
       const element = document.createElement('div');
       document.body.appendChild(element);
-      
+
       const result = DOMUtils.offset(element);
-      
+
       expect(result).toHaveProperty('top');
       expect(result).toHaveProperty('left');
       expect(result).toHaveProperty('width');
@@ -189,7 +189,7 @@ describe('DOMUtils', () => {
 
     it('should return zeros for null element', () => {
       const result = DOMUtils.offset(null);
-      
+
       expect(result).toEqual({ top: 0, left: 0, width: 0, height: 0 });
     });
   });
@@ -199,7 +199,7 @@ describe('DOMUtils', () => {
       expect(DOMUtils.escapeHTML('<script>')).toBe('&lt;script&gt;');
       expect(DOMUtils.escapeHTML('A & B')).toBe('A &amp; B');
       expect(DOMUtils.escapeHTML('"quoted"')).toBe('&quot;quoted&quot;');
-      expect(DOMUtils.escapeHTML("it's")).toBe("it&#x27;s");
+      expect(DOMUtils.escapeHTML("it's")).toBe('it&#x27;s');
     });
 
     it('should handle strings with multiple special characters', () => {
@@ -287,7 +287,7 @@ describe('DOMUtils', () => {
   describe('createTooltip', () => {
     it('should create a tooltip span element', () => {
       const tooltip = DOMUtils.createTooltip('Test tooltip');
-      
+
       expect(tooltip.tagName).toBe('SPAN');
       expect(tooltip.textContent).toBe('Test tooltip');
       expect(tooltip.className).toBe('vidply-tooltip');
@@ -303,7 +303,7 @@ describe('DOMUtils', () => {
   describe('createButtonText', () => {
     it('should create a button text span', () => {
       const text = DOMUtils.createButtonText('Play');
-      
+
       expect(text.tagName).toBe('SPAN');
       expect(text.textContent).toBe('Play');
       expect(text.className).toBe('vidply-button-text');
@@ -345,7 +345,7 @@ describe('DOMUtils', () => {
       it('should toggle a class on element', () => {
         DOMUtils.toggleClass(element, 'test-class');
         expect(element.classList.contains('test-class')).toBe(true);
-        
+
         DOMUtils.toggleClass(element, 'test-class');
         expect(element.classList.contains('test-class')).toBe(false);
       });

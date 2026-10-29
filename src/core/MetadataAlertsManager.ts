@@ -106,11 +106,14 @@ export class MetadataAlertsManager {
       this.cueChangeHandler = () => {
         const activeCues = Array.from(metadataTrack.activeCues || []) as VTTCue[];
         if (activeCues.length > 0 && player.options.debug) {
-          player.log('[Metadata] Active cues:', activeCues.map((c) => ({
-            start: c.startTime,
-            end: c.endTime,
-            text: c.text
-          })));
+          player.log(
+            '[Metadata] Active cues:',
+            activeCues.map((c) => ({
+              start: c.startTime,
+              end: c.endTime,
+              text: c.text
+            }))
+          );
         }
         activeCues.forEach((cue) => this.handleCue(cue));
       };
@@ -250,7 +253,10 @@ export class MetadataAlertsManager {
     if (!selector) return undefined;
 
     const config: MetadataAlertConfig =
-      this.resolveConfig(player.options.metadataAlerts as Record<string, unknown> | null | undefined, selector) || {};
+      this.resolveConfig(
+        player.options.metadataAlerts as Record<string, unknown> | null | undefined,
+        selector
+      ) || {};
 
     // Container-scoped resolution by default; only fall back to a
     // global lookup when `metadataDirectives === 'global' | true`.
@@ -275,7 +281,7 @@ export class MetadataAlertsManager {
       element.dataset.vidplyAlertDisplay = config.display || 'block';
     }
 
-    const shouldShow = options.show !== undefined ? options.show : (config.show !== false);
+    const shouldShow = options.show !== undefined ? options.show : config.show !== false;
     if (shouldShow) {
       const displayValue = config.display || element.dataset.vidplyAlertDisplay || 'block';
       element.style.display = displayValue;
@@ -288,9 +294,10 @@ export class MetadataAlertsManager {
     const shouldReset = config.resetContent !== false && options.reason === 'focus';
     if (shouldReset) this.restoreContent(element, config);
 
-    const shouldFocus = options.focus !== undefined
-      ? options.focus
-      : (config.focusOnShow ?? (options.reason !== 'focus'));
+    const shouldFocus =
+      options.focus !== undefined
+        ? options.focus
+        : (config.focusOnShow ?? options.reason !== 'focus');
 
     if (shouldShow && shouldFocus) {
       if (element.tabIndex === -1 && !element.hasAttribute('tabindex')) {

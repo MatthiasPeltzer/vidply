@@ -23,15 +23,15 @@ export class HTML5Renderer implements Renderer {
     // Hide native controls
     this.media.controls = false;
     this.media.removeAttribute('controls');
-    
+
     this.attachEvents();
-    
+
     // Set preload + optionally defer network loading until user play
     if (this.player.options.deferLoad) {
       // Allow metadata preload while still avoiding full media download.
       // Note: browsers may still fetch metadata automatically when preload="metadata".
       this.media.preload = this.player.options.preload || 'none';
-      
+
       // Firefox requires an explicit load() call to fetch metadata even with preload="metadata".
       // Only call load() if preload is set to "metadata" to ensure duration is available.
       // iOS Safari: skip load() here — it races with an in-flight user play() during
@@ -45,7 +45,7 @@ export class HTML5Renderer implements Renderer {
       // Load media (eager) — runs at page init, not inside a play() gesture on iOS.
       this.media.load();
     }
-    
+
     // Show VidPly controls (remove external controls class if present)
     if (this.player.container) {
       this.player.container.classList.remove('vidply-external-controls');
@@ -56,136 +56,196 @@ export class HTML5Renderer implements Renderer {
     const { signal } = this._listenerController;
 
     // Playback events
-    this.media.addEventListener('loadedmetadata', () => {
-      this.player.state.duration = this.media.duration;
-      this.player.emit('loadedmetadata');
-      
-      // Auto-generate poster if none exists (for HTML5 video only)
-      if (this.media.tagName === 'VIDEO') {
-        this.player.autoGeneratePoster().catch((error: unknown) => {
-          this.player.log('Failed to auto-generate poster:', error, 'warn');
-        });
-      }
-    }, { signal });
+    this.media.addEventListener(
+      'loadedmetadata',
+      () => {
+        this.player.state.duration = this.media.duration;
+        this.player.emit('loadedmetadata');
 
-    this.media.addEventListener('durationchange', () => {
-      const duration = this.media.duration;
-      if (duration && isFinite(duration) && duration > 0) {
-        this.player.state.duration = duration;
-        this.player.emit('durationchange', duration);
-      }
-    }, { signal });
+        // Auto-generate poster if none exists (for HTML5 video only)
+        if (this.media.tagName === 'VIDEO') {
+          this.player.autoGeneratePoster().catch((error: unknown) => {
+            this.player.log('Failed to auto-generate poster:', error, 'warn');
+          });
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('play', () => {
-      this.player.state.playing = true;
-      this.player.state.paused = false;
-      this.player.state.ended = false;
-      this.player.emit('play');
-      
-      if (this.player.options.onPlay) {
-        this.player.options.onPlay.call(this.player);
-      }
-      
-      // Pause other players if enabled
-      if (this.player.options.pauseOthersOnPlay) {
-        this.pauseOtherPlayers();
-      }
-    }, { signal });
+    this.media.addEventListener(
+      'durationchange',
+      () => {
+        const duration = this.media.duration;
+        if (duration && isFinite(duration) && duration > 0) {
+          this.player.state.duration = duration;
+          this.player.emit('durationchange', duration);
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('pause', () => {
-      this.player.state.playing = false;
-      this.player.state.paused = true;
-      this.player.emit('pause');
-      
-      if (this.player.options.onPause) {
-        this.player.options.onPause.call(this.player);
-      }
-    }, { signal });
+    this.media.addEventListener(
+      'play',
+      () => {
+        this.player.state.playing = true;
+        this.player.state.paused = false;
+        this.player.state.ended = false;
+        this.player.emit('play');
 
-    this.media.addEventListener('ended', () => {
-      this.player.state.playing = false;
-      this.player.state.paused = true;
-      this.player.state.ended = true;
-      this.player.emit('ended');
-      
-      if (this.player.options.onEnded) {
-        this.player.options.onEnded.call(this.player);
-      }
-      
-      // Handle loop
-      if (this.player.options.loop) {
-        this.player.seek(0);
-        this.player.play();
-      }
-    }, { signal });
+        if (this.player.options.onPlay) {
+          this.player.options.onPlay.call(this.player);
+        }
 
-    this.media.addEventListener('timeupdate', () => {
-      this.player.state.currentTime = this.media.currentTime;
-      this.player.emit('timeupdate', this.media.currentTime);
-      
-      if (this.player.options.onTimeUpdate) {
-        this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
-      }
-    }, { signal });
+        // Pause other players if enabled
+        if (this.player.options.pauseOthersOnPlay) {
+          this.pauseOtherPlayers();
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('volumechange', () => {
-      if (!this.player.shouldSyncVolumeFromMedia()) {
-        return;
-      }
-      this.player.state.volume = this.media.volume;
-      this.player.state.muted = this.media.muted;
-      this.player.emit('volumechange', this.media.volume);
-      
-      if (this.player.options.onVolumeChange) {
-        this.player.options.onVolumeChange.call(this.player, this.media.volume);
-      }
-    }, { signal });
+    this.media.addEventListener(
+      'pause',
+      () => {
+        this.player.state.playing = false;
+        this.player.state.paused = true;
+        this.player.emit('pause');
 
-    this.media.addEventListener('seeking', () => {
-      this.player.state.seeking = true;
-      this.player.emit('seeking');
-    }, { signal });
+        if (this.player.options.onPause) {
+          this.player.options.onPause.call(this.player);
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('seeked', () => {
-      this.player.state.seeking = false;
-      this.player.emit('seeked');
-    }, { signal });
+    this.media.addEventListener(
+      'ended',
+      () => {
+        this.player.state.playing = false;
+        this.player.state.paused = true;
+        this.player.state.ended = true;
+        this.player.emit('ended');
 
-    this.media.addEventListener('waiting', () => {
-      this.player.state.buffering = true;
-      this.player.emit('waiting');
-    }, { signal });
+        if (this.player.options.onEnded) {
+          this.player.options.onEnded.call(this.player);
+        }
 
-    this.media.addEventListener('canplay', () => {
-      this.player.state.buffering = false;
-      this.player.emit('canplay');
-    }, { signal });
+        // Handle loop
+        if (this.player.options.loop) {
+          this.player.seek(0);
+          this.player.play();
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('progress', () => {
-      if (this.media.buffered.length > 0) {
-        const buffered = this.media.buffered.end(this.media.buffered.length - 1);
-        this.player.emit('progress', buffered);
-      }
-    }, { signal });
+    this.media.addEventListener(
+      'timeupdate',
+      () => {
+        this.player.state.currentTime = this.media.currentTime;
+        this.player.emit('timeupdate', this.media.currentTime);
 
-    this.media.addEventListener('error', (_e: Event) => {
-      this.player.handleError(this.media.error);
-    }, { signal });
+        if (this.player.options.onTimeUpdate) {
+          this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('emptied', () => {
-      this.player.syncPlaybackUiFromMediaElement?.();
-    }, { signal });
+    this.media.addEventListener(
+      'volumechange',
+      () => {
+        if (!this.player.shouldSyncVolumeFromMedia()) {
+          return;
+        }
+        this.player.state.volume = this.media.volume;
+        this.player.state.muted = this.media.muted;
+        this.player.emit('volumechange', this.media.volume);
 
-    this.media.addEventListener('ratechange', () => {
-      this.player.state.playbackSpeed = this.media.playbackRate;
-      this.player.emit('ratechange', this.media.playbackRate);
-    }, { signal });
+        if (this.player.options.onVolumeChange) {
+          this.player.options.onVolumeChange.call(this.player, this.media.volume);
+        }
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'seeking',
+      () => {
+        this.player.state.seeking = true;
+        this.player.emit('seeking');
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'seeked',
+      () => {
+        this.player.state.seeking = false;
+        this.player.emit('seeked');
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'waiting',
+      () => {
+        this.player.state.buffering = true;
+        this.player.emit('waiting');
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'canplay',
+      () => {
+        this.player.state.buffering = false;
+        this.player.emit('canplay');
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'progress',
+      () => {
+        if (this.media.buffered.length > 0) {
+          const buffered = this.media.buffered.end(this.media.buffered.length - 1);
+          this.player.emit('progress', buffered);
+        }
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'error',
+      (_e: Event) => {
+        this.player.handleError(this.media.error);
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'emptied',
+      () => {
+        this.player.syncPlaybackUiFromMediaElement?.();
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'ratechange',
+      () => {
+        this.player.state.playbackSpeed = this.media.playbackRate;
+        this.player.emit('ratechange', this.media.playbackRate);
+      },
+      { signal }
+    );
   }
 
   pauseOtherPlayers() {
     // Pause other VidPly instances
     const allPlayers = document.querySelectorAll('.vidply-player');
-    allPlayers.forEach(playerEl => {
+    allPlayers.forEach((playerEl) => {
       if (playerEl !== this.player.container) {
         const video = playerEl.querySelector('video, audio') as HTMLMediaElement | null;
         if (video && !video.paused) {
@@ -216,23 +276,20 @@ export class HTML5Renderer implements Renderer {
     const promise = this.media.play();
 
     if (promise !== undefined) {
-      promise.catch(error => {
+      promise.catch((error) => {
         this.player.state.buffering = false;
         this.player.state.playing = false;
         this.player.state.paused = true;
         this.player.emit('canplay');
         const err = error as { name?: string; message?: string };
-        this.player.log(
-          `Play failed: ${err.name ?? 'Error'} ${err.message ?? ''}`.trim(),
-          'warn',
-        );
+        this.player.log(`Play failed: ${err.name ?? 'Error'} ${err.message ?? ''}`.trim(), 'warn');
         this.player.syncPlaybackUiFromMediaElement?.();
 
         // If autoplay failed, try muted autoplay
         if (this.player.options.autoplay && !this.player.state.muted) {
           this.player.log('Retrying play with muted audio', 'info');
           this.media.muted = true;
-          this.media.play().catch(err => {
+          this.media.play().catch((err) => {
             this.player.handleError(err);
           });
         }
@@ -263,9 +320,7 @@ export class HTML5Renderer implements Renderer {
 
     try {
       const hasSrc = Boolean(
-        this.media.currentSrc ||
-        this.media.getAttribute('src') ||
-        this.media.src
+        this.media.currentSrc || this.media.getAttribute('src') || this.media.src
       );
       if (hasSrc && this.media.readyState === 0) {
         this.media.load();
@@ -302,33 +357,40 @@ export class HTML5Renderer implements Renderer {
    */
   getQualities() {
     const sources = Array.from(this.media.querySelectorAll('source'));
-    
+
     if (sources.length <= 1) {
       return [];
     }
 
-    return sources.map((source, index) => {
-      // Extract quality from data-quality attribute (preferred, HTML5-valid)
-      // Fallback to deprecated 'label' attribute for backward compatibility
-      // Note: 'label' is not a valid HTML attribute on <source> elements
-      const label = source.getAttribute('data-quality') || source.getAttribute('data-label') || source.getAttribute('label') || '';
-      const height = source.getAttribute('data-height') || String(this.extractHeightFromLabel(label));
-      const width = source.getAttribute('data-width') || '';
-      
-      return {
-        index,
-        height: height ? parseInt(height) : 0,
-        width: width ? parseInt(width) : 0,
-        src: source.src,
-        type: source.type,
-        name: label || (height ? `${height}p` : `Quality ${index + 1}`)
-      };
-    }).filter(q => q.height > 0); // Only return qualities with valid height
+    return sources
+      .map((source, index) => {
+        // Extract quality from data-quality attribute (preferred, HTML5-valid)
+        // Fallback to deprecated 'label' attribute for backward compatibility
+        // Note: 'label' is not a valid HTML attribute on <source> elements
+        const label =
+          source.getAttribute('data-quality') ||
+          source.getAttribute('data-label') ||
+          source.getAttribute('label') ||
+          '';
+        const height =
+          source.getAttribute('data-height') || String(this.extractHeightFromLabel(label));
+        const width = source.getAttribute('data-width') || '';
+
+        return {
+          index,
+          height: height ? parseInt(height) : 0,
+          width: width ? parseInt(width) : 0,
+          src: source.src,
+          type: source.type,
+          name: label || (height ? `${height}p` : `Quality ${index + 1}`)
+        };
+      })
+      .filter((q) => q.height > 0); // Only return qualities with valid height
   }
 
   /**
    * Extract height from quality label (e.g., "1080p" -> 1080)
-   * @param {string} label 
+   * @param {string} label
    * @returns {number}
    */
   extractHeightFromLabel(label: string) {
@@ -342,7 +404,7 @@ export class HTML5Renderer implements Renderer {
    */
   switchQuality(qualityIndex: number) {
     const qualities = this.getQualities();
-    
+
     if (qualityIndex < 0 || qualityIndex >= qualities.length) {
       this.player.log('Invalid quality index', 'warn');
       return;
@@ -357,7 +419,7 @@ export class HTML5Renderer implements Renderer {
 
     // Store the current source for comparison
     const currentSrc = this.media.currentSrc;
-    
+
     // Don't switch if already at this quality
     if (currentSrc === quality.src) {
       this.player.log('Already at this quality level', 'info');
@@ -368,21 +430,21 @@ export class HTML5Renderer implements Renderer {
 
     // Update the src
     this.media.src = quality.src;
-    
+
     // Wait for the new source to load, then restore playback state
     const onLoadedMetadata = () => {
       this.media.removeEventListener('loadedmetadata', onLoadedMetadata);
-      
+
       // Restore playback position
       this.media.currentTime = currentTime;
-      
+
       // Resume playback if it was playing
       if (wasPlaying) {
         this.media.play().catch(() => {
           this.player.log('Failed to resume playback after quality switch', 'warn');
         });
       }
-      
+
       // Emit quality change event
       this.player.emit('qualitychange', { quality: quality.name, index: qualityIndex });
     };
@@ -398,13 +460,13 @@ export class HTML5Renderer implements Renderer {
   getCurrentQuality() {
     const qualities = this.getQualities();
     const currentSrc = this.media.currentSrc;
-    
+
     for (let i = 0; i < qualities.length; i++) {
       if (qualities[i]?.src === currentSrc) {
         return i;
       }
     }
-    
+
     return 0; // Default to first quality if not found
   }
 
@@ -413,4 +475,3 @@ export class HTML5Renderer implements Renderer {
     this._listenerController.abort();
   }
 }
-

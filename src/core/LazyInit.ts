@@ -22,10 +22,7 @@ export interface LazyInitEntry<TOptions> {
 }
 
 /** Factory the observer invokes once an element is ready to promote. */
-export type LazyPlayerFactory<TOptions> = (
-  element: HTMLElement,
-  options: TOptions
-) => void;
+export type LazyPlayerFactory<TOptions> = (element: HTMLElement, options: TOptions) => void;
 
 const pendingByElement = new WeakMap<HTMLElement, LazyInitEntry<unknown>>();
 

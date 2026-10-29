@@ -141,7 +141,7 @@ export class PlaylistManager {
       loop: Boolean(options.loop) || false,
       showPanel: options.showPanel !== false, // Default true
       panelPosition: PlaylistManager.normalizePanelPosition(options.panelPosition),
-      recreatePlayers: Boolean(options.recreatePlayers) || false,
+      recreatePlayers: Boolean(options.recreatePlayers) || false
     };
 
     // UI elements
@@ -159,7 +159,7 @@ export class PlaylistManager {
     // Store the host element for player recreation
     this.hostElement = (options.hostElement as HTMLElement | null | undefined) ?? null;
     this.PlayerClass = (options.PlayerClass as PlayerConstructor | null | undefined) ?? null;
-    
+
     // Bind methods once so the same reference is used for both on() and off().
     // Binding inline at registration time (e.g. `.bind(this)` in init()) would
     // create a fresh function each call that off() can never match, leaking the
@@ -169,22 +169,22 @@ export class PlaylistManager {
     this.handlePlaybackStateChange = this.handlePlaybackStateChange.bind(this);
     this.handleFullscreenChange = this.handleFullscreenChange.bind(this);
     this.handleAudioDescriptionChange = this.handleAudioDescriptionChange.bind(this);
-    
+
     // Register this playlist manager with the player
     this.player.playlistManager = this;
-    
+
     // Initialize
     this.init();
-    
+
     // Update controls to add playlist buttons
     this.updatePlayerControls();
-    
+
     // Load tracks if provided in options (after UI is ready)
     if (this.initialTracks.length > 0) {
       this.loadPlaylist(this.initialTracks);
     }
   }
-  
+
   /**
    * Determine the media type for a track
    * @param {Object} track - Track object
@@ -192,7 +192,7 @@ export class PlaylistManager {
    */
   getTrackMediaType(track: PlaylistTrack) {
     const src = track.src || '';
-    
+
     if (src.includes('youtube.com') || src.includes('youtu.be')) {
       return 'youtube';
     }
@@ -203,7 +203,11 @@ export class PlaylistManager {
       return 'soundcloud';
     }
     const normalizedType = (track.type || '').toLowerCase();
-    if (normalizedType === 'youtube' || normalizedType === 'vimeo' || normalizedType === 'soundcloud') {
+    if (
+      normalizedType === 'youtube' ||
+      normalizedType === 'vimeo' ||
+      normalizedType === 'soundcloud'
+    ) {
       return normalizedType;
     }
     if (src.includes('.m3u8')) {
@@ -218,7 +222,7 @@ export class PlaylistManager {
     // Default to video for video types or unknown
     return 'video';
   }
-  
+
   /**
    * Recreate the player with the appropriate element type for the track
    * @param {Object} track - Track to load
@@ -229,17 +233,17 @@ export class PlaylistManager {
       console.warn('VidPly Playlist: Cannot recreate player - missing hostElement or PlayerClass');
       return false;
     }
-    
+
     const mediaType = this.getTrackMediaType(track);
     // SoundCloud uses an iframe widget, so it doesn't need an audio element
     // Only local audio files need an actual <audio> element
-    const elementType = (mediaType === 'audio') ? 'audio' : 'video';
-    
+    const elementType = mediaType === 'audio' ? 'audio' : 'video';
+
     // Store playlist panel state
     const wasVisible = this.isPanelVisible;
     const savedTracks = [...this.tracks]; // Keep track data
     const savedIndex = this.currentIndex;
-    
+
     // Detach all playlist UI elements from DOM (keep references)
     // These will be reattached to the new player container
     if (this.trackArtworkElement && this.trackArtworkElement.parentNode) {
@@ -258,13 +262,14 @@ export class PlaylistManager {
     if (this.playlistPanel && this.playlistPanel.parentNode) {
       this.playlistPanel.parentNode.removeChild(this.playlistPanel);
     }
-    
+
     // Preserve existing player options so recreated players behave
     // consistently. We use a loose `Record<string, unknown>` because
     // PlayerOptions includes optional fields and an open string-indexed
     // bag of pass-through values that the spread flattens.
-    const preservedPlayerOptions: Record<string, unknown> =
-      this.player?.options ? { ...this.player.options } : {};
+    const preservedPlayerOptions: Record<string, unknown> = this.player?.options
+      ? { ...this.player.options }
+      : {};
 
     // Remove event listeners before destroying
     if (this.player) {
@@ -280,26 +285,31 @@ export class PlaylistManager {
       this.player.playlistManager = null;
       this.player.destroy();
     }
-    
+
     // Clear the host element
     this.hostElement.innerHTML = '';
-    
+
     // Create new media element with appropriate type
     const mediaElement = document.createElement(elementType);
     // Respect configured preload (playlists should behave like single videos even with deferLoad)
     const preloadValue = (preservedPlayerOptions.preload as string | undefined) || 'metadata';
     mediaElement.setAttribute('preload', preloadValue);
-    
+
     // For video elements with local media, set poster
-    if (elementType === 'video' && track.poster && 
-        (mediaType === 'video' || mediaType === 'hls' || mediaType === 'dash')) {
+    if (
+      elementType === 'video' &&
+      track.poster &&
+      (mediaType === 'video' || mediaType === 'hls' || mediaType === 'dash')
+    ) {
       mediaElement.setAttribute('poster', track.poster);
     }
-    
+
     // For external renderers (YouTube, Vimeo, SoundCloud, HLS, DASH), don't add source
     // The renderer will handle the source directly
-    const isExternalRenderer = ['youtube', 'vimeo', 'soundcloud', 'hls', 'dash'].includes(mediaType);
-    
+    const isExternalRenderer = ['youtube', 'vimeo', 'soundcloud', 'hls', 'dash'].includes(
+      mediaType
+    );
+
     if (!isExternalRenderer) {
       // Add source for HTML5 media
       const source = document.createElement('source');
@@ -324,9 +334,9 @@ export class PlaylistManager {
         mediaElement.appendChild(trackEl);
       });
     }
-    
+
     this.hostElement.appendChild(mediaElement);
-    
+
     // Create new player with the media element — track-specific fields must
     // win over preserved options (e.g. poster from the previous video track).
     const embedRenderer = this.isExternalEmbedTrack(track)
@@ -335,25 +345,26 @@ export class PlaylistManager {
     const playerOptions = Object.assign({}, preservedPlayerOptions, {
       mediaType: elementType,
       externalEmbed: this.isExternalEmbedTrack(track),
-      externalEmbedRenderer: embedRenderer === 'youtube' || embedRenderer === 'vimeo' || embedRenderer === 'soundcloud'
-        ? embedRenderer
-        : undefined,
+      externalEmbedRenderer:
+        embedRenderer === 'youtube' || embedRenderer === 'vimeo' || embedRenderer === 'soundcloud'
+          ? embedRenderer
+          : undefined,
       poster: track.poster,
       audioDescriptionSrc: track.audioDescriptionSrc || null,
       audioDescriptionDuration: track.audioDescriptionDuration || null,
-      signLanguageSrc: track.signLanguageSrc || null,
+      signLanguageSrc: track.signLanguageSrc || null
     });
-    
+
     this.player = new this.PlayerClass(mediaElement, playerOptions);
-    
+
     // Re-register playlist manager
     this.player.playlistManager = this;
-    
+
     // Wait for player to be ready. Resolve immediately if the freshly created
     // player already flipped its ready state during construction — otherwise a
     // late on('ready') listener would miss the event and hang forever. A
     // managed timeout is a safety valve if 'ready' never fires (e.g. init error).
-    await new Promise<void>(resolve => {
+    await new Promise<void>((resolve) => {
       if (this.player.state?.ready) {
         resolve();
         return;
@@ -367,11 +378,11 @@ export class PlaylistManager {
       this.player.once('ready', done);
       this.setManagedTimeout(done, 5000);
     });
-    
+
     // Re-attach event listeners
     this.player.on('ended', this.handleTrackEnd);
     this.player.on('error', this.handleTrackError);
-    
+
     // Re-attach all playlist UI elements to the new player's container
     if (this.player.container) {
       // Track info
@@ -387,7 +398,7 @@ export class PlaylistManager {
         this.player.container.appendChild(this.playlistPanel);
       }
     }
-    
+
     // Update container reference and restore playlist state before re-applying layout.
     this.tracks = savedTracks;
     this.currentIndex = savedIndex;
@@ -401,16 +412,16 @@ export class PlaylistManager {
     // Update controls (adds playlist prev/next buttons)
     this.updatePlayerControls();
     this.applyPanelPositionClass();
-    
+
     // Update playlist UI to reflect current state
     this.updatePlaylistUI();
-    
+
     // Restore playlist panel visibility
     this.isPanelVisible = wasVisible;
     if (this.playlistPanel) {
       this.playlistPanel.style.display = wasVisible ? '' : 'none';
     }
-    
+
     const loadConfig = {
       src: track.src ?? '',
       type: track.type,
@@ -424,7 +435,7 @@ export class PlaylistManager {
     // before we call play(). While load() runs the renderer is null; an early
     // play() would fall back into PlaylistManager.play() and load again.
     await this.player.load({
-      ...loadConfig,
+      ...loadConfig
     });
 
     // Do not call Player.play() here — playlist switches set isChangingTrack and
@@ -440,15 +451,15 @@ export class PlaylistManager {
 
     this.updateTrackInfo(track);
     this.finalizeTrackArtworkForTrack(track);
-    
+
     return true;
   }
-  
+
   init() {
     // Listen for track end
     this.player.on('ended', this.handleTrackEnd);
     this.player.on('error', this.handleTrackError);
-    
+
     // Listen for playback state changes to show/hide playlist in fullscreen.
     // Handlers are pre-bound in the constructor so destroy() can detach them.
     this.player.on('play', this.handlePlaybackStateChange);
@@ -456,22 +467,22 @@ export class PlaylistManager {
     this.player.on('ended', this.handlePlaybackStateChange);
     // Use fullscreenchange event which is what the player actually emits
     this.player.on('fullscreenchange', this.handleFullscreenChange);
-    
+
     // Listen for audio description state changes to update duration displays
     this.player.on('audiodescriptionenabled', this.handleAudioDescriptionChange);
     this.player.on('audiodescriptiondisabled', this.handleAudioDescriptionChange);
-    
+
     // Create UI if needed
     if (this.options.showPanel) {
       this.createUI();
     }
-    
+
     // Check for data-playlist attribute on player container (only if tracks weren't provided in options)
     if (this.tracks.length === 0 && this.initialTracks.length === 0) {
       this.loadPlaylistFromAttribute();
     }
   }
-  
+
   /**
    * Load playlist from data-playlist attribute if present
    */
@@ -482,23 +493,23 @@ export class PlaylistManager {
     if (!this.player.element || !this.player.element.parentElement) {
       return;
     }
-    
+
     const videoWrapper = this.player.element.parentElement; // .vidply-video-wrapper
     const playerContainer = videoWrapper.parentElement; // .vidply-player
     const originalElement = playerContainer ? playerContainer.parentElement : null; // #audio-player (original div)
-    
+
     if (!originalElement) {
       return;
     }
-    
+
     // Load playlist options from data attributes
     this.loadOptionsFromAttributes(originalElement);
-    
+
     const playlistData = originalElement.getAttribute('data-playlist');
     if (!playlistData) {
       return;
     }
-    
+
     try {
       const tracks = JSON.parse(playlistData);
       if (Array.isArray(tracks) && tracks.length > 0) {
@@ -510,7 +521,7 @@ export class PlaylistManager {
       console.error('VidPly Playlist: Failed to parse data-playlist attribute', error);
     }
   }
-  
+
   /**
    * Load playlist options from data attributes
    * @param {HTMLElement} element - Element to read attributes from
@@ -521,19 +532,19 @@ export class PlaylistManager {
     if (autoAdvance !== null) {
       this.options.autoAdvance = autoAdvance === 'true';
     }
-    
+
     // data-playlist-auto-play-first
     const autoPlayFirst = element.getAttribute('data-playlist-auto-play-first');
     if (autoPlayFirst !== null) {
       this.options.autoPlayFirst = autoPlayFirst === 'true';
     }
-    
+
     // data-playlist-loop
     const loop = element.getAttribute('data-playlist-loop');
     if (loop !== null) {
       this.options.loop = loop === 'true';
     }
-    
+
     // data-playlist-show-panel
     const showPanel = element.getAttribute('data-playlist-show-panel');
     if (showPanel !== null) {
@@ -597,7 +608,7 @@ export class PlaylistManager {
     }
 
     const main = DOMUtils.createElement('div', {
-      className: 'vidply-playlist-main',
+      className: 'vidply-playlist-main'
     });
     const panel = this.playlistPanel;
     const children = Array.from(this.container.children).filter(
@@ -610,7 +621,7 @@ export class PlaylistManager {
       this.container.appendChild(main);
     }
 
-    children.forEach(child => main.appendChild(child));
+    children.forEach((child) => main.appendChild(child));
     this.orderPlaylistMainChildren(main);
     this.playlistMainElement = main;
   }
@@ -622,10 +633,10 @@ export class PlaylistManager {
     const orderedSelectors = [
       '.vidply-track-artwork',
       '.vidply-video-wrapper',
-      '.vidply-track-info',
+      '.vidply-track-info'
     ];
 
-    orderedSelectors.forEach(selector => {
+    orderedSelectors.forEach((selector) => {
       const node = main.querySelector(selector);
       if (node) {
         main.appendChild(node);
@@ -633,7 +644,7 @@ export class PlaylistManager {
     });
 
     // Keep screen-reader live regions after the visible column content.
-    Array.from(main.children).forEach(child => {
+    Array.from(main.children).forEach((child) => {
       if (child.classList.contains('vidply-sr-only')) {
         main.appendChild(child);
       }
@@ -649,8 +660,9 @@ export class PlaylistManager {
       return;
     }
 
-    const videoWrapper = this.playlistMainElement?.querySelector('.vidply-video-wrapper')
-      ?? this.container.querySelector('.vidply-video-wrapper');
+    const videoWrapper =
+      this.playlistMainElement?.querySelector('.vidply-video-wrapper') ??
+      this.container.querySelector('.vidply-video-wrapper');
     if (videoWrapper?.parentElement) {
       videoWrapper.parentElement.insertBefore(element, videoWrapper);
       if (this.playlistMainElement && videoWrapper.parentElement === this.playlistMainElement) {
@@ -671,11 +683,13 @@ export class PlaylistManager {
       return;
     }
 
-    this.container.querySelectorAll('.vidply-video-wrapper > video, .vidply-video-wrapper > audio').forEach(node => {
-      if (node instanceof HTMLElement) {
-        node.style.height = 'auto';
-      }
-    });
+    this.container
+      .querySelectorAll('.vidply-video-wrapper > video, .vidply-video-wrapper > audio')
+      .forEach((node) => {
+        if (node instanceof HTMLElement) {
+          node.style.height = 'auto';
+        }
+      });
 
     requestAnimationFrame(() => {
       this.player.positionPlayOverlayOnMobile();
@@ -702,21 +716,21 @@ export class PlaylistManager {
     main.remove();
     this.playlistMainElement = null;
   }
-  
+
   /**
    * Update player controls to add playlist navigation buttons
    */
   updatePlayerControls() {
     if (!this.player.controlBar) return;
-    
+
     const controlBar = this.player.controlBar;
-    
+
     // Clear existing controls content (except the element itself)
     controlBar.element.innerHTML = '';
-    
+
     // Recreate controls with playlist buttons now available
     controlBar.createControls();
-    
+
     // Reattach events for the new controls
     controlBar.attachEvents();
     controlBar.setupAutoHide();
@@ -747,10 +761,7 @@ export class PlaylistManager {
     }
   }
 
-  private mediaSourcesMatch(
-    a: string | null | undefined,
-    b: string | null | undefined,
-  ): boolean {
+  private mediaSourcesMatch(a: string | null | undefined, b: string | null | undefined): boolean {
     if (!a || !b) {
       return false;
     }
@@ -769,11 +780,7 @@ export class PlaylistManager {
         ? sourceEl.src || sourceEl.getAttribute('src') || ''
         : '';
     const current =
-      element.currentSrc ||
-      fromSource ||
-      element.getAttribute('src') ||
-      element.src ||
-      '';
+      element.currentSrc || fromSource || element.getAttribute('src') || element.src || '';
     if (!current) {
       return false;
     }
@@ -790,7 +797,7 @@ export class PlaylistManager {
       return false;
     }
     const playback = this.resolveTrackPlaybackSource(track, {
-      preferNativeElement: isIOS(),
+      preferNativeElement: isIOS()
     });
     if (!playback.src) {
       return false;
@@ -851,7 +858,7 @@ export class PlaylistManager {
   /** Resolve `src` / `sources[]` the same way single-video `<source>` negotiation does. */
   resolveTrackPlaybackSource(
     track: PlaylistTrack,
-    options?: { preferNativeElement?: boolean },
+    options?: { preferNativeElement?: boolean }
   ): { src: string; type?: string } {
     const negotiated = negotiateMediaSources(candidatesFromTrack(track), options);
     const match =
@@ -861,7 +868,7 @@ export class PlaylistManager {
       negotiated.fallbacks.length > 0
         ? negotiated.fallbacks.map((s) => ({
             src: s.src,
-            type: s.type ?? '',
+            type: s.type ?? ''
           }))
         : [];
     return { src: negotiated.src, type: match?.type ?? track.type };
@@ -965,10 +972,7 @@ export class PlaylistManager {
     }
   }
 
-  private completeNativeGesturePlayUi(
-    index: number,
-    track: PlaylistTrack,
-  ): void {
+  private completeNativeGesturePlayUi(index: number, track: PlaylistTrack): void {
     if (track.src && !this.player.originalSrc) {
       this.player.originalSrc = track.src;
     }
@@ -985,7 +989,7 @@ export class PlaylistManager {
     this.player.emit('playlisttrackchange', {
       index,
       item: track,
-      total: this.tracks.length,
+      total: this.tracks.length
     });
     this.isChangingTrack = false;
     this.player.syncPlaybackUiFromMediaElement?.();
@@ -1012,7 +1016,9 @@ export class PlaylistManager {
       }
 
       const preferNative = isIOS();
-      const playback = this.resolveTrackPlaybackSource(track, { preferNativeElement: preferNative });
+      const playback = this.resolveTrackPlaybackSource(track, {
+        preferNativeElement: preferNative
+      });
       if (!playback.src) {
         return;
       }
@@ -1043,7 +1049,7 @@ export class PlaylistManager {
     index: number,
     track: PlaylistTrack,
     srcToLoad: string,
-    mimeType?: string,
+    mimeType?: string
   ): void {
     if (isIOS()) {
       this.ensureInlineVideoPlaybackAttributes();
@@ -1078,8 +1084,7 @@ export class PlaylistManager {
         return;
       }
 
-      const needsRendererInit =
-        !this.player.renderer && !this.player.isRendererInitializing();
+      const needsRendererInit = !this.player.renderer && !this.player.isRendererInitializing();
 
       if (needsRendererInit) {
         this.player.beginPreservedPlaybackDuringRendererInit(srcToLoad);
@@ -1092,15 +1097,14 @@ export class PlaylistManager {
       }
 
       const needsRendererSwap =
-        Boolean(this.player.renderer) &&
-        this.player.shouldChangeRenderer(srcToLoad);
+        Boolean(this.player.renderer) && this.player.shouldChangeRenderer(srcToLoad);
 
       if (needsRendererSwap) {
         if (this.currentIndex !== index) {
           this.selectTrack(index);
         }
         this.player.beginPreservedPlaybackDuringRendererInit(
-          this.player.resolveMediaSourceUrl(srcToLoad),
+          this.player.resolveMediaSourceUrl(srcToLoad)
         );
         this.player.teardownRendererForNativeGestureSwap();
         if (!this.player.iosNativePlayInUserGesture(srcToLoad, mimeType)) {
@@ -1251,7 +1255,7 @@ export class PlaylistManager {
   private beginPlaybackForLoadedTrack(
     loadGeneration: number,
     track: PlaylistTrack,
-    userInitiated: boolean,
+    userInitiated: boolean
   ): void {
     if (isIOS()) {
       if (userInitiated) {
@@ -1280,7 +1284,7 @@ export class PlaylistManager {
     loadGeneration: number,
     index: number,
     track: PlaylistTrack,
-    failed: boolean,
+    failed: boolean
   ): void {
     if (loadGeneration !== this._trackLoadGeneration) {
       return;
@@ -1297,7 +1301,7 @@ export class PlaylistManager {
     this.player.emit('playlisttrackchange', {
       index,
       item: track,
-      total: this.tracks.length,
+      total: this.tracks.length
     });
 
     this.isChangingTrack = false;
@@ -1318,13 +1322,13 @@ export class PlaylistManager {
   loadPlaylist(tracks: PlaylistTrack[]) {
     this.tracks = tracks;
     this.currentIndex = -1;
-    
+
     // Add playlist class to container
     if (this.container) {
       this.container.classList.add('vidply-has-playlist');
       this.applyPanelPositionClass();
     }
-    
+
     // Update UI
     if (this.playlistPanel) {
       this.renderPlaylist();
@@ -1335,7 +1339,7 @@ export class PlaylistManager {
     if (isIOS() && tracks.some((t) => t.src?.includes('.m3u8'))) {
       void import('../renderers/HLSRenderer.js');
     }
-    
+
     if (tracks.length > 0) {
       if (this.options.autoPlayFirst) {
         void this.play(0).catch(() => {
@@ -1347,11 +1351,11 @@ export class PlaylistManager {
         this.presentIdleTrack(0);
       }
     }
-    
+
     // Update visibility based on current state
     this.updatePlaylistVisibilityInFullscreen();
   }
-  
+
   /**
    * Idle playlist: show a track's poster/artwork and header without playback or selection.
    */
@@ -1393,42 +1397,46 @@ export class PlaylistManager {
       console.warn('VidPly Playlist: Invalid track index', index);
       return;
     }
-    
+
     const track = this.tracks[index];
     if (!track) return;
 
     const loadGeneration = ++this._trackLoadGeneration;
 
     this.clearIdleExternalEmbedPreview();
-    
+
     // Always update UI immediately (poster, buttons, duration, etc.).
     // Note: this is UI-only; actual media loading is performed by player.load() below.
     this.selectTrack(index);
 
     // Prefetch only — do not set isChangingTrack (blocks Player.play on iPhone while
     // the first item is loading). Generation handles superseded loads.
-    
+
     // Check if we should recreate the player for this track type
     if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
-      const currentMediaType = this.player ? 
-        (this.player.element.tagName === 'AUDIO' ? 'audio' : 'video') : null;
+      const currentMediaType = this.player
+        ? this.player.element.tagName === 'AUDIO'
+          ? 'audio'
+          : 'video'
+        : null;
       const newMediaType = this.getTrackMediaType(track);
-      const newElementType = (newMediaType === 'audio' || newMediaType === 'soundcloud') ? 'audio' : 'video';
-      
+      const newElementType =
+        newMediaType === 'audio' || newMediaType === 'soundcloud' ? 'audio' : 'video';
+
       // Recreate if element type is different
       if (currentMediaType !== newElementType) {
         this.isChangingTrack = true;
         await this.recreatePlayerForTrack(track, false);
         // Re-apply selection to the newly created player (poster/tracks/buttons)
         this.selectTrack(index);
-        
+
         // Emit event
         this.player.emit('playlisttrackchange', {
           index: index,
           item: track,
           total: this.tracks.length
         });
-        
+
         // Clear guard flag
         this.setManagedTimeout(() => {
           if (loadGeneration === this._trackLoadGeneration) {
@@ -1438,7 +1446,7 @@ export class PlaylistManager {
         return;
       }
     }
-    
+
     try {
       const playback = this.resolveTrackPlaybackSource(track);
       await this.player.load({
@@ -1524,7 +1532,8 @@ export class PlaylistManager {
       if (this.player.audioDescriptionManager) {
         this.player.audioDescriptionManager.src = track.audioDescriptionSrc || null;
         // Remember original (non-described) source for switching back later
-        this.player.audioDescriptionManager.originalSource = track.src || this.player.originalSrc || null;
+        this.player.audioDescriptionManager.originalSource =
+          track.src || this.player.originalSrc || null;
       }
       if (this.player.signLanguageManager) {
         this.player.signLanguageManager.src = track.signLanguageSrc || null;
@@ -1539,7 +1548,7 @@ export class PlaylistManager {
 
       // iOS deferLoad: <track> before a gesture-time media bind breaks WebKit (SRC_NOT_SUPPORTED).
       const existing: HTMLElement[] = Array.from(this.player.element.querySelectorAll('track'));
-      existing.forEach(t => t.remove());
+      existing.forEach((t) => t.remove());
 
       if (isIOS()) {
         this._iosPendingTextTracks = Array.isArray(track.tracks) ? track.tracks : null;
@@ -1579,14 +1588,20 @@ export class PlaylistManager {
       if (this.player.audioDescriptionManager) {
         reinitAudioDescription(this.player.audioDescriptionManager);
       } else if (this.player.hasAudioDescriptionContent?.()) {
-        void this.player.ensureAudioDescriptionManager()
+        void this.player
+          .ensureAudioDescriptionManager()
           .then(reinitAudioDescription)
-          .catch(() => { /* ignore */ });
+          .catch(() => {
+            /* ignore */
+          });
       }
 
       // Refresh caption/transcript managers so menus reflect newly injected <track> elements
       // (important when we defer MP4/MP3 loading but still want VTT-based UI to work).
-      if (this.player.captionManager && typeof this.player.captionManager.loadTracks === 'function') {
+      if (
+        this.player.captionManager &&
+        typeof this.player.captionManager.loadTracks === 'function'
+      ) {
         try {
           this.player.captionManager.tracks = [];
           this.player.captionManager.currentTrack = null;
@@ -1617,7 +1632,7 @@ export class PlaylistManager {
       total: this.tracks.length
     });
   }
-  
+
   /**
    * Play a specific track
    * @param {number} index - Track index
@@ -1628,7 +1643,7 @@ export class PlaylistManager {
       console.warn('VidPly Playlist: Invalid track index', index);
       return;
     }
-    
+
     const track = this.tracks[index];
     if (!track) return;
 
@@ -1646,11 +1661,15 @@ export class PlaylistManager {
 
     // Check if we should recreate the player for this track type
     if (this.options.recreatePlayers && this.hostElement && this.PlayerClass) {
-      const currentMediaType = this.player ? 
-        (this.player.element.tagName === 'AUDIO' ? 'audio' : 'video') : null;
+      const currentMediaType = this.player
+        ? this.player.element.tagName === 'AUDIO'
+          ? 'audio'
+          : 'video'
+        : null;
       const newMediaType = this.getTrackMediaType(track);
-      const newElementType = (newMediaType === 'audio' || newMediaType === 'soundcloud') ? 'audio' : 'video';
-      
+      const newElementType =
+        newMediaType === 'audio' || newMediaType === 'soundcloud' ? 'audio' : 'video';
+
       // Recreate if element type is different
       if (currentMediaType !== newElementType) {
         await this.recreatePlayerForTrack(track, false);
@@ -1673,7 +1692,7 @@ export class PlaylistManager {
         return;
       }
     }
-    
+
     // Load track into player (normal path)
     // If audio description was toggled before the first play, load the described source directly.
     const preferNative = isIOS();
@@ -1692,12 +1711,9 @@ export class PlaylistManager {
     // the media element (resume). Otherwise use player.load() so renderer swaps and
     // new sources are applied (mixed playlists, podcast track changes, etc.).
     if (
-      userInitiated
-      && this.usesNativeElementPlayback(srcToLoad)
-      && (
-        isIOS()
-        || (this.canPlayTrackWithoutReload(srcToLoad) && this.isTrackSourceAttached(index))
-      )
+      userInitiated &&
+      this.usesNativeElementPlayback(srcToLoad) &&
+      (isIOS() || (this.canPlayTrackWithoutReload(srcToLoad) && this.isTrackSourceAttached(index)))
     ) {
       this.playNativeInUserGesture(index, track, srcToLoad ?? '', typeToLoad);
       return;
@@ -1710,7 +1726,7 @@ export class PlaylistManager {
       tracks: track.tracks || [],
       audioDescriptionSrc: track.audioDescriptionSrc || null,
       signLanguageSrc: track.signLanguageSrc || null,
-      signLanguageSources: track.signLanguageSources || {},
+      signLanguageSources: track.signLanguageSources || {}
     };
 
     try {
@@ -1724,13 +1740,13 @@ export class PlaylistManager {
 
     this.finishPlayAfterLoad(loadGeneration, index, track, false);
   }
-  
+
   /**
    * Play next track
    */
   next() {
     let nextIndex = this.currentIndex + 1;
-    
+
     if (nextIndex >= this.tracks.length) {
       if (this.options.loop) {
         nextIndex = 0;
@@ -1738,16 +1754,16 @@ export class PlaylistManager {
         return;
       }
     }
-    
+
     this.play(nextIndex);
   }
-  
+
   /**
    * Play previous track
    */
   previous() {
     let prevIndex = this.currentIndex - 1;
-    
+
     if (prevIndex < 0) {
       if (this.options.loop) {
         prevIndex = this.tracks.length - 1;
@@ -1755,10 +1771,10 @@ export class PlaylistManager {
         return;
       }
     }
-    
+
     this.play(prevIndex);
   }
-  
+
   /**
    * Handle track end
    */
@@ -1768,12 +1784,12 @@ export class PlaylistManager {
     if (this.isChangingTrack) {
       return;
     }
-    
+
     if (this.options.autoAdvance) {
       this.next();
     }
   }
-  
+
   /**
    * Check if a source URL requires an external renderer
    * @param {string} src - Source URL
@@ -1781,13 +1797,15 @@ export class PlaylistManager {
    */
   isExternalRendererUrl(src: string | null | undefined) {
     if (!src) return false;
-    return src.includes('youtube.com') || 
-           src.includes('youtu.be') || 
-           src.includes('vimeo.com') || 
-           src.includes('soundcloud.com') || 
-           src.includes('api.soundcloud.com') ||
-           src.includes('.m3u8') ||
-           src.includes('.mpd');
+    return (
+      src.includes('youtube.com') ||
+      src.includes('youtu.be') ||
+      src.includes('vimeo.com') ||
+      src.includes('soundcloud.com') ||
+      src.includes('api.soundcloud.com') ||
+      src.includes('.m3u8') ||
+      src.includes('.mpd')
+    );
   }
 
   /**
@@ -1802,15 +1820,15 @@ export class PlaylistManager {
       // Silently ignore errors for external renderer tracks
       return;
     }
-    
+
     // Don't auto-advance if we're in the process of changing tracks
     // This prevents a cascade of next() calls when switching between renderer types
     if (this.isChangingTrack) {
       return;
     }
-    
+
     console.error('VidPly Playlist: Track error', e);
-    
+
     // Try next track (iOS emits many transient errors while src/renderer swaps)
     if (this.options.autoAdvance && !isIOS()) {
       this.setManagedTimeout(() => {
@@ -1818,14 +1836,14 @@ export class PlaylistManager {
       }, 1000);
     }
   }
-  
+
   /**
    * Handle playback state changes (for fullscreen playlist visibility)
    */
   handlePlaybackStateChange() {
     this.updatePlaylistVisibilityInFullscreen();
   }
-  
+
   /**
    * Handle fullscreen state changes
    */
@@ -1835,7 +1853,7 @@ export class PlaylistManager {
       this.updatePlaylistVisibilityInFullscreen();
     }, 50);
   }
-  
+
   /**
    * Handle audio description state changes
    * Updates duration displays to show audio-described version duration when AD is enabled
@@ -1843,39 +1861,41 @@ export class PlaylistManager {
   handleAudioDescriptionChange() {
     const currentTrack = this.getCurrentTrack();
     if (!currentTrack) return;
-    
+
     // Update the track info display with the appropriate duration
     this.updateTrackInfo(currentTrack);
-    
+
     // Update the playlist UI to reflect duration changes (aria-labels)
     this.updatePlaylistUI();
-    
+
     // Update visual duration elements in playlist panel
     this.updatePlaylistDurations();
   }
-  
+
   /**
    * Update the visual duration displays in the playlist panel
    * Called when audio description state changes
    */
   updatePlaylistDurations() {
     if (!this.playlistPanel) return;
-    
+
     const items = this.playlistPanel.querySelectorAll('.vidply-playlist-item');
-    
+
     items.forEach((item: Element, index: number) => {
       const track = this.tracks[index];
       if (!track) return;
-      
+
       const effectiveDuration = this.getEffectiveDuration(track);
-      const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration as number) : '';
-      
+      const trackDuration = effectiveDuration
+        ? TimeUtils.formatTime(effectiveDuration as number)
+        : '';
+
       // Update duration badge on thumbnail (if exists)
       const durationBadge = item.querySelector('.vidply-playlist-duration-badge');
       if (durationBadge) {
         durationBadge.textContent = trackDuration;
       }
-      
+
       // Update inline duration (if exists)
       const inlineDuration = item.querySelector('.vidply-playlist-item-duration');
       if (inlineDuration) {
@@ -1883,7 +1903,7 @@ export class PlaylistManager {
       }
     });
   }
-  
+
   /**
    * Get the effective duration for a track based on audio description state
    * @param {Object} track - Track object
@@ -1891,18 +1911,18 @@ export class PlaylistManager {
    */
   getEffectiveDuration(track: PlaylistTrack) {
     if (!track) return null;
-    
+
     const isAudioDescriptionEnabled = this.player.state.audioDescriptionEnabled;
-    
+
     // If audio description is enabled and track has audioDescriptionDuration, use it
     if (isAudioDescriptionEnabled && track.audioDescriptionDuration) {
       return track.audioDescriptionDuration;
     }
-    
+
     // Otherwise use regular duration
     return track.duration || null;
   }
-  
+
   /**
    * Update playlist visibility based on fullscreen and playback state
    * In fullscreen: show when paused/not started, hide when playing
@@ -1941,27 +1961,27 @@ export class PlaylistManager {
       }
     }
   }
-  
+
   /**
    * Create playlist UI
    */
   createUI() {
     // Find player container
     this.container = this.player.container;
-    
+
     if (!this.container) {
       console.warn('VidPly Playlist: No container found');
       return;
     }
-    
+
     // Track artwork element (shows album art/poster for audio tracks).
     // Important: in mixed playlists the player may start as <video> and later recreate to <audio>,
     // so we create this lazily in `updateTrackArtwork()` when we actually have an audio element.
-    
+
     // Track metadata header above the media element.
     this.trackInfoView = new TrackInfoView(this.player.options.classPrefix);
     this.trackInfoView.mount(this.container);
-    
+
     // Create navigation feedback live region
     this.navigationFeedback = DOMUtils.createElement('div', {
       className: 'vidply-sr-only',
@@ -1972,7 +1992,7 @@ export class PlaylistManager {
       }
     });
     this.container.appendChild(this.navigationFeedback);
-    
+
     // Create playlist panel with proper landmark
     this.playlistPanel = DOMUtils.createElement('div', {
       className: 'vidply-playlist-panel',
@@ -1984,11 +2004,11 @@ export class PlaylistManager {
       }
     });
     this.playlistPanel.style.display = this.isPanelVisible ? 'none' : 'none'; // Will be shown when playlist is loaded
-    
+
     this.container.appendChild(this.playlistPanel);
     this.applyPanelPositionClass();
   }
-  
+
   /**
    * Apply a validated poster URL to a video element (playlists / idle preview).
    */
@@ -2059,13 +2079,16 @@ export class PlaylistManager {
       return;
     }
     if (track.poster) {
-      const resolved: string = typeof this.player.resolvePosterPath === 'function'
-        ? this.player.resolvePosterPath(track.poster)
-        : track.poster;
+      const resolved: string =
+        typeof this.player.resolvePosterPath === 'function'
+          ? this.player.resolvePosterPath(track.poster)
+          : track.poster;
       const posterUrl = sanitizePosterUrl(resolved);
       if (posterUrl) {
         (this.player.element as HTMLVideoElement).poster = posterUrl;
-        (this.player as Player & { applyPosterAspectRatio?: (url: string) => void }).applyPosterAspectRatio?.(posterUrl);
+        (
+          this.player as Player & { applyPosterAspectRatio?: (url: string) => void }
+        ).applyPosterAspectRatio?.(posterUrl);
       } else {
         this.player.element.removeAttribute('poster');
       }
@@ -2085,7 +2108,8 @@ export class PlaylistManager {
         title: track.title,
         artist: track.artist,
         description: track.description,
-        longDescription: typeof track.longDescription === 'string' ? track.longDescription : undefined,
+        longDescription:
+          typeof track.longDescription === 'string' ? track.longDescription : undefined,
         date: typeof track.date === 'string' ? track.date : undefined,
         duration: effectiveDuration ? Number(effectiveDuration) : undefined,
         trackNumber: listIndex >= 0 ? listIndex + 1 : undefined,
@@ -2099,7 +2123,7 @@ export class PlaylistManager {
     this.updateTrackArtwork(track);
     this.syncRightPanelMediaStyles();
   }
-  
+
   /**
    * Resolve a track poster for CSS/artwork (absolute URL + allow-list).
    */
@@ -2107,9 +2131,10 @@ export class PlaylistManager {
     if (!poster) {
       return null;
     }
-    const resolved = typeof this.player?.resolvePosterPath === 'function'
-      ? this.player.resolvePosterPath(poster)
-      : poster;
+    const resolved =
+      typeof this.player?.resolvePosterPath === 'function'
+        ? this.player.resolvePosterPath(poster)
+        : poster;
     return toCssBackgroundImage(resolved);
   }
 
@@ -2121,7 +2146,7 @@ export class PlaylistManager {
       this.player?.trackArtworkElement ?? null,
       this.playlistMainElement,
       this.container,
-      this.hostElement,
+      this.hostElement
     ];
 
     for (const root of candidates) {
@@ -2148,7 +2173,7 @@ export class PlaylistManager {
       (root): root is HTMLElement => root instanceof HTMLElement
     );
 
-    roots.forEach(root => {
+    roots.forEach((root) => {
       root.querySelectorAll('.vidply-track-artwork').forEach((el) => {
         if (el !== keep) {
           el.remove();
@@ -2218,9 +2243,14 @@ export class PlaylistManager {
     }
 
     // Privacy consent may force-hide artwork while the overlay is visible.
-    const forcedHidden = this.trackArtworkElement?.getAttribute('data-vidply-artwork-forced-hidden') === 'true'
-      || this.container?.querySelector('.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]') instanceof HTMLElement
-      || this.playlistMainElement?.querySelector('.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]') instanceof HTMLElement;
+    const forcedHidden =
+      this.trackArtworkElement?.getAttribute('data-vidply-artwork-forced-hidden') === 'true' ||
+      this.container?.querySelector(
+        '.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]'
+      ) instanceof HTMLElement ||
+      this.playlistMainElement?.querySelector(
+        '.vidply-track-artwork[data-vidply-artwork-forced-hidden="true"]'
+      ) instanceof HTMLElement;
     if (forcedHidden) {
       return;
     }
@@ -2257,7 +2287,7 @@ export class PlaylistManager {
     if (!this.trackArtworkElement) return;
 
     this.dedupeTrackArtworkElements(this.trackArtworkElement);
-    
+
     // A track manifest is attacker-influenced data — a value like
     // `x); background: url(evil.svg` must not be allowed to break out
     // of the declaration. `toCssBackgroundImage` returns null when the
@@ -2279,16 +2309,16 @@ export class PlaylistManager {
       this.trackArtworkElement.style.display = 'none';
     }
   }
-  
+
   /**
    * Render playlist
    */
   renderPlaylist() {
     if (!this.playlistPanel) return;
-    
+
     // Clear existing
     this.playlistPanel.innerHTML = '';
-    
+
     // Create header
     const header = DOMUtils.createElement('h2', {
       className: 'vidply-playlist-header',
@@ -2298,7 +2328,7 @@ export class PlaylistManager {
     });
     header.textContent = `${i18n.t('playlist.title')} (${this.tracks.length})`;
     this.playlistPanel.appendChild(header);
-    
+
     // Add keyboard instructions (visually hidden)
     const instructions = DOMUtils.createElement('div', {
       className: 'vidply-sr-only',
@@ -2308,7 +2338,7 @@ export class PlaylistManager {
     });
     instructions.textContent = i18n.t('playlist.keyboardInstructions');
     this.playlistPanel.appendChild(instructions);
-    
+
     // Create list (proper ul element)
     // Note: role="listbox" requires option children. We use role="none" on <li> elements
     // so the buttons with role="option" become the semantic children of the listbox.
@@ -2320,14 +2350,14 @@ export class PlaylistManager {
         'aria-describedby': `${this.uniqueId}-keyboard-instructions`
       }
     });
-    
+
     this.tracks.forEach((track, index) => {
       const item = this.createPlaylistItem(track, index);
       list.appendChild(item);
     });
-    
+
     this.playlistPanel.appendChild(list);
-    
+
     // Show panel if it should be visible
     if (this.isPanelVisible) {
       this.playlistPanel.style.display = 'block';
@@ -2335,26 +2365,30 @@ export class PlaylistManager {
 
     this.syncPanelCollapsedLayout();
   }
-  
+
   /**
    * Create playlist item element
    */
   createPlaylistItem(track: PlaylistTrack, index: number) {
     const trackTitle = track.title || i18n.t('playlist.trackUntitled', { number: index + 1 });
     const trackArtist = track.artist ? i18n.t('playlist.by') + track.artist : '';
-    
+
     // Use effective duration (audio description duration when AD is enabled)
     const effectiveDuration = this.getEffectiveDuration(track);
-    const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration as number) : '';
-    const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration as number) : '';
+    const trackDuration = effectiveDuration
+      ? TimeUtils.formatTime(effectiveDuration as number)
+      : '';
+    const trackDurationReadable = effectiveDuration
+      ? TimeUtils.formatDuration(effectiveDuration as number)
+      : '';
     const isActive = index === this.currentIndex;
-    
+
     // Build accessible label for screen readers
     // With role="option" and aria-selected, screen reader will announce selection state
     // Position is already announced via aria-posinset/aria-setsize
     // Format: "Title by Artist. 3 minutes, 45 seconds."
     const trackDate = typeof track.date === 'string' ? track.date : '';
-    
+
     let ariaLabel = `${trackTitle}${trackArtist}`;
     if (trackDate) {
       ariaLabel += `. ${trackDate}`;
@@ -2362,18 +2396,20 @@ export class PlaylistManager {
     if (trackDurationReadable) {
       ariaLabel += `. ${trackDurationReadable}`;
     }
-    
+
     // Create list item container
     // role="none" removes the <li> from the accessibility tree so the button with
     // role="option" becomes the direct semantic child of the listbox (required by ARIA).
     const item = DOMUtils.createElement('li', {
-      className: isActive ? 'vidply-playlist-item vidply-playlist-item-active' : 'vidply-playlist-item',
+      className: isActive
+        ? 'vidply-playlist-item vidply-playlist-item-active'
+        : 'vidply-playlist-item',
       attributes: {
         'data-playlist-index': String(index),
         role: 'none'
       }
     });
-    
+
     // Create button wrapper for interactive content
     const button = DOMUtils.createElement('button', {
       className: 'vidply-playlist-item-button',
@@ -2387,13 +2423,13 @@ export class PlaylistManager {
         'aria-selected': isActive ? 'true' : 'false'
       }
     });
-    
+
     // Add aria-current if active
     if (isActive) {
       button.setAttribute('aria-current', 'true');
       button.setAttribute('tabIndex', '0'); // Active item should always be tabbable
     }
-    
+
     // Thumbnail container with optional duration badge
     const thumbnailContainer = DOMUtils.createElement('span', {
       className: 'vidply-playlist-thumbnail-container',
@@ -2401,12 +2437,12 @@ export class PlaylistManager {
         'aria-hidden': 'true'
       }
     });
-    
+
     // Thumbnail or icon
     const thumbnail = DOMUtils.createElement('span', {
       className: 'vidply-playlist-thumbnail'
     });
-    
+
     // Same rule as trackArtworkElement below: only set backgroundImage
     // when the manifest URL passes the allow-list so a hostile feed
     // cannot break out of the CSS `url(...)` declaration.
@@ -2418,9 +2454,9 @@ export class PlaylistManager {
       icon.classList.add('vidply-playlist-thumbnail-icon');
       thumbnail.appendChild(icon);
     }
-    
+
     thumbnailContainer.appendChild(thumbnail);
-    
+
     // Duration badge on thumbnail (like YouTube) - only show if there's a poster
     if (trackDuration && track.poster) {
       const durationBadge = DOMUtils.createElement('span', {
@@ -2429,9 +2465,9 @@ export class PlaylistManager {
       durationBadge.textContent = trackDuration;
       thumbnailContainer.appendChild(durationBadge);
     }
-    
+
     button.appendChild(thumbnailContainer);
-    
+
     // Info section (title, artist, description)
     const info = DOMUtils.createElement('span', {
       className: 'vidply-playlist-item-info',
@@ -2439,18 +2475,18 @@ export class PlaylistManager {
         'aria-hidden': 'true'
       }
     });
-    
+
     // Title row with optional inline duration (for when no thumbnail)
     const titleRow = DOMUtils.createElement('span', {
       className: 'vidply-playlist-item-title-row'
     });
-    
+
     const title = DOMUtils.createElement('span', {
       className: 'vidply-playlist-item-title'
     });
     title.textContent = trackTitle;
     titleRow.appendChild(title);
-    
+
     // Inline duration (shown when no poster/thumbnail)
     if (trackDuration && !track.poster) {
       const inlineDuration = DOMUtils.createElement('span', {
@@ -2459,9 +2495,9 @@ export class PlaylistManager {
       inlineDuration.textContent = trackDuration;
       titleRow.appendChild(inlineDuration);
     }
-    
+
     info.appendChild(titleRow);
-    
+
     // Artist
     if (track.artist) {
       const artist = DOMUtils.createElement('span', {
@@ -2470,7 +2506,7 @@ export class PlaylistManager {
       artist.textContent = track.artist;
       info.appendChild(artist);
     }
-    
+
     // Publish date (preformatted by the host application)
     if (trackDate) {
       const date = DOMUtils.createElement('span', {
@@ -2479,7 +2515,7 @@ export class PlaylistManager {
       date.textContent = trackDate;
       info.appendChild(date);
     }
-    
+
     // Description (truncated)
     if (track.description) {
       const description = DOMUtils.createElement('span', {
@@ -2488,20 +2524,20 @@ export class PlaylistManager {
       description.textContent = track.description;
       info.appendChild(description);
     }
-    
+
     button.appendChild(info);
-    
+
     // Play icon
     const playIcon = createIconElement('play');
     playIcon.classList.add('vidply-playlist-item-icon');
     playIcon.setAttribute('aria-hidden', 'true');
     button.appendChild(playIcon);
-    
+
     // Click handler
     button.addEventListener('click', () => {
       const track = this.tracks[index];
       const isExternalRenderer = this.isExternalRendererUrl(track?.src);
-      
+
       // Exit fullscreen for external renderer tracks (YouTube, Vimeo, SoundCloud)
       // These have their own native controls that work better outside vidply's fullscreen
       if (isExternalRenderer && this.player.state.fullscreen) {
@@ -2514,28 +2550,30 @@ export class PlaylistManager {
         this.play(index, true); // User-initiated
       }
     });
-    
+
     // Keyboard handler
     button.addEventListener('keydown', (e) => {
       this.handlePlaylistItemKeydown(e, index);
     });
-    
+
     // Append button to list item
     item.appendChild(button);
-    
+
     return item;
   }
-  
+
   /**
    * Handle keyboard navigation in playlist items
    */
   handlePlaylistItemKeydown(e: KeyboardEvent, index: number) {
     if (!this.playlistPanel) return;
-    const buttons: HTMLElement[] = Array.from(this.playlistPanel.querySelectorAll('.vidply-playlist-item-button'));
+    const buttons: HTMLElement[] = Array.from(
+      this.playlistPanel.querySelectorAll('.vidply-playlist-item-button')
+    );
     let newIndex = -1;
     let announcement = '';
-    
-    switch(e.key) {
+
+    switch (e.key) {
       case 'Enter':
       case ' ':
         e.preventDefault();
@@ -2543,7 +2581,7 @@ export class PlaylistManager {
         {
           const track = this.tracks[index];
           const isExternalRenderer = this.isExternalRendererUrl(track?.src);
-          
+
           // Exit fullscreen for external renderer tracks (YouTube, Vimeo, SoundCloud)
           if (isExternalRenderer && this.player.state.fullscreen) {
             this.player.exitFullscreen();
@@ -2555,7 +2593,7 @@ export class PlaylistManager {
           }
         }
         return; // No need to move focus
-        
+
       case 'ArrowDown':
         e.preventDefault();
         e.stopPropagation();
@@ -2564,7 +2602,10 @@ export class PlaylistManager {
           newIndex = index + 1;
         } else {
           // At the end, announce boundary
-          announcement = i18n.t('playlist.endOfPlaylist', { current: buttons.length, total: buttons.length });
+          announcement = i18n.t('playlist.endOfPlaylist', {
+            current: buttons.length,
+            total: buttons.length
+          });
         }
         break;
 
@@ -2586,7 +2627,10 @@ export class PlaylistManager {
         // Move 5 items down (or to end)
         newIndex = Math.min(index + 5, buttons.length - 1);
         if (newIndex === buttons.length - 1 && index !== newIndex) {
-          announcement = i18n.t('playlist.jumpedToLastTrack', { current: newIndex + 1, total: buttons.length });
+          announcement = i18n.t('playlist.jumpedToLastTrack', {
+            current: newIndex + 1,
+            total: buttons.length
+          });
         }
         break;
 
@@ -2616,11 +2660,14 @@ export class PlaylistManager {
         // Move to last item
         newIndex = buttons.length - 1;
         if (index !== buttons.length - 1) {
-          announcement = i18n.t('playlist.lastTrack', { current: buttons.length, total: buttons.length });
+          announcement = i18n.t('playlist.lastTrack', {
+            current: buttons.length,
+            total: buttons.length
+          });
         }
         break;
     }
-    
+
     // Update tab indices for roving tabindex pattern
     if (newIndex !== -1 && newIndex !== index) {
       const currentButton = buttons[index];
@@ -2637,7 +2684,7 @@ export class PlaylistManager {
         }
       }
     }
-    
+
     // Announce navigation feedback
     if (announcement && this.navigationFeedback) {
       this.navigationFeedback.textContent = announcement;
@@ -2649,57 +2696,59 @@ export class PlaylistManager {
       }, 1000);
     }
   }
-  
+
   /**
    * Update playlist UI (highlight current track)
    */
   updatePlaylistUI() {
     if (!this.playlistPanel) return;
-    
+
     const items = this.playlistPanel.querySelectorAll('.vidply-playlist-item');
     const buttons = this.playlistPanel.querySelectorAll('.vidply-playlist-item-button');
-    
+
     items.forEach((item: Element, index: number) => {
       const button = buttons[index];
       if (!button) return;
-      
+
       const track = this.tracks[index];
       if (!track) return;
       const trackTitle = track.title || i18n.t('playlist.trackUntitled', { number: index + 1 });
       const trackArtist = track.artist ? i18n.t('playlist.by') + track.artist : '';
-      
+
       // Use effective duration (audio description duration when AD is enabled)
       const effectiveDuration = this.getEffectiveDuration(track);
-      const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration as number) : '';
-      
+      const trackDurationReadable = effectiveDuration
+        ? TimeUtils.formatDuration(effectiveDuration as number)
+        : '';
+
       if (index === this.currentIndex) {
         // Update list item styling
         item.classList.add('vidply-playlist-item-active');
-        
+
         // Update button ARIA attributes
         button.setAttribute('aria-current', 'true');
         button.setAttribute('aria-selected', 'true');
         button.setAttribute('tabIndex', '0'); // Active item should be tabbable
-        
+
         // Simplified aria-label - status and actions are announced via ARIA roles
         let ariaLabel = `${trackTitle}${trackArtist}`;
         if (trackDurationReadable) {
           ariaLabel += `. ${trackDurationReadable}`;
         }
         button.setAttribute('aria-label', ariaLabel);
-        
+
         // Runs on every UI refresh, including the initial render, so it must
         // never scroll the page — only the playlist's own scroll container.
         scrollIntoViewWithinScrollParent(item as HTMLElement);
       } else {
         // Update list item styling
         item.classList.remove('vidply-playlist-item-active');
-        
+
         // Update button ARIA attributes
         button.removeAttribute('aria-current');
         button.setAttribute('aria-selected', 'false');
         button.setAttribute('tabIndex', '-1'); // Remove from tab order (use arrow keys)
-        
+
         // Simplified aria-label - status and actions are announced via ARIA roles
         let ariaLabel = `${trackTitle}${trackArtist}`;
         if (trackDurationReadable) {
@@ -2709,14 +2758,14 @@ export class PlaylistManager {
       }
     });
   }
-  
+
   /**
    * Get current track
    */
   getCurrentTrack() {
     return this.tracks[this.currentIndex] || null;
   }
-  
+
   /**
    * Get playlist info
    */
@@ -2729,7 +2778,7 @@ export class PlaylistManager {
       hasPrevious: this.hasPrevious()
     };
   }
-  
+
   /**
    * Check if there is a next track
    */
@@ -2737,7 +2786,7 @@ export class PlaylistManager {
     if (this.options.loop) return true;
     return this.currentIndex < this.tracks.length - 1;
   }
-  
+
   /**
    * Check if there is a previous track
    */
@@ -2745,26 +2794,26 @@ export class PlaylistManager {
     if (this.options.loop) return true;
     return this.currentIndex > 0;
   }
-  
+
   /**
    * Add track to playlist
    */
   addTrack(track: PlaylistTrack) {
     this.tracks.push(track);
-    
+
     if (this.playlistPanel) {
       this.renderPlaylist();
     }
   }
-  
+
   /**
    * Remove track from playlist
    */
   removeTrack(index: number) {
     if (index < 0 || index >= this.tracks.length) return;
-    
+
     this.tracks.splice(index, 1);
-    
+
     // Adjust current index if needed
     if (index < this.currentIndex) {
       this.currentIndex--;
@@ -2773,39 +2822,39 @@ export class PlaylistManager {
       if (this.currentIndex >= this.tracks.length) {
         this.currentIndex = this.tracks.length - 1;
       }
-      
+
       if (this.currentIndex >= 0) {
         this.play(this.currentIndex);
       }
     }
-    
+
     if (this.playlistPanel) {
       this.renderPlaylist();
     }
   }
-  
+
   /**
    * Clear playlist
    */
   clear() {
     this.tracks = [];
     this.currentIndex = -1;
-    
+
     if (this.playlistPanel) {
       this.playlistPanel.innerHTML = '';
       this.playlistPanel.style.display = 'none';
     }
-    
+
     if (this.trackInfoView) {
       this.trackInfoView.hide();
     }
-    
+
     if (this.trackArtworkElement) {
       this.trackArtworkElement.style.backgroundImage = '';
       this.trackArtworkElement.style.display = 'none';
     }
   }
-  
+
   /**
    * Sync grid layout when the in-player playlist panel is toggled in the
    * right-column desktop layout (full width when collapsed).
@@ -2816,8 +2865,7 @@ export class PlaylistManager {
     }
 
     const isRightDesktop =
-      this.options.panelPosition === 'right'
-      && isPlaylistPanelRightDesktopViewport();
+      this.options.panelPosition === 'right' && isPlaylistPanelRightDesktopViewport();
 
     this.container.classList.toggle(
       'vidply-playlist-panel-collapsed',
@@ -2849,13 +2897,15 @@ export class PlaylistManager {
       // Focus first item if playlist has tracks
       if (this.tracks.length > 0) {
         this.setManagedTimeout(() => {
-          const firstItem = playlistPanel.querySelector<HTMLElement>('.vidply-playlist-item[tabindex="0"]');
+          const firstItem = playlistPanel.querySelector<HTMLElement>(
+            '.vidply-playlist-item[tabindex="0"]'
+          );
           if (firstItem) {
             firstItem.focus({ preventScroll: true });
           }
         }, 100);
       }
-      
+
       // Update toggle button state if it exists
       if (this.player.controlBar && this.player.controlBar.controls.playlistToggle) {
         this.player.controlBar.controls.playlistToggle.setAttribute('aria-expanded', 'true');
@@ -2864,36 +2914,36 @@ export class PlaylistManager {
     } else {
       playlistPanel.style.display = 'none';
       this.isPanelVisible = false;
-      
+
       // Update toggle button state if it exists
       if (this.player.controlBar && this.player.controlBar.controls.playlistToggle) {
         this.player.controlBar.controls.playlistToggle.setAttribute('aria-expanded', 'false');
         this.player.controlBar.controls.playlistToggle.setAttribute('aria-pressed', 'false');
-        
+
         // Return focus to toggle button
         this.player.controlBar.controls.playlistToggle.focus({ preventScroll: true });
       }
     }
 
     this.syncPanelCollapsedLayout();
-    
+
     return this.isPanelVisible;
   }
-  
+
   /**
    * Show playlist panel
    */
   showPanel() {
     return this.togglePanel(true);
   }
-  
+
   /**
    * Hide playlist panel
    */
   hidePanel() {
     return this.togglePanel(false);
   }
-  
+
   /**
    * Destroy playlist manager
    */
@@ -2914,7 +2964,7 @@ export class PlaylistManager {
   destroy() {
     // Cancel any pending deferred callbacks (auto-play, guard resets,
     // announcement clears, focus moves) before tearing the manager down.
-    this._timers.forEach(id => clearTimeout(id));
+    this._timers.forEach((id) => clearTimeout(id));
     this._timers.clear();
 
     // Remove every listener registered in init(). All handlers are pre-bound
@@ -2927,19 +2977,19 @@ export class PlaylistManager {
     this.player.off('fullscreenchange', this.handleFullscreenChange);
     this.player.off('audiodescriptionenabled', this.handleAudioDescriptionChange);
     this.player.off('audiodescriptiondisabled', this.handleAudioDescriptionChange);
-    
+
     // Remove UI
     if (this.trackArtworkElement) {
       this.trackArtworkElement.remove();
     }
-    
+
     if (this.trackInfoView) {
       this.trackInfoView.destroy();
       this.trackInfoView = null;
     }
 
     this.teardownPlaylistMainLayout();
-    
+
     if (this.playlistPanel) {
       this.playlistPanel.remove();
     }
@@ -2947,7 +2997,7 @@ export class PlaylistManager {
     if (this.container) {
       this.container.classList.remove('vidply-has-playlist', 'vidply-playlist-panel-right');
     }
-    
+
     // Clear data
     this.clear();
   }

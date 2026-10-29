@@ -15,7 +15,7 @@ test.describe('Playback Speed', () => {
     const speedButton = page.locator('button[aria-label="Playback Speed"]');
     // Speed button might be in overflow menu on small screens
     const isVisible = await speedButton.isVisible().catch(() => false);
-    
+
     if (!isVisible) {
       // Check overflow menu
       const overflowButton = page.locator('button[aria-label="More options"]');
@@ -24,15 +24,17 @@ test.describe('Playback Speed', () => {
         await page.waitForTimeout(300);
       }
     }
-    
+
     // Should be visible either directly or in overflow
-    const speedButtonAfter = page.locator('button[aria-label="Playback Speed"], [role="menuitem"]:has-text("Playback Speed")');
+    const speedButtonAfter = page.locator(
+      'button[aria-label="Playback Speed"], [role="menuitem"]:has-text("Playback Speed")'
+    );
     expect(await speedButtonAfter.count()).toBeGreaterThan(0);
   });
 
   test('should open speed menu when clicked', async ({ page }) => {
     const speedButton = page.locator('button[aria-label="Playback Speed"]');
-    
+
     if (await speedButton.isVisible()) {
       await speedButton.click();
       await page.waitForTimeout(300);
@@ -49,13 +51,15 @@ test.describe('Playback Speed', () => {
 
   test('should change playback speed', async ({ page }) => {
     const speedButton = page.locator('button[aria-label="Playback Speed"]');
-    
+
     if (await speedButton.isVisible()) {
       await speedButton.click();
       await page.waitForTimeout(300);
 
       // Select 1.5x speed
-      const speed15 = page.locator('[role="menu"] [role="menuitemradio"]:has-text("1.5"), [role="menu"] button:has-text("1.5")');
+      const speed15 = page.locator(
+        '[role="menu"] [role="menuitemradio"]:has-text("1.5"), [role="menu"] button:has-text("1.5")'
+      );
       if (await speed15.first().isVisible()) {
         await speed15.first().click();
         await page.waitForTimeout(300);
@@ -78,7 +82,7 @@ test.describe('Caption Styling', () => {
     const styleButton = page.locator('button[aria-label="Caption styling"]');
     // May be hidden in overflow on small screens
     const isVisible = await styleButton.isVisible().catch(() => false);
-    
+
     if (isVisible) {
       await expect(styleButton).toBeVisible();
     }
@@ -116,8 +120,11 @@ test.describe('Seek Controls', () => {
   test('should have rewind button', async ({ page }) => {
     // Rewind button label includes seconds
     const rewindButton = page.locator('button[aria-label*="Rewind"]');
-    const isVisible = await rewindButton.first().isVisible().catch(() => false);
-    
+    const isVisible = await rewindButton
+      .first()
+      .isVisible()
+      .catch(() => false);
+
     if (isVisible) {
       await expect(rewindButton.first()).toBeVisible();
     }
@@ -126,8 +133,11 @@ test.describe('Seek Controls', () => {
   test('should have forward button', async ({ page }) => {
     // Forward button label includes seconds
     const forwardButton = page.locator('button[aria-label*="Forward"]');
-    const isVisible = await forwardButton.first().isVisible().catch(() => false);
-    
+    const isVisible = await forwardButton
+      .first()
+      .isVisible()
+      .catch(() => false);
+
     if (isVisible) {
       await expect(forwardButton.first()).toBeVisible();
     }
@@ -140,7 +150,7 @@ test.describe('Seek Controls', () => {
     await page.waitForTimeout(2000);
 
     const rewindButton = page.locator('button[aria-label*="Rewind"]');
-    
+
     if (await rewindButton.first().isVisible()) {
       await rewindButton.first().click();
       await page.waitForTimeout(300);
@@ -155,7 +165,7 @@ test.describe('Seek Controls', () => {
     await page.waitForTimeout(1000);
 
     const forwardButton = page.locator('button[aria-label*="Forward"]');
-    
+
     if (await forwardButton.first().isVisible()) {
       await forwardButton.first().click();
       await page.waitForTimeout(300);
@@ -179,12 +189,12 @@ test.describe('Progress Bar Interaction', () => {
     // Click on progress bar to seek
     const progressBar = page.locator('[aria-label="Progress"][role="slider"]');
     const box = await progressBar.boundingBox();
-    
+
     if (box) {
       // Click at 50% of the progress bar
       await page.mouse.click(box.x + box.width * 0.5, box.y + box.height / 2);
       await page.waitForTimeout(500);
-      
+
       // Verify video is still playing (no error)
       const pauseButton = page.locator('button[aria-label="Pause"]');
       await expect(pauseButton).toBeVisible({ timeout: 3000 });
@@ -195,14 +205,14 @@ test.describe('Progress Bar Interaction', () => {
     // Start playback
     const playButton = page.locator('button[aria-label="Play"]');
     await playButton.click();
-    
+
     // Wait for some playback
     await page.waitForTimeout(2000);
 
     // Progress bar should have updated
     const progressBar = page.locator('[aria-label="Progress"][role="slider"]');
     const value = await progressBar.getAttribute('aria-valuenow');
-    
+
     // Value should be greater than 0 after playback
     expect(parseFloat(value || '0')).toBeGreaterThan(0);
   });
@@ -223,7 +233,7 @@ test.describe('Overflow Menu', () => {
     const overflowButton = page.locator('button[aria-label="More options"]');
     // May or may not be visible depending on how many buttons fit
     const isVisible = await overflowButton.isVisible().catch(() => false);
-    
+
     // Just verify page didn't crash with small viewport
     const player = page.locator('.vidply-player');
     await expect(player).toBeVisible();
@@ -235,7 +245,7 @@ test.describe('Overflow Menu', () => {
     await page.waitForTimeout(500);
 
     const overflowButton = page.locator('button[aria-label="More options"]');
-    
+
     if (await overflowButton.isVisible()) {
       await overflowButton.click();
       await page.waitForTimeout(300);
@@ -257,7 +267,7 @@ test.describe('Picture-in-Picture', () => {
     // PiP button is optional (pipButton option)
     const pipButton = page.locator('button[aria-label="Picture in Picture"]');
     const isVisible = await pipButton.isVisible().catch(() => false);
-    
+
     // Just verify no errors - button may or may not exist
     // The demo may or may not have PiP enabled
   });
@@ -273,7 +283,7 @@ test.describe('Quality Selection', () => {
     // Quality button only appears for adaptive streams (HLS/DASH)
     const qualityButton = page.locator('button[aria-label="Quality"]');
     const isVisible = await qualityButton.isVisible().catch(() => false);
-    
+
     // The demo uses MP4, so quality button might not be visible
     // Just verify no errors
   });
@@ -288,7 +298,7 @@ test.describe('Fullscreen Behavior', () => {
   test('should toggle fullscreen when button clicked', async ({ page }) => {
     const fullscreenButton = page.locator('button[aria-label="Fullscreen"]');
     await expect(fullscreenButton).toBeVisible();
-    
+
     // Click fullscreen
     await fullscreenButton.click();
     await page.waitForTimeout(500);
@@ -297,10 +307,10 @@ test.describe('Fullscreen Behavior', () => {
     // But the button label should change or the player should have fullscreen class
     const exitFullscreenButton = page.locator('button[aria-label="Exit Fullscreen"]');
     const playerFullscreen = page.locator('.vidply-player.vidply-fullscreen');
-    
+
     const exitVisible = await exitFullscreenButton.isVisible().catch(() => false);
-    const playerHasClass = await playerFullscreen.count() > 0;
-    
+    const playerHasClass = (await playerFullscreen.count()) > 0;
+
     // Either condition indicates fullscreen was attempted
     // Some browsers block fullscreen in automation, so we just check no errors
   });
@@ -331,7 +341,7 @@ test.describe('Video Poster', () => {
     // The demo has a poster image configured
     const video = page.locator('.vidply-player video');
     const poster = await video.getAttribute('poster');
-    
+
     // Poster attribute should be set
     expect(poster).toBeTruthy();
   });
@@ -341,7 +351,7 @@ test.describe('Video Poster', () => {
     const playOverlay = page.locator('.vidply-play-overlay');
     // May or may not be visible depending on player state
     const isVisible = await playOverlay.isVisible().catch(() => false);
-    
+
     // Just verify element exists in DOM
     const count = await playOverlay.count();
     expect(count).toBeGreaterThanOrEqual(0);

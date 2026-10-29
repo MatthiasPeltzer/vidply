@@ -102,7 +102,9 @@ describe('KeyboardHelp', () => {
 
     const liveSection = player.container.querySelector('.vidply-help-live-section');
     expect(liveSection).not.toBeNull();
-    expect(liveSection?.querySelector('.vidply-help-live-title')?.textContent).toBe('help.liveSectionTitle');
+    expect(liveSection?.querySelector('.vidply-help-live-title')?.textContent).toBe(
+      'help.liveSectionTitle'
+    );
     expect(liveSection?.querySelectorAll('dt').length).toBeGreaterThan(0);
   });
 
@@ -119,15 +121,22 @@ describe('KeyboardHelp', () => {
 
     help.show();
 
-    const actions = Array.from(player.container.querySelectorAll('.vidply-help-action'))
-      .map((node) => node.textContent);
+    const actions = Array.from(player.container.querySelectorAll('.vidply-help-action')).map(
+      (node) => node.textContent
+    );
     expect(actions.some((text) => text === 'help.actions.speed-menu')).toBe(false);
   });
 
   describe('speed shortcuts', () => {
-    const speedActions = ['help.actions.speed-down', 'help.actions.speed-up', 'help.actions.speed-menu'];
-    const listedActions = () => Array.from(player.container.querySelectorAll('.vidply-help-action'))
-      .map((node) => node.textContent);
+    const speedActions = [
+      'help.actions.speed-down',
+      'help.actions.speed-up',
+      'help.actions.speed-menu'
+    ];
+    const listedActions = () =>
+      Array.from(player.container.querySelectorAll('.vidply-help-action')).map(
+        (node) => node.textContent
+      );
 
     beforeEach(() => {
       player.options.keyboardShortcuts = {

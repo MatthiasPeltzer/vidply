@@ -200,8 +200,12 @@ export class LiveStreamManager {
 
     // DASH VOD: once playback exposes a finite duration and we are not live,
     // treat as confirmed VOD even if isDynamic() was unavailable earlier.
-    if (this.isDashRenderer() && this.sourceReportsLive !== true
-      && this.hasFiniteMediaDuration() && !this.resolveIsLive()) {
+    if (
+      this.isDashRenderer() &&
+      this.sourceReportsLive !== true &&
+      this.hasFiniteMediaDuration() &&
+      !this.resolveIsLive()
+    ) {
       return true;
     }
 

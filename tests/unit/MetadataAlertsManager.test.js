@@ -42,7 +42,10 @@ describe('MetadataAlertsManager', () => {
       pause: vi.fn(),
       play: vi.fn(),
       log: vi.fn(),
-      setManagedTimeout: vi.fn((cb) => { cb(); return 1; })
+      setManagedTimeout: vi.fn((cb) => {
+        cb();
+        return 1;
+      })
     };
 
     manager = new MetadataAlertsManager(mockPlayer);
@@ -99,11 +102,14 @@ describe('MetadataAlertsManager', () => {
 
       // Event still fires, but the element must be null so an untrusted
       // cue cannot steal focus on a page that never opted in.
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata:focus', expect.objectContaining({
-        time: 10,
-        target: '#my-button',
-        element: null
-      }));
+      expect(mockPlayer.emit).toHaveBeenCalledWith(
+        'metadata:focus',
+        expect.objectContaining({
+          time: 10,
+          target: '#my-button',
+          element: null
+        })
+      );
     });
 
     it('resolves a document-wide element only under metadataDirectives: "global"', () => {
@@ -114,10 +120,13 @@ describe('MetadataAlertsManager', () => {
 
       manager.handleCue(cueOf('FOCUS:#my-button'));
 
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata:focus', expect.objectContaining({
-        target: '#my-button',
-        element: button
-      }));
+      expect(mockPlayer.emit).toHaveBeenCalledWith(
+        'metadata:focus',
+        expect.objectContaining({
+          target: '#my-button',
+          element: button
+        })
+      );
     });
 
     it('scoped mode resolves inside the player container only', () => {
@@ -128,9 +137,12 @@ describe('MetadataAlertsManager', () => {
 
       manager.handleCue(cueOf('FOCUS:#inside'));
 
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata:focus', expect.objectContaining({
-        element: inside
-      }));
+      expect(mockPlayer.emit).toHaveBeenCalledWith(
+        'metadata:focus',
+        expect.objectContaining({
+          element: inside
+        })
+      );
     });
 
     it('scoped mode does NOT resolve an element outside the container', () => {
@@ -141,19 +153,25 @@ describe('MetadataAlertsManager', () => {
 
       manager.handleCue(cueOf('FOCUS:#outside'));
 
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata:focus', expect.objectContaining({
-        target: '#outside',
-        element: null
-      }));
+      expect(mockPlayer.emit).toHaveBeenCalledWith(
+        'metadata:focus',
+        expect.objectContaining({
+          target: '#outside',
+          element: null
+        })
+      );
     });
 
     it('handles FOCUS with a non-existent element', () => {
       manager.handleCue(cueOf('FOCUS:#nonexistent'));
 
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata:focus', expect.objectContaining({
-        target: '#nonexistent',
-        element: null
-      }));
+      expect(mockPlayer.emit).toHaveBeenCalledWith(
+        'metadata:focus',
+        expect.objectContaining({
+          target: '#nonexistent',
+          element: null
+        })
+      );
     });
   });
 
@@ -171,17 +189,23 @@ describe('MetadataAlertsManager', () => {
     it('parses a single hashtag', () => {
       manager.handleCue(cueOf('Important #milestone'));
 
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata:hashtags', expect.objectContaining({
-        hashtags: ['#milestone']
-      }));
+      expect(mockPlayer.emit).toHaveBeenCalledWith(
+        'metadata:hashtags',
+        expect.objectContaining({
+          hashtags: ['#milestone']
+        })
+      );
     });
 
     it('parses hashtags with hyphens', () => {
       manager.handleCue(cueOf('#new-feature is ready'));
 
-      expect(mockPlayer.emit).toHaveBeenCalledWith('metadata:hashtags', expect.objectContaining({
-        hashtags: ['#new-feature']
-      }));
+      expect(mockPlayer.emit).toHaveBeenCalledWith(
+        'metadata:hashtags',
+        expect.objectContaining({
+          hashtags: ['#new-feature']
+        })
+      );
     });
 
     it('does not emit a hashtag event when there are none', () => {

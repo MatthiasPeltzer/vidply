@@ -6,8 +6,7 @@
 import { test, expect } from '@playwright/test';
 
 /** Keep in sync with HLSRenderer.loadHlsJs() — update when the CDN pin changes. */
-const HLS_JS_PIN_URL =
-  'https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js';
+const HLS_JS_PIN_URL = 'https://cdn.jsdelivr.net/npm/hls.js@1.7.4/dist/hls.min.js';
 
 test.describe('HLS streaming (Chromium)', () => {
   test.describe.configure({ mode: 'serial' });
@@ -19,8 +18,7 @@ test.describe('HLS streaming (Chromium)', () => {
 
   test('loads the pinned hls.js build from the CDN', async ({ page }) => {
     const hlsScript = page.waitForResponse(
-      (response) =>
-        response.url() === HLS_JS_PIN_URL && response.status() === 200,
+      (response) => response.url() === HLS_JS_PIN_URL && response.status() === 200,
       { timeout: 30000 }
     );
 
@@ -30,12 +28,12 @@ test.describe('HLS streaming (Chromium)', () => {
     await hlsScript;
 
     const engineLabel = page.locator('#hls-engine');
-    await expect(engineLabel).toContainText(/hls\.js v1\.7\.3/i, { timeout: 15000 });
+    await expect(engineLabel).toContainText(/hls\.js v1\.7\.4/i, { timeout: 15000 });
   });
 
   test('uses the hls.js renderer in Chromium (not native HLS)', async ({ page }) => {
     await expect(page.locator('#browser-info')).toContainText(/Chrome \(hls\.js\)/i);
-    await expect(page.locator('#hls-engine')).toContainText(/hls\.js v1\.7\.3/i, {
+    await expect(page.locator('#hls-engine')).toContainText(/hls\.js v1\.7\.4/i, {
       timeout: 30000
     });
 

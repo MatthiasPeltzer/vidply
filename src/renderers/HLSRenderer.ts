@@ -117,15 +117,13 @@ export class HLSRenderer implements Renderer {
   }
 
   private elementSourceMatches(src: string): boolean {
-    const current =
-      this.media.currentSrc || this.media.getAttribute('src') || this.media.src || '';
+    const current = this.media.currentSrc || this.media.getAttribute('src') || this.media.src || '';
     if (!current) {
       return false;
     }
     try {
       return (
-        new URL(src, window.location.href).href ===
-        new URL(current, window.location.href).href
+        new URL(src, window.location.href).href === new URL(current, window.location.href).href
       );
     } catch {
       return src === current;
@@ -223,7 +221,7 @@ export class HLSRenderer implements Renderer {
     // Hide native controls
     this.media.controls = false;
     this.media.removeAttribute('controls');
-    
+
     // Load hls.js if not already loaded
     if (!window.Hls) {
       await this.loadHlsJs();
@@ -241,7 +239,7 @@ export class HLSRenderer implements Renderer {
     let originalSrc = null;
     if (sourceElements.length > 0) {
       originalSrc = sourceElements[0]?.getAttribute('src') ?? null;
-      sourceElements.forEach(source => source.remove());
+      sourceElements.forEach((source) => source.remove());
       this.player.log('Removed <source> elements for HTML5 validity (hls.js uses src attribute)');
     }
 
@@ -292,16 +290,16 @@ export class HLSRenderer implements Renderer {
     // Load source - use currentSource for external renderers, or get from attribute
     // Priority: currentSource > originalSrc (from removed <source>) > data-vidply-src > src attribute
     let src = this.player.currentSource;
-    
+
     if (!src && originalSrc) {
       src = originalSrc;
     }
-    
+
     if (!src) {
       // Try data-vidply-src attribute (used by TYPO3 integration)
       src = this.player.element.getAttribute('data-vidply-src');
     }
-    
+
     if (!src) {
       // Fallback to element's src attribute (but not blob: URLs)
       const elementSrc = this.player.element.getAttribute('src') || this.player.element.src;
@@ -309,13 +307,13 @@ export class HLSRenderer implements Renderer {
         src = elementSrc;
       }
     }
-    
+
     this.player.log(`Loading HLS source: ${src}`, 'log');
-    
+
     if (!src) {
       throw new Error('No HLS source found');
     }
-    
+
     // Always load the manifest immediately so duration/quality levels/subtitle
     // tracks are available in the UI before playback. Because autoStartLoad is
     // false, this does NOT trigger media fragment downloads; startLoad() in
@@ -346,10 +344,10 @@ export class HLSRenderer implements Renderer {
    */
   async loadHlsJs(): Promise<void> {
     // SRI for the pinned default build below, verified against the file served
-    // by jsdelivr for hls.js@1.7.3. Recompute whenever the pin changes.
+    // by jsdelivr for hls.js@1.7.4. Recompute whenever the pin changes.
     return loadPinnedScript({
-      defaultUrl: 'https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js',
-      defaultIntegrity: 'sha384-cciJ0zi8d1uMKC2zJd7jvPY4HQt7W4ByUI/FlMkltvBi31aW61rcpVBhpmW8/NwX',
+      defaultUrl: 'https://cdn.jsdelivr.net/npm/hls.js@1.7.4/dist/hls.min.js',
+      defaultIntegrity: 'sha384-p9vgU/7IYJWd3I4STrtqxqR/2cAQlhIX7D/HrTnIMEjjcUox165b7se7sxmm3zDg',
       url: this.player.options.hlsScriptUrl as string | undefined,
       integrity: this.player.options.hlsScriptIntegrity as string | undefined
     });
@@ -408,7 +406,9 @@ export class HLSRenderer implements Renderer {
     // Handle HLS subtitle tracks
     hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (...args: unknown[]) => {
       const data = args[1] as HlsSubtitleTracksUpdatedData;
-      this.player.log('HLS subtitle tracks updated, found ' + data.subtitleTracks.length + ' tracks');
+      this.player.log(
+        'HLS subtitle tracks updated, found ' + data.subtitleTracks.length + ' tracks'
+      );
       this.player.emit('hlssubtitletracksupdated', data);
       this._hlsSubtitleTracksCount = data.subtitleTracks.length;
       this.updateCaptionButtonsForHls();
@@ -529,11 +529,7 @@ export class HLSRenderer implements Renderer {
     const maxStart = this._getMaxCueStartTime();
     const isLive = this._isLivePlayback();
 
-    if (
-      isLive
-      || count > this._lastKnownCueCount
-      || maxStart > this._lastKnownMaxCueStart
-    ) {
+    if (isLive || count > this._lastKnownCueCount || maxStart > this._lastKnownMaxCueStart) {
       this._lastKnownCueCount = count;
       this._lastKnownMaxCueStart = maxStart;
       this.player.emit('textcuesupdate');
@@ -615,33 +611,36 @@ export class HLSRenderer implements Renderer {
    */
   updateCaptionButtonsForHls(retryCount = 0) {
     const tracksCount = this._hlsSubtitleTracksCount || 0;
-    
+
     const doUpdate = () => {
       this.player.invalidateTrackCache();
-      
+
       if (tracksCount > 0) {
         if (this.player.captionManager) {
           void this.player.captionManager.refreshTracks().then((found) => {
-          // hls.js fires SUBTITLE_TRACKS_UPDATED when it knows about the
-          // tracks, but the browser TextTrackList may not yet enumerate
-          // the new TextTrack objects synchronously. Retry with increasing
-          // delays until the tracks appear.
-          if (found === 0 && retryCount < 5) {
-            const delay = (retryCount + 1) * 200;
-            this.player.log(`HLS caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`, 'info');
-            this._setTimeout(() => {
-              this.updateCaptionButtonsForHls(retryCount + 1);
-            }, delay);
-            return;
-          }
+            // hls.js fires SUBTITLE_TRACKS_UPDATED when it knows about the
+            // tracks, but the browser TextTrackList may not yet enumerate
+            // the new TextTrack objects synchronously. Retry with increasing
+            // delays until the tracks appear.
+            if (found === 0 && retryCount < 5) {
+              const delay = (retryCount + 1) * 200;
+              this.player.log(
+                `HLS caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`,
+                'info'
+              );
+              this._setTimeout(() => {
+                this.updateCaptionButtonsForHls(retryCount + 1);
+              }, delay);
+              return;
+            }
           });
         }
-        
+
         if (this.player.transcriptManager?.isVisible) {
           this.player.transcriptManager.loadTranscriptData();
           this.player.transcriptManager.updateLanguageSelector();
         }
-        
+
         if (this.player.controlBar) {
           this.player.controlBar.ensureCaptionsButton();
           this.player.controlBar.ensureCaptionStyleButton();
@@ -651,22 +650,22 @@ export class HLSRenderer implements Renderer {
         if (this.player.captionManager) {
           this.player.captionManager.refreshTracks();
         }
-        
+
         if (this.player.transcriptManager?.isVisible) {
           this.player.transcriptManager.hideTranscript();
         }
-        
+
         if (this.player.controlBar) {
           this.player.controlBar.removeHlsCaptionButtons(true);
         }
       }
     };
-    
+
     if (this.player.controlBar) {
       doUpdate();
       return;
     }
-    
+
     const onReady = () => {
       this.player.off('ready', onReady);
       this._pendingReadyHandler = null;
@@ -718,127 +717,178 @@ export class HLSRenderer implements Renderer {
     const { signal } = this._listenerController;
 
     // Use same events as HTML5 renderer
-    this.media.addEventListener('loadedmetadata', () => {
-      this.player.state.duration = this.media.duration;
-      this.player.emit('loadedmetadata');
-    }, { signal });
+    this.media.addEventListener(
+      'loadedmetadata',
+      () => {
+        this.player.state.duration = this.media.duration;
+        this.player.emit('loadedmetadata');
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('durationchange', () => {
-      const duration = this.media.duration;
-      if (duration && isFinite(duration) && duration > 0) {
-        this.player.state.duration = duration;
-        this.player.emit('durationchange', duration);
-      }
-    }, { signal });
+    this.media.addEventListener(
+      'durationchange',
+      () => {
+        const duration = this.media.duration;
+        if (duration && isFinite(duration) && duration > 0) {
+          this.player.state.duration = duration;
+          this.player.emit('durationchange', duration);
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('play', () => {
-      this.player.state.playing = true;
-      this.player.state.paused = false;
-      this.player.state.ended = false;
-      this.player.emit('play');
-      
-      if (this.player.options.onPlay) {
-        this.player.options.onPlay.call(this.player);
-      }
-    }, { signal });
+    this.media.addEventListener(
+      'play',
+      () => {
+        this.player.state.playing = true;
+        this.player.state.paused = false;
+        this.player.state.ended = false;
+        this.player.emit('play');
 
-    this.media.addEventListener('pause', () => {
-      this.player.state.playing = false;
-      this.player.state.paused = true;
-      this.player.emit('pause');
-      
-      if (this.player.options.onPause) {
-        this.player.options.onPause.call(this.player);
-      }
-    }, { signal });
+        if (this.player.options.onPlay) {
+          this.player.options.onPlay.call(this.player);
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('ended', () => {
-      this.player.state.playing = false;
-      this.player.state.paused = true;
-      this.player.state.ended = true;
-      this.player.emit('ended');
-      
-      if (this.player.options.onEnded) {
-        this.player.options.onEnded.call(this.player);
-      }
-      
-      if (this.player.options.loop) {
-        this.player.seek(0);
-        this.player.play();
-      }
-    }, { signal });
+    this.media.addEventListener(
+      'pause',
+      () => {
+        this.player.state.playing = false;
+        this.player.state.paused = true;
+        this.player.emit('pause');
 
-    this.media.addEventListener('timeupdate', () => {
-      this.player.state.currentTime = this.media.currentTime;
-      this.player.emit('timeupdate', this.media.currentTime);
-      
-      if (this.player.options.onTimeUpdate) {
-        this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
-      }
-    }, { signal });
+        if (this.player.options.onPause) {
+          this.player.options.onPause.call(this.player);
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('volumechange', () => {
-      if (!this.player.shouldSyncVolumeFromMedia()) {
-        return;
-      }
-      this.player.state.volume = this.media.volume;
-      this.player.state.muted = this.media.muted;
-      this.player.emit('volumechange', this.media.volume);
-    }, { signal });
+    this.media.addEventListener(
+      'ended',
+      () => {
+        this.player.state.playing = false;
+        this.player.state.paused = true;
+        this.player.state.ended = true;
+        this.player.emit('ended');
 
-    this.media.addEventListener('waiting', () => {
-      this.player.state.buffering = true;
-      this.player.emit('waiting');
-    }, { signal });
+        if (this.player.options.onEnded) {
+          this.player.options.onEnded.call(this.player);
+        }
 
-    this.media.addEventListener('seeking', () => {
-      this.player.state.seeking = true;
-      this.player.emit('seeking');
+        if (this.player.options.loop) {
+          this.player.seek(0);
+          this.player.play();
+        }
+      },
+      { signal }
+    );
 
-      // Browsers fire `waiting` when playback can't continue due to missing
-      // data, but they DO NOT fire it when seeking on a paused element. With
-      // hls.js + stopLoad-on-pause, scrubbing while paused triggers a real
-      // segment download, but the spinner stays hidden because no `waiting`
-      // event reaches the buffering UI. Detect a seek into an unbuffered
-      // range here and surface it as 'waiting' so the spinner appears. The
-      // spinner is cleared again by the existing `canplay` / `seeked` paths.
-      if (!this._isTimeBuffered(this.media.currentTime)) {
+    this.media.addEventListener(
+      'timeupdate',
+      () => {
+        this.player.state.currentTime = this.media.currentTime;
+        this.player.emit('timeupdate', this.media.currentTime);
+
+        if (this.player.options.onTimeUpdate) {
+          this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
+        }
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'volumechange',
+      () => {
+        if (!this.player.shouldSyncVolumeFromMedia()) {
+          return;
+        }
+        this.player.state.volume = this.media.volume;
+        this.player.state.muted = this.media.muted;
+        this.player.emit('volumechange', this.media.volume);
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'waiting',
+      () => {
         this.player.state.buffering = true;
         this.player.emit('waiting');
-      }
-    }, { signal });
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('seeked', () => {
-      this.player.state.seeking = false;
-      this.player.emit('seeked');
+    this.media.addEventListener(
+      'seeking',
+      () => {
+        this.player.state.seeking = true;
+        this.player.emit('seeking');
 
-      // After a seek finishes while paused, hls.js otherwise keeps fetching
-      // subsequent segments to fill maxBufferLength. The user explicitly chose
-      // not to play, so calling stopLoad() halts the loader once the segment(s)
-      // required to render the new playhead frame are buffered. play() and
-      // future seeks re-arm via startLoad(-1).
-      if (this.media.paused && this.hls) {
-        try {
-          this.hls.stopLoad();
-        } catch {
-          // ignore
+        // Browsers fire `waiting` when playback can't continue due to missing
+        // data, but they DO NOT fire it when seeking on a paused element. With
+        // hls.js + stopLoad-on-pause, scrubbing while paused triggers a real
+        // segment download, but the spinner stays hidden because no `waiting`
+        // event reaches the buffering UI. Detect a seek into an unbuffered
+        // range here and surface it as 'waiting' so the spinner appears. The
+        // spinner is cleared again by the existing `canplay` / `seeked` paths.
+        if (!this._isTimeBuffered(this.media.currentTime)) {
+          this.player.state.buffering = true;
+          this.player.emit('waiting');
         }
-      }
-    }, { signal });
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('canplay', () => {
-      this.player.state.buffering = false;
-      this.player.emit('canplay');
-    }, { signal });
+    this.media.addEventListener(
+      'seeked',
+      () => {
+        this.player.state.seeking = false;
+        this.player.emit('seeked');
 
-    this.media.addEventListener('error', () => {
-      this.player.handleError(this.media.error);
-    }, { signal });
+        // After a seek finishes while paused, hls.js otherwise keeps fetching
+        // subsequent segments to fill maxBufferLength. The user explicitly chose
+        // not to play, so calling stopLoad() halts the loader once the segment(s)
+        // required to render the new playhead frame are buffered. play() and
+        // future seeks re-arm via startLoad(-1).
+        if (this.media.paused && this.hls) {
+          try {
+            this.hls.stopLoad();
+          } catch {
+            // ignore
+          }
+        }
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'canplay',
+      () => {
+        this.player.state.buffering = false;
+        this.player.emit('canplay');
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'error',
+      () => {
+        this.player.handleError(this.media.error);
+      },
+      { signal }
+    );
   }
 
   handleHlsError(data: HlsErrorData) {
     // Log detailed error info
-    this.player.log(`HLS Error - Type: ${data.type}, Details: ${data.details}, Fatal: ${data.fatal}`, 'warn');
+    this.player.log(
+      `HLS Error - Type: ${data.type}, Details: ${data.details}, Fatal: ${data.fatal}`,
+      'warn'
+    );
     if (data.response) {
       this.player.log(`Response code: ${data.response.code}, URL: ${data.response.url}`, 'warn');
     }
@@ -914,7 +964,7 @@ export class HLSRenderer implements Renderer {
     const promise = this.media.play();
 
     if (promise !== undefined) {
-      promise.catch(error => {
+      promise.catch((error) => {
         this.player.state.buffering = false;
         this.player.emit('canplay');
         this.player.log('Play failed:', error, 'warn');
@@ -982,7 +1032,13 @@ export class HLSRenderer implements Renderer {
       // hls.js creates separate levels for each video+audio-group combination,
       // producing duplicates (e.g. three "720p" entries). Deduplicate by
       // resolution height, keeping the entry with the highest bitrate per height.
-      type LevelEntry = { index: number; height: number; width: number; bitrate: number; level: HlsLevel };
+      type LevelEntry = {
+        index: number;
+        height: number;
+        width: number;
+        bitrate: number;
+        level: HlsLevel;
+      };
       const byHeight = new Map<string | number, LevelEntry>();
 
       this.hls.levels.forEach((level: HlsLevel, index: number) => {
@@ -999,8 +1055,14 @@ export class HLSRenderer implements Renderer {
       return Array.from(byHeight.values()).map((entry) => {
         const height = Number(entry.height) || 0;
         const kb = entry.bitrate > 0 ? Math.round(entry.bitrate / 1000) : 0;
-        const name = height > 0 ? `${height}p` : (kb > 0 ? `${kb} kb` : 'Auto');
-        return { index: entry.index, height: entry.height, width: entry.width, bitrate: entry.bitrate, name };
+        const name = height > 0 ? `${height}p` : kb > 0 ? `${kb} kb` : 'Auto';
+        return {
+          index: entry.index,
+          height: entry.height,
+          width: entry.width,
+          bitrate: entry.bitrate,
+          name
+        };
       });
     }
     return [];
@@ -1045,9 +1107,9 @@ export class HLSRenderer implements Renderer {
     }
 
     const wantsSubtitles =
-      this.player.state.captionsEnabled
-      || this.player.options.captionsDefault
-      || this.player.transcriptManager?.isVisible;
+      this.player.state.captionsEnabled ||
+      this.player.options.captionsDefault ||
+      this.player.transcriptManager?.isVisible;
 
     if (!wantsSubtitles) {
       return;
@@ -1115,4 +1177,3 @@ export class HLSRenderer implements Renderer {
     }
   }
 }
-

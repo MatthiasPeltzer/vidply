@@ -196,7 +196,7 @@ describe('MenuUtils', () => {
     beforeEach(() => {
       menu = document.createElement('div');
       button = document.createElement('button');
-      
+
       items = [];
       for (let i = 0; i < 3; i++) {
         const item = document.createElement('button');
@@ -225,7 +225,7 @@ describe('MenuUtils', () => {
 
     it('should navigate down with ArrowDown key', () => {
       attachMenuKeyboardNavigation(menu, button, '.menu-item', vi.fn());
-      
+
       // Focus first item
       items[0].focus();
 
@@ -237,7 +237,7 @@ describe('MenuUtils', () => {
 
     it('should navigate up with ArrowUp key', () => {
       attachMenuKeyboardNavigation(menu, button, '.menu-item', vi.fn());
-      
+
       items[1].focus();
 
       const event = new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true });
@@ -248,7 +248,7 @@ describe('MenuUtils', () => {
 
     it('should wrap around on ArrowDown from last item', () => {
       attachMenuKeyboardNavigation(menu, button, '.menu-item', vi.fn());
-      
+
       items[2].focus();
 
       const event = new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true });
@@ -259,7 +259,7 @@ describe('MenuUtils', () => {
 
     it('should wrap around on ArrowUp from first item', () => {
       attachMenuKeyboardNavigation(menu, button, '.menu-item', vi.fn());
-      
+
       items[0].focus();
 
       const event = new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true });
@@ -270,7 +270,7 @@ describe('MenuUtils', () => {
 
     it('should go to first item on Home key', () => {
       attachMenuKeyboardNavigation(menu, button, '.menu-item', vi.fn());
-      
+
       items[2].focus();
 
       const event = new KeyboardEvent('keydown', { key: 'Home', bubbles: true });
@@ -281,7 +281,7 @@ describe('MenuUtils', () => {
 
     it('should go to last item on End key', () => {
       attachMenuKeyboardNavigation(menu, button, '.menu-item', vi.fn());
-      
+
       items[0].focus();
 
       const event = new KeyboardEvent('keydown', { key: 'End', bubbles: true });
@@ -293,7 +293,7 @@ describe('MenuUtils', () => {
     it('should call onClose on Escape key', () => {
       const onClose = vi.fn();
       attachMenuKeyboardNavigation(menu, button, '.menu-item', onClose);
-      
+
       const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true });
       menu.dispatchEvent(event);
 
@@ -302,7 +302,7 @@ describe('MenuUtils', () => {
 
     it('should click active item on Enter key', () => {
       attachMenuKeyboardNavigation(menu, button, '.menu-item', vi.fn());
-      
+
       const clickSpy = vi.spyOn(items[0], 'click');
       items[0].focus();
 
@@ -314,7 +314,7 @@ describe('MenuUtils', () => {
 
     it('should click active item on Space key', () => {
       attachMenuKeyboardNavigation(menu, button, '.menu-item', vi.fn());
-      
+
       const clickSpy = vi.spyOn(items[0], 'click');
       items[0].focus();
 

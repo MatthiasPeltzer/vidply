@@ -8,7 +8,10 @@ export function youtubeThumbnailUrl(videoId: string, variant: 'maxres' | 'sd' | 
   return `https://i.ytimg.com/vi/${id}/${variant}default.jpg`;
 }
 
-function loadThumbnailImage(url: string, minWidth = 0): Promise<{ url: string; width: number; height: number }> {
+function loadThumbnailImage(
+  url: string,
+  minWidth = 0
+): Promise<{ url: string; width: number; height: number }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -66,7 +69,10 @@ export async function resolveYoutubeThumbnailDimensions(
 
   for (const variant of ['maxres', 'sd', 'hq'] as const) {
     try {
-      const loaded = await loadThumbnailImage(youtubeThumbnailUrl(videoId, variant), variant === 'maxres' ? 121 : 0);
+      const loaded = await loadThumbnailImage(
+        youtubeThumbnailUrl(videoId, variant),
+        variant === 'maxres' ? 121 : 0
+      );
       return { width: loaded.width, height: loaded.height };
     } catch {
       // try next variant

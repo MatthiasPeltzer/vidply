@@ -47,8 +47,7 @@ export class MediaSessionManager {
 
   constructor(player: Player) {
     this.player = player;
-    this.supported =
-      typeof navigator !== 'undefined' && 'mediaSession' in navigator;
+    this.supported = typeof navigator !== 'undefined' && 'mediaSession' in navigator;
 
     if (!this.supported) return;
 
@@ -120,7 +119,8 @@ export class MediaSessionManager {
   }
 
   private offsetFrom(details?: MediaSessionActionDetails): number | undefined {
-    const offset = details && typeof details.seekOffset === 'number' ? details.seekOffset : undefined;
+    const offset =
+      details && typeof details.seekOffset === 'number' ? details.seekOffset : undefined;
     return typeof offset === 'number' && offset > 0 ? offset : undefined;
   }
 
@@ -218,7 +218,11 @@ export class MediaSessionManager {
   }
 
   updateMetadata(): void {
-    if (!this.supported || typeof window === 'undefined' || typeof window.MediaMetadata === 'undefined') {
+    if (
+      !this.supported ||
+      typeof window === 'undefined' ||
+      typeof window.MediaMetadata === 'undefined'
+    ) {
       return;
     }
 

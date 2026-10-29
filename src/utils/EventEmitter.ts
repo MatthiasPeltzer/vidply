@@ -33,9 +33,7 @@ export class EventEmitter<TEvents extends Record<keyof TEvents, unknown> = Defau
     if (!listener) {
       delete this.events[event];
     } else {
-      this.events[event] = listeners.filter(
-        l => l !== (listener as unknown)
-      );
+      this.events[event] = listeners.filter((l) => l !== (listener as unknown));
     }
 
     return this;
@@ -45,7 +43,7 @@ export class EventEmitter<TEvents extends Record<keyof TEvents, unknown> = Defau
     const listeners = this.events[event];
     if (!listeners) return this;
 
-    listeners.forEach(listener => {
+    listeners.forEach((listener) => {
       listener(...args);
     });
 

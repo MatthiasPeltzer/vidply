@@ -13,7 +13,11 @@
   /* Primary Brand Colors */
   --vidply-active-bg: var(--vidply-white-05);
   --vidply-bg-caption: var(--vidply-black-80);
-  --vidply-bg-controls: linear-gradient(180deg, rgb(var(--vidply-black-rgb), 0) 0%, rgb(var(--vidply-black-rgb), 0.9) 100%);
+  --vidply-bg-controls: linear-gradient(
+    180deg,
+    rgb(var(--vidply-black-rgb), 0) 0%,
+    rgb(var(--vidply-black-rgb), 0.9) 100%
+  );
   --vidply-bg-dialog: rgb(20 20 20 / 98%);
   --vidply-bg-dialog-dark: rgb(18 18 18 / 98%);
 
@@ -23,7 +27,11 @@
   --vidply-bg-overlay: var(--vidply-black-80);
   --vidply-bg-playlist: #1a1a1a;
   --vidply-bg-playlist-header: var(--vidply-black-40);
-  --vidply-bg-track-info: linear-gradient(180deg, var(--vidply-black-80) 0%, var(--vidply-black-60) 100%);
+  --vidply-bg-track-info: linear-gradient(
+    180deg,
+    var(--vidply-black-80) 0%,
+    var(--vidply-black-60) 100%
+  );
   --vidply-bg-transcript: rgb(30 30 30 / 98%);
   --vidply-black: #000;
   --vidply-black-30: rgb(var(--vidply-black-rgb), 0.3);
@@ -188,7 +196,11 @@
 .vidply-theme-light {
   /* Base colors - invert black/white */
   --vidply-active-bg: rgb(0 0 0 / 12%);
-  --vidply-bg-controls: linear-gradient(180deg, rgb(255 255 255 / 0%) 0%, rgb(240 240 240 / 95%) 100%);
+  --vidply-bg-controls: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0%) 0%,
+    rgb(240 240 240 / 95%) 100%
+  );
   --vidply-bg-dialog: rgb(245 245 245 / 98%);
   --vidply-bg-dialog-dark: rgb(235 235 235 / 98%);
 
@@ -238,7 +250,11 @@
 
 /* Light theme specific overrides for controls - use opaque background, not transparent gradient */
 .vidply-theme-light .vidply-controls {
-  background: linear-gradient(180deg, rgb(240 240 240 / 85%) 0%, rgb(235 235 235 / 98%) 100%) !important;
+  background: linear-gradient(
+    180deg,
+    rgb(240 240 240 / 85%) 0%,
+    rgb(235 235 235 / 98%) 100%
+  ) !important;
 }
 
 /* Light theme - Mobile control bar override */
@@ -253,7 +269,11 @@
 .vidply-theme-light:fullscreen .vidply-controls,
 .vidply-player.vidply-theme-light.vidply-fullscreen .vidply-controls,
 .vidply-player.vidply-theme-light:fullscreen .vidply-controls {
-  background: linear-gradient(180deg, rgb(240 240 240 / 85%) 0%, rgb(235 235 235 / 98%) 100%) !important;
+  background: linear-gradient(
+    180deg,
+    rgb(240 240 240 / 85%) 0%,
+    rgb(235 235 235 / 98%) 100%
+  ) !important;
 }
 
 /* Light theme - Audio player control bar */
@@ -408,7 +428,9 @@
   background: rgb(10 64 110 / 15%) !important;
 }
 
-.vidply-theme-light .vidply-transcript-description.vidply-transcript-entry-active .vidply-transcript-text {
+.vidply-theme-light
+  .vidply-transcript-description.vidply-transcript-entry-active
+  .vidply-transcript-text {
   color: #083358 !important;
   opacity: 1 !important;
 }
@@ -422,7 +444,7 @@
   color: #333;
 }
 
-.vidply-theme-light .vidply-transcript-autoscroll-label input[type="checkbox"] {
+.vidply-theme-light .vidply-transcript-autoscroll-label input[type='checkbox'] {
   accent-color: var(--vidply-primary);
 }
 
@@ -500,7 +522,7 @@
 }
 
 .vidply-theme-light .vidply-menu-item.vidply-active,
-.vidply-theme-light .vidply-menu-item[aria-checked="true"] {
+.vidply-theme-light .vidply-menu-item[aria-checked='true'] {
   background: rgb(10 64 110 / 10%);
   color: var(--vidply-primary);
 }
@@ -684,7 +706,9 @@
 }
 
 .vidply-theme-light .vidply-playlist-item-active .vidply-playlist-item-button:hover,
-.vidply-theme-light .vidply-playlist-item.vidply-playlist-item-active .vidply-playlist-item-button:hover {
+.vidply-theme-light
+  .vidply-playlist-item.vidply-playlist-item-active
+  .vidply-playlist-item-button:hover {
   background: rgb(10 64 110 / 12%) !important;
 }
 
@@ -899,11 +923,11 @@
 }
 
 /* Light theme - Form elements (WCAG compliant) */
-.vidply-theme-light input[type="range"] {
+.vidply-theme-light input[type='range'] {
   background: #ccc;
 }
 
-.vidply-theme-light input[type="checkbox"] {
+.vidply-theme-light input[type='checkbox'] {
   accent-color: var(--vidply-primary);
 }
 
@@ -937,21 +961,21 @@
 
 /* Light theme - Checkboxes and their labels */
 .vidply-theme-light .vidply-checkbox-label,
-.vidply-theme-light [class*="autoscroll"] label {
+.vidply-theme-light [class*='autoscroll'] label {
   color: #333 !important;
 }
 
 /* Light theme - Universal text color fixes for any missed elements */
-.vidply-theme-light [class*="vidply-"] label,
-.vidply-theme-light [class*="vidply-"] .label {
+.vidply-theme-light [class*='vidply-'] label,
+.vidply-theme-light [class*='vidply-'] .label {
   color: #1a1a1a !important;
 }
 
-.vidply-theme-light [class*="vidply-menu"] {
+.vidply-theme-light [class*='vidply-menu'] {
   color: #1a1a1a;
 }
 
-.vidply-theme-light [class*="vidply-"] span:not(.vidply-tooltip, [class*="icon"]) {
+.vidply-theme-light [class*='vidply-'] span:not(.vidply-tooltip, [class*='icon']) {
   color: inherit;
 }
 
@@ -979,15 +1003,15 @@
 }
 
 /* Light theme - Slider focus (range inputs) */
-.vidply-theme-light input[type="range"]:focus,
-.vidply-theme-light input[type="range"]:focus-visible {
+.vidply-theme-light input[type='range']:focus,
+.vidply-theme-light input[type='range']:focus-visible {
   outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 4px !important;
 }
 
 /* Light theme - Checkbox focus */
-.vidply-theme-light input[type="checkbox"]:focus,
-.vidply-theme-light input[type="checkbox"]:focus-visible {
+.vidply-theme-light input[type='checkbox']:focus,
+.vidply-theme-light input[type='checkbox']:focus-visible {
   outline: 2px solid var(--vidply-primary) !important;
   outline-offset: 2px !important;
 }
@@ -1353,7 +1377,8 @@
   contain: layout style;
   display: flex;
   flex-direction: column;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 1rem;
   line-height: 1.5;
   max-width: 100%;
@@ -1399,7 +1424,11 @@ video[data-vidply]:not(.vidply-initialized) {
 /* Responsive container */
 
 .vidply-player.vidply-audio {
-  background: linear-gradient(135deg, var(--vidply-primary-20) 0%, rgb(var(--vidply-primary-dark-rgb), 0.2) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--vidply-primary-20) 0%,
+    rgb(var(--vidply-primary-dark-rgb), 0.2) 100%
+  );
   height: auto;
 }
 
@@ -1520,8 +1549,8 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* YouTube iframe containers — default 16:9 until thumbnail dimensions are applied */
-.vidply-video-wrapper > iframe[id^="youtube-player-"],
-.vidply-video-wrapper > div[id^="youtube-player-"]:not(.vidply-youtube-chromeless-host) {
+.vidply-video-wrapper > iframe[id^='youtube-player-'],
+.vidply-video-wrapper > div[id^='youtube-player-']:not(.vidply-youtube-chromeless-host) {
   aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
   height: auto;
   max-height: none !important; /* override renderer inline maxHeight=100% */
@@ -1530,16 +1559,18 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Chromeless YouTube host owns aspect ratio (avoid a double-ratio gap under the embed). */
-.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper:has(> div[id^="youtube-player-"].vidply-youtube-chromeless-host) {
+.vidply-player.vidply-embed-chrome-vidply
+  .vidply-video-wrapper:has(> div[id^='youtube-player-'].vidply-youtube-chromeless-host) {
   aspect-ratio: unset;
 }
 
-.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper:has(> div[id^="youtube-player-"]:not(.vidply-youtube-chromeless-host)) {
+.vidply-player.vidply-embed-chrome-vidply
+  .vidply-video-wrapper:has(> div[id^='youtube-player-']:not(.vidply-youtube-chromeless-host)) {
   aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
 }
 
 /* Vimeo: default 16:9 until the Player SDK reports native dimensions */
-.vidply-video-wrapper > div[id^="vimeo-player-"] {
+.vidply-video-wrapper > div[id^='vimeo-player-'] {
   aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
   height: auto;
   max-height: none !important; /* override renderer inline maxHeight=100% */
@@ -1547,12 +1578,12 @@ video[data-vidply]:not(.vidply-initialized) {
   width: 100% !important;
 }
 
-.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper:has(> div[id^="vimeo-player-"]) {
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper:has(> div[id^='vimeo-player-']) {
   aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
 }
 
-.vidply-video-wrapper > div[id^="youtube-player-"]:not(.vidply-youtube-chromeless-host) iframe,
-.vidply-video-wrapper > div[id^="vimeo-player-"] iframe {
+.vidply-video-wrapper > div[id^='youtube-player-']:not(.vidply-youtube-chromeless-host) iframe,
+.vidply-video-wrapper > div[id^='vimeo-player-'] iframe {
   /* Some providers inject height:100% which can ignore the intended aspect sizing.
        Force the iframe itself to match the host box and let height be derived. */
   display: block;
@@ -1561,11 +1592,11 @@ video[data-vidply]:not(.vidply-initialized) {
   width: 100% !important;
 }
 
-.vidply-video-wrapper > div[id^="youtube-player-"]:not(.vidply-youtube-chromeless-host) iframe {
+.vidply-video-wrapper > div[id^='youtube-player-']:not(.vidply-youtube-chromeless-host) iframe {
   aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
 }
 
-.vidply-video-wrapper > div[id^="vimeo-player-"] iframe {
+.vidply-video-wrapper > div[id^='vimeo-player-'] iframe {
   aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
 }
 
@@ -1607,10 +1638,10 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Chromeless YouTube/Vimeo: VidPly owns transport; iframe is non-interactive. */
-.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > iframe[id^="youtube-player-"],
-.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"] iframe,
-.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="vimeo-player-"],
-.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="vimeo-player-"] iframe {
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > iframe[id^='youtube-player-'],
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^='youtube-player-'] iframe,
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^='vimeo-player-'],
+.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^='vimeo-player-'] iframe {
   pointer-events: none;
 }
 
@@ -1624,16 +1655,28 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* While chromeless embed is playing, hide the center overlay (idle + paused keep it). */
-.vidply-player.vidply-embed-chrome-vidply.vidply-embed-chrome-reproducing:not(.vidply-playlist-idle-embed) .vidply-video-wrapper > .vidply-play-overlay,
-.vidply-player.vidply-embed-chrome-vidply.vidply-embed-chrome-reproducing:not(.vidply-playlist-idle-embed) .vidply-video-wrapper > .vidply-play-overlay-button {
+.vidply-player.vidply-embed-chrome-vidply.vidply-embed-chrome-reproducing:not(
+    .vidply-playlist-idle-embed
+  )
+  .vidply-video-wrapper
+  > .vidply-play-overlay,
+.vidply-player.vidply-embed-chrome-vidply.vidply-embed-chrome-reproducing:not(
+    .vidply-playlist-idle-embed
+  )
+  .vidply-video-wrapper
+  > .vidply-play-overlay-button {
   display: none !important;
   opacity: 0 !important;
   pointer-events: none !important;
 }
 
 /* Paused / idle: VidPly play control above the non-interactive embed (covers provider play affordance). */
-.vidply-player.vidply-embed-chrome-vidply:not(.vidply-embed-chrome-reproducing) .vidply-video-wrapper > .vidply-play-overlay,
-.vidply-player.vidply-embed-chrome-vidply:not(.vidply-embed-chrome-reproducing) .vidply-video-wrapper > .vidply-play-overlay-button {
+.vidply-player.vidply-embed-chrome-vidply:not(.vidply-embed-chrome-reproducing)
+  .vidply-video-wrapper
+  > .vidply-play-overlay,
+.vidply-player.vidply-embed-chrome-vidply:not(.vidply-embed-chrome-reproducing)
+  .vidply-video-wrapper
+  > .vidply-play-overlay-button {
   display: block !important;
   opacity: 1 !important;
   pointer-events: auto !important;
@@ -1641,14 +1684,20 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Slightly larger center control on chromeless pause so it fully masks YouTube’s in-frame play glyph. */
-.vidply-player.vidply-embed-chrome-vidply:not(.vidply-embed-chrome-reproducing) .vidply-play-overlay-button .vidply-play-overlay {
+.vidply-player.vidply-embed-chrome-vidply:not(.vidply-embed-chrome-reproducing)
+  .vidply-play-overlay-button
+  .vidply-play-overlay {
   height: clamp(3.25rem, 9vw, 5.25rem);
   width: clamp(3.25rem, 9vw, 5.25rem);
 }
 
 /* Chromeless YouTube/Vimeo: poster + center play overlay until playback starts. */
-.vidply-player.vidply-embed-chrome-vidply.vidply-embed-idle-cover .vidply-video-wrapper > div[id^="youtube-player-"],
-.vidply-player.vidply-embed-chrome-vidply.vidply-embed-idle-cover .vidply-video-wrapper > div[id^="vimeo-player-"] {
+.vidply-player.vidply-embed-chrome-vidply.vidply-embed-idle-cover
+  .vidply-video-wrapper
+  > div[id^='youtube-player-'],
+.vidply-player.vidply-embed-chrome-vidply.vidply-embed-idle-cover
+  .vidply-video-wrapper
+  > div[id^='vimeo-player-'] {
   opacity: 0;
   visibility: hidden;
 }
@@ -1660,7 +1709,7 @@ video[data-vidply]:not(.vidply-initialized) {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  content: "";
+  content: '';
   inset: 0;
   pointer-events: none;
   position: absolute;
@@ -1668,12 +1717,18 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Chromeless YouTube: hide iframe until the IFrame API applies controls=0 (avoids a full-controls flash). */
-.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"].vidply-youtube-chromeless-host:not(.vidply-youtube-chromeless-ready) {
+.vidply-player.vidply-embed-chrome-vidply
+  .vidply-video-wrapper
+  > div[id^='youtube-player-'].vidply-youtube-chromeless-host:not(
+    .vidply-youtube-chromeless-ready
+  ) {
   opacity: 0;
 }
 
 /* Chromeless YouTube host: iframe fills the aspect-ratio box at 100% (no scaling or cropping). */
-.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"].vidply-youtube-chromeless-host {
+.vidply-player.vidply-embed-chrome-vidply
+  .vidply-video-wrapper
+  > div[id^='youtube-player-'].vidply-youtube-chromeless-host {
   aspect-ratio: var(--vidply-embed-aspect-ratio, 16 / 9);
   background: #000;
   overflow: hidden;
@@ -1683,7 +1738,10 @@ video[data-vidply]:not(.vidply-initialized) {
 }
 
 /* Fill the aspect-ratio host. */
-.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"].vidply-youtube-chromeless-host .vidply-youtube-crop {
+.vidply-player.vidply-embed-chrome-vidply
+  .vidply-video-wrapper
+  > div[id^='youtube-player-'].vidply-youtube-chromeless-host
+  .vidply-youtube-crop {
   height: 100%;
   inset: 0;
   padding-bottom: 0;
@@ -1692,7 +1750,11 @@ video[data-vidply]:not(.vidply-initialized) {
   width: 100%;
 }
 
-.vidply-player.vidply-embed-chrome-vidply .vidply-video-wrapper > div[id^="youtube-player-"].vidply-youtube-chromeless-host .vidply-youtube-crop iframe {
+.vidply-player.vidply-embed-chrome-vidply
+  .vidply-video-wrapper
+  > div[id^='youtube-player-'].vidply-youtube-chromeless-host
+  .vidply-youtube-crop
+  iframe {
   aspect-ratio: unset !important;
   border: 0;
   display: block;
@@ -2103,7 +2165,6 @@ video[data-vidply]:not(.vidply-initialized) {
   min-width: 0;
 }
 
-
 /* Buttons */
 .vidply-button,
 a.vidply-button {
@@ -2120,7 +2181,9 @@ a.vidply-button {
   min-width: var(--vidply-button-size);
   padding: 0;
   position: relative;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
 }
 
 .vidply-button:hover,
@@ -2171,7 +2234,9 @@ a.vidply-button {
   position: absolute;
   top: calc(100% + 0.5rem);
   transform: translateX(-50%) translateY(-0.25rem);
-  transition: opacity var(--vidply-transition-fast), transform var(--vidply-transition-fast);
+  transition:
+    opacity var(--vidply-transition-fast),
+    transform var(--vidply-transition-fast);
   white-space: nowrap;
   z-index: calc(var(--vidply-z-menu) + 1);
 }
@@ -2414,7 +2479,9 @@ a.vidply-button {
   border: 0.0625rem solid var(--vidply-border);
   border-radius: 0.5rem;
   bottom: calc(100% + 0.5rem);
-  box-shadow: var(--vidply-shadow-lg), 0 0 0 0.0625rem var(--vidply-white-10);
+  box-shadow:
+    var(--vidply-shadow-lg),
+    0 0 0 0.0625rem var(--vidply-white-10);
   max-height: 15.625rem;
   min-width: 12.5rem;
   overflow: hidden auto;
@@ -2425,7 +2492,9 @@ a.vidply-button {
   right: 50%;
   touch-action: pan-y;
   transform: translateX(50%);
-  z-index: var(--vidply-z-menu); /* Ensure menus appear above all player content including overlays */
+  z-index: var(
+    --vidply-z-menu
+  ); /* Ensure menus appear above all player content including overlays */
 }
 
 /* Menu positioned below button */
@@ -2701,7 +2770,9 @@ a.vidply-button {
 
 /* Smooth transitions for caption highlighting */
 .vidply-player.vidply-audio .vidply-caption-cue {
-  transition: background 0.3s ease, padding 0.3s ease;
+  transition:
+    background 0.3s ease,
+    padding 0.3s ease;
 }
 
 .vidply-captions:empty {
@@ -3058,8 +3129,8 @@ a.vidply-button {
 :root:has(.vidply-player:fullscreen) .fixed-top,
 :root:has(.vidply-player:fullscreen) .fixed-bottom,
 :root:has(.vidply-player:fullscreen) .sticky-top,
-:root:has(.vidply-player:fullscreen) [style*="position: fixed"],
-:root:has(.vidply-player:fullscreen) [style*="position:fixed"] {
+:root:has(.vidply-player:fullscreen) [style*='position: fixed'],
+:root:has(.vidply-player:fullscreen) [style*='position:fixed'] {
   display: none !important;
 }
 
@@ -3074,7 +3145,7 @@ a.vidply-button {
 body.vidply-fullscreen-active .fixed-top,
 body.vidply-fullscreen-active .fixed-bottom,
 body.vidply-fullscreen-active .sticky-top,
-body.vidply-fullscreen-active [class*="fixed-"] {
+body.vidply-fullscreen-active [class*='fixed-'] {
   display: none !important;
 }
 
@@ -3149,13 +3220,18 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-controls {
-    background: linear-gradient(to top, var(--vidply-black-90) 0%, var(--vidply-black-50) 100%) !important;
+    background: linear-gradient(
+      to top,
+      var(--vidply-black-90) 0%,
+      var(--vidply-black-50) 100%
+    ) !important;
     border-top: none !important;
     bottom: env(safe-area-inset-bottom, 0) !important;
     left: 0 !important;
     opacity: 0 !important;
     order: 0 !important;
-    padding: 1.25rem max(1rem, env(safe-area-inset-right, 0)) 1rem max(1rem, env(safe-area-inset-left, 0)) !important;
+    padding: 1.25rem max(1rem, env(safe-area-inset-right, 0)) 1rem
+      max(1rem, env(safe-area-inset-left, 0)) !important;
     pointer-events: none !important;
     position: absolute !important;
     right: 0 !important;
@@ -3202,7 +3278,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* But allow overflow menu button to be hidden when not needed */
-  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-controls-right > .vidply-overflow-menu[style*="display: none"] {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen)
+    .vidply-controls-right
+    > .vidply-overflow-menu[style*='display: none'] {
     display: none !important;
   }
 
@@ -3641,9 +3719,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 .vidply-player input:hover,
 .vidply-player select:hover,
 .vidply-player textarea:hover,
-.vidply-player [role="button"]:hover,
-.vidply-player [role="link"]:hover,
-.vidply-player [tabindex]:not([tabindex="-1"]):hover {
+.vidply-player [role='button']:hover,
+.vidply-player [role='link']:hover,
+.vidply-player [tabindex]:not([tabindex='-1']):hover {
   outline: var(--vidply-focus-outline-white);
   outline-offset: 0.125rem;
 }
@@ -3815,7 +3893,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   overflow-y: auto;
   position: relative;
   touch-action: pan-y;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
   z-index: var(--vidply-z-base); /* Below menus but part of player stacking context */
 }
 
@@ -3854,7 +3934,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Audio side panel: stack controls under the artwork/media in document flow */
-  .vidply-player.vidply-audio.vidply-has-playlist.vidply-playlist-panel-right .vidply-playlist-main > .vidply-video-wrapper {
+  .vidply-player.vidply-audio.vidply-has-playlist.vidply-playlist-panel-right
+    .vidply-playlist-main
+    > .vidply-video-wrapper {
     display: grid;
     flex: 0 0 auto;
     grid-template-columns: minmax(0, 1fr);
@@ -3864,7 +3946,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Video side panel: overlay controls (auto-hide) like every other video player */
-  .vidply-player.vidply-video.vidply-has-playlist.vidply-playlist-panel-right .vidply-playlist-main > .vidply-video-wrapper {
+  .vidply-player.vidply-video.vidply-has-playlist.vidply-playlist-panel-right
+    .vidply-playlist-main
+    > .vidply-video-wrapper {
     flex: 0 0 auto;
     height: auto;
     order: 1;
@@ -3872,12 +3956,16 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* Row 1 = media only (overlay/captions stack here); row 2 = audio controls in flow */
-  .vidply-player.vidply-audio.vidply-has-playlist.vidply-playlist-panel-right .vidply-video-wrapper > :not(.vidply-controls) {
+  .vidply-player.vidply-audio.vidply-has-playlist.vidply-playlist-panel-right
+    .vidply-video-wrapper
+    > :not(.vidply-controls) {
     grid-column: 1;
     grid-row: 1;
   }
 
-  .vidply-player.vidply-audio.vidply-has-playlist.vidply-playlist-panel-right .vidply-video-wrapper > .vidply-controls {
+  .vidply-player.vidply-audio.vidply-has-playlist.vidply-playlist-panel-right
+    .vidply-video-wrapper
+    > .vidply-controls {
     grid-column: 1;
     grid-row: 2;
     order: unset;
@@ -3891,8 +3979,8 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   .vidply-player.vidply-playlist-panel-right .vidply-video-wrapper > video,
   .vidply-player.vidply-playlist-panel-right .vidply-video-wrapper > audio,
   .vidply-player.vidply-playlist-panel-right .vidply-video-wrapper > iframe,
-  .vidply-player.vidply-playlist-panel-right .vidply-video-wrapper > div[id^="youtube-player-"],
-  .vidply-player.vidply-playlist-panel-right .vidply-video-wrapper > div[id^="vimeo-player-"] {
+  .vidply-player.vidply-playlist-panel-right .vidply-video-wrapper > div[id^='youtube-player-'],
+  .vidply-player.vidply-playlist-panel-right .vidply-video-wrapper > div[id^='vimeo-player-'] {
     height: auto !important;
     max-height: none;
     width: 100%;
@@ -3918,11 +4006,13 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   flex-direction: column;
 }
 
-.vidply-player:is(.vidply-fullscreen, :fullscreen).vidply-has-playlist.vidply-playlist-panel-right > .vidply-playlist-main {
+.vidply-player:is(.vidply-fullscreen, :fullscreen).vidply-has-playlist.vidply-playlist-panel-right
+  > .vidply-playlist-main {
   display: contents;
 }
 
-.vidply-player:is(.vidply-fullscreen, :fullscreen).vidply-has-playlist.vidply-playlist-panel-right > .vidply-playlist-panel {
+.vidply-player:is(.vidply-fullscreen, :fullscreen).vidply-has-playlist.vidply-playlist-panel-right
+  > .vidply-playlist-panel {
   border-left: none;
   border-top: 0.0625rem solid var(--vidply-border-light);
   max-height: 25rem;
@@ -4068,7 +4158,8 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Show playlist panel in fullscreen when visible */
-.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-panel.vidply-playlist-fullscreen-visible {
+.vidply-player:is(.vidply-fullscreen, :fullscreen)
+  .vidply-playlist-panel.vidply-playlist-fullscreen-visible {
   opacity: 1;
   transform: translateY(0);
 }
@@ -4201,7 +4292,8 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   border-radius: 0.3125rem;
 }
 
-.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-panel::-webkit-scrollbar-thumb:hover {
+.vidply-player:is(.vidply-fullscreen, :fullscreen)
+  .vidply-playlist-panel::-webkit-scrollbar-thumb:hover {
   background: var(--vidply-white-50);
 }
 
@@ -4219,7 +4311,8 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   border-radius: 0.1875rem;
 }
 
-.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-list::-webkit-scrollbar-thumb:hover {
+.vidply-player:is(.vidply-fullscreen, :fullscreen)
+  .vidply-playlist-list::-webkit-scrollbar-thumb:hover {
   background: var(--vidply-white-40);
 }
 
@@ -4229,12 +4322,16 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Active item styling in fullscreen */
-.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-active .vidply-playlist-item-button {
+.vidply-player:is(.vidply-fullscreen, :fullscreen)
+  .vidply-playlist-item-active
+  .vidply-playlist-item-button {
   background: var(--vidply-primary-15);
   border: 0.125rem solid var(--vidply-primary-light);
 }
 
-.vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item-active .vidply-playlist-item-title {
+.vidply-player:is(.vidply-fullscreen, :fullscreen)
+  .vidply-playlist-item-active
+  .vidply-playlist-item-title {
   color: var(--vidply-primary-light);
 }
 
@@ -4313,8 +4410,8 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 }
 
 /* Highlight item when it's the aria-activedescendant (keyboard focus via listbox) */
-.vidply-playlist-list:focus [aria-selected="true"],
-.vidply-playlist-list:focus-visible [aria-selected="true"] {
+.vidply-playlist-list:focus [aria-selected='true'],
+.vidply-playlist-list:focus-visible [aria-selected='true'] {
   background: var(--vidply-primary-20);
   border-left-color: var(--vidply-primary);
   outline: var(--vidply-focus-outline-white);
@@ -4683,17 +4780,17 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 /* Transcript entry types */
 .vidply-transcript-description {
   background: rgb(100 149 237 / 8%); /* Subtle blue tint for descriptions */
-  border-left: 0.1875rem solid #8BB3FB;
+  border-left: 0.1875rem solid #8bb3fb;
 }
 
 .vidply-transcript-description .vidply-transcript-text {
-  color: #8BB3FB; /* Light sky blue for description text */
+  color: #8bb3fb; /* Light sky blue for description text */
   font-style: italic;
   opacity: 0.9;
 }
 
 .vidply-transcript-description .vidply-transcript-time {
-  color: #8BB3FB; /* Matching blue for timestamp */
+  color: #8bb3fb; /* Matching blue for timestamp */
 }
 
 .vidply-transcript-description:hover,
@@ -4762,7 +4859,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   white-space: nowrap;
 }
 
-.vidply-transcript-autoscroll-label input[type="checkbox"] {
+.vidply-transcript-autoscroll-label input[type='checkbox'] {
   cursor: pointer;
   height: 1rem;
   margin: 0;
@@ -4927,16 +5024,23 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 /* Move Mode Visual Feedback */
 .vidply-transcript-move-mode {
   animation: transcriptPulse 0.5s ease-in-out 2;
-  box-shadow: 0 0 0 0.1875rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
+  box-shadow:
+    0 0 0 0.1875rem var(--vidply-primary-light),
+    0 0.625rem 2.5rem var(--vidply-black-60);
 }
 
 @keyframes transcriptPulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0.1875rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0.1875rem var(--vidply-primary-light),
+      0 0.625rem 2.5rem var(--vidply-black-60);
   }
 
   50% {
-    box-shadow: 0 0 0 0.375rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
+    box-shadow:
+      0 0 0 0.375rem var(--vidply-primary-light),
+      0 0.625rem 2.5rem var(--vidply-black-60);
   }
 }
 
@@ -5034,7 +5138,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 
 /* Resizing State */
 .vidply-transcript-resizing {
-  box-shadow: 0 0 0 0.125rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
+  box-shadow:
+    0 0 0 0.125rem var(--vidply-primary-light),
+    0 0.625rem 2.5rem var(--vidply-black-60);
   transition: none !important;
 }
 
@@ -5044,7 +5150,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 
 /* Keyboard Drag Mode */
 .vidply-transcript-keyboard-drag {
-  box-shadow: 0 0 0 0.1875rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
+  box-shadow:
+    0 0 0 0.1875rem var(--vidply-primary-light),
+    0 0.625rem 2.5rem var(--vidply-black-60);
 }
 
 .vidply-transcript-drag-indicator {
@@ -5537,7 +5645,7 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 
 /* Mobile: drag is always available via touch, so hide the keyboard drag mode toggle */
 @media (width <= 48rem) {
-  .vidply-sign-language-settings-item[data-setting="keyboard-drag"] {
+  .vidply-sign-language-settings-item[data-setting='keyboard-drag'] {
     display: none !important;
   }
 }
@@ -5707,19 +5815,25 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 
 /* Move Mode */
 .vidply-sign-move-mode {
-  box-shadow: 0 0 0 0.125rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
+  box-shadow:
+    0 0 0 0.125rem var(--vidply-primary-light),
+    0 0.625rem 2.5rem var(--vidply-black-60);
 }
 
 /* Resizing State */
 .vidply-sign-resizing {
-  box-shadow: 0 0 0 0.125rem var(--vidply-primary-light), 0 0.625rem 2.5rem var(--vidply-black-60);
+  box-shadow:
+    0 0 0 0.125rem var(--vidply-primary-light),
+    0 0.625rem 2.5rem var(--vidply-black-60);
   transition: none !important;
 }
 
 /* Keyboard Drag/Resize Modes */
 .vidply-sign-keyboard-drag,
 .vidply-sign-keyboard-resize {
-  box-shadow: 0 0 0 0.1875rem var(--vidply-primary), 0 0.25rem 0.75rem var(--vidply-black-60);
+  box-shadow:
+    0 0 0 0.1875rem var(--vidply-primary),
+    0 0.25rem 0.75rem var(--vidply-black-60);
 }
 
 /* Mode badge shown above the sign-language wrapper while keyboard
@@ -5853,7 +5967,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   }
 
   /* If no thumbnail, show only text */
-  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-info {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen)
+    .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail))
+    .vidply-playlist-item-info {
     align-items: center;
     display: flex;
     flex-direction: column;
@@ -5863,12 +5979,16 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     text-align: center;
   }
 
-  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-title {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen)
+    .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail))
+    .vidply-playlist-item-title {
     font-size: 0.6875rem;
     -webkit-line-clamp: 3;
   }
 
-  .vidply-player:is(.vidply-fullscreen, :fullscreen) .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail)) .vidply-playlist-item-artist {
+  .vidply-player:is(.vidply-fullscreen, :fullscreen)
+    .vidply-playlist-item:not(:has(.vidply-playlist-thumbnail))
+    .vidply-playlist-item-artist {
     font-size: 0.5625rem;
   }
 
@@ -5962,7 +6082,10 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   font-size: 0.875rem;
   font-weight: 500;
   padding: 0.625rem 1.25rem;
-  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
 }
 
 .vidply-resume-prompt-button:hover {
@@ -6077,7 +6200,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 .vidply-floating-shell {
   background: #000;
   border-radius: 0.5rem;
-  box-shadow: 0 0.75rem 2.5rem rgb(0 0 0 / 50%), 0 0 0 0.0625rem rgb(255 255 255 / 8%);
+  box-shadow:
+    0 0.75rem 2.5rem rgb(0 0 0 / 50%),
+    0 0 0 0.0625rem rgb(255 255 255 / 8%);
   box-sizing: border-box;
   left: auto;
   overflow: visible;
@@ -6137,7 +6262,9 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   position: absolute;
   right: 0.375rem;
   top: 0.375rem;
-  transition: background 0.15s ease, transform 0.15s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
   width: 2rem;
   z-index: 5;
 }
@@ -6261,14 +6388,18 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
 /* Interaction states */
 .vidply-floating-shell.vidply-floating-dragging,
 .vidply-floating-shell.vidply-floating-resizing {
-  box-shadow: 0 0 0 0.125rem var(--vidply-primary-light, #4ea3ff), 0 0.75rem 2.5rem rgb(0 0 0 / 60%);
+  box-shadow:
+    0 0 0 0.125rem var(--vidply-primary-light, #4ea3ff),
+    0 0.75rem 2.5rem rgb(0 0 0 / 60%);
   transition: none !important;
   user-select: none;
 }
 
 .vidply-floating-shell.vidply-floating-keyboard-drag,
 .vidply-floating-shell.vidply-floating-keyboard-resize {
-  box-shadow: 0 0 0 0.1875rem var(--vidply-primary, #2677c9), 0 0.25rem 0.75rem rgb(0 0 0 / 60%);
+  box-shadow:
+    0 0 0 0.1875rem var(--vidply-primary, #2677c9),
+    0 0.25rem 0.75rem rgb(0 0 0 / 60%);
 }
 
 /* Visible pressed state for the control-bar PiP button when floating */
@@ -6390,8 +6521,8 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
   .vidply-player :focus-visible,
   .vidply-player button:focus,
   .vidply-player button:focus-visible,
-  .vidply-player [role="slider"]:focus,
-  .vidply-player [role="slider"]:focus-visible,
+  .vidply-player [role='slider']:focus,
+  .vidply-player [role='slider']:focus-visible,
   .vidply-player select:focus,
   .vidply-player select:focus-visible,
   .vidply-player input:focus,
@@ -6415,4 +6546,3 @@ body:has(.vidply-player.vidply-fullscreen) .vidply-player:not(.vidply-fullscreen
     outline-offset: 2px !important;
   }
 }
-

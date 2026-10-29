@@ -41,7 +41,7 @@ describe('PerformanceUtils', () => {
       vi.advanceTimersByTime(50);
       debounced();
       vi.advanceTimersByTime(50);
-      
+
       expect(fn).not.toHaveBeenCalled();
 
       vi.advanceTimersByTime(50);
@@ -218,7 +218,7 @@ describe('PerformanceUtils', () => {
       const fn = vi.fn();
 
       rafWithTimeout(fn, 50);
-      
+
       // Simulate both rAF and timeout firing
       vi.advanceTimersByTime(100);
 
@@ -239,7 +239,7 @@ describe('PerformanceUtils', () => {
 
       rafWithTimeout(fn, 200);
       vi.advanceTimersByTime(199);
-      
+
       // rAF would have fired, but let's verify timeout works
       expect(fn).toHaveBeenCalledTimes(1);
     });

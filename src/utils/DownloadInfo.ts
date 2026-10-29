@@ -157,9 +157,7 @@ export function buildDownloadLabel(parts: DownloadLabelParts): string {
   const sizeStr = sizeBytes != null ? formatBytes(sizeBytes, locale) : null;
 
   if (format && sizeStr) {
-    return parts.withFormatSizeTemplate
-      .replace('{format}', format)
-      .replace('{size}', sizeStr);
+    return parts.withFormatSizeTemplate.replace('{format}', format).replace('{size}', sizeStr);
   }
   if (format) {
     return parts.withFormatTemplate.replace('{format}', format);

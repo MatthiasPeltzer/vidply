@@ -53,8 +53,12 @@ export class SoundCloudRenderer implements Renderer {
 
   async init() {
     // Extract track URL - use currentSource which works for external renderers
-    this.trackUrl = this.player.currentSource || this.player.element.src || this.player.element.querySelector('source')?.src || null;
-    
+    this.trackUrl =
+      this.player.currentSource ||
+      this.player.element.src ||
+      this.player.element.querySelector('source')?.src ||
+      null;
+
     if (!this.trackUrl || !this.isValidSoundCloudUrl(this.trackUrl)) {
       throw new Error('Invalid SoundCloud URL');
     }
@@ -127,11 +131,11 @@ export class SoundCloudRenderer implements Renderer {
     if (!trackUrl) {
       throw new Error('SoundCloudRenderer.getEmbedUrl(): trackUrl is not set');
     }
-    
+
     // Build widget URL with parameters
     const params = new URLSearchParams({
       url: trackUrl,
-      auto_play: isIOS() ? 'false' : (this.player.options.autoplay ? 'true' : 'false'),
+      auto_play: isIOS() ? 'false' : this.player.options.autoplay ? 'true' : 'false',
       hide_related: 'true',
       show_comments: 'false',
       show_user: 'true',
@@ -140,7 +144,7 @@ export class SoundCloudRenderer implements Renderer {
       visual: 'false', // Use classic player for better control
       color: '%23007bff'
     });
-    
+
     return `https://w.soundcloud.com/player/?${params.toString()}`;
   }
 
@@ -161,7 +165,7 @@ export class SoundCloudRenderer implements Renderer {
     // Hide original element and remove poster (SoundCloud has its own visual widget)
     this.player.element.style.display = 'none';
     this.player.element.removeAttribute('poster');
-    
+
     // Remove poster overlay from video wrapper if present
     if (this.player.videoWrapper) {
       this.player.videoWrapper.classList.remove('vidply-forced-poster');
@@ -180,7 +184,7 @@ export class SoundCloudRenderer implements Renderer {
     this.iframe.src = this.getEmbedUrl();
     this.iframe.style.width = '100%';
     this.iframe.style.display = 'block';
-    
+
     // Use different aspect ratio for playlists vs single tracks
     // Playlists need more height to show the track list
     if (this.isPlaylist()) {
@@ -190,7 +194,7 @@ export class SoundCloudRenderer implements Renderer {
       // Single tracks can inherit wrapper height; sets need the CSS min-height instead.
       this.iframe.style.maxHeight = '100%';
     }
-    
+
     this.player.element.parentNode?.insertBefore(this.iframe, this.player.element);
   }
 
@@ -211,43 +215,49 @@ export class SoundCloudRenderer implements Renderer {
       // Wait for iframe to load. Registered through an AbortController so
       // destroy() can detach it if init never completes.
       this._initController = new AbortController();
-      iframe.addEventListener('load', () => {
-        try {
-          const widget = SC.Widget(iframe);
-          this.widget = widget;
+      iframe.addEventListener(
+        'load',
+        () => {
+          try {
+            const widget = SC.Widget(iframe);
+            this.widget = widget;
 
-          widget.bind(SC.Widget.Events.READY, () => {
-            this.isReady = true;
-            // Init succeeded — cancel the pending timeout so it can't reject.
-            if (this._initTimeoutId !== null) {
-              clearTimeout(this._initTimeoutId);
-              this._initTimeoutId = null;
-            }
-            this.attachEvents();
-
-            this.player.syncEmbedChromeClass('soundcloud');
-
-            // Get initial sound info
-            widget.getCurrentSound((sound: unknown) => {
-              const info = sound as SCSoundInfo | null;
-              if (info) {
-                this.player.state.duration = info.duration / 1000; // ms -> s
-                this.player.emit('loadedmetadata');
+            widget.bind(SC.Widget.Events.READY, () => {
+              this.isReady = true;
+              // Init succeeded — cancel the pending timeout so it can't reject.
+              if (this._initTimeoutId !== null) {
+                clearTimeout(this._initTimeoutId);
+                this._initTimeoutId = null;
               }
+              this.attachEvents();
+
+              this.player.syncEmbedChromeClass('soundcloud');
+
+              // Get initial sound info
+              widget.getCurrentSound((sound: unknown) => {
+                const info = sound as SCSoundInfo | null;
+                if (info) {
+                  this.player.state.duration = info.duration / 1000; // ms -> s
+                  this.player.emit('loadedmetadata');
+                }
+              });
+
+              resolve();
             });
 
-            resolve();
-          });
+            widget.bind(SC.Widget.Events.ERROR, (...args: unknown[]) => {
+              const error = args[0] as SCWidgetError | undefined;
+              this.player.handleError(
+                new Error(`SoundCloud error: ${error?.message || 'Unknown error'}`)
+              );
+            });
+          } catch (error) {
+            reject(error);
+          }
+        },
+        { signal: this._initController.signal }
+      );
 
-          widget.bind(SC.Widget.Events.ERROR, (...args: unknown[]) => {
-            const error = args[0] as SCWidgetError | undefined;
-            this.player.handleError(new Error(`SoundCloud error: ${error?.message || 'Unknown error'}`));
-          });
-        } catch (error) {
-          reject(error);
-        }
-      }, { signal: this._initController.signal });
-      
       // Timeout after 10 seconds
       this._initTimeoutId = setTimeout(() => {
         this._initTimeoutId = null;
@@ -476,4 +486,3 @@ export class SoundCloudRenderer implements Renderer {
 }
 
 export default SoundCloudRenderer;
-

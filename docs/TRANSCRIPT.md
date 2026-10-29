@@ -21,8 +21,8 @@ VidPly includes a powerful interactive transcript feature that displays video ca
 
 ```html
 <video data-vidply data-transcript="true" data-transcript-button="true">
-  <source src="video.mp4" type="video/mp4">
-  <track kind="captions" src="captions.vtt" srclang="en" label="English">
+  <source src="video.mp4" type="video/mp4" />
+  <track kind="captions" src="captions.vtt" srclang="en" label="English" />
 </video>
 
 <script type="module">
@@ -38,8 +38,8 @@ That's it! The transcript button will appear in the control bar.
 
 ```javascript
 const player = new Player('#video', {
-  transcript: true,              // Enable transcript feature
-  transcriptButton: true,        // Show transcript button in controls
+  transcript: true, // Enable transcript feature
+  transcriptButton: true, // Show transcript button in controls
   transcriptPosition: 'external' // Position mode (currently only 'external')
 });
 ```
@@ -47,19 +47,15 @@ const player = new Player('#video', {
 ### Via Data Attributes
 
 ```html
-<video 
-  data-vidply
-  data-transcript="true"
-  data-transcript-button="true"
-  src="video.mp4"
->
-  <track kind="captions" src="captions.vtt" srclang="en" label="English">
+<video data-vidply data-transcript="true" data-transcript-button="true" src="video.mp4">
+  <track kind="captions" src="captions.vtt" srclang="en" label="English" />
 </video>
 ```
 
 ## How It Works
 
 The transcript feature automatically:
+
 1. Detects caption/subtitle tracks in your video
 2. Loads the VTT (WebVTT) cue text
 3. Creates an interactive, scrollable window
@@ -123,6 +119,7 @@ player.on('timeupdate', (time) => {
 On desktop (>= 768px), users can:
 
 **Drag Mode:**
+
 - **D Key** - Toggle keyboard drag mode
 - **Arrow Keys** - Move window in 10px increments (Shift = 50px)
 - **Mouse Drag** - Drag the transcript header to reposition
@@ -130,12 +127,14 @@ On desktop (>= 768px), users can:
 - **Escape Key** - Exit drag mode
 
 **Resize Mode:**
+
 - **R Key** - Toggle keyboard resize mode
 - **Arrow Keys** - Resize window in 10px increments (Shift = 50px)
 - **Mouse Resize** - Drag resize handles at window edges
 - **Escape Key** - Exit resize mode
 
 **Settings Menu:**
+
 - Click the settings icon (⚙️) in the transcript header
 - Toggle drag mode and resize mode
 - Close the transcript window
@@ -143,6 +142,7 @@ On desktop (>= 768px), users can:
 ### Mobile Behavior
 
 On mobile devices (< 768px breakpoint):
+
 - Transcript appears below the video player
 - Positioned in document flow (not draggable or resizable)
 - Optimized for scrolling and reading
@@ -151,16 +151,19 @@ On mobile devices (< 768px breakpoint):
 ## Positioning Modes
 
 ### Desktop (Non-Fullscreen)
+
 - Appears next to the video player
 - Draggable to any position
 - Height matches video height
 
 ### Fullscreen Mode
+
 - Positioned in bottom-right corner
 - Floating over the video
 - Leaves room for controls
 
 ### Mobile
+
 - Below video and controls
 - Full width
 - Maximum height of 400px
@@ -170,36 +173,36 @@ On mobile devices (< 768px breakpoint):
 
 ### Global Shortcuts (Player focused)
 
-| Key | Action |
-|-----|--------|
-| <kbd>T</kbd> | Toggle transcript window |
-| <kbd>D</kbd> | Toggle drag mode (when transcript visible) |
+| Key          | Action                                       |
+| ------------ | -------------------------------------------- |
+| <kbd>T</kbd> | Toggle transcript window                     |
+| <kbd>D</kbd> | Toggle drag mode (when transcript visible)   |
 | <kbd>R</kbd> | Toggle resize mode (when transcript visible) |
 
 ### Drag Mode (D key - must be enabled first)
 
-| Key | Action |
-|-----|--------|
-| <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> | Move window (10px) |
-| <kbd>Shift</kbd> + <kbd>Arrow</kbd> | Move window (50px) |
-| <kbd>Home</kbd> | Reset to center position |
-| <kbd>Escape</kbd> | Exit drag mode |
+| Key                                                 | Action                   |
+| --------------------------------------------------- | ------------------------ |
+| <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> | Move window (10px)       |
+| <kbd>Shift</kbd> + <kbd>Arrow</kbd>                 | Move window (50px)       |
+| <kbd>Home</kbd>                                     | Reset to center position |
+| <kbd>Escape</kbd>                                   | Exit drag mode           |
 
 ### Resize Mode (R key - must be enabled first)
 
-| Key | Action |
-|-----|--------|
-| <kbd>←</kbd> <kbd>→</kbd> | Adjust width (10px) |
-| <kbd>↑</kbd> <kbd>↓</kbd> | Adjust height (10px) |
-| <kbd>Shift</kbd> + <kbd>Arrow</kbd> | Adjust size (50px) |
-| <kbd>Escape</kbd> | Exit resize mode |
+| Key                                 | Action               |
+| ----------------------------------- | -------------------- |
+| <kbd>←</kbd> <kbd>→</kbd>           | Adjust width (10px)  |
+| <kbd>↑</kbd> <kbd>↓</kbd>           | Adjust height (10px) |
+| <kbd>Shift</kbd> + <kbd>Arrow</kbd> | Adjust size (50px)   |
+| <kbd>Escape</kbd>                   | Exit resize mode     |
 
 ### Transcript Entries
 
-| Key | Action |
-|-----|--------|
+| Key                                 | Action                                 |
+| ----------------------------------- | -------------------------------------- |
 | <kbd>Enter</kbd> / <kbd>Space</kbd> | Jump to that time (when entry focused) |
-| <kbd>Tab</kbd> | Navigate through transcript entries |
+| <kbd>Tab</kbd>                      | Navigate through transcript entries    |
 
 ## Styling the Transcript
 
@@ -242,128 +245,133 @@ On mobile devices (< 768px breakpoint):
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Transcript Example</title>
-  <link rel="stylesheet" href="dist/vidply.min.css">
-  
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      padding: 20px;
-      background: #111;
-      color: #fff;
-    }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    h1 {
-      margin-bottom: 20px;
-    }
-    
-    /* Custom transcript styling */
-    .vidply-transcript-window {
-      background: linear-gradient(135deg, rgba(30, 30, 50, 0.98), rgba(20, 20, 40, 0.98));
-      backdrop-filter: blur(10px);
-    }
-    
-    .vidply-transcript-entry-active {
-      background: linear-gradient(90deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2));
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Video with Interactive Transcript</h1>
-    
-    <video 
-      id="my-video"
-      data-vidply
-      data-transcript="true"
-      data-transcript-button="true"
-      width="800" 
-      height="450"
-    >
-      <source src="video.mp4" type="video/mp4">
-      <track kind="captions" src="captions-en.vtt" srclang="en" label="English" default>
-      <track kind="captions" src="captions-es.vtt" srclang="es" label="Español">
-    </video>
-    
-    <div style="margin-top: 20px;">
-      <button id="toggleTranscript">Toggle Transcript</button>
-    </div>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transcript Example</title>
+    <link rel="stylesheet" href="dist/vidply.min.css" />
 
-  <script type="module">
-    import Player from './dist/prod/vidply.esm.min.js';
-    
-    // Player is auto-initialized via data-vidply
-    
-    // Get player instance
-    const videoElement = document.getElementById('my-video');
-    const player = videoElement.vidply; // Player instance stored on the media element
-
-    // Or find it manually
-    const allPlayers = document.querySelectorAll('[data-vidply]');
-    // const player = allPlayers[0].vidply;
-    
-    // Manual toggle button
-    document.getElementById('toggleTranscript').addEventListener('click', () => {
-      if (player && player.transcriptManager) {
-        player.transcriptManager.toggleTranscript();
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        padding: 20px;
+        background: #111;
+        color: #fff;
       }
-    });
-    
-    // Listen for transcript interactions
-    document.addEventListener('DOMContentLoaded', () => {
-      // Wait a moment for player to initialize
-      setTimeout(() => {
-        const container = document.querySelector('.vidply-player');
-        const video = container?.querySelector('video, audio');
-        if (video && video.vidply) {
-          const p = video.vidply;
-          
-          p.on('timeupdate', (time) => {
-            // User can see which line is active
-            if (p.transcriptManager && p.transcriptManager.currentActiveEntry) {
-              console.log('Active transcript:', p.transcriptManager.currentActiveEntry.cue.text);
-            }
-          });
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin-bottom: 20px;
+      }
+
+      /* Custom transcript styling */
+      .vidply-transcript-window {
+        background: linear-gradient(135deg, rgba(30, 30, 50, 0.98), rgba(20, 20, 40, 0.98));
+        backdrop-filter: blur(10px);
+      }
+
+      .vidply-transcript-entry-active {
+        background: linear-gradient(90deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2));
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Video with Interactive Transcript</h1>
+
+      <video
+        id="my-video"
+        data-vidply
+        data-transcript="true"
+        data-transcript-button="true"
+        width="800"
+        height="450"
+      >
+        <source src="video.mp4" type="video/mp4" />
+        <track kind="captions" src="captions-en.vtt" srclang="en" label="English" default />
+        <track kind="captions" src="captions-es.vtt" srclang="es" label="Español" />
+      </video>
+
+      <div style="margin-top: 20px;">
+        <button id="toggleTranscript">Toggle Transcript</button>
+      </div>
+    </div>
+
+    <script type="module">
+      import Player from './dist/prod/vidply.esm.min.js';
+
+      // Player is auto-initialized via data-vidply
+
+      // Get player instance
+      const videoElement = document.getElementById('my-video');
+      const player = videoElement.vidply; // Player instance stored on the media element
+
+      // Or find it manually
+      const allPlayers = document.querySelectorAll('[data-vidply]');
+      // const player = allPlayers[0].vidply;
+
+      // Manual toggle button
+      document.getElementById('toggleTranscript').addEventListener('click', () => {
+        if (player && player.transcriptManager) {
+          player.transcriptManager.toggleTranscript();
         }
-      }, 1000);
-    });
-  </script>
-</body>
+      });
+
+      // Listen for transcript interactions
+      document.addEventListener('DOMContentLoaded', () => {
+        // Wait a moment for player to initialize
+        setTimeout(() => {
+          const container = document.querySelector('.vidply-player');
+          const video = container?.querySelector('video, audio');
+          if (video && video.vidply) {
+            const p = video.vidply;
+
+            p.on('timeupdate', (time) => {
+              // User can see which line is active
+              if (p.transcriptManager && p.transcriptManager.currentActiveEntry) {
+                console.log('Active transcript:', p.transcriptManager.currentActiveEntry.cue.text);
+              }
+            });
+          }
+        }, 1000);
+      });
+    </script>
+  </body>
 </html>
 ```
 
 ## Use Cases
 
 ### 1. Accessibility
+
 - Screen reader users can read transcript text
 - Deaf/hard-of-hearing users get full text access
 - Users in noisy environments can read instead of listen
 
 ### 2. Language Learning
+
 - Follow along with native speakers
 - Click to replay difficult sections
 - Read and listen simultaneously
 
 ### 3. Search & Navigation
+
 - Quickly scan content
 - Find specific topics
 - Jump to relevant sections
 
 ### 4. Note Taking
+
 - Reference exact quotes
 - Copy text for citations
 - Study aid for educational content
 
 ### 5. SEO & Searchability
+
 - Video content becomes text-searchable
 - Better accessibility indexing
 - Improved content discovery
@@ -375,22 +383,22 @@ On mobile devices (< 768px breakpoint):
 The transcript feature requires at least one caption or subtitle track:
 
 ```html
-<track kind="captions" src="captions.vtt" srclang="en" label="English">
+<track kind="captions" src="captions.vtt" srclang="en" label="English" />
 <!-- or -->
-<track kind="subtitles" src="subtitles.vtt" srclang="en" label="English">
+<track kind="subtitles" src="subtitles.vtt" srclang="en" label="English" />
 ```
 
 **Note:** `kind="descriptions"` or `kind="chapters"` tracks are NOT used for transcripts.
 
 ### Streaming Format Support
 
-| Platform / Format | Subtitle Type | Transcript Support |
-|---|---|---|
-| HTML5 (MP4/WebM) | WebVTT | Yes |
-| HLS (.m3u8) — `hls.js` (Chrome / Firefox / Edge / desktop Safari) | WebVTT | Yes (cues load incrementally as segments are buffered; `Hls.Events.SUBTITLE_FRAG_PROCESSED` re-emits `textcuesupdate`) |
-| HLS (.m3u8) — Native HLS on iOS / iPadOS Safari | WebVTT (via native `TextTrack` API) | Yes — VidPly bridges the browser's native HLS text tracks into the captions menu, transcript panel and quality menu |
-| DASH (.mpd) | WebVTT | Yes (cues load incrementally as segments are buffered) |
-| DASH (.mpd) | TTML / stpp | No (TTML is rendered by dash.js natively; transcript button is hidden) |
+| Platform / Format                                                 | Subtitle Type                       | Transcript Support                                                                                                     |
+| ----------------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| HTML5 (MP4/WebM)                                                  | WebVTT                              | Yes                                                                                                                    |
+| HLS (.m3u8) — `hls.js` (Chrome / Firefox / Edge / desktop Safari) | WebVTT                              | Yes (cues load incrementally as segments are buffered; `Hls.Events.SUBTITLE_FRAG_PROCESSED` re-emits `textcuesupdate`) |
+| HLS (.m3u8) — Native HLS on iOS / iPadOS Safari                   | WebVTT (via native `TextTrack` API) | Yes — VidPly bridges the browser's native HLS text tracks into the captions menu, transcript panel and quality menu    |
+| DASH (.mpd)                                                       | WebVTT                              | Yes (cues load incrementally as segments are buffered)                                                                 |
+| DASH (.mpd)                                                       | TTML / stpp                         | No (TTML is rendered by dash.js natively; transcript button is hidden)                                                 |
 
 > **iOS / iPadOS:** Even though `hls.js` cannot run on iOS (no MSE), VidPly listens for `addtrack` / `removetrack` / `loadedmetadata` on the native `HTMLMediaElement.textTracks` collection and surfaces every subtitle rendition through the same captions menu and interactive transcript as on desktop. Transcript-on-iOS now works for live and adaptive HLS streams.
 
@@ -416,6 +424,7 @@ It's a powerful tool for accessibility and learning.
 ## Browser Support
 
 The transcript feature works in all modern browsers:
+
 - Chrome/Edge 90+
 - Firefox 88+
 - Safari 14+
@@ -428,9 +437,10 @@ The transcript feature works in all modern browsers:
 **Cause:** No caption/subtitle tracks detected
 
 **Solution:**
+
 ```html
 <!-- Add at least one caption track -->
-<track kind="captions" src="captions.vtt" srclang="en" label="English">
+<track kind="captions" src="captions.vtt" srclang="en" label="English" />
 ```
 
 ### Transcript Shows "Loading..."
@@ -438,6 +448,7 @@ The transcript feature works in all modern browsers:
 **Cause:** VTT file taking time to load or wrong path
 
 **Solutions:**
+
 1. Check file path is correct
 2. Check CORS headers if loading from different domain
 3. Verify VTT file format is valid
@@ -499,10 +510,10 @@ const player = new Player('#video', {
 ## Demo
 
 See working examples:
+
 - `demo/demo.html` - Basic transcript usage
 - `demo/sign-language-demo.html` - Transcript with sign language video
 
 ---
 
 **Built with Vanilla JavaScript** by Matthias Peltzer
-

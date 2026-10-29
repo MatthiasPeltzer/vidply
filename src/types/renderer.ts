@@ -21,13 +21,7 @@ export interface QualityLevel {
  * Prefer this over `renderer.constructor.name`, which is mangled in
  * production builds (e.g. `class s`) and breaks runtime type checks.
  */
-export type RendererType =
-  | 'html5'
-  | 'hls'
-  | 'dash'
-  | 'youtube'
-  | 'vimeo'
-  | 'soundcloud';
+export type RendererType = 'html5' | 'hls' | 'dash' | 'youtube' | 'vimeo' | 'soundcloud';
 
 export interface Renderer {
   player: Player;

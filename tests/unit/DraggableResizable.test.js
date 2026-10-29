@@ -32,7 +32,7 @@ describe('DraggableResizable', () => {
   describe('initialization', () => {
     it('should create instance with default options', () => {
       draggable = new DraggableResizable(element);
-      
+
       expect(draggable.element).toBe(element);
       expect(draggable.options.minWidth).toBe(150);
       expect(draggable.options.minHeight).toBe(100);
@@ -46,7 +46,7 @@ describe('DraggableResizable', () => {
         constrainToViewport: false,
         classPrefix: 'custom'
       });
-      
+
       expect(draggable.options.minWidth).toBe(200);
       expect(draggable.options.minHeight).toBe(150);
       expect(draggable.options.constrainToViewport).toBe(false);
@@ -55,7 +55,7 @@ describe('DraggableResizable', () => {
 
     it('should initialize state flags', () => {
       draggable = new DraggableResizable(element);
-      
+
       expect(draggable.isDragging).toBe(false);
       expect(draggable.isResizing).toBe(false);
       expect(draggable.keyboardDragMode).toBe(false);
@@ -71,7 +71,7 @@ describe('DraggableResizable', () => {
 
     it('should enable keyboard drag mode', () => {
       draggable.enableKeyboardDragMode();
-      
+
       expect(draggable.keyboardDragMode).toBe(true);
       expect(element.classList.contains('draggable-keyboard-drag')).toBe(true);
     });
@@ -79,17 +79,17 @@ describe('DraggableResizable', () => {
     it('should disable keyboard drag mode', () => {
       draggable.enableKeyboardDragMode();
       draggable.disableKeyboardDragMode();
-      
+
       expect(draggable.keyboardDragMode).toBe(false);
       expect(element.classList.contains('draggable-keyboard-drag')).toBe(false);
     });
 
     it('should toggle keyboard drag mode', () => {
       expect(draggable.keyboardDragMode).toBe(false);
-      
+
       draggable.toggleKeyboardDragMode();
       expect(draggable.keyboardDragMode).toBe(true);
-      
+
       draggable.toggleKeyboardDragMode();
       expect(draggable.keyboardDragMode).toBe(false);
     });
@@ -97,7 +97,7 @@ describe('DraggableResizable', () => {
     it('should disable resize mode when enabling drag mode', () => {
       draggable.enableKeyboardResizeMode();
       expect(draggable.keyboardResizeMode).toBe(true);
-      
+
       draggable.enableKeyboardDragMode();
       expect(draggable.keyboardDragMode).toBe(true);
       expect(draggable.keyboardResizeMode).toBe(false);
@@ -158,7 +158,7 @@ describe('DraggableResizable', () => {
 
     it('should enable keyboard resize mode', () => {
       draggable.enableKeyboardResizeMode();
-      
+
       expect(draggable.keyboardResizeMode).toBe(true);
       expect(element.classList.contains('draggable-keyboard-resize')).toBe(true);
     });
@@ -166,17 +166,17 @@ describe('DraggableResizable', () => {
     it('should disable keyboard resize mode', () => {
       draggable.enableKeyboardResizeMode();
       draggable.disableKeyboardResizeMode();
-      
+
       expect(draggable.keyboardResizeMode).toBe(false);
       expect(element.classList.contains('draggable-keyboard-resize')).toBe(false);
     });
 
     it('should toggle keyboard resize mode', () => {
       expect(draggable.keyboardResizeMode).toBe(false);
-      
+
       draggable.toggleKeyboardResizeMode();
       expect(draggable.keyboardResizeMode).toBe(true);
-      
+
       draggable.toggleKeyboardResizeMode();
       expect(draggable.keyboardResizeMode).toBe(false);
     });
@@ -184,7 +184,7 @@ describe('DraggableResizable', () => {
     it('should disable drag mode when enabling resize mode', () => {
       draggable.enableKeyboardDragMode();
       expect(draggable.keyboardDragMode).toBe(true);
-      
+
       draggable.enableKeyboardResizeMode();
       expect(draggable.keyboardResizeMode).toBe(true);
       expect(draggable.keyboardDragMode).toBe(false);
@@ -201,7 +201,7 @@ describe('DraggableResizable', () => {
       // First call sets initial position from current style
       draggable.keyboardDrag('ArrowLeft', false);
       const afterFirst = parseFloat(element.style.left);
-      
+
       // Second call should decrease by step
       draggable.keyboardDrag('ArrowLeft', false);
       expect(parseFloat(element.style.left)).toBe(afterFirst - 5);
@@ -210,7 +210,7 @@ describe('DraggableResizable', () => {
     it('should move right with ArrowRight', () => {
       draggable.keyboardDrag('ArrowRight', false);
       const afterFirst = parseFloat(element.style.left);
-      
+
       draggable.keyboardDrag('ArrowRight', false);
       expect(parseFloat(element.style.left)).toBe(afterFirst + 5);
     });
@@ -218,7 +218,7 @@ describe('DraggableResizable', () => {
     it('should move up with ArrowUp', () => {
       draggable.keyboardDrag('ArrowUp', false);
       const afterFirst = parseFloat(element.style.top);
-      
+
       draggable.keyboardDrag('ArrowUp', false);
       expect(parseFloat(element.style.top)).toBe(afterFirst - 5);
     });
@@ -226,7 +226,7 @@ describe('DraggableResizable', () => {
     it('should move down with ArrowDown', () => {
       draggable.keyboardDrag('ArrowDown', false);
       const afterFirst = parseFloat(element.style.top);
-      
+
       draggable.keyboardDrag('ArrowDown', false);
       expect(parseFloat(element.style.top)).toBe(afterFirst + 5);
     });
@@ -234,7 +234,7 @@ describe('DraggableResizable', () => {
     it('should use larger step with shift key', () => {
       draggable.keyboardDrag('ArrowRight', false);
       const afterFirst = parseFloat(element.style.left);
-      
+
       draggable.keyboardDrag('ArrowRight', true);
       expect(parseFloat(element.style.left)).toBe(afterFirst + 10);
     });
@@ -242,9 +242,9 @@ describe('DraggableResizable', () => {
     it('should call onDrag callback', () => {
       const onDrag = vi.fn();
       draggable.options.onDrag = onDrag;
-      
+
       draggable.keyboardDrag('ArrowRight', false);
-      
+
       expect(onDrag).toHaveBeenCalled();
     });
   });
@@ -284,7 +284,7 @@ describe('DraggableResizable', () => {
       // Set a high minimum that will be hit
       draggable.options.minWidth = 800;
       draggable.keyboardResize('ArrowLeft', false);
-      
+
       // Width should not go below minWidth
       expect(parseFloat(element.style.width)).toBe(800);
     });
@@ -293,7 +293,7 @@ describe('DraggableResizable', () => {
       // Set a high minimum that will be hit
       draggable.options.minHeight = 450;
       draggable.keyboardResize('ArrowUp', false);
-      
+
       // Height should not go below minHeight
       expect(parseFloat(element.style.height)).toBe(450);
     });
@@ -301,9 +301,9 @@ describe('DraggableResizable', () => {
     it('should call onResize callback', () => {
       const onResize = vi.fn();
       draggable.options.onResize = onResize;
-      
+
       draggable.keyboardResize('ArrowRight', false);
-      
+
       expect(onResize).toHaveBeenCalled();
     });
   });
@@ -315,7 +315,7 @@ describe('DraggableResizable', () => {
 
     it('should reset to centered position', () => {
       draggable.resetPosition();
-      
+
       expect(element.style.left).toBe('50%');
       expect(element.style.top).toBe('50%');
       expect(element.style.transform).toBe('translate(-50%, -50%)');
@@ -324,16 +324,16 @@ describe('DraggableResizable', () => {
     it('should clear manual positioning flag', () => {
       draggable.manuallyPositioned = true;
       draggable.resetPosition();
-      
+
       expect(draggable.manuallyPositioned).toBe(false);
     });
 
     it('should call onDrag callback with centered flag', () => {
       const onDrag = vi.fn();
       draggable.options.onDrag = onDrag;
-      
+
       draggable.resetPosition();
-      
+
       expect(onDrag).toHaveBeenCalledWith({ centered: true });
     });
   });
@@ -342,11 +342,11 @@ describe('DraggableResizable', () => {
     it('should clean up classes', () => {
       draggable = new DraggableResizable(element);
       draggable.enableKeyboardDragMode();
-      
+
       expect(element.classList.contains('draggable-keyboard-drag')).toBe(true);
-      
+
       draggable.destroy();
-      
+
       expect(element.classList.contains('draggable-keyboard-drag')).toBe(false);
       expect(element.classList.contains('draggable-keyboard-resize')).toBe(false);
       expect(element.classList.contains('draggable-dragging')).toBe(false);
@@ -360,11 +360,11 @@ describe('DraggableResizable', () => {
       handle.dataset.vidplyManagedResize = 'true';
       handle.dataset.direction = 'se';
       element.appendChild(handle);
-      
+
       draggable = new DraggableResizable(element, {
         resizeHandles: [handle]
       });
-      
+
       expect(draggable.hasManagedResizeHandles()).toBe(true);
     });
 
@@ -373,18 +373,18 @@ describe('DraggableResizable', () => {
       handle.dataset.vidplyManagedResize = 'true';
       handle.dataset.direction = 'se';
       element.appendChild(handle);
-      
+
       draggable = new DraggableResizable(element, {
         resizeHandles: [handle]
       });
-      
+
       // Initially hidden
       expect(handle.style.display).toBe('none');
-      
+
       // Show handles
       draggable.setManagedHandlesVisible(true);
       expect(handle.style.display).not.toBe('none');
-      
+
       // Hide handles again
       draggable.setManagedHandlesVisible(false);
       expect(handle.style.display).toBe('none');
@@ -397,7 +397,7 @@ describe('DraggableResizable', () => {
       handle.dataset.vidplyManagedResize = 'true';
       handle.dataset.direction = 'se';
       element.appendChild(handle);
-      
+
       draggable = new DraggableResizable(element, {
         resizeHandles: [handle]
       });
@@ -405,10 +405,10 @@ describe('DraggableResizable', () => {
 
     it('should toggle pointer resize mode', () => {
       expect(draggable.pointerResizeMode).toBe(false);
-      
+
       draggable.togglePointerResizeMode();
       expect(draggable.pointerResizeMode).toBe(true);
-      
+
       draggable.togglePointerResizeMode();
       expect(draggable.pointerResizeMode).toBe(false);
     });
@@ -421,10 +421,10 @@ describe('DraggableResizable', () => {
     it('should call callback when toggled', () => {
       const callback = vi.fn();
       draggable.options.onPointerResizeToggle = callback;
-      
+
       draggable.enablePointerResizeMode();
       expect(callback).toHaveBeenCalledWith(true);
-      
+
       draggable.disablePointerResizeMode();
       expect(callback).toHaveBeenCalledWith(false);
     });

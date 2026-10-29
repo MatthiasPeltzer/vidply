@@ -21,7 +21,15 @@ function createManager(rendererType, currentTime) {
     emit: vi.fn()
   };
   manager.element = document.createElement('div');
-  manager.currentTrack = { track, language: 'en', label: 'English', kind: 'captions', index: 0, isDefault: false, alternatives: [] };
+  manager.currentTrack = {
+    track,
+    language: 'en',
+    label: 'English',
+    kind: 'captions',
+    index: 0,
+    isDefault: false,
+    alternatives: []
+  };
   manager.currentCue = null;
   return manager;
 }

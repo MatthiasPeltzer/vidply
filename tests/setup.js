@@ -8,7 +8,7 @@ import { vi } from 'vitest';
 // Mock window.matchMedia (not implemented in jsdom)
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -16,8 +16,8 @@ Object.defineProperty(window, 'matchMedia', {
     removeListener: vi.fn(), // deprecated
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
+    dispatchEvent: vi.fn()
+  }))
 });
 
 // Mock ResizeObserver (not implemented in jsdom)
@@ -41,8 +41,8 @@ global.IntersectionObserver = class IntersectionObserver {
 };
 
 // Mock requestAnimationFrame
-global.requestAnimationFrame = vi.fn(cb => setTimeout(cb, 16));
-global.cancelAnimationFrame = vi.fn(id => clearTimeout(id));
+global.requestAnimationFrame = vi.fn((cb) => setTimeout(cb, 16));
+global.cancelAnimationFrame = vi.fn((id) => clearTimeout(id));
 
 // Mock window.scrollTo (not implemented in jsdom)
 window.scrollTo = vi.fn();
@@ -51,19 +51,19 @@ window.scrollTo = vi.fn();
 Object.defineProperty(HTMLMediaElement.prototype, 'play', {
   configurable: true,
   writable: true,
-  value: vi.fn().mockResolvedValue(undefined),
+  value: vi.fn().mockResolvedValue(undefined)
 });
 
 Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
   configurable: true,
   writable: true,
-  value: vi.fn(),
+  value: vi.fn()
 });
 
 Object.defineProperty(HTMLMediaElement.prototype, 'load', {
   configurable: true,
   writable: true,
-  value: vi.fn(),
+  value: vi.fn()
 });
 
 // Mock scrollIntoView (not implemented in jsdom)

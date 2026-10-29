@@ -43,7 +43,9 @@ describe('Sanitize', () => {
 
   describe('shallowSanitize', () => {
     it('drops forbidden keys but keeps safe ones', () => {
-      const dirty = JSON.parse('{"__proto__": {"x": 1}, "constructor": 2, "prototype": 3, "volume": 0.5}');
+      const dirty = JSON.parse(
+        '{"__proto__": {"x": 1}, "constructor": 2, "prototype": 3, "volume": 0.5}'
+      );
       const clean = shallowSanitize(dirty);
 
       expect(clean.volume).toBe(0.5);
@@ -55,7 +57,7 @@ describe('Sanitize', () => {
     it('does not pollute Object.prototype', () => {
       const dirty = JSON.parse('{"__proto__": {"polluted": true}}');
       shallowSanitize(dirty);
-      expect(({}).polluted).toBeUndefined();
+      expect({}.polluted).toBeUndefined();
     });
 
     it('returns an object with a null prototype', () => {
@@ -71,7 +73,7 @@ describe('Sanitize', () => {
 
       expect(clean.outer.safe).toBe(1);
       expect(Object.prototype.hasOwnProperty.call(clean.outer, '__proto__')).toBe(false);
-      expect(({}).polluted).toBeUndefined();
+      expect({}.polluted).toBeUndefined();
     });
 
     it('passes arrays and primitives through', () => {
@@ -90,7 +92,7 @@ describe('Sanitize', () => {
     it('neutralises deeply nested pollution', () => {
       const dirty = JSON.parse('{"a": {"b": {"constructor": {"prototype": {"polluted": 1}}}}}');
       deepSanitize(dirty);
-      expect(({}).polluted).toBeUndefined();
+      expect({}.polluted).toBeUndefined();
     });
   });
 });

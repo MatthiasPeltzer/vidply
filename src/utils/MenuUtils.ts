@@ -25,7 +25,9 @@ export function createMenuItem({
 }: MenuItemOptions): HTMLElement {
   const isI18nKeyForAria =
     typeof label === 'string' &&
-    (label.startsWith('transcript.') || label.startsWith('player.') || label.startsWith('settings.'));
+    (label.startsWith('transcript.') ||
+      label.startsWith('player.') ||
+      label.startsWith('settings.'));
   const ariaLabelText = ariaLabel || (isI18nKeyForAria ? i18n.t(label) || label : label);
 
   const button = DOMUtils.createElement('button', {
@@ -43,7 +45,9 @@ export function createMenuItem({
 
   const isI18nKey =
     typeof label === 'string' &&
-    (label.startsWith('transcript.') || label.startsWith('player.') || label.startsWith('settings.'));
+    (label.startsWith('transcript.') ||
+      label.startsWith('player.') ||
+      label.startsWith('settings.'));
   const textContent = isI18nKey ? i18n.t(label) || label : label;
 
   const text = DOMUtils.createElement('span', {
@@ -70,8 +74,9 @@ export function attachMenuKeyboardNavigation(
 
   // Only enabled items participate in roving navigation. aria-disabled
   // empty-state entries must never receive focus (WCAG 2.1.1, 4.1.2).
-  const menuItems = Array.from(menu.querySelectorAll<HTMLElement>(itemSelector))
-    .filter((item) => item.getAttribute('aria-disabled') !== 'true');
+  const menuItems = Array.from(menu.querySelectorAll<HTMLElement>(itemSelector)).filter(
+    (item) => item.getAttribute('aria-disabled') !== 'true'
+  );
   if (menuItems.length === 0) return undefined;
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -176,8 +181,9 @@ export function focusFirstMenuItem(
   if (!menu) return;
 
   setTimeout(() => {
-    const menuItems = Array.from(menu.querySelectorAll<HTMLElement>(itemSelector))
-      .filter((item) => item.getAttribute('aria-disabled') !== 'true');
+    const menuItems = Array.from(menu.querySelectorAll<HTMLElement>(itemSelector)).filter(
+      (item) => item.getAttribute('aria-disabled') !== 'true'
+    );
     const firstItem = menuItems[0];
     if (firstItem) {
       menuItems.forEach((item, index) => {

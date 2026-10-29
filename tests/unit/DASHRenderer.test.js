@@ -50,7 +50,7 @@ describe('DASHRenderer', () => {
       invalidateTrackCache: vi.fn(),
       showPosterOverlay: vi.fn(),
       hidePosterOverlay: vi.fn(),
-      shouldSyncVolumeFromMedia: vi.fn(() => true),
+      shouldSyncVolumeFromMedia: vi.fn(() => true)
     };
 
     mockDashInstance = {
@@ -88,7 +88,7 @@ describe('DASHRenderer', () => {
     window.dashjs = {
       MediaPlayer: vi.fn(() => ({
         create: vi.fn(() => mockDashInstance)
-      })),
+      }))
     };
     window.dashjs.MediaPlayer.events = {
       MANIFEST_LOADED: 'manifestLoaded',
@@ -269,10 +269,7 @@ describe('DASHRenderer', () => {
         error: { message: 'Minor issue' }
       });
 
-      expect(mockPlayer.log).toHaveBeenCalledWith(
-        expect.stringContaining('Non-fatal'),
-        'warn'
-      );
+      expect(mockPlayer.log).toHaveBeenCalledWith(expect.stringContaining('Non-fatal'), 'warn');
     });
   });
 

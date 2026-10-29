@@ -43,13 +43,13 @@ const minified = minifier.minify(cssSource);
 
 if (minified.errors.length > 0) {
   console.error('❌ CSS minification errors:');
-  minified.errors.forEach(error => console.error('   ', error));
+  minified.errors.forEach((error) => console.error('   ', error));
   process.exit(1);
 }
 
 if (minified.warnings.length > 0) {
   console.warn('⚠️  CSS minification warnings:');
-  minified.warnings.forEach(warning => console.warn('   ', warning));
+  minified.warnings.forEach((warning) => console.warn('   ', warning));
 }
 
 // Write minified CSS
@@ -61,4 +61,3 @@ const savings = ((1 - minified.styles.length / cssSource.length) * 100).toFixed(
 console.log(`   ✓ dist/vidply.min.css (${minifiedSize} KB, ${savings}% smaller)\n`);
 
 console.log('✅ CSS build completed!\n');
-

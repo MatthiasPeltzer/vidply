@@ -53,7 +53,7 @@ export function createLabeledSelect({
     }
   });
 
-  options.forEach(opt => {
+  options.forEach((opt) => {
     const option = DOMUtils.createElement('option', {
       textContent: opt.text,
       attributes: {
@@ -87,7 +87,7 @@ export function toggleLabeledSelect(
 export function preventDragOnElement(element: HTMLElement | null): void {
   if (!element) return;
 
-  (['pointerdown', 'mousedown', 'click'] as const).forEach(eventType => {
+  (['pointerdown', 'mousedown', 'click'] as const).forEach((eventType) => {
     element.addEventListener(eventType, (e: Event) => {
       e.stopPropagation();
     });

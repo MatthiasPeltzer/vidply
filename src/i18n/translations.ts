@@ -13,7 +13,10 @@ export function getBaseTranslations(): Record<string, TranslationData> {
   return { en };
 }
 
-export function getBuiltInLanguageLoaders(): Record<string, () => Promise<Record<string, TranslationData>>> {
+export function getBuiltInLanguageLoaders(): Record<
+  string,
+  () => Promise<Record<string, TranslationData>>
+> {
   return builtInLanguageLoaders;
 }
 
@@ -22,7 +25,9 @@ export async function loadBuiltInTranslation(lang: string): Promise<TranslationD
   if (!loader) return null;
 
   const module = await loader();
-  return (module[lang] || (module as Record<string, unknown>).default || null) as TranslationData | null;
+  return (module[lang] ||
+    (module as Record<string, unknown>).default ||
+    null) as TranslationData | null;
 }
 
 export const translations = getBaseTranslations();

@@ -78,7 +78,7 @@ describe('TimeUtils', () => {
 
     it('should be reversible with formatTime', () => {
       const testValues = [0, 30, 60, 90, 3600, 3661, 7200];
-      testValues.forEach(seconds => {
+      testValues.forEach((seconds) => {
         const formatted = TimeUtils.formatTime(seconds, true);
         expect(TimeUtils.parseTime(formatted)).toBe(seconds);
       });

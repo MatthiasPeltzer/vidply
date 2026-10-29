@@ -5,7 +5,7 @@
 ### 1. Include the CSS
 
 ```html
-<link rel="stylesheet" href="src/styles/vidply.css">
+<link rel="stylesheet" href="src/styles/vidply.css" />
 ```
 
 ### 2. Add Your Media Element
@@ -13,13 +13,13 @@
 ```html
 <!-- Video -->
 <video data-vidply width="800" height="450">
-  <source src="your-video.mp4" type="video/mp4">
-  <track kind="subtitles" src="captions.vtt" srclang="en" label="English">
+  <source src="your-video.mp4" type="video/mp4" />
+  <track kind="subtitles" src="captions.vtt" srclang="en" label="English" />
 </video>
 
 <!-- Audio -->
 <audio data-vidply>
-  <source src="your-audio.mp3" type="audio/mpeg">
+  <source src="your-audio.mp3" type="audio/mpeg" />
 </audio>
 ```
 
@@ -57,7 +57,7 @@ const player = new Player('#video', {
 
 ```javascript
 const player = new Player('#video', {
-  startTime: 30  // Start at 30 seconds
+  startTime: 30 // Start at 30 seconds
 });
 ```
 
@@ -87,7 +87,7 @@ const player = new Player('#video', {
 
 ```javascript
 const player = new Player('#video', {
-  language: 'es'  // Spanish (available: en, es, fr, de, ja)
+  language: 'es' // Spanish (available: en, es, fr, de, ja)
 });
 ```
 
@@ -95,10 +95,10 @@ const player = new Player('#video', {
 
 ```javascript
 const player = new Player('#video', {
-  language: 'pt',  // Portuguese
+  language: 'pt', // Portuguese
   languageFiles: {
-    'pt': 'languages/pt.json',
-    'it': 'languages/it.json'
+    pt: 'languages/pt.json',
+    it: 'languages/it.json'
   }
 });
 ```
@@ -106,8 +106,8 @@ const player = new Player('#video', {
 #### Using Data Attributes
 
 ```html
-<video 
-  data-vidply 
+<video
+  data-vidply
   data-vidply-language-files='{"pt": "languages/pt.json", "it": "languages/it.json"}'
   src="video.mp4"
 ></video>
@@ -119,8 +119,8 @@ The player automatically detects the language from the HTML `lang` attribute:
 
 ```html
 <html lang="pt">
-  <video 
-    data-vidply 
+  <video
+    data-vidply
     data-vidply-language-file='{"pt": "languages/pt.json"}'
     src="video.mp4"
   ></video>
@@ -207,7 +207,11 @@ document.getElementById('speedSelect').addEventListener('change', (e) => {
 <!-- These will automatically use the appropriate renderer -->
 
 <!-- Native YouTube/Vimeo UI only (no VidPly control bar) -->
-<video data-vidply data-embed-chrome="provider" src="https://www.youtube.com/watch?v=dQw4w9WgXcQ"></video>
+<video
+  data-vidply
+  data-embed-chrome="provider"
+  src="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+></video>
 ```
 
 YouTube and Vimeo default to `embedChrome: 'vidply'` (chromeless iframe + VidPly controls). `embedChrome: 'provider'`
@@ -281,11 +285,11 @@ For maximum compatibility across devices and browsers, provide all three formats
 
 ```html
 <video data-vidply width="800" height="450" poster="preview.jpg">
-  <source src="dash/manifest.mpd" type="application/dash+xml">
-  <source src="hls/master.m3u8" type="application/x-mpegURL">
-  <source src="fallback.mp4" type="video/mp4">
-  <track kind="subtitles" src="vtt/subtitles.de.vtt" srclang="de" label="Deutsch">
-  <track kind="subtitles" src="vtt/subtitles.en.vtt" srclang="en" label="English">
+  <source src="dash/manifest.mpd" type="application/dash+xml" />
+  <source src="hls/master.m3u8" type="application/x-mpegURL" />
+  <source src="fallback.mp4" type="video/mp4" />
+  <track kind="subtitles" src="vtt/subtitles.de.vtt" srclang="de" label="Deutsch" />
+  <track kind="subtitles" src="vtt/subtitles.en.vtt" srclang="en" label="English" />
 </video>
 ```
 
@@ -300,8 +304,8 @@ Show a download button in the control bar so visitors can save the media file:
   data-vidply
   data-vidply-download-button="true"
   data-vidply-download-url="/files/video.mp4"
-  src="/streams/video/manifest.mpd">
-</video>
+  src="/streams/video/manifest.mpd"
+></video>
 ```
 
 ```javascript
@@ -327,8 +331,9 @@ while floating is enabled, so users get a single consistent experience.
 <video
   data-vidply
   data-vidply-options='{"floating": true, "floatingPosition": "bottom-right", "floatingMinViewportWidth": 768}'
-  src="video.mp4">
-  <track kind="subtitles" src="en.vtt" srclang="en" label="English">
+  src="video.mp4"
+>
+  <track kind="subtitles" src="en.vtt" srclang="en" label="English" />
 </video>
 ```
 
@@ -341,6 +346,7 @@ const player = new Player('#video', {
 ```
 
 Notes:
+
 - Audio-only players ignore `floating`.
 - Closing the floating shell pauses playback and prevents auto-float again until the next user-initiated `play`.
 - The floating shell exposes a reduced control bar (play/pause, rewind, forward, volume, captions, PiP, fullscreen) and persists its size/position per player.
@@ -362,7 +368,9 @@ You can theme it via CSS variables:
 The container exposes a `.vidply-buffering` class while loading; you can hook into it from CSS:
 
 ```css
-.vidply-player.vidply-buffering .my-overlay { opacity: 0.3; }
+.vidply-player.vidply-buffering .my-overlay {
+  opacity: 0.3;
+}
 ```
 
 ### Live streams
@@ -402,10 +410,10 @@ When you have multiple caption tracks, clicking the CC button shows a menu to se
 
 ```html
 <video data-vidply src="video.mp4">
-  <track kind="captions" src="en.vtt" srclang="en" label="English">
-  <track kind="captions" src="es.vtt" srclang="es" label="Español">
-  <track kind="captions" src="fr.vtt" srclang="fr" label="Français">
-  <track kind="captions" src="de.vtt" srclang="de" label="Deutsch">
+  <track kind="captions" src="en.vtt" srclang="en" label="English" />
+  <track kind="captions" src="es.vtt" srclang="es" label="Español" />
+  <track kind="captions" src="fr.vtt" srclang="fr" label="Français" />
+  <track kind="captions" src="de.vtt" srclang="de" label="Deutsch" />
 </video>
 ```
 
@@ -420,10 +428,10 @@ console.log(tracks);
 // [{index: 0, language: 'en', label: 'English', kind: 'captions'}, ...]
 
 // Switch to specific track
-player.captionManager.switchTrack(1);  // Switch to Spanish
+player.captionManager.switchTrack(1); // Switch to Spanish
 
 // Or by finding the track you want
-const frenchTrack = tracks.find(t => t.language === 'fr');
+const frenchTrack = tracks.find((t) => t.language === 'fr');
 if (frenchTrack) {
   player.captionManager.switchTrack(frenchTrack.index);
 }
@@ -434,13 +442,8 @@ if (frenchTrack) {
 Display a clickable, scrolling transcript alongside your video with drag and resize capabilities:
 
 ```html
-<video 
-  data-vidply
-  data-transcript="true"
-  data-transcript-button="true"
-  src="video.mp4"
->
-  <track kind="captions" src="captions.vtt" srclang="en" label="English">
+<video data-vidply data-transcript="true" data-transcript-button="true" src="video.mp4">
+  <track kind="captions" src="captions.vtt" srclang="en" label="English" />
 </video>
 ```
 
@@ -456,8 +459,8 @@ player.transcriptManager.hideTranscript();
 player.transcriptManager.toggleTranscript();
 
 // Drag & Resize Modes (Desktop only, screen width >= 768px)
-player.transcriptManager.toggleKeyboardDragMode();   // Toggle drag mode (D key)
-player.transcriptManager.togglePointerResizeMode();  // Toggle resize mode (R key)
+player.transcriptManager.toggleKeyboardDragMode(); // Toggle drag mode (D key)
+player.transcriptManager.togglePointerResizeMode(); // Toggle resize mode (R key)
 
 // Check State
 if (player.transcriptManager.isVisible) {
@@ -466,6 +469,7 @@ if (player.transcriptManager.isVisible) {
 ```
 
 **Keyboard Shortcuts:**
+
 - <kbd>T</kbd> - Toggle transcript window
 - <kbd>D</kbd> - Toggle drag mode (move with arrow keys)
 - <kbd>R</kbd> - Toggle resize mode (resize with arrow keys)
@@ -474,6 +478,7 @@ if (player.transcriptManager.isVisible) {
 
 **Settings Menu:**
 The transcript window includes a settings menu (⚙️ icon) with options to:
+
 - Enable/disable drag mode
 - Enable/disable resize mode
 - Close the transcript window
@@ -487,13 +492,12 @@ Overlay a sign language interpreter video synchronized with the main video:
 #### Single Sign Language Video
 
 ```html
-<video 
+<video
   data-vidply
   src="main-video.mp4"
   data-sign-language-src="sign-language-video.mp4"
   data-sign-language-position="bottom-right"
->
-</video>
+></video>
 ```
 
 ```javascript
@@ -504,9 +508,9 @@ const player = new Player('#video', {
 });
 
 // Control programmatically
-player.enableSignLanguage();   // Show sign language video
-player.disableSignLanguage();  // Hide sign language video
-player.toggleSignLanguage();   // Toggle visibility
+player.enableSignLanguage(); // Show sign language video
+player.disableSignLanguage(); // Hide sign language video
+player.toggleSignLanguage(); // Toggle visibility
 
 // Check state
 if (player.state.signLanguageEnabled) {
@@ -519,15 +523,14 @@ if (player.state.signLanguageEnabled) {
 You can provide multiple sign language videos for different languages. The player will automatically show a language selector when multiple sources are available:
 
 ```html
-<video 
+<video
   data-vidply
   src="main-video.mp4"
   data-sign-language-src-en="sign-language-en.mp4"
   data-sign-language-src-de="sign-language-de.mp4"
   data-sign-language-src-es="sign-language-es.mp4"
   data-sign-language-position="bottom-right"
->
-</video>
+></video>
 ```
 
 ```javascript
@@ -546,6 +549,7 @@ player.switchSignLanguage('de'); // Switch to German sign language
 ```
 
 When multiple sign language sources are available:
+
 - A language selector appears in the sign language video header
 - The sign language video automatically switches when captions change (if language codes match)
 - Users can manually switch languages using the selector
@@ -553,12 +557,14 @@ When multiple sign language sources are available:
 #### Sign Language Settings Menu
 
 The sign language video includes a settings menu (⚙️ icon) with the following options:
+
 - **Enable/Disable Drag Mode** - Toggle keyboard drag mode (Shortcut: D key)
 - **Enable/Disable Resize Mode** - Toggle resize mode to adjust video size (Shortcut: R key)
 - **Language Selector** - Switch between available sign language videos (if multiple)
 - **Close Menu** - Close the settings menu
 
 **Sign Language Features:**
+
 - Automatically syncs with main video playback
 - Adjusts playback speed to match main video
 - Muted by default (main video audio is used)
@@ -576,11 +582,11 @@ The sign language video includes a settings menu (⚙️ icon) with the followin
 
 VidPly supports three complementary audio-description paths:
 
-| Path | When used | Behavior |
-|------|-----------|----------|
-| **Described video swap** | `audioDescriptionSrc` or `<source data-desc-src>` | Replaces the video with a pre-mixed described MP4/WebM; preserves playback position |
-| **VTT speech (extended AD)** | `kind="descriptions"` track, no described video | Pauses video, speaks cue text via `speechSynthesis`, resumes when speech ends |
-| **Text descriptions** | Descriptions VTT always available | Shown in the transcript panel; toggled via track mode when TTS is off |
+| Path                         | When used                                         | Behavior                                                                            |
+| ---------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| **Described video swap**     | `audioDescriptionSrc` or `<source data-desc-src>` | Replaces the video with a pre-mixed described MP4/WebM; preserves playback position |
+| **VTT speech (extended AD)** | `kind="descriptions"` track, no described video   | Pauses video, speaks cue text via `speechSynthesis`, resumes when speech ends       |
+| **Text descriptions**        | Descriptions VTT always available                 | Shown in the transcript panel; toggled via track mode when TTS is off               |
 
 **Mode resolution** (`audioDescriptionMode`, default `auto`):
 
@@ -591,20 +597,23 @@ VidPly supports three complementary audio-description paths:
 #### Described video swap
 
 ```html
-<video 
+<video
   data-vidply
   src="regular-version.mp4"
   data-audio-description-src="described-version.mp4"
   data-audio-description-button="true"
->
-</video>
+></video>
 ```
 
 Or with `<source>` elements:
 
 ```html
-<source src="regular.mp4" type="video/mp4"
-        data-desc-src="described.mp4" data-orig-src="regular.mp4">
+<source
+  src="regular.mp4"
+  type="video/mp4"
+  data-desc-src="described.mp4"
+  data-orig-src="regular.mp4"
+/>
 ```
 
 #### VTT speech (extended AD)
@@ -612,13 +621,9 @@ Or with `<source>` elements:
 No described video file — only a descriptions WebVTT track:
 
 ```html
-<video
-  data-vidply
-  data-audio-description-mode="vtt_speech"
-  data-audio-description-button="true"
->
-  <source src="video.mp4" type="video/mp4">
-  <track kind="descriptions" src="descriptions-en.vtt" srclang="en" label="Descriptions">
+<video data-vidply data-audio-description-mode="vtt_speech" data-audio-description-button="true">
+  <source src="video.mp4" type="video/mp4" />
+  <track kind="descriptions" src="descriptions-en.vtt" srclang="en" label="Descriptions" />
 </video>
 ```
 
@@ -630,9 +635,9 @@ See also: [`demo/single-player-vtt-speech.html`](../demo/single-player-vtt-speec
 const player = new Player('#video', {
   audioDescriptionSrc: 'path/to/described-version.mp4', // optional
   audioDescriptionButton: true,
-  audioDescriptionMode: 'auto',       // 'auto' | 'swap' | 'vtt_speech'
-  audioDescriptionSpeech: true,       // false = text-only (transcript / track toggle)
-  audioDescriptionExtended: true      // resume after TTS ends, not at cue.endTime
+  audioDescriptionMode: 'auto', // 'auto' | 'swap' | 'vtt_speech'
+  audioDescriptionSpeech: true, // false = text-only (transcript / track toggle)
+  audioDescriptionExtended: true // resume after TTS ends, not at cue.endTime
 });
 
 // Control programmatically
@@ -681,7 +686,7 @@ Jump to video chapters when chapter tracks are available:
 
 ```html
 <video data-vidply src="video.mp4">
-  <track kind="chapters" src="chapters.vtt" srclang="en" label="Chapters">
+  <track kind="chapters" src="chapters.vtt" srclang="en" label="Chapters" />
 </video>
 ```
 
@@ -715,8 +720,8 @@ VidPly has TWO caption-related buttons:
 ```javascript
 const player = new Player('#video', {
   captions: true,
-  captionsButton: true,      // Shows CC button for track selection
-  captionStyleButton: true   // Shows Aa button for styling
+  captionsButton: true, // Shows CC button for track selection
+  captionStyleButton: true // Shows Aa button for styling
 });
 
 // Programmatically set caption styles
@@ -761,11 +766,11 @@ const player = new Player('#video', {
   controls: true,
   playPauseButton: true,
   progressBar: true,
-  volumeControl: false,     // Hide volume
-  speedButton: false,        // Hide speed
+  volumeControl: false, // Hide volume
+  speedButton: false, // Hide speed
   captionsButton: true,
   fullscreenButton: true,
-  pipButton: false           // Hide PiP
+  pipButton: false // Hide PiP
 });
 ```
 
@@ -773,22 +778,22 @@ const player = new Player('#video', {
 
 ```javascript
 const player = new Player('#video', {
-  onReady: function() {
+  onReady: function () {
     console.log('Player ready!');
     console.log('Duration:', this.getDuration());
   },
-  
-  onPlay: function() {
+
+  onPlay: function () {
     console.log('Started playing');
     // Track analytics
     gtag('event', 'video_play', { video_title: 'My Video' });
   },
-  
-  onPause: function() {
+
+  onPause: function () {
     console.log('Paused at:', this.getCurrentTime());
   },
-  
-  onEnded: function() {
+
+  onEnded: function () {
     console.log('Video finished');
     // Show "Watch Next" overlay
   }
@@ -810,9 +815,9 @@ player.destroy();
 
 ```html
 <video data-vidply>
-  <source src="video.mp4" type="video/mp4">
-  <track kind="subtitles" src="en.vtt" srclang="en" label="English">
-  <track kind="subtitles" src="es.vtt" srclang="es" label="Español">
+  <source src="video.mp4" type="video/mp4" />
+  <track kind="subtitles" src="en.vtt" srclang="en" label="English" />
+  <track kind="subtitles" src="es.vtt" srclang="es" label="Español" />
 </video>
 ```
 
@@ -831,7 +836,7 @@ const player = new Player('#video', {
 const player = new Player('#video', {
   ariaLabels: {
     play: 'Start video playback',
-    pause: 'Pause video playback',
+    pause: 'Pause video playback'
     // ... custom labels
   }
 });
@@ -840,6 +845,7 @@ const player = new Player('#video', {
 ### 4. High Contrast Support
 
 The player automatically adapts to high contrast mode. Test with:
+
 - Windows: Settings > Accessibility > Contrast themes
 - CSS: `@media (prefers-contrast: high)`
 
@@ -882,13 +888,14 @@ VidPly can avoid eager network loading (useful if you have many players on one p
 ```
 
 Notes:
+
 - With `deferLoad: true`, VidPly does not call `media.load()` during init (and HLS/DASH will not start loading) until the user starts playback.
 - Browsers may still perform small requests depending on `preload` and their buffering strategy.
 
 ### 3. Responsive Images for Poster
 
 ```html
-<video 
+<video
   data-vidply
   poster="poster-small.jpg"
   data-poster-medium="poster-medium.jpg"
@@ -927,13 +934,13 @@ const player = new Player('#video', {
 1. Verify M3U8 URL is accessible
 2. Check CORS headers
 3. Test in Safari (native HLS support)
-4. **hls.js 1.7.3** loads on demand when not already on the page (override via `hlsScriptUrl`)
+4. **hls.js 1.7.4** loads on demand when not already on the page (override via `hlsScriptUrl`; default CDN URL includes Subresource Integrity — use `hlsScriptIntegrity` when self-hosting)
 
 ### DASH Stream Issues
 
 1. Verify MPD URL is accessible
 2. Check CORS headers on the streaming server
-3. **dash.js 5.2.1** (modern UMD) loads on demand when not already on the page (override via `dashScriptUrl`)
+3. **dash.js 5.2.1** (modern UMD) loads on demand when not already on the page (override via `dashScriptUrl`; use `dashScriptIntegrity` when self-hosting)
 4. TTML subtitles are rendered by dash.js natively; WebVTT subtitles use VidPly's caption system
 5. If quality levels don't appear, check that the MPD manifest contains multiple representations
 6. Enable debug mode for dash.js logs: `{ debug: true }`
@@ -943,7 +950,7 @@ const player = new Player('#video', {
 ### Pass Options via Data Attribute
 
 ```html
-<video 
+<video
   data-vidply
   data-vidply-options='{"autoplay": true, "loop": true, "volume": 0.5}'
   src="video.mp4"
@@ -1001,44 +1008,45 @@ Here's a video with all accessibility features enabled:
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Fully Accessible Video</title>
-  <link rel="stylesheet" href="dist/vidply.min.css">
-</head>
-<body>
-  <video 
-    id="accessible-video"
-    data-vidply
-    src="main-video.mp4"
-    data-audio-description-src="described-version.mp4"
-    data-sign-language-src="sign-language-video.mp4"
-    data-sign-language-position="bottom-right"
-    data-transcript="true"
-    data-transcript-button="true"
-  >
-    <!-- Multiple caption languages -->
-    <track kind="captions" src="captions-en.vtt" srclang="en" label="English" default>
-    <track kind="captions" src="captions-es.vtt" srclang="es" label="Español">
-    <track kind="captions" src="captions-fr.vtt" srclang="fr" label="Français">
-    
-    <!-- Chapters for navigation -->
-    <track kind="chapters" src="chapters-en.vtt" srclang="en" label="Chapters">
-    
-    <!-- Audio descriptions (if not using alternate video) -->
-    <track kind="descriptions" src="descriptions-en.vtt" srclang="en" label="Descriptions">
-  </video>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fully Accessible Video</title>
+    <link rel="stylesheet" href="dist/vidply.min.css" />
+  </head>
+  <body>
+    <video
+      id="accessible-video"
+      data-vidply
+      src="main-video.mp4"
+      data-audio-description-src="described-version.mp4"
+      data-sign-language-src="sign-language-video.mp4"
+      data-sign-language-position="bottom-right"
+      data-transcript="true"
+      data-transcript-button="true"
+    >
+      <!-- Multiple caption languages -->
+      <track kind="captions" src="captions-en.vtt" srclang="en" label="English" default />
+      <track kind="captions" src="captions-es.vtt" srclang="es" label="Español" />
+      <track kind="captions" src="captions-fr.vtt" srclang="fr" label="Français" />
 
-  <script type="module">
-    import Player from './dist/prod/vidply.esm.min.js';
-    
-    // Player auto-initializes with all features enabled
-  </script>
-</body>
+      <!-- Chapters for navigation -->
+      <track kind="chapters" src="chapters-en.vtt" srclang="en" label="Chapters" />
+
+      <!-- Audio descriptions (if not using alternate video) -->
+      <track kind="descriptions" src="descriptions-en.vtt" srclang="en" label="Descriptions" />
+    </video>
+
+    <script type="module">
+      import Player from './dist/prod/vidply.esm.min.js';
+
+      // Player auto-initializes with all features enabled
+    </script>
+  </body>
 </html>
 ```
 
 This provides:
+
 - Multiple caption languages with easy switching
 - Interactive transcript for reading and navigation
 - Sign language video overlay
@@ -1059,4 +1067,3 @@ This provides:
 ---
 
 Happy coding!
-

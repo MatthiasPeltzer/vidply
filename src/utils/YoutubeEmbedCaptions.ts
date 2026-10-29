@@ -28,7 +28,9 @@ export function isYoutubeAsrTrack(track: YoutubeCaptionTrackRaw): boolean {
 }
 
 function languageKeyFromYoutubeTrack(track: YoutubeCaptionTrackRaw): string {
-  const code = String(track.languageCode ?? '').trim().toLowerCase();
+  const code = String(track.languageCode ?? '')
+    .trim()
+    .toLowerCase();
   if (code) {
     return code.split('-')[0] ?? code;
   }

@@ -15,8 +15,25 @@ const workspaceRoot = join(vidplyRoot, '..', '..');
 
 const prodJs = join(vidplyRoot, 'dist', 'prod');
 const distCss = join(vidplyRoot, 'dist');
-const targetJs = join(workspaceRoot, 'mpcore', 'packages', 'mpc-vidply', 'Resources', 'Public', 'JavaScript', 'vidply');
-const targetCss = join(workspaceRoot, 'mpcore', 'packages', 'mpc-vidply', 'Resources', 'Public', 'Css');
+const targetJs = join(
+  workspaceRoot,
+  'mpcore',
+  'packages',
+  'mpc-vidply',
+  'Resources',
+  'Public',
+  'JavaScript',
+  'vidply'
+);
+const targetCss = join(
+  workspaceRoot,
+  'mpcore',
+  'packages',
+  'mpc-vidply',
+  'Resources',
+  'Public',
+  'Css'
+);
 
 const SOURCEMAP_LINE = /^\s*\/\/# sourceMappingURL=.*\r?\n?/m;
 

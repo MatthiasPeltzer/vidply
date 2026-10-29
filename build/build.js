@@ -39,7 +39,7 @@ const terserOptions = {
   },
   format: {
     ecma: 2020,
-    comments: /^!/  // Keep banner comments
+    comments: /^!/ // Keep banner comments
   },
   module: true
 };
@@ -67,16 +67,16 @@ const terserOptionsLegacy = {
 async function terserMinifyDirectory(dir, isLegacy = false, filePattern = null) {
   const files = readdirSync(dir);
   let totalSaved = 0;
-  
+
   for (const file of files) {
     const filePath = join(dir, file);
     const stat = statSync(filePath);
-    
+
     // Skip if file doesn't match pattern (if provided)
     if (filePattern && !file.includes(filePattern)) {
       continue;
     }
-    
+
     if (stat.isFile() && file.endsWith('.js') && !file.endsWith('.map')) {
       const originalCode = readFileSync(filePath, 'utf8');
       const originalSize = Buffer.byteLength(originalCode, 'utf8');
@@ -109,7 +109,7 @@ async function terserMinifyDirectory(dir, isLegacy = false, filePattern = null) 
       }
     }
   }
-  
+
   return totalSaved;
 }
 
@@ -121,7 +121,7 @@ const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8
 const epoch = process.env.SOURCE_DATE_EPOCH;
 const bannerYear = epoch
   ? new Date(parseInt(epoch, 10) * 1000).getUTCFullYear()
-  : (process.env.VIDPLY_COPYRIGHT_YEAR || new Date().getUTCFullYear());
+  : process.env.VIDPLY_COPYRIGHT_YEAR || new Date().getUTCFullYear();
 const banner = `/*!
  * VidPly v${pkg.version} - Universal, Accessible Video Player
  * (c) ${bannerYear} Matthias Peltzer
@@ -175,11 +175,11 @@ const builds = [
 async function buildAll() {
   for (const config of builds) {
     console.log(`📦 Building ${config.name}...`);
-    
+
     try {
       // For minified builds, we'll use esbuild for bundling only, then Terser for minification
       const useEsbuildMinify = !config.minify; // Only use esbuild minify for non-minified (development) builds
-      
+
       const commonOptions = {
         entryPoints: [config.entryPoint],
         bundle: true,
@@ -205,13 +205,13 @@ async function buildAll() {
         metafile: true
       };
 
-      const outDir = config.legacy
-        ? 'dist/legacy'
-        : (config.minify ? 'dist/prod' : 'dist/dev');
+      const outDir = config.legacy ? 'dist/legacy' : config.minify ? 'dist/prod' : 'dist/dev';
 
       if (config.splitting) {
         commonOptions.splitting = true;
-        commonOptions.chunkNames = config.minify ? 'vidply.[name]-[hash].min' : 'vidply.[name]-[hash]';
+        commonOptions.chunkNames = config.minify
+          ? 'vidply.[name]-[hash].min'
+          : 'vidply.[name]-[hash]';
         commonOptions.entryNames = basename(config.outfile).replace('.js', '');
         commonOptions.assetNames = 'vidply.[name]';
         commonOptions.outdir = outDir;
@@ -229,29 +229,29 @@ async function buildAll() {
       );
       const esbuildBytes = outputs.reduce((sum, [, meta]) => sum + meta.bytes, 0);
       const esbuildKB = (esbuildBytes / 1024).toFixed(2);
-      
+
       // Apply Terser minification for production builds
       if (config.minify) {
         console.log(`   → esbuild: ${esbuildKB} KB, applying Terser...`);
-        
+
         // For legacy builds, only minify .min.js files (not the dev bundle)
         const filePattern = config.legacy ? '.min.js' : null;
         const savedBytes = await terserMinifyDirectory(outDir, config.legacy, filePattern);
-        
+
         // Recalculate final size (only counting minified files for legacy)
         let finalBytes = 0;
         const finalFiles = readdirSync(outDir);
         for (const file of finalFiles) {
-          const shouldCount = config.legacy 
-            ? file.endsWith('.min.js') 
-            : (file.endsWith('.js') && !file.endsWith('.map'));
+          const shouldCount = config.legacy
+            ? file.endsWith('.min.js')
+            : file.endsWith('.js') && !file.endsWith('.map');
           if (shouldCount) {
             finalBytes += statSync(join(outDir, file)).size;
           }
         }
         const finalKB = (finalBytes / 1024).toFixed(2);
         const savedKB = (savedBytes / 1024).toFixed(2);
-        
+
         const sizeLabel = config.splitting ? `${finalKB} KB (all chunks)` : `${finalKB} KB`;
         console.log(`   ✓ Built successfully (${sizeLabel}, Terser saved ${savedKB} KB)\n`);
       } else {
@@ -286,4 +286,3 @@ buildAll()
     console.error('❌ Build failed:', error);
     process.exit(1);
   });
-

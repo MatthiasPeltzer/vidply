@@ -25,7 +25,7 @@ describe('VimeoRenderer', () => {
 
   beforeEach(() => {
     document.body.innerHTML = '';
-    
+
     const videoElement = document.createElement('video');
     videoElement.src = 'https://vimeo.com/123456789';
     document.body.appendChild(videoElement);
@@ -136,7 +136,12 @@ describe('VimeoRenderer', () => {
   describe('init', () => {
     it('keeps VidPly chrome while the Vimeo SDK loads (default embedChrome)', async () => {
       let resolveApi;
-      renderer.loadVimeoAPI = vi.fn(() => new Promise((resolve) => { resolveApi = resolve; }));
+      renderer.loadVimeoAPI = vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveApi = resolve;
+          })
+      );
       renderer.initializePlayer = vi.fn().mockResolvedValue(undefined);
 
       const pending = renderer.init();

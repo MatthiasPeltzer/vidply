@@ -5,9 +5,9 @@ export interface KeyboardShortcuts {
     'volume-down'?: string[];
     'seek-forward'?: string[];
     'seek-backward'?: string[];
-    'mute'?: string[];
-    'fullscreen'?: string[];
-    'captions'?: string[];
+    mute?: string[];
+    fullscreen?: string[];
+    captions?: string[];
     'caption-style-menu'?: string[];
     'speed-up'?: string[];
     'speed-down'?: string[];
@@ -15,7 +15,7 @@ export interface KeyboardShortcuts {
     'quality-menu'?: string[];
     'chapters-menu'?: string[];
     'transcript-toggle'?: string[];
-    'help'?: string[];
+    help?: string[];
 }
 export interface PlayerOptions {
     width: number | string | null;

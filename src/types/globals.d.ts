@@ -155,7 +155,9 @@ interface DashMediaPlayerInstance {
   getRepresentationsByType?(type: string): DashRepresentation[];
   setRepresentationForTypeByIndex?(type: string, index: number): void;
   getCurrentRepresentationForType?(type: string): DashRepresentation | null | undefined;
-  getSettings?(): { streaming?: { abr?: { autoSwitchBitrate?: { video?: boolean; audio?: boolean } } } };
+  getSettings?(): {
+    streaming?: { abr?: { autoSwitchBitrate?: { video?: boolean; audio?: boolean } } };
+  };
   getManifest?(): unknown;
   getTracksFor(type: string): unknown[];
   setCurrentTrack(track: unknown): void;

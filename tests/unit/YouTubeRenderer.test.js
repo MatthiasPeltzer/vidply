@@ -87,11 +87,15 @@ describe('YouTubeRenderer', () => {
     });
 
     it('should extract video ID from a /shorts/ URL', () => {
-      expect(renderer.extractVideoId('https://www.youtube.com/shorts/dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
+      expect(renderer.extractVideoId('https://www.youtube.com/shorts/dQw4w9WgXcQ')).toBe(
+        'dQw4w9WgXcQ'
+      );
     });
 
     it('should extract video ID from a youtube-nocookie embed URL', () => {
-      expect(renderer.extractVideoId('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
+      expect(renderer.extractVideoId('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ')).toBe(
+        'dQw4w9WgXcQ'
+      );
     });
 
     it('should strip a #fragment from the video ID', () => {
@@ -114,17 +118,21 @@ describe('YouTubeRenderer', () => {
 
     it('should handle various video ID formats', () => {
       // 11 character standard ID
-      expect(renderer.extractVideoId('https://youtube.com/watch?v=abc123DEF45')).toBe('abc123DEF45');
-      
+      expect(renderer.extractVideoId('https://youtube.com/watch?v=abc123DEF45')).toBe(
+        'abc123DEF45'
+      );
+
       // With underscore and hyphen
-      expect(renderer.extractVideoId('https://youtube.com/watch?v=a_b-c123456')).toBe('a_b-c123456');
+      expect(renderer.extractVideoId('https://youtube.com/watch?v=a_b-c123456')).toBe(
+        'a_b-c123456'
+      );
     });
   });
 
   describe('initialization', () => {
     it('should initialize with player reference', () => {
       renderer = new YouTubeRenderer(mockPlayer);
-      
+
       expect(renderer.player).toBe(mockPlayer);
       expect(renderer.youtube).toBe(null);
       expect(renderer.videoId).toBe(null);
@@ -142,7 +150,7 @@ describe('YouTubeRenderer', () => {
 
     it('should create iframe container', () => {
       renderer.createIframe();
-      
+
       expect(renderer.iframe).toBeTruthy();
       expect(renderer.iframe.id).toContain('youtube-player-');
       expect(renderer.iframe.style.width).toBe('100%');
@@ -154,18 +162,18 @@ describe('YouTubeRenderer', () => {
 
     it('should hide original element', () => {
       renderer.createIframe();
-      
+
       expect(mockPlayer.element.style.display).toBe('none');
     });
 
     it('should insert iframe before original element', () => {
       renderer.createIframe();
-      
+
       const parent = mockPlayer.element.parentNode;
       const children = Array.from(parent.children);
       const iframeIndex = children.indexOf(renderer.iframe);
       const elementIndex = children.indexOf(mockPlayer.element);
-      
+
       expect(iframeIndex).toBeLessThan(elementIndex);
     });
 
@@ -192,7 +200,12 @@ describe('YouTubeRenderer', () => {
 
     it('keeps VidPly chrome while the YouTube IFrame API loads (default embedChrome)', async () => {
       let resolveApi;
-      renderer.loadYouTubeAPI = vi.fn(() => new Promise((resolve) => { resolveApi = resolve; }));
+      renderer.loadYouTubeAPI = vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveApi = resolve;
+          })
+      );
       renderer.initializePlayer = vi.fn().mockResolvedValue(undefined);
 
       const pending = renderer.init();
@@ -206,7 +219,12 @@ describe('YouTubeRenderer', () => {
     it('hides VidPly controls during load when embedChrome is provider', async () => {
       mockPlayer.options.embedChrome = 'provider';
       let resolveApi;
-      renderer.loadYouTubeAPI = vi.fn(() => new Promise((resolve) => { resolveApi = resolve; }));
+      renderer.loadYouTubeAPI = vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveApi = resolve;
+          })
+      );
       renderer.initializePlayer = vi.fn().mockResolvedValue(undefined);
 
       const pending = renderer.init();
@@ -249,7 +267,10 @@ describe('YouTubeRenderer', () => {
 
       expect(document.featurePolicy.allowsFeature).toHaveBeenCalledWith('autoplay');
       expect(mockPlayer._forceProviderEmbedChrome).toBe(true);
-      expect(mockPlayer.log).toHaveBeenCalledWith(expect.stringContaining('Permissions-Policy'), 'warn');
+      expect(mockPlayer.log).toHaveBeenCalledWith(
+        expect.stringContaining('Permissions-Policy'),
+        'warn'
+      );
     });
 
     it('keeps VidPly controls when autoplay is allowed', async () => {

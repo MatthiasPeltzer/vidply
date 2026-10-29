@@ -14,7 +14,7 @@ describe('KeyboardManager', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
     vi.useFakeTimers();
-    
+
     container = document.createElement('div');
     document.body.appendChild(container);
 
@@ -27,9 +27,9 @@ describe('KeyboardManager', () => {
           'volume-down': ['ArrowDown'],
           'seek-forward': ['ArrowRight', 'l'],
           'seek-backward': ['ArrowLeft', 'j'],
-          'mute': ['m'],
-          'fullscreen': ['f'],
-          'captions': ['c'],
+          mute: ['m'],
+          fullscreen: ['f'],
+          captions: ['c'],
           'speed-up': ['>'],
           'speed-down': ['<']
         },
@@ -108,7 +108,7 @@ describe('KeyboardManager', () => {
 
       const event = new KeyboardEvent('keydown', { key: 'Space', bubbles: true });
       Object.defineProperty(event, 'target', { value: input });
-      
+
       manager.handleKeydown(event);
 
       expect(mockPlayer.toggle).not.toHaveBeenCalled();
@@ -120,7 +120,7 @@ describe('KeyboardManager', () => {
 
       const event = new KeyboardEvent('keydown', { key: 'Space', bubbles: true });
       Object.defineProperty(event, 'target', { value: textarea });
-      
+
       manager.handleKeydown(event);
 
       expect(mockPlayer.toggle).not.toHaveBeenCalled();
@@ -132,7 +132,7 @@ describe('KeyboardManager', () => {
 
       const event = new KeyboardEvent('keydown', { key: 'Space', bubbles: true });
       Object.defineProperty(event, 'target', { value: select });
-      
+
       manager.handleKeydown(event);
 
       expect(mockPlayer.toggle).not.toHaveBeenCalled();
@@ -148,7 +148,7 @@ describe('KeyboardManager', () => {
 
       const event = new KeyboardEvent('keydown', { key: 'Space', bubbles: true });
       Object.defineProperty(event, 'target', { value: button });
-      
+
       manager.handleKeydown(event);
 
       expect(mockPlayer.toggle).not.toHaveBeenCalled();
@@ -162,7 +162,7 @@ describe('KeyboardManager', () => {
 
       const event = new KeyboardEvent('keydown', { key: 'Space', bubbles: true });
       Object.defineProperty(event, 'target', { value: playlistButton });
-      
+
       manager.handleKeydown(event);
 
       expect(mockPlayer.toggle).not.toHaveBeenCalled();
@@ -196,11 +196,11 @@ describe('KeyboardManager', () => {
 
     it('should handle Escape key to exit fullscreen', () => {
       mockPlayer.state.fullscreen = true;
-      
+
       const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true });
       Object.defineProperty(event, 'target', { value: container });
       const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
-      
+
       manager.handleKeydown(event);
 
       expect(mockPlayer.exitFullscreen).toHaveBeenCalled();
@@ -209,10 +209,10 @@ describe('KeyboardManager', () => {
 
     it('should not exit fullscreen on Escape if not in fullscreen', () => {
       mockPlayer.state.fullscreen = false;
-      
+
       const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true });
       Object.defineProperty(event, 'target', { value: container });
-      
+
       manager.handleKeydown(event);
 
       expect(mockPlayer.exitFullscreen).not.toHaveBeenCalled();
@@ -222,76 +222,76 @@ describe('KeyboardManager', () => {
   describe('executeAction', () => {
     it('should toggle play/pause on play-pause action', () => {
       const result = manager.executeAction('play-pause');
-      
+
       expect(mockPlayer.toggle).toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
     it('should increase volume on volume-up action', () => {
       mockPlayer.state.volume = 0.5;
-      
+
       const result = manager.executeAction('volume-up');
-      
+
       expect(mockPlayer.setVolume).toHaveBeenCalledWith(0.6);
       expect(result).toBe(true);
     });
 
     it('should not exceed max volume of 1', () => {
       mockPlayer.state.volume = 0.95;
-      
+
       manager.executeAction('volume-up');
-      
+
       expect(mockPlayer.setVolume).toHaveBeenCalledWith(1);
     });
 
     it('should decrease volume on volume-down action', () => {
       mockPlayer.state.volume = 0.5;
-      
+
       const result = manager.executeAction('volume-down');
-      
+
       expect(mockPlayer.setVolume).toHaveBeenCalledWith(0.4);
       expect(result).toBe(true);
     });
 
     it('should not go below min volume of 0', () => {
       mockPlayer.state.volume = 0.05;
-      
+
       manager.executeAction('volume-down');
-      
+
       expect(mockPlayer.setVolume).toHaveBeenCalledWith(0);
     });
 
     it('should seek forward on seek-forward action', () => {
       const result = manager.executeAction('seek-forward');
-      
+
       expect(mockPlayer.seekForward).toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
     it('should seek backward on seek-backward action', () => {
       const result = manager.executeAction('seek-backward');
-      
+
       expect(mockPlayer.seekBackward).toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
     it('should toggle mute on mute action', () => {
       const result = manager.executeAction('mute');
-      
+
       expect(mockPlayer.toggleMute).toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
     it('should toggle fullscreen on fullscreen action', () => {
       const result = manager.executeAction('fullscreen');
-      
+
       expect(mockPlayer.toggleFullscreen).toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
     it('should toggle captions on captions action', () => {
       const result = manager.executeAction('captions');
-      
+
       expect(mockPlayer.toggleCaptions).toHaveBeenCalled();
       expect(result).toBe(true);
     });
@@ -304,43 +304,43 @@ describe('KeyboardManager', () => {
         controls: { captions: document.createElement('button') },
         showCaptionsMenu: vi.fn()
       };
-      
+
       manager.executeAction('captions');
-      
+
       expect(mockPlayer.controlBar.showCaptionsMenu).toHaveBeenCalled();
     });
 
     it('should increase playback speed on speed-up action', () => {
       mockPlayer.state.playbackSpeed = 1;
-      
+
       const result = manager.executeAction('speed-up');
-      
+
       expect(mockPlayer.setPlaybackSpeed).toHaveBeenCalledWith(1.25);
       expect(result).toBe(true);
     });
 
     it('should not exceed max speed of 2', () => {
       mockPlayer.state.playbackSpeed = 1.9;
-      
+
       manager.executeAction('speed-up');
-      
+
       expect(mockPlayer.setPlaybackSpeed).toHaveBeenCalledWith(2);
     });
 
     it('should decrease playback speed on speed-down action', () => {
       mockPlayer.state.playbackSpeed = 1;
-      
+
       const result = manager.executeAction('speed-down');
-      
+
       expect(mockPlayer.setPlaybackSpeed).toHaveBeenCalledWith(0.75);
       expect(result).toBe(true);
     });
 
     it('should not go below min speed of 0.25', () => {
       mockPlayer.state.playbackSpeed = 0.3;
-      
+
       manager.executeAction('speed-down');
-      
+
       expect(mockPlayer.setPlaybackSpeed).toHaveBeenCalledWith(0.25);
     });
 
@@ -348,24 +348,24 @@ describe('KeyboardManager', () => {
       mockPlayer.transcriptManager = {
         toggleTranscript: vi.fn()
       };
-      
+
       const result = manager.executeAction('transcript-toggle');
-      
+
       expect(mockPlayer.transcriptManager.toggleTranscript).toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
     it('should return false for transcript-toggle when no transcript manager', () => {
       mockPlayer.transcriptManager = null;
-      
+
       const result = manager.executeAction('transcript-toggle');
-      
+
       expect(result).toBe(false);
     });
 
     it('should return false for unknown action', () => {
       const result = manager.executeAction('unknown-action');
-      
+
       expect(result).toBe(false);
     });
 
@@ -375,9 +375,9 @@ describe('KeyboardManager', () => {
         hasControl: vi.fn(() => true),
         showSpeedMenu: vi.fn()
       };
-      
+
       const result = manager.executeAction('speed-menu');
-      
+
       expect(mockPlayer.controlBar.showSpeedMenu).toHaveBeenCalled();
       expect(result).toBe(true);
     });
@@ -401,9 +401,9 @@ describe('KeyboardManager', () => {
         controls: { quality: document.createElement('button') },
         showQualityMenu: vi.fn()
       };
-      
+
       const result = manager.executeAction('quality-menu');
-      
+
       expect(mockPlayer.controlBar.showQualityMenu).toHaveBeenCalled();
       expect(result).toBe(true);
     });
@@ -413,9 +413,9 @@ describe('KeyboardManager', () => {
         controls: { chapters: document.createElement('button') },
         showChaptersMenu: vi.fn()
       };
-      
+
       const result = manager.executeAction('chapters-menu');
-      
+
       expect(mockPlayer.controlBar.showChaptersMenu).toHaveBeenCalled();
       expect(result).toBe(true);
     });
@@ -425,27 +425,27 @@ describe('KeyboardManager', () => {
     it('should not announce if screenReaderAnnouncements is disabled', () => {
       mockPlayer.options.screenReaderAnnouncements = false;
       const announceSpy = vi.spyOn(manager, 'announce');
-      
+
       manager.announceAction('play-pause');
-      
+
       expect(announceSpy).not.toHaveBeenCalled();
     });
 
     it('should announce play/pause state', () => {
       mockPlayer.state.playing = true;
       const announceSpy = vi.spyOn(manager, 'announce');
-      
+
       manager.announceAction('play-pause');
-      
+
       expect(announceSpy).toHaveBeenCalledWith('Playing');
     });
 
     it('should announce paused state', () => {
       mockPlayer.state.playing = false;
       const announceSpy = vi.spyOn(manager, 'announce');
-      
+
       manager.announceAction('play-pause');
-      
+
       expect(announceSpy).toHaveBeenCalledWith('Paused');
     });
 
@@ -463,27 +463,27 @@ describe('KeyboardManager', () => {
     it('should announce muted state', () => {
       mockPlayer.state.muted = true;
       const announceSpy = vi.spyOn(manager, 'announce');
-      
+
       manager.announceAction('mute');
-      
+
       expect(announceSpy).toHaveBeenCalledWith('Muted');
     });
 
     it('should announce unmuted state', () => {
       mockPlayer.state.muted = false;
       const announceSpy = vi.spyOn(manager, 'announce');
-      
+
       manager.announceAction('mute');
-      
+
       expect(announceSpy).toHaveBeenCalledWith('Unmuted');
     });
 
     it('should announce fullscreen state', () => {
       mockPlayer.state.fullscreen = true;
       const announceSpy = vi.spyOn(manager, 'announce');
-      
+
       manager.announceAction('fullscreen');
-      
+
       expect(announceSpy).toHaveBeenCalledWith('Fullscreen');
     });
 
@@ -501,27 +501,27 @@ describe('KeyboardManager', () => {
     it('should announce captions on', () => {
       mockPlayer.state.captionsEnabled = true;
       const announceSpy = vi.spyOn(manager, 'announce');
-      
+
       manager.announceAction('captions');
-      
+
       expect(announceSpy).toHaveBeenCalledWith('Captions on');
     });
 
     it('should announce captions off', () => {
       mockPlayer.state.captionsEnabled = false;
       const announceSpy = vi.spyOn(manager, 'announce');
-      
+
       manager.announceAction('captions');
-      
+
       expect(announceSpy).toHaveBeenCalledWith('Captions off');
     });
 
     it('should announce speed', () => {
       mockPlayer.state.playbackSpeed = 1.5;
       const announceSpy = vi.spyOn(manager, 'announce');
-      
+
       manager.announceAction('speed-up');
-      
+
       expect(announceSpy).toHaveBeenCalledWith('Speed 1.5x');
     });
   });
@@ -624,8 +624,7 @@ describe('KeyboardManager', () => {
     // The announcer is created per-player-instance with an id of
     // `vidply-announcer-{instanceId}` instead of a singleton id, so
     // multi-player pages do not cross-talk through a shared element.
-    const announcerSelector = () =>
-      document.querySelector(`[id^="vidply-announcer-"]`);
+    const announcerSelector = () => document.querySelector(`[id^="vidply-announcer-"]`);
 
     it('should create announcer element if not exists', () => {
       manager.announce('Test message');
@@ -675,15 +674,15 @@ describe('KeyboardManager', () => {
   describe('updateShortcut', () => {
     it('should update shortcut for action', () => {
       manager.updateShortcut('play-pause', ['p', 'Space']);
-      
+
       expect(manager.shortcuts['play-pause']).toEqual(['p', 'Space']);
     });
 
     it('should not update if keys is not an array', () => {
       const originalKeys = manager.shortcuts['play-pause'];
-      
+
       manager.updateShortcut('play-pause', 'p');
-      
+
       expect(manager.shortcuts['play-pause']).toEqual(originalKeys);
     });
   });
@@ -698,63 +697,63 @@ describe('KeyboardManager', () => {
     it('should handle Space key for play-pause', () => {
       const event = new KeyboardEvent('keydown', { key: 'Space', bubbles: true });
       container.dispatchEvent(event);
-      
+
       expect(mockPlayer.toggle).toHaveBeenCalled();
     });
 
     it('should handle k key for play-pause', () => {
       const event = new KeyboardEvent('keydown', { key: 'k', bubbles: true });
       container.dispatchEvent(event);
-      
+
       expect(mockPlayer.toggle).toHaveBeenCalled();
     });
 
     it('should handle ArrowUp for volume up', () => {
       const event = new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true });
       container.dispatchEvent(event);
-      
+
       expect(mockPlayer.setVolume).toHaveBeenCalled();
     });
 
     it('should handle ArrowDown for volume down', () => {
       const event = new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true });
       container.dispatchEvent(event);
-      
+
       expect(mockPlayer.setVolume).toHaveBeenCalled();
     });
 
     it('should handle ArrowRight for seek forward', () => {
       const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
       container.dispatchEvent(event);
-      
+
       expect(mockPlayer.seekForward).toHaveBeenCalled();
     });
 
     it('should handle ArrowLeft for seek backward', () => {
       const event = new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true });
       container.dispatchEvent(event);
-      
+
       expect(mockPlayer.seekBackward).toHaveBeenCalled();
     });
 
     it('should handle m key for mute', () => {
       const event = new KeyboardEvent('keydown', { key: 'm', bubbles: true });
       container.dispatchEvent(event);
-      
+
       expect(mockPlayer.toggleMute).toHaveBeenCalled();
     });
 
     it('should handle f key for fullscreen', () => {
       const event = new KeyboardEvent('keydown', { key: 'f', bubbles: true });
       container.dispatchEvent(event);
-      
+
       expect(mockPlayer.toggleFullscreen).toHaveBeenCalled();
     });
 
     it('should handle c key for captions', () => {
       const event = new KeyboardEvent('keydown', { key: 'c', bubbles: true });
       container.dispatchEvent(event);
-      
+
       expect(mockPlayer.toggleCaptions).toHaveBeenCalled();
     });
   });

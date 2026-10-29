@@ -201,7 +201,7 @@ describe('WindowComponents', () => {
     it('should add leftContent elements', () => {
       const customElement = document.createElement('span');
       customElement.className = 'custom';
-      
+
       const result = createWindowHeader({
         classPrefix: 'vidply',
         headerClass: 'test-header',
@@ -216,7 +216,7 @@ describe('WindowComponents', () => {
     it('should skip null elements in leftContent', () => {
       const customElement = document.createElement('span');
       customElement.className = 'custom';
-      
+
       const result = createWindowHeader({
         classPrefix: 'vidply',
         headerClass: 'test-header',

@@ -9,26 +9,26 @@ import { i18n } from '../i18n/i18n.js';
 import { reducedMotionScrollOptions } from './PerformanceUtils.js';
 
 interface SettingsMenuItemConfig {
-    icon?: string;
-    label: string;
-    onClick?: ((e: Event) => void) | null;
-    closeMenuOnClick?: boolean;
+  icon?: string;
+  label: string;
+  onClick?: ((e: Event) => void) | null;
+  closeMenuOnClick?: boolean;
 }
 
 interface CreateSettingsMenuOptions {
-    classPrefix: string;
-    menuClass: string;
-    menuId: string;
-    items?: SettingsMenuItemConfig[];
+  classPrefix: string;
+  menuClass: string;
+  menuId: string;
+  items?: SettingsMenuItemConfig[];
 }
 
 interface CreateSettingsMenuItemOptions {
-    classPrefix: string;
-    itemClass: string;
-    icon?: string;
-    label: string;
-    onClick?: ((e: Event) => void) | null;
-    closeMenuOnClick?: boolean;
+  classPrefix: string;
+  itemClass: string;
+  icon?: string;
+  label: string;
+  onClick?: ((e: Event) => void) | null;
+  closeMenuOnClick?: boolean;
 }
 
 /**
@@ -41,31 +41,31 @@ interface CreateSettingsMenuItemOptions {
  * @returns {HTMLElement} Menu element
  */
 export function createSettingsMenu({
-    classPrefix,
-    menuClass,
-    menuId,
-    items = []
+  classPrefix,
+  menuClass,
+  menuId,
+  items = []
 }: CreateSettingsMenuOptions): HTMLElement {
-    const menu = DOMUtils.createElement('div', {
-        className: `${classPrefix}-popup-settings-menu ${menuClass}`,
-        attributes: {
-            'id': menuId,
-            'role': 'menu',
-            'aria-label': i18n.t('settings.title')
-        }
-    });
+  const menu = DOMUtils.createElement('div', {
+    className: `${classPrefix}-popup-settings-menu ${menuClass}`,
+    attributes: {
+      id: menuId,
+      role: 'menu',
+      'aria-label': i18n.t('settings.title')
+    }
+  });
 
-    // Add menu items
-    items.forEach((item: SettingsMenuItemConfig) => {
-        const menuItem = createSettingsMenuItem({
-            classPrefix,
-            itemClass: `${menuClass}-item`,
-            ...item
-        });
-        menu.appendChild(menuItem);
+  // Add menu items
+  items.forEach((item: SettingsMenuItemConfig) => {
+    const menuItem = createSettingsMenuItem({
+      classPrefix,
+      itemClass: `${menuClass}-item`,
+      ...item
     });
+    menu.appendChild(menuItem);
+  });
 
-    return menu;
+  return menu;
 }
 
 /**
@@ -80,47 +80,48 @@ export function createSettingsMenu({
  * @returns {HTMLElement} Menu item button
  */
 export function createSettingsMenuItem({
-    classPrefix,
-    itemClass,
-    icon,
-    label,
-    onClick = null,
-    closeMenuOnClick: _closeMenuOnClick = true
+  classPrefix,
+  itemClass,
+  icon,
+  label,
+  onClick = null,
+  closeMenuOnClick: _closeMenuOnClick = true
 }: CreateSettingsMenuItemOptions): HTMLElement {
-    // Check if label is an i18n key
-    const isI18nKey = typeof label === 'string' && 
-        (label.startsWith('transcript.') || 
-         label.startsWith('player.') || 
-         label.startsWith('settings.') ||
-         label.startsWith('captions.'));
-    const labelText = isI18nKey ? (i18n.t(label) || label) : label;
+  // Check if label is an i18n key
+  const isI18nKey =
+    typeof label === 'string' &&
+    (label.startsWith('transcript.') ||
+      label.startsWith('player.') ||
+      label.startsWith('settings.') ||
+      label.startsWith('captions.'));
+  const labelText = isI18nKey ? i18n.t(label) || label : label;
 
-    const button = DOMUtils.createElement('button', {
-        className: `${classPrefix}-popup-settings-item ${itemClass}`,
-        attributes: {
-            'type': 'button',
-            'role': 'menuitem',
-            'tabindex': '-1'
-        }
-    });
-
-    if (icon) {
-        button.appendChild(createIconElement(icon));
+  const button = DOMUtils.createElement('button', {
+    className: `${classPrefix}-popup-settings-item ${itemClass}`,
+    attributes: {
+      type: 'button',
+      role: 'menuitem',
+      tabindex: '-1'
     }
+  });
 
-    const text = DOMUtils.createElement('span', {
-        textContent: labelText
+  if (icon) {
+    button.appendChild(createIconElement(icon));
+  }
+
+  const text = DOMUtils.createElement('span', {
+    textContent: labelText
+  });
+  button.appendChild(text);
+
+  if (onClick) {
+    button.addEventListener('click', (e) => {
+      onClick(e);
+      // Menu closing is handled by the caller if needed
     });
-    button.appendChild(text);
+  }
 
-    if (onClick) {
-        button.addEventListener('click', (e) => {
-            onClick(e);
-            // Menu closing is handled by the caller if needed
-        });
-    }
-
-    return button;
+  return button;
 }
 
 /**
@@ -129,36 +130,43 @@ export function createSettingsMenuItem({
  * @param {HTMLElement} button - Trigger button
  * @param {string} classPrefix - Class prefix
  */
-export function showSettingsMenu(menu: HTMLElement, button: HTMLElement, classPrefix: string): void {
-    if (!menu || !button) return;
+export function showSettingsMenu(
+  menu: HTMLElement,
+  button: HTMLElement,
+  classPrefix: string
+): void {
+  if (!menu || !button) return;
 
-    // Position menu relative to button
-    menu.style.display = 'block';
-    
-    // Check if menu would go off-screen
-    const menuRect = menu.getBoundingClientRect();
-    const buttonRect = button.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
+  // Position menu relative to button
+  menu.style.display = 'block';
 
-    // Position above or below based on space
-    if (buttonRect.top - menuRect.height < 0 && buttonRect.bottom + menuRect.height < viewportHeight) {
-        // Position below
-        menu.style.top = '100%';
-        menu.style.bottom = 'auto';
-        DOMUtils.removeClass(menu, `${classPrefix}-menu-above`);
-    } else {
-        // Position above
-        menu.style.bottom = '100%';
-        menu.style.top = 'auto';
-        DOMUtils.addClass(menu, `${classPrefix}-menu-above`);
-    }
+  // Check if menu would go off-screen
+  const menuRect = menu.getBoundingClientRect();
+  const buttonRect = button.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
 
-    // Focus first item
-    const firstItem = menu.querySelector('[role="menuitem"]') as HTMLElement | null;
-    if (firstItem) {
-        firstItem.setAttribute('tabindex', '0');
-        setTimeout(() => firstItem.focus(), 50);
-    }
+  // Position above or below based on space
+  if (
+    buttonRect.top - menuRect.height < 0 &&
+    buttonRect.bottom + menuRect.height < viewportHeight
+  ) {
+    // Position below
+    menu.style.top = '100%';
+    menu.style.bottom = 'auto';
+    DOMUtils.removeClass(menu, `${classPrefix}-menu-above`);
+  } else {
+    // Position above
+    menu.style.bottom = '100%';
+    menu.style.top = 'auto';
+    DOMUtils.addClass(menu, `${classPrefix}-menu-above`);
+  }
+
+  // Focus first item
+  const firstItem = menu.querySelector('[role="menuitem"]') as HTMLElement | null;
+  if (firstItem) {
+    firstItem.setAttribute('tabindex', '0');
+    setTimeout(() => firstItem.focus(), 50);
+  }
 }
 
 /**
@@ -167,14 +175,14 @@ export function showSettingsMenu(menu: HTMLElement, button: HTMLElement, classPr
  * @param {HTMLElement} button - Trigger button (to return focus)
  */
 export function hideSettingsMenu(menu: HTMLElement, button: HTMLElement | null): void {
-    if (!menu) return;
+  if (!menu) return;
 
-    menu.style.display = 'none';
+  menu.style.display = 'none';
 
-    // Return focus to trigger button
-    if (button && document.contains(button)) {
-        button.focus();
-    }
+  // Return focus to trigger button
+  if (button && document.contains(button)) {
+    button.focus();
+  }
 }
 
 /**
@@ -183,14 +191,18 @@ export function hideSettingsMenu(menu: HTMLElement, button: HTMLElement | null):
  * @param {HTMLElement} button - Trigger button
  * @param {string} classPrefix - Class prefix
  */
-export function toggleSettingsMenu(menu: HTMLElement, button: HTMLElement | null, classPrefix: string): void {
-    if (!menu || !button) return;
+export function toggleSettingsMenu(
+  menu: HTMLElement,
+  button: HTMLElement | null,
+  classPrefix: string
+): void {
+  if (!menu || !button) return;
 
-    if (menu.style.display === 'block') {
-        hideSettingsMenu(menu, button);
-    } else {
-        showSettingsMenu(menu, button, classPrefix);
-    }
+  if (menu.style.display === 'block') {
+    hideSettingsMenu(menu, button);
+  } else {
+    showSettingsMenu(menu, button, classPrefix);
+  }
 }
 
 /**
@@ -200,90 +212,93 @@ export function toggleSettingsMenu(menu: HTMLElement, button: HTMLElement | null
  * @param {Function} onClose - Close callback
  * @returns {Function} Cleanup function
  */
-export function setupSettingsMenuKeyboard(menu: HTMLElement, button: HTMLElement | null, onClose?: () => void) {
-    if (!menu) return () => {};
+export function setupSettingsMenuKeyboard(
+  menu: HTMLElement,
+  button: HTMLElement | null,
+  onClose?: () => void
+) {
+  if (!menu) return () => {};
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-        const menuItems = Array.from(menu.querySelectorAll<HTMLElement>('[role="menuitem"]'));
-        const currentIndex = menuItems.indexOf(document.activeElement as HTMLElement);
+  const handleKeyDown = (e: KeyboardEvent) => {
+    const menuItems = Array.from(menu.querySelectorAll<HTMLElement>('[role="menuitem"]'));
+    const currentIndex = menuItems.indexOf(document.activeElement as HTMLElement);
 
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                const nextIndex = (currentIndex + 1) % menuItems.length;
-                menuItems.forEach((item, idx) => {
-                    item.setAttribute('tabindex', idx === nextIndex ? '0' : '-1');
-                });
-                const nextItem = menuItems[nextIndex];
-                if (nextItem) {
-                    nextItem.focus({ preventScroll: false });
-                    nextItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
-                }
-                break;
-
-            case 'ArrowUp':
-                e.preventDefault();
-                const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
-                menuItems.forEach((item, idx) => {
-                    item.setAttribute('tabindex', idx === prevIndex ? '0' : '-1');
-                });
-                const prevItem = menuItems[prevIndex];
-                if (prevItem) {
-                    prevItem.focus({ preventScroll: false });
-                    prevItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
-                }
-                break;
-
-            case 'Home':
-                e.preventDefault();
-                menuItems.forEach((item, idx) => {
-                    item.setAttribute('tabindex', idx === 0 ? '0' : '-1');
-                });
-                const homeItem = menuItems[0];
-                if (homeItem) {
-                    homeItem.focus({ preventScroll: false });
-                    homeItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
-                }
-                break;
-
-            case 'End':
-                e.preventDefault();
-                const lastIndex = menuItems.length - 1;
-                menuItems.forEach((item, idx) => {
-                    item.setAttribute('tabindex', idx === lastIndex ? '0' : '-1');
-                });
-                const lastItem = menuItems[lastIndex];
-                if (lastItem) {
-                    lastItem.focus({ preventScroll: false });
-                    lastItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
-                }
-                break;
-
-            case 'Escape':
-                e.preventDefault();
-                if (onClose) {
-                    onClose();
-                }
-                if (button) {
-                    button.focus();
-                }
-                break;
-
-            case 'Enter':
-            case ' ':
-                e.preventDefault();
-                if (document.activeElement && menuItems.includes(document.activeElement as HTMLElement)) {
-                    (document.activeElement as HTMLElement).click();
-                }
-                break;
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        const nextIndex = (currentIndex + 1) % menuItems.length;
+        menuItems.forEach((item, idx) => {
+          item.setAttribute('tabindex', idx === nextIndex ? '0' : '-1');
+        });
+        const nextItem = menuItems[nextIndex];
+        if (nextItem) {
+          nextItem.focus({ preventScroll: false });
+          nextItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
         }
-    };
+        break;
 
-    menu.addEventListener('keydown', handleKeyDown);
+      case 'ArrowUp':
+        e.preventDefault();
+        const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
+        menuItems.forEach((item, idx) => {
+          item.setAttribute('tabindex', idx === prevIndex ? '0' : '-1');
+        });
+        const prevItem = menuItems[prevIndex];
+        if (prevItem) {
+          prevItem.focus({ preventScroll: false });
+          prevItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
+        }
+        break;
 
-    // Return cleanup function
-    return () => {
-        menu.removeEventListener('keydown', handleKeyDown);
-    };
+      case 'Home':
+        e.preventDefault();
+        menuItems.forEach((item, idx) => {
+          item.setAttribute('tabindex', idx === 0 ? '0' : '-1');
+        });
+        const homeItem = menuItems[0];
+        if (homeItem) {
+          homeItem.focus({ preventScroll: false });
+          homeItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
+        }
+        break;
+
+      case 'End':
+        e.preventDefault();
+        const lastIndex = menuItems.length - 1;
+        menuItems.forEach((item, idx) => {
+          item.setAttribute('tabindex', idx === lastIndex ? '0' : '-1');
+        });
+        const lastItem = menuItems[lastIndex];
+        if (lastItem) {
+          lastItem.focus({ preventScroll: false });
+          lastItem.scrollIntoView(reducedMotionScrollOptions('nearest'));
+        }
+        break;
+
+      case 'Escape':
+        e.preventDefault();
+        if (onClose) {
+          onClose();
+        }
+        if (button) {
+          button.focus();
+        }
+        break;
+
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (document.activeElement && menuItems.includes(document.activeElement as HTMLElement)) {
+          (document.activeElement as HTMLElement).click();
+        }
+        break;
+    }
+  };
+
+  menu.addEventListener('keydown', handleKeyDown);
+
+  // Return cleanup function
+  return () => {
+    menu.removeEventListener('keydown', handleKeyDown);
+  };
 }
-

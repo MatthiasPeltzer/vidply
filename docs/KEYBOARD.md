@@ -4,39 +4,39 @@ VidPly provides comprehensive keyboard navigation for accessibility and power us
 
 ## Quick Reference
 
-| Key | Action | Description |
-|-----|--------|-------------|
-| <kbd>Space</kbd>, <kbd>P</kbd>, <kbd>K</kbd> | Play/Pause | Toggle video playback |
-| <kbd>M</kbd> | Mute/Unmute | Toggle audio mute with visual feedback |
-| <kbd>F</kbd> | Fullscreen | Toggle fullscreen mode |
-| <kbd>←</kbd> | Seek Backward | Skip backward 10 seconds |
-| <kbd>→</kbd> | Seek Forward | Skip forward 10 seconds |
-| <kbd>↑</kbd> | Volume Up | Increase volume by 10% |
-| <kbd>↓</kbd> | Volume Down | Decrease volume by 10% |
-| <kbd>C</kbd> | Captions Menu | Open captions/subtitles menu |
-| <kbd>S</kbd> | Speed Menu | Open playback speed menu |
-| <kbd>Q</kbd> | Quality Menu | Open quality selection menu |
-| <kbd>J</kbd> | Chapters Menu | Open chapters menu |
-| <kbd>A</kbd> | Caption Style Menu | Open caption styling options |
-| <kbd>T</kbd> | Transcript | Toggle transcript panel |
-| <kbd>D</kbd> | Drag Mode | Toggle drag mode for transcript/sign language |
-| <kbd>R</kbd> | Resize Mode | Toggle resize mode for transcript/sign language |
-| <kbd>&gt;</kbd> (Shift+.) | Speed Up | Increase playback speed by 0.25x |
-| <kbd>&lt;</kbd> (Shift+,) | Speed Down | Decrease playback speed by 0.25x |
-| <kbd>Home</kbd> | Reset Position | Reset transcript/sign language to center |
-| <kbd>Esc</kbd> | Close / Exit | Close menus, exit fullscreen, or exit drag/resize mode |
+| Key                                          | Action             | Description                                            |
+| -------------------------------------------- | ------------------ | ------------------------------------------------------ |
+| <kbd>Space</kbd>, <kbd>P</kbd>, <kbd>K</kbd> | Play/Pause         | Toggle video playback                                  |
+| <kbd>M</kbd>                                 | Mute/Unmute        | Toggle audio mute with visual feedback                 |
+| <kbd>F</kbd>                                 | Fullscreen         | Toggle fullscreen mode                                 |
+| <kbd>←</kbd>                                 | Seek Backward      | Skip backward 10 seconds                               |
+| <kbd>→</kbd>                                 | Seek Forward       | Skip forward 10 seconds                                |
+| <kbd>↑</kbd>                                 | Volume Up          | Increase volume by 10%                                 |
+| <kbd>↓</kbd>                                 | Volume Down        | Decrease volume by 10%                                 |
+| <kbd>C</kbd>                                 | Captions Menu      | Open captions/subtitles menu                           |
+| <kbd>S</kbd>                                 | Speed Menu         | Open playback speed menu                               |
+| <kbd>Q</kbd>                                 | Quality Menu       | Open quality selection menu                            |
+| <kbd>J</kbd>                                 | Chapters Menu      | Open chapters menu                                     |
+| <kbd>A</kbd>                                 | Caption Style Menu | Open caption styling options                           |
+| <kbd>T</kbd>                                 | Transcript         | Toggle transcript panel                                |
+| <kbd>D</kbd>                                 | Drag Mode          | Toggle drag mode for transcript/sign language          |
+| <kbd>R</kbd>                                 | Resize Mode        | Toggle resize mode for transcript/sign language        |
+| <kbd>&gt;</kbd> (Shift+.)                    | Speed Up           | Increase playback speed by 0.25x                       |
+| <kbd>&lt;</kbd> (Shift+,)                    | Speed Down         | Decrease playback speed by 0.25x                       |
+| <kbd>Home</kbd>                              | Reset Position     | Reset transcript/sign language to center               |
+| <kbd>Esc</kbd>                               | Close / Exit       | Close menus, exit fullscreen, or exit drag/resize mode |
 
 ## Menu Navigation
 
 When any menu is open (captions, speed, quality, chapters, or caption style), you can navigate using:
 
-| Key | Action |
-|-----|--------|
-| <kbd>↓</kbd> / <kbd>↑</kbd> | Navigate between menu items |
-| <kbd>Home</kbd> | Jump to first menu item |
-| <kbd>End</kbd> | Jump to last menu item |
-| <kbd>Enter</kbd> / <kbd>Space</kbd> | Select current menu item |
-| <kbd>Esc</kbd> | Close menu |
+| Key                                 | Action                      |
+| ----------------------------------- | --------------------------- |
+| <kbd>↓</kbd> / <kbd>↑</kbd>         | Navigate between menu items |
+| <kbd>Home</kbd>                     | Jump to first menu item     |
+| <kbd>End</kbd>                      | Jump to last menu item      |
+| <kbd>Enter</kbd> / <kbd>Space</kbd> | Select current menu item    |
+| <kbd>Esc</kbd>                      | Close menu                  |
 
 ## Detailed Controls
 
@@ -112,16 +112,20 @@ keyboard input.
 ## Accessibility Features
 
 ### Auto-Focus
+
 When opening any menu via keyboard shortcut, the currently active item (or first item) is automatically focused, allowing immediate navigation with arrow keys.
 
 ### Visual Feedback
+
 All keyboard actions provide visual feedback:
+
 - Volume and mute state update the volume icon
 - Playback speed changes update the speed display
 - Caption selection updates the captions button state
 - All menu selections are immediately reflected in the UI
 
 ### Screen Reader Support
+
 - All buttons have proper ARIA labels
 - Volume sliders have `aria-valuenow` attributes
 - Menu items are keyboard-navigable with proper focus management
@@ -134,9 +138,9 @@ Keyboard shortcuts can be customized when initializing the player:
 ```javascript
 const player = new VidPly('#player', {
   keyboardShortcuts: {
-    'play-pause': [' ', 'p'],  // Remove 'k' if desired
-    'mute': ['m'],
-    'fullscreen': ['f'],
+    'play-pause': [' ', 'p'], // Remove 'k' if desired
+    mute: ['m'],
+    fullscreen: ['f']
     // ... customize other shortcuts
   }
 });
@@ -153,6 +157,7 @@ const player = new VidPly('#player', {
 ## Browser Compatibility
 
 Keyboard shortcuts work in all modern browsers:
+
 - Chrome/Edge 90+
 - Firefox 88+
 - Safari 14+
@@ -176,4 +181,3 @@ Keyboard shortcuts work in all modern browsers:
 - [Usage Guide](./USAGE.md)
 - [Transcript Features](./TRANSCRIPT.md)
 - [Playlist Features](./PLAYLIST.md)
-

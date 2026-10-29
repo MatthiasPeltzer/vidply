@@ -9,7 +9,7 @@ import {
   focusFirstElement,
   getFocusableElements,
   setContainerChildrenInert,
-  trapFocusInContainer,
+  trapFocusInContainer
 } from '../../src/utils/FocusUtils.js';
 
 describe('FocusUtils', () => {
@@ -30,7 +30,7 @@ describe('FocusUtils', () => {
       const focusSpy = vi.spyOn(button, 'focus');
 
       focusElement(button);
-      
+
       // Advance through requestAnimationFrame and setTimeout
       vi.advanceTimersByTime(100);
 
@@ -73,7 +73,7 @@ describe('FocusUtils', () => {
       const focusSpy = vi.spyOn(button, 'focus');
 
       focusElement(button, { delay: 500 });
-      
+
       // Advance past rAF but not delay
       vi.advanceTimersByTime(100);
       expect(focusSpy).not.toHaveBeenCalled();
@@ -89,7 +89,7 @@ describe('FocusUtils', () => {
       const focusSpy = vi.spyOn(button, 'focus');
 
       focusElement(button, { delay: 100 });
-      
+
       // Remove element before focus happens
       document.body.removeChild(button);
       vi.advanceTimersByTime(200);

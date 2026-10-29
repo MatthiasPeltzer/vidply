@@ -11,7 +11,9 @@ describe('classifyRendererType', () => {
   it('classifies YouTube watch, short and nocookie URLs', () => {
     expect(classifyRendererType('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe('youtube');
     expect(classifyRendererType('https://youtu.be/dQw4w9WgXcQ')).toBe('youtube');
-    expect(classifyRendererType('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ')).toBe('youtube');
+    expect(classifyRendererType('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ')).toBe(
+      'youtube'
+    );
   });
 
   it('classifies Vimeo URLs', () => {

@@ -13,9 +13,7 @@ describe('YoutubeThumbnailPoster', () => {
     expect(youtubeThumbnailUrl('w-JOJl7Qs6U', 'maxres')).toBe(
       'https://i.ytimg.com/vi/w-JOJl7Qs6U/maxresdefault.jpg'
     );
-    expect(youtubeThumbnailUrl('abc', 'hq')).toBe(
-      'https://i.ytimg.com/vi/abc/hqdefault.jpg'
-    );
+    expect(youtubeThumbnailUrl('abc', 'hq')).toBe('https://i.ytimg.com/vi/abc/hqdefault.jpg');
   });
 
   it('returns the first thumbnail that loads with sufficient width', async () => {

@@ -38,7 +38,8 @@ export const ja = {
     floatingPlayerClose: 'フローティングプレーヤーを閉じる',
     floatingPlayerEnter: 'ビデオを切り離す',
     floatingPlayerExit: 'ビデオを戻す',
-    floatingPlayerDialog: 'フローティング動画プレーヤー。Dキーで移動、Rキーでサイズ変更、Escで閉じる。',
+    floatingPlayerDialog:
+      'フローティング動画プレーヤー。Dキーで移動、Rキーでサイズ変更、Escで閉じる。',
     download: 'ダウンロード',
     openOnYoutube: 'YouTubeで開く（新しいタブ）',
     openOnVimeo: 'Vimeoで開く（新しいタブ）',
@@ -66,17 +67,23 @@ export const ja = {
     auto: '自動',
     autoQuality: '自動（画質選択不可）',
     noQuality: '画質選択不可',
-    signLanguageDragResize: '手話動画 - キーボードでドラッグするにはDキーを、サイズ変更するにはRキーを押してください',
-    signLanguageDragActive: '手話動画 - ドラッグモードが有効です。矢印キーで移動、Escapeで終了します。',
-    signLanguageResizeActive: '手話動画 - サイズ変更モードが有効です。左右の矢印キーでサイズ変更、Escapeで終了します。',
+    signLanguageDragResize:
+      '手話動画 - キーボードでドラッグするにはDキーを、サイズ変更するにはRキーを押してください',
+    signLanguageDragActive:
+      '手話動画 - ドラッグモードが有効です。矢印キーで移動、Escapeで終了します。',
+    signLanguageResizeActive:
+      '手話動画 - サイズ変更モードが有効です。左右の矢印キーでサイズ変更、Escapeで終了します。',
     enableSignDragMode: 'ドラッグモードを有効にする。ショートカット：Dキー',
     disableSignDragMode: 'ドラッグモードを無効にする。ショートカット：Dキー',
     enableSignDragModeAria: '矢印キーでキーボードドラッグモードを有効にする。ショートカット：Dキー',
-    disableSignDragModeAria: '矢印キーでキーボードドラッグモードを無効にする。ショートカット：Dキー',
+    disableSignDragModeAria:
+      '矢印キーでキーボードドラッグモードを無効にする。ショートカット：Dキー',
     enableSignResizeMode: 'サイズ変更モードを有効にする。ショートカット：Rキー',
     disableSignResizeMode: 'サイズ変更モードを無効にする。ショートカット：Rキー',
-    enableSignResizeModeAria: '矢印キーでキーボードサイズ変更モードを有効にする。ショートカット：Rキー',
-    disableSignResizeModeAria: '矢印キーでキーボードサイズ変更モードを無効にする。ショートカット：Rキー',
+    enableSignResizeModeAria:
+      '矢印キーでキーボードサイズ変更モードを有効にする。ショートカット：Rキー',
+    disableSignResizeModeAria:
+      '矢印キーでキーボードサイズ変更モードを無効にする。ショートカット：Rキー',
     signDragModeHint: 'ドラッグモード：矢印キーで移動、Escで終了',
     signResizeModeHint: 'サイズ変更モード：矢印キーでサイズ変更、Escで終了',
     signDragModeDisabled: '手話動画のドラッグモードを無効にしました。',
@@ -139,9 +146,11 @@ export const ja = {
     noTranscript: 'このビデオの文字起こしはありません。',
     settings: '文字起こし設定。Enterキーでメニューを開く、またはDキーでドラッグモードを有効にする',
     keyboardDragMode: '矢印キーでキーボードドラッグモードを切り替え。ショートカット：Dキー',
-    keyboardDragActive: '⌨️ キーボードドラッグモード有効（矢印キーで移動、Shift+矢印キーで大きく移動、DまたはESCで終了）',
+    keyboardDragActive:
+      '⌨️ キーボードドラッグモード有効（矢印キーで移動、Shift+矢印キーで大きく移動、DまたはESCで終了）',
     dragResizePrompt: 'Dキーで移動、Rキーでサイズ変更。Homeで位置をリセット、Escで閉じます。',
-    dragModeEnabled: 'キーボードドラッグモードを有効にしました。矢印キーで移動、Shift+矢印キーで大きく移動できます。終了するには D または Esc を押します。',
+    dragModeEnabled:
+      'キーボードドラッグモードを有効にしました。矢印キーで移動、Shift+矢印キーで大きく移動できます。終了するには D または Esc を押します。',
     dragModeDisabled: 'キーボードドラッグモードを無効にしました。',
     enableDragMode: 'ドラッグモードを有効にする。ショートカット：Dキー',
     disableDragMode: 'ドラッグモードを無効にする。ショートカット：Dキー',
@@ -152,9 +161,12 @@ export const ja = {
     enableResizeMode: 'サイズ変更モードを有効にする。ショートカット：Rキー',
     disableResizeMode: 'サイズ変更モードを無効にする。ショートカット：Rキー',
     enableResizeModeAria: '矢印キーでキーボードサイズ変更モードを有効にする。ショートカット：Rキー',
-    disableResizeModeAria: '矢印キーでキーボードサイズ変更モードを無効にする。ショートカット：Rキー',
-    resizeModeHint: 'リサイズハンドルが有効になりました。辺や角をドラッグして調整します。Esc または R で終了します。',
-    resizeModeEnabled: 'サイズ変更モードを有効にしました。辺や角をドラッグして調整します。Esc または R で終了します。',
+    disableResizeModeAria:
+      '矢印キーでキーボードサイズ変更モードを無効にする。ショートカット：Rキー',
+    resizeModeHint:
+      'リサイズハンドルが有効になりました。辺や角をドラッグして調整します。Esc または R で終了します。',
+    resizeModeEnabled:
+      'サイズ変更モードを有効にしました。辺や角をドラッグして調整します。Esc または R で終了します。',
     resizeModeDisabled: 'サイズ変更モードを無効にしました。',
     dragModeBadge: '移動モード：矢印キーで移動、Escで終了',
     resizeModeBadge: 'サイズ変更モード：辺や角をドラッグ、Escで終了',
@@ -195,8 +207,8 @@ export const ja = {
       'seek-forward-live': '早送り（ライブより遅れているとき）',
       'volume-up': '音量を上げる',
       'volume-down': '音量を下げる',
-      'mute': 'ミュート / ミュート解除',
-      'captions': '字幕の切り替え',
+      mute: 'ミュート / ミュート解除',
+      captions: '字幕の切り替え',
       'caption-style-menu': '字幕スタイル',
       'speed-down': '速度を下げる',
       'speed-up': '速度を上げる',
@@ -204,8 +216,8 @@ export const ja = {
       'quality-menu': '画質',
       'chapters-menu': 'チャプター',
       'transcript-toggle': '文字起こしの切り替え',
-      'fullscreen': '全画面表示の切り替え',
-      'help': 'キーボードショートカット'
+      fullscreen: '全画面表示の切り替え',
+      help: 'キーボードショートカット'
     },
     live: {
       skipBack: '巻き戻し',
@@ -217,7 +229,8 @@ export const ja = {
       progress: 'プログレスバー',
       progressDesc: '巻き戻し可能な範囲内の位置を示します。右端がライブです',
       liveBadge: 'LIVE 表示',
-      liveBadgeDesc: 'ライブ位置では LIVE のみ表示。巻き戻すと、その前にライブからの遅れが表示されます'
+      liveBadgeDesc:
+        'ライブ位置では LIVE のみ表示。巻き戻すと、その前にライブからの遅れが表示されます'
     }
   },
   speeds: {
@@ -251,7 +264,8 @@ export const ja = {
     notPlaying: '停止中',
     pressEnterPlay: 'Enterキーで再生',
     pressEnterRestart: 'Enterキーで最初から再生',
-    keyboardInstructions: 'プレイリストナビゲーション：上下の矢印キーでトラック間を移動します。Page UpまたはPage Downで5トラックをスキップします。Homeで最初のトラックへ、Endで最後のトラックへ移動します。EnterまたはSpaceで選択したトラックを再生します。',
+    keyboardInstructions:
+      'プレイリストナビゲーション：上下の矢印キーでトラック間を移動します。Page UpまたはPage Downで5トラックをスキップします。Homeで最初のトラックへ、Endで最後のトラックへ移動します。EnterまたはSpaceで選択したトラックを再生します。',
     endOfPlaylist: 'プレイリストの終わりです。{current}/{total}。',
     beginningOfPlaylist: 'プレイリストの始めです。1/{total}。',
     jumpedToLastTrack: '最後のトラックにジャンプしました。{current}/{total}。',
@@ -264,4 +278,3 @@ export const ja = {
     descriptionHide: '説明を非表示'
   }
 };
-

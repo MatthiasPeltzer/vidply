@@ -37,7 +37,7 @@ describe('AudioDescriptionManager', () => {
         audioDescriptionEnabled: false
       }
     };
-    
+
     document.body.appendChild(mockPlayer.element);
   });
 
@@ -48,7 +48,7 @@ describe('AudioDescriptionManager', () => {
   describe('initialization', () => {
     it('should initialize with default state', () => {
       manager = new AudioDescriptionManager(mockPlayer);
-      
+
       expect(manager.player).toBe(mockPlayer);
       expect(manager.enabled).toBe(false);
       expect(manager.desiredState).toBe(false);
@@ -59,7 +59,7 @@ describe('AudioDescriptionManager', () => {
     it('should use audioDescriptionSrc from options', () => {
       mockPlayer.options.audioDescriptionSrc = '/videos/ad-version.mp4';
       manager = new AudioDescriptionManager(mockPlayer);
-      
+
       expect(manager.src).toBe('/videos/ad-version.mp4');
     });
   });
@@ -67,14 +67,14 @@ describe('AudioDescriptionManager', () => {
   describe('isAvailable', () => {
     it('should return false when no audio description source', () => {
       manager = new AudioDescriptionManager(mockPlayer);
-      
+
       expect(manager.isAvailable()).toBe(false);
     });
 
     it('should return true when src is provided', () => {
       mockPlayer.options.audioDescriptionSrc = '/videos/ad-version.mp4';
       manager = new AudioDescriptionManager(mockPlayer);
-      
+
       expect(manager.isAvailable()).toBe(true);
     });
 
@@ -82,16 +82,16 @@ describe('AudioDescriptionManager', () => {
       const sourceEl = document.createElement('source');
       sourceEl.setAttribute('data-desc-src', '/videos/ad-version.mp4');
       mockPlayer.sourceElements = [sourceEl];
-      
+
       manager = new AudioDescriptionManager(mockPlayer);
-      
+
       expect(manager.isAvailable()).toBe(true);
     });
 
     it('should return true when caption tracks exist', () => {
       manager = new AudioDescriptionManager(mockPlayer);
       manager.captionTracks = [{ describedSrc: '/captions/ad.vtt' }];
-      
+
       expect(manager.isAvailable()).toBe(true);
     });
   });
@@ -101,10 +101,10 @@ describe('AudioDescriptionManager', () => {
       const sourceEl = document.createElement('source');
       sourceEl.setAttribute('src', '/videos/normal.mp4');
       sourceEl.setAttribute('data-desc-src', '/videos/ad-version.mp4');
-      
+
       manager = new AudioDescriptionManager(mockPlayer);
       manager.initFromSourceElements([sourceEl], []);
-      
+
       expect(manager.src).toBe('/videos/ad-version.mp4');
       expect(manager.originalSource).toBe('/videos/normal.mp4');
     });
@@ -114,10 +114,10 @@ describe('AudioDescriptionManager', () => {
       sourceEl.setAttribute('src', '/videos/ad-version.mp4');
       sourceEl.setAttribute('data-orig-src', '/videos/normal.mp4');
       sourceEl.setAttribute('data-desc-src', '/videos/ad-version.mp4');
-      
+
       manager = new AudioDescriptionManager(mockPlayer);
       manager.initFromSourceElements([sourceEl], []);
-      
+
       expect(manager.originalSource).toBe('/videos/normal.mp4');
     });
 
@@ -126,10 +126,10 @@ describe('AudioDescriptionManager', () => {
       trackEl.setAttribute('kind', 'captions');
       trackEl.setAttribute('src', '/captions/normal.vtt');
       trackEl.setAttribute('data-desc-src', '/captions/ad.vtt');
-      
+
       manager = new AudioDescriptionManager(mockPlayer);
       manager.initFromSourceElements([], [trackEl]);
-      
+
       expect(manager.captionTracks.length).toBe(1);
       expect(manager.captionTracks[0].originalSrc).toBe('/captions/normal.vtt');
       expect(manager.captionTracks[0].describedSrc).toBe('/captions/ad.vtt');
@@ -140,10 +140,10 @@ describe('AudioDescriptionManager', () => {
       trackEl.setAttribute('kind', 'subtitles');
       trackEl.setAttribute('src', '/subtitles/en.vtt');
       trackEl.setAttribute('data-desc-src', '/subtitles/en-ad.vtt');
-      
+
       manager = new AudioDescriptionManager(mockPlayer);
       manager.initFromSourceElements([], [trackEl]);
-      
+
       expect(manager.captionTracks.length).toBe(1);
     });
 
@@ -152,10 +152,10 @@ describe('AudioDescriptionManager', () => {
       trackEl.setAttribute('kind', 'chapters');
       trackEl.setAttribute('src', '/chapters/normal.vtt');
       trackEl.setAttribute('data-desc-src', '/chapters/ad.vtt');
-      
+
       manager = new AudioDescriptionManager(mockPlayer);
       manager.initFromSourceElements([], [trackEl]);
-      
+
       expect(manager.captionTracks.length).toBe(1);
     });
 
@@ -163,14 +163,14 @@ describe('AudioDescriptionManager', () => {
       const sourceEl1 = document.createElement('source');
       sourceEl1.setAttribute('src', '/videos/normal-720.mp4');
       sourceEl1.setAttribute('data-desc-src', '/videos/ad-720.mp4');
-      
+
       const sourceEl2 = document.createElement('source');
       sourceEl2.setAttribute('src', '/videos/normal-480.mp4');
       // No data-desc-src on second source
-      
+
       manager = new AudioDescriptionManager(mockPlayer);
       manager.initFromSourceElements([sourceEl1, sourceEl2], []);
-      
+
       // Should use first source element with desc-src
       expect(manager.sourceElement).toBe(sourceEl1);
       expect(manager.src).toBe('/videos/ad-720.mp4');
@@ -181,10 +181,10 @@ describe('AudioDescriptionManager', () => {
       trackEl.setAttribute('kind', 'captions');
       trackEl.setAttribute('src', '/captions/en.vtt');
       trackEl.setAttribute('data-desc-src', '/captions/en-ad.vtt');
-      
+
       manager = new AudioDescriptionManager(mockPlayer);
       manager.initFromSourceElements([], [trackEl]);
-      
+
       expect(mockPlayer.log).toHaveBeenCalled();
     });
 
@@ -193,10 +193,10 @@ describe('AudioDescriptionManager', () => {
       trackEl.setAttribute('kind', 'captions');
       trackEl.setAttribute('src', '/captions/en.vtt');
       // No data-desc-src
-      
+
       manager = new AudioDescriptionManager(mockPlayer);
       manager.initFromSourceElements([], [trackEl]);
-      
+
       expect(manager.captionTracks.length).toBe(0);
     });
 
@@ -204,10 +204,10 @@ describe('AudioDescriptionManager', () => {
       const sourceEl = document.createElement('source');
       sourceEl.setAttribute('src', '/videos/normal.mp4');
       sourceEl.setAttribute('data-desc-src', '/videos/ad.mp4');
-      
+
       manager = new AudioDescriptionManager(mockPlayer);
       manager.initFromSourceElements([sourceEl], []);
-      
+
       expect(mockPlayer.originalSrc).toBe('/videos/normal.mp4');
     });
   });
@@ -215,20 +215,20 @@ describe('AudioDescriptionManager', () => {
   describe('state management', () => {
     it('should track enabled state', () => {
       manager = new AudioDescriptionManager(mockPlayer);
-      
+
       expect(manager.enabled).toBe(false);
-      
+
       manager.enabled = true;
       expect(manager.enabled).toBe(true);
     });
 
     it('should track desired state separately', () => {
       manager = new AudioDescriptionManager(mockPlayer);
-      
+
       // User wants AD but it's not yet enabled
       manager.desiredState = true;
       manager.enabled = false;
-      
+
       expect(manager.desiredState).toBe(true);
       expect(manager.enabled).toBe(false);
     });
@@ -238,9 +238,9 @@ describe('AudioDescriptionManager', () => {
     it('should warn when no audio description source available', async () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       manager = new AudioDescriptionManager(mockPlayer);
-      
+
       await manager.enable();
-      
+
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('No audio description source'));
       warnSpy.mockRestore();
     });
@@ -252,12 +252,12 @@ describe('AudioDescriptionManager', () => {
         playing: false
       };
       manager = new AudioDescriptionManager(mockPlayer);
-      
+
       // Mock the internal methods to avoid full implementation
       manager._enableWithDirectSrc = vi.fn().mockResolvedValue();
-      
+
       await manager.enable();
-      
+
       expect(manager.desiredState).toBe(true);
     });
 
@@ -269,9 +269,9 @@ describe('AudioDescriptionManager', () => {
       };
       manager = new AudioDescriptionManager(mockPlayer);
       manager._enableWithDirectSrc = vi.fn().mockResolvedValue();
-      
+
       await manager.enable();
-      
+
       // The method should capture currentTime and wasPlaying
       expect(manager._enableWithDirectSrc).toHaveBeenCalled();
     });
@@ -281,9 +281,9 @@ describe('AudioDescriptionManager', () => {
     it('should return early when no original source', async () => {
       manager = new AudioDescriptionManager(mockPlayer);
       mockPlayer.originalSrc = null;
-      
+
       await manager.disable();
-      
+
       // Should exit without error
       expect(manager.desiredState).toBe(false);
     });
@@ -296,9 +296,9 @@ describe('AudioDescriptionManager', () => {
         playing: false
       };
       manager._disableWithDirectSrc = vi.fn().mockResolvedValue();
-      
+
       await manager.disable();
-      
+
       expect(manager.desiredState).toBe(false);
     });
   });
@@ -317,9 +317,9 @@ describe('AudioDescriptionManager', () => {
       manager = new AudioDescriptionManager(mockPlayer);
       manager.enabled = false;
       manager._enableWithDirectSrc = vi.fn().mockResolvedValue();
-      
+
       await manager.toggle();
-      
+
       expect(manager.desiredState).toBe(true);
     });
 
@@ -329,9 +329,9 @@ describe('AudioDescriptionManager', () => {
       manager = new AudioDescriptionManager(mockPlayer);
       manager.enabled = true;
       manager._disableWithDirectSrc = vi.fn().mockResolvedValue();
-      
+
       await manager.toggle();
-      
+
       expect(manager.desiredState).toBe(false);
     });
 
@@ -412,42 +412,42 @@ describe('AudioDescriptionManager', () => {
     it('should return null when no caption manager', () => {
       manager = new AudioDescriptionManager(mockPlayer);
       mockPlayer.captionManager = null;
-      
+
       const result = manager._getCurrentCaptionText();
-      
+
       expect(result).toBeNull();
     });
 
     it('should return null when no current track', () => {
       manager = new AudioDescriptionManager(mockPlayer);
       mockPlayer.captionManager = { currentTrack: null };
-      
+
       const result = manager._getCurrentCaptionText();
-      
+
       expect(result).toBeNull();
     });
 
     it('should return null when no current cue', () => {
       manager = new AudioDescriptionManager(mockPlayer);
-      mockPlayer.captionManager = { 
-        currentTrack: {}, 
-        currentCue: null 
+      mockPlayer.captionManager = {
+        currentTrack: {},
+        currentCue: null
       };
-      
+
       const result = manager._getCurrentCaptionText();
-      
+
       expect(result).toBeNull();
     });
 
     it('should return cue text when available', () => {
       manager = new AudioDescriptionManager(mockPlayer);
-      mockPlayer.captionManager = { 
-        currentTrack: {}, 
+      mockPlayer.captionManager = {
+        currentTrack: {},
         currentCue: { text: 'Hello world' }
       };
-      
+
       const result = manager._getCurrentCaptionText();
-      
+
       expect(result).toBe('Hello world');
     });
   });
@@ -473,17 +473,17 @@ describe('AudioDescriptionManager', () => {
 
     it('should return false for failed HEAD request', async () => {
       global.fetch = vi.fn().mockResolvedValue({ ok: false });
-      
+
       const result = await manager._validateTrackExists('/nonexistent.vtt');
-      
+
       expect(result).toBe(false);
     });
 
     it('should return false on fetch error', async () => {
       global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
-      
+
       const result = await manager._validateTrackExists('/error.vtt');
-      
+
       expect(result).toBe(false);
     });
   });
@@ -495,25 +495,27 @@ describe('AudioDescriptionManager', () => {
 
     it('should return empty array when no caption tracks', async () => {
       manager.captionTracks = [];
-      
+
       const result = await manager._swapCaptionTracks(true);
-      
+
       expect(result).toEqual([]);
     });
 
     it('should validate track URLs before swapping', async () => {
       // This test just checks the method exists and basic behavior
-      manager.captionTracks = [{
-        trackElement: null, // No element
-        originalSrc: '/captions/normal.vtt',
-        describedSrc: '/captions/ad.vtt',
-        explicit: true
-      }];
-      
+      manager.captionTracks = [
+        {
+          trackElement: null, // No element
+          originalSrc: '/captions/normal.vtt',
+          describedSrc: '/captions/ad.vtt',
+          explicit: true
+        }
+      ];
+
       global.fetch = vi.fn().mockResolvedValue({ ok: false });
-      
+
       const result = await manager._swapCaptionTracks(true);
-      
+
       // Should return empty since validation fails
       expect(result).toEqual([]);
     });
@@ -523,7 +525,7 @@ describe('AudioDescriptionManager', () => {
     it('should handle empty source elements array', () => {
       manager = new AudioDescriptionManager(mockPlayer);
       manager.initFromSourceElements([], []);
-      
+
       expect(manager.sourceElement).toBeNull();
     });
 
@@ -531,10 +533,10 @@ describe('AudioDescriptionManager', () => {
       const sourceEl = document.createElement('source');
       sourceEl.setAttribute('src', '/videos/normal.mp4');
       // No data-desc-src
-      
+
       manager = new AudioDescriptionManager(mockPlayer);
       manager.initFromSourceElements([sourceEl], []);
-      
+
       expect(manager.src).toBeNull();
     });
   });
@@ -545,10 +547,10 @@ describe('AudioDescriptionManager', () => {
       trackEl.setAttribute('kind', 'metadata');
       trackEl.setAttribute('src', '/metadata.vtt');
       trackEl.setAttribute('data-desc-src', '/metadata-ad.vtt');
-      
+
       manager = new AudioDescriptionManager(mockPlayer);
       manager.initFromSourceElements([], [trackEl]);
-      
+
       // Metadata tracks should not be in captionTracks
       expect(manager.captionTracks.length).toBe(0);
     });
@@ -558,10 +560,10 @@ describe('AudioDescriptionManager', () => {
       trackEl.setAttribute('kind', 'descriptions');
       trackEl.setAttribute('src', '/descriptions.vtt');
       trackEl.setAttribute('data-desc-src', '/descriptions-ad.vtt');
-      
+
       manager = new AudioDescriptionManager(mockPlayer);
       manager.initFromSourceElements([], [trackEl]);
-      
+
       expect(manager.captionTracks.length).toBe(1);
     });
   });

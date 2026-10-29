@@ -4,6 +4,7 @@
 
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
 
 export default [
   {
@@ -93,7 +94,7 @@ export default [
       'no-unneeded-ternary': 'warn',
       'prefer-const': 'error',
       'no-var': 'error',
-      'eqeqeq': ['error', 'smart'],
+      eqeqeq: ['error', 'smart'],
       'no-throw-literal': 'error',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': [
@@ -121,5 +122,6 @@ export default [
     rules: {
       'no-console': 'off'
     }
-  }
+  },
+  eslintConfigPrettier
 ];

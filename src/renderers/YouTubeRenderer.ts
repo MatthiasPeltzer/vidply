@@ -139,7 +139,9 @@ export class YouTubeRenderer implements Renderer {
 
     const videoId = this.videoId ?? '';
     const pageLang = (document.documentElement.lang || '').toLowerCase();
-    const linkLabel = pageLang.startsWith('de') ? 'Video in YouTube abspielen' : 'Play video in YouTube';
+    const linkLabel = pageLang.startsWith('de')
+      ? 'Video in YouTube abspielen'
+      : 'Play video in YouTube';
     const hint = pageLang.startsWith('de')
       ? 'Der eingebettete Player ist auf dem iPhone bei Entwicklungs-Adressen (LAN, IP, sslip.io, DDEV, …) nicht verfügbar. Bitte YouTube öffnen.'
       : 'The embedded player is not available on iPhone on development URLs (LAN, IP, sslip.io, DDEV, …). Please open YouTube.';
@@ -173,7 +175,7 @@ export class YouTubeRenderer implements Renderer {
     // Extract video ID from URL - use currentSource which works for external renderers
     const src = this.player.currentSource || this.player.element.src;
     this.videoId = this.extractVideoId(src);
-    
+
     if (!this.videoId) {
       throw new Error('Invalid YouTube URL');
     }
@@ -185,8 +187,8 @@ export class YouTubeRenderer implements Renderer {
 
     if (!this.usesProviderChrome() && YouTubeRenderer.isEmbedAutoplayBlockedByPermissionsPolicy()) {
       this.player.log(
-        'Permissions-Policy blocks autoplay; using YouTube\'s own controls. '
-          + `Allow it with e.g. 'Permissions-Policy: autoplay=(self "${YouTubeRenderer.EMBED_HOST}")'.`,
+        "Permissions-Policy blocks autoplay; using YouTube's own controls. " +
+          `Allow it with e.g. 'Permissions-Policy: autoplay=(self "${YouTubeRenderer.EMBED_HOST}")'.`,
         'warn'
       );
       this.player._forceProviderEmbedChrome = true;
@@ -362,7 +364,11 @@ export class YouTubeRenderer implements Renderer {
     }
 
     this.embedCaptionBridgeActive = true;
-    this.youtubeEmbedCaptionMenu = filtered.map(({ id, language, label }) => ({ id, language, label }));
+    this.youtubeEmbedCaptionMenu = filtered.map(({ id, language, label }) => ({
+      id,
+      language,
+      label
+    }));
     this.youtubeEmbedCaptionTracks.clear();
     for (const entry of filtered) {
       this.youtubeEmbedCaptionTracks.set(entry.id, entry.raw);
@@ -388,8 +394,9 @@ export class YouTubeRenderer implements Renderer {
   }
 
   private applyChromelessIdlePoster(): void {
-    const raw = this.player.element.getAttribute('poster')
-      ?? (typeof this.player.options.poster === 'string' ? this.player.options.poster : null);
+    const raw =
+      this.player.element.getAttribute('poster') ??
+      (typeof this.player.options.poster === 'string' ? this.player.options.poster : null);
     if (raw) {
       applyPosterImageToVideoWrapper(this.player, this.player.resolvePosterPath(raw));
       return;
@@ -488,10 +495,10 @@ export class YouTubeRenderer implements Renderer {
           playsinline: 1,
           // iOS rejects programmatic/autoplay starts inside cross-origin embeds; leave
           // the video cued so the visitor starts it with a tap on YouTube's control.
-          autoplay: isIOS() ? 0 : (this.player.options.autoplay ? 1 : 0),
+          autoplay: isIOS() ? 0 : this.player.options.autoplay ? 1 : 0,
           mute: this.player.options.muted ? 1 : 0,
           start: this.player.options.startTime || 0,
-          ...( !providerChrome && this.player.options.loop && this.videoId
+          ...(!providerChrome && this.player.options.loop && this.videoId
             ? { loop: 1, playlist: this.videoId }
             : {}),
           ...YouTubeRenderer.embedIdentityPlayerVars()
@@ -609,7 +616,7 @@ export class YouTubeRenderer implements Renderer {
           this.player.positionPlayOverlayOnMobile();
         }
         this.player.emit('pause');
-        
+
         if (this.player.options.onPause) {
           this.player.options.onPause.call(this.player);
         }
@@ -801,4 +808,3 @@ export class YouTubeRenderer implements Renderer {
     }
   }
 }
-

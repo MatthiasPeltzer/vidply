@@ -157,7 +157,7 @@ describe('Player', () => {
 
       const listener = vi.fn();
       player.once('testevent', listener);
-      
+
       player.emit('testevent');
       player.emit('testevent');
       player.emit('testevent');
@@ -182,10 +182,13 @@ describe('Player', () => {
   describe('data attribute parsing', () => {
     it('should parse data-vidply-options JSON', () => {
       const video = document.createElement('video');
-      video.setAttribute('data-vidply-options', JSON.stringify({
-        autoplay: true,
-        muted: true
-      }));
+      video.setAttribute(
+        'data-vidply-options',
+        JSON.stringify({
+          autoplay: true,
+          muted: true
+        })
+      );
       container.appendChild(video);
 
       // The data attribute parsing happens in index.js, not Player directly

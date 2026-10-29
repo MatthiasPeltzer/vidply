@@ -83,11 +83,7 @@ const iconTemplates: Record<string, SVGSVGElement> = (() => {
     // A parse failure produces a `<parsererror>` element as the
     // document root; reject that and skip the entry rather than
     // storing a broken template that would render as nothing.
-    if (
-      root &&
-      root.nodeName.toLowerCase() === 'svg' &&
-      !root.querySelector('parsererror')
-    ) {
+    if (root && root.nodeName.toLowerCase() === 'svg' && !root.querySelector('parsererror')) {
       templates[key] = root as unknown as SVGSVGElement;
     }
   }
@@ -134,7 +130,10 @@ export function createPlayOverlay(): SVGSVGElement {
   feOffset.setAttribute('dy', '2');
   feOffset.setAttribute('result', 'offsetblur');
 
-  const feComponentTransfer = document.createElementNS('http://www.w3.org/2000/svg', 'feComponentTransfer');
+  const feComponentTransfer = document.createElementNS(
+    'http://www.w3.org/2000/svg',
+    'feComponentTransfer'
+  );
   const feFuncA = document.createElementNS('http://www.w3.org/2000/svg', 'feFuncA');
   feFuncA.setAttribute('type', 'linear');
   feFuncA.setAttribute('slope', '0.3');

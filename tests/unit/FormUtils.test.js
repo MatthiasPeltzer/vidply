@@ -41,7 +41,7 @@ describe('FormUtils', () => {
 
   beforeEach(async () => {
     document.body.innerHTML = '';
-    
+
     const module = await import('../../src/utils/FormUtils.js');
     createLabeledSelect = module.createLabeledSelect;
     toggleLabeledSelect = module.toggleLabeledSelect;
@@ -170,7 +170,7 @@ describe('FormUtils', () => {
 
     it('should attach change handler', () => {
       const onChange = vi.fn();
-      
+
       const result = createLabeledSelect({
         classPrefix: 'vidply',
         labelClass: 'vidply-label',
@@ -186,7 +186,7 @@ describe('FormUtils', () => {
 
       // Simulate change event
       result.select.dispatchEvent(new Event('change'));
-      
+
       expect(onChange).toHaveBeenCalled();
     });
 
@@ -232,7 +232,7 @@ describe('FormUtils', () => {
 
     it('should handle null label', () => {
       const select = document.createElement('select');
-      
+
       // Should not throw
       expect(() => toggleLabeledSelect(null, select, true)).not.toThrow();
       expect(select.style.display).toBe('block');
@@ -240,7 +240,7 @@ describe('FormUtils', () => {
 
     it('should handle null select', () => {
       const label = document.createElement('label');
-      
+
       // Should not throw
       expect(() => toggleLabeledSelect(label, null, true)).not.toThrow();
       expect(label.style.display).toBe('block');
@@ -251,28 +251,28 @@ describe('FormUtils', () => {
     it('should stop propagation on mousedown', () => {
       const element = document.createElement('div');
       document.body.appendChild(element);
-      
+
       preventDragOnElement(element);
-      
+
       const event = new MouseEvent('mousedown', { bubbles: true });
       const stopPropagation = vi.spyOn(event, 'stopPropagation');
-      
+
       element.dispatchEvent(event);
-      
+
       expect(stopPropagation).toHaveBeenCalled();
     });
 
     it('should stop propagation on click', () => {
       const element = document.createElement('div');
       document.body.appendChild(element);
-      
+
       preventDragOnElement(element);
-      
+
       const event = new MouseEvent('click', { bubbles: true });
       const stopPropagation = vi.spyOn(event, 'stopPropagation');
-      
+
       element.dispatchEvent(event);
-      
+
       expect(stopPropagation).toHaveBeenCalled();
     });
 

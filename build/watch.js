@@ -59,4 +59,3 @@ process.on('SIGINT', async () => {
   await iifeContext.dispose();
   process.exit(0);
 });
-

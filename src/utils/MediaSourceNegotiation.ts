@@ -13,7 +13,7 @@ export type NegotiatedMediaSource = {
  */
 export function negotiateMediaSources(
   candidates: MediaSourceCandidate[],
-  options?: { preferNativeElement?: boolean },
+  options?: { preferNativeElement?: boolean }
 ): NegotiatedMediaSource {
   const sources = candidates.filter((s) => typeof s.src === 'string' && s.src.length > 0);
   if (sources.length === 0) {
@@ -53,8 +53,7 @@ export function negotiateMediaSources(
     }
     if (!chosen) {
       chosen =
-        sources.find((s) => !s.src.includes('.mpd') && !s.src.includes('.m3u8')) ||
-        sources[0];
+        sources.find((s) => !s.src.includes('.mpd') && !s.src.includes('.m3u8')) || sources[0];
     }
   }
 
@@ -78,7 +77,7 @@ export function candidatesFromTrack(track: {
       .filter((s) => typeof s.src === 'string' && s.src.length > 0)
       .map((s) => ({
         src: s.src as string,
-        type: s.type,
+        type: s.type
       }));
   }
   if (track.src) {

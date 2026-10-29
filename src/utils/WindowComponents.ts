@@ -9,38 +9,38 @@ import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 
 interface WindowHeaderOptions {
-    classPrefix: string;
-    headerClass: string;
-    titleText: string;
-    showSettings?: boolean;
-    onSettingsClick?: ((e: Event) => void) | null;
-    onClose?: ((e: Event) => void) | null;
-    leftContent?: HTMLElement[];
+  classPrefix: string;
+  headerClass: string;
+  titleText: string;
+  showSettings?: boolean;
+  onSettingsClick?: ((e: Event) => void) | null;
+  onClose?: ((e: Event) => void) | null;
+  leftContent?: HTMLElement[];
 }
 
 interface HeaderSelectorOption {
-    value: string;
-    text: string;
-    selected?: boolean;
+  value: string;
+  text: string;
+  selected?: boolean;
 }
 
 interface HeaderSelectorOptions {
-    classPrefix: string;
-    selectClass: string;
-    labelText: string;
-    selectId: string;
-    options?: HeaderSelectorOption[];
-    onChange?: ((e: Event) => void) | null;
+  classPrefix: string;
+  selectClass: string;
+  labelText: string;
+  selectId: string;
+  options?: HeaderSelectorOption[];
+  onChange?: ((e: Event) => void) | null;
 }
 
 interface AutoscrollCheckboxOptions {
-    classPrefix: string;
-    labelClass: string;
-    textClass: string;
-    checkboxId: string;
-    labelText: string;
-    checked?: boolean;
-    onChange?: ((e: Event) => void) | null;
+  classPrefix: string;
+  labelClass: string;
+  textClass: string;
+  checkboxId: string;
+  labelText: string;
+  checked?: boolean;
+  onChange?: ((e: Event) => void) | null;
 }
 
 /**
@@ -56,89 +56,89 @@ interface AutoscrollCheckboxOptions {
  * @returns {Object} Object containing header element and button references
  */
 export function createWindowHeader({
-    classPrefix,
-    headerClass,
-    titleText,
-    showSettings = false,
-    onSettingsClick = null,
-    onClose = null,
-    leftContent = []
+  classPrefix,
+  headerClass,
+  titleText,
+  showSettings = false,
+  onSettingsClick = null,
+  onClose = null,
+  leftContent = []
 }: WindowHeaderOptions): {
-    header: HTMLElement;
-    settingsButton: HTMLElement | null;
-    closeButton: HTMLElement;
-    leftSide: HTMLElement;
+  header: HTMLElement;
+  settingsButton: HTMLElement | null;
+  closeButton: HTMLElement;
+  leftSide: HTMLElement;
 } {
-    // Create header container
-    const header = DOMUtils.createElement('div', {
-        className: `${classPrefix}-draggable-header ${headerClass}`,
-        attributes: {
-            'role': 'heading',
-            'aria-level': '2',
-            'tabindex': '0'
-        }
-    });
-
-    // Create left side container
-    const leftSide = DOMUtils.createElement('div', {
-        className: `${headerClass}-left`
-    });
-
-    // Add settings button if requested
-    let settingsButton = null;
-    if (showSettings && onSettingsClick) {
-        const settingsAriaLabel = i18n.t('settings.title');
-        settingsButton = DOMUtils.createElement('button', {
-            className: `${classPrefix}-icon-button ${headerClass}-settings`,
-            attributes: {
-                'type': 'button',
-                'aria-label': settingsAriaLabel
-            }
-        });
-        settingsButton.appendChild(createIconElement('settings'));
-        DOMUtils.attachTooltip(settingsButton, settingsAriaLabel, classPrefix);
-        settingsButton.addEventListener('click', onSettingsClick);
-        leftSide.appendChild(settingsButton);
+  // Create header container
+  const header = DOMUtils.createElement('div', {
+    className: `${classPrefix}-draggable-header ${headerClass}`,
+    attributes: {
+      role: 'heading',
+      'aria-level': '2',
+      tabindex: '0'
     }
+  });
 
-    // Add custom left content
-    leftContent.forEach(element => {
-        if (element) {
-            leftSide.appendChild(element);
-        }
-    });
+  // Create left side container
+  const leftSide = DOMUtils.createElement('div', {
+    className: `${headerClass}-left`
+  });
 
-    // Create title (visually hidden but accessible)
-    const title = DOMUtils.createElement('h3', {
-        textContent: titleText
+  // Add settings button if requested
+  let settingsButton = null;
+  if (showSettings && onSettingsClick) {
+    const settingsAriaLabel = i18n.t('settings.title');
+    settingsButton = DOMUtils.createElement('button', {
+      className: `${classPrefix}-icon-button ${headerClass}-settings`,
+      attributes: {
+        type: 'button',
+        'aria-label': settingsAriaLabel
+      }
     });
-    leftSide.appendChild(title);
+    settingsButton.appendChild(createIconElement('settings'));
+    DOMUtils.attachTooltip(settingsButton, settingsAriaLabel, classPrefix);
+    settingsButton.addEventListener('click', onSettingsClick);
+    leftSide.appendChild(settingsButton);
+  }
 
-    // Create close button
-    const closeAriaLabel = i18n.t('player.close');
-    const closeButton = DOMUtils.createElement('button', {
-        className: `${classPrefix}-icon-button ${headerClass}-close`,
-        attributes: {
-            'type': 'button',
-            'aria-label': closeAriaLabel
-        }
-    });
-    closeButton.appendChild(createIconElement('close'));
-    DOMUtils.attachTooltip(closeButton, closeAriaLabel, classPrefix);
-    if (onClose) {
-        closeButton.addEventListener('click', onClose);
+  // Add custom left content
+  leftContent.forEach((element) => {
+    if (element) {
+      leftSide.appendChild(element);
     }
+  });
 
-    // Assemble header
-    header.appendChild(leftSide);
-    header.appendChild(closeButton);
+  // Create title (visually hidden but accessible)
+  const title = DOMUtils.createElement('h3', {
+    textContent: titleText
+  });
+  leftSide.appendChild(title);
 
-    return {
-        header,
-        settingsButton,
-        closeButton,
-        leftSide
-    };
+  // Create close button
+  const closeAriaLabel = i18n.t('player.close');
+  const closeButton = DOMUtils.createElement('button', {
+    className: `${classPrefix}-icon-button ${headerClass}-close`,
+    attributes: {
+      type: 'button',
+      'aria-label': closeAriaLabel
+    }
+  });
+  closeButton.appendChild(createIconElement('close'));
+  DOMUtils.attachTooltip(closeButton, closeAriaLabel, classPrefix);
+  if (onClose) {
+    closeButton.addEventListener('click', onClose);
+  }
+
+  // Assemble header
+  header.appendChild(leftSide);
+  header.appendChild(closeButton);
+
+  return {
+    header,
+    settingsButton,
+    closeButton,
+    leftSide
+  };
 }
 
 /**
@@ -153,48 +153,48 @@ export function createWindowHeader({
  * @returns {Object} Object with label and select elements
  */
 export function createHeaderSelector({
-    classPrefix: _classPrefix,
-    selectClass,
-    labelText,
-    selectId,
-    options = [],
-    onChange = null
+  classPrefix: _classPrefix,
+  selectClass,
+  labelText,
+  selectId,
+  options = [],
+  onChange = null
 }: HeaderSelectorOptions): { label: HTMLElement; select: HTMLElement } {
-    const label = DOMUtils.createElement('label', {
-        className: `${selectClass}-label`,
-        textContent: i18n.t(labelText),
-        attributes: {
-            'for': selectId
-        }
-    });
-
-    const select = DOMUtils.createElement('select', {
-        className: selectClass,
-        attributes: {
-            'id': selectId
-        }
-    });
-
-    // Add options
-    options.forEach(opt => {
-        const option = DOMUtils.createElement('option', {
-            textContent: opt.text,
-            attributes: {
-                'value': opt.value
-            }
-        });
-        if (opt.selected) {
-            (option as HTMLOptionElement).selected = true;
-        }
-        select.appendChild(option);
-    });
-
-    // Add change handler
-    if (onChange) {
-        select.addEventListener('change', onChange);
+  const label = DOMUtils.createElement('label', {
+    className: `${selectClass}-label`,
+    textContent: i18n.t(labelText),
+    attributes: {
+      for: selectId
     }
+  });
 
-    return { label, select };
+  const select = DOMUtils.createElement('select', {
+    className: selectClass,
+    attributes: {
+      id: selectId
+    }
+  });
+
+  // Add options
+  options.forEach((opt) => {
+    const option = DOMUtils.createElement('option', {
+      textContent: opt.text,
+      attributes: {
+        value: opt.value
+      }
+    });
+    if (opt.selected) {
+      (option as HTMLOptionElement).selected = true;
+    }
+    select.appendChild(option);
+  });
+
+  // Add change handler
+  if (onChange) {
+    select.addEventListener('change', onChange);
+  }
+
+  return { label, select };
 }
 
 /**
@@ -210,41 +210,40 @@ export function createHeaderSelector({
  * @returns {HTMLElement} Label element containing checkbox
  */
 export function createAutoscrollCheckbox({
-    classPrefix: _classPrefix,
-    labelClass,
-    textClass,
-    checkboxId,
-    labelText,
-    checked = true,
-    onChange = null
+  classPrefix: _classPrefix,
+  labelClass,
+  textClass,
+  checkboxId,
+  labelText,
+  checked = true,
+  onChange = null
 }: AutoscrollCheckboxOptions): HTMLElement {
-    const label = DOMUtils.createElement('label', {
-        className: labelClass,
-        attributes: {
-            'for': checkboxId
-        }
-    });
-
-    const checkbox = DOMUtils.createElement('input', {
-        attributes: {
-            'type': 'checkbox',
-            'id': checkboxId,
-            'checked': checked ? 'checked' : undefined
-        }
-    });
-
-    const text = DOMUtils.createElement('span', {
-        className: textClass,
-        textContent: i18n.t(labelText)
-    });
-
-    if (onChange) {
-        checkbox.addEventListener('change', onChange);
+  const label = DOMUtils.createElement('label', {
+    className: labelClass,
+    attributes: {
+      for: checkboxId
     }
+  });
 
-    label.appendChild(checkbox);
-    label.appendChild(text);
+  const checkbox = DOMUtils.createElement('input', {
+    attributes: {
+      type: 'checkbox',
+      id: checkboxId,
+      checked: checked ? 'checked' : undefined
+    }
+  });
 
-    return label;
+  const text = DOMUtils.createElement('span', {
+    className: textClass,
+    textContent: i18n.t(labelText)
+  });
+
+  if (onChange) {
+    checkbox.addEventListener('change', onChange);
+  }
+
+  label.appendChild(checkbox);
+  label.appendChild(text);
+
+  return label;
 }
-

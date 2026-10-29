@@ -49,7 +49,7 @@ describe('ResizeHandles', () => {
       document.body.appendChild(container);
 
       const handles = createResizeHandles(container, 'vidply', 'transcript-resize');
-      const directions = handles.map(h => h.direction);
+      const directions = handles.map((h) => h.direction);
 
       expect(directions).toContain('n');
       expect(directions).toContain('s');
@@ -67,7 +67,7 @@ describe('ResizeHandles', () => {
 
       const handles = createResizeHandles(container, 'vidply', 'test');
 
-      handles.forEach(handle => {
+      handles.forEach((handle) => {
         expect(handle).toHaveProperty('direction');
         expect(handle).toHaveProperty('element');
         expect(handle.element).toBeInstanceOf(HTMLElement);
@@ -89,7 +89,7 @@ describe('ResizeHandles', () => {
 
       const handles = createResizeHandles(container, 'myprefix', 'myhandle');
 
-      handles.forEach(handle => {
+      handles.forEach((handle) => {
         expect(handle.element.className).toContain('myprefix-resize-handle');
         expect(handle.element.className).toContain(`myprefix-resize-handle-${handle.direction}`);
         expect(handle.element.className).toContain(`myprefix-myhandle-${handle.direction}`);

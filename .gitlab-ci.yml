@@ -30,6 +30,7 @@ lint:
   <<: *npm_cache
   stage: lint
   script:
+    - npm run format:check
     - npm run lint
 
 build:

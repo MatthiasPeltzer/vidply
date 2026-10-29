@@ -110,7 +110,12 @@ export const DOMUtils = {
     setTimeout(cleanup, duration + 50);
   },
 
-  offset(element: HTMLElement | null): { top: number; left: number; width: number; height: number } {
+  offset(element: HTMLElement | null): {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  } {
     if (!element) return { top: 0, left: 0, width: 0, height: 0 };
 
     const rect = element.getBoundingClientRect();
@@ -130,7 +135,7 @@ export const DOMUtils = {
       '"': '&quot;',
       "'": '&#x27;'
     };
-    return str.replace(/[&<>"']/g, char => escapeMap[char] ?? char);
+    return str.replace(/[&<>"']/g, (char) => escapeMap[char] ?? char);
   },
 
   /**

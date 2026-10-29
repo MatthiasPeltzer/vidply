@@ -33,7 +33,7 @@ export class VimeoRenderer implements Renderer {
     // Extract video ID from URL - use currentSource which works for external renderers
     const src = this.player.currentSource || this.player.element.src;
     this.videoId = this.extractVideoId(src);
-    
+
     if (!this.videoId) {
       throw new Error('Invalid Vimeo URL');
     }
@@ -79,8 +79,9 @@ export class VimeoRenderer implements Renderer {
     if (!videoId || !this.chromelessEmbedActive()) {
       return;
     }
-    const hasPoster = this.player.element.getAttribute('poster')
-      ?? (typeof this.player.options.poster === 'string' ? this.player.options.poster : null);
+    const hasPoster =
+      this.player.element.getAttribute('poster') ??
+      (typeof this.player.options.poster === 'string' ? this.player.options.poster : null);
     if (hasPoster) {
       return;
     }
@@ -145,7 +146,7 @@ export class VimeoRenderer implements Renderer {
     this.iframe.id = `vimeo-player-${Math.random().toString(36).substr(2, 9)}`;
     this.iframe.style.width = '100%';
     this.iframe.style.maxHeight = '100%';
-    
+
     this.player.element.parentNode?.insertBefore(this.iframe, this.player.element);
   }
 
@@ -179,7 +180,7 @@ export class VimeoRenderer implements Renderer {
     // Wait for player to be ready
     await this.vimeo.ready();
     this.isReady = true;
-    
+
     // Ensure the iframe has 100% width and height
     const vimeoIframe = this.iframe?.querySelector('iframe');
     if (vimeoIframe) {
@@ -188,7 +189,7 @@ export class VimeoRenderer implements Renderer {
       vimeoIframe.setAttribute('width', '100%');
       vimeoIframe.setAttribute('height', '100%');
     }
-    
+
     this.player.syncEmbedChromeClass('vimeo');
 
     this.attachEvents();
@@ -440,4 +441,3 @@ export class VimeoRenderer implements Renderer {
     }
   }
 }
-

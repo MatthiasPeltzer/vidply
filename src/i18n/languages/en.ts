@@ -70,8 +70,10 @@ export const en = {
     autoQuality: 'Auto (no quality selection available)',
     noQuality: 'Quality selection not available',
     signLanguageDragResize: 'Sign Language Video - Press D to drag with keyboard, R to resize',
-    signLanguageDragActive: 'Sign Language Video - Drag mode active. Use arrow keys to move, Escape to exit.',
-    signLanguageResizeActive: 'Sign Language Video - Resize mode active. Use left/right arrow keys to resize, Escape to exit.',
+    signLanguageDragActive:
+      'Sign Language Video - Drag mode active. Use arrow keys to move, Escape to exit.',
+    signLanguageResizeActive:
+      'Sign Language Video - Resize mode active. Use left/right arrow keys to resize, Escape to exit.',
     enableSignDragMode: 'Enable drag mode. Shortcut: D key',
     disableSignDragMode: 'Disable drag mode. Shortcut: D key',
     enableSignDragModeAria: 'Enable toggle keyboard drag mode with arrow keys. Shortcut: D key',
@@ -143,9 +145,11 @@ export const en = {
     noTranscript: 'No transcript available for this video.',
     settings: 'Transcript settings. Press Enter to open menu, or D to enable drag mode',
     keyboardDragMode: 'Toggle keyboard drag mode with arrow keys. Shortcut: D key',
-    keyboardDragActive: '⌨️ Keyboard Drag Mode Active (Arrow keys to move, Shift+Arrows for large steps, D or ESC to exit)',
+    keyboardDragActive:
+      '⌨️ Keyboard Drag Mode Active (Arrow keys to move, Shift+Arrows for large steps, D or ESC to exit)',
     dragResizePrompt: 'Press D to drag or R to resize. Use Home to reset position, Esc to close.',
-    dragModeEnabled: 'Keyboard drag mode enabled. Use arrow keys to move, Shift+Arrow for larger steps. Press D or Esc to exit.',
+    dragModeEnabled:
+      'Keyboard drag mode enabled. Use arrow keys to move, Shift+Arrow for larger steps. Press D or Esc to exit.',
     dragModeDisabled: 'Keyboard drag mode disabled.',
     enableDragMode: 'Enable drag mode. Shortcut: D key',
     disableDragMode: 'Disable drag mode. Shortcut: D key',
@@ -157,8 +161,10 @@ export const en = {
     disableResizeMode: 'Disable resize mode. Shortcut: R key',
     enableResizeModeAria: 'Enable keyboard resize mode with arrow keys. Shortcut: R key',
     disableResizeModeAria: 'Disable keyboard resize mode with arrow keys. Shortcut: R key',
-    resizeModeHint: 'Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit.',
-    resizeModeEnabled: 'Resize mode enabled. Drag edges or corners to adjust. Press Esc or R to exit.',
+    resizeModeHint:
+      'Resize handles enabled. Drag edges or corners to adjust. Press Esc or R to exit.',
+    resizeModeEnabled:
+      'Resize mode enabled. Drag edges or corners to adjust. Press Esc or R to exit.',
     resizeModeDisabled: 'Resize mode disabled.',
     dragModeBadge: 'Drag mode: arrow keys to move, Esc to exit',
     resizeModeBadge: 'Resize mode: drag edges or corners, Esc to exit',
@@ -199,8 +205,8 @@ export const en = {
       'seek-forward-live': 'Seek forward (when behind live)',
       'volume-up': 'Volume up',
       'volume-down': 'Volume down',
-      'mute': 'Mute / Unmute',
-      'captions': 'Toggle captions',
+      mute: 'Mute / Unmute',
+      captions: 'Toggle captions',
       'caption-style-menu': 'Caption styling',
       'speed-down': 'Decrease speed',
       'speed-up': 'Increase speed',
@@ -208,8 +214,8 @@ export const en = {
       'quality-menu': 'Quality',
       'chapters-menu': 'Chapters',
       'transcript-toggle': 'Toggle transcript',
-      'fullscreen': 'Toggle fullscreen',
-      'help': 'Keyboard shortcuts'
+      fullscreen: 'Toggle fullscreen',
+      help: 'Keyboard shortcuts'
     },
     live: {
       skipBack: 'Skip back',
@@ -219,9 +225,11 @@ export const en = {
       goLive: 'Go live',
       goLiveDesc: 'Jump to the current live edge and resume playback',
       progress: 'Progress bar',
-      progressDesc: 'Shows your position within the available rewind window; the right edge is live',
+      progressDesc:
+        'Shows your position within the available rewind window; the right edge is live',
       liveBadge: 'LIVE badge',
-      liveBadgeDesc: 'Shown at the live edge; when you rewind, the time before it shows how far behind live you are'
+      liveBadgeDesc:
+        'Shown at the live edge; when you rewind, the time before it shows how far behind live you are'
     }
   },
   speeds: {
@@ -255,7 +263,8 @@ export const en = {
     notPlaying: 'Not playing',
     pressEnterPlay: 'Press Enter to play',
     pressEnterRestart: 'Press Enter to restart',
-    keyboardInstructions: 'Playlist navigation: Use Up and Down arrow keys to move between tracks. Press Page Up or Page Down to skip 5 tracks. Press Home to go to first track, End to go to last track. Press Enter or Space to play the selected track.',
+    keyboardInstructions:
+      'Playlist navigation: Use Up and Down arrow keys to move between tracks. Press Page Up or Page Down to skip 5 tracks. Press Home to go to first track, End to go to last track. Press Enter or Space to play the selected track.',
     endOfPlaylist: 'End of playlist. {current} of {total}.',
     beginningOfPlaylist: 'Beginning of playlist. 1 of {total}.',
     jumpedToLastTrack: 'Jumped to last track. {current} of {total}.',
@@ -268,4 +277,3 @@ export const en = {
     descriptionHide: 'Hide description'
   }
 };
-

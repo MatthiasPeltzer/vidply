@@ -16,8 +16,9 @@ export function applyPosterImageToVideoWrapper(player: Player, resolvedUrl: stri
 
 /** Apply `poster` / options poster on the video wrapper for chromeless embed idle state. */
 export function applyChromelessIdlePosterFromElement(player: Player): void {
-  const raw = player.element.getAttribute('poster')
-    ?? (typeof player.options.poster === 'string' ? player.options.poster : null);
+  const raw =
+    player.element.getAttribute('poster') ??
+    (typeof player.options.poster === 'string' ? player.options.poster : null);
   if (!raw) {
     return;
   }

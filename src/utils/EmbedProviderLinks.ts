@@ -25,7 +25,12 @@ function sanitizeProviderPageUrl(input: string, provider: EmbedProvider): string
     }
     const host = url.hostname.toLowerCase();
     if (provider === 'youtube') {
-      if (host === 'youtube.com' || host === 'www.youtube.com' || host === 'm.youtube.com' || host === 'youtu.be') {
+      if (
+        host === 'youtube.com' ||
+        host === 'www.youtube.com' ||
+        host === 'm.youtube.com' ||
+        host === 'youtu.be'
+      ) {
         return url.href;
       }
       return null;
@@ -52,7 +57,10 @@ function extractYoutubeWatchUrl(src: string): string | null {
   if (!id) {
     return sanitizeProviderPageUrl(src, 'youtube');
   }
-  return sanitizeProviderPageUrl(`https://www.youtube.com/watch?v=${encodeURIComponent(id)}`, 'youtube');
+  return sanitizeProviderPageUrl(
+    `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`,
+    'youtube'
+  );
 }
 
 function extractVimeoWatchUrl(src: string): string | null {
@@ -87,9 +95,8 @@ export function resolveEmbedProviderWatchUrl(
   if (!src) {
     return null;
   }
-  const resolvedProvider = provider != null && isEmbedProvider(provider)
-    ? provider
-    : classifyRendererType(src);
+  const resolvedProvider =
+    provider != null && isEmbedProvider(provider) ? provider : classifyRendererType(src);
   if (!isEmbedProvider(resolvedProvider)) {
     return null;
   }

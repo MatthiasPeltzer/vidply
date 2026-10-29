@@ -48,9 +48,11 @@ export class ResponsiveManager {
         for (const entry of entries) {
           const width = entry.contentRect.width;
 
-          const controlBar = player.controlBar as (ControlBar & {
-            updateControlsForViewport?: (w: number) => void
-          }) | null;
+          const controlBar = player.controlBar as
+            | (ControlBar & {
+                updateControlsForViewport?: (w: number) => void;
+              })
+            | null;
           if (controlBar && typeof controlBar.updateControlsForViewport === 'function') {
             controlBar.updateControlsForViewport(width);
           }
@@ -71,16 +73,20 @@ export class ResponsiveManager {
     player.resizeHandler = () => {
       const width = player.container.clientWidth;
 
-      const controlBar = player.controlBar as (ControlBar & {
-        updateControlsForViewport?: (w: number) => void
-      }) | null;
+      const controlBar = player.controlBar as
+        | (ControlBar & {
+            updateControlsForViewport?: (w: number) => void;
+          })
+        | null;
       if (controlBar && typeof controlBar.updateControlsForViewport === 'function') {
         controlBar.updateControlsForViewport(width);
       }
 
       if (player.transcriptManager && player.transcriptManager.isVisible) {
-        if (!player.transcriptManager.draggableResizable
-          || !player.transcriptManager.draggableResizable.manuallyPositioned) {
+        if (
+          !player.transcriptManager.draggableResizable ||
+          !player.transcriptManager.draggableResizable.manuallyPositioned
+        ) {
           player.transcriptManager.positionTranscript();
         }
       }
@@ -99,8 +105,10 @@ export class ResponsiveManager {
       // pre-rotation viewport.
       setTimeout(() => {
         if (player.transcriptManager && player.transcriptManager.isVisible) {
-          if (!player.transcriptManager.draggableResizable
-            || !player.transcriptManager.draggableResizable.manuallyPositioned) {
+          if (
+            !player.transcriptManager.draggableResizable ||
+            !player.transcriptManager.draggableResizable.manuallyPositioned
+          ) {
             player.transcriptManager.positionTranscript();
           }
         }
@@ -137,11 +145,12 @@ export class ResponsiveManager {
         mozFullScreenElement?: Element | null;
         msFullscreenElement?: Element | null;
       };
-      const fullscreenElement = document.fullscreenElement
-        || doc.webkitFullscreenElement
-        || doc.mozFullScreenElement
-        || doc.msFullscreenElement
-        || null;
+      const fullscreenElement =
+        document.fullscreenElement ||
+        doc.webkitFullscreenElement ||
+        doc.mozFullScreenElement ||
+        doc.msFullscreenElement ||
+        null;
       const isFullscreen = Boolean(fullscreenElement);
 
       // Tracked separately from state.fullscreen: exitFullscreen() clears that

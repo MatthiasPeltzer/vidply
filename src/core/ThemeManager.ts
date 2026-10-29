@@ -56,7 +56,7 @@ export class ThemeManager {
 
     // Clear any previous theme class so switching themes at runtime
     // does not leave two active theme classes on the element.
-    const themeClasses = PLAYER_THEMES.map(t => `${player.options.classPrefix}-theme-${t}`);
+    const themeClasses = PLAYER_THEMES.map((t) => `${player.options.classPrefix}-theme-${t}`);
     player.container.classList.remove(...themeClasses);
 
     const theme = player.options.theme as ThemeName | undefined;
@@ -117,9 +117,7 @@ export class ThemeManager {
     const player = this.player;
     if (!player.container) return;
 
-    const cssVar = variableName.startsWith('--vidply-')
-      ? variableName
-      : `--vidply-${variableName}`;
+    const cssVar = variableName.startsWith('--vidply-') ? variableName : `--vidply-${variableName}`;
 
     if (!isValidThemeVariableName(cssVar) || !isValidThemeVariableValue(value)) {
       player.log(`[VidPly] Ignoring unsafe setThemeVariable(${variableName})`, 'warn');
@@ -141,7 +139,7 @@ export class ThemeManager {
   reset(): void {
     const player = this.player;
     if (player.container && player.options.themeVariables) {
-      Object.keys(player.options.themeVariables).forEach(key => {
+      Object.keys(player.options.themeVariables).forEach((key) => {
         const cssVar = key.startsWith('--vidply-') ? key : `--vidply-${key}`;
         player.container.style.removeProperty(cssVar);
       });

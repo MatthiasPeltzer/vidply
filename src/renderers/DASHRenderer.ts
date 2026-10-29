@@ -93,7 +93,7 @@ export class DASHRenderer implements Renderer {
     let originalSrc = null;
     if (sourceElements.length > 0) {
       originalSrc = sourceElements[0]?.getAttribute('src') ?? null;
-      sourceElements.forEach(source => source.remove());
+      sourceElements.forEach((source) => source.remove());
       this.player.log('Removed <source> elements for HTML5 validity (dash.js uses MSE)');
     }
 
@@ -254,7 +254,7 @@ export class DASHRenderer implements Renderer {
 
   _setTimeout(fn: () => void, delay: number) {
     const id = setTimeout(() => {
-      this._pendingTimeouts = this._pendingTimeouts.filter(t => t !== id);
+      this._pendingTimeouts = this._pendingTimeouts.filter((t) => t !== id);
       fn();
     }, delay);
     this._pendingTimeouts.push(id);
@@ -295,10 +295,12 @@ export class DASHRenderer implements Renderer {
       const e = args[0] as { tracks?: DashTextTrack[] } | undefined;
       const tracks = e?.tracks ?? [];
       this._dashTextTracks = tracks;
-      this._dashTextIsTtml = tracks.some((t) =>
-        t.isTTML || /stpp|ttml/i.test(t.codec || '') || /ttml/i.test(t.mimeType || '')
+      this._dashTextIsTtml = tracks.some(
+        (t) => t.isTTML || /stpp|ttml/i.test(t.codec || '') || /ttml/i.test(t.mimeType || '')
       );
-      this.player.log(`DASH text tracks added: ${tracks.length} tracks, format: ${this._dashTextIsTtml ? 'TTML' : 'WebVTT'}`);
+      this.player.log(
+        `DASH text tracks added: ${tracks.length} tracks, format: ${this._dashTextIsTtml ? 'TTML' : 'WebVTT'}`
+      );
       this._dashSubtitleTracksCount = tracks.length;
       this.player.emit('dashsubtitletracksupdated', { tracks });
       this.updateCaptionButtonsForDash();
@@ -352,7 +354,12 @@ export class DASHRenderer implements Renderer {
     if (!textTracks) return total;
     for (let i = 0; i < textTracks.length; i++) {
       const track = textTracks[i];
-      if (track && (track.kind === 'subtitles' || track.kind === 'captions') && !track._vidplyStale && track.cues) {
+      if (
+        track &&
+        (track.kind === 'subtitles' || track.kind === 'captions') &&
+        !track._vidplyStale &&
+        track.cues
+      ) {
         total += track.cues.length;
       }
     }
@@ -369,10 +376,10 @@ export class DASHRenderer implements Renderer {
     for (let i = 0; i < textTracks.length; i++) {
       const track = textTracks[i];
       if (
-        !track
-        || (track.kind !== 'subtitles' && track.kind !== 'captions')
-        || track._vidplyStale
-        || !track.cues
+        !track ||
+        (track.kind !== 'subtitles' && track.kind !== 'captions') ||
+        track._vidplyStale ||
+        !track.cues
       ) {
         continue;
       }
@@ -395,11 +402,7 @@ export class DASHRenderer implements Renderer {
     const maxStart = this._getMaxCueStartTime();
     const isLive = this._isLivePlayback();
 
-    if (
-      isLive
-      || count > this._lastKnownCueCount
-      || maxStart > this._lastKnownMaxCueStart
-    ) {
+    if (isLive || count > this._lastKnownCueCount || maxStart > this._lastKnownMaxCueStart) {
       this._lastKnownCueCount = count;
       this._lastKnownMaxCueStart = maxStart;
       this.player.emit('textcuesupdate');
@@ -452,7 +455,11 @@ export class DASHRenderer implements Renderer {
         this._ttmlDiv.style.visibility = 'hidden';
       }
       if (this.dash) {
-        try { this.dash.setTextTrack(-1); } catch { /* ignore */ }
+        try {
+          this.dash.setTextTrack(-1);
+        } catch {
+          /* ignore */
+        }
       }
     };
     this.player.on('captionsenabled', this._captionEnabledHandler);
@@ -469,7 +476,7 @@ export class DASHRenderer implements Renderer {
     const lang = selectedTrack.language;
     if (!lang) return;
 
-    const dashIndex = this._dashTextTracks.findIndex(dt => {
+    const dashIndex = this._dashTextTracks.findIndex((dt) => {
       const dtLang = dt.lang || dt.language || dt.srclang || '';
       if (!dtLang) return false;
       return dtLang === lang || dtLang.startsWith(lang) || lang.startsWith(dtLang);
@@ -479,7 +486,9 @@ export class DASHRenderer implements Renderer {
       this.player.log(`Syncing DASH text track to index ${dashIndex} (${lang})`);
       try {
         this.dash.setTextTrack(dashIndex);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       if (!this._dashTextIsTtml) {
         this._lastKnownCueCount = 0;
         this._startCueUpdatePolling();
@@ -547,7 +556,11 @@ export class DASHRenderer implements Renderer {
     let count = 0;
     for (let i = 0; i < tracks.length; i++) {
       const track = tracks[i];
-      if (track && (track.kind === 'subtitles' || track.kind === 'captions') && !track._vidplyStale) {
+      if (
+        track &&
+        (track.kind === 'subtitles' || track.kind === 'captions') &&
+        !track._vidplyStale
+      ) {
         count++;
       }
     }
@@ -564,18 +577,21 @@ export class DASHRenderer implements Renderer {
       if (tracksCount > 0) {
         if (this.player.captionManager) {
           void this.player.captionManager.refreshTracks().then((found) => {
-          // dash.js fires TEXT_TRACKS_ADDED when it knows about the
-          // tracks, but the browser TextTrackList may not yet enumerate
-          // the new TextTrack objects synchronously. If refreshTracks
-          // found nothing, retry a few times with increasing delays.
-          if (found === 0 && retryCount < 5) {
-            const delay = (retryCount + 1) * 200;
-            this.player.log(`DASH caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`, 'info');
-            this._setTimeout(() => {
-              this.updateCaptionButtonsForDash(retryCount + 1);
-            }, delay);
-            return;
-          }
+            // dash.js fires TEXT_TRACKS_ADDED when it knows about the
+            // tracks, but the browser TextTrackList may not yet enumerate
+            // the new TextTrack objects synchronously. If refreshTracks
+            // found nothing, retry a few times with increasing delays.
+            if (found === 0 && retryCount < 5) {
+              const delay = (retryCount + 1) * 200;
+              this.player.log(
+                `DASH caption tracks not yet on video element, retrying in ${delay}ms (attempt ${retryCount + 1})`,
+                'info'
+              );
+              this._setTimeout(() => {
+                this.updateCaptionButtonsForDash(retryCount + 1);
+              }, delay);
+              return;
+            }
           });
         }
 
@@ -624,114 +640,163 @@ export class DASHRenderer implements Renderer {
   attachMediaEvents() {
     const { signal } = this._listenerController;
 
-    this.media.addEventListener('loadedmetadata', () => {
-      this.player.state.duration = this.media.duration;
-      this.player.emit('loadedmetadata');
-    }, { signal });
+    this.media.addEventListener(
+      'loadedmetadata',
+      () => {
+        this.player.state.duration = this.media.duration;
+        this.player.emit('loadedmetadata');
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('durationchange', () => {
-      const duration = this.media.duration;
-      if (duration && isFinite(duration) && duration > 0) {
-        this.player.state.duration = duration;
-        this.player.emit('durationchange', duration);
-      }
-    }, { signal });
+    this.media.addEventListener(
+      'durationchange',
+      () => {
+        const duration = this.media.duration;
+        if (duration && isFinite(duration) && duration > 0) {
+          this.player.state.duration = duration;
+          this.player.emit('durationchange', duration);
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('play', () => {
-      this.player.state.playing = true;
-      this.player.state.paused = false;
-      this.player.state.ended = false;
-      this.player.emit('play');
+    this.media.addEventListener(
+      'play',
+      () => {
+        this.player.state.playing = true;
+        this.player.state.paused = false;
+        this.player.state.ended = false;
+        this.player.emit('play');
 
-      if (this.player.options.onPlay) {
-        this.player.options.onPlay.call(this.player);
-      }
-    }, { signal });
+        if (this.player.options.onPlay) {
+          this.player.options.onPlay.call(this.player);
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('pause', () => {
-      this.player.state.playing = false;
-      this.player.state.paused = true;
-      this.player.emit('pause');
+    this.media.addEventListener(
+      'pause',
+      () => {
+        this.player.state.playing = false;
+        this.player.state.paused = true;
+        this.player.emit('pause');
 
-      if (this.player.options.onPause) {
-        this.player.options.onPause.call(this.player);
-      }
-    }, { signal });
+        if (this.player.options.onPause) {
+          this.player.options.onPause.call(this.player);
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('ended', () => {
-      this.player.state.playing = false;
-      this.player.state.paused = true;
-      this.player.state.ended = true;
-      this.player.emit('ended');
+    this.media.addEventListener(
+      'ended',
+      () => {
+        this.player.state.playing = false;
+        this.player.state.paused = true;
+        this.player.state.ended = true;
+        this.player.emit('ended');
 
-      if (this.player.options.onEnded) {
-        this.player.options.onEnded.call(this.player);
-      }
+        if (this.player.options.onEnded) {
+          this.player.options.onEnded.call(this.player);
+        }
 
-      if (this.player.options.loop) {
-        this.player.seek(0);
-        this.player.play();
-      }
-    }, { signal });
+        if (this.player.options.loop) {
+          this.player.seek(0);
+          this.player.play();
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('timeupdate', () => {
-      this.player.state.currentTime = this.media.currentTime;
-      this.player.emit('timeupdate', this.media.currentTime);
+    this.media.addEventListener(
+      'timeupdate',
+      () => {
+        this.player.state.currentTime = this.media.currentTime;
+        this.player.emit('timeupdate', this.media.currentTime);
 
-      if (this.player.options.onTimeUpdate) {
-        this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
-      }
-    }, { signal });
+        if (this.player.options.onTimeUpdate) {
+          this.player.options.onTimeUpdate.call(this.player, this.media.currentTime);
+        }
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('volumechange', () => {
-      if (!this.player.shouldSyncVolumeFromMedia()) {
-        return;
-      }
-      this.player.state.volume = this.media.volume;
-      this.player.state.muted = this.media.muted;
-      this.player.emit('volumechange', this.media.volume);
-    }, { signal });
+    this.media.addEventListener(
+      'volumechange',
+      () => {
+        if (!this.player.shouldSyncVolumeFromMedia()) {
+          return;
+        }
+        this.player.state.volume = this.media.volume;
+        this.player.state.muted = this.media.muted;
+        this.player.emit('volumechange', this.media.volume);
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('seeking', () => {
-      this.player.state.seeking = true;
-      this.player.emit('seeking');
+    this.media.addEventListener(
+      'seeking',
+      () => {
+        this.player.state.seeking = true;
+        this.player.emit('seeking');
 
-      // Browsers do not fire `waiting` when seeking on a paused media element
-      // — there is nothing to "wait" for since playback isn't requested. With
-      // dash.js + MSE, scrubbing while paused (or before the first play)
-      // still triggers a real fragment download, but the spinner stays hidden
-      // because no `waiting` event reaches the buffering UI. Detect a seek
-      // into an unbuffered range here and surface it as 'waiting' so the
-      // spinner appears. Cleared again by the existing `canplay` /
-      // `seeked` paths.
-      if (!this._isTimeBuffered(this.media.currentTime)) {
+        // Browsers do not fire `waiting` when seeking on a paused media element
+        // — there is nothing to "wait" for since playback isn't requested. With
+        // dash.js + MSE, scrubbing while paused (or before the first play)
+        // still triggers a real fragment download, but the spinner stays hidden
+        // because no `waiting` event reaches the buffering UI. Detect a seek
+        // into an unbuffered range here and surface it as 'waiting' so the
+        // spinner appears. Cleared again by the existing `canplay` /
+        // `seeked` paths.
+        if (!this._isTimeBuffered(this.media.currentTime)) {
+          this.player.state.buffering = true;
+          this.player.emit('waiting');
+        }
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'seeked',
+      () => {
+        this.player.state.seeking = false;
+        this.player.emit('seeked');
+      },
+      { signal }
+    );
+
+    this.media.addEventListener(
+      'waiting',
+      () => {
         this.player.state.buffering = true;
         this.player.emit('waiting');
-      }
-    }, { signal });
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('seeked', () => {
-      this.player.state.seeking = false;
-      this.player.emit('seeked');
-    }, { signal });
+    this.media.addEventListener(
+      'canplay',
+      () => {
+        this.player.state.buffering = false;
+        this.player.emit('canplay');
+      },
+      { signal }
+    );
 
-    this.media.addEventListener('waiting', () => {
-      this.player.state.buffering = true;
-      this.player.emit('waiting');
-    }, { signal });
-
-    this.media.addEventListener('canplay', () => {
-      this.player.state.buffering = false;
-      this.player.emit('canplay');
-    }, { signal });
-
-    this.media.addEventListener('error', () => {
-      this.player.handleError(this.media.error);
-    }, { signal });
+    this.media.addEventListener(
+      'error',
+      () => {
+        this.player.handleError(this.media.error);
+      },
+      { signal }
+    );
   }
 
   handleDashError(e: unknown) {
-    const wrapped = e as { error?: { code?: number; message?: string }; code?: number; message?: string } | undefined;
+    const wrapped = e as
+      { error?: { code?: number; message?: string }; code?: number; message?: string } | undefined;
     const error = wrapped?.error ?? wrapped;
     if (!error) return;
     const code = error.code ?? '';
@@ -798,7 +863,7 @@ export class DASHRenderer implements Renderer {
     const promise = this.media.play();
 
     if (promise !== undefined) {
-      promise.catch(error => {
+      promise.catch((error) => {
         this.player.state.buffering = false;
         this.player.emit('canplay');
         this.player.log('Play failed:', error, 'warn');
@@ -963,14 +1028,14 @@ export class DASHRenderer implements Renderer {
   activateTextTrackForLanguage(lang: string): boolean {
     if (!this.dash || !this._dashTextTracks.length || !lang) return false;
 
-    let dashIndex = this._dashTextTracks.findIndex(dt => {
+    let dashIndex = this._dashTextTracks.findIndex((dt) => {
       const dtLang = dt.lang || dt.language || dt.srclang || '';
       if (!dtLang) return false;
       return dtLang === lang || dtLang.startsWith(lang) || lang.startsWith(dtLang);
     });
 
     if (dashIndex < 0) {
-      dashIndex = this._dashTextTracks.findIndex(dt => {
+      dashIndex = this._dashTextTracks.findIndex((dt) => {
         const dtLabel = (dt.label || dt.labels || '').toString().toLowerCase();
         return dtLabel.includes(lang.toLowerCase());
       });
@@ -978,10 +1043,14 @@ export class DASHRenderer implements Renderer {
 
     if (dashIndex < 0) return false;
 
-    this.player.log(`Activating DASH text track index ${dashIndex} for transcript language "${lang}"`);
+    this.player.log(
+      `Activating DASH text track index ${dashIndex} for transcript language "${lang}"`
+    );
     try {
       this.dash.setTextTrack(dashIndex);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     // dash.js's text scheduler only fetches segments while the video is
     // playing.  When paused, a brief play–pause cycle forces the scheduler
@@ -1002,11 +1071,13 @@ export class DASHRenderer implements Renderer {
         }
       };
       if (playPromise && typeof playPromise.then === 'function') {
-        playPromise.then(() => {
-          this._setTimeout(doPause, 250);
-        }).catch(() => {
-          this.media.muted = wasMuted;
-        });
+        playPromise
+          .then(() => {
+            this._setTimeout(doPause, 250);
+          })
+          .catch(() => {
+            this.media.muted = wasMuted;
+          });
       } else {
         this._setTimeout(doPause, 250);
       }
@@ -1034,8 +1105,11 @@ export class DASHRenderer implements Renderer {
       const rawPeriods = manifest.Period || manifest.period || manifest.periods || manifest;
       const periods = (Array.isArray(rawPeriods) ? rawPeriods : [rawPeriods]) as ManifestNode[];
       for (const period of periods) {
-        const rawAdaptSets = period.AdaptationSet || period.adaptationSet || period.AdaptationSet_asArray || [];
-        const adaptSets = (Array.isArray(rawAdaptSets) ? rawAdaptSets : [rawAdaptSets]) as ManifestNode[];
+        const rawAdaptSets =
+          period.AdaptationSet || period.adaptationSet || period.AdaptationSet_asArray || [];
+        const adaptSets = (
+          Array.isArray(rawAdaptSets) ? rawAdaptSets : [rawAdaptSets]
+        ) as ManifestNode[];
         for (const as of adaptSets) {
           const ct = String(as.contentType || as.ContentType || '');
           const mime = String(as.mimeType || as.MimeType || '');
@@ -1046,10 +1120,7 @@ export class DASHRenderer implements Renderer {
           const reps = (Array.isArray(rawReps) ? rawReps : [rawReps]) as ManifestNode[];
           for (const rep of reps) {
             const bu = (rep.BaseURL || rep.baseURL || rep.BaseURL_asArray) as
-              | string
-              | { __text?: string }
-              | Array<string | { __text?: string }>
-              | undefined;
+              string | { __text?: string } | Array<string | { __text?: string }> | undefined;
             let rawUrl: string | undefined;
             if (Array.isArray(bu)) {
               const first = bu[0];
@@ -1090,7 +1161,7 @@ export class DASHRenderer implements Renderer {
   }
 
   destroy() {
-    this._pendingTimeouts.forEach(id => clearTimeout(id));
+    this._pendingTimeouts.forEach((id) => clearTimeout(id));
     this._pendingTimeouts = [];
     this._stopCueUpdatePolling();
     this._lastKnownCueCount = 0;
@@ -1138,10 +1209,14 @@ export class DASHRenderer implements Renderer {
         // reset() cleanly detaches from MediaSource and cancels pending
         // buffer operations before destroy() releases all resources.
         this.dash.reset();
-      } catch { /* ignore teardown errors */ }
+      } catch {
+        /* ignore teardown errors */
+      }
       try {
         this.dash.destroy();
-      } catch { /* ignore teardown errors */ }
+      } catch {
+        /* ignore teardown errors */
+      }
       this.dash = null;
     }
     this._dashTextTracks = [];

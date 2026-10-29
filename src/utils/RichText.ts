@@ -5,8 +5,23 @@
  */
 
 const ALLOWED_TAGS = new Set([
-  'p', 'br', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'a',
-  'h2', 'h3', 'h4', 'blockquote', 'span', 'div'
+  'p',
+  'br',
+  'strong',
+  'b',
+  'em',
+  'i',
+  'u',
+  'ul',
+  'ol',
+  'li',
+  'a',
+  'h2',
+  'h3',
+  'h4',
+  'blockquote',
+  'span',
+  'div'
 ]);
 
 const ALLOWED_ATTRS: Record<string, ReadonlySet<string>> = {
@@ -16,9 +31,10 @@ const ALLOWED_ATTRS: Record<string, ReadonlySet<string>> = {
 const FORBIDDEN_URI_PATTERN = /^\s*(javascript|data|vbscript):/i;
 
 function sanitizeNode(root: ParentNode): void {
-  const elements = root instanceof Element
-    ? Array.from(root.children)
-    : Array.from(root.childNodes).filter((node): node is Element => node instanceof Element);
+  const elements =
+    root instanceof Element
+      ? Array.from(root.children)
+      : Array.from(root.childNodes).filter((node): node is Element => node instanceof Element);
 
   for (const child of elements) {
     const tag = child.tagName.toLowerCase();

@@ -8,21 +8,21 @@ A practical guide for web developers on how to integrate VidPly into your websit
 
 VidPly is a universal, accessible media player supporting:
 
-| Feature | Support |
-|---------|---------|
-| **Video** | MP4, WebM, OGG |
-| **Audio** | MP3, OGG, WAV |
-| **YouTube** | Embedded with unified controls |
-| **Vimeo** | Embedded with unified controls |
-| **SoundCloud** | Embedded via Widget API with unified controls |
-| **HLS** | Adaptive bitrate streaming (`hls.js` on most browsers, native on iOS / iPadOS) |
-| **DASH** | MPEG-DASH streaming via dash.js |
-| **Buffering Spinner** | Centered loading spinner during waiting/seeking |
-| **Download Button** | Optional control with custom URL support |
-| **Playlists** | Audio, video & mixed media with thumbnails |
-| **Accessibility** | WCAG 2.2 AA compliant |
-| **TypeScript** | Strict TS sources + bundled `.d.ts` declarations |
-| **Languages** | EN, ES, FR, DE, JA + custom |
+| Feature               | Support                                                                        |
+| --------------------- | ------------------------------------------------------------------------------ |
+| **Video**             | MP4, WebM, OGG                                                                 |
+| **Audio**             | MP3, OGG, WAV                                                                  |
+| **YouTube**           | Embedded with unified controls                                                 |
+| **Vimeo**             | Embedded with unified controls                                                 |
+| **SoundCloud**        | Embedded via Widget API with unified controls                                  |
+| **HLS**               | Adaptive bitrate streaming (`hls.js` on most browsers, native on iOS / iPadOS) |
+| **DASH**              | MPEG-DASH streaming via dash.js                                                |
+| **Buffering Spinner** | Centered loading spinner during waiting/seeking                                |
+| **Download Button**   | Optional control with custom URL support                                       |
+| **Playlists**         | Audio, video & mixed media with thumbnails                                     |
+| **Accessibility**     | WCAG 2.2 AA compliant                                                          |
+| **TypeScript**        | Strict TS sources + bundled `.d.ts` declarations                               |
+| **Languages**         | EN, ES, FR, DE, JA + custom                                                    |
 
 ---
 
@@ -36,6 +36,7 @@ npm run build
 ```
 
 This creates files in `dist/`:
+
 - `prod/vidply.esm.min.js` - ES Module (recommended)
 - `legacy/vidply.min.js` - IIFE for script tag (global `VidPly`)
 - `vidply.min.css` - Styles
@@ -45,7 +46,7 @@ This creates files in `dist/`:
 **ES Module (Recommended):**
 
 ```html
-<link rel="stylesheet" href="dist/vidply.min.css">
+<link rel="stylesheet" href="dist/vidply.min.css" />
 <script type="module">
   import Player from './dist/prod/vidply.esm.min.js';
 </script>
@@ -54,7 +55,7 @@ This creates files in `dist/`:
 **Traditional Script Tag:**
 
 ```html
-<link rel="stylesheet" href="dist/vidply.min.css">
+<link rel="stylesheet" href="dist/vidply.min.css" />
 <script src="dist/legacy/vidply.min.js"></script>
 ```
 
@@ -66,8 +67,8 @@ This creates files in `dist/`:
 
 ```html
 <video data-vidply width="800" height="450">
-  <source src="video.mp4" type="video/mp4">
-  <source src="video.webm" type="video/webm">
+  <source src="video.mp4" type="video/mp4" />
+  <source src="video.webm" type="video/webm" />
 </video>
 ```
 
@@ -77,8 +78,8 @@ The `data-vidply` attribute auto-initializes the player.
 
 ```html
 <audio data-vidply>
-  <source src="audio.mp3" type="audio/mpeg">
-  <source src="audio.ogg" type="audio/ogg">
+  <source src="audio.mp3" type="audio/mpeg" />
+  <source src="audio.ogg" type="audio/ogg" />
 </audio>
 ```
 
@@ -86,7 +87,7 @@ The `data-vidply` attribute auto-initializes the player.
 
 ```html
 <video data-vidply poster="thumbnail.jpg" width="800" height="450">
-  <source src="video.mp4" type="video/mp4">
+  <source src="video.mp4" type="video/mp4" />
 </video>
 ```
 
@@ -118,7 +119,11 @@ YouTube and Vimeo play in a chromeless iframe with the VidPly control bar by def
 To keep only the provider's own player UI, set `embedChrome: 'provider'`:
 
 ```html
-<video data-vidply data-embed-chrome="provider" src="https://www.youtube.com/watch?v=VIDEO_ID"></video>
+<video
+  data-vidply
+  data-embed-chrome="provider"
+  src="https://www.youtube.com/watch?v=VIDEO_ID"
+></video>
 ```
 
 With `'provider'` the VidPly control bar and play overlay are hidden and the iframe handles playback and keyboard
@@ -145,13 +150,13 @@ When using `mpc-vidply` in TYPO3, the **Privacy Layer** displays a GDPR consent 
 <video data-vidply src="https://example.com/stream.m3u8"></video>
 ```
 
-`hls.js` **1.7.3** is loaded on demand when `.m3u8` URLs are detected (CDN fallback if not already on the page). Behavior per platform:
+`hls.js` **1.7.4** is loaded on demand when `.m3u8` URLs are detected (CDN fallback if not already on the page). Behavior per platform:
 
-| Platform | HLS engine | Captions / Transcript / Quality |
-|----------|------------|---------------------------------|
-| Chrome / Firefox / Edge | `hls.js` | Full VidPly UI |
-| Desktop macOS Safari | `hls.js` (for parity with other browsers) | Full VidPly UI |
-| iOS / iPadOS Safari | Native `<video>` HLS | Full VidPly UI via the native `TextTrack` API bridge |
+| Platform                | HLS engine                                | Captions / Transcript / Quality                      |
+| ----------------------- | ----------------------------------------- | ---------------------------------------------------- |
+| Chrome / Firefox / Edge | `hls.js`                                  | Full VidPly UI                                       |
+| Desktop macOS Safari    | `hls.js` (for parity with other browsers) | Full VidPly UI                                       |
+| iOS / iPadOS Safari     | Native `<video>` HLS                      | Full VidPly UI via the native `TextTrack` API bridge |
 
 > Even on iOS where `hls.js` cannot run (no MSE), VidPly still wires the captions menu, interactive transcript and quality menu into the browser's native HLS text tracks — you don't lose any UI controls.
 
@@ -162,6 +167,7 @@ When using `mpc-vidply` in TYPO3, the **Privacy Layer** displays a GDPR consent 
 ```
 
 **dash.js 5.2.1** (modern UMD) is loaded on demand when `.mpd` URLs are detected. DASH streams support:
+
 - Adaptive bitrate quality selection
 - TTML subtitles (rendered natively by dash.js)
 - WebVTT subtitles (handled by VidPly's caption system with transcript support)
@@ -170,10 +176,10 @@ When using `mpc-vidply` in TYPO3, the **Privacy Layer** displays a GDPR consent 
 
 ```html
 <video data-vidply width="800" height="450">
-  <source src="dash/manifest.mpd" type="application/dash+xml">
-  <source src="hls/master.m3u8" type="application/x-mpegURL">
-  <source src="fallback.mp4" type="video/mp4">
-  <track kind="subtitles" src="subtitles.en.vtt" srclang="en" label="English">
+  <source src="dash/manifest.mpd" type="application/dash+xml" />
+  <source src="hls/master.m3u8" type="application/x-mpegURL" />
+  <source src="fallback.mp4" type="video/mp4" />
+  <track kind="subtitles" src="subtitles.en.vtt" srclang="en" label="English" />
 </video>
 ```
 
@@ -185,25 +191,25 @@ When using `mpc-vidply` in TYPO3, the **Privacy Layer** displays a GDPR consent 
 
 ```html
 <video data-vidply width="800" height="450">
-  <source src="video.mp4" type="video/mp4">
-  <track kind="subtitles" src="captions-en.vtt" srclang="en" label="English">
-  <track kind="subtitles" src="captions-de.vtt" srclang="de" label="Deutsch">
+  <source src="video.mp4" type="video/mp4" />
+  <track kind="subtitles" src="captions-en.vtt" srclang="en" label="English" />
+  <track kind="subtitles" src="captions-de.vtt" srclang="de" label="Deutsch" />
 </video>
 ```
 
 ### Track Types
 
-| Kind | Purpose |
-|------|---------|
-| `subtitles` | Translation of dialogue |
-| `captions` | Dialogue + sound effects (deaf/hard of hearing) |
-| `descriptions` | Text descriptions of visual content |
-| `chapters` | Chapter markers for navigation |
+| Kind           | Purpose                                         |
+| -------------- | ----------------------------------------------- |
+| `subtitles`    | Translation of dialogue                         |
+| `captions`     | Dialogue + sound effects (deaf/hard of hearing) |
+| `descriptions` | Text descriptions of visual content             |
+| `chapters`     | Chapter markers for navigation                  |
 
 ### Default Captions On
 
 ```html
-<track kind="subtitles" src="captions.vtt" srclang="en" label="English" default>
+<track kind="subtitles" src="captions.vtt" srclang="en" label="English" default />
 ```
 
 ---
@@ -214,8 +220,8 @@ Add chapter navigation with a chapters track:
 
 ```html
 <video data-vidply>
-  <source src="video.mp4" type="video/mp4">
-  <track kind="chapters" src="chapters.vtt" srclang="en">
+  <source src="video.mp4" type="video/mp4" />
+  <track kind="chapters" src="chapters.vtt" srclang="en" />
 </video>
 ```
 
@@ -244,7 +250,7 @@ Conclusion
 ### Via Data Attributes
 
 ```html
-<video 
+<video
   data-vidply
   data-vidply-autoplay="false"
   data-vidply-loop="false"
@@ -253,8 +259,8 @@ Conclusion
   data-vidply-language="en"
   data-vidply-keyboard="true"
   data-vidply-responsive="true"
-  src="video.mp4">
-</video>
+  src="video.mp4"
+></video>
 ```
 
 ### Via JavaScript
@@ -266,18 +272,18 @@ const player = new Player('#my-video', {
   height: 450,
   poster: 'poster.jpg',
   responsive: true,
-  
+
   // Playback
   autoplay: false,
   loop: false,
   muted: false,
   volume: 0.8,
   playbackSpeed: 1.0,
-  
+
   // Controls
   controls: true,
   hideControlsDelay: 3000,
-  
+
   // Buttons (show/hide individual controls)
   playPauseButton: true,
   progressBar: true,
@@ -286,20 +292,20 @@ const player = new Player('#my-video', {
   captionsButton: true,
   fullscreenButton: true,
   pipButton: true,
-  downloadButton: false,        // Show a download button in the control bar
-  downloadUrl: null,            // Optional explicit download URL (defaults to current src)
+  downloadButton: false, // Show a download button in the control bar
+  downloadUrl: null, // Optional explicit download URL (defaults to current src)
 
   // Custom Floating Player (in-page miniplayer / "own PiP")
-  floating: false,                          // Enable the custom floating player; also disables native browser PiP
-  floatingPosition: 'bottom-right',         // 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
-  floatingMinViewportWidth: 768,            // Floating feature is hidden below this viewport width (px)
+  floating: false, // Enable the custom floating player; also disables native browser PiP
+  floatingPosition: 'bottom-right', // 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
+  floatingMinViewportWidth: 768, // Floating feature is hidden below this viewport width (px)
 
   // Language
   language: 'en',
-  
+
   // Keyboard
   keyboard: true,
-  
+
   // Accessibility
   screenReaderAnnouncements: true,
   focusHighlight: true
@@ -308,31 +314,31 @@ const player = new Player('#my-video', {
 
 ### All Options Reference
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `width` | number | 800 | Player width |
-| `height` | number | 450 | Player height |
-| `poster` | string | null | Poster image URL |
-| `responsive` | bool | true | Responsive sizing |
-| `autoplay` | bool | false | Auto-start playback |
-| `loop` | bool | false | Loop playback |
-| `muted` | bool | false | Start muted |
-| `volume` | number | 0.8 | Default volume (0-1) |
-| `playbackSpeed` | number | 1.0 | Default speed |
-| `controls` | bool | true | Show controls |
-| `hideControlsDelay` | number | 3000 | Auto-hide delay (ms) |
-| `keyboard` | bool | true | Enable keyboard shortcuts |
-| `language` | string | 'en' | UI language |
-| `captions` | bool | true | Enable captions support |
-| `captionsDefault` | bool | false | Show captions by default |
-| `transcript` | bool | false | Show transcript panel |
-| `debug` | bool | false | Debug logging |
-| `preload` | string | 'metadata' | `'none'`, `'metadata'`, `'auto'` |
-| `deferLoad` | bool | false | Avoid starting network loading during init; load on user play / explicit load |
-| `fillContainer` | bool | false | Fill the player container |
-| `showTrackInfo` | bool | true | Render `.vidply-track-info` for standalone players (playlists use their own header) |
-| `initialDuration` | number | 0 | Initial duration in seconds (UI only, before media metadata is loaded) |
-| `requirePlaybackForAccessibilityToggles` | bool | false | If true: AD/SL before playback shows a notice instead of implicitly loading/playing |
+| Option                                   | Type   | Default    | Description                                                                         |
+| ---------------------------------------- | ------ | ---------- | ----------------------------------------------------------------------------------- |
+| `width`                                  | number | 800        | Player width                                                                        |
+| `height`                                 | number | 450        | Player height                                                                       |
+| `poster`                                 | string | null       | Poster image URL                                                                    |
+| `responsive`                             | bool   | true       | Responsive sizing                                                                   |
+| `autoplay`                               | bool   | false      | Auto-start playback                                                                 |
+| `loop`                                   | bool   | false      | Loop playback                                                                       |
+| `muted`                                  | bool   | false      | Start muted                                                                         |
+| `volume`                                 | number | 0.8        | Default volume (0-1)                                                                |
+| `playbackSpeed`                          | number | 1.0        | Default speed                                                                       |
+| `controls`                               | bool   | true       | Show controls                                                                       |
+| `hideControlsDelay`                      | number | 3000       | Auto-hide delay (ms)                                                                |
+| `keyboard`                               | bool   | true       | Enable keyboard shortcuts                                                           |
+| `language`                               | string | 'en'       | UI language                                                                         |
+| `captions`                               | bool   | true       | Enable captions support                                                             |
+| `captionsDefault`                        | bool   | false      | Show captions by default                                                            |
+| `transcript`                             | bool   | false      | Show transcript panel                                                               |
+| `debug`                                  | bool   | false      | Debug logging                                                                       |
+| `preload`                                | string | 'metadata' | `'none'`, `'metadata'`, `'auto'`                                                    |
+| `deferLoad`                              | bool   | false      | Avoid starting network loading during init; load on user play / explicit load       |
+| `fillContainer`                          | bool   | false      | Fill the player container                                                           |
+| `showTrackInfo`                          | bool   | true       | Render `.vidply-track-info` for standalone players (playlists use their own header) |
+| `initialDuration`                        | number | 0          | Initial duration in seconds (UI only, before media metadata is loaded)              |
+| `requirePlaybackForAccessibilityToggles` | bool   | false      | If true: AD/SL before playback shows a notice instead of implicitly loading/playing |
 
 ---
 
@@ -345,8 +351,8 @@ Show an opt-in download button in the control bar:
   data-vidply
   data-vidply-download-button="true"
   data-vidply-download-url="/files/lecture.mp4"
-  src="/streams/lecture/manifest.mpd">
-</video>
+  src="/streams/lecture/manifest.mpd"
+></video>
 ```
 
 ```javascript
@@ -397,8 +403,10 @@ channel TYPO3 / `mpc_vidply` uses):
   data-vidply
   data-vidply-options='{"floating": true, "floatingPosition": "bottom-right", "floatingMinViewportWidth": 768}'
   src="video.mp4"
-  width="800" height="450">
-  <track kind="subtitles" src="captions.vtt" srclang="en" label="English">
+  width="800"
+  height="450"
+>
+  <track kind="subtitles" src="captions.vtt" srclang="en" label="English" />
 </video>
 ```
 
@@ -454,7 +462,7 @@ The container exposes a `.vidply-buffering` class while loading, which you can u
 
 <script type="module">
   import { Player, PlaylistManager } from './dist/prod/vidply.esm.min.js';
-  
+
   // When you pass a non-media element, VidPly will create the media element for you.
   const player = new Player('#audio-player', { mediaType: 'audio' });
   const playlist = new PlaylistManager(player, {
@@ -462,7 +470,7 @@ The container exposes a `.vidply-buffering` class while loading, which you can u
     loop: false,
     showPanel: true
   });
-  
+
   playlist.loadPlaylist([
     {
       src: 'track1.mp3',
@@ -487,21 +495,19 @@ The container exposes a `.vidply-buffering` class while loading, which you can u
 
 <script type="module">
   import { Player, PlaylistManager } from './dist/prod/vidply.esm.min.js';
-  
+
   const player = new Player('#video-player');
   const playlist = new PlaylistManager(player, {
     autoAdvance: true,
     showPanel: true
   });
-  
+
   playlist.loadPlaylist([
     {
       src: 'video1.mp4',
       title: 'Video 1',
       poster: 'thumb1.jpg',
-      tracks: [
-        { src: 'captions1.vtt', kind: 'captions', srclang: 'en', label: 'English' }
-      ]
+      tracks: [{ src: 'captions1.vtt', kind: 'captions', srclang: 'en', label: 'English' }]
     },
     {
       src: 'video2.mp4',
@@ -514,21 +520,21 @@ The container exposes a `.vidply-buffering` class while loading, which you can u
 
 ### Playlist Options
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `autoAdvance` | true | Auto-play next track |
-| `autoPlayFirst` | true | Auto-play first track on `loadPlaylist()` (if false: first track is loaded/selected but not played) |
-| `loop` | false | Loop playlist |
-| `showPanel` | true | Show playlist panel |
+| Option          | Default | Description                                                                                         |
+| --------------- | ------- | --------------------------------------------------------------------------------------------------- |
+| `autoAdvance`   | true    | Auto-play next track                                                                                |
+| `autoPlayFirst` | true    | Auto-play first track on `loadPlaylist()` (if false: first track is loaded/selected but not played) |
+| `loop`          | false   | Loop playlist                                                                                       |
+| `showPanel`     | true    | Show playlist panel                                                                                 |
 
 ### Playlist Controls
 
 ```javascript
-playlist.next()           // Next track
-playlist.previous()       // Previous track
-playlist.goToTrack(2)     // Jump to track index
-playlist.hasNext()        // Check if next exists
-playlist.hasPrevious()    // Check if previous exists
+playlist.next(); // Next track
+playlist.previous(); // Previous track
+playlist.goToTrack(2); // Jump to track index
+playlist.hasNext(); // Check if next exists
+playlist.hasPrevious(); // Check if previous exists
 ```
 
 ---
@@ -551,11 +557,11 @@ is active. Set `audioDescriptionSpeech: false` to use text-only descriptions (no
 
 **Mode** (`audioDescriptionMode`, default `auto`):
 
-| Value | Behavior |
-|-------|----------|
-| `auto` | Described video if configured, else VTT speech if descriptions VTT present |
-| `swap` | Described video swap only |
-| `vtt_speech` | VTT speech only |
+| Value        | Behavior                                                                   |
+| ------------ | -------------------------------------------------------------------------- |
+| `auto`       | Described video if configured, else VTT speech if descriptions VTT present |
+| `swap`       | Described video swap only                                                  |
+| `vtt_speech` | VTT speech only                                                            |
 
 ```javascript
 const player = new Player('#my-video', {
@@ -594,6 +600,7 @@ const player = new Player('#my-video', {
 ```
 
 Features:
+
 - Click any line to seek to that point
 - Auto-scrolls during playback
 - Searchable text
@@ -605,24 +612,24 @@ Features:
 
 VidPly includes comprehensive keyboard controls:
 
-| Key | Action |
-|-----|--------|
-| **Space** / **P** / **K** | Play/Pause |
-| **F** | Toggle fullscreen |
-| **M** | Mute/Unmute |
-| **↑** / **↓** | Volume up/down |
-| **←** / **→** | Seek ±10 seconds |
-| **C** | Toggle captions |
-| **A** | Caption style menu |
-| **<** / **>** | Decrease/increase speed |
-| **S** | Speed menu |
-| **Q** | Quality menu |
-| **J** | Chapters menu |
-| **T** | Toggle transcript |
-| **D** | Drag mode (transcript/sign) |
-| **R** | Resize mode |
-| **Home** | Reset position |
-| **Escape** | Exit mode/close menu |
+| Key                       | Action                      |
+| ------------------------- | --------------------------- |
+| **Space** / **P** / **K** | Play/Pause                  |
+| **F**                     | Toggle fullscreen           |
+| **M**                     | Mute/Unmute                 |
+| **↑** / **↓**             | Volume up/down              |
+| **←** / **→**             | Seek ±10 seconds            |
+| **C**                     | Toggle captions             |
+| **A**                     | Caption style menu          |
+| **<** / **>**             | Decrease/increase speed     |
+| **S**                     | Speed menu                  |
+| **Q**                     | Quality menu                |
+| **J**                     | Chapters menu               |
+| **T**                     | Toggle transcript           |
+| **D**                     | Drag mode (transcript/sign) |
+| **R**                     | Resize mode                 |
+| **Home**                  | Reset position              |
+| **Escape**                | Exit mode/close menu        |
 
 ### Custom Keyboard Shortcuts
 
@@ -634,9 +641,9 @@ const player = new Player('#my-video', {
     'seek-backward': ['ArrowLeft', 'j'],
     'volume-up': ['ArrowUp'],
     'volume-down': ['ArrowDown'],
-    'mute': ['m'],
-    'fullscreen': ['f'],
-    'captions': ['c']
+    mute: ['m'],
+    fullscreen: ['f'],
+    captions: ['c']
   }
 });
 ```
@@ -653,21 +660,21 @@ const player = new Player('#my-video', {
   --vidply-primary-color: #3b82f6;
   --vidply-background: rgba(0, 0, 0, 0.8);
   --vidply-text-color: #ffffff;
-  
+
   /* Sizing */
   --vidply-button-size: 40px;
   --vidply-icon-size: 20px;
-  
+
   /* Spacing */
   --vidply-gap-sm: 4px;
   --vidply-gap-md: 8px;
   --vidply-gap-lg: 12px;
-  
+
   /* Border radius */
   --vidply-radius-sm: 4px;
   --vidply-radius-md: 8px;
   --vidply-radius-lg: 12px;
-  
+
   /* Transitions */
   --vidply-transition-fast: 150ms;
   --vidply-transition-normal: 300ms;
@@ -711,7 +718,7 @@ const player = new Player('#my-video', {
 
 ```javascript
 const player = new Player('#my-video', {
-  language: 'de'  // German
+  language: 'de' // German
 });
 ```
 
@@ -728,11 +735,7 @@ const player = new Player('#my-video', {
 **Via data attribute:**
 
 ```html
-<video 
-  data-vidply 
-  data-vidply-language-files='{"pt": "languages/pt.json"}'
-  src="video.mp4">
-</video>
+<video data-vidply data-vidply-language-files='{"pt": "languages/pt.json"}' src="video.mp4"></video>
 ```
 
 **Via JavaScript (options):**
@@ -775,92 +778,92 @@ const player = new Player('#my-video', {
 ### Playback
 
 ```javascript
-player.play()              // Start playback
-player.pause()             // Pause playback
-player.stop()              // Stop and reset
-player.toggle()            // Toggle play/pause
-player.seek(30)            // Seek to 30 seconds
-player.seekForward(10)     // Skip forward 10s
-player.seekBackward(10)    // Skip backward 10s
+player.play(); // Start playback
+player.pause(); // Pause playback
+player.stop(); // Stop and reset
+player.toggle(); // Toggle play/pause
+player.seek(30); // Seek to 30 seconds
+player.seekForward(10); // Skip forward 10s
+player.seekBackward(10); // Skip backward 10s
 ```
 
 ### Volume
 
 ```javascript
-player.setVolume(0.5)      // Set volume (0-1)
-player.getVolume()         // Get volume
-player.mute()              // Mute
-player.unmute()            // Unmute
-player.toggleMute()        // Toggle mute
+player.setVolume(0.5); // Set volume (0-1)
+player.getVolume(); // Get volume
+player.mute(); // Mute
+player.unmute(); // Unmute
+player.toggleMute(); // Toggle mute
 ```
 
 ### Speed
 
 ```javascript
-player.setPlaybackSpeed(1.5)   // Set speed (0.25-2.0)
-player.getPlaybackSpeed()      // Get speed
+player.setPlaybackSpeed(1.5); // Set speed (0.25-2.0)
+player.getPlaybackSpeed(); // Get speed
 ```
 
 ### Fullscreen
 
 ```javascript
-player.enterFullscreen()   // Enter fullscreen
-player.exitFullscreen()    // Exit fullscreen
-player.toggleFullscreen()  // Toggle fullscreen
+player.enterFullscreen(); // Enter fullscreen
+player.exitFullscreen(); // Exit fullscreen
+player.toggleFullscreen(); // Toggle fullscreen
 ```
 
 ### Captions
 
 ```javascript
-player.enableCaptions()    // Enable captions
-player.disableCaptions()   // Disable captions
-player.toggleCaptions()    // Toggle captions
+player.enableCaptions(); // Enable captions
+player.disableCaptions(); // Disable captions
+player.toggleCaptions(); // Toggle captions
 ```
 
 ### State
 
 ```javascript
-player.getCurrentTime()    // Current time in seconds
-player.getDuration()       // Total duration
-player.isPlaying()         // Is playing?
-player.isPaused()          // Is paused?
-player.isEnded()           // Has ended?
-player.isMuted()           // Is muted?
-player.isFullscreen()      // Is fullscreen?
+player.getCurrentTime(); // Current time in seconds
+player.getDuration(); // Total duration
+player.isPlaying(); // Is playing?
+player.isPaused(); // Is paused?
+player.isEnded(); // Has ended?
+player.isMuted(); // Is muted?
+player.isFullscreen(); // Is fullscreen?
 ```
 
 ### Events
 
 ```javascript
-player.on('ready', () => {})
-player.on('play', () => {})
-player.on('pause', () => {})
-player.on('ended', () => {})
-player.on('timeupdate', (time) => {})
-player.on('volumechange', (volume) => {})
-player.on('fullscreenchange', (isFullscreen) => {})
-player.on('captionsenabled', (track) => {})
-player.on('error', (error) => {})
+player.on('ready', () => {});
+player.on('play', () => {});
+player.on('pause', () => {});
+player.on('ended', () => {});
+player.on('timeupdate', (time) => {});
+player.on('volumechange', (volume) => {});
+player.on('fullscreenchange', (isFullscreen) => {});
+player.on('captionsenabled', (track) => {});
+player.on('error', (error) => {});
 ```
 
 ### Cleanup
 
 ```javascript
-player.destroy()           // Remove player
+player.destroy(); // Remove player
 ```
 
 ---
 
 ## Browser Support
 
-| Browser | Version |
-|---------|---------|
-| Chrome | 90+ |
-| Firefox | 88+ |
-| Safari | 14+ |
-| Edge | 90+ |
-| iOS Safari | 14+ |
-| Android Chrome | 90+ |
+| Browser        | Version |
+| -------------- | ------- |
+| Chrome         | 90+     |
+| Firefox        | 88+     |
+| Safari         | 14+     |
+| Edge           | 90+     |
+| iOS Safari     | 14+     |
+| Android Chrome | 90+     |
 
 ---
 
@@ -868,64 +871,67 @@ player.destroy()           // Remove player
 
 ### Video Not Playing
 
-| Issue | Solution |
-|-------|----------|
-| Black screen | Check video URL is accessible |
-| CORS error | Ensure proper CORS headers on server |
-| Format unsupported | Provide MP4 fallback |
-| Autoplay blocked | Set `muted: true` for autoplay |
+| Issue              | Solution                             |
+| ------------------ | ------------------------------------ |
+| Black screen       | Check video URL is accessible        |
+| CORS error         | Ensure proper CORS headers on server |
+| Format unsupported | Provide MP4 fallback                 |
+| Autoplay blocked   | Set `muted: true` for autoplay       |
 
 ### Captions Not Showing
 
-| Issue | Solution |
-|-------|----------|
-| VTT not loading | Check file URL; validate VTT syntax |
-| CORS error | Serve VTT from same domain or enable CORS |
-| Wrong encoding | Save VTT as UTF-8 |
+| Issue           | Solution                                  |
+| --------------- | ----------------------------------------- |
+| VTT not loading | Check file URL; validate VTT syntax       |
+| CORS error      | Serve VTT from same domain or enable CORS |
+| Wrong encoding  | Save VTT as UTF-8                         |
 
 ### YouTube/Vimeo Not Working
 
-| Issue | Solution |
-|-------|----------|
-| Not loading | Check video URL format |
-| API errors | Ensure videos are embeddable |
+| Issue            | Solution                           |
+| ---------------- | ---------------------------------- |
+| Not loading      | Check video URL format             |
+| API errors       | Ensure videos are embeddable       |
 | Controls missing | VidPly uses native service players |
 
 ### HLS Not Playing
 
-| Issue | Solution |
-|-------|----------|
-| Stream not loading | Verify .m3u8 URL is accessible |
-| CORS issues | Configure CORS on streaming server |
-| Segments failing | Check segment URLs in manifest |
+| Issue              | Solution                           |
+| ------------------ | ---------------------------------- |
+| Stream not loading | Verify .m3u8 URL is accessible     |
+| CORS issues        | Configure CORS on streaming server |
+| Segments failing   | Check segment URLs in manifest     |
 
 ### DASH Not Playing
 
-| Issue | Solution |
-|-------|----------|
-| Stream not loading | Verify .mpd URL is accessible |
-| CORS issues | Configure CORS on streaming server |
-| No quality levels | Check MPD has multiple representations |
-| TTML captions missing | dash.js renders TTML natively; ensure tracks are in the manifest |
-| Transcript not available | TTML tracks don't support transcript; use WebVTT for transcript |
+| Issue                    | Solution                                                         |
+| ------------------------ | ---------------------------------------------------------------- |
+| Stream not loading       | Verify .mpd URL is accessible                                    |
+| CORS issues              | Configure CORS on streaming server                               |
+| No quality levels        | Check MPD has multiple representations                           |
+| TTML captions missing    | dash.js renders TTML natively; ensure tracks are in the manifest |
+| Transcript not available | TTML tracks don't support transcript; use WebVTT for transcript  |
 
 ---
 
 ## Best Practices
 
 ### Performance
+
 - ✅ Use `responsive: true` for fluid layouts
 - ✅ Provide poster images
 - ✅ Use appropriate video resolutions
 - ✅ Compress videos for web delivery
 
 ### Accessibility
+
 - ✅ Always provide captions
 - ✅ Use meaningful track labels
 - ✅ Test with keyboard only
 - ✅ Test with screen readers
 
 ### Cross-browser
+
 - ✅ Provide MP4 + WebM sources
 - ✅ Test on mobile devices
 - ✅ Handle fullscreen differences on iOS
@@ -935,6 +941,7 @@ player.destroy()           // Remove player
 ## Live Demos
 
 Try VidPly in action:
+
 - [Main Demo](https://matthiaspeltzer.github.io/vidply/demo/demo.html)
 - [Audio Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-audio.html)
 - [Video Playlist](https://matthiaspeltzer.github.io/vidply/demo/playlist-video.html)
@@ -945,4 +952,3 @@ Try VidPly in action:
 ---
 
 **Need help?** Check the [API documentation](USAGE.md) or open an issue on GitHub.
-

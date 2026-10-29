@@ -100,19 +100,19 @@ vidply/
 
 ## ⚡ NPM Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm run build` | Build everything (TypeScript bundles + types + CSS) |
-| `npm run build:js` | Bundle TypeScript with esbuild (ESM + IIFE) |
-| `npm run build:types` | Emit `.d.ts` type declarations to `dist/types/` |
-| `npm run build:css` | Build CSS only |
-| `npm run typecheck` | `tsc --noEmit` strict type-check across `src/` |
-| `npm run watch` | Watch mode (auto-rebuild) |
-| `npm run dev` | Start dev server |
-| `npm run clean` | Clean dist directory |
-| `npm run start` | Build + start dev server |
-| `npm run test` | Vitest unit tests |
-| `npm run test:e2e` | Playwright end-to-end tests |
+| Script                | Description                                         |
+| --------------------- | --------------------------------------------------- |
+| `npm run build`       | Build everything (TypeScript bundles + types + CSS) |
+| `npm run build:js`    | Bundle TypeScript with esbuild (ESM + IIFE)         |
+| `npm run build:types` | Emit `.d.ts` type declarations to `dist/types/`     |
+| `npm run build:css`   | Build CSS only                                      |
+| `npm run typecheck`   | `tsc --noEmit` strict type-check across `src/`      |
+| `npm run watch`       | Watch mode (auto-rebuild)                           |
+| `npm run dev`         | Start dev server                                    |
+| `npm run clean`       | Clean dist directory                                |
+| `npm run start`       | Build + start dev server                            |
+| `npm run test`        | Vitest unit tests                                   |
+| `npm run test:e2e`    | Playwright end-to-end tests                         |
 
 ---
 
@@ -122,14 +122,15 @@ vidply/
 
 `build/build.js` consumes the TypeScript sources directly (esbuild handles transpilation) and produces:
 
-| File | Format | Use |
-|------|--------|-----|
-| `dev/vidply.esm.js` | ES Module | Development |
-| `prod/vidply.esm.min.js` | ES Module | Production |
-| `legacy/vidply.js` | IIFE | Development |
-| `legacy/vidply.min.js` | IIFE | Production |
+| File                     | Format    | Use         |
+| ------------------------ | --------- | ----------- |
+| `dev/vidply.esm.js`      | ES Module | Development |
+| `prod/vidply.esm.min.js` | ES Module | Production  |
+| `legacy/vidply.js`       | IIFE      | Development |
+| `legacy/vidply.min.js`   | IIFE      | Production  |
 
 **Features:**
+
 - Code splitting (renderers loaded on demand)
 - Tree shaking
 - Source maps (development)
@@ -139,19 +140,19 @@ vidply/
 
 `npm run build:types` runs `tsc --emitDeclarationOnly` against `tsconfig.build.json` and emits:
 
-| File | Use |
-|------|-----|
+| File                    | Use                                                     |
+| ----------------------- | ------------------------------------------------------- |
 | `dist/types/index.d.ts` | Public type entry, referenced from `package.json#types` |
-| `dist/types/**/*.d.ts` | Per-module declarations for tree-shakable named imports |
+| `dist/types/**/*.d.ts`  | Per-module declarations for tree-shakable named imports |
 
 ### CSS (clean-css)
 
 `build/build-css.js` produces:
 
-| File | Use |
-|------|-----|
-| `vidply.css` | Development |
-| `vidply.min.css` | Production |
+| File             | Use         |
+| ---------------- | ----------- |
+| `vidply.css`     | Development |
+| `vidply.min.css` | Production  |
 
 ---
 
@@ -232,7 +233,7 @@ createMyButton(): HTMLButtonElement {
 ```typescript
 export const Icons = {
   // ...existing icons
-  myIcon: `<svg>...</svg>`,
+  myIcon: `<svg>...</svg>`
 } as const;
 ```
 
@@ -242,7 +243,7 @@ export const Icons = {
 export default {
   player: {
     // ...existing
-    myButton: 'My Button',
+    myButton: 'My Button'
   }
 };
 ```
@@ -265,15 +266,33 @@ import type { Player } from '../core/Player';
 export class MyRenderer {
   constructor(public player: Player) {}
 
-  async init(): Promise<void> { /* ... */ }
-  async load(src: string): Promise<void> { /* ... */ }
-  play(): void { /* ... */ }
-  pause(): void { /* ... */ }
-  seek(time: number): void { /* ... */ }
-  setVolume(vol: number): void { /* ... */ }
-  getCurrentTime(): number { /* ... */ }
-  getDuration(): number { /* ... */ }
-  destroy(): void { /* ... */ }
+  async init(): Promise<void> {
+    /* ... */
+  }
+  async load(src: string): Promise<void> {
+    /* ... */
+  }
+  play(): void {
+    /* ... */
+  }
+  pause(): void {
+    /* ... */
+  }
+  seek(time: number): void {
+    /* ... */
+  }
+  setVolume(vol: number): void {
+    /* ... */
+  }
+  getCurrentTime(): number {
+    /* ... */
+  }
+  getDuration(): number {
+    /* ... */
+  }
+  destroy(): void {
+    /* ... */
+  }
 }
 ```
 
@@ -294,7 +313,7 @@ if (isMyServiceUrl(src)) return MyRenderer;
 export default {
   player: {
     play: 'Reproduzir',
-    pause: 'Pausar',
+    pause: 'Pausar'
     // ... all translations
   }
 };
@@ -306,8 +325,12 @@ export default {
 import pt from './languages/pt';
 
 export const translations = {
-  en, de, es, fr, ja,
-  pt,
+  en,
+  de,
+  es,
+  fr,
+  ja,
+  pt
 };
 ```
 
@@ -323,11 +346,11 @@ export const translations = {
   --vidply-primary-color: #3b82f6;
   --vidply-background: rgba(0, 0, 0, 0.8);
   --vidply-text-color: #ffffff;
-  
+
   /* Sizing */
   --vidply-button-size: 40px;
   --vidply-icon-size: 20px;
-  
+
   /* Spacing */
   --vidply-gap-sm: 4px;
   --vidply-gap-md: 8px;
@@ -338,12 +361,18 @@ export const translations = {
 ### BEM Naming
 
 ```css
-.vidply-player { }           /* Block */
-.vidply-player--fullscreen { } /* Modifier */
-.vidply-controls { }         /* Block */
-.vidply-controls__left { }   /* Element */
-.vidply-button { }           /* Block */
-.vidply-button--active { }   /* Modifier */
+.vidply-player {
+} /* Block */
+.vidply-player--fullscreen {
+} /* Modifier */
+.vidply-controls {
+} /* Block */
+.vidply-controls__left {
+} /* Element */
+.vidply-button {
+} /* Block */
+.vidply-button--active {
+} /* Modifier */
 ```
 
 ### Accessibility
@@ -392,14 +421,14 @@ export const translations = {
 
 ### Browser Testing
 
-| Browser | Priority |
-|---------|----------|
-| Chrome | High |
-| Firefox | High |
-| Safari | High |
-| Edge | Medium |
-| iOS Safari | High |
-| Android Chrome | Medium |
+| Browser        | Priority |
+| -------------- | -------- |
+| Chrome         | High     |
+| Firefox        | High     |
+| Safari         | High     |
+| Edge           | Medium   |
+| iOS Safari     | High     |
+| Android Chrome | Medium   |
 
 ---
 
@@ -419,23 +448,23 @@ player.emit('mycustomevent', { data: 'value' });
 
 ### Available Events
 
-| Event | Data | Description |
-|-------|------|-------------|
-| `ready` | - | Player initialized |
-| `play` | - | Playback started |
-| `pause` | - | Playback paused |
-| `ended` | - | Playback ended |
-| `timeupdate` | time | Current time changed |
-| `volumechange` | volume | Volume changed |
-| `playbackspeedchange` | speed | Speed changed |
-| `fullscreenchange` | isFullscreen | Fullscreen toggled |
-| `hlsmanifestparsed` | data | HLS manifest parsed |
-| `dashqualitychanged` | data | DASH quality changed |
-| `textcuesupdate` | - | New text cues available (HLS/DASH) |
-| `captionsenabled` | track | Captions enabled |
-| `captionsdisabled` | - | Captions disabled |
-| `playlisttrackchange` | item | Playlist track changed |
-| `error` | error | Error occurred |
+| Event                 | Data         | Description                        |
+| --------------------- | ------------ | ---------------------------------- |
+| `ready`               | -            | Player initialized                 |
+| `play`                | -            | Playback started                   |
+| `pause`               | -            | Playback paused                    |
+| `ended`               | -            | Playback ended                     |
+| `timeupdate`          | time         | Current time changed               |
+| `volumechange`        | volume       | Volume changed                     |
+| `playbackspeedchange` | speed        | Speed changed                      |
+| `fullscreenchange`    | isFullscreen | Fullscreen toggled                 |
+| `hlsmanifestparsed`   | data         | HLS manifest parsed                |
+| `dashqualitychanged`  | data         | DASH quality changed               |
+| `textcuesupdate`      | -            | New text cues available (HLS/DASH) |
+| `captionsenabled`     | track        | Captions enabled                   |
+| `captionsdisabled`    | -            | Captions disabled                  |
+| `playlisttrackchange` | item         | Playlist track changed             |
+| `error`               | error        | Error occurred                     |
 
 ---
 
@@ -457,27 +486,27 @@ if (this.options.debug) {
 
 ### Common Issues
 
-| Issue | Debug Steps |
-|-------|-------------|
+| Issue                   | Debug Steps                                         |
+| ----------------------- | --------------------------------------------------- |
 | Player not initializing | Check `data-vidply` attribute; check console errors |
-| Renderer not loading | Check source URL format; verify network requests |
-| Captions not showing | Validate VTT syntax; check CORS |
-| Keyboard not working | Check `keyboard: true`; verify focus |
+| Renderer not loading    | Check source URL format; verify network requests    |
+| Captions not showing    | Validate VTT syntax; check CORS                     |
+| Keyboard not working    | Check `keyboard: true`; verify focus                |
 
 ---
 
 ## 📚 Documentation Files
 
-| File | Content |
-|------|---------|
-| [GETTING_STARTED.md](GETTING_STARTED.md) | Basic setup |
-| [USAGE.md](USAGE.md) | Detailed API usage |
-| [PLAYLIST.md](PLAYLIST.md) | Playlist features |
-| [TRANSCRIPT.md](TRANSCRIPT.md) | Transcript system |
-| [KEYBOARD.md](KEYBOARD.md) | Keyboard shortcuts |
-| [BUILD.md](BUILD.md) | Build system details |
-| [CHANGELOG.md](../CHANGELOG.md) | Version history |
-| [Users-Guide.md](Users-Guide.md) | Integration guide |
+| File                                     | Content              |
+| ---------------------------------------- | -------------------- |
+| [GETTING_STARTED.md](GETTING_STARTED.md) | Basic setup          |
+| [USAGE.md](USAGE.md)                     | Detailed API usage   |
+| [PLAYLIST.md](PLAYLIST.md)               | Playlist features    |
+| [TRANSCRIPT.md](TRANSCRIPT.md)           | Transcript system    |
+| [KEYBOARD.md](KEYBOARD.md)               | Keyboard shortcuts   |
+| [BUILD.md](BUILD.md)                     | Build system details |
+| [CHANGELOG.md](../CHANGELOG.md)          | Version history      |
+| [Users-Guide.md](Users-Guide.md)         | Integration guide    |
 
 ---
 
@@ -485,41 +514,46 @@ if (this.options.debug) {
 
 ### Key Files
 
-| What | Where |
-|------|-------|
-| Entry point | `src/index.ts` |
-| Player class | `src/core/Player.ts` |
-| Player options type | `src/types/options.ts` |
-| Control bar | `src/controls/ControlBar.ts` |
-| Captions | `src/controls/CaptionManager.ts` |
-| Keyboard | `src/controls/KeyboardManager.ts` |
-| i18n | `src/i18n/i18n.ts` |
-| Styles | `src/styles/vidply.css` |
-| Icons | `src/icons/Icons.ts` |
-| TypeScript config | `tsconfig.json` |
+| What                | Where                             |
+| ------------------- | --------------------------------- |
+| Entry point         | `src/index.ts`                    |
+| Player class        | `src/core/Player.ts`              |
+| Player options type | `src/types/options.ts`            |
+| Control bar         | `src/controls/ControlBar.ts`      |
+| Captions            | `src/controls/CaptionManager.ts`  |
+| Keyboard            | `src/controls/KeyboardManager.ts` |
+| i18n                | `src/i18n/i18n.ts`                |
+| Styles              | `src/styles/vidply.css`           |
+| Icons               | `src/icons/Icons.ts`              |
+| TypeScript config   | `tsconfig.json`                   |
 
 ### Build Output
 
-| File | Format | Size |
-|------|--------|------|
-| `vidply.esm.min.js` | ESM | ~45KB |
-| `vidply.min.js` | IIFE | ~50KB |
-| `vidply.min.css` | CSS | ~15KB |
+Production builds are **code-split** (ESM). Sizes below are minified; gzip is typical wire transfer.
+
+| File / set | Format | Uncompressed (approx.) | Gzip (approx.) |
+| ---------- | ------ | ---------------------- | -------------- |
+| `dist/prod/vidply.esm.min.js` | ESM entry | ~247 KB | ~55 KB |
+| All `dist/prod/*.js` chunks | ESM (full player) | ~542 KB | ~141 KB |
+| `dist/legacy/vidply.min.js` | IIFE (single file) | ~509 KB | ~117 KB |
+| `dist/vidply.min.css` | CSS | ~116 KB | ~17 KB |
 
 ### External Dependencies
 
-| Dependency | Pinned version | Purpose | Loaded |
-|------------|----------------|---------|--------|
-| hls.js | **1.7.3** | HLS streaming (Chrome / Firefox / Edge / desktop Safari) | On demand (CDN fallback) |
-| dash.js | **5.2.1** (modern UMD) | DASH streaming | On demand (CDN fallback) |
-| YouTube IFrame API | — | YouTube playback | On demand |
-| Vimeo Player API | — | Vimeo playback | On demand |
-| SoundCloud Widget API | — | SoundCloud playback | On demand |
+| Dependency            | Pinned version         | Purpose                                                  | Loaded                   |
+| --------------------- | ---------------------- | -------------------------------------------------------- | ------------------------ |
+| hls.js                | **1.7.4**              | HLS streaming (Chrome / Firefox / Edge / desktop Safari) | On demand (CDN fallback) |
+| dash.js               | **5.2.1** (modern UMD) | DASH streaming                                           | On demand (CDN fallback) |
+| YouTube IFrame API    | —                      | YouTube playback                                         | On demand                |
+| Vimeo Player API      | —                      | Vimeo playback                                           | On demand                |
+| SoundCloud Widget API | —                      | SoundCloud playback                                      | On demand                |
 
 Default CDN fallback URLs (override via `hlsScriptUrl` / `dashScriptUrl`):
 
-- `https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js`
+- `https://cdn.jsdelivr.net/npm/hls.js@1.7.4/dist/hls.min.js`
 - `https://cdn.jsdelivr.net/npm/dashjs@5.2.1/dist/modern/umd/dash.all.min.js`
+
+Each default URL is loaded with a matching **Subresource Integrity** hash unless you override the URL (custom URLs require `hlsScriptIntegrity` / `dashScriptIntegrity`). See [SECURITY.md](../SECURITY.md).
 
 ---
 
@@ -546,4 +580,3 @@ Default CDN fallback URLs (override via `hlsScriptUrl` / `dashScriptUrl`):
 ---
 
 **Version:** 1.1.7 | **License:** GPL-2.0-or-later
-

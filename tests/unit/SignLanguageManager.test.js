@@ -67,7 +67,7 @@ describe('SignLanguageManager', () => {
 
   beforeEach(async () => {
     document.body.innerHTML = '';
-    
+
     // Create mock player
     mockPlayer = {
       options: {
@@ -92,10 +92,10 @@ describe('SignLanguageManager', () => {
       setManagedTimeout: vi.fn((cb) => cb()),
       clearManagedTimeout: vi.fn()
     };
-    
+
     document.body.appendChild(mockPlayer.container);
     mockPlayer.container.appendChild(mockPlayer.element);
-    
+
     // Import after mocks
     const module = await import('../../src/core/SignLanguageManager.js');
     SignLanguageManager = module.SignLanguageManager;
@@ -109,7 +109,7 @@ describe('SignLanguageManager', () => {
   describe('initialization', () => {
     it('should initialize with player reference', () => {
       manager = new SignLanguageManager(mockPlayer);
-      
+
       expect(manager.player).toBe(mockPlayer);
       expect(manager.enabled).toBe(false);
       expect(manager.wrapper).toBe(null);
@@ -120,9 +120,9 @@ describe('SignLanguageManager', () => {
         en: '/sign/en.mp4',
         de: '/sign/de.mp4'
       };
-      
+
       manager = new SignLanguageManager(mockPlayer);
-      
+
       expect(manager.sources).toEqual({
         en: '/sign/en.mp4',
         de: '/sign/de.mp4'
@@ -131,23 +131,23 @@ describe('SignLanguageManager', () => {
 
     it('should use single src from options', () => {
       mockPlayer.options.signLanguageSrc = '/sign/video.mp4';
-      
+
       manager = new SignLanguageManager(mockPlayer);
-      
+
       expect(manager.src).toBe('/sign/video.mp4');
     });
 
     it('should use default position', () => {
       manager = new SignLanguageManager(mockPlayer);
-      
+
       expect(manager.desiredPosition).toBe('bottom-right');
     });
 
     it('should use custom position from options', () => {
       mockPlayer.options.signLanguagePosition = 'top-left';
-      
+
       manager = new SignLanguageManager(mockPlayer);
-      
+
       expect(manager.desiredPosition).toBe('top-left');
     });
   });
@@ -155,15 +155,15 @@ describe('SignLanguageManager', () => {
   describe('isAvailable', () => {
     it('should return false when no sources configured', () => {
       manager = new SignLanguageManager(mockPlayer);
-      
+
       expect(manager.isAvailable()).toBe(false);
     });
 
     it('should return true when single src is configured', () => {
       mockPlayer.options.signLanguageSrc = '/sign/video.mp4';
-      
+
       manager = new SignLanguageManager(mockPlayer);
-      
+
       expect(manager.isAvailable()).toBe(true);
     });
 
@@ -181,9 +181,9 @@ describe('SignLanguageManager', () => {
         en: '/sign/en.mp4',
         de: '/sign/de.mp4'
       };
-      
+
       manager = new SignLanguageManager(mockPlayer);
-      
+
       expect(manager.isAvailable()).toBe(true);
     });
 
@@ -192,9 +192,9 @@ describe('SignLanguageManager', () => {
       mockPlayer.options.signLanguageSources = {
         en: '/sign/en.mp4'
       };
-      
+
       manager = new SignLanguageManager(mockPlayer);
-      
+
       expect(manager.isAvailable()).toBe(true);
     });
   });
@@ -206,21 +206,21 @@ describe('SignLanguageManager', () => {
 
     it('should track enabled state', () => {
       expect(manager.enabled).toBe(false);
-      
+
       manager.enabled = true;
       expect(manager.enabled).toBe(true);
     });
 
     it('should track inMainView state', () => {
       expect(manager.inMainView).toBe(false);
-      
+
       manager.inMainView = true;
       expect(manager.inMainView).toBe(true);
     });
 
     it('should track current language', () => {
       expect(manager.currentLanguage).toBe(null);
-      
+
       manager.currentLanguage = 'de';
       expect(manager.currentLanguage).toBe('de');
     });
@@ -289,9 +289,9 @@ describe('SignLanguageManager', () => {
     it('should warn when no source configured', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       manager = new SignLanguageManager(mockPlayer);
-      
+
       manager.enable();
-      
+
       expect(warnSpy).toHaveBeenCalledWith('No sign language video source provided');
       warnSpy.mockRestore();
     });
@@ -299,58 +299,58 @@ describe('SignLanguageManager', () => {
     it('should set enabled to true when src available', () => {
       mockPlayer.options.signLanguageSrc = '/sign/video.mp4';
       manager = new SignLanguageManager(mockPlayer);
-      
+
       manager.enable();
-      
+
       expect(manager.enabled).toBe(true);
     });
 
     it('should set player state signLanguageEnabled', () => {
       mockPlayer.options.signLanguageSrc = '/sign/video.mp4';
       manager = new SignLanguageManager(mockPlayer);
-      
+
       manager.enable();
-      
+
       expect(mockPlayer.state.signLanguageEnabled).toBe(true);
     });
 
     it('should emit signlanguageenabled event', () => {
       mockPlayer.options.signLanguageSrc = '/sign/video.mp4';
       manager = new SignLanguageManager(mockPlayer);
-      
+
       manager.enable();
-      
+
       expect(mockPlayer.emit).toHaveBeenCalledWith('signlanguageenabled');
     });
 
     it('should create wrapper element', () => {
       mockPlayer.options.signLanguageSrc = '/sign/video.mp4';
       manager = new SignLanguageManager(mockPlayer);
-      
+
       manager.enable();
-      
+
       expect(manager.wrapper).not.toBeNull();
     });
 
     it('should create video element', () => {
       mockPlayer.options.signLanguageSrc = '/sign/video.mp4';
       manager = new SignLanguageManager(mockPlayer);
-      
+
       manager.enable();
-      
+
       expect(manager.video).not.toBeNull();
     });
 
     it('should show existing wrapper if already created', () => {
       mockPlayer.options.signLanguageSrc = '/sign/video.mp4';
       manager = new SignLanguageManager(mockPlayer);
-      
+
       manager.enable(); // First enable
       manager.wrapper.style.display = 'none';
       manager.enabled = false;
-      
+
       manager.enable(); // Second enable
-      
+
       expect(manager.wrapper.style.display).toBe('block');
     });
   });
@@ -364,25 +364,25 @@ describe('SignLanguageManager', () => {
 
     it('should hide wrapper', () => {
       manager.disable();
-      
+
       expect(manager.wrapper.style.display).toBe('none');
     });
 
     it('should set enabled to false', () => {
       manager.disable();
-      
+
       expect(manager.enabled).toBe(false);
     });
 
     it('should set player state signLanguageEnabled to false', () => {
       manager.disable();
-      
+
       expect(mockPlayer.state.signLanguageEnabled).toBe(false);
     });
 
     it('should emit signlanguagedisabled event', () => {
       manager.disable();
-      
+
       expect(mockPlayer.emit).toHaveBeenCalledWith('signlanguagedisabled');
     });
   });
@@ -392,9 +392,9 @@ describe('SignLanguageManager', () => {
       mockPlayer.options.signLanguageSrc = '/sign/video.mp4';
       manager = new SignLanguageManager(mockPlayer);
       manager.enabled = false;
-      
+
       manager.toggle();
-      
+
       expect(manager.enabled).toBe(true);
     });
 
@@ -402,9 +402,9 @@ describe('SignLanguageManager', () => {
       mockPlayer.options.signLanguageSrc = '/sign/video.mp4';
       manager = new SignLanguageManager(mockPlayer);
       manager.enable();
-      
+
       manager.toggle();
-      
+
       expect(manager.enabled).toBe(false);
     });
   });
@@ -421,21 +421,21 @@ describe('SignLanguageManager', () => {
 
     it('should update currentLanguage', () => {
       manager.switchLanguage('de');
-      
+
       expect(manager.currentLanguage).toBe('de');
     });
 
     it('should update video src', () => {
       manager.switchLanguage('de');
-      
+
       expect(manager.video.src).toContain('/sign/de.mp4');
     });
 
     it('should ignore invalid language code', () => {
       const originalLang = manager.currentLanguage;
-      
+
       manager.switchLanguage('invalid');
-      
+
       expect(manager.currentLanguage).toBe(originalLang);
     });
   });
@@ -483,18 +483,18 @@ describe('SignLanguageManager', () => {
     it('should call enableInMainView when not in main view', () => {
       manager.inMainView = false;
       const enableSpy = vi.spyOn(manager, 'enableInMainView').mockResolvedValue();
-      
+
       manager.toggleInMainView();
-      
+
       expect(enableSpy).toHaveBeenCalled();
     });
 
     it('should call disableInMainView when in main view', () => {
       manager.inMainView = true;
       const disableSpy = vi.spyOn(manager, 'disableInMainView').mockResolvedValue();
-      
+
       manager.toggleInMainView();
-      
+
       expect(disableSpy).toHaveBeenCalled();
     });
   });
@@ -506,9 +506,9 @@ describe('SignLanguageManager', () => {
         de: '/sign/de.mp4'
       };
       manager = new SignLanguageManager(mockPlayer);
-      
+
       const lang = manager._determineInitialLanguage();
-      
+
       // Should return first key
       expect(['en', 'de']).toContain(lang);
     });
@@ -523,9 +523,9 @@ describe('SignLanguageManager', () => {
 
     it('should sync video currentTime on enable', () => {
       mockPlayer.state.currentTime = 30;
-      
+
       manager.enable();
-      
+
       expect(manager.video.currentTime).toBe(30);
     });
   });

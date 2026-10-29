@@ -32,16 +32,21 @@ const methodPattern =
   /^\s*(?:public\s+|private\s+|protected\s+)?(?:async\s+)?(?:static\s+)?(?:get\s+|set\s+)?([a-zA-Z][\w$]*)\s*(?:<[^\n>]*>\s*)?\([^\n]*\)\s*[:{]/gm;
 
 const ignoredKeywords = new Set([
-  'constructor', 'if', 'for', 'switch', 'while', 'return',
-  'function', 'catch', 'do', 'else', 'try'
+  'constructor',
+  'if',
+  'for',
+  'switch',
+  'while',
+  'return',
+  'function',
+  'catch',
+  'do',
+  'else',
+  'try'
 ]);
 
 const collectMethods = (src) =>
-  new Set(
-    [...src.matchAll(methodPattern)]
-      .map((m) => m[1])
-      .filter((n) => !ignoredKeywords.has(n))
-  );
+  new Set([...src.matchAll(methodPattern)].map((m) => m[1]).filter((n) => !ignoredKeywords.has(n)));
 
 // Player.ts methods + inherited EventEmitter methods. Player extends
 // EventEmitter, so on/off/once/emit/removeAllListeners are all valid on
@@ -94,7 +99,9 @@ for (const call of calls) {
   }
   const methods = managers.get(first);
   if (!methods.has(methodName)) {
-    errors.push(`README references unknown method: player.${first}.${rest.join('.')}() (no ${methodName} in ${first})`);
+    errors.push(
+      `README references unknown method: player.${first}.${rest.join('.')}() (no ${methodName} in ${first})`
+    );
   }
 }
 

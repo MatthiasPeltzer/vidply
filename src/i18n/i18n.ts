@@ -1,4 +1,9 @@
-import { getBaseTranslations, getBuiltInLanguageLoaders, loadBuiltInTranslation, type TranslationData } from './translations.js';
+import {
+  getBaseTranslations,
+  getBuiltInLanguageLoaders,
+  loadBuiltInTranslation,
+  type TranslationData
+} from './translations.js';
 import { deepSanitize, isForbiddenKey } from '../utils/Sanitize.js';
 
 declare global {
@@ -99,7 +104,11 @@ class I18n {
       } else {
         value = this.translations.en;
         for (const fallbackKey of keys) {
-          if (value && typeof value === 'object' && fallbackKey in (value as Record<string, unknown>)) {
+          if (
+            value &&
+            typeof value === 'object' &&
+            fallbackKey in (value as Record<string, unknown>)
+          ) {
             value = (value as Record<string, unknown>)[fallbackKey];
           } else {
             return key;
@@ -159,11 +168,13 @@ class I18n {
       if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
         signals.push(AbortSignal.timeout(options.timeoutMs ?? 8000));
       }
-      const signal = signals.length === 0
-        ? undefined
-        : signals.length === 1
-          ? signals[0]
-          : (AbortSignal as { any?: (sigs: AbortSignal[]) => AbortSignal }).any?.(signals) ?? signals[0];
+      const signal =
+        signals.length === 0
+          ? undefined
+          : signals.length === 1
+            ? signals[0]
+            : ((AbortSignal as { any?: (sigs: AbortSignal[]) => AbortSignal }).any?.(signals) ??
+              signals[0]);
 
       try {
         const response = await fetch(url, { signal });
@@ -191,8 +202,12 @@ class I18n {
             if (typeof window !== 'undefined' && window.jsyaml) {
               loadedTranslations = window.jsyaml.load(utf8Text) as TranslationData;
             } else {
-              console.warn('YAML parsing requires js-yaml library. Please include it or use JSON format.');
-              throw new Error('YAML parsing not available. Please use JSON format or include js-yaml library.');
+              console.warn(
+                'YAML parsing requires js-yaml library. Please include it or use JSON format.'
+              );
+              throw new Error(
+                'YAML parsing not available. Please use JSON format or include js-yaml library.'
+              );
             }
           }
         } else {

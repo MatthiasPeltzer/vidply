@@ -4,7 +4,7 @@ This document explains how to build VidPly from source.
 
 ## Prerequisites
 
-- Node.js 18+ (for build tools)
+- Node.js 24+ (for build tools; see `package.json#engines`)
 - npm or yarn
 
 ## Installation
@@ -16,6 +16,7 @@ npm install
 ```
 
 This will install:
+
 - `esbuild` - Fast TypeScript / JavaScript bundler
 - `typescript` - Strict type-checking and `.d.ts` emission
 - `clean-css` - CSS minifier
@@ -34,6 +35,7 @@ npm run build
 `npm run build` now **cleans `dist/` first** to avoid stale files (e.g. old chunk names) when rebuilding.
 
 This creates:
+
 - `dist/dev/vidply.esm.js` - ES Module (development)
 - `dist/prod/vidply.esm.min.js` - ES Module (production, minified)
 - `dist/legacy/vidply.js` - IIFE bundle (development)
@@ -98,6 +100,7 @@ This starts a local server at http://localhost:3000
 ### JavaScript Bundles
 
 **ESM Format** (`dist/vidply.esm.js` and `.min.js`)
+
 - Modern ES6 module format
 - Use with `import` statements
 - Tree-shakeable
@@ -108,6 +111,7 @@ import Player from './dist/prod/vidply.esm.min.js';
 ```
 
 **IIFE Format** (`dist/vidply.js` and `.min.js`)
+
 - Immediately Invoked Function Expression
 - Works with `<script>` tags
 - Creates global `VidPly` variable
@@ -123,11 +127,13 @@ import Player from './dist/prod/vidply.esm.min.js';
 ### CSS Files
 
 **dist/vidply.css**
+
 - Unminified, readable styles
 - Includes comments
 - Good for development and customization
 
 **dist/vidply.min.css**
+
 - Minified and optimized
 - ~60% smaller than unminified
 - Use in production
@@ -137,7 +143,7 @@ import Player from './dist/prod/vidply.esm.min.js';
 ### Option 1: ES Module (Recommended)
 
 ```html
-<link rel="stylesheet" href="dist/vidply.min.css">
+<link rel="stylesheet" href="dist/vidply.min.css" />
 
 <video data-vidply src="video.mp4"></video>
 
@@ -150,7 +156,7 @@ import Player from './dist/prod/vidply.esm.min.js';
 ### Option 2: IIFE (Traditional)
 
 ```html
-<link rel="stylesheet" href="dist/vidply.min.css">
+<link rel="stylesheet" href="dist/vidply.min.css" />
 <script src="dist/legacy/vidply.min.js"></script>
 
 <video id="my-video" src="video.mp4"></video>
@@ -165,22 +171,23 @@ import Player from './dist/prod/vidply.esm.min.js';
 
 ## File Sizes
 
-Approximate sizes (minified + gzip):
+Approximate production sizes after `npm run build` (minified):
 
-| File | Uncompressed | Gzipped |
-|------|--------------|---------|
-| vidply.esm.min.js | ~50 KB | ~15 KB |
-| vidply.min.js | ~52 KB | ~16 KB |
-| vidply.min.css | ~12 KB | ~3 KB |
-| **Total** | ~62 KB | ~18 KB |
+| Output | Uncompressed | Gzip (typical transfer) |
+| ------ | ------------ | ----------------------- |
+| `dist/prod/vidply.esm.min.js` (ESM entry) | ~247 KB | ~55 KB |
+| All `dist/prod/*.js` (code-split player) | ~542 KB | ~141 KB |
+| `dist/legacy/vidply.min.js` (IIFE bundle) | ~509 KB | ~117 KB |
+| `dist/vidply.min.css` | ~116 KB | ~17 KB |
 
-**Note:** Actual file sizes may vary depending on the version and features included. These are approximate values for the production builds.
+**Note:** ESM consumers load the entry module first; renderers and heavy features pull additional chunks on demand.
 
 ## Build Scripts Explained
 
 ### build/build.js
 
 Main TypeScript bundling script (esbuild):
+
 - Bundles all `src/**/*.ts` source files
 - Creates ES Module and IIFE formats
 - Generates both dev and production versions
@@ -190,6 +197,7 @@ Main TypeScript bundling script (esbuild):
 ### tsc (build:types)
 
 Runs the TypeScript compiler in declaration-only mode using `tsconfig.build.json`:
+
 - Emits `.d.ts` files to `dist/types/`
 - Used by IDEs, `tsc` consumers and bundlers (vite, webpack, rollup) for type information
 - Referenced from `package.json#types`
@@ -197,6 +205,7 @@ Runs the TypeScript compiler in declaration-only mode using `tsconfig.build.json
 ### build/build-css.js
 
 CSS build script:
+
 - Copies unminified CSS to dist
 - Minifies CSS for production
 - Reports compression statistics
@@ -205,6 +214,7 @@ CSS build script:
 ### build/watch.js
 
 Development watch script:
+
 - Monitors src/ for changes
 - Auto-rebuilds on save
 - Creates development builds with source maps
@@ -213,8 +223,20 @@ Development watch script:
 ### build/clean.js
 
 Cleanup script:
+
 - Removes dist/ directory
 - Prepares for fresh build
+
+### ship-to-mpc-vidply (TYPO3 extension)
+
+When the player is consumed by the **mpc-vidply** TYPO3 extension in the mpcore workspace:
+
+```bash
+npm run build
+npm run ship:mpc-vidply
+```
+
+This runs `build/ship-to-mpc-vidply.js`, which replaces `mpcore/packages/mpc-vidply/Resources/Public/JavaScript/vidply/` with `dist/prod/*.js` (no source maps) and copies `vidply.css` / `vidply.min.css`. Do not edit shipped files under `mpc-vidply` by hand — change `.libs/vidply` and ship again. Streaming libraries (`hls.min.js`, `dash.all.min.js`) are vendored separately in the extension; see mpc-vidply [HLS-Implementation](https://github.com/MatthiasPeltzer/mpc-vidply/blob/main/Documentation/HLS-Implementation.md) documentation.
 
 ## Customizing the Build
 
@@ -223,7 +245,7 @@ Cleanup script:
 Edit `build/build.js`:
 
 ```javascript
-target: ['es2020', 'chrome90', 'firefox88', 'safari14']
+target: ['es2020', 'chrome90', 'firefox88', 'safari14'];
 ```
 
 ### Add Source Maps to Production
@@ -261,21 +283,21 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-      
+          node-version: '24'
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build
         run: npm run build
-      
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -290,13 +312,14 @@ jobs:
 **Symptom:** Build command fails with errors
 
 **Solutions:**
+
 ```bash
 # 1. Clear node_modules and reinstall
 rm -rf node_modules package-lock.json
 npm install
 npm run build
 
-# 2. Check Node.js version (requires 18+)
+# 2. Check Node.js version (requires 24+)
 node --version
 
 # 3. Try using npx directly
@@ -318,6 +341,7 @@ to see full TypeScript diagnostics with source context.
 **Symptom:** Unable to debug minified code in browser dev tools
 
 **Solutions:**
+
 1. Ensure source maps are enabled in build config (`build/build.js`)
 2. Check browser dev tools are configured to load source maps
 3. Verify `.map` files exist in `dist/` folder
@@ -329,6 +353,7 @@ to see full TypeScript diagnostics with source context.
 
 **Explanation:**
 The player includes:
+
 - Complete UI controls with all buttons and menus (incl. download, buffering spinner)
 - Multiple renderers (HTML5, YouTube, Vimeo, SoundCloud, HLS, DASH)
 - i18n system with 5 built-in languages
@@ -336,6 +361,7 @@ The player includes:
 - Transcript, playlist, and sign language features
 
 **Solutions:**
+
 - The minified + gzipped size (~18 KB) is already optimized for production
 - Modern browsers will cache the files after first load
 - Consider using a CDN for better caching across sites
@@ -346,6 +372,7 @@ The player includes:
 **Symptom:** `EACCES` or permission errors
 
 **Solutions:**
+
 ```bash
 # On Linux/macOS, ensure scripts have execute permission
 chmod +x build/*.js
@@ -359,6 +386,7 @@ node build/build.js
 **Symptom:** Files change but build doesn't trigger
 
 **Solutions:**
+
 1. Restart watch mode
 2. Check if editor saves files properly (some editors use atomic writes)
 3. Increase file watch timeout in `build/watch.js` if needed
@@ -368,6 +396,7 @@ node build/build.js
 **Symptom:** Browser console shows module import errors
 
 **Solutions:**
+
 1. Ensure you're using a local server (not `file://` protocol)
 2. Check file paths are correct and relative to HTML file
 3. Verify `<script type="module">` is set correctly
@@ -384,6 +413,7 @@ node build/build.js
 ## Distribution
 
 For production deployment, only include:
+
 - `dist/prod/vidply.esm.min.js` or `dist/legacy/vidply.min.js`
 - `dist/vidply.min.css`
 
@@ -396,7 +426,8 @@ Built files include license banner automatically.
 ## Support
 
 For build issues, check:
-1. Node.js version (18+)
+
+1. Node.js version (24+)
 2. npm install completed successfully
 3. No syntax errors in source files
 4. Build scripts have execute permission
@@ -404,4 +435,3 @@ For build issues, check:
 ---
 
 **Happy building!**
-

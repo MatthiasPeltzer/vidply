@@ -76,7 +76,9 @@ export class PseudoFullscreenController {
     // iOS: reset the viewport scale so the player fills the screen, but never
     // disable user scaling. Setting maximum-scale=1.0 / user-scalable=no would
     // block pinch-zoom and fail WCAG 1.4.4 (Resize Text) and 1.4.10 (Reflow).
-    this.originalViewport = document.querySelector('meta[name="viewport"]')?.getAttribute('content');
+    this.originalViewport = document
+      .querySelector('meta[name="viewport"]')
+      ?.getAttribute('content');
     const viewport = document.querySelector('meta[name="viewport"]');
     if (viewport) {
       viewport.setAttribute('content', 'width=device-width, initial-scale=1.0');

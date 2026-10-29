@@ -282,7 +282,7 @@ describe('YouTubeRenderer (Mocked)', () => {
 
     it('should handle PLAYING state', () => {
       const event = { data: window.YT.PlayerState.PLAYING };
-      
+
       renderer.handleStateChange(event);
 
       expect(mockPlayer.state.playing).toBe(true);
@@ -294,7 +294,7 @@ describe('YouTubeRenderer (Mocked)', () => {
 
     it('should handle PAUSED state', () => {
       const event = { data: window.YT.PlayerState.PAUSED };
-      
+
       renderer.handleStateChange(event);
 
       expect(mockPlayer.state.playing).toBe(false);
@@ -304,7 +304,7 @@ describe('YouTubeRenderer (Mocked)', () => {
 
     it('should handle ENDED state', () => {
       const event = { data: window.YT.PlayerState.ENDED };
-      
+
       renderer.handleStateChange(event);
 
       expect(mockPlayer.state.playing).toBe(false);
@@ -316,7 +316,7 @@ describe('YouTubeRenderer (Mocked)', () => {
     it('should handle ENDED state with loop enabled', () => {
       mockPlayer.options.loop = true;
       const event = { data: window.YT.PlayerState.ENDED };
-      
+
       renderer.handleStateChange(event);
 
       expect(mockYouTubePlayer.seekTo).toHaveBeenCalledWith(0);
@@ -325,7 +325,7 @@ describe('YouTubeRenderer (Mocked)', () => {
 
     it('should handle BUFFERING state', () => {
       const event = { data: window.YT.PlayerState.BUFFERING };
-      
+
       renderer.handleStateChange(event);
 
       expect(mockPlayer.state.buffering).toBe(true);
@@ -334,7 +334,7 @@ describe('YouTubeRenderer (Mocked)', () => {
 
     it('should handle CUED state', () => {
       const event = { data: window.YT.PlayerState.CUED };
-      
+
       renderer.handleStateChange(event);
 
       expect(mockPlayer.emit).toHaveBeenCalledWith('loadedmetadata');
@@ -344,7 +344,7 @@ describe('YouTubeRenderer (Mocked)', () => {
       const onPlay = vi.fn();
       mockPlayer.options.onPlay = onPlay;
       const event = { data: window.YT.PlayerState.PLAYING };
-      
+
       renderer.handleStateChange(event);
 
       expect(onPlay).toHaveBeenCalled();
@@ -354,7 +354,7 @@ describe('YouTubeRenderer (Mocked)', () => {
       const onPause = vi.fn();
       mockPlayer.options.onPause = onPause;
       const event = { data: window.YT.PlayerState.PAUSED };
-      
+
       renderer.handleStateChange(event);
 
       expect(onPause).toHaveBeenCalled();
@@ -364,7 +364,7 @@ describe('YouTubeRenderer (Mocked)', () => {
       const onEnded = vi.fn();
       mockPlayer.options.onEnded = onEnded;
       const event = { data: window.YT.PlayerState.ENDED };
-      
+
       renderer.handleStateChange(event);
 
       expect(onEnded).toHaveBeenCalled();

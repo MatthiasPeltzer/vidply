@@ -46,7 +46,7 @@ describe('MenuFactory', () => {
   beforeEach(async () => {
     // Clear document
     document.body.innerHTML = '';
-    
+
     // Create mock player and button
     mockPlayer = {
       options: {
@@ -57,7 +57,7 @@ describe('MenuFactory', () => {
       // multiple players on a page don't close each other's menus.
       container: document.body
     };
-    
+
     mockButton = document.createElement('button');
     mockButton.setAttribute('aria-expanded', 'false');
     document.body.appendChild(mockButton);
@@ -203,7 +203,7 @@ describe('MenuFactory', () => {
   describe('createSpeedMenu', () => {
     it('should create speed menu with default speeds', () => {
       const onSpeedChange = vi.fn();
-      
+
       const menu = createSpeedMenu({
         player: mockPlayer,
         button: mockButton,

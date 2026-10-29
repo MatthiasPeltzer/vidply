@@ -14,179 +14,176 @@ import type { ControlBar } from './ControlBar.js';
 import type { Player } from '../core/Player.js';
 
 function captionStylePropertyName(property: string): string {
-    const stripped = property.replace('captions', '');
-    return stripped.charAt(0).toLowerCase() + stripped.slice(1);
+  const stripped = property.replace('captions', '');
+  return stripped.charAt(0).toLowerCase() + stripped.slice(1);
 }
 
 function createStyleControl(
-    player: Player,
-    label: string,
-    property: string,
-    options: Array<{ label: string; value: string }>
+  player: Player,
+  label: string,
+  property: string,
+  options: Array<{ label: string; value: string }>
 ): HTMLElement {
-    const group = DOMUtils.createElement('div', {
-        className: `${player.options.classPrefix}-style-group`
+  const group = DOMUtils.createElement('div', {
+    className: `${player.options.classPrefix}-style-group`
+  });
+
+  const controlId = `${player.options.classPrefix}-${property}-${Date.now()}`;
+
+  const labelEl = DOMUtils.createElement('label', {
+    textContent: label,
+    attributes: {
+      for: controlId
+    }
+  });
+  group.appendChild(labelEl);
+
+  const select = DOMUtils.createElement('select', {
+    className: `${player.options.classPrefix}-style-select`,
+    attributes: {
+      id: controlId
+    }
+  });
+
+  const currentValue = player.options[property];
+  options.forEach((opt) => {
+    const option = DOMUtils.createElement('option', {
+      textContent: opt.label,
+      attributes: { value: opt.value }
     });
+    if (opt.value === currentValue) {
+      (option as HTMLOptionElement).selected = true;
+    }
+    select.appendChild(option);
+  });
 
-    const controlId = `${player.options.classPrefix}-${property}-${Date.now()}`;
+  select.addEventListener('mousedown', (e) => {
+    e.stopPropagation();
+  });
 
-    const labelEl = DOMUtils.createElement('label', {
-        textContent: label,
-        attributes: {
-            'for': controlId
-        }
-    });
-    group.appendChild(labelEl);
+  select.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
 
-    const select = DOMUtils.createElement('select', {
-        className: `${player.options.classPrefix}-style-select`,
-        attributes: {
-            'id': controlId
-        }
-    });
+  select.addEventListener('change', (e) => {
+    e.stopPropagation();
+    player.options[property] = (e.target as HTMLSelectElement).value;
+    if (player.captionManager) {
+      player.captionManager.setCaptionStyle(
+        captionStylePropertyName(property),
+        (e.target as HTMLSelectElement).value
+      );
+    }
+  });
 
-    const currentValue = player.options[property];
-    options.forEach((opt) => {
-        const option = DOMUtils.createElement('option', {
-            textContent: opt.label,
-            attributes: { value: opt.value }
-        });
-        if (opt.value === currentValue) {
-            (option as HTMLOptionElement).selected = true;
-        }
-        select.appendChild(option);
-    });
-
-    select.addEventListener('mousedown', (e) => {
-        e.stopPropagation();
-    });
-
-    select.addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
-
-    select.addEventListener('change', (e) => {
-        e.stopPropagation();
-        player.options[property] = (e.target as HTMLSelectElement).value;
-        if (player.captionManager) {
-            player.captionManager.setCaptionStyle(
-                captionStylePropertyName(property),
-                (e.target as HTMLSelectElement).value
-            );
-        }
-    });
-
-    group.appendChild(select);
-    return group;
+  group.appendChild(select);
+  return group;
 }
 
 function createColorControl(player: Player, label: string, property: string): HTMLElement {
-    const group = DOMUtils.createElement('div', {
-        className: `${player.options.classPrefix}-style-group`
-    });
+  const group = DOMUtils.createElement('div', {
+    className: `${player.options.classPrefix}-style-group`
+  });
 
-    const controlId = `${player.options.classPrefix}-${property}-${Date.now()}`;
+  const controlId = `${player.options.classPrefix}-${property}-${Date.now()}`;
 
-    const labelEl = DOMUtils.createElement('label', {
-        textContent: label,
-        attributes: {
-            'for': controlId
-        }
-    });
-    group.appendChild(labelEl);
+  const labelEl = DOMUtils.createElement('label', {
+    textContent: label,
+    attributes: {
+      for: controlId
+    }
+  });
+  group.appendChild(labelEl);
 
-    const input = DOMUtils.createElement('input', {
-        className: `${player.options.classPrefix}-style-color`,
-        attributes: {
-            'id': controlId,
-            type: 'color',
-            value: String(player.options[property] ?? '')
-        }
-    });
+  const input = DOMUtils.createElement('input', {
+    className: `${player.options.classPrefix}-style-color`,
+    attributes: {
+      id: controlId,
+      type: 'color',
+      value: String(player.options[property] ?? '')
+    }
+  });
 
-    input.addEventListener('mousedown', (e) => {
-        e.stopPropagation();
-    });
+  input.addEventListener('mousedown', (e) => {
+    e.stopPropagation();
+  });
 
-    input.addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
+  input.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
 
-    input.addEventListener('change', (e) => {
-        e.stopPropagation();
-        player.options[property] = (e.target as HTMLInputElement).value;
-        if (player.captionManager) {
-            player.captionManager.setCaptionStyle(
-                captionStylePropertyName(property),
-                (e.target as HTMLInputElement).value
-            );
-        }
-    });
+  input.addEventListener('change', (e) => {
+    e.stopPropagation();
+    player.options[property] = (e.target as HTMLInputElement).value;
+    if (player.captionManager) {
+      player.captionManager.setCaptionStyle(
+        captionStylePropertyName(property),
+        (e.target as HTMLInputElement).value
+      );
+    }
+  });
 
-    group.appendChild(input);
-    return group;
+  group.appendChild(input);
+  return group;
 }
 
 function createOpacityControl(player: Player, label: string, property: string): HTMLElement {
-    const group = DOMUtils.createElement('div', {
-        className: `${player.options.classPrefix}-style-group`
-    });
+  const group = DOMUtils.createElement('div', {
+    className: `${player.options.classPrefix}-style-group`
+  });
 
-    const controlId = `${player.options.classPrefix}-${property}-${Date.now()}`;
+  const controlId = `${player.options.classPrefix}-${property}-${Date.now()}`;
 
-    const labelEl = DOMUtils.createElement('label', {
-        textContent: label,
-        attributes: {
-            'for': controlId
-        }
-    });
-    group.appendChild(labelEl);
+  const labelEl = DOMUtils.createElement('label', {
+    textContent: label,
+    attributes: {
+      for: controlId
+    }
+  });
+  group.appendChild(labelEl);
 
-    const valueEl = DOMUtils.createElement('span', {
-        textContent: Math.round(Number(player.options[property] ?? 0) * 100) + '%',
-        className: `${player.options.classPrefix}-style-value`
-    });
+  const valueEl = DOMUtils.createElement('span', {
+    textContent: Math.round(Number(player.options[property] ?? 0) * 100) + '%',
+    className: `${player.options.classPrefix}-style-value`
+  });
 
-    const input = DOMUtils.createElement('input', {
-        className: `${player.options.classPrefix}-style-range`,
-        attributes: {
-            'id': controlId,
-            type: 'range',
-            min: '0',
-            max: '1',
-            step: '0.1',
-            value: String(player.options[property])
-        }
-    });
+  const input = DOMUtils.createElement('input', {
+    className: `${player.options.classPrefix}-style-range`,
+    attributes: {
+      id: controlId,
+      type: 'range',
+      min: '0',
+      max: '1',
+      step: '0.1',
+      value: String(player.options[property])
+    }
+  });
 
-    input.addEventListener('mousedown', (e) => {
-        e.stopPropagation();
-    });
+  input.addEventListener('mousedown', (e) => {
+    e.stopPropagation();
+  });
 
-    input.addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
+  input.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
 
-    input.addEventListener('input', (e) => {
-        e.stopPropagation();
-        const value = parseFloat((e.target as HTMLInputElement).value);
-        valueEl.textContent = Math.round(value * 100) + '%';
-        player.options[property] = value;
-        if (player.captionManager) {
-            player.captionManager.setCaptionStyle(
-                captionStylePropertyName(property),
-                value
-            );
-        }
-    });
+  input.addEventListener('input', (e) => {
+    e.stopPropagation();
+    const value = parseFloat((e.target as HTMLInputElement).value);
+    valueEl.textContent = Math.round(value * 100) + '%';
+    player.options[property] = value;
+    if (player.captionManager) {
+      player.captionManager.setCaptionStyle(captionStylePropertyName(property), value);
+    }
+  });
 
-    const rangeContainer = DOMUtils.createElement('div', {
-        className: `${player.options.classPrefix}-style-range-container`
-    });
-    rangeContainer.appendChild(input);
-    rangeContainer.appendChild(valueEl);
-    group.appendChild(rangeContainer);
-    return group;
+  const rangeContainer = DOMUtils.createElement('div', {
+    className: `${player.options.classPrefix}-style-range-container`
+  });
+  rangeContainer.appendChild(input);
+  rangeContainer.appendChild(valueEl);
+  group.appendChild(rangeContainer);
+  return group;
 }
 
 /**
@@ -195,104 +192,58 @@ function createOpacityControl(player: Player, label: string, property: string): 
  * back to the ControlBar's shared DOM-insertion / positioning / close helpers.
  */
 export function showCaptionStyleMenu(controlBar: ControlBar, button: HTMLElement): void {
-    const player = controlBar.player;
+  const player = controlBar.player;
 
-    // Remove existing menu if any (toggle behavior). Scoped to this player's
-    // container so multiple players on a page don't toggle each other's menus.
-    const existingMenu = player.container.querySelector(`.${player.options.classPrefix}-caption-style-menu`);
-    if (existingMenu) {
-        existingMenu.remove();
-        button.setAttribute('aria-expanded', 'false');
-        if (controlBar.openMenu === existingMenu) {
-            controlBar.openMenu = null;
-            controlBar.openMenuButton = null;
-        }
-        return;
+  // Remove existing menu if any (toggle behavior). Scoped to this player's
+  // container so multiple players on a page don't toggle each other's menus.
+  const existingMenu = player.container.querySelector(
+    `.${player.options.classPrefix}-caption-style-menu`
+  );
+  if (existingMenu) {
+    existingMenu.remove();
+    button.setAttribute('aria-expanded', 'false');
+    if (controlBar.openMenu === existingMenu) {
+      controlBar.openMenu = null;
+      controlBar.openMenuButton = null;
     }
+    return;
+  }
 
-    // The caption-style panel contains form controls (selects, color
-    // inputs, sliders), not single-action menuitems. Modeling it as a
-    // dialog yields correct semantics for assistive technology.
-    const menuLabelId = `${player.options.classPrefix}-caption-style-label-${player.instanceId || ''}`;
-    const menu = DOMUtils.createElement('div', {
-        className: `${player.options.classPrefix}-caption-style-menu ${player.options.classPrefix}-menu ${player.options.classPrefix}-settings-menu`,
-        attributes: {
-            'role': 'dialog',
-            'aria-modal': 'true',
-            'aria-labelledby': menuLabelId
-        }
-    });
-    const visuallyHiddenLabel = DOMUtils.createElement('h2', {
-        textContent: i18n.t('player.captionStyling'),
-        attributes: { id: menuLabelId, class: `${player.options.classPrefix}-sr-only` }
-    });
-    menu.appendChild(visuallyHiddenLabel);
-
-    // Prevent menu from closing when clicking inside
-    menu.addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
-
-    // Check if there are any caption tracks
-    if (!player.captionManager || player.captionManager.tracks.length === 0) {
-        // Show "No captions available" message
-        const noTracksItem = DOMUtils.createElement('div', {
-            className: `${player.options.classPrefix}-menu-item`,
-            textContent: i18n.t('player.noCaptions'),
-            attributes: {
-                'role': 'status'
-            },
-            style: { opacity: '0.5', cursor: 'default', padding: '12px 16px' }
-        });
-        menu.appendChild(noTracksItem);
-
-        menu.style.visibility = 'hidden';
-        menu.style.display = 'block';
-
-        controlBar.insertMenuIntoDOM(menu, button);
-        controlBar.positionMenu(menu, button, true);
-
-        requestAnimationFrame(() => {
-            menu.style.visibility = 'visible';
-        });
-
-        controlBar.attachMenuCloseHandler(menu, button, true);
-        return;
+  // The caption-style panel contains form controls (selects, color
+  // inputs, sliders), not single-action menuitems. Modeling it as a
+  // dialog yields correct semantics for assistive technology.
+  const menuLabelId = `${player.options.classPrefix}-caption-style-label-${player.instanceId || ''}`;
+  const menu = DOMUtils.createElement('div', {
+    className: `${player.options.classPrefix}-caption-style-menu ${player.options.classPrefix}-menu ${player.options.classPrefix}-settings-menu`,
+    attributes: {
+      role: 'dialog',
+      'aria-modal': 'true',
+      'aria-labelledby': menuLabelId
     }
+  });
+  const visuallyHiddenLabel = DOMUtils.createElement('h2', {
+    textContent: i18n.t('player.captionStyling'),
+    attributes: { id: menuLabelId, class: `${player.options.classPrefix}-sr-only` }
+  });
+  menu.appendChild(visuallyHiddenLabel);
 
-    // Font Size
-    menu.appendChild(createStyleControl(
-        player,
-        i18n.t('styleLabels.fontSize'),
-        'captionsFontSize',
-        [
-            { label: i18n.t('fontSizes.small'), value: '87.5%' },
-            { label: i18n.t('fontSizes.normal'), value: '100%' },
-            { label: i18n.t('fontSizes.large'), value: '125%' },
-            { label: i18n.t('fontSizes.xlarge'), value: '150%' }
-        ]
-    ));
+  // Prevent menu from closing when clicking inside
+  menu.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
 
-    // Font Family
-    menu.appendChild(createStyleControl(
-        player,
-        i18n.t('styleLabels.font'),
-        'captionsFontFamily',
-        [
-            { label: i18n.t('fontFamilies.sansSerif'), value: 'sans-serif' },
-            { label: i18n.t('fontFamilies.serif'), value: 'serif' },
-            { label: i18n.t('fontFamilies.monospace'), value: 'monospace' }
-        ]
-    ));
-
-    // Text Color
-    menu.appendChild(createColorControl(player, i18n.t('styleLabels.textColor'), 'captionsColor'));
-
-    // Background Color
-    menu.appendChild(createColorControl(player, i18n.t('styleLabels.background'), 'captionsBackgroundColor'));
-
-    // Opacity
-    menu.appendChild(createOpacityControl(player, i18n.t('styleLabels.opacity'), 'captionsOpacity'));
+  // Check if there are any caption tracks
+  if (!player.captionManager || player.captionManager.tracks.length === 0) {
+    // Show "No captions available" message
+    const noTracksItem = DOMUtils.createElement('div', {
+      className: `${player.options.classPrefix}-menu-item`,
+      textContent: i18n.t('player.noCaptions'),
+      attributes: {
+        role: 'status'
+      },
+      style: { opacity: '0.5', cursor: 'default', padding: '12px 16px' }
+    });
+    menu.appendChild(noTracksItem);
 
     menu.style.visibility = 'hidden';
     menu.style.display = 'block';
@@ -301,18 +252,62 @@ export function showCaptionStyleMenu(controlBar: ControlBar, button: HTMLElement
     controlBar.positionMenu(menu, button, true);
 
     requestAnimationFrame(() => {
-        menu.style.visibility = 'visible';
+      menu.style.visibility = 'visible';
     });
 
     controlBar.attachMenuCloseHandler(menu, button, true);
+    return;
+  }
 
-    // WCAG 2.1.2 / 2.4.3 — keep keyboard focus inside the style dialog.
-    menu.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.key === 'Tab') {
-            trapFocusInContainer(e, menu);
-        }
-    });
+  // Font Size
+  menu.appendChild(
+    createStyleControl(player, i18n.t('styleLabels.fontSize'), 'captionsFontSize', [
+      { label: i18n.t('fontSizes.small'), value: '87.5%' },
+      { label: i18n.t('fontSizes.normal'), value: '100%' },
+      { label: i18n.t('fontSizes.large'), value: '125%' },
+      { label: i18n.t('fontSizes.xlarge'), value: '150%' }
+    ])
+  );
 
-    // Auto-focus the first style select element
-    focusFirstElement(menu, `.${player.options.classPrefix}-style-select`);
+  // Font Family
+  menu.appendChild(
+    createStyleControl(player, i18n.t('styleLabels.font'), 'captionsFontFamily', [
+      { label: i18n.t('fontFamilies.sansSerif'), value: 'sans-serif' },
+      { label: i18n.t('fontFamilies.serif'), value: 'serif' },
+      { label: i18n.t('fontFamilies.monospace'), value: 'monospace' }
+    ])
+  );
+
+  // Text Color
+  menu.appendChild(createColorControl(player, i18n.t('styleLabels.textColor'), 'captionsColor'));
+
+  // Background Color
+  menu.appendChild(
+    createColorControl(player, i18n.t('styleLabels.background'), 'captionsBackgroundColor')
+  );
+
+  // Opacity
+  menu.appendChild(createOpacityControl(player, i18n.t('styleLabels.opacity'), 'captionsOpacity'));
+
+  menu.style.visibility = 'hidden';
+  menu.style.display = 'block';
+
+  controlBar.insertMenuIntoDOM(menu, button);
+  controlBar.positionMenu(menu, button, true);
+
+  requestAnimationFrame(() => {
+    menu.style.visibility = 'visible';
+  });
+
+  controlBar.attachMenuCloseHandler(menu, button, true);
+
+  // WCAG 2.1.2 / 2.4.3 — keep keyboard focus inside the style dialog.
+  menu.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Tab') {
+      trapFocusInContainer(e, menu);
+    }
+  });
+
+  // Auto-focus the first style select element
+  focusFirstElement(menu, `.${player.options.classPrefix}-style-select`);
 }

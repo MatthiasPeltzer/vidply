@@ -56,8 +56,7 @@ function initializePlayers(): void {
     const dataOptions = parseDataAttributes(element.dataset);
     const mergedOptions: Partial<PlayerOptions> = { ...dataOptions, ...options };
 
-    const lazyInit =
-      element.dataset.vidplyLazy !== 'false' && mergedOptions.lazyInit !== false;
+    const lazyInit = element.dataset.vidplyLazy !== 'false' && mergedOptions.lazyInit !== false;
     const lazyMargin =
       element.dataset.vidplyLazyMargin || (mergedOptions.lazyMargin as string) || '500px';
 
@@ -66,7 +65,9 @@ function initializePlayers(): void {
         element,
         mergedOptions,
         lazyMargin,
-        (target, opts) => { new Player(target, opts); }
+        (target, opts) => {
+          new Player(target, opts);
+        }
       );
     } else {
       new Player(element, mergedOptions);
@@ -188,11 +189,7 @@ if (document.readyState === 'loading') {
 
 export { Player, PlaylistManager };
 export type { PlayerOptions } from './types/options.js';
-export type {
-  PlayerEventMap,
-  PlaylistTrack,
-  FloatingChangeDetail
-} from './types/events.js';
+export type { PlayerEventMap, PlaylistTrack, FloatingChangeDetail } from './types/events.js';
 export type { PlayerState } from './types/state.js';
 export type { Renderer, QualityLevel } from './types/renderer.js';
 export default Player;

@@ -91,7 +91,7 @@ describe('StorageManager', () => {
     it('should remove a stored value', () => {
       storage.set('test', 'value');
       expect(storage.get('test')).toBe('value');
-      
+
       storage.remove('test');
       expect(storage.get('test')).toBe(null);
     });
@@ -107,16 +107,16 @@ describe('StorageManager', () => {
       // Set values in our namespace
       storage.set('volume', 0.5);
       storage.set('speed', 1.5);
-      
+
       // Set value outside namespace
       localStorage.setItem('other_key', 'value');
-      
+
       storage.clear();
-      
+
       // Our values should be cleared
       expect(storage.get('volume')).toBe(null);
       expect(storage.get('speed')).toBe(null);
-      
+
       // Other values should remain
       expect(localStorage.getItem('other_key')).toBe('value');
     });
@@ -160,7 +160,7 @@ describe('StorageManager', () => {
       // Create storage with mocked unavailable localStorage
       const sm = new StorageManager('test');
       sm.storage = null; // Simulate unavailable
-      
+
       expect(sm.set('key', 'value')).toBe(false);
       expect(sm.get('key', 'default')).toBe('default');
       expect(sm.remove('key')).toBe(false);
@@ -172,10 +172,10 @@ describe('StorageManager', () => {
     it('should isolate data between namespaces', () => {
       const storage1 = new StorageManager('app1');
       const storage2 = new StorageManager('app2');
-      
+
       storage1.set('volume', 0.5);
       storage2.set('volume', 0.9);
-      
+
       expect(storage1.get('volume')).toBe(0.5);
       expect(storage2.get('volume')).toBe(0.9);
     });

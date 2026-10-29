@@ -134,7 +134,7 @@ export class StorageManager {
     try {
       const storage = this.storage;
       const keys = Object.keys(storage);
-      keys.forEach(key => {
+      keys.forEach((key) => {
         if (key.startsWith(this.namespace)) {
           storage.removeItem(key);
         }
@@ -163,7 +163,11 @@ export class StorageManager {
   }
 
   getCaptionPreferences(): StoredPreferences | null {
-    return this.get<StoredPreferences>('caption_preferences', null, isPlainObject as Validator<StoredPreferences>);
+    return this.get<StoredPreferences>(
+      'caption_preferences',
+      null,
+      isPlainObject as Validator<StoredPreferences>
+    );
   }
 
   savePlayerPreferences(preferences: StoredPreferences): boolean {
@@ -180,7 +184,11 @@ export class StorageManager {
   }
 
   getPlayerPreferences(): StoredPreferences | null {
-    const value = this.get<StoredPreferences>('player_preferences', null, isPlainObject as Validator<StoredPreferences>);
+    const value = this.get<StoredPreferences>(
+      'player_preferences',
+      null,
+      isPlainObject as Validator<StoredPreferences>
+    );
     if (!value) return null;
     if (typeof value.volume === 'number') {
       value.volume = clamp(value.volume, 0, 1);
@@ -196,7 +204,11 @@ export class StorageManager {
   }
 
   getSignLanguagePreferences(): StoredPreferences | null {
-    return this.get<StoredPreferences>('sign_language_preferences', null, isPlainObject as Validator<StoredPreferences>);
+    return this.get<StoredPreferences>(
+      'sign_language_preferences',
+      null,
+      isPlainObject as Validator<StoredPreferences>
+    );
   }
 
   saveFloatingPreferences(preferences: StoredPreferences): boolean {
@@ -204,7 +216,11 @@ export class StorageManager {
   }
 
   getFloatingPreferences(): StoredPreferences | null {
-    return this.get<StoredPreferences>('floating_preferences', null, isPlainObject as Validator<StoredPreferences>);
+    return this.get<StoredPreferences>(
+      'floating_preferences',
+      null,
+      isPlainObject as Validator<StoredPreferences>
+    );
   }
 
   /**
@@ -218,11 +234,12 @@ export class StorageManager {
     const safeDuration = clamp(duration, 0.001, 24 * 60 * 60); // cap to 24h to neutralize gigantic numbers
     const safeCurrent = clamp(currentTime, 0, safeDuration);
 
-    const allProgress = this.get<Record<string, WatchProgressEntry>>(
-      'watch_progress',
-      Object.create(null),
-      isWatchProgressMap
-    ) ?? Object.create(null) as Record<string, WatchProgressEntry>;
+    const allProgress =
+      this.get<Record<string, WatchProgressEntry>>(
+        'watch_progress',
+        Object.create(null),
+        isWatchProgressMap
+      ) ?? (Object.create(null) as Record<string, WatchProgressEntry>);
 
     const percentage = (safeCurrent / safeDuration) * 100;
 
@@ -250,22 +267,24 @@ export class StorageManager {
 
   getWatchProgress(videoId: string): WatchProgressEntry | null {
     if (!videoId) return null;
-    const allProgress = this.get<Record<string, WatchProgressEntry>>(
-      'watch_progress',
-      Object.create(null),
-      isWatchProgressMap
-    ) ?? Object.create(null) as Record<string, WatchProgressEntry>;
+    const allProgress =
+      this.get<Record<string, WatchProgressEntry>>(
+        'watch_progress',
+        Object.create(null),
+        isWatchProgressMap
+      ) ?? (Object.create(null) as Record<string, WatchProgressEntry>);
     const entry = allProgress[videoId];
     return entry && isWatchProgressEntry(entry) ? entry : null;
   }
 
   clearWatchProgress(videoId: string): boolean {
     if (!videoId) return false;
-    const allProgress = this.get<Record<string, WatchProgressEntry>>(
-      'watch_progress',
-      Object.create(null),
-      isWatchProgressMap
-    ) ?? Object.create(null) as Record<string, WatchProgressEntry>;
+    const allProgress =
+      this.get<Record<string, WatchProgressEntry>>(
+        'watch_progress',
+        Object.create(null),
+        isWatchProgressMap
+      ) ?? (Object.create(null) as Record<string, WatchProgressEntry>);
     if (allProgress[videoId]) {
       delete allProgress[videoId];
       return this.set('watch_progress', allProgress);

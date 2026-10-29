@@ -84,13 +84,14 @@ export class TrackInfoView {
     const showTrackHeader = totalTracks > 1 && trackNumber > 0;
     const isPlaylistContext = totalTracks > 1;
 
-    const effectiveDuration = isPlaylistContext
-      && typeof data.duration === 'number'
-      && data.duration > 0
-      ? data.duration
-      : 0;
+    const effectiveDuration =
+      isPlaylistContext && typeof data.duration === 'number' && data.duration > 0
+        ? data.duration
+        : 0;
     const trackDuration = effectiveDuration ? TimeUtils.formatTime(effectiveDuration) : '';
-    const trackDurationReadable = effectiveDuration ? TimeUtils.formatDuration(effectiveDuration) : '';
+    const trackDurationReadable = effectiveDuration
+      ? TimeUtils.formatDuration(effectiveDuration)
+      : '';
 
     const artistPart = trackArtist ? i18n.t('playlist.by') + trackArtist : '';
     const datePart = trackDate ? `. ${trackDate}` : '';
@@ -98,66 +99,83 @@ export class TrackInfoView {
 
     let playlistAnnouncement = trackTitle + artistPart + datePart + durationPart;
     if (showTrackHeader) {
-      playlistAnnouncement = i18n.t('playlist.nowPlaying', {
-        current: trackNumber,
-        total: totalTracks,
-        title: trackTitle,
-        artist: artistPart
-      }) + datePart + durationPart;
+      playlistAnnouncement =
+        i18n.t('playlist.nowPlaying', {
+          current: trackNumber,
+          total: totalTracks,
+          title: trackTitle,
+          artist: artistPart
+        }) +
+        datePart +
+        durationPart;
     }
 
     this.element.replaceChildren();
 
     if (isPlaylistContext) {
-      this.element.appendChild(DOMUtils.createElement('span', {
-        className: `${prefix}-sr-only`,
-        attributes: { 'aria-live': 'polite' },
-        textContent: playlistAnnouncement
-      }));
+      this.element.appendChild(
+        DOMUtils.createElement('span', {
+          className: `${prefix}-sr-only`,
+          attributes: { 'aria-live': 'polite' },
+          textContent: playlistAnnouncement
+        })
+      );
     }
 
     if (showTrackHeader) {
       const header = DOMUtils.createElement('div', {
         className: `${prefix}-track-header`
       });
-      header.appendChild(DOMUtils.createElement('span', {
-        className: `${prefix}-track-number`,
-        textContent: i18n.t('playlist.trackOf', { current: trackNumber, total: totalTracks })
-      }));
+      header.appendChild(
+        DOMUtils.createElement('span', {
+          className: `${prefix}-track-number`,
+          textContent: i18n.t('playlist.trackOf', { current: trackNumber, total: totalTracks })
+        })
+      );
       if (trackDuration) {
-        header.appendChild(DOMUtils.createElement('span', {
-          className: `${prefix}-track-duration`,
-          textContent: trackDuration
-        }));
+        header.appendChild(
+          DOMUtils.createElement('span', {
+            className: `${prefix}-track-duration`,
+            textContent: trackDuration
+          })
+        );
       }
       this.element.appendChild(header);
     }
 
-    this.element.appendChild(DOMUtils.createElement('p', {
-      className: `${prefix}-track-title`,
-      attributes: { id: this.titleElementId },
-      textContent: trackTitle
-    }));
+    this.element.appendChild(
+      DOMUtils.createElement('p', {
+        className: `${prefix}-track-title`,
+        attributes: { id: this.titleElementId },
+        textContent: trackTitle
+      })
+    );
 
     if (trackArtist) {
-      this.element.appendChild(DOMUtils.createElement('p', {
-        className: `${prefix}-track-artist`,
-        textContent: trackArtist
-      }));
+      this.element.appendChild(
+        DOMUtils.createElement('p', {
+          className: `${prefix}-track-artist`,
+          textContent: trackArtist
+        })
+      );
     }
 
     if (trackDate) {
-      this.element.appendChild(DOMUtils.createElement('p', {
-        className: `${prefix}-track-date`,
-        textContent: trackDate
-      }));
+      this.element.appendChild(
+        DOMUtils.createElement('p', {
+          className: `${prefix}-track-date`,
+          textContent: trackDate
+        })
+      );
     }
 
     if (trackDescription) {
-      this.element.appendChild(DOMUtils.createElement('p', {
-        className: `${prefix}-track-description`,
-        textContent: trackDescription
-      }));
+      this.element.appendChild(
+        DOMUtils.createElement('p', {
+          className: `${prefix}-track-description`,
+          textContent: trackDescription
+        })
+      );
     }
 
     if (longDescription) {
@@ -216,18 +234,19 @@ export class TrackInfoView {
     const isPlaylistContext = (data.totalTracks ?? 0) > 1;
 
     return Boolean(
-      (data.title ?? '').trim()
-      || (data.artist ?? '').trim()
-      || (data.description ?? '').trim()
-      || (data.longDescription ?? '').trim()
-      || (data.date ?? '').trim()
-      || (isPlaylistContext && typeof data.duration === 'number' && data.duration > 0)
-      || (isPlaylistContext && (data.trackNumber ?? 0) > 0)
+      (data.title ?? '').trim() ||
+      (data.artist ?? '').trim() ||
+      (data.description ?? '').trim() ||
+      (data.longDescription ?? '').trim() ||
+      (data.date ?? '').trim() ||
+      (isPlaylistContext && typeof data.duration === 'number' && data.duration > 0) ||
+      (isPlaylistContext && (data.trackNumber ?? 0) > 0)
     );
   }
 
   private toggleLongDescription(button: HTMLButtonElement): void {
-    const panel = button.closest(`.${this.classPrefix}-track-info`)
+    const panel = button
+      .closest(`.${this.classPrefix}-track-info`)
       ?.querySelector(`#${CSS.escape(this.longDescPanelId)}`);
     if (!(panel instanceof HTMLElement)) return;
 
@@ -236,8 +255,8 @@ export class TrackInfoView {
     panel.toggleAttribute('hidden', !expanded);
 
     const label = expanded
-      ? button.dataset.labelHide ?? i18n.t('trackInfo.descriptionHide')
-      : button.dataset.labelShow ?? i18n.t('trackInfo.descriptionShow');
+      ? (button.dataset.labelHide ?? i18n.t('trackInfo.descriptionHide'))
+      : (button.dataset.labelShow ?? i18n.t('trackInfo.descriptionShow'));
     const text = button.querySelector(`.${this.classPrefix}-track-longdesc-toggle-text`);
     if (text instanceof HTMLElement) {
       text.textContent = label;

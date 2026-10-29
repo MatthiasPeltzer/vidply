@@ -153,10 +153,9 @@ export class ResumeManager {
    */
   private getFocusableElements(container: HTMLElement | null): HTMLElement[] {
     if (!container) return [];
-    const selector =
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const selector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
     return Array.from(container.querySelectorAll<HTMLElement>(selector)).filter(
-      el => !el.hasAttribute('disabled') && el.getAttribute('tabindex') !== '-1'
+      (el) => !el.hasAttribute('disabled') && el.getAttribute('tabindex') !== '-1'
     );
   }
 
@@ -259,7 +258,9 @@ export class ResumeManager {
 
     // Focus the primary button after the element is attached to the DOM
     // so the dialog is immediately keyboard-navigable.
-    requestAnimationFrame(() => { resumeButton.focus(); });
+    requestAnimationFrame(() => {
+      resumeButton.focus();
+    });
 
     player.emit('resumepromptshow', { savedTime });
   }
@@ -279,8 +280,7 @@ export class ResumeManager {
     // users aren't dropped at the top of the page. Fall back to the
     // play/pause button when the previous element is gone.
     const fallback = player.controlBar?.controls?.playPause ?? null;
-    const target =
-      toRestore && document.contains(toRestore) ? toRestore : fallback;
+    const target = toRestore && document.contains(toRestore) ? toRestore : fallback;
     target?.focus({ preventScroll: true });
 
     player.emit('resumeprompthide');

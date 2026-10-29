@@ -16,7 +16,7 @@ export function throttle<T extends (...args: unknown[]) => void>(func: T, limit 
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
+      setTimeout(() => (inThrottle = false), limit);
     }
   } as unknown as T;
 }
@@ -27,8 +27,10 @@ export function isMobile(breakpoint = 768): boolean {
 
 /** iOS / iPadOS (including iPad desktop mode reporting as MacIntel). */
 export function isIOS(): boolean {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  );
 }
 
 /** True when Safari should play HLS via the native `<video>` URL (no hls.js MSE). */
@@ -54,14 +56,18 @@ const DEV_TUNNEL_HOST_SUFFIXES = [
 ];
 
 export function isLikelyUnsupportedYoutubeEmbedHost(hostname?: string): boolean {
-  const host = (hostname ?? (typeof window !== 'undefined' ? window.location.hostname : '')).toLowerCase();
+  const host = (
+    hostname ?? (typeof window !== 'undefined' ? window.location.hostname : '')
+  ).toLowerCase();
   if (!host) {
     return true;
   }
   if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local')) {
     return true;
   }
-  if (DEV_TUNNEL_HOST_SUFFIXES.some((suffix) => host === suffix.slice(1) || host.endsWith(suffix))) {
+  if (
+    DEV_TUNNEL_HOST_SUFFIXES.some((suffix) => host === suffix.slice(1) || host.endsWith(suffix))
+  ) {
     return true;
   }
   if (/\d{1,3}-\d{1,3}-\d{1,3}-\d{1,3}/.test(host)) {

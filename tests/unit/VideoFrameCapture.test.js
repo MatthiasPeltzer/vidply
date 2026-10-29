@@ -21,7 +21,11 @@ describe('VideoFrameCapture', () => {
     Object.defineProperty(mockVideo, 'videoHeight', { value: 1080, configurable: true });
     Object.defineProperty(mockVideo, 'readyState', { value: 2, configurable: true });
     Object.defineProperty(mockVideo, 'paused', { value: true, configurable: true });
-    Object.defineProperty(mockVideo, 'currentTime', { value: 0, writable: true, configurable: true });
+    Object.defineProperty(mockVideo, 'currentTime', {
+      value: 0,
+      writable: true,
+      configurable: true
+    });
     Object.defineProperty(mockVideo, 'muted', { value: false, writable: true, configurable: true });
 
     document.body.appendChild(mockVideo);
@@ -68,20 +72,28 @@ describe('VideoFrameCapture', () => {
 
     it('should capture frame at specified time', async () => {
       // Set video to correct position
-      Object.defineProperty(mockVideo, 'currentTime', { value: 10, writable: true, configurable: true });
-      
+      Object.defineProperty(mockVideo, 'currentTime', {
+        value: 10,
+        writable: true,
+        configurable: true
+      });
+
       const promise = captureVideoFrame(mockVideo, 10);
-      
+
       // Advance through the RAF calls
       vi.advanceTimersByTime(100);
-      
+
       const result = await promise;
       expect(result).toBe('data:image/jpeg;base64,test');
     });
 
     it('should use video dimensions', async () => {
-      Object.defineProperty(mockVideo, 'currentTime', { value: 0, writable: true, configurable: true });
-      
+      Object.defineProperty(mockVideo, 'currentTime', {
+        value: 0,
+        writable: true,
+        configurable: true
+      });
+
       const promise = captureVideoFrame(mockVideo, 0);
       vi.advanceTimersByTime(100);
       await promise;
@@ -91,8 +103,12 @@ describe('VideoFrameCapture', () => {
     });
 
     it('should scale down when maxWidth specified', async () => {
-      Object.defineProperty(mockVideo, 'currentTime', { value: 0, writable: true, configurable: true });
-      
+      Object.defineProperty(mockVideo, 'currentTime', {
+        value: 0,
+        writable: true,
+        configurable: true
+      });
+
       const promise = captureVideoFrame(mockVideo, 0, { maxWidth: 960 });
       vi.advanceTimersByTime(100);
       await promise;
@@ -102,8 +118,12 @@ describe('VideoFrameCapture', () => {
     });
 
     it('should scale down when maxHeight specified', async () => {
-      Object.defineProperty(mockVideo, 'currentTime', { value: 0, writable: true, configurable: true });
-      
+      Object.defineProperty(mockVideo, 'currentTime', {
+        value: 0,
+        writable: true,
+        configurable: true
+      });
+
       const promise = captureVideoFrame(mockVideo, 0, { maxHeight: 540 });
       vi.advanceTimersByTime(100);
       await promise;
@@ -113,8 +133,12 @@ describe('VideoFrameCapture', () => {
     });
 
     it('should use default quality of 0.9', async () => {
-      Object.defineProperty(mockVideo, 'currentTime', { value: 0, writable: true, configurable: true });
-      
+      Object.defineProperty(mockVideo, 'currentTime', {
+        value: 0,
+        writable: true,
+        configurable: true
+      });
+
       const promise = captureVideoFrame(mockVideo, 0);
       vi.advanceTimersByTime(100);
       await promise;
@@ -123,8 +147,12 @@ describe('VideoFrameCapture', () => {
     });
 
     it('should use custom quality when specified', async () => {
-      Object.defineProperty(mockVideo, 'currentTime', { value: 0, writable: true, configurable: true });
-      
+      Object.defineProperty(mockVideo, 'currentTime', {
+        value: 0,
+        writable: true,
+        configurable: true
+      });
+
       const promise = captureVideoFrame(mockVideo, 0, { quality: 0.5 });
       vi.advanceTimersByTime(100);
       await promise;
@@ -136,16 +164,20 @@ describe('VideoFrameCapture', () => {
       // Track if muted was set to true during capture
       let mutedDuringCapture = false;
       let mutedValue = false;
-      Object.defineProperty(mockVideo, 'muted', { 
+      Object.defineProperty(mockVideo, 'muted', {
         get: () => mutedValue,
-        set: (val) => { 
+        set: (val) => {
           mutedValue = val;
           if (val === true) mutedDuringCapture = true;
         },
-        configurable: true 
+        configurable: true
       });
-      Object.defineProperty(mockVideo, 'currentTime', { value: 0, writable: true, configurable: true });
-      
+      Object.defineProperty(mockVideo, 'currentTime', {
+        value: 0,
+        writable: true,
+        configurable: true
+      });
+
       const promise = captureVideoFrame(mockVideo, 0, { restoreState: true });
       vi.advanceTimersByTime(100);
       await promise;
@@ -156,8 +188,12 @@ describe('VideoFrameCapture', () => {
     it('should use default dimensions when videoWidth/Height are 0', async () => {
       Object.defineProperty(mockVideo, 'videoWidth', { value: 0, configurable: true });
       Object.defineProperty(mockVideo, 'videoHeight', { value: 0, configurable: true });
-      Object.defineProperty(mockVideo, 'currentTime', { value: 0, writable: true, configurable: true });
-      
+      Object.defineProperty(mockVideo, 'currentTime', {
+        value: 0,
+        writable: true,
+        configurable: true
+      });
+
       const promise = captureVideoFrame(mockVideo, 0);
       vi.advanceTimersByTime(100);
       await promise;
@@ -167,36 +203,40 @@ describe('VideoFrameCapture', () => {
     });
 
     it('should seek to specified time when not at that position', async () => {
-      Object.defineProperty(mockVideo, 'currentTime', { 
+      Object.defineProperty(mockVideo, 'currentTime', {
         get: () => 0,
         set: vi.fn(),
-        configurable: true 
+        configurable: true
       });
       Object.defineProperty(mockVideo, 'readyState', { value: 1, writable: true });
 
       const promise = captureVideoFrame(mockVideo, 30);
-      
+
       // Trigger the seeked event
       mockVideo.dispatchEvent(new Event('seeked'));
       vi.advanceTimersByTime(100);
-      
+
       await promise;
     });
 
     it('should wait for loadedmetadata when video not ready', async () => {
       Object.defineProperty(mockVideo, 'readyState', { value: 0, writable: true });
-      Object.defineProperty(mockVideo, 'currentTime', { value: 0, writable: true, configurable: true });
+      Object.defineProperty(mockVideo, 'currentTime', {
+        value: 0,
+        writable: true,
+        configurable: true
+      });
 
       const promise = captureVideoFrame(mockVideo, 30);
-      
+
       // Trigger loadedmetadata
       Object.defineProperty(mockVideo, 'readyState', { value: 1, writable: true });
       mockVideo.dispatchEvent(new Event('loadedmetadata'));
-      
+
       // Trigger seeked
       mockVideo.dispatchEvent(new Event('seeked'));
       vi.advanceTimersByTime(100);
-      
+
       await promise;
     });
   });

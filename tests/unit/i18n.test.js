@@ -19,14 +19,14 @@ describe('i18n', () => {
 
     it('should fall back to English for unknown language', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      
+
       i18n.setLanguage('unknown');
       expect(i18n.getLanguage()).toBe('en');
-      
+
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Language "unknown" not found')
       );
-      
+
       consoleSpy.mockRestore();
     });
   });
@@ -85,7 +85,7 @@ describe('i18n', () => {
           pause: 'Test Pause'
         }
       });
-      
+
       i18n.setLanguage('test');
       expect(i18n.t('player.play')).toBe('Test Play');
       expect(i18n.t('player.pause')).toBe('Test Pause');
@@ -97,7 +97,7 @@ describe('i18n', () => {
           key: 'Custom Value'
         }
       });
-      
+
       expect(i18n.t('custom.key')).toBe('Custom Value');
       // Original translations should still work
       expect(i18n.t('player.play')).toBe('Play');
@@ -139,7 +139,7 @@ describe('i18n', () => {
         'player.error'
       ];
 
-      playerKeys.forEach(key => {
+      playerKeys.forEach((key) => {
         const translation = i18n.t(key);
         expect(translation).not.toBe(key, `Missing translation for: ${key}`);
       });
@@ -156,7 +156,7 @@ describe('i18n', () => {
         'captions.opacity'
       ];
 
-      captionKeys.forEach(key => {
+      captionKeys.forEach((key) => {
         const translation = i18n.t(key);
         expect(translation).not.toBe(key, `Missing translation for: ${key}`);
       });
@@ -173,7 +173,7 @@ describe('i18n', () => {
         'transcript.loading'
       ];
 
-      a11yKeys.forEach(key => {
+      a11yKeys.forEach((key) => {
         const translation = i18n.t(key);
         expect(translation).not.toBe(key, `Missing translation for: ${key}`);
       });
@@ -189,12 +189,12 @@ describe('i18n', () => {
           // Missing other keys
         }
       });
-      
+
       i18n.setLanguage('partial');
-      
+
       // Should use partial translation
       expect(i18n.t('player.play')).toBe('Partial Play');
-      
+
       // Should fall back to English for missing keys
       expect(i18n.t('player.pause')).toBe('Pause');
     });

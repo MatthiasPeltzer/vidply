@@ -4,7 +4,7 @@ Welcome! This guide will help you get VidPly up and running in 5 minutes.
 
 ## Prerequisites
 
-- Node.js 18+ installed
+- Node.js 24+ installed (see `package.json#engines` and `.nvmrc`)
 - A text editor
 - A modern web browser
 
@@ -24,6 +24,7 @@ npm install
 ```
 
 This installs:
+
 - `esbuild` - Fast TypeScript/JavaScript bundler
 - `typescript` - Strict type-checking and `.d.ts` emission
 - `clean-css` - CSS minifier
@@ -36,6 +37,7 @@ npm run build
 ```
 
 This creates production-ready files in `dist/`:
+
 - `prod/vidply.esm.min.js` - Minified ES Module (recommended for production)
 - `legacy/vidply.min.js` - Minified IIFE bundle (global `VidPly`)
 - `types/index.d.ts` - TypeScript type declarations for IDE / `tsc` consumers
@@ -56,35 +58,25 @@ Open http://localhost:3000/demo/ to see VidPly in action!
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Video Player</title>
-  <link rel="stylesheet" href="dist/vidply.min.css">
-</head>
-<body>
-  <h1>My Video Player</h1>
-  
-  <video 
-    data-vidply 
-    width="800" 
-    height="450"
-    poster="poster.jpg"
-  >
-    <source src="video.mp4" type="video/mp4">
-    <track 
-      kind="captions" 
-      src="captions.vtt" 
-      srclang="en" 
-      label="English"
-    >
-  </video>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Video Player</title>
+    <link rel="stylesheet" href="dist/vidply.min.css" />
+  </head>
+  <body>
+    <h1>My Video Player</h1>
 
-  <script type="module">
-    import Player from './dist/prod/vidply.esm.min.js';
-    // That's it! Player auto-initializes
-  </script>
-</body>
+    <video data-vidply width="800" height="450" poster="poster.jpg">
+      <source src="video.mp4" type="video/mp4" />
+      <track kind="captions" src="captions.vtt" srclang="en" label="English" />
+    </video>
+
+    <script type="module">
+      import Player from './dist/prod/vidply.esm.min.js';
+      // That's it! Player auto-initializes
+    </script>
+  </body>
 </html>
 ```
 
@@ -110,14 +102,14 @@ If you just want to use the source files directly without building:
 ### Step 1: Include the CSS
 
 ```html
-<link rel="stylesheet" href="src/styles/vidply.css">
+<link rel="stylesheet" href="src/styles/vidply.css" />
 ```
 
 ### Step 2: Add Your Video
 
 ```html
 <video data-vidply width="800" height="450">
-  <source src="your-video.mp4" type="video/mp4">
+  <source src="your-video.mp4" type="video/mp4" />
 </video>
 ```
 
@@ -138,16 +130,16 @@ That's it!
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <link rel="stylesheet" href="src/styles/vidply.css">
-</head>
-<body>
-  <video data-vidply src="video.mp4" width="800" height="450"></video>
-  
-  <script type="module">
-    import Player from './src/index.js';
-  </script>
-</body>
+  <head>
+    <link rel="stylesheet" href="src/styles/vidply.css" />
+  </head>
+  <body>
+    <video data-vidply src="video.mp4" width="800" height="450"></video>
+
+    <script type="module">
+      import Player from './src/index.js';
+    </script>
+  </body>
 </html>
 ```
 
@@ -155,27 +147,21 @@ That's it!
 
 ```html
 <audio data-vidply>
-  <source src="music.mp3" type="audio/mpeg">
-  <track kind="captions" src="lyrics.vtt" srclang="en" label="Lyrics">
+  <source src="music.mp3" type="audio/mpeg" />
+  <track kind="captions" src="lyrics.vtt" srclang="en" label="Lyrics" />
 </audio>
 ```
 
 ### Example 3: YouTube Video
 
 ```html
-<video 
-  data-vidply 
-  src="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-></video>
+<video data-vidply src="https://www.youtube.com/watch?v=dQw4w9WgXcQ"></video>
 ```
 
 ### Example 4: Vimeo Video
 
 ```html
-<video 
-  data-vidply 
-  src="https://vimeo.com/76979871"
-></video>
+<video data-vidply src="https://vimeo.com/76979871"></video>
 ```
 
 YouTube and Vimeo use the VidPly control bar by default. Add `data-embed-chrome="provider"` to keep the native
@@ -184,28 +170,19 @@ YouTube/Vimeo player UI instead.
 ### Example 5: SoundCloud Track
 
 ```html
-<audio
-  data-vidply
-  src="https://soundcloud.com/artist/track-name"
-></audio>
+<audio data-vidply src="https://soundcloud.com/artist/track-name"></audio>
 ```
 
 ### Example 6: HLS Streaming
 
 ```html
-<video 
-  data-vidply 
-  src="https://example.com/stream.m3u8"
-></video>
+<video data-vidply src="https://example.com/stream.m3u8"></video>
 ```
 
 ### Example 7: DASH Streaming
 
 ```html
-<video 
-  data-vidply 
-  src="https://example.com/video/dash/manifest.mpd"
-></video>
+<video data-vidply src="https://example.com/video/dash/manifest.mpd"></video>
 ```
 
 ### Example 8: With Download Button
@@ -215,8 +192,8 @@ YouTube/Vimeo player UI instead.
   data-vidply
   data-vidply-download-button="true"
   data-vidply-download-url="/files/lecture.mp4"
-  src="/streams/lecture/manifest.mpd">
-</video>
+  src="/streams/lecture/manifest.mpd"
+></video>
 ```
 
 ### Example 9: With the Custom Floating Player
@@ -232,8 +209,10 @@ browser PiP is suppressed automatically while floating is enabled.
   data-vidply
   data-vidply-options='{"floating": true, "floatingPosition": "bottom-right", "floatingMinViewportWidth": 768}'
   src="video.mp4"
-  width="800" height="450">
-  <track kind="subtitles" src="captions.vtt" srclang="en" label="English">
+  width="800"
+  height="450"
+>
+  <track kind="subtitles" src="captions.vtt" srclang="en" label="English" />
 </video>
 ```
 
@@ -242,8 +221,8 @@ browser PiP is suppressed automatically while floating is enabled.
 ### Example 10: With Options
 
 ```html
-<video 
-  data-vidply 
+<video
+  data-vidply
   data-vidply-options='{"autoplay": true, "loop": true, "muted": true}'
   src="video.mp4"
 ></video>
@@ -277,8 +256,8 @@ browser PiP is suppressed automatically while floating is enabled.
 ### Via Data Attribute
 
 ```html
-<video 
-  data-vidply 
+<video
+  data-vidply
   data-vidply-options='{
     "autoplay": true,
     "loop": true,
@@ -316,18 +295,18 @@ const player = new Player('#my-video', {
   muted: false,         // Start muted
   volume: 0.8,          // Volume (0-1)
   playbackSpeed: 1.0,   // Speed (0.25-2.0)
-  
+
   // Display
   responsive: true,     // Responsive sizing
   controls: true,       // Show controls
-  
+
   // Captions
   captions: true,       // Enable captions
   captionsDefault: false, // Show captions by default
-  
+
   // Accessibility
   keyboard: true,       // Keyboard shortcuts
-  
+
   // Language
   language: 'en'        // UI language (en, es, fr, de, ja)
 }
@@ -337,14 +316,15 @@ const player = new Player('#my-video', {
 
 ```html
 <video data-vidply src="video.mp4">
-  <track kind="captions" src="en.vtt" srclang="en" label="English">
-  <track kind="captions" src="es.vtt" srclang="es" label="Español">
-  <track kind="captions" src="fr.vtt" srclang="fr" label="Français">
-  <track kind="captions" src="de.vtt" srclang="de" label="Deutsch">
+  <track kind="captions" src="en.vtt" srclang="en" label="English" />
+  <track kind="captions" src="es.vtt" srclang="es" label="Español" />
+  <track kind="captions" src="fr.vtt" srclang="fr" label="Français" />
+  <track kind="captions" src="de.vtt" srclang="de" label="Deutsch" />
 </video>
 ```
 
 **How it works:**
+
 - Click the CC button to open the caption menu
 - Select your preferred language
 - Or press <kbd>C</kbd> to open the menu (if multiple tracks available)
@@ -376,15 +356,15 @@ const player = new Player('#video');
 player.play();
 player.pause();
 player.stop();
-player.seek(60);  // Jump to 1 minute
+player.seek(60); // Jump to 1 minute
 
 // Volume
-player.setVolume(0.5);  // 50% volume
+player.setVolume(0.5); // 50% volume
 player.mute();
 player.unmute();
 
 // Speed
-player.setPlaybackSpeed(1.5);  // 1.5x speed
+player.setPlaybackSpeed(1.5); // 1.5x speed
 
 // Fullscreen
 player.enterFullscreen();
@@ -456,6 +436,7 @@ Once the player is focused:
 ### Built-in Languages
 
 VidPly includes translations for 5 languages:
+
 - `en` - English
 - `es` - Spanish (Español)
 - `fr` - French (Français)
@@ -464,7 +445,7 @@ VidPly includes translations for 5 languages:
 
 ```javascript
 const player = new Player('#video', {
-  language: 'de'  // German UI
+  language: 'de' // German UI
 });
 ```
 
@@ -477,8 +458,8 @@ You can add your own translations by loading language files from URLs. The playe
 Load multiple language files:
 
 ```html
-<video 
-  data-vidply 
+<video
+  data-vidply
   data-vidply-language-files='{"pt": "languages/pt.json", "it": "languages/it.json"}'
   src="video.mp4"
 ></video>
@@ -487,18 +468,14 @@ Load multiple language files:
 Load a single language file:
 
 ```html
-<video 
-  data-vidply 
-  data-vidply-language-file='{"pt": "languages/pt.json"}'
-  src="video.mp4"
-></video>
+<video data-vidply data-vidply-language-file='{"pt": "languages/pt.json"}' src="video.mp4"></video>
 ```
 
 Or use separate attributes:
 
 ```html
-<video 
-  data-vidply 
+<video
+  data-vidply
   data-vidply-language-file-code="pt"
   data-vidply-language-file-url="languages/pt.json"
   src="video.mp4"
@@ -509,10 +486,10 @@ Or use separate attributes:
 
 ```javascript
 const player = new Player('#video', {
-  language: 'pt',  // Set language after loading
+  language: 'pt', // Set language after loading
   languageFiles: {
-    'pt': 'languages/pt.json',
-    'it': 'languages/it.json'
+    pt: 'languages/pt.json',
+    it: 'languages/it.json'
   }
 });
 ```
@@ -546,10 +523,11 @@ The player automatically detects the language from the HTML `lang` attribute if 
 
 ```html
 <html lang="pt">
-  <video data-vidply 
-         data-vidply-language-file='{"pt": "languages/pt.json"}'
-         src="video.mp4">
-  </video>
+  <video
+    data-vidply
+    data-vidply-language-file='{"pt": "languages/pt.json"}'
+    src="video.mp4"
+  ></video>
 </html>
 ```
 
@@ -563,8 +541,8 @@ await i18n.loadLanguageFromUrl('pt', 'languages/pt.json');
 
 // Or load multiple languages
 await i18n.loadLanguagesFromUrls({
-  'pt': 'languages/pt.json',
-  'it': 'languages/it.json'
+  pt: 'languages/pt.json',
+  it: 'languages/it.json'
 });
 
 // Set the language
@@ -588,7 +566,7 @@ Check the browser console for detailed logs.
 ### Option 1: ES Module (Modern Browsers)
 
 ```html
-<link rel="stylesheet" href="dist/vidply.min.css">
+<link rel="stylesheet" href="dist/vidply.min.css" />
 <script type="module">
   import Player from './dist/prod/vidply.esm.min.js';
 </script>
@@ -597,7 +575,7 @@ Check the browser console for detailed logs.
 ### Option 2: Traditional Script Tag (IIFE)
 
 ```html
-<link rel="stylesheet" href="dist/vidply.min.css">
+<link rel="stylesheet" href="dist/vidply.min.css" />
 <script src="dist/legacy/vidply.min.js"></script>
 <script>
   const player = new VidPly.Player('#video');
@@ -608,7 +586,7 @@ Check the browser console for detailed logs.
 
 ```html
 <!-- Will be available after publishing to npm -->
-<link rel="stylesheet" href="https://cdn.example.com/vidply@1.0.0/vidply.min.css">
+<link rel="stylesheet" href="https://cdn.example.com/vidply@1.0.0/vidply.min.css" />
 <script type="module">
   import Player from 'https://cdn.example.com/vidply@1.0.0/vidply.esm.min.js';
 </script>
@@ -619,7 +597,7 @@ Check the browser console for detailed logs.
 VidPly is mobile-friendly by default with a mobile breakpoint at 768px. For best results:
 
 ```html
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 ```
 
 And use responsive mode:
@@ -631,6 +609,7 @@ const player = new Player('#video', {
 ```
 
 **Mobile-specific behavior (< 768px breakpoint):**
+
 - Transcript window appears below the video (not draggable/resizable)
 - Sign language video is not draggable/resizable
 - Optimized control bar with overflow menu for many buttons
@@ -682,7 +661,7 @@ Browsers block autoplay with audio. Solution:
 ```javascript
 const player = new Player('#video', {
   autoplay: true,
-  muted: true  // Required for autoplay
+  muted: true // Required for autoplay
 });
 ```
 
@@ -720,6 +699,7 @@ vidply/
 ```
 
 Only include in production:
+
 - `dist/prod/vidply.esm.min.js` (or `dist/legacy/vidply.min.js`)
 - `dist/vidply.min.css`
 
@@ -729,7 +709,7 @@ Total: ~62KB uncompressed, ~18KB gzipped
 
 VidPly auto-detects streaming formats by file extension:
 
-- **HLS** (`.m3u8`) - Uses **hls.js 1.7.3** on Chrome / Firefox / Edge / desktop Safari (CDN fallback when not preloaded). On iOS / iPadOS the native `<video>` HLS support is used and bridged into VidPly's caption / transcript / quality UI via the `TextTrack` API.
+- **HLS** (`.m3u8`) - Uses **hls.js 1.7.4** on Chrome / Firefox / Edge / desktop Safari (CDN fallback when not preloaded). On iOS / iPadOS the native `<video>` HLS support is used and bridged into VidPly's caption / transcript / quality UI via the `TextTrack` API.
 - **DASH** (`.mpd`) - Uses **dash.js 5.2.1** (modern UMD), loaded on demand when not already on the page.
 - **SoundCloud** - Auto-detected for any URL containing `soundcloud.com`; the SoundCloud Widget API is loaded on demand.
 
@@ -764,6 +744,7 @@ All formats support adaptive quality selection and captions. DASH streams with e
 ## You're Ready!
 
 That's it! You now know how to:
+
 - Install and build VidPly
 - Create video/audio players
 - Add captions

@@ -312,7 +312,7 @@ describe('SettingsMenuFactory', () => {
     beforeEach(() => {
       menu = document.createElement('div');
       button = document.createElement('button');
-      
+
       items = [];
       for (let i = 0; i < 3; i++) {
         const item = document.createElement('button');

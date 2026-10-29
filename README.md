@@ -49,7 +49,7 @@ Try VidPly in action:
 - **Vimeo Integration** - Chromeless embed with VidPly transport controls by default
 - **SoundCloud Integration** - Widget API playback; VidPly bar below the widget (`embedChromeSoundcloud` defaults to provider-style widget UI)
 - **HLS Streaming** - Adaptive bitrate streaming with quality selection and dynamic subtitle detection
-  - Uses **hls.js 1.7.3** on Chrome / Firefox / Edge / desktop Safari for full feature parity (quality menu, captions,
+  - Uses **hls.js 1.7.4** on Chrome / Firefox / Edge / desktop Safari for full feature parity (quality menu, captions,
     transcript)
   - Falls back to native HLS on iOS / iPadOS where MSE is unavailable; native text tracks are still surfaced through the
     VidPly captions and transcript UI
@@ -162,26 +162,26 @@ This creates minified files in the `dist/` folder.
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <link rel="stylesheet" href="dist/vidply.min.css">
-</head>
-<body>
-  <video data-vidply src="video.mp4" width="800" height="450">
-    <track kind="subtitles" src="captions.vtt" srclang="en" label="English">
-  </video>
+  <head>
+    <link rel="stylesheet" href="dist/vidply.min.css" />
+  </head>
+  <body>
+    <video data-vidply src="video.mp4" width="800" height="450">
+      <track kind="subtitles" src="captions.vtt" srclang="en" label="English" />
+    </video>
 
-  <script type="module">
-    import Player from './dist/prod/vidply.esm.min.js';
-    // Auto-initialized via data-vidply attribute
-  </script>
-</body>
+    <script type="module">
+      import Player from './dist/prod/vidply.esm.min.js';
+      // Auto-initialized via data-vidply attribute
+    </script>
+  </body>
 </html>
 ```
 
 ### Option 2: Traditional Script Tag (IIFE)
 
 ```html
-<link rel="stylesheet" href="dist/vidply.min.css">
+<link rel="stylesheet" href="dist/vidply.min.css" />
 <script src="dist/legacy/vidply.min.js"></script>
 
 <video id="my-video" src="video.mp4"></video>
@@ -210,7 +210,7 @@ const player = new Player('#my-video', {
 ```
 
 > The library is authored in strict TypeScript. Type declarations ship to `dist/types/index.d.ts` so consumers using
-`tsc` or `vite` get full IntelliSense without any extra `@types` package.
+> `tsc` or `vite` get full IntelliSense without any extra `@types` package.
 
 ## Quick Start
 
@@ -224,7 +224,7 @@ npm run build
 ### 2. Add to Your Page
 
 ```html
-<link rel="stylesheet" href="dist/vidply.min.css">
+<link rel="stylesheet" href="dist/vidply.min.css" />
 <script type="module">
   import Player from './dist/prod/vidply.esm.min.js';
 </script>
@@ -234,9 +234,9 @@ npm run build
 
 ```html
 <video data-vidply width="800" height="450">
-  <source src="video.mp4" type="video/mp4">
-  <track kind="subtitles" src="captions-en.vtt" srclang="en" label="English">
-  <track kind="subtitles" src="captions-es.vtt" srclang="es" label="Español">
+  <source src="video.mp4" type="video/mp4" />
+  <track kind="subtitles" src="captions-en.vtt" srclang="en" label="English" />
+  <track kind="subtitles" src="captions-es.vtt" srclang="es" label="Español" />
 </video>
 ```
 
@@ -261,10 +261,18 @@ play overlay and keyboard shortcuts. To use only the provider's own player UI in
 `'provider'`:
 
 ```html
-<video data-vidply data-embed-chrome="provider" src="https://www.youtube.com/watch?v=VIDEO_ID"></video>
+<video
+  data-vidply
+  data-embed-chrome="provider"
+  src="https://www.youtube.com/watch?v=VIDEO_ID"
+></video>
 
 <!-- or via the JSON options blob -->
-<video data-vidply data-vidply-options='{"embedChrome": "provider"}' src="https://vimeo.com/VIDEO_ID"></video>
+<video
+  data-vidply
+  data-vidply-options='{"embedChrome": "provider"}'
+  src="https://vimeo.com/VIDEO_ID"
+></video>
 ```
 
 ```javascript
@@ -287,7 +295,7 @@ Set it to `'vidply'` (or `data-embed-chrome-soundcloud="vidply"`) to show the Vi
 
 ```html
 <audio data-vidply>
-  <source src="audio.mp3" type="audio/mpeg">
+  <source src="audio.mp3" type="audio/mpeg" />
 </audio>
 ```
 
@@ -318,8 +326,8 @@ Enable the download button and (optionally) provide a custom URL:
   data-vidply
   data-vidply-download-button="true"
   data-vidply-download-url="/files/lecture.mp4"
-  src="/streams/lecture/manifest.mpd">
-</video>
+  src="/streams/lecture/manifest.mpd"
+></video>
 ```
 
 ```javascript
@@ -345,8 +353,10 @@ Enable via the `data-vidply-options` JSON blob:
   data-vidply
   data-vidply-options='{"floating": true, "floatingPosition": "bottom-right", "floatingMinViewportWidth": 768}'
   src="video.mp4"
-  width="800" height="450">
-  <track kind="subtitles" src="captions.vtt" srclang="en" label="English">
+  width="800"
+  height="450"
+>
+  <track kind="subtitles" src="captions.vtt" srclang="en" label="English" />
 </video>
 ```
 
@@ -356,7 +366,7 @@ Or programmatically:
 const player = new Player('#my-video', {
   floating: true,
   floatingPosition: 'bottom-right', // or 'bottom-left' | 'top-right' | 'top-left'
-  floatingMinViewportWidth: 768     // disable feature below this viewport width
+  floatingMinViewportWidth: 768 // disable feature below this viewport width
 });
 ```
 
@@ -373,12 +383,12 @@ For maximum device compatibility, provide all three formats:
 
 ```html
 <video data-vidply width="800" height="450" poster="preview.jpg">
-  <source src="video/dash/manifest.mpd" type="application/dash+xml">
-  <source src="video/hls/master.m3u8" type="application/x-mpegURL">
-  <source src="video/fallback.mp4" type="video/mp4">
-  <track kind="subtitles" src="video/vtt/subtitles.de.vtt" srclang="de" label="Deutsch" default>
-  <track kind="subtitles" src="video/vtt/subtitles.en.vtt" srclang="en" label="English">
-  <track kind="chapters" src="video/vtt/chapters.de.vtt" srclang="de" label="Kapitel">
+  <source src="video/dash/manifest.mpd" type="application/dash+xml" />
+  <source src="video/hls/master.m3u8" type="application/x-mpegURL" />
+  <source src="video/fallback.mp4" type="video/mp4" />
+  <track kind="subtitles" src="video/vtt/subtitles.de.vtt" srclang="de" label="Deutsch" default />
+  <track kind="subtitles" src="video/vtt/subtitles.en.vtt" srclang="en" label="English" />
+  <track kind="chapters" src="video/vtt/chapters.de.vtt" srclang="de" label="Kapitel" />
 </video>
 ```
 
@@ -395,10 +405,10 @@ const player = new Player('#video', {
   responsive: true,
 
   // Media metadata + OS media controls (Media Session API)
-  title: null,                  // Now-playing title (lock-screen / notification)
-  artist: null,                 // Now-playing artist/author
-  album: null,                  // Now-playing album/collection
-  mediaSession: true,           // Expose OS media controls + metadata (set false to opt out)
+  title: null, // Now-playing title (lock-screen / notification)
+  artist: null, // Now-playing artist/author
+  album: null, // Now-playing album/collection
+  mediaSession: true, // Expose OS media controls + metadata (set false to opt out)
 
   // Playback
   autoplay: false,
@@ -407,13 +417,13 @@ const player = new Player('#video', {
   volume: 0.8,
   playbackSpeed: 1.0,
   startTime: 0,
-  
+
   // Controls
   controls: true,
   hideControlsDelay: 3000,
   playPauseButton: true,
   playButtonOverlay: 'auto', // Centered play button: 'auto' = video only,
-                             // true = also on audio (over the track artwork), false = never
+  // true = also on audio (over the track artwork), false = never
   progressBar: true,
   currentTime: true,
   duration: true,
@@ -428,19 +438,19 @@ const player = new Player('#video', {
   audioDescriptionButton: true,
   signLanguageButton: true,
   fullscreenButton: true,
-  helpButton: true,             // Show a keyboard-shortcuts help button (requires keyboard: true)
+  helpButton: true, // Show a keyboard-shortcuts help button (requires keyboard: true)
   pipButton: false,
-  downloadButton: false,        // Show a download button in the control bar
-  downloadUrl: null,            // Optional explicit download URL (falls back to current src)
-  downloadFormat: null,         // Optional override for the displayed download format (e.g. "MP4")
-  downloadFileSize: null,       // Optional override for the displayed file size (bytes)
-  downloadFetchSize: true,      // Issue a HEAD request to detect file size when not provided
+  downloadButton: false, // Show a download button in the control bar
+  downloadUrl: null, // Optional explicit download URL (falls back to current src)
+  downloadFormat: null, // Optional override for the displayed download format (e.g. "MP4")
+  downloadFileSize: null, // Optional override for the displayed file size (bytes)
+  downloadFetchSize: true, // Issue a HEAD request to detect file size when not provided
   embedProviderLinkButton: true, // "Open on YouTube/Vimeo/SoundCloud" link (new tab) for embed sources
 
   // Custom Floating Player (in-page miniplayer / "own PiP")
-  floating: false,                          // Enable the custom floating player; also disables native browser PiP
-  floatingPosition: 'bottom-right',         // 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
-  floatingMinViewportWidth: 768,            // Floating feature is hidden below this viewport width (px)
+  floating: false, // Enable the custom floating player; also disables native browser PiP
+  floatingPosition: 'bottom-right', // 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
+  floatingMinViewportWidth: 768, // Floating feature is hidden below this viewport width (px)
 
   // Seeking
   seekInterval: 10,
@@ -463,14 +473,14 @@ const player = new Player('#video', {
   signLanguage: true,
   signLanguageSrc: null, // URL to sign language video
   signLanguagePosition: 'bottom-right', // 'bottom-right', 'bottom-left', 'top-right', 'top-left'
-  signLanguageDisplayMode: 'both',      // 'pip' (overlay) | 'main' (source swap) | 'both'
-  signLanguageSources: undefined,       // { en: '/sl/en.mp4', de: '/sl/de.mp4', ... }
+  signLanguageDisplayMode: 'both', // 'pip' (overlay) | 'main' (source swap) | 'both'
+  signLanguageSources: undefined, // { en: '/sl/en.mp4', de: '/sl/de.mp4', ... }
 
   // Transcripts
   transcript: false,
   transcriptPosition: 'external',
   transcriptContainer: null,
-  
+
   // Keyboard (defaults; do not assign the same key to two actions)
   keyboard: true,
   keyboardShortcuts: {
@@ -479,9 +489,9 @@ const player = new Player('#video', {
     'seek-backward': ['ArrowLeft'],
     'volume-up': ['ArrowUp'],
     'volume-down': ['ArrowDown'],
-    'mute': ['m'],
-    'fullscreen': ['f'],
-    'captions': ['c'],
+    mute: ['m'],
+    fullscreen: ['f'],
+    captions: ['c'],
     'caption-style-menu': ['a'],
     'speed-up': ['>'],
     'speed-down': ['<'],
@@ -489,28 +499,28 @@ const player = new Player('#video', {
     'quality-menu': ['q'],
     'chapters-menu': ['j'],
     'transcript-toggle': ['t'],
-    'help': ['?']
+    help: ['?']
   },
-  
+
   // Accessibility
   screenReaderAnnouncements: true,
   focusHighlight: true,
   highContrast: false,
-  ariaLabels: {},                 // Override individual ARIA labels by i18n key
-  metadataAlerts: {},             // Map of metadata-cue keys to alert handlers (opt-in)
-  metadataHashtags: {},           // Map of metadata-cue hashtags to handler config (opt-in)
+  ariaLabels: {}, // Override individual ARIA labels by i18n key
+  metadataAlerts: {}, // Map of metadata-cue keys to alert handlers (opt-in)
+  metadataHashtags: {}, // Map of metadata-cue hashtags to handler config (opt-in)
 
   // Internationalization
   language: 'en',
   languages: ['en'],
-  languageFiles: undefined,       // { pt: '/i18n/pt.json', it: '/i18n/it.json' }
-  languageFile: undefined,        // Single language code to load
-  languageFileUrl: undefined,     // URL for the single language file
+  languageFiles: undefined, // { pt: '/i18n/pt.json', it: '/i18n/it.json' }
+  languageFile: undefined, // Single language code to load
+  languageFileUrl: undefined, // URL for the single language file
 
   // Resume Playback
-  resumePlayback: true,           // Save and offer to resume playback position
-  resumeThreshold: 10,            // Seconds; do not offer resume if less than this was watched
-  resumePrompt: true,             // false = silently auto-resume
+  resumePlayback: true, // Save and offer to resume playback position
+  resumeThreshold: 10, // Seconds; do not offer resume if less than this was watched
+  resumePrompt: true, // false = silently auto-resume
 
   // Thumbnail Preview
   thumbnailPreview: true,
@@ -526,8 +536,8 @@ const player = new Player('#video', {
   lazyMargin: '200px',
 
   // Theming
-  theme: 'dark',                  // 'dark' | 'light' | 'minimal' | 'high-contrast'
-  themeVariables: {},             // Custom --vidply-* CSS variable overrides
+  theme: 'dark', // 'dark' | 'light' | 'minimal' | 'high-contrast'
+  themeVariables: {}, // Custom --vidply-* CSS variable overrides
 
   // Callbacks
   onReady: () => console.log('Ready!'),
@@ -540,35 +550,35 @@ const player = new Player('#video', {
 
   // External embeds (YouTube, Vimeo, SoundCloud)
   // See "Native YouTube / Vimeo Controls" above for what 'provider' changes.
-  embedChrome: 'vidply',          // 'vidply' = chromeless iframe + VidPly bar; 'provider' = native embed UI only
+  embedChrome: 'vidply', // 'vidply' = chromeless iframe + VidPly bar; 'provider' = native embed UI only
   embedChromeSoundcloud: 'provider', // SoundCloud widget keeps its mini UI; VidPly bar when 'vidply'
 
   // Streaming
-  hideSpeedForHls: false,         // Hide speed control for ALL HLS streams
-  hideSpeedForHlsVideo: false,    // Hide speed control only for HLS video (e.g. live streams)
-  hideSpeedForDash: false,        // Hide speed control for ALL DASH streams
-  hideSpeedForDashVideo: false,   // Hide speed control only for DASH video
+  hideSpeedForHls: false, // Hide speed control for ALL HLS streams
+  hideSpeedForHlsVideo: false, // Hide speed control only for HLS video (e.g. live streams)
+  hideSpeedForDash: false, // Hide speed control for ALL DASH streams
+  hideSpeedForDashVideo: false, // Hide speed control only for DASH video
 
   // Advanced
   debug: false,
   pauseOthersOnPlay: true,
-  classPrefix: 'vidply',          // CSS class prefix and event/storage namespace
+  classPrefix: 'vidply', // CSS class prefix and event/storage namespace
   iconType: 'svg',
-  initialDuration: 0,             // Optional duration shown before metadata is loaded
+  initialDuration: 0, // Optional duration shown before metadata is loaded
   requirePlaybackForAccessibilityToggles: false, // If true, AD/SL toggles before play show a notice instead of starting playback
   fillContainer: false,
-  playsInline: true,              // Inline playback on iOS
+  playsInline: true, // Inline playback on iOS
 
   // Performance
-  preload: 'metadata',            // 'none', 'metadata', or 'auto'
-  deferLoad: false                // Delay loading until user plays (good for many players)
+  preload: 'metadata', // 'none', 'metadata', or 'auto'
+  deferLoad: false // Delay loading until user plays (good for many players)
 });
 ```
 
 ## Keyboard Shortcuts
 
 | Key                                            | Action                                        |
-|------------------------------------------------|-----------------------------------------------|
+| ---------------------------------------------- | --------------------------------------------- |
 | <kbd>Space</kbd> / <kbd>P</kbd> / <kbd>K</kbd> | Play/Pause                                    |
 | <kbd>F</kbd>                                   | Toggle Fullscreen                             |
 | <kbd>M</kbd>                                   | Mute/Unmute                                   |
@@ -596,23 +606,23 @@ Shortcuts only act on controls that exist in the bar: chromeless YouTube/Vimeo h
 ### Playback Control
 
 ```javascript
-player.play()           // Start playback
-player.pause()          // Pause playback
-player.stop()           // Stop and reset
-player.toggle()         // Toggle play/pause
-player.seek(30)         // Seek to 30 seconds
-player.seekForward(10)  // Skip forward 10 seconds
-player.seekBackward(10) // Skip backward 10 seconds
+player.play(); // Start playback
+player.pause(); // Pause playback
+player.stop(); // Stop and reset
+player.toggle(); // Toggle play/pause
+player.seek(30); // Seek to 30 seconds
+player.seekForward(10); // Skip forward 10 seconds
+player.seekBackward(10); // Skip backward 10 seconds
 ```
 
 ### Volume Control
 
 ```javascript
-player.setVolume(0.5)   // Set volume (0.0-1.0)
-player.getVolume()      // Get current volume
-player.mute()           // Mute audio
-player.unmute()         // Unmute audio
-player.toggleMute()     // Toggle mute state
+player.setVolume(0.5); // Set volume (0.0-1.0)
+player.getVolume(); // Get current volume
+player.mute(); // Mute audio
+player.unmute(); // Unmute audio
+player.toggleMute(); // Toggle mute state
 ```
 
 **Note on Mobile Devices:** On touch devices (iOS, Android, tablets), only a **mute/unmute button** is shown instead of
@@ -623,16 +633,16 @@ functionality while hardware buttons control actual volume levels.
 ### Playback Speed
 
 ```javascript
-player.setPlaybackSpeed(1.5)  // Set speed (0.25-2.0)
-player.getPlaybackSpeed()     // Get current speed
+player.setPlaybackSpeed(1.5); // Set speed (0.25-2.0)
+player.getPlaybackSpeed(); // Get current speed
 ```
 
 ### Fullscreen
 
 ```javascript
-player.enterFullscreen()  // Enter fullscreen
-player.exitFullscreen()   // Exit fullscreen
-player.toggleFullscreen() // Toggle fullscreen
+player.enterFullscreen(); // Enter fullscreen
+player.exitFullscreen(); // Exit fullscreen
+player.toggleFullscreen(); // Toggle fullscreen
 ```
 
 **Note on iOS/Mobile Safari:** Since iOS doesn't support the Fullscreen API on container elements, VidPly automatically
@@ -642,30 +652,30 @@ a fullscreen-like experience on iOS devices while maintaining all player functio
 ### Captions
 
 ```javascript
-player.enableCaptions()   // Enable captions
-player.disableCaptions()  // Disable captions
-player.toggleCaptions()   // Toggle captions
+player.enableCaptions(); // Enable captions
+player.disableCaptions(); // Disable captions
+player.toggleCaptions(); // Toggle captions
 
 // Switch between caption tracks
-player.captionManager.switchTrack(0)  // Switch to first track
-player.captionManager.getAvailableTracks()  // Get all tracks
+player.captionManager.switchTrack(0); // Switch to first track
+player.captionManager.getAvailableTracks(); // Get all tracks
 ```
 
 ### Transcript
 
 ```javascript
 // Show/Hide Transcript
-player.transcriptManager.showTranscript()     // Show transcript window
-player.transcriptManager.hideTranscript()     // Hide transcript window
-player.transcriptManager.toggleTranscript()   // Toggle transcript visibility
+player.transcriptManager.showTranscript(); // Show transcript window
+player.transcriptManager.hideTranscript(); // Hide transcript window
+player.transcriptManager.toggleTranscript(); // Toggle transcript visibility
 
 // Drag & Resize Modes (Desktop only, mobile breakpoint: 768px)
-player.transcriptManager.toggleKeyboardDragMode()   // Toggle drag mode (D key)
-player.transcriptManager.toggleResizeMode()         // Toggle resize mode (R key)
+player.transcriptManager.toggleKeyboardDragMode(); // Toggle drag mode (D key)
+player.transcriptManager.toggleResizeMode(); // Toggle resize mode (R key)
 
 // Settings Menu
-player.transcriptManager.showSettingsMenu()    // Show settings dropdown
-player.transcriptManager.hideSettingsMenu()    // Hide settings dropdown
+player.transcriptManager.showSettingsMenu(); // Show settings dropdown
+player.transcriptManager.hideSettingsMenu(); // Hide settings dropdown
 
 // Check State
 if (player.transcriptManager.isVisible) {
@@ -676,21 +686,21 @@ if (player.transcriptManager.isVisible) {
 ### Audio Description
 
 ```javascript
-player.enableAudioDescription()   // Switch to described version
-player.disableAudioDescription()  // Switch back to original
-player.toggleAudioDescription()   // Toggle audio description
+player.enableAudioDescription(); // Switch to described version
+player.disableAudioDescription(); // Switch back to original
+player.toggleAudioDescription(); // Toggle audio description
 ```
 
 ### Sign Language
 
 ```javascript
 // Show/Hide Sign Language Video
-player.enableSignLanguage()   // Show sign language overlay
-player.disableSignLanguage()  // Hide sign language overlay
-player.toggleSignLanguage()   // Toggle sign language
+player.enableSignLanguage(); // Show sign language overlay
+player.disableSignLanguage(); // Hide sign language overlay
+player.toggleSignLanguage(); // Toggle sign language
 
 // Multi-Language Support
-player.switchSignLanguage('de')  // Switch to German sign language
+player.switchSignLanguage('de'); // Switch to German sign language
 
 // Drag & Resize (available via settings menu or keyboard)
 // D key - Toggle drag mode with arrow keys
@@ -709,9 +719,9 @@ const player = new Player('#my-player');
 
 // Create playlist manager
 const playlist = new PlaylistManager(player, {
-  autoAdvance: true,   // Auto-play next track
-  loop: false,         // Loop back to start
-  showPanel: true      // Show playlist UI
+  autoAdvance: true, // Auto-play next track
+  loop: false, // Loop back to start
+  showPanel: true // Show playlist UI
 });
 
 // Load tracks
@@ -727,18 +737,16 @@ playlist.loadPlaylist([
     src: 'track2.mp3',
     title: 'Track 2',
     artist: 'Artist Name',
-    tracks: [
-      { src: 'captions.vtt', kind: 'captions', srclang: 'en' }
-    ]
+    tracks: [{ src: 'captions.vtt', kind: 'captions', srclang: 'en' }]
   }
 ]);
 
 // Control playlist
-playlist.next()         // Go to next track
-playlist.previous()     // Go to previous track
-playlist.goToTrack(2)   // Jump to specific track
-playlist.hasNext()      // Check if next track exists
-playlist.hasPrevious()  // Check if previous track exists
+playlist.next(); // Go to next track
+playlist.previous(); // Go to previous track
+playlist.goToTrack(2); // Jump to specific track
+playlist.hasNext(); // Check if next track exists
+playlist.hasPrevious(); // Check if previous track exists
 
 // Listen for track changes
 player.on('playlisttrackchange', (e) => {
@@ -750,16 +758,16 @@ player.on('playlisttrackchange', (e) => {
 ### Settings
 
 ```javascript
-player.showSettings()  // Open settings dialog
-player.hideSettings()  // Close settings dialog
+player.showSettings(); // Open settings dialog
+player.hideSettings(); // Close settings dialog
 ```
 
 ### Keyboard Shortcuts Help
 
 ```javascript
-player.toggleKeyboardHelp()  // Toggle the keyboard-shortcuts help dialog
-player.showKeyboardHelp()    // Open the help dialog
-player.hideKeyboardHelp()    // Close the help dialog
+player.toggleKeyboardHelp(); // Toggle the keyboard-shortcuts help dialog
+player.showKeyboardHelp(); // Open the help dialog
+player.hideKeyboardHelp(); // Close the help dialog
 ```
 
 The dialog is built from the live `keyboardShortcuts` bindings (including any
@@ -775,38 +783,38 @@ they're ready.
 ### State Information
 
 ```javascript
-player.getCurrentTime()  // Get current time
-player.getDuration()     // Get duration
-player.isPlaying()       // Check if playing
-player.isPaused()        // Check if paused
-player.isEnded()         // Check if ended
-player.isMuted()         // Check if muted
-player.isFullscreen()    // Check if fullscreen
+player.getCurrentTime(); // Get current time
+player.getDuration(); // Get duration
+player.isPlaying(); // Check if playing
+player.isPaused(); // Check if paused
+player.isEnded(); // Check if ended
+player.isMuted(); // Check if muted
+player.isFullscreen(); // Check if fullscreen
 ```
 
 ### Event Listeners
 
 ```javascript
-player.on('ready', () => {})
-player.on('play', () => {})
-player.on('pause', () => {})
-player.on('ended', () => {})
-player.on('timeupdate', (time) => {})
-player.on('volumechange', (volume) => {})
-player.on('playbackspeedchange', (speed) => {})
-player.on('fullscreenchange', (isFullscreen) => {})
-player.on('hlsmanifestparsed', (data) => {})
-player.on('dashqualitychanged', (data) => {})
-player.on('textcuesupdate', () => {})
-player.on('captionsenabled', (track) => {})
-player.on('captionsdisabled', () => {})
-player.on('error', (error) => {})
+player.on('ready', () => {});
+player.on('play', () => {});
+player.on('pause', () => {});
+player.on('ended', () => {});
+player.on('timeupdate', (time) => {});
+player.on('volumechange', (volume) => {});
+player.on('playbackspeedchange', (speed) => {});
+player.on('fullscreenchange', (isFullscreen) => {});
+player.on('hlsmanifestparsed', (data) => {});
+player.on('dashqualitychanged', (data) => {});
+player.on('textcuesupdate', () => {});
+player.on('captionsenabled', (track) => {});
+player.on('captionsdisabled', () => {});
+player.on('error', (error) => {});
 ```
 
 ### Cleanup
 
 ```javascript
-player.destroy()  // Remove player and cleanup
+player.destroy(); // Remove player and cleanup
 ```
 
 ## Customization
@@ -822,21 +830,21 @@ VidPly provides extensive CSS variables for easy customization:
   --vidply-primary-color: #3b82f6;
   --vidply-background: rgba(0, 0, 0, 0.8);
   --vidply-text-color: #ffffff;
-  
+
   /* Sizing */
   --vidply-button-size: 40px;
   --vidply-icon-size: 20px;
-  
+
   /* Spacing */
   --vidply-gap-sm: 4px;
   --vidply-gap-md: 8px;
   --vidply-gap-lg: 12px;
-  
+
   /* Border radius */
   --vidply-radius-sm: 4px;
   --vidply-radius-md: 8px;
   --vidply-radius-lg: 12px;
-  
+
   /* Transitions */
   --vidply-transition-fast: 150ms;
   --vidply-transition-normal: 300ms;
@@ -858,8 +866,8 @@ VidPly provides extensive CSS variables for easy customization:
 #### Option 1: Load from URL (Recommended)
 
 ```html
-<video 
-  data-vidply 
+<video
+  data-vidply
   data-vidply-language-files='{"pt": "languages/pt.json", "it": "languages/it.json"}'
   src="video.mp4"
 ></video>
@@ -875,8 +883,8 @@ await i18n.loadLanguageFromUrl('pt', 'languages/pt.json');
 
 // Or load multiple languages
 await i18n.loadLanguagesFromUrls({
-  'pt': 'languages/pt.json',
-  'it': 'languages/it.json'
+  pt: 'languages/pt.json',
+  it: 'languages/it.json'
 });
 
 // Set the language

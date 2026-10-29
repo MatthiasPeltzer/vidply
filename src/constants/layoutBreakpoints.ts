@@ -8,6 +8,8 @@ export const PLAYLIST_PANEL_RIGHT_DESKTOP_MEDIA_QUERY =
   `(width >= ${PLAYLIST_PANEL_RIGHT_DESKTOP_MIN_WIDTH})` as const;
 
 export function isPlaylistPanelRightDesktopViewport(): boolean {
-  return typeof window !== 'undefined'
-    && window.matchMedia(PLAYLIST_PANEL_RIGHT_DESKTOP_MEDIA_QUERY).matches;
+  return (
+    typeof window !== 'undefined' &&
+    window.matchMedia(PLAYLIST_PANEL_RIGHT_DESKTOP_MEDIA_QUERY).matches
+  );
 }

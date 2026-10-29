@@ -9,8 +9,10 @@ import { SoundCloudRenderer } from '../../src/renderers/SoundCloudRenderer.js';
 function attachEmbedChromeMocks(mockPlayer) {
   mockPlayer.options.embedChromeSoundcloud = mockPlayer.options.embedChromeSoundcloud ?? 'provider';
   mockPlayer.usesProviderNativeChrome = vi.fn((type) => {
-    return type === 'soundcloud'
-      && (mockPlayer.options.embedChromeSoundcloud ?? 'provider') === 'provider';
+    return (
+      type === 'soundcloud' &&
+      (mockPlayer.options.embedChromeSoundcloud ?? 'provider') === 'provider'
+    );
   });
   mockPlayer.syncEmbedChromeClass = vi.fn((type) => {
     const provider = mockPlayer.usesProviderNativeChrome(type ?? 'soundcloud');
@@ -29,7 +31,7 @@ describe('SoundCloudRenderer', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
     vi.useFakeTimers();
-    
+
     container = document.createElement('div');
     mockElement = document.createElement('audio');
     mockElement.src = 'https://soundcloud.com/artist/track-name';
@@ -43,7 +45,7 @@ describe('SoundCloudRenderer', () => {
       videoWrapper: document.createElement('div'),
       options: {
         autoplay: false,
-        classPrefix: 'vidply',
+        classPrefix: 'vidply'
       },
       state: {
         duration: 0,
@@ -76,7 +78,7 @@ describe('SoundCloudRenderer', () => {
     };
 
     window.SC = {
-      Widget: vi.fn(() => mockWidget),
+      Widget: vi.fn(() => mockWidget)
     };
     window.SC.Widget.Events = {
       READY: 'ready',
@@ -102,7 +104,12 @@ describe('SoundCloudRenderer', () => {
   describe('init controls visibility', () => {
     it('hides VidPly controls before the SoundCloud widget is ready', async () => {
       let resolveApi;
-      renderer.loadSoundCloudAPI = vi.fn(() => new Promise((resolve) => { resolveApi = resolve; }));
+      renderer.loadSoundCloudAPI = vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveApi = resolve;
+          })
+      );
       renderer.createIframe = vi.fn();
       renderer.initializeWidget = vi.fn().mockResolvedValue(undefined);
 
@@ -179,7 +186,7 @@ describe('SoundCloudRenderer', () => {
     it('should generate embed URL with track URL', () => {
       renderer.trackUrl = 'https://soundcloud.com/artist/track';
       const embedUrl = renderer.getEmbedUrl();
-      
+
       expect(embedUrl).toContain('https://w.soundcloud.com/player/');
       expect(embedUrl).toContain('url=https%3A%2F%2Fsoundcloud.com%2Fartist%2Ftrack');
     });
@@ -187,7 +194,7 @@ describe('SoundCloudRenderer', () => {
     it('should include auto_play parameter based on options', () => {
       renderer.trackUrl = 'https://soundcloud.com/artist/track';
       mockPlayer.options.autoplay = true;
-      
+
       const embedUrl = renderer.getEmbedUrl();
       expect(embedUrl).toContain('auto_play=true');
     });
@@ -195,7 +202,7 @@ describe('SoundCloudRenderer', () => {
     it('should set auto_play to false when autoplay disabled', () => {
       renderer.trackUrl = 'https://soundcloud.com/artist/track';
       mockPlayer.options.autoplay = false;
-      
+
       const embedUrl = renderer.getEmbedUrl();
       expect(embedUrl).toContain('auto_play=false');
     });
@@ -203,7 +210,7 @@ describe('SoundCloudRenderer', () => {
     it('should hide related tracks', () => {
       renderer.trackUrl = 'https://soundcloud.com/artist/track';
       const embedUrl = renderer.getEmbedUrl();
-      
+
       expect(embedUrl).toContain('hide_related=true');
     });
   });
@@ -237,7 +244,7 @@ describe('SoundCloudRenderer', () => {
     it('should add playlist class for playlist URLs', () => {
       renderer.trackUrl = 'https://soundcloud.com/artist/sets/playlist';
       renderer.createIframe();
-      
+
       expect(renderer.iframe.classList.contains('vidply-soundcloud-playlist')).toBe(true);
     });
 
@@ -258,25 +265,25 @@ describe('SoundCloudRenderer', () => {
     it('should call widget play when ready', () => {
       renderer.isReady = true;
       renderer.widget = mockWidget;
-      
+
       renderer.play();
-      
+
       expect(mockWidget.play).toHaveBeenCalled();
     });
 
     it('should not call widget play when not ready', () => {
       renderer.isReady = false;
       renderer.widget = mockWidget;
-      
+
       renderer.play();
-      
+
       expect(mockWidget.play).not.toHaveBeenCalled();
     });
 
     it('should not throw when widget is null', () => {
       renderer.isReady = true;
       renderer.widget = null;
-      
+
       expect(() => renderer.play()).not.toThrow();
     });
   });
@@ -285,18 +292,18 @@ describe('SoundCloudRenderer', () => {
     it('should call widget pause when ready', () => {
       renderer.isReady = true;
       renderer.widget = mockWidget;
-      
+
       renderer.pause();
-      
+
       expect(mockWidget.pause).toHaveBeenCalled();
     });
 
     it('should not call widget pause when not ready', () => {
       renderer.isReady = false;
       renderer.widget = mockWidget;
-      
+
       renderer.pause();
-      
+
       expect(mockWidget.pause).not.toHaveBeenCalled();
     });
   });
@@ -305,18 +312,18 @@ describe('SoundCloudRenderer', () => {
     it('should call widget seekTo with milliseconds', () => {
       renderer.isReady = true;
       renderer.widget = mockWidget;
-      
+
       renderer.seek(30);
-      
+
       expect(mockWidget.seekTo).toHaveBeenCalledWith(30000);
     });
 
     it('should update player state currentTime', () => {
       renderer.isReady = true;
       renderer.widget = mockWidget;
-      
+
       renderer.seek(45);
-      
+
       expect(mockPlayer.state.currentTime).toBe(45);
     });
   });
@@ -325,18 +332,18 @@ describe('SoundCloudRenderer', () => {
     it('should call widget setVolume with 0-100 range', () => {
       renderer.isReady = true;
       renderer.widget = mockWidget;
-      
+
       renderer.setVolume(0.5);
-      
+
       expect(mockWidget.setVolume).toHaveBeenCalledWith(50);
     });
 
     it('should update player state volume', () => {
       renderer.isReady = true;
       renderer.widget = mockWidget;
-      
+
       renderer.setVolume(0.75);
-      
+
       expect(mockPlayer.state.volume).toBe(0.75);
     });
   });
@@ -345,9 +352,9 @@ describe('SoundCloudRenderer', () => {
     it('should set volume to 0 when muting', () => {
       renderer.isReady = true;
       renderer.widget = mockWidget;
-      
+
       renderer.setMuted(true);
-      
+
       // getVolume is called first to store previous volume
       expect(mockWidget.getVolume).toHaveBeenCalled();
     });
@@ -356,27 +363,27 @@ describe('SoundCloudRenderer', () => {
       renderer.isReady = true;
       renderer.widget = mockWidget;
       renderer._previousVolume = 75;
-      
+
       renderer.setMuted(false);
-      
+
       expect(mockWidget.setVolume).toHaveBeenCalledWith(75);
     });
 
     it('should default to 100 when no previous volume', () => {
       renderer.isReady = true;
       renderer.widget = mockWidget;
-      
+
       renderer.setMuted(false);
-      
+
       expect(mockWidget.setVolume).toHaveBeenCalledWith(100);
     });
 
     it('should update player state muted', () => {
       renderer.isReady = true;
       renderer.widget = mockWidget;
-      
+
       renderer.setMuted(true);
-      
+
       expect(mockPlayer.state.muted).toBe(true);
     });
   });
@@ -384,7 +391,7 @@ describe('SoundCloudRenderer', () => {
   describe('setPlaybackSpeed', () => {
     it('should log warning about unsupported feature', () => {
       renderer.setPlaybackSpeed(1.5);
-      
+
       expect(mockPlayer.log).toHaveBeenCalledWith(
         'SoundCloud does not support playback speed control',
         'warn'
@@ -396,18 +403,18 @@ describe('SoundCloudRenderer', () => {
     it('should return sound info when ready', async () => {
       renderer.isReady = true;
       renderer.widget = mockWidget;
-      
+
       const sound = await renderer.getCurrentSound();
-      
+
       expect(sound).toEqual({ duration: 180000 });
     });
 
     it('should return null when not ready', async () => {
       renderer.isReady = false;
       renderer.widget = mockWidget;
-      
+
       const sound = await renderer.getCurrentSound();
-      
+
       expect(sound).toBeNull();
     });
   });
@@ -420,13 +427,13 @@ describe('SoundCloudRenderer', () => {
     it('should not attach events when widget is null', () => {
       renderer.widget = null;
       renderer.attachEvents();
-      
+
       expect(mockWidget.bind).not.toHaveBeenCalled();
     });
 
     it('should bind PLAY event', () => {
       renderer.attachEvents();
-      
+
       expect(mockWidget.bind).toHaveBeenCalledWith(
         window.SC.Widget.Events.PLAY,
         expect.any(Function)
@@ -435,7 +442,7 @@ describe('SoundCloudRenderer', () => {
 
     it('should bind PAUSE event', () => {
       renderer.attachEvents();
-      
+
       expect(mockWidget.bind).toHaveBeenCalledWith(
         window.SC.Widget.Events.PAUSE,
         expect.any(Function)
@@ -444,7 +451,7 @@ describe('SoundCloudRenderer', () => {
 
     it('should bind FINISH event', () => {
       renderer.attachEvents();
-      
+
       expect(mockWidget.bind).toHaveBeenCalledWith(
         window.SC.Widget.Events.FINISH,
         expect.any(Function)
@@ -453,7 +460,7 @@ describe('SoundCloudRenderer', () => {
 
     it('should bind PLAY_PROGRESS event', () => {
       renderer.attachEvents();
-      
+
       expect(mockWidget.bind).toHaveBeenCalledWith(
         window.SC.Widget.Events.PLAY_PROGRESS,
         expect.any(Function)
@@ -462,7 +469,7 @@ describe('SoundCloudRenderer', () => {
 
     it('should bind SEEK event', () => {
       renderer.attachEvents();
-      
+
       expect(mockWidget.bind).toHaveBeenCalledWith(
         window.SC.Widget.Events.SEEK,
         expect.any(Function)
@@ -471,15 +478,15 @@ describe('SoundCloudRenderer', () => {
 
     it('should handle PLAY event correctly', () => {
       renderer.attachEvents();
-      
+
       // Find the PLAY callback
       const playCall = mockWidget.bind.mock.calls.find(
-        call => call[0] === window.SC.Widget.Events.PLAY
+        (call) => call[0] === window.SC.Widget.Events.PLAY
       );
       const playCallback = playCall[1];
-      
+
       playCallback();
-      
+
       expect(mockPlayer.state.playing).toBe(true);
       expect(mockPlayer.state.paused).toBe(false);
       expect(mockPlayer.emit).toHaveBeenCalledWith('play');
@@ -487,14 +494,14 @@ describe('SoundCloudRenderer', () => {
 
     it('should handle PAUSE event correctly', () => {
       renderer.attachEvents();
-      
+
       const pauseCall = mockWidget.bind.mock.calls.find(
-        call => call[0] === window.SC.Widget.Events.PAUSE
+        (call) => call[0] === window.SC.Widget.Events.PAUSE
       );
       const pauseCallback = pauseCall[1];
-      
+
       pauseCallback();
-      
+
       expect(mockPlayer.state.playing).toBe(false);
       expect(mockPlayer.state.paused).toBe(true);
       expect(mockPlayer.emit).toHaveBeenCalledWith('pause');
@@ -502,14 +509,14 @@ describe('SoundCloudRenderer', () => {
 
     it('should handle FINISH event correctly', () => {
       renderer.attachEvents();
-      
+
       const finishCall = mockWidget.bind.mock.calls.find(
-        call => call[0] === window.SC.Widget.Events.FINISH
+        (call) => call[0] === window.SC.Widget.Events.FINISH
       );
       const finishCallback = finishCall[1];
-      
+
       finishCallback();
-      
+
       expect(mockPlayer.state.ended).toBe(true);
       expect(mockPlayer.emit).toHaveBeenCalledWith('ended');
     });
@@ -518,14 +525,14 @@ describe('SoundCloudRenderer', () => {
       mockPlayer.options.loop = true;
       renderer.isReady = true;
       renderer.attachEvents();
-      
+
       const finishCall = mockWidget.bind.mock.calls.find(
-        call => call[0] === window.SC.Widget.Events.FINISH
+        (call) => call[0] === window.SC.Widget.Events.FINISH
       );
       const finishCallback = finishCall[1];
-      
+
       finishCallback();
-      
+
       expect(mockWidget.seekTo).toHaveBeenCalledWith(0);
       expect(mockWidget.play).toHaveBeenCalled();
     });
@@ -533,15 +540,13 @@ describe('SoundCloudRenderer', () => {
     it('should not emit ended when an intermediate set track finishes', () => {
       renderer.trackUrl = 'https://soundcloud.com/artist/sets/playlist-name';
       mockWidget.getCurrentSoundIndex.mockImplementation((callback) => callback(0));
-      mockWidget.getSounds.mockImplementation((callback) => callback([
-        { duration: 180000 },
-        { duration: 200000 },
-        { duration: 150000 }
-      ]));
+      mockWidget.getSounds.mockImplementation((callback) =>
+        callback([{ duration: 180000 }, { duration: 200000 }, { duration: 150000 }])
+      );
       renderer.attachEvents();
 
       const finishCall = mockWidget.bind.mock.calls.find(
-        call => call[0] === window.SC.Widget.Events.FINISH
+        (call) => call[0] === window.SC.Widget.Events.FINISH
       );
       finishCall[1]();
 
@@ -552,15 +557,13 @@ describe('SoundCloudRenderer', () => {
     it('should emit ended when the last track in a set finishes', () => {
       renderer.trackUrl = 'https://soundcloud.com/artist/sets/playlist-name';
       mockWidget.getCurrentSoundIndex.mockImplementation((callback) => callback(2));
-      mockWidget.getSounds.mockImplementation((callback) => callback([
-        { duration: 180000 },
-        { duration: 200000 },
-        { duration: 150000 }
-      ]));
+      mockWidget.getSounds.mockImplementation((callback) =>
+        callback([{ duration: 180000 }, { duration: 200000 }, { duration: 150000 }])
+      );
       renderer.attachEvents();
 
       const finishCall = mockWidget.bind.mock.calls.find(
-        call => call[0] === window.SC.Widget.Events.FINISH
+        (call) => call[0] === window.SC.Widget.Events.FINISH
       );
       finishCall[1]();
 
@@ -570,28 +573,28 @@ describe('SoundCloudRenderer', () => {
 
     it('should handle PLAY_PROGRESS event', () => {
       renderer.attachEvents();
-      
+
       const progressCall = mockWidget.bind.mock.calls.find(
-        call => call[0] === window.SC.Widget.Events.PLAY_PROGRESS
+        (call) => call[0] === window.SC.Widget.Events.PLAY_PROGRESS
       );
       const progressCallback = progressCall[1];
-      
+
       progressCallback({ currentPosition: 30000 });
-      
+
       expect(mockPlayer.state.currentTime).toBe(30);
       expect(mockPlayer.emit).toHaveBeenCalledWith('timeupdate', 30);
     });
 
     it('should handle SEEK event', () => {
       renderer.attachEvents();
-      
+
       const seekCall = mockWidget.bind.mock.calls.find(
-        call => call[0] === window.SC.Widget.Events.SEEK
+        (call) => call[0] === window.SC.Widget.Events.SEEK
       );
       const seekCallback = seekCall[1];
-      
+
       seekCallback({ currentPosition: 45000 });
-      
+
       expect(mockPlayer.state.currentTime).toBe(45);
       expect(mockPlayer.emit).toHaveBeenCalledWith('seeked');
     });
@@ -607,7 +610,7 @@ describe('SoundCloudRenderer', () => {
 
     it('should unbind all events', () => {
       renderer.destroy();
-      
+
       expect(mockWidget.unbind).toHaveBeenCalledWith(window.SC.Widget.Events.READY);
       expect(mockWidget.unbind).toHaveBeenCalledWith(window.SC.Widget.Events.PLAY);
       expect(mockWidget.unbind).toHaveBeenCalledWith(window.SC.Widget.Events.PAUSE);
@@ -616,27 +619,27 @@ describe('SoundCloudRenderer', () => {
 
     it('should remove iframe from DOM', () => {
       renderer.destroy();
-      
+
       expect(container.contains(renderer.iframe)).toBe(false);
     });
 
     it('should show original element', () => {
       mockElement.style.display = 'none';
-      
+
       renderer.destroy();
-      
+
       expect(mockElement.style.display).toBe('');
     });
 
     it('should set widget to null', () => {
       renderer.destroy();
-      
+
       expect(renderer.widget).toBeNull();
     });
 
     it('should set isReady to false', () => {
       renderer.destroy();
-      
+
       expect(renderer.isReady).toBe(false);
     });
 

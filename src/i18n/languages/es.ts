@@ -38,7 +38,8 @@ export const es = {
     floatingPlayerClose: 'Cerrar reproductor flotante',
     floatingPlayerEnter: 'Sacar el v\u00eddeo',
     floatingPlayerExit: 'Anclar el v\u00eddeo',
-    floatingPlayerDialog: 'Reproductor de v\u00eddeo flotante. Pulsa D para mover, R para redimensionar, Escape para cerrar.',
+    floatingPlayerDialog:
+      'Reproductor de v\u00eddeo flotante. Pulsa D para mover, R para redimensionar, Escape para cerrar.',
     download: 'Descargar',
     openOnYoutube: 'Abrir en YouTube (nueva pestaña)',
     openOnVimeo: 'Abrir en Vimeo (nueva pestaña)',
@@ -66,17 +67,24 @@ export const es = {
     auto: 'Automático',
     autoQuality: 'Automático (selección de calidad no disponible)',
     noQuality: 'Selección de calidad no disponible',
-    signLanguageDragResize: 'Video en Lengua de Señas - Presione D para arrastrar con el teclado, R para cambiar el tamaño',
-    signLanguageDragActive: 'Video en Lengua de Señas - Modo de arrastre activo. Use las teclas de flecha para mover, Escape para salir.',
-    signLanguageResizeActive: 'Video en Lengua de Señas - Modo de cambio de tamaño activo. Use las teclas de flecha izquierda/derecha para cambiar el tamaño, Escape para salir.',
+    signLanguageDragResize:
+      'Video en Lengua de Señas - Presione D para arrastrar con el teclado, R para cambiar el tamaño',
+    signLanguageDragActive:
+      'Video en Lengua de Señas - Modo de arrastre activo. Use las teclas de flecha para mover, Escape para salir.',
+    signLanguageResizeActive:
+      'Video en Lengua de Señas - Modo de cambio de tamaño activo. Use las teclas de flecha izquierda/derecha para cambiar el tamaño, Escape para salir.',
     enableSignDragMode: 'Activar modo de arrastre. Atajo: tecla D',
     disableSignDragMode: 'Desactivar modo de arrastre. Atajo: tecla D',
-    enableSignDragModeAria: 'Activar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D',
-    disableSignDragModeAria: 'Desactivar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D',
+    enableSignDragModeAria:
+      'Activar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D',
+    disableSignDragModeAria:
+      'Desactivar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D',
     enableSignResizeMode: 'Activar modo de cambio de tamaño. Atajo: tecla R',
     disableSignResizeMode: 'Desactivar modo de cambio de tamaño. Atajo: tecla R',
-    enableSignResizeModeAria: 'Activar modo de cambio de tamaño con teclado usando teclas de flecha. Atajo: tecla R',
-    disableSignResizeModeAria: 'Desactivar modo de cambio de tamaño con teclado usando teclas de flecha. Atajo: tecla R',
+    enableSignResizeModeAria:
+      'Activar modo de cambio de tamaño con teclado usando teclas de flecha. Atajo: tecla R',
+    disableSignResizeModeAria:
+      'Desactivar modo de cambio de tamaño con teclado usando teclas de flecha. Atajo: tecla R',
     signDragModeHint: 'Modo de arrastre: flechas para mover, Esc para salir',
     signResizeModeHint: 'Modo de cambio de tamaño: flechas para redimensionar, Esc para salir',
     signDragModeDisabled: 'Modo de arrastre del video en lengua de señas desactivado.',
@@ -137,24 +145,35 @@ export const es = {
     close: 'Cerrar transcripción',
     loading: 'Cargando transcripción...',
     noTranscript: 'No hay transcripción disponible para este video.',
-    settings: 'Configuración de transcripción. Presione Enter para abrir el menú o D para activar el modo de arrastre',
-    keyboardDragMode: 'Alternar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D',
-    keyboardDragActive: '⌨️ Modo de Arrastre con Teclado Activo (Teclas de flecha para mover, Mayús+Flechas para pasos grandes, D o ESC para salir)',
-    dragResizePrompt: 'Pulsa D para mover o R para cambiar el tamaño. Home restablece la posición; Esc cierra.',
-    dragModeEnabled: 'Modo de arrastre con teclado activado. Usa flechas para mover, Mayús+Flechas para pasos grandes. Pulsa D o Esc para salir.',
+    settings:
+      'Configuración de transcripción. Presione Enter para abrir el menú o D para activar el modo de arrastre',
+    keyboardDragMode:
+      'Alternar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D',
+    keyboardDragActive:
+      '⌨️ Modo de Arrastre con Teclado Activo (Teclas de flecha para mover, Mayús+Flechas para pasos grandes, D o ESC para salir)',
+    dragResizePrompt:
+      'Pulsa D para mover o R para cambiar el tamaño. Home restablece la posición; Esc cierra.',
+    dragModeEnabled:
+      'Modo de arrastre con teclado activado. Usa flechas para mover, Mayús+Flechas para pasos grandes. Pulsa D o Esc para salir.',
     dragModeDisabled: 'Modo de arrastre con teclado desactivado.',
     enableDragMode: 'Activar modo de arrastre. Atajo: tecla D',
     disableDragMode: 'Desactivar modo de arrastre. Atajo: tecla D',
-    enableDragModeAria: 'Activar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D',
-    disableDragModeAria: 'Desactivar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D',
+    enableDragModeAria:
+      'Activar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D',
+    disableDragModeAria:
+      'Desactivar modo de arrastre con teclado usando teclas de flecha. Atajo: tecla D',
     resizeWindow: 'Cambiar tamaño de ventana',
     disableResizeWindow: 'Desactivar modo de cambio de tamaño',
     enableResizeMode: 'Activar modo de cambio de tamaño. Atajo: tecla R',
     disableResizeMode: 'Desactivar modo de cambio de tamaño. Atajo: tecla R',
-    enableResizeModeAria: 'Activar modo de cambio de tamaño con teclado usando teclas de flecha. Atajo: tecla R',
-    disableResizeModeAria: 'Desactivar modo de cambio de tamaño con teclado usando teclas de flecha. Atajo: tecla R',
-    resizeModeHint: 'Controladores habilitados. Arrastra bordes o esquinas para ajustar. Pulsa Esc o R para salir.',
-    resizeModeEnabled: 'Modo de cambio de tamaño activado. Arrastra bordes o esquinas. Pulsa Esc o R para salir.',
+    enableResizeModeAria:
+      'Activar modo de cambio de tamaño con teclado usando teclas de flecha. Atajo: tecla R',
+    disableResizeModeAria:
+      'Desactivar modo de cambio de tamaño con teclado usando teclas de flecha. Atajo: tecla R',
+    resizeModeHint:
+      'Controladores habilitados. Arrastra bordes o esquinas para ajustar. Pulsa Esc o R para salir.',
+    resizeModeEnabled:
+      'Modo de cambio de tamaño activado. Arrastra bordes o esquinas. Pulsa Esc o R para salir.',
     resizeModeDisabled: 'Modo de cambio de tamaño desactivado.',
     dragModeBadge: 'Modo mover: flechas para mover, Esc para salir',
     resizeModeBadge: 'Modo redimensionar: arrastra bordes o esquinas, Esc para salir',
@@ -195,8 +214,8 @@ export const es = {
       'seek-forward-live': 'Avanzar (cuando va retrasado respecto al directo)',
       'volume-up': 'Subir volumen',
       'volume-down': 'Bajar volumen',
-      'mute': 'Silenciar / Activar sonido',
-      'captions': 'Alternar subtítulos',
+      mute: 'Silenciar / Activar sonido',
+      captions: 'Alternar subtítulos',
       'caption-style-menu': 'Estilo de subtítulos',
       'speed-down': 'Reducir velocidad',
       'speed-up': 'Aumentar velocidad',
@@ -204,8 +223,8 @@ export const es = {
       'quality-menu': 'Calidad',
       'chapters-menu': 'Capítulos',
       'transcript-toggle': 'Alternar transcripción',
-      'fullscreen': 'Alternar pantalla completa',
-      'help': 'Atajos de teclado'
+      fullscreen: 'Alternar pantalla completa',
+      help: 'Atajos de teclado'
     },
     live: {
       skipBack: 'Retroceder',
@@ -215,9 +234,11 @@ export const es = {
       goLive: 'Ir al directo',
       goLiveDesc: 'Salta al punto en directo actual y reanuda la reproducción',
       progress: 'Barra de progreso',
-      progressDesc: 'Muestra su posición dentro de la ventana de rebobinado; el borde derecho es el directo',
+      progressDesc:
+        'Muestra su posición dentro de la ventana de rebobinado; el borde derecho es el directo',
       liveBadge: 'Indicador EN DIRECTO',
-      liveBadgeDesc: 'Visible en el directo; al rebobinar, la hora anterior muestra el retraso respecto al directo'
+      liveBadgeDesc:
+        'Visible en el directo; al rebobinar, la hora anterior muestra el retraso respecto al directo'
     }
   },
   speeds: {
@@ -251,7 +272,8 @@ export const es = {
     notPlaying: 'Sin reproducir',
     pressEnterPlay: 'Pulsa Enter para reproducir',
     pressEnterRestart: 'Pulsa Enter para reiniciar',
-    keyboardInstructions: 'Navegación de lista de reproducción: Use las teclas de flecha arriba y abajo para moverse entre pistas. Pulse Retroceder página o Avanzar página para saltar 5 pistas. Pulse Inicio para ir a la primera pista, Fin para la última pista. Pulse Intro o Espacio para reproducir la pista seleccionada.',
+    keyboardInstructions:
+      'Navegación de lista de reproducción: Use las teclas de flecha arriba y abajo para moverse entre pistas. Pulse Retroceder página o Avanzar página para saltar 5 pistas. Pulse Inicio para ir a la primera pista, Fin para la última pista. Pulse Intro o Espacio para reproducir la pista seleccionada.',
     endOfPlaylist: 'Fin de la lista de reproducción. {current} de {total}.',
     beginningOfPlaylist: 'Inicio de la lista de reproducción. 1 de {total}.',
     jumpedToLastTrack: 'Saltó a la última pista. {current} de {total}.',
@@ -264,4 +286,3 @@ export const es = {
     descriptionHide: 'Ocultar descripción'
   }
 };
-

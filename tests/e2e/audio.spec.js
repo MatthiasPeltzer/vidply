@@ -15,8 +15,8 @@ test.describe('Audio Player', () => {
   test('should display audio player', async ({ page }) => {
     // Find audio player (has .vidply-audio class or contains audio element)
     const audioPlayer = page.locator('.vidply-player.vidply-audio, .vidply-player:has(audio)');
-    
-    if (await audioPlayer.count() > 0) {
+
+    if ((await audioPlayer.count()) > 0) {
       await expect(audioPlayer.first()).toBeVisible();
     } else {
       // Fall back to any player
@@ -27,8 +27,8 @@ test.describe('Audio Player', () => {
 
   test('should have audio-specific controls (no fullscreen)', async ({ page }) => {
     const audioPlayer = page.locator('.vidply-player.vidply-audio');
-    
-    if (await audioPlayer.count() > 0) {
+
+    if ((await audioPlayer.count()) > 0) {
       // Audio players typically don't have fullscreen button
       const fullscreenInAudio = audioPlayer.first().locator('button[aria-label="Fullscreen"]');
       const hasFullscreen = await fullscreenInAudio.isVisible().catch(() => false);
@@ -38,10 +38,12 @@ test.describe('Audio Player', () => {
 
   test('should play audio', async ({ page }) => {
     const audioPlayer = page.locator('.vidply-player.vidply-audio, .vidply-player:has(audio)');
-    
-    if (await audioPlayer.count() > 0) {
-      const playButton = audioPlayer.first().locator('button[aria-label="Play"], button[aria-label="Abspielen"]');
-      
+
+    if ((await audioPlayer.count()) > 0) {
+      const playButton = audioPlayer
+        .first()
+        .locator('button[aria-label="Play"], button[aria-label="Abspielen"]');
+
       if (await playButton.isVisible()) {
         await playButton.click();
         await page.waitForTimeout(1000);
@@ -55,9 +57,11 @@ test.describe('Audio Player', () => {
 
   test('should have progress bar', async ({ page }) => {
     const audioPlayer = page.locator('.vidply-player.vidply-audio, .vidply-player:has(audio)');
-    
-    if (await audioPlayer.count() > 0) {
-      const progressBar = audioPlayer.first().locator('[aria-label="Progress"], [aria-label="Fortschritt"]');
+
+    if ((await audioPlayer.count()) > 0) {
+      const progressBar = audioPlayer
+        .first()
+        .locator('[aria-label="Progress"], [aria-label="Fortschritt"]');
       await expect(progressBar.first()).toBeVisible();
     }
   });
@@ -65,23 +69,25 @@ test.describe('Audio Player', () => {
   test('should have volume control', async ({ page }) => {
     const audioPlayer = page.locator('.vidply-player.vidply-audio, .vidply-player:has(audio)');
 
-    if (await audioPlayer.count() > 0) {
+    if ((await audioPlayer.count()) > 0) {
       // Desktop label is suffixed with the current percentage (e.g.
       // "Volume 100%" / "Lautstärke 100%"); touch is bare mute/unmute. Match
       // by prefix in either language.
-      const volumeControl = audioPlayer.first().locator(
-        'button[aria-label^="Volume"], button[aria-label^="Lautstärke"], ' +
-        'button[aria-label^="Mute"], button[aria-label^="Stumm"], ' +
-        'button[aria-label^="Unmute"], button[aria-label^="Ton ein"]'
-      );
+      const volumeControl = audioPlayer
+        .first()
+        .locator(
+          'button[aria-label^="Volume"], button[aria-label^="Lautstärke"], ' +
+            'button[aria-label^="Mute"], button[aria-label^="Stumm"], ' +
+            'button[aria-label^="Unmute"], button[aria-label^="Ton ein"]'
+        );
       await expect(volumeControl.first()).toBeVisible();
     }
   });
 
   test('should show time display', async ({ page }) => {
     const audioPlayer = page.locator('.vidply-player.vidply-audio, .vidply-player:has(audio)');
-    
-    if (await audioPlayer.count() > 0) {
+
+    if ((await audioPlayer.count()) > 0) {
       const timeDisplay = audioPlayer.first().locator('[aria-label="Time display"], .vidply-time');
       await expect(timeDisplay.first()).toBeVisible();
     }
@@ -89,10 +95,12 @@ test.describe('Audio Player', () => {
 
   test('should have captions button for audio with captions', async ({ page }) => {
     const audioPlayer = page.locator('.vidply-player.vidply-audio, .vidply-player:has(audio)');
-    
-    if (await audioPlayer.count() > 0) {
+
+    if ((await audioPlayer.count()) > 0) {
       // Some audio players have captions (lyrics/transcripts)
-      const captionsButton = audioPlayer.first().locator('button[aria-label="Captions"], button[aria-label="Untertitel"]');
+      const captionsButton = audioPlayer
+        .first()
+        .locator('button[aria-label="Captions"], button[aria-label="Untertitel"]');
       const hasCaptions = await captionsButton.isVisible().catch(() => false);
       // May or may not have captions
     }
@@ -113,7 +121,7 @@ test.describe('Audio Player - Standalone Demo', () => {
 
   test('should have compact layout for audio', async ({ page }) => {
     const player = page.locator('.vidply-player').first();
-    
+
     // Audio players are typically shorter/more compact
     const box = await player.boundingBox();
     if (box) {
@@ -151,7 +159,7 @@ test.describe('Audio Player - Standalone Demo', () => {
     // Verify the player responded - either pause button visible or player state changed
     const pauseButton = player.locator('button[aria-label="Pause"]');
     const hasPauseButton = await pauseButton.isVisible().catch(() => false);
-    
+
     // If pause button appeared, keyboard control works
     if (hasPauseButton) {
       // Space to pause
@@ -159,7 +167,9 @@ test.describe('Audio Player - Standalone Demo', () => {
       await page.waitForTimeout(1000);
 
       // Verify paused - play button should be visible or pause still visible (depends on timing)
-      const playButtonAgain = player.locator('button[aria-label="Play"], button[aria-label="Pause"]');
+      const playButtonAgain = player.locator(
+        'button[aria-label="Play"], button[aria-label="Pause"]'
+      );
       await expect(playButtonAgain).toBeVisible({ timeout: 5000 });
     } else {
       // At least player should still be functional
@@ -214,11 +224,13 @@ test.describe('Audio with Lyrics/Captions', () => {
   test('should display lyrics as scrolling text', async ({ page }) => {
     // Find audio player with captions (French song demo)
     const audioPlayers = page.locator('.vidply-player.vidply-audio, .vidply-player:has(audio)');
-    
-    for (let i = 0; i < await audioPlayers.count(); i++) {
+
+    for (let i = 0; i < (await audioPlayers.count()); i++) {
       const player = audioPlayers.nth(i);
-      const captionsButton = player.locator('button[aria-label="Captions"], button[aria-label="Untertitel"]');
-      
+      const captionsButton = player.locator(
+        'button[aria-label="Captions"], button[aria-label="Untertitel"]'
+      );
+
       if (await captionsButton.isVisible()) {
         // This audio has captions
         await captionsButton.click();
@@ -231,7 +243,9 @@ test.describe('Audio with Lyrics/Captions', () => {
           await page.waitForTimeout(300);
 
           // Start playback to see captions
-          const playButton = player.locator('button[aria-label="Play"], button[aria-label="Abspielen"]');
+          const playButton = player.locator(
+            'button[aria-label="Play"], button[aria-label="Abspielen"]'
+          );
           await playButton.click();
           await page.waitForTimeout(2000);
 
