@@ -5,12 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.25] - 2026-10-29
+
+### Added
+
+- Prettier (`prettier.config.js`, `format` / `format:check` scripts, CI and `npm run verify`).
+
+### Changed
+
+- One-time Prettier pass on `src/`, `tests/`, `build/`, and root config files (aligned with `.editorconfig`: 100 columns, single quotes, semicolons, LF). `demo/` is listed in `.prettierignore`.
+- Updated vendored streaming library to hls.js 1.7.4.
+- Bumped the pinned hls.js CDN default and Subresource Integrity hash to 1.7.4.
+- Documentation: refreshed build output sizes, Node.js 24 requirement, SRI / CDN options, TYPO3 `ship:mpc-vidply` workflow.
+
 ## [1.2.24] - 2026-10-23
 
 ### Added
+
 - Chromeless YouTube: when the IFrame API exposes a working captions `tracklist`, provider caption tracks appear in the VidPly CC menu (uploaded captions preferred over auto-generated, labeled fallback).
 
 ### Changed
+
 - Chromeless YouTube: stop unloading the captions module when the embed caption bridge is active; sidecar `<track>` WebVTT still overrides provider tracks.
 - Chromeless YouTube: remove scale/`clip-path` crop masking; the embed iframe fills the aspect-ratio host at 100%.
 - Caption style control: shown only when VidPly renders sidecar/native captions, not for YouTube/Vimeo in-frame provider captions alone.
@@ -18,24 +33,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.23] - 2026-10-22
 
 ### Added
+
 - Fullscreen exit: restore keyboard focus and scroll the player back into view when leaving fullscreen.
 
 ### Fixed
+
 - Fullscreen exit: keep the page scroll position instead of jumping when the player leaves fullscreen.
 - Chromeless embeds: pause correctly when exiting fullscreen; respect Chromium `Permissions-Policy` autoplay limits (fall back to provider controls when programmatic play is blocked); use privacy-enhanced YouTube host (`youtube-nocookie.com`) where applicable.
 
 ## [1.2.22] - 2026-10-20
 
 ### Added
+
 - `embedChrome` (default `vidply`) and `embedChromeSoundcloud` (default `provider`): YouTube and Vimeo use chromeless iframes with the VidPly control bar; set `embedChrome: 'provider'` for legacy native embed UI.
 - Embed caption hooks: Vimeo text tracks in the CC menu; playlist sidecar WebVTT on embed items.
 - `embedProviderLinkButton` (default `true`): "Open on YouTube/Vimeo/SoundCloud" button (new tab) in the VidPly bar for embed sources.
 - Docs: how to keep the native YouTube/Vimeo UI (`embedChrome: 'provider'` / `data-embed-chrome="provider"`), embed captions via sidecar WebVTT, speed shortcuts on chromeless embeds, embed demo links.
 
 ### Changed
+
 - Mixed playlists keep Prev/Next and the VidPly bar on YouTube/Vimeo tracks (no longer hidden via `vidply-external-controls` when `embedChrome` is `vidply`).
 
 ### Fixed
+
 - Chromeless YouTube crop: landscape embeds clip in-frame title/logo bars via centered `scale()` inside the overflow host (fixes black/misaligned frames from legacy padding/transform crop); portrait/Shorts skip crop.
 - Chromeless embeds: center play overlay returns on pause; click the video area (wrapper) to play/pause when the iframe is non-interactive.
 - YouTube captions are never shown, with VidPly or provider controls (`cc_load_policy: 0`, captions module unloaded); use playlist sidecar WebVTT for captions on YouTube items. Chromeless YouTube: tighter crop + `clip-path` to mask title bars inside the iframe.
@@ -45,41 +65,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keyboard help and speed shortcuts follow the speed control actually shown in the bar: no "Slower/Faster/Playback speed" rows (and no speed changes via keyboard) for chromeless YouTube/Vimeo, even after a bar rebuild leaves a stale speed button reference.
 
 ### Accessibility
+
 - Consistent keyboard focus on the VidPly container for chromeless embeds (`disablekb` / non-interactive iframe surface).
 
 ## [1.2.21] - 2026-10-15
 
 ### Fixed
+
 - YouTube/Vimeo/SoundCloud: the VidPly control bar, play overlay and spinner stay hidden while the renderer chunk, provider SDK and iframe load (previously visible until the provider's ready event). Recreated playlist players for embed tracks start hidden via the internal `externalEmbed` option; controls come back if the embed fails to load.
 
 ### Tests
+
 - Renderer unit tests: controls hidden during YouTube/Vimeo/SoundCloud init and restored on SDK failure; Player tests for early hiding in `initializeRenderer` and the `externalEmbed` option.
 
 ## [1.2.20] - 2026-09-25
 
 ### Fixed
+
 - Playlists: idle preview for YouTube/Vimeo/SoundCloud first items shows poster + play overlay only (not the default HTML5 control bar before the embed loads).
 
 ### Tests
+
 - Playlist unit test: idle external embed uses poster overlay and `vidply-playlist-idle-embed` without loading media.
 
 ## [1.2.19] - 2026-09-25
 
 ### Fixed
+
 - Playlists on desktop: user-initiated MP4/HLS taps call `player.load()` when the target URL is not already on the media element (native in-gesture play stays on iOS and when the source is already bound), restoring podcast, video, and mixed-media track switches.
 - Playlists: idle first track on load — artwork/poster and list UI without prefetching media or auto-playing unless `autoPlayFirst` is enabled (`presentIdleTrack`).
 - Playlists: reliable first-click play after async track loads (pending user play); YouTube/Vimeo/SoundCloud switches no longer stutter from stacked autoplay calls; mixed audio/video track changes start via `renderer.play()` after player recreation instead of queuing `Player.play()` while `isChangingTrack`.
 
 ### Tests
+
 - Playlist unit tests: `loadPlaylist` expects idle preview when `autoPlayFirst` is false (no automatic `loadTrack(0)`).
 - Playlist e2e: start playback before asserting VOD duration, rewind/forward, and sign-language controls (idle preview on load).
 
 ## [1.2.18] - 2026-09-25
 
 ### Added
+
 - Debug overlay for mobile testing (`?vidplyDebug=1` or `debugOverlay` / `debug` options): media events, play guard hits, and `play()` rejection reasons on screen.
 
 ### Fixed
+
 - Keyboard shortcuts after clicking the video surface: focus the player region on pointer use outside controls; only defer Space/Enter on buttons (other keys work while a control is focused).
 - Debug overlay: accessible region labeling and keyboard-accessible log panel for axe on debug demo pages.
 - Control bar overflow layout checks: cancel deferred timers on destroy so Vitest workers do not run after jsdom teardown.
@@ -113,15 +142,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.17] - 2026-09-24
 
 ### Fixed
+
 - YouTube renderer: set IFrame API `playsinline` so inline playback works reliably on iOS Safari.
 
 ## [1.2.16] - 2026-09-12
 
 ### Changed
+
 - Updated vendored streaming library to hls.js 1.7.3.
 - Bumped the pinned hls.js CDN default and Subresource Integrity hash to 1.7.3.
 
 ### Tests
+
 - Added Chromium Playwright coverage for `demo/hls-test.html` (pinned hls.js CDN load + hls.js renderer path).
 - Added unit tests asserting `HLSRenderer.loadHlsJs()` forwards the 1.7.3 pin/SRI defaults and option overrides.
 - Included `hls-test.html` in the axe-core e2e smoke pages; added `npm run test:e2e:install` for local Chromium setup.
@@ -129,16 +161,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.15] - 2026-09-02
 
 ### Changed
+
 - Updated vendored streaming library to hls.js 1.7.2.
 - Bumped the pinned hls.js CDN default and Subresource Integrity hash to 1.7.2.
 
 ## [1.2.14] - 2026-08-27
 
 ### Added
+
 - Shared layout breakpoint (`75rem`) for right-side playlist panel desktop vs stacked layout.
 - Control bar overflow menu on narrow viewports and when left-cluster buttons do not fit; playlist toggle moves to overflow on mobile while previous, play/pause, next, and volume stay visible.
 
 ### Fixed
+
 - Buffering spinner centers on the visible media surface (same positioning as the play overlay).
 - Video playlists with a right-side panel use overlay controls with auto-hide again; captions are no longer stuck behind always-visible in-flow controls.
 - Mixed-media playlists show audio track artwork after switching from a playing video track (poster no longer overwritten on player recreation).
@@ -152,14 +187,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.13] - 2026-08-18
 
 ### Fixed
+
 - SoundCloud sets in mixed-media playlists no longer auto-advance to the next playlist entry after the first track; `ended` is emitted only when the last track in the set finishes.
 
 ## [1.2.12] - 2026-08-18
 
 ### Changed
+
 - Bumped pinned dash.js CDN default and SRI to **5.2.1** (modern UMD).
 
 ### Fixed
+
 - Demo dev server: relative nav links no longer drop the `/demo/` prefix when the index is opened as `/demo` (trailing-slash redirect + `serve.json` rewrites for root-level demo URLs).
 - Control bar: `[hidden]` on buttons is honored again (CSS no longer forces `display: inline-flex` on hidden controls).
 - Live-only UI: Go Live and LIVE badge are omitted from the DOM when `liveStream: false`, or injected/removed under `liveStream: 'auto'` instead of staying visible behind `hidden`.
@@ -168,11 +206,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Playlists: rewind and skip-forward are created for playlist players; sign language uses per-track `signLanguageSrc` from the playlist.
 
 ### Tests
+
 - E2E and unit coverage for VOD seek controls, playlist sign language, and DASH/HTML5 live detection.
 
 ## [1.2.11] - 2026-08-16
 
 ### Fixed
+
 - HLS VOD transcript: fetch every WebVTT segment from segmented subtitle playlists instead of only the first ~6 s segment; invalidate incomplete VTT cache when more TextTrack cues arrive.
 - Control bar rebuild: re-apply live/VOD button visibility after `updateControlBar()` so restart and go-live state stays correct when HLS caption buttons are added.
 - VOD controls: show the skip-forward button again (live-at-edge keeps it hidden until the viewer falls behind).
@@ -185,6 +225,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.10] - 2026-08-16
 
 ### Accessibility
+
 - Transcript window (floating layout): `aria-modal`, Tab focus trap, and background `inert` on player siblings.
 - Transcript window: no longer marks the video wrapper (and controls) inert while open; player controls stay operable alongside the transcript panel.
 - Caption style dialog: `aria-modal="true"` and Tab focus trap.
@@ -194,15 +235,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transcript resize handles: `aria-label` when pointer resize mode is active.
 
 ### Added
+
 - Live stream mode (`liveStream: 'auto' | boolean`): auto-detects HLS/DASH/HTML5 live sources, shows a **LIVE** badge instead of duration, hides restart and playback speed, keeps skip-back, and shows skip-forward plus **Go live** only when more than `liveBehindThreshold` seconds behind the live edge (default 5 s). At the live edge the raw timeline is hidden; when behind live the time display shows an offset such as **−12:34**.
 - Keyboard shortcuts help: adds a **Live stream controls** section when a live source is detected; hides speed shortcuts and clarifies seek-forward behaviour for live.
 - Player API: `isLiveStream()`, `isBehindLive()`, `getLiveSeekRange()`, `seekToLive()`; events `livechange` and `liveedgechange`.
 - `showTrackInfo` player option to suppress the standalone `.vidply-track-info` header.
 
 ### Changed
+
 - Removed duration from the standalone `.vidply-track-info` header; playlists still show duration in the track-info header when switching tracks.
 
 ### Fixed
+
 - HLS live subtitles: auto-select the default subtitle rendition in hls.js when captions or transcript are enabled so rolling WebVTT cues load during live playback.
 - HLS live transcript: skip one-shot VTT bulk fetch (only valid for VOD) and build the transcript incrementally from TextTrack cues instead.
 - Live transcript: deduplicate rolling HLS cues and append incrementally instead of rebuilding the full list on every subtitle update (fixes doubled lines).
@@ -214,21 +258,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persisted player preferences: store a `configKey` from CMS `muted|volume` so stale localStorage no longer overrides backend defaults after editor changes.
 
 ### Accessibility
+
 - `TrackInfoView`: expose title, artist, date, description, and the long-description toggle to assistive technologies instead of hiding them with `aria-hidden`; use a labelled `role="region"` and wire the disclosure button with `aria-controls`. Playlist track changes still announce via a dedicated polite live region. Text metadata uses semantic `<p>` elements instead of generic `<div>` wrappers.
 
 ## [1.2.9] - 2026-08-15
 
 ### Changed
+
 - Updated vendored streaming library to hls.js 1.7.0.
 - Bumped the pinned hls.js CDN default and Subresource Integrity hash to 1.7.0.
 
 ## [1.2.8] - 2026-08-14
 
 ### Changed
+
 - `resumePlayback` now defaults to `false`. Resume-from-last-position must be
   enabled explicitly via player options.
 
 ### Added
+
 - `TrackInfoView`: the track-info header above the player can show a collapsible
   long description (`longDescription` on tracks / player options) with a
   sanitised RTE body and accessible show/hide toggle.
@@ -253,6 +301,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   using the player-wide `downloadUrl` / `data-vidply-download-url` target.
 
 ### Fixed
+
 - Mixed-media playlists loaded YouTube, Vimeo, and SoundCloud tracks two or
   three times when selected from the panel. `PlaylistManager.play()` fired
   `player.play()` on a 100 ms timer before `load()` finished; with the
@@ -291,6 +340,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.5] - 2026-07-23
 
 ### Security
+
 - Poster/artwork URLs are now validated and CSS-escaped before being
   written into the `--vidply-poster-image` custom property, so an
   attacker-influenced poster value can no longer break out of the CSS
@@ -311,6 +361,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no longer be reinterpreted as `String.prototype.replace` patterns.
 
 ### Fixed
+
 - Type declarations are now actually emitted to `dist/types` during the
   build (the `types` entry point was previously dangling because
   `tsc` ran with `noEmit`); CI asserts `dist/types/index.d.ts` exists.
@@ -345,6 +396,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and legacy `/v/` paths, and `youtube-nocookie.com`.
 
 ### Accessibility
+
 - The draggable/resizable single-letter shortcuts (`d`/`r`) are no longer
   hijacked while typing in a form control or contenteditable, or when a
   modifier (Ctrl/Cmd/Alt) is held (e.g. Ctrl+D, Cmd+R).
@@ -354,6 +406,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `role="dialog"`/`aria-modal` semantics (WCAG 2.4.3).
 
 ### Changed
+
 - Source-URL → renderer detection is consolidated into one
   `classifyRendererType()` helper used by both `_detectRendererClass`
   (which renderer to build) and `shouldChangeRenderer` (whether to swap),
@@ -367,12 +420,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   primary colour restyles them consistently.
 
 ### Removed
+
 - Deleted the dead `SettingsDialog` component and its unreachable wiring
   (the settings button was never rendered and `showSettings()` had been a
   no-op stub); the public `showSettings()`/`hideSettings()` methods remain
   as deprecation stubs.
 
 ### Build
+
 - The `dev` server dependency (`serve`) is now a pinned devDependency and
   run from the local install instead of being fetched at runtime via
   `npx serve`, removing a runtime supply-chain fetch.
@@ -384,6 +439,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   were realigned to the current measured coverage as regression floors.
 
 ### Tests
+
 - Added adversarial unit suites for the prototype-pollution sanitiser
   (`Sanitize`) and the poster URL allow-list/CSS-escaping (`UrlSafe`),
   and a dedicated `MetadataAlertsManager` suite covering scoped vs.
@@ -399,22 +455,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.4] - 2026-07-07
 
 ### Changed
+
 - GitHub Actions CI: lint and Playwright e2e jobs, GitLab CI pipeline, expanded
   `.editorconfig`, and GitHub Actions artifact/cache actions v6 (Node 24).
 
 ### Fixed
+
 - ESLint CI failures: `no-this-alias` in `MediaSessionManager` and implicit
   coercion warnings in player/renderers.
 
 ## [1.2.3] - 2026-06-27
 
 ### Added
+
 - Caption preferences persist across sessions: the player remembers whether
   captions were turned on/off and which language was selected, restoring that
   choice on the next visit (preserving the last language even while captions
   are off).
 
 ### Changed
+
 - Keyboard-shortcuts help dialog now lists only the shortcuts relevant to each
   player. Feature shortcuts (captions, caption styling, speed, quality,
   chapters, transcript, fullscreen) appear only when that feature is available,
@@ -424,6 +484,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.2] - 2026-06-27
 
 ### Added
+
 - Media Session API integration (`mediaSession` option, default on): exposes
   now-playing metadata (title/artist/album/artwork) and routes OS / lock-screen /
   notification / headset controls (play, pause, stop, seek, and previous/next
@@ -437,6 +498,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   API. Fully translated (en, de, es, fr, ja).
 
 ### Fixed
+
 - Media Session: on pages with multiple players, the OS controls now drive the
   player that is actually playing. The single, document-global
   `navigator.mediaSession` is claimed by the most-recently-played player;
@@ -446,10 +508,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.1] - 2026-06-14
 
 ### Added
+
 - `descriptionSpeechManager` with mode routing, options, events and tests.
 - Audio-description-mode documentation and demo page.
 
 ### Changed
+
 - Lazy-load audio-description and sign-language chunks only when their content is present.
 - Updated devDependencies and rebuilt `dist`.
 - Enforce LF line endings via `.gitattributes`.
@@ -457,66 +521,79 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - 2026-06-04
 
 ### Changed
+
 - Code-review hardening: accessibility, memory-leak, bundle-size and type-safety fixes.
 
 ## [1.1.19] - 2026-05-29
 
 ### Changed
+
 - Updated vendored streaming libraries to hls.js 1.6.16 and dash.js 5.2.0.
 - Bumped the pinned hls.js and dash.js CDN defaults to 1.6.16 and 5.2.0.
 
 ## [1.1.18] - 2026-05-18
 
 ### Fixed
+
 - Video poster `max-width`/`width`.
 - Auto-float PiP not redocking when scrolling back up.
 
 ## [1.1.17] - 2026-05-05
 
 ### Changed
+
 - Removed `.npmrc` from version control.
 
 ## [1.1.16] - 2026-05-05
 
 ### Added
+
 - Keep the transcript out of the mini-player and decorate the vacated slot with a centred PiP glyph.
 
 ### Changed
+
 - Dropped ~2.1k lines of dead legacy code and plugged document/window listener leaks (-18% ESM bundle); sign-language mode badges are now translatable DOM nodes.
 - Strict TypeScript: eliminated all `any`, dropped `eslint-disable`, fixed 91 lint warnings.
 - Build now targets Node 24.
 
 ### Fixed
+
 - White color in batches.
 - README↔types drift check handles generics, nested-paren defaults and inherited EventEmitter methods.
 
 ## [1.1.15] - 2026-05-03
 
 ### Fixed
+
 - Playwright tests.
 
 ## [1.1.12] - 2026-05-03
 
 ### Fixed
+
 - Playwright tests.
 
 ## [1.1.11] - 2026-05-03
 
 ### Fixed
+
 - Small `h1` fix and forwarding to the demo.
 
 ## [1.1.10] - 2026-05-03
 
 ### Changed
+
 - Security/accessibility/quality audit.
 
 ### Fixed
+
 - Mixed-playlist handling.
 - Captions & transcript: full VTT fetch, HLS support and endonym labels.
 
 ## [1.1.9] - 2026-04-25
 
 ### Fixed
+
 - DASH renderer: predictable initial audio-track selection.
 - DASH track with label "null" but a valid language code (e.g. `de`).
 - Pinned dash.js to 5.1.1.
@@ -526,95 +603,116 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.8] - 2026-04-25
 
 ### Changed
+
 - Updated terser dependencies.
 
 ## [1.1.7] - 2026-04-23
 
 ### Changed
+
 - Maintenance release (version bump only).
 
 ## [1.1.6] - 2026-04-23
 
 ### Fixed
+
 - Tooltip chevron stayed gray when the player is in light mode.
 - Label the desktop volume button as "Volume <percent>%" instead of "Mute".
 
 ## [1.1.5] - 2026-04-21
 
 ### Fixed
+
 - Resize handling for the floating/PiP player.
 
 ## [1.1.4] - 2026-04-21
 
 ### Added
+
 - `FloatingPlayerManager` / PiP player module.
 - Show file format and size on the download button label/tooltip.
 
 ## [1.1.3] - 2026-04-19
 
 ### Changed
+
 - Refreshed docs and demos (TypeScript migration, SoundCloud renderer, buffering spinner, download button, native iOS HLS bridge).
 
 ### Fixed
+
 - Sync the hls.js subtitle track on language switch and listen for `textcuesupdate`.
 
 ## [1.1.2] - 2026-04-17
 
 ### Fixed
+
 - Listen to `SUBTITLE_FRAG_PROCESSED` for HLS subtitles.
 
 ## [1.1.1] - 2026-04-16
 
 ### Added
+
 - Buffering spinner.
 
 ## [1.1.0] - 2026-04-16
 
 ### Added
+
 - Buffering spinner shown until the media can play.
 
 ### Changed
+
 - Converted ES modules to strict TypeScript; updated build and type definitions.
 
 ## [1.0.51] - 2026-04-14
 
 ### Added
+
 - Download capability.
 
 ## [1.0.50] - 2026-04-12
 
 ### Added
+
 - MPEG-DASH streaming support via dash.js.
 - Captions, transcript and quality controls on Apple platforms via the native HLS TextTrack API.
 
 ### Fixed
+
 - Show the menu button in fullscreen on iOS.
 
 ### Changed
+
 - Updated HTML feature sections and README for DASH support.
 
 ## [1.0.45] - 2026-04-03
 
 ### Fixed
+
 - Volume dot.
 
 ## [1.0.44] - 2026-04-03
 
 ### Accessibility
+
 - WCAG 2.2 AA compliance: target size and dragging movements.
 
 ### Changed
+
 - npm esbuild update.
 
 ## [1.0.43] - 2026-03-27
 
 ### Added
+
 - Testing example video and audio.
 
 ### Changed
+
 - npm updates (vitest, esbuild).
 
 ### Fixed
+
 - Duration display and seek-forward in Firefox when the duration field is empty.
 - Audio-description source init timing; demo pages use `data-vidply` auto-init.
 - Removed unused CSS in demo files.
@@ -622,56 +720,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.42] - 2026-02-22
 
 ### Fixed
+
 - Set duration on initial load.
 
 ## [1.0.41] - 2026-02-21
 
 ### Added
+
 - Dynamic HLS subtitle handling and light-theme fixes.
 
 ### Changed
+
 - Updated copyright and docs.
 
 ### Fixed
+
 - Removed a blocked Akamai video from the HLS stream page.
 
 ## [1.0.40] - 2026-02-11
 
 ### Fixed
+
 - Transcript dialog overflow for full-width video players (WCAG 1.4.10).
 
 ## [1.0.39] - 2026-02-09
 
 ### Fixed
+
 - Removed the browser fallback message.
 
 ## [1.0.38] - 2026-02-09
 
 ### Added
+
 - vitest and Playwright tests.
 
 ### Changed
+
 - esbuild update to 0.2.73.
 
 ### Fixed
+
 - HTML5 validation errors for accessibility and media elements.
 
 ## [1.0.37] - 2026-02-01
 
 ### Added
+
 - Sign-language display-mode option and a new PiP icon.
 - Single-player and playlist test pages.
 
 ### Fixed
+
 - Comprehensive fullscreen mode improvements.
 - Close fullscreen when external media is in the playlist preview list.
 
 ## [1.0.35] - 2026-01-05
 
 ### Added
+
 - Sign-language touch drag/resize via Pointer Events.
 
 ### Fixed
+
 - Numerous iOS playlist fixes.
 - Mobile overflow-menu height when positioned below the trigger.
 - Aspect ratio applied only for the Vimeo/YouTube layer.
@@ -680,88 +791,107 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.34] - 2026-01-01
 
 ### Fixed
+
 - Audio artwork in mixed playlists when present.
 
 ## [1.0.33] - 2025-12-27
 
 ### Added
+
 - Playlist selection loads metadata without autoplay; shows initial duration; defers loading audio/video/HLS files until play.
 
 ### Changed
+
 - Updated docs and demo files.
 
 ## [1.0.32] - 2025-12-25
 
 ### Changed
+
 - npm update.
 
 ### Fixed
+
 - Hide the speed control for HLS streams (detected by `.m3u8` source).
 - Removed outdated JS.
 
 ## [1.0.31] - 2025-12-22
 
 ### Added
+
 - Video preview thumbnails and auto-poster generation in playlists.
 
 ## [1.0.30] - 2025-12-22
 
 ### Added
+
 - Video preview thumbnails and auto-poster generation.
 
 ### Changed
+
 - esbuild update.
 
 ## [1.0.29] - 2025-12-16
 
 ### Added
+
 - Transcript: always show descriptions and swap tracks for audio-described videos.
 
 ### Fixed
+
 - Audio-description caption-track swapping in playlists.
 
 ## [1.0.28] - 2025-12-15
 
 ### Fixed
+
 - Added a missing translation.
 
 ## [1.0.27] - 2025-12-14
 
 ### Added
+
 - Mixed playlist.
 
 ## [1.0.26] - 2025-12-12
 
 ### Fixed
+
 - vidply language-detection lazy-loading.
 
 ## [1.0.25] - 2025-12-11
 
 ### Added
+
 - Ship the `dist` directory on GitHub.
 - ESM optimization with legacy code as an option.
 
 ## [1.0.24] - 2025-12-10
 
 ### Changed
+
 - Maintenance release (version bump only).
 
 ## [1.0.23] - 2025-12-10
 
 ### Added
+
 - `scrollIntoView` for keyboard navigation in all menu popups.
 
 ## [1.0.22] - 2025-12-03
 
 ### Changed
+
 - Reworked theming: added a WCAG-compliant light mode with `color-scheme`, then removed light-mode support in favor of rem units.
 
 ## [1.0.21] - 2025-12-01
 
 ### Added
+
 - Optional poster image for audio in single and playlist mode.
 
 ### Fixed
+
 - Playlist accessibility and auto-scroll.
 - Added a title to the quality button; added the quality button to Chrome in HLS mode.
 - Added playlist translations.
@@ -769,19 +899,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.20] - 2025-11-20
 
 ### Fixed
+
 - iOS fullscreen issues where videos were positioned incorrectly and playlists weren't swipeable.
 
 ## [1.0.19] - 2025-11-20
 
 ### Added
+
 - Horizontal auto-hiding playlist panel for fullscreen mode.
 - New clock icon for timestamp show/hide.
 - Playlist: WCAG accessibility and declarative configuration.
 
 ### Changed
+
 - Transcript: improved semantic HTML and screen-reader UX.
 
 ### Fixed
+
 - Portal fullscreen menus to container level so they appear above the playlist panel (WCAG).
 - Fullscreen playlist overlay positioning in portrait mode.
 - Prevented doubled screen-reader announcements for transcript autoscroll.
@@ -792,21 +926,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.18] - 2025-11-18
 
 ### Added
+
 - Footer on all demo pages with improved accessibility.
 
 ### Changed
+
 - Improved accessibility and screen-reader support.
 
 ### Fixed
+
 - Transcript timestamp now hidden by default and made optional.
 
 ## [1.0.17] - 2025-11-17
 
 ### Added
+
 - iOS fullscreen support with a pseudo-fullscreen fallback.
 - Improved form labels and screen-reader support for time displays.
 
 ### Fixed
+
 - Multi-player IDs and iOS sign-language playback.
 - Keyboard navigation and ARIA semantics in settings menus.
 - iOS touch events and drag-and-drop on touch devices.
@@ -818,45 +957,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.16] - 2025-11-16
 
 ### Fixed
+
 - Build all `dist` files.
 
 ## [1.0.15] - 2025-11-16
 
 ### Changed
+
 - Updated docs and demo pages.
 
 ## [1.0.14] - 2025-11-16
 
 ### Added
+
 - Responsive overflow menu and transcript view for audio players.
 - Improved drag/resize button labels with shortcuts and full i18n support.
 - `forced-colors` support for control icons.
 
 ### Changed
+
 - Optimized mobile UX with dynamic caption/overlay positioning and accessibility improvements.
 - Mobile view breakpoint set to 768px.
 
 ### Fixed
+
 - Audio-description toggle with caption-based sync for differing video lengths.
 - Moved the time display beside the progress bar.
 
 ## [1.0.12] - 2025-11-15
 
 ### Fixed
+
 - Poster 404 error when enabling audio description.
 
 ## [1.0.11] - 2025-11-15
 
 ### Added
+
 - Multi-language support for sign-language video.
 - Settings menu in the sign-language video header.
 - License.
 
 ### Changed
+
 - Refactored the i18n system and improved accessibility.
 - Switched the default language to English.
 
 ### Fixed
+
 - Accessible labels on language select boxes.
 - Sign-language settings-menu positioning, keyboard navigation and resize-icon display.
 - Dropdown menu focus and closing behavior; improved focus management for menus and dialogs.
@@ -865,61 +1013,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.10] - 2025-11-09
 
 ### Changed
+
 - Improved transcript accessibility and audio-description toggling.
 
 ## [1.0.9] - 2025-11-08
 
 ### Fixed
+
 - Improved transcript language selector and fixed caption timelines.
 - Added audio description to the first video; synced demo code blocks with implementations.
 
 ## [1.0.8] - 2025-11-05
 
 ### Changed
+
 - Improved audio description with source and track swapping.
 
 ## [1.0.7] - 2025-10-31
 
 ### Changed
+
 - Better contrast on demo pages and in the player.
 
 ### Fixed
+
 - Prevent drag on UI interactions; complete i18n support.
 
 ## [1.0.6] - 2025-10-27
 
 ### Changed
+
 - npm esbuild update.
 
 ### Fixed
+
 - Added `playsinline` support for iOS/Android mobile playback.
 - Video dimensions not resetting when exiting fullscreen with ESC.
 
 ## [1.0.5] - 2025-10-15
 
 ### Added
+
 - Internationalized time display and duration formatting.
 
 ## [1.0.4] - 2025-10-15
 
 ### Added
+
 - Enhanced playlist accessibility and UX.
 
 ### Fixed
+
 - No more focus hijacking on load.
 - Replaced the visual time format with natural language for screen readers.
 
 ## [1.0.3] - 2025-10-13
 
 ### Added
+
 - Comprehensive keyboard navigation and accessibility.
 
 ### Fixed
+
 - Only show the caption container when text is active.
 
 ## [1.0.2] - 2025-10-12
 
 ### Fixed
+
 - Correct z-index stacking and sign-language video placement.
 - Sign-language video positioned relative to the controls.
 - Removed the circle from the sign-language SVG.
@@ -928,12 +1089,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.1] - 2025-10-12
 
 ### Added
+
 - Working sign-language demo page.
 
 ## [1.0.0] - 2025-10-11
 
 - Initial release of the vidply accessible media player.
 
+[1.2.25]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.24...v1.2.25
 [1.2.24]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.23...v1.2.24
 [1.2.23]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.22...v1.2.23
 [1.2.22]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.21...v1.2.22
