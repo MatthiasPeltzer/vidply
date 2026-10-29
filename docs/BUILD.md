@@ -173,12 +173,12 @@ import Player from './dist/prod/vidply.esm.min.js';
 
 Approximate production sizes after `npm run build` (minified):
 
-| Output | Uncompressed | Gzip (typical transfer) |
-| ------ | ------------ | ----------------------- |
-| `dist/prod/vidply.esm.min.js` (ESM entry) | ~247 KB | ~55 KB |
-| All `dist/prod/*.js` (code-split player) | ~542 KB | ~141 KB |
-| `dist/legacy/vidply.min.js` (IIFE bundle) | ~509 KB | ~117 KB |
-| `dist/vidply.min.css` | ~116 KB | ~17 KB |
+| Output                                    | Uncompressed | Gzip (typical transfer) |
+| ----------------------------------------- | ------------ | ----------------------- |
+| `dist/prod/vidply.esm.min.js` (ESM entry) | ~247 KB      | ~55 KB                  |
+| All `dist/prod/*.js` (code-split player)  | ~542 KB      | ~141 KB                 |
+| `dist/legacy/vidply.min.js` (IIFE bundle) | ~509 KB      | ~117 KB                 |
+| `dist/vidply.min.css`                     | ~116 KB      | ~17 KB                  |
 
 **Note:** ESM consumers load the entry module first; renderers and heavy features pull additional chunks on demand.
 

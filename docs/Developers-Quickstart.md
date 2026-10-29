@@ -531,12 +531,12 @@ if (this.options.debug) {
 
 Production builds are **code-split** (ESM). Sizes below are minified; gzip is typical wire transfer.
 
-| File / set | Format | Uncompressed (approx.) | Gzip (approx.) |
-| ---------- | ------ | ---------------------- | -------------- |
-| `dist/prod/vidply.esm.min.js` | ESM entry | ~247 KB | ~55 KB |
-| All `dist/prod/*.js` chunks | ESM (full player) | ~542 KB | ~141 KB |
-| `dist/legacy/vidply.min.js` | IIFE (single file) | ~509 KB | ~117 KB |
-| `dist/vidply.min.css` | CSS | ~116 KB | ~17 KB |
+| File / set                    | Format             | Uncompressed (approx.) | Gzip (approx.) |
+| ----------------------------- | ------------------ | ---------------------- | -------------- |
+| `dist/prod/vidply.esm.min.js` | ESM entry          | ~247 KB                | ~55 KB         |
+| All `dist/prod/*.js` chunks   | ESM (full player)  | ~542 KB                | ~141 KB        |
+| `dist/legacy/vidply.min.js`   | IIFE (single file) | ~509 KB                | ~117 KB        |
+| `dist/vidply.min.css`         | CSS                | ~116 KB                | ~17 KB         |
 
 ### External Dependencies
 
