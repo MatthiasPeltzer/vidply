@@ -579,4 +579,4 @@ Each default URL is loaded with a matching **Subresource Integrity** hash unless
 
 ---
 
-**Version:** 1.1.7 | **License:** GPL-2.0-or-later
+**Version:** 1.2.25 | **License:** GPL-2.0-or-later
