@@ -594,5 +594,125 @@ describe('SignLanguageManager', () => {
       const type = manager._inferVideoType('/video.xyz');
       expect(type).toBeFalsy();
     });
+
+    it('should know HLS and DASH manifests', () => {
+      expect(manager._inferVideoType('/sign/video.m3u8?v=1')).toBe('application/x-mpegURL');
+      expect(manager._inferVideoType('/sign/video.mpd')).toBe('application/dash+xml');
+    });
+  });
+
+  describe('streamed sign-language sources (HLS/DASH)', () => {
+    beforeEach(() => {
+      mockPlayer.log = vi.fn();
+      mockPlayer.seek = vi.fn();
+      mockPlayer.play = vi.fn().mockResolvedValue(undefined);
+      mockPlayer.pause = vi.fn();
+      mockPlayer.ensureLoaded = vi.fn();
+      mockPlayer.swapMainSource = vi.fn().mockResolvedValue(undefined);
+      mockPlayer.renderer = { rendererType: 'html5' };
+      mockPlayer.currentSource = '/videos/main.mp4';
+      mockPlayer._fallbackSources = [];
+      mockPlayer.state = { currentTime: 0, playing: false, paused: true, muted: false };
+      Object.defineProperty(mockPlayer.element, 'readyState', { value: 4, configurable: true });
+    });
+
+    it('reads the progressive fallbacks from options', () => {
+      mockPlayer.options.signLanguageSrc = '/stream/sign.m3u8';
+      mockPlayer.options.signLanguageFallbackSrc = '/sign/sign-480p.mp4';
+      mockPlayer.options.signLanguageFallbackSources = { de: '/sign/de-480p.mp4' };
+      manager = new SignLanguageManager(mockPlayer);
+
+      expect(manager.fallbackSrc).toBe('/sign/sign-480p.mp4');
+      expect(manager.fallbackSources).toEqual({ de: '/sign/de-480p.mp4' });
+    });
+
+    it('picks the fallback of the active language, else the single fallback', () => {
+      mockPlayer.options.signLanguageSources = { de: '/stream/de.m3u8', en: '/stream/en.m3u8' };
+      mockPlayer.options.signLanguageFallbackSrc = '/sign/single.mp4';
+      mockPlayer.options.signLanguageFallbackSources = { de: '/sign/de.mp4' };
+      manager = new SignLanguageManager(mockPlayer);
+
+      expect(manager._fallbackFor('de')).toBe('/sign/de.mp4');
+      expect(manager._fallbackFor('en')).toBeNull();
+      expect(manager._fallbackFor(null)).toBe('/sign/single.mp4');
+    });
+
+    it('updateSources() replaces sources and fallbacks', () => {
+      manager = new SignLanguageManager(mockPlayer);
+
+      manager.updateSources('/stream/next.mpd', { de: '/stream/de.mpd' }, '/sign/next.mp4', {
+        de: '/sign/de.mp4'
+      });
+
+      expect(manager.src).toBe('/stream/next.mpd');
+      expect(manager.sources).toEqual({ de: '/stream/de.mpd' });
+      expect(manager.fallbackSrc).toBe('/sign/next.mp4');
+      expect(manager.fallbackSources).toEqual({ de: '/sign/de.mp4' });
+    });
+
+    it('creates the overlay video through the streaming loader', () => {
+      mockPlayer.options.signLanguageSrc = '/sign/video.mp4';
+      manager = new SignLanguageManager(mockPlayer);
+
+      manager.enable();
+
+      expect(manager.videoLoader).not.toBeNull();
+      expect(manager.videoLoader.media).toBe(manager.video);
+      expect(manager.video.getAttribute('src')).toBe('/sign/video.mp4');
+    });
+
+    it('destroys the loader on cleanup', () => {
+      mockPlayer.options.signLanguageSrc = '/sign/video.mp4';
+      manager = new SignLanguageManager(mockPlayer);
+      manager.enable();
+      const destroySpy = vi.spyOn(manager.videoLoader, 'destroy');
+
+      manager.cleanup();
+
+      expect(destroySpy).toHaveBeenCalled();
+      expect(manager.videoLoader).toBeNull();
+    });
+
+    it('swaps a streamed sign-language video into the main view through the player', async () => {
+      mockPlayer.options.signLanguageSrc = '/stream/sign.m3u8';
+      mockPlayer.options.signLanguageFallbackSrc = '/sign/sign-480p.mp4';
+      manager = new SignLanguageManager(mockPlayer);
+
+      await manager.enableInMainView();
+
+      expect(mockPlayer.swapMainSource).toHaveBeenCalledWith('/stream/sign.m3u8', [
+        { src: '/sign/sign-480p.mp4' }
+      ]);
+      expect(mockPlayer.ensureLoaded).toHaveBeenCalled();
+      expect(mockPlayer.element.muted).toBe(true);
+      expect(manager.inMainView).toBe(true);
+    });
+
+    it('restores the streamed main source when leaving the main view', async () => {
+      mockPlayer.currentSource = '/stream/main.mpd';
+      mockPlayer.renderer = { rendererType: 'dash' };
+      mockPlayer._fallbackSources = [{ src: '/videos/main.mp4' }];
+      mockPlayer.options.signLanguageSrc = '/sign/sign.mp4';
+      manager = new SignLanguageManager(mockPlayer);
+
+      await manager.enableInMainView();
+      await manager.disableInMainView();
+
+      expect(mockPlayer.swapMainSource).toHaveBeenLastCalledWith('/stream/main.mpd', [
+        { src: '/videos/main.mp4' }
+      ]);
+      expect(mockPlayer.element.muted).toBe(false);
+      expect(manager.inMainView).toBe(false);
+    });
+
+    it('keeps the plain src swap between progressive files', async () => {
+      mockPlayer.options.signLanguageSrc = '/sign/sign.mp4';
+      manager = new SignLanguageManager(mockPlayer);
+
+      await manager.enableInMainView();
+
+      expect(mockPlayer.swapMainSource).not.toHaveBeenCalled();
+      expect(mockPlayer.element.getAttribute('src')).toBe('/sign/sign.mp4');
+    });
   });
 });

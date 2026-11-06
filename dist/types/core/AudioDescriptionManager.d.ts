@@ -26,7 +26,11 @@ export declare class AudioDescriptionManager {
     originalSource: string | null;
     sourceElement: Element | null;
     src: string | null;
+    /** Progressive file played when `src` is a stream that cannot be played. */
+    fallbackSrc: string | null;
     speechManager: DescriptionSpeechManager | null;
+    /** Main source (and its fallbacks) to return to when a stream swap is undone. */
+    private _restoreSource;
     constructor(player: Player);
     /**
      * Whether a described video source swap is configured.
@@ -105,13 +109,19 @@ export declare class AudioDescriptionManager {
      */
     _disableWithDirectSrc(currentTime: number, wasPlaying: boolean, posterValue: string | null): Promise<void>;
     /**
+     * A plain `element.src` swap only works between progressive files on the
+     * HTML5 renderer. Anything involving HLS/DASH goes through the player so
+     * the matching renderer is built.
+     */
+    _needsRendererSwap(target: string): boolean;
+    /**
      * Reload transcript after audio description state change
      */
     _reloadTranscript(): void;
     /**
      * Update sources (called when playlist changes)
      */
-    updateSources(audioDescriptionSrc: string | null | undefined): void;
+    updateSources(audioDescriptionSrc: string | null | undefined, audioDescriptionFallbackSrc?: string | null): void;
     /**
      * Reinitialize from current player elements (called after playlist loads new tracks)
      */

@@ -156,6 +156,8 @@ export interface PlayerOptions {
   // Audio Description
   audioDescription: boolean;
   audioDescriptionSrc: string | null;
+  /** Progressive file played when `audioDescriptionSrc` is a stream the browser cannot play. */
+  audioDescriptionFallbackSrc?: string | null;
   audioDescriptionButton: boolean;
   audioDescriptionMode: 'auto' | 'swap' | 'vtt_speech';
   audioDescriptionSpeech: boolean;
@@ -168,6 +170,10 @@ export interface PlayerOptions {
   signLanguagePosition: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
   signLanguageDisplayMode: 'pip' | 'main' | 'both';
   signLanguageSources?: Record<string, string>;
+  /** Progressive file played when `signLanguageSrc` is a stream the browser cannot play. */
+  signLanguageFallbackSrc?: string | null;
+  /** Per-language fallbacks for `signLanguageSources` (same keys). */
+  signLanguageFallbackSources?: Record<string, string>;
 
   // Transcripts
   transcript: boolean;

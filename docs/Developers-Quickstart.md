@@ -209,6 +209,10 @@ selectRenderer(src: string): RendererCtor {
 
 > The HLS renderer self-decides whether to use `hls.js` (Chrome / Firefox / Edge / desktop Safari) or the native `<video>` HLS support (iOS / iPadOS where MSE is unavailable). On the native path it bridges the browser's `TextTrack` API into VidPly's caption / transcript / quality UI so feature parity is preserved.
 
+**Source swaps and fallbacks.** `player.swapMainSource(src, fallbacks)` replaces the current source in place (text tracks, poster and playlist stay) and rebuilds the renderer when the type changes, so MP4, HLS and DASH can be swapped for one another; `requiresRendererSwap()` in `src/utils/RendererType.ts` decides. `AudioDescriptionManager` and `SignLanguageManager` (in-main-view mode) use it. When a manifest cannot be loaded, HLSRenderer (fatal network error) and DASHRenderer (startup error codes) hand over to `handleError`, which tries the next fallback source instead of retrying forever.
+
+**Sign-language overlay streams** load through `src/utils/StreamingSourceLoader.ts`: native `src` for progressive files and native HLS, otherwise hls.js or dash.js via `src/utils/StreamingLibraries.ts` (shared pinned CDN URLs + SRI). It switches once to `fallbackSrc` on a fatal error and restores the playback position.
+
 ---
 
 ## 📝 Adding Features

@@ -6,6 +6,10 @@
 import { CaptionManager } from '../controls/CaptionManager.js';
 import type { Player } from './Player.js';
 import { DescriptionSpeechManager } from './DescriptionSpeechManager.js';
+import { requiresRendererSwap } from '../utils/RendererType.js';
+
+/** loadedmetadata may never come for a source that fails; don't hang the toggle. */
+const METADATA_TIMEOUT_MS = 10000;
 
 export type AudioDescriptionDeliveryMode = 'swap' | 'vtt_speech' | 'none';
 
@@ -31,7 +35,12 @@ export class AudioDescriptionManager {
   originalSource: string | null;
   sourceElement: Element | null;
   src: string | null;
+  /** Progressive file played when `src` is a stream that cannot be played. */
+  fallbackSrc: string | null;
   speechManager: DescriptionSpeechManager | null;
+  /** Main source (and its fallbacks) to return to when a stream swap is undone. */
+  private _restoreSource: { src: string; fallbacks: Array<{ src: string; type?: string }> } | null =
+    null;
 
   constructor(player: Player) {
     this.player = player;
@@ -42,6 +51,7 @@ export class AudioDescriptionManager {
 
     // Sources
     this.src = player.options.audioDescriptionSrc;
+    this.fallbackSrc = player.options.audioDescriptionFallbackSrc ?? null;
     this.sourceElement = null;
     this.originalSource = null;
     this.captionTracks = [];
@@ -145,7 +155,9 @@ export class AudioDescriptionManager {
           trackKind === 'chapters' ||
           trackKind === 'descriptions') &&
         trackDescSrc &&
-        trackEl instanceof HTMLTrackElement
+        trackEl instanceof HTMLTrackElement &&
+        // Renderer re-inits (fallbacks, stream swaps) scan the same elements again.
+        !this.captionTracks.some((info) => info.trackElement === trackEl)
       ) {
         this.captionTracks.push({
           trackElement: trackEl,
@@ -611,9 +623,11 @@ export class AudioDescriptionManager {
         resolve();
       } else {
         const onLoad = () => {
+          clearTimeout(timer);
           this.player.element.removeEventListener('loadedmetadata', onLoad);
           resolve();
         };
+        const timer = setTimeout(onLoad, METADATA_TIMEOUT_MS);
         this.player.element.addEventListener('loadedmetadata', onLoad);
       }
     });
@@ -752,7 +766,20 @@ export class AudioDescriptionManager {
 
     // Set src (this method should only be called when this.src exists)
     if (!this.src) return;
-    this.player.element.src = this.src;
+    if (this._needsRendererSwap(this.src)) {
+      // Streams need their renderer (hls.js / dash.js); `element.src` would bypass it.
+      this._restoreSource = {
+        src: this.player.currentSource || this.player.originalSrc || '',
+        fallbacks: [...(this.player._fallbackSources ?? [])]
+      };
+      await this.player.swapMainSource(
+        this.src,
+        this.fallbackSrc ? [{ src: this.fallbackSrc }] : []
+      );
+      this.player.ensureLoaded();
+    } else {
+      this.player.element.src = this.src;
+    }
 
     // Wait and restore
     await this._waitForMediaReady(currentTime > 0 || wasPlaying);
@@ -844,12 +871,19 @@ export class AudioDescriptionManager {
     }
 
     // Restore original src
-    const originalSrcToUse = this.originalSource || this.player.originalSrc;
+    const restore = this._restoreSource;
+    this._restoreSource = null;
+    const originalSrcToUse = restore?.src || this.originalSource || this.player.originalSrc;
     if (!originalSrcToUse) {
       return;
     }
-    this.player.element.src = originalSrcToUse;
-    this.player.element.load();
+    if (restore || this._needsRendererSwap(originalSrcToUse)) {
+      await this.player.swapMainSource(originalSrcToUse, restore?.fallbacks ?? []);
+      this.player.ensureLoaded();
+    } else {
+      this.player.element.src = originalSrcToUse;
+      this.player.element.load();
+    }
 
     // Wait and restore
     await this._waitForMediaReady(currentTime > 0 || wasPlaying);
@@ -872,6 +906,19 @@ export class AudioDescriptionManager {
   }
 
   /**
+   * A plain `element.src` swap only works between progressive files on the
+   * HTML5 renderer. Anything involving HLS/DASH goes through the player so
+   * the matching renderer is built.
+   */
+  _needsRendererSwap(target: string): boolean {
+    return requiresRendererSwap(
+      this.player.currentSource || this.player.originalSrc || '',
+      this.player.renderer?.rendererType ?? null,
+      target
+    );
+  }
+
+  /**
    * Reload transcript after audio description state change
    */
   _reloadTranscript() {
@@ -888,10 +935,15 @@ export class AudioDescriptionManager {
   /**
    * Update sources (called when playlist changes)
    */
-  updateSources(audioDescriptionSrc: string | null | undefined) {
+  updateSources(
+    audioDescriptionSrc: string | null | undefined,
+    audioDescriptionFallbackSrc?: string | null
+  ) {
     this.speechManager?.destroy();
     this.speechManager = null;
     this.src = audioDescriptionSrc || null;
+    this.fallbackSrc = audioDescriptionFallbackSrc || null;
+    this._restoreSource = null;
     // Reset state for new playlist item
     this.enabled = false;
     this.desiredState = false;

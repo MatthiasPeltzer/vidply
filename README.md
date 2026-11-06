@@ -467,11 +467,14 @@ const player = new Player('#video', {
 
   // Audio Description
   audioDescription: true,
-  audioDescriptionSrc: null, // URL to audio-described version
+  audioDescriptionSrc: null, // URL to audio-described version (MP4, HLS or DASH)
+  audioDescriptionFallbackSrc: null, // progressive file when a streamed described version fails
 
   // Sign Language
   signLanguage: true,
-  signLanguageSrc: null, // URL to sign language video
+  signLanguageSrc: null, // URL to sign language video (MP4, HLS or DASH)
+  signLanguageFallbackSrc: null, // progressive file when a streamed sign language video fails
+  signLanguageFallbackSources: undefined, // { de: '/sl/de-480p.mp4', ... } per signLanguageSources entry
   signLanguagePosition: 'bottom-right', // 'bottom-right', 'bottom-left', 'top-right', 'top-left'
   signLanguageDisplayMode: 'both', // 'pip' (overlay) | 'main' (source swap) | 'both'
   signLanguageSources: undefined, // { en: '/sl/en.mp4', de: '/sl/de.mp4', ... }

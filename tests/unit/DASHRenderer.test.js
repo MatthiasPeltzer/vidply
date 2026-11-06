@@ -264,6 +264,22 @@ describe('DASHRenderer', () => {
       expect(mockPlayer.handleError).toHaveBeenCalled();
     });
 
+    it('should keep a missing manifest logged only when no fallback exists', () => {
+      mockPlayer._fallbackSources = [];
+
+      renderer.handleDashError({ error: { code: 25, message: 'Download error' } });
+
+      expect(mockPlayer.handleError).not.toHaveBeenCalled();
+    });
+
+    it('should hand a missing manifest to the fallback chain when fallbacks exist', () => {
+      mockPlayer._fallbackSources = [{ src: '/videos/fallback.mp4' }];
+
+      renderer.handleDashError({ error: { code: 25, message: 'Download error' } });
+
+      expect(mockPlayer.handleError).toHaveBeenCalled();
+    });
+
     it('should log non-fatal errors', () => {
       renderer.handleDashError({
         error: { message: 'Minor issue' }

@@ -104,6 +104,12 @@ import { Player, PlaylistManager } from 'vidply';
   downloadUrl: 'path/to/media.mp3', // Optional: File the download button offers for this track
   downloadFormat: 'MP3',          // Optional: Format for the download label (else inferred)
   downloadFileSize: 7340032,      // Optional: Size in bytes (else fetched via HEAD)
+  audioDescriptionSrc: 'ad/video-ad.m3u8',          // Optional: Described version (MP4, HLS or DASH)
+  audioDescriptionFallbackSrc: 'video-ad.mp4',      // Optional: Used when the streamed described version fails
+  signLanguageSrc: 'sign/sign.mpd',                 // Optional: Sign language video (MP4, HLS or DASH)
+  signLanguageFallbackSrc: 'sign/sign-480p.mp4',    // Optional: Used when the streamed sign language fails
+  signLanguageSources: { de: 'sign-de/sign.mpd' },  // Optional: Per-language sign language videos
+  signLanguageFallbackSources: { de: 'sign-de/sign-480p.mp4' }, // Optional: Their fallbacks
   tracks: [                       // Optional: Text tracks (captions, chapters)
     {
       src: 'captions.vtt',

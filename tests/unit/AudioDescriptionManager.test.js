@@ -408,6 +408,87 @@ describe('AudioDescriptionManager', () => {
     });
   });
 
+  describe('streamed audio description (HLS/DASH)', () => {
+    beforeEach(() => {
+      mockPlayer.state = { currentTime: 0, playing: false, paused: true };
+      mockPlayer.seek = vi.fn();
+      mockPlayer.hidePosterOverlay = vi.fn();
+      mockPlayer.ensureLoaded = vi.fn();
+      mockPlayer.swapMainSource = vi.fn().mockResolvedValue(undefined);
+      mockPlayer.renderer = { rendererType: 'html5' };
+      mockPlayer.currentSource = '/videos/main.mp4';
+      mockPlayer.originalSrc = '/videos/main.mp4';
+      mockPlayer._fallbackSources = [];
+      Object.defineProperty(mockPlayer.element, 'readyState', { value: 4, configurable: true });
+    });
+
+    it('reads the progressive fallback from options', () => {
+      mockPlayer.options.audioDescriptionSrc = '/stream/ad.m3u8';
+      mockPlayer.options.audioDescriptionFallbackSrc = '/videos/ad.mp4';
+      manager = new AudioDescriptionManager(mockPlayer);
+
+      expect(manager.fallbackSrc).toBe('/videos/ad.mp4');
+    });
+
+    it('swaps a streamed AD source through the player with its fallback', async () => {
+      mockPlayer.options.audioDescriptionSrc = '/stream/ad.m3u8';
+      mockPlayer.options.audioDescriptionFallbackSrc = '/videos/ad.mp4';
+      manager = new AudioDescriptionManager(mockPlayer);
+      manager.desiredState = true;
+
+      await manager._enableWithDirectSrc(0, false, null, true);
+
+      expect(mockPlayer.swapMainSource).toHaveBeenCalledWith('/stream/ad.m3u8', [
+        { src: '/videos/ad.mp4' }
+      ]);
+      expect(mockPlayer.ensureLoaded).toHaveBeenCalled();
+      expect(manager.enabled).toBe(true);
+    });
+
+    it('restores the streamed main source and its fallbacks on disable', async () => {
+      mockPlayer.currentSource = '/stream/main.m3u8';
+      mockPlayer.renderer = { rendererType: 'hls' };
+      mockPlayer._fallbackSources = [{ src: '/videos/main.mp4', type: 'video/mp4' }];
+      mockPlayer.options.audioDescriptionSrc = '/videos/ad.mp4';
+      manager = new AudioDescriptionManager(mockPlayer);
+      manager.desiredState = true;
+
+      await manager._enableWithDirectSrc(0, false, null, true);
+      expect(mockPlayer.swapMainSource).toHaveBeenLastCalledWith('/videos/ad.mp4', []);
+
+      mockPlayer.currentSource = '/videos/ad.mp4';
+      mockPlayer.renderer = { rendererType: 'html5' };
+      manager.desiredState = false;
+      await manager._disableWithDirectSrc(0, false, null);
+
+      expect(mockPlayer.swapMainSource).toHaveBeenLastCalledWith('/stream/main.m3u8', [
+        { src: '/videos/main.mp4', type: 'video/mp4' }
+      ]);
+      expect(manager.enabled).toBe(false);
+    });
+
+    it('keeps the plain src swap between progressive files', async () => {
+      mockPlayer.options.audioDescriptionSrc = '/videos/ad.mp4';
+      manager = new AudioDescriptionManager(mockPlayer);
+      manager.desiredState = true;
+
+      await manager._enableWithDirectSrc(0, false, null, true);
+
+      expect(mockPlayer.swapMainSource).not.toHaveBeenCalled();
+      expect(mockPlayer.element.getAttribute('src')).toBe('/videos/ad.mp4');
+    });
+
+    it('updateSources() replaces the fallback for the next playlist item', () => {
+      mockPlayer.options.audioDescriptionFallbackSrc = '/videos/old-ad.mp4';
+      manager = new AudioDescriptionManager(mockPlayer);
+
+      manager.updateSources('/stream/next-ad.mpd', '/videos/next-ad.mp4');
+
+      expect(manager.src).toBe('/stream/next-ad.mpd');
+      expect(manager.fallbackSrc).toBe('/videos/next-ad.mp4');
+    });
+  });
+
   describe('_getCurrentCaptionText', () => {
     it('should return null when no caption manager', () => {
       manager = new AudioDescriptionManager(mockPlayer);

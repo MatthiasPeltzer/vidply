@@ -54,7 +54,7 @@ export declare class DASHRenderer implements Renderer {
      * Integrity hash, so the default CDN script is verified out of the
      * box. Overridable via `options.dashScriptUrl` (URL) /
      * `options.dashScriptIntegrity` (SRI hash). The built-in hash only
-     * applies to the pinned default URL. See HLSRenderer.loadHlsJs() for
+     * applies to the pinned default URL. See utils/StreamingLibraries.ts for
      * the SRI computation command.
      */
     loadDashJs(): Promise<void>;

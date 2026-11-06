@@ -16,6 +16,7 @@ import {
 } from '../utils/PerformanceUtils.js';
 import { isPlaylistPanelRightDesktopViewport } from '../constants/layoutBreakpoints.js';
 import { candidatesFromTrack, negotiateMediaSources } from '../utils/MediaSourceNegotiation.js';
+import { classifyRendererType } from '../utils/RendererType.js';
 import { TrackInfoView } from '../core/TrackInfoView.js';
 import type { TrackInfoData } from '../core/TrackInfoView.js';
 import type { Player } from '../core/Player.js';
@@ -41,9 +42,14 @@ type PlaylistTrack = {
   downloadFileSize?: number;
   tracks?: PlaylistTextTrack[];
   audioDescriptionSrc?: string | null;
+  /** Progressive fallback when `audioDescriptionSrc` is an HLS/DASH stream. */
+  audioDescriptionFallbackSrc?: string | null;
   audioDescriptionDuration?: number | string | null;
   signLanguageSrc?: string | null;
   signLanguageSources?: Record<string, string>;
+  /** Progressive fallbacks when the sign-language sources are HLS/DASH streams. */
+  signLanguageFallbackSrc?: string | null;
+  signLanguageFallbackSources?: Record<string, string>;
   duration?: number | string | null;
   title?: string;
   artist?: string;
@@ -351,8 +357,11 @@ export class PlaylistManager {
           : undefined,
       poster: track.poster,
       audioDescriptionSrc: track.audioDescriptionSrc || null,
+      audioDescriptionFallbackSrc: track.audioDescriptionFallbackSrc || null,
       audioDescriptionDuration: track.audioDescriptionDuration || null,
-      signLanguageSrc: track.signLanguageSrc || null
+      signLanguageSrc: track.signLanguageSrc || null,
+      signLanguageFallbackSrc: track.signLanguageFallbackSrc || null,
+      signLanguageFallbackSources: track.signLanguageFallbackSources || {}
     });
 
     this.player = new this.PlayerClass(mediaElement, playerOptions);
@@ -428,7 +437,10 @@ export class PlaylistManager {
       poster: track.poster,
       tracks: track.tracks || [],
       audioDescriptionSrc: track.audioDescriptionSrc || null,
-      signLanguageSrc: track.signLanguageSrc || null
+      audioDescriptionFallbackSrc: track.audioDescriptionFallbackSrc || null,
+      signLanguageSrc: track.signLanguageSrc || null,
+      signLanguageFallbackSrc: track.signLanguageFallbackSrc || null,
+      signLanguageFallbackSources: track.signLanguageFallbackSources || {}
     };
 
     // Await load so embed renderers (YouTube/Vimeo/SoundCloud) finish init
@@ -1455,8 +1467,11 @@ export class PlaylistManager {
         poster: track.poster,
         tracks: track.tracks || [],
         audioDescriptionSrc: track.audioDescriptionSrc || null,
+        audioDescriptionFallbackSrc: track.audioDescriptionFallbackSrc || null,
         signLanguageSrc: track.signLanguageSrc || null,
-        signLanguageSources: track.signLanguageSources || {}
+        signLanguageSources: track.signLanguageSources || {},
+        signLanguageFallbackSrc: track.signLanguageFallbackSrc || null,
+        signLanguageFallbackSources: track.signLanguageFallbackSources || {}
       });
 
       if (loadGeneration !== this._trackLoadGeneration) {
@@ -1531,6 +1546,7 @@ export class PlaylistManager {
       // Also sync feature managers (they keep their own copy of sources)
       if (this.player.audioDescriptionManager) {
         this.player.audioDescriptionManager.src = track.audioDescriptionSrc || null;
+        this.player.audioDescriptionManager.fallbackSrc = track.audioDescriptionFallbackSrc || null;
         // Remember original (non-described) source for switching back later
         this.player.audioDescriptionManager.originalSource =
           track.src || this.player.originalSrc || null;
@@ -1538,6 +1554,10 @@ export class PlaylistManager {
       if (this.player.signLanguageManager) {
         this.player.signLanguageManager.src = track.signLanguageSrc || null;
         this.player.signLanguageManager.sources = track.signLanguageSources || {};
+        this.player.signLanguageManager.fallbackSrc = track.signLanguageFallbackSrc || null;
+        this.player.signLanguageManager.fallbackSources = {
+          ...(track.signLanguageFallbackSources || {})
+        };
         this.player.signLanguageManager.currentLanguage = null;
       }
 
@@ -1703,8 +1723,12 @@ export class PlaylistManager {
       this.player.originalSrc = playback.src || track.src || null;
       this.player.audioDescriptionManager.originalSource = playback.src || track.src || null;
       this.player.audioDescriptionManager.src = track.audioDescriptionSrc;
+      this.player.audioDescriptionManager.fallbackSrc = track.audioDescriptionFallbackSrc || null;
       srcToLoad = track.audioDescriptionSrc;
-      typeToLoad = track.type;
+      // The track's MIME type describes the original; let a streamed AD
+      // source be classified by its URL instead.
+      typeToLoad =
+        classifyRendererType(track.audioDescriptionSrc) === 'html5' ? track.type : undefined;
     }
 
     // iOS needs in-gesture native play(); desktop only when this URL is already on
@@ -1725,8 +1749,11 @@ export class PlaylistManager {
       poster: track.poster,
       tracks: track.tracks || [],
       audioDescriptionSrc: track.audioDescriptionSrc || null,
+      audioDescriptionFallbackSrc: track.audioDescriptionFallbackSrc || null,
       signLanguageSrc: track.signLanguageSrc || null,
-      signLanguageSources: track.signLanguageSources || {}
+      signLanguageSources: track.signLanguageSources || {},
+      signLanguageFallbackSrc: track.signLanguageFallbackSrc || null,
+      signLanguageFallbackSources: track.signLanguageFallbackSources || {}
     };
 
     try {

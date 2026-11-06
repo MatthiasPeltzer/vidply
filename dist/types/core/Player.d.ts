@@ -46,8 +46,14 @@ export interface PlayerLoadConfig {
         [key: string]: unknown;
     }>;
     audioDescriptionSrc?: string | null;
+    /** Progressive file played when `audioDescriptionSrc` (a stream) fails. */
+    audioDescriptionFallbackSrc?: string | null;
     signLanguageSrc?: string | null;
+    /** Progressive file played when `signLanguageSrc` (a stream) fails. */
+    signLanguageFallbackSrc?: string | null;
     signLanguageSources?: Record<string, string>;
+    /** Per-language fallbacks for `signLanguageSources`. */
+    signLanguageFallbackSources?: Record<string, string>;
     [key: string]: unknown;
 }
 export declare class Player extends EventEmitter<PlayerEventMap> {
@@ -106,6 +112,11 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
         src: string;
         type?: string;
         [key: string]: unknown;
+    }> | null;
+    /** Fallbacks for the next {@link initializeRenderer} run with a `_pendingSource`. */
+    _pendingFallbackSources: Array<{
+        src: string;
+        type?: string;
     }> | null;
     _isAudioContent: boolean | undefined;
     _isFallingBack: boolean | undefined;
@@ -364,6 +375,25 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
         preferNativeElement?: boolean;
     }): NegotiatedMediaSource;
     _fallbackToNextSource(): Promise<boolean>;
+    /**
+     * Put `src` on the media element when the browser plays it itself
+     * (progressive files, native HLS in Safari). MSE renderers (hls.js,
+     * dash.js) attach their own blob URL, so the element is cleared for them.
+     * HTML5Renderer only calls load(): without this, a fallback from a stream
+     * to an MP4 would reload the stream.
+     */
+    private stageElementSource;
+    /**
+     * Replace the current source of this player in place, e.g. for the
+     * audio-described version of a video. Unlike {@link load} the text tracks,
+     * poster and playlist stay as they are; the renderer is rebuilt for the new
+     * URL, so an MP4, an HLS and a DASH source can be swapped for one another.
+     * `fallbacks` are tried in order when `src` cannot be played.
+     */
+    swapMainSource(src: string, fallbacks?: Array<{
+        src: string;
+        type?: string;
+    }>): Promise<void>;
     /**
      * Invalidate DOM query cache (call when tracks/sources change)
      */

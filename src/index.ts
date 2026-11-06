@@ -80,10 +80,12 @@ function parseDataAttributes(dataset: DOMStringMap): Partial<PlayerOptions> {
 
   const attributeMap: Record<string, keyof PlayerOptions> = {
     signLanguageSrc: 'signLanguageSrc',
+    signLanguageFallbackSrc: 'signLanguageFallbackSrc',
     signLanguageButton: 'signLanguageButton',
     signLanguagePosition: 'signLanguagePosition',
     signLanguageDisplayMode: 'signLanguageDisplayMode',
     audioDescriptionSrc: 'audioDescriptionSrc',
+    audioDescriptionFallbackSrc: 'audioDescriptionFallbackSrc',
     audioDescriptionButton: 'audioDescriptionButton',
     audioDescriptionMode: 'audioDescriptionMode',
     audioDescriptionSpeech: 'audioDescriptionSpeech',
@@ -148,6 +150,19 @@ function parseDataAttributes(dataset: DOMStringMap): Partial<PlayerOptions> {
     if (dataset.signLanguageSrc && !options.signLanguageSrc) {
       options.signLanguageSrc = dataset.signLanguageSrc;
     }
+  }
+
+  // data-sign-language-fallback-src-de → signLanguageFallbackSources.de
+  const signLanguageFallbackSources: Record<string, string> = Object.create(null);
+  for (const key of Object.keys(dataset)) {
+    const langMatch = key.match(/^signLanguageFallbackSrc([A-Z][a-z]*)$/);
+    const value = dataset[key];
+    if (langMatch && langMatch[1] && value !== undefined) {
+      signLanguageFallbackSources[langMatch[1].toLowerCase()] = value;
+    }
+  }
+  if (Object.keys(signLanguageFallbackSources).length > 0) {
+    options.signLanguageFallbackSources = signLanguageFallbackSources;
   }
 
   if (dataset.vidplyLanguageFiles) {

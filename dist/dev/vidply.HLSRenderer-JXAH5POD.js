@@ -4,6 +4,10 @@
  * Released under GPL-2.0-or-later License
  */
 import {
+  HLS_JS_INTEGRITY,
+  HLS_JS_URL
+} from "./vidply.chunk-A3WPZBRW.js";
+import {
   loadPinnedScript
 } from "./vidply.chunk-NG4YJGLN.js";
 import {
@@ -267,8 +271,8 @@ var HLSRenderer = class {
    */
   async loadHlsJs() {
     return loadPinnedScript({
-      defaultUrl: "https://cdn.jsdelivr.net/npm/hls.js@1.7.4/dist/hls.min.js",
-      defaultIntegrity: "sha384-p9vgU/7IYJWd3I4STrtqxqR/2cAQlhIX7D/HrTnIMEjjcUox165b7se7sxmm3zDg",
+      defaultUrl: HLS_JS_URL,
+      defaultIntegrity: HLS_JS_INTEGRITY,
       url: this.player.options.hlsScriptUrl,
       integrity: this.player.options.hlsScriptIntegrity
     });
@@ -705,6 +709,14 @@ var HLSRenderer = class {
       const ErrorTypes = window.Hls?.ErrorTypes;
       switch (data.type) {
         case ErrorTypes?.NETWORK_ERROR:
+          if ((this.player._fallbackSources?.length ?? 0) > 0) {
+            this.player.log(
+              `Fatal network error (${data.details}), using fallback source`,
+              "error"
+            );
+            this.player.handleError(new Error(`HLS Error: ${data.type} - ${data.details}`));
+            break;
+          }
           this.player.log("Fatal network error, trying to recover...", "error");
           this.player.log(`Network error details: ${data.details}`, "error");
           this._setTimeout(() => {
@@ -915,4 +927,4 @@ var HLSRenderer = class {
 export {
   HLSRenderer
 };
-//# sourceMappingURL=vidply.HLSRenderer-AWQAVPZC.js.map
+//# sourceMappingURL=vidply.HLSRenderer-JXAH5POD.js.map

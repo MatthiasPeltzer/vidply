@@ -578,6 +578,37 @@ The sign language video includes a settings menu (⚙️ icon) with the followin
 - Includes a settings menu for drag, resize, language switching, and close options
 - Automatically switches language when caption language changes (if matching sign language available)
 
+#### Streamed sign language (HLS / DASH)
+
+Sign-language sources may be HLS (`.m3u8`) or DASH (`.mpd`) manifests. The overlay loads them
+through hls.js / dash.js (native HLS in Safari); the libraries are fetched on demand like for the
+main video. Add a progressive fallback per source — the player switches to it once when the stream
+cannot be loaded or fails while playing, and keeps the position in sync with the main video:
+
+```html
+<video
+  data-vidply
+  src="main-video.mp4"
+  data-sign-language-src="sign/sign.m3u8"
+  data-sign-language-fallback-src="sign/sign-480p.mp4"
+  data-sign-language-src-de="sign-de/sign.m3u8"
+  data-sign-language-fallback-src-de="sign-de/sign-480p.mp4"
+></video>
+```
+
+```javascript
+const player = new Player('#video', {
+  signLanguageSrc: 'sign/sign.m3u8',
+  signLanguageFallbackSrc: 'sign/sign-480p.mp4',
+  signLanguageSources: { de: 'sign-de/sign.mpd' },
+  signLanguageFallbackSources: { de: 'sign-de/sign-480p.mp4' }
+});
+```
+
+With `signLanguageDisplayMode: 'main'` a streamed sign-language source replaces the main video
+via `swapMainSource()` (renderer rebuilt, muted, position kept) and the original source and its
+fallbacks are restored when sign language is turned off.
+
 ### Audio Description
 
 VidPly supports three complementary audio-description paths:
@@ -614,6 +645,19 @@ Or with `<source>` elements:
   data-desc-src="described.mp4"
   data-orig-src="regular.mp4"
 />
+```
+
+The described version may also be an HLS or DASH stream. The player then switches renderers
+(HTML5 ↔ hls.js ↔ dash.js) on the swap; `data-audio-description-fallback-src` /
+`audioDescriptionFallbackSrc` names a progressive file used when the stream cannot be loaded:
+
+```html
+<video
+  data-vidply
+  src="video.m3u8"
+  data-audio-description-src="ad/video-ad.m3u8"
+  data-audio-description-fallback-src="video-ad.mp4"
+></video>
 ```
 
 #### VTT speech (extended AD)
@@ -672,6 +716,7 @@ player.on('audiodescriptioncueend', ({ time, text }) => {
 **HTML data attributes** (camelCase in `data-vidply-*`):
 
 - `data-audio-description-src`
+- `data-audio-description-fallback-src` — progressive file used when a streamed described version fails
 - `data-audio-description-button`
 - `data-audio-description-mode` — `auto`, `swap`, or `vtt_speech`
 - `data-audio-description-speech` — `true` / `false`

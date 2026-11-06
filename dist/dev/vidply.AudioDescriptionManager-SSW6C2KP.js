@@ -6,6 +6,9 @@
 import {
   CaptionManager
 } from "./vidply.chunk-YTE6632W.js";
+import {
+  requiresRendererSwap
+} from "./vidply.chunk-MWOZ4DBA.js";
 import "./vidply.chunk-TGOJ4SPO.js";
 import "./vidply.chunk-3VC2BTVX.js";
 import "./vidply.chunk-MBPTAIM7.js";
@@ -190,6 +193,7 @@ var DescriptionSpeechManager = class {
 };
 
 // src/core/AudioDescriptionManager.ts
+var METADATA_TIMEOUT_MS = 1e4;
 var AudioDescriptionManager = class {
   player;
   captionTracks;
@@ -198,12 +202,17 @@ var AudioDescriptionManager = class {
   originalSource;
   sourceElement;
   src;
+  /** Progressive file played when `src` is a stream that cannot be played. */
+  fallbackSrc;
   speechManager;
+  /** Main source (and its fallbacks) to return to when a stream swap is undone. */
+  _restoreSource = null;
   constructor(player) {
     this.player = player;
     this.enabled = false;
     this.desiredState = false;
     this.src = player.options.audioDescriptionSrc;
+    this.fallbackSrc = player.options.audioDescriptionFallbackSrc ?? null;
     this.sourceElement = null;
     this.originalSource = null;
     this.captionTracks = [];
@@ -287,7 +296,8 @@ var AudioDescriptionManager = class {
     trackElements.forEach((trackEl) => {
       const trackKind = trackEl.getAttribute("kind");
       const trackDescSrc = trackEl.getAttribute("data-desc-src");
-      if ((trackKind === "captions" || trackKind === "subtitles" || trackKind === "chapters" || trackKind === "descriptions") && trackDescSrc && trackEl instanceof HTMLTrackElement) {
+      if ((trackKind === "captions" || trackKind === "subtitles" || trackKind === "chapters" || trackKind === "descriptions") && trackDescSrc && trackEl instanceof HTMLTrackElement && // Renderer re-inits (fallbacks, stream swaps) scan the same elements again.
+      !this.captionTracks.some((info) => info.trackElement === trackEl)) {
         this.captionTracks.push({
           trackElement: trackEl,
           originalSrc: trackEl.getAttribute("src"),
@@ -657,9 +667,11 @@ var AudioDescriptionManager = class {
         resolve();
       } else {
         const onLoad = () => {
+          clearTimeout(timer);
           this.player.element.removeEventListener("loadedmetadata", onLoad);
           resolve();
         };
+        const timer = setTimeout(onLoad, METADATA_TIMEOUT_MS);
         this.player.element.addEventListener("loadedmetadata", onLoad);
       }
     });
@@ -746,7 +758,19 @@ var AudioDescriptionManager = class {
       this.player.element.poster = posterValue;
     }
     if (!this.src) return;
-    this.player.element.src = this.src;
+    if (this._needsRendererSwap(this.src)) {
+      this._restoreSource = {
+        src: this.player.currentSource || this.player.originalSrc || "",
+        fallbacks: [...this.player._fallbackSources ?? []]
+      };
+      await this.player.swapMainSource(
+        this.src,
+        this.fallbackSrc ? [{ src: this.fallbackSrc }] : []
+      );
+      this.player.ensureLoaded();
+    } else {
+      this.player.element.src = this.src;
+    }
     await this._waitForMediaReady(currentTime > 0 || wasPlaying);
     if (currentTime > 0) {
       this.player.seek(currentTime);
@@ -797,12 +821,19 @@ var AudioDescriptionManager = class {
     if (posterValue && this.player.element.tagName === "VIDEO") {
       this.player.element.poster = posterValue;
     }
-    const originalSrcToUse = this.originalSource || this.player.originalSrc;
+    const restore = this._restoreSource;
+    this._restoreSource = null;
+    const originalSrcToUse = restore?.src || this.originalSource || this.player.originalSrc;
     if (!originalSrcToUse) {
       return;
     }
-    this.player.element.src = originalSrcToUse;
-    this.player.element.load();
+    if (restore || this._needsRendererSwap(originalSrcToUse)) {
+      await this.player.swapMainSource(originalSrcToUse, restore?.fallbacks ?? []);
+      this.player.ensureLoaded();
+    } else {
+      this.player.element.src = originalSrcToUse;
+      this.player.element.load();
+    }
     await this._waitForMediaReady(currentTime > 0 || wasPlaying);
     if (currentTime > 0) {
       this.player.seek(currentTime);
@@ -815,6 +846,18 @@ var AudioDescriptionManager = class {
     this.player.state.audioDescriptionEnabled = false;
     this.player.emit("audiodescriptiondisabled");
     this._reloadTranscript();
+  }
+  /**
+   * A plain `element.src` swap only works between progressive files on the
+   * HTML5 renderer. Anything involving HLS/DASH goes through the player so
+   * the matching renderer is built.
+   */
+  _needsRendererSwap(target) {
+    return requiresRendererSwap(
+      this.player.currentSource || this.player.originalSrc || "",
+      this.player.renderer?.rendererType ?? null,
+      target
+    );
   }
   /**
    * Reload transcript after audio description state change
@@ -831,10 +874,12 @@ var AudioDescriptionManager = class {
   /**
    * Update sources (called when playlist changes)
    */
-  updateSources(audioDescriptionSrc) {
+  updateSources(audioDescriptionSrc, audioDescriptionFallbackSrc) {
     this.speechManager?.destroy();
     this.speechManager = null;
     this.src = audioDescriptionSrc || null;
+    this.fallbackSrc = audioDescriptionFallbackSrc || null;
+    this._restoreSource = null;
     this.enabled = false;
     this.desiredState = false;
     this.sourceElement = null;
@@ -864,4 +909,4 @@ var AudioDescriptionManager = class {
 export {
   AudioDescriptionManager
 };
-//# sourceMappingURL=vidply.AudioDescriptionManager-UHXZWJES.js.map
+//# sourceMappingURL=vidply.AudioDescriptionManager-SSW6C2KP.js.map

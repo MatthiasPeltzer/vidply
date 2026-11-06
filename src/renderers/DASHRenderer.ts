@@ -1,6 +1,14 @@
 import type { Renderer } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
 import { loadPinnedScript } from '../utils/ScriptLoader.js';
+import { DASH_JS_INTEGRITY, DASH_JS_URL } from '../utils/StreamingLibraries.js';
+
+/**
+ * dash.js error codes after which the stream will not play at all (manifest
+ * missing or unparsable, no usable streams, MediaSource unsupported). They
+ * hand over to a configured fallback source; without one they stay logged.
+ */
+const DASH_STARTUP_ERROR_CODES = new Set([10, 11, 23, 25, 31, 32, 35]);
 
 interface DashTextTrack {
   lang?: string;
@@ -238,15 +246,13 @@ export class DASHRenderer implements Renderer {
    * Integrity hash, so the default CDN script is verified out of the
    * box. Overridable via `options.dashScriptUrl` (URL) /
    * `options.dashScriptIntegrity` (SRI hash). The built-in hash only
-   * applies to the pinned default URL. See HLSRenderer.loadHlsJs() for
+   * applies to the pinned default URL. See utils/StreamingLibraries.ts for
    * the SRI computation command.
    */
   async loadDashJs(): Promise<void> {
-    // SRI for the pinned default build below, verified against the file served
-    // by jsdelivr for dashjs@5.2.1. Recompute whenever the pin changes.
     return loadPinnedScript({
-      defaultUrl: 'https://cdn.jsdelivr.net/npm/dashjs@5.2.1/dist/modern/umd/dash.all.min.js',
-      defaultIntegrity: 'sha384-NwbBGevMmVf2Lv50ZqQWLZ0dLH69dxVHYeS+8t54klP9odovQ2+Ms0J4SWfKzPkr',
+      defaultUrl: DASH_JS_URL,
+      defaultIntegrity: DASH_JS_INTEGRITY,
       url: this.player.options.dashScriptUrl as string | undefined,
       integrity: this.player.options.dashScriptIntegrity as string | undefined
     });
@@ -803,8 +809,12 @@ export class DASHRenderer implements Renderer {
     const message = error.message || '';
     this.player.log(`DASH Error - Code: ${code}, Message: ${message}`, 'warn');
 
+    const hasFallback = (this.player._fallbackSources?.length ?? 0) > 0;
     if (typeof code === 'number' && code >= 100) {
       this.player.log('Fatal DASH error', 'error');
+      this.player.handleError(new Error(`DASH Error: ${code} - ${message}`));
+    } else if (typeof code === 'number' && hasFallback && DASH_STARTUP_ERROR_CODES.has(code)) {
+      this.player.log(`DASH stream cannot start (${code}), using fallback source`, 'error');
       this.player.handleError(new Error(`DASH Error: ${code} - ${message}`));
     } else {
       this.player.log('Non-fatal DASH error: ' + (message || String(error)), 'warn');

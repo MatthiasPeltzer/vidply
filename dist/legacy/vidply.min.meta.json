@@ -135,7 +135,7 @@
       "format": "esm"
     },
     "src/utils/RendererType.ts": {
-      "bytes": 883,
+      "bytes": 1523,
       "imports": [],
       "format": "esm"
     },
@@ -586,7 +586,7 @@
       "format": "esm"
     },
     "src/core/AudioDescriptionManager.ts": {
-      "bytes": 28160,
+      "bytes": 30335,
       "imports": [
         {
           "path": "src/controls/CaptionManager.ts",
@@ -597,6 +597,11 @@
           "path": "src/core/DescriptionSpeechManager.ts",
           "kind": "import-statement",
           "original": "./DescriptionSpeechManager.js"
+        },
+        {
+          "path": "src/utils/RendererType.ts",
+          "kind": "import-statement",
+          "original": "../utils/RendererType.js"
         },
         {
           "path": "<runtime>",
@@ -700,8 +705,50 @@
       ],
       "format": "esm"
     },
+    "src/utils/ScriptLoader.ts": {
+      "bytes": 5493,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/utils/StreamingLibraries.ts": {
+      "bytes": 2061,
+      "imports": [
+        {
+          "path": "src/utils/ScriptLoader.ts",
+          "kind": "import-statement",
+          "original": "./ScriptLoader.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/utils/StreamingSourceLoader.ts": {
+      "bytes": 5492,
+      "imports": [
+        {
+          "path": "src/utils/RendererType.ts",
+          "kind": "import-statement",
+          "original": "./RendererType.js"
+        },
+        {
+          "path": "src/utils/PerformanceUtils.ts",
+          "kind": "import-statement",
+          "original": "./PerformanceUtils.js"
+        },
+        {
+          "path": "src/utils/StreamingLibraries.ts",
+          "kind": "import-statement",
+          "original": "./StreamingLibraries.js"
+        },
+        {
+          "path": "<runtime>",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
     "src/core/SignLanguageManager.ts": {
-      "bytes": 43628,
+      "bytes": 48621,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -732,6 +779,16 @@
           "path": "src/utils/DraggablePanel.ts",
           "kind": "import-statement",
           "original": "../utils/DraggablePanel.js"
+        },
+        {
+          "path": "src/utils/RendererType.ts",
+          "kind": "import-statement",
+          "original": "../utils/RendererType.js"
+        },
+        {
+          "path": "src/utils/StreamingSourceLoader.ts",
+          "kind": "import-statement",
+          "original": "../utils/StreamingSourceLoader.js"
         },
         {
           "path": "<runtime>",
@@ -840,11 +897,6 @@
     },
     "src/utils/YoutubeEmbedCaptions.ts": {
       "bytes": 3372,
-      "imports": [],
-      "format": "esm"
-    },
-    "src/utils/ScriptLoader.ts": {
-      "bytes": 5493,
       "imports": [],
       "format": "esm"
     },
@@ -963,12 +1015,17 @@
       "format": "esm"
     },
     "src/renderers/HLSRenderer.ts": {
-      "bytes": 39444,
+      "bytes": 39744,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
           "kind": "import-statement",
           "original": "../utils/ScriptLoader.js"
+        },
+        {
+          "path": "src/utils/StreamingLibraries.ts",
+          "kind": "import-statement",
+          "original": "../utils/StreamingLibraries.js"
         },
         {
           "path": "src/utils/PerformanceUtils.ts",
@@ -989,12 +1046,17 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 40258,
+      "bytes": 40720,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
           "kind": "import-statement",
           "original": "../utils/ScriptLoader.js"
+        },
+        {
+          "path": "src/utils/StreamingLibraries.ts",
+          "kind": "import-statement",
+          "original": "../utils/StreamingLibraries.js"
         },
         {
           "path": "<runtime>",
@@ -1026,7 +1088,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 145550,
+      "bytes": 148566,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -1217,7 +1279,7 @@
       "format": "esm"
     },
     "src/features/PlaylistManager.ts": {
-      "bytes": 97762,
+      "bytes": 99663,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1260,6 +1322,11 @@
           "original": "../utils/MediaSourceNegotiation.js"
         },
         {
+          "path": "src/utils/RendererType.ts",
+          "kind": "import-statement",
+          "original": "../utils/RendererType.js"
+        },
+        {
           "path": "src/core/TrackInfoView.ts",
           "kind": "import-statement",
           "original": "../core/TrackInfoView.js"
@@ -1278,7 +1345,7 @@
       "format": "esm"
     },
     "src/index.ts": {
-      "bytes": 6891,
+      "bytes": 7598,
       "imports": [
         {
           "path": "src/core/Player.ts",
@@ -1309,7 +1376,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1760620
+      "bytes": 1792835
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1358,6 +1425,9 @@
         "src/utils/VideoFrameCapture.ts": {
           "bytesInOutput": 3266
         },
+        "src/utils/RendererType.ts": {
+          "bytesInOutput": 787
+        },
         "src/controls/CaptionStyleMenu.ts": {
           "bytesInOutput": 8464
         },
@@ -1383,7 +1453,7 @@
           "bytesInOutput": 6832
         },
         "src/core/AudioDescriptionManager.ts": {
-          "bytesInOutput": 28102
+          "bytesInOutput": 30328
         },
         "src/utils/DraggableResizable.ts": {
           "bytesInOutput": 31318
@@ -1400,8 +1470,17 @@
         "src/utils/DraggablePanel.ts": {
           "bytesInOutput": 14238
         },
+        "src/utils/ScriptLoader.ts": {
+          "bytesInOutput": 2690
+        },
+        "src/utils/StreamingLibraries.ts": {
+          "bytesInOutput": 1329
+        },
+        "src/utils/StreamingSourceLoader.ts": {
+          "bytesInOutput": 5345
+        },
         "src/core/SignLanguageManager.ts": {
-          "bytesInOutput": 47131
+          "bytesInOutput": 52151
         },
         "src/core/FloatingPlayerManager.ts": {
           "bytesInOutput": 22243
@@ -1411,9 +1490,6 @@
         },
         "src/utils/YoutubeEmbedCaptions.ts": {
           "bytesInOutput": 2676
-        },
-        "src/utils/ScriptLoader.ts": {
-          "bytesInOutput": 2690
         },
         "src/utils/EmbedIdleCover.ts": {
           "bytesInOutput": 2073
@@ -1437,10 +1513,10 @@
           "bytesInOutput": 13676
         },
         "src/renderers/HLSRenderer.ts": {
-          "bytesInOutput": 37466
+          "bytesInOutput": 37808
         },
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 39563
+          "bytesInOutput": 40006
         },
         "src/renderers/SoundCloudRenderer.ts": {
           "bytesInOutput": 14735
@@ -1449,19 +1525,16 @@
           "bytesInOutput": 1034
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 127934
+          "bytesInOutput": 130573
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 163095
+          "bytesInOutput": 163118
         },
         "src/utils/DownloadInfo.ts": {
           "bytesInOutput": 3863
         },
-        "src/utils/RendererType.ts": {
-          "bytesInOutput": 432
-        },
         "src/utils/EmbedProviderLinks.ts": {
-          "bytesInOutput": 2882
+          "bytesInOutput": 2905
         },
         "src/controls/KeyboardManager.ts": {
           "bytesInOutput": 13055
@@ -1509,13 +1582,13 @@
           "bytesInOutput": 11608
         },
         "src/features/PlaylistManager.ts": {
-          "bytesInOutput": 81849
+          "bytesInOutput": 83298
         },
         "src/index.ts": {
-          "bytesInOutput": 5473
+          "bytesInOutput": 6119
         }
       },
-      "bytes": 1075682
+      "bytes": 1095634
     }
   }
 }

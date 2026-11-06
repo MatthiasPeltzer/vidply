@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { classifyRendererType } from '../../src/utils/RendererType.js';
+import { classifyRendererType, requiresRendererSwap } from '../../src/utils/RendererType.js';
 
 describe('classifyRendererType', () => {
   it('classifies YouTube watch, short and nocookie URLs', () => {
@@ -41,5 +41,26 @@ describe('classifyRendererType', () => {
     // URL wins. The guarantee that matters is a single deterministic mapping
     // (both _detectRendererClass and shouldChangeRenderer use this function).
     expect(classifyRendererType('https://host/vimeo.com-path/index.m3u8')).toBe('vimeo');
+  });
+});
+
+describe('requiresRendererSwap', () => {
+  it('allows a plain src swap between progressive files on the HTML5 renderer', () => {
+    expect(requiresRendererSwap('/video.mp4', 'html5', '/video-ad.mp4')).toBe(false);
+    expect(requiresRendererSwap('/video.mp4', null, '/video-ad.mp4')).toBe(false);
+  });
+
+  it('needs a renderer swap when the target is a stream', () => {
+    expect(requiresRendererSwap('/video.mp4', 'html5', '/ad/video.m3u8')).toBe(true);
+    expect(requiresRendererSwap('/video.mp4', 'html5', '/ad/video.mpd')).toBe(true);
+  });
+
+  it('needs a renderer swap when leaving a stream', () => {
+    expect(requiresRendererSwap('/stream/video.m3u8', 'hls', '/video-ad.mp4')).toBe(true);
+    expect(requiresRendererSwap('/stream/video.mpd', 'dash', '/video-ad.mp4')).toBe(true);
+  });
+
+  it('needs a renderer swap while a streaming renderer owns the element', () => {
+    expect(requiresRendererSwap('/video.mp4', 'hls', '/video-ad.mp4')).toBe(true);
   });
 });

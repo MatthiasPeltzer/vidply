@@ -13,6 +13,9 @@ vi.mock('../../src/controls/ControlBar.js', () => ({
       this.updateCaptionsButton = vi.fn();
       this.updateQualityButton = vi.fn();
       this.updateTranscriptButton = vi.fn();
+      this.updateLiveControls = vi.fn();
+      this.updatePlayPauseButton = vi.fn();
+      this.removeHlsCaptionButtons = vi.fn();
       this.destroy = vi.fn();
     }
   }
@@ -135,6 +138,7 @@ vi.mock('../../src/utils/PerformanceUtils.js', () => ({
   debounce: vi.fn((fn) => fn),
   throttle: vi.fn((fn) => fn),
   isMobile: vi.fn().mockReturnValue(false),
+  canPlayNativeHls: vi.fn().mockReturnValue(false),
   rafWithTimeout: vi.fn((fn) => fn())
 }));
 
@@ -1231,6 +1235,85 @@ describe('Player', () => {
       void player.initializeRenderer();
 
       expect(player.container.classList.contains('vidply-external-controls')).toBe(false);
+    });
+  });
+
+  describe('swapMainSource', () => {
+    function fakeRenderer(rendererType, initImpl = () => Promise.resolve()) {
+      return class FakeRenderer {
+        constructor() {
+          this.rendererType = rendererType;
+          this.init = vi.fn(initImpl);
+          this.destroy = vi.fn();
+        }
+      };
+    }
+
+    beforeEach(async () => {
+      player = new Player(videoElement);
+      for (let i = 0; i < 20; i++) {
+        await Promise.resolve();
+      }
+    });
+
+    it('rebuilds the renderer for a stream and clears the element src for MSE', async () => {
+      const previous = new (fakeRenderer('html5'))();
+      player.renderer = previous;
+      videoElement.setAttribute('src', 'https://example.com/main.mp4');
+      player._detectRendererClass = vi.fn().mockResolvedValue(fakeRenderer('hls'));
+
+      await player.swapMainSource('https://cdn.example.com/ad/video.m3u8');
+
+      expect(previous.destroy).toHaveBeenCalled();
+      expect(player._detectRendererClass).toHaveBeenCalledWith(
+        'https://cdn.example.com/ad/video.m3u8'
+      );
+      expect(player.currentSource).toBe('https://cdn.example.com/ad/video.m3u8');
+      expect(player.renderer.rendererType).toBe('hls');
+      expect(videoElement.hasAttribute('src')).toBe(false);
+      expect(player._switchingRenderer).toBe(false);
+    });
+
+    it('puts a progressive source on the element before HTML5Renderer loads it', async () => {
+      player._detectRendererClass = vi.fn().mockResolvedValue(fakeRenderer('html5'));
+
+      await player.swapMainSource('https://example.com/ad.mp4');
+
+      expect(videoElement.getAttribute('src')).toBe('https://example.com/ad.mp4');
+    });
+
+    it('keeps the given fallbacks for the new source', async () => {
+      player._detectRendererClass = vi.fn().mockResolvedValue(fakeRenderer('dash'));
+
+      await player.swapMainSource('https://example.com/ad.mpd', [
+        { src: 'https://example.com/ad.mp4' }
+      ]);
+
+      expect(player._fallbackSources).toEqual([{ src: 'https://example.com/ad.mp4' }]);
+    });
+
+    it('falls back to the next source when the stream renderer cannot start', async () => {
+      player._detectRendererClass = vi
+        .fn()
+        .mockResolvedValueOnce(fakeRenderer('hls', () => Promise.reject(new Error('MSE missing'))))
+        .mockResolvedValueOnce(fakeRenderer('html5'));
+
+      await player.swapMainSource('https://example.com/ad.m3u8', [
+        { src: 'https://example.com/ad.mp4' }
+      ]);
+
+      expect(player.currentSource).toBe('https://example.com/ad.mp4');
+      expect(videoElement.getAttribute('src')).toBe('https://example.com/ad.mp4');
+      expect(player.renderer.rendererType).toBe('html5');
+    });
+
+    it('rethrows when no fallback is left', async () => {
+      player._detectRendererClass = vi
+        .fn()
+        .mockResolvedValue(fakeRenderer('hls', () => Promise.reject(new Error('MSE missing'))));
+
+      await expect(player.swapMainSource('https://example.com/ad.m3u8')).rejects.toThrow();
+      expect(player._switchingRenderer).toBe(false);
     });
   });
 });

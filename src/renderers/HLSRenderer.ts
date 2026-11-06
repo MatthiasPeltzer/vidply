@@ -1,6 +1,7 @@
 import type { Renderer, QualityLevel } from '../types/renderer.js';
 import type { Player } from '../core/Player.js';
 import { loadPinnedScript } from '../utils/ScriptLoader.js';
+import { HLS_JS_INTEGRITY, HLS_JS_URL } from '../utils/StreamingLibraries.js';
 import { canPlayNativeHls } from '../utils/PerformanceUtils.js';
 
 /** Subset of payloads emitted by hls.js events that we actually consume. */
@@ -343,11 +344,9 @@ export class HLSRenderer implements Renderer {
    * and prefix with `sha384-`.
    */
   async loadHlsJs(): Promise<void> {
-    // SRI for the pinned default build below, verified against the file served
-    // by jsdelivr for hls.js@1.7.4. Recompute whenever the pin changes.
     return loadPinnedScript({
-      defaultUrl: 'https://cdn.jsdelivr.net/npm/hls.js@1.7.4/dist/hls.min.js',
-      defaultIntegrity: 'sha384-p9vgU/7IYJWd3I4STrtqxqR/2cAQlhIX7D/HrTnIMEjjcUox165b7se7sxmm3zDg',
+      defaultUrl: HLS_JS_URL,
+      defaultIntegrity: HLS_JS_INTEGRITY,
       url: this.player.options.hlsScriptUrl as string | undefined,
       integrity: this.player.options.hlsScriptIntegrity as string | undefined
     });
@@ -897,6 +896,16 @@ export class HLSRenderer implements Renderer {
       const ErrorTypes = window.Hls?.ErrorTypes;
       switch (data.type) {
         case ErrorTypes?.NETWORK_ERROR:
+          // hls.js has exhausted its own retries; prefer a configured
+          // progressive fallback over retrying a stream that is not there.
+          if ((this.player._fallbackSources?.length ?? 0) > 0) {
+            this.player.log(
+              `Fatal network error (${data.details}), using fallback source`,
+              'error'
+            );
+            this.player.handleError(new Error(`HLS Error: ${data.type} - ${data.details}`));
+            break;
+          }
           this.player.log('Fatal network error, trying to recover...', 'error');
           this.player.log(`Network error details: ${data.details}`, 'error');
           this._setTimeout(() => {

@@ -28,9 +28,14 @@ type PlaylistTrack = {
     downloadFileSize?: number;
     tracks?: PlaylistTextTrack[];
     audioDescriptionSrc?: string | null;
+    /** Progressive fallback when `audioDescriptionSrc` is an HLS/DASH stream. */
+    audioDescriptionFallbackSrc?: string | null;
     audioDescriptionDuration?: number | string | null;
     signLanguageSrc?: string | null;
     signLanguageSources?: Record<string, string>;
+    /** Progressive fallbacks when the sign-language sources are HLS/DASH streams. */
+    signLanguageFallbackSrc?: string | null;
+    signLanguageFallbackSources?: Record<string, string>;
     duration?: number | string | null;
     title?: string;
     artist?: string;

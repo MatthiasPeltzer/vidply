@@ -170,8 +170,14 @@ export interface PlayerLoadConfig {
     [key: string]: unknown;
   }>;
   audioDescriptionSrc?: string | null;
+  /** Progressive file played when `audioDescriptionSrc` (a stream) fails. */
+  audioDescriptionFallbackSrc?: string | null;
   signLanguageSrc?: string | null;
+  /** Progressive file played when `signLanguageSrc` (a stream) fails. */
+  signLanguageFallbackSrc?: string | null;
   signLanguageSources?: Record<string, string>;
+  /** Per-language fallbacks for `signLanguageSources`. */
+  signLanguageFallbackSources?: Record<string, string>;
 
   [key: string]: unknown;
 }
@@ -256,6 +262,8 @@ export class Player extends EventEmitter<PlayerEventMap> {
   instanceId: number;
   _audioDescriptionDesiredState: boolean | undefined;
   _fallbackSources: Array<{ src: string; type?: string; [key: string]: unknown }> | null = null;
+  /** Fallbacks for the next {@link initializeRenderer} run with a `_pendingSource`. */
+  _pendingFallbackSources: Array<{ src: string; type?: string }> | null = null;
   _isAudioContent: boolean | undefined;
   _isFallingBack: boolean | undefined;
   _managersLoading: Promise<unknown> | null = null;
@@ -1936,8 +1944,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
         this._fallbackSources = [];
       }
     } else {
-      this._fallbackSources = [];
+      this._fallbackSources = this._pendingFallbackSources ?? [];
     }
+    this._pendingFallbackSources = null;
 
     if (!src) {
       throw new Error('No media source found');
@@ -2087,6 +2096,9 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
       this.currentSource = next.src;
       this._pendingSource = next.src;
+      // Keep the rest of the chain: initializeRenderer() replaces _fallbackSources.
+      this._pendingFallbackSources = [...this._fallbackSources];
+      this.stageElementSource(next.src);
       this._isFallingBack = true;
       await this.initializeRenderer();
       this._isFallingBack = false;
@@ -2095,6 +2107,56 @@ export class Player extends EventEmitter<PlayerEventMap> {
       this.log(`Fallback source failed: ${next.src}`, 'warn');
       this._isFallingBack = false;
       return this._fallbackToNextSource();
+    }
+  }
+
+  /**
+   * Put `src` on the media element when the browser plays it itself
+   * (progressive files, native HLS in Safari). MSE renderers (hls.js,
+   * dash.js) attach their own blob URL, so the element is cleared for them.
+   * HTML5Renderer only calls load(): without this, a fallback from a stream
+   * to an MP4 would reload the stream.
+   */
+  private stageElementSource(src: string): void {
+    const type = classifyRendererType(src);
+    if (type === 'html5' || (type === 'hls' && canPlayNativeHls())) {
+      this.element.src = src;
+    } else if (type === 'hls' || type === 'dash') {
+      this.element.removeAttribute('src');
+    }
+  }
+
+  /**
+   * Replace the current source of this player in place, e.g. for the
+   * audio-described version of a video. Unlike {@link load} the text tracks,
+   * poster and playlist stay as they are; the renderer is rebuilt for the new
+   * URL, so an MP4, an HLS and a DASH source can be swapped for one another.
+   * `fallbacks` are tried in order when `src` cannot be played.
+   */
+  async swapMainSource(
+    src: string,
+    fallbacks: Array<{ src: string; type?: string }> = []
+  ): Promise<void> {
+    this._switchingRenderer = true;
+    try {
+      if (this.renderer) {
+        this.renderer.destroy();
+        this.renderer = null;
+        this.controlBar?.removeHlsCaptionButtons(true);
+      }
+      this.stageElementSource(src);
+      this._pendingSource = src;
+      this._pendingFallbackSources = [...fallbacks];
+      try {
+        await this.initializeRenderer();
+      } catch (error) {
+        this.log(`Source swap failed for ${src}:`, error, 'warn');
+        if (!(await this._fallbackToNextSource())) {
+          throw error;
+        }
+      }
+    } finally {
+      this._switchingRenderer = false;
     }
   }
 
@@ -2404,18 +2466,29 @@ export class Player extends EventEmitter<PlayerEventMap> {
       this.signLanguageSources = config.signLanguageSources || {};
       this.options.signLanguageSrc = config.signLanguageSrc || null;
       this.options.signLanguageSources = config.signLanguageSources || {};
+      this.options.audioDescriptionFallbackSrc = config.audioDescriptionFallbackSrc || null;
+      this.options.signLanguageFallbackSrc = config.signLanguageFallbackSrc || null;
+      this.options.signLanguageFallbackSources = config.signLanguageFallbackSources || {};
 
       // Update original source for toggling
       this.originalSrc = config.src;
 
       // Update manager sources for playlist changes
       if (this.audioDescriptionManager) {
-        this.audioDescriptionManager.updateSources(config.audioDescriptionSrc);
+        this.audioDescriptionManager.updateSources(
+          config.audioDescriptionSrc,
+          config.audioDescriptionFallbackSrc
+        );
         // Reinitialize to pick up new track elements with data-desc-src attributes
         this.audioDescriptionManager.reinitialize();
       }
       if (this.signLanguageManager) {
-        this.signLanguageManager.updateSources(config.signLanguageSrc, config.signLanguageSources);
+        this.signLanguageManager.updateSources(
+          config.signLanguageSrc,
+          config.signLanguageSources,
+          config.signLanguageFallbackSrc,
+          config.signLanguageFallbackSources
+        );
       }
 
       // Hide accessibility features that were enabled (must happen AFTER updating sources)

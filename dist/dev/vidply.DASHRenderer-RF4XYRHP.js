@@ -4,10 +4,15 @@
  * Released under GPL-2.0-or-later License
  */
 import {
+  DASH_JS_INTEGRITY,
+  DASH_JS_URL
+} from "./vidply.chunk-A3WPZBRW.js";
+import {
   loadPinnedScript
 } from "./vidply.chunk-NG4YJGLN.js";
 
 // src/renderers/DASHRenderer.ts
+var DASH_STARTUP_ERROR_CODES = /* @__PURE__ */ new Set([10, 11, 23, 25, 31, 32, 35]);
 var DASHRenderer = class {
   rendererType = "dash";
   player;
@@ -176,13 +181,13 @@ var DASHRenderer = class {
    * Integrity hash, so the default CDN script is verified out of the
    * box. Overridable via `options.dashScriptUrl` (URL) /
    * `options.dashScriptIntegrity` (SRI hash). The built-in hash only
-   * applies to the pinned default URL. See HLSRenderer.loadHlsJs() for
+   * applies to the pinned default URL. See utils/StreamingLibraries.ts for
    * the SRI computation command.
    */
   async loadDashJs() {
     return loadPinnedScript({
-      defaultUrl: "https://cdn.jsdelivr.net/npm/dashjs@5.2.1/dist/modern/umd/dash.all.min.js",
-      defaultIntegrity: "sha384-NwbBGevMmVf2Lv50ZqQWLZ0dLH69dxVHYeS+8t54klP9odovQ2+Ms0J4SWfKzPkr",
+      defaultUrl: DASH_JS_URL,
+      defaultIntegrity: DASH_JS_INTEGRITY,
       url: this.player.options.dashScriptUrl,
       integrity: this.player.options.dashScriptIntegrity
     });
@@ -643,8 +648,12 @@ var DASHRenderer = class {
     const code = error.code ?? "";
     const message = error.message || "";
     this.player.log(`DASH Error - Code: ${code}, Message: ${message}`, "warn");
+    const hasFallback = (this.player._fallbackSources?.length ?? 0) > 0;
     if (typeof code === "number" && code >= 100) {
       this.player.log("Fatal DASH error", "error");
+      this.player.handleError(new Error(`DASH Error: ${code} - ${message}`));
+    } else if (typeof code === "number" && hasFallback && DASH_STARTUP_ERROR_CODES.has(code)) {
+      this.player.log(`DASH stream cannot start (${code}), using fallback source`, "error");
       this.player.handleError(new Error(`DASH Error: ${code} - ${message}`));
     } else {
       this.player.log("Non-fatal DASH error: " + (message || String(error)), "warn");
@@ -977,4 +986,4 @@ var DASHRenderer = class {
 export {
   DASHRenderer
 };
-//# sourceMappingURL=vidply.DASHRenderer-RBZHZMLG.js.map
+//# sourceMappingURL=vidply.DASHRenderer-RF4XYRHP.js.map

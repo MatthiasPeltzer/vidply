@@ -3,6 +3,7 @@
  * Handles picture-in-picture sign language video overlay
  */
 import { DraggableResizable } from '../utils/DraggableResizable.js';
+import { StreamingSourceLoader } from '../utils/StreamingSourceLoader.js';
 import type { Player } from './Player.js';
 /**
  * Bag of player-event handlers the sign-language overlay binds to so it
@@ -43,8 +44,17 @@ export declare class SignLanguageManager {
     settingsHandlers: SignLanguageSettingsHandlers | null;
     sources: Record<string, string>;
     src: string | null;
+    /** Progressive fallback of `src` (converted streams carry one). */
+    fallbackSrc: string | null;
+    /** Progressive fallbacks of `sources`, same language keys. */
+    fallbackSources: Record<string, string>;
     enabled: boolean;
     video: HTMLVideoElement | null;
+    /** Attaches HLS/DASH or progressive sources to the overlay `video`. */
+    videoLoader: StreamingSourceLoader | null;
+    private _videoReady;
+    /** Main source to restore after a stream-aware main-view swap (null: plain src swap). */
+    private _mainViewRestore;
     wrapper: HTMLElement | null;
     /**
      * Encapsulates the settings-menu DOM, lifecycle (show/hide/outside-
@@ -141,6 +151,10 @@ export declare class SignLanguageManager {
      * Create video element
      */
     _createVideo(src: string | null): void;
+    /** Progressive fallback for the given language (or the single source). */
+    _fallbackFor(langCode: string | null): string | null;
+    _syncOverlayWithMain(video: HTMLVideoElement): void;
+    _needsRendererSwap(target: string): boolean;
     /**
      * Create resize handles
      */
@@ -201,7 +215,7 @@ export declare class SignLanguageManager {
     /**
      * Update sources (called when playlist changes)
      */
-    updateSources(signLanguageSrc?: string | null, signLanguageSources?: Record<string, string> | null): void;
+    updateSources(signLanguageSrc?: string | null, signLanguageSources?: Record<string, string> | null, signLanguageFallbackSrc?: string | null, signLanguageFallbackSources?: Record<string, string> | null): void;
     /**
      * Cleanup
      */

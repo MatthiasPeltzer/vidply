@@ -345,6 +345,20 @@ describe('HLSRenderer', () => {
       expect(mockHls.startLoad).toHaveBeenCalled();
     });
 
+    it('should hand fatal network errors to the fallback chain when fallbacks exist', () => {
+      mockPlayer._fallbackSources = [{ src: '/videos/fallback.mp4' }];
+
+      renderer.handleHlsError({
+        type: window.Hls.ErrorTypes.NETWORK_ERROR,
+        details: 'manifestLoadError',
+        fatal: true
+      });
+      vi.advanceTimersByTime(1500);
+
+      expect(mockPlayer.handleError).toHaveBeenCalled();
+      expect(mockHls.startLoad).not.toHaveBeenCalled();
+    });
+
     it('should attempt recovery for fatal media errors', () => {
       renderer.handleHlsError({
         type: window.Hls.ErrorTypes.MEDIA_ERROR,
