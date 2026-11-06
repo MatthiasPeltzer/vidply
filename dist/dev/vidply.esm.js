@@ -8607,7 +8607,7 @@ var Player = class _Player extends EventEmitter {
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {
-        const module = await import("./vidply.DASHRenderer-RBZHZMLG.js");
+        const module = await import("./vidply.DASHRenderer-TULLVHCM.js");
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {

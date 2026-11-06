@@ -1476,13 +1476,13 @@
       },
       "bytes": 30271
     },
-    "dist/prod/vidply.DASHRenderer-DV2YGGUF.min.js.map": {
+    "dist/prod/vidply.DASHRenderer-XOVA7I5F.min.js.map": {
       "imports": [],
       "exports": [],
       "inputs": {},
       "bytes": 61641
     },
-    "dist/prod/vidply.DASHRenderer-DV2YGGUF.min.js": {
+    "dist/prod/vidply.DASHRenderer-XOVA7I5F.min.js": {
       "imports": [
         {
           "path": "dist/prod/vidply.chunk-GWZYIMQJ.min.js",
@@ -1625,7 +1625,7 @@
           "kind": "dynamic-import"
         },
         {
-          "path": "dist/prod/vidply.DASHRenderer-DV2YGGUF.min.js",
+          "path": "dist/prod/vidply.DASHRenderer-XOVA7I5F.min.js",
           "kind": "dynamic-import"
         },
         {

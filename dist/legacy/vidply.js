@@ -12598,7 +12598,7 @@
               // NOTE on pre-play preload: we deliberately do NOT set
               // streaming.scheduling.scheduleWhilePaused = false here. While that
               // is the documented dash.js way to suppress segment downloads while
-              // paused / before the first play, in our setup (dash.js 5.2.1 +
+              // paused / before the first play, in our setup (dash.js 5.3.0 +
               // dash.initialize(media, null, false) + attachSource at init) it
               // tears down the SourceBuffers mid-init with
               // "SourceBuffer has been removed from the parent media source"
@@ -12680,7 +12680,7 @@
         }
         /**
          * Load dash.js. Pinned to an exact version (the previous default
-         * `5.2.1` is preserved) and shipped with a matching Subresource
+         * `5.3.0` is preserved) and shipped with a matching Subresource
          * Integrity hash, so the default CDN script is verified out of the
          * box. Overridable via `options.dashScriptUrl` (URL) /
          * `options.dashScriptIntegrity` (SRI hash). The built-in hash only
@@ -12689,8 +12689,8 @@
          */
         async loadDashJs() {
           return loadPinnedScript({
-            defaultUrl: "https://cdn.jsdelivr.net/npm/dashjs@5.2.1/dist/modern/umd/dash.all.min.js",
-            defaultIntegrity: "sha384-NwbBGevMmVf2Lv50ZqQWLZ0dLH69dxVHYeS+8t54klP9odovQ2+Ms0J4SWfKzPkr",
+            defaultUrl: "https://cdn.jsdelivr.net/npm/dashjs@5.3.0/dist/modern/umd/dash.all.min.js",
+            defaultIntegrity: "sha384-zJdwI0qToBQJPUcEHqnveWGDxsPJoRq2tZW+SlOnDIWJHSaTxGGWj511YXK2U1li",
             url: this.player.options.dashScriptUrl,
             integrity: this.player.options.dashScriptIntegrity
           });
