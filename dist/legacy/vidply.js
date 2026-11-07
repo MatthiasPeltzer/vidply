@@ -1,5 +1,5 @@
 /*!
- * VidPly v1.2.25 - Universal, Accessible Video Player
+ * VidPly v1.2.26 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
@@ -2391,25 +2391,6 @@
     }
   });
 
-  // src/utils/RendererType.ts
-  function classifyRendererType(src) {
-    if (src.includes("youtube.com") || src.includes("youtu.be") || src.includes("youtube-nocookie.com"))
-      return "youtube";
-    if (src.includes("vimeo.com")) return "vimeo";
-    if (src.includes(".m3u8")) return "hls";
-    if (src.includes(".mpd")) return "dash";
-    if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) return "soundcloud";
-    return "html5";
-  }
-  function requiresRendererSwap(currentSrc, currentRendererType, targetSrc) {
-    return classifyRendererType(targetSrc) !== "html5" || classifyRendererType(currentSrc) !== "html5" || currentRendererType !== null && currentRendererType !== "html5";
-  }
-  var init_RendererType = __esm({
-    "src/utils/RendererType.ts"() {
-      "use strict";
-    }
-  });
-
   // src/controls/CaptionStyleMenu.ts
   var CaptionStyleMenu_exports = {};
   __export(CaptionStyleMenu_exports, {
@@ -4238,14 +4219,12 @@
   __export(AudioDescriptionManager_exports, {
     AudioDescriptionManager: () => AudioDescriptionManager
   });
-  var METADATA_TIMEOUT_MS, AudioDescriptionManager;
+  var AudioDescriptionManager;
   var init_AudioDescriptionManager = __esm({
     "src/core/AudioDescriptionManager.ts"() {
       "use strict";
       init_CaptionManager();
       init_DescriptionSpeechManager();
-      init_RendererType();
-      METADATA_TIMEOUT_MS = 1e4;
       AudioDescriptionManager = class {
         constructor(player) {
           __publicField(this, "player");
@@ -4255,16 +4234,11 @@
           __publicField(this, "originalSource");
           __publicField(this, "sourceElement");
           __publicField(this, "src");
-          /** Progressive file played when `src` is a stream that cannot be played. */
-          __publicField(this, "fallbackSrc");
           __publicField(this, "speechManager");
-          /** Main source (and its fallbacks) to return to when a stream swap is undone. */
-          __publicField(this, "_restoreSource", null);
           this.player = player;
           this.enabled = false;
           this.desiredState = false;
           this.src = player.options.audioDescriptionSrc;
-          this.fallbackSrc = player.options.audioDescriptionFallbackSrc ?? null;
           this.sourceElement = null;
           this.originalSource = null;
           this.captionTracks = [];
@@ -4348,8 +4322,7 @@
           trackElements.forEach((trackEl) => {
             const trackKind = trackEl.getAttribute("kind");
             const trackDescSrc = trackEl.getAttribute("data-desc-src");
-            if ((trackKind === "captions" || trackKind === "subtitles" || trackKind === "chapters" || trackKind === "descriptions") && trackDescSrc && trackEl instanceof HTMLTrackElement && // Renderer re-inits (fallbacks, stream swaps) scan the same elements again.
-            !this.captionTracks.some((info) => info.trackElement === trackEl)) {
+            if ((trackKind === "captions" || trackKind === "subtitles" || trackKind === "chapters" || trackKind === "descriptions") && trackDescSrc && trackEl instanceof HTMLTrackElement) {
               this.captionTracks.push({
                 trackElement: trackEl,
                 originalSrc: trackEl.getAttribute("src"),
@@ -4720,11 +4693,9 @@
               resolve();
             } else {
               const onLoad = () => {
-                clearTimeout(timer);
                 this.player.element.removeEventListener("loadedmetadata", onLoad);
                 resolve();
               };
-              const timer = setTimeout(onLoad, METADATA_TIMEOUT_MS);
               this.player.element.addEventListener("loadedmetadata", onLoad);
             }
           });
@@ -4811,19 +4782,7 @@
             this.player.element.poster = posterValue;
           }
           if (!this.src) return;
-          if (this._needsRendererSwap(this.src)) {
-            this._restoreSource = {
-              src: this.player.currentSource || this.player.originalSrc || "",
-              fallbacks: [...this.player._fallbackSources ?? []]
-            };
-            await this.player.swapMainSource(
-              this.src,
-              this.fallbackSrc ? [{ src: this.fallbackSrc }] : []
-            );
-            this.player.ensureLoaded();
-          } else {
-            this.player.element.src = this.src;
-          }
+          this.player.element.src = this.src;
           await this._waitForMediaReady(currentTime > 0 || wasPlaying);
           if (currentTime > 0) {
             this.player.seek(currentTime);
@@ -4874,19 +4833,12 @@
           if (posterValue && this.player.element.tagName === "VIDEO") {
             this.player.element.poster = posterValue;
           }
-          const restore = this._restoreSource;
-          this._restoreSource = null;
-          const originalSrcToUse = (restore == null ? void 0 : restore.src) || this.originalSource || this.player.originalSrc;
+          const originalSrcToUse = this.originalSource || this.player.originalSrc;
           if (!originalSrcToUse) {
             return;
           }
-          if (restore || this._needsRendererSwap(originalSrcToUse)) {
-            await this.player.swapMainSource(originalSrcToUse, (restore == null ? void 0 : restore.fallbacks) ?? []);
-            this.player.ensureLoaded();
-          } else {
-            this.player.element.src = originalSrcToUse;
-            this.player.element.load();
-          }
+          this.player.element.src = originalSrcToUse;
+          this.player.element.load();
           await this._waitForMediaReady(currentTime > 0 || wasPlaying);
           if (currentTime > 0) {
             this.player.seek(currentTime);
@@ -4899,19 +4851,6 @@
           this.player.state.audioDescriptionEnabled = false;
           this.player.emit("audiodescriptiondisabled");
           this._reloadTranscript();
-        }
-        /**
-         * A plain `element.src` swap only works between progressive files on the
-         * HTML5 renderer. Anything involving HLS/DASH goes through the player so
-         * the matching renderer is built.
-         */
-        _needsRendererSwap(target) {
-          var _a;
-          return requiresRendererSwap(
-            this.player.currentSource || this.player.originalSrc || "",
-            ((_a = this.player.renderer) == null ? void 0 : _a.rendererType) ?? null,
-            target
-          );
         }
         /**
          * Reload transcript after audio description state change
@@ -4928,13 +4867,11 @@
         /**
          * Update sources (called when playlist changes)
          */
-        updateSources(audioDescriptionSrc, audioDescriptionFallbackSrc) {
+        updateSources(audioDescriptionSrc) {
           var _a;
           (_a = this.speechManager) == null ? void 0 : _a.destroy();
           this.speechManager = null;
           this.src = audioDescriptionSrc || null;
-          this.fallbackSrc = audioDescriptionFallbackSrc || null;
-          this._restoreSource = null;
           this.enabled = false;
           this.desiredState = false;
           this.sourceElement = null;
@@ -6357,277 +6294,6 @@
     }
   });
 
-  // src/utils/ScriptLoader.ts
-  function findExistingScript(url) {
-    const scripts = document.getElementsByTagName("script");
-    for (let i = 0; i < scripts.length; i++) {
-      const script = scripts[i];
-      if (script && script.src === url) {
-        return script;
-      }
-    }
-    return null;
-  }
-  function waitForReady(url, isReady, timeout, resolve, reject) {
-    if (isReady()) {
-      resolve();
-      return;
-    }
-    const start = Date.now();
-    const interval = window.setInterval(() => {
-      if (isReady()) {
-        window.clearInterval(interval);
-        resolve();
-      } else if (Date.now() - start >= timeout) {
-        window.clearInterval(interval);
-        reject(new Error(`Script loaded but did not become ready: ${url}`));
-      }
-    }, 50);
-  }
-  function loadScriptOnce(url, options = {}) {
-    const cached = inFlight.get(url);
-    if (cached) {
-      return cached;
-    }
-    const { integrity, crossOrigin, referrerPolicy, isReady, readyTimeout = 1e3 } = options;
-    const promise = new Promise((resolve, reject) => {
-      const onLoad = () => {
-        if (isReady) {
-          waitForReady(url, isReady, readyTimeout, resolve, reject);
-        } else {
-          resolve();
-        }
-      };
-      const existing = findExistingScript(url);
-      if (existing) {
-        if (isReady && isReady()) {
-          resolve();
-          return;
-        }
-        existing.addEventListener("load", onLoad, { once: true });
-        existing.addEventListener("error", () => reject(new Error(`Failed to load script: ${url}`)), {
-          once: true
-        });
-        return;
-      }
-      const script = document.createElement("script");
-      script.src = url;
-      if (integrity) {
-        script.integrity = integrity;
-        script.crossOrigin = crossOrigin ?? "anonymous";
-        script.referrerPolicy = referrerPolicy ?? "no-referrer";
-      } else if (crossOrigin !== void 0 && crossOrigin !== null) {
-        script.crossOrigin = crossOrigin;
-      }
-      script.onload = onLoad;
-      script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
-      document.head.appendChild(script);
-    });
-    const tracked = promise.catch((err) => {
-      inFlight.delete(url);
-      throw err;
-    });
-    inFlight.set(url, tracked);
-    return tracked;
-  }
-  function loadPinnedScript(config) {
-    const url = config.url || config.defaultUrl;
-    const integrity = config.integrity ?? (url === config.defaultUrl ? config.defaultIntegrity : void 0);
-    return loadScriptOnce(url, { integrity });
-  }
-  var inFlight;
-  var init_ScriptLoader = __esm({
-    "src/utils/ScriptLoader.ts"() {
-      "use strict";
-      inFlight = /* @__PURE__ */ new Map();
-    }
-  });
-
-  // src/utils/StreamingLibraries.ts
-  function optionalString(value) {
-    return typeof value === "string" && value !== "" ? value : void 0;
-  }
-  async function loadHlsLibrary(options = {}) {
-    if (window.Hls) {
-      return;
-    }
-    await loadPinnedScript({
-      defaultUrl: HLS_JS_URL,
-      defaultIntegrity: HLS_JS_INTEGRITY,
-      url: optionalString(options.hlsScriptUrl),
-      integrity: optionalString(options.hlsScriptIntegrity)
-    });
-  }
-  async function loadDashLibrary(options = {}) {
-    if (window.dashjs) {
-      return;
-    }
-    await loadPinnedScript({
-      defaultUrl: DASH_JS_URL,
-      defaultIntegrity: DASH_JS_INTEGRITY,
-      url: optionalString(options.dashScriptUrl),
-      integrity: optionalString(options.dashScriptIntegrity)
-    });
-  }
-  var HLS_JS_URL, HLS_JS_INTEGRITY, DASH_JS_URL, DASH_JS_INTEGRITY;
-  var init_StreamingLibraries = __esm({
-    "src/utils/StreamingLibraries.ts"() {
-      "use strict";
-      init_ScriptLoader();
-      HLS_JS_URL = "https://cdn.jsdelivr.net/npm/hls.js@1.7.4/dist/hls.min.js";
-      HLS_JS_INTEGRITY = "sha384-p9vgU/7IYJWd3I4STrtqxqR/2cAQlhIX7D/HrTnIMEjjcUox165b7se7sxmm3zDg";
-      DASH_JS_URL = "https://cdn.jsdelivr.net/npm/dashjs@5.2.1/dist/modern/umd/dash.all.min.js";
-      DASH_JS_INTEGRITY = "sha384-NwbBGevMmVf2Lv50ZqQWLZ0dLH69dxVHYeS+8t54klP9odovQ2+Ms0J4SWfKzPkr";
-    }
-  });
-
-  // src/utils/StreamingSourceLoader.ts
-  function playQuietly(media) {
-    const result = media.play();
-    if (result && typeof result.catch === "function") {
-      result.catch(() => {
-      });
-    }
-  }
-  var StreamingSourceLoader;
-  var init_StreamingSourceLoader = __esm({
-    "src/utils/StreamingSourceLoader.ts"() {
-      "use strict";
-      init_RendererType();
-      init_PerformanceUtils();
-      init_StreamingLibraries();
-      StreamingSourceLoader = class {
-        constructor(media, options = {}) {
-          __publicField(this, "media");
-          __publicField(this, "options");
-          __publicField(this, "hls", null);
-          __publicField(this, "dash", null);
-          __publicField(this, "fallbackSrc", null);
-          __publicField(this, "usingFallback", false);
-          /** Bumped per load(); async steps of an outdated load() give up. */
-          __publicField(this, "generation", 0);
-          __publicField(this, "onMediaError", () => {
-            var _a;
-            this.useFallback(`media error ${((_a = this.media.error) == null ? void 0 : _a.code) ?? ""}`);
-          });
-          this.media = media;
-          this.options = options;
-          this.media.addEventListener("error", this.onMediaError);
-        }
-        /** The library in use for the current source, for tests and debugging. */
-        get engine() {
-          if (this.hls) return "hls.js";
-          if (this.dash) return "dash.js";
-          return this.media.getAttribute("src") ? "native" : "none";
-        }
-        async load(src, fallbackSrc = null) {
-          const generation = ++this.generation;
-          this.teardownEngines();
-          this.fallbackSrc = fallbackSrc && fallbackSrc !== src ? fallbackSrc : null;
-          this.usingFallback = false;
-          const type = classifyRendererType(src);
-          try {
-            if (type === "hls" && !canPlayNativeHls()) {
-              await this.attachHls(src, generation);
-            } else if (type === "dash") {
-              await this.attachDash(src, generation);
-            } else {
-              this.media.src = src;
-            }
-          } catch (error) {
-            if (generation === this.generation) {
-              this.useFallback(error instanceof Error ? error.message : String(error));
-            }
-          }
-        }
-        destroy() {
-          this.generation++;
-          this.teardownEngines();
-          this.media.removeEventListener("error", this.onMediaError);
-          this.media.removeAttribute("src");
-          this.media.load();
-        }
-        async attachHls(src, generation) {
-          await loadHlsLibrary(this.options);
-          if (generation !== this.generation) return;
-          const Hls = window.Hls;
-          if (!(Hls == null ? void 0 : Hls.isSupported())) {
-            throw new Error("hls.js is not supported in this browser");
-          }
-          const hls = new Hls({ enableWorker: true, capLevelToPlayerSize: true });
-          this.hls = hls;
-          hls.on(Hls.Events.ERROR, (...args) => {
-            const data = args[1];
-            if ((data == null ? void 0 : data.fatal) && generation === this.generation) {
-              this.useFallback(`HLS ${data.type}: ${data.details}`);
-            }
-          });
-          hls.attachMedia(this.media);
-          hls.loadSource(src);
-        }
-        async attachDash(src, generation) {
-          await loadDashLibrary(this.options);
-          if (generation !== this.generation) return;
-          const dashjs = window.dashjs;
-          if (!dashjs || typeof window.MediaSource === "undefined") {
-            throw new Error("dash.js is not supported in this browser");
-          }
-          const dash = dashjs.MediaPlayer().create();
-          this.dash = dash;
-          dash.updateSettings({
-            debug: { logLevel: 1 },
-            streaming: { abr: { limitBitrateByPortal: true } }
-          });
-          dash.on(dashjs.MediaPlayer.events.ERROR, () => {
-            if (generation === this.generation) {
-              this.useFallback("DASH playback error");
-            }
-          });
-          dash.initialize(this.media, src, false);
-        }
-        useFallback(reason) {
-          var _a, _b, _c, _d;
-          if (this.usingFallback || !this.fallbackSrc) {
-            (_b = (_a = this.options).log) == null ? void 0 : _b.call(_a, `Sign-language video failed: ${reason}`, "warn");
-            return;
-          }
-          (_d = (_c = this.options).log) == null ? void 0 : _d.call(
-            _c,
-            `Sign-language stream failed (${reason}), using ${this.fallbackSrc}`,
-            "warn"
-          );
-          this.usingFallback = true;
-          const time = this.media.currentTime;
-          const wasPlaying = !this.media.paused;
-          this.teardownEngines();
-          this.media.src = this.fallbackSrc;
-          if (time > 0) {
-            this.media.currentTime = time;
-          }
-          if (wasPlaying) {
-            playQuietly(this.media);
-          }
-        }
-        teardownEngines() {
-          if (this.hls) {
-            try {
-              this.hls.destroy();
-            } catch {
-            }
-            this.hls = null;
-          }
-          if (this.dash) {
-            try {
-              this.dash.reset();
-            } catch {
-            }
-            this.dash = null;
-          }
-        }
-      };
-    }
-  });
-
   // src/core/SignLanguageManager.ts
   var SignLanguageManager_exports = {};
   __export(SignLanguageManager_exports, {
@@ -6643,8 +6309,6 @@
       init_DraggableResizable();
       init_FormUtils();
       init_DraggablePanel();
-      init_RendererType();
-      init_StreamingSourceLoader();
       SignLanguageManager = class _SignLanguageManager {
         constructor(player) {
           __publicField(this, "player");
@@ -6666,17 +6330,8 @@
           __publicField(this, "settingsHandlers");
           __publicField(this, "sources");
           __publicField(this, "src");
-          /** Progressive fallback of `src` (converted streams carry one). */
-          __publicField(this, "fallbackSrc");
-          /** Progressive fallbacks of `sources`, same language keys. */
-          __publicField(this, "fallbackSources");
           __publicField(this, "enabled");
           __publicField(this, "video");
-          /** Attaches HLS/DASH or progressive sources to the overlay `video`. */
-          __publicField(this, "videoLoader", null);
-          __publicField(this, "_videoReady", null);
-          /** Main source to restore after a stream-aware main-view swap (null: plain src swap). */
-          __publicField(this, "_mainViewRestore", null);
           __publicField(this, "wrapper");
           /**
            * Encapsulates the settings-menu DOM, lifecycle (show/hide/outside-
@@ -6688,8 +6343,6 @@
           this.player = player;
           this.src = _SignLanguageManager.resolveSrc(player);
           this.sources = _SignLanguageManager.resolveSources(player);
-          this.fallbackSrc = player.options.signLanguageFallbackSrc || null;
-          this.fallbackSources = { ...player.options.signLanguageFallbackSources || {} };
           this.currentLanguage = null;
           this.desiredPosition = player.options.signLanguagePosition || "bottom-right";
           this.wrapper = null;
@@ -6774,7 +6427,6 @@
          * Enable sign language video
          */
         enable() {
-          var _a;
           const hasMultipleSources = Object.keys(this.sources).length > 0;
           const hasSingleSource = Boolean(this.src);
           if (!hasMultipleSources && !hasSingleSource) {
@@ -6821,9 +6473,8 @@
           });
           video.currentTime = this.player.state.currentTime;
           if (!this.player.state.paused) {
-            playQuietly(video);
+            video.play();
           }
-          void ((_a = this._videoReady) == null ? void 0 : _a.then(() => this._syncOverlayWithMain(video)));
           this._setupInteraction();
           this._setupEventHandlers(hasMultipleSources);
           this.enabled = true;
@@ -6890,16 +6541,7 @@
           if (posterValue && shouldKeepPoster && el.tagName === "VIDEO") {
             el.poster = posterValue;
           }
-          if (this._needsRendererSwap(signSrc ?? "")) {
-            this._mainViewRestore = {
-              src: this.player.currentSource || this.mainViewOriginalSrc || "",
-              fallbacks: [...this.player._fallbackSources ?? []]
-            };
-            el.muted = true;
-            const fallback = this._fallbackFor(this.currentLanguage);
-            await this.player.swapMainSource(signSrc ?? "", fallback ? [{ src: fallback }] : []);
-            this.player.ensureLoaded();
-          } else if (sourceElements.length > 0) {
+          if (sourceElements.length > 0) {
             this.mainViewOriginalSources = sourceElements;
             this.mainViewOriginalSources.forEach((source) => source.remove());
             const signSource = document.createElement("source");
@@ -6920,14 +6562,12 @@
             el.src = signSrc ?? "";
             this._mainViewUsingSourceSwap = false;
           }
-          if (!this._mainViewRestore) {
-            el.muted = true;
-            this.player.currentSource = signSrc ?? "";
-            if (typeof this.player.invalidateTrackCache === "function") {
-              this.player.invalidateTrackCache();
-            }
-            el.load();
+          el.muted = true;
+          this.player.currentSource = signSrc ?? "";
+          if (typeof this.player.invalidateTrackCache === "function") {
+            this.player.invalidateTrackCache();
           }
+          el.load();
           await this._waitForMediaReadyMainView(currentTime > 0 || wasPlaying);
           if (currentTime > 0) {
             this.player.seek(currentTime);
@@ -6954,7 +6594,7 @@
         async disableInMainView() {
           var _a, _b, _c;
           if (!this.inMainView) return;
-          if (!this.mainViewOriginalSrc && !this.mainViewOriginalSources && !this._mainViewRestore) {
+          if (!this.mainViewOriginalSrc && !this.mainViewOriginalSources) {
             this.inMainView = false;
             this.player.state.signLanguageInMainView = false;
             if (this.player.videoWrapper) {
@@ -6966,13 +6606,7 @@
           const el = this.player.element;
           const currentTime = this.player.state.currentTime;
           const wasPlaying = this.player.state.playing;
-          const restore = this._mainViewRestore;
-          if (restore) {
-            this._mainViewRestore = null;
-            el.muted = this._mainViewMutedBefore;
-            await this.player.swapMainSource(restore.src, restore.fallbacks);
-            this.player.ensureLoaded();
-          } else if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
+          if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
             Array.from(el.querySelectorAll("source")).forEach(
               (source) => source.remove()
             );
@@ -6988,14 +6622,12 @@
           } else if (this.mainViewOriginalSrc) {
             el.src = this.mainViewOriginalSrc;
           }
-          if (!restore) {
-            el.muted = this._mainViewMutedBefore;
-            this.player.currentSource = this.mainViewOriginalSrc || ((_a = el.querySelector("source")) == null ? void 0 : _a.src) || "";
-            if (typeof this.player.invalidateTrackCache === "function") {
-              this.player.invalidateTrackCache();
-            }
-            el.load();
+          el.muted = this._mainViewMutedBefore;
+          this.player.currentSource = this.mainViewOriginalSrc || ((_a = el.querySelector("source")) == null ? void 0 : _a.src) || "";
+          if (typeof this.player.invalidateTrackCache === "function") {
+            this.player.invalidateTrackCache();
           }
+          el.load();
           await this._waitForMediaReadyMainView(currentTime > 0 || wasPlaying);
           if (currentTime > 0) {
             this.player.seek(currentTime);
@@ -7079,39 +6711,19 @@
           if (!this.sources[langCode]) return;
           this.currentLanguage = langCode;
           if (this.video) {
-            const video = this.video;
-            const currentTime = video.currentTime;
-            const wasPlaying = !video.paused;
-            const loaded = this.videoLoader ? this.videoLoader.load(this.sources[langCode], this._fallbackFor(langCode)) : Promise.resolve();
-            if (!this.videoLoader) {
-              video.src = this.sources[langCode];
+            const currentTime = this.video.currentTime;
+            const wasPlaying = !this.video.paused;
+            this.video.src = this.sources[langCode];
+            this.video.currentTime = currentTime;
+            if (wasPlaying) {
+              this.video.play().catch((e) => {
+                if (typeof console !== "undefined" && console.debug) {
+                  console.debug("[VidPly] sign-language play() rejected:", e);
+                }
+              });
             }
-            void loaded.then(() => {
-              if (this.video !== video) return;
-              video.currentTime = currentTime;
-              if (wasPlaying) {
-                video.play().catch((e) => {
-                  if (typeof console !== "undefined" && console.debug) {
-                    console.debug("[VidPly] sign-language play() rejected:", e);
-                  }
-                });
-              }
-            });
           }
-          if (this.inMainView && this._mainViewRestore) {
-            const currentTime = this.player.state.currentTime;
-            const wasPlaying = this.player.state.playing;
-            const fallback = this._fallbackFor(langCode);
-            void this.player.swapMainSource(this.sources[langCode], fallback ? [{ src: fallback }] : []).then(() => {
-              this.player.ensureLoaded();
-              return this._waitForMediaReadyMainView(true);
-            }).then(() => {
-              if (currentTime > 0) this.player.seek(currentTime);
-              if (wasPlaying) this.player.play();
-            }).catch(
-              (e) => this.player.log(`Sign-language switch failed: ${String(e)}`, "warn")
-            );
-          } else if (this.inMainView && this.player.element && this.player.element.tagName === "VIDEO") {
+          if (this.inMainView && this.player.element && this.player.element.tagName === "VIDEO") {
             const currentTime = this.player.state.currentTime;
             const wasPlaying = this.player.state.playing;
             if (this._mainViewUsingSourceSwap) {
@@ -7144,8 +6756,6 @@
           if (cleanUrl.endsWith(".mp4")) return "video/mp4";
           if (cleanUrl.endsWith(".webm")) return "video/webm";
           if (cleanUrl.endsWith(".ogv") || cleanUrl.endsWith(".ogg")) return "video/ogg";
-          if (cleanUrl.endsWith(".m3u8")) return "application/x-mpegURL";
-          if (cleanUrl.endsWith(".mpd")) return "application/dash+xml";
           return "";
         }
         /**
@@ -7378,39 +6988,10 @@
         _createVideo(src) {
           this.video = document.createElement("video");
           this.video.className = "vidply-sign-language-video";
+          this.video.src = src ?? "";
           this.video.setAttribute("aria-label", i18n.t("player.signLanguage"));
           this.video.muted = true;
           this.video.setAttribute("playsinline", "");
-          this.videoLoader = new StreamingSourceLoader(this.video, {
-            hlsScriptUrl: this.player.options.hlsScriptUrl,
-            hlsScriptIntegrity: this.player.options.hlsScriptIntegrity,
-            dashScriptUrl: this.player.options.dashScriptUrl,
-            dashScriptIntegrity: this.player.options.dashScriptIntegrity,
-            log: (message, level = "log") => this.player.log(message, level)
-          });
-          this._videoReady = this.videoLoader.load(src ?? "", this._fallbackFor(this.currentLanguage));
-        }
-        /** Progressive fallback for the given language (or the single source). */
-        _fallbackFor(langCode) {
-          if (langCode && this.sources[langCode]) {
-            return this.fallbackSources[langCode] ?? null;
-          }
-          return this.fallbackSrc;
-        }
-        _syncOverlayWithMain(video) {
-          if (this.video !== video) return;
-          video.currentTime = this.player.state.currentTime;
-          if (!this.player.state.paused) {
-            playQuietly(video);
-          }
-        }
-        _needsRendererSwap(target) {
-          var _a;
-          return requiresRendererSwap(
-            this.player.currentSource || this.player.originalSrc || "",
-            ((_a = this.player.renderer) == null ? void 0 : _a.rendererType) ?? null,
-            target
-          );
         }
         /**
          * Create resize handles
@@ -7751,11 +7332,9 @@
         /**
          * Update sources (called when playlist changes)
          */
-        updateSources(signLanguageSrc, signLanguageSources, signLanguageFallbackSrc, signLanguageFallbackSources) {
+        updateSources(signLanguageSrc, signLanguageSources) {
           this.src = signLanguageSrc || null;
           this.sources = signLanguageSources || {};
-          this.fallbackSrc = signLanguageFallbackSrc || null;
-          this.fallbackSources = { ...signLanguageFallbackSources || {} };
           this.currentLanguage = null;
         }
         /**
@@ -7765,32 +7344,27 @@
           var _a;
           if (this.inMainView && this.player.element) {
             const el = this.player.element;
-            if (this._mainViewRestore) {
-              this._mainViewRestore = null;
-              el.muted = this._mainViewMutedBefore;
-            } else {
-              if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
-                Array.from(el.querySelectorAll("source")).forEach(
-                  (source) => source.remove()
-                );
-                const trackNode = el.querySelector("track");
-                this.mainViewOriginalSources.forEach((source) => {
-                  if (trackNode) {
-                    el.insertBefore(source, trackNode);
-                  } else {
-                    el.appendChild(source);
-                  }
-                });
-                this._mainViewUsingSourceSwap = false;
-              } else if (this.mainViewOriginalSrc) {
-                el.src = this.mainViewOriginalSrc;
-              }
-              el.muted = this._mainViewMutedBefore;
-              if (typeof this.player.invalidateTrackCache === "function") {
-                this.player.invalidateTrackCache();
-              }
-              el.load();
+            if (this._mainViewUsingSourceSwap && this.mainViewOriginalSources && this.mainViewOriginalSources.length > 0) {
+              Array.from(el.querySelectorAll("source")).forEach(
+                (source) => source.remove()
+              );
+              const trackNode = el.querySelector("track");
+              this.mainViewOriginalSources.forEach((source) => {
+                if (trackNode) {
+                  el.insertBefore(source, trackNode);
+                } else {
+                  el.appendChild(source);
+                }
+              });
+              this._mainViewUsingSourceSwap = false;
+            } else if (this.mainViewOriginalSrc) {
+              el.src = this.mainViewOriginalSrc;
             }
+            el.muted = this._mainViewMutedBefore;
+            if (typeof this.player.invalidateTrackCache === "function") {
+              this.player.invalidateTrackCache();
+            }
+            el.load();
             this.mainViewOriginalSrc = null;
             this.mainViewOriginalSources = null;
             this.inMainView = false;
@@ -7837,17 +7411,10 @@
           if ((_a = this.wrapper) == null ? void 0 : _a.parentNode) {
             if (this.video) {
               this.video.pause();
-              if (!this.videoLoader) {
-                this.video.src = "";
-              }
+              this.video.src = "";
             }
             this.wrapper.parentNode.removeChild(this.wrapper);
           }
-          if (this.videoLoader) {
-            this.videoLoader.destroy();
-            this.videoLoader = null;
-          }
-          this._videoReady = null;
           this.wrapper = null;
           this.video = null;
           this.settingsButton = null;
@@ -10678,6 +10245,92 @@
     }
   });
 
+  // src/utils/ScriptLoader.ts
+  function findExistingScript(url) {
+    const scripts = document.getElementsByTagName("script");
+    for (let i = 0; i < scripts.length; i++) {
+      const script = scripts[i];
+      if (script && script.src === url) {
+        return script;
+      }
+    }
+    return null;
+  }
+  function waitForReady(url, isReady, timeout, resolve, reject) {
+    if (isReady()) {
+      resolve();
+      return;
+    }
+    const start = Date.now();
+    const interval = window.setInterval(() => {
+      if (isReady()) {
+        window.clearInterval(interval);
+        resolve();
+      } else if (Date.now() - start >= timeout) {
+        window.clearInterval(interval);
+        reject(new Error(`Script loaded but did not become ready: ${url}`));
+      }
+    }, 50);
+  }
+  function loadScriptOnce(url, options = {}) {
+    const cached = inFlight.get(url);
+    if (cached) {
+      return cached;
+    }
+    const { integrity, crossOrigin, referrerPolicy, isReady, readyTimeout = 1e3 } = options;
+    const promise = new Promise((resolve, reject) => {
+      const onLoad = () => {
+        if (isReady) {
+          waitForReady(url, isReady, readyTimeout, resolve, reject);
+        } else {
+          resolve();
+        }
+      };
+      const existing = findExistingScript(url);
+      if (existing) {
+        if (isReady && isReady()) {
+          resolve();
+          return;
+        }
+        existing.addEventListener("load", onLoad, { once: true });
+        existing.addEventListener("error", () => reject(new Error(`Failed to load script: ${url}`)), {
+          once: true
+        });
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = url;
+      if (integrity) {
+        script.integrity = integrity;
+        script.crossOrigin = crossOrigin ?? "anonymous";
+        script.referrerPolicy = referrerPolicy ?? "no-referrer";
+      } else if (crossOrigin !== void 0 && crossOrigin !== null) {
+        script.crossOrigin = crossOrigin;
+      }
+      script.onload = onLoad;
+      script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
+      document.head.appendChild(script);
+    });
+    const tracked = promise.catch((err) => {
+      inFlight.delete(url);
+      throw err;
+    });
+    inFlight.set(url, tracked);
+    return tracked;
+  }
+  function loadPinnedScript(config) {
+    const url = config.url || config.defaultUrl;
+    const integrity = config.integrity ?? (url === config.defaultUrl ? config.defaultIntegrity : void 0);
+    return loadScriptOnce(url, { integrity });
+  }
+  var inFlight;
+  var init_ScriptLoader = __esm({
+    "src/utils/ScriptLoader.ts"() {
+      "use strict";
+      inFlight = /* @__PURE__ */ new Map();
+    }
+  });
+
   // src/utils/EmbedIdleCover.ts
   function applyPosterImageToVideoWrapper(player, resolvedUrl) {
     const wrapper = player.videoWrapper;
@@ -11922,7 +11575,6 @@
     "src/renderers/HLSRenderer.ts"() {
       "use strict";
       init_ScriptLoader();
-      init_StreamingLibraries();
       init_PerformanceUtils();
       HLSRenderer = class {
         constructor(player) {
@@ -12194,8 +11846,8 @@
          */
         async loadHlsJs() {
           return loadPinnedScript({
-            defaultUrl: HLS_JS_URL,
-            defaultIntegrity: HLS_JS_INTEGRITY,
+            defaultUrl: "https://cdn.jsdelivr.net/npm/hls.js@1.7.4/dist/hls.min.js",
+            defaultIntegrity: "sha384-p9vgU/7IYJWd3I4STrtqxqR/2cAQlhIX7D/HrTnIMEjjcUox165b7se7sxmm3zDg",
             url: this.player.options.hlsScriptUrl,
             integrity: this.player.options.hlsScriptIntegrity
           });
@@ -12628,7 +12280,7 @@
           );
         }
         handleHlsError(data) {
-          var _a, _b, _c, _d;
+          var _a, _b, _c;
           this.player.log(
             `HLS Error - Type: ${data.type}, Details: ${data.details}, Fatal: ${data.fatal}`,
             "warn"
@@ -12640,14 +12292,6 @@
             const ErrorTypes = (_a = window.Hls) == null ? void 0 : _a.ErrorTypes;
             switch (data.type) {
               case (ErrorTypes == null ? void 0 : ErrorTypes.NETWORK_ERROR):
-                if ((((_b = this.player._fallbackSources) == null ? void 0 : _b.length) ?? 0) > 0) {
-                  this.player.log(
-                    `Fatal network error (${data.details}), using fallback source`,
-                    "error"
-                  );
-                  this.player.handleError(new Error(`HLS Error: ${data.type} - ${data.details}`));
-                  break;
-                }
                 this.player.log("Fatal network error, trying to recover...", "error");
                 this.player.log(`Network error details: ${data.details}`, "error");
                 this._setTimeout(() => {
@@ -12657,12 +12301,12 @@
                 break;
               case (ErrorTypes == null ? void 0 : ErrorTypes.MEDIA_ERROR):
                 this.player.log("Fatal media error, trying to recover...", "error");
-                (_c = this.hls) == null ? void 0 : _c.recoverMediaError();
+                (_b = this.hls) == null ? void 0 : _b.recoverMediaError();
                 break;
               default:
                 this.player.log("Fatal error, cannot recover", "error");
                 this.player.handleError(new Error(`HLS Error: ${data.type} - ${data.details}`));
-                (_d = this.hls) == null ? void 0 : _d.destroy();
+                (_c = this.hls) == null ? void 0 : _c.destroy();
                 break;
             }
           } else {
@@ -12866,13 +12510,11 @@
   __export(DASHRenderer_exports, {
     DASHRenderer: () => DASHRenderer
   });
-  var DASH_STARTUP_ERROR_CODES, DASHRenderer;
+  var DASHRenderer;
   var init_DASHRenderer = __esm({
     "src/renderers/DASHRenderer.ts"() {
       "use strict";
       init_ScriptLoader();
-      init_StreamingLibraries();
-      DASH_STARTUP_ERROR_CODES = /* @__PURE__ */ new Set([10, 11, 23, 25, 31, 32, 35]);
       DASHRenderer = class {
         constructor(player) {
           __publicField(this, "rendererType", "dash");
@@ -12956,7 +12598,7 @@
               // NOTE on pre-play preload: we deliberately do NOT set
               // streaming.scheduling.scheduleWhilePaused = false here. While that
               // is the documented dash.js way to suppress segment downloads while
-              // paused / before the first play, in our setup (dash.js 5.2.1 +
+              // paused / before the first play, in our setup (dash.js 5.3.0 +
               // dash.initialize(media, null, false) + attachSource at init) it
               // tears down the SourceBuffers mid-init with
               // "SourceBuffer has been removed from the parent media source"
@@ -13038,17 +12680,17 @@
         }
         /**
          * Load dash.js. Pinned to an exact version (the previous default
-         * `5.2.1` is preserved) and shipped with a matching Subresource
+         * `5.3.0` is preserved) and shipped with a matching Subresource
          * Integrity hash, so the default CDN script is verified out of the
          * box. Overridable via `options.dashScriptUrl` (URL) /
          * `options.dashScriptIntegrity` (SRI hash). The built-in hash only
-         * applies to the pinned default URL. See utils/StreamingLibraries.ts for
+         * applies to the pinned default URL. See HLSRenderer.loadHlsJs() for
          * the SRI computation command.
          */
         async loadDashJs() {
           return loadPinnedScript({
-            defaultUrl: DASH_JS_URL,
-            defaultIntegrity: DASH_JS_INTEGRITY,
+            defaultUrl: "https://cdn.jsdelivr.net/npm/dashjs@5.3.0/dist/modern/umd/dash.all.min.js",
+            defaultIntegrity: "sha384-zJdwI0qToBQJPUcEHqnveWGDxsPJoRq2tZW+SlOnDIWJHSaTxGGWj511YXK2U1li",
             url: this.player.options.dashScriptUrl,
             integrity: this.player.options.dashScriptIntegrity
           });
@@ -13507,19 +13149,14 @@
           );
         }
         handleDashError(e) {
-          var _a;
           const wrapped = e;
           const error = (wrapped == null ? void 0 : wrapped.error) ?? wrapped;
           if (!error) return;
           const code = error.code ?? "";
           const message = error.message || "";
           this.player.log(`DASH Error - Code: ${code}, Message: ${message}`, "warn");
-          const hasFallback = (((_a = this.player._fallbackSources) == null ? void 0 : _a.length) ?? 0) > 0;
           if (typeof code === "number" && code >= 100) {
             this.player.log("Fatal DASH error", "error");
-            this.player.handleError(new Error(`DASH Error: ${code} - ${message}`));
-          } else if (typeof code === "number" && hasFallback && DASH_STARTUP_ERROR_CODES.has(code)) {
-            this.player.log(`DASH stream cannot start (${code}), using fallback source`, "error");
             this.player.handleError(new Error(`DASH Error: ${code} - ${message}`));
           } else {
             this.player.log("Non-fatal DASH error: " + (message || String(error)), "warn");
@@ -14420,11 +14057,18 @@
     return baseLabel;
   }
 
-  // src/controls/ControlBar.ts
-  init_RendererType();
+  // src/utils/RendererType.ts
+  function classifyRendererType(src) {
+    if (src.includes("youtube.com") || src.includes("youtu.be") || src.includes("youtube-nocookie.com"))
+      return "youtube";
+    if (src.includes("vimeo.com")) return "vimeo";
+    if (src.includes(".m3u8")) return "hls";
+    if (src.includes(".mpd")) return "dash";
+    if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) return "soundcloud";
+    return "html5";
+  }
 
   // src/utils/EmbedProviderLinks.ts
-  init_RendererType();
   var EMBED_PROVIDERS = ["youtube", "vimeo", "soundcloud"];
   function isEmbedProvider(type) {
     return typeof type === "string" && EMBED_PROVIDERS.includes(type);
@@ -19105,7 +18749,6 @@
 
   // src/core/Player.ts
   init_UrlSafe();
-  init_RendererType();
 
   // src/utils/MediaSourceNegotiation.ts
   init_PerformanceUtils();
@@ -21500,8 +21143,6 @@
       __publicField(this, "instanceId");
       __publicField(this, "_audioDescriptionDesiredState");
       __publicField(this, "_fallbackSources", null);
-      /** Fallbacks for the next {@link initializeRenderer} run with a `_pendingSource`. */
-      __publicField(this, "_pendingFallbackSources", null);
       __publicField(this, "_isAudioContent");
       __publicField(this, "_isFallingBack");
       __publicField(this, "_managersLoading", null);
@@ -22859,9 +22500,8 @@
           this._fallbackSources = [];
         }
       } else {
-        this._fallbackSources = this._pendingFallbackSources ?? [];
+        this._fallbackSources = [];
       }
-      this._pendingFallbackSources = null;
       if (!src) {
         throw new Error("No media source found");
       }
@@ -22978,8 +22618,6 @@
         }
         this.currentSource = next.src;
         this._pendingSource = next.src;
-        this._pendingFallbackSources = [...this._fallbackSources];
-        this.stageElementSource(next.src);
         this._isFallingBack = true;
         await this.initializeRenderer();
         this._isFallingBack = false;
@@ -22988,52 +22626,6 @@
         this.log(`Fallback source failed: ${next.src}`, "warn");
         this._isFallingBack = false;
         return this._fallbackToNextSource();
-      }
-    }
-    /**
-     * Put `src` on the media element when the browser plays it itself
-     * (progressive files, native HLS in Safari). MSE renderers (hls.js,
-     * dash.js) attach their own blob URL, so the element is cleared for them.
-     * HTML5Renderer only calls load(): without this, a fallback from a stream
-     * to an MP4 would reload the stream.
-     */
-    stageElementSource(src) {
-      const type = classifyRendererType(src);
-      if (type === "html5" || type === "hls" && canPlayNativeHls()) {
-        this.element.src = src;
-      } else if (type === "hls" || type === "dash") {
-        this.element.removeAttribute("src");
-      }
-    }
-    /**
-     * Replace the current source of this player in place, e.g. for the
-     * audio-described version of a video. Unlike {@link load} the text tracks,
-     * poster and playlist stay as they are; the renderer is rebuilt for the new
-     * URL, so an MP4, an HLS and a DASH source can be swapped for one another.
-     * `fallbacks` are tried in order when `src` cannot be played.
-     */
-    async swapMainSource(src, fallbacks = []) {
-      var _a;
-      this._switchingRenderer = true;
-      try {
-        if (this.renderer) {
-          this.renderer.destroy();
-          this.renderer = null;
-          (_a = this.controlBar) == null ? void 0 : _a.removeHlsCaptionButtons(true);
-        }
-        this.stageElementSource(src);
-        this._pendingSource = src;
-        this._pendingFallbackSources = [...fallbacks];
-        try {
-          await this.initializeRenderer();
-        } catch (error) {
-          this.log(`Source swap failed for ${src}:`, error, "warn");
-          if (!await this._fallbackToNextSource()) {
-            throw error;
-          }
-        }
-      } finally {
-        this._switchingRenderer = false;
       }
     }
     /**
@@ -23270,24 +22862,13 @@
         this.signLanguageSources = config.signLanguageSources || {};
         this.options.signLanguageSrc = config.signLanguageSrc || null;
         this.options.signLanguageSources = config.signLanguageSources || {};
-        this.options.audioDescriptionFallbackSrc = config.audioDescriptionFallbackSrc || null;
-        this.options.signLanguageFallbackSrc = config.signLanguageFallbackSrc || null;
-        this.options.signLanguageFallbackSources = config.signLanguageFallbackSources || {};
         this.originalSrc = config.src;
         if (this.audioDescriptionManager) {
-          this.audioDescriptionManager.updateSources(
-            config.audioDescriptionSrc,
-            config.audioDescriptionFallbackSrc
-          );
+          this.audioDescriptionManager.updateSources(config.audioDescriptionSrc);
           this.audioDescriptionManager.reinitialize();
         }
         if (this.signLanguageManager) {
-          this.signLanguageManager.updateSources(
-            config.signLanguageSrc,
-            config.signLanguageSources,
-            config.signLanguageFallbackSrc,
-            config.signLanguageFallbackSources
-          );
+          this.signLanguageManager.updateSources(config.signLanguageSrc, config.signLanguageSources);
         }
         if (wasAudioDescriptionEnabled) {
           this.disableAudioDescription();
@@ -24719,7 +24300,6 @@
   init_TimeUtils();
   init_UrlSafe();
   init_PerformanceUtils();
-  init_RendererType();
   var playlistInstanceCounter = 0;
   var PlaylistManager = class _PlaylistManager {
     constructor(player, options = {}) {
@@ -24898,11 +24478,8 @@
         externalEmbedRenderer: embedRenderer === "youtube" || embedRenderer === "vimeo" || embedRenderer === "soundcloud" ? embedRenderer : void 0,
         poster: track.poster,
         audioDescriptionSrc: track.audioDescriptionSrc || null,
-        audioDescriptionFallbackSrc: track.audioDescriptionFallbackSrc || null,
         audioDescriptionDuration: track.audioDescriptionDuration || null,
-        signLanguageSrc: track.signLanguageSrc || null,
-        signLanguageFallbackSrc: track.signLanguageFallbackSrc || null,
-        signLanguageFallbackSources: track.signLanguageFallbackSources || {}
+        signLanguageSrc: track.signLanguageSrc || null
       });
       this.player = new this.PlayerClass(mediaElement, playerOptions);
       this.player.playlistManager = this;
@@ -24955,10 +24532,7 @@
         poster: track.poster,
         tracks: track.tracks || [],
         audioDescriptionSrc: track.audioDescriptionSrc || null,
-        audioDescriptionFallbackSrc: track.audioDescriptionFallbackSrc || null,
-        signLanguageSrc: track.signLanguageSrc || null,
-        signLanguageFallbackSrc: track.signLanguageFallbackSrc || null,
-        signLanguageFallbackSources: track.signLanguageFallbackSources || {}
+        signLanguageSrc: track.signLanguageSrc || null
       };
       await this.player.load({
         ...loadConfig
@@ -25769,11 +25343,8 @@
           poster: track.poster,
           tracks: track.tracks || [],
           audioDescriptionSrc: track.audioDescriptionSrc || null,
-          audioDescriptionFallbackSrc: track.audioDescriptionFallbackSrc || null,
           signLanguageSrc: track.signLanguageSrc || null,
-          signLanguageSources: track.signLanguageSources || {},
-          signLanguageFallbackSrc: track.signLanguageFallbackSrc || null,
-          signLanguageFallbackSources: track.signLanguageFallbackSources || {}
+          signLanguageSources: track.signLanguageSources || {}
         });
         if (loadGeneration !== this._trackLoadGeneration) {
           return;
@@ -25828,16 +25399,11 @@
         }
         if (this.player.audioDescriptionManager) {
           this.player.audioDescriptionManager.src = track.audioDescriptionSrc || null;
-          this.player.audioDescriptionManager.fallbackSrc = track.audioDescriptionFallbackSrc || null;
           this.player.audioDescriptionManager.originalSource = track.src || this.player.originalSrc || null;
         }
         if (this.player.signLanguageManager) {
           this.player.signLanguageManager.src = track.signLanguageSrc || null;
           this.player.signLanguageManager.sources = track.signLanguageSources || {};
-          this.player.signLanguageManager.fallbackSrc = track.signLanguageFallbackSrc || null;
-          this.player.signLanguageManager.fallbackSources = {
-            ...track.signLanguageFallbackSources || {}
-          };
           this.player.signLanguageManager.currentLanguage = null;
         }
         if (track.src && !this.player.originalSrc) {
@@ -25952,9 +25518,8 @@
         this.player.originalSrc = playback.src || track.src || null;
         this.player.audioDescriptionManager.originalSource = playback.src || track.src || null;
         this.player.audioDescriptionManager.src = track.audioDescriptionSrc;
-        this.player.audioDescriptionManager.fallbackSrc = track.audioDescriptionFallbackSrc || null;
         srcToLoad = track.audioDescriptionSrc;
-        typeToLoad = classifyRendererType(track.audioDescriptionSrc) === "html5" ? track.type : void 0;
+        typeToLoad = track.type;
       }
       if (userInitiated && this.usesNativeElementPlayback(srcToLoad) && (isIOS() || this.canPlayTrackWithoutReload(srcToLoad) && this.isTrackSourceAttached(index))) {
         this.playNativeInUserGesture(index, track, srcToLoad ?? "", typeToLoad);
@@ -25966,11 +25531,8 @@
         poster: track.poster,
         tracks: track.tracks || [],
         audioDescriptionSrc: track.audioDescriptionSrc || null,
-        audioDescriptionFallbackSrc: track.audioDescriptionFallbackSrc || null,
         signLanguageSrc: track.signLanguageSrc || null,
-        signLanguageSources: track.signLanguageSources || {},
-        signLanguageFallbackSrc: track.signLanguageFallbackSrc || null,
-        signLanguageFallbackSources: track.signLanguageFallbackSources || {}
+        signLanguageSources: track.signLanguageSources || {}
       };
       try {
         await this.player.load(loadConfig);
@@ -26981,12 +26543,10 @@
     const options = /* @__PURE__ */ Object.create(null);
     const attributeMap = {
       signLanguageSrc: "signLanguageSrc",
-      signLanguageFallbackSrc: "signLanguageFallbackSrc",
       signLanguageButton: "signLanguageButton",
       signLanguagePosition: "signLanguagePosition",
       signLanguageDisplayMode: "signLanguageDisplayMode",
       audioDescriptionSrc: "audioDescriptionSrc",
-      audioDescriptionFallbackSrc: "audioDescriptionFallbackSrc",
       audioDescriptionButton: "audioDescriptionButton",
       audioDescriptionMode: "audioDescriptionMode",
       audioDescriptionSpeech: "audioDescriptionSpeech",
@@ -27048,17 +26608,6 @@
       if (dataset.signLanguageSrc && !options.signLanguageSrc) {
         options.signLanguageSrc = dataset.signLanguageSrc;
       }
-    }
-    const signLanguageFallbackSources = /* @__PURE__ */ Object.create(null);
-    for (const key of Object.keys(dataset)) {
-      const langMatch = key.match(/^signLanguageFallbackSrc([A-Z][a-z]*)$/);
-      const value = dataset[key];
-      if (langMatch && langMatch[1] && value !== void 0) {
-        signLanguageFallbackSources[langMatch[1].toLowerCase()] = value;
-      }
-    }
-    if (Object.keys(signLanguageFallbackSources).length > 0) {
-      options.signLanguageFallbackSources = signLanguageFallbackSources;
     }
     if (dataset.vidplyLanguageFiles) {
       try {

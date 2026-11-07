@@ -1,44 +1,41 @@
 /*!
- * VidPly v1.2.25 - Universal, Accessible Video Player
+ * VidPly v1.2.26 - Universal, Accessible Video Player
  * (c) 2026 Matthias Peltzer
  * Released under GPL-2.0-or-later License
  */
 import {
   TimeUtils
-} from "./vidply.chunk-Y4VGO3FF.js";
+} from "./vidply.chunk-GK7NNBG7.js";
 import {
   createIconElement,
   createPlayOverlay
-} from "./vidply.chunk-X5T5I4VL.js";
+} from "./vidply.chunk-OAUTP6DT.js";
 import {
   PosterManager,
   captureVideoFrame,
   cssEscapeUrl,
   sanitizePosterUrl,
   toCssBackgroundImage
-} from "./vidply.chunk-ZWDA4WLZ.js";
+} from "./vidply.chunk-2FOFLGS3.js";
 import {
   focusElement,
   setContainerChildrenInert,
   trapFocusInContainer
-} from "./vidply.chunk-5LKJZ2RN.js";
+} from "./vidply.chunk-MSKIARAU.js";
 import {
   HTML5Renderer
-} from "./vidply.chunk-X27L2VE2.js";
+} from "./vidply.chunk-2VTPCDOW.js";
 import {
   CaptionManager
-} from "./vidply.chunk-YTE6632W.js";
-import {
-  classifyRendererType
-} from "./vidply.chunk-MWOZ4DBA.js";
+} from "./vidply.chunk-4UUWTNVW.js";
 import {
   StorageManager
-} from "./vidply.chunk-TGOJ4SPO.js";
+} from "./vidply.chunk-NJRO3BQP.js";
 import {
   DOMUtils,
   i18n,
   isForbiddenKey
-} from "./vidply.chunk-3VC2BTVX.js";
+} from "./vidply.chunk-BHOFVZZK.js";
 import {
   canPlayNativeHls,
   debounce,
@@ -48,7 +45,7 @@ import {
   reducedMotionScrollOptions,
   scrollIntoViewWithinScrollParent,
   throttle
-} from "./vidply.chunk-MBPTAIM7.js";
+} from "./vidply.chunk-DVJ2NAF5.js";
 
 // src/utils/EventEmitter.ts
 var EventEmitter = class {
@@ -213,6 +210,17 @@ function buildDownloadLabel(parts) {
     return parts.withSizeTemplate.replace("{size}", sizeStr);
   }
   return baseLabel;
+}
+
+// src/utils/RendererType.ts
+function classifyRendererType(src) {
+  if (src.includes("youtube.com") || src.includes("youtu.be") || src.includes("youtube-nocookie.com"))
+    return "youtube";
+  if (src.includes("vimeo.com")) return "vimeo";
+  if (src.includes(".m3u8")) return "hls";
+  if (src.includes(".mpd")) return "dash";
+  if (src.includes("soundcloud.com") || src.includes("api.soundcloud.com")) return "soundcloud";
+  return "html5";
 }
 
 // src/utils/EmbedProviderLinks.ts
@@ -2442,7 +2450,7 @@ var ControlBar = class {
     return button;
   }
   showCaptionStyleMenu(button) {
-    import("./vidply.CaptionStyleMenu-N6EP667U.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch(
+    import("./vidply.CaptionStyleMenu-7GDGSWFV.js").then(({ showCaptionStyleMenu }) => showCaptionStyleMenu(this, button)).catch(
       (error) => this.player.log("Failed to load caption style menu:", error, "error")
     );
   }
@@ -7146,21 +7154,21 @@ var SignLanguageManagerModule = null;
 var FloatingPlayerManagerModule = null;
 async function loadAudioDescriptionManager() {
   if (!AudioDescriptionManagerModule) {
-    const module = await import("./vidply.AudioDescriptionManager-SSW6C2KP.js");
+    const module = await import("./vidply.AudioDescriptionManager-UW62XFA6.js");
     AudioDescriptionManagerModule = module.AudioDescriptionManager;
   }
   return AudioDescriptionManagerModule;
 }
 async function loadSignLanguageManager() {
   if (!SignLanguageManagerModule) {
-    const module = await import("./vidply.SignLanguageManager-QDGJM6M2.js");
+    const module = await import("./vidply.SignLanguageManager-WPEWOBZX.js");
     SignLanguageManagerModule = module.SignLanguageManager;
   }
   return SignLanguageManagerModule;
 }
 async function loadFloatingPlayerManager() {
   if (!FloatingPlayerManagerModule) {
-    const module = await import("./vidply.FloatingPlayerManager-KLL7YGJ5.js");
+    const module = await import("./vidply.FloatingPlayerManager-WVGQE5K7.js");
     FloatingPlayerManagerModule = module.FloatingPlayerManager;
   }
   return FloatingPlayerManagerModule;
@@ -7234,8 +7242,6 @@ var Player = class _Player extends EventEmitter {
   instanceId;
   _audioDescriptionDesiredState;
   _fallbackSources = null;
-  /** Fallbacks for the next {@link initializeRenderer} run with a `_pendingSource`. */
-  _pendingFallbackSources = null;
   _isAudioContent;
   _isFallingBack;
   _managersLoading = null;
@@ -7863,7 +7869,7 @@ var Player = class _Player extends EventEmitter {
     if (!this.options.transcript && !this.options.transcriptButton) {
       return null;
     }
-    const module = await import("./vidply.TranscriptManager-6GAHXAMV.js");
+    const module = await import("./vidply.TranscriptManager-7O3KRROK.js");
     const fallbackDefault = module.default;
     const Manager = module.TranscriptManager || fallbackDefault;
     if (!Manager) {
@@ -8527,9 +8533,8 @@ var Player = class _Player extends EventEmitter {
         this._fallbackSources = [];
       }
     } else {
-      this._fallbackSources = this._pendingFallbackSources ?? [];
+      this._fallbackSources = [];
     }
-    this._pendingFallbackSources = null;
     if (!src) {
       throw new Error("No media source found");
     }
@@ -8590,23 +8595,23 @@ var Player = class _Player extends EventEmitter {
   async _detectRendererClass(src) {
     switch (classifyRendererType(src)) {
       case "youtube": {
-        const module = await import("./vidply.YouTubeRenderer-LMEYHEGB.js");
+        const module = await import("./vidply.YouTubeRenderer-DSJ2TWH2.js");
         return module.YouTubeRenderer ?? module.default;
       }
       case "vimeo": {
-        const module = await import("./vidply.VimeoRenderer-BL77WFOD.js");
+        const module = await import("./vidply.VimeoRenderer-B73FDSVN.js");
         return module.VimeoRenderer ?? module.default;
       }
       case "hls": {
-        const module = await import("./vidply.HLSRenderer-JXAH5POD.js");
+        const module = await import("./vidply.HLSRenderer-FIWYMU2F.js");
         return module.HLSRenderer ?? module.default;
       }
       case "dash": {
-        const module = await import("./vidply.DASHRenderer-RF4XYRHP.js");
+        const module = await import("./vidply.DASHRenderer-BM26JTYU.js");
         return module.DASHRenderer ?? module.default;
       }
       case "soundcloud": {
-        const module = await import("./vidply.SoundCloudRenderer-JJVKVQXS.js");
+        const module = await import("./vidply.SoundCloudRenderer-FFN64RRY.js");
         return module.SoundCloudRenderer ?? module.default;
       }
       default:
@@ -8645,8 +8650,6 @@ var Player = class _Player extends EventEmitter {
       }
       this.currentSource = next.src;
       this._pendingSource = next.src;
-      this._pendingFallbackSources = [...this._fallbackSources];
-      this.stageElementSource(next.src);
       this._isFallingBack = true;
       await this.initializeRenderer();
       this._isFallingBack = false;
@@ -8655,51 +8658,6 @@ var Player = class _Player extends EventEmitter {
       this.log(`Fallback source failed: ${next.src}`, "warn");
       this._isFallingBack = false;
       return this._fallbackToNextSource();
-    }
-  }
-  /**
-   * Put `src` on the media element when the browser plays it itself
-   * (progressive files, native HLS in Safari). MSE renderers (hls.js,
-   * dash.js) attach their own blob URL, so the element is cleared for them.
-   * HTML5Renderer only calls load(): without this, a fallback from a stream
-   * to an MP4 would reload the stream.
-   */
-  stageElementSource(src) {
-    const type = classifyRendererType(src);
-    if (type === "html5" || type === "hls" && canPlayNativeHls()) {
-      this.element.src = src;
-    } else if (type === "hls" || type === "dash") {
-      this.element.removeAttribute("src");
-    }
-  }
-  /**
-   * Replace the current source of this player in place, e.g. for the
-   * audio-described version of a video. Unlike {@link load} the text tracks,
-   * poster and playlist stay as they are; the renderer is rebuilt for the new
-   * URL, so an MP4, an HLS and a DASH source can be swapped for one another.
-   * `fallbacks` are tried in order when `src` cannot be played.
-   */
-  async swapMainSource(src, fallbacks = []) {
-    this._switchingRenderer = true;
-    try {
-      if (this.renderer) {
-        this.renderer.destroy();
-        this.renderer = null;
-        this.controlBar?.removeHlsCaptionButtons(true);
-      }
-      this.stageElementSource(src);
-      this._pendingSource = src;
-      this._pendingFallbackSources = [...fallbacks];
-      try {
-        await this.initializeRenderer();
-      } catch (error) {
-        this.log(`Source swap failed for ${src}:`, error, "warn");
-        if (!await this._fallbackToNextSource()) {
-          throw error;
-        }
-      }
-    } finally {
-      this._switchingRenderer = false;
     }
   }
   /**
@@ -8933,24 +8891,13 @@ var Player = class _Player extends EventEmitter {
       this.signLanguageSources = config.signLanguageSources || {};
       this.options.signLanguageSrc = config.signLanguageSrc || null;
       this.options.signLanguageSources = config.signLanguageSources || {};
-      this.options.audioDescriptionFallbackSrc = config.audioDescriptionFallbackSrc || null;
-      this.options.signLanguageFallbackSrc = config.signLanguageFallbackSrc || null;
-      this.options.signLanguageFallbackSources = config.signLanguageFallbackSources || {};
       this.originalSrc = config.src;
       if (this.audioDescriptionManager) {
-        this.audioDescriptionManager.updateSources(
-          config.audioDescriptionSrc,
-          config.audioDescriptionFallbackSrc
-        );
+        this.audioDescriptionManager.updateSources(config.audioDescriptionSrc);
         this.audioDescriptionManager.reinitialize();
       }
       if (this.signLanguageManager) {
-        this.signLanguageManager.updateSources(
-          config.signLanguageSrc,
-          config.signLanguageSources,
-          config.signLanguageFallbackSrc,
-          config.signLanguageFallbackSources
-        );
+        this.signLanguageManager.updateSources(config.signLanguageSrc, config.signLanguageSources);
       }
       if (wasAudioDescriptionEnabled) {
         this.disableAudioDescription();
@@ -10510,11 +10457,8 @@ var PlaylistManager = class _PlaylistManager {
       externalEmbedRenderer: embedRenderer === "youtube" || embedRenderer === "vimeo" || embedRenderer === "soundcloud" ? embedRenderer : void 0,
       poster: track.poster,
       audioDescriptionSrc: track.audioDescriptionSrc || null,
-      audioDescriptionFallbackSrc: track.audioDescriptionFallbackSrc || null,
       audioDescriptionDuration: track.audioDescriptionDuration || null,
-      signLanguageSrc: track.signLanguageSrc || null,
-      signLanguageFallbackSrc: track.signLanguageFallbackSrc || null,
-      signLanguageFallbackSources: track.signLanguageFallbackSources || {}
+      signLanguageSrc: track.signLanguageSrc || null
     });
     this.player = new this.PlayerClass(mediaElement, playerOptions);
     this.player.playlistManager = this;
@@ -10566,10 +10510,7 @@ var PlaylistManager = class _PlaylistManager {
       poster: track.poster,
       tracks: track.tracks || [],
       audioDescriptionSrc: track.audioDescriptionSrc || null,
-      audioDescriptionFallbackSrc: track.audioDescriptionFallbackSrc || null,
-      signLanguageSrc: track.signLanguageSrc || null,
-      signLanguageFallbackSrc: track.signLanguageFallbackSrc || null,
-      signLanguageFallbackSources: track.signLanguageFallbackSources || {}
+      signLanguageSrc: track.signLanguageSrc || null
     };
     await this.player.load({
       ...loadConfig
@@ -11282,7 +11223,7 @@ var PlaylistManager = class _PlaylistManager {
     }
     this.player.controlBar?.updateTrackNavigation();
     if (isIOS() && tracks.some((t) => t.src?.includes(".m3u8"))) {
-      void import("./vidply.HLSRenderer-JXAH5POD.js");
+      void import("./vidply.HLSRenderer-FIWYMU2F.js");
     }
     if (tracks.length > 0) {
       if (this.options.autoPlayFirst) {
@@ -11365,11 +11306,8 @@ var PlaylistManager = class _PlaylistManager {
         poster: track.poster,
         tracks: track.tracks || [],
         audioDescriptionSrc: track.audioDescriptionSrc || null,
-        audioDescriptionFallbackSrc: track.audioDescriptionFallbackSrc || null,
         signLanguageSrc: track.signLanguageSrc || null,
-        signLanguageSources: track.signLanguageSources || {},
-        signLanguageFallbackSrc: track.signLanguageFallbackSrc || null,
-        signLanguageFallbackSources: track.signLanguageFallbackSources || {}
+        signLanguageSources: track.signLanguageSources || {}
       });
       if (loadGeneration !== this._trackLoadGeneration) {
         return;
@@ -11423,16 +11361,11 @@ var PlaylistManager = class _PlaylistManager {
       }
       if (this.player.audioDescriptionManager) {
         this.player.audioDescriptionManager.src = track.audioDescriptionSrc || null;
-        this.player.audioDescriptionManager.fallbackSrc = track.audioDescriptionFallbackSrc || null;
         this.player.audioDescriptionManager.originalSource = track.src || this.player.originalSrc || null;
       }
       if (this.player.signLanguageManager) {
         this.player.signLanguageManager.src = track.signLanguageSrc || null;
         this.player.signLanguageManager.sources = track.signLanguageSources || {};
-        this.player.signLanguageManager.fallbackSrc = track.signLanguageFallbackSrc || null;
-        this.player.signLanguageManager.fallbackSources = {
-          ...track.signLanguageFallbackSources || {}
-        };
         this.player.signLanguageManager.currentLanguage = null;
       }
       if (track.src && !this.player.originalSrc) {
@@ -11546,9 +11479,8 @@ var PlaylistManager = class _PlaylistManager {
       this.player.originalSrc = playback.src || track.src || null;
       this.player.audioDescriptionManager.originalSource = playback.src || track.src || null;
       this.player.audioDescriptionManager.src = track.audioDescriptionSrc;
-      this.player.audioDescriptionManager.fallbackSrc = track.audioDescriptionFallbackSrc || null;
       srcToLoad = track.audioDescriptionSrc;
-      typeToLoad = classifyRendererType(track.audioDescriptionSrc) === "html5" ? track.type : void 0;
+      typeToLoad = track.type;
     }
     if (userInitiated && this.usesNativeElementPlayback(srcToLoad) && (isIOS() || this.canPlayTrackWithoutReload(srcToLoad) && this.isTrackSourceAttached(index))) {
       this.playNativeInUserGesture(index, track, srcToLoad ?? "", typeToLoad);
@@ -11560,11 +11492,8 @@ var PlaylistManager = class _PlaylistManager {
       poster: track.poster,
       tracks: track.tracks || [],
       audioDescriptionSrc: track.audioDescriptionSrc || null,
-      audioDescriptionFallbackSrc: track.audioDescriptionFallbackSrc || null,
       signLanguageSrc: track.signLanguageSrc || null,
-      signLanguageSources: track.signLanguageSources || {},
-      signLanguageFallbackSrc: track.signLanguageFallbackSrc || null,
-      signLanguageFallbackSources: track.signLanguageFallbackSources || {}
+      signLanguageSources: track.signLanguageSources || {}
     };
     try {
       await this.player.load(loadConfig);
@@ -12566,12 +12495,10 @@ function parseDataAttributes(dataset) {
   const options = /* @__PURE__ */ Object.create(null);
   const attributeMap = {
     signLanguageSrc: "signLanguageSrc",
-    signLanguageFallbackSrc: "signLanguageFallbackSrc",
     signLanguageButton: "signLanguageButton",
     signLanguagePosition: "signLanguagePosition",
     signLanguageDisplayMode: "signLanguageDisplayMode",
     audioDescriptionSrc: "audioDescriptionSrc",
-    audioDescriptionFallbackSrc: "audioDescriptionFallbackSrc",
     audioDescriptionButton: "audioDescriptionButton",
     audioDescriptionMode: "audioDescriptionMode",
     audioDescriptionSpeech: "audioDescriptionSpeech",
@@ -12633,17 +12560,6 @@ function parseDataAttributes(dataset) {
     if (dataset.signLanguageSrc && !options.signLanguageSrc) {
       options.signLanguageSrc = dataset.signLanguageSrc;
     }
-  }
-  const signLanguageFallbackSources = /* @__PURE__ */ Object.create(null);
-  for (const key of Object.keys(dataset)) {
-    const langMatch = key.match(/^signLanguageFallbackSrc([A-Z][a-z]*)$/);
-    const value = dataset[key];
-    if (langMatch && langMatch[1] && value !== void 0) {
-      signLanguageFallbackSources[langMatch[1].toLowerCase()] = value;
-    }
-  }
-  if (Object.keys(signLanguageFallbackSources).length > 0) {
-    options.signLanguageFallbackSources = signLanguageFallbackSources;
   }
   if (dataset.vidplyLanguageFiles) {
     try {

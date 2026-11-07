@@ -547,7 +547,7 @@ Production builds are **code-split** (ESM). Sizes below are minified; gzip is ty
 | Dependency            | Pinned version         | Purpose                                                  | Loaded                   |
 | --------------------- | ---------------------- | -------------------------------------------------------- | ------------------------ |
 | hls.js                | **1.7.4**              | HLS streaming (Chrome / Firefox / Edge / desktop Safari) | On demand (CDN fallback) |
-| dash.js               | **5.2.1** (modern UMD) | DASH streaming                                           | On demand (CDN fallback) |
+| dash.js               | **5.3.0** (modern UMD) | DASH streaming                                           | On demand (CDN fallback) |
 | YouTube IFrame API    | —                      | YouTube playback                                         | On demand                |
 | Vimeo Player API      | —                      | Vimeo playback                                           | On demand                |
 | SoundCloud Widget API | —                      | SoundCloud playback                                      | On demand                |
@@ -555,7 +555,7 @@ Production builds are **code-split** (ESM). Sizes below are minified; gzip is ty
 Default CDN fallback URLs (override via `hlsScriptUrl` / `dashScriptUrl`):
 
 - `https://cdn.jsdelivr.net/npm/hls.js@1.7.4/dist/hls.min.js`
-- `https://cdn.jsdelivr.net/npm/dashjs@5.2.1/dist/modern/umd/dash.all.min.js`
+- `https://cdn.jsdelivr.net/npm/dashjs@5.3.0/dist/modern/umd/dash.all.min.js`
 
 Each default URL is loaded with a matching **Subresource Integrity** hash unless you override the URL (custom URLs require `hlsScriptIntegrity` / `dashScriptIntegrity`). See [SECURITY.md](../SECURITY.md).
 

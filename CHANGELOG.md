@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.26] - 2026-11-06
+
+### Changed
+
+- Bumped pinned dash.js CDN default and Subresource Integrity hash to **5.3.0** (modern UMD).
+- Documentation: dash.js **5.3.0** pin and CDN URL.
+
 ## [1.2.25] - 2026-10-29
 
 ### Added
@@ -1096,6 +1103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of the vidply accessible media player.
 
+[1.2.26]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.25...v1.2.26
 [1.2.25]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.24...v1.2.25
 [1.2.24]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.23...v1.2.24
 [1.2.23]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.22...v1.2.23
