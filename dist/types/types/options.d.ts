@@ -114,6 +114,12 @@ export interface PlayerOptions {
     downloadFetchSize: boolean;
     playlistToggleButton?: boolean;
     helpButton: boolean;
+    /**
+     * Replace the browser's context menu on the player with a menu of the
+     * player's own functions. `false` or `'native'` keeps the browser menu.
+     * Shift + right-click with a mouse always shows the browser menu.
+     */
+    contextMenu: boolean | 'native';
     seekInterval: number;
     seekIntervalLarge: number;
     /**

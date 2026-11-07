@@ -262,5 +262,21 @@ export declare const es: {
         descriptionShow: string;
         descriptionHide: string;
     };
+    contextMenu: {
+        label: string;
+        loop: string;
+        signLanguageMainView: string;
+        moreStyleOptions: string;
+        colors: {
+            white: string;
+            yellow: string;
+            green: string;
+            cyan: string;
+            blue: string;
+            magenta: string;
+            red: string;
+            black: string;
+        };
+    };
 };
 //# sourceMappingURL=es.d.ts.map

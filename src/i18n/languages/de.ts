@@ -288,5 +288,21 @@ export const de = {
   trackInfo: {
     descriptionShow: 'Beschreibung anzeigen',
     descriptionHide: 'Beschreibung ausblenden'
+  },
+  contextMenu: {
+    label: 'Player-Menü',
+    loop: 'Endlosschleife',
+    signLanguageMainView: 'Gebärdensprache im Hauptvideo',
+    moreStyleOptions: 'Weitere Optionen',
+    colors: {
+      white: 'Weiß',
+      yellow: 'Gelb',
+      green: 'Grün',
+      cyan: 'Cyan',
+      blue: 'Blau',
+      magenta: 'Magenta',
+      red: 'Rot',
+      black: 'Schwarz'
+    }
   }
 };

@@ -7,6 +7,7 @@ import { DOMUtils } from './DOMUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 import { attachMenuKeyboardNavigation } from './MenuUtils.js';
+import { PLAYBACK_SPEEDS } from '../constants/playbackSpeeds.js';
 import type { Player } from '../core/Player.js';
 
 interface DividerMenuItem {
@@ -54,7 +55,7 @@ interface SpeedMenuOptions {
   player: Player;
   button: HTMLElement;
   currentSpeed: number;
-  speeds?: number[];
+  speeds?: readonly number[];
   onSpeedChange: (value: number) => void;
   insertIntoDOM?: ((menu: HTMLElement, button: HTMLElement) => void) | null;
   positionMenu?: ((menu: HTMLElement, button: HTMLElement, initial?: boolean) => void) | null;
@@ -307,7 +308,7 @@ export function createSpeedMenu({
   player,
   button,
   currentSpeed,
-  speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+  speeds = PLAYBACK_SPEEDS,
   onSpeedChange,
   insertIntoDOM,
   positionMenu,

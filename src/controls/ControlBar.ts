@@ -20,6 +20,8 @@ import type { CaptionManager } from './CaptionManager.js';
 import type { QualityLevel } from '../types/renderer.js';
 import type { PlayerEventMap } from '../types/events.js';
 import { classifyRendererType } from '../utils/RendererType.js';
+import { PLAYBACK_SPEEDS } from '../constants/playbackSpeeds.js';
+import { getChapterTrack } from '../utils/ChapterTracks.js';
 import {
   isEmbedProvider,
   resolveEmbedProviderWatchUrl,
@@ -2634,12 +2636,9 @@ export class ControlBar {
       }
     });
 
-    // Get chapter tracks
-    const chapterTracks: TextTrack[] = (
-      Array.from(this.player.element.textTracks) as TextTrack[]
-    ).filter((track) => track.kind === 'chapters');
+    const chapterTrack = getChapterTrack(this.player.element);
 
-    if (chapterTracks.length === 0) {
+    if (!chapterTrack) {
       // No chapters available — non-operable, so keep it out of keyboard
       // roving navigation via aria-disabled (WCAG 2.1.1, 4.1.2).
       const noChaptersItem = DOMUtils.createElement('div', {
@@ -2653,9 +2652,7 @@ export class ControlBar {
         style: { opacity: '0.5', cursor: 'default' }
       });
       menu.appendChild(noChaptersItem);
-    } else if (chapterTracks[0]) {
-      const chapterTrack = chapterTracks[0];
-
+    } else {
       // Ensure track is in 'hidden' mode to load cues
       if (chapterTrack.mode === 'disabled') {
         chapterTrack.mode = 'hidden';
@@ -3057,10 +3054,9 @@ export class ControlBar {
       }
     });
 
-    const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
     let activeItem: HTMLElement | null = null;
 
-    speeds.forEach((speed) => {
+    PLAYBACK_SPEEDS.forEach((speed) => {
       const item = DOMUtils.createElement('button', {
         className: `${this.player.options.classPrefix}-menu-item`,
         textContent: this.formatSpeedLabel(speed),
@@ -3607,6 +3603,8 @@ export class ControlBar {
         this.player.togglePiP();
       }
     });
+
+    this.controls.pip = button;
 
     if (floating) {
       // Keep aria-pressed in sync with the floating state so screen
@@ -4710,6 +4708,29 @@ export class ControlBar {
     return button;
   }
 
+  /**
+   * Click a control-bar button even while it is collapsed into the overflow
+   * menu. Popups such as the caption style panel position against the
+   * button, so it is kept in layout (but invisible) while they open.
+   */
+  activateControl(btn: HTMLElement): void {
+    const originalDisplay = btn.style.display;
+    const collapsed = originalDisplay === 'none';
+    if (collapsed) {
+      btn.style.display = '';
+      btn.style.visibility = 'hidden';
+    }
+
+    btn.click();
+
+    if (collapsed) {
+      setTimeout(() => {
+        btn.style.display = originalDisplay;
+        btn.style.visibility = '';
+      }, 100);
+    }
+  }
+
   showOverflowMenu(button: HTMLElement) {
     // Remove existing menu if any (toggle behavior)
     const existingMenu = this.player.container.querySelector(
@@ -4798,18 +4819,9 @@ export class ControlBar {
           // This allows submenus to position relative to the visible menu item
           this._overflowMenuItemRef = item;
 
-          // Temporarily make the original button visible for positioning
-          const originalDisplay = btn.style.display;
-          btn.style.display = '';
-          btn.style.visibility = 'hidden'; // Keep it invisible but in layout
+          this.activateControl(btn);
 
-          // Trigger the button's menu
-          btn.click();
-
-          // Restore original state after menu is positioned
           setTimeout(() => {
-            btn.style.display = originalDisplay;
-            btn.style.visibility = '';
             this._overflowMenuItemRef = null;
           }, 100);
 

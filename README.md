@@ -439,6 +439,7 @@ const player = new Player('#video', {
   signLanguageButton: true,
   fullscreenButton: true,
   helpButton: true, // Show a keyboard-shortcuts help button (requires keyboard: true)
+  contextMenu: true, // Player menu on right-click / Menu key; false or 'native' keeps the browser menu (Shift + right-click always does)
   pipButton: false,
   downloadButton: false, // Show a download button in the control bar
   downloadUrl: null, // Optional explicit download URL (falls back to current src)

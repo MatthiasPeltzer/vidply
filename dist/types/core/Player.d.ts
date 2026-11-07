@@ -6,6 +6,7 @@ import { EventEmitter } from '../utils/EventEmitter.js';
 import { ControlBar } from '../controls/ControlBar.js';
 import { CaptionManager } from '../controls/CaptionManager.js';
 import { KeyboardManager } from '../controls/KeyboardManager.js';
+import { ContextMenuManager } from '../controls/ContextMenuManager.js';
 import { MediaSessionManager } from './MediaSessionManager.js';
 import { StorageManager } from '../utils/StorageManager.js';
 import { DraggableResizable } from '../utils/DraggableResizable.js';
@@ -91,6 +92,7 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     controlBar: ControlBar | null;
     captionManager: CaptionManager | null;
     keyboardManager: KeyboardManager | null;
+    contextMenuManager: ContextMenuManager | null;
     mediaSessionManager: MediaSessionManager | null;
     transcriptManager: TranscriptManager | null;
     playlistManager: PlaylistManager | null;
@@ -501,6 +503,11 @@ export declare class Player extends EventEmitter<PlayerEventMap> {
     getEffectiveEmbedChrome(rendererType: RendererType): 'vidply' | 'provider';
     usesProviderNativeChrome(rendererType?: RendererType | null): boolean;
     shouldHideVidplyControls(): boolean;
+    /**
+     * Whether right-click on the player opens the VidPly context menu. Checked
+     * on every `contextmenu` event because playlists switch renderers.
+     */
+    isContextMenuActive(): boolean;
     _pendingEmbedRendererType(): RendererType | null;
     /** Keep embed flags in sync when playlists hot-swap YouTube/Vimeo without recreating the player. */
     syncExternalEmbedOptionsForSource(src?: string | null): void;

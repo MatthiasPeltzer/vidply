@@ -17,12 +17,6 @@ export declare class KeyboardHelp {
     private _inertedElements;
     constructor(player: Player);
     private get prefix();
-    /**
-     * Turn a raw KeyboardEvent.key value into a human-readable label. Arrow
-     * keys become universally understood glyphs; the space bar and single
-     * letters are normalised for legibility.
-     */
-    private formatKey;
     private createElement;
     /**
      * Whether a shortcut row is worth showing for *this* player. Feature actions

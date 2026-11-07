@@ -11,6 +11,7 @@ import { DOMUtils } from '../utils/DOMUtils.js';
 import { createIconElement } from '../icons/Icons.js';
 import { i18n } from '../i18n/i18n.js';
 import { setContainerChildrenInert, trapFocusInContainer } from '../utils/FocusUtils.js';
+import { formatShortcutKey } from '../utils/ShortcutKeys.js';
 import type { Player } from '../core/Player.js';
 import type { KeyboardShortcuts } from '../types/options.js';
 
@@ -73,30 +74,6 @@ export class KeyboardHelp {
 
   private get prefix(): string {
     return this.player.options.classPrefix;
-  }
-
-  /**
-   * Turn a raw KeyboardEvent.key value into a human-readable label. Arrow
-   * keys become universally understood glyphs; the space bar and single
-   * letters are normalised for legibility.
-   */
-  private formatKey(key: string): string {
-    switch (key) {
-      case ' ':
-        return i18n.t('help.keys.space');
-      case 'ArrowUp':
-        return '\u2191';
-      case 'ArrowDown':
-        return '\u2193';
-      case 'ArrowLeft':
-        return '\u2190';
-      case 'ArrowRight':
-        return '\u2192';
-      case 'Escape':
-        return 'Esc';
-      default:
-        return key.length === 1 ? key.toUpperCase() : key;
-    }
   }
 
   private createElement(): HTMLElement {
@@ -328,7 +305,7 @@ export class KeyboardHelp {
         desc.appendChild(
           DOMUtils.createElement('kbd', {
             className: `${this.prefix}-help-key`,
-            textContent: this.formatKey(key)
+            textContent: formatShortcutKey(key)
           })
         );
       });

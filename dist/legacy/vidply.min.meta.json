@@ -17,27 +17,27 @@
       "format": "esm"
     },
     "src/i18n/languages/en.ts": {
-      "bytes": 10894,
+      "bytes": 11248,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/de.ts": {
-      "bytes": 12377,
+      "bytes": 12749,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/es.ts": {
-      "bytes": 12301,
+      "bytes": 12685,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/fr.ts": {
-      "bytes": 12568,
+      "bytes": 12958,
       "imports": [],
       "format": "esm"
     },
     "src/i18n/languages/ja.ts": {
-      "bytes": 13161,
+      "bytes": 13563,
       "imports": [],
       "format": "esm"
     },
@@ -139,6 +139,22 @@
       "imports": [],
       "format": "esm"
     },
+    "src/constants/playbackSpeeds.ts": {
+      "bytes": 162,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/utils/ChapterTracks.ts": {
+      "bytes": 1846,
+      "imports": [
+        {
+          "path": "src/i18n/i18n.ts",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        }
+      ],
+      "format": "esm"
+    },
     "src/utils/EmbedProviderLinks.ts": {
       "bytes": 3248,
       "imports": [
@@ -172,7 +188,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 188436,
+      "bytes": 188567,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -218,6 +234,16 @@
           "path": "src/utils/RendererType.ts",
           "kind": "import-statement",
           "original": "../utils/RendererType.js"
+        },
+        {
+          "path": "src/constants/playbackSpeeds.ts",
+          "kind": "import-statement",
+          "original": "../constants/playbackSpeeds.js"
+        },
+        {
+          "path": "src/utils/ChapterTracks.ts",
+          "kind": "import-statement",
+          "original": "../utils/ChapterTracks.js"
         },
         {
           "path": "src/utils/EmbedProviderLinks.ts",
@@ -312,6 +338,69 @@
           "path": "src/utils/PerformanceUtils.ts",
           "kind": "import-statement",
           "original": "../utils/PerformanceUtils.js"
+        },
+        {
+          "path": "<runtime>",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "src/utils/ShortcutKeys.ts": {
+      "bytes": 885,
+      "imports": [
+        {
+          "path": "src/i18n/i18n.ts",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/controls/PlayerContextActions.ts": {
+      "bytes": 16701,
+      "imports": [
+        {
+          "path": "src/i18n/i18n.ts",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        },
+        {
+          "path": "src/constants/playbackSpeeds.ts",
+          "kind": "import-statement",
+          "original": "../constants/playbackSpeeds.js"
+        },
+        {
+          "path": "src/utils/TimeUtils.ts",
+          "kind": "import-statement",
+          "original": "../utils/TimeUtils.js"
+        },
+        {
+          "path": "src/utils/ShortcutKeys.ts",
+          "kind": "import-statement",
+          "original": "../utils/ShortcutKeys.js"
+        },
+        {
+          "path": "src/utils/ChapterTracks.ts",
+          "kind": "import-statement",
+          "original": "../utils/ChapterTracks.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/controls/ContextMenuManager.ts": {
+      "bytes": 23979,
+      "imports": [
+        {
+          "path": "src/i18n/i18n.ts",
+          "kind": "import-statement",
+          "original": "../i18n/i18n.js"
+        },
+        {
+          "path": "src/controls/PlayerContextActions.ts",
+          "kind": "import-statement",
+          "original": "./PlayerContextActions.js"
         },
         {
           "path": "<runtime>",
@@ -544,7 +633,7 @@
       "format": "esm"
     },
     "src/controls/KeyboardHelp.ts": {
-      "bytes": 12650,
+      "bytes": 12068,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -565,6 +654,11 @@
           "path": "src/utils/FocusUtils.ts",
           "kind": "import-statement",
           "original": "../utils/FocusUtils.js"
+        },
+        {
+          "path": "src/utils/ShortcutKeys.ts",
+          "kind": "import-statement",
+          "original": "../utils/ShortcutKeys.js"
         },
         {
           "path": "<runtime>",
@@ -1026,7 +1120,7 @@
       "format": "esm"
     },
     "src/core/Player.ts": {
-      "bytes": 145550,
+      "bytes": 146312,
       "imports": [
         {
           "path": "src/utils/EventEmitter.ts",
@@ -1052,6 +1146,11 @@
           "path": "src/controls/KeyboardManager.ts",
           "kind": "import-statement",
           "original": "../controls/KeyboardManager.js"
+        },
+        {
+          "path": "src/controls/ContextMenuManager.ts",
+          "kind": "import-statement",
+          "original": "../controls/ContextMenuManager.js"
         },
         {
           "path": "src/core/MediaSessionManager.ts",
@@ -1309,7 +1408,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1760620
+      "bytes": 1835568
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1320,19 +1419,19 @@
           "bytesInOutput": 8919
         },
         "src/i18n/languages/en.ts": {
-          "bytesInOutput": 12476
+          "bytesInOutput": 12926
         },
         "src/i18n/languages/de.ts": {
-          "bytesInOutput": 13921
+          "bytesInOutput": 14389
         },
         "src/i18n/languages/es.ts": {
-          "bytesInOutput": 13840
+          "bytesInOutput": 14320
         },
         "src/i18n/languages/fr.ts": {
-          "bytesInOutput": 14096
+          "bytesInOutput": 14582
         },
         "src/i18n/languages/ja.ts": {
-          "bytesInOutput": 14761
+          "bytesInOutput": 15259
         },
         "src/i18n/translations.ts": {
           "bytesInOutput": 894
@@ -1449,10 +1548,10 @@
           "bytesInOutput": 1034
         },
         "src/core/Player.ts": {
-          "bytesInOutput": 127934
+          "bytesInOutput": 128600
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 163095
+          "bytesInOutput": 163386
         },
         "src/utils/DownloadInfo.ts": {
           "bytesInOutput": 3863
@@ -1460,11 +1559,26 @@
         "src/utils/RendererType.ts": {
           "bytesInOutput": 432
         },
+        "src/constants/playbackSpeeds.ts": {
+          "bytesInOutput": 66
+        },
+        "src/utils/ChapterTracks.ts": {
+          "bytesInOutput": 1500
+        },
         "src/utils/EmbedProviderLinks.ts": {
           "bytesInOutput": 2882
         },
         "src/controls/KeyboardManager.ts": {
           "bytesInOutput": 13055
+        },
+        "src/controls/ContextMenuManager.ts": {
+          "bytesInOutput": 22535
+        },
+        "src/controls/PlayerContextActions.ts": {
+          "bytesInOutput": 14324
+        },
+        "src/utils/ShortcutKeys.ts": {
+          "bytesInOutput": 568
         },
         "src/core/MediaSessionManager.ts": {
           "bytesInOutput": 7899
@@ -1506,7 +1620,7 @@
           "bytesInOutput": 2410
         },
         "src/controls/KeyboardHelp.ts": {
-          "bytesInOutput": 11608
+          "bytesInOutput": 10955
         },
         "src/features/PlaylistManager.ts": {
           "bytesInOutput": 81849
@@ -1515,7 +1629,7 @@
           "bytesInOutput": 5473
         }
       },
-      "bytes": 1075682
+      "bytes": 1117632
     }
   }
 }

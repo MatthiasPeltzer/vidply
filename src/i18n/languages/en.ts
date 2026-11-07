@@ -275,5 +275,21 @@ export const en = {
   trackInfo: {
     descriptionShow: 'Show description',
     descriptionHide: 'Hide description'
+  },
+  contextMenu: {
+    label: 'Player menu',
+    loop: 'Loop',
+    signLanguageMainView: 'Sign language in main video',
+    moreStyleOptions: 'More options',
+    colors: {
+      white: 'White',
+      yellow: 'Yellow',
+      green: 'Green',
+      cyan: 'Cyan',
+      blue: 'Blue',
+      magenta: 'Magenta',
+      red: 'Red',
+      black: 'Black'
+    }
   }
 };

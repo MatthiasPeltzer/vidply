@@ -518,6 +518,22 @@
         trackInfo: {
           descriptionShow: "Show description",
           descriptionHide: "Hide description"
+        },
+        contextMenu: {
+          label: "Player menu",
+          loop: "Loop",
+          signLanguageMainView: "Sign language in main video",
+          moreStyleOptions: "More options",
+          colors: {
+            white: "White",
+            yellow: "Yellow",
+            green: "Green",
+            cyan: "Cyan",
+            blue: "Blue",
+            magenta: "Magenta",
+            red: "Red",
+            black: "Black"
+          }
         }
       };
     }
@@ -795,6 +811,22 @@
         trackInfo: {
           descriptionShow: "Beschreibung anzeigen",
           descriptionHide: "Beschreibung ausblenden"
+        },
+        contextMenu: {
+          label: "Player-Menü",
+          loop: "Endlosschleife",
+          signLanguageMainView: "Gebärdensprache im Hauptvideo",
+          moreStyleOptions: "Weitere Optionen",
+          colors: {
+            white: "Weiß",
+            yellow: "Gelb",
+            green: "Grün",
+            cyan: "Cyan",
+            blue: "Blau",
+            magenta: "Magenta",
+            red: "Rot",
+            black: "Schwarz"
+          }
         }
       };
     }
@@ -1069,6 +1101,22 @@
         trackInfo: {
           descriptionShow: "Mostrar descripción",
           descriptionHide: "Ocultar descripción"
+        },
+        contextMenu: {
+          label: "Menú del reproductor",
+          loop: "Repetir",
+          signLanguageMainView: "Lengua de señas en el vídeo principal",
+          moreStyleOptions: "Más opciones",
+          colors: {
+            white: "Blanco",
+            yellow: "Amarillo",
+            green: "Verde",
+            cyan: "Cian",
+            blue: "Azul",
+            magenta: "Magenta",
+            red: "Rojo",
+            black: "Negro"
+          }
         }
       };
     }
@@ -1343,6 +1391,22 @@
         trackInfo: {
           descriptionShow: "Afficher la description",
           descriptionHide: "Masquer la description"
+        },
+        contextMenu: {
+          label: "Menu du lecteur",
+          loop: "Lecture en boucle",
+          signLanguageMainView: "Langue des signes dans la vidéo principale",
+          moreStyleOptions: "Plus d’options",
+          colors: {
+            white: "Blanc",
+            yellow: "Jaune",
+            green: "Vert",
+            cyan: "Cyan",
+            blue: "Bleu",
+            magenta: "Magenta",
+            red: "Rouge",
+            black: "Noir"
+          }
         }
       };
     }
@@ -1617,6 +1681,22 @@
         trackInfo: {
           descriptionShow: "説明を表示",
           descriptionHide: "説明を非表示"
+        },
+        contextMenu: {
+          label: "プレーヤーメニュー",
+          loop: "ループ再生",
+          signLanguageMainView: "メイン動画に手話を表示",
+          moreStyleOptions: "その他のオプション",
+          colors: {
+            white: "白",
+            yellow: "黄",
+            green: "緑",
+            cyan: "シアン",
+            blue: "青",
+            magenta: "マゼンタ",
+            red: "赤",
+            black: "黒"
+          }
         }
       };
     }
@@ -14068,6 +14148,47 @@
     return "html5";
   }
 
+  // src/constants/playbackSpeeds.ts
+  var PLAYBACK_SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+
+  // src/utils/ChapterTracks.ts
+  init_i18n();
+  var CUE_LOAD_TIMEOUT = 2e3;
+  function primaryLanguage(lang) {
+    return (lang ?? "").toLowerCase().split(/[-_]/)[0] ?? "";
+  }
+  function getChapterTrack(element) {
+    const tracks = Array.from(element.textTracks).filter(
+      (track) => track.kind === "chapters"
+    );
+    if (tracks.length === 0) return null;
+    const language = primaryLanguage(i18n.getLanguage());
+    return tracks.find((track) => primaryLanguage(track.language) === language) ?? tracks.find((track) => track.mode !== "disabled") ?? tracks[0] ?? null;
+  }
+  function loadTrackCues(track, element, timeout = CUE_LOAD_TIMEOUT) {
+    if (track.mode === "disabled") {
+      track.mode = "hidden";
+    }
+    if (track.cues && track.cues.length > 0) return Promise.resolve(track);
+    const trackElement = Array.from(element.querySelectorAll("track")).find(
+      (el) => el.track === track
+    );
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        trackElement == null ? void 0 : trackElement.removeEventListener("load", finish);
+        trackElement == null ? void 0 : trackElement.removeEventListener("error", finish);
+        resolve(track);
+      };
+      const timer = setTimeout(finish, timeout);
+      trackElement == null ? void 0 : trackElement.addEventListener("load", finish);
+      trackElement == null ? void 0 : trackElement.addEventListener("error", finish);
+    });
+  }
+
   // src/utils/EmbedProviderLinks.ts
   var EMBED_PROVIDERS = ["youtube", "vimeo", "soundcloud"];
   function isEmbedProvider(type) {
@@ -15895,14 +16016,14 @@
       this.controls.currentTimeDisplay.appendChild(currentTimeAccessible);
       this.controls.currentTimeVisual = currentTimeVisual;
       this.controls.currentTimeAccessible = currentTimeAccessible;
-      const separator = DOMUtils.createElement("span", {
+      const separator2 = DOMUtils.createElement("span", {
         className: `${this.player.options.classPrefix}-time-separator`,
         textContent: " / ",
         attributes: {
           "aria-hidden": "true"
         }
       });
-      this.controls.timeSeparator = separator;
+      this.controls.timeSeparator = separator2;
       this.controls.durationDisplay = DOMUtils.createElement("span", {
         className: `${this.player.options.classPrefix}-duration`
       });
@@ -15922,7 +16043,7 @@
       this.controls.durationAccessible = durationAccessible;
       this.timeDisplayContainer = container;
       container.appendChild(this.controls.currentTimeDisplay);
-      container.appendChild(separator);
+      container.appendChild(separator2);
       container.appendChild(this.controls.durationDisplay);
       if (this.shouldMountLiveControlsAtBuild()) {
         this.ensureLiveBadge();
@@ -16054,8 +16175,8 @@
           "aria-label": i18n.t("player.chapters")
         }
       });
-      const chapterTracks = Array.from(this.player.element.textTracks).filter((track) => track.kind === "chapters");
-      if (chapterTracks.length === 0) {
+      const chapterTrack = getChapterTrack(this.player.element);
+      if (!chapterTrack) {
         const noChaptersItem = DOMUtils.createElement("div", {
           className: `${this.player.options.classPrefix}-menu-item ${this.player.options.classPrefix}-menu-item-disabled`,
           textContent: i18n.t("player.noChapters"),
@@ -16067,8 +16188,7 @@
           style: { opacity: "0.5", cursor: "default" }
         });
         menu.appendChild(noChaptersItem);
-      } else if (chapterTracks[0]) {
-        const chapterTrack = chapterTracks[0];
+      } else {
         if (chapterTrack.mode === "disabled") {
           chapterTrack.mode = "hidden";
         }
@@ -16363,9 +16483,8 @@
           role: "menu"
         }
       });
-      const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
       let activeItem = null;
-      speeds.forEach((speed) => {
+      PLAYBACK_SPEEDS.forEach((speed) => {
         const item = DOMUtils.createElement("button", {
           className: `${this.player.options.classPrefix}-menu-item`,
           textContent: this.formatSpeedLabel(speed),
@@ -16771,6 +16890,7 @@
           this.player.togglePiP();
         }
       });
+      this.controls.pip = button;
       if (floating) {
         this.subscribe("controls", "floatingchange", (state) => {
           button.setAttribute("aria-pressed", state === "pinned" ? "true" : "false");
@@ -17611,6 +17731,26 @@
       this.controls.overflowMenu = button;
       return button;
     }
+    /**
+     * Click a control-bar button even while it is collapsed into the overflow
+     * menu. Popups such as the caption style panel position against the
+     * button, so it is kept in layout (but invisible) while they open.
+     */
+    activateControl(btn) {
+      const originalDisplay = btn.style.display;
+      const collapsed = originalDisplay === "none";
+      if (collapsed) {
+        btn.style.display = "";
+        btn.style.visibility = "hidden";
+      }
+      btn.click();
+      if (collapsed) {
+        setTimeout(() => {
+          btn.style.display = originalDisplay;
+          btn.style.visibility = "";
+        }, 100);
+      }
+    }
     showOverflowMenu(button) {
       var _a;
       const existingMenu = this.player.container.querySelector(
@@ -17681,13 +17821,8 @@
           item.appendChild(labelSpan);
           item.addEventListener("click", () => {
             this._overflowMenuItemRef = item;
-            const originalDisplay = btn.style.display;
-            btn.style.display = "";
-            btn.style.visibility = "hidden";
-            btn.click();
+            this.activateControl(btn);
             setTimeout(() => {
-              btn.style.display = originalDisplay;
-              btn.style.visibility = "";
               this._overflowMenuItemRef = null;
             }, 100);
             this.closeMenuAndReturnFocus(menu, button);
@@ -18481,6 +18616,1041 @@
         this.announcer.parentNode.removeChild(this.announcer);
       }
       this.announcer = null;
+    }
+  };
+
+  // src/controls/ContextMenuManager.ts
+  init_i18n();
+
+  // src/controls/PlayerContextActions.ts
+  init_i18n();
+  init_TimeUtils();
+
+  // src/utils/ShortcutKeys.ts
+  init_i18n();
+  function formatShortcutKey(key) {
+    switch (key) {
+      case " ":
+        return i18n.t("help.keys.space");
+      case "ArrowUp":
+        return "↑";
+      case "ArrowDown":
+        return "↓";
+      case "ArrowLeft":
+        return "←";
+      case "ArrowRight":
+        return "→";
+      case "Escape":
+        return "Esc";
+      default:
+        return key.length === 1 ? key.toUpperCase() : key;
+    }
+  }
+  function ariaShortcutKey(key) {
+    if (key === " ") return "Space";
+    return key.length === 1 ? key.toUpperCase() : key;
+  }
+
+  // src/controls/PlayerContextActions.ts
+  var DIALOG_SUFFIX = "…";
+  var separator = (id) => ({ id, type: "separator" });
+  function isControlAvailable(player, name) {
+    const controlBar = player.controlBar;
+    if (!(controlBar == null ? void 0 : controlBar.hasControl(name))) return false;
+    const control = controlBar.controls[name];
+    if (!control) return false;
+    if (control.disabled) return false;
+    if (control.dataset.inOverflow === "true") return true;
+    return getComputedStyle(control).display !== "none";
+  }
+  function shortcutFor(player, action) {
+    var _a, _b;
+    if (!player.options.keyboard) return {};
+    const key = (_b = (_a = player.options.keyboardShortcuts) == null ? void 0 : _a[action]) == null ? void 0 : _b[0];
+    if (!key) return {};
+    return { shortcut: formatShortcutKey(key), ariaShortcut: ariaShortcutKey(key) };
+  }
+  function isPressed(control) {
+    if (!control) return false;
+    return ["aria-pressed", "aria-checked", "aria-expanded"].some(
+      (attr) => control.getAttribute(attr) === "true"
+    );
+  }
+  function barEntry(player, name, options = {}) {
+    const controlBar = player.controlBar;
+    const control = controlBar == null ? void 0 : controlBar.controls[name];
+    if (!controlBar || !control || !isControlAvailable(player, name)) return null;
+    const type = options.type ?? "action";
+    return {
+      id: name,
+      type,
+      label: options.label ?? control.getAttribute("aria-label") ?? "",
+      checked: type === "checkbox" ? options.checked ?? isPressed(control) : void 0,
+      run: () => controlBar.activateControl(control)
+    };
+  }
+  function captionEntries(player) {
+    const manager = player.captionManager;
+    if (!manager) return [];
+    const enabled = Boolean(player.state.captionsEnabled);
+    const refreshButton = () => {
+      var _a;
+      return (_a = player.controlBar) == null ? void 0 : _a.updateCaptionsButton();
+    };
+    return [
+      {
+        id: "captions-off",
+        type: "radio",
+        label: i18n.t("captions.off"),
+        checked: !enabled,
+        run: () => {
+          player.disableCaptions();
+          refreshButton();
+        }
+      },
+      ...manager.getAvailableTracks().map((track) => ({
+        id: `captions-${track.index}`,
+        type: "radio",
+        label: track.label,
+        lang: track.language || void 0,
+        checked: enabled && manager.currentTrack === manager.tracks[track.index],
+        run: () => {
+          manager.switchTrack(track.index);
+          refreshButton();
+        }
+      }))
+    ];
+  }
+  async function loadCaptionEntries(player) {
+    var _a;
+    const manager = player.captionManager;
+    if (manager && manager.tracks.length === 0 && ((_a = player.controlBar) == null ? void 0 : _a.hasEmbedCaptionBridge())) {
+      await manager.refreshTracks();
+    }
+    return captionEntries(player);
+  }
+  async function chapterEntries(player) {
+    const chapterTrack = getChapterTrack(player.element);
+    if (!chapterTrack) return [];
+    const track = await loadTrackCues(chapterTrack, player.element);
+    const cues = track.cues ? Array.from(track.cues) : [];
+    const now = player.state.currentTime;
+    return cues.map((cue, index) => ({
+      id: `chapter-${index}`,
+      type: "radio",
+      label: `${TimeUtils.formatTime(cue.startTime)}  ${cue.text}`,
+      checked: now >= cue.startTime && now < cue.endTime,
+      run: () => player.seek(cue.startTime)
+    }));
+  }
+  var CAPTION_COLORS = [
+    ["white", "#FFFFFF"],
+    ["yellow", "#FFFF00"],
+    ["green", "#00FF00"],
+    ["cyan", "#00FFFF"],
+    ["blue", "#0000FF"],
+    ["magenta", "#FF00FF"],
+    ["red", "#FF0000"],
+    ["black", "#000000"]
+  ];
+  var CAPTION_OPACITIES = [0, 0.25, 0.5, 0.75, 1];
+  function setCaptionStyle(player, property, value) {
+    if (player.captionManager) {
+      player.captionManager.setCaptionStyle(property, value);
+      return;
+    }
+    const key = `captions${property.charAt(0).toUpperCase()}${property.slice(1)}`;
+    player.options[key] = value;
+  }
+  function styleRadios(player, property, current, choices) {
+    const same = (a, b) => typeof b === "string" ? String(a ?? "").toLowerCase() === b.toLowerCase() : Number(a) === b;
+    return choices.map((choice) => ({
+      id: `caption-${property}-${choice.value}`,
+      type: "radio",
+      label: choice.label,
+      checked: same(current, choice.value),
+      run: () => setCaptionStyle(player, property, choice.value)
+    }));
+  }
+  function colorChoices() {
+    return CAPTION_COLORS.map(([name, value]) => ({
+      label: i18n.t(`contextMenu.colors.${name}`),
+      value
+    }));
+  }
+  function captionStyleEntries(player) {
+    const options = player.options;
+    const opacity = Number(options.captionsOpacity);
+    const opacities = CAPTION_OPACITIES.includes(opacity) ? CAPTION_OPACITIES : [...CAPTION_OPACITIES, opacity].sort((a, b) => a - b);
+    const submenu = (id, label, children) => ({ id, type: "submenu", label, children });
+    return normalizeEntries([
+      submenu(
+        "caption-font-size",
+        i18n.t("styleLabels.fontSize"),
+        () => styleRadios(player, "fontSize", options.captionsFontSize, [
+          { label: i18n.t("fontSizes.small"), value: "87.5%" },
+          { label: i18n.t("fontSizes.normal"), value: "100%" },
+          { label: i18n.t("fontSizes.large"), value: "125%" },
+          { label: i18n.t("fontSizes.xlarge"), value: "150%" }
+        ])
+      ),
+      submenu(
+        "caption-font",
+        i18n.t("styleLabels.font"),
+        () => styleRadios(player, "fontFamily", options.captionsFontFamily, [
+          { label: i18n.t("fontFamilies.sansSerif"), value: "sans-serif" },
+          { label: i18n.t("fontFamilies.serif"), value: "serif" },
+          { label: i18n.t("fontFamilies.monospace"), value: "monospace" }
+        ])
+      ),
+      submenu(
+        "caption-color",
+        i18n.t("styleLabels.textColor"),
+        () => styleRadios(player, "color", options.captionsColor, colorChoices())
+      ),
+      submenu(
+        "caption-background",
+        i18n.t("styleLabels.background"),
+        () => styleRadios(player, "backgroundColor", options.captionsBackgroundColor, colorChoices())
+      ),
+      submenu(
+        "caption-opacity",
+        i18n.t("styleLabels.opacity"),
+        () => styleRadios(
+          player,
+          "opacity",
+          opacity,
+          opacities.map((value) => ({ label: `${Math.round(value * 100)}%`, value }))
+        )
+      ),
+      separator("sep-caption-style-more"),
+      barEntry(player, "captionStyle", {
+        label: `${i18n.t("contextMenu.moreStyleOptions")}${DIALOG_SUFFIX}`
+      })
+    ]);
+  }
+  function speedEntries(player) {
+    const controlBar = player.controlBar;
+    return PLAYBACK_SPEEDS.map((speed) => ({
+      id: `speed-${speed}`,
+      type: "radio",
+      label: controlBar ? controlBar.formatSpeedLabel(speed) : `${speed}×`,
+      checked: speed === player.state.playbackSpeed,
+      run: () => player.setPlaybackSpeed(speed)
+    }));
+  }
+  function qualityEntries(player) {
+    var _a, _b, _c;
+    const renderer = player.renderer;
+    if (!(renderer == null ? void 0 : renderer.getQualities)) return [];
+    const qualities = renderer.getQualities() ?? [];
+    if (qualities.length === 0) return [];
+    const auto = ((_a = renderer.isAutoQuality) == null ? void 0 : _a.call(renderer)) ?? false;
+    const current = ((_b = renderer.getCurrentQuality) == null ? void 0 : _b.call(renderer)) ?? -1;
+    const entries = [];
+    if ((_c = renderer.supportsAutoQuality) == null ? void 0 : _c.call(renderer)) {
+      entries.push({
+        id: "quality-auto",
+        type: "radio",
+        label: i18n.t("player.auto"),
+        checked: auto,
+        run: () => {
+          var _a2;
+          return (_a2 = renderer.switchQuality) == null ? void 0 : _a2.call(renderer, -1);
+        }
+      });
+    }
+    qualities.forEach((quality, position) => {
+      const index = quality.index ?? position;
+      entries.push({
+        id: `quality-${index}`,
+        type: "radio",
+        label: quality.name || `${quality.height}p`,
+        checked: !auto && index === current,
+        run: () => {
+          var _a2;
+          return (_a2 = renderer.switchQuality) == null ? void 0 : _a2.call(renderer, index);
+        }
+      });
+    });
+    return entries;
+  }
+  function normalizeEntries(entries) {
+    var _a, _b;
+    const result = [];
+    for (const entry of entries) {
+      if (!entry) continue;
+      if (entry.type === "separator") {
+        if (result.length === 0 || ((_a = result[result.length - 1]) == null ? void 0 : _a.type) === "separator") continue;
+      }
+      result.push(entry);
+    }
+    while (result.length > 0 && ((_b = result[result.length - 1]) == null ? void 0 : _b.type) === "separator") {
+      result.pop();
+    }
+    return result;
+  }
+  function getContextMenuEntries(player) {
+    var _a, _b;
+    const state = player.state;
+    const options = player.options;
+    const has = (name) => isControlAvailable(player, name);
+    const chapterTrack = has("chapters") ? getChapterTrack(player.element) : null;
+    if (chapterTrack) {
+      void loadTrackCues(chapterTrack, player.element);
+    }
+    const playback = [
+      {
+        id: "play-pause",
+        type: "action",
+        label: state.playing ? i18n.t("player.pause") : i18n.t("player.play"),
+        ...shortcutFor(player, "play-pause"),
+        run: () => player.toggle()
+      },
+      barEntry(player, "restart", { label: i18n.t("player.restart") }),
+      has("rewind") ? {
+        id: "rewind",
+        type: "action",
+        label: i18n.t("player.rewindSeconds", { seconds: Number(options.seekInterval) }),
+        ...shortcutFor(player, "seek-backward"),
+        run: () => player.seekBackward()
+      } : null,
+      has("forward") ? {
+        id: "forward",
+        type: "action",
+        label: i18n.t("player.forwardSeconds", { seconds: Number(options.seekInterval) }),
+        ...shortcutFor(player, "seek-forward"),
+        run: () => player.seekForward()
+      } : null,
+      has("goLive") ? {
+        id: "go-live",
+        type: "action",
+        label: i18n.t("player.goLive"),
+        run: () => player.seekToLive()
+      } : null
+    ];
+    const tracks = [
+      barEntry(player, "previous", { label: i18n.t("player.previous") }),
+      barEntry(player, "next", { label: i18n.t("player.next") })
+    ];
+    const loopSupported = !player.playlistManager && !state.isLive && ((_a = player.renderer) == null ? void 0 : _a.rendererType) !== "vimeo";
+    const audio = [
+      has("mute") ? {
+        id: "mute",
+        type: "checkbox",
+        label: i18n.t("player.mute"),
+        checked: Boolean(state.muted),
+        ...shortcutFor(player, "mute"),
+        run: () => player.toggleMute()
+      } : null,
+      loopSupported ? {
+        id: "loop",
+        type: "checkbox",
+        label: i18n.t("contextMenu.loop"),
+        checked: Boolean(options.loop),
+        run: () => {
+          options.loop = !options.loop;
+        }
+      } : null
+    ];
+    const text = [
+      has("captions") ? {
+        id: "captions",
+        type: "submenu",
+        label: i18n.t("player.captions"),
+        emptyLabel: i18n.t("player.noCaptions"),
+        children: () => loadCaptionEntries(player)
+      } : null,
+      has("captionStyle") ? {
+        id: "caption-style",
+        type: "submenu",
+        label: i18n.t("player.captionStyling"),
+        children: () => captionStyleEntries(player)
+      } : null,
+      has("chapters") ? {
+        id: "chapters",
+        type: "submenu",
+        label: i18n.t("player.chapters"),
+        emptyLabel: i18n.t("player.loadingChapters"),
+        children: () => chapterEntries(player)
+      } : null,
+      has("speed") ? {
+        id: "speed",
+        type: "submenu",
+        label: i18n.t("player.speed"),
+        children: () => speedEntries(player)
+      } : null,
+      has("quality") && qualityEntries(player).length > 0 ? {
+        id: "quality",
+        type: "submenu",
+        label: i18n.t("player.quality"),
+        children: () => qualityEntries(player)
+      } : null
+    ];
+    const accessibility = [
+      barEntry(player, "transcript", {
+        type: "checkbox",
+        label: i18n.t("transcript.title"),
+        checked: Boolean((_b = player.transcriptManager) == null ? void 0 : _b.isVisible)
+      }),
+      barEntry(player, "audioDescription", {
+        type: "checkbox",
+        label: i18n.t("player.audioDescription"),
+        checked: Boolean(state.audioDescriptionEnabled)
+      }),
+      barEntry(player, "signLanguage", {
+        type: "checkbox",
+        label: i18n.t("player.signLanguage"),
+        checked: Boolean(state.signLanguageEnabled)
+      }),
+      barEntry(player, "signLanguageMainView", {
+        type: "checkbox",
+        label: i18n.t("contextMenu.signLanguageMainView"),
+        checked: Boolean(state.signLanguageInMainView)
+      }),
+      barEntry(player, "playlistToggle", {
+        type: "checkbox",
+        label: i18n.t("playlist.title")
+      })
+    ];
+    const view = [
+      barEntry(player, "pip", {
+        type: "checkbox",
+        label: options.floating ? i18n.t("player.floatingPlayer") : i18n.t("player.pip"),
+        checked: options.floating ? state.floating === "pinned" : Boolean(state.pip)
+      }),
+      has("fullscreen") ? {
+        id: "fullscreen",
+        type: "action",
+        label: state.fullscreen ? i18n.t("player.exitFullscreen") : i18n.t("player.fullscreen"),
+        ...shortcutFor(player, "fullscreen"),
+        run: () => player.toggleFullscreen()
+      } : null
+    ];
+    const links = [
+      barEntry(player, "download"),
+      barEntry(player, "embedProviderLink")
+    ];
+    const help = [
+      options.keyboard ? {
+        id: "help",
+        type: "action",
+        label: `${i18n.t("help.button")}${DIALOG_SUFFIX}`,
+        ...shortcutFor(player, "help"),
+        run: () => player.toggleKeyboardHelp()
+      } : null
+    ];
+    return normalizeEntries([
+      ...playback,
+      separator("sep-tracks"),
+      ...tracks,
+      separator("sep-audio"),
+      ...audio,
+      separator("sep-text"),
+      ...text,
+      separator("sep-accessibility"),
+      ...accessibility,
+      separator("sep-view"),
+      ...view,
+      separator("sep-links"),
+      ...links,
+      separator("sep-help"),
+      ...help
+    ]);
+  }
+
+  // src/controls/ContextMenuManager.ts
+  var SUBMENU_OPEN_DELAY = 250;
+  var SUBMENU_SWITCH_DELAY = 300;
+  var TYPEAHEAD_RESET = 500;
+  var KEYBOARD_ORIGIN_WINDOW = 600;
+  var VIEWPORT_MARGIN = 4;
+  var SUBMENU_OVERLAP = 4;
+  var RELEASE_MOVE_THRESHOLD = 4;
+  var openManager = null;
+  function setOpenManager(manager) {
+    openManager = manager;
+  }
+  function supportsPopover() {
+    return typeof HTMLElement !== "undefined" && "showPopover" in HTMLElement.prototype;
+  }
+  function pointInTriangle(p, a, b, c) {
+    const sign = (p1, p2, p3) => (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+    const d1 = sign(p, a, b);
+    const d2 = sign(p, b, c);
+    const d3 = sign(p, c, a);
+    const hasNeg = d1 < 0 || d2 < 0 || d3 < 0;
+    const hasPos = d1 > 0 || d2 > 0 || d3 > 0;
+    return !(hasNeg && hasPos);
+  }
+  var ContextMenuManager = class {
+    constructor(player) {
+      __publicField(this, "player");
+      __publicField(this, "levels", []);
+      __publicField(this, "returnFocus", null);
+      __publicField(this, "lastPointerType", "mouse");
+      __publicField(this, "keyboardRequestAt", 0);
+      __publicField(this, "openPoint", null);
+      __publicField(this, "pointerMovedSinceOpen", false);
+      __publicField(this, "lastMouse", null);
+      __publicField(this, "hoveredItem", null);
+      __publicField(this, "listeners", null);
+      __publicField(this, "submenuTimer", null);
+      __publicField(this, "submenuToken", 0);
+      __publicField(this, "typeahead", "");
+      __publicField(this, "typeaheadTimer", null);
+      __publicField(this, "idCounter", 0);
+      __publicField(this, "playerHandlers", []);
+      this.player = player;
+      this.attachEvents();
+    }
+    get isOpen() {
+      return this.levels.length > 0;
+    }
+    /** The open menu levels, top level first. */
+    get menus() {
+      return this.levels.map((level) => level.element);
+    }
+    get prefix() {
+      return this.player.options.classPrefix;
+    }
+    attachEvents() {
+      const container = this.player.container;
+      const signal = this.player.lifecycleSignal;
+      container.addEventListener(
+        "pointerdown",
+        (e) => {
+          this.lastPointerType = e.pointerType || "mouse";
+        },
+        { capture: true, signal }
+      );
+      container.addEventListener(
+        "keydown",
+        (e) => {
+          if (e.key === "ContextMenu" || e.key === "F10" && e.shiftKey) {
+            this.keyboardRequestAt = Date.now();
+          }
+        },
+        { capture: true, signal }
+      );
+      container.addEventListener("contextmenu", (e) => this.handleContextMenu(e), {
+        signal
+      });
+      const closeEvents = [
+        "playlisttrackchange",
+        "sourcechange",
+        "fullscreenchange",
+        "floatingchange"
+      ];
+      for (const event of closeEvents) {
+        const handler = () => this.close(false);
+        this.player.on(event, handler);
+        this.playerHandlers.push({ event, handler });
+      }
+    }
+    handleContextMenu(e) {
+      const target = e.target instanceof Element ? e.target : null;
+      if (target && this.levels.some((level) => level.element.contains(target))) {
+        e.preventDefault();
+        return;
+      }
+      if (e.defaultPrevented) return;
+      const fromKeyboard = Date.now() - this.keyboardRequestAt < KEYBOARD_ORIGIN_WINDOW;
+      if (!fromKeyboard) {
+        if (this.lastPointerType === "touch" || this.lastPointerType === "pen") return;
+        if (e.shiftKey) return;
+      }
+      if (!this.player.isContextMenuActive()) return;
+      if (target && this.prefersNativeMenu(target)) return;
+      if (this.isBlocked()) return;
+      const entries = getContextMenuEntries(this.player);
+      if (entries.length === 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      this.open(
+        entries,
+        fromKeyboard ? this.keyboardAnchor() : { x: e.clientX, y: e.clientY },
+        fromKeyboard
+      );
+    }
+    /** Targets where the browser menu is more useful (paste, open link, copy). */
+    prefersNativeMenu(target) {
+      if (target.closest(
+        'input, textarea, select, [contenteditable=""], [contenteditable="true"], a[href]'
+      )) {
+        return true;
+      }
+      const selection = typeof window.getSelection === "function" ? window.getSelection() : null;
+      return Boolean(
+        selection && !selection.isCollapsed && selection.toString().trim() !== "" && selection.containsNode(target, true)
+      );
+    }
+    /** Modal dialogs and keyboard drag/resize modes own the interaction. */
+    isBlocked() {
+      var _a, _b, _c;
+      if ((_a = this.player.keyboardHelp) == null ? void 0 : _a.isOpen) return true;
+      const sign = (_b = this.player.signLanguageManager) == null ? void 0 : _b.draggable;
+      if ((sign == null ? void 0 : sign.keyboardDragMode) || (sign == null ? void 0 : sign.keyboardResizeMode)) return true;
+      const transcript = (_c = this.player.transcriptManager) == null ? void 0 : _c.draggableResizable;
+      if ((transcript == null ? void 0 : transcript.keyboardDragMode) || (transcript == null ? void 0 : transcript.keyboardResizeMode)) return true;
+      const modals = Array.from(
+        this.player.container.querySelectorAll('[aria-modal="true"]')
+      );
+      return modals.some((modal) => !modal.hidden && getComputedStyle(modal).display !== "none");
+    }
+    keyboardAnchor() {
+      const active = document.activeElement;
+      const element = active instanceof HTMLElement && this.player.container.contains(active) ? active : this.player.container;
+      const rect = element.getBoundingClientRect();
+      return {
+        x: rect.left + Math.min(16, rect.width / 2),
+        y: rect.top + Math.min(16, rect.height / 2)
+      };
+    }
+    open(entries, point, focusFirstItem = false) {
+      var _a;
+      if (openManager && openManager !== this) {
+        openManager.close(false);
+      }
+      this.close(false);
+      (_a = this.player.controlBar) == null ? void 0 : _a.closeOpenMenu();
+      setOpenManager(this);
+      const active = document.activeElement;
+      this.returnFocus = active instanceof HTMLElement && active !== document.body ? active : null;
+      this.openPoint = point;
+      this.pointerMovedSinceOpen = false;
+      this.listeners = new AbortController();
+      const level = this.createLevel(entries, i18n.t("contextMenu.label"), null);
+      this.levels.push(level);
+      this.showLevel(level);
+      this.positionAtPoint(level.element, point);
+      this.attachGlobalListeners(this.listeners.signal);
+      if (focusFirstItem) {
+        this.focusItem(level, 0);
+      } else {
+        level.element.focus({ preventScroll: true });
+      }
+    }
+    close(restoreFocus = true) {
+      var _a;
+      if (this.levels.length === 0) return;
+      this.clearSubmenuTimer();
+      this.submenuToken++;
+      (_a = this.listeners) == null ? void 0 : _a.abort();
+      this.listeners = null;
+      this.hoveredItem = null;
+      this.typeahead = "";
+      for (let level = this.levels.pop(); level; level = this.levels.pop()) {
+        this.removeLevel(level);
+      }
+      if (openManager === this) {
+        openManager = null;
+      }
+      const target = this.returnFocus;
+      this.returnFocus = null;
+      if (restoreFocus && (target == null ? void 0 : target.isConnected)) {
+        target.focus({ preventScroll: true });
+      }
+    }
+    destroy() {
+      this.close(false);
+      for (const { event, handler } of this.playerHandlers) {
+        this.player.off(event, handler);
+      }
+      this.playerHandlers = [];
+    }
+    attachGlobalListeners(signal) {
+      const insideMenu = (node) => node instanceof Node && this.levels.some((level) => level.element.contains(node));
+      document.addEventListener(
+        "pointerdown",
+        (e) => {
+          if (!insideMenu(e.target)) this.close(false);
+        },
+        { capture: true, signal }
+      );
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+      document.addEventListener(
+        "scroll",
+        (e) => {
+          if (insideMenu(e.target)) return;
+          if (e.target === document && window.scrollX === scrollX && window.scrollY === scrollY) {
+            return;
+          }
+          this.close(false);
+        },
+        { capture: true, signal }
+      );
+      document.addEventListener(
+        "visibilitychange",
+        () => {
+          if (document.hidden) this.close(false);
+        },
+        { signal }
+      );
+      window.addEventListener("blur", () => this.close(false), { signal });
+      window.addEventListener("resize", () => this.close(false), { signal });
+    }
+    createLevel(entries, label, parentItem) {
+      const menu = document.createElement("div");
+      menu.className = `${this.prefix}-context-menu`;
+      menu.id = `${this.prefix}-context-menu-${this.player.instanceId}-${++this.idCounter}`;
+      menu.setAttribute("role", "menu");
+      menu.setAttribute("aria-label", label);
+      menu.tabIndex = -1;
+      if (supportsPopover()) {
+        menu.setAttribute("popover", "manual");
+      }
+      const level = { element: menu, items: [], entries: /* @__PURE__ */ new Map(), parentItem };
+      for (const entry of entries) {
+        if (entry.type === "separator") {
+          const sep = document.createElement("div");
+          sep.className = `${this.prefix}-context-menu-separator`;
+          sep.setAttribute("role", "separator");
+          menu.appendChild(sep);
+          continue;
+        }
+        menu.appendChild(this.createItem(entry, level));
+      }
+      menu.addEventListener("keydown", (e) => this.handleKeydown(e, level));
+      menu.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      menu.addEventListener("click", (e) => e.stopPropagation());
+      return level;
+    }
+    createItem(entry, level) {
+      const prefix = this.prefix;
+      const item = document.createElement("div");
+      item.className = `${prefix}-context-menu-item`;
+      item.id = `${prefix}-context-menu-item-${this.player.instanceId}-${++this.idCounter}`;
+      item.tabIndex = -1;
+      const role = entry.type === "checkbox" ? "menuitemcheckbox" : entry.type === "radio" ? "menuitemradio" : "menuitem";
+      item.setAttribute("role", role);
+      if (entry.type === "checkbox" || entry.type === "radio") {
+        item.setAttribute("aria-checked", entry.checked ? "true" : "false");
+      }
+      if (entry.type === "submenu") {
+        item.setAttribute("aria-haspopup", "menu");
+        item.setAttribute("aria-expanded", "false");
+      }
+      if (entry.ariaShortcut) {
+        item.setAttribute("aria-keyshortcuts", entry.ariaShortcut);
+      }
+      if (entry.disabled) {
+        item.setAttribute("aria-disabled", "true");
+      }
+      const check = document.createElement("span");
+      check.className = `${prefix}-context-menu-check`;
+      check.setAttribute("aria-hidden", "true");
+      item.appendChild(check);
+      const label = document.createElement("span");
+      label.className = `${prefix}-context-menu-label`;
+      label.textContent = entry.label ?? "";
+      if (entry.lang) {
+        label.lang = entry.lang;
+      }
+      item.appendChild(label);
+      if (entry.shortcut) {
+        const shortcut = document.createElement("span");
+        shortcut.className = `${prefix}-context-menu-shortcut`;
+        shortcut.setAttribute("aria-hidden", "true");
+        shortcut.textContent = entry.shortcut;
+        item.appendChild(shortcut);
+      }
+      if (entry.type === "submenu") {
+        const arrow = document.createElement("span");
+        arrow.className = `${prefix}-context-menu-arrow`;
+        arrow.setAttribute("aria-hidden", "true");
+        item.appendChild(arrow);
+      }
+      level.entries.set(item, entry);
+      if (!entry.disabled) {
+        level.items.push(item);
+        item.addEventListener(
+          "pointermove",
+          (e) => this.handlePointerMove(e, item, level)
+        );
+        item.addEventListener("click", (e) => {
+          if (e.button === 0) this.activate(item, level);
+        });
+        item.addEventListener("pointerup", (e) => {
+          if (e.button === 2 && this.pointerMovedSinceOpen) this.activate(item, level);
+        });
+      }
+      return item;
+    }
+    showLevel(level) {
+      const host = supportsPopover() || this.player.state.fullscreen ? this.player.container : document.body;
+      host.appendChild(level.element);
+      if (level.element.hasAttribute("popover")) {
+        try {
+          level.element.showPopover();
+        } catch {
+        }
+      }
+    }
+    removeLevel(level) {
+      if (level.element.hasAttribute("popover")) {
+        try {
+          level.element.hidePopover();
+        } catch {
+        }
+      }
+      level.element.remove();
+      if (level.parentItem) {
+        level.parentItem.setAttribute("aria-expanded", "false");
+        level.parentItem.removeAttribute("aria-controls");
+      }
+    }
+    viewport() {
+      return {
+        width: document.documentElement.clientWidth || window.innerWidth,
+        height: document.documentElement.clientHeight || window.innerHeight
+      };
+    }
+    /**
+     * Top-left corner at the pointer; flip left/up at the viewport edge when the
+     * menu fits there, otherwise shift it inside the viewport.
+     */
+    positionAtPoint(menu, point) {
+      const { width, height } = this.viewport();
+      const rect = menu.getBoundingClientRect();
+      let left = point.x + 1;
+      let top = point.y + 1;
+      if (left + rect.width > width - VIEWPORT_MARGIN && point.x - rect.width >= VIEWPORT_MARGIN) {
+        left = point.x - rect.width;
+      }
+      if (top + rect.height > height - VIEWPORT_MARGIN && point.y - rect.height >= VIEWPORT_MARGIN) {
+        top = point.y - rect.height;
+      }
+      left = Math.max(VIEWPORT_MARGIN, Math.min(left, width - rect.width - VIEWPORT_MARGIN));
+      top = Math.max(VIEWPORT_MARGIN, Math.min(top, height - rect.height - VIEWPORT_MARGIN));
+      menu.style.left = `${Math.round(left)}px`;
+      menu.style.top = `${Math.round(top)}px`;
+    }
+    /** Beside the parent menu, aligned with the parent item; flips left near the edge. */
+    positionSubmenu(menu, parentItem) {
+      const { width, height } = this.viewport();
+      const parentMenu = parentItem.closest('[role="menu"]') ?? parentItem;
+      const parentRect = parentMenu.getBoundingClientRect();
+      const itemRect = parentItem.getBoundingClientRect();
+      const rect = menu.getBoundingClientRect();
+      const padding = parseFloat(getComputedStyle(menu).paddingTop) || 0;
+      let left = parentRect.right - SUBMENU_OVERLAP;
+      if (left + rect.width > width - VIEWPORT_MARGIN) {
+        left = parentRect.left - rect.width + SUBMENU_OVERLAP;
+      }
+      let top = itemRect.top - padding;
+      if (top + rect.height > height - VIEWPORT_MARGIN) {
+        top = height - VIEWPORT_MARGIN - rect.height;
+      }
+      left = Math.max(VIEWPORT_MARGIN, left);
+      top = Math.max(VIEWPORT_MARGIN, top);
+      menu.style.left = `${Math.round(left)}px`;
+      menu.style.top = `${Math.round(top)}px`;
+    }
+    handlePointerMove(e, item, level) {
+      const point = { x: e.clientX, y: e.clientY };
+      const previous = this.lastMouse;
+      this.lastMouse = point;
+      if (this.openPoint && Math.hypot(point.x - this.openPoint.x, point.y - this.openPoint.y) > RELEASE_MOVE_THRESHOLD) {
+        this.pointerMovedSinceOpen = true;
+      }
+      if (this.hoveredItem === item) return;
+      this.hoveredItem = item;
+      const levelIndex = this.levels.indexOf(level);
+      const child = this.levels[levelIndex + 1];
+      if (child && child.parentItem !== item && previous && this.isHeadingTo(previous, point, child.element)) {
+        this.scheduleSubmenu(() => {
+          if (this.hoveredItem === item) this.hoverItem(item, level);
+        }, SUBMENU_SWITCH_DELAY);
+        return;
+      }
+      this.hoverItem(item, level);
+    }
+    isHeadingTo(from, to, submenu) {
+      const rect = submenu.getBoundingClientRect();
+      const edgeX = rect.left >= from.x ? rect.left : rect.right;
+      return pointInTriangle(to, from, { x: edgeX, y: rect.top }, { x: edgeX, y: rect.bottom });
+    }
+    hoverItem(item, level) {
+      this.clearSubmenuTimer();
+      const levelIndex = this.levels.indexOf(level);
+      if (levelIndex < 0) return;
+      item.focus({ preventScroll: true });
+      const child = this.levels[levelIndex + 1];
+      if (child && child.parentItem !== item) {
+        this.closeLevelsAfter(levelIndex);
+      }
+      const entry = level.entries.get(item);
+      if ((entry == null ? void 0 : entry.type) === "submenu" && !(child && child.parentItem === item)) {
+        this.scheduleSubmenu(() => {
+          if (this.hoveredItem === item) void this.openSubmenu(item, level, false);
+        }, SUBMENU_OPEN_DELAY);
+      }
+    }
+    scheduleSubmenu(callback, delay) {
+      this.clearSubmenuTimer();
+      this.submenuTimer = setTimeout(() => {
+        this.submenuTimer = null;
+        callback();
+      }, delay);
+    }
+    clearSubmenuTimer() {
+      if (this.submenuTimer) {
+        clearTimeout(this.submenuTimer);
+        this.submenuTimer = null;
+      }
+    }
+    closeLevelsAfter(levelIndex) {
+      this.submenuToken++;
+      while (this.levels.length > levelIndex + 1) {
+        const level = this.levels.pop();
+        if (level) this.removeLevel(level);
+      }
+    }
+    async openSubmenu(item, level, focusFirst) {
+      const entry = level.entries.get(item);
+      if (!entry || entry.type !== "submenu") return;
+      const levelIndex = this.levels.indexOf(level);
+      if (levelIndex < 0) return;
+      const existing = this.levels[levelIndex + 1];
+      if (existing && existing.parentItem === item) {
+        if (focusFirst) this.focusItem(existing, this.checkedIndex(existing));
+        return;
+      }
+      this.closeLevelsAfter(levelIndex);
+      const token = ++this.submenuToken;
+      const children = entry.children ? await entry.children() : [];
+      if (token !== this.submenuToken || !this.levels.includes(level) || !item.isConnected) return;
+      const list = children.length > 0 ? children : [
+        {
+          id: `${entry.id}-empty`,
+          type: "action",
+          label: entry.emptyLabel ?? "",
+          disabled: true
+        }
+      ];
+      const submenu = this.createLevel(list, entry.label ?? "", item);
+      item.setAttribute("aria-expanded", "true");
+      item.setAttribute("aria-controls", submenu.element.id);
+      this.levels.push(submenu);
+      this.showLevel(submenu);
+      this.positionSubmenu(submenu.element, item);
+      if (focusFirst) {
+        if (submenu.items.length > 0) {
+          this.focusItem(submenu, this.checkedIndex(submenu));
+        } else {
+          submenu.element.focus({ preventScroll: true });
+        }
+      }
+    }
+    checkedIndex(level) {
+      const index = level.items.findIndex((item) => item.getAttribute("aria-checked") === "true");
+      return index >= 0 ? index : 0;
+    }
+    focusItem(level, index) {
+      var _a;
+      const item = level.items[index];
+      if (item) {
+        this.hoveredItem = null;
+        item.focus({ preventScroll: true });
+        (_a = item.scrollIntoView) == null ? void 0 : _a.call(item, { block: "nearest" });
+      }
+    }
+    activate(item, level) {
+      var _a;
+      const entry = level.entries.get(item);
+      if (!entry || entry.disabled) return;
+      if (entry.type === "submenu") {
+        void this.openSubmenu(item, level, true);
+        return;
+      }
+      this.close(true);
+      (_a = entry.run) == null ? void 0 : _a.call(entry);
+    }
+    handleKeydown(e, level) {
+      var _a;
+      const levelIndex = this.levels.indexOf(level);
+      if (levelIndex < 0) return;
+      const items = level.items;
+      const current = items.indexOf(document.activeElement);
+      const last = items.length - 1;
+      let handled = true;
+      switch (e.key) {
+        case "ArrowDown":
+          this.focusItem(level, current < 0 || current >= last ? 0 : current + 1);
+          break;
+        case "ArrowUp":
+          this.focusItem(level, current <= 0 ? last : current - 1);
+          break;
+        case "Home":
+          this.focusItem(level, 0);
+          break;
+        case "End":
+          this.focusItem(level, last);
+          break;
+        case "ArrowRight": {
+          const item = items[current];
+          if (item && ((_a = level.entries.get(item)) == null ? void 0 : _a.type) === "submenu") {
+            void this.openSubmenu(item, level, true);
+          }
+          break;
+        }
+        case "ArrowLeft":
+          if (levelIndex > 0) this.closeLevel(levelIndex);
+          break;
+        case "Escape":
+          if (levelIndex > 0) {
+            this.closeLevel(levelIndex);
+          } else {
+            this.close(true);
+          }
+          break;
+        case "Enter":
+        case " ": {
+          const item = items[current];
+          if (item) this.activate(item, level);
+          break;
+        }
+        case "Tab":
+          this.close(true);
+          break;
+        default:
+          handled = this.handleTypeahead(e, level, current);
+      }
+      if (handled) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+    closeLevel(levelIndex) {
+      var _a;
+      const parentItem = ((_a = this.levels[levelIndex]) == null ? void 0 : _a.parentItem) ?? null;
+      this.closeLevelsAfter(levelIndex - 1);
+      parentItem == null ? void 0 : parentItem.focus({ preventScroll: true });
+    }
+    handleTypeahead(e, level, current) {
+      var _a, _b, _c;
+      if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey || e.key === " ") return false;
+      this.typeahead += e.key.toLocaleLowerCase();
+      if (this.typeaheadTimer) clearTimeout(this.typeaheadTimer);
+      this.typeaheadTimer = setTimeout(() => {
+        this.typeahead = "";
+      }, TYPEAHEAD_RESET);
+      const items = level.items;
+      const start = this.typeahead.length === 1 ? current + 1 : Math.max(current, 0);
+      for (let offset = 0; offset < items.length; offset++) {
+        const index = (start + offset) % items.length;
+        const text = (_c = (_b = (_a = items[index]) == null ? void 0 : _a.querySelector(`.${this.prefix}-context-menu-label`)) == null ? void 0 : _b.textContent) == null ? void 0 : _c.trim().toLocaleLowerCase();
+        if (text == null ? void 0 : text.startsWith(this.typeahead)) {
+          this.focusItem(level, index);
+          break;
+        }
+      }
+      return true;
     }
   };
 
@@ -20737,29 +21907,6 @@
     get prefix() {
       return this.player.options.classPrefix;
     }
-    /**
-     * Turn a raw KeyboardEvent.key value into a human-readable label. Arrow
-     * keys become universally understood glyphs; the space bar and single
-     * letters are normalised for legibility.
-     */
-    formatKey(key) {
-      switch (key) {
-        case " ":
-          return i18n.t("help.keys.space");
-        case "ArrowUp":
-          return "↑";
-        case "ArrowDown":
-          return "↓";
-        case "ArrowLeft":
-          return "←";
-        case "ArrowRight":
-          return "→";
-        case "Escape":
-          return "Esc";
-        default:
-          return key.length === 1 ? key.toUpperCase() : key;
-      }
-    }
     createElement() {
       const titleId = `${this.prefix}-help-title-${this.player.instanceId}`;
       const overlay = DOMUtils.createElement("div", {
@@ -20950,7 +22097,7 @@
           desc.appendChild(
             DOMUtils.createElement("kbd", {
               className: `${this.prefix}-help-key`,
-              textContent: this.formatKey(key)
+              textContent: formatShortcutKey(key)
             })
           );
         });
@@ -21131,6 +22278,7 @@
       __publicField(this, "controlBar", null);
       __publicField(this, "captionManager", null);
       __publicField(this, "keyboardManager", null);
+      __publicField(this, "contextMenuManager", null);
       __publicField(this, "mediaSessionManager", null);
       __publicField(this, "transcriptManager", null);
       __publicField(this, "playlistManager", null);
@@ -21325,6 +22473,7 @@
         transcriptButton: true,
         fullscreenButton: true,
         helpButton: true,
+        contextMenu: true,
         pipButton: false,
         floating: false,
         floatingPosition: "bottom-right",
@@ -21770,6 +22919,7 @@
         if (this.options.controls) {
           this.controlBar = new ControlBar(this);
           (_b = this.videoWrapper) == null ? void 0 : _b.appendChild(this.controlBar.element);
+          this.contextMenuManager = new ContextMenuManager(this);
         }
         if (this.options.captions) {
           this.captionManager = new CaptionManager(this);
@@ -23338,6 +24488,13 @@
       }
       return false;
     }
+    /**
+     * Whether right-click on the player opens the VidPly context menu. Checked
+     * on every `contextmenu` event because playlists switch renderers.
+     */
+    isContextMenuActive() {
+      return Boolean(this.options.controls) && this.options.contextMenu !== false && this.options.contextMenu !== "native" && Boolean(this.controlBar) && !this.shouldHideVidplyControls();
+    }
     _pendingEmbedRendererType() {
       if (this.options.externalEmbedRenderer && EXTERNAL_CONTROL_RENDERERS.has(this.options.externalEmbedRenderer)) {
         return this.options.externalEmbedRenderer;
@@ -24120,6 +25277,10 @@
       }
       if (this.keyboardManager) {
         this.keyboardManager.destroy();
+      }
+      if (this.contextMenuManager) {
+        this.contextMenuManager.destroy();
+        this.contextMenuManager = null;
       }
       if (this.transcriptManager) {
         this.transcriptManager.destroy();

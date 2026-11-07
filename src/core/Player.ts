@@ -8,6 +8,7 @@ import { DOMUtils } from '../utils/DOMUtils.js';
 import { ControlBar } from '../controls/ControlBar.js';
 import { CaptionManager } from '../controls/CaptionManager.js';
 import { KeyboardManager } from '../controls/KeyboardManager.js';
+import { ContextMenuManager } from '../controls/ContextMenuManager.js';
 import { MediaSessionManager } from './MediaSessionManager.js';
 import { HTML5Renderer } from '../renderers/HTML5Renderer.js';
 import { createPlayOverlay } from '../icons/Icons.js';
@@ -244,6 +245,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
   controlBar: ControlBar | null = null;
   captionManager: CaptionManager | null = null;
   keyboardManager: KeyboardManager | null = null;
+  contextMenuManager: ContextMenuManager | null = null;
   mediaSessionManager: MediaSessionManager | null = null;
   transcriptManager: TranscriptManager | null = null;
   playlistManager: PlaylistManager | null = null;
@@ -470,6 +472,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       transcriptButton: true,
       fullscreenButton: true,
       helpButton: true,
+      contextMenu: true,
       pipButton: false,
       floating: false,
       floatingPosition: 'bottom-right',
@@ -936,6 +939,7 @@ export class Player extends EventEmitter<PlayerEventMap> {
       if (this.options.controls) {
         this.controlBar = new ControlBar(this);
         this.videoWrapper?.appendChild(this.controlBar.element);
+        this.contextMenuManager = new ContextMenuManager(this);
       }
 
       // Initialize captions
@@ -3022,6 +3026,20 @@ export class Player extends EventEmitter<PlayerEventMap> {
     return false;
   }
 
+  /**
+   * Whether right-click on the player opens the VidPly context menu. Checked
+   * on every `contextmenu` event because playlists switch renderers.
+   */
+  isContextMenuActive(): boolean {
+    return (
+      Boolean(this.options.controls) &&
+      this.options.contextMenu !== false &&
+      this.options.contextMenu !== 'native' &&
+      Boolean(this.controlBar) &&
+      !this.shouldHideVidplyControls()
+    );
+  }
+
   _pendingEmbedRendererType(): RendererType | null {
     if (
       this.options.externalEmbedRenderer &&
@@ -4011,6 +4029,11 @@ export class Player extends EventEmitter<PlayerEventMap> {
 
     if (this.keyboardManager) {
       this.keyboardManager.destroy();
+    }
+
+    if (this.contextMenuManager) {
+      this.contextMenuManager.destroy();
+      this.contextMenuManager = null;
     }
 
     if (this.transcriptManager) {

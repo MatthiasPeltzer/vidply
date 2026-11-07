@@ -40,7 +40,7 @@ interface SpeedMenuOptions {
     player: Player;
     button: HTMLElement;
     currentSpeed: number;
-    speeds?: number[];
+    speeds?: readonly number[];
     onSpeedChange: (value: number) => void;
     insertIntoDOM?: ((menu: HTMLElement, button: HTMLElement) => void) | null;
     positionMenu?: ((menu: HTMLElement, button: HTMLElement, initial?: boolean) => void) | null;

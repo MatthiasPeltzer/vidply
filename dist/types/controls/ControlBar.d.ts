@@ -327,6 +327,12 @@ export declare class ControlBar {
     updateQualityIndicator(): void;
     setupAutoHide(): void;
     createOverflowMenuButton(): HTMLButtonElement;
+    /**
+     * Click a control-bar button even while it is collapsed into the overflow
+     * menu. Popups such as the caption style panel position against the
+     * button, so it is kept in layout (but invisible) while they open.
+     */
+    activateControl(btn: HTMLElement): void;
     showOverflowMenu(button: HTMLElement): void;
     /**
      * Re-evaluate which buttons fit in the right-side area and which need to

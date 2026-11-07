@@ -276,5 +276,21 @@ export const ja = {
   trackInfo: {
     descriptionShow: '説明を表示',
     descriptionHide: '説明を非表示'
+  },
+  contextMenu: {
+    label: 'プレーヤーメニュー',
+    loop: 'ループ再生',
+    signLanguageMainView: 'メイン動画に手話を表示',
+    moreStyleOptions: 'その他のオプション',
+    colors: {
+      white: '白',
+      yellow: '黄',
+      green: '緑',
+      cyan: 'シアン',
+      blue: '青',
+      magenta: 'マゼンタ',
+      red: '赤',
+      black: '黒'
+    }
   }
 };
