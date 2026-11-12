@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Player context menu (`contextMenu` option, on by default; `false` or `'native'` keeps the browser menu). Right-click, the Menu key or Shift+F10 open a menu with the control bar's functions — play/pause, restart, seeking, go live, previous/next, mute, loop, captions / chapters / speed / quality submenus, caption styling, transcript, audio description, sign language, playlist, floating player / PiP, fullscreen, download, provider link and keyboard help. Only available functions are listed; shortcut hints match the configured keys.
+- The menu looks and behaves like a native menu: system font and OS light/dark colours, top-layer popover, opens at the pointer and flips at the viewport edge, hover-intent submenus, single instance per page.
+- Shift + right-click with a mouse, touch / pen long-press, text fields, links and selected text keep the browser menu.
+- Caption styling in the context menu is a submenu (font size, font, text colour, background, opacity presets) with "More options…" for the full dialog.
+
+### Fixed
+
+- Chapters menu (control bar and context menu) uses the chapters track in the player language instead of always the first one, and the context menu waits for its cues instead of showing "Loading chapters".
+
+### Accessibility
+
+- Context menu uses `menu` / `menuitem` / `menuitemcheckbox` / `menuitemradio` roles, `aria-haspopup` / `aria-expanded` / `aria-controls` on submenu items and `aria-keyshortcuts`; full keyboard model (arrows with wrap, Home/End, Right/Left for submenus, Enter/Space, Escape per level, Tab, type-ahead); focus returns to the player; forced-colors and reduced-motion support.
+
+### Tests
+
+- Unit tests for menu entries, open/pass-through rules, positioning and keyboard model; Playwright e2e for mouse, Menu key, Shift+F10, submenus and an axe check with the menu open.
+
 ## [1.2.26] - 2026-11-06
 
 ### Changed
