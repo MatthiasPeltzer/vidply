@@ -1111,7 +1111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release of the vidply accessible media player.
 
 [1.2.27]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.26...v1.2.27
-[1.2.26]: ttps://github.com/MatthiasPeltzer/vidply/compare/v1.2.25...v1.2.26
+[1.2.26]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.25...v1.2.26
 [1.2.25]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.24...v1.2.25
 [1.2.24]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.23...v1.2.24
 [1.2.23]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.22...v1.2.23
