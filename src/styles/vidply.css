@@ -2311,12 +2311,13 @@ a.vidply-button {
 
 /* Control button icons - add backgrounds only in forced-colors mode (high contrast, color inversion) */
 @media (forced-colors: active) {
+  /* Keep system foreground/background paired despite theme hover rules (WCAG 1.4.11). */
   .vidply-controls button .vidply-icon svg,
   .vidply-controls a.vidply-button .vidply-icon svg {
     background: Canvas;
     border-radius: 0.1875rem;
     color: CanvasText;
-    fill: currentcolor;
+    fill: currentcolor !important;
     padding: 0.125rem;
   }
 
@@ -2327,8 +2328,12 @@ a.vidply-button {
     background: Canvas;
     border-radius: 0.125rem;
     color: CanvasText;
-    fill: currentcolor;
+    fill: currentcolor !important;
     padding: 0.125rem;
+  }
+
+  .vidply-icon-ad-fg {
+    fill: Canvas !important;
   }
 }
 
