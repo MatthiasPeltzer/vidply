@@ -989,7 +989,7 @@
       "format": "esm"
     },
     "src/renderers/DASHRenderer.ts": {
-      "bytes": 40258,
+      "bytes": 41365,
       "imports": [
         {
           "path": "src/utils/ScriptLoader.ts",
@@ -1309,7 +1309,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1761046
+      "bytes": 1762658
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1440,7 +1440,7 @@
           "bytesInOutput": 37466
         },
         "src/renderers/DASHRenderer.ts": {
-          "bytesInOutput": 39563
+          "bytesInOutput": 40880
         },
         "src/renderers/SoundCloudRenderer.ts": {
           "bytesInOutput": 14735
@@ -1515,7 +1515,7 @@
           "bytesInOutput": 5473
         }
       },
-      "bytes": 1075954
+      "bytes": 1077271
     }
   }
 }

@@ -32,6 +32,10 @@ var DASHRenderer = class {
   // Deferred 'ready' handler from updateCaptionButtonsForStreaming, removed on
   // destroy if it never fired.
   _pendingReadyHandler;
+  /** Last quality count announced via dashmanifestparsed (re-emit when reps grow). */
+  _dashLastEmittedQualityCount = -1;
+  /** Bumped on destroy / re-init so delayed quality probes no-op. */
+  _dashQualityProbeToken = 0;
   constructor(player) {
     this.player = player;
     this.media = player.element;
@@ -195,6 +199,37 @@ var DASHRenderer = class {
     this._pendingTimeouts.push(id);
     return id;
   }
+  /**
+   * dash.js often exposes a single video representation right after STREAM_INITIALIZED;
+   * later reps power the quality menu — re-emit dashmanifestparsed when the count grows.
+   */
+  _probeDashQualitiesAndEmit() {
+    const qualities = this.getQualities();
+    const count = qualities.length;
+    if (count === 0) {
+      return 0;
+    }
+    if (count !== this._dashLastEmittedQualityCount) {
+      this._dashLastEmittedQualityCount = count;
+      this.player.emit("dashmanifestparsed", { qualities });
+    }
+    return count;
+  }
+  _scheduleDashQualityProbes() {
+    const token = ++this._dashQualityProbeToken;
+    const delays = [300, 800, 1500, 3e3, 5e3, 8e3];
+    for (const delay of delays) {
+      this._setTimeout(() => {
+        if (token !== this._dashQualityProbeToken) {
+          return;
+        }
+        const count = this._probeDashQualitiesAndEmit();
+        if (count > 1) {
+          this._dashQualityProbeToken++;
+        }
+      }, delay);
+    }
+  }
   attachDashEvents() {
     const dashjs = window.dashjs;
     const dash = this.dash;
@@ -247,12 +282,7 @@ var DASHRenderer = class {
       this.player.log("DASH stream initialized");
       this.player.emit("dashstreaminitialized");
       this.player.liveStreamManager?.evaluateDash(this.dash);
-      this._setTimeout(() => {
-        const qualities = this.getQualities();
-        if (qualities.length > 0) {
-          this.player.emit("dashmanifestparsed", { qualities });
-        }
-      }, 300);
+      this._scheduleDashQualityProbes();
     });
     dash.on(dashEvents.ERROR, (...args) => {
       this.handleDashError(args[0]);
@@ -928,6 +958,7 @@ var DASHRenderer = class {
     }
   }
   destroy() {
+    this._dashQualityProbeToken++;
     this._pendingTimeouts.forEach((id) => clearTimeout(id));
     this._pendingTimeouts = [];
     this._stopCueUpdatePolling();
@@ -977,4 +1008,4 @@ var DASHRenderer = class {
 export {
   DASHRenderer
 };
-//# sourceMappingURL=vidply.DASHRenderer-VS55AL65.js.map
+//# sourceMappingURL=vidply.DASHRenderer-A56D2YTD.js.map

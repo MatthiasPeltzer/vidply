@@ -235,6 +235,41 @@ describe('DASHRenderer', () => {
       );
     });
 
+    it('re-emits dashmanifestparsed when video representation count increases', () => {
+      const streamCall = mockDashInstance.on.mock.calls.find(
+        (call) => call[0] === window.dashjs.MediaPlayer.events.STREAM_INITIALIZED
+      );
+      const onStreamInitialized = streamCall[1];
+      mockPlayer.emit.mockClear();
+
+      mockDashInstance.getRepresentationsByType.mockReturnValue([
+        { id: 'v0', height: 312, width: 426, bandwidth: 400000 }
+      ]);
+      onStreamInitialized();
+      vi.advanceTimersByTime(300);
+      expect(mockPlayer.emit).toHaveBeenCalledWith(
+        'dashmanifestparsed',
+        expect.objectContaining({ qualities: expect.any(Array) })
+      );
+      expect(mockPlayer.emit.mock.calls.find((c) => c[0] === 'dashmanifestparsed')[1].qualities).toHaveLength(1);
+
+      mockDashInstance.getRepresentationsByType.mockReturnValue([
+        { id: 'v0', height: 312, width: 426, bandwidth: 400000 },
+        { id: 'v1', height: 470, width: 640, bandwidth: 800000 },
+        { id: 'v2', height: 720, width: 980, bandwidth: 1500000 }
+      ]);
+      mockPlayer.emit.mockClear();
+      onStreamInitialized();
+      vi.advanceTimersByTime(300);
+      expect(mockPlayer.emit).toHaveBeenCalledWith(
+        'dashmanifestparsed',
+        expect.objectContaining({
+          qualities: expect.arrayContaining([expect.objectContaining({ height: 720 })])
+        })
+      );
+      expect(mockPlayer.emit.mock.calls.find((c) => c[0] === 'dashmanifestparsed')[1].qualities).toHaveLength(3);
+    });
+
     it('should bind FRAGMENT_LOADING_COMPLETED event', () => {
       expect(mockDashInstance.on).toHaveBeenCalledWith(
         window.dashjs.MediaPlayer.events.FRAGMENT_LOADING_COMPLETED,

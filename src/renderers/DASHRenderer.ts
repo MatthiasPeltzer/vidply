@@ -53,6 +53,10 @@ export class DASHRenderer implements Renderer {
   // Deferred 'ready' handler from updateCaptionButtonsForStreaming, removed on
   // destroy if it never fired.
   private _pendingReadyHandler: (() => void) | null;
+  /** Last quality count announced via dashmanifestparsed (re-emit when reps grow). */
+  private _dashLastEmittedQualityCount = -1;
+  /** Bumped on destroy / re-init so delayed quality probes no-op. */
+  private _dashQualityProbeToken = 0;
 
   constructor(player: Player) {
     this.player = player;
@@ -261,6 +265,39 @@ export class DASHRenderer implements Renderer {
     return id;
   }
 
+  /**
+   * dash.js often exposes a single video representation right after STREAM_INITIALIZED;
+   * later reps power the quality menu — re-emit dashmanifestparsed when the count grows.
+   */
+  _probeDashQualitiesAndEmit(): number {
+    const qualities = this.getQualities();
+    const count = qualities.length;
+    if (count === 0) {
+      return 0;
+    }
+    if (count !== this._dashLastEmittedQualityCount) {
+      this._dashLastEmittedQualityCount = count;
+      this.player.emit('dashmanifestparsed', { qualities });
+    }
+    return count;
+  }
+
+  _scheduleDashQualityProbes() {
+    const token = ++this._dashQualityProbeToken;
+    const delays = [300, 800, 1500, 3000, 5000, 8000];
+    for (const delay of delays) {
+      this._setTimeout(() => {
+        if (token !== this._dashQualityProbeToken) {
+          return;
+        }
+        const count = this._probeDashQualitiesAndEmit();
+        if (count > 1) {
+          this._dashQualityProbeToken++;
+        }
+      }, delay);
+    }
+  }
+
   attachDashEvents() {
     const dashjs = window.dashjs;
     const dash = this.dash;
@@ -321,13 +358,7 @@ export class DASHRenderer implements Renderer {
       this.player.log('DASH stream initialized');
       this.player.emit('dashstreaminitialized');
       this.player.liveStreamManager?.evaluateDash(this.dash);
-
-      this._setTimeout(() => {
-        const qualities = this.getQualities();
-        if (qualities.length > 0) {
-          this.player.emit('dashmanifestparsed', { qualities });
-        }
-      }, 300);
+      this._scheduleDashQualityProbes();
     });
 
     dash.on(dashEvents.ERROR, (...args: unknown[]) => {
@@ -1161,6 +1192,7 @@ export class DASHRenderer implements Renderer {
   }
 
   destroy() {
+    this._dashQualityProbeToken++;
     this._pendingTimeouts.forEach((id) => clearTimeout(id));
     this._pendingTimeouts = [];
     this._stopCueUpdatePolling();

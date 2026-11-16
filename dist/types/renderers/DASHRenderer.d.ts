@@ -45,6 +45,10 @@ export declare class DASHRenderer implements Renderer {
     _manifestUrl: string | null;
     private _listenerController;
     private _pendingReadyHandler;
+    /** Last quality count announced via dashmanifestparsed (re-emit when reps grow). */
+    private _dashLastEmittedQualityCount;
+    /** Bumped on destroy / re-init so delayed quality probes no-op. */
+    private _dashQualityProbeToken;
     constructor(player: Player);
     init(): Promise<void>;
     initDashJs(): Promise<void>;
@@ -59,6 +63,12 @@ export declare class DASHRenderer implements Renderer {
      */
     loadDashJs(): Promise<void>;
     _setTimeout(fn: () => void, delay: number): number;
+    /**
+     * dash.js often exposes a single video representation right after STREAM_INITIALIZED;
+     * later reps power the quality menu — re-emit dashmanifestparsed when the count grows.
+     */
+    _probeDashQualitiesAndEmit(): number;
+    _scheduleDashQualityProbes(): void;
     attachDashEvents(): void;
     /**
      * Count total cues across all subtitle/caption tracks (for WebVTT DASH).
