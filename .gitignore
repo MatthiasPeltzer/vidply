@@ -55,6 +55,8 @@ temp/
 .cursor/
 .claude/
 .agents/
+/.github/skills/
+/.github/instructions/ai-kit-*.instructions.md
 AGENTS.md
 CLAUDE.md
 ai-kit.json
