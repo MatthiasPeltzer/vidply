@@ -172,7 +172,7 @@
       "format": "esm"
     },
     "src/controls/ControlBar.ts": {
-      "bytes": 188436,
+      "bytes": 188699,
       "imports": [
         {
           "path": "src/utils/DOMUtils.ts",
@@ -1309,7 +1309,7 @@
       "imports": [],
       "exports": [],
       "inputs": {},
-      "bytes": 1760620
+      "bytes": 1761046
     },
     "dist/legacy/vidply.min.js": {
       "imports": [],
@@ -1452,7 +1452,7 @@
           "bytesInOutput": 127934
         },
         "src/controls/ControlBar.ts": {
-          "bytesInOutput": 163095
+          "bytesInOutput": 163367
         },
         "src/utils/DownloadInfo.ts": {
           "bytesInOutput": 3863
@@ -1515,7 +1515,7 @@
           "bytesInOutput": 5473
         }
       },
-      "bytes": 1075682
+      "bytes": 1075954
     }
   }
 }

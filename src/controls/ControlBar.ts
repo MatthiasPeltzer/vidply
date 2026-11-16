@@ -4608,6 +4608,12 @@ export class ControlBar {
     }
 
     this.controls.qualityText.textContent = currentQualityText;
+
+    if (this.controls.quality) {
+      const baseLabel = i18n.t('player.quality');
+      const compositeLabel = currentQualityText ? `${baseLabel}: ${currentQualityText}` : baseLabel;
+      this.controls.quality.setAttribute('aria-label', compositeLabel);
+    }
   }
 
   setupAutoHide() {

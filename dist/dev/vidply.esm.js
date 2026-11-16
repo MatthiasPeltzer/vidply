@@ -3672,6 +3672,11 @@ var ControlBar = class {
       }
     }
     this.controls.qualityText.textContent = currentQualityText;
+    if (this.controls.quality) {
+      const baseLabel = i18n.t("player.quality");
+      const compositeLabel = currentQualityText ? `${baseLabel}: ${currentQualityText}` : baseLabel;
+      this.controls.quality.setAttribute("aria-label", compositeLabel);
+    }
   }
   setupAutoHide() {
     if (this.player.element.tagName !== "VIDEO") return;
