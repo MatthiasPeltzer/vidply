@@ -251,7 +251,9 @@ describe('DASHRenderer', () => {
         'dashmanifestparsed',
         expect.objectContaining({ qualities: expect.any(Array) })
       );
-      expect(mockPlayer.emit.mock.calls.find((c) => c[0] === 'dashmanifestparsed')[1].qualities).toHaveLength(1);
+      expect(
+        mockPlayer.emit.mock.calls.find((c) => c[0] === 'dashmanifestparsed')[1].qualities
+      ).toHaveLength(1);
 
       mockDashInstance.getRepresentationsByType.mockReturnValue([
         { id: 'v0', height: 312, width: 426, bandwidth: 400000 },
@@ -267,7 +269,9 @@ describe('DASHRenderer', () => {
           qualities: expect.arrayContaining([expect.objectContaining({ height: 720 })])
         })
       );
-      expect(mockPlayer.emit.mock.calls.find((c) => c[0] === 'dashmanifestparsed')[1].qualities).toHaveLength(3);
+      expect(
+        mockPlayer.emit.mock.calls.find((c) => c[0] === 'dashmanifestparsed')[1].qualities
+      ).toHaveLength(3);
     });
 
     it('should bind FRAGMENT_LOADING_COMPLETED event', () => {
