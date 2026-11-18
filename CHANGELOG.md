@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.2.29] - 2026-11-18
+
+- Corrected DASH unit test formatting to restore the CI format check.
+
 ## [1.2.28] - 2026-11-18
 
 ### Fixed
@@ -1119,6 +1125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of the vidply accessible media player.
 
+[1.2.29]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.28...v1.2.29
 [1.2.28]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.27...v1.2.28
 [1.2.27]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.26...v1.2.27
 [1.2.26]: https://github.com/MatthiasPeltzer/vidply/compare/v1.2.25...v1.2.26
